@@ -6,8 +6,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import javax.annotation.Nullable;
+
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -42,7 +45,7 @@ public class Ancestry {
 		String homogeneityDrops = parseHomogeneity(dir, log);
 		mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 		runEigenstrat(dir);
-		imputeRace(dir, proj);
+		imputeRace(dir, proj, log);
 	}
 
 	public static void checkHomogeneity(String dir, String putativeWhitesFile,
@@ -202,24 +205,27 @@ public class Ancestry {
 		}
 	}
 
-	public static void imputeRace(String dir, Project proj) {
+	public static void imputeRace(String dir, @Nullable Project proj, Logger log) {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
 			String[][] pcResults = HashVec.loadFileToStringMatrix(dir
 																														+ "combo_fancy_postnormed_eigens.xln",
 																														true, new int[] {0, 1, 2, 3});
 
-			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
-			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
-			int fidIndex = ext.indexOfStr("FID", sdHeader, false, true);
-			int iidIndex = ext.indexOfStr("IID", sdHeader, false, true);
-			int hapIndex = ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", sdHeader, false, true);
-			if (hapIndex < 0) {
-				proj.getLog().reportError("Cannot impute: no HapMap column in sample data.");
-				proj.getLog()
-						.reportError("Please create a column with header: \"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT\"");
+			String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
+			if (hapMapAncestries == null) {
+				log.reportError("Cannot impute race without the HapMap ancestries resource");
 				return;
 			}
-			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd,
+			String[] ancestriesHeader = Files.getHeaderOfFile(hapMapAncestries, log);
+			int fidIndex = ext.indexOfStr("FID", ancestriesHeader, false, true);
+			int iidIndex = ext.indexOfStr("IID", ancestriesHeader, false, true);
+			int hapIndex = ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", ancestriesHeader, false,
+																		true);
+			if (hapIndex < 0) {
+				log.reportError("Cannot impute: malformed HapMap ancestries resource: " + hapMapAncestries);
+				return;
+			}
+			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(hapMapAncestries,
 																																												fidIndex,
 																																												iidIndex,
 																																												hapIndex,
@@ -234,9 +240,6 @@ public class Ancestry {
 
 
 				Map<String, String> iidTable = hapmaps.get(pcResults[i][0]);
-				if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
-					continue;
-				}
 				String fid = pcResults[i][0];
 				String iid = pcResults[i][1];
 				double pc1;
@@ -254,42 +257,43 @@ public class Ancestry {
 
 				PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
 				samples.add(sample);
-				try {
-					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
-					switch (race) {
-						case 1:
-							europeans.add(sample);
-							break;
-						case 2:
-							africans.add(sample);
-							break;
-						case 3:
-						case 4:
-							asians.add(sample);
-							break;
-						default:
-							break;
+				if (iidTable != null && iidTable.containsKey(pcResults[i][1])) {
+					try {
+						int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
+						switch (race) {
+							case 1:
+								europeans.add(sample);
+								break;
+							case 2:
+								africans.add(sample);
+								break;
+							case 3:
+							case 4:
+								asians.add(sample);
+								break;
+							default:
+								break;
+						}
+					} catch (NumberFormatException nfe) {
+						// For non hap-map samples, don't add to a race set
 					}
-				} catch (NumberFormatException nfe) {
-					// For non hap-map samples, don't add to a race set
 				}
 			}
 
-			PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians,
-																					 proj.getLog());
+			PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians, log);
 			pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
 		} else {
-			proj.getLog().reportTimeWarning("Skipping imputation - output already exists: "
-																			+ (dir + RACE_IMPUTATIONAS_FILENAME));
+			log.reportTimeWarning("Skipping imputation - output already exists: "
+														+ (dir + RACE_IMPUTATIONAS_FILENAME));
 		}
 
 		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
 			PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
-															 dir + RACE_FREQS_FILENAME, proj.getLog());
+															 dir + RACE_FREQS_FILENAME, log);
 		}
 		{
-			proj.getLog().reportTimeWarning("Skipping race freq calculation - output already exists: "
-																			+ (dir + RACE_FREQS_FILENAME));
+			log.reportTimeWarning("Skipping race freq calculation - output already exists: "
+														+ (dir + RACE_FREQS_FILENAME));
 		}
 
 	}
@@ -311,18 +315,19 @@ public class Ancestry {
 
 		String usage = "\n" + "gwas.Ancestry requires 3+ arguments\n"
 									 + "   (1) Run directory with plink.* files and "
-									 + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir
-									 + " (default))\n"
+									 + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir + " (default))\n"
 									 + "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
-									 + hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="
-									 + "ancestry.log" + " (default))\n" + "  AND\n"
+									 + hapMapPlinkRoot + " (default))\n"
+									 + "   (3) Logfile (i.e. log=" + "ancestry.log" + " (default))\n"
+									 + "  AND\n"
 									 + "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))\n"
 									 + "  OR\n"
 									 + "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))\n"
 									 + "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n"
 									 + "  OR\n"
 									 + "   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))\n"
-									 + "  OR\n" + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
+									 + "  OR\n"
+									 + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
 									 + "   (9) Project properties file (i.e. proj=example.properties (not the default))\n"
 									 + "";
 
@@ -384,12 +389,7 @@ public class Ancestry {
 				mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 				runEigenstrat(dir);
 			} else if (imputeRace) {
-				if (proj == null) {
-					System.err.println("Project required for race imputation");
-					System.err.println(usage);
-					System.exit(1);
-				}
-				imputeRace(dir, proj);
+				imputeRace(dir, proj, log);
 			} else {
 				System.err.println(usage);
 				System.exit(1);

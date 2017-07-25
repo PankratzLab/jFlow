@@ -1054,6 +1054,9 @@ public class GenvisisWorkflow {
 			final RequirementSet reqSet = RequirementSetBuilder.and()
 																												 .add(gwasQCStepReq).add(putativeWhitesReq)
 																												 .add(hapMapFoundersReq);
+			final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
+																																																		Resources.hapMap(log)
+																																																						 .getHapMapAncestries());
 
 			return register(new Step("Run Ancestry Checks", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
@@ -1068,6 +1071,7 @@ public class GenvisisWorkflow {
 				public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
 					String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
+					hapMapAncestryReq.getResource().get();
 					String ancestryDir = getAncestryDir();
 					Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
 															 new Logger(ancestryDir + "ancestry.log"));
@@ -1077,7 +1081,7 @@ public class GenvisisWorkflow {
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 					String putativeWhites = variables.get(this).get(putativeWhitesReq);
 					String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
-
+					hapMapAncestryReq.getResource().get();
 					String ancestryDir = getAncestryDir();
 					String command = Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
 					command += " putativeWhites=" + putativeWhites;

@@ -499,6 +499,15 @@ public final class Resources {
 			return getTarGzResource(indicators, plinkroot);
 		}
 
+		/**
+		 * 
+		 * @return text file of HapMap sample FID/IIDs and ancestry, formatted for addition to Sample
+		 *         Data as class
+		 */
+		public Resource getHapMapAncestries() {
+			return getResource("HapMapAncestries.txt");
+		}
+
 	}
 
 	/**

@@ -198,18 +198,17 @@ public class PCImputeRace {
 
 		log.report("Writing Results");
 
-		SampleData sampleData = proj.getSampleData(false);
-
-		Map<String, String> dataToAdd = Maps.newHashMap();
-		for (Sample sample : samples) {
-			dataToAdd.put(sampleData.lookup(sample.getFidIid())[0],
-										Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
-																				 pctsAfrican.get(sample), pctsAsian.get(sample),
-																				 pctsEuropean.get(sample)));
+		if (proj != null) {
+			SampleData sampleData = proj.getSampleData(false);
+			Map<String, String> dataToAdd = Maps.newHashMap();
+			for (Sample sample : samples) {
+				dataToAdd.put(sampleData.lookup(sample.getFidIid())[0],
+											Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
+																					 pctsAfrican.get(sample), pctsAsian.get(sample),
+																					 pctsEuropean.get(sample)));
+			}
+			sampleData.addData(dataToAdd, "DNA", IMPUTED_RACE_SAMPLE_DATA_HEADERS, ".", "\t", log);
 		}
-
-
-		sampleData.addData(dataToAdd, "DNA", IMPUTED_RACE_SAMPLE_DATA_HEADERS, ".", "\t", log);
 
 		writer = Files.getAppropriateWriter(outFile);
 		writer.println(ArrayUtils.toStr(CORRECTED_PCS_HEADER));
