@@ -84,7 +84,7 @@ import net.miginfocom.swing.MigLayout;
 import org.genvisis.CLI;
 import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -2036,17 +2036,15 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(
-																																 proj == null ? null
-																																						 : proj.getSamples(),
-																																 proj == null
-																																						 ? null
-																																						 : proj.PROJECT_DIRECTORY.getValue(),
-																																 true);
-				newRgnList.setModal(true);
-				newRgnList.setVisible(true);
-				if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
-					String rgnFile = newRgnList.getFileName();
+				ListEditor le = ListEditor.createRegionListCreator(proj == null ? null : proj.getSamples(),
+																													 proj == null
+																																			 ? null
+																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																													 true);
+				le.setModal(true);
+				le.setVisible(true);
+				if (le.getReturnCode() == JOptionPane.YES_OPTION) {
+					String rgnFile = le.getFileName();
 					addFileToList(rgnFile);
 					String file = ext.verifyDirFormat(rgnFile);
 					file = file.substring(0, file.length() - 1);

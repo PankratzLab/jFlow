@@ -44,8 +44,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.gui.CompConfig;
 import org.genvisis.cnv.gui.FileNavigator;
+import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.gui.MedianLRRWidget;
-import org.genvisis.cnv.gui.NewRegionListDialog;
 import org.genvisis.cnv.gui.RegionNavigator;
 import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
 import org.genvisis.cnv.gui.UITools;
@@ -170,7 +170,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					String message = currSet.size() + " files have been added.  ";
 					int choice = JOptionPane.showOptionDialog(null,
 																										message
-																													+ " Would you like to keep this configuration for the next time CompPlot is loaded?",
+																												+ " Would you like to keep this configuration for the next time CompPlot is loaded?",
 																										"Preserve CompPlot workspace?",
 																										JOptionPane.YES_NO_CANCEL_OPTION,
 																										JOptionPane.QUESTION_MESSAGE, null, null, null);
@@ -329,14 +329,15 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(null,
-																																 proj == null ? null
-																																							: proj.PROJECT_DIRECTORY.getValue(),
-																																 false);
-				newRgnList.setModal(true);
-				newRgnList.setVisible(true);
-				if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
-					final String rgnFile = newRgnList.getFileName();
+				ListEditor le = ListEditor.createRegionListCreator(null,
+																													 proj == null
+																																			 ? null
+																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																													 false);
+				le.setModal(true);
+				le.setVisible(true);
+				if (le.getReturnCode() == JOptionPane.YES_OPTION) {
+					final String rgnFile = le.getFileName();
 					addFileToList(rgnFile);
 					final JMenuItem remove = new JMenuItem();
 					remove.setAction(deleteFileAction);
@@ -617,7 +618,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					if (!deleted) {
 						JOptionPane.showMessageDialog(CompPlot.this,
 																					"Error - failed to delete file {" + e.getActionCommand()
-																												 + "}",
+																							+ "}",
 																					"Delete File Failed...", JOptionPane.ERROR_MESSAGE);
 					}
 					break;
@@ -714,11 +715,13 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
 
 	private String chooseNewFiles() {
-		JFileChooser jfc = new JFileChooser((proj != null /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
-																											: null /*
-																														  * ext.parseDirectoryOfFile(
-																														  * regionFileName)
-																														  */));
+		JFileChooser jfc = new JFileChooser(
+																				(proj != null
+																										 /* || regionFileName == null */? proj.PROJECT_DIRECTORY.getValue()
+																										 : null /*
+																														 * ext.parseDirectoryOfFile(
+																														 * regionFileName)
+																														 */));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(CompPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();

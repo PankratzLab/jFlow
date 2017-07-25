@@ -102,7 +102,7 @@ import org.genvisis.cnv.gui.AutoSaveForScatterPlot;
 import org.genvisis.cnv.gui.BlastFrame;
 import org.genvisis.cnv.gui.ColorKeyPanel;
 import org.genvisis.cnv.gui.CycleRadio;
-import org.genvisis.cnv.gui.NewMarkerListDialog;
+import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.PlinkMarkerLoader;
@@ -707,13 +707,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			displayMendelianErrors[selectedPanelIndex] = mendelianErrorBox.isSelected();
 			updateGUI();
 		} else if (command.equals(NEW_LIST_COMMAND)) {
-			NewMarkerListDialog newMkrList = new NewMarkerListDialog(
-																															 proj.getMarkerNames(),
-																															 proj.getProperty(proj.PROJECT_DIRECTORY));
-			newMkrList.setModal(true);
-			newMkrList.setVisible(true);
-			if (newMkrList.getReturnCode() == JOptionPane.YES_OPTION) {
-				String mkrFile = newMkrList.getFileName();
+			ListEditor le = ListEditor.createMarkerListCreator(proj);
+			le.setModal(true);
+			le.setVisible(true);
+			if (le.getReturnCode() == JOptionPane.YES_OPTION) {
+				String mkrFile = le.getFileName();
 				proj.DISPLAY_MARKERS_FILENAMES.addValue(mkrFile);
 				loadMarkerFile(mkrFile);
 			}

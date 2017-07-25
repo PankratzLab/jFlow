@@ -81,6 +81,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -93,7 +95,7 @@ import org.genvisis.cnv.gui.ClickListener;
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.ColorSequence;
 import org.genvisis.cnv.gui.FileActionMenu;
-import org.genvisis.cnv.gui.NewRegionListDialog;
+import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.gui.RegionNavigator;
 import org.genvisis.cnv.gui.RegionNavigator.ChrNavigator;
 import org.genvisis.cnv.gui.SingleClick;
@@ -134,8 +136,6 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
-
-import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
@@ -1975,17 +1975,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NewRegionListDialog newRgnList = new NewRegionListDialog(
-																																 proj == null ? null
-																																						 : proj.getSamples(),
-																																 proj == null
-																																						 ? null
-																																						 : proj.PROJECT_DIRECTORY.getValue(),
-																																 true);
-				newRgnList.setModal(true);
-				newRgnList.setVisible(true);
-				if (newRgnList.getReturnCode() == JOptionPane.YES_OPTION) {
-					String rgnFile = newRgnList.getFileName();
+				ListEditor le = ListEditor.createRegionListCreator(proj == null ? null : proj.getSamples(),
+																													 proj == null
+																																			 ? null
+																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																													 true);
+				le.setModal(true);
+				le.setVisible(true);
+				if (le.getReturnCode() == JOptionPane.YES_OPTION) {
+					String rgnFile = le.getFileName();
 					addFileToList(rgnFile);
 					String file = ext.verifyDirFormat(rgnFile);
 					file = file.substring(0, file.length() - 1);
@@ -3704,7 +3702,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	}
 
 	private void quantHere(Segment quantSeg, boolean checkAlreadyCalled) {
-		
+
 		int externalCNVs = prepInternalClasses();
 		if (!checkAlreadyCalled || selectedCNV == null
 				|| selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {

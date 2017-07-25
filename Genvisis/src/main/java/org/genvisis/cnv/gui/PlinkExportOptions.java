@@ -30,13 +30,13 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
-
-import net.miginfocom.swing.MigLayout;
 
 public class PlinkExportOptions extends JDialog {
 
@@ -208,12 +208,11 @@ public class PlinkExportOptions extends JDialog {
 					if (arg0.getStateChange() == ItemEvent.SELECTED) {
 						String val = (String) comboBoxTargetMarkers.getSelectedItem();
 						if (NEW_MARKERS_LIST.equals(val)) {
-							NewMarkerListDialog nmld = new NewMarkerListDialog(proj.getMarkerNames(),
-																																 proj.PROJECT_DIRECTORY.getValue());
-							nmld.setModal(true);
-							nmld.setVisible(true);
-							if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
-								String mkrFile = nmld.getFileName();
+							ListEditor le = ListEditor.createMarkerListCreator(proj);
+							le.setModal(true);
+							le.setVisible(true);
+							if (le.getReturnCode() == JOptionPane.YES_OPTION) {
+								String mkrFile = le.getFileName();
 								proj.TARGET_MARKERS_FILENAMES.addValue(mkrFile);
 								comboBoxTargetMarkers.setModel(new DefaultComboBoxModel(getTargetMarkersOptions()));
 								comboBoxTargetMarkers.setSelectedItem(mkrFile);
@@ -458,7 +457,8 @@ public class PlinkExportOptions extends JDialog {
 
 	private String[] getClusterFiltersOptions() {
 		return ArrayUtils.addStrToArray(NO_CLUSTER_FILTERS,
-																		Files.list(proj.DATA_DIRECTORY.getValue(false, true), null,
+																		Files.list(proj.DATA_DIRECTORY.getValue(false, true),
+																							 null,
 																							 ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
 																							 false, proj.JAR_STATUS.getValue()));
 	}
@@ -517,7 +517,7 @@ public class PlinkExportOptions extends JDialog {
 
 	public String[] getFileExtensions() {
 		return rdbtnBinary.isSelected() ? new String[] {".bim", ".bed", ".fam"}
-																		: new String[] {".map", ".ped"};
+																	 : new String[] {".map", ".ped"};
 	}
 
 	public boolean getCancelled() {

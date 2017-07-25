@@ -170,8 +170,7 @@ public class VCFExportOptions extends JDialog {
 					if (arg0.getStateChange() == ItemEvent.SELECTED) {
 						String val = (String) comboBoxTargetMarkers.getSelectedItem();
 						if (NEW_MARKERS_LIST.equals(val)) {
-							NewMarkerListDialog nmld = new NewMarkerListDialog(proj.getMarkerNames(),
-																																 proj.PROJECT_DIRECTORY.getValue());
+							ListEditor nmld = ListEditor.createMarkerListCreator(proj);
 							nmld.setModal(true);
 							nmld.setVisible(true);
 							if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
