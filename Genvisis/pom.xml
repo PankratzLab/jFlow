@@ -29,6 +29,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>Meta</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>edu.stanford.facs</groupId>
 			<artifactId>Logicle</artifactId>
 		</dependency>

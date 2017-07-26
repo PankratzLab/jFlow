@@ -19,7 +19,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -98,12 +98,16 @@ import org.genvisis.common.HttpUpdate;
 import org.genvisis.common.LauncherManifest;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.StartupErrorHandler;
 import org.genvisis.common.StartupValidation;
 import org.genvisis.common.VersionHelper;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
+import org.genvisis.meta.GenvisisVersion;
+import org.genvisis.meta.Info;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -202,24 +206,32 @@ public class Launch extends JFrame implements ActionListener {
 		plotIcons.put(MANHATTAN_PLOT, "images/manhattanPlot1.png");
 
 		// Initialize menu structure.
-		MENUS.put("File",
-							Arrays.asList(new String[] {NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT,
-																					DELETE_PROJECT, EDIT, PREFERENCES, CHECK_FOR_UPDATES,
-																					EXIT}));
-		MENUS.put("Data", Arrays.asList(new String[] {MAP_FILES, GENERATE_MARKER_POSITIONS,
-																									PARSE_FILES_CSV, TRANSPOSE_DATA, PIPELINE}));
+		MENUS.put("File", ImmutableList.of(NEW_PROJECT, IMPORT_PROJECT, SELECT_PROJECT, DELETE_PROJECT,
+																			 EDIT, PREFERENCES, CHECK_FOR_UPDATES, EXIT));
+		MENUS.put("Data", ImmutableList.of(MAP_FILES, GENERATE_MARKER_POSITIONS, PARSE_FILES_CSV,
+																			 TRANSPOSE_DATA, PIPELINE));
 		MENUS.put("Quality",
-							Arrays.asList(new String[] {CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS,
-																					FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
-																					TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS}));
-		MENUS.put("Plots", new ArrayList<String>(plotIcons.keySet()));
+							ImmutableList.of(CHECK_SEX, LRR_SD, CNP_SCAN, MOSAICISM, MARKER_METRICS,
+															 FILTER_MARKER_METRICS, TALLY_MARKER_ANNOTATIONS,
+															 TALLY_WITHOUT_DETERMINING_DROPS, TALLY_CLUSTER_FILTERS));
+		MENUS.put("Plots", ImmutableList.copyOf(plotIcons.keySet()));
 		MENUS.put("Tools",
-							Arrays.asList(new String[] {GENERATE_ABLOOKUP, EXPORT_TO_PLINK, EXPORT_TO_VCF,
-																					GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS,
-																					POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV,
-																					EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,
-																					GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST}));
-		MENUS.put("Help", Arrays.asList(new String[] {"Contents", "Search", "About"}));
+							ImmutableList.of(GENERATE_ABLOOKUP, EXPORT_TO_PLINK, EXPORT_TO_VCF,
+															 GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF,
+															 GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH,
+															 PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA,
+															 TEST));
+		MENUS.put("Help", ImmutableList.of("Contents", "Search", "About"));
+
+		File versionList = new File(Info.VERSIONS_KNOWN_LIST);
+		// If we are running in a native app and the version list exists, create the menu
+		if (Boolean.valueOf(System.getProperty(Info.NATIVE_PROP_KEY, "false"))
+				&& versionList.exists()) {
+			@SuppressWarnings("unchecked")
+			List<GenvisisVersion> versions = (List<GenvisisVersion>) SerializedFiles.readSerial(versionList.getAbsolutePath());
+			MENUS.put("Version",
+								versions.stream().map(GenvisisVersion::menuString).collect(Collectors.toList()));
+		}
 	}
 
 	private transient Project proj;
@@ -304,10 +316,10 @@ public class Launch extends JFrame implements ActionListener {
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
 			JOptionPane.showMessageDialog(null,
 																		"Error - the directory ('"
-																				+ proj.PROJECT_DIRECTORY.getValue()
-																				+ "') for project '"
-																				+ proj.PROJECT_NAME.getValue()
-																				+ "' did not exist; creating now. If this was in error, please edit the property file.",
+																					+ proj.PROJECT_DIRECTORY.getValue()
+																					+ "') for project '"
+																					+ proj.PROJECT_NAME.getValue()
+																					+ "' did not exist; creating now. If this was in error, please edit the property file.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -601,10 +613,15 @@ public class Launch extends JFrame implements ActionListener {
 					}
 				} else {
 					// standard menu item
+					final boolean enabled = !entry.contains(Info.MENU_DISABLED);
+					if (!enabled) {
+						entry = entry.replaceAll(Info.MENU_DISABLED, "");
+					}
+
 					menuItem = new JMenuItem(entry);
+					menuItem.setEnabled(enabled);
 					menuItem.addActionListener(this);
 				}
-
 				menuItem.setMnemonic(getMnemonic(entry, hash));
 				menu.add(menuItem);
 			}
@@ -1069,7 +1086,7 @@ public class Launch extends JFrame implements ActionListener {
 																																									"gc5Base.txt",
 																																									true, false, log),
 																									proj.PROJECT_DIRECTORY.getValue()
-																											+ "data/custom.gcModel",
+																																																		 + "data/custom.gcModel",
 																									100);
 			} else if (command.equals(MARKER_METRICS)) {
 				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
@@ -1142,6 +1159,10 @@ public class Launch extends JFrame implements ActionListener {
 					}
 				});
 
+			} else if (command.startsWith(GenvisisVersion.VERSION_PREFIX)
+								 || Info.LATEST_VER.equalsIgnoreCase(command)) {
+				SerializedFiles.writeSerial(new GenvisisVersion(command), Info.VERSION_TO_LOAD);
+				log.reportTimeInfo(command + " will be loaded on next startup.");
 			} else {
 				log.reportError("Error - unknown command: " + command);
 			}
@@ -1209,8 +1230,8 @@ public class Launch extends JFrame implements ActionListener {
 
 			int delete = JOptionPane.showConfirmDialog(null,
 																								 "<html>Would you like to delete this project properties: "
-																										 + toDelete
-																										 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+																											 + toDelete
+																											 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
 																								 "Delete Project", JOptionPane.WARNING_MESSAGE);
 			if (delete != JOptionPane.YES_OPTION) {
 				return;
@@ -1254,7 +1275,7 @@ public class Launch extends JFrame implements ActionListener {
 			// FIXME this should be unified with the drop down combobox selector
 			for (
 
-			int i = 0; i < projects.size(); i++) {
+					 int i = 0; i < projects.size(); i++) {
 				if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
 					projectsBox.setSelectedIndex(i);
 					log.report("Selecting: " + projects.get(i));
@@ -1441,8 +1462,8 @@ public class Launch extends JFrame implements ActionListener {
 			Files.writeArray(new String[] {
 																		 "PROJECT_NAME=Example",
 																		 "PROJECT_DIRECTORY="
-																				 + LaunchProperties.directoryOfLaunchProperties()
-																				 + "example/",
+																														 + LaunchProperties.directoryOfLaunchProperties()
+																														 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}
