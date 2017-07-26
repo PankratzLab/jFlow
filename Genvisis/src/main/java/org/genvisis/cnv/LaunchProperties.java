@@ -25,13 +25,12 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.meta.Info;
 
 public class LaunchProperties {
 	public static final long serialVersionUID = 1L;
 
-	private static String defaultDir = System.getProperty("user.home")
-																		 + System.getProperty("file.separator") + ".genvisis"
-																		 + System.getProperty("file.separator");
+	private static String defaultDir = Info.GENVISIS_HOME;
 
 	private static String propertiesFile = defaultDir + "launch.properties";
 
