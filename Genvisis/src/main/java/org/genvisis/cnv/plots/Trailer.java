@@ -252,6 +252,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private String currentCentroid;
 	private static final String SEX_CENT = "Sex-Specific";
 	private JMenu loadRecentFileMenu;
+	private JMenu editRegionList;
 	// private JMenuItem launchScatter;
 	// private JMenuItem launchComp;
 	private ButtonGroup regionButtonGroup;
@@ -262,6 +263,17 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	private String[] otherColors;
 	private Hashtable<String, ColorManager<String>> previouslyLoadedManagers;
 	private Thread updateQCThread = null;
+
+	final AbstractAction editFileListener = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			SwingUtilities.invokeLater(() -> {
+				String cmd = e.getActionCommand();
+				editRegionFile(cmd);
+			});
+		}
+	};
+
 	private final AbstractAction markerFileSelectAction = new AbstractAction() {
 		private static final long serialVersionUID = 1L;
 
@@ -816,7 +828,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (Trailer.this.proj != null) {
+				if (Trailer.this.proj != null && regionFileName != null) {
 					ArrayList<String> files = new ArrayList<String>(regionFileNameLoc.values());
 					String[] currSet = Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
 
@@ -1373,10 +1385,20 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		}
 		regionFileNameLoc.put(name, file);
 
+		Font font = new Font("Arial", 0, 12);
+
 		JCheckBoxMenuItem item = new JCheckBoxMenuItem();
+		item.setFont(font);
 		item.setAction(markerFileSelectAction);
 		item.setText(name);
 		item.setSelected(selectFile);
+
+		JMenuItem editItem = new JMenuItem();
+		editItem.setAction(editFileListener);
+		editItem.setActionCommand(file);
+		editItem.setText(name);
+		editItem.setFont(font);
+		editRegionList.add(editItem);
 
 		regionFileNameBtn.put(name, item);
 		regionButtonGroup.add(item);
@@ -2023,6 +2045,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		loadRecentFileMenu.setFont(font);
 		fileMenu.add(loadRecentFileMenu);
 
+		editRegionList = new JMenu("Edit Region List");
+		editRegionList.setMnemonic(KeyEvent.VK_E);
+		editRegionList.setFont(font);
+		fileMenu.add(editRegionList);
+
 		JMenuItem screencap1 = new JMenuItem();
 		screencap1.setAction(screencapAction);
 		screencap1.setMnemonic(KeyEvent.VK_S);
@@ -2145,6 +2172,16 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				regionFileNameBtn.put(name, menuItem);
 				regionButtonGroup.add(menuItem);
 				loadRecentFileMenu.add(menuItem);
+
+				if (found) {
+					JMenuItem editItem = new JMenuItem();
+					editItem.setAction(editFileListener);
+					editItem.setActionCommand(file);
+					editItem.setText(name);
+					editItem.setFont(font);
+					editRegionList.add(editItem);
+				}
+
 			}
 		}
 
@@ -2709,6 +2746,28 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		}
 		return menuBar;
+	}
+
+	protected void editRegionFile(String file) {
+		ListEditor editor = ListEditor.createRegionListEditor(proj == null ? null : proj.getSamples(),
+																													proj == null
+																																			? null
+																																			: proj.PROJECT_DIRECTORY.getValue(),
+																													true, file);
+		editor.setModal(true);
+		editor.setVisible(true);
+
+		if (editor.getReturnCode() == JOptionPane.YES_OPTION) {
+			String fil = editor.getFileName();
+			regionFileName = fil;
+			loadRegions();
+			showRegion(0);
+			String file1 = ext.verifyDirFormat(fil);
+			file1 = file1.substring(0, file1.length() - 1);
+			String name = ext.rootOf(file1);
+			regionFileNameBtn.get(name).setSelected(true);
+		}
+
 	}
 
 	protected void checkTrackPanelVisibility() {
