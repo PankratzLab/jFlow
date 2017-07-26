@@ -56,7 +56,7 @@ public class SeqMetaPrimary {
     if (resultDir == null) {
       resultDir = phenoDir + phenoRoot + "/results/";
     } else {
-      resultDir = new File(resultDir).getAbsolutePath();
+      resultDir = new File(resultDir).getAbsolutePath() + "/";
     }
     if (!new File(resultDir).exists() || !new File(resultDir).isDirectory()) {
       new File(resultDir).mkdirs();
@@ -421,6 +421,12 @@ public class SeqMetaPrimary {
                    + "  family <- \"gaussian\" \n" + "} else {\n" + "  family <= \"binomial\"\n"
                    + "}\n" + "merged <- merge(xphen, Z, by=\"row.names\")\n"
                    + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
+                   + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
+                   + "\n" + "chrs <- c(\"Chr\", \"chr\", \"CHROM\")\n"
+                   + "chrindex <- which(colnames(SNPInfo) %in% chrs, arr.ind=T)\n"
+                   + "colnames(SNPInfo)[chrindex] <- \"chr\"\n"
+                   + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
+                   + conditionals(condFile, Integer.parseInt(chr)) + "\n"
                    + "coxy <- sum(names %in% c(\"time\", \"status\"))\n"
                    + "if (length(names)>1) {\n" + "    if (coxy == 2) {\n"
                    + "        formu <- paste(\"Surv(time,status)\", \"~\")\n"
@@ -438,12 +444,6 @@ public class SeqMetaPrimary {
                    + "    mPheno <- as.data.frame(mPheno)\n"
                    + "    colnames(mPheno) <- c(names[1], \"dummy\")\n"
                    + "    formu <- paste(names[1], \"~ 1\")\n" + "}\n" + "\n" + "formu \n"
-                   + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
-                   + "\n" + "chrs <- c(\"Chr\", \"chr\", \"CHROM\")\n"
-                   + "chrindex <- which(colnames(SNPInfo) %in% chrs, arr.ind=T)\n"
-                   + "colnames(SNPInfo)[chrindex] <- \"chr\"\n"
-                   + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
-                   + conditionals(condFile, Integer.parseInt(chr)) + "\n"
                    + "if (nrow(conditions) > 0 & any(colnames(mGeno) %in% conditions$SNP)) {\n"
                    + "  if(family == \"binomial\") { f<-binomial() } else { f<-gaussian() }\n"
                    + "  message(\"conditions detected; using prepCondScores\")\n" + "  " + saveName
@@ -901,7 +901,20 @@ public class SeqMetaPrimary {
               + "    cond <- snpsonchr[(snpsonchr$pos >= condMarkers$start[i] & "
               + "snpsonchr$pos <= condMarkers$end[i]), c(\"SNP\", \"SKATgene\")]\n"
               + "    cond$SNP <- rep(condMarkers$SNP[i], nrow(cond))\n" + "    cond<-unique(cond)\n"
-              + "    conditions <- rbind(conditions, cond)\n" + "  }\n" + "}\n";
+              + "    conditions <- rbind(conditions, cond)\n"
+              + "    if (any(colnames(mPheno) %in% condMarkers$SNP[i])) {\n"
+              + "       col <- which(colnames(mPheno) %in% condMarkers$SNP[i])\n"
+              + "       mGeno$NEW <- mPheno[,col]\n"
+              + "       colnames(mGeno)[colnames(mGeno) == \"NEW\"] <-  colnames(mPheno)[col]\n"
+              + "       if (col == ncol(mPheno)) {\n" + "           mPheno <- mPheno[, 1:(col-1)]\n"
+              + "       } else { \n"
+              + "           mPheno <- mPheno[, c(1:(col-1), (col+1):ncol(mPheno))]\n" + "       }\n"
+              + "    }\n" + "  } else if (any(colnames(mPheno) %in% condMarkers$SNP[i])) {\n"
+              + "    col <- which(colnames(mPheno) %in% condMarkers$SNP[i])\n"
+              + "    if (col == ncol(mPheno)) {\n" + "        mPheno <- mPheno[, 1:(col-1)]\n"
+              + "    } else { \n"
+              + "        mPheno <- mPheno[, c(1:(col-1), (col+1):ncol(mPheno))]\n" + "    }\n"
+              + "  }\n" + "}\n";
     }
 
     return rdata;
