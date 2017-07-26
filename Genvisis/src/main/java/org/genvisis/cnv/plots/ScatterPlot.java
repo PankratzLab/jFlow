@@ -715,12 +715,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				proj.DISPLAY_MARKERS_FILENAMES.addValue(mkrFile);
 				loadMarkerFile(mkrFile);
 			}
-			// } else if (command.equals(LOAD_LIST_COMMAND + "test")) {
-			//
-			// final Configurator configurator = new Configurator(proj, new
-			// String[][]{Configurator.ALL_PROPERTY_SETS[10]});
-			// configurator.setVisible(true);
-
 		} else if (command.equals(LOAD_LIST_COMMAND)) {
 			JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue() : ".");
 			jfc.setMultiSelectionEnabled(false);
@@ -3161,12 +3155,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		loadItem.setText("Load Marker List");
 		fileMenu.add(loadItem);
 
-		// JMenuItem testItem = new JMenuItem();
-		// testItem.setActionCommand(LOAD_LIST_COMMAND + "test");
-		// testItem.addActionListener(this);
-		// testItem.setText("Test Config");
-		// fileMenu.add(testItem);
-
 		final JMenu previousListItem = new JMenu();
 		previousListItem.setMnemonic(KeyEvent.VK_P);
 		previousListItem.setText("Marker Lists");
@@ -3185,10 +3173,26 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			}
 		};
 
+		final ActionListener editFileListener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SwingUtilities.invokeLater(() -> {
+					String cmd = e.getActionCommand();
+					editMarkerFile(cmd);
+				});
+			}
+		};
+
+		JMenu editItem = new JMenu();
+		editItem.setMnemonic(KeyEvent.VK_E);
+		editItem.setText("Edit Existing Marker List");
+
 		String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
 		HashSet<String> mnemonics = new HashSet<String>();
 		for (String val : vals) {
 			JMenuItem listEntry = new JMenuItem();
+			JMenuItem editEntry = new JMenuItem();
+
 			String[] tmp = val.split("/");
 			String mnemChar = tmp[tmp.length - 1].charAt(0) + "";
 			int cnt = 1;
@@ -3198,11 +3202,18 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			}
 			if (!mnemonics.contains(mnemChar)) {
 				listEntry.setMnemonic(mnemChar.charAt(0));
+				editEntry.setMnemonic(mnemChar.charAt(0));
 			}
+
 			listEntry.addActionListener(loadFileListener);
+			editEntry.addActionListener(editFileListener);
 			listEntry.setActionCommand(val);
+			editEntry.setActionCommand(val);
 			listEntry.setText(val);
+			editEntry.setText(val);
+			editItem.add(editEntry);
 			previousListItem.add(listEntry);
+
 		}
 
 		JMenu sortItem = new JMenu();
@@ -3286,6 +3297,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 				}
 			}
 		};
+
+		fileMenu.add(editItem);
+
 
 		JRadioButtonMenuItem sortListOrder = new JRadioButtonMenuItem();
 		sortListOrder.setMnemonic(KeyEvent.VK_O);
@@ -3945,6 +3959,17 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		updateMarkerIndexHistory();
 		previousMarkerIndex = -1;
 		// navigationField.getActionListeners()[0].actionPerformed(e);
+	}
+
+	private void editMarkerFile(String file) {
+		ListEditor editor = ListEditor.createMarkerListEditor(proj, file);
+		editor.setModal(true);
+		editor.setVisible(true);
+
+		if (editor.getReturnCode() == JOptionPane.YES_OPTION) {
+			String fil = editor.getFileName();
+			loadMarkerFile(fil);
+		}
 	}
 
 	private void loadMarkerFile(String file) {
