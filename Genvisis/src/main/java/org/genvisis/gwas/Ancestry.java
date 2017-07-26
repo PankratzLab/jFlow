@@ -290,8 +290,7 @@ public class Ancestry {
 		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
 			PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
 															 dir + RACE_FREQS_FILENAME, log);
-		}
-		{
+		} else {
 			log.reportTimeWarning("Skipping race freq calculation - output already exists: "
 														+ (dir + RACE_FREQS_FILENAME));
 		}
