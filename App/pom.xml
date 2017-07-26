@@ -18,11 +18,19 @@
 
 	<properties>
 		<assemblyName>genvisis</assemblyName>
-		<mainClass>org.genvisis.VersionLauncher</mainClass>
+		<mainClass>org.genvisis.update.VersionLauncher</mainClass>
 		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>Meta</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.zafarkhaja</groupId>
+			<artifactId>java-semver</artifactId>
+		</dependency>
 	</dependencies>
 
 	<profiles>
