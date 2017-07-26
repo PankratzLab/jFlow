@@ -116,6 +116,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	ArrayList<CNVariantHash> hashes;
 	private JMenu delRegionFileMenu;
 	private JMenu loadRecentFileMenu;
+	private JMenu editRegionFileMenu;
 	private ButtonGroup regionButtonGroup;
 	private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
 	private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
@@ -378,6 +379,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		loadRecentFileMenu.setMnemonic(KeyEvent.VK_R);
 		fileMenu.add(loadRecentFileMenu);
 
+		editRegionFileMenu = new JMenu("Edit Region File");
+		editRegionFileMenu.setMnemonic(KeyEvent.VK_E);
+		fileMenu.add(editRegionFileMenu);
+
 		menuBar.add(fileMenu);
 
 		regionButtonGroup = new ButtonGroup();
@@ -393,6 +398,13 @@ public class CompPlot extends JFrame implements ChrNavigator {
 				regionFileNameBtn.put(name, menuItem);
 				regionButtonGroup.add(menuItem);
 				loadRecentFileMenu.add(menuItem);
+
+				JMenuItem editItem = new JMenuItem();
+				editItem.setAction(editFileAction);
+				editItem.setText(name);
+				editItem.setActionCommand(file);
+				editRegionFileMenu.add(editItem);
+
 			}
 		}
 
@@ -646,6 +658,12 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		item.setAction(markerFileSelectAction);
 		item.setText(name);
 
+		JMenuItem editItem = new JMenuItem();
+		editItem.setAction(editFileAction);
+		editItem.setText(name);
+		editItem.setActionCommand(file);
+		editRegionFileMenu.add(editItem);
+
 		regionFileNameBtn.put(name, item);
 		regionButtonGroup.add(item);
 		loadRecentFileMenu.add(item);
@@ -659,6 +677,28 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		proj.REGION_LIST_FILENAMES.addValue(file);
 	}
 
+	private final AbstractAction editFileAction = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String file = e.getActionCommand();
+			ListEditor editor = ListEditor.createRegionListEditor(null,
+																														proj == null
+																																				? null
+																																				: proj.PROJECT_DIRECTORY.getValue(),
+																														false, file);
+			editor.setModal(true);
+			editor.setVisible(true);
+
+			if (editor.getReturnCode() == JOptionPane.YES_OPTION) {
+
+				String file1 = ext.verifyDirFormat(file);
+				file1 = file1.substring(0, file1.length() - 1);
+				String name = ext.rootOf(file1);
+				regionFileNameBtn.get(name).setSelected(true);
+			}
+
+		}
+	};
 
 	private final AbstractAction markerFileSelectAction = new AbstractAction() {
 		private static final long serialVersionUID = 1L;
@@ -672,9 +712,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			if (file == null /* || file.equals(regionNavigator.getRegionFile()) */) {
 				return;
 			}
-			String tempFile = file.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue() + file : file;
+			String tempFile = Files.isRelativePath(file) ? proj.PROJECT_DIRECTORY.getValue() + file
+																									: file;
 			if (!Files.exists(tempFile)) {
-				proj.message("Error - region file '" + shortName + "' doesn't exist.");
+				proj.message("Error - region file '" + tempFile + "' doesn't exist.");
 				regionFileNameBtn.get(shortName).setSelected(true);
 			} else {
 				// proj.REGION_LIST_FILENAMES.setValue(Array.insertStringAt(file,
