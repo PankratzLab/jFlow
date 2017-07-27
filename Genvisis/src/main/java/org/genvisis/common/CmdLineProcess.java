@@ -205,7 +205,12 @@ public class CmdLineProcess implements Iterator<String> {
 			handleOutputStream();
 			// System.err.println("finished Out");
 
-			proc.waitFor(); // wait for process to complete
+			int retVal = proc.waitFor(); // wait for process to complete
+			if (retVal != 0) {
+				log.reportError(" Irregular termination in process: " + ArrayUtils.toStr(commandArray, " ")
+												+ " | " + proc.toString());
+				error = true;
+			}
 			// System.err.println("finished Wait");
 
 		} catch (InterruptedException e) {

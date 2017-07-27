@@ -1,5 +1,7 @@
 package org.genvisis.seq.analysis;
 
+import htsjdk.tribble.annotation.Strand;
+
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
@@ -18,8 +20,6 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.Histogram.DynamicHistogram;
-
-import htsjdk.tribble.annotation.Strand;
 
 public class Blast {
 	public static final String[] DB_EXTs = new String[] {".nsq", ".nin", ".nhr"};
@@ -140,6 +140,13 @@ public class Blast {
 					String[] result = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 0; i < fastaEntries.length; i++) {
 						if (result[0].equals(fastaEntries[i].getName())) {
+							if (result.length < BlastResults.REQUIRED_RESULT_LENGTH) {
+								log.reportError("Malformed \"blastn\" result line: {"
+																+ ArrayUtils.toStr(result, ", ")
+																+ "}.");
+								log.reportError("Malformed results are likely caused by a lack of memory - please increase the system memory available and try again.");
+								System.exit(1);
+							}
 							BlastResults bResults = new BlastResults(result, log);
 							if (bResults.getAlignmentLength() >= reportWordSize) {
 								bSummaries[i].addBlastResult(bResults, log);
@@ -150,7 +157,12 @@ public class Blast {
 						}
 					}
 				}
-				cmdLineProcess.waitFor();
+				boolean error = cmdLineProcess.waitFor();
+				if (error) {
+					log.reportError("Unsuccessful termination as indication by non-zero result code from \"blastn\" program.  Please investigate and try again.  "
+													+ "If this error persists, or if you believe a non-zero response code from \"blastn\" is not irregular, please contact the Genvisis developers.");
+					System.exit(1);
+				}
 			}
 		} else {
 			log.reportError("This command can only be used on *.nix systems, apologies");
@@ -300,7 +312,13 @@ public class Blast {
 			return getSstart() > getSstop();
 		}
 
+		public static final int REQUIRED_RESULT_LENGTH = 12;
+
 		public BlastResults(String[] blastLine, boolean taxonMode, Logger log) {
+			if (blastLine.length < 12) {
+				System.err.println("ERROR - ERROR - ERROR - line not long enough: "
+													 + ArrayUtils.toStr(blastLine, " # "));
+			}
 			queryID = blastLine[0];
 			subjectID = blastLine[1];
 			percentIdentity = tryDouble(blastLine[2], log);
@@ -457,7 +475,8 @@ public class Blast {
 				if (blastResults.getPercentIdentity() == 100) {
 					if (numPerfectMatches == 0) {
 						if (blastResults.getSubjectID().startsWith("chr")) {
-							perfectMatchSegment = new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
+							perfectMatchSegment = new Segment(
+																								Positions.chromosomeNumber(blastResults.getSubjectID()),
 																								blastResults.getSstart(), blastResults.getSstop());
 						}
 
@@ -529,7 +548,8 @@ public class Blast {
 	public static void test() {
 		String fastaDb = "/home/pankrat2/public/bin/ref/hg19_canonical.fa";
 		Blast blast = new Blast(fastaDb, 60, 100, new Logger(), true, true);
-		FastaEntry fastaEntry = new FastaEntry("HDSIF",
+		FastaEntry fastaEntry = new FastaEntry(
+																					 "HDSIF",
 																					 "GAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATTCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACCTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAAT");
 		blast.blastSequence(new FastaEntry[] {fastaEntry}, null);
 	}
