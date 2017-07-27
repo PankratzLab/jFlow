@@ -10,8 +10,13 @@ import javax.annotation.Nullable;
 
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -30,6 +35,35 @@ public class Ancestry {
 
 	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
+	}
+
+	public static Project createDummyProject(String dir, String dummyProjectPrefix,
+																					 String putativeWhitesFile, Logger log) {
+		String projectName = dummyProjectPrefix + "_AncestryResults";
+		String projFilename = MitoPipeline.initGenvisisProject() + projectName
+													+ MitoPipeline.PROJECT_EXT;
+		Files.write((new Project()).PROJECT_NAME.getName() + "=" + projectName, projFilename);
+		Project dummyProject = new Project(projFilename, null, false);
+		String plinkFamFile = dir + "plink.fam";
+		String[][] plinkFam = HashVec.loadFileToStringMatrix(plinkFamFile, false, null);
+		String[] dummySampleList = new String[plinkFam.length];
+		String[][] dummyPedigree = new String[plinkFam.length][];
+		for (int i = 0; i < plinkFam.length; i++) {
+			String dummyDNA = plinkFam[i][0] + "_" + plinkFam[i][1];
+			dummySampleList[i] = dummyDNA;
+			dummyPedigree[i] = ArrayUtils.addStrToArray(dummyDNA, plinkFam[i]);
+		}
+		new SampleList(dummySampleList).serialize(dummyProject.SAMPLELIST_FILENAME.getDefaultValue());
+		Files.writeMatrix(dummyPedigree, dummyProject.PEDIGREE_FILENAME.getValue(), "\t");
+		try {
+			SampleData.createSampleData(dummyProject.PEDIGREE_FILENAME.getValue(), null, dummyProject);
+		} catch (Elision e) {
+			log.reportError("Could not generate Sample Data for dummy project "
+											+ dummyProject.getPropertyFilename()
+											+ ", ancestry results cannot be visualized");
+			return null;
+		}
+		return dummyProject;
 	}
 
 	public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
@@ -309,6 +343,7 @@ public class Ancestry {
 		boolean runPipeline = false;
 		boolean imputeRace = false;
 		Project proj = null;
+		String dummyProjectPrefix = null;
 		String logfile = null;
 		Logger log;
 
@@ -328,6 +363,8 @@ public class Ancestry {
 									 + "  OR\n"
 									 + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
 									 + "   (9) Project properties file (i.e. proj=example.properties (not the default))\n"
+									 + "  OR\n"
+									 + "   (10) Prefix for dummy project to allow viewing of results when run without a project (i.e. dummyProject=example (not the default))\n"
 									 + "";
 
 		for (String arg : args) {
@@ -361,6 +398,9 @@ public class Ancestry {
 			} else if (arg.startsWith("proj")) {
 				proj = new Project(ext.parseStringArg(arg, "./"));
 				numArgs--;
+			} else if (arg.startsWith("dummyProject")) {
+				dummyProjectPrefix = ext.parseStringArg(arg, null);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -377,6 +417,9 @@ public class Ancestry {
 			}
 		} else {
 			log = new Logger(logfile);
+		}
+		if (proj == null && dummyProjectPrefix != null) {
+			proj = createDummyProject(dir, dummyProjectPrefix, putativeWhites, log);
 		}
 		try {
 			if (runPipeline) {
