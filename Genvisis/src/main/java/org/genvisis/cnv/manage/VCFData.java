@@ -88,7 +88,7 @@ public final class VCFData {
 
 	public static void exportGenvisisToVCF(Project proj, String[] samplesToExport,
 																				 String[] markersToExport,
-																				 boolean splitChrs, boolean useGRCRefGen,
+																				 boolean splitChrs, boolean exportChrContig,
 																				 int[] chrsToExport,
 																				 String outputDirAndRoot) {
 		SampleData sd = proj.getSampleData(false);
@@ -122,18 +122,20 @@ public final class VCFData {
 		// proj.JAR_STATUS.getValue());
 		// }
 
-		ReferenceGenome refGen = useGRCRefGen
-																				 ?
-																				 new ReferenceGenome(
-																														 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																							proj.getLog())
-																																			.getGRCFASTA().getAbsolute(),
-																														 proj.getLog())
-																				 : new ReferenceGenome(
-																															 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																								proj.getLog())
-																																				.getFASTA().getAbsolute(),
-																															 proj.getLog());
+		ReferenceGenome refGen = !exportChrContig
+																						 ?
+																						 new ReferenceGenome(
+																																 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																									proj.getLog())
+																																					.getGRCFASTA()
+																																					.getAbsolute(),
+																																 proj.getLog())
+																						 : new ReferenceGenome(
+																																	 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																										proj.getLog())
+																																						.getFASTA()
+																																						.getAbsolute(),
+																																	 proj.getLog());
 
 		if (refGen.getIndexedFastaSequenceFile().getSequenceDictionary() == null) {
 			proj.getLog()
@@ -177,7 +179,7 @@ public final class VCFData {
 
 				String fileOut = outputDirAndRoot + "_chr" + chr + ".vcf.gz";
 
-				ActualExporter runner = new ActualExporter(proj, refGen, useGRCRefGen, fileOut,
+				ActualExporter runner = new ActualExporter(proj, refGen, exportChrContig, fileOut,
 																									 idsToInclude, idIndexMap,
 																									 mkrs.toArray(new String[mkrs.size()]),
 																									 markerMap,
@@ -198,7 +200,8 @@ public final class VCFData {
 
 			String fileOut = outputDirAndRoot + ".vcf.gz";
 
-			ActualExporter runner = new ActualExporter(proj, refGen, useGRCRefGen, fileOut, idsToInclude,
+			ActualExporter runner = new ActualExporter(proj, refGen, exportChrContig, fileOut,
+																								 idsToInclude,
 																								 idIndexMap,
 																								 allMarkers.toArray(new String[allMarkers.size()]),
 																								 markerMap, clusterFilterCollection, failMap);
@@ -440,7 +443,7 @@ public final class VCFData {
 				a.add(aR);
 				a.add(aA);
 
-				if (bases == null) {
+				if (bases == null || (bases.length == 1 && bases[0].trim().isEmpty())) {
 					missingSeq(mkr);
 				} else {
 					Allele refGenRef = Allele.create(bases[0], true);
@@ -472,10 +475,9 @@ public final class VCFData {
 					}
 				}
 
-
 				builderVc.alleles(a);
 				builderVc.start(mkr.getPosition());
-				builderVc.stop(mkr.getPosition());
+				builderVc.stop(mkr.getPosition() + mkr.getRef().length() - 1);
 				builderVc.id(mkr.getName());
 				Collection<Genotype> genos = new ArrayList<Genotype>();
 				byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
@@ -578,7 +580,8 @@ public final class VCFData {
 												 {SAMP_ARG, "List of Sample IDs", "", Arg.STRING},
 												 {MARK_ARG, "List of Markers", "", Arg.STRING},
 												 {SPLIT_ARG, "Split output by chromosomes", split, Arg.STRING},
-												 {GRC_ARG, "Use GRC output rather than HG (exports 'chr' in contigs)", grc,
+												 {GRC_ARG,
+													"Use GRC output rather than HG (doesn't export 'chr' in contigs)", grc,
 													Arg.STRING},
 												 {CHRS_ARG,
 													"OPTIONAL: comma-delimited list of specific chromosomes to export", "",
