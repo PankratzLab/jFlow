@@ -185,7 +185,8 @@ public final class VersionLauncher {
 
 			@Override
 			protected void done() {
-				SwingUtilities.invokeLater(() -> launchVersion(localPath, args));
+				// NB: automatically queued on the EDT
+				launchVersion(localPath, args);
 			}
 		};
 
