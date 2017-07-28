@@ -386,7 +386,7 @@ public class SeqMetaPrimary {
   private static String rCode(String snpInfo, String genos, String phenoFilename, String condFile,
                               String resultDir, String chr, String saveName, boolean usePrep2) {
     phenoFilename = new File(phenoFilename).getAbsolutePath();
-    resultDir = new File(resultDir).getAbsolutePath();
+    resultDir = new File(resultDir).getAbsolutePath() + "/";
 
     String rCode = "library(\"seqMeta\")\n" + "library(\"methods\")\n" + "setwd(\"" + resultDir
                    + "\")\n" + "\n" + (snpInfo.toLowerCase()
@@ -416,17 +416,22 @@ public class SeqMetaPrimary {
                                                                 + "    }\n" + "}\n"
                                                                 + "colnames(Z) <- names\n")
                    + "\n" + "pheno <- read.csv(\"" + phenoFilename
-                   + "\", header=T, as.is=T, row.names=1)\n" + "xphen <- na.omit(pheno)\n"
-                   + "b <- nrow(unique(pheno[1])) \n" + "if (b > 2) { \n"
-                   + "  family <- \"gaussian\" \n" + "} else {\n" + "  family <= \"binomial\"\n"
-                   + "}\n" + "merged <- merge(xphen, Z, by=\"row.names\")\n"
-                   + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "names <- colnames(pheno)\n"
-                   + "offset <- 1+ncol(pheno)\n" + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n"
-                   + "\n" + "chrs <- c(\"Chr\", \"chr\", \"CHROM\")\n"
+                   + "\", header=T, as.is=T, row.names=1, check.names=FALSE)\n"
+                   + "xphen <- na.omit(pheno)\n" + "b <- nrow(unique(pheno[1])) \n"
+                   + "if (b > 2) { \n" + "  family <- \"gaussian\" \n" + "} else {\n"
+                   + "  family <= \"binomial\"\n" + "}\n"
+                   + "merged <- merge(xphen, Z, by=\"row.names\")\n"
+                   + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "offset <- 1+ncol(pheno)\n"
+                   + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n" + "\n"
+                   + "chrs <- c(\"Chr\", \"chr\", \"CHROM\")\n"
+                   + "positions <- c(\"POS\", \"pos\", \"Pos\", \"start\")\n"
                    + "chrindex <- which(colnames(SNPInfo) %in% chrs, arr.ind=T)\n"
+                   + "posindex <- which(colnames(SNPInfo) %in% positions, arr.ind=T)\n"
                    + "colnames(SNPInfo)[chrindex] <- \"chr\"\n"
+                   + "colnames(SNPInfo)[posindex] <- \"pos\"\n"
                    + "conditions <- SNPInfo[0,c(\"SNP\", \"SKATgene\", \"chr\")]\n"
                    + conditionals(condFile, Integer.parseInt(chr)) + "\n"
+                   + "names <- colnames(mPheno)\n"
                    + "coxy <- sum(names %in% c(\"time\", \"status\"))\n"
                    + "if (length(names)>1) {\n" + "    if (coxy == 2) {\n"
                    + "        formu <- paste(\"Surv(time,status)\", \"~\")\n"
