@@ -146,7 +146,7 @@ public class MetaAnalysisParams {
           } else if (trav.startsWith("RUN_BY_CHR=")) {
             runByChr = ext.parseBooleanArg(trav);
           } else if (trav.startsWith("SNP_INFO_CHR_DIR=")) {
-            snpInfoChrsDir = ext.parseStringArg(trav, null);
+            snpInfoChrsDir = ext.parseStringArg(trav, "snpInfos/");
           } else if (trav.startsWith("PRIMARY_DIR=")) {
             primaryDir = ext.parseStringArg(trav, null);
           } else if (trav.startsWith("GENOS=")) {

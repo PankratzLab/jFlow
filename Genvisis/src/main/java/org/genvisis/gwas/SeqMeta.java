@@ -106,6 +106,20 @@ public class SeqMeta {
         remaining.add(file);
       }
     }
+
+    String snpInfoFile = maps.getSnpInfoFilename();
+    root = ext.rootOf(snpInfoFile);
+    if (!Files.exists("batchChecks/" + root + ".object")) {
+      lines = new String[] {"load(\"" + snpInfoFile + "\")", "name <- ls()",
+                            // "write.table(name, \"name.txt\", sep=\"\t\")",
+                            "fileConn<-file(\"batchChecks/" + root + ".object\")",
+                            "writeLines(c(name), fileConn)", "close(fileConn)",};
+      filename = "batchChecks/" + root + ".R";
+      Files.writeArray(lines, filename);
+      v.add(filename);
+      remaining.add(snpInfoFile);
+    }
+
     log.report("There are " + v.size() + " .Rdata files remaining to interrogate:\n"
                + ArrayUtils.toStr(ArrayUtils.toStringArray(v), "\n")
                + "\n\n./master.checkObjectAll");
@@ -262,22 +276,22 @@ public class SeqMeta {
 
     log.report("Max chromosome was determined to be " + maxChr);
 
-    if (ext.indexOfStr(snpInfoFile, files) == -1) {
+    if (!Files.exists(snpInfoFile)) {
       log.reportError("Error - could not find SNP Info file '" + snpInfoFile + "'; aborting");
       return;
     }
 
-    if (Files.exists(dir + "batchChecks/" + ext.rootOf(snpInfoFile) + ".object")) {
+    if (Files.exists("batchChecks/" + ext.rootOf(snpInfoFile) + ".object")) {
       snpInfoName = getObjectName(dir, snpInfoFile);
     } else {
-      log.reportError("Error - could not find file '" + dir + "batchChecks/"
-                      + ext.rootOf(snpInfoFile) + ".object" + "'");
+      log.reportError("Error - could not find file '" + "batchChecks/" + ext.rootOf(snpInfoFile)
+                      + ".object" + "'");
       snpInfoName = "UNKNOWN_SNP_INFO_OBJECT_NAME";
       problem = true;
     }
 
     commands = new Vector<>();
-    commands.add("load(\"" + dir + snpInfoFile + "\")");
+    commands.add("load(\"" + snpInfoFile + "\")");
     commands.add("ls()");
 
     commands.add("chroms <- unique(" + snpInfoName + "$" + chromName + ")");
@@ -533,6 +547,7 @@ public class SeqMeta {
     Vector<String> jobNames;
     int[] infoSizes;
     int maxChr;
+    String snpInfoDir;
 
     if (dir == null || dir.equals("")) {
       dir = new File("").getAbsolutePath() + "/";
@@ -548,11 +563,12 @@ public class SeqMeta {
     geneName = maps.getGeneName();
     runningByChr = maps.runningByChr();
     snpInfoFile = maps.getSnpInfoFilename();
+    snpInfoDir = maps.getSnpInfoChrsDir();
 
     files = Files.list(dir, null, ".Rdata", false);
     finalSets = identifySet(maps, files, log);
 
-    maxChr = getMaxChr(maps.getSnpInfoChrsDir());
+    maxChr = getMaxChr(snpInfoDir);
     jobSizes = new IntVector();
     jobNames = new Vector<>();
     infoSizes = new int[maxChr + 2];
@@ -560,7 +576,7 @@ public class SeqMeta {
     if (runningByChr) {
       for (int chr = 1; chr <= maxChr; chr++) {
         chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
-        filename = "snpInfos/snpInfo_chr" + chrom + ".RData";
+        filename = snpInfoDir + "/snpInfo_chr" + chrom + ".RData";
         if (!Files.exists(filename)) {
           log.reportError("Error - could not find SNP Info file '" + filename + "'; aborting");
           return;
