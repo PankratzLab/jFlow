@@ -358,7 +358,7 @@ public class Emim {
 		} else {
 			forceRun = true;
 			forceParse = true;
-			commands += "plink2 --noweb --bfile " + relativePlinkRoot
+			commands += "plink2 --noweb --allow-no-sex --bfile " + relativePlinkRoot
 									+ (excludeFile != null ? " --exclude " + excludeFile : "")
 									+ (keepFile != null ? " --keep " + keepFile : "")
 									+ (riskAlleleFile != null ? " --a1-allele " + riskAlleleFile : "")
@@ -372,7 +372,7 @@ public class Emim {
 								 + "plink.*mendel files already exist, skipping mendelian error calculation");
 		} else {
 			forceParse = true;
-			commands += "plink2 --noweb --bfile emimPrep --keep-allele-order --mendel\n"
+			commands += "plink2 --noweb --allow-no-sex --bfile emimPrep --keep-allele-order --mendel\n"
 									+ "mv plink.log plink_mendel.log\n" + "\n";
 		}
 
@@ -380,7 +380,7 @@ public class Emim {
 			log.report(currDir + "plink.tdt already exists, skipping TDT");
 		} else {
 			forceParse = true;
-			commands += "plink2 --noweb --bfile emimPrep --keep-allele-order --tdt --ci 0.95\n"
+			commands += "plink2 --noweb --allow-no-sex --bfile emimPrep --keep-allele-order --tdt --ci 0.95\n"
 									+ "mv plink.log plink_tdt.log\n" + "\n";
 		}
 
@@ -389,7 +389,7 @@ public class Emim {
 								 + "plink.hwe already exists, skipping Hardy-Weinberg Equilibrium calculation");
 		} else {
 			forceParse = true;
-			commands += "plink2 --noweb --bfile emimPrep --keep-allele-order --hardy\n"
+			commands += "plink2 --noweb --allow-no-sex --bfile emimPrep --keep-allele-order --hardy\n"
 									+ "mv plink.log plink_hwe.log\n" + "\n";
 		}
 
@@ -398,7 +398,7 @@ public class Emim {
 			log.report(currDir + "plink.frq already exists, skipping Minor Allele Frequency calculation");
 		} else {
 			forceParse = true;
-			commands += "plink2 --noweb --bfile emimPrep --keep-allele-order --freq\n"
+			commands += "plink2 --noweb --allow-no-sex --bfile emimPrep --keep-allele-order --freq\n"
 									+ "mv plink.log plink_freq.log\n" + "\n";
 		}
 
