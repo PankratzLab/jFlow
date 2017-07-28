@@ -428,6 +428,12 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 	protected String doInBackground() throws Exception {
 		String fileNameToVisualize = "";
 		System.out.println(proj.PROJECT_DIRECTORY.getValue() + outputBase);
+		// FIXME It is NOT safe to make this call from an off-EDT thread. SwingWorkers are not intended
+		// to directly interact with swing components. If a SwingWorker is being run on the EDT it is
+		// being
+		// used incorrectly.
+		// Upcoming TaskManager API should make it easier to appropriately incorporate SwingWorkers
+		// https://github.com/PankratzLab/Genvisis/issues/293
 		progressBar.setValue(0);
 		setProgress(0);
 		newJob(MEDIAN_WORKER_JOBS[0]);
@@ -473,6 +479,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			progressBar.setValue(100);
 			progressBar.setStringPainted(false);
 			progressBar.setVisible(false);
+			// FIXME current understanding is that this method is a hook enqueued on the EDT after
+			// doInBackground returns. This handling should be moved to whatever is relying on output from this worker.
 			get();
 			JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
 
