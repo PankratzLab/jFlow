@@ -276,6 +276,7 @@ public class SeqMeta {
 
     log.report("Max chromosome was determined to be " + maxChr);
 
+    snpInfoFile = new File(snpInfoFile).getAbsolutePath();
     if (!Files.exists(snpInfoFile)) {
       log.reportError("Error - could not find SNP Info file '" + snpInfoFile + "'; aborting");
       return;
@@ -331,7 +332,7 @@ public class SeqMeta {
             files = finalSets[i][j][k].split(";");
             for (int f = 0; f < files.length; f++) {
               commands = new Vector<>();
-              commands.add("load(\"" + dir + snpInfoFile + "\")");
+              commands.add("load(\"" + snpInfoFile + "\")");
               commands.add("load(\"" + dir + files[f] + "\")");
               if (Files.exists(dir + "batchChecks/" + ext.rootOf(files[f]) + ".object")) {
                 objectName = getObjectName(dir, files[f]);
@@ -573,6 +574,7 @@ public class SeqMeta {
     jobNames = new Vector<>();
     infoSizes = new int[maxChr + 2];
 
+    snpInfoFile = new File(snpInfoFile).getAbsolutePath();
     if (runningByChr) {
       for (int chr = 1; chr <= maxChr; chr++) {
         chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : (chr == 25 ? "XY" : chr + ""));
@@ -628,7 +630,7 @@ public class SeqMeta {
                 objectName = studies[j] + "_" + races[k][0] + "_" + phenotypes[i][0] + "_chr"
                              + chrom;
                 objectFilename = localDir + objectName + ".RData";
-                snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
+                snpInfoFile = snpInfoDir + "/snpInfo_chr" + chrom + ".RData";
               } else {
                 objectFilename = dir + finalSets[i][j][k];
                 if (objectFilename.contains(";")) {
@@ -659,7 +661,7 @@ public class SeqMeta {
               commands.add("print(.libPaths())");
               commands.add("library(bdsmatrix)");
               commands.add("library(seqMeta)");
-              commands.add("load(\"" + dir + snpInfoFile + "\")");
+              commands.add("load(\"" + snpInfoFile + "\")");
               commands.add("load(\"" + objectFilename + "\")");
               commands.add("ls()");
               if (!runningByChr) {
@@ -753,9 +755,9 @@ public class SeqMeta {
           commands.add("library(bdsmatrix)");
           commands.add("library(seqMeta)");
           if (runningByChr) {
-            snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
+            snpInfoFile = snpInfoDir + "/snpInfo_chr" + chrom + ".RData";
           }
-          commands.add("load(\"" + dir + snpInfoFile + "\")");
+          commands.add("load(\"" + snpInfoFile + "\")");
 
           objects = new Vector<>();
           for (int j = 0; j < studies.length; j++) {
@@ -849,7 +851,7 @@ public class SeqMeta {
         if (runningByChr) {
           snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
         }
-        commands.add("load(\"" + dir + snpInfoFile + "\")");
+        commands.add("load(\"" + snpInfoFile + "\")");
 
         objects = new Vector<>();
         for (int j = 0; j < studies.length; j++) {
