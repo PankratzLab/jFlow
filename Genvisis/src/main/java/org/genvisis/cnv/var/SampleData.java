@@ -1809,8 +1809,8 @@ public class SampleData {
 															line[indices[3]], line[indices[4]], line[indices[5]],
 															line[indices[6]]);
 				al.add(indi);
-				if (!sampSet.remove(indi.iid)) {
-					foundMissing.add(indi.iid);
+				if (!sampSet.remove(indi.dna)) {
+					foundMissing.add(indi.dna);
 				}
 			}
 			temp = null;
@@ -1820,8 +1820,8 @@ public class SampleData {
 															line[indices[3]], line[indices[4]], line[indices[5]],
 															line[indices[6]]);
 				al.add(indi);
-				if (!sampSet.remove(indi.iid)) {
-					foundMissing.add(indi.iid);
+				if (!sampSet.remove(indi.dna)) {
+					foundMissing.add(indi.dna);
 				}
 			}
 			reader.close();
@@ -1834,13 +1834,13 @@ public class SampleData {
 		}
 		if (foundMissing.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + foundMissing.size()
-											+ " IIDs in Pedigree file that do not have data files.");
-			log.reportError("\tMissing IIDs: " + foundMissing.toString());
+											+ " DNAs in Pedigree file that do not have data files.");
+			log.reportError("\tMissing DNAs: " + foundMissing.toString());
 		}
 		if (sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + sampSet.size()
-											+ " IIDs with data files not listed in Pedigree file.");
-			log.reportError("\tMissing IIDs: " + sampSet.toString());
+											+ " DNAs with data files not listed in Pedigree file.");
+			log.reportError("\tMissing DNAs: " + sampSet.toString());
 		}
 		if (foundMissing.size() > 0 || sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - please fix your Pedigree file to represent all individuals with data files.");
@@ -1892,13 +1892,13 @@ public class SampleData {
 		}
 		if (foundMissing.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + foundMissing.size()
-											+ " IIDs in Sample_Map file that do not have data files.");
-			log.reportError("\tMissing IIDs: " + foundMissing.toString());
+											+ " DNAs in Sample_Map file that do not have data files.");
+			log.reportError("\tMissing DNAs: " + foundMissing.toString());
 		}
 		if (sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + sampSet.size()
-											+ " IIDs with data files not listed in Sample_Map file.");
-			log.reportError("\tMissing IIDs: " + sampSet.toString());
+											+ " DNAs with data files not listed in Sample_Map file.");
+			log.reportError("\tMissing DNAs: " + sampSet.toString());
 		}
 		if (foundMissing.size() > 0 || sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - please fix your Sample_Map file to represent all individuals with data files.");
