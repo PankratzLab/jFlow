@@ -379,6 +379,13 @@ public class ForestPlot {
     super();
     this.markerFileName = markerFileName;
     this.log = log;
+    try {
+      reloadData();
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    // dataIndices.addAll(readMarkerFile(markerFileName));
     setup();
   }
 
@@ -486,6 +493,7 @@ public class ForestPlot {
       String header;
       try {
         header = dataReader.readLine(); // skip header
+        log.report(header);
         String[] hdr;
         if (delimiter.startsWith(",")) {
           hdr = ext.splitCommasIntelligently(header, true, log);
@@ -576,7 +584,6 @@ public class ForestPlot {
       log.reportError("Error - no overall beta/se pairing or effect/stderr pairing was found in file "
                       + data.file);
     }
-    dataFileHeaders = null;
   }
 
   private void interruptLoading() throws InterruptedException {
@@ -725,10 +732,15 @@ public class ForestPlot {
   }
 
   public void screenCapAll(String subdir, boolean odds, boolean versionIfExists, Dimension size) {
+    getLog().report("Screencapping");
     waitForLoad();
     setOddsRatioDisplay(odds);
     ArrayList<ForestInput> data = getDataIndices();
+    getLog().report("indices: " + data.size());
     for (int i = 0; i < data.size(); i++) {
+      if (getLog() != null) {
+        getLog().report("Attempting marker #" + i);
+      }
       setCurrentData(i);
       screenCap(subdir, versionIfExists, size);
     }

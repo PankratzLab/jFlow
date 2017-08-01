@@ -1563,7 +1563,11 @@ public class Files {
           }
           if (parameter[1].equals("mean")) {
             writer.print("\t" + (ArrayUtils
-                                           .sum(counts) > 0 ? (percent ? ext.formDeci(means[files.length] / ArrayUtils.sum(counts) * 100, sf) + "%" : ext.formDeci(means[files.length] / ArrayUtils.sum(counts), sf)) : (blank ? "" : ".")));
+                                           .sum(counts) > 0 ? (percent ? ext.formDeci(means[files.length] / ArrayUtils.sum(counts) * 100, sf) + "%" : ext.formDeci(means[files.length]
+
+                                                                                                                                                                   / ArrayUtils.sum(counts),
+                                                                                                                                                                   sf))
+                                                            : (blank ? "" : ".")));
           } else {
             // TODO calculate the overall stdev of crossing files.
           }

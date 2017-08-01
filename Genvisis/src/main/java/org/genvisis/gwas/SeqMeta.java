@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.cnv.plots.ForestPlot;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -4067,6 +4068,7 @@ public class SeqMeta {
     String[][] phenotypes, methods;
     Logger log;
     Hashtable<String, String> hash;
+    String[] functions;
 
     log = new Logger();
     if (dir == null || dir.equals("")) {
@@ -4077,11 +4079,17 @@ public class SeqMeta {
 
     phenotypes = maps.getPhenotypesWithFilenameAliases(true);
     methods = maps.getMethods();
+    functions = maps.getFunctionFlagName();
 
     groups = new String[] {};
     for (String[] method : methods) {
-      if (ext.indexOfStr(method[1], groups) == -1) {
-        groups = ArrayUtils.addStrToArray(method[1], groups);
+      for (String functionFlag : functions) {
+        if (method[1].equals("BurdenTests")) {
+          method[1] = method[1] + "_" + functionFlag;
+        }
+        if (ext.indexOfStr(method[1], groups) == -1) {
+          groups = ArrayUtils.addStrToArray(method[1], groups);
+        }
       }
     }
 
@@ -4205,6 +4213,13 @@ public class SeqMeta {
     }
   }
 
+  private static void captureForest(String forestFile, String hitsDir, Logger log) {
+    log.report("Plotting markers from " + forestFile);
+    ForestPlot forest = new ForestPlot(forestFile, log);
+
+    forest.screenCapAll(null, true, false);
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String logfile = null;
@@ -4252,6 +4267,7 @@ public class SeqMeta {
     boolean prepHits = false;
     boolean covar = false;
     boolean primary = false;
+    String forestPlot = null;
 
     // metalCohortSensitivity("D:/ExomeChip/Hematology/results/DecemberPresentation/",
     // "Whites_Hct_SingleSNP_withLRGP.csv", new Logger());
@@ -4476,6 +4492,9 @@ public class SeqMeta {
       } else if (arg.startsWith("-primary")) {
         primary = true;
         numArgs--;
+      } else if (arg.startsWith("forestPlot=")) {
+        forestPlot = ext.parseStringArg(arg);
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -4612,6 +4631,8 @@ public class SeqMeta {
           pickCovars(maps, hitsDirectory, log);
         } else if (primary) {
           runPrimary(maps, hitsDirectory, log);
+        } else if (forestPlot != null) {
+          captureForest(forestPlot, hitsDirectory, log);
         }
       }
     } catch (Exception e) {
