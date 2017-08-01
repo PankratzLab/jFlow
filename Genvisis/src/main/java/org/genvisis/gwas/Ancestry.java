@@ -44,6 +44,10 @@ public class Ancestry {
 													+ MitoPipeline.PROJECT_EXT;
 		Files.write((new Project()).PROJECT_NAME.getName() + "=" + projectName, projFilename);
 		Project dummyProject = new Project(projFilename, null, false);
+		dummyProject.PROJECT_NAME.setValue(projectName);
+		dummyProject.PROJECT_DIRECTORY.setValue(dir);
+		dummyProject.saveProperties();
+
 		String plinkFamFile = dir + "plink.fam";
 		String[][] plinkFam = HashVec.loadFileToStringMatrix(plinkFamFile, false, null);
 		String[] dummySampleList = new String[plinkFam.length];
@@ -53,7 +57,7 @@ public class Ancestry {
 			dummySampleList[i] = dummyDNA;
 			dummyPedigree[i] = ArrayUtils.addStrToArray(dummyDNA, plinkFam[i]);
 		}
-		new SampleList(dummySampleList).serialize(dummyProject.SAMPLELIST_FILENAME.getDefaultValue());
+		new SampleList(dummySampleList).serialize(dummyProject.SAMPLELIST_FILENAME.getValue());
 		Files.writeMatrix(dummyPedigree, dummyProject.PEDIGREE_FILENAME.getValue(), "\t");
 		try {
 			SampleData.createSampleData(dummyProject.PEDIGREE_FILENAME.getValue(), null, dummyProject);
@@ -419,7 +423,8 @@ public class Ancestry {
 			log = new Logger(logfile);
 		}
 		if (proj == null && dummyProjectPrefix != null) {
-			proj = createDummyProject(dir, dummyProjectPrefix, putativeWhites, log);
+			proj = createDummyProject(ext.verifyDirFormat(new File(dir).getAbsolutePath()),
+																dummyProjectPrefix, putativeWhites, log);
 		}
 		try {
 			if (runPipeline) {
