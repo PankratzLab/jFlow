@@ -2998,10 +2998,18 @@ public class Files {
 	}
 
 	public static void writeMatrix(String[][] matrix, String filename, String delimiterToUse) {
+		writeMatrix(null, matrix, filename, delimiterToUse);
+	}
+
+	public static void writeMatrix(String[] header, String[][] matrix, String filename,
+																 String delimiterToUse) {
 		PrintWriter writer;
 
 		try {
 			writer = openAppropriateWriter(filename);
+			if (header != null) {
+				writer.println(ArrayUtils.toStr(header, delimiterToUse));
+			}
 			for (String[] element : matrix) {
 				writer.println(ArrayUtils.toStr(element, delimiterToUse));
 			}
