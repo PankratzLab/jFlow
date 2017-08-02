@@ -1667,6 +1667,54 @@ public class SampleData {
 		return replace;
 	}
 
+	/**
+	 * 
+	 * @param newSampleDataColumns columns of data to add for new samples
+	 * @param columnHeaders names of data columns to add. Columns can be existing columns or new
+	 *        columns. New columns will be set to "." for all existing samples and all columns not
+	 *        included will be set to "." for new samples
+	 * @return true if succesful
+	 */
+	public boolean addSamples(String[][] newSampleDataColumns, String[] columnHeaders) {
+		Logger log = proj.getLog();
+		String bakFile = backupSampleData(proj, log);
+		if (bakFile == null) {
+			return false;
+		}
+
+		String[] existingHeader = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), log);
+		int[] insertColumns = ext.indexFactors(columnHeaders, existingHeader, true, log, false);
+		String[] newHeader = Arrays.copyOf(existingHeader, existingHeader.length
+																											 + ArrayUtils.countIf(insertColumns, -1));
+		int nextIndex = existingHeader.length;
+		for (int i = 0; i < insertColumns.length; i++) {
+			if (insertColumns[i] == -1) {
+				insertColumns[i] = nextIndex;
+				newHeader[nextIndex] = columnHeaders[i];
+				nextIndex++;
+			}
+		}
+
+		String[][] oldSampleData = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(),
+																															true, null);
+		String[][] newSampleData = new String[oldSampleData.length + newSampleDataColumns.length][];
+		for (int i = 0; i < oldSampleData.length; i++) {
+			newSampleData[i] = Arrays.copyOf(oldSampleData[i], newHeader.length);
+			Arrays.fill(newSampleData[i], oldSampleData[i].length, newSampleData[i].length, ".");
+		}
+		for (int i = oldSampleData.length; i < newSampleData.length; i++) {
+			newSampleData[i] = ArrayUtils.stringArray(newHeader.length, ".");
+			for (int j = 0; j < insertColumns.length; j++) {
+				newSampleData[i][insertColumns[j]] = newSampleDataColumns[i - oldSampleData.length][j];
+			}
+		}
+		Files.writeMatrix(newHeader, newSampleData, proj.SAMPLE_DATA_FILENAME.getValue(), "\t");
+
+		proj.resetSampleData();
+
+		return true;
+	}
+
 	private static String backupSampleData(Project proj, Logger log) {
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 		String bakDir = proj.BACKUP_DIRECTORY.getValue(true, true);

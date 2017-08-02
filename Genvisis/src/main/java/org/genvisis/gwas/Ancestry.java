@@ -33,6 +33,8 @@ public class Ancestry {
 	public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
 	public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
+	private static final String HAPMAP_COL_HEADER = "Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT";
+
 	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
 	}
@@ -68,6 +70,26 @@ public class Ancestry {
 			return null;
 		}
 		return dummyProject;
+	}
+
+	public static void maybeAddHapMapToSampleData(Project proj,
+																								Map<String, ? extends Map<String, String>> hapmaps) {
+		if (!proj.getSampleData(false).hasClass(HAPMAP_COL_HEADER.split("=")[1])) {
+			String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA", HAPMAP_COL_HEADER};
+			String[][] hapMapColumnData = new String[hapmaps.size()][hapMapColumnHeaders.length];
+			int i = 0;
+			for (Map.Entry<String, ? extends Map<String, String>> hapmapFamEntry : hapmaps.entrySet()) {
+				String fid = hapmapFamEntry.getKey();
+				for (Map.Entry<String, String> hapmapEntry : hapmapFamEntry.getValue().entrySet()) {
+					String iid = hapmapEntry.getKey();
+					String hapmapID = hapmapEntry.getValue();
+					hapMapColumnData[i] = new String[] {fid, iid, iid, hapmapID};
+					i++;
+				}
+			}
+
+			proj.getSampleData(false).addSamples(hapMapColumnData, hapMapColumnHeaders);
+		}
 	}
 
 	public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
@@ -257,8 +279,7 @@ public class Ancestry {
 			String[] ancestriesHeader = Files.getHeaderOfFile(hapMapAncestries, log);
 			int fidIndex = ext.indexOfStr("FID", ancestriesHeader, false, true);
 			int iidIndex = ext.indexOfStr("IID", ancestriesHeader, false, true);
-			int hapIndex = ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", ancestriesHeader, false,
-																		true);
+			int hapIndex = ext.indexOfStr(HAPMAP_COL_HEADER, ancestriesHeader, false, true);
 			if (hapIndex < 0) {
 				log.reportError("Cannot impute: malformed HapMap ancestries resource: " + hapMapAncestries);
 				return;
@@ -268,7 +289,7 @@ public class Ancestry {
 																																												iidIndex,
 																																												hapIndex,
 																																												true);
-
+			maybeAddHapMapToSampleData(proj, hapmaps);
 			Set<PCImputeRace.Sample> samples = Sets.newHashSet();
 			Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
 			Set<PCImputeRace.Sample> africans = Sets.newHashSet();
