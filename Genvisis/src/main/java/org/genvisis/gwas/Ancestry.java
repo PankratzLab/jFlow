@@ -76,7 +76,9 @@ public class Ancestry {
 																								Map<String, ? extends Map<String, String>> hapmaps) {
 		if (!proj.getSampleData(false).hasClass(HAPMAP_COL_HEADER.split("=")[1])) {
 			String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA", HAPMAP_COL_HEADER};
-			String[][] hapMapColumnData = new String[hapmaps.size()][hapMapColumnHeaders.length];
+			String[][] hapMapColumnData = new String[hapmaps.entrySet().stream()
+																											.mapToInt(e -> e.getValue().size())
+																											.sum()][hapMapColumnHeaders.length];
 			int i = 0;
 			for (Map.Entry<String, ? extends Map<String, String>> hapmapFamEntry : hapmaps.entrySet()) {
 				String fid = hapmapFamEntry.getKey();
