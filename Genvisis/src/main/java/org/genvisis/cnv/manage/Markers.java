@@ -1,5 +1,9 @@
 package org.genvisis.cnv.manage;
 
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,10 +34,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
-
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
 
 public class Markers {
 	public static final int MAX_ERRORS_TO_REPORT = 30;
@@ -125,7 +125,8 @@ public class Markers {
 			}
 		}
 		if (!v.isEmpty()) {
-			log.reportError("Error - There " + (v.size() == 1 ? "was one" : "were " + v.size())
+			log.reportError("Error - There "
+											+ (v.size() == 1 ? "was one" : "were " + v.size())
 											+ " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
 			log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
 			Files.writeArray(ArrayUtils.toStringArray(v),
@@ -159,8 +160,7 @@ public class Markers {
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		String markerName, chr, position, delimiter, temp;
 		byte chrValue;
-		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames,
-				numInvalidChrs, numInvalidPositions, numIncompleteLines;
+		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames, numInvalidChrs, numInvalidPositions, numIncompleteLines;
 
 		delimiter = Files.determineDelimiter(filename, log);
 
@@ -212,7 +212,8 @@ public class Markers {
 						countBad++;
 					} else {
 						if (hash.containsKey(markerName)) {
-							log.reportError("Error - marker '" + markerName
+							log.reportError("Error - marker '"
+															+ markerName
 															+ "' is already listed in the markerPositions file and is seen again at line "
 															+ count + " of " + filename);
 							numRepeatedNames++;
@@ -332,6 +333,13 @@ public class Markers {
 		} finally {
 			Closeables.closeQuietly(reader);
 		}
+		lookupMarkers(proj, markerToChrPosLinkedMap, markers, snpTable, log);
+		writeMarkerPositions(proj, markerToChrPosLinkedMap, log, time);
+	}
+
+	public static void lookupMarkers(Project proj,
+																	 Map<String, String> markerToChrPosLinkedMap, int numMarkers,
+																	 String markerSource, Logger log) {
 		int foundRsids = 0;
 		int posMismatches = 0;
 		List<String> mismatches = Lists.newArrayList();
@@ -362,16 +370,20 @@ public class Markers {
 			}
 		}
 		if (foundRsids == 0) {
-			log.report("Markers in " + snpTable
+			log.report("Markers in " + markerSource
 								 + " not identified by rsid, using provided marker positions");
 		} else {
-			if (markers - foundRsids > 0) {
+			if (numMarkers - foundRsids > 0) {
 				log.reportTimeWarning("An rsid match could not be made to dbSNP for "
-															+ (markers - foundRsids) + " of " + markers + " total markers in "
-															+ snpTable + ", using provided marker positions for these markers.");
+															+ (numMarkers - foundRsids) + " of " + numMarkers
+															+ " total markers in "
+															+ markerSource
+															+ ", using provided marker positions for these markers.");
 			}
 			if (posMismatches > 0) {
-				log.reportTimeWarning(posMismatches + " markers in " + snpTable
+				log.reportTimeWarning(posMismatches
+															+ " markers in "
+															+ markerSource
 															+ " had positions that did not match the position in dbSNP, using dbSNP position for these markers.");
 				String mismatchesReport = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
 																								"_mismatches");
@@ -379,6 +391,11 @@ public class Markers {
 				log.report("Mismatches report written to " + mismatchesReport);
 			}
 		}
+	}
+
+	public static void writeMarkerPositions(Project proj,
+																					Map<String, String> markerToChrPosLinkedMap,
+																					Logger log, long startTime) {
 		PrintWriter writer = null;
 		try {
 			writer = Files.getAppropriateWriter(proj.MARKER_POSITION_FILENAME.getValue(false, false));
@@ -394,10 +411,11 @@ public class Markers {
 			}
 		}
 		log.report("Finished parsing " + proj.MARKER_POSITION_FILENAME.getValue(false, false) + " in "
-							 + ext.getTimeElapsed(time));
+							 + ext.getTimeElapsed(startTime));
 	}
 
-	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile, int setFrom,
+	public static void useAlleleLookup(String filename, int alleleCol, String lookupFile,
+																		 int setFrom,
 																		 int setTo) {
 		BufferedReader reader;
 		PrintWriter writer;
@@ -471,9 +489,11 @@ public class Markers {
 		int setFrom = 1;
 		int setTo = 2;
 
-		String usage = "\n" + "cnv.manage.Markers requires 0-1 arguments\n"
+		String usage = "\n"
+									 + "cnv.manage.Markers requires 0-1 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
 									 + "   (2) filename of SNP Table (i.e. snps=Table.csv (not the default))\n"
 									 + " OR:\n"
 									 + "   (2) use allele lookup to convert a file form forward to TOP strand (i.e. convert=file.txt (not the default))\n"

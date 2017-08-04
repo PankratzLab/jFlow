@@ -30,7 +30,8 @@ import com.google.common.primitives.Doubles;
 
 public class Sample implements Serializable {
 	public static final long serialVersionUID = 1L;
-	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "confidence", "Confidence"},
+	public static final String[][] DATA_FIELDS = {
+																								{"GC Score", "GCscore", "confidence", "Confidence"},
 																								{"X Raw"}, {"Y Raw"},
 																								{"X", "Xvalue", "Log Ratio", "intensity_1",
 																								 "Signal A"},
@@ -38,9 +39,9 @@ public class Sample implements Serializable {
 																								 "Signal B"},
 																								{"Theta"}, {"R"}, {"B Allele Freq"},
 																								{"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Allele1", "genotype1",
-																										 "Allele1 - Top", "Forward Strand Base Calls",
-																										 "Forced Call", "Forced Call Codes"},
+	public static final String[][] GENOTYPE_FIELDS = { {"Allele1 - Forward", "Allele1", "genotype1",
+																											"Allele1 - Top", "Forward Strand Base Calls",
+																											"Forced Call", "Forced Call Codes"},
 																										{"Allele2 - Forward",
 																										 "Forward Strand Base Calls", "genotype2",
 																										 "Allele2 - Top", "Allele B", "Forced Call",
@@ -55,11 +56,14 @@ public class Sample implements Serializable {
 																																														 // Codes"}
 	public static final String[] ALL_STANDARD_GENOTYPE_FIELDS = {"Allele1 - AB", "Allele2 - AB",
 																															 "Allele1 - Forward",
-																															 "Allele2 - Forward", "Allele1 - Top",
+																															 "Allele2 - Forward",
+																															 "Allele1 - Top",
 																															 "Allele2 - Top", "Allele1 - Design",
 																															 "Allele2 - Design"};
-	public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT",
-																							 "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD",
+	public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG",
+																							 "CT",
+																							 "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT",
+																							 "DD",
 																							 "DI", "II", "ID"};
 	public static final String[] ALT_NULL = {"-", "0"};
 	public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall", "NC", "NN", "NA"};
@@ -118,6 +122,24 @@ public class Sample implements Serializable {
 		// ensure backward compatibility
 	}
 
+	/**
+	 * Data is expected to be:<br />
+	 * - data[0] => GCs<br />
+	 * - data[1] -> UNUSED<br />
+	 * - data[2] -> UNUSED<br />
+	 * - data[3] => Xs<br />
+	 * - data[4] => Ys<br />
+	 * - data[5] -> UNUSED<br />
+	 * - data[6] -> UNUSED<br />
+	 * - data[7] => BAFs<br />
+	 * - data[8] => LRRs<br />
+	 * 
+	 * @param sampleName
+	 * @param fingerprint
+	 * @param data
+	 * @param genotypes
+	 * @param canXYBeNegative
+	 */
 	public Sample(String sampleName, long fingerprint, float[][] data, byte[][] genotypes,
 								boolean canXYBeNegative) {
 		this.sampleName = sampleName;
@@ -259,7 +281,7 @@ public class Sample implements Serializable {
 
 	public static boolean isXOrYNull(byte nullStatus) {
 		return (((nullStatus >> NULLSTATUS_X_LOCATION) & 0x01) == 1
-						|| ((nullStatus >> NULLSTATUS_Y_LOCATION) & 0x01) == 1);
+		|| ((nullStatus >> NULLSTATUS_Y_LOCATION) & 0x01) == 1);
 	}
 
 	public static boolean isXNull(byte nullStatus) {
@@ -272,7 +294,7 @@ public class Sample implements Serializable {
 
 	public static boolean isBafOrLrrNull(byte nullStatus) {
 		return (((nullStatus >> NULLSTATUS_BAF_LOCATION) & 0x01) == 1
-						|| ((nullStatus >> NULLSTATUS_LRR_LOCATION) & 0x01) == 1);
+		|| ((nullStatus >> NULLSTATUS_LRR_LOCATION) & 0x01) == 1);
 	}
 
 	public static boolean isBafNull(byte nullStatus) {
@@ -285,7 +307,7 @@ public class Sample implements Serializable {
 
 	public static boolean isAbAndForwardGenotypeNull(byte nullStatus) {
 		return (((nullStatus >> NULLSTATUS_ABGENOTYPE_LOCATION) & 0x01) == 1
-						&& ((nullStatus >> NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) == 1);
+		&& ((nullStatus >> NULLSTATUS_FOWARDGENOTYPE_LOCATION) & 0x01) == 1);
 	}
 
 	public float[][] getAllData() {
@@ -403,8 +425,8 @@ public class Sample implements Serializable {
 			return null;
 		} else {
 			float[] recompBaf = params.getCentroids() == null ? bafs.clone()
-																												: getBAFs(params.getCentroids()
-																																				.getCentroids());
+																											 : getBAFs(params.getCentroids()
+																																			 .getCentroids());
 			return recompBaf;
 		}
 	}
@@ -421,8 +443,8 @@ public class Sample implements Serializable {
 			return null;
 		} else {
 			float[] recompLrrs = params.getCentroids() == null ? lrrs.clone()
-																												 : getLRRs(params.getCentroids()
-																																				 .getCentroids());
+																												: getLRRs(params.getCentroids()
+																																				.getCentroids());
 			for (int i = 0; i < recompLrrs.length; i++) {
 				recompLrrs[i] = (float) current.adjust(GC_CORRECTION_METHOD.GENVISIS_GC, recompLrrs[i],
 																							 params.getGcContent()[i]);
@@ -637,13 +659,14 @@ public class Sample implements Serializable {
 				sb.append(lrrs != null && lrrs.length > i ? lrrs[i] : ".").append("\t");
 				sb.append(bafs != null && bafs.length > i ? bafs[i] : ".").append("\t");
 				sb.append(forwardGenotypes != null && forwardGenotypes.length > i
-																																					? ALLELE_PAIRS[forwardGenotypes[i]]
-																																					: ".")
+																																				 ? ALLELE_PAIRS[forwardGenotypes[i]]
+																																				 : ".")
 					.append("\t");
 				sb.append(abGenotypes != null && abGenotypes.length > i
-																																? (abGenotypes[i] == -1 ? "--"
-																																												: AB_PAIRS[abGenotypes[i]])
-																																: ".");
+																															 ? (abGenotypes[i] == -1
+																																											? "--"
+																																											: AB_PAIRS[abGenotypes[i]])
+																															 : ".");
 
 				writer.println(sb.toString());
 
@@ -739,14 +762,15 @@ public class Sample implements Serializable {
 
 		fileTmp = new File(filename);
 		if (new File(ext.parseDirectoryOfFile(filename)).getFreeSpace() <= ((long) getDataLength()
-																																				* Compression.BYTES_PER_SAMPLE_MARKER)) {
+		* Compression.BYTES_PER_SAMPLE_MARKER)) {
 			System.err.println("Not enough space (available: "
 												 + ext.prettyUpSize(new File(ext.parseDirectoryOfFile(filename)).getFreeSpace(),
 																						1)
-												 + ") for all the new data to be created (required: " + ext.prettyUpSize(
-																																																 ((long) getDataLength()
-																																																	* Compression.BYTES_PER_SAMPLE_MARKER),
-																																																 1)
+												 + ") for all the new data to be created (required: "
+												 + ext.prettyUpSize(
+																						((long) getDataLength()
+																						* Compression.BYTES_PER_SAMPLE_MARKER),
+																						1)
 												 + ").");
 			return;
 		}
@@ -787,9 +811,14 @@ public class Sample implements Serializable {
 					try {
 						Compression.gcBafCompress(gcs[j], writeBuffer, writeBufferIndex);
 					} catch (Elision e) {
-						System.err.println("Error - problem saving sampleRAF file '" + filename
-															 + "' for sample " + sampleName + " since the marker in index " + j
-															 + " has a GC value of " + gcs[j]
+						System.err.println("Error - problem saving sampleRAF file '"
+															 + filename
+															 + "' for sample "
+															 + sampleName
+															 + " since the marker in index "
+															 + j
+															 + " has a GC value of "
+															 + gcs[j]
 															 + "; in the past this has happened if the final report file was truncated and did not contain all of the markers");
 					}
 					writeBufferIndex += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
@@ -836,10 +865,12 @@ public class Sample implements Serializable {
 					writeBufferIndex += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 				}
 				if (abGenotypes != null || forwardGenotypes != null) {
-					writeBuffer[writeBufferIndex] = Compression.genotypeCompress(abGenotypes == null ? -1
-																																													 : abGenotypes[j],
-																																			 forwardGenotypes == null ? 0
-																																																: forwardGenotypes[j]);
+					writeBuffer[writeBufferIndex] = Compression.genotypeCompress(abGenotypes == null
+																																													? -1
+																																													: abGenotypes[j],
+																																			 forwardGenotypes == null
+																																															 ? 0
+																																															 : forwardGenotypes[j]);
 					writeBufferIndex += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 				}
 				bytesRemained -= bytesPerSampleMarker;
@@ -1242,7 +1273,8 @@ public class Sample implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Hashtable<String, Float> loadOutOfRangeValuesFromRandomAccessFile(String filename) throws Exception {
+	public static Hashtable<String, Float> loadOutOfRangeValuesFromRandomAccessFile(String filename)
+																																																	throws Exception {
 		int numMarkers;
 		RandomAccessFile file;
 		byte[] readBuffer;
@@ -1286,7 +1318,8 @@ public class Sample implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public static Hashtable<String, Float> loadOutOfRangeValues(RandomAccessFile file,
-																															long outlierSectionLocation) throws Exception {
+																															long outlierSectionLocation)
+																																													throws Exception {
 		Hashtable<String, Float> outOfRangeValues = null;
 		int numBytesOfOutOfRangeValues;
 		byte[] readBuffer;
@@ -1303,13 +1336,15 @@ public class Sample implements Serializable {
 	}
 
 	// TODO if Outlier class is created, then move these two methods there
-	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(Project proj) throws Exception {
+	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(Project proj)
+																																													 throws Exception {
 		return loadOutOfRangeValuesFromSerializable(proj.SAMPLE_DIRECTORY.getValue(true, true)
 																								+ "outliers.ser");
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(String filenameOfSerializableOutOfRangeFile) throws Exception {
+	public static Hashtable<String, Float> loadOutOfRangeValuesFromSerializable(String filenameOfSerializableOutOfRangeFile)
+																																																													throws Exception {
 		return (Hashtable<String, Float>) SerializedFiles.readSerial(filenameOfSerializableOutOfRangeFile);
 	}
 

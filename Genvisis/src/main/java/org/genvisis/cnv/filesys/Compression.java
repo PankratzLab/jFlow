@@ -11,9 +11,11 @@ import org.genvisis.common.Elision;
 public class Compression {
 
 	public static final byte REDUCED_PRECISION_XY_NUM_BYTES = 2;
-	public static final float[] REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY = new float[] {(float) 0.000,
+	public static final float[] REDUCED_PRECISION_XY_RANGE_POSITIVE_ONLY = new float[] {
+																																											(float) 0.000,
 																																											(float) 65.533};
-	public static final float[] REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE = new float[] {(float) -32.765,
+	public static final float[] REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE = new float[] {
+																																											 (float) -32.765,
 																																											 (float) 32.767};
 	public static final float[] REDUCED_PRECISION_XY_DEFAULT_RANGE = REDUCED_PRECISION_XY_RANGE_ALLOW_NEGATIVE;
 	public static final byte[] REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_BYTES = new byte[] {(byte) 255,
@@ -34,6 +36,7 @@ public class Compression {
 	public static final byte REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES = 1;
 	// public static final int BYTES_PER_SAMPLE_MARKER = 22;
 	public static final int BYTES_PER_SAMPLE_MARKER = 12;
+
 	// public static final int BYTES_PER_SAMPLE_MARKER = 10;
 
 
@@ -408,41 +411,44 @@ public class Compression {
 	 */
 	public static byte lrrCompress(float lrr, byte[] array, int startPosition) {
 		int data;
+		float high = REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
+		float low = -REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
+
 		if (Float.isNaN(lrr)) {
 			array[startPosition] = REDUCED_PRECISION_LRR_NAN_BYTES[0];
 			array[startPosition + 1] = REDUCED_PRECISION_LRR_NAN_BYTES[1];
 			array[startPosition + 2] = REDUCED_PRECISION_LRR_NAN_BYTES[2];
 			return 0;
-		} else if (lrr < (float) -13.1071 || lrr > (float) 13.1071
-							 || ((Math.abs(lrr) - 13.1071f) < 0.0001f && (Math.abs(lrr) - 13.1071f) > -0.0001f)) {// (Math.abs(lrr)
-																																																		// -
-																																																		// 13.1071f)
-																																																		// <
-																																																		// 0.0001f
-																																																		// &&
-																																																		// (Math.abs(lrr)
-																																																		// -
-																																																		// 13.1071f)
-																																																		// >
-																																																		// -0.0001f)
-																																																		// added
-																																																		// in
-																																																		// case
-																																																		// you
-																																																		// are
-																																																		// lucky
-																																																		// and
-																																																		// have
-																																																		// an
-																																																		// lrr=-13.10708
-																																																		// and
-																																																		// it
-																																																		// gets
-																																																		// rounded
-																																																		// to
-																																																		// -13.1071
-																																																		// on
-																																																		// compression
+		} else if (lrr < low || lrr > high
+							 || ((Math.abs(lrr) - high) < 0.0001f && (Math.abs(lrr) - high) > -0.0001f)) {// (Math.abs(lrr)
+																																														// -
+																																														// 13.1071f)
+																																														// <
+																																														// 0.0001f
+																																														// &&
+																																														// (Math.abs(lrr)
+																																														// -
+																																														// 13.1071f)
+																																														// >
+																																														// -0.0001f)
+																																														// added
+																																														// in
+																																														// case
+																																														// you
+																																														// are
+																																														// lucky
+																																														// and
+																																														// have
+																																														// an
+																																														// lrr=-13.10708
+																																														// and
+																																														// it
+																																														// gets
+																																														// rounded
+																																														// to
+																																														// -13.1071
+																																														// on
+																																														// compression
 			array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0];
 			array[startPosition + 1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1];
 			array[startPosition + 2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2];
@@ -501,7 +507,7 @@ public class Compression {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-										 | ((~abGenotype + 1) & 0x03));
+			| ((~abGenotype + 1) & 0x03));
 		}
 	}
 
@@ -522,7 +528,7 @@ public class Compression {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-																		 | ((~abGenotype + 1) & 0x03));
+														 | ((~abGenotype + 1) & 0x03));
 		}
 	}
 

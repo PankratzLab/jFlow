@@ -1,5 +1,11 @@
 package org.genvisis.seq.manage;
 
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.variant.variantcontext.VariantContext;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
@@ -17,12 +23,6 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
-
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.variant.variantcontext.VariantContext;
 
 public class ReferenceGenome {
 	public static final GENOME_BUILD DEFAULT_BUILD = GENOME_BUILD.HG19;
@@ -228,7 +228,8 @@ public class ReferenceGenome {
 					requestedSeq = ArrayUtils.subArray(inMemoryContig, Math.max(0, start - 1),
 																						 Math.min(inMemoryContig.length - 1, stop));
 				} catch (Exception e) {
-					log.reportError("Invalid query " + segment.getUCSClocation() + "; buffer " + defaultBuffer
+					log.reportError("Invalid query " + segment.getUCSClocation() + "; buffer "
+													+ defaultBuffer
 													+ "; current contig " + referenceSequence.getName());
 				}
 			} else {
@@ -262,13 +263,15 @@ public class ReferenceGenome {
 		int start = segment.getStart() - 1 - defaultBuffer;
 		int stop = segment.getStop() + defaultBuffer;
 		if (start < 0) {
-			log.reportTimeWarning("Buffer of " + defaultBuffer
+			log.reportTimeWarning("Buffer of "
+														+ defaultBuffer
 														+ " adjusts base pair extraction to index less than 0, adjusting start to index 0 (bp 1)");
 			start = 0;
 		}
 		if (stop >= currentSeq.length) {
 			stop = currentSeq.length - 1;
-			log.reportTimeWarning("Buffer of " + defaultBuffer
+			log.reportTimeWarning("Buffer of "
+														+ defaultBuffer
 														+ " ,adjusts base pair extraction to index greater than sequence length,  adjusting stop to index "
 														+ (currentSeq.length - 1));
 		}
