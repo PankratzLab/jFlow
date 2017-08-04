@@ -234,7 +234,6 @@ public class UKBBParsingPipeline {
 		frs.lrrIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.lrrFile), 4000000);
 		frs.bafIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.bafFile), 2000000);
 
-
 		byte[] magicBytes = new byte[3];
 		frs.bedIn.read(magicBytes);
 		if (magicBytes[2] == 0) {
@@ -256,7 +255,7 @@ public class UKBBParsingPipeline {
 														 frs);
 				success(mdRAF);
 			} else {
-				frs.readAhead(i, binSize);
+				frs.readAhead(fs, i, binSize);
 			}
 		}
 
@@ -297,18 +296,11 @@ public class UKBBParsingPipeline {
 		BufferedReader lrrIn;
 		BufferedReader bafIn;
 
-		public void readAhead(int start, int binSize) {
-			for (int i = start; i < start + binSize; i++) {
-				try {
-					conIn.readLine();
-					lrrIn.readLine();
-					bafIn.readLine();
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-			}
-			System.gc();
+		public void readAhead(FileSet fs, int start, int binSize) throws IOException {
+			int line = start + binSize;
+			conIn.skip(fs.conInds.get(line) - fs.conInds.get(start));
+			lrrIn.skip(fs.lrrInds.get(line) - fs.lrrInds.get(start));
+			bafIn.skip(fs.bafInds.get(line) - fs.bafInds.get(start));
 		}
 	}
 
@@ -501,6 +493,7 @@ public class UKBBParsingPipeline {
 				@Override
 				public void run() {
 					try {
+						fs.readLookups();
 						createMDRAF(fs);
 						cdl.countDown();
 						parentThread.interrupt();
@@ -587,6 +580,10 @@ public class UKBBParsingPipeline {
 		String bgiFile;
 		String bgenFile;
 
+		HashMap<Integer, Long> conInds;
+		HashMap<Integer, Long> lrrInds;
+		HashMap<Integer, Long> bafInds;
+
 		final static String[] EXP = {
 																 "l2r",
 																 "baf",
@@ -595,6 +592,52 @@ public class UKBBParsingPipeline {
 																 "snp",
 																 "cal",
 		};
+
+		public void buildLookups() throws IOException {
+			conInds = buildLookup(conFile, 4000000);
+			lrrInds = buildLookup(lrrFile, 4000000);
+			bafInds = buildLookup(bafFile, 2000000);
+		}
+
+		@SuppressWarnings("unchecked")
+		public void readLookups() {
+			if (conInds == null) {
+				conInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(conFile, false)
+																																			+ "_lookup.dat");
+			}
+			if (lrrInds == null) {
+				lrrInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(lrrFile, false)
+																																			+ "_lookup.dat");
+			}
+			if (bafInds == null) {
+				bafInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(bafFile, false)
+																																			+ "_lookup.dat");
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private HashMap<Integer, Long> buildLookup(String file, int buffer) throws IOException {
+			if (Files.exists(ext.rootOf(file, false) + "_lookup.dat"))
+				return (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(file, false)
+																																	 + "_lookup.dat");
+			long t1 = System.nanoTime();
+			BufferedReader reader = new BufferedReader(Files.getAppropriateInputStreamReader(file),
+																								 buffer);
+			HashMap<Integer, Long> lineIndices = new HashMap<>();
+			int ind = 1;
+			String line;
+			long total = 0L;
+			while ((line = reader.readLine()) != null) {
+				total += line.length();
+				lineIndices.put(ind, total);
+				ind++;
+			}
+			reader.close();
+			SerializedFiles.writeSerial(lineIndices, ext.rootOf(file, false) + "_lookup.dat");
+			System.out.println("Built lookup for file {" + file + "} in "
+												 + TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - t1) + " seconds");
+			return lineIndices;
+		}
 
 		boolean isComplete() {
 			return Files.exists(bimFile) && Files.exists(bedFile) && Files.exists(famFile)
@@ -746,6 +789,13 @@ public class UKBBParsingPipeline {
 			} else if (!fileSets.get(i).isComplete()) {
 				log.reportTimeWarning("Removing chr " + fileSets.get(i).chr + " - incomplete file set.");
 				fileSets.remove(i);
+			} else {
+				try {
+					fileSets.get(i).buildLookups();
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
 			}
 		}
 		if (missingChrs.size() > 0) {
