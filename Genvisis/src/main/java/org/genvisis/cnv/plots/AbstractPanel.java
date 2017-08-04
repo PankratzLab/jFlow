@@ -329,6 +329,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
 				BufferedImage img = image;
 				while (img == null || imageStatus != IMAGE_COMPLETE) {
+					createImage();
 					img = image;
 					Thread.yield();
 				}

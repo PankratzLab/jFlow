@@ -20,6 +20,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
@@ -221,6 +222,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	private JComboBox<String> newGenotype;
 	private SpringLayout annotationPanelLowerPartLayout;
 	private Project proj;
+	private String[] initListSet;
 	private String[] masterMarkerList;
 	private String[] masterCommentList;
 	private String[] markerList;
@@ -427,6 +429,45 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			referenceGenome = new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(), proj.getLog());
 		}
 
+		initListSet = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (ScatterPlot.this.proj != null) {
+					String[] curr = proj.DISPLAY_MARKERS_FILENAMES.getValue();
+					HashSet<String> sStart = new HashSet<>();
+					HashSet<String> sCurr = new HashSet<>();
+
+					if (initListSet != null) {
+						for (String s : initListSet) {
+							sStart.add(s);
+						}
+					}
+					for (String s : curr) {
+						sCurr.add(s);
+					}
+
+					sCurr.removeAll(sStart);
+					int diff = sCurr.size();
+
+					if (diff > 0) {
+						String message = diff + " files have been added.  ";
+						int choice = JOptionPane.showOptionDialog(null,
+																											message
+																													+ " Would you like to keep this configuration for the next time ScatterPlot is loaded?",
+																											"Preserve ScatterPlot workspace?",
+																											JOptionPane.YES_NO_OPTION,
+																											JOptionPane.QUESTION_MESSAGE, null, null,
+																											null);
+						if (choice == JOptionPane.YES_OPTION) {
+							proj.saveProperties(new Property<?>[] {proj.DISPLAY_MARKERS_FILENAMES});
+						} else {
+							proj.DISPLAY_MARKERS_FILENAMES.setValue(initListSet);
+						}
+					}
+				}
+			}
+		});
 		masterMarkerList = initMarkerList;
 		masterCommentList = initCommentList;
 		if (masterMarkerList == null) {
@@ -3522,32 +3563,34 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 	}
 
 	private void doScreenCapture() {
-		int count = 1;
-		String filename = null;
-		// do {
-		// filename = markerList[markerIndex]+"_" + MarkerData.TYPES[plot_type][0] + "-" +
-		// MarkerData.TYPES[plot_type][1] + "_" + (count == 1 ? "" : "v" + count);
-		// filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-		// count++;
-		// } while (new File(proj.PROJECT_DIRECTORY.getValue()+filename+".png").exists());
-		// for (int i = 0; i < scatterPanels.length; i++) {
-		// scatterPanels[i].screenCapture(proj.PROJECT_DIRECTORY.getValue()+filename+"_panel" + i +
-		// ".png");
-		// log.report(ext.getTime() + "]\tWrote screen capture to
-		// ["+proj.PROJECT_DIRECTORY.getValue()+filename+"_panel" + i + ".png]");
-		// }
-		for (int i = 0; i < scatterPanels.length; i++) {
-			do {
-				filename = markerList[markerIndex] + "_" + plotTypes[i].getAxis1() + "-"
-									 + plotTypes[i].getAxis2() + "_" + (count == 1 ? "" : "v" + count);
-				filename = ext.replaceWithLinuxSafeCharacters(filename, true);
-				count++;
-			} while (new File(proj.PROJECT_DIRECTORY.getValue() + filename + ".png").exists());
-			scatterPanels[i].screenCapture(proj.PROJECT_DIRECTORY.getValue() + filename + "_panel" + i
-																		 + ".png");
-			log.report(ext.getTime() + "]\tWrote screen capture to [" + proj.PROJECT_DIRECTORY.getValue()
-								 + filename + "_panel" + i + ".png]");
+		if (showingAll) {
+			for (int i = 0; i < scatterPanels.length; i++) {
+				screenshotPanel(i);
+			}
+		} else {
+			screenshotPanel(selectedPanelIndex);
 		}
+	}
+
+	private void screenshotPanel(int i) {
+		String filename;
+		int count = 0;
+		do {
+			filename = markerList[markerIndex] + "_" + plotTypes[i].getAxis1() + "-"
+								 + plotTypes[i].getAxis2() + "_" + (count == 1 ? "" : "v" + count);
+			filename = ext.replaceWithLinuxSafeCharacters(filename, true);
+			count++;
+		} while (new File(proj.PROJECT_DIRECTORY.getValue() + filename + ".png").exists());
+		int w, h;
+		w = scatterPanels[i].getWidth();
+		h = scatterPanels[i].getHeight();
+		scatterPanels[i].setSize(800, 600);
+		scatterPanels[i].screenCapture(proj.PROJECT_DIRECTORY.getValue() + filename + "_panel" + i
+																	 + ".png");
+		scatterPanels[i].setSize(w, h);
+		log.report(ext.getTime() + "]\tWrote screen capture to ["
+							 + proj.PROJECT_DIRECTORY.getValue()
+							 + filename + "_panel" + i + ".png]");
 	}
 
 	private JPanel eastPanel() {

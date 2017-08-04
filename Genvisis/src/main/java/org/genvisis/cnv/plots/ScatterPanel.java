@@ -767,7 +767,12 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			boolean[] highlight = new boolean[points.length];
 			boolean[] markerHigh = sp.getCurrentMarkerData().getHighlightStatus(clusterFilter);
 			for (int i = 0; i < samples.length; i++) {
-				highlight[indPtMap.get(samples[i])] = markerHigh[i];
+				Integer ind = indPtMap.get(samples[i]);
+				if (ind == null) {
+					// hidden / excluded sample
+				} else {
+					highlight[ind.intValue()] = markerHigh[i];
+				}
 			}
 			highlightPoints(highlight);
 			setExtraLayersVisible(new byte[] {99});
