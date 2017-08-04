@@ -80,6 +80,8 @@ public class OpenCyto {
 				Files.writeIterable(notToUse, ext.rootOf(batchFile, false) + "_sampleNotUsed.txt");
 
 				rscript[i] = "fcsFilesAll =" + Rscript.generateRVector(ArrayUtils.toStringArray(toUse), true);
+			} else if (rscript[i].startsWith("runFlowAI =") && c.has("runFlowAI")) {
+				rscript[i] = "runFlowAI = TRUE";
 			}
 		}
 		return ArrayUtils.toStr(rscript, "\n");
@@ -187,6 +189,7 @@ public class OpenCyto {
 		c.addArgWithDefault(PANEL_2_MAP, "map from automatic to manual gate scheme", "p2.map.txt");
 
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "~/fcsAnalyzed/");
+		c.addFlag("runFlowAI", "run flowAI and gate qc'ed fcs file");
 		c.addArgWithDefault(TEMPLATE_LYMPH, "full path to lymphocyte gating .csv template", "~/templates/lymph.csv");
 		c.addArgWithDefault(TEMPLATE_MONOCYTE, "full path to monocyte gating .csv template", "~/templates/mono.csv");
 		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, 24);

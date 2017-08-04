@@ -38,21 +38,21 @@ public class CNVScan {
 
 		// String cnvFile =
 		// "/Volumes/Beta/data/Cushings/cnvs/ExomeDepthAll.all.noCNVR.cnvs";
-		String cnvFile = "/Volumes/Beta/data/Cushings/cnvs/ExomeDepthAll.all.cnvs";
+		String cnvFile = "/Volumes/Beta2/NGS/Cushings/cnvs/ExomeDepthAll.all.cnvs";
 
-		String g1000Cnvs = "/Volumes/Beta/data/Cushings/cnvs/GRCh37_hg19_variants_2015-07-23.txt.cnv";
-		String problemRegions = "/Volumes/Beta/data/Cushings/cnvs/problematicRegions_hg19.dat";
+		String g1000Cnvs = "/Volumes/Beta2/NGS/Cushings/cnvs/GRCh37_hg19_variants_2015-07-23.txt.cnv";
+		String problemRegions = "/Volumes/Beta2/NGS/Cushings/cnvs/problematicRegions_hg19.dat";
 
-		String outDir = "/Volumes/Beta/data/Cushings/cnvs/clinicalAssoc/";
+		String outDir = "/Volumes/Beta2/NGS/Cushings/cnvs/clinicalAssoc/";
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "log.log");
 		LocusSet<Segment> probs = new LocusSet<>(Segment.loadUCSCregions(problemRegions, 0, false, log), true, log);
 
-		VcfPopulation vpop = VcfPopulation.load("/Volumes/Beta/data/Cushings/cnvs/CUSHING_FREQ_V3.vpop",
+		VcfPopulation vpop = VcfPopulation.load("/Volumes/Beta2/NGS/Cushings/cnvs/CUSHING_FREQ_V3.vpop",
 				POPULATION_TYPE.ANY, log);
 		vpop.report();
 		HashSet<String> lqs = HashVec
-				.loadFileToHashSet("/Volumes/Beta/data/Cushings/cnvs/CUSHING_FREQ_V3.lowerQualitySamples.txt", false);
+				.loadFileToHashSet("/Volumes/Beta2/NGS/Cushings/cnvs/CUSHING_FREQ_V3.lowerQualitySamples.txt", false);
 		Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(
 				LocusSet.combine(CNVariant.loadLocSet(cnvFile, log), CNVariant.loadLocSet(g1000Cnvs, log), true, log),
 				log);
