@@ -236,7 +236,8 @@ public class Project implements PropertyChangeListener {
 																																			 true, COPY.VALUE, 0.0, 1.0,
 																																			 0.95);
 	public IntegerProperty NUM_THREADS = new IntegerProperty(this, PropertyKeys.KEY_NUM_THREADS, "",
-																													 GROUP.GLOBAL, true, COPY.VALUE, 1, 99, 1);
+																													 GROUP.GLOBAL, true, COPY.VALUE, 1, 99,
+																													 1);
 	public IntegerProperty QQ_MAX_NEG_LOG10_PVALUE = new IntegerProperty(
 																																			 this,
 																																			 PropertyKeys.KEY_QQ_MAX_NEG_LOG10_PVALUE,
@@ -711,8 +712,8 @@ public class Project implements PropertyChangeListener {
 																																													this,
 																																													PropertyKeys.KEY_GENOME_BUILD_VERSION,
 																																													"The build version of the genome, options are "
-																																															+ Arrays.asList(GENOME_BUILD.values())
-																																																			.toString(),
+																																																																 + Arrays.asList(GENOME_BUILD.values())
+																																																																				 .toString(),
 																																													GROUP.IMPORT,
 																																													false,
 																																													COPY.VALUE,
@@ -939,10 +940,10 @@ public class Project implements PropertyChangeListener {
 			} else {
 				// error reading headers; let's delete
 				getLog().reportError(ext.getTime()
-																 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+														 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 				getLog().reportError(ext.getTime()
-																 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-																 + Sample.SAMPLE_FILE_EXTENSION + " files.");
+														 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+														 + Sample.SAMPLE_FILE_EXTENSION + " files.");
 				getLog().reportError(ext.getTime()
 														 + "]\tA quick check (which may be incorrect) suggest this "
 														 + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
@@ -2256,7 +2257,7 @@ public class Project implements PropertyChangeListener {
 
 	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
 		return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-																		: sourceFileHeaders;
+																		 : sourceFileHeaders;
 	}
 
 	public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
