@@ -2088,8 +2088,7 @@ public class Project implements PropertyChangeListener {
 						String newFile = this.PROJECT_DIRECTORY.getValue()
 														 + p.getValueString()
 																.replace(proj.PROJECT_DIRECTORY.getValueString(), "");
-						Files.copyFile(p.getValueString(),
-													 newFile);
+						Files.copyFileUsingFileChannels(p.getValueString(), newFile, log);
 						this.getProperty(p.getName()).parseValue(newFile);
 					} else {
 						this.getProperty(p.getName()).parseValue(p.getValueString());
