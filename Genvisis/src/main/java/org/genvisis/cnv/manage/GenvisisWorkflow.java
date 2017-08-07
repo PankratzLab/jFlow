@@ -1214,7 +1214,12 @@ public class GenvisisWorkflow {
 
 			final Requirement targetMarkersReq = new FileRequirement("A targetMarkers files listing the markers to QC.",
 																															 proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
-			final Set<String> sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
+			final Set<String> sampleDataHeaders;
+			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
+				sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
+			} else {
+				sampleDataHeaders = Sets.newHashSet();
+			}
 			final Set<String> defaultBatchHeaders = Sets.intersection(sampleDataHeaders,
 																																MarkerMetrics.DEFAULT_SAMPLE_DATA_BATCH_HEADERS);
 			final ListSelectionRequirement batchHeadersReq = new ListSelectionRequirement("SampleData column headers to use as batches for batch effects calculations",
