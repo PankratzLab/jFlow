@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -696,7 +697,7 @@ public class lab {
 		writer.close();
 	}
 
-	private static void run() {
+	private static void runMarcotte() {
 
 		String dir = "F:/temp/HB_PLINK/dupeSets/";
 		String file = "Marcotte_dupeSet1.ped.in";
@@ -718,6 +719,57 @@ public class lab {
 		}
 		writer.flush();
 		writer.close();
+
+	}
+
+	private static void run() throws IOException {
+		String dir = "F:/testProjectSrc/UKBB_AffyAxiom/00src/";
+		String file = "ukb_baf_chr21_v2.txt";
+
+		BufferedReader reader = Files.getAppropriateReader(dir + file);
+		String line = null;
+		line = reader.readLine();
+		int len = line.length();
+		reader.close();
+
+		reader = Files.getAppropriateReader(dir + file);
+		line = null;
+		System.out.println("1st line: " + (len + 1));
+		reader.skip(len + 1);
+		line = reader.readLine();
+		len = line.length();
+		System.out.println("2nd line: " + line.length());
+		System.out.println("|" + line.substring(0, 10) + "|");
+		reader.close();
+
+
+		InputStreamReader isr = Files.getAppropriateInputStreamReader(dir + file);
+		int chr = Integer.MIN_VALUE;
+		char[] v;
+		long total = 0L;
+		int ln = 0;
+		while ((chr = isr.read()) != -1) {
+			v = Character.toChars(chr);
+			for (int i = 0; i < v.length; i++) {
+				total++;
+				if (v[i] == '\n') {
+					ln++;
+					System.out.println("line " + ln + " starts @ " + total);
+				}
+			}
+		}
+		isr.close();
+
+
+		reader = Files.getAppropriateReader(dir + file);
+		line = null;
+		reader.skip(total);
+		line = reader.readLine();
+		len = line.length();
+		System.out.println("2nd line: " + line.length());
+		System.out.println("|" + line.substring(0, 10) + "|");
+		reader.close();
+
 
 	}
 

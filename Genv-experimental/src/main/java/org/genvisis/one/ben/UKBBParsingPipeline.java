@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -135,7 +136,6 @@ public class UKBBParsingPipeline {
 		int nInd = md.getGCs().length;
 		int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
 		int markerBlockSize = nInd * bytesPerSamp;
-
 		byte[] mkrBuff = new byte[markerBlockSize];
 		int buffInd = 0;
 
@@ -195,8 +195,8 @@ public class UKBBParsingPipeline {
 	private byte getNullStatus() {
 		return Sample.updateNullStatus(new float[0], new float[0],
 																	 new float[0], new float[0],
-																	 new float[0], new byte[0],
-																	 null, true);
+																	 new float[0], null,
+																	 new byte[0], true);
 	}
 
 
@@ -320,135 +320,147 @@ public class UKBBParsingPipeline {
 		int logPer = mkrNames.length / 10;
 		String conLine;
 		String[] cons;
-		float[] gcs;
 		String lrrLine;
 		String[] lrrStrs;
-		float[] lrrs;
 		String bafLine;
 		String[] bafStrs;
-		float[] bafs;
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			if (i > 0 && i % logPer == 0) {
 				log.reportTime("Processed " + i + " markers for chr " + fs.chr);
 			}
 
-			String[] bimLine = bimData[i];
-			frs.bedIn.seek(3L + ((long) i) * ((long) bedBlockSize)); // ALWAYS seek forward
-			frs.binIn.seek(((long) i) * ((long) binBlockSize));
+			int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
+			int markerBlockSize = nInd * bytesPerSamp;
 
-			byte[] markerBytes = new byte[bedBlockSize];
-			byte[] intensBytes = new byte[binBlockSize];
-			byte[] sampGeno = new byte[nInd];
-			float[] sampAs = new float[nInd];
-			float[] sampBs = new float[nInd];
-			frs.bedIn.read(markerBytes);
-			frs.binIn.read(intensBytes);
-
-			for (int bitInd = 0, binInd = 0; bitInd < markerBytes.length; bitInd++) {
-				byte bedByte = markerBytes[bitInd];
-				byte[] genotypes = PlinkData.decodeBedByte(bedByte);
-
-				for (int g = 0; g < genotypes.length; g++) {
-					int idInd = bitInd * 4 + g;
-					if (idInd == -1 || idInd >= sampGeno.length) {
-						continue;
-					}
-					sampGeno[idInd] = genotypes[g];
-				}
-				genotypes = null;
-
-				byte[] intA = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
-				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
-				sampAs[binInd / 8] = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				sampBs[binInd / 8] = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-			}
-			markerBytes = null;
-			intensBytes = null;
+			byte[] mkrBuff = new byte[markerBlockSize];
+			int buffInd = 0;
 
 			conLine = frs.conIn.readLine();
 			cons = conLine.split(" ");
-			gcs = new float[nInd];
+			conLine = null;
 			if (cons.length != nInd) {
 				log.reportError("Mismatched # of confidence scores {fnd: " + cons.length + ", exp: "
 												+ nInd + "}.  File: " + fs.conFile);
 				System.exit(1);
 			}
+			float gcV;
 			for (int k = 0; k < cons.length; k++) {
-				gcs[k] = 1 - Float.parseFloat(cons[k]);
-				if (gcs[k] == 2) { // i.e. 1 - (-1)
-					gcs[k] = Float.NaN;
+				gcV = 1 - Float.parseFloat(cons[k]);
+				if (gcV == 2) { // i.e. 1 - (-1)
+					gcV = Float.NaN;
 				}
+				Compression.gcBafCompress(gcV, mkrBuff, buffInd);
+				buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 			}
-			conLine = null;
 			cons = null;
 
-			lrrLine = frs.lrrIn.readLine();
-			lrrStrs = lrrLine.split(" ");
-			lrrs = new float[nInd];
+			byte[] intensBytes = new byte[binBlockSize];
+			frs.binIn.seek(((long) i) * ((long) binBlockSize));
+			frs.binIn.read(intensBytes);
 
-			if (lrrStrs.length != nInd) {
-				log.reportError("Mismatched # of L2R values {fnd: " + lrrStrs.length + ", exp: "
-												+ nInd + "}.  File: " + fs.lrrFile);
-				System.exit(1);
-			}
-			for (int k = 0; k < lrrStrs.length; k++) {
-				try {
-					lrrs[k] = Float.parseFloat(lrrStrs[k]);
-				} catch (NumberFormatException e) {
-					if (ext.isMissingValue(lrrStrs[k])) {
-						lrrs[k] = Float.NaN;
-					} else {
-						log.reportError("Malformed LRR value: " + lrrStrs[k] + " for chr " + fs.chr);
-						System.exit(1);
-					}
+			float x, y;
+			boolean oor;
+			for (int bitInd = 0, binInd = 0; bitInd < nInd; bitInd++) {
+				byte[] intA = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
+											 intensBytes[binInd++]};
+				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
+											 intensBytes[binInd++]};
+
+				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				oor = !Compression.xyCompressAllowNegative(x, mkrBuff, buffInd);
+				if (oor) {
+					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tx", x);
 				}
+
+				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				oor = !Compression.xyCompressAllowNegative(y,
+																									 mkrBuff,
+																									 buffInd
+																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+				if (oor) {
+					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\ty", y);
+				}
+
+				buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 			}
-			lrrLine = null;
-			lrrStrs = null;
+			intensBytes = null;
 
 			bafLine = frs.bafIn.readLine();
 			bafStrs = bafLine.split(" ");
-			bafs = new float[nInd];
+			bafLine = null;
 			if (bafStrs.length != nInd) {
 				log.reportError("Mismatched # of BAF values {fnd: " + bafStrs.length + ", exp: "
 												+ nInd + "}.  File: " + fs.bafFile);
 				System.exit(1);
 			}
+			float baf = Float.NaN;
 			for (int k = 0; k < bafStrs.length; k++) {
 				try {
-					bafs[k] = Float.parseFloat(bafStrs[k]);
+					baf = Float.parseFloat(bafStrs[k]);
 				} catch (NumberFormatException e) {
 					if (ext.isMissingValue(bafStrs[k])) {
-						bafs[k] = Float.NaN;
+						baf = Float.NaN;
 					} else {
 						log.reportError("Malformed BAF value: " + bafStrs[k] + " for chr " + fs.chr);
 						System.exit(1);
 					}
 				}
+				Compression.gcBafCompress(baf, mkrBuff, buffInd);
+				buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 			}
-			bafLine = null;
 			bafStrs = null;
 
-			MarkerData md = new MarkerData(bimLine[1], (byte) Integer.parseInt(bimLine[0]),
-																		 Integer.parseInt(bimLine[3]), fingerprint,
-																		 gcs, null, null, sampAs, sampBs, null, null, bafs, lrrs,
-																		 sampGeno, null);
-			byte[] writeData = compressMarkerData(md, i - startBatchInd, outOfRangeTable);
+			lrrLine = frs.lrrIn.readLine();
+			lrrStrs = lrrLine.split(" ");
+			lrrLine = null;
+			if (lrrStrs.length != nInd) {
+				log.reportError("Mismatched # of L2R values {fnd: " + lrrStrs.length + ", exp: "
+												+ nInd + "}.  File: " + fs.lrrFile);
+				System.exit(1);
+			}
+			float lrr = Float.NaN;
+			for (int k = 0; k < lrrStrs.length; k++) {
+				try {
+					lrr = Float.parseFloat(lrrStrs[k]);
+				} catch (NumberFormatException e) {
+					if (ext.isMissingValue(lrrStrs[k])) {
+						lrr = Float.NaN;
+					} else {
+						log.reportError("Malformed LRR value: " + lrrStrs[k] + " for chr " + fs.chr);
+						System.exit(1);
+					}
+				}
+				oor = -1 == Compression.lrrCompress(lrr, mkrBuff, buffInd);
+				buffInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+				if (oor) {
+					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tlrr", lrr);
+				}
+			}
+			lrrStrs = null;
 
-			mdRAF.write(writeData);
+			byte[] markerBytes = new byte[bedBlockSize];
+			frs.bedIn.seek(3L + ((long) i) * ((long) bedBlockSize)); // ALWAYS seek forward
+			frs.bedIn.read(markerBytes);
+			for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
+				byte bedByte = markerBytes[bitInd];
+				byte[] genotypes = PlinkData.decodeBedByte(bedByte);
 
-			writeData = null;
-			md = null;
-			gcs = null;
-			sampAs = null;
-			sampBs = null;
-			bafs = null;
-			lrrs = null;
-			sampGeno = null;
+				for (int g = 0; g < genotypes.length; g++) {
+					int idInd = bitInd * 4 + g;
+					if (idInd == -1 || idInd >= nInd) {
+						continue;
+					}
+					mkrBuff[buffInd] = Compression.genotypeCompress((byte) -1, genotypes[g]);
+					buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
+				}
+				genotypes = null;
+			}
+			markerBytes = null;
 
-			if (i % 500 == 0) {
+			mdRAF.write(mkrBuff);
+			mkrBuff = null;
+
+			if (i % 1000 == 0) {
 				System.out.print("Cleaning up...");
 				long t1 = System.nanoTime();
 				System.gc();
@@ -594,9 +606,12 @@ public class UKBBParsingPipeline {
 		};
 
 		public void buildLookups() throws IOException {
-			conInds = buildLookup(conFile, 4000000);
-			lrrInds = buildLookup(lrrFile, 4000000);
-			bafInds = buildLookup(bafFile, 2000000);
+			System.out.println("Building confidence file lookup...");
+			conInds = buildLookup(conFile);
+			System.out.println("Building l2r file lookup...");
+			lrrInds = buildLookup(lrrFile);
+			System.out.println("Building baf file lookup...");
+			bafInds = buildLookup(bafFile);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -615,24 +630,38 @@ public class UKBBParsingPipeline {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
-		private HashMap<Integer, Long> buildLookup(String file, int buffer) throws IOException {
+		private HashMap<Integer, Long> buildLookup(String file) throws IOException {
 			if (Files.exists(ext.rootOf(file, false) + "_lookup.dat"))
 				return (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(file, false)
 																																	 + "_lookup.dat");
 			long t1 = System.nanoTime();
-			BufferedReader reader = new BufferedReader(Files.getAppropriateInputStreamReader(file),
-																								 buffer);
 			HashMap<Integer, Long> lineIndices = new HashMap<>();
-			int ind = 1;
-			String line;
+
+			InputStreamReader isr = Files.getAppropriateInputStreamReader(file);
+			int chr = Integer.MIN_VALUE;
+			char[] v;
 			long total = 0L;
-			while ((line = reader.readLine()) != null) {
-				total += line.length();
-				lineIndices.put(ind, total);
-				ind++;
+			int line = 0;
+			while ((chr = isr.read()) != -1) {
+				v = Character.toChars(chr);
+				if (v.length == 1) {
+					total++;
+					if (v[0] == '\n') {
+						line++;
+						lineIndices.put(line, total);
+					}
+				} else {
+					for (int i = 0; i < v.length; i++) {
+						total++;
+						if (v[i] == '\n') {
+							line++;
+							lineIndices.put(line, total);
+						}
+					}
+				}
 			}
-			reader.close();
+			isr.close();
+
 			SerializedFiles.writeSerial(lineIndices, ext.rootOf(file, false) + "_lookup.dat");
 			System.out.println("Built lookup for file {" + file + "} in "
 												 + TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - t1) + " seconds");
@@ -676,7 +705,7 @@ public class UKBBParsingPipeline {
 			@Override
 			public boolean accept(File dir, String name) {
 				String[] parts = name.split("_");
-				if (parts.length <= 2)
+				if (parts.length <= 2 || parts.length > 4)
 					return false;
 				if (name.endsWith(".fam"))
 					return false;
