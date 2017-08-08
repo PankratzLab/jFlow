@@ -95,18 +95,18 @@ public class UKBBParsingPipeline {
 	protected void writeLookup() {
 		Hashtable<String, String> lookup = new Hashtable<>();
 		for (FileSet fs : fileSets.values()) {
-
-			int binSize = 2500;
-
 			String mdRAF;
-			String[] mkrs = HashVec.loadFileToStringArray(fs.bimFile, false, new int[] {1}, false);
-			for (int i = 0; i < mkrs.length; i++) {
-				int bin = i / binSize;
-				mdRAF = "markers." + fs.chr + "." + bin + "." + (bin + binSize)
-								+ MarkerData.MARKER_DATA_FILE_EXTENSION;
-				lookup.put(mkrs[i], mdRAF);
+			List<String[]> mkrBins = fs.mkrBins;
+			int start = 0;
+			int end = 0;
+			for (String[] bin : mkrBins) {
+				end = start + bin.length;
+				mdRAF = getMDRAFName(fs.chr, start, end);
+				for (String s : bin) {
+					lookup.put(s, mdRAF);
+				}
+				start = end;
 			}
-			mkrs = null;
 		}
 		new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
 	}
@@ -241,22 +241,23 @@ public class UKBBParsingPipeline {
 			System.exit(1);
 		}
 
-		int binSize = 2500;
 		String[] mkrNames = Matrix.extractColumn(bimData, 1);
-		List<String[]> mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / binSize) + 1, log);
+		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / 2500) + 1, log);
 		String[] existing = readWritten();
 
-		for (int i = 0; i < mkrBins.size(); i++) {
-			String mdRAFName = "markers." + fs.chr + "." + (i * binSize) + "."
-												 + ((i * binSize) + mkrBins.get(i).length)
-												 + MarkerData.MARKER_DATA_FILE_EXTENSION;
+		int start = 0;
+		int end = 0;
+		for (int i = 0; i < fs.mkrBins.size(); i++) {
+			end = start + fs.mkrBins.get(i).length;
+			String mdRAFName = getMDRAFName(fs.chr, start, end);
 			if (ext.indexOfStr(mdRAFName, existing) == -1) {
-				String mdRAF = write(fs, i * binSize, mkrBins.get(i), nullStatus, nInd, bimData,
+				String mdRAF = write(fs, start, fs.mkrBins.get(i), nullStatus, nInd, bimData,
 														 frs);
 				success(mdRAF);
 			} else {
-				frs.readAhead(fs, i, binSize);
+				frs.readAhead(fs, i, start);
 			}
+			start = end;
 		}
 
 		frs.bedIn.close();
@@ -304,13 +305,17 @@ public class UKBBParsingPipeline {
 		}
 	}
 
+	private String getMDRAFName(int chr, int start, int end) {
+		return "markers." + chr + "." + start + "."
+					 + end + MarkerData.MARKER_DATA_FILE_EXTENSION;
+	}
+
 	private String write(FileSet fs, int startBatchInd, String[] mkrNames, byte nullStatus, int nInd,
 											 String[][] bimData, FileReaderSet frs) throws Elision, IOException {
 		RandomAccessFile mdRAF;
 
 		Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
-		String mdRAFName = "markers." + fs.chr + "." + startBatchInd + "."
-											 + (startBatchInd + mkrNames.length) + MarkerData.MARKER_DATA_FILE_EXTENSION;
+		String mdRAFName = getMDRAFName(fs.chr, startBatchInd, (startBatchInd + mkrNames.length));
 
 		mdRAF = openMDRAF(mdRAFName, famData.length, mkrNames.length, nullStatus, fingerprint, mkrNames);
 
@@ -460,13 +465,6 @@ public class UKBBParsingPipeline {
 			mdRAF.write(mkrBuff);
 			mkrBuff = null;
 
-			if (i % 1000 == 0) {
-				System.out.print("Cleaning up...");
-				long t1 = System.nanoTime();
-				System.gc();
-				System.out.println("done in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t1)
-													 + " millis");
-			}
 		}
 
 		byte[] oorBytes = Compression.objToBytes(outOfRangeTable);
@@ -596,6 +594,8 @@ public class UKBBParsingPipeline {
 		HashMap<Integer, Long> lrrInds;
 		HashMap<Integer, Long> bafInds;
 
+		List<String[]> mkrBins;
+
 		final static String[] EXP = {
 																 "l2r",
 																 "baf",
@@ -631,9 +631,11 @@ public class UKBBParsingPipeline {
 		}
 
 		private HashMap<Integer, Long> buildLookup(String file) throws IOException {
-			if (Files.exists(ext.rootOf(file, false) + "_lookup.dat"))
+			if (Files.exists(ext.rootOf(file, false) + "_lookup.dat")) {
+				System.out.println("Existing lookup found, loading that instead...");
 				return (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(file, false)
 																																	 + "_lookup.dat");
+			}
 			long t1 = System.nanoTime();
 			HashMap<Integer, Long> lineIndices = new HashMap<>();
 
