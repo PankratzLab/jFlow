@@ -338,7 +338,9 @@ public class ForestPlot {
   private static final String[] BETA_META_HEADERS = {"beta", "effect"};
   private static final String[] SE_META_HEADERS = {"se", "stderr"};
   private static final String BETA_PREFIX = "beta.";
+  private static final String BETA_INFIX = "_beta_";
   private static final String SE_PREFIX = "se.";
+  private static final String SE_INFIX = "_se_";
 
   private Project proj;
   private String markerFileName;
@@ -382,10 +384,9 @@ public class ForestPlot {
     try {
       reloadData();
     } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    // dataIndices.addAll(readMarkerFile(markerFileName));
+
     setup();
   }
 
@@ -493,7 +494,7 @@ public class ForestPlot {
       String header;
       try {
         header = dataReader.readLine(); // skip header
-        log.report(header);
+
         String[] hdr;
         if (delimiter.startsWith(",")) {
           hdr = ext.splitCommasIntelligently(header, true, log);
@@ -565,18 +566,25 @@ public class ForestPlot {
           if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_META_HEADERS[j])) {
             data.metaIndicies = new int[] {i, i + 1};
           }
+        } else if (dataFileHeaders[i].contains("PanEthnic")
+                   && dataFileHeaders[i].contains(BETA_INFIX)) {
+          if (dataFileHeaders[i + 1].contains(SE_INFIX)) {
+            data.metaIndicies = new int[] {i, i + 1};
+          }
         }
       }
-      if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)) {
-        if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)) {
-          if (data.studyToColIndexMap.containsKey(dataFileHeaders[i].split("\\.")[1])) {
+      if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)
+          || dataFileHeaders[i].contains(BETA_INFIX)) {
+        if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)
+            || dataFileHeaders[i + 1].contains(SE_INFIX)) {
+          int betaIndex = dataFileHeaders[i].startsWith("beta") ? 1 : 0;
+          String[] b = dataFileHeaders[i].split("beta");
+          String beta = b[betaIndex] + (b.length > 1 ? b[b.length - 1] : "");
+          if (data.studyToColIndexMap.containsKey(beta)) {
             throw new RuntimeException("Malformed data file: Duplicate study name found in file");
           } else {
-            data.addStudy(dataFileHeaders[i].split("\\.")[1], i);
+            data.addStudy(beta, i);
           }
-        } else {
-          throw new RuntimeException("Malformed data file: SE is not present after Beta for: "
-                                     + dataFileHeaders[i]);
         }
       }
     }
@@ -602,7 +610,6 @@ public class ForestPlot {
     setCurrentDataIndex(index);
     // setCurrentMetaStudy(dataToMetaMap.get(dataIndices.get(index)));
     setCurrentMetaStudy(dataIndices.get(index).getMetaStudy());
-    getCurrentMetaStudy().setSort(isSortedDisplay(), getSortOrder());
     if (getCurrentMetaStudy() == null) {
       String msg = "Error - could not set index to " + index
                    + " since the data did not load properly; check to see if any results files are missing";
@@ -613,6 +620,7 @@ public class ForestPlot {
       }
       return;
     }
+    getCurrentMetaStudy().setSort(isSortedDisplay(), getSortOrder());
     maxZScore = getCurrentMetaStudy().findMaxZScore();
     sumZScore = getCurrentMetaStudy().calcSumZScore();
     longestStudyName = getCurrentMetaStudy().findLongestStudyName();
