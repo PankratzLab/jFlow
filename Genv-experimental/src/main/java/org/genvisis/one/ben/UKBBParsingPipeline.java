@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ import org.genvisis.common.ext;
 public class UKBBParsingPipeline {
 
 	private static final int MAX_MDRAF_THREADS = 3;
-	private static final int MAX_CHR_THREADS = 5;
+	private static final int MAX_CHR_THREADS = 8;
 
 	Logger log = new Logger();
 
@@ -358,7 +359,7 @@ public class UKBBParsingPipeline {
 		String[] bafStrs;
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			if (i > 0 && i % logPer == 0) {
-				log.reportTime("Processed " + (100 * (i / logPer)) + "% of markers for chr " + fs.chr);
+				log.reportTime("Processed " + (10 * (i / logPer)) + "% of markers for chr " + fs.chr);
 			}
 
 			int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
@@ -399,12 +400,17 @@ public class UKBBParsingPipeline {
 											 intensBytes[binInd++]};
 
 				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+//				x = LongMath.log2((long) (x / y), RoundingMode.HALF_UP);
+//				y = LongMath.log2((long) (x * y), RoundingMode.HALF_UP) / 2;
+//				x = (float) (Math.log(x) / Math.log(2));
+//				y = (float) (Math.log(y) / Math.log(2));
+				
 				oor = !Compression.xyCompressAllowNegative(x, mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tx", x);
 				}
 
-				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 				oor = !Compression.xyCompressAllowNegative(y,
 																									 mkrBuff,
 																									 buffInd
@@ -482,7 +488,8 @@ public class UKBBParsingPipeline {
 					if (idInd == -1 || idInd >= nInd) {
 						continue;
 					}
-					mkrBuff[buffInd] = Compression.genotypeCompress((byte) -1, genotypes[g]);
+//					mkrBuff[buffInd] = Compression.genotypeCompress((byte) -1, genotypes[g]);
+					mkrBuff[buffInd] = Compression.genotypeCompress(genotypes[g], (byte) 0);
 					buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 				}
 				genotypes = null;
@@ -545,8 +552,8 @@ public class UKBBParsingPipeline {
 				}
 			};
 			executor.submit(runn);
-			log.reportTime("Queued MarkerData parsing for chr " + fs.chr);
 		}
+		log.reportTime("Queued MarkerData parsing for " + fileSets.size() + " chrs.");
 
 		executor.shutdown();
 		try {
@@ -692,7 +699,6 @@ public class UKBBParsingPipeline {
 			String lookupFile = ext.rootOf(file, false) + "_lookup.dat";
 			if (Files.exists(lookupFile)) {
 				HashMap<Integer, Long> indMap = (HashMap<Integer, Long>) SerializedFiles.readSerial(lookupFile);
-				log.reportTime("Loaded {" + ext.rootOf(lookupFile) + "} in " + TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - t1) + " seconds");				
 				return indMap;
 			}
 			HashMap<Integer, Long> lineIndices = new HashMap<>();
