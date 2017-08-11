@@ -46,6 +46,9 @@ import org.genvisis.common.ext;
 
 public class UKBBParsingPipeline {
 
+	private static final int MAX_MDRAF_THREADS = 3;
+	private static final int MAX_CHR_THREADS = 5;
+
 	Logger log = new Logger();
 
 	String sourceDir;
@@ -65,9 +68,9 @@ public class UKBBParsingPipeline {
 		createProject();
 		createSampleList();
 		discoverFilesets();
-		createMarkerPositions();
 		parseMarkerData();
 		writeLookup();
+		createMarkerPositions();
 		writeMarkerSet();
 		writeOutliers();
 		createSampRAFsFromMDRAFs();
@@ -165,68 +168,6 @@ public class UKBBParsingPipeline {
 																						 + "outliers.ser");
 	}
 
-	@SuppressWarnings("unused")
-	private byte[] compressMarkerData(MarkerData md, int mkrIndLocal,
-																		Hashtable<String, Float> oorTable) throws Elision {
-		int nInd = md.getGCs().length;
-		int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
-		int markerBlockSize = nInd * bytesPerSamp;
-		byte[] mkrBuff = new byte[markerBlockSize];
-		int buffInd = 0;
-
-		// GCs
-		for (int i = 0; i < nInd; i++) {
-			Compression.gcBafCompress(md.getGCs()[i], mkrBuff, buffInd);
-			buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
-		}
-
-		// Xs
-		for (int i = 0; i < nInd; i++) {
-			boolean oor = !Compression.xyCompressAllowNegative(md.getXs()[i], mkrBuff, buffInd);
-			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
-			if (oor) {
-				oorTable.put(mkrIndLocal + "\t" + i + "\tx", md.getXs()[i]);
-			}
-		}
-
-		// Ys
-		for (int i = 0; i < nInd; i++) {
-			boolean oor = !Compression.xyCompressAllowNegative(md.getYs()[i], mkrBuff, buffInd);
-			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
-			if (oor) {
-				oorTable.put(mkrIndLocal + "\t" + i + "\ty", md.getYs()[i]);
-			}
-		}
-
-		// BAFs
-		for (int i = 0; i < nInd; i++) {
-			Compression.gcBafCompress(md.getBAFs()[i], mkrBuff, buffInd);
-			buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
-		}
-
-		// LRRs
-		for (int i = 0; i < nInd; i++) {
-			boolean oor = -1 == Compression.lrrCompress(md.getLRRs()[i], mkrBuff, buffInd);
-			buffInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
-			if (oor) {
-				oorTable.put(mkrIndLocal + "\t" + i + "\tlrr", md.getLRRs()[i]);
-			}
-		}
-
-		// Genotypes
-		for (int i = 0; i < nInd; i++) {
-			mkrBuff[buffInd] = Compression.genotypeCompress(md.getAbGenotypes() == null
-																																								 ? -1
-																																								 : md.getAbGenotypes()[i],
-																											md.getForwardGenotypes() == null
-																																											? 0
-																																											: md.getForwardGenotypes()[i]);
-			buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
-		}
-
-		return mkrBuff;
-	}
-
 	private byte getNullStatus() {
 		return Sample.updateNullStatus(new float[0], new float[0],
 																	 new float[0], new float[0],
@@ -235,12 +176,12 @@ public class UKBBParsingPipeline {
 	}
 
 
-	private RandomAccessFile openMDRAF(String filename, int nInd, int nMkr, byte nullStatus,
+	private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus,
 																		 long fingerprint,
 																		 String[] mkrNames) throws IOException {
 		byte[] mkrBytes = Compression.objToBytes(mkrNames);
 		byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd,
-																																	 nMkr,
+																																	 mkrNames.length,
 																																	 nullStatus,
 																																	 fingerprint,
 																																	 mkrBytes);
@@ -283,7 +224,7 @@ public class UKBBParsingPipeline {
 						try {
 							long t1 = System.nanoTime();
 							mdRAF = write(fs, s, fs.mkrBins.get(ii), nullStatus, nInd, bimData);
-							log.reportTime("Wrote MDRAF in " + TimeUnit.NANOSECONDS.toHours(System.nanoTime() - t1) + "hrs: " + mdRAF);
+							log.reportTime("Wrote " + mdRAF + " in " + TimeUnit.NANOSECONDS.toHours(System.nanoTime() - t1) + " hours.");
 							success(mdRAF);
 							cdl.countDown();
 						} catch (Elision e) {
@@ -294,24 +235,38 @@ public class UKBBParsingPipeline {
 					}
 				});
 			} else {
-				cdl.countDown();
+				runners.add(new Runnable() {
+					@Override
+					public void run() {
+						Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue() + mdRAFName);
+						for (Entry<String, Float> outlier : outliers.entrySet()) {
+							String[] pts = outlier.getKey().split("\t");
+							int mkrInd = Integer.parseInt(pts[0]);
+							int sampInd = Integer.parseInt(pts[1]);
+							oorValues.put(bimData[s + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
+														outlier.getValue());
+						}
+						cdl.countDown();
+					}
+				});
 			}
 			start = end;
 		}
 
-		int avail = Runtime.getRuntime().availableProcessors();
-		ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), Math.max(1, avail - 1)));
-		for (Runnable r : runners) {
-			executor.submit(r);
+		if (runners.size() > 0) {
+  		ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), MAX_MDRAF_THREADS));
+  		for (Runnable r : runners) {
+  			executor.submit(r);
+  		}
+  		executor.shutdown();
+  		try {
+  			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
+  		} catch (InterruptedException e) {
+  			/**/
+  		}
+  
+  		System.gc();
 		}
-		executor.shutdown();
-		try {
-			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			/**/
-		}
-
-		System.gc();
 	}
 
 	private String[] readWritten() {
@@ -389,7 +344,7 @@ public class UKBBParsingPipeline {
 		Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
 		String mdRAFName = getMDRAFName(fs.chr, startBatchInd, (startBatchInd + mkrNames.length));
 
-		mdRAF = openMDRAF(mdRAFName, famData.length, mkrNames.length, nullStatus, fingerprint, mkrNames);
+		mdRAF = openMDRAF(mdRAFName, famData.length, nullStatus, fingerprint, mkrNames);
 
 		int bedBlockSize = (int) Math.ceil(nInd / 4.0);
 		int binBlockSize = nInd * 8;
@@ -403,7 +358,7 @@ public class UKBBParsingPipeline {
 		String[] bafStrs;
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			if (i > 0 && i % logPer == 0) {
-				log.reportTime("Processed " + i + " markers for chr " + fs.chr);
+				log.reportTime("Processed " + (100 * (i / logPer)) + "% of markers for chr " + fs.chr);
 			}
 
 			int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
@@ -565,23 +520,19 @@ public class UKBBParsingPipeline {
 		long time = System.nanoTime();
 		oorValues = new ConcurrentHashMap<String, Float>();
 
-		int avail = Runtime.getRuntime().availableProcessors();
-		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(),
-																																		 Math.max(1, avail - 1)));
+		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(), MAX_CHR_THREADS));
 
 		CountDownLatch cdl = new CountDownLatch(fileSets.size());
 
 		for (Integer v : fileSets.keySet()) {
 			final FileSet fs = fileSets.get(v);
-			final Thread parentThread = Thread.currentThread();
 			Runnable runn = new Runnable() {
 				@Override
 				public void run() {
 					try {
-						fs.readLookups();
+						fs.buildLookups(log);
 						createMDRAF(fs);
 						cdl.countDown();
-						parentThread.interrupt();
 					} catch (IOException | Elision e) {
 						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
 						e.printStackTrace();
@@ -680,11 +631,13 @@ public class UKBBParsingPipeline {
 																 "cal",
 		};
 
-		public void buildLookups(ArrayList<Runnable> runners, CountDownLatch cdl, Logger log) throws IOException {
+		public void buildLookups(Logger log) throws IOException {
+			long t1 = System.nanoTime();
+			ArrayList<Runnable> runners = new ArrayList<>();
+			CountDownLatch cdl = new CountDownLatch(3);
 			runners.add(new Runnable() {
 				@Override
 				public void run() {
-					log.reportTime("\t> Confidences | chr" + chr + "...");
 					try {
 						conInds = buildLookup(conFile, log);
 					} catch (IOException e) {
@@ -697,7 +650,6 @@ public class UKBBParsingPipeline {
 			runners.add(new Runnable() {
 				@Override
 				public void run() {
-					log.reportTime("\t> L2Rs | chr" + chr + "...");
 					try {
 						lrrInds = buildLookup(lrrFile, log);
 					} catch (IOException e) {
@@ -710,7 +662,6 @@ public class UKBBParsingPipeline {
 			runners.add(new Runnable() {
 				@Override
 				public void run() {
-					log.reportTime("\t> BAFs | chr" + chr + "...");
 					try {
 						bafInds = buildLookup(bafFile, log);
 					} catch (IOException e) {
@@ -720,22 +671,19 @@ public class UKBBParsingPipeline {
 					cdl.countDown();
 				}
 			});
-		}
+			
 
-		@SuppressWarnings("unchecked")
-		public void readLookups() {
-			if (conInds == null) {
-				conInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(conFile, false)
-																																			+ "_lookup.dat");
+			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), 3));
+			for (Runnable r : runners) {
+				executor.submit(r);
 			}
-			if (lrrInds == null) {
-				lrrInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(lrrFile, false)
-																																			+ "_lookup.dat");
+			executor.shutdown();
+			try {
+				cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
+			} catch (InterruptedException e) {
+				/**/
 			}
-			if (bafInds == null) {
-				bafInds = (HashMap<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(bafFile, false)
-																																			+ "_lookup.dat");
-			}
+			log.reportTime("Built chr" + chr + " lookups in " + TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - t1) + " minutes.");
 		}
 
 		@SuppressWarnings("unchecked")
@@ -744,7 +692,7 @@ public class UKBBParsingPipeline {
 			String lookupFile = ext.rootOf(file, false) + "_lookup.dat";
 			if (Files.exists(lookupFile)) {
 				HashMap<Integer, Long> indMap = (HashMap<Integer, Long>) SerializedFiles.readSerial(lookupFile);
-				log.reportTime("Loaded {" + lookupFile + "} in " + TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - t1));				
+				log.reportTime("Loaded {" + ext.rootOf(lookupFile) + "} in " + TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - t1) + " seconds");				
 				return indMap;
 			}
 			HashMap<Integer, Long> lineIndices = new HashMap<>();
@@ -775,7 +723,7 @@ public class UKBBParsingPipeline {
 			isr.close();
 
 			SerializedFiles.writeSerial(lineIndices, lookupFile);
-			log.reportTime("Built {" + lookupFile + "} in "
+			log.reportTime("Built {" + ext.rootOf(lookupFile) + "} in "
 												 + TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - t1) + " minutes");
 			return lineIndices;
 		}
@@ -921,46 +869,17 @@ public class UKBBParsingPipeline {
 			}
 		}
 		
-		CountDownLatch cdl = new CountDownLatch(27 * 3);
-		ArrayList<Runnable> runners = new ArrayList<Runnable>();
-		
 		ArrayList<Integer> missingChrs = new ArrayList<>();
 		ArrayList<Integer> incompleteChrs = new ArrayList<>();
-		log.reportTime("Building Index Files:");
 		for (int i = 0; i < 27; i++) {
 			if (!fileSets.containsKey(i)) {
-				cdl.countDown();
-				cdl.countDown();
-				cdl.countDown();
 				missingChrs.add(i);
 			} else if (!fileSets.get(i).isComplete()) {
 				incompleteChrs.add(i);
 				fileSets.remove(i);
-				cdl.countDown();
-				cdl.countDown();
-				cdl.countDown();
-			} else {
-				try {
-					fileSets.get(i).buildLookups(runners, cdl, log);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-			}
+			} 
 		}
 
-		int avail = Runtime.getRuntime().availableProcessors();
-		ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), Math.max(1, avail - 1)));
-		for (Runnable r : runners) {
-			executor.submit(r);
-		}
-		executor.shutdown();
-		try {
-			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			/**/
-		}
-		
 		if (!missingChrs.isEmpty()) {
 			log.reportTimeWarning("Missing " + missingChrs.size() + " chrs: "
 														+ ArrayUtils.toStr(missingChrs, ", "));

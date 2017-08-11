@@ -856,6 +856,22 @@ public class MarkerDataLoader implements Runnable {
 		this.thread = thread;
 	}
 
+	public static MarkerData[] loadMarkerData(Project proj, String[] markers) {
+		if (markers.length > 500) {
+			proj.getLog().reportTimeWarning(
+																			"This method is generally used for loading a small subset of markers in the same thread, currently loading "
+																			+ markers.length + " markers");
+		}
+		MarkerData[] markerDatas = new MarkerData[markers.length];
+		MarkerDataLoader markerDataLoader = loadMarkerDataFromListInSeparateThread(proj,
+																																																markers);
+		for (int i = 0; i < markerDatas.length; i++) {
+			markerDatas[i] = markerDataLoader.requestMarkerData(i);
+			markerDataLoader.releaseIndex(i);
+		}
+		return markerDatas;
+	}
+
 	public static MarkerDataLoader loadMarkerDataFromListInSameThread(Project proj,
 																																		String[] markerList) {
 		MarkerDataLoader markerDataLoader;

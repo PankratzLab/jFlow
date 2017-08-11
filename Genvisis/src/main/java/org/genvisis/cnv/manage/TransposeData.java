@@ -117,8 +117,8 @@ public class TransposeData {
 			return;
 		}
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
-																													+ allSampleNamesInProj[0]
-																													+ Sample.SAMPLE_FILE_EXTENSION, false);
+																															+ allSampleNamesInProj[0]
+																															+ Sample.SAMPLE_FILE_EXTENSION, false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 		numBytes_Mark = allSampleNamesInProj.length * numBytesPerSampleMarker;
 		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (allSampleNamesInProj.length
@@ -181,7 +181,7 @@ public class TransposeData {
 									 + " markers\t" + numChunks_File + " chunks\t"
 									 + markerFileSizeSuggested / 1024 / 1024 / 1024 + "."
 									 + ((int) (markerFileSizeSuggested / 1024 / 1024 / 10.24)
-											- (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
+									 - (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
 									 + " gb\t" + numFiles + " files");
 
 
@@ -224,7 +224,8 @@ public class TransposeData {
 																										+ Sample.SAMPLE_FILE_EXTENSION, "r");
 						} catch (FileNotFoundException fnfe) {
 							log.reportError("Error - file not found: "
-															+ proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[i]
+															+ proj.SAMPLE_DIRECTORY.getValue(true, true)
+															+ allSampleNamesInProj[i]
 															+ Sample.SAMPLE_FILE_EXTENSION);
 							log.reportError("        if you get this error and the file does exist, then likely your operating system (especially common on a linux platform) is not allowing this many files to be open at once; rerun without using that option at the command line");
 							log.reportError("        Transpose aborted");
@@ -324,7 +325,8 @@ public class TransposeData {
 								System.out.println("");
 							}
 							markFileParameterSection = getParameterSectionForMdRaf(allSampleNamesInProj.length,
-																																		 numMarkers_File, nullStatus,
+																																		 numMarkers_File,
+																																		 nullStatus,
 																																		 fingerPrint,
 																																		 markersInEachFile[markerFileIndex]);
 							timerWriteFiles = 0;
@@ -383,19 +385,22 @@ public class TransposeData {
 			} catch (OutOfMemoryError oome) {
 				numMarkers_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numMarkers_WriteBuffer, -1);
 				deleteOlderRafs(proj.MARKER_DATA_DIRECTORY.getValue(true, false), null,
-												new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"}, false,
+												new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"},
+												false,
 												null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 
 		}
-		log.report("--\nFinished transposing data. Total Time used: " + ext.getTimeElapsed(timerOverAll)
+		log.report("--\nFinished transposing data. Total Time used: "
+							 + ext.getTimeElapsed(timerOverAll)
 							 + "\n");
 	}
 
 
-	public static int[] getOptimizedFileAndBufferSize(int numMarkers_WriteBuffer, int numMarkers_Proj,
+	public static int[] getOptimizedFileAndBufferSize(int numMarkers_WriteBuffer,
+																										int numMarkers_Proj,
 																										int numBytes_Mark, int numMarkers_File) {
 		int numMarkers1_File;
 		int numMarkers1_WriteBuffer;
@@ -658,7 +663,8 @@ public class TransposeData {
 					for (String markerDataRafFilename : markerDataRafFilenames) {
 						timerTmp = new Date().getTime();
 						markerFile = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + markerDataRafFilename;
-						readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompress(markerFile, null,
+						readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompress(markerFile,
+																																								 null,
 																																								 indexFirstSampleCurrentMdRafLoadingRound,
 																																								 numSamples_WriteBuffer,
 																																								 fingerprintForSamples,
@@ -674,7 +680,7 @@ public class TransposeData {
 					// log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" +
 					// timeFormat.format(timerTransposeMemory), false, true);
 					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
-											+ timeFormat.format(timerTransposeMemory));
+										 + timeFormat.format(timerTransposeMemory));
 
 
 					// --- Step 2 --- Dump write buffer to marker files
@@ -693,8 +699,8 @@ public class TransposeData {
 						timerTmp = new Date().getTime();
 						writeBufferToRAF(writeBuffer, null, j, j,
 														 proj.SAMPLE_DIRECTORY.getValue(false, true)
-																											+ listOfAllSamplesInProj[indexCurrentSampInProj]
-																											+ Sample.SAMPLE_FILE_EXTENSION,
+																 + listOfAllSamplesInProj[indexCurrentSampInProj]
+																 + Sample.SAMPLE_FILE_EXTENSION,
 														 markFileParameterSection, markFileOutliersBytes);
 						indexCurrentSampInProj++;
 						// log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
@@ -756,7 +762,8 @@ public class TransposeData {
 																							 + indexByte] = input_markerLeadBuffer[i][j];
 				} catch (ArrayIndexOutOfBoundsException e) {
 					System.out.println("j:" + indexByte + "\tnumMarkersInChunk:" + numSamples);
-					System.out.println("i:" + i + "\tj:" + indexByte + "\tk:" + indexByte + "\tindexInChunk: "
+					System.out.println("i:" + i + "\tj:" + indexByte + "\tk:" + indexByte
+														 + "\tindexInChunk: "
 														 + indexMarker);
 					System.out.println("writebuffer size: " + output_sampleLeadBuffer.length + " , "
 														 + output_sampleLeadBuffer[i].length + "\treadBuffer size: "
@@ -918,9 +925,10 @@ public class TransposeData {
 			}
 			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put(
 																																	 (Integer.parseInt(line[0])
-																																		% numMarkersInEachFile)
-																																	 + "\t" + sampleIndex + "\t"
-																																	 + line[2], allOutliers.get(key));
+																																			 % numMarkersInEachFile)
+																																			 + "\t" + sampleIndex + "\t"
+																																			 + line[2],
+																																	 allOutliers.get(key));
 		}
 
 		return result;
@@ -1166,6 +1174,58 @@ public class TransposeData {
 	}
 
 	@SuppressWarnings("unchecked")
+	public static Hashtable<String, Float> loadOutliersFromRAF(String mdraf) {
+		RandomAccessFile file;
+		int numBytesPerMarker;
+		byte[] parameters;
+		int markernamesSectionLength;
+		Hashtable<String, Float> outOfRangeValues = null;
+		byte nullStatus = 0;
+		byte numBytesPerSampleMarker = 0;
+		int nSamples;
+		int numMarkersInThisFile;
+		int lengthOfOutOfRangeHashtable;
+
+		try {
+			file = new RandomAccessFile(mdraf, "r");
+			parameters = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+			file.read(parameters);
+			nSamples = Compression.bytesToInt(parameters, TransposeData.MARKERDATA_NUMSAMPLES_START);
+			numMarkersInThisFile = Compression.bytesToInt(parameters,
+																										TransposeData.MARKERDATA_NUMMARKERS_START);
+			nullStatus = parameters[TransposeData.MARKERDATA_NULLSTATUS_START];
+			numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+			numBytesPerMarker = numBytesPerSampleMarker * nSamples;
+			markernamesSectionLength = Compression.bytesToInt(parameters, MARKERDATA_MARKERNAMELEN_START);
+
+			parameters = new byte[markernamesSectionLength];
+			file.read(parameters);
+
+			file.seek((long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+								+ (long) markernamesSectionLength
+								+ (long) numMarkersInThisFile * (long) numBytesPerMarker);
+			lengthOfOutOfRangeHashtable = file.readInt();
+			if (lengthOfOutOfRangeHashtable > 0) {
+				parameters = new byte[lengthOfOutOfRangeHashtable];
+				file.read(parameters);
+				outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(parameters);
+			}
+			file.close();
+
+		} catch (FileNotFoundException e) {
+			System.err.println("Error - could not find RAF marker file '" + mdraf + "'");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("Error reading RAF marker file '" + mdraf + "'");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		return outOfRangeValues;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static MarkerData[] loadFromRAF(String markerFilename, int[] targertMarkIndicesInFile) {
 		MarkerData[] result = null;
 		RandomAccessFile file;
@@ -1266,13 +1326,15 @@ public class TransposeData {
 					xs = new float[nSamples];
 					for (int j = 0; j < nSamples; j++) {
 						if (isNegativeXOrYAllowed) {
-							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
+							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {
+																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																											+ 1]});
+																																				+ 1]});
 						} else {
-							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
+							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {
+																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																										 + 1]});
+																																			 + 1]});
 						}
 						if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							xs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tx");
@@ -1286,13 +1348,15 @@ public class TransposeData {
 					ys = new float[nSamples];
 					for (int j = 0; j < nSamples; j++) {
 						if (isNegativeXOrYAllowed) {
-							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
+							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {
+																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																											+ 1]});
+																																				+ 1]});
 						} else {
-							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
+							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {
+																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																										 + 1]});
+																																			 + 1]});
 						}
 						if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							ys[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\ty");
@@ -1355,7 +1419,8 @@ public class TransposeData {
 
 
 	public static void showHeap(String caller) {
-		System.out.println(caller + "\tmaxMem: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
+		System.out.println(caller + "\tmaxMem: "
+											 + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
 											 + "\tfreeMem: " + ext.prettyUpSize(Runtime.getRuntime().freeMemory(), 1)
 											 + "\ttotalMem: " + ext.prettyUpSize(Runtime.getRuntime().totalMemory(), 1));
 	}
