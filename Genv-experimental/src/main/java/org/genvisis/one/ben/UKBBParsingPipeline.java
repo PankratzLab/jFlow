@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -47,8 +46,9 @@ import org.genvisis.common.ext;
 
 public class UKBBParsingPipeline {
 
-	private static final int MAX_MDRAF_THREADS = 3;
+	private static final int MAX_MDRAF_THREADS_PER_CHR = 3;
 	private static final int MAX_CHR_THREADS = 8;
+	private static final int MAX_MKRS_PER_MDRAF = 2500;
 
 	Logger log = new Logger();
 
@@ -56,6 +56,8 @@ public class UKBBParsingPipeline {
 	String projDir;
 	String propFileDir;
 	String projName;
+
+	boolean importGenoAsAB;
 
 	Project proj;
 	HashMap<Integer, FileSet> fileSets;
@@ -79,55 +81,205 @@ public class UKBBParsingPipeline {
 		createSampleData();
 	}
 
-	private void setProjectName(String projName2) {
-		this.projName = projName2;
+	public void setProjectName(String projName2) {
+		projName = projName2;
 	}
 
-	private void setProjectPropertiesDir(String propFileDir2) {
-		this.propFileDir = propFileDir2;
+	public void setProjectPropertiesDir(String propFileDir2) {
+		propFileDir = propFileDir2;
 	}
 
-	private void setProjectDir(String projDir2) {
-		this.projDir = projDir2;
+	public void setProjectDir(String projDir2) {
+		projDir = projDir2;
 	}
 
-	private void setSourceDir(String sourceDir2) {
-		this.sourceDir = sourceDir2;
+	public void setSourceDir(String sourceDir2) {
+		sourceDir = sourceDir2;
 	}
 
-	private void setFamFile(String famFile2) {
-		this.famFile = famFile2;
+	public void setFamFile(String famFile2) {
+		famFile = famFile2;
 	}
 
-	protected void createSampleData() {
+	public void setImportGenosAsAB(boolean importAsAB) {
+		importGenoAsAB = importAsAB;
+	}
+
+	protected void createProject() {
+		String propFile = ext.verifyDirFormat(propFileDir)
+				+ ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
+		Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
+		proj = new Project(propFile, false);
+		proj.PROJECT_NAME.setValue(projName);
+		proj.PROJECT_DIRECTORY.setValue(projDir);
+		proj.SOURCE_DIRECTORY.setValue(sourceDir);
+		proj.XY_SCALE_FACTOR.setValue(1d);
+		proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
+		proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
+		proj.ID_HEADER.setValue("NULL");
+		proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
+		proj.GENOME_BUILD_VERSION.setValue(GENOME_BUILD.HG19);
+	
+		proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
+	
+		proj.saveProperties();
+	}
+
+	protected void createSampleList() {
+		famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3,
+		                                                                    4, 5}, false);
+	
+		String[] allSamples = Matrix.extractColumn(famData, 1);
+		@SuppressWarnings("deprecation")
+		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
+		fingerprint = f;
+		SampleList sl = new SampleList(allSamples);
+		sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
+		sl = null;
+		allSamples = null;
+	}
+
+	protected void discoverFilesets() {
+		List<File> allSrcFiles = discoverAllSourceFiles(sourceDir, log);
+	
+		fileSets = new HashMap<>();
+	
+		for (File srcF : allSrcFiles) {
+			String name = srcF.getName();
+			String[] parts = name.split("_");
+			int chr = Positions.chromosomeNumber(parts[2]);
+			FileSet fs = fileSets.get(chr);
+			if (fs == null) {
+				fs = new FileSet();
+				fs.chr = chr;
+				fs.famFile = famFile;
+				fileSets.put(chr, fs);
+			}
+	
+			switch (parts[1]) {
+				case "l2r":
+					if (fs.lrrFile != null) {
+						log.reportError("Identified assumed duplicate " + "LRR" + " files: {" + fs.lrrFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.lrrFile = srcF.getAbsolutePath();
+					}
+					break;
+				case "baf":
+					if (fs.bafFile != null) {
+						log.reportError("Identified assumed duplicate " + "BAF" + " files: {" + fs.bafFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.bafFile = srcF.getAbsolutePath();
+					}
+					break;
+				case "con":
+					if (fs.conFile != null) {
+						log.reportError("Identified assumed duplicate " + "CON" + " files: {" + fs.conFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.conFile = srcF.getAbsolutePath();
+					}
+					break;
+				case "int":
+					if (fs.intFile != null) {
+						log.reportError("Identified assumed duplicate " + "INT" + " files: {" + fs.intFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.intFile = srcF.getAbsolutePath();
+					}
+					break;
+				case "snp":
+					if (fs.bimFile != null) {
+						log.reportError("Identified assumed duplicate " + "SNP" + " files: {" + fs.bimFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.bimFile = srcF.getAbsolutePath();
+					}
+					break;
+				case "cal":
+					if (fs.bedFile != null) {
+						log.reportError("Identified assumed duplicate " + "CAL" + " files: {" + fs.bedFile
+						                + " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
+						System.exit(1);
+					} else {
+						fs.bedFile = srcF.getAbsolutePath();
+					}
+					break;
+				default:
+					log.reportTimeWarning("Parsing NOT YET IMPLEMENTED for the following data file: "
+							+ srcF.getAbsolutePath());
+					break;
+			}
+		}
+	
+		ArrayList<Integer> missingChrs = new ArrayList<>();
+		ArrayList<Integer> incompleteChrs = new ArrayList<>();
+		for (int i = 0; i < 27; i++) {
+			if (!fileSets.containsKey(i)) {
+				missingChrs.add(i);
+			} else if (!fileSets.get(i).isComplete()) {
+				incompleteChrs.add(i);
+				fileSets.remove(i);
+			}
+		}
+	
+		if (!missingChrs.isEmpty()) {
+			log.reportTimeWarning("Missing " + missingChrs.size() + " chrs: "
+					+ ArrayUtils.toStr(missingChrs, ", "));
+		}
+		if (!incompleteChrs.isEmpty()) {
+			log.reportTimeWarning("Removed chrs with incomplete files: "
+					+ ArrayUtils.toStr(incompleteChrs, ", "));
+		}
+	}
+
+	protected void parseMarkerData() {
+		long time = System.nanoTime();
+		oorValues = new ConcurrentHashMap<String, Float>();
+	
+		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(),
+		                                                                 MAX_CHR_THREADS));
+	
+		CountDownLatch cdl = new CountDownLatch(fileSets.size());
+	
+		for (Integer v : fileSets.keySet()) {
+			final FileSet fs = fileSets.get(v);
+			Runnable runn = new Runnable() {
+				@Override
+				public void run() {
+					try {
+						fs.buildLookups(log);
+						createMDRAF(fs);
+						cdl.countDown();
+					} catch (IOException | Elision e) {
+						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
+						e.printStackTrace();
+						System.exit(1);
+					} catch (Exception e) {
+						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
+						e.printStackTrace();
+						System.exit(1);
+					}
+				}
+			};
+			executor.submit(runn);
+		}
+		log.reportTime("Queued MarkerData parsing for " + fileSets.size() + " chrs.");
+	
+		executor.shutdown();
 		try {
-			SampleData.createSampleData(proj.PEDIGREE_FILENAME.getValue(), null, proj);
-		} catch (Elision e) {
-			e.printStackTrace();
-			System.exit(1);
+			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			/**/
 		}
-	}
-
-	protected void createPED() {
-		long t1 = System.nanoTime();
-		PrintWriter writer = Files.getAppropriateWriter(proj.PEDIGREE_FILENAME.getValue());
-		for (String[] ind : famData) {
-			StringBuilder sb = new StringBuilder(ind[0]).append("\t");
-			sb.append(ind[1]).append("\t");
-			sb.append(ind[2]).append("\t");
-			sb.append(ind[3]).append("\t");
-			sb.append(ind[4]).append("\t");
-			sb.append("0").append("\t");
-			sb.append(ind[1]);
-			writer.println(sb.toString());
-		}
-		writer.flush();
-		writer.close();
-		log.reportTime("Created ped file in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t1));
-	}
-
-	protected void createSampRAFsFromMDRAFs() {
-		TransposeData.reverseTranspose(proj);
+	
+		log.reportTime("Completed parsing MarkerData in " + ext.getTimeElapsedNanos(time));
 	}
 
 	protected void writeLookup() {
@@ -149,11 +301,46 @@ public class UKBBParsingPipeline {
 		new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
 	}
 
+	protected void createMarkerPositions() {
+		String file = proj.MARKER_POSITION_FILENAME.getValue();
+		long time = System.nanoTime();
+		PrintWriter writer = Files.getAppropriateWriter(file);
+		writer.println("Marker\tChr\tPosition");
+	
+		for (int i = 0; i < 27; i++) {
+			if (!fileSets.containsKey(i)) {
+				continue;
+			}
+			FileSet fs = fileSets.get(i);
+	
+			try {
+				BufferedReader reader = Files.getAppropriateReader(fs.bimFile);
+	
+				String line = null;
+				String[] parts;
+	
+				while ((line = reader.readLine()) != null) {
+					parts = line.split("\t", -1);
+					writer.println(parts[1] + "\t" + parts[0] + "\t" + parts[3]);
+				}
+				reader.close();
+			} catch (IOException e) {
+				log.reportError("ERROR - Major failure when create markerPositions file.");
+				log.reportException(e);
+				System.exit(1);
+			}
+		}
+		writer.flush();
+		writer.close();
+	
+		completedMarkerPositions(time);
+	}
+
 	protected void writeMarkerSet() {
 		String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
-																									new int[] {0}, false);
+		                                              new int[] {0}, false);
 		Markers.orderMarkers(mkrs, proj.MARKER_POSITION_FILENAME.getValue(),
-												 proj.MARKERSET_FILENAME.getValue(), log);
+		                     proj.MARKERSET_FILENAME.getValue(), log);
 	}
 
 	protected void writeOutliers() {
@@ -164,32 +351,63 @@ public class UKBBParsingPipeline {
 			allOutliers.put(mkrInds.get(pts[0]) + "\t" + pts[1] + "\t" + pts[0], ent.getValue());
 		}
 		oorValues = null;
-
+	
 		SerializedFiles.writeSerial(allOutliers, proj.MARKER_DATA_DIRECTORY.getValue(true, true)
-																						 + "outliers.ser");
+		                            + "outliers.ser");
+	}
+
+	protected void createSampRAFsFromMDRAFs() {
+		TransposeData.reverseTranspose(proj);
+	}
+
+	protected void createPED() {
+		long t1 = System.nanoTime();
+		PrintWriter writer = Files.getAppropriateWriter(proj.PEDIGREE_FILENAME.getValue());
+		for (String[] ind : famData) {
+			StringBuilder sb = new StringBuilder(ind[0]).append("\t");
+			sb.append(ind[1]).append("\t");
+			sb.append(ind[2]).append("\t");
+			sb.append(ind[3]).append("\t");
+			sb.append(ind[4]).append("\t");
+			sb.append("0").append("\t");
+			sb.append(ind[1]);
+			writer.println(sb.toString());
+		}
+		writer.flush();
+		writer.close();
+		log.reportTime("Created ped file in " + ext.getTimeElapsedNanos(t1));
+	}
+
+	protected void createSampleData() {
+		try {
+			SampleData.createSampleData(proj.PEDIGREE_FILENAME.getValue(), null, proj);
+		} catch (Elision e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 
 	private byte getNullStatus() {
 		return Sample.updateNullStatus(new float[0], new float[0],
-																	 new float[0], new float[0],
-																	 new float[0], null,
-																	 new byte[0], true);
+		                               new float[0], new float[0],
+		                               new float[0], importGenoAsAB ? new byte[0] : null,
+		                                                            importGenoAsAB ? null : new byte[0], true);
 	}
 
 
 	private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus,
-																		 long fingerprint,
-																		 String[] mkrNames) throws IOException {
+	                                   long fingerprint,
+	                                   String[] mkrNames) throws IOException {
 		byte[] mkrBytes = Compression.objToBytes(mkrNames);
 		byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd,
-																																	 mkrNames.length,
-																																	 nullStatus,
-																																	 fingerprint,
-																																	 mkrBytes);
+		                                                               mkrNames.length,
+		                                                               nullStatus,
+		                                                               fingerprint,
+		                                                               mkrBytes);
 		mkrBytes = null;
 
 		RandomAccessFile mdRAF = new RandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(true, true)
-																									+ filename, "rw");
+		                                              + filename, "rw");
 		mdRAF.write(mdRAFHeader);
 		mdRAFHeader = null;
 
@@ -197,15 +415,17 @@ public class UKBBParsingPipeline {
 	}
 
 	private void createMDRAF(FileSet fs) throws IOException, Elision {
-		final String[][] bimData = HashVec.loadFileToStringMatrix(fs.bimFile, false, new int[] {0, 1, 2, 3,
-																																											4, 5}, false);
+		final String[][] bimData = HashVec.loadFileToStringMatrix(fs.bimFile, false, new int[] {0, 1,
+		                                                                                        2, 3,
+		                                                                                        4, 5},
+		                                                                                        false);
 
 		final int nInd = famData.length;
 
 		final byte nullStatus = getNullStatus();
 
 		String[] mkrNames = Matrix.extractColumn(bimData, 1);
-		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / 2500) + 1, log);
+		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / MAX_MKRS_PER_MDRAF) + 1, log);
 		String[] existing = readWritten();
 		ArrayList<Runnable> runners = new ArrayList<Runnable>();
 
@@ -225,12 +445,14 @@ public class UKBBParsingPipeline {
 						try {
 							long t1 = System.nanoTime();
 							mdRAF = write(fs, s, fs.mkrBins.get(ii), nullStatus, nInd, bimData);
-							log.reportTime("Wrote " + mdRAF + " in " + TimeUnit.NANOSECONDS.toHours(System.nanoTime() - t1) + " hours.");
+							log.reportTime("Wrote " + mdRAF + " in " + ext.getTimeElapsedNanos(t1));
 							success(mdRAF);
 							cdl.countDown();
 						} catch (Elision e) {
 							e.printStackTrace();
 						} catch (IOException e) {
+							e.printStackTrace();
+						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}
@@ -239,15 +461,20 @@ public class UKBBParsingPipeline {
 				runners.add(new Runnable() {
 					@Override
 					public void run() {
-						Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue() + mdRAFName);
-						for (Entry<String, Float> outlier : outliers.entrySet()) {
-							String[] pts = outlier.getKey().split("\t");
-							int mkrInd = Integer.parseInt(pts[0]);
-							int sampInd = Integer.parseInt(pts[1]);
-							oorValues.put(bimData[s + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
-														outlier.getValue());
+						try {
+							Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+							                                                                      + mdRAFName);
+							for (Entry<String, Float> outlier : outliers.entrySet()) {
+								String[] pts = outlier.getKey().split("\t");
+								int mkrInd = Integer.parseInt(pts[0]);
+								int sampInd = Integer.parseInt(pts[1]);
+								oorValues.put(bimData[s + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
+								              outlier.getValue());
+							}
+							cdl.countDown();
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
-						cdl.countDown();
 					}
 				});
 			}
@@ -255,76 +482,40 @@ public class UKBBParsingPipeline {
 		}
 
 		if (runners.size() > 0) {
-  		ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), MAX_MDRAF_THREADS));
-  		for (Runnable r : runners) {
-  			executor.submit(r);
-  		}
-  		executor.shutdown();
-  		try {
-  			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
-  		} catch (InterruptedException e) {
-  			/**/
-  		}
-  
-  		System.gc();
+			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(),
+			                                                                 MAX_MDRAF_THREADS_PER_CHR));
+			for (Runnable r : runners) {
+				executor.submit(r);
+			}
+			executor.shutdown();
+			try {
+				cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
+			} catch (InterruptedException e) {
+				/**/
+			}
+
+			System.gc();
 		}
 	}
 
-	private String[] readWritten() {
+	private synchronized String[] readWritten() {
 		String temp = proj.PROJECT_DIRECTORY.getValue() + "markersWritten.txt";
 		return Files.exists(temp) ? HashVec.loadFileToStringArray(temp, false, null, false)
-														 : new String[0];
+		                          : new String[0];
 	}
 
-	private void success(String mkrFile) {
+	private synchronized void success(String mkrFile) {
 		String temp = proj.PROJECT_DIRECTORY.getValue() + "markersWritten.txt";
 		Files.appendStringToFile(temp, mkrFile);
 	}
 
-	private static class FileReaderSet {
-		RandomAccessFile bedIn;
-		RandomAccessFile binIn;
-		BufferedReader conIn;
-		BufferedReader lrrIn;
-		BufferedReader bafIn;
-
-		public void open(FileSet fs) throws IOException {
-			this.bedIn = new RandomAccessFile(fs.bedFile, "r");
-			this.binIn = new RandomAccessFile(fs.intFile, "r");
-			this.conIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.conFile), 4000000);
-			this.lrrIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.lrrFile), 4000000);
-			this.bafIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.bafFile), 2000000);
-		}
-		
-		public void readAhead(FileSet fs, int start, int binSize) throws IOException {
-			int line = start + binSize;
-			conIn.skip(fs.conInds.get(line) - fs.conInds.get(start));
-			lrrIn.skip(fs.lrrInds.get(line) - fs.lrrInds.get(start));
-			bafIn.skip(fs.bafInds.get(line) - fs.bafInds.get(start));
-		}
-
-		public void close() throws IOException {
-			this.bedIn.close();
-			this.binIn.close();
-			this.conIn.close();
-			this.lrrIn.close();
-			this.bafIn.close();
-
-			this.bedIn = null;
-			this.binIn = null;
-			this.conIn = null;
-			this.lrrIn = null;
-			this.bafIn = null;
-		}
-	}
-
 	private String getMDRAFName(int chr, int start, int end) {
 		return "markers." + chr + "." + start + "."
-					 + end + MarkerData.MARKER_DATA_FILE_EXTENSION;
+				+ end + MarkerData.MARKER_DATA_FILE_EXTENSION;
 	}
 
 	private String write(FileSet fs, int startBatchInd, String[] mkrNames, byte nullStatus, int nInd,
-											 String[][] bimData) throws Elision, IOException {
+	                     String[][] bimData) throws Elision, IOException {
 
 		FileReaderSet frs = new FileReaderSet();
 		frs.open(fs);
@@ -335,11 +526,11 @@ public class UKBBParsingPipeline {
 			log.reportError("Error - .bed file is sample-dominant: " + fs.bedFile);
 			System.exit(1);
 		}
-		
+
 		if (startBatchInd > 0) {
 			frs.readAhead(fs, 0, startBatchInd);
 		}
-		
+
 		RandomAccessFile mdRAF;
 
 		Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
@@ -373,12 +564,12 @@ public class UKBBParsingPipeline {
 			conLine = null;
 			if (cons.length != nInd) {
 				log.reportError("Mismatched # of confidence scores {fnd: " + cons.length + ", exp: "
-												+ nInd + "}.  File: " + fs.conFile);
+						+ nInd + "}.  File: " + fs.conFile);
 				System.exit(1);
 			}
 			float gcV;
-			for (int k = 0; k < cons.length; k++) {
-				gcV = 1 - Float.parseFloat(cons[k]);
+			for (String con : cons) {
+				gcV = 1 - Float.parseFloat(con);
 				if (gcV == 2) { // i.e. 1 - (-1)
 					gcV = Float.NaN;
 				}
@@ -395,26 +586,26 @@ public class UKBBParsingPipeline {
 			boolean oor;
 			for (int bitInd = 0, binInd = 0; bitInd < nInd; bitInd++) {
 				byte[] intA = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
+				               intensBytes[binInd++]};
 				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
+				               intensBytes[binInd++]};
 
 				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-//				x = LongMath.log2((long) (x / y), RoundingMode.HALF_UP);
-//				y = LongMath.log2((long) (x * y), RoundingMode.HALF_UP) / 2;
-//				x = (float) (Math.log(x) / Math.log(2));
-//				y = (float) (Math.log(y) / Math.log(2));
-				
+				// x = LongMath.log2((long) (x / y), RoundingMode.HALF_UP);
+				// y = LongMath.log2((long) (x * y), RoundingMode.HALF_UP) / 2;
+				// x = (float) (Math.log(x) / Math.log(2));
+				// y = (float) (Math.log(y) / Math.log(2));
+
 				oor = !Compression.xyCompressAllowNegative(x, mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tx", x);
 				}
 
 				oor = !Compression.xyCompressAllowNegative(y,
-																									 mkrBuff,
-																									 buffInd
-																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+				                                           mkrBuff,
+				                                           buffInd
+				                                           + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\ty", y);
 				}
@@ -428,18 +619,18 @@ public class UKBBParsingPipeline {
 			bafLine = null;
 			if (bafStrs.length != nInd) {
 				log.reportError("Mismatched # of BAF values {fnd: " + bafStrs.length + ", exp: "
-												+ nInd + "}.  File: " + fs.bafFile);
+						+ nInd + "}.  File: " + fs.bafFile);
 				System.exit(1);
 			}
 			float baf = Float.NaN;
-			for (int k = 0; k < bafStrs.length; k++) {
+			for (String bafStr : bafStrs) {
 				try {
-					baf = Float.parseFloat(bafStrs[k]);
+					baf = Float.parseFloat(bafStr);
 				} catch (NumberFormatException e) {
-					if (ext.isMissingValue(bafStrs[k])) {
+					if (ext.isMissingValue(bafStr)) {
 						baf = Float.NaN;
 					} else {
-						log.reportError("Malformed BAF value: " + bafStrs[k] + " for chr " + fs.chr);
+						log.reportError("Malformed BAF value: " + bafStr + " for chr " + fs.chr);
 						System.exit(1);
 					}
 				}
@@ -453,18 +644,18 @@ public class UKBBParsingPipeline {
 			lrrLine = null;
 			if (lrrStrs.length != nInd) {
 				log.reportError("Mismatched # of L2R values {fnd: " + lrrStrs.length + ", exp: "
-												+ nInd + "}.  File: " + fs.lrrFile);
+						+ nInd + "}.  File: " + fs.lrrFile);
 				System.exit(1);
 			}
 			float lrr = Float.NaN;
-			for (int k = 0; k < lrrStrs.length; k++) {
+			for (String lrrStr : lrrStrs) {
 				try {
-					lrr = Float.parseFloat(lrrStrs[k]);
+					lrr = Float.parseFloat(lrrStr);
 				} catch (NumberFormatException e) {
-					if (ext.isMissingValue(lrrStrs[k])) {
+					if (ext.isMissingValue(lrrStr)) {
 						lrr = Float.NaN;
 					} else {
-						log.reportError("Malformed LRR value: " + lrrStrs[k] + " for chr " + fs.chr);
+						log.reportError("Malformed LRR value: " + lrrStr + " for chr " + fs.chr);
 						System.exit(1);
 					}
 				}
@@ -488,8 +679,8 @@ public class UKBBParsingPipeline {
 					if (idInd == -1 || idInd >= nInd) {
 						continue;
 					}
-//					mkrBuff[buffInd] = Compression.genotypeCompress((byte) -1, genotypes[g]);
-					mkrBuff[buffInd] = Compression.genotypeCompress(genotypes[g], (byte) 0);
+					mkrBuff[buffInd] = Compression.genotypeCompress(importGenoAsAB ? genotypes[g] : (byte) -1,
+																													importGenoAsAB ? (byte) 0 : genotypes[g]);
 					buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 				}
 				genotypes = null;
@@ -506,16 +697,16 @@ public class UKBBParsingPipeline {
 		mdRAF.write(oorBytes);
 
 		mdRAF.close();
-		
+
 		frs.close();
 		frs = null;
-		
+
 		for (Entry<String, Float> entry : outOfRangeTable.entrySet()) {
 			String[] pts = entry.getKey().split("\t");
 			int mkrInd = Integer.parseInt(pts[0]);
 			int sampInd = Integer.parseInt(pts[1]);
 			oorValues.put(bimData[startBatchInd + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
-										entry.getValue());
+			              entry.getValue());
 		}
 
 		oorBytes = null;
@@ -523,121 +714,142 @@ public class UKBBParsingPipeline {
 		return mdRAFName;
 	}
 
-	protected void parseMarkerData() {
-		long time = System.nanoTime();
-		oorValues = new ConcurrentHashMap<String, Float>();
-
-		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(), MAX_CHR_THREADS));
-
-		CountDownLatch cdl = new CountDownLatch(fileSets.size());
-
-		for (Integer v : fileSets.keySet()) {
-			final FileSet fs = fileSets.get(v);
-			Runnable runn = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						fs.buildLookups(log);
-						createMDRAF(fs);
-						cdl.countDown();
-					} catch (IOException | Elision e) {
-						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
-						e.printStackTrace();
-						System.exit(1);
-					} catch (Exception e) {
-						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
-						e.printStackTrace();
-						System.exit(1);
-					}
-				}
-			};
-			executor.submit(runn);
-		}
-		log.reportTime("Queued MarkerData parsing for " + fileSets.size() + " chrs.");
-
-		executor.shutdown();
-		try {
-			cdl.await(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			/**/
-		}
-
-		long elapsed = TimeUnit.NANOSECONDS.toDays(System.nanoTime() - time);
-		log.reportTime("Completed parsing MarkerData in " + elapsed + " days.");
-	}
-
 	private void completedMarkerPositions(long time) {
-		long elapsed = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - time);
-		log.reportTime("Completed markerPositions: " + proj.MARKER_POSITION_FILENAME.getValue() + " in "
-							 + elapsed + " seconds.");
+		log.reportTime("Completed markerPositions: " + proj.MARKER_POSITION_FILENAME.getValue()
+		               + " in "
+		               + ext.getTimeElapsedNanos(time));
 	}
 
-	protected void createMarkerPositions() {
-		String file = proj.MARKER_POSITION_FILENAME.getValue();
-		long time = System.nanoTime();
-		PrintWriter writer = Files.getAppropriateWriter(file);
-		writer.println("Marker\tChr\tPosition");
-
-		for (int i = 0; i < 27; i++) {
-			if (!fileSets.containsKey(i)) {
-				continue;
-			}
-			FileSet fs = fileSets.get(i);
-
-			try {
-				BufferedReader reader = Files.getAppropriateReader(fs.bimFile);
-
-				String line = null;
-				String[] parts;
-
-				while ((line = reader.readLine()) != null) {
-					parts = line.split("\t", -1);
-					writer.println(parts[1] + "\t" + parts[0] + "\t" + parts[3]);
-				}
-				reader.close();
-			} catch (IOException e) {
-				log.reportError("ERROR - Major failure when create markerPositions file.");
-				log.reportException(e);
-				System.exit(1);
+	private static void addDirs(File src, List<File> subDirs) {
+		for (File f : src.listFiles(File::isDirectory)) {
+			if (!subDirs.contains(f)) {
+				subDirs.add(f);
+				addDirs(f, subDirs);
 			}
 		}
-		writer.flush();
-		writer.close();
+	}
 
-		completedMarkerPositions(time);
+	private static List<File> discoverAllSourceFiles(String dir, Logger log) {
+		File srcDir = new File(dir);
+		ArrayList<File> subDirs = new ArrayList<>();
+		subDirs.add(srcDir);
+		addDirs(srcDir, subDirs);
+
+		log.reportTime("Found " + subDirs.size() + " source directories to scan.");
+
+		/**
+		 * Delim = "_"; <br />
+		 * At least 3 tokens; <br />
+		 * First token must be "ukb"; <br />
+		 * Second token must be from FileSet.EXP; <br />
+		 * Third token must start with "chr"; <br />
+		 * Will not accept any .fam file; <br />
+		 */
+		FilenameFilter ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				String[] parts = name.split("_");
+				if (parts.length <= 2 || parts.length > 4) {
+					return false;
+				}
+				if (name.endsWith(".fam")) {
+					return false;
+				}
+				if (!parts[0].equals("ukb")) {
+					return false;
+				}
+				if (ext.indexOfStr(parts[1], FileSet.EXP) == -1) {
+					return false;
+				}
+				if (!parts[2].startsWith("chr")) {
+					return false;
+				}
+				return true;
+			}
+		};
+
+		ArrayList<File> allSrcFiles = new ArrayList<>();
+		for (File f : subDirs) {
+			for (File s : f.listFiles(ff)) {
+				allSrcFiles.add(s);
+			}
+		}
+
+		log.reportTime("Found " + allSrcFiles.size() + " potential source data files.");
+		return allSrcFiles;
+	}
+
+	private static class FileReaderSet {
+		RandomAccessFile bedIn;
+		RandomAccessFile binIn;
+		BufferedReader conIn;
+		BufferedReader lrrIn;
+		BufferedReader bafIn;
+	
+		public void open(FileSet fs) throws IOException {
+			bedIn = new RandomAccessFile(fs.bedFile, "r");
+			binIn = new RandomAccessFile(fs.intFile, "r");
+			conIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.conFile), 4000000);
+			lrrIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.lrrFile), 4000000);
+			bafIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.bafFile), 2000000);
+		}
+	
+		public void readAhead(FileSet fs, int start, int binSize) throws IOException {
+			int line = start + binSize;
+			conIn.skip(fs.conInds.get(line) - fs.conInds.get(start));
+			lrrIn.skip(fs.lrrInds.get(line) - fs.lrrInds.get(start));
+			bafIn.skip(fs.bafInds.get(line) - fs.bafInds.get(start));
+		}
+	
+		public void close() throws IOException {
+			bedIn.close();
+			binIn.close();
+			conIn.close();
+			lrrIn.close();
+			bafIn.close();
+	
+			bedIn = null;
+			binIn = null;
+			conIn = null;
+			lrrIn = null;
+			bafIn = null;
+		}
 	}
 
 	static class FileSet {
 		int chr;
-
+	
 		String bimFile;
 		String bedFile;
 		String famFile;
-
+	
 		String bafFile;
 		String lrrFile;
 		String intFile;
 		String conFile;
-
+	
 		/** genotype info: */
 		String bgiFile;
 		String bgenFile;
-
+	
 		HashMap<Integer, Long> conInds;
 		HashMap<Integer, Long> lrrInds;
 		HashMap<Integer, Long> bafInds;
-
+	
 		List<String[]> mkrBins;
-
+	
+		/**
+		 * Expected files 
+		 */
 		final static String[] EXP = {
-																 "l2r",
-																 "baf",
-																 "con",
-																 "int",
-																 "snp",
-																 "cal",
+		                             "l2r",
+		                             "baf",
+		                             "con",
+		                             "int",
+		                             "snp",
+		                             "cal",
 		};
-
+	
 		public void buildLookups(Logger log) throws IOException {
 			long t1 = System.nanoTime();
 			ArrayList<Runnable> runners = new ArrayList<>();
@@ -678,8 +890,8 @@ public class UKBBParsingPipeline {
 					cdl.countDown();
 				}
 			});
-			
-
+	
+	
 			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(), 3));
 			for (Runnable r : runners) {
 				executor.submit(r);
@@ -690,9 +902,9 @@ public class UKBBParsingPipeline {
 			} catch (InterruptedException e) {
 				/**/
 			}
-			log.reportTime("Built chr" + chr + " lookups in " + TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - t1) + " minutes.");
+			log.reportTime("Built chr" + chr + " lookups in " + ext.getTimeElapsedNanos(t1));
 		}
-
+	
 		@SuppressWarnings("unchecked")
 		private HashMap<Integer, Long> buildLookup(String file, Logger log) throws IOException {
 			long t1 = System.nanoTime();
@@ -702,7 +914,7 @@ public class UKBBParsingPipeline {
 				return indMap;
 			}
 			HashMap<Integer, Long> lineIndices = new HashMap<>();
-
+	
 			InputStreamReader isr = Files.getAppropriateInputStreamReader(file);
 			int chr = Integer.MIN_VALUE;
 			char[] v;
@@ -717,9 +929,9 @@ public class UKBBParsingPipeline {
 						lineIndices.put(line, total);
 					}
 				} else {
-					for (int i = 0; i < v.length; i++) {
+					for (char element : v) {
 						total++;
-						if (v[i] == '\n') {
+						if (element == '\n') {
 							line++;
 							lineIndices.put(line, total);
 						}
@@ -727,206 +939,18 @@ public class UKBBParsingPipeline {
 				}
 			}
 			isr.close();
-
+	
 			SerializedFiles.writeSerial(lineIndices, lookupFile);
-			log.reportTime("Built {" + ext.rootOf(lookupFile) + "} in "
-												 + TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - t1) + " minutes");
+			log.reportTime("Built {" + ext.rootOf(lookupFile) + "} in " + ext.getTimeElapsedNanos(t1));
 			return lineIndices;
 		}
-
+	
 		boolean isComplete() {
 			return Files.exists(bimFile) && Files.exists(bedFile) && Files.exists(famFile)
-						 && Files.exists(bafFile)
-						 && Files.exists(lrrFile) && Files.exists(intFile) && Files.exists(conFile);
+					&& Files.exists(bafFile)
+					&& Files.exists(lrrFile) && Files.exists(intFile) && Files.exists(conFile);
 		}
-
-	}
-
-	private static void addDirs(File src, List<File> subDirs) {
-		for (File f : src.listFiles(File::isDirectory)) {
-			if (!subDirs.contains(f)) {
-				subDirs.add(f);
-				addDirs(f, subDirs);
-			}
-		}
-	}
-
-	private static List<File> discoverAllSourceFiles(String dir, Logger log) {
-		File srcDir = new File(dir);
-		ArrayList<File> subDirs = new ArrayList<>();
-		subDirs.add(srcDir);
-		addDirs(srcDir, subDirs);
-
-		log.reportTime("Found " + subDirs.size() + " source directories to scan.");
-
-		/**
-		 * Delim = "_"; <br />
-		 * At least 3 tokens; <br />
-		 * First token must be "ukb"; <br />
-		 * Second token must be from FileSet.EXP; <br />
-		 * Third token must start with "chr"; <br />
-		 * Will not accept any .fam file; <br />
-		 */
-		FilenameFilter ff = new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				String[] parts = name.split("_");
-				if (parts.length <= 2 || parts.length > 4)
-					return false;
-				if (name.endsWith(".fam"))
-					return false;
-				if (!parts[0].equals("ukb"))
-					return false;
-				if (ext.indexOfStr(parts[1], FileSet.EXP) == -1)
-					return false;
-				if (!parts[2].startsWith("chr"))
-					return false;
-				return true;
-			}
-		};
-
-		ArrayList<File> allSrcFiles = new ArrayList<>();
-		for (File f : subDirs) {
-			for (File s : f.listFiles(ff)) {
-				allSrcFiles.add(s);
-			}
-		}
-
-		log.reportTime("Found " + allSrcFiles.size() + " potential source data files.");
-		return allSrcFiles;
-	}
-
-	protected void discoverFilesets() {
-		List<File> allSrcFiles = discoverAllSourceFiles(sourceDir, log);
-
-		fileSets = new HashMap<>();
-
-		for (File srcF : allSrcFiles) {
-			String name = srcF.getName();
-			String[] parts = name.split("_");
-			int chr = Positions.chromosomeNumber(parts[2]);
-			FileSet fs = fileSets.get(chr);
-			if (fs == null) {
-				fs = new FileSet();
-				fs.chr = chr;
-				fs.famFile = famFile;
-				fileSets.put(chr, fs);
-			}
-
-			switch (parts[1]) {
-				case "l2r":
-					if (fs.lrrFile != null) {
-						log.reportError("Identified assumed duplicate " + "LRR" + " files: {" + fs.lrrFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.lrrFile = srcF.getAbsolutePath();
-					}
-					break;
-				case "baf":
-					if (fs.bafFile != null) {
-						log.reportError("Identified assumed duplicate " + "BAF" + " files: {" + fs.bafFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.bafFile = srcF.getAbsolutePath();
-					}
-					break;
-				case "con":
-					if (fs.conFile != null) {
-						log.reportError("Identified assumed duplicate " + "CON" + " files: {" + fs.conFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.conFile = srcF.getAbsolutePath();
-					}
-					break;
-				case "int":
-					if (fs.intFile != null) {
-						log.reportError("Identified assumed duplicate " + "INT" + " files: {" + fs.intFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.intFile = srcF.getAbsolutePath();
-					}
-					break;
-				case "snp":
-					if (fs.bimFile != null) {
-						log.reportError("Identified assumed duplicate " + "SNP" + " files: {" + fs.bimFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.bimFile = srcF.getAbsolutePath();
-					}
-					break;
-				case "cal":
-					if (fs.bedFile != null) {
-						log.reportError("Identified assumed duplicate " + "CAL" + " files: {" + fs.bedFile
-														+ " | " + srcF.getAbsolutePath() + "}.  Parsing has failed.");
-						System.exit(1);
-					} else {
-						fs.bedFile = srcF.getAbsolutePath();
-					}
-					break;
-				default:
-					log.reportTimeWarning("Parsing NOT YET IMPLEMENTED for the following data file: "
-																+ srcF.getAbsolutePath());
-					break;
-			}
-		}
-		
-		ArrayList<Integer> missingChrs = new ArrayList<>();
-		ArrayList<Integer> incompleteChrs = new ArrayList<>();
-		for (int i = 0; i < 27; i++) {
-			if (!fileSets.containsKey(i)) {
-				missingChrs.add(i);
-			} else if (!fileSets.get(i).isComplete()) {
-				incompleteChrs.add(i);
-				fileSets.remove(i);
-			} 
-		}
-
-		if (!missingChrs.isEmpty()) {
-			log.reportTimeWarning("Missing " + missingChrs.size() + " chrs: "
-														+ ArrayUtils.toStr(missingChrs, ", "));
-		}
-		if (!incompleteChrs.isEmpty()) {
-			log.reportTimeWarning("Removed chrs with incomplete files: " + ArrayUtils.toStr(incompleteChrs, ", "));
-		}
-	}
-
-	protected void createSampleList() {
-		famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3,
-																																				4, 5}, false);
-
-		String[] allSamples = Matrix.extractColumn(famData, 1);
-		@SuppressWarnings("deprecation")
-		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
-		fingerprint = f;
-		SampleList sl = new SampleList(allSamples);
-		sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
-		sl = null;
-		allSamples = null;
-	}
-
-	protected void createProject() {
-		String propFile = ext.verifyDirFormat(propFileDir)
-											+ ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
-		Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
-		proj = new Project(propFile, false);
-		proj.PROJECT_NAME.setValue(projName);
-		proj.PROJECT_DIRECTORY.setValue(projDir);
-		proj.SOURCE_DIRECTORY.setValue(sourceDir);
-		proj.XY_SCALE_FACTOR.setValue(1d);
-		proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
-		proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
-		proj.ID_HEADER.setValue("NULL");
-		proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
-		proj.GENOME_BUILD_VERSION.setValue(GENOME_BUILD.HG19);
-
-		proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
-
-		proj.saveProperties();
+	
 	}
 
 	public static void run() {
@@ -939,7 +963,7 @@ public class UKBBParsingPipeline {
 
 		if (!Files.isWindows()) {
 			dir = "/scratch.global/cole0482/UKBB/";
-//			sourceDir = dir + "00src/";
+			// sourceDir = dir + "00src/";
 			sourceDir = "/scratch.global/bb/all/";
 			projDir = dir + "project/";
 			propFileDir = "/home/pankrat2/cole0482/projects/";
@@ -952,6 +976,7 @@ public class UKBBParsingPipeline {
 		parser.setProjectPropertiesDir(propFileDir);
 		parser.setProjectName(projName);
 		parser.setFamFile(famFile);
+		parser.setImportGenosAsAB(true);
 		parser.runPipeline();
 	}
 
@@ -1002,6 +1027,7 @@ public class UKBBParsingPipeline {
 		parser.setProjectPropertiesDir(propFileDir);
 		parser.setProjectName(projName);
 		parser.setFamFile(famFile);
+		parser.setImportGenosAsAB(true);
 		parser.runPipeline();
 	}
 

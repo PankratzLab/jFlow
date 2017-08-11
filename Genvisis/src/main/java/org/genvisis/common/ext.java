@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
@@ -44,7 +45,7 @@ public class ext {
 
 	public static final Character UNSAFE_CHAR_REPLACEMENT = '_';
 	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
-	public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
+	public static final String[][] META_REPLACEMENTS = { {"{Tab}", "\t"}, {"{Space}", " "},
 																											{"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
 	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
 	public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES = PSF.Regex.regexSplitPreserveQuoted(" ");
@@ -186,7 +187,7 @@ public class ext {
 	public static int indexOfStr(String target, String[][] array, boolean caseSensitive) {
 		for (int i = 0; i < array.length; i++) {
 			if (caseSensitive ? array[i][0].equals(target)
-												: array[i][0].toLowerCase().equals(target.toLowerCase())) {
+											 : array[i][0].toLowerCase().equals(target.toLowerCase())) {
 				return i;
 			}
 		}
@@ -249,13 +250,13 @@ public class ext {
 		for (int i = 0; i < array.length; i++) {
 			if (exactMatch) {
 				if (caseSensitive ? array[i].equals(target)
-													: array[i].toLowerCase().equals(target.toLowerCase())) {
+												 : array[i].toLowerCase().equals(target.toLowerCase())) {
 					indices.add(i);
 				}
 			} else {
 				if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
-													: array[i].toLowerCase().contains(target.toLowerCase())
-														|| target.toLowerCase().contains(array[i].toLowerCase())) {
+												 : array[i].toLowerCase().contains(target.toLowerCase())
+													 || target.toLowerCase().contains(array[i].toLowerCase())) {
 					indices.add(i);
 				}
 			}
@@ -473,7 +474,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -504,7 +505,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -648,16 +649,67 @@ public class ext {
 		return replaceAllWith((getDate() + "_" + getTime()), ":", "_");
 	}
 
+	public static String formatTimeElapsed(long timeElapsed, TimeUnit elapsedUnit) {
+		String elapsed;
+		switch (elapsedUnit) {
+			case DAYS:
+				elapsed = formatMinutesElapsed(timeElapsed * 60 * 24);
+				break;
+			case HOURS:
+				elapsed = formatMinutesElapsed(timeElapsed * 60);
+				break;
+			case MICROSECONDS:
+				elapsed = TimeUnit.MICROSECONDS.toMillis(timeElapsed) > 9
+																																 ? formatMillisElapsed(timeElapsed / 1000)
+																																 : (timeElapsed + " µs");
+				break;
+			case MILLISECONDS:
+				elapsed = formatMillisElapsed(timeElapsed);
+				break;
+			case MINUTES:
+				elapsed = formatMinutesElapsed(timeElapsed);
+				break;
+			case NANOSECONDS:
+				elapsed = TimeUnit.NANOSECONDS.toMillis(timeElapsed) > 9
+																																? formatMillisElapsed(timeElapsed / 1000000)
+																																: (timeElapsed + " ns");
+				break;
+			case SECONDS:
+				elapsed = formatMillisElapsed(timeElapsed * 1000);
+				break;
+			default:
+				elapsed = timeElapsed + " (unknown TimeUnit)";
+				break;
+		}
+		return elapsed;
+	}
+
+	/**
+	 * 
+	 * @param startTimeNanos Start time in nanos (Usually from <code>System.nanoTime()</code>)
+	 * @return Formatted string of the most appropriate unit (e.g. "1 hr 22 mins")
+	 */
+	public static String getTimeElapsedNanos(long startTimeNanos) {
+		long timeElapsed = System.nanoTime() - startTimeNanos;
+		return formatTimeElapsed(timeElapsed, TimeUnit.NANOSECONDS);
+	}
+
 	public static String getTimeElapsed(long startTime) {
 		long timeElapsed;
 
 		timeElapsed = new Date().getTime() - startTime;
+
+		return formatMillisElapsed(timeElapsed);
+	}
+
+	public static String formatMillisElapsed(long millisElapsed) {
+		long timeElapsed = millisElapsed;
+
 		if (timeElapsed < 10000) {
 			return timeElapsed + " ms";
 		}
 
 		timeElapsed /= 1000;
-
 		if (timeElapsed < 60) {
 			return timeElapsed + " sec";
 		}
@@ -668,17 +720,25 @@ public class ext {
 
 		timeElapsed /= 60;
 
+		return formatMinutesElapsed(timeElapsed);
+	}
+
+	public static String formatMinutesElapsed(long minsElapsed) {
+		long timeElapsed = minsElapsed;
 		if (timeElapsed < 60) {
-			return timeElapsed + " min";
+			return timeElapsed > 1 ? timeElapsed + " mins" : timeElapsed + " min";
 		}
 
 		if (timeElapsed < 24 * 60) {
-			return timeElapsed / 60 + " hrs " + (timeElapsed - (timeElapsed / 60) * 60) + " min";
+			int hrs = (int) (timeElapsed / 60);
+			return hrs + " hr" + (hrs > 1 ? "s " : " ") + (timeElapsed - (hrs * 60))
+						 + " min";
 		}
 
 		timeElapsed /= 60;
 
-		return timeElapsed / 24 + " days " + (timeElapsed - (timeElapsed / 24) * 24) + " hrs";
+		int days = (int) (timeElapsed / 24);
+		return days + " day" + (days > 1 ? "s " : " ") + (timeElapsed - (days * 24)) + " hrs";
 	}
 
 	public static double getTimeSince(long startTime, char returnType) {
@@ -870,7 +930,7 @@ public class ext {
 			indices[i] = -1;
 			for (int j = 0; j < superset.length; j++) {
 				if (casesensitive ? subset[i].equals(superset[j])
-													: subset[i].equalsIgnoreCase(superset[j])) {
+												 : subset[i].equalsIgnoreCase(superset[j])) {
 					if (indices[i] == -1) {
 						indices[i] = j;
 					} else {
@@ -1085,7 +1145,7 @@ public class ext {
 			}
 		}
 		for (int i = 0; i < (observed.length < expected.length ? observed.length
-																													 : expected.length); i++) {
+																													: expected.length); i++) {
 			if (!observed[i].equalsIgnoreCase(expected[i])
 					|| (caseSensitive && !observed[i].equals(expected[i]))) {
 				log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
@@ -1285,7 +1345,7 @@ public class ext {
 
 
 	public static String removeQuotesFromExcelToken(String ori) {
-		return removeQuotesFromExcelToken(ori, new String[][] {{"\t", "[TAB]"}, {",", "[COMMA]"}});
+		return removeQuotesFromExcelToken(ori, new String[][] { {"\t", "[TAB]"}, {",", "[COMMA]"}});
 	}
 
 	public static String removeQuotesFromExcelToken(String ori, String[][] theReplacements) {
@@ -1767,8 +1827,8 @@ public class ext {
 			if (str.charAt(i) == ',') {
 				if (numCommas % 2 == 0) {
 					v.add(removeAndSimplifyQuotes
-																				? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
-																				: str.substring(startIndex, i));
+																			 ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
+																			 : str.substring(startIndex, i));
 					// System.out.println(v.elementAt(v.size()-1));
 					startIndex = i + 1;
 					if (insideQuotes && str.charAt(i - 1) != '\"') {
@@ -1786,7 +1846,7 @@ public class ext {
 			}
 		}
 		v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex), log)
-																	: str.substring(startIndex));
+																 : str.substring(startIndex));
 
 		return ArrayUtils.toStringArray(v);
 	}

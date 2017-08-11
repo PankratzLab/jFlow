@@ -39,26 +39,26 @@ public class ShadowRework {
 	private ShadowRework() {
 
 	}
-	
+
 	static class ShadowMarkerDataWriter {
 
 		int numInd = -1;
 		long fingerprint;
-		String outDir;	
-		
+		String outDir;
+
 		HashMap<String, String> markerLookup = new HashMap<>();
 		HashMap<String, Integer> markerIndexLocal = new HashMap<>();
-		
+
 		Map<String, Integer> mkrInds;
 		String[] samples;
-		
+
 		Map<String, String[]> mkrNames = new ConcurrentHashMap<>();
 		Map<String, RandomAccessFile> rafMap = new ConcurrentHashMap<>();
 		Map<String, Byte> statMap = new ConcurrentHashMap<>();
 		Map<String, Hashtable<String, Float>> oorTables = new ConcurrentHashMap<>();
-		
+
 		HashMap<Integer, Map<String, String>> chrFileMap = new HashMap<>();
-		
+
 		// proj is old proj
 		public void setupMarkerFiles(Project proj) {
 			samples = proj.getSamples();
@@ -88,7 +88,7 @@ public class ShadowRework {
 						files = new HashMap<>();
 						chrFileMap.put((int) b, files);
 					}
-					files.put(total+"\t"+(total+cnt), mkrFile);
+					files.put(total + "\t" + (total + cnt), mkrFile);
 					total = total + cnt;
 				}
 			}
@@ -96,29 +96,32 @@ public class ShadowRework {
 
 		public void write(MarkerData markerData) throws IOException, Elision {
 			String mdrafName = markerLookup.get(markerData.getMarkerName());
-			synchronized(mdrafName) { 
-  			RandomAccessFile mdraf = rafMap.get(mdrafName);
-  			String[] mkrNmArr = mkrNames.get(mdrafName);
-  			if (mdraf == null) {
-  				byte nullStatus = Sample.updateNullStatus(markerData.getGCs(), null,
-  				              														 null, markerData.getBAFs(),
-  				              														 markerData.getLRRs(), markerData.getAbGenotypes(),
-  				              														 markerData.getForwardGenotypes(), false);
-  				mdraf = openMDRAF(mdrafName, numInd, nullStatus, fingerprint, mkrNmArr);
-  				rafMap.put(mdrafName, mdraf);
-  				statMap.put(mdrafName, nullStatus);
-  			}
-  
-  			byte[] mkrBytes = Compression.objToBytes(mkrNames);
-  			int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(statMap.get(mdrafName));
-  			int numBytesPerMarker = numBytesPerSampleMarker * numInd;
-  			long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length + markerIndexLocal.get(markerData.getMarkerName()) * numBytesPerMarker;
-  			// seek to location of marker in file, as we may be writing out of order
-  			mdraf.seek(seek);
-  			mdraf.write(markerData.compress(markerIndexLocal.get(markerData.getMarkerName()), statMap.get(mdrafName), oorTables.get(mdrafName)));
+			synchronized (mdrafName) {
+				RandomAccessFile mdraf = rafMap.get(mdrafName);
+				String[] mkrNmArr = mkrNames.get(mdrafName);
+				if (mdraf == null) {
+					byte nullStatus = Sample.updateNullStatus(markerData.getGCs(), null,
+																										null, markerData.getBAFs(),
+																										markerData.getLRRs(),
+																										markerData.getAbGenotypes(),
+																										markerData.getForwardGenotypes(), false);
+					mdraf = openMDRAF(mdrafName, numInd, nullStatus, fingerprint, mkrNmArr);
+					rafMap.put(mdrafName, mdraf);
+					statMap.put(mdrafName, nullStatus);
+				}
+
+				byte[] mkrBytes = Compression.objToBytes(mkrNames);
+				int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(statMap.get(mdrafName));
+				int numBytesPerMarker = numBytesPerSampleMarker * numInd;
+				long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length
+										+ markerIndexLocal.get(markerData.getMarkerName()) * numBytesPerMarker;
+				// seek to location of marker in file, as we may be writing out of order
+				mdraf.seek(seek);
+				mdraf.write(markerData.compress(markerIndexLocal.get(markerData.getMarkerName()),
+																				statMap.get(mdrafName), oorTables.get(mdrafName)));
 			}
 		}
-		
+
 		private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus,
 																			 long fingerprint,
 																			 String[] mkrNames) throws IOException {
@@ -153,12 +156,13 @@ public class ShadowRework {
 					String[] pts = entry.getKey().split("\t");
 					int mkrInd = Integer.parseInt(pts[0]);
 					int sampInd = Integer.parseInt(pts[1]);
-					allOutliers.put(mkrInds.get(mkrNames.get(oorEntry.getKey())[mkrInd]) + "\t" + samples[sampInd] + "\t" + pts[2],
-												entry.getValue());
+					allOutliers.put(mkrInds.get(mkrNames.get(oorEntry.getKey())[mkrInd]) + "\t"
+													+ samples[sampInd] + "\t" + pts[2],
+													entry.getValue());
 				}
 
 			}
-			
+
 			SerializedFiles.writeSerial(allOutliers, outDir + "outliers.ser");
 		}
 
@@ -173,7 +177,7 @@ public class ShadowRework {
 		return "markers." + chr + "." + start + "."
 					 + end + MarkerData.MARKER_DATA_FILE_EXTENSION;
 	}
-	
+
 	/**
 	 * @param proj Project to correct
 	 * @param principalComponentsResiduals PCs to do the correcting
@@ -189,7 +193,7 @@ public class ShadowRework {
 																		PrincipalComponentsResiduals principalComponentsResiduals,
 																		boolean preserveBafs, int[] sampleSex,
 																		boolean[] samplesToUseCluster, CORRECTION_TYPE correctionType,
-																		 CHROMOSOME_X_STRATEGY sexStrategy, int numComponents,
+																		CHROMOSOME_X_STRATEGY sexStrategy, int numComponents,
 																		int numCorrectionThreads, int numMarkerThreads) {
 
 		Project shadowProject = new Project();
@@ -198,7 +202,7 @@ public class ShadowRework {
 		ShadowMarkerDataWriter smdw = new ShadowMarkerDataWriter();
 		smdw.setOutputDirectory(newTransposedDir);
 		smdw.setupMarkerFiles(proj);
-		
+
 		String[] markers = proj.getMarkerNames(); // Correct the entire thing
 		PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
 																														 numComponents, sampleSex,
@@ -207,7 +211,8 @@ public class ShadowRework {
 																														 proj.getMarkerNames(),
 																														 correctionType,
 																														 sexStrategy);
-		WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+		WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(
+																																																		producer,
 																																																		numMarkerThreads,
 																																																		10,
 																																																		proj.getLog());
@@ -218,29 +223,30 @@ public class ShadowRework {
 			PrincipalComponentsIntensity principalComponentsIntensity = train.next();
 			MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
 			try {
-  			if (principalComponentsIntensity.isFail()) {
-  				notCorrected.add(markers[index]);
-  				/*
-  				 * MDRAF requires knowing # of markers beforehand; this would require a double-pass 
-  				 * (to determine # successfully corrected) rather than streaming approach. 
-  				 * Instead, either write original data or write missing / dummy data.
-  				 */
-  				smdw.write(markerData);
-  			} else {
-  				byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();// for
-  				// now
-  				float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
-  																																									 true);
-  				float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
-  																																											 true);
-  				markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-  																		markerData.getPosition(), markerData.getFingerprint(),
-  																		markerData.getGCs(), null, null, correctedXY[0], correctedXY[1],
-  																		null, null,
-  																		preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
-  																		correctedLRRBAF[1], abGenotypes, abGenotypes);
-  				smdw.write(markerData);
-  			}
+				if (principalComponentsIntensity.isFail()) {
+					notCorrected.add(markers[index]);
+					/*
+					 * MDRAF requires knowing # of markers beforehand; this would require a double-pass (to
+					 * determine # successfully corrected) rather than streaming approach. Instead, either
+					 * write original data or write missing / dummy data.
+					 */
+					smdw.write(markerData);
+				} else {
+					byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();// for
+					// now
+					float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+																																										 true);
+					float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+																																												 true);
+					markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+																			markerData.getPosition(), markerData.getFingerprint(),
+																			markerData.getGCs(), null, null, correctedXY[0],
+																			correctedXY[1],
+																			null, null,
+																			preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
+																			correctedLRRBAF[1], abGenotypes, abGenotypes);
+					smdw.write(markerData);
+				}
 			} catch (IOException e) {
 				proj.getLog().reportException(e);
 				System.exit(1);
@@ -248,22 +254,22 @@ public class ShadowRework {
 				proj.getLog().reportException(e);
 				System.exit(1);
 			}
-			
+
 			index++;
 		}
-		
+
 		try {
-  		smdw.writeOutliers();
-  		smdw.close();
-  	} catch (IOException e) {
-  		proj.getLog().reportException(e);
-  		System.exit(1);
-  	}
-		
+			smdw.writeOutliers();
+			smdw.close();
+		} catch (IOException e) {
+			proj.getLog().reportException(e);
+			System.exit(1);
+		}
+
 		if (!notCorrected.isEmpty()) {
 			Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
 											 shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-																																							+ "_markersThatFailedCorrection.txt");
+													 + "_markersThatFailedCorrection.txt");
 		}
 
 		// call reverseTranspose next
