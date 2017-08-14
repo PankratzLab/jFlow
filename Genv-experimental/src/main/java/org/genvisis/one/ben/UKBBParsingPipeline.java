@@ -14,12 +14,16 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Compression;
@@ -45,9 +49,9 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 public class UKBBParsingPipeline {
-
+	
 	private static final int MAX_MDRAF_THREADS_PER_CHR = 3;
-	private static final int MAX_CHR_THREADS = 8;
+	private static final int MAX_CHR_THREADS = 10;
 	private static final int MAX_MKRS_PER_MDRAF = 2500;
 
 	Logger log = new Logger();
@@ -66,20 +70,6 @@ public class UKBBParsingPipeline {
 	String[][] famData;
 	// MkrName + SampName + type -> Value || Write as MkrProjInd + SampName + type
 	ConcurrentHashMap<String, Float> oorValues;
-
-	public void runPipeline() {
-		createProject();
-		createSampleList();
-		discoverFilesets();
-		parseMarkerData();
-		writeLookup();
-		createMarkerPositions();
-		writeMarkerSet();
-		writeOutliers();
-		createSampRAFsFromMDRAFs();
-		createPED();
-		createSampleData();
-	}
 
 	public void setProjectName(String projName2) {
 		projName = projName2;
@@ -103,6 +93,20 @@ public class UKBBParsingPipeline {
 
 	public void setImportGenosAsAB(boolean importAsAB) {
 		importGenoAsAB = importAsAB;
+	}
+
+	public void runPipeline() {
+		createProject();
+		createSampleList();
+		discoverFilesets();
+		parseMarkerData();
+		writeLookup();
+		createMarkerPositions();
+		writeMarkerSet();
+		writeOutliers();
+		createSampRAFsFromMDRAFs();
+		createPED();
+		createSampleData();
 	}
 
 	protected void createProject() {
@@ -245,7 +249,9 @@ public class UKBBParsingPipeline {
 	
 		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(),
 		                                                                 MAX_CHR_THREADS));
-	
+
+		int logEveryNMins = 30;
+		final MarkerLogger mkrLog = new MarkerLogger(log, logEveryNMins);
 		CountDownLatch cdl = new CountDownLatch(fileSets.size());
 	
 		for (Integer v : fileSets.keySet()) {
@@ -255,7 +261,7 @@ public class UKBBParsingPipeline {
 				public void run() {
 					try {
 						fs.buildLookups(log);
-						createMDRAF(fs);
+						createMDRAF(fs, mkrLog);
 						cdl.countDown();
 					} catch (IOException | Elision e) {
 						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
@@ -278,6 +284,7 @@ public class UKBBParsingPipeline {
 		} catch (InterruptedException e) {
 			/**/
 		}
+		mkrLog.stopLogging();
 	
 		log.reportTime("Completed parsing MarkerData in " + ext.getTimeElapsedNanos(time));
 	}
@@ -332,8 +339,10 @@ public class UKBBParsingPipeline {
 		}
 		writer.flush();
 		writer.close();
-	
-		completedMarkerPositions(time);
+
+		log.reportTime("Completed markerPositions: " + proj.MARKER_POSITION_FILENAME.getValue()
+		               + " in "
+		               + ext.getTimeElapsedNanos(time));
 	}
 
 	protected void writeMarkerSet() {
@@ -406,20 +415,25 @@ public class UKBBParsingPipeline {
 		                                                               mkrBytes);
 		mkrBytes = null;
 
-		RandomAccessFile mdRAF = new RandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(true, true)
-		                                              + filename, "rw");
+		String file = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + filename;
+		if (Files.exists(file)) {
+			new File(file).delete();
+		}
+		
+		RandomAccessFile mdRAF = new RandomAccessFile(file, "rw");
 		mdRAF.write(mdRAFHeader);
 		mdRAFHeader = null;
 
 		return mdRAF;
 	}
 
-	private void createMDRAF(FileSet fs) throws IOException, Elision {
+	private void createMDRAF(FileSet fs, MarkerLogger mkrLog) throws IOException, Elision {
+		long t1 = System.nanoTime();
 		final String[][] bimData = HashVec.loadFileToStringMatrix(fs.bimFile, false, new int[] {0, 1,
 		                                                                                        2, 3,
 		                                                                                        4, 5},
 		                                                                                        false);
-
+		log.reportTime("Loaded chr" + fs.chr + " .bim data in " + ext.getTimeElapsedNanos(t1));
 		final int nInd = famData.length;
 
 		final byte nullStatus = getNullStatus();
@@ -444,7 +458,7 @@ public class UKBBParsingPipeline {
 						String mdRAF;
 						try {
 							long t1 = System.nanoTime();
-							mdRAF = write(fs, s, fs.mkrBins.get(ii), nullStatus, nInd, bimData);
+							mdRAF = write(fs, s, fs.mkrBins.get(ii), nullStatus, nInd, bimData, mkrLog);
 							log.reportTime("Wrote " + mdRAF + " in " + ext.getTimeElapsedNanos(t1));
 							success(mdRAF);
 							cdl.countDown();
@@ -462,6 +476,7 @@ public class UKBBParsingPipeline {
 					@Override
 					public void run() {
 						try {
+							long t1 = System.nanoTime();
 							Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
 							                                                                      + mdRAFName);
 							for (Entry<String, Float> outlier : outliers.entrySet()) {
@@ -471,6 +486,7 @@ public class UKBBParsingPipeline {
 								oorValues.put(bimData[s + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
 								              outlier.getValue());
 							}
+							log.reportTime("Found existing mdRAF - " + mdRAFName + "; loaded outliers in " + ext.getTimeElapsedNanos(t1));
 							cdl.countDown();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -482,6 +498,9 @@ public class UKBBParsingPipeline {
 		}
 
 		if (runners.size() > 0) {
+//			while (cdl.getCount() > runners.size()) {
+//				cdl.countDown();
+//			}
 			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(),
 			                                                                 MAX_MDRAF_THREADS_PER_CHR));
 			for (Runnable r : runners) {
@@ -515,7 +534,7 @@ public class UKBBParsingPipeline {
 	}
 
 	private String write(FileSet fs, int startBatchInd, String[] mkrNames, byte nullStatus, int nInd,
-	                     String[][] bimData) throws Elision, IOException {
+	                     String[][] bimData, MarkerLogger markerLogger) throws Elision, IOException {
 
 		FileReaderSet frs = new FileReaderSet();
 		frs.open(fs);
@@ -541,7 +560,6 @@ public class UKBBParsingPipeline {
 		int bedBlockSize = (int) Math.ceil(nInd / 4.0);
 		int binBlockSize = nInd * 8;
 
-		int logPer = mkrNames.length / 10;
 		String conLine;
 		String[] cons;
 		String lrrLine;
@@ -549,9 +567,7 @@ public class UKBBParsingPipeline {
 		String bafLine;
 		String[] bafStrs;
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
-			if (i > 0 && i % logPer == 0) {
-				log.reportTime("Processed " + (10 * (i / logPer)) + "% of markers for chr " + fs.chr);
-			}
+			markerLogger.logMarker(fs.chr, startBatchInd, mkrNames.length, i);
 
 			int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
 			int markerBlockSize = nInd * bytesPerSamp;
@@ -714,12 +730,6 @@ public class UKBBParsingPipeline {
 		return mdRAFName;
 	}
 
-	private void completedMarkerPositions(long time) {
-		log.reportTime("Completed markerPositions: " + proj.MARKER_POSITION_FILENAME.getValue()
-		               + " in "
-		               + ext.getTimeElapsedNanos(time));
-	}
-
 	private static void addDirs(File src, List<File> subDirs) {
 		for (File f : src.listFiles(File::isDirectory)) {
 			if (!subDirs.contains(f)) {
@@ -778,8 +788,109 @@ public class UKBBParsingPipeline {
 		log.reportTime("Found " + allSrcFiles.size() + " potential source data files.");
 		return allSrcFiles;
 	}
-
-	private static class FileReaderSet {
+	
+	private class MarkerLogger {
+		
+		public MarkerLogger(Logger log, int minutes) {
+			mkrMap = new ConcurrentHashMap<>();
+			keyMap = new ConcurrentHashMap<>();
+			this.log = log;
+			timer = new Timer();
+			startLogging(minutes);
+		}
+		
+		Logger log;
+		ConcurrentMap<String, Integer> mkrMap;
+		ConcurrentMap<String, int[]> keyMap;
+		
+		public void logMarker(int chr, int bStrt, int bLen, int currMkr) {
+			String keyStr = chr + "\t" + bStrt + "\t" + bLen;
+			synchronized(keyStr) {
+				Integer exists = mkrMap.put(keyStr, currMkr);
+  			if (exists == null) {
+  				keyMap.put(keyStr, new int[]{chr, bStrt, bLen});
+  			} else if (exists > currMkr) {
+  				mkrMap.put(keyStr, exists);
+  			}
+			}
+		}
+		
+		private void startLogging(int minutes) {
+			timer.schedule(logging, 1000 * 60 * 2, 1000 * 60 * minutes); // wait two minutes, then every ten minutes
+		}
+		
+		public void stopLogging() {
+			timer.cancel();
+		}
+		
+		Timer timer;
+		TimerTask logging = new TimerTask() {
+			@Override
+			public void run() {
+				if (keyMap.size() == 0) return;
+				long t1 = System.nanoTime();
+				List<String> sortedKeys = keyMap.keySet().stream().sorted((o1, o2) -> {
+					String[] pts1 = o1.split("\t");
+					String[] pts2 = o2.split("\t");
+					for (int i = 0; i < pts1.length; i++) {
+						int comp1 = Integer.parseInt(pts1[i]);
+						int comp2 = Integer.parseInt(pts2[i]);
+						int comp = Integer.compare(comp1, comp2);
+						if (comp != 0) {
+							return comp;
+						}
+					}
+					return 0;
+				}).collect(Collectors.toList());
+				
+				int max = 0;
+				HashMap<Integer, ArrayList<String>> chrKeys = new HashMap<>();
+				ArrayList<Integer> keys = new ArrayList<>();
+				for (String k : sortedKeys) {
+					int[] bin = keyMap.get(k);
+					int chr = bin[0];
+					double pct = (mkrMap.get(k) - bin[1]) / (double) bin[2];
+//					String pctStr = (mkrMap.get(k) - bin[1]) + "/" + bin[2];
+					int v = (int) (100 * pct);
+					if (!chrKeys.containsKey(chr)) {
+						chrKeys.put(chr, new ArrayList<>());
+						keys.add(chr);
+					}
+//					chrKeys.get(chr).add(pct < 0.993 ? v + "% (" + pctStr + ")" : "C");
+					chrKeys.get(chr).add(pct < 0.993 ? v + "%" : "C");
+				}
+				for (ArrayList<String> cK : chrKeys.values()) {
+					if (cK.size() > max) {
+						max = cK.size();
+					}
+				}
+				StringBuilder header = new StringBuilder("CHR");
+				for (Integer c : keys) {
+					header.append("\t").append(c);
+				}
+				
+				log.reportTime(header.toString());
+				for (int i = 0; i < max; i++) {
+					StringBuilder line = new StringBuilder("BIN_").append(i);
+					for (Integer c : keys) {
+						line.append("\t");
+						if (chrKeys.get(c).size() <= i) {
+							line.append("-");
+						} else {
+							line.append(chrKeys.get(c).get(i));
+						}
+					}
+					log.reportTime(line.toString());
+				}
+				log.reportTime("(wrote to log in " + ext.getTimeElapsedNanos(t1));
+				log.reportTime("");
+				
+			}
+		};
+		
+	}
+	
+	private class FileReaderSet {
 		RandomAccessFile bedIn;
 		RandomAccessFile binIn;
 		BufferedReader conIn;
@@ -796,9 +907,9 @@ public class UKBBParsingPipeline {
 	
 		public void readAhead(FileSet fs, int start, int binSize) throws IOException {
 			int line = start + binSize;
-			conIn.skip(fs.conInds.get(line) - fs.conInds.get(start));
-			lrrIn.skip(fs.lrrInds.get(line) - fs.lrrInds.get(start));
-			bafIn.skip(fs.bafInds.get(line) - fs.bafInds.get(start));
+			conIn.skip(fs.conInds.get(line) - (start == 0 ? 0 : fs.conInds.get(start)));
+			lrrIn.skip(fs.lrrInds.get(line) - (start == 0 ? 0 : fs.lrrInds.get(start)));
+			bafIn.skip(fs.bafInds.get(line) - (start == 0 ? 0 : fs.bafInds.get(start)));
 		}
 	
 		public void close() throws IOException {
