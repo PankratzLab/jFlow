@@ -2355,8 +2355,8 @@ public class SeqMeta {
     log = new Logger(dir + "parseGenePositions.log");
 
     filename = maps.getSnpInfoFilename();
-    filename = ext.rootOf(filename) + ".csv";
-    System.out.println("Attempting to parse " + dir + filename);
+    filename = ext.rootOf(filename, false) + ".csv";
+    System.out.println("Attempting to parse " + filename);
 
     ch = new CountHash();
     hash = new Hashtable<>();
