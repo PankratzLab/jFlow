@@ -2132,7 +2132,7 @@ public class SeqMeta {
         count = 0;
         for (String[] groupAnnotationParam : groupAnnotationParams) {
           if (group.startsWith(groupAnnotationParam[0])) {
-            groupParams.get(group).add(count, dir + groupAnnotationParam[1]);
+            groupParams.get(group).add(count, groupAnnotationParam[1]);
             count++;
           }
         }
