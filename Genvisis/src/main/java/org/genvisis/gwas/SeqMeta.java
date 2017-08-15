@@ -1478,10 +1478,12 @@ public class SeqMeta {
     dir = ext.verifyDirFormat(dir);
     mafThresholdDouble = Double.parseDouble(mafThreshold);
 
+    snpInfoFile = new File(snpInfoFile).getAbsolutePath();
+
     time = new Date().getTime();
-    filename = dir + ext.rootOf(snpInfoFile) + ".csv";
+    filename = ext.rootOf(snpInfoFile, false) + ".csv";
     if (!Files.exists(filename)) {
-      Files.writeArray(new String[] {"load(\"" + dir + snpInfoFile
+      Files.writeArray(new String[] {"load(\"" + snpInfoFile
                                      + "\")",
                                      "write.table(" + getObjectName(dir, snpInfoFile) + ", \""
                                               + filename + "\", sep=\",\", row.names = F)",},
