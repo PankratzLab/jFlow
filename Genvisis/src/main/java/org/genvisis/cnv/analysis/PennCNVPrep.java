@@ -24,6 +24,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.PRoCtOR;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -334,6 +335,7 @@ public class PennCNVPrep {
 			for (ShadowSample shadowSample : shadowSamples) {
 				shadowSample.writeShadow(proj.getLog(), correctedSampleDirectory, proj.getMarkerSet()
 																																							.getFingerprint(),
+																 proj.getArrayType().getCanXYBeNegative(),
 																 allOutliers);
 			}
 		} else {
@@ -386,22 +388,6 @@ public class PennCNVPrep {
 
 	}
 
-	// public Sample(String sampleName, long fingerprint, float[][] data, byte[][] genotypes, boolean
-	// canXYBeNegative) {
-	// this.sampleName = sampleName;
-	// this.fingerprint = fingerprint;
-	// this.gcs = data[0];
-	// this.xs = data[3];
-	// this.ys = data[4];
-	// this.thetas = null;
-	// this.rs = null;
-	// this.bafs = data[7];
-	// this.lrrs = data[8];
-	// this.forwardGenotypes = genotypes[0];
-	// this.abGenotypes = genotypes[1];
-	// this.canXYBeNegative = canXYBeNegative;
-	// updateNullStatus();
-	// }
 	public static class ShadowSample {
 		private final String sampleName;
 		private final String[] shadowMarkers;
@@ -450,6 +436,7 @@ public class PennCNVPrep {
 		}
 
 		public Hashtable<String, Float> writeShadow(Logger log, String dir, long fingerprint,
+																								boolean canXYBeNegative,
 																								Hashtable<String, Float> allOutliers) {
 			if (numAdded != shadowMarkers.length) {
 				log.reportError("Error not all data was added");
@@ -461,7 +448,7 @@ public class PennCNVPrep {
 			}
 			new File(dir).mkdirs();
 			Sample samp = new Sample(sampleName, fingerprint, shadowGCs, shadowXs, shadowYs, shadowBafs,
-															 shadowLrrs, shadowABGenotypes, shadowABGenotypes, false);
+															 shadowLrrs, shadowABGenotypes, shadowABGenotypes, canXYBeNegative);
 			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers,
 																	sampleName);
 			return allOutliers;
@@ -751,12 +738,14 @@ public class PennCNVPrep {
 			shadowProj.saveProperties();
 
 		} else {
-			prepExport(proj, dir, tmpDir, numComponents, markerFile, numThreads, numMarkerThreads, lType,
+			prepExport(proj, markerDirectory, numComponents, markerFile, numThreads,
+								 numMarkerThreads, lType,
 								 preserveBafs, correctionType, sexStrategy);
 		}
 	}
 
-	public static void prepExport(Project proj, String dir, String tmpDir, int numComponents,
+	public static void prepExport(Project proj, String mkrDir,
+																int numComponents,
 																String markerFile, int numThreads, int numMarkerThreads,
 																LS_TYPE lType, boolean preserveBafs,
 																CORRECTION_TYPE correctionType,
@@ -782,13 +771,17 @@ public class PennCNVPrep {
 					.report("Info - loaded " + markers.length + " markers from " + markerFile + " to export");
 
 		}
-		PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null,
-																											 proj.getSamplesToInclude(null), sex,
-																											 markers,
-																											 numComponents, dir, lType, numThreads,
-																											 numMarkerThreads);
-		specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(tmpDir, preserveBafs, correctionType,
-																														sexStrategy);
+		// PennCNVPrep specialPennCNVFormat = new PennCNVPrep(proj, principalComponentsResiduals, null,
+		// proj.getSamplesToInclude(null), sex,
+		// markers,
+		// numComponents, dir, lType, numThreads,
+		// numMarkerThreads);
+		// specialPennCNVFormat.exportSpecialMarkerDataMoreThreads(mkrDir, preserveBafs, correctionType,
+		// sexStrategy);
+		PRoCtOR.correctProject(proj, mkrDir, principalComponentsResiduals, preserveBafs, sex,
+													 proj.getSamplesToInclude(null), markers, correctionType, sexStrategy,
+													 numComponents,
+													 numThreads, numMarkerThreads);
 	}
 
 	public static void batchCorrections(Project proj, String java, String classPath, int memoryInMB,

@@ -2180,22 +2180,22 @@ public class Project implements PropertyChangeListener {
 		/**
 		 * Your friendly Illumina arrays
 		 */
-		ILLUMINA(new String[] {"cnvi"}, 50/* , 650000 */),
+		ILLUMINA(new String[] {"cnvi"}, 50, false/* , 650000 */),
 		/**
 		 * Supports CHP format
 		 */
-		AFFY_GW6(new String[] {"CN_"}, 25/* , 650000 */),
+		AFFY_GW6(new String[] {"CN_"}, 25, false/* , 650000 */),
 		/**
 		 * Supports CHP and CNCHP formated input
 		 */
-		AFFY_GW6_CN(new String[] {"CN_"}, 25/* , 909622 */),
+		AFFY_GW6_CN(new String[] {"CN_"}, 25, false/* , 909622 */),
 
 		/**
 		 * For bamFiles
 		 */
-		NGS(new String[] {"*"}, 100/* , 0 */),
+		NGS(new String[] {"*"}, 100, false/* , 0 */),
 
-		AFFY_AXIOM(new String[] {}, 25)
+		AFFY_AXIOM(new String[] {}, 25, true)
 
 		// DBGAP(new String[] {}, 0, 909622)
 		;
@@ -2208,10 +2208,15 @@ public class Project implements PropertyChangeListener {
 		 * Length of the probe sequences on the array
 		 */
 		private int probeLength;
+		/**
+		 * Can the X/Y values of this array be negative?
+		 */
+		private boolean canXYBeNegative;
 
-		private ARRAY(String[] cnFlags, int probeLength) {
+		private ARRAY(String[] cnFlags, int probeLength, boolean canXYBeNegative) {
 			this.cnFlags = cnFlags;
 			this.probeLength = probeLength;
+			this.canXYBeNegative = canXYBeNegative;
 		}
 
 		public String[] getCnFlags() {
@@ -2229,6 +2234,10 @@ public class Project implements PropertyChangeListener {
 
 		public void setProbeLength(int probeLength) {
 			this.probeLength = probeLength;
+		}
+
+		public boolean getCanXYBeNegative() {
+			return canXYBeNegative;
 		}
 
 		/**

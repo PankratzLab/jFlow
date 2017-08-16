@@ -944,7 +944,7 @@ public class MarkerData implements Serializable {
 	}
 
 	public byte[] compress(int mkrIndLocal, byte nullStatus,
-												 Hashtable<String, Float> oorTable) throws Elision {
+												 Hashtable<String, Float> oorTable, boolean canXYBeNegative) throws Elision {
 		int numInd = getDataLength();
 		int bytesPerSamp = Sample.getNBytesPerSampleMarker(nullStatus);
 		int markerBlockSize = numInd * bytesPerSamp;
@@ -959,7 +959,11 @@ public class MarkerData implements Serializable {
 
 		// Xs
 		for (int i = 0; i < numInd; i++) {
-			boolean oor = !Compression.xyCompressAllowNegative(getXs()[i], mkrBuff, buffInd);
+			boolean oor = canXYBeNegative
+																	 ? !Compression.xyCompressAllowNegative(getXs()[i], mkrBuff,
+																																					buffInd)
+																	 :
+																	 !Compression.xyCompressPositiveOnly(getXs()[i], mkrBuff, buffInd);
 			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 			if (oor) {
 				oorTable.put(mkrIndLocal + "\t" + i + "\tx", getXs()[i]);
@@ -968,7 +972,11 @@ public class MarkerData implements Serializable {
 
 		// Ys
 		for (int i = 0; i < numInd; i++) {
-			boolean oor = !Compression.xyCompressAllowNegative(getYs()[i], mkrBuff, buffInd);
+			boolean oor = canXYBeNegative
+																	 ? !Compression.xyCompressAllowNegative(getYs()[i], mkrBuff,
+																																					buffInd)
+																	 :
+																	 !Compression.xyCompressPositiveOnly(getYs()[i], mkrBuff, buffInd);
 			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 			if (oor) {
 				oorTable.put(mkrIndLocal + "\t" + i + "\ty", getYs()[i]);

@@ -118,7 +118,8 @@ public class ShadowRework {
 				// seek to location of marker in file, as we may be writing out of order
 				mdraf.seek(seek);
 				mdraf.write(markerData.compress(markerIndexLocal.get(markerData.getMarkerName()),
-																				statMap.get(mdrafName), oorTables.get(mdrafName)));
+																				statMap.get(mdrafName), oorTables.get(mdrafName),
+																				false));
 			}
 		}
 
@@ -274,5 +275,4 @@ public class ShadowRework {
 
 		// call reverseTranspose next
 	}
-
 }

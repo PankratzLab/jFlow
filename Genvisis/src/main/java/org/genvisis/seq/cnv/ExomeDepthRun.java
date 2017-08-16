@@ -36,13 +36,14 @@ public class ExomeDepthRun {
 																	 String outputRoot, String rLoc, boolean somaticMode,
 																	 int numthreads, Logger log) {
 		VcfPopulation vpop = null;
-		String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
-																																									BamOps.BAM_EXT,
-																																									false)
-																														: HashVec.loadFileToStringArray(bams,
-																																														false,
-																																														new int[] {0},
-																																														true);
+		String[] allReferenceBamFiles = Files.isDirectory(bams)
+																													 ? Files.listFullPaths(bams,
+																																								 BamOps.BAM_EXT,
+																																								 false)
+																													 : HashVec.loadFileToStringArray(bams,
+																																													 false,
+																																													 new int[] {0},
+																																													 true);
 		String outputResultsDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
 															+ "results/";
 		new File(outputResultsDir).mkdirs();
@@ -186,8 +187,10 @@ public class ExomeDepthRun {
 				}
 				byte[] genos = ArrayUtils.byteArray(ratioLrr.length, (byte) 1);
 				float[] zeroArray = ArrayUtils.floatArray(ratioLrr.length, 0);
-				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), zeroArray, zeroArray,
-																 zeroArray, zeroArray, ratioLrr, genos, genos, false);
+				Sample samp = new Sample(sample, proj.getMarkerSet().getFingerprint(), zeroArray,
+																 zeroArray,
+																 zeroArray, zeroArray, ratioLrr, genos, genos,
+																 proj.getArrayType().getCanXYBeNegative());
 				samp.saveToRandomAccessFile(sampFile, outliers, sample);
 			} else {
 				outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(sampFile);

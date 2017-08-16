@@ -1,5 +1,8 @@
 package org.genvisis.seq.manage;
 
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.VariantContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,9 +14,6 @@ import org.genvisis.common.Logger;
 
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Floats;
-
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.VariantContext;
 
 public class SampleNGS {
 	private enum DATA_TYPE {
@@ -45,7 +45,7 @@ public class SampleNGS {
 		} else {
 			try {
 				int[] ad = vc == null ? geno.getAD()
-															: VCOps.getAppropriateAlleleDepths(vc, geno, true, log);
+														 : VCOps.getAppropriateAlleleDepths(vc, geno, true, log);
 				addFloat(ad[0], DATA_TYPE.X, log);
 				addFloat(ad[1], DATA_TYPE.Y, log);
 			} catch (IllegalStateException ils) {
@@ -144,7 +144,7 @@ public class SampleNGS {
 			Arrays.fill(fakeBAFS, 0);
 			Sample samp = new Sample(sampleName, fingerprint, Floats.toArray(gcs), Floats.toArray(xs),
 															 Floats.toArray(ys), fakeBAFS, fakeLRRs, Bytes.toArray(geno),
-															 Bytes.toArray(geno), false);
+															 Bytes.toArray(geno), proj.getArrayType().getCanXYBeNegative());
 			samp.saveToRandomAccessFile(dir + sampleName + Sample.SAMPLE_FILE_EXTENSION, allOutliers,
 																	sampleName);
 		}

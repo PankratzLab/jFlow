@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -782,7 +783,9 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			run();
+			proj = new Project("D:/projects/FarrarReparse.properties", false);
+			TransposeData.reverseTranspose(proj);
+			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";
 			// String missDropsFile = dir + "quality_control/further_analysis_QC/miss_drops.dat";
