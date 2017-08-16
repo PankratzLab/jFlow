@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AxisTransform;
@@ -31,6 +32,10 @@ public class Workbench {
 	public Workbench() {
 		templateGating = new Gating();
 		samples = new HashMap<String, Workbench.SampleNode>();
+	}
+
+	public Set<String> getAllSamples() {
+		return this.samples.keySet();
 	}
 
 	public String addNewSample(String fcsFile, boolean applyTemplate) {
@@ -78,23 +83,7 @@ public class Workbench {
 	}
 
 	public boolean containsSampleFile(String filename) {
-		for (SampleNode sn : samples.values()) {
-			if (sn.fcsFile.equals(filename)) {
-				return true;
-			}
-			try {
-				String f1 = URLDecoder.decode(new File(sn.fcsFile).getCanonicalPath(), "UTF-8");
-				String f2 = URLDecoder.decode(new File(filename).getCanonicalPath(), "UTF-8");
-				if (f1.equals(f2)) {
-					return true;
-				}
-			} catch (IOException e) {
-			}
-			if ((new File(sn.fcsFile)).equals(new File(filename))) {
-				return true;
-			}
-		}
-		return false;
+		return getSampleID(filename) != null;
 	}
 
 	public String getSampleID(String filename) {
@@ -110,7 +99,7 @@ public class Workbench {
 				}
 			} catch (IOException e) {
 			}
-			if ((new File(sn.fcsFile)).equals(new File(filename))) {
+			if ((new File(sn.fcsFile).getName()).equals(new File(filename).getName())) {
 				return sn.id;
 			}
 		}

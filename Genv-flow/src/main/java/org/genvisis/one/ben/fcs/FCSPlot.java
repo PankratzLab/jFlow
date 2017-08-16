@@ -770,6 +770,16 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		}
 	}
 
+	public void setCurrentSampleInWSP(String filename) {
+		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
+																														: workbench.addNewSample(filename,
+																																										 false);
+	}
+
+	public Workbench getWorkbench() {
+		return this.workbench;
+	}
+
 	public void saveGating() {
 		if (getGatingStrategy().getRootGates().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Error - no gates found!", "Error!",

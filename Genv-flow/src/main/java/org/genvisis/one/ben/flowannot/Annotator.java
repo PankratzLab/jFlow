@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -25,7 +26,17 @@ public class Annotator implements IAnnotator {
 	private HashMap<AnnotatedImage.Annotation, ArrayList<AnnotatedImage>> annotMap = new HashMap<>();
 
 	public ArrayList<String> getFCSKeys() {
-		return fcsKeys;
+		return getFCSKeys(null);
+	}
+
+	public ArrayList<String> getFCSKeys(PANEL panel) {
+		ArrayList<String> keys = fcsKeys;
+		if (panel != null) {
+			keys = new ArrayList<>(fcsKeys.stream()
+																		.filter(p -> panel.isPanel(p))
+																		.collect(Collectors.toList()));
+		}
+		return keys;
 	}
 
 	public HashMap<String, HashMap<String, AnnotatedImage>> getAnnotationMap() {
@@ -86,11 +97,13 @@ public class Annotator implements IAnnotator {
 				}
 			});
 			for (String img : imgFiles) {
+				String[][] gateTree = PANEL.PANEL_1.isPanel(img) ? GateTree.GATE_TREE_PANEL_1
+																												: GateTree.GATE_TREE_PANEL_2;
 				int gateInd = -1;
 				String name = img.substring(fcsFilename.length() + 1, img.length() - 4);
-				for (int i = 0; i < GateTree.GATE_TREE.length; i++) {
-					if (GateTree.GATE_TREE[i][0].equals(name)
-							|| ext.replaceWithLinuxSafeCharacters(GateTree.GATE_TREE[i][0]).equals(name)) {
+				for (int i = 0; i < gateTree.length; i++) {
+					if (gateTree[i][0].equals(name)
+							|| ext.replaceWithLinuxSafeCharacters(gateTree[i][0]).equals(name)) {
 						gateInd = i;
 						break;
 					}
@@ -99,8 +112,8 @@ public class Annotator implements IAnnotator {
 					AnnotatedImage ai = new AnnotatedImage(gateInd + "", gateInd == 0);
 					ai.setImageFile(ext.verifyDirFormat(d.getAbsolutePath()) + img);
 					// name = ArrayUtils.toStr(GateTree.GATE_DIMS[gateInd], " v ");
-					ai.setGateName(GateTree.GATE_TREE[gateInd][0]);
-					fcsImgs.put(GateTree.GATE_TREE[gateInd][0], ai);
+					ai.setGateName(gateTree[gateInd][0]);
+					fcsImgs.put(gateTree[gateInd][0], ai);
 				}
 			}
 		}
@@ -123,7 +136,10 @@ public class Annotator implements IAnnotator {
 				this.annotations.add(a);
 			} else if (line.startsWith(IMAGE_TOKEN)) {
 				String[] pts = line.split("\t")[1].split("\\|", -1);
-				AnnotatedImage ai = new AnnotatedImage(pts[0], GateTree.GATE_TREE[0][0].equals(pts[0]));
+				AnnotatedImage ai = new AnnotatedImage(
+																							 pts[0],
+																							 GateTree.GATE_TREE_PANEL_1[0][0].equals(pts[0])
+																									 || GateTree.GATE_TREE_PANEL_2[0][0].equals(pts[0]));
 				String imgFile = pts[1].equals("") ? null : pts[1];
 				ai.setImageFile(imgFile);
 				ai.setMissing(imgFile == null || !Files.exists(imgFile));

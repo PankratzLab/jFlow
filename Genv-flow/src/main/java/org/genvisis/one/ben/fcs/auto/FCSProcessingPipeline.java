@@ -18,14 +18,6 @@ public class FCSProcessingPipeline {
 																					{"CD3.", "Tcells (CD3+ CD19-)"},
 	};
 
-	public static String[] GATE_NAMES = {
-																			// "Lymphocytes (SSC-A v FSC-A)",
-																			// "Single Cells (FSC-H v FSC-W)",
-																			// "Live cells (PE-)",
-																			// "Tcells (CD3+ CD19-)",
-
-																			};
-
 	public FCSProcessingPipeline(String fcs, String wsp, String auto, String out) {
 		fcsDir = fcs;
 		wspDir = wsp;

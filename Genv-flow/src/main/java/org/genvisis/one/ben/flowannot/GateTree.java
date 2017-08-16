@@ -5,14 +5,17 @@ import java.util.HashMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
+import org.genvisis.one.ben.flowannot.IAnnotator.PANEL;
+
 public final class GateTree {
 
 	private GateTree() {}
 
-	public static MutableTreeNode constructTree() {
+	public static MutableTreeNode constructTree(PANEL panel) {
+		String[][] tree = panel == PANEL.PANEL_1 ? GATE_TREE_PANEL_1 : GATE_TREE_PANEL_2;
 		DefaultMutableTreeNode rootNode = null;
 		HashMap<String, DefaultMutableTreeNode> map = new HashMap<>();
-		for (String[] node : GATE_TREE) {
+		for (String[] node : tree) {
 			if (node.length == 1) {
 				AnnotatedImage ai = new AnnotatedImage(node[0], true);
 				rootNode = new DefaultMutableTreeNode(ai);
@@ -28,7 +31,50 @@ public final class GateTree {
 	}
 
 
-	static final String[][] GATE_TREE = { // mapping[i][0] = child, mapping[i][1] = parent,
+	static final String[][] GATE_TREE_PANEL_2 = {
+																							 {"boundary"},
+																							 {"CD45-", "boundary"},
+																							 {"CD45+", "boundary"},
+																							 {"PE-A+", "CD45+"},
+																							 {"Live immune cells (CD45+ PE-)", "CD45+"},
+																							 {"FSC-H+", "Live immune cells (CD45+ PE-)"},
+																							 {"SingletsH", "Live immune cells (CD45+ PE-)"},
+																							 {"FSC-W+", "Live immune cells (CD45+ PE-)"},
+																							 {"SingletsW", "Live immune cells (CD45+ PE-)"},
+																							 {"Live Single immune cells(FSC-H_FSC-W)",
+																								"Live immune cells (CD45+ PE-)"},
+																							 {"nonDebris",
+																								"Live Single immune cells(FSC-H_FSC-W)"},
+																							 {"Live Single PBMCs (SSC-A_FSC-A)", "nonDebris"},
+																							 {"CD19+", "Live Single PBMCs (SSC-A_FSC-A)"},
+																							 {"CD19-", "Live Single PBMCs (SSC-A_FSC-A)"},
+																							 {"CD3+", "Live Single PBMCs (SSC-A_FSC-A)"},
+																							 {"CD3-", "Live Single PBMCs (SSC-A_FSC-A)"},
+																							 {"DC NK MONOCYTES (CD3- CD19-)",
+																								"Live Single PBMCs (SSC-A_FSC-A)"},
+																							 {"MONOCYTES (CD14+)", "DC NK MONOCYTES (CD3- CD19-)"},
+																							 {"Non classical monocytes (CD16+ CD14+)",
+																								"MONOCYTES (CD14+)"},
+																							 {"Classical monocytes (CD16- CD14+)",
+																								"MONOCYTES (CD14+)"},
+																							 {"CD14-", "DC NK MONOCYTES (CD3- CD19-)"},
+																							 {"DC NK (CD20- CD14-)", "CD14-"},
+																							 {"HLA-DR+", "DC NK (CD20- CD14-)"},
+																							 {"DC (HLA-DR+)", "DC NK (CD20- CD14-)"},
+																							 {"BB515-A-BV 711-A+", "DC (HLA-DR+)"},
+																							 {"BB515-A+BV 711-A+", "DC (HLA-DR+)"},
+																							 {"Myeloid DC (CD11c+ CD123-)", "DC (HLA-DR+)"},
+																							 {"Plasmacytoid DC (CD11c- CD123+)", "DC (HLA-DR+)"},
+																							 {"CD56+", "DC NK (CD20- CD14-)"},
+																							 {"NK (CD16+)", "DC NK (CD20- CD14-)"},
+																							 {"CD16-CD56-", "DC NK (CD20- CD14-)"},
+																							 {"CD16+CD56-", "DC NK (CD20- CD14-)"},
+																							 {"CD16-CD56+", "DC NK (CD20- CD14-)"},
+																							 {"NK CD56LO", "DC NK (CD20- CD14-)"},
+																							 {"NK CD56HI", "NK CD56LO"},
+	};
+
+	static final String[][] GATE_TREE_PANEL_1 = { // mapping[i][0] = child, mapping[i][1] = parent,
 			// if length == 1, @ root
 			{"boundary"},
 			{"nonDebris", "boundary"},

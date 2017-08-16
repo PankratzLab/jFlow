@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -39,6 +41,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -61,6 +64,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.flowannot.AnnotatedImage.Annotation;
+import org.genvisis.one.ben.flowannot.IAnnotator.PANEL;
 
 public class FlowAnnotator {
 
@@ -304,29 +308,34 @@ public class FlowAnnotator {
 
 		controlPanel = new JPanel();
 		splitPane_1.setLeftComponent(controlPanel);
-		controlPanel.setLayout(new MigLayout("", "[110.00,grow]", "[][grow][][]"));
+		controlPanel.setLayout(new MigLayout("", "[110.00,grow]", "[][][grow][][]"));
 
 		fcsCombo = new JComboBox<String>();
 		fcsCombo.addActionListener(comboListener);
+
+		constructingTree = true;
+		ButtonGroup panelButtons = new ButtonGroup();
+		rdBtnPanel1 = new JRadioButton();
+		rdBtnPanel1.addItemListener(panelListener);
+		rdBtnPanel1.setText("Panel 1");
+		controlPanel.add(rdBtnPanel1, "flowx,cell 0 0,alignx center");
+		rdBtnPanel1.setSelected(true);
+		panelButtons.add(rdBtnPanel1);
 		fcsCombo.setFocusable(false);
-		controlPanel.add(fcsCombo, "flowx,cell 0 0,growx");
+		controlPanel.add(fcsCombo, "flowx,cell 0 1,growx");
 
 		JScrollPane scrollPane_1 = new JScrollPane();
-		controlPanel.add(scrollPane_1, "cell 0 1,grow");
+		controlPanel.add(scrollPane_1, "cell 0 2,grow");
 
 		tree = new JTree();
 		scrollPane_1.setViewportView(tree);
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-		rootNode.add(GateTree.constructTree());
-		constructingTree = true;
-		DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
-		tree.setModel(dtm);
-		tree.setShowsRootHandles(true);
-		tree.setRootVisible(false);
-		tree.addTreeSelectionListener(treeListener);
-		tree.setEnabled(false);
-		updateTreeKeys(tree);
-		expandAllNodes(tree);
+		constructTree(PANEL.PANEL_1);
+
+		rdBtnPanel2 = new JRadioButton();
+		rdBtnPanel2.addItemListener(panelListener);
+		rdBtnPanel2.setText("Panel 2");
+		controlPanel.add(rdBtnPanel2, "cell 0 0,alignx center");
+		panelButtons.add(rdBtnPanel2);
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
 		am.put("enter", new AbstractAction() {
 			@Override
@@ -341,6 +350,36 @@ public class FlowAnnotator {
 		constructingTree = false;
 
 		startAutoSaveThread();
+	}
+
+	private ItemListener panelListener = new ItemListener() {
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				PANEL panel = e.getSource() == rdBtnPanel1 ? PANEL.PANEL_1 : PANEL.PANEL_2;
+				if (!constructingTree) {
+					constructingTree = true;
+					constructTree(panel);
+					setAnnotationsChanged();
+					reloadControls();
+					saveProperties();
+					constructingTree = false;
+				}
+			}
+		}
+	};
+
+	private void constructTree(PANEL panel) {
+		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+		rootNode.add(GateTree.constructTree(panel));
+		DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
+		tree.setModel(dtm);
+		tree.setShowsRootHandles(true);
+		tree.setRootVisible(false);
+		tree.addTreeSelectionListener(treeListener);
+		tree.setEnabled(false);
+		updateTreeKeys(tree);
+		expandAllNodes(tree);
 	}
 
 	long lastTimeSaved = -1;
@@ -616,8 +655,29 @@ public class FlowAnnotator {
 	}
 
 	private void reloadControls() {
-		DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(annotator.getFCSKeys()
-																																						.toArray(new String[0]));
+		int panels = 0;
+		if (rdBtnPanel1.isSelected()) {
+			panels = 1;
+		} else if (rdBtnPanel2.isSelected()) {
+			panels = 2;
+		}
+		String[] fcsKeys;
+		switch (panels) {
+			case 0:
+				fcsKeys = new String[0];
+				break;
+			case 1:
+				fcsKeys = annotator.getFCSKeys(PANEL.PANEL_1).toArray(new String[0]);
+				break;
+			case 2:
+				fcsKeys = annotator.getFCSKeys(PANEL.PANEL_2).toArray(new String[0]);
+				break;
+			case 3:
+			default:
+				fcsKeys = annotator.getFCSKeys().toArray(new String[0]);
+				break;
+		}
+		DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
 		fcsCombo.setModel(dcbm);
 		if (fcsCombo.getModel().getSize() > 0) {
 			fcsCombo.setSelectedIndex(0);
@@ -956,7 +1016,6 @@ public class FlowAnnotator {
 		refreshAnnotations();
 		if (!constructingTree) {
 			lastSelectedGate = node.getGateName();
-			System.out.println("Setting last used gate to " + lastSelectedGate);
 		}
 	}
 
@@ -1135,5 +1194,7 @@ public class FlowAnnotator {
 		}
 	};
 	private JMenu mnSaveAnn;
+	private JRadioButton rdBtnPanel1;
+	private JRadioButton rdBtnPanel2;
 
 }
