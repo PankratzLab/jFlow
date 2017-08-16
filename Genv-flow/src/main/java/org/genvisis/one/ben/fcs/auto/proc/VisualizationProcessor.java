@@ -3,6 +3,7 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.SwingConstants;
@@ -35,6 +36,14 @@ public class VisualizationProcessor implements SampleProcessor {
 
 		long time1 = System.nanoTime();
 		fcp.loadWorkspaceFile(sn.wspFile);
+		Set<String> sampeIds = fcp.getWorkbench().getAllSamples();
+		String id = sampeIds.toArray(new String[1])[0];
+		if (fcp.getWorkbench().getSample(id).fcsFile.equals(sn.fcsFile)) {
+			fcp.setCurrentSampleInWSP(sn.fcsFile);
+		} else if (fcp.getWorkbench().getSample(id).fcsFile.equals(ext.rootOf(sn.fcsFile, true))) {
+			fcp.setCurrentSampleInWSP(ext.rootOf(sn.fcsFile, true));
+		}
+		fcp.setCurrentSampleInWSP(id);
 
 		boolean hasAll = true;
 
@@ -53,7 +62,8 @@ public class VisualizationProcessor implements SampleProcessor {
 			break;
 		}
 		if (hasAll) {
-			log.report("All screenshots found; Skipping FCS file: " + sn.fcsFile);
+			log.report("All screenshots found for " + fcp.getGatingStrategy().getAllGateNames().size()
+								 + " gates; Skipping FCS file: " + sn.fcsFile);
 			return;
 		}
 

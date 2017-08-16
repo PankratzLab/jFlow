@@ -628,6 +628,9 @@ public abstract class Gate {
 					// xInd = Math.max(0, xInd);
 					// yInd = Math.min(rectsArray[xInd].length, yInd);
 					// yInd = Math.max(0, yInd);
+					if (xInd < 0 || xInd > rectsArray.length || yInd < 0 || yInd > rectsArray[xInd].length) {
+						continue;
+					}
 					Rectangle rect = rectsArray[xInd][yInd];
 					if (myRects.contains(rect)) {
 						include = true;
@@ -695,11 +698,19 @@ public abstract class Gate {
 													: ((coords[0] / binStep) + gateResolution));
 					yInd = (int) (yT ? ((coords[1]) * (gateResolution * 2))
 													: ((coords[1] / binStep) + gateResolution));
-					vertexRects.add(rectsArray[xInd][yInd]);
-					if (ind == 0) {
-						path.moveTo(rectsArray[xInd][yInd].getCenterX(), rectsArray[xInd][yInd].getCenterY());
+					Rectangle vRect;
+					if (xInd < rectsArray.length && xInd > 0 && yInd < rectsArray[xInd].length && yInd > 0) {
+						vRect = rectsArray[xInd][yInd];
 					} else {
-						path.lineTo(rectsArray[xInd][yInd].getCenterX(), rectsArray[xInd][yInd].getCenterY());
+						vRect = new Rectangle(xInd * binStep + binStep / 2, yInd * binStep + binStep / 2,
+																	binStep,
+																	binStep);
+					}
+					vertexRects.add(vRect);
+					if (ind == 0) {
+						path.moveTo(vRect.getCenterX(), vRect.getCenterY());
+					} else {
+						path.lineTo(vRect.getCenterX(), vRect.getCenterY());
 					}
 					ind++;
 				}
