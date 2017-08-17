@@ -130,17 +130,18 @@ public class UKBBParsingPipeline {
 			proj.saveProperties();
 		} else {
 			log.reportTime("Project properties file already exists; skipping creation.");
+			proj = new Project(propFile, false);
 		}
 	}
 
 	protected void createSampleList() {
 		famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3,
 																																				4, 5}, false);
+		String[] allSamples = Matrix.extractColumn(famData, 1);
+		@SuppressWarnings("deprecation")
+		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
+		fingerprint = f;
 		if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
-			String[] allSamples = Matrix.extractColumn(famData, 1);
-			@SuppressWarnings("deprecation")
-			long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
-			fingerprint = f;
 			SampleList sl = new SampleList(allSamples);
 			sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
 			sl = null;
