@@ -386,8 +386,23 @@ public class UKBBParsingPipeline {
 	}
 
 	protected void createSampRAFsFromMDRAFs() {
-		// TODO check if already completed
-		TransposeData.reverseTranspose(proj);
+		if (!checkIfSampRAFsExist()) {
+			TransposeData.reverseTranspose(proj);
+		}
+	}
+
+	private boolean checkIfSampRAFsExist() {
+		String[] listOfAllSamplesInProj = proj.getSamples();
+		boolean allExist = true;
+		for (String sample : listOfAllSamplesInProj) {
+			String file = proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
+										+ Sample.SAMPLE_FILE_EXTENSION;
+			if (!Files.exists(file)) {
+				allExist = false;
+				break;
+			}
+		}
+		return allExist;
 	}
 
 	protected void createPED() {
