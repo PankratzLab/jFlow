@@ -164,7 +164,7 @@ class EvaluationResult implements Serializable {
 	}
 
 	public static EvaluationResult[] readSerial(String fileName, Logger log) {
-		return (EvaluationResult[]) SerializedFiles.readSerial(fileName, false, log, false, true);
+		return (EvaluationResult[]) SerializedFiles.readSerial(fileName, log, false, true);
 	}
 
 	public static EvalHeritabilityResult prepareHeritability(Project proj, String ped,

@@ -88,7 +88,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 	}
 
 	public static VCFTallyPSeq load(String filename) {
-		return (VCFTallyPSeq) SerializedFiles.readSerial(filename, false, false);
+		return (VCFTallyPSeq) SerializedFiles.readSerial(filename, false);
 	}
 
 	public String getOutput() {

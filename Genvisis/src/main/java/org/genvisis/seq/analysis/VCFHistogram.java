@@ -86,7 +86,7 @@ public class VCFHistogram implements Serializable {
 	}
 
 	public static VCFHistogram readSerial(String filename, Logger log) {
-		return (VCFHistogram) SerializedFiles.readSerial(filename, false, log, false, true);
+		return (VCFHistogram) SerializedFiles.readSerial(filename, log, false, true);
 	}
 
 	public RScatters dumpAndPlot(String dir, String root) {

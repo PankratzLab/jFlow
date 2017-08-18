@@ -657,7 +657,7 @@ public class GcAdjustorParameter implements Serializable {
 		}
 
 		public static GcAdjustorParameters readSerial(String filename, Logger log) {
-			return (GcAdjustorParameters) SerializedFiles.readSerial(filename, false, log, false, true);
+			return (GcAdjustorParameters) SerializedFiles.readSerial(filename, log, false, true);
 		}
 
 	}

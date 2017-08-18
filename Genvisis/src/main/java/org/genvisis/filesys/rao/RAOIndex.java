@@ -75,7 +75,7 @@ public class RAOIndex implements RAObject {
 	}
 
 	public static RAOIndex load(String indexFileName, Logger log) {
-		return (RAOIndex) SerializedFiles.readSerial(indexFileName, false, log, false, true);
+		return (RAOIndex) SerializedFiles.readSerial(indexFileName, log, false, true);
 	}
 
 	public RAOIndex() {}

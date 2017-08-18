@@ -898,7 +898,6 @@ public class Project implements PropertyChangeListener {
 		if (Files.exists(file)) {
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> map = (HashMap<String, String>) SerializedFiles.readSerial(file,
-																																												 false,
 																																												 log,
 																																												 false);
 			return map;

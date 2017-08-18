@@ -1347,7 +1347,7 @@ public class VCFSimpleTally {
 		}
 
 		public static GeneVariantPositionSummary[] readSerial(String filename, Logger log) {
-			return (GeneVariantPositionSummary[]) SerializedFiles.readSerial(filename, false, log, false,
+			return (GeneVariantPositionSummary[]) SerializedFiles.readSerial(filename, log, false,
 																																			 true);
 		}
 

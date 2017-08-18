@@ -39,7 +39,7 @@ public class GenomeRegions implements Serializable {
 	}
 
 	public static GenomeRegions load(String filename) {
-		return (GenomeRegions) SerializedFiles.readSerial(filename, false, false);
+		return (GenomeRegions) SerializedFiles.readSerial(filename, false);
 	}
 
 }

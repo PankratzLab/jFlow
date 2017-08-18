@@ -107,7 +107,7 @@ public class CNVFocus {
 																												 String[] pattersToExclude) {
 		String serFile = outputDir + "sampleLrrParams.ser";
 		if (Files.exists(serFile)) {
-			return (SampleDistParams[]) SerializedFiles.readSerial(serFile, false, proj.getLog(), false,
+			return (SampleDistParams[]) SerializedFiles.readSerial(serFile, proj.getLog(), false,
 																														 true);
 		} else {
 			String[] names = preparedMarkerSet.getMarkerNames();

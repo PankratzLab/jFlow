@@ -520,7 +520,7 @@ public class CNVariant extends Segment {
 		}
 
 		public static MatchResults readSerial(String fileName, Logger log) {
-			return (MatchResults) SerializedFiles.readSerial(fileName, false, log, false, true);
+			return (MatchResults) SerializedFiles.readSerial(fileName, log, false, true);
 		}
 
 

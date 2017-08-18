@@ -316,7 +316,7 @@ public class VCFTally implements Serializable {
 	// }
 
 	public static VCFTally load(String filename) {
-		return (VCFTally) SerializedFiles.readSerial(filename, false, false);
+		return (VCFTally) SerializedFiles.readSerial(filename, false);
 	}
 
 	private void printGene(PrintWriter writer, String set) {

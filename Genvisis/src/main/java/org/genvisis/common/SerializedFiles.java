@@ -32,35 +32,26 @@ public class SerializedFiles {
 	}
 
 	public static Object readSerial(String filename) {
-		return readSerial(filename, false, new Logger(), true);
+		return readSerial(filename, new Logger(), true);
 	}
 
 	public static Object readSerial(String filename, boolean kill) {
-		return readSerial(filename, false, new Logger(), kill);
-	}
-
-	public static Object readSerial(String filename, boolean jar, boolean kill) {
-		return readSerial(filename, jar, new Logger(), kill);
+		return readSerial(filename, new Logger(), kill);
 	}
 
 	public static Object readSerial(String filename, Logger log, boolean kill) {
-		return readSerial(filename, false, log, kill, filename.endsWith(".gz"));
+		return readSerial(filename, log, kill, filename.endsWith(".gz"));
 	}
 
-	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {
-		return readSerial(filename, jar, log, kill, filename.endsWith(".gz"));
-	}
-
-	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill,
+	public static Object readSerial(String filename, Logger log, boolean kill,
 																	boolean gzipped) {
+
 		InputStream in;
 		ObjectInputStream ois = null;
 		Object o = null;
 
 		try {
-			if (jar) {
-				in = new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename));
-			} else if (gzipped) {
+			if (gzipped) {
 				in = new BufferedInputStream(new GZIPInputStream(new FileInputStream(filename)));
 			} else {
 				in = new BufferedInputStream(new FileInputStream(filename));
@@ -73,7 +64,7 @@ public class SerializedFiles {
 				if (ois != null) {
 					ois.close();
 				}
-				o = readSerialFixClassname(filename, jar, log, kill, gzipped);
+				o = readSerialFixClassname(filename, log, kill, gzipped);
 			} catch (Exception e2) {
 				log.reportError("Error - failed to load " + filename);
 				if (kill) {
@@ -85,10 +76,11 @@ public class SerializedFiles {
 		}
 
 		return o;
+
 	}
 
-	private static synchronized Object readSerialFixClassname(final String filename, boolean jar,
-																														final Logger log, boolean kill,
+	private static synchronized Object readSerialFixClassname(final String filename, final Logger log,
+																														boolean kill,
 																														boolean gzipped) throws FileNotFoundException,
 																																						 IOException,
 																																						 ClassNotFoundException {
@@ -96,9 +88,7 @@ public class SerializedFiles {
 		ObjectInputStream ois;
 		Object o;
 
-		if (jar) {
-			in = new BufferedInputStream(ClassLoader.getSystemResourceAsStream(filename));
-		} else if (gzipped) {
+		if (gzipped) {
 			in = new GZIPInputStream(new FileInputStream(filename));
 		} else {
 			in = new BufferedInputStream(new FileInputStream(filename));

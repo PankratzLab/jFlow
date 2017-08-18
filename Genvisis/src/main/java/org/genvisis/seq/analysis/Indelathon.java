@@ -75,8 +75,8 @@ public class Indelathon {
 		if (!Files.exists(outIndelVCF) || !Files.exists(outSegSer)) {
 			extractIndelVariants(vcf, log, outIndelVCF, outSegSer, sampSegs);
 		}
-		sampSegs = (Hashtable<String, ArrayList<Segment>>) SerializedFiles.readSerial(outSegSer, false,
-																																									log, false, true);
+		sampSegs = (Hashtable<String, ArrayList<Segment>>) SerializedFiles.readSerial(outSegSer, log,
+																																									false, true);
 		String indelBamDir = outDir + "indel_bams/";
 		String[] indelBams = extractIndelSegments(indelBamDir, matchedSamps, sampSegs, buffer,
 																							numThreads, log);
@@ -424,11 +424,10 @@ public class Indelathon {
 
 				// }
 				scAllCounts = (Hashtable<String, Integer>) SerializedFiles.readSerial(scAllCountSerFile,
-																																							false, log, false,
-																																							true);
+																																							log, false, true);
 				segScs = (Hashtable<String, ArrayList<String>>) SerializedFiles.readSerial(segScsSerFile,
-																																									 false, log,
-																																									 false, true);
+																																									 log, false,
+																																									 true);
 
 			} else {
 				log.reportTimeWarning("Skipping sample " + vcfSample + " could not determine bam file");

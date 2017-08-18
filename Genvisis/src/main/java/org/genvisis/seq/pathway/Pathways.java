@@ -77,7 +77,7 @@ public class Pathways implements Serializable {
 	}
 
 	public static Pathways load(String filename) {
-		return (Pathways) SerializedFiles.readSerial(filename, false, false);
+		return (Pathways) SerializedFiles.readSerial(filename, false);
 	}
 
 	private static class KeggPathwayWorker implements Callable<Pathway> {

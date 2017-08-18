@@ -1205,7 +1205,7 @@ public class BetaOptimizer {
 
 		@SuppressWarnings("unchecked")
 		public static List<MarkerRsFormat> readSerial(String fileName, Logger log) {
-			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, false, log, false,
+			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, log, false,
 																																		true);
 		}
 
