@@ -88,7 +88,7 @@ public class CBCApplicator implements Runnable {
 		String[] files = new File(cbcDir).list();
 		log.reportTime("Loading " + files.length + " CBC files from " + cbcDir);
 		for (String file : files) {
-			String[][] data = HashVec.loadFileToStringMatrix(cbcDir + file, true, null, false);
+			String[][] data = HashVec.loadFileToStringMatrix(cbcDir + file, true, null);
 			for (String[] line : data) {
 				if (!idMap.containsKey(line[0])) {
 					idMap.put(line[0], line);
