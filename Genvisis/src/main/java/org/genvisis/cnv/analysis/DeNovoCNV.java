@@ -202,7 +202,6 @@ public class DeNovoCNV {
 		String[] files;
 		int counter;
 		boolean found;
-		boolean jarStatus;
 		String pennDataFileExtension;
 		String commandPrefix;
 		String commandSuffix;
@@ -229,7 +228,6 @@ public class DeNovoCNV {
 			commandPrefix = "";
 			commandSuffix = "";
 		}
-		jarStatus = proj.JAR_STATUS.getValue();
 
 		iterationsVec = new Vector<String[]>();
 		counter = 0;
@@ -245,7 +243,7 @@ public class DeNovoCNV {
 				for (int i = 4; i <= 6; i++) {
 					if (!(new File(pennDataDir + line[i] + pennDataFileExtension)).exists()) {
 						if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + line[i]
-														 + Sample.SAMPLE_FILE_EXTENSION, jarStatus)) {
+														 + Sample.SAMPLE_FILE_EXTENSION)) {
 							org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, new String[] {line[i]}, null,
 																																null, 1); // TODO How to generate
 																																					// .gz format?
@@ -366,7 +364,7 @@ public class DeNovoCNV {
 			// Files.qsubMultiple("chunkCNV", Array.stringArraySequence(numQsubFiles, pennOutDir +
 			// "scripts/runPennCNV_", ".qsub"), 2000, 24);
 
-			files = Files.list(pennOutDir + "scripts/", "runPennCNV", ".qsub", false, false);
+			files = Files.list(pennOutDir + "scripts/", "runPennCNV", ".qsub", false);
 			jobNamesWithAbsolutePaths = new Vector<String>(files.length);
 			for (String file : files) {
 				jobNamesWithAbsolutePaths.add(pennOutDir + "scripts/" + file);
@@ -403,7 +401,7 @@ public class DeNovoCNV {
 			pennCnvResultFileNameExt = pennCnvResultFileNameExt.substring(1);
 		}
 		try {
-			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
+			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt);
 			writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
 																					 + pennCnvResultFileNameExt.replace("cnv", "")
 																					 + ".cnv");
@@ -509,7 +507,7 @@ public class DeNovoCNV {
 				triosPedigree.put(line[4], new String[] {line[5], line[6]});
 			}
 
-			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt, false);
+			filenames = Files.list(pennCnvResultDir, pennCnvResultFileNameExt);
 			writer1 = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
 																						+ pennCnvResultFileNameExt.replace("cnv", "")
 																						+ ".cnv");
@@ -682,7 +680,7 @@ public class DeNovoCNV {
 		// [%1].jointcnv";
 		command = "perl ../bin/penncnv/detect_cnv.pl -joint -hmm ../bin/penncnv/lib/hhall.hmm -pfb ../bin/custom.pfb -gcmodel ../bin/custom.gcmodel [%1] [%2] [%0] -out ../results/[%0].jointcnv -log ../results/[%0].log";
 
-		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6}, false);
+		iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6});
 
 		org.genvisis.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65,
 																command, iterations, 2500, 2);
@@ -788,7 +786,7 @@ public class DeNovoCNV {
 
 		// projPropertyFileFullPath = "C:/workspace/Genvisis/projects/OSv2.properties";
 		projPropertyFileFullPath = "/home/pankrat2/zxu/projects/gedi_gwas.properties";
-		proj = new Project(projPropertyFileFullPath, false);
+		proj = new Project(projPropertyFileFullPath);
 		pedigreeFullPath = proj.DATA_DIRECTORY.getValue(false, true) + "pedigree.dat";
 		trioPedigreeFullPath = ext.parseDirectoryOfFile(pedigreeFullPath) + "pedigreeTrios.dat";
 		// gcBaseFileFullPath = "D:/PennCNV_Related/GcBase/gc5Base_hg19.txt";
@@ -864,7 +862,7 @@ public class DeNovoCNV {
 			}
 		}
 
-		proj = new Project(projPropertyFileFullPath, false);
+		proj = new Project(projPropertyFileFullPath);
 		log = proj.getLog();
 		log.report(ext.getTime() + "\tstarting DeNovoCNV.java");
 		pedigreeFullPath = proj.DATA_DIRECTORY.getValue(false, true) + "pedigree.dat";

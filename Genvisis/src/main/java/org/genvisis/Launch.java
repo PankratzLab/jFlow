@@ -94,7 +94,7 @@ public class Launch {
 																							 "peakat - takes the first or last N lines of a file, or counts the lines",
 																							 "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria",
 																							 CNVTrioFilter.COMMAND_CNV_TRIO_CRF
-																									 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
+																																																																											 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
 																							 VCF.VCF_INIT,
 																							 VCF.VCF_COMMAND,
 																							 CNVFilter.COMMAND_CNV_FILTER_CRF,
@@ -117,7 +117,7 @@ public class Launch {
 			if (new File(filename).length() == 0) {
 				temp = ext.rootOf(filename);
 			} else {
-				temp = Files.getReader(filename, false, true, log, true).readLine();
+				temp = Files.getReader(filename, true, log, true).readLine();
 			}
 
 			temp = temp.trim();
@@ -296,7 +296,7 @@ public class Launch {
 			System.exit(1);
 		}
 
-		if (!Files.exists(filename, false, false)) {
+		if (!Files.exists(filename, false)) {
 			if (create) {
 				new File(filename).createNewFile();
 			} else {

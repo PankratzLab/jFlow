@@ -547,8 +547,8 @@ public class GenCNV implements Runnable {
 			SerializedFiles.writeSerial(this, filename);
 		}
 
-		public static AllSigs load(String filename, boolean jar) {
-			return (AllSigs) SerializedFiles.readSerial(filename, jar, true);
+		public static AllSigs load(String filename) {
+			return (AllSigs) SerializedFiles.readSerial(filename, true);
 		}
 
 	}
@@ -834,7 +834,7 @@ public class GenCNV implements Runnable {
 			for (int j = 0; j < ANALYSIS_TYPES.length; j++) {
 				String prefix = getFileBase(i, j);
 				String resultDir = getOutputDir(dir, i, j) + "/";
-				String[] files = Files.list(resultDir, prefix, null, true, false);
+				String[] files = Files.list(resultDir, prefix, null, true);
 				Significance[] significance = new Significance[phenos.length];
 				Burden[] burdens = new Burden[phenos.length];
 				for (int k = 0; k < phenos.length; k++) {
@@ -885,7 +885,7 @@ public class GenCNV implements Runnable {
 
 	public static void dumpResults(String dir, String outputSerial, String outputSummary,
 																 double pvalThreshold, double lambdaThreshold, Logger log) {
-		AllSigs allSigs = AllSigs.load(dir + outputSerial, false);
+		AllSigs allSigs = AllSigs.load(dir + outputSerial);
 		Significance[] significances = allSigs.getSigs();
 		Burden[] burdens = allSigs.getBurdens();
 

@@ -35,7 +35,7 @@ public class Ancestry {
 			hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
 		}
 		if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
-				&& Files.list(dir + "homogeneity/", ".Rout", false).length == 0) {
+				&& Files.list(dir + "homogeneity/", ".Rout").length == 0) {
 			log.report("Running homogeneity checks...");
 			checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
 		}
@@ -62,7 +62,7 @@ public class Ancestry {
 	}
 
 	public static String parseHomogeneity(String dir, Logger log) {
-		int rOuts = Files.list(dir + "homogeneity/", ".Rout", false).length;
+		int rOuts = Files.list(dir + "homogeneity/", ".Rout").length;
 		if (rOuts == 0) {
 			log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
 			return dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME;
@@ -95,7 +95,7 @@ public class Ancestry {
 		if (!Files.exists(dir + "overlap.txt")) {
 			log.report(ext.getTime() + "]\tGenerating list of overlapping SNPs");
 			Files.writeIterable(HashVec.loadFileToVec(dir + "unambiguousHapMap.bim", false, new int[] {1},
-																								false, false),
+																								false),
 													dir + "overlap.txt");
 		}
 
@@ -142,8 +142,7 @@ public class Ancestry {
 
 		if (!Files.exists(dir + "finalSNPs.txt")) {
 			log.report(ext.getTime() + "]\tWriting final list of SNPs to use");
-			Files.writeIterable(HashVec.loadFileToVec(dir + "combo.bim", false, new int[] {1}, false,
-																								false),
+			Files.writeIterable(HashVec.loadFileToVec(dir + "combo.bim", false, new int[] {1}, false),
 													dir + "finalSNPs.txt");
 		}
 	}
@@ -161,7 +160,7 @@ public class Ancestry {
 								 + RelationAncestryQc.UNRELATEDS_FILENAME);
 			new File(unrelatedsDir).mkdir();
 			Vector<String> unrelateds = HashVec.loadFileToVec(dir + "unambiguousHapMap.fam", false,
-																												new int[] {0, 1}, false, false);
+																												new int[] {0, 1}, false);
 			unrelateds.addAll(HashVec.loadFileToVec(dir + RelationAncestryQc.UNRELATEDS_FILENAME, false,
 																							false, false));
 			Files.writeIterable(unrelateds, unrelatedsDir + RelationAncestryQc.UNRELATEDS_FILENAME);
@@ -207,7 +206,7 @@ public class Ancestry {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
 			String[][] pcResults = HashVec.loadFileToStringMatrix(dir
 																														+ "combo_fancy_postnormed_eigens.xln",
-																														true, new int[] {0, 1, 2, 3}, false);
+																														true, new int[] {0, 1, 2, 3});
 
 			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
 			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
@@ -356,7 +355,7 @@ public class Ancestry {
 				imputeRace = true;
 				numArgs--;
 			} else if (arg.startsWith("proj")) {
-				proj = new Project(ext.parseStringArg(arg, "./"), false);
+				proj = new Project(ext.parseStringArg(arg, "./"));
 				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);

@@ -460,7 +460,7 @@ public class PlinkExportOptions extends JDialog {
 																		Files.list(proj.DATA_DIRECTORY.getValue(false, true),
 																							 null,
 																							 ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-																							 false, proj.JAR_STATUS.getValue()));
+																							 false));
 	}
 
 	private String[] getTargetMarkersOptions() {
@@ -517,7 +517,7 @@ public class PlinkExportOptions extends JDialog {
 
 	public String[] getFileExtensions() {
 		return rdbtnBinary.isSelected() ? new String[] {".bim", ".bed", ".fam"}
-																	 : new String[] {".map", ".ped"};
+																		: new String[] {".map", ".ped"};
 	}
 
 	public boolean getCancelled() {

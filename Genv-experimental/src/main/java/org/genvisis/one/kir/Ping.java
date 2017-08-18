@@ -97,7 +97,7 @@ public class Ping {
 
 	private static void convertBams(String bamDir, String samToFastQLoc, String outDir, int numthreads, Logger log) {
 		new File(outDir).mkdirs();
-		final String[] bams = Files.listFullPaths(bamDir, ".bam", false);
+		final String[] bams = Files.listFullPaths(bamDir, ".bam");
 		Producer<Boolean> convProducer = new ConvProducer(bams, outDir, samToFastQLoc, log);
 		WorkerTrain<Boolean> train = new WorkerTrain<>(convProducer, numthreads, 10, log);
 		int index = 0;

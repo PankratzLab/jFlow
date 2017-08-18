@@ -221,14 +221,14 @@ public class Probabel {
 				filename = null;
 				try {
 					filename = "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_add.out.txt";
-					if (Files.exists(filename, false)) {
+					if (Files.exists(filename)) {
 						quan = 0;
 						reader = new BufferedReader(new FileReader(filename));
 					} else {
 						quan = 1;
 						filename = "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan
 											 + "_add.out.txt";
-						if (Files.exists(filename, false)) {
+						if (Files.exists(filename)) {
 							reader = new BufferedReader(new FileReader(filename));
 						} else {
 							throw new FileNotFoundException();
@@ -274,7 +274,7 @@ public class Probabel {
 							quan++;
 							filename = "chr" + chr + "/" + ext.rootOf(pheno) + "_chr" + chr + "_quan" + quan
 												 + "_add.out.txt";
-							if (Files.exists(filename, false)) {
+							if (Files.exists(filename)) {
 								reader = new BufferedReader(new FileReader(filename));
 								reader.readLine();
 								System.out.print("Parsing '" + filename + "'");
@@ -387,7 +387,7 @@ public class Probabel {
 
 		if (optionalLookupFile == null) {
 			lookup = null;
-		} else if (Files.exists(optionalLookupFile, false)) {
+		} else if (Files.exists(optionalLookupFile)) {
 			lookup = HashVec.loadFileToStringArray(optionalLookupFile, false, new int[] {0, 1}, false);
 		} else {
 			System.err.println("Error - could not find lookup file, hope everything is unique!");
@@ -475,7 +475,7 @@ public class Probabel {
 
 		if (optionalLookupFile == null) {
 			lookup = null;
-		} else if (Files.exists(optionalLookupFile, false)) {
+		} else if (Files.exists(optionalLookupFile)) {
 			lookup = HashVec.loadFileToStringArray(optionalLookupFile, false, new int[] {0, 1}, false);
 		} else {
 			System.err.println("Error - could not find lookup file, hope everything is unique!");

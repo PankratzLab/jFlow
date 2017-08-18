@@ -433,7 +433,7 @@ public class ManhattanPlot {
 				numArgs--;
 			} else if (args[i].startsWith("proj=")) {
 				String projFile = args[i].split("=")[1];
-				proj = new Project(projFile, false);
+				proj = new Project(projFile);
 				numArgs--;
 			} else if (args[i].startsWith("-screenshot")) {
 				screen = "";

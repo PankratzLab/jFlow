@@ -181,8 +181,7 @@ public class CnvBamQC {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(summary);
 			reader.readLine();
-			CNVariant[] cnvs = CNVariant.toCNVariantArray(CNVariant.loadPlinkFile(summary, null, true,
-																																						false));
+			CNVariant[] cnvs = CNVariant.toCNVariantArray(CNVariant.loadPlinkFile(summary, null, true));
 			int index = 0;
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -397,7 +396,7 @@ public class CnvBamQC {
 																																		callSubsetBed, log);
 		String[] bamFiles = null;
 		if (Files.isDirectory(bams)) {
-			bamFiles = Files.listFullPaths(bams, ".bam", false);
+			bamFiles = Files.listFullPaths(bams, ".bam");
 		} else {
 			bamFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
 		}

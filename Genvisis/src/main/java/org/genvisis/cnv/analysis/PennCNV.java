@@ -183,8 +183,7 @@ public class PennCNV {
 
 		// if (!Files.exists(proj.getFilename("SAMPLE_DATA_FILENAME", false, false),
 		// proj.getJarStatus())) {
-		if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-											proj.JAR_STATUS.getValue())) {
+		if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 			log.reportError("Error - sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
 											+ " does not exist;");
 			return;
@@ -887,10 +886,10 @@ public class PennCNV {
 		String filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
 
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")
-				|| !Files.exists(filename, proj.JAR_STATUS.getValue())) {
+				|| !Files.exists(filename)) {
 			sampleList = proj.getSampleList().getSamples();
 			output = proj.CUSTOM_PFB_FILENAME.getValue(true, false);
-		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
+		} else if (Files.exists(filename)) {
 			log.report("filename: " + filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 			output = proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(filename) + ".pfb";
@@ -1460,7 +1459,7 @@ public class PennCNV {
 			// gcmodelFile = "C:/data/FarrarMike/data/custom.gcmodel";
 			// numThreads = 5;
 
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 			if (parsePFB) {
 				populationBAF(proj);
 			}

@@ -69,7 +69,7 @@ public class MatchSamples {
 			ids = HashVec.loadFileToStringArray(dir + factorfile, true, new int[] {0}, false);
 			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices,
 																							PSF.Regex.GREEDY_WHITESPACE,
-																							false, 1000, false);
+																							1000, false);
 			allData = new double[factorIndices.length][];
 			for (int i = 0; i < factorTargets.length; i++) {
 				allData[i] = ArrayUtils.toDoubleArray(Matrix.extractColumn(matrix, i));

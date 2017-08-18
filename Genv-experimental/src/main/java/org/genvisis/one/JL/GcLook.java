@@ -269,7 +269,7 @@ public class GcLook {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			gcQCSummary(proj);
 		} catch (Exception e) {
 			e.printStackTrace();

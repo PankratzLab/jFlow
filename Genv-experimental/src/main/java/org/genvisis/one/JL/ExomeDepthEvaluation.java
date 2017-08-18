@@ -153,8 +153,8 @@ public class ExomeDepthEvaluation {
 					missSet.writeRegions(cnvMissFile, TO_STRING_TYPE.REGULAR, true, log);
 					proj.CNV_FILENAMES.setValue(new String[] {pennCNVFile, cnvMissFile, cnvHitsFile});
 					proj.saveProperties();
-					CNVariantHash.load(cnvHitsFile, 1, false, log);
-					CNVariantHash.load(cnvMissFile, 1, false, log);
+					CNVariantHash.load(cnvHitsFile, 1, log);
+					CNVariantHash.load(cnvMissFile, 1, log);
 				}
 				ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
 				for (int k = 0; k < exomeDMisses.length; k++) {
@@ -289,7 +289,7 @@ public class ExomeDepthEvaluation {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			compareIt(proj, exomeDepthCNVFile, pennCNVFile, probeCoverage, removeExcludeArray);
 		} catch (Exception e) {
 			e.printStackTrace();

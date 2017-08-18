@@ -590,8 +590,7 @@ public class VCFOps {
 	private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
 		Hashtable<String, String> changedIds = new Hashtable<String, String>();
 		Files.copyFile(famFile, famFile + ".bak");
-		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5},
-																										false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
 		String[][] newfam = new String[fam.length][fam[0].length];
 		boolean newSex = false;
 		// String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6},
@@ -1181,8 +1180,7 @@ public class VCFOps {
 		double hwe = .00001;
 		int numBarnsPerSample = 5;
 		String finalSamples = vcf + ".finalSamples";
-		String[] matchUpVpops = Files.listFullPaths(ext.parseDirectoryOfFile(vcf), ".homogeneity.vpop",
-																								false);
+		String[] matchUpVpops = Files.listFullPaths(ext.parseDirectoryOfFile(vcf), ".homogeneity.vpop");
 		if (matchUpVpops.length < 1) {
 			log.reportError("Required file(s) ending with .homogeneity.vpop in directory "
 											+ ext.parseDirectoryOfFile(vcf) + " were not found");
@@ -1347,7 +1345,7 @@ public class VCFOps {
 				Files.copyFileUsingFileChannels(new File(pairs), new File(pairs + j + ".selection"), log);
 
 				String[] barnesPicked = HashVec.loadFileToStringArray(pairs, true, new int[] {1}, true);
-				String[] deletes = Files.listFullPaths(matchDir, ".xln", false);
+				String[] deletes = Files.listFullPaths(matchDir, ".xln");
 				new MatchesVisualized(matchDir, ext.removeDirectoryInfo(anchorList),
 															ext.removeDirectoryInfo(barnacleList),
 															ext.removeDirectoryInfo(factorFile),
@@ -1638,7 +1636,7 @@ public class VCFOps {
 		} else {
 			log.reportTimeInfo("A bam directory was provided, extracting bams to " + dir);
 			if (Files.isDirectory(bams)) {
-				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bams, ".bam", false), log, true);
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bams, ".bam"), log, true);
 			} else {
 				String[] tmp = null;
 				if (bams.split(",").length > 1) {
@@ -1646,7 +1644,7 @@ public class VCFOps {
 					String[] split = bams.split(",");
 					for (int i = 0; i < split.length; i++) {
 						if (Files.isDirectory(split[i])) {
-							String[] dirBams = Files.listFullPaths(split[i], ".bam", false);
+							String[] dirBams = Files.listFullPaths(split[i], ".bam");
 							for (String dirBam : dirBams) {
 								baTmp.add(dirBams[i]);
 							}
@@ -1800,7 +1798,7 @@ public class VCFOps {
 
 			if (bamSample != null) {
 				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
-				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam", false), log, true);
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam"), log, true);
 				bamSample.generateMap();
 				bamSample.dumpToIGVMap(output, varSets);
 			}

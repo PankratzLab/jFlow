@@ -133,7 +133,7 @@ public class LDdatabase implements Serializable {
 		byte[] chrs;
 
 		if (listName != null) {
-			if (Files.exists(dir + listName + ".list", false)) {
+			if (Files.exists(dir + listName + ".list")) {
 				check = HashVec.loadFileToStringArray(dir + listName + ".list", false, new int[] {0},
 																							false);
 				if (ArrayUtils.equals(targets, check, false)) {
@@ -191,7 +191,7 @@ public class LDdatabase implements Serializable {
 		for (int chr = 1; chr < NUM_CHROMOSOMES; chr++) {
 			if (ivs[chr].size() > 2) {
 				log.report(ext.getTime() + "\tchr" + chr);
-				chrLDdb = LongLDdb.load(dir + "chr" + chr, false, true);
+				chrLDdb = LongLDdb.load(dir + "chr" + chr, true);
 
 				subset = new String[ivs[chr].size()];
 				positions = new int[ivs[chr].size()];
@@ -438,10 +438,10 @@ public class LDdatabase implements Serializable {
 	}
 
 	public StringLDdb getStringChrLDdb(int chr) {
-		return StringLDdb.load(dir + "chr" + chr, false, true);
+		return StringLDdb.load(dir + "chr" + chr, true);
 	}
 
 	public LongLDdb getLongChrLDdb(int chr) {
-		return LongLDdb.load(dir + "chr" + chr, false, true);
+		return LongLDdb.load(dir + "chr" + chr, true);
 	}
 }

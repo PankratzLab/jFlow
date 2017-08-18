@@ -23,7 +23,9 @@ public class AuthorCorral {
 		sb.append("}");
 		String ret = sb.toString();
 		if (authStr) {
-			ret = sb.toString().replaceAll("#", "}{\\\\rtlch\\\\fcs1 \\\\af0\\\\afs24 \\\\ltrch\\\\fcs0 \\\\f0\\\\fs24\\\\super\\\\insrsid6508612 \\\\hich\\\\af0\\\\dbch\\\\af31505\\\\loch\\\\f0 ");
+			ret = sb.toString()
+							.replaceAll("#",
+													"}{\\\\rtlch\\\\fcs1 \\\\af0\\\\afs24 \\\\ltrch\\\\fcs0 \\\\f0\\\\fs24\\\\super\\\\insrsid6508612 \\\\hich\\\\af0\\\\dbch\\\\af31505\\\\loch\\\\f0 ");
 			ret = ret.replaceAll("_", "}{\\\\rtlch\\\\fcs1 \\\\af31507 \\\\ltrch\\\\fcs0 ");
 		}
 		return ret;
@@ -32,10 +34,13 @@ public class AuthorCorral {
 	static final String PARAGRAH = "{\\rtlch\\fcs1 \\af0\\afs24 \\ltrch\\fcs0 \\line }";
 
 	/*
-	 * Tab-Delimited Authorship file: [0] First [1] Middle [2] Last [3] Dept/Div/Inst [4] Institution [5] City, State, Country, Zip [6] E-mail [7+] contribution columns - title taken verbatim from column title
+	 * Tab-Delimited Authorship file: [0] First [1] Middle [2] Last [3] Dept/Div/Inst [4] Institution
+	 * [5] City, State, Country, Zip [6] E-mail [7+] contribution columns - title taken verbatim from
+	 * column title
 	 */
-	public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr, boolean periodsAfterInitials) throws IOException {
-		BufferedReader inReader = Files.getReader(inFile, false, true, true);
+	public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr,
+												 boolean periodsAfterInitials) throws IOException {
+		BufferedReader inReader = Files.getReader(inFile, true, true);
 		String[] header = inReader.readLine().split("\t");
 
 		ArrayList<String> authorNamesOrder = new ArrayList<String>();
@@ -68,7 +73,7 @@ public class AuthorCorral {
 				} else if (line[1].contains("!")) {
 					middleName = ext.replaceAllWith(line[1].trim(), "!", "") + " ";
 				} else {
-					middleName = ext.replaceAllWith(line[1], new String[][] { { " ", "" }, { ".", "" } });
+					middleName = ext.replaceAllWith(line[1], new String[][] {{" ", ""}, {".", ""}});
 					if (middleName.length() > 2) {
 						middleName = middleName.charAt(0) + (periodsAfterInitials ? ". " : " ");
 						warn = true;
@@ -77,12 +82,16 @@ public class AuthorCorral {
 							if (middleName.charAt(i) != middleName.toUpperCase().charAt(i)) {
 								warn = true;
 							}
-							middleName = middleName.substring(0, i) + (periodsAfterInitials ? ". " : " ") + middleName.substring(i);
+							middleName = middleName.substring(0, i) + (periodsAfterInitials ? ". " : " ")
+													 + middleName.substring(i);
 						}
 						middleName += (periodsAfterInitials ? ". " : " ");
 					}
 					if (warn) {
-						System.err.println("Warning the middle name for '" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + "' has been changed to '" + middleName + "'; if this is incorrect, update or add an exclamation point (!) at the end of the middle name to copy it wholesale (without the exclamation point)");
+						System.err.println("Warning the middle name for '" + line[0].trim() + " "
+															 + line[1].trim() + " " + line[2].trim() + "' has been changed to '"
+															 + middleName
+															 + "'; if this is incorrect, update or add an exclamation point (!) at the end of the middle name to copy it wholesale (without the exclamation point)");
 					}
 				}
 				String fullname = line[0].trim() + " " + middleName + line[2].trim();
@@ -91,12 +100,14 @@ public class AuthorCorral {
 				if (ord == -1) {
 					ord = authorNamesOrder.size();
 					authorNamesOrder.add(fullname);
-					fullnameToParts.put(fullname, new String[] { line[0].trim(), line[1].trim(), line[2].trim() });
-					
+					fullnameToParts.put(fullname,
+															new String[] {line[0].trim(), line[1].trim(), line[2].trim()});
+
 					char[] chars = fullname.toCharArray();
 					for (int i = 0; i < chars.length; i++) {
-						if (chars[i] != 32 && chars[i] != 39 && chars[i] != 45 && (chars[i] < 65 || chars[i] > 122)) {
-							System.err.println("Careful to check for non-ASCII characters: "+fullname);
+						if (chars[i] != 32 && chars[i] != 39 && chars[i] != 45
+								&& (chars[i] < 65 || chars[i] > 122)) {
+							System.err.println("Careful to check for non-ASCII characters: " + fullname);
 						}
 					}
 
@@ -114,7 +125,8 @@ public class AuthorCorral {
 					errors.add(err);
 				} else {
 					if ("".equals(line[3].trim())) {
-						String err = "[Dept/Div/Inst] is blank for <" + fullname + "> for <" + line[4].trim() + ">";
+						String err = "[Dept/Div/Inst] is blank for <" + fullname + "> for <" + line[4].trim()
+												 + ">";
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
@@ -133,7 +145,10 @@ public class AuthorCorral {
 						System.err.println("Error - " + err);
 						errors.add(err);
 					}
-					myDepts.add(new String[] { ext.removeQuotes(line[3].trim()).trim(), ext.removeQuotes(line[4].trim()).trim(), ext.removeQuotes(line[5].trim()).trim(), ext.removeQuotes(line[6].trim()).trim() });
+					myDepts.add(new String[] {ext.removeQuotes(line[3].trim()).trim(),
+																		ext.removeQuotes(line[4].trim()).trim(),
+																		ext.removeQuotes(line[5].trim()).trim(),
+																		ext.removeQuotes(line[6].trim()).trim()});
 				}
 
 				boolean foundAtLeastOne = false;
@@ -141,13 +156,14 @@ public class AuthorCorral {
 					if (!"".equals(line[i].trim())) {
 						if (contribsToNames.get(header[i]).indexOf(fullname) == -1) {
 							contribsToNames.get(header[i]).add(fullname);// getInitials(line[0].trim(),
-																			// line[1].trim(), line[2].trim()));
+							// line[1].trim(), line[2].trim()));
 						}
 						foundAtLeastOne = true;
 					}
 				}
 				if (!foundAtLeastOne) {
-					String err = "[contributions] is blank for <" + line[0].trim() + " " + line[1].trim() + " " + line[2].trim() + ">";
+					String err = "[contributions] is blank for <" + line[0].trim() + " " + line[1].trim()
+											 + " " + line[2].trim() + ">";
 					System.err.println("Error - " + err);
 					errors.add(err);
 				}
@@ -162,7 +178,9 @@ public class AuthorCorral {
 
 		for (int i = 0; i < authorNamesOrder.size(); i++) {
 			ArrayList<String[]> myDepts = namesToDepts.get(authorNamesOrder.get(i));
-			if (myDepts.size() > 0 && !(myDepts.size() == 1 && myDepts.get(0)[0].equals("") && myDepts.get(0)[1].equals("") && myDepts.get(0)[2].equals(""))) {
+			if (myDepts.size() > 0
+					&& !(myDepts.size() == 1 && myDepts.get(0)[0].equals("") && myDepts.get(0)[1].equals("")
+							 && myDepts.get(0)[2].equals(""))) {
 				if (i == authorNamesOrder.size() - 1) {
 					authorString.append("and ");
 				}
@@ -216,11 +234,13 @@ public class AuthorCorral {
 		if (rtfOutput) {
 			outWriter.println("{\\rtf1 ");
 		}
-		outWriter.println(rtfOutput ? rtfFormatted(authorString.toString(), true) : authorString.toString());
+		outWriter.println(rtfOutput ? rtfFormatted(authorString.toString(), true)
+																: authorString.toString());
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		for (int i = 0; i < deptOrder.size(); i++) {
-			outWriter.println(rtfOutput ? rtfFormatted((i + 1) + " " + deptOrder.get(i), false) : (i + 1) + " " + deptOrder.get(i));
+			outWriter.println(rtfOutput ? rtfFormatted((i + 1) + " " + deptOrder.get(i), false)
+																	: (i + 1) + " " + deptOrder.get(i));
 			if (rtfOutput) {
 				outWriter.println(rtfOutput ? PARAGRAH : "");
 			}
@@ -228,7 +248,8 @@ public class AuthorCorral {
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 
-		outWriter.println(rtfOutput ? rtfFormatted("Author Contributions", false) : "Author Contributions");
+		outWriter.println(rtfOutput ? rtfFormatted("Author Contributions", false)
+																: "Author Contributions");
 		outWriter.print(rtfOutput ? PARAGRAH : "");
 		StringBuilder contribString = new StringBuilder();
 		for (String contrib : contribOrder) {
@@ -248,7 +269,8 @@ public class AuthorCorral {
 			contribString.append(contrib).append(". ");
 		}
 		contribString.append("All authors were given the opportunity to comment and provide revisions to the manuscript text.");
-		outWriter.println(rtfOutput ? rtfFormatted(contribString.toString(), false) : contribString.toString());
+		outWriter.println(rtfOutput ? rtfFormatted(contribString.toString(), false)
+																: contribString.toString());
 
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		outWriter.println(rtfOutput ? PARAGRAH : "");
@@ -265,11 +287,14 @@ public class AuthorCorral {
 			for (int j = 0; j < myDepts.size(); j++) {
 				if (myDepts.get(j)[3].equals("")) {
 					StringBuilder noEmailString = new StringBuilder();
-					noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ").append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
+					noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ")
+											 .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
 					noEmailSet.add(noEmailString.toString());
 					continue;
 				}
-				String email = fullnameToParts.get(authorNamesOrder.get(i))[0] + " " + fullnameToParts.get(authorNamesOrder.get(i))[2] + " <" + myDepts.get(j)[3] + ">";
+				String email = fullnameToParts.get(authorNamesOrder.get(i))[0] + " "
+											 + fullnameToParts.get(authorNamesOrder.get(i))[2] + " <" + myDepts.get(j)[3]
+											 + ">";
 				if (!emailSet.contains(email)) {
 					if (outerCount > 0 || innerCount > 0) {
 						emailString.append("; ");
@@ -284,11 +309,13 @@ public class AuthorCorral {
 				outerCount++;
 			} else {
 				StringBuilder noEmailString = new StringBuilder();
-				noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ").append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
+				noEmailString.append(fullnameToParts.get(authorNamesOrder.get(i))[0]).append(" ")
+										 .append(fullnameToParts.get(authorNamesOrder.get(i))[2]);
 				noEmailSet.add(noEmailString.toString());
 			}
 		}
-		outWriter.println(rtfOutput ? rtfFormatted(emailString.toString(), false) : emailString.toString());
+		outWriter.println(rtfOutput ? rtfFormatted(emailString.toString(), false)
+																: emailString.toString());
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 
@@ -303,13 +330,15 @@ public class AuthorCorral {
 			noEmailString.append(name);
 			cnt++;
 		}
-		outWriter.println(rtfOutput ? rtfFormatted(noEmailString.toString(), false) : noEmailString.toString());
+		outWriter.println(rtfOutput ? rtfFormatted(noEmailString.toString(), false)
+																: noEmailString.toString());
 
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 		outWriter.println(rtfOutput ? PARAGRAH : "");
 
 		if (errors.size() > 0) {
-			outWriter.println(rtfOutput ? rtfFormatted("Transcription Errors", false) : "Transcription Errors");
+			outWriter.println(rtfOutput ? rtfFormatted("Transcription Errors", false)
+																	: "Transcription Errors");
 			outWriter.print(rtfOutput ? PARAGRAH : "");
 		}
 		for (String error : errors) {
@@ -349,15 +378,18 @@ public class AuthorCorral {
 				init.append(s.charAt(0));
 			}
 		} catch (Exception e) {
-			System.err.println("Error - problem getting initials from [" + first + "; " + midTemp + "; " + last + "]");
+			System.err.println("Error - problem getting initials from [" + first + "; " + midTemp + "; "
+												 + last + "]");
 		}
 		return init.toString().trim();
 	}
 
 	public static void main(String[] args) {
 		int numArgs = args.length;
-//		String inFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.txt";
-//		String outFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hematology/Acceptance/input2k4.rtf";
+		// String inFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's
+		// tresor/Hematology/Acceptance/input2k4.txt";
+		// String outFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's
+		// tresor/Hematology/Acceptance/input2k4.rtf";
 		String inFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hemostatic factors/author_input1.txt";
 		String outFile = "C:/Users/pankr018/Documents/My Tresors/Nathan's tresor/Hemostatic factors/author_input1.rtf";
 		boolean rtf = true;
@@ -365,13 +397,13 @@ public class AuthorCorral {
 		boolean periodsAfterInitials = false;
 
 		String usage = "\n" + "one.AuthorCorral requires 2+ arguments\n"
-				 + "   (1) input filename (i.e. file=" + inFile + " (default))\n" + ""
-				 + "   (2) output filename (i.e. out=" + outFile + " (default))\n" + ""
-				 + "   (3) OPTIONAL output in RTF format (used for superscripts) (i.e. rtf=" + rtf
-				 + " (default))\n" + "   (4) OPTIONAL include errors in output (i.e. err=" + err
-				 + " (default))\n"
-				 + "   (5) OPTIONAL include periods after initials (i.e. periods="
-				 + periodsAfterInitials + " (default))\n";
+									 + "   (1) input filename (i.e. file=" + inFile + " (default))\n" + ""
+									 + "   (2) output filename (i.e. out=" + outFile + " (default))\n" + ""
+									 + "   (3) OPTIONAL output in RTF format (used for superscripts) (i.e. rtf=" + rtf
+									 + " (default))\n" + "   (4) OPTIONAL include errors in output (i.e. err=" + err
+									 + " (default))\n"
+									 + "   (5) OPTIONAL include periods after initials (i.e. periods="
+									 + periodsAfterInitials + " (default))\n";
 
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {

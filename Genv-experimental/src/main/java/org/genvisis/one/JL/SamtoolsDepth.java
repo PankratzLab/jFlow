@@ -52,7 +52,7 @@ public class SamtoolsDepth {
 		BEDFileReader readerCapture = new BEDFileReader(captureTargets, false);
 		LocusSet<BEDFeatureSeg> set = readerCapture.loadAll(log);
 
-		String[] bams = Files.listFullPaths(inputDir, ".bam", false);
+		String[] bams = Files.listFullPaths(inputDir, ".bam");
 		log.reportTimeInfo(bams.length + " bams");
 
 		PrintWriter writer = Files.getAppropriateWriter(output);

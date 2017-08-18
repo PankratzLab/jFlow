@@ -18,8 +18,8 @@ public class AssocTests {
 		String inputsFile = "/scratch.global/lanej/burdenQA/full/SPSS_inputs.txt";
 		String rscript = "/scratch.global/lanej/burdenQA/full/msiBurden.R";
 
-		String[] inputs = Files.listFullPaths(dir, "gene_counts.txt", false);
-		String rFile = ArrayUtils.toStr(HashVec.loadFileToStringArray(rscript, false, false, null, false), "\n");
+		String[] inputs = Files.listFullPaths(dir, "gene_counts.txt");
+		String rFile = ArrayUtils.toStr(HashVec.loadFileToStringArray(rscript, false, null, false), "\n");
 
 		for (String input : inputs) {
 			String tmp = rFile;

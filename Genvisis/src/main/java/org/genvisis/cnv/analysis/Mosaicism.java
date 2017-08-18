@@ -447,20 +447,18 @@ public class Mosaicism {
 			return;
 		}
 		sampleData = proj.getSampleData(new String[] {cnvFiles[0]});
-		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
-										 proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln")) {
 			lrrsdHash = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "lrr_sd.xln",
 																							 false);
 		} else {
 			System.err.println("Warning - could not find 'lrr_sd.xln' in project directory; no flags will be generated");
 			lrrsdHash = new Hashtable<String, String>();
 		}
-		if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false),
-										 proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false))) {
 			mosaicHash = HashVec.loadFileToHashString(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false,
 																																													false),
 																								new int[] {0, 1}, new int[] {2, 3}, false, "\t",
-																								true, proj.JAR_STATUS.getValue(), true);
+																								true, true);
 		} else {
 			System.err.println("Warning - could not find "
 												 + proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)
@@ -619,7 +617,7 @@ public class Mosaicism {
 		}
 
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			if (check) {
 				checkForOverlap(proj, arms);
 			} else {

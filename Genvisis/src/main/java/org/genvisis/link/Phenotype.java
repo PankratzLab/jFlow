@@ -39,7 +39,7 @@ public class Phenotype {
 		hash = HashVec.loadFileToHashString(dir + pheno, new int[] {0, 1},
 																				ArrayUtils.subArray(ArrayUtils.arrayOfIndices(phenoNames.length),
 																														2),
-																				pheno.endsWith(".csv"), "\t", true, false, false);
+																				pheno.endsWith(".csv"), "\t", true, false);
 		phenoNames = ArrayUtils.subArray(phenoNames, 2);
 		writers = new PrintWriter[phenoNames.length];
 		for (int i = 0; i < writers.length; i++) {

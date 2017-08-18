@@ -252,7 +252,7 @@ public class LaunchProperties {
 	 * @return An array of all known {@code *.properties} files.
 	 */
 	public static String[] getListOfProjectProperties() {
-		return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), ".properties", false);
+		return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), ".properties");
 	}
 
 	/**

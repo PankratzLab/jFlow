@@ -49,16 +49,14 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	}
 
 	public enum QUERY_TYPE {
-														/**
-														 * It is assumed that the {@link AnnotationParser} will be found exactly
-														 * once
-														 */
-														ONE_TO_ONE,
-														/**
-														 * No assumptions are made on whether the
-														 * {@link AnnotationParser} will be found
-														 */
-														DISCRETE_LIST;
+		/**
+		 * It is assumed that the {@link AnnotationParser} will be found exactly once
+		 */
+		ONE_TO_ONE,
+		/**
+		 * No assumptions are made on whether the {@link AnnotationParser} will be found
+		 */
+		DISCRETE_LIST;
 	}
 
 	/**
@@ -90,7 +88,8 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 	/**
 	 * Make sure that every {@link AnnotationParser } was found
 	 */
-	private void validateSearch(List<Map<String, ? extends AnnotationParser>> parsersQueries, QUERY_TYPE queryType) {
+	private void validateSearch(List<Map<String, ? extends AnnotationParser>> parsersQueries,
+															QUERY_TYPE queryType) {
 		switch (queryType) {
 			case DISCRETE_LIST:
 				break;
@@ -105,8 +104,8 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 				}
 				if (!allFound) {
-					String error = "Did not find all queries for type "	+ queryType
-													+ " , missing annotations or internal bug";
+					String error = "Did not find all queries for type " + queryType
+												 + " , missing annotations or internal bug";
 					log.reportError(error);
 					throw new IllegalStateException(error);
 				}
@@ -122,8 +121,8 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 
 	public AnnotationQuery getAnnotationQuery(Segment[] segs) {
 		if (valid) {
-			AnnotationQuery annotationIterator = new AnnotationQuery(	annotationFilename, segs,
-																																indexRequired, log);
+			AnnotationQuery annotationIterator = new AnnotationQuery(annotationFilename, segs,
+																															 indexRequired, log);
 			return annotationIterator;
 		} else {
 			log.reportError("Invalid loader...");
@@ -145,7 +144,7 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 			try {
 				VCFFileReader reader = new VCFFileReader(new File(annotationFilename), indexRequired);
 				VCFHeader vcfHeader = reader.getFileHeader();// doing this will trigger the htsjdk file
-																											// format checks
+																										 // format checks
 				if (params != null) {
 					for (AnalysisParams param : params) {
 						if (vcfHeader.getMetaDataLine(param.getKey()) != null) {
@@ -159,8 +158,8 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 				if (annotations != null) {
 					for (int i = 0; i < annotations.length; i++) {
 						if (!vcfHeader.hasInfoLine(annotations[i].getName())) {
-							log.reportError("Could not find annotation "	+ annotations[i].getName()
-																						+ " in " + annotationFilename);
+							log.reportError("Could not find annotation " + annotations[i].getName()
+															+ " in " + annotationFilename);
 							hasAllAnno = false;
 						}
 					}
@@ -203,20 +202,19 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 		 * @param requireIndex should always be true
 		 * @param log
 		 */
-		public AnnotationQuery(	String annotationFile, Segment[] segs, boolean requireIndex,
-														Logger log) {
+		public AnnotationQuery(String annotationFile, Segment[] segs, boolean requireIndex,
+													 Logger log) {
 			super();
 			vcfFileReader = new VCFFileReader(new File(annotationFile), requireIndex);
 			vcfHeader = vcfFileReader.getFileHeader();
 			currentIndex = 0;
 			queryIntervals = segs == null ? null : VCFOps.convertSegsToQI(segs, vcfHeader, 0, true, log);
-			currentIterator =
-											queryIntervals == null	? vcfFileReader.iterator()
-																							: vcfFileReader.query(vcfHeader	.getSequenceDictionary()
+			currentIterator = queryIntervals == null ? vcfFileReader.iterator()
+																							 : vcfFileReader.query(vcfHeader.getSequenceDictionary()
 																																							.getSequence(queryIntervals[currentIndex].referenceIndex)
 																																							.getSequenceName(),
-																																		queryIntervals[currentIndex].start,
-																																		queryIntervals[currentIndex].end);
+																																		 queryIntervals[currentIndex].start,
+																																		 queryIntervals[currentIndex].end);
 		}
 
 		@Override
@@ -232,9 +230,9 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
 						break;
 					}
 					currentIterator = vcfFileReader.query(
-																								vcfHeader	.getSequenceDictionary()
-																													.getSequence(queryIntervals[currentIndex].referenceIndex)
-																													.getSequenceName(),
+																								vcfHeader.getSequenceDictionary()
+																												 .getSequence(queryIntervals[currentIndex].referenceIndex)
+																												 .getSequenceName(),
 																								queryIntervals[currentIndex].start,
 																								queryIntervals[currentIndex].end);
 				}

@@ -104,7 +104,7 @@ public class GenotypeMatrix implements Serializable {
 
 			// can be much more complex if you want, just see DosageData
 			if (idFile != null) {
-				ids = HashVec.loadFileToStringArray(idFile, false, true, new int[] {0}, false, false,
+				ids = HashVec.loadFileToStringArray(idFile, true, new int[] {0}, false, false,
 																						Files.determineDelimiter(idFile, log));
 			}
 
@@ -259,7 +259,7 @@ public class GenotypeMatrix implements Serializable {
 		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
 																				Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length),
 																													 1, traits.length),
-																				phenoFile.endsWith(".csv"), "\t", true, false, false);
+																				phenoFile.endsWith(".csv"), "\t", true, false);
 		traits = ArrayUtils.subArray(traits, 1);
 		log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
 
@@ -497,8 +497,8 @@ public class GenotypeMatrix implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static GenotypeMatrix load(String filename, boolean jar) {
-		return (GenotypeMatrix) SerializedFiles.readSerial(filename, jar, true);
+	public static GenotypeMatrix load(String filename) {
+		return (GenotypeMatrix) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static int determineType(String dosageFile) {
@@ -557,7 +557,7 @@ public class GenotypeMatrix implements Serializable {
 			phenoFile = dir + "lnFibrinogen_alanna.csv";
 			if (Files.exists(filename + ".ser")) {
 				System.out.println("Loading serialized version: " + filename + ".ser");
-				gens = load(filename + ".ser", false);
+				gens = load(filename + ".ser");
 			} else {
 				System.out.println("Loading: " + filename);
 				gens = new GenotypeMatrix(filename, null, markerFile, log);

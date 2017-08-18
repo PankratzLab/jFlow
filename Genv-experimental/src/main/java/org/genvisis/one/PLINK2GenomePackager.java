@@ -263,7 +263,7 @@ public class PLINK2GenomePackager {
 
 		System.out.println(ext.getTime() + "]\tLoading PM_ALL file...");
 		Hashtable<String, String> pmAll = HashVec.loadFileToHashString(pmAllFile, 1, new int[] {0, 3},
-																																	 "\t", false, false);
+																																	 "\t", false);
 		System.out.println(ext.getTime() + "]\tPM_ALL file successfully loaded.");
 
 		System.out.println(ext.getTime() + "]\tProcessing results file...");

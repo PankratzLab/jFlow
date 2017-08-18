@@ -271,7 +271,7 @@ public class MeanLRR {
 			}
 		}
 
-		mlrrSet = MeanLRRset.load(mlrrSetFile, false);
+		mlrrSet = MeanLRRset.load(mlrrSetFile);
 		data = mlrrSet.getData();
 		regions = mlrrSet.getRegions();
 		numberOfMarkers = mlrrSet.getNumerOfMarkersPerRegion();
@@ -343,7 +343,7 @@ public class MeanLRR {
 		sampleList = proj.getSampleList();
 		samples = sampleList.getSamples();
 
-		mlrrSet = MeanLRRset.load(mlrrSetFile, false);
+		mlrrSet = MeanLRRset.load(mlrrSetFile);
 		data = mlrrSet.getData();
 		regions = mlrrSet.getRegions();
 		if (mlrrSet.getSampleFingerprint() != sampleList.getFingerprint()) {
@@ -556,7 +556,7 @@ public class MeanLRR {
 		}
 		try {
 			time = new Date().getTime();
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 			log = proj.getLog();
 			if (!new File(proj.PROJECT_DIRECTORY.getValue() + ext.rootOf(regions) + ".mlrr").exists()) {
 				if (transform) {

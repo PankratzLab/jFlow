@@ -165,7 +165,7 @@ public class SourceFileParser implements Runnable {
 																headerData.colLRR == -1 ? null : new float[markerNames.length],};
 					genotypes = new byte[][] {ArrayUtils.byteArray(markerNames.length, (byte) 0),
 																		ignoreAB ? null
-																						: ArrayUtils.byteArray(markerNames.length, (byte) -1)};
+																						 : ArrayUtils.byteArray(markerNames.length, (byte) -1)};
 					if (!headersOutput) {
 						String logOutput = buildColumnAssignmentsLogOutput(headerData);
 						log.report(logOutput);
@@ -187,7 +187,7 @@ public class SourceFileParser implements Runnable {
 								parseAtAt = false;
 							}
 							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-															: line[sampIndex];
+															 : line[sampIndex];
 						}
 						if (count == 0) {
 							sampleName = trav;
@@ -226,8 +226,8 @@ public class SourceFileParser implements Runnable {
 								ind = i1;
 								if (indCols[ind] != -1) {
 									data[ind][key] = ext.isMissingValue(line[indCols[ind]])
-																																				 ? Float.NaN
-																																				 : Float.parseFloat(line[indCols[ind]]);
+																																					? Float.NaN
+																																					: Float.parseFloat(line[indCols[ind]]);
 								}
 							}
 						} catch (NumberFormatException nfe) {
@@ -439,15 +439,15 @@ public class SourceFileParser implements Runnable {
 		logOutput.append("Column name assignments for data import:\n");
 		logOutput.append("GC: ")
 						 .append(headerData.colGC == -1 ? "[missing]"
-																					 : headerData.cols[headerData.colGC])
+																						: headerData.cols[headerData.colGC])
 						 .append("\n");
 		logOutput.append("XRaw: ")
 						 .append(headerData.colXRaw == -1 ? "[missing]"
-																						 : headerData.cols[headerData.colXRaw])
+																							: headerData.cols[headerData.colXRaw])
 						 .append("\n");
 		logOutput.append("YRaw: ")
 						 .append(headerData.colYRaw == -1 ? "[missing]"
-																						 : headerData.cols[headerData.colYRaw])
+																							: headerData.cols[headerData.colYRaw])
 						 .append("\n");
 		logOutput.append("X: ")
 						 .append(headerData.colX == -1 ? "[missing]" : headerData.cols[headerData.colX])
@@ -457,34 +457,34 @@ public class SourceFileParser implements Runnable {
 						 .append("\n");
 		logOutput.append("Theta: ")
 						 .append(headerData.colTheta == -1 ? "[missing]"
-																							: headerData.cols[headerData.colTheta])
+																							 : headerData.cols[headerData.colTheta])
 						 .append("\n");
 		logOutput.append("R: ")
 						 .append(headerData.colR == -1 ? "[missing]" : headerData.cols[headerData.colR])
 						 .append("\n");
 		logOutput.append("BAF: ")
 						 .append(headerData.colBAF == -1 ? "[missing]"
-																						: headerData.cols[headerData.colBAF])
+																						 : headerData.cols[headerData.colBAF])
 						 .append("\n");
 		logOutput.append("LRR: ")
 						 .append(headerData.colLRR == -1 ? "[missing]"
-																						: headerData.cols[headerData.colLRR])
+																						 : headerData.cols[headerData.colLRR])
 						 .append("\n");
 		logOutput.append("Geno1: ")
 						 .append(headerData.colGeno1 == -1 ? "[missing]"
-																							: headerData.cols[headerData.colGeno1])
+																							 : headerData.cols[headerData.colGeno1])
 						 .append("\n");
 		logOutput.append("Geno2: ")
 						 .append(headerData.colGeno2 == -1 ? "[missing]"
-																							: headerData.cols[headerData.colGeno2])
+																							 : headerData.cols[headerData.colGeno2])
 						 .append("\n");
 		logOutput.append("AB1: ")
 						 .append(headerData.colGenoAB1 == -1 ? "[missing]"
-																								: headerData.cols[headerData.colGenoAB1])
+																								 : headerData.cols[headerData.colGenoAB1])
 						 .append("\n");
 		logOutput.append("AB2: ")
 						 .append(headerData.colGenoAB2 == -1 ? "[missing]"
-																								: headerData.cols[headerData.colGenoAB2])
+																								 : headerData.cols[headerData.colGenoAB2])
 						 .append("\n");
 		return logOutput.toString();
 	}
@@ -571,11 +571,11 @@ public class SourceFileParser implements Runnable {
 				do {
 					response = JOptionPane.showOptionDialog(null,
 																									"Error - the same sample name '"
-																											+ sampleName
-																											+ "' is being parsed again and the previous file existed before the current command began.\n"
-																											+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-																											+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
-																											+ "What would you like to do?",
+																												+ sampleName
+																												+ "' is being parsed again and the previous file existed before the current command began.\n"
+																												+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+																												+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
+																												+ "What would you like to do?",
 																									"What to do?", JOptionPane.DEFAULT_OPTION,
 																									JOptionPane.QUESTION_MESSAGE, null,
 																									overwriteOptions, overwriteOptions[0]);
@@ -611,7 +611,7 @@ public class SourceFileParser implements Runnable {
 							 + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 
 		String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-																proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+																proj.SOURCE_FILENAME_EXTENSION.getValue());
 
 		int unmatchedFileCount = new File(proj.SOURCE_DIRECTORY.getValue(false,
 																																		 true)).listFiles().length;
@@ -729,7 +729,7 @@ public class SourceFileParser implements Runnable {
 				}
 				proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]),
 																																"." + proj.getArrayType()
-																																		+ ".tmp.gz",
+																																																																	 + ".tmp.gz",
 																																true, proj.getLog(), null));
 				break;
 			case ILLUMINA:
@@ -837,8 +837,8 @@ public class SourceFileParser implements Runnable {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
 																										 false, true, false, false)[0] == -1
-								 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
-								 && ext.indexOfStr(idHeader, line) == -1)));
+																		|| (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
+																				&& ext.indexOfStr(idHeader, line) == -1)));
 			}
 
 
@@ -894,7 +894,7 @@ public class SourceFileParser implements Runnable {
 					parseAtAt = false;
 				}
 				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-															: line[sampIndex];
+															 : line[sampIndex];
 			}
 
 			PSF.checkInterrupted();
@@ -948,15 +948,15 @@ public class SourceFileParser implements Runnable {
 						}
 						return 0;
 					} else if (!(parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-																: line[sampIndex]).equals(sampleName)) {
+																 : line[sampIndex]).equals(sampleName)) {
 						if (!proj.LONG_FORMAT.getValue()) {
 							log.reportError("... and the sample name changed from "
 															+ sampleName
 															+ " to "
 															+ (parseAtAt
-																					? line[sampIndex].substring(0,
-																																			line[sampIndex].indexOf("@"))
-																					: line[sampIndex])
+																					 ? line[sampIndex].substring(0,
+																																			 line[sampIndex].indexOf("@"))
+																					 : line[sampIndex])
 															+ ", so this must be a Long Format file. The property file will be updated to reflect this, and an attempt will be made to launch the Long Format file processor now.");
 							proj.LONG_FORMAT.setValue(Boolean.TRUE);
 							proj.saveProperties();
@@ -1140,23 +1140,23 @@ public class SourceFileParser implements Runnable {
 			if (GraphicsEnvironment.isHeadless()) {
 				proj.getLog()
 						.reportTimeWarning("Parsed data files were found in "
-																	 + dir
-																	 + ". Data parsing will not continue. If reparsing is desired, remove all "
-																	 + ext
-																	 + " files from "
-																	 + dir);
+															 + dir
+															 + ". Data parsing will not continue. If reparsing is desired, remove all "
+															 + ext
+															 + " files from "
+															 + dir);
 				response = JOptionPane.NO_OPTION;
 			} else {
 				response = JOptionPane.showOptionDialog(null,
 																								"Parsed data files were found in "
-																										+ dir
-																										+ ".\n"
-																										+ "This happens if the parser was interrupted previously, or restarted unintentionally.\n"
-																										+ "If you would like to reparse this data, select \""
-																										+ overwriteOptions[0] + "\" earlier files.\n"
-																										+ "Otherwise, select \"" + overwriteOptions[1]
-																										+ "\".\n"
-																										+ "What would you like to do?",
+																											+ dir
+																											+ ".\n"
+																											+ "This happens if the parser was interrupted previously, or restarted unintentionally.\n"
+																											+ "If you would like to reparse this data, select \""
+																											+ overwriteOptions[0] + "\" earlier files.\n"
+																											+ "Otherwise, select \"" + overwriteOptions[1]
+																											+ "\".\n"
+																											+ "What would you like to do?",
 																								"Parsed files already exist",
 																								JOptionPane.DEFAULT_OPTION,
 																								JOptionPane.QUESTION_MESSAGE, null,
@@ -1197,7 +1197,7 @@ public class SourceFileParser implements Runnable {
 
 	public static void deleteAllFilesInDirectory(Project proj, String dir, String ext) {
 		String[] filesToDelete;
-		filesToDelete = Files.list(dir, ext, false);
+		filesToDelete = Files.list(dir, ext);
 		for (String element : filesToDelete) {
 			new File(dir + element).delete();
 		}
@@ -1615,7 +1615,7 @@ public class SourceFileParser implements Runnable {
 						parseAtAt = false;
 					}
 					tempSampleIdent = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-																		 : line[sampIndex];
+																			: line[sampIndex];
 					sampleIdent = ext.replaceWithLinuxSafeCharacters(tempSampleIdent, true);
 
 					if (!sampleIdent.equals(tempSampleIdent)
@@ -1674,15 +1674,15 @@ public class SourceFileParser implements Runnable {
 					if (!eofFound) {
 						String sampleFilename = proj.SAMPLE_DIRECTORY.getValue(true, true)
 																		+ (fixes.containsKey(sampleIdent) ? fixes.get(sampleIdent)
-																																		 : sampleIdent)
+																																			: sampleIdent)
 																		+ Sample.SAMPLE_FILE_EXTENSION;
 						if (new File(sampleFilename).exists()) {
 							log.reportError("Warning - marker data must be out of order, becaue we're seeing "
 															+ sampleIdent
 															+ (fixes.containsKey(sampleIdent) ? "-->" + fixes.get(sampleIdent)
-																															 : "")
+																																: "")
 															+ " again at line " + count);
-							samp = Sample.loadFromRandomAccessFile(sampleFilename, proj.JAR_STATUS.getValue());
+							samp = Sample.loadFromRandomAccessFile(sampleFilename);
 							data = samp.getAllData();
 							genotypes = samp.getAllGenotypes();
 						} else {
@@ -1693,11 +1693,11 @@ public class SourceFileParser implements Runnable {
 																		headerData.colX == -1 ? null : new float[markerNames.length],
 																		headerData.colY == -1 ? null : new float[markerNames.length],
 																		headerData.colTheta == -1 ? null
-																														 : new float[markerNames.length],
+																															: new float[markerNames.length],
 																		headerData.colR == -1 ? null : new float[markerNames.length],
 																		headerData.colBAF == -1 ? null : new float[markerNames.length],
 																		headerData.colLRR == -1 ? null
-																													 : new float[markerNames.length],};
+																														: new float[markerNames.length],};
 							genotypes = new byte[2][];
 							genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0);
 							if (!ignoreAB) {
@@ -1731,8 +1731,8 @@ public class SourceFileParser implements Runnable {
 								ind = i1;
 								if (indCols[ind] != -1) {
 									data[ind][key] = ext.isMissingValue(line[indCols[ind]])
-																																				 ? Float.NaN
-																																				 : Float.parseFloat(line[indCols[ind]]);
+																																					? Float.NaN
+																																					: Float.parseFloat(line[indCols[ind]]);
 								}
 							}
 						} catch (NumberFormatException nfe) {
@@ -1909,7 +1909,7 @@ public class SourceFileParser implements Runnable {
 		}
 
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			if (map) {
 				SourceParserUtils.mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {

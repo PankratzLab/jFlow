@@ -32,7 +32,7 @@ public class Stats {
 			System.exit(1);
 		}
 		try {
-			runTheNumbers(new Project(filename, false));
+			runTheNumbers(new Project(filename));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

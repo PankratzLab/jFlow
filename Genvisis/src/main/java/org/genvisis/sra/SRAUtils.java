@@ -128,7 +128,7 @@ public class SRAUtils {
 	public static List<SRAConversionResult> run(String sraDir, String outDir, int threads) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "sraConv.log");
-		String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT, false);
+		String[] sraFiles = Files.listFullPaths(sraDir, SRA_EXT);
 		log.reportTimeInfo("Found " + sraFiles.length + " " + SRA_EXT + " files");
 		String bamDir = outDir + "bams/";
 		new File(bamDir).mkdirs();

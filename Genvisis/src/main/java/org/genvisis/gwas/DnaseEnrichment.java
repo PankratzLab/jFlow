@@ -174,7 +174,7 @@ public class DnaseEnrichment {
 		}
 
 		// get names of all the bed files
-		bedFileList = Files.list(bedDir, BED_FILE_EXTENTION, false);
+		bedFileList = Files.list(bedDir, BED_FILE_EXTENTION);
 		Arrays.sort(bedFileList);
 
 		// Print out parameters to user
@@ -239,7 +239,7 @@ public class DnaseEnrichment {
 	 */
 	public void runWorkers() {
 		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION);
 		for (int i = 0; i < ldFilesList.length; i++) {
 			Runnable worker = new WorkerThread(ldFilesList[i], i);
 			executor.execute(worker);
@@ -584,7 +584,7 @@ public class DnaseEnrichment {
 	 */
 	private static void filterAllLDFiles() {
 
-		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION);
 
 		for (String element : ldFilesList) {
 			String lDFilepath = ldDir + element;
@@ -660,7 +660,7 @@ public class DnaseEnrichment {
 		int pValueBin;
 		Map<String, Long> value;
 		TreeMap<Integer, Map<String, Long>> overlapStats = new TreeMap<Integer, Map<String, Long>>();
-		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION, false);
+		String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION);
 		ChrPositionMap chrPositionMap = null;
 
 		if (performLD) {
@@ -796,7 +796,7 @@ public class DnaseEnrichment {
 		if (Files.exists(serializedSegFile)) {
 			LOGGER.info("Serialized file found. Reading: " + serializedSegFile);
 			// read the already existing serialized segment file
-			segs = SegmentLists.load(serializedSegFile, false).getLists();
+			segs = SegmentLists.load(serializedSegFile).getLists();
 
 		} else {
 			LOGGER.info("Serialized file not found. Reading: " + segmentFile);

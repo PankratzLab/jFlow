@@ -45,7 +45,7 @@ public class DumpSAS {
 		String[] files;
 
 		dir = ext.verifyDirFormat(dir);
-		files = Files.list(dir, ".sas7bdat", false);
+		files = Files.list(dir, ".sas7bdat");
 		dir = dir.substring(0, dir.length() - 1);
 
 		System.out.println("Found " + files.length + " with the extension .sas7bdat to convert");
@@ -132,7 +132,7 @@ public class DumpSAS {
 		log = new Logger(dir + ext.rootOf(filename) + ".log");
 		hash = HashVec.loadFileToHashVec(dir + filename, 0, new int[] {1}, "\t", false, false);
 		descriptions = HashVec.loadFileToHashString(dir + filename, new int[] {0, 1}, new int[] {2},
-																								false, "\t", false, false, false);
+																								false, "\t", false, false);
 		dbs = HashVec.getKeys(hash);
 		cells = new Hashtable<String, int[]>();
 		validBlackFemales = new Hashtable<String, String>();
@@ -160,14 +160,14 @@ public class DumpSAS {
 					iWriter = Files.openAppropriateWriter(dir + db + "_subset.xln");
 					try {
 						reader = new BufferedReader(new FileReader(dir + db.toLowerCase() + ".xln"));
-						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam", false)) {
+						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Whites" + ".fam")) {
 							typedWhites = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
 																												 + "_Whites" + ".fam", 1, new int[] {4},
 																												 "\t", false);
 						} else {
 							typedWhites = new Hashtable<String, String>();
 						}
-						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam", false)) {
+						if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam")) {
 							typedBlacks = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
 																												 + "_Blacks" + ".fam", 1, new int[] {4},
 																												 "\t", false);
@@ -269,7 +269,7 @@ public class DumpSAS {
 			tableOrder = HashVec.loadFileToHashVec(dir + tableFormat, new int[] {0}, new int[] {1, 2},
 																						 "\t", false, false);
 			descriptions = HashVec.loadFileToHashString(dir + tableFormat, new int[] {1, 2},
-																									new int[] {3}, false, "\t", false, false, false);
+																									new int[] {3}, false, "\t", false, false);
 			keys = HashVec.getKeys(tableOrder);
 			for (String key : keys) {
 				v = tableOrder.get(key);
@@ -379,7 +379,7 @@ public class DumpSAS {
 		PrintWriter writer;
 		String[][] mani;
 
-		mani = HashVec.loadFileToStringMatrix(dir + manifest, false, new int[] {0, 1}, false);
+		mani = HashVec.loadFileToStringMatrix(dir + manifest, false, new int[] {0, 1});
 		try {
 			writer = Files.openAppropriateWriter(dir + "master_contents.xln");
 			writer.println("Group\t" + ArrayUtils.toStr(ALL_CONTENTS_HEADER));
@@ -524,7 +524,7 @@ public class DumpSAS {
 									foundAnID = true;
 									keys = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDir + file, true,
 																																				new int[] {indices[j]},
-																																				false, false, false, "\t"));
+																																				false, false, "\t"));
 									for (String key : keys) {
 										masterIDs.put(key, "");
 									}

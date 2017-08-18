@@ -24,8 +24,8 @@ public class SegmentList implements Serializable, PlainTextExport {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SegmentList load(String filename, boolean jar) {
-		return (SegmentList) SerializedFiles.readSerial(filename, jar, true);
+	public static SegmentList load(String filename) {
+		return (SegmentList) SerializedFiles.readSerial(filename, true);
 	}
 
 	@Override

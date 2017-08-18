@@ -17,9 +17,9 @@ public class Haploview {
 
 		markerNames = HashVec.loadFileToStringArray(order, false, new int[] {0}, false);
 		hash = HashVec.loadFileToHashString(filename, new int[] {0, 1}, new int[] {column}, false, "\t",
-																				true, false, false);
+																				true, false);
 		hash.putAll(HashVec.loadFileToHashString(filename, new int[] {1, 0}, new int[] {column}, false,
-																						 "\t", true, false, false));
+																						 "\t", true, false));
 
 		try {
 			writer = Files.openAppropriateWriter(ext.rootOf(order, false) + "_LD_col" + column

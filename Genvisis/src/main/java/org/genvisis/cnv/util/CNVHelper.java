@@ -12,12 +12,12 @@ import htsjdk.tribble.annotation.Strand;
  * Static utility helper methods for working with CNVs
  */
 public final class CNVHelper {
-	
+
 	public static void generateRegionsFileFromCNVFile(String cnvFile) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 		String outFile = ext.rootOf(cnvFile, false) + "_regions.txt";
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
-		
+
 		for (CNVariant cnv : cnvs) {
 			String ucsc = cnv.getUCSClocation();
 			if (ucsc == null) {
@@ -25,11 +25,11 @@ public final class CNVHelper {
 			}
 			writer.println(cnv.getIndividualID() + "\t" + ucsc);
 		}
-		
+
 		writer.flush();
 		writer.close();
 	}
-	
+
 	/**
 	 * @param strand
 	 * @return Single-character string equivalent of the given Strand enum.

@@ -316,12 +316,14 @@ public class tools {
 			reader = Files.getReader("ninfo" + whichNinfo + ".dat", alt_locs);
 			if (whichNinfo == 1) {
 				reader.mark(10000);
-				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO1_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO1_HEADER,
+												true);
 				reader.reset();
 			}
 			if (whichNinfo == 2) {
 				reader.mark(10000);
-				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
+				ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER,
+												true);
 				reader.reset();
 			}
 		} catch (Exception e) {
@@ -361,7 +363,8 @@ public class tools {
 
 		try {
 			reader = new BufferedReader(new FileReader(dbFile));
-			index = ext.indexFactors(new String[] {trait}, reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), true,
+			index = ext.indexFactors(new String[] {trait},
+															 reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), true,
 															 true)[0];
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);

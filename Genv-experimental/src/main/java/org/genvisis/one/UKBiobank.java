@@ -10,7 +10,7 @@ public class UKBiobank {
 		String temp, trav, md5;
 		String[] md5s;
 		
-		md5s = Files.list("./", ".md5", false);
+		md5s = Files.list("./", ".md5");
 		log.report("Checking "+md5s.length+" files with the extension .md5");
 		
 		for (int i = 0; i < md5s.length; i++) {

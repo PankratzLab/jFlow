@@ -16,7 +16,7 @@ public class Haplotypes {
 		String[] keys;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 
-		String[][] data = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 1, 2, 3}, false);
+		String[][] data = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 1, 2, 3});
 		hash = new Hashtable<String, String>();
 		for (String[] element : data) {
 			for (int j = 0; j < 2; j++) {

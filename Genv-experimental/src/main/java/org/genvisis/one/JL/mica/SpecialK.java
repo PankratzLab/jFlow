@@ -112,7 +112,7 @@ public class SpecialK {
 		new File(outDir).mkdirs();
 		HashMap<String, String> toMerge = loadMergeFile(mergeFile);
 		Logger log = new Logger(outDir + "sk.log");
-		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
+		String[] bams = Files.listFullPaths(bamDir, ".bam");
 		log.reportTimeInfo("Found " + bams.length + " bams");
 		Segment loc = new Segment("chr6:31,380,082-31,380,305");
 		HashSet<String> upSDs = new HashSet<>();

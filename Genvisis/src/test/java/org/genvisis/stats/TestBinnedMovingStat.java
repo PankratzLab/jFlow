@@ -14,7 +14,8 @@ public class TestBinnedMovingStat {
 		BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<Integer>(4, MovingStat.MEAN);
 		bma.add(1, 1);
 		bma.add(5, 2);
-		// Need at least 2 values and the 2 bin should be under construction and not part of the stat yet, so these should be -1
+		// Need at least 2 values and the 2 bin should be under construction and not part of the stat
+		// yet, so these should be -1
 		Assert.assertEquals(-1, bma.mid());
 		Assert.assertEquals(-1, bma.getValue(), 0.001);
 		// The first and second bins should be combined to create the value for the first position
@@ -36,7 +37,8 @@ public class TestBinnedMovingStat {
 		bma.forceBinPop();
 		Assert.assertEquals(5, bma.mid());
 		Assert.assertEquals(6.33333, bma.getValue(), 0.001);
-		// Because we have an even sized window, we need (window / 2 - 1) bins ahead and (window / 2) bins behind to get a stat.
+		// Because we have an even sized window, we need (window / 2 - 1) bins ahead and (window / 2)
+		// bins behind to get a stat.
 		// Advancing one more position should invalidate this stat.
 		bma.forceBinPop();
 		Assert.assertEquals(-1, bma.mid());
@@ -48,7 +50,8 @@ public class TestBinnedMovingStat {
 		BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<Integer>(3, MovingStat.MEAN);
 		bma.add(5, 1);
 		bma.add(9, 2);
-		// Need at least 2 values and the 2 bin should be under construction and not part of the stat yet, so these should be -1
+		// Need at least 2 values and the 2 bin should be under construction and not part of the stat
+		// yet, so these should be -1
 		Assert.assertEquals(-1, bma.mid());
 		Assert.assertEquals(-1, bma.getValue(), 0.001);
 		// The first and second bins should be combined to create the value for the first position

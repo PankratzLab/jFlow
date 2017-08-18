@@ -17,19 +17,19 @@ public class TestSort {
 
 		// Reverse indices test
 		int[] indices = Sort.getReverseIndices(ints);
-		for (int i=0; i<indices.length; i++) {
+		for (int i = 0; i < indices.length; i++) {
 			Assert.assertEquals(9 - i, ints[indices[i]]);
 		}
 
 		// Forward indices test
 		indices = Sort.getSortedIndices(ints);
-		for (int i=0; i<indices.length; i++) {
+		for (int i = 0; i < indices.length; i++) {
 			Assert.assertEquals(i, ints[indices[i]]);
 		}
 
 		// Apply ordering
 		int[] ordered = Sort.getOrdered(ints, indices);
-		for (int i=0; i<ordered.length; i++) {
+		for (int i = 0; i < ordered.length; i++) {
 			Assert.assertEquals(i, ordered[i]);
 		}
 	}
@@ -59,7 +59,7 @@ public class TestSort {
 	}
 
 	/**
-		* Ensure strings can be sorted as numbers (with {@link SciStringComparator}
+	 * Ensure strings can be sorted as numbers (with {@link SciStringComparator}
 	 */
 	@Test
 	public void alphaTest() {

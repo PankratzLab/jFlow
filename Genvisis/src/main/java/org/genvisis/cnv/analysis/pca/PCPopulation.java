@@ -530,7 +530,7 @@ public class PCPopulation {
 		}
 		try {
 			// log = new Logger(logfile);
-			test(new Project(filename, false), genoPCfile, numComponents);
+			test(new Project(filename), genoPCfile, numComponents);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

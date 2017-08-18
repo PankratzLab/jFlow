@@ -131,7 +131,8 @@ public class VCFExportOptions extends JDialog {
 					IncludeExcludeGUI iegui = new IncludeExcludeGUI(
 																													VCFExportOptions.this,
 																													chrs,
-																													ArrayUtils.booleanArray(chrs.length, true));
+																													ArrayUtils.booleanArray(chrs.length,
+																																									true));
 					iegui.setModal(true);
 					iegui.setVisible(true);
 					if (iegui.getCloseCode() == JOptionPane.OK_OPTION) {
@@ -347,7 +348,8 @@ public class VCFExportOptions extends JDialog {
 				} else {
 					JOptionPane.showMessageDialog(VCFExportOptions.this,
 																				"Error - Sample list file doesn't exist.",
-																				"Missing Sample List File", JOptionPane.ERROR_MESSAGE, null);
+																				"Missing Sample List File", JOptionPane.ERROR_MESSAGE,
+																				null);
 				}
 			} else if (arg0.getActionCommand().equals(SAMP)) {
 				selectFile(textFieldSampleListFile);
@@ -426,7 +428,7 @@ public class VCFExportOptions extends JDialog {
 																		Files.list(proj.DATA_DIRECTORY.getValue(false, true),
 																							 null,
 																							 ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-																							 false, proj.JAR_STATUS.getValue()));
+																							 false));
 	}
 
 	private String[] getTargetMarkersOptions() {

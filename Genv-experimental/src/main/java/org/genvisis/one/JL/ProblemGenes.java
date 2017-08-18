@@ -10,7 +10,7 @@ import org.genvisis.filesys.GeneTrack;
 public class ProblemGenes {
 
 	public static void dumpProblems(Project proj, String output, String[] startWithPatters) {
-		GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(false), false);
+		GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(false));
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(output);
 			for (int i = 0; i < geneTrack.getGenes().length; i++) {
@@ -61,7 +61,7 @@ public class ProblemGenes {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			dumpProblems(proj, proj.PROJECT_DIRECTORY.getValue() + output, startWithPatters);
 		} catch (Exception e) {
 			e.printStackTrace();

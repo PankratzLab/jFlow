@@ -53,7 +53,7 @@ public class SkatMeta {
 		String root, commands, filename;
 		Vector<String> v, remaining;
 
-		files = Files.list("./", null, ".rdata", false, false);
+		files = Files.list("./", null, ".rdata", false);
 		log.report("There are " + files.length + " total .Rdata files");
 
 		dir = new File(dir).getAbsolutePath() + "/";
@@ -208,7 +208,7 @@ public class SkatMeta {
 
 		log = new Logger(dir + "splitAll.log");
 		new File(dir + "batchSplits/").mkdir();
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -250,8 +250,8 @@ public class SkatMeta {
 
 		new File(dir + "snpInfos/").mkdirs();
 		Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
-							 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
-							 5000, 0.25, 1);
+							"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename,
+							5000, 0.25, 1);
 
 		toBeSplit = new Vector<String>();
 		toBeSplit.add("# make sure to run \"qsub " + ext.rootOf(filename) + ".qsub\" first!!!");
@@ -339,9 +339,9 @@ public class SkatMeta {
 								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								Qsub.qsub(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub",
-													 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
-																																									+ filename,
-													 10000, 0.5, 1);
+													"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
+																																								 + filename,
+													10000, 0.5, 1);
 								toBeSplit.add("qsub " + ext.rootOf(filename) + ".qsub");
 								jobNames.add(dir + "batchSplits/" + ext.rootOf(filename) + ".qsub");
 								jobSizes.add((int) (new File(dir + files[f]).length()
@@ -391,7 +391,7 @@ public class SkatMeta {
 		}
 
 		log = new Logger(dir + "consolidateAll.log");
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -507,7 +507,7 @@ public class SkatMeta {
 		runningByChr = maps.runningByChr();
 		snpInfoFile = maps.getSnpInfoFilename();
 
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		maxChr = getMaxChr();
@@ -654,9 +654,9 @@ public class SkatMeta {
 								Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 								Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
-													 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
-																																								+ filename,
-													 5000, 1, 1);
+													"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
+																																							 + filename,
+													5000, 1, 1);
 								toBeRunIndividually.add("qsub " + ext.rootOf(filename) + ".qsub");
 								jobNames.add(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub");
 								jobSizes.add(infoSizes[chr]);
@@ -769,9 +769,9 @@ public class SkatMeta {
 						Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 						Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
-											 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
-																																						+ filename,
-											 25000, 2, 1);
+											"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
+																																					 + filename,
+											25000, 2, 1);
 						toBeRunMetad.add("qsub " + ext.rootOf(filename) + ".qsub");
 						jobNames.add(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub");
 						jobSizes.add(infoSizes[chr]);
@@ -869,9 +869,9 @@ public class SkatMeta {
 					Files.writeArray(ArrayUtils.toStringArray(commands), filename);
 
 					Qsub.qsub(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub",
-										 "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
-																																					+ filename,
-										 30000, 2, 1);
+										"cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save "
+																																				 + filename,
+										30000, 2, 1);
 					toBeRunMetad.add("qsub " + ext.rootOf(filename) + ".qsub");
 					jobNames.add(dir + "batchRuns/" + ext.rootOf(filename) + ".qsub");
 					jobSizes.add(infoSizes[chr]);

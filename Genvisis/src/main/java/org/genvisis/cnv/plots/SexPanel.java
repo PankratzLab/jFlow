@@ -115,7 +115,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 		colorHash = new Hashtable<String, String>();
 		try {
 			reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(),
-															 proj.JAR_STATUS.getValue(), true, false);
+															 true, false);
 			if (reader != null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -192,10 +192,10 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 																	 Toolkit.getDefaultToolkit().getScreenSize().width - 30
 																						- Trailer.DEFAULT_STARTX,
 																	 (Toolkit.getDefaultToolkit().getScreenSize().height - 50) / 2);
-		
+
 		xTrailer.loadRegionFile(xRegionsFile);
 		yTrailer.loadRegionFile(yRegionsFile);
-		
+
 		xTrailer.setVisible(true);
 		yTrailer.setVisible(true);
 	}

@@ -51,7 +51,7 @@ public class GeneAnnotator implements SegmentAnnotator {
 	public static GeneAnnotator getDefaultAnnotator(GENOME_BUILD build, Logger log) {
 		String gtrackFile = Resources.genome(build, log).getGTrack().get();
 
-		LocusSet<GeneData> geneSet = GeneTrack.load(gtrackFile, false).convertToLocusSet(log);
+		LocusSet<GeneData> geneSet = GeneTrack.load(gtrackFile).convertToLocusSet(log);
 
 		return new GeneAnnotator(geneSet, log);
 	}

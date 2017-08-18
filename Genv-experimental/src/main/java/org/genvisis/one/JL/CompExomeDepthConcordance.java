@@ -156,7 +156,7 @@ public class CompExomeDepthConcordance {
 
 	public static void main(String[] args) {
 		String dir = "D:/data/Project_Tsai_21_25_26_spector/cnvs/compConcord/";
-		String[] cnvFiles = Files.listFullPaths(dir, ".cnvs", false);
+		String[] cnvFiles = Files.listFullPaths(dir, ".cnvs");
 		Hashtable<String, String> iidMatch = new Hashtable<String, String>();
 		iidMatch.put("D100\tD100",
 								 "HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");

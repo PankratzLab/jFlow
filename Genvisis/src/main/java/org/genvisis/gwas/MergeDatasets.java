@@ -52,7 +52,7 @@ public class MergeDatasets {
 		double p;
 		String filename;
 		if (dirs == null) {
-			dirs = Files.listDirectories(dir, false);
+			dirs = Files.listDirectories(dir);
 		} else if (dir == null) {
 			dir = "";
 		} else {
@@ -394,7 +394,7 @@ public class MergeDatasets {
 
 		ext.timestamp();
 
-		files = Files.list(dir, ".bim", false);
+		files = Files.list(dir, ".bim");
 		datasetNames = new String[files.length];
 		for (int i = 0; i < files.length; i++) {
 			System.out.println("Loading " + files[i]);
@@ -476,12 +476,12 @@ public class MergeDatasets {
 		long time;
 		String[] record;
 
-		if (!Files.exists(dir, false)) {
+		if (!Files.exists(dir)) {
 			System.err.println("Error - directory not found: " + dir);
 			System.err.println("      - using current directory");
 			dir = "./";
 		}
-		files = Files.list(dir, ".Rout", false);
+		files = Files.list(dir, ".Rout");
 		System.out.println("Found " + files.length + " files with the extension .Rout");
 
 		try {
@@ -555,7 +555,7 @@ public class MergeDatasets {
 		String[] line, loc;
 		Hashtable<String, String[]> hash;
 
-		if (Files.exists(mergedMap + ".ser", false)) {
+		if (Files.exists(mergedMap + ".ser")) {
 			System.out.print("Loading serialized " + mergedMap);
 			hash = SerialHash.loadSerializedStringArrayHash(mergedMap + ".ser");
 			System.out.println("...done");
@@ -674,7 +674,7 @@ public class MergeDatasets {
 
 		// checkHomo = true;
 		// parseHomo = true;
-		if (!Files.exists(dir, false)) {
+		if (!Files.exists(dir)) {
 			System.err.println("Error - using current directory instead of the one that does not exist: "
 												 + dir);
 			dir = "./";

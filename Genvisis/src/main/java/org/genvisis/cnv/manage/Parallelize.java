@@ -84,7 +84,7 @@ public class Parallelize implements Runnable {
 				float[] diffs;
 
 				markerNames = proj.getMarkerNames();
-				files = Files.list(proj.PROJECT_DIRECTORY.getValue() + "comps/", ".comp", false);
+				files = Files.list(proj.PROJECT_DIRECTORY.getValue() + "comps/", ".comp");
 
 				totalRaw = new double[markerNames.length];
 				totalAbs = new double[markerNames.length];
@@ -173,7 +173,7 @@ public class Parallelize implements Runnable {
 			System.exit(1);
 		}
 
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 
 		try {
 			if (tabulate) {

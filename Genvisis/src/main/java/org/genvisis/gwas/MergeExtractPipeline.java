@@ -174,8 +174,7 @@ public class MergeExtractPipeline {
 				}
 			}
 		}
-		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false,
-																						"\t");
+		markers = HashVec.loadFileToStringArray(markersFile, false, new int[] {0}, true, false, "\t");
 		SnpMarkerSet markerSet = new SnpMarkerSet(markers, false, log);
 		markerSet.parseSNPlocations(log);
 		markerLocations = markerSet.getChrAndPositionsAsInts();
@@ -218,8 +217,8 @@ public class MergeExtractPipeline {
 			} else {
 				throw new IllegalArgumentException(
 																					 "Error - specified run directory \""
-																							 + runDir
-																							 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
+																					 + runDir
+																					 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
 			}
 		}
 		return this;
@@ -383,7 +382,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputDataFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileD) ? (runDir == null ? "./" : runDir)
-																															: "")
+																															 : "")
 															 + subDir)
 					 + outFileD;
 	}
@@ -394,7 +393,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputMapFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileM) ? (runDir == null ? "./" : runDir)
-																															: "")
+																															 : "")
 															 + subDir)
 					 + outFileM;
 	}
@@ -551,7 +550,8 @@ public class MergeExtractPipeline {
 			if (!dd2.isEmpty()) {
 				String[] dd2Annots = getAnnotationLabels(dataSources.get(i).mapFile,
 																								 dataSources.get(i).label);
-				if (dd2Annots != null && dd2Annots.length > 0 && dd2.getMarkerSet().getAnnotation() != null) {
+				if (dd2Annots != null && dd2Annots.length > 0
+						&& dd2.getMarkerSet().getAnnotation() != null) {
 					combineAnnotations(annotations, dd2Annots, dd2.getMarkerSet().getAnnotation(),
 														 dd2.getMarkerSet().getMarkerNames());
 				}
@@ -598,7 +598,8 @@ public class MergeExtractPipeline {
 	}
 
 	private void combineAnnotations(HashMap<String, HashMap<String, Annotation>> mkrAnnotations,
-																	String[] annotLabels, String[][] annotation, String[] markerNames) {
+																	String[] annotLabels, String[][] annotation,
+																	String[] markerNames) {
 		for (int i = 0; i < markerNames.length; i++) {
 			String snp = markerNames[i];
 			String[] annArr = annotation[i];
@@ -769,9 +770,8 @@ public class MergeExtractPipeline {
 																				 + "\" doesn't exist.");
 		}
 
-		file = Files.isRelativePath(data) ?
-																		 (Files.exists(runDir + data) ? runDir + data : "./" + data)
-																		 : data;
+		file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data)
+																			: data;
 		if (!Files.exists(file)) {
 			throw new IllegalArgumentException("Error - provided data file \"" + file
 																				 + "\" doesn't exist.");
@@ -803,8 +803,8 @@ public class MergeExtractPipeline {
 						sources.add(new DataSource(lbl, dir, fileToAdd,
 																			 fileToAdd.substring(0,
 																													 fileToAdd.length()
-																															 - dataFileExt.length())
-																					 + mapFileExt,
+																															- dataFileExt.length())
+																														+ mapFileExt,
 																			 idFile));
 						log.report("Added data source: " + fileToAdd);
 					}
@@ -949,11 +949,12 @@ public class MergeExtractPipeline {
 
 		MergeExtractPipeline mep = new MergeExtractPipeline();
 		mep.setLogger(logFile == null
-																 ? new Logger(ext.rootOf(data, false)
-																							+ ext.replaceWithLinuxSafeCharacters(ext.getDate()
-																																									 + "_"
-																																									 + ext.getTime())
-																							+ ".log") : new Logger(logFile));
+																	? new Logger(ext.rootOf(data, false)
+																							 + ext.replaceWithLinuxSafeCharacters(ext.getDate()
+																																										+ "_"
+																																										+ ext.getTime())
+																							 + ".log")
+																	: new Logger(logFile));
 		if (rundir != null) {
 			mep.setRunDirectory(rundir, true);
 		}

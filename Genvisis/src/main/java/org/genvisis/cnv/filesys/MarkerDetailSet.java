@@ -345,7 +345,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				|| (abAlleles != null && numMarkers != abAlleles.length)) {
 			throw new IllegalArgumentException(
 																				 this.getClass().getName()
-																						 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
+																				 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
 		}
 		ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
 		for (int i = 0; i < markerNames.length; i++) {
@@ -383,9 +383,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				} else {
 					if (Math.abs(naivePosition
 											 - annotation.getRefLoc().getStart()) < Math.abs(
-																																	naivePosition
-																																			- bestMatch.getRefLoc()
-																																								 .getStart())) {
+																																			 naivePosition
+																																			 - bestMatch.getRefLoc()
+																																									.getStart())) {
 						bestMatch = annotation;
 					}
 				}
@@ -623,8 +623,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	}
 
-	public static MarkerDetailSet load(String filename, boolean jar) {
-		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, false);
+	public static MarkerDetailSet load(String filename) {
+		return (MarkerDetailSet) SerializedFiles.readSerial(filename, false);
 	}
 
 	public void serialize(String filename) {
@@ -669,8 +669,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 */
 	public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
 		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null
-																																													 ? null
-																																													 : genomicPositionMapRef.get();
+																																														? null
+																																														: genomicPositionMapRef.get();
 		if (genomicPositionMap == null) {
 			genomicPositionMap = generateGenomicPositionMap();
 			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(
@@ -686,7 +686,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public Map<Marker, Integer> getMarkerIndexMap() {
 		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
-																																	 : markerIndexMapRef.get();
+																																		: markerIndexMapRef.get();
 		if (markerIndexMap == null) {
 			markerIndexMap = generateMarkerIndexMap();
 			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);

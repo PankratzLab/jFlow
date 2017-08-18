@@ -20,7 +20,7 @@ public class PlotPointSet implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static PlotPointSet load(String filename, boolean jar) {
-		return (PlotPointSet) SerializedFiles.readSerial(filename, jar, true);
+	public static PlotPointSet load(String filename) {
+		return (PlotPointSet) SerializedFiles.readSerial(filename, true);
 	}
 }

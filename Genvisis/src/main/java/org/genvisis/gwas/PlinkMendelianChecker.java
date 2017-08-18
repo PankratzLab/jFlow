@@ -359,9 +359,9 @@ public class PlinkMendelianChecker {
 			pedDNA.add(ped.getDnas()[i]);
 			pedToFAMO.put(ped.getFID(i) + "\t" + ped.getIID(i),
 										new String[] {"0".equals(ped.getFA(i)) ? "."
-																													: ped.getFID(i) + "\t" + ped.getFA(i),
+																													 : ped.getFID(i) + "\t" + ped.getFA(i),
 																	"0".equals(ped.getMO(i)) ? "."
-																													: ped.getFID(i) + "\t" + ped.getMO(i)});
+																													 : ped.getFID(i) + "\t" + ped.getMO(i)});
 			if (!"0".equals(ped.getFA(i))) {
 				ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
 				if (children == null) {
@@ -1073,7 +1073,7 @@ public class PlinkMendelianChecker {
 		}
 		try {
 			if (projFile != null) {
-				(new PlinkMendelianChecker(new Project(projFile, false))).run();
+				(new PlinkMendelianChecker(new Project(projFile))).run();
 			} else if (ped != null) {
 				if (out == null) {
 					out = ext.parseDirectoryOfFile(ped);

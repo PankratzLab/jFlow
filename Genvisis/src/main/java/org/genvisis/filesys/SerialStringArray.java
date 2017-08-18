@@ -21,11 +21,11 @@ public class SerialStringArray implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SerialStringArray load(String filename, boolean jar) {
-		return (SerialStringArray) SerializedFiles.readSerial(filename, jar, true);
+	public static SerialStringArray load(String filename) {
+		return (SerialStringArray) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static void dump(String filename) {
-		Files.writeArray(load(filename, false).getArray(), filename + ".xln");
+		Files.writeArray(load(filename).getArray(), filename + ".xln");
 	}
 }

@@ -686,10 +686,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			proj.getLog().report("Info - corrected a total of " + count + " of " + numTotalSamples + " "
 													 + (count == 1 ? "sample" : "samples"));
 		}
-//		if (!hasAnyCorrection) {
-//			proj.getLog().reportTimeWarning("Marker " + centroid.getMarkerData().getMarkerName()
-//																			+ " was unable to be corrected...");
-//		}
+		// if (!hasAnyCorrection) {
+		// proj.getLog().reportTimeWarning("Marker " + centroid.getMarkerData().getMarkerName()
+		// + " was unable to be corrected...");
+		// }
 	}
 
 	/**
@@ -1124,7 +1124,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 		String output = "test_corrected";
 		// boolean svdRegression = true;
 		int numcomponents = 2;
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		test(proj, pcFile, numcomponents, true, null, null, 1, 0, null, true, true,
 				 proj.PROJECT_DIRECTORY.getValue() + output);
 	}

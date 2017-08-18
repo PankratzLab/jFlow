@@ -45,7 +45,7 @@ public class lab {
 		}
 		reader.close();
 
-		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, sampleKeyHash, true);
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		for (CNVariant cnv : cnvs) {
@@ -132,7 +132,7 @@ public class lab {
 		filter.setCentromereBoundariesFromFile("D:/data/gedi_gwas/data/markers.bim");
 		filter.computeCentromereMidPoints();
 
-		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv", false);
+		CNVariant[] centromeric = CNVariant.loadPlinkFile("D:/SIDS and IQ/IQ/merged.cnv");
 
 		PrintWriter writer = Files.openAppropriateWriter("D:/SIDS and IQ/IQ/merged_split.cnv");
 		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
@@ -236,10 +236,8 @@ public class lab {
 		String famFileOut = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final/plink_corrected.fam";
 		String lookupFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final/idLookup.txt";
 
-		String[][] ped = HashVec.loadFileToStringMatrix(lookupFile, false, null, "\t", false, 100000,
-																										false);
-		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", false, 100000,
-																										false);
+		String[][] ped = HashVec.loadFileToStringMatrix(lookupFile, false, null, "\t", 100000, false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", 100000, false);
 
 		HashMap<String, String> lookup = new HashMap<>();
 		for (String[] s : ped) {
@@ -264,10 +262,8 @@ public class lab {
 		String famFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink.fam";
 		String famFileOut = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/plink_corrected.fam";
 		String pedFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/pedigree_fixed.dat";
-		String[][] ped = HashVec.loadFileToStringMatrix(pedFile, false, null, "\t", false, 100000,
-																										false);
-		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", false, 100000,
-																										false);
+		String[][] ped = HashVec.loadFileToStringMatrix(pedFile, false, null, "\t", 100000, false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, "[\\s]+", 100000, false);
 		String dropSampFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/dropSamples.txt";
 
 		HashMap<String, String> dnaToFIDIID = new HashMap<>();
@@ -318,8 +314,8 @@ public class lab {
 
 	public static void affy6SnpLookup(String file) {
 		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
-		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", false,
-																										100000, false);
+		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", 100000,
+																										false);
 		HashMap<String, String> affRS = new HashMap<>();
 		for (String[] line : aff) {
 			affRS.put(line[0], line[1]);
@@ -362,7 +358,7 @@ public class lab {
 		HashMap<String, String> callrateMap = new HashMap<>();
 
 		String[][] info = HashVec.loadFileToStringMatrix(callrateFile, true,
-																										 new int[] {mkrInd, callInd}, false);
+																										 new int[] {mkrInd, callInd});
 		for (String[] line : info) {
 			callrateMap.put(line[0], line[1]);
 		}
@@ -519,10 +515,9 @@ public class lab {
 		// String missSnpFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_miss.txt";
 		// String mismatchFile = "/scratch.global/cole0482/affy6plink/imputeSrc_EA_mism.txt";
 		String affySnpFile = "/home/pankrat2/cole0482/Affy6_SnpList.xln";
-		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
+		String[][] bim = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", 100000, false);
+		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", 100000,
 																										false);
-		String[][] aff = HashVec.loadFileToStringMatrix(affySnpFile, true, null, "[\\s]+", false,
-																										100000, false);
 
 		System.out.println("Loaded data...");
 		System.out.println(bim.length + " lines in .bim file;");
@@ -573,8 +568,7 @@ public class lab {
 
 	public static void genDupe() {
 		String file = "Affy6_SnpList.xln";
-		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, "[\\s]+", false, 100000,
-																										 false);
+		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, "[\\s]+", 100000, false);
 		String out = "Affy6_duplicates.txt";
 		HashMap<String, ArrayList<String>> map = new HashMap<>();
 		for (String[] line : data) {
@@ -611,8 +605,7 @@ public class lab {
 		String exomeLookup = dir + "exm_to_rsID_lookup.txt";
 		// String bimFile = dir + "exome_EA.bim";
 		// String newBimFile = dir + "exome_EA_corrected.bim";
-		String[][] exmMkrs = HashVec.loadFileToStringMatrix(exomeLookup, true, null, "\t", false,
-																												10000,
+		String[][] exmMkrs = HashVec.loadFileToStringMatrix(exomeLookup, true, null, "\t", 10000,
 																												false);
 		HashMap<String, String> lookup = new HashMap<>();
 		for (String[] mkrs : exmMkrs) {
@@ -625,8 +618,7 @@ public class lab {
 			}
 		}
 
-		String[][] bimData = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", false, 100000,
-																												false);
+		String[][] bimData = HashVec.loadFileToStringMatrix(bimFile, false, null, "\t", 100000, false);
 		PrintWriter writer = Files.getAppropriateWriter(newBimFile);
 		for (String[] line : bimData) {
 			String mkr = line[1];
@@ -704,8 +696,7 @@ public class lab {
 		String file = "Marcotte_dupeSet1.ped.in";
 		String out = "Marcotte_dupeSet1.ped";
 
-		String[][] data = HashVec.loadFileToStringMatrix(dir + file, false, null, "\t", false, 3000,
-																										 false);
+		String[][] data = HashVec.loadFileToStringMatrix(dir + file, false, null, "\t", 3000, false);
 
 		PrintWriter writer = Files.getAppropriateWriter(dir + out);
 		for (String[] line : data) {
@@ -783,7 +774,7 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			proj = new Project("D:/projects/FarrarReparse.properties", false);
+			proj = new Project("D:/projects/FarrarReparse.properties");
 			TransposeData.reverseTranspose(proj);
 			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
@@ -1001,7 +992,7 @@ public class lab {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 			if (file != null) {
 				idSwap(proj, file);
 			}

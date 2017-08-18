@@ -18,8 +18,7 @@ public class BetaOpDev {
 	}
 
 	private static void test() {
-		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/LLFS.properties",
-															 false);
+		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/LLFS.properties");
 		String pcFile = "/Volumes/Beta/data/LLFS/Final_ohw_ws_40_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_030CR_096.PCs.extrapolated.txt";
 		String pcSamps = "/Volumes/Beta/data/LLFS/Final_ohw_ws_40_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_030CR_096.samples.USED_PC.txt";
 		double[] pvals = new double[] {.001};

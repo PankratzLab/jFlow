@@ -359,7 +359,7 @@ public class SuperNovo {
 		PrintWriter writer;
 
 		if (fullPathToTrioNameList == null) {
-			bamFilenamesByTrios = groupNamesByTrios(Files.list(bamDir, ".bam", false));
+			bamFilenamesByTrios = groupNamesByTrios(Files.list(bamDir, ".bam"));
 		} else {
 			bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
 		}
@@ -1829,7 +1829,7 @@ public class SuperNovo {
 		String[] line;
 		Hashtable<String, Hashtable<String, String[]>> result;
 
-		resultFilenames = Files.list(resultDir, ".txt", false);
+		resultFilenames = Files.list(resultDir, ".txt");
 		trioIds = new String[resultFilenames.length];
 		result = new Hashtable<String, Hashtable<String, String[]>>();
 		for (int i = 0; i < trioIds.length; i++) {
@@ -1878,7 +1878,7 @@ public class SuperNovo {
 		double[] altProportion;
 		boolean isThreeAllelesOrInDel;
 
-		resultFilenames = Files.list(resultDir, ".txt", false);
+		resultFilenames = Files.list(resultDir, ".txt");
 		trioIds = new String[resultFilenames.length];
 		result = new HashMap<String, HashMap<String, String[]>>();
 		readsCounts = new int[3][7];
@@ -2093,7 +2093,7 @@ public class SuperNovo {
 		miniSamHash = Samtools.listFiles(miniSamScriptsDir, log);
 		annotationHash = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
 		miniSamNeeded = new Hashtable<String, Vector<String>>();
-		resultFilenames = Files.list(resultDir, ".txt", false);
+		resultFilenames = Files.list(resultDir, ".txt");
 		result = new Hashtable<String, Hashtable<String, String[]>>();
 		orderedIndices = new int[SAMPLE_SUFFIX.length][];
 		seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
@@ -2417,7 +2417,7 @@ public class SuperNovo {
 		annotationHash = SeattleSeq.loadAllAnnotationInDir(seatleSeqDir, log);
 		additionalComments = loadAdditionalComments(fullpathToAdditionalComments);
 		miniSamNeeded = new Hashtable<String, Vector<String>>();
-		resultFilenames = Files.list(resultDir, ".txt", false);
+		resultFilenames = Files.list(resultDir, ".txt");
 		result = new Hashtable<String, Hashtable<String, String[]>>();
 		orderedIndices = new int[SAMPLE_SUFFIX.length][];
 		seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
@@ -3834,7 +3834,7 @@ public class SuperNovo {
 
 		dir = ext.parseDirectoryOfFile(dirReadCountsFiles);
 		root = ext.rootOf(dirReadCountsFiles);
-		filenames = Files.list(dir, root, suffixsOfReadCountsFiles, true, false);
+		filenames = Files.list(dir, root, suffixsOfReadCountsFiles, true);
 		segments = getSegments(bedfile, log);
 		result = getHeader(thresholdsForMapping);
 		for (String filename : filenames) {
@@ -4024,7 +4024,7 @@ public class SuperNovo {
 			segments = null;
 		} else if (Files.exists(bedfile + ".ser")) {
 			log.report("Reading in preserialized " + bedfile + ".ser");
-			segments = SegmentLists.load(bedfile + ".ser", false).getLists();
+			segments = SegmentLists.load(bedfile + ".ser").getLists();
 		} else {
 			log.report("Importing " + bedfile);
 			segmentLists = SegmentLists.parseSegmentList(bedfile, 0, 1, 2, true);

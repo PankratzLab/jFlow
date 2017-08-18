@@ -88,8 +88,7 @@ public class BurdenMatrix implements Serializable {
 		markerNames = markerSet.getMarkerNames();
 
 		if (variantWeightsFile != null) {
-			importedWeights = HashVec.loadFileToStringMatrix(variantWeightsFile, false, new int[] {0, 1},
-																											 false);
+			importedWeights = HashVec.loadFileToStringMatrix(variantWeightsFile, false, new int[] {0, 1});
 			weightsHash = new Hashtable<String, Double>();
 			for (int i = 0; i < importedWeights.length; i++) {
 				try {
@@ -350,8 +349,8 @@ public class BurdenMatrix implements Serializable {
 			}
 
 			hash = new Hashtable<String, String>();
-			data = HashVec.loadFileToStringMatrix(phenotypeFileToMergeWith, false, null, delimiter, false,
-																						1000, false);
+			data = HashVec.loadFileToStringMatrix(phenotypeFileToMergeWith, false, null, delimiter, 1000,
+																						false);
 			for (String[] element : data) {
 				isValid = true;
 				for (int j = 1; j < element.length; j++) {
@@ -450,7 +449,7 @@ public class BurdenMatrix implements Serializable {
 		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
 																				Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length),
 																													 1, traits.length),
-																				phenoFile.endsWith(".csv"), "\t", true, false, false);
+																				phenoFile.endsWith(".csv"), "\t", true, false);
 		traits = ArrayUtils.subArray(traits, 1);
 		log.report("Missing phenotype is set to '" + phenoMissingValue + "'");
 
@@ -579,8 +578,8 @@ public class BurdenMatrix implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static BurdenMatrix load(String filename, boolean jar) {
-		return (BurdenMatrix) SerializedFiles.readSerial(filename, jar, true);
+	public static BurdenMatrix load(String filename) {
+		return (BurdenMatrix) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static void main(String[] args) {
@@ -665,7 +664,7 @@ public class BurdenMatrix implements Serializable {
 
 			if (Files.exists(genoFile + ".ser")) {
 				System.out.println("Loading serialized version: " + genoFile + ".ser");
-				gens = GenotypeMatrix.load(genoFile + ".ser", false);
+				gens = GenotypeMatrix.load(genoFile + ".ser");
 			} else {
 				System.out.println("Loading: " + genoFile);
 				gens = new GenotypeMatrix(genoFile, null, annotationFile, log);
@@ -676,7 +675,7 @@ public class BurdenMatrix implements Serializable {
 
 			if (Files.exists(genoFile + ".T5_burden.ser")) {
 				System.out.println("Loading serialized version: " + genoFile + ".T5_burden.ser");
-				burden = load(genoFile + ".T5_burden.ser", false);
+				burden = load(genoFile + ".T5_burden.ser");
 			} else {
 				System.out.println("Generating: " + genoFile + ".T5_burden");
 				if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq != null) {
@@ -725,7 +724,7 @@ public class BurdenMatrix implements Serializable {
 
 			if (Files.exists(genoFile + ".MadBr_burden.ser")) {
 				System.out.println("Loading serialized version: " + genoFile + ".MadBr_burden.ser");
-				burden = load(genoFile + ".MadBr_burden.ser", false);
+				burden = load(genoFile + ".MadBr_burden.ser");
 			} else {
 				System.out.println("Generating: " + genoFile + ".MadBr_burden");
 				if (imputeUsingDataFreqFromTheseIDsNotAnnotationFreq != null) {

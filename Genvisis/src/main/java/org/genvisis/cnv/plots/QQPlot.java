@@ -31,13 +31,12 @@ public class QQPlot {
 																								// "C:\\Documents and Settings\\npankrat\\My
 																								// Documents\\LOAD\\QQplots\\4PCs.txt",
 																								"C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
-																							 // "C:\\Documents and Settings\\npankrat\\My
-																							 // Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
-																							 // "C:\\Documents and Settings\\npankrat\\My
-																							 // Documents\\LOAD\\QQplots\\E4_binary.txt"
+			// "C:\\Documents and Settings\\npankrat\\My
+			// Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
+			// "C:\\Documents and Settings\\npankrat\\My
+			// Documents\\LOAD\\QQplots\\E4_binary.txt"
 	};
 
-	public static final boolean JAR = false;
 	public static final Color[] COLOR_SCHEME = new Color[] {Color.BLACK, Color.GRAY,
 																													new Color(33, 31, 53), // dark dark
 																													new Color(23, 58, 172), // dark blue
@@ -189,7 +188,7 @@ public class QQPlot {
 			}
 			delimiter = Files.determineDelimiter(filenames[i], log);
 			try {
-				reader = Files.getReader(filenames[i], JAR, true, true);
+				reader = Files.getReader(filenames[i], true, true);
 				count = 0;
 				temp = reader.readLine();
 				try {
@@ -257,7 +256,7 @@ public class QQPlot {
 												log);
 				}
 
-				reader = Files.getReader(filenames[i], JAR, true, true);
+				reader = Files.getReader(filenames[i], true, true);
 				pvals[i] = new double[count];
 				count = 0;
 				if (header) {
@@ -344,7 +343,7 @@ public class QQPlot {
 			if (i % 10 == 0) {
 				log.report(i + "");
 			}
-			array = SerialFloatArray.load(dir + prefix + "." + i + ".results", false).getArray();
+			array = SerialFloatArray.load(dir + prefix + "." + i + ".results").getArray();
 			Arrays.sort(array);
 			if (i == 1) {
 				length = array.length;

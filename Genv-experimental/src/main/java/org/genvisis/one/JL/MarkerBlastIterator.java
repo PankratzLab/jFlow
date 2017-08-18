@@ -901,7 +901,7 @@ public class MarkerBlastIterator {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, false);
+		Project proj = new Project(filename);
 
 		if (fSequence_TYPE != FILE_SEQUENCE_TYPE.MANIFEST_FILE) {
 			System.err.println("Only " + FILE_SEQUENCE_TYPE.MANIFEST_FILE

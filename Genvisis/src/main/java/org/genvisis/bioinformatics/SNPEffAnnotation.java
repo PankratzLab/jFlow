@@ -96,7 +96,7 @@ public class SNPEffAnnotation {
 																								: new int[] {indicesToUse[1], indicesToUse[2],
 																														 indicesToUse[0], indicesToUse[3],
 																														 indicesToUse[4]};
-		String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, false, true, colsToLoad, false);
+		String[] rschrpos = HashVec.loadFileToStringArray(fileToUse, true, colsToLoad, false);
 		Files.writeArray(rschrpos, newFile);
 		return newFile;
 	}

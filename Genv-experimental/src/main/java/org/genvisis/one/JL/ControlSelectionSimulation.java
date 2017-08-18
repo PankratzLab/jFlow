@@ -111,12 +111,12 @@ public class ControlSelectionSimulation {
 				String plinkQc = "/Volumes/Beta/data/controlSelection/plinkARIC/quality_control/further_analysis_QC/plink_QCd";
 
 				Hashtable<String, String> have = HashVec.loadFileToHashString(mds, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 				Hashtable<String, String> keeps = HashVec.loadFileToHashString(keepSamples, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 
 				Hashtable<String, String> hash = HashVec.loadFileToHashString(phenoFile, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 
 				HashMap<String, ArrayList<String>> centers = new HashMap<>();
 				for (String sample : hash.keySet()) {
@@ -262,7 +262,7 @@ public class ControlSelectionSimulation {
 
 	private static String selectControls(List<String> casesL, String centComp, ArrayList<String> barns, String[] run,
 			double[] w, String dir, boolean anti) {
-		String[] previous = Files.toFullPaths(Files.list(dir, "distance", null, false, false), dir);
+		String[] previous = Files.toFullPaths(Files.list(dir, "distance", null, false), dir);
 		for (String file : previous) {
 			new File(file).delete();
 		}

@@ -293,7 +293,7 @@ public class QuantiSNP {
 			}
 		} else {
 			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDirectory, false, new int[] {0, 1},
-																														true, false));
+																														true));
 			System.out.println("Using all indivduals listed in '" + included + "' (n=" + inds.length
 												 + ")");
 			for (String ind : inds) {

@@ -8,7 +8,7 @@ import org.genvisis.common.Logger;
 public class DumpMultiLoc {
 
 	public static void dumpMultiLoc(String geneTrackFile, String outputFile, Logger log) {
-		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+		GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 		GeneData[][] genes = geneTrack.getGenes();
 
 		try {

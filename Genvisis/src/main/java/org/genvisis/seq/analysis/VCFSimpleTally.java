@@ -1347,7 +1347,7 @@ public class VCFSimpleTally {
 		}
 
 		public static GeneVariantPositionSummary[] readSerial(String filename, Logger log) {
-			return (GeneVariantPositionSummary[]) SerializedFiles.readSerial(filename, false, log, false,
+			return (GeneVariantPositionSummary[]) SerializedFiles.readSerial(filename, log, false,
 																																			 true);
 		}
 
@@ -1711,7 +1711,7 @@ public class VCFSimpleTally {
 			log.reportTimeWarning("Now loading all .geneset");
 			GeneSet[] currentSets = GeneSet.load(Files.listFullPaths(genesetDir == null ? ext.parseDirectoryOfFile(vpopsCase[i])
 																																									: genesetDir,
-																															 ".geneset", false),
+																															 ".geneset"),
 																					 ext.rootOf(vpopsCase[i]), log);
 			log.reportTimeInfo("Found " + currentSets.length + " gene sets for " + vpopsCase[i]);
 			OMIM omim = new OMIM(omimDir, log);

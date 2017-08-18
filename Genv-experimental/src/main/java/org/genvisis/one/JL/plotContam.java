@@ -24,7 +24,7 @@ public class plotContam {
 			String[] sampsToPlot = HashVec.loadFileToStringArray("D:/data/Project_Tsai_21_25_26_spector/QC/bamContam/CushingSamps.txt",
 																													 false, new int[] {0}, true);
 
-			String[][] all = HashVec.loadFileToStringMatrix(file, false, null, false);
+			String[][] all = HashVec.loadFileToStringMatrix(file, false, null);
 			int[] indices = ext.indexFactors(sampsToPlot, samps, false, false);
 			indices = ArrayUtils.removeAllValues(indices, -1);
 

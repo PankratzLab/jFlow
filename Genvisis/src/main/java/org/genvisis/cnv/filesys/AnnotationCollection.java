@@ -356,8 +356,9 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 		keys = getKeys();
 		newMappings = HashVec.loadFileToStringMatrix(importList, false, new int[] {0, 1},
-																								 Files.determineDelimiter(importList, log), false,
-																								 keys.length, false);
+																								 Files.determineDelimiter(importList, log),
+																								 keys.length,
+																								 false);
 
 		for (String[] newMapping : newMappings) {
 			if (commentsHash.containsKey(newMapping[0].charAt(0))) {
@@ -374,8 +375,8 @@ public class AnnotationCollection implements Serializable, TextExport {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static AnnotationCollection load(String filename, boolean jar) {
-		return (AnnotationCollection) SerializedFiles.readSerial(filename, jar, true);
+	public static AnnotationCollection load(String filename) {
+		return (AnnotationCollection) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static void recover(String dir) {
@@ -383,11 +384,11 @@ public class AnnotationCollection implements Serializable, TextExport {
 		String[] files;
 		String trav;
 
-		files = Files.list(dir, ".tempAnnotation.ser", false);
+		files = Files.list(dir, ".tempAnnotation.ser");
 		for (String file : files) {
 			trav = file.substring(0, file.indexOf(".tempAnnotation.ser"));
 			new File(dir + trav + "/").mkdirs();
-			annotationCollection = load(dir + file, false);
+			annotationCollection = load(dir + file);
 			annotationCollection.dumpLists(dir + trav + "/");
 		}
 	}
@@ -450,7 +451,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 			if (recoverDir != null) {
 				recover(recoverDir);
 			} else {
-				proj = new Project(filename, logfile, false);
+				proj = new Project(filename, logfile);
 				log = proj.getLog();
 
 				annotationCollection = proj.getAnnotationCollection();

@@ -27,7 +27,7 @@ public class CNVariantHash implements Serializable {
 	private String filename; // The file this hash came from
 	private final Hashtable<String, Hashtable<String, CNVariant[]>> hashes;
 
-	public CNVariantHash(String filename, int structureType, boolean jar, Logger log) {
+	public CNVariantHash(String filename, int structureType, Logger log) {
 		Hashtable<String, Hashtable<String, Vector<CNVariant>>> vHashes;
 		Hashtable<String, Vector<CNVariant>> vHash;
 		Vector<CNVariant> v;
@@ -47,7 +47,7 @@ public class CNVariantHash implements Serializable {
 		// time = new Date().getTime();
 		vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
 		try {
-			reader = Files.getReader(filename, jar, true, true);
+			reader = Files.getReader(filename, true, true);
 
 			reader.mark(1000);
 			temp = reader.readLine();
@@ -137,7 +137,7 @@ public class CNVariantHash implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static CNVariantHash load(String filename, int structureType, boolean jar, Logger log) {
+	public static CNVariantHash load(String filename, int structureType, Logger log) {
 		CNVariantHash hashes = null;
 		String suffix;
 
@@ -150,16 +150,16 @@ public class CNVariantHash implements Serializable {
 			suffix = null;
 		}
 
-		boolean parse = Files.exists(filename + suffix, jar);
+		boolean parse = Files.exists(filename + suffix);
 
 		if (parse) {
-			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffix, jar, log, false);
+			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffix, log, false);
 		}
 		if (!parse || hashes == null) {
 			if (hashes == null) {
 				log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
 			}
-			hashes = new CNVariantHash(filename, structureType, jar, log);
+			hashes = new CNVariantHash(filename, structureType, log);
 			hashes.serialize(filename + suffix);
 		}
 
@@ -234,7 +234,7 @@ public class CNVariantHash implements Serializable {
 			System.exit(1);
 		}
 		try {
-			new CNVariantHash(filename, 1, false, new Logger());
+			new CNVariantHash(filename, 1, new Logger());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

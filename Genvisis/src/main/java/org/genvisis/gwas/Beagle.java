@@ -234,7 +234,7 @@ public class Beagle {
 		String trav;
 
 		for (int chr = 1; chr <= 22; chr++) {
-			files = Files.list("chr" + chr + "/", ".log", false);
+			files = Files.list("chr" + chr + "/", ".log");
 			for (String file : files) {
 				trav = file.substring(0, file.lastIndexOf("."));
 				if (!new File("chr" + chr + "/" + trav + ".ibds.pre_phase.bgl.ibd.gz").exists()) {
@@ -243,7 +243,7 @@ public class Beagle {
 					new File("chr" + chr + "/" + trav + ".host").delete();
 				}
 			}
-			files = Files.list("chr" + chr + "/", ".ibds.pre_phase.bgl.phased.gz", false);
+			files = Files.list("chr" + chr + "/", ".ibds.pre_phase.bgl.phased.gz");
 			for (int i = 0; i < files.length; i++) {
 				if (!files[i].startsWith("1.")) {
 					new File("chr" + chr + "/" + files[i]).delete();
@@ -260,7 +260,7 @@ public class Beagle {
 		int compl, count, prob, miss;
 		double average;
 
-		numLists = Files.list("lists/", ".list", false).length;
+		numLists = Files.list("lists/", ".list").length;
 		for (int rep = 1; rep <= numLists; rep++) {
 			if (!new File("lists/" + rep + ".list").exists()) {
 				System.err.println("Error - abnormal list directory: missing '" + rep + ".list'");
@@ -385,7 +385,7 @@ public class Beagle {
 
 		log = new Logger(filename + "_sum.log");
 		time = new Date().getTime();
-		ids = HashVec.loadFileToStringMatrix(list, false, new int[] {0, 1}, false);
+		ids = HashVec.loadFileToStringMatrix(list, false, new int[] {0, 1});
 		dir = ext.parseDirectoryOfFile(filename);
 		if (new File(dir + "plink.map").exists() || new File(dir + "plink.bim").exists()) {
 			markerSet = new SnpMarkerSet(new File(dir + "plink.map").exists() ? dir + "plink.map"
@@ -746,7 +746,7 @@ public class Beagle {
 					}
 					CmdLine.run("plink --bfile plink --freq", "chr" + chr + "/");
 					markerFreq = HashVec.loadFileToStringMatrix("chr" + chr + "/plink.frq", true,
-																											new int[] {1, 2, 3, 4, 5}, false);
+																											new int[] {1, 2, 3, 4, 5});
 					for (int i = 0; i < markerNames[chr - 1].length; i++) {
 						avgs[i][0] /= n;
 						avgs[i][1] /= n;
@@ -997,7 +997,7 @@ public class Beagle {
 		chr = -1;
 		dir = ext.parseDirectoryOfFile(segInfoFile);
 		intervalStartAndStopMarkers = HashVec.loadFileToStringMatrix(intervalFile, false,
-																																 new int[] {0, 1}, false);
+																																 new int[] {0, 1});
 		if (segFile != null) {
 			includes = HashVec.loadFileToHashVec(segFile, new int[] {1, 3}, new int[] {5, 6, 7}, "\t",
 																					 true, false);
@@ -1228,7 +1228,7 @@ public class Beagle {
 		int index;
 
 		groupsHash = HashVec.loadFileToHashString(groupsFile, new int[] {0, 1}, new int[] {2}, false,
-																							"\t", false, false, false);
+																							"\t", false, false);
 		groupsHash.remove("FID\tIID");
 		ids = HashVec.getKeys(groupsHash);
 		cv = new CountVector(groupsHash);

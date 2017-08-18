@@ -249,7 +249,7 @@ public class IrrTable {
 	}
 
 	public static void test() {
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		SampleQC sampleQC = SampleQC.loadSampleQC(proj);
 		Quantiles[] quantiles = Quantiles.qetQuantilesFor(100, sampleQC.getQcMatrix(),
 																											sampleQC.getQctitles(), proj.getLog());

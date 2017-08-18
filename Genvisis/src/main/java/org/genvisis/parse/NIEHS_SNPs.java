@@ -138,7 +138,7 @@ public class NIEHS_SNPs {
 		}
 
 		log = new Logger(DIR + ext.rootOf(VARIANT_FILE) + ".log");
-		map = SnpMarkerSet.load(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".ser", false);
+		map = SnpMarkerSet.load(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".ser");
 		annotation = Matrix.extractColumn(map.getAnnotation(), 0);
 		hash = new Hashtable<String, String>();
 		for (int i = 0; i < annotation.length; i++) {

@@ -480,7 +480,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			progressBar.setStringPainted(false);
 			progressBar.setVisible(false);
 			// FIXME current understanding is that this method is a hook enqueued on the EDT after
-			// doInBackground returns. This handling should be moved to whatever is relying on output from this worker.
+			// doInBackground returns. This handling should be moved to whatever is relying on output from
+			// this worker.
 			get();
 			JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
 
@@ -726,7 +727,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			cnvFileCNs = new int[markerRegions.length][samples.length][proj.CNV_FILENAMES.getValue().length];
 			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length
 												+ " cnv files");
-			sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), false, proj.getLog());
+			sampleData.loadCNVs(proj.CNV_FILENAMES.getValue(), proj.getLog());
 			String[] cnvClasses = sampleData.getCnvClasses();
 			computelog.report("Info - assigning cnvs for " + proj.CNV_FILENAMES.getValue().length);
 			newJob(MEDIAN_WORKER_JOBS[4] + proj.CNV_FILENAMES.getValue().length + " cnv files");
@@ -1122,7 +1123,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 		}
 		try {
 			time = new Date().getTime();
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 			log = proj.getLog();
 
 			System.setProperty("java.awt.headless", headless);

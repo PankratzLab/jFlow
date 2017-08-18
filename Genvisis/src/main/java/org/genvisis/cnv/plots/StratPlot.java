@@ -188,7 +188,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 		// tree.selectFirstTwo();
 
-		//repaint();
+		// repaint();
 
 		setMinimumSize(new Dimension(20, 20));
 		setPreferredSize(new Dimension(1000, 720));
@@ -319,7 +319,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 		hash = new Hashtable<String, float[][]>();
 		for (int i = 0; i < names.length; i++) {
 			try {
-				reader = Files.getReader(stratFiles.get(i), proj.JAR_STATUS.getValue(), true, false);
+				reader = Files.getReader(stratFiles.get(i), true, false);
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[0].equals("FID") || !line[1].equals("IID")) {
 					log.reportError("Error - different format than expected; first two columns should be FID and IID");
@@ -363,8 +363,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 	public static void main(String[] args) {
 		try {
-			loadStratificationResults(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
-																						false));
+			loadStratificationResults(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

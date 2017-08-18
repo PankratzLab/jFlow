@@ -644,7 +644,7 @@ public class PrincipalComponentsValidate {
 																																String mtMarkers,
 																																boolean recomputeLRR, Logger log) {
 		String[] files = Files.toFullPaths(Files.list(proj.PROJECT_DIRECTORY.getValue() + dir,
-																									PC_TYPES[pcType], false),
+																									PC_TYPES[pcType]),
 																			 dir);
 		if (files == null || files.length < 1) {
 			log.reportError("Error - could not find any files of type " + PC_TYPES[pcType]);
@@ -890,7 +890,7 @@ public class PrincipalComponentsValidate {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(fileName, false);
+			Project proj = new Project(fileName);
 			log = new Logger(logfile);
 			if (batch) {
 				batchJobs(proj, dir, indsToValidateFile, numberOfBatches, stopAtComponent, mtMarkers,

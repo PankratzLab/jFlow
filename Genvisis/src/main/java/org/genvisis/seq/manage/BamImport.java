@@ -332,7 +332,7 @@ public class BamImport {
 			if (bamsToImport == null) {
 				if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
 					bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(),
-																						 proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+																						 proj.SOURCE_FILENAME_EXTENSION.getValue());
 				} else {
 					bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false,
 																											 new int[] {0}, true);
@@ -729,7 +729,7 @@ public class BamImport {
 													 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
 					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile,
 																					proj.getLog());
-					Project pcCorrected = new Project(pcCorrectedFile, false);
+					Project pcCorrected = new Project(pcCorrectedFile);
 					pcCorrected.PROJECT_DIRECTORY.setValue(proj.PROJECT_DIRECTORY.getValue() + newName + "/");
 					pcCorrected.PROJECT_NAME.setValue(newName);
 					proj.copyBasicFiles(pcCorrected, true);
@@ -1147,7 +1147,7 @@ public class BamImport {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
 															 ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null,
 															 proj.getReferenceGenomeFASTAFilename(), true, numthreads);

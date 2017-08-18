@@ -336,13 +336,13 @@ public class AltPheno {
 	public static void condense(String dir, String trait) {
 		String[] dirs, files;
 
-		dirs = Files.listDirectories(dir, false);
+		dirs = Files.listDirectories(dir);
 		new File(dir + "_" + trait).mkdirs();
 		for (int i = 0; i < dirs.length; i++) {
 			if (!dirs[i].startsWith("_")) {
 				if (new File(dir + dirs[i] + "/" + trait).exists()) {
 					System.out.println("Copying files from " + dirs[i] + "/");
-					files = Files.list(dir + dirs[i] + "/" + trait, ".tbl", false);
+					files = Files.list(dir + dirs[i] + "/" + trait, ".tbl");
 					new File(dir + "_" + trait + "/" + dirs[i]).mkdirs();
 					for (String file : files) {
 						Files.copyFile(dir + dirs[i] + "/" + trait + "/" + file,

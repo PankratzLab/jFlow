@@ -49,7 +49,7 @@ public class Coverage {
 		String[] files, variants, inds;
 		int fileIndex;
 
-		files = Files.list(dir, ".txt", false);
+		files = Files.list(dir, ".txt");
 		ext.checkHeader(Files.getHeaderOfFile(filename, "\t", new Logger()),
 										new String[] {"Sample", "Chr", "Position"}, new int[] {0, 1, 2}, false,
 										new Logger(), true);
@@ -128,8 +128,7 @@ public class Coverage {
 		pileupFile = line[0];
 		varFile = line[1];
 
-		hash = HashVec.loadFileToHashString(varFile, new int[] {0, 1}, null, false, "\t", false, false,
-																				false);
+		hash = HashVec.loadFileToHashString(varFile, new int[] {0, 1}, null, false, "\t", false, false);
 		try {
 			reader = new BufferedReader(new FileReader(pileupFile));
 			writer = Files.openAppropriateWriter(pileupFile + "_filtered.out");

@@ -351,13 +351,13 @@ public class DBGAPMerge {
 			String line, delim;
 			StringBuilder sb;
 
-			varData = HashVec.loadFileToStringMatrix(varFile, true, new int[] {1, 2}, false); // ident
-																																												// col, repl
-																																												// col,
-																																												// ignore
-																																												// source
-																																												// and other
-																																												// cols
+			varData = HashVec.loadFileToStringMatrix(varFile, true, new int[] {1, 2}); // ident
+																																								 // col, repl
+																																								 // col,
+																																								 // ignore
+																																								 // source
+																																								 // and other
+																																								 // cols
 			colsToLoad = Matrix.extractColumn(varData, 0);
 
 			dataReader = Files.getAppropriateReader(dataFile);

@@ -279,7 +279,7 @@ public class ColorExt {
 
 		@SuppressWarnings("unchecked")
 		private static ColorManager<String> loadStringSerial(String fileName, Logger log) {
-			return (ColorManager<String>) SerializedFiles.readSerial(fileName, false, log, false, true);
+			return (ColorManager<String>) SerializedFiles.readSerial(fileName, log, false, true);
 		}
 
 	}

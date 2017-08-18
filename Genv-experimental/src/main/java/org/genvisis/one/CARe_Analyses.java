@@ -770,7 +770,7 @@ public class CARe_Analyses {
 
 		new File(dir + "gwaf/").mkdirs();
 		fileNum = startAt;
-		while (Files.exists(dir + "std/file" + fileNum + ".gen", false)) {
+		while (Files.exists(dir + "std/file" + fileNum + ".gen")) {
 			new DosageData(dir + "std/file" + fileNum + ".gen", dir + "std/ids.pfam",
 										 dir + "std/file" + fileNum + ".mlinfo", true,
 										 log).writeToFile(dir + "gwaf/file" + fileNum + ".fhsR",
@@ -1498,8 +1498,7 @@ public class CARe_Analyses {
 
 					log.report("Parsing " + root + ".bim for " + studie);
 					travPos = HashVec.loadFileToHashString(dir + root + ".bim", new int[] {1},
-																								 new int[] {0, 3}, false, "\t", false, false,
-																								 false);
+																								 new int[] {0, 3}, false, "\t", false, false);
 					keys = HashVec.getKeys(travPos, false);
 					for (int k = 0; k < keys.length; k++) {
 						if (!positions.containsKey(keys[k])) {
@@ -1558,8 +1557,7 @@ public class CARe_Analyses {
 										dir + root + ".pmap", null, log);
 					log.report("Parsing " + root + ".pmap");
 					travPos = HashVec.loadFileToHashString(dir + root + ".pmap", new int[] {1},
-																								 new int[] {0, 3}, false, "\t", false, false,
-																								 false);
+																								 new int[] {0, 3}, false, "\t", false, false);
 					keys = HashVec.getKeys(travPos, false);
 					for (int k = 0; k < keys.length; k++) {
 						if (!positions.containsKey(keys[k])) {
@@ -1850,10 +1848,10 @@ public class CARe_Analyses {
 						new File(dir + "analysis_of_" + pheno + "/").mkdir();
 						Files.copyFile(dir + "leslie_lange." + STUDIES[i] + ".IBC." + element[1] + ".pedfile",
 													 dir + "analysis_of_" + pheno + "/pedfile.csv");
-						if (!Files.exists(dir + "rids_" + root + ".fhsR", false)) {
+						if (!Files.exists(dir + "rids_" + root + ".fhsR")) {
 							hash = HashVec.loadFileToHashString(dir + "leslie_lange." + STUDIES[i] + ".IBC."
 																									+ element[1] + ".Rlinker", new int[] {0},
-																									new int[] {2}, false, "", false, false, false);
+																									new int[] {2}, false, "", false, false);
 							hash.put("id", "id");
 							try {
 								reader = new BufferedReader(new FileReader(dir + root + ".fhsR"));
@@ -1906,7 +1904,7 @@ public class CARe_Analyses {
 						// masterSet.trim(HashVec.loadFileToStringArray(dir+root+".pinfo", true, new int[] {0},
 						// false), false, true, log).writeToFile(dir+root+".map",
 						// SnpMarkerSet.PLINK_MAP_FORMAT);
-						if (!Files.exists(dir + root + ".map", false)) {
+						if (!Files.exists(dir + root + ".map")) {
 							Files.combine(HashVec.loadFileToStringArray(dir + root + ".pinfo", true,
 																													new int[] {0}, false),
 														new String[] {DRIVE_ROOT
@@ -1958,8 +1956,7 @@ public class CARe_Analyses {
 								+ pheno + "/";
 					// System.err.println(dir);
 					if (FAMILY_BASED[j]
-							&& Files.exists(dir + root + (iter > 0 ? "_withCondi" + iter : "") + "_out.csv",
-															false)) {
+							&& Files.exists(dir + root + (iter > 0 ? "_withCondi" + iter : "") + "_out.csv")) {
 						GWAF.parse(dir + root + (iter > 0 ? "_withCondi" + iter : "") + "_out.csv", -1, true,
 											 dir + root + "_iteration" + iter + ".csv");
 						GWAF.parseToMetal(dir + root + "_iteration" + iter + ".csv",
@@ -1970,7 +1967,7 @@ public class CARe_Analyses {
 						files.add(element[0] + "_" + STUDIES[j] + "_iteration" + iter + ".metal");
 						allFiles.add(element[0] + "_" + STUDIES[j] + "_iteration" + iter + ".metal");
 					} else if (Files.exists(dir + root + (iter > 0 ? "_withCondi" + iter : "")
-																	+ "_out.assoc.dosage", false)) {
+																	+ "_out.assoc.dosage")) {
 						GenParser.parse(new String[] {dir + root + (iter > 0 ? "_withCondi" + iter : "")
 																					+ "_out.assoc.dosage",
 																					"out=" + finalDir + "iteration" + iter + "/" + element[0]

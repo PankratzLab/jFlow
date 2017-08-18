@@ -246,7 +246,7 @@ public class FAST {
 																				+ "_" + popName + "_" + factorName + "_female.trait";
 										concatResults(resultsDirPathFemale, midOutF, pvalThresh, true, true);
 										if (Files.exists(resultsDirPathFemale + midOutF)
-												&& Files.getSize(resultsDirPathFemale + midOutF, false) > 0) {
+												&& Files.getSize(resultsDirPathFemale + midOutF) > 0) {
 											runParser(DEFAULT_FORMAT, resultsDirPathFemale + midOutF,
 																finalResultsPath + finalOutF, countValid(traitFileF));
 											factorLog.report(ext.getTime() + "]\tParsing complete.");
@@ -288,7 +288,7 @@ public class FAST {
 																				+ "_" + popName + "_" + factorName + "_male.trait";
 										concatResults(resultsDirPathMale, midOutM, pvalThresh, true, true);
 										if (Files.exists(resultsDirPathMale + midOutM)
-												&& Files.getSize(resultsDirPathMale + midOutM, false) > 0) {
+												&& Files.getSize(resultsDirPathMale + midOutM) > 0) {
 											runParser(DEFAULT_FORMAT, resultsDirPathMale + midOutM,
 																finalResultsPath + finalOutM, countValid(traitFileM));
 											factorLog.report(ext.getTime() + "]\tParsing complete.");

@@ -236,7 +236,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
 
 		c.parseWithExit(args);
 
-		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		Project proj = new Project(c.get(CLI.ARG_PROJ));
 		String fileSeq = c.get(ARG_MANIFEST);
 		int blastWordSize = c.getI(ARG_BLAST_WORD_SIZE);
 		int reportWordSize = c.getI(ARG_REPORT_WORD_SIZE);

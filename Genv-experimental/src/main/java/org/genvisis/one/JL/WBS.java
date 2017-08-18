@@ -28,7 +28,7 @@ import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 public class WBS {
 
 	public static void main(String[] args) {
-		Project proj = new Project("/Users/Kitty/.genvisis/projects/LLFS.properties", false);
+		Project proj = new Project("/Users/Kitty/.genvisis/projects/LLFS.properties");
 
 		System.out.println(proj.getSamples().length);
 		Sample samp = proj.getFullSampleFromRandomAccessFile("10007060");

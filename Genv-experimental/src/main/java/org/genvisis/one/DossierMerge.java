@@ -33,12 +33,12 @@ public class DossierMerge {
 
 		// citationHash = HashVec.loadFileToHashString(dir+"pubmed_result.utf8.csv", new int[] {9}, new
 		// int[] {2, 0, 3}, true, "\t", true, false, false);
-		citationHash = HashVec.loadFileToHashString(dir + "personal bibliography with DOI from Endnote.utf8.txt", new int[] {0}, new int[] {2, 3, 4}, false, "\t", true, false, false);
-		abbreviationsHash = HashVec.loadFileToHashString(dir + "Abbreviations.txt", new int[] {0}, new int[] {1}, false, null, false, false, false);
+		citationHash = HashVec.loadFileToHashString(dir + "personal bibliography with DOI from Endnote.utf8.txt", new int[] {0}, new int[] {2, 3, 4}, false, "\t", true, false);
+		abbreviationsHash = HashVec.loadFileToHashString(dir + "Abbreviations.txt", new int[] {0}, new int[] {1}, false, null, false, false);
 
-		impactHash = HashVec.loadFileToHashString(dir + "impactFactors.dat", new int[] {0}, new int[] {2, 1}, false, " in ", false, false, false);
-		timesCitedHash = HashVec.loadFileToHashString(dir + "citations.dat", new int[] {0}, new int[] {1, 2}, false, "\t", false, false, false);
-		rolesHash = HashVec.loadFileToHashString(dir + "roles.dat", new int[] {0}, new int[] {1}, false, null, false, false, false);
+		impactHash = HashVec.loadFileToHashString(dir + "impactFactors.dat", new int[] {0}, new int[] {2, 1}, false, " in ", false, false);
+		timesCitedHash = HashVec.loadFileToHashString(dir + "citations.dat", new int[] {0}, new int[] {1, 2}, false, "\t", false, false);
+		rolesHash = HashVec.loadFileToHashString(dir + "roles.dat", new int[] {0}, new int[] {1}, false, null, false, false);
 
 
 		authorsToBoldHash = HashVec.loadToHashSet(HashVec.loadFileToStringArray(dir + "wordsToBold.dat", false, null, false));
@@ -136,7 +136,7 @@ public class DossierMerge {
 		int index;
 		ArrayList<String> authors;
 
-		pmids = HashVec.loadFileToStringArray(dir + "personal bibliography with DOI from Endnote.utf8.txt", false, false, new int[] {0, 1}, false, false, "\t");
+		pmids = HashVec.loadFileToStringArray(dir + "personal bibliography with DOI from Endnote.utf8.txt", false, new int[] {0, 1}, false, false, "\t");
 
 		String filename = "citations" + ext.getTimestampForFilename() + ".dat";
 		try {

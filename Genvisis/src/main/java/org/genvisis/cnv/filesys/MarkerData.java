@@ -82,8 +82,8 @@ public class MarkerData implements Serializable {
 																 double correctionRatio, int numThreads, boolean correctedData,
 																 Logger log) {
 		switch (type) {
-		// case 0:
-		// return new float[][] { xRaws, yRaws };
+			// case 0:
+			// return new float[][] { xRaws, yRaws };
 			case 0:
 				if (correctedData) {
 					return getCorrectedIntesity(sampleSex, samplesToUse, missingnessThreshold, confThreshold,
@@ -192,8 +192,8 @@ public class MarkerData implements Serializable {
 																																									clusterFilterCollection,
 																																									medianCenter,
 																																									(numComponents > 130
-																																																			? LS_TYPE.SVD
-																																																			: LS_TYPE.REGULAR),
+																																																			 ? LS_TYPE.SVD
+																																																			 : LS_TYPE.REGULAR),
 																																									correctionType,
 																																									nStage,
 																																									residStandardDeviationFilter,
@@ -233,10 +233,10 @@ public class MarkerData implements Serializable {
 			return null;
 		} else {
 			float[][] recompBAFLRR = params.getCentroids() == null
-																														? new float[][] {bafs.clone(),
-																																						 lrrs.clone()}
-																														: recomputeClone(params.getCentroids()
-																																									 .getCentroids()[markerIndexInProject]);
+																														 ? new float[][] {bafs.clone(),
+																																							lrrs.clone()}
+																														 : recomputeClone(params.getCentroids()
+																																										.getCentroids()[markerIndexInProject]);
 
 			for (int i = 0; i < recompBAFLRR[0].length; i++) {
 				recompBAFLRR[1][i] = (float) params.getGcAdjustorParameters()[i].adjust(GC_CORRECTION_METHOD.GENVISIS_GC,
@@ -278,8 +278,8 @@ public class MarkerData implements Serializable {
 																																									clusterFilterCollection,
 																																									medianCenter,
 																																									(numComponents > 130
-																																																			? LS_TYPE.SVD
-																																																			: LS_TYPE.REGULAR),
+																																																			 ? LS_TYPE.SVD
+																																																			 : LS_TYPE.REGULAR),
 																																									correctionType,
 																																									nStage,
 																																									residStandardDeviationFilter,
@@ -706,13 +706,13 @@ public class MarkerData implements Serializable {
 											 + (abGenotypes != null ? "\t" + abGenotypes[i] : "")
 											 + (forwardGenotypes != null ? "\t"
 																										 + Sample.ALLELE_PAIRS[forwardGenotypes[i]]
-																									: "")
+																									 : "")
 											 + (hasExcludedIndividuals
-																								? "\t"
-																									+ (sampleData.individualShouldBeExcluded(samples[i])
-																																																			? 1
-																																																			: 0)
-																								: ""));
+																								 ? "\t"
+																									 + (sampleData.individualShouldBeExcluded(samples[i])
+																																																				? 1
+																																																				: 0)
+																								 : ""));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -789,15 +789,15 @@ public class MarkerData implements Serializable {
 		// System.out.print(x.size()+"\t"+y.size()+"\t");
 
 		return (x.size() > 0
-												? ArrayUtils.getLocalModes(Doubles.toArray(x),
-																									 proportionOfLastPeakRequiredForNewLocalMinima,
-																									 proportionOfGlobalMaxRequiredForLocalMaxima).length
-												: 0)
+												 ? ArrayUtils.getLocalModes(Doubles.toArray(x),
+																										proportionOfLastPeakRequiredForNewLocalMinima,
+																										proportionOfGlobalMaxRequiredForLocalMaxima).length
+												 : 0)
 					 + (y.size() > 0
-													? ArrayUtils.getLocalModes(Doubles.toArray(y),
-																										 proportionOfLastPeakRequiredForNewLocalMinima,
-																										 proportionOfGlobalMaxRequiredForLocalMaxima).length
-													: 0);
+													 ? ArrayUtils.getLocalModes(Doubles.toArray(y),
+																											proportionOfLastPeakRequiredForNewLocalMinima,
+																											proportionOfGlobalMaxRequiredForLocalMaxima).length
+													 : 0);
 	}
 
 	public void setGC(float gc, int i) {
@@ -944,7 +944,8 @@ public class MarkerData implements Serializable {
 	}
 
 	public byte[] compress(int mkrIndLocal, byte nullStatus,
-												 Hashtable<String, Float> oorTable, boolean canXYBeNegative) throws Elision {
+												 Hashtable<String, Float> oorTable,
+												 boolean canXYBeNegative) throws Elision {
 		int numInd = getDataLength();
 		int bytesPerSamp = Sample.getNBytesPerSampleMarker(nullStatus);
 		int markerBlockSize = numInd * bytesPerSamp;
@@ -960,10 +961,10 @@ public class MarkerData implements Serializable {
 		// Xs
 		for (int i = 0; i < numInd; i++) {
 			boolean oor = canXYBeNegative
-																	 ? !Compression.xyCompressAllowNegative(getXs()[i], mkrBuff,
-																																					buffInd)
-																	 :
-																	 !Compression.xyCompressPositiveOnly(getXs()[i], mkrBuff, buffInd);
+																		? !Compression.xyCompressAllowNegative(getXs()[i], mkrBuff,
+																																					 buffInd)
+																		: !Compression.xyCompressPositiveOnly(getXs()[i], mkrBuff,
+																																					buffInd);
 			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 			if (oor) {
 				oorTable.put(mkrIndLocal + "\t" + i + "\tx", getXs()[i]);
@@ -973,10 +974,10 @@ public class MarkerData implements Serializable {
 		// Ys
 		for (int i = 0; i < numInd; i++) {
 			boolean oor = canXYBeNegative
-																	 ? !Compression.xyCompressAllowNegative(getYs()[i], mkrBuff,
-																																					buffInd)
-																	 :
-																	 !Compression.xyCompressPositiveOnly(getYs()[i], mkrBuff, buffInd);
+																		? !Compression.xyCompressAllowNegative(getYs()[i], mkrBuff,
+																																					 buffInd)
+																		: !Compression.xyCompressPositiveOnly(getYs()[i], mkrBuff,
+																																					buffInd);
 			buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
 			if (oor) {
 				oorTable.put(mkrIndLocal + "\t" + i + "\ty", getYs()[i]);
@@ -1001,11 +1002,11 @@ public class MarkerData implements Serializable {
 		// Genotypes
 		for (int i = 0; i < numInd; i++) {
 			mkrBuff[buffInd] = Compression.genotypeCompress(getAbGenotypes() == null
-																																							? -1
-																																							: getAbGenotypes()[i],
+																																							 ? -1
+																																							 : getAbGenotypes()[i],
 																											getForwardGenotypes() == null
-																																									 ? 0
-																																									 : getForwardGenotypes()[i]);
+																																										? 0
+																																										: getForwardGenotypes()[i]);
 			buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
 		}
 

@@ -677,7 +677,7 @@ public class PlinkData {
 
 		targetMarkers = targetMarkersFilename;
 		if (targetMarkers != null && new File(targetMarkers).exists()) {
-			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, new int[] {0}, false);
 			indices = new int[targets.length];
 			prob = false;
 			for (int i = 0; i < targets.length; i++) {
@@ -745,9 +745,8 @@ public class PlinkData {
 		if (clusterFiltersFilename != null) {
 			// clusterFiltersFilename =
 			// proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
-			if (Files.exists(clusterFiltersFilename, proj.JAR_STATUS.getValue())) {
-				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename,
-																															 proj.JAR_STATUS.getValue());
+			if (Files.exists(clusterFiltersFilename)) {
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename);
 			} else {
 				proj.message("Error - cluster filter collection is not found at '" + clusterFiltersFilename
 										 + "'");
@@ -893,8 +892,8 @@ public class PlinkData {
 			if (invalidAbLookups.size() > 0) {
 				proj.message("There "
 										 + (invalidAbLookups.size() == 1 ? " was one marker "
-																										: "were " + invalidAbLookups.size()
-																											+ " markers")
+																										 : "were " + invalidAbLookups.size()
+																											 + " markers")
 										 + " with an invalid set of AB lookup codes that had been manually reclustered and now needs a full complement. Run \"java -jar genvisis.jar cnv.filesys.ABLookup -h\" for options on how to fill these in, and check "
 										 + proj.getProperty(proj.DATA_DIRECTORY)
 										 + "invalid_AB_codes.out for a list of variants that this affects.");
@@ -1247,8 +1246,7 @@ public class PlinkData {
 		if (clusterFilterFileName == null) {
 			clusterFilterCollection = null;
 		} else {
-			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName,
-																														 proj.JAR_STATUS.getValue());
+			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName);
 		}
 
 		MarkerDetailSet markerSet = proj.getMarkerSet();
@@ -1411,7 +1409,8 @@ public class PlinkData {
 					// dna.add(null);
 				} else {
 					if (dropSamples == null
-							|| !(dropSamples.contains(line[0] + "\t" + line[1]) || dropSamples.contains(line[6]))) {
+							|| !(dropSamples.contains(line[0] + "\t" + line[1])
+									 || dropSamples.contains(line[6]))) {
 						dna.add(line[6]);
 						writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t"
 													 + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t"
@@ -1511,9 +1510,9 @@ public class PlinkData {
 				iBitSamp = (byte) (j % 4);
 
 				outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
-																		 & (0xff - (0x03 << (iBitMark * 2))))
-																		 | (inputSampBytes[iByteSamp]
-																		 & (0x03 << (iBitSamp * 2))));
+																							& (0xff - (0x03 << (iBitMark * 2))))
+																						 | (inputSampBytes[iByteSamp]
+																								& (0x03 << (iBitSamp * 2))));
 			}
 		}
 
@@ -1577,8 +1576,8 @@ public class PlinkData {
 			iBitSamp = (byte) (j % 4);
 
 			outputMarkBytes[iByteMark] = (byte) ((outputMarkBytes[iByteMark]
-																	 & (0xff - (0x03 << (iBitMark * 2))))
-																	 | (inputSampByte & (0x03 << (iBitSamp * 2))));
+																						& (0xff - (0x03 << (iBitMark * 2))))
+																					 | (inputSampByte & (0x03 << (iBitSamp * 2))));
 		}
 	}
 
@@ -1672,7 +1671,7 @@ public class PlinkData {
 					iBytes++;
 				}
 				result[iBytes] = (byte) ((result[iBytes] & (~(0x03 << shift)))
-												 | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
+																 | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
 				// displayBits(result[iBytes]);
 			}
 		} catch (Elision e) {
@@ -1733,7 +1732,7 @@ public class PlinkData {
 				indexBedBytes = indicesOfSamplesOrMarkers[i] / 4;
 				indexBedByte = indicesOfSamplesOrMarkers[i] % 4;
 				genotypes[i] = decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte
-											 * 2)));
+																																											 * 2)));
 			}
 		} catch (Elision e) {
 			e.printStackTrace();
@@ -2164,7 +2163,7 @@ public class PlinkData {
 					indexBedBytes = sampIndices[j] / 4;
 					indexBedBits = sampIndices[i] % 4;
 					genotypes[j] = decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits
-												 * 2)));
+																																																			* 2)));
 				}
 
 				result[i] = new MarkerData(allMarkersInProj[markersIndicesInProj[i]],
@@ -2370,7 +2369,7 @@ public class PlinkData {
 			log.report(usage);
 
 		} else if (conversionToRun.equals("-genvisisToPed")) {
-			proj = new Project(projPropertyFileFullPath, false);
+			proj = new Project(projPropertyFileFullPath);
 			log = proj.getLog();
 			log.report(ext.getTime() + "\tConverting Genvisis to PLINK text (.ped) data set.");
 			String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);
@@ -2381,7 +2380,7 @@ public class PlinkData {
 																					proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 
 		} else if (conversionToRun.equals("-genvisisToBed")) {
-			proj = new Project(projPropertyFileFullPath, false);
+			proj = new Project(projPropertyFileFullPath);
 			log = proj.getLog();
 			log.report(ext.getTime() + "\tConverting from Genvisis to PLINK binary (.bed) data set.");
 			String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);

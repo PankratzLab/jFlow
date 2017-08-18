@@ -600,7 +600,7 @@ public class ProjectCreationGUI extends JDialog {
 		} else {
 			Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
 		}
-		Project actualProj = new Project(filename, false);
+		Project actualProj = new Project(filename);
 		actualProj.PROJECT_NAME.setValue(name);
 		actualProj.PROJECT_DIRECTORY.setValue(projDir);
 		actualProj.SOURCE_DIRECTORY.setValue(srcDir);

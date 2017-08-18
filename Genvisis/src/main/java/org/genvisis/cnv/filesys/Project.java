@@ -174,9 +174,6 @@ public class Project implements PropertyChangeListener {
 																																			 "", GROUP.SPECIAL_HIDDEN,
 																																			 false, COPY.NO_COPY,
 																																			 Boolean.FALSE);
-	public BooleanProperty JAR_STATUS = new BooleanProperty(this, PropertyKeys.KEY_JAR_STATUS, "",
-																													GROUP.SPECIAL_HIDDEN, true, COPY.VALUE,
-																													Boolean.FALSE);
 	public BooleanProperty DISPLAY_QUANTILES = new BooleanProperty(
 																																 this,
 																																 PropertyKeys.KEY_DISPLAY_QUANTILES,
@@ -712,8 +709,8 @@ public class Project implements PropertyChangeListener {
 																																													this,
 																																													PropertyKeys.KEY_GENOME_BUILD_VERSION,
 																																													"The build version of the genome, options are "
-																																															+ Arrays.asList(GENOME_BUILD.values())
-																																																			.toString(),
+																																																																 + Arrays.asList(GENOME_BUILD.values())
+																																																																				 .toString(),
 																																													GROUP.IMPORT,
 																																													false,
 																																													COPY.VALUE,
@@ -755,17 +752,17 @@ public class Project implements PropertyChangeListener {
 	/*
 	 * Construct a Project from a .properties file
 	 */
-	public Project(String filename, boolean jar) {
-		this(filename, null, jar);
+	public Project(String filename) {
+		this(filename, null);
 	}
 
-	public Project(String filename, String logfile, boolean jar) {
-		this(filename, logfile, jar, true);
+	public Project(String filename, String logfile) {
+		this(filename, logfile, true);
 	}
 
 	// Set LOG_LEVEL to a negative value, if you do not want a log file to be generated in addition to
 	// standard out/err
-	public Project(String filename, String logfile, boolean jar, boolean createHeaders) {
+	public Project(String filename, String logfile, boolean createHeaders) {
 		this();
 
 		if (filename == null) {
@@ -774,15 +771,13 @@ public class Project implements PropertyChangeListener {
 
 		projectPropertiesFilename = filename;
 		screenProperties();
-		loadProperties(filename, jar);
+		loadProperties(filename);
 
 		// setProperty(PROJECT_DIRECTORY, ext.verifyDirFormat(getProperty(PROJECT_DIRECTORY)));
 		// setProperty(SOURCE_DIRECTORY, ext.verifyDirFormat(getProperty(SOURCE_DIRECTORY)));
 		// setProperty(PROJECT_PROPERTIES_FILENAME, filename);
 		// setProperty(SAMPLE_DIRECTORY, ext.verifyDirFormat(getProperty(SAMPLE_DIRECTORY)));
 
-
-		JAR_STATUS.setValue(jar);
 
 		int logLevel;
 
@@ -791,17 +786,15 @@ public class Project implements PropertyChangeListener {
 			logfile = "Genvisis_" + new SimpleDateFormat("yyyy.MM.dd_hh.mm.ssa").format(new Date())
 								+ ".log";
 			String warn = "";
-			if (!JAR_STATUS.getValue()) {
-				String projectDir = PROJECT_DIRECTORY.getValue();
-				if (!Files.exists(projectDir)) {
-					warn = "Project directory: " + projectDir
-								 + " not found. Did project move? Re-creating directory...";
+			String projectDir = PROJECT_DIRECTORY.getValue();
+			if (!Files.exists(projectDir)) {
+				warn = "Project directory: " + projectDir
+							 + " not found. Did project move? Re-creating directory...";
 
-				}
-				logfile = projectDir + "logs/" + logfile;
-				if (!Files.exists(projectDir + "logs/", JAR_STATUS.getValue())) {
-					new File(projectDir + "logs/").mkdirs();
-				}
+			}
+			logfile = projectDir + "logs/" + logfile;
+			if (!Files.exists(projectDir + "logs/")) {
+				new File(projectDir + "logs/").mkdirs();
 			}
 			log = new Logger(logLevel < 0 ? null : logfile, false, Math.abs(logLevel));
 			if (!warn.isEmpty()) {
@@ -815,8 +808,8 @@ public class Project implements PropertyChangeListener {
 				&& (new File(SAMPLE_DIRECTORY.getValue()).list().length > 0)) {
 			// skip source file headers, sample files already parsed
 		} else if (createHeaders
-							 && Files.list(SOURCE_DIRECTORY.getValue(), SOURCE_FILENAME_EXTENSION.getValue(),
-														 false).length > 0) {
+							 && Files.list(SOURCE_DIRECTORY.getValue(),
+														 SOURCE_FILENAME_EXTENSION.getValue()).length > 0) {
 			HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
 			setSourceFileHeaders(headers);
 		}
@@ -905,7 +898,6 @@ public class Project implements PropertyChangeListener {
 		if (Files.exists(file)) {
 			@SuppressWarnings("unchecked")
 			HashMap<String, String> map = (HashMap<String, String>) SerializedFiles.readSerial(file,
-																																												 false,
 																																												 log,
 																																												 false);
 			return map;
@@ -918,7 +910,7 @@ public class Project implements PropertyChangeListener {
 		String sampleDirectory = SAMPLE_DIRECTORY.getValue(false, false);
 		// TODO strict check for #files == #samples?
 		return Files.exists(sampleDirectory)
-					 && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0
+					 && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0
 					 && getSampleList() != null && getSampleList().getSamples().length > 0;
 	}
 
@@ -934,8 +926,6 @@ public class Project implements PropertyChangeListener {
 
 		if (Files.exists(file)) {
 			HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
-																																																												 JAR_STATUS.getValue()
-																																																																	 .booleanValue(),
 																																																												 getLog(),
 																																																												 false);
 			if (headers != null) {
@@ -943,10 +933,10 @@ public class Project implements PropertyChangeListener {
 			} else {
 				// error reading headers; let's delete
 				getLog().reportError(ext.getTime()
-																 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+														 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 				getLog().reportError(ext.getTime()
-																 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-																 + Sample.SAMPLE_FILE_EXTENSION + " files.");
+														 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+														 + Sample.SAMPLE_FILE_EXTENSION + " files.");
 				getLog().reportError(ext.getTime()
 														 + "]\tA quick check (which may be incorrect) suggest this "
 														 + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
@@ -1019,9 +1009,8 @@ public class Project implements PropertyChangeListener {
 	}
 
 	private MarkerDetailSet loadMarkerSet() {
-		if (Files.exists(MARKER_DETAILS_FILENAME.getValue(), JAR_STATUS.getValue())) {
-			MarkerDetailSet loadedMarkerSet = MarkerDetailSet.load(MARKER_DETAILS_FILENAME.getValue(),
-																														 JAR_STATUS.getValue());
+		if (Files.exists(MARKER_DETAILS_FILENAME.getValue())) {
+			MarkerDetailSet loadedMarkerSet = MarkerDetailSet.load(MARKER_DETAILS_FILENAME.getValue());
 			// TODO: check if fingerprint or hashcode matches BLAST VCF, regenerate MarkerDetailSet if not
 			if (loadedMarkerSet != null) {
 				return loadedMarkerSet;
@@ -1030,11 +1019,10 @@ public class Project implements PropertyChangeListener {
 									 + ", regenerating MarkerDetails");
 			}
 		}
-		if (Files.exists(MARKERSET_FILENAME.getValue(), JAR_STATUS.getValue())) {
+		if (Files.exists(MARKERSET_FILENAME.getValue())) {
 			@SuppressWarnings("deprecation")
-			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue(),
-																										JAR_STATUS.getValue());
-			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue(), JAR_STATUS.getValue())) {
+			MarkerSetInfo naiveMarkerSet = MarkerSet.load(MARKERSET_FILENAME.getValue());
+			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
 				log.report("Attempting to generate MarkerDetails from "
 									 + BLAST_ANNOTATION_FILENAME.getValue());
 				MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
@@ -1077,13 +1065,13 @@ public class Project implements PropertyChangeListener {
 	public synchronized MarkerLookup getMarkerLookup() {
 		MarkerLookup markerLookup = markerLookupRef.get();
 		if (markerLookup == null) {
-			if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
-				markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
+			if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
+				markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
 			} else {
 				System.out.println("Failed to find MarkerLookup; generating one...");
 				TransposeData.recreateMarkerLookup(this);
-				if (Files.exists(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue())) {
-					markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue(), JAR_STATUS.getValue());
+				if (Files.exists(MARKERLOOKUP_FILENAME.getValue())) {
+					markerLookup = MarkerLookup.load(MARKERLOOKUP_FILENAME.getValue());
 				} else {
 					log.reportError("Also failed to create MarkerLookup; failing");
 				}
@@ -1096,8 +1084,8 @@ public class Project implements PropertyChangeListener {
 	public synchronized SampleList getSampleList() {
 		SampleList sampleList = sampleListRef.get();
 		if (sampleList == null) {
-			if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false), JAR_STATUS.getValue())) {
-				sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue(), JAR_STATUS.getValue());
+			if (Files.exists(SAMPLELIST_FILENAME.getValue(false, false))) {
+				sampleList = SampleList.load(SAMPLELIST_FILENAME.getValue());
 			}
 			if (sampleList == null) {
 				log.report("Failed to find SampleList; generating one...");
@@ -1222,31 +1210,29 @@ public class Project implements PropertyChangeListener {
 	}
 
 	public Sample getFullSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-										 JAR_STATUS.getValue())) {
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample
+										 + Sample.SAMPLE_FILE_EXTENSION)) {
 			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
-																						 + Sample.SAMPLE_FILE_EXTENSION, JAR_STATUS.getValue());
+																						 + Sample.SAMPLE_FILE_EXTENSION);
 		} else {
 			return null;
 		}
 	}
 
 	public Sample getFullSampleFromSerialized(String sample) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp",
-										 JAR_STATUS.getValue())) {
-			return Sample.loadFromSerialized(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp",
-																			 JAR_STATUS.getValue());
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp")) {
+			return Sample.loadFromSerialized(SAMPLE_DIRECTORY.getValue(false, true) + sample + ".fsamp");
 		} else {
 			return null;
 		}
 	}
 
 	public Sample getPartialSampleFromRandomAccessFile(String sample) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-										 JAR_STATUS.getValue())) {
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample
+										 + Sample.SAMPLE_FILE_EXTENSION)) {
 			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
 																						 + Sample.SAMPLE_FILE_EXTENSION, false, false, true,
-																						 true, false, JAR_STATUS.getValue());
+																						 true, false);
 		} else {
 			return null;
 		}
@@ -1254,12 +1240,11 @@ public class Project implements PropertyChangeListener {
 
 	public Sample getPartialSampleFromRandomAccessFile(String sample, boolean gc, boolean xy,
 																										 boolean baf, boolean lrr, boolean geno) {
-		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample + Sample.SAMPLE_FILE_EXTENSION,
-										 JAR_STATUS.getValue())) {
+		if (Files.exists(SAMPLE_DIRECTORY.getValue(false, true) + sample
+										 + Sample.SAMPLE_FILE_EXTENSION)) {
 			return Sample.loadFromRandomAccessFile(SAMPLE_DIRECTORY.getValue(false, true) + sample
 																						 + Sample.SAMPLE_FILE_EXTENSION, gc, xy, baf, lrr,
-																						 geno,
-																						 JAR_STATUS.getValue());
+																						 geno);
 		} else {
 			return null;
 		}
@@ -1296,9 +1281,9 @@ public class Project implements PropertyChangeListener {
 	public Hashtable<String, String> getFilteredHash() {
 		if (getProperty(FILTERED_MARKERS_FILENAME).equals("")) {
 			return new Hashtable<String, String>();
-		} else if (Files.exists(FILTERED_MARKERS_FILENAME.getValue(), JAR_STATUS.getValue())) {
+		} else if (Files.exists(FILTERED_MARKERS_FILENAME.getValue())) {
 			return HashVec.loadFileToHashString(FILTERED_MARKERS_FILENAME.getValue(), 0, new int[] {0},
-																					"", false, JAR_STATUS.getValue());
+																					"", false);
 		} else {
 			System.err.println("Error - '" + FILTERED_MARKERS_FILENAME.getValue(false, false)
 												 + "' not found");
@@ -1311,7 +1296,7 @@ public class Project implements PropertyChangeListener {
 		String[] files;
 		List<String> v;
 
-		files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds", JAR_STATUS.getValue());
+		files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds");
 
 		v = new ArrayList<String>();
 		if (files == null) {
@@ -1331,7 +1316,7 @@ public class Project implements PropertyChangeListener {
 
 		filename = CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, false);
 		if (Files.exists(filename)) {
-			return ClusterFilterCollection.load(filename, JAR_STATUS.getValue());
+			return ClusterFilterCollection.load(filename);
 		} else {
 			log.reportError("Warning - could not find cluster filter file, assuming no markers have been reclustered ("
 											+ filename + ")");
@@ -1345,7 +1330,7 @@ public class Project implements PropertyChangeListener {
 		filename = ANNOTATION_FILENAME.getValue();
 		if (Files.exists(filename)) {
 			System.out.println("Loading annotation from: " + filename);
-			return AnnotationCollection.load(filename, JAR_STATUS.getValue());
+			return AnnotationCollection.load(filename);
 		} else {
 			return null;
 		}
@@ -1598,19 +1583,12 @@ public class Project implements PropertyChangeListener {
 		saveProperties(outfile, getPropertyKeys());
 	}
 
-	public void loadProperties(String filename, boolean jar) {
+	public void loadProperties(String filename) {
 		InputStream is;
 
 		try {
 			loadingProperties = true;
-			if (jar) {
-				// if (verbose) {
-				// System.out.println("Loading '"+filename+"'");
-				// }
-				is = ClassLoader.getSystemResourceAsStream(filename);
-			} else {
-				is = new FileInputStream(filename);
-			}
+			is = new FileInputStream(filename);
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 			String line = "";
 			while ((line = reader.readLine()) != null) {
@@ -1739,7 +1717,7 @@ public class Project implements PropertyChangeListener {
 
 		targetMarkers = targetMarkerFile;
 		if (new File(targetMarkers).exists()) {
-			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, true);
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, new int[] {0}, true);
 		} else {
 			if (!targetMarkers.equals("")) {
 				log.report("FYI, since target markers file '" + targetMarkers
@@ -1879,10 +1857,10 @@ public class Project implements PropertyChangeListener {
 				// Get sex values for all samples
 				Hashtable<String, String> sexMap = HashVec.loadFileToHashString(samples, sampleCol,
 																																				new int[] {sexCol}, "\t",
-																																				true, false);
+																																				true);
 				// Load pedigree file
 				Hashtable<String, String> pedigreeMap = HashVec.loadFileToHashString(ped, 6, new int[] {4},
-																																						 "\t", false, false);
+																																						 "\t", false);
 
 				Map<String, String> misMatches = new HashMap<String, String>();
 				int zeroPeds = 0;
@@ -2269,7 +2247,7 @@ public class Project implements PropertyChangeListener {
 
 	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
 		return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-																		: sourceFileHeaders;
+																		 : sourceFileHeaders;
 	}
 
 	public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
@@ -2290,7 +2268,7 @@ public class Project implements PropertyChangeListener {
 																					"." + tag);
 		Files.copyFileUsingFileChannels(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(),
 																		newProjectFile, projOriginal.getLog());
-		Project projCorrected = new Project(newProjectFile, false);
+		Project projCorrected = new Project(newProjectFile);
 		String newDir = projOriginal.PROJECT_DIRECTORY.getValue() + tag + "/";
 		projOriginal.getLog().reportTimeInfo("Preparing project " + newProjectFile + " in " + newDir);
 		new File(newDir).mkdirs();
@@ -2338,7 +2316,7 @@ public class Project implements PropertyChangeListener {
 			System.exit(1);
 		}
 
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 		for (Entry<String, String> kv : kvPairs.entrySet()) {
 			try {
 				proj.setProperty(kv.getKey(), kv.getValue());

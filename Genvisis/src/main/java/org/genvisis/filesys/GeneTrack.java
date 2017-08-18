@@ -25,7 +25,7 @@ public class GeneTrack implements Serializable {
 		Vector<GeneData> v;
 		int chr;
 		String[] chrs;
-		GeneData[] set = GeneSet.load(geneSetFilename, false).getSet();
+		GeneData[] set = GeneSet.load(geneSetFilename).getSet();
 		int[] keys, poslar;
 
 		for (GeneData element : set) {
@@ -211,8 +211,8 @@ public class GeneTrack implements Serializable {
 		return gLocusSet;
 	}
 
-	public static GeneTrack load(String filename, boolean jar) {
-		return (GeneTrack) SerializedFiles.readSerial(filename, jar, false);
+	public static GeneTrack load(String filename) {
+		return (GeneTrack) SerializedFiles.readSerial(filename, false);
 	}
 
 

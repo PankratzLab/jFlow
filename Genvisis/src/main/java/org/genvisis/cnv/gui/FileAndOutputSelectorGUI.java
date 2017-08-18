@@ -99,8 +99,8 @@ public class FileAndOutputSelectorGUI extends JDialog {
 																	 final String outputSuggestion, final int outMode) {
 		super(parent, true);
 		setTitle("Select Input and Output Files");
-		setMinimumSize(new Dimension(100,100));
-		setPreferredSize(new Dimension(460,192));
+		setMinimumSize(new Dimension(100, 100));
+		setPreferredSize(new Dimension(460, 192));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -213,7 +213,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
 																	 boolean inSuggAsCombo) {
 		super(parent, true);
 		setTitle("Select Input and Output Files");
-		setMinimumSize(new Dimension(100,100));
+		setMinimumSize(new Dimension(100, 100));
 		setPreferredSize(new Dimension(460, 192));
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));

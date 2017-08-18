@@ -937,8 +937,8 @@ public class GenvisisWorkflow {
 					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
 					boolean returnValue = mkrSetFile;
 					returnValue = returnValue && Files.exists(sampleDirectory);
-					returnValue = returnValue && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION,
-																									false).length > 0;
+					returnValue = returnValue
+												&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0;
 					returnValue = returnValue && proj.getSampleList() != null;
 					returnValue = returnValue && proj.getSampleList().getSamples().length > 0;
 					return returnValue;
@@ -1097,7 +1097,7 @@ public class GenvisisWorkflow {
 				@Override
 				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
 					return Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
-														MarkerData.MARKER_DATA_FILE_EXTENSION, false).length > 0;
+														MarkerData.MARKER_DATA_FILE_EXTENSION).length > 0;
 				}
 			});
 		}
@@ -1669,8 +1669,8 @@ public class GenvisisWorkflow {
 					String dir = getPlinkDir() + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
 					String qcdPlinkroot = PLINKROOT + FurtherAnalysisQc.FURTHER_ANALYSIS_QC_PLINK_SUFFIX;
 					return PSF.Plink.bedBimFamExist(dir + qcdPlinkroot)
-								 && Files.exists(dir + FurtherAnalysisQc.SAMPLE_QC_DROPS, false, false)
-								 && Files.exists(dir + FurtherAnalysisQc.MARKER_QC_DROPS, false, false);
+								 && Files.exists(dir + FurtherAnalysisQc.SAMPLE_QC_DROPS, false)
+								 && Files.exists(dir + FurtherAnalysisQc.MARKER_QC_DROPS, false);
 				}
 
 				private String resolveUnrelatedsFile(Map<Requirement, String> stepVars) {
@@ -2296,10 +2296,8 @@ public class GenvisisWorkflow {
 					if (useCentroids) {
 						if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
 								&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-							cents[0] = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
-																				proj.JAR_STATUS.getValue());
-							cents[1] = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
-																				proj.JAR_STATUS.getValue());
+							cents[0] = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue());
+							cents[1] = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue());
 						}
 					}
 
@@ -2663,7 +2661,7 @@ public class GenvisisWorkflow {
 
 
 	static void setupCNVCalling(String projectProperties) {
-		Project pcProj = new Project(projectProperties, false);
+		Project pcProj = new Project(projectProperties);
 		StepBuilder sb = (new GenvisisWorkflow(pcProj, null)).new StepBuilder();
 		Step transpose = sb.generateTransposeStep(null);
 		// Create new sample data, run sex checks?

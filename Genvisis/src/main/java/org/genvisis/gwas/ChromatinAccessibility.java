@@ -66,7 +66,7 @@ public class ChromatinAccessibility {
 		String[] files;
 		double[][] matrix;
 
-		files = Files.list(dir, ".bed", false);
+		files = Files.list(dir, ".bed");
 		try {
 			writer = Files.openAppropriateWriter("odd.xln");
 			for (String file : files) {
@@ -133,17 +133,17 @@ public class ChromatinAccessibility {
 		Vector<Segment> vSeg;
 		byte chr;
 
-		files = Files.list(dir, ".bed", false);
+		files = Files.list(dir, ".bed");
 		segs = new Segment[files.length + 1][CLASSES.length][26][];
 		try {
 			System.out.println("Tissue\tSerialized\ttimeToLoad\tClass\tProportion affected\tnumIn\tnumOut\tClass\tProportion affected\tnumIn\tnumOut");
 
 			for (int i = 0; i < files.length; i++) {
 				System.out.print(ext.rootOf(files[i]));
-				if (Files.exists(dir + files[i] + "_" + CLASSES[0] + ".ser", false)) {
+				if (Files.exists(dir + files[i] + "_" + CLASSES[0] + ".ser")) {
 					time = new Date().getTime();
 					for (int j = 0; j < CLASSES.length; j++) {
-						segs[i][j] = SegmentLists.load(dir + files[i] + "_" + CLASSES[j] + ".ser", false)
+						segs[i][j] = SegmentLists.load(dir + files[i] + "_" + CLASSES[j] + ".ser")
 																		 .getLists();
 					}
 					// System.out.println("Re-loaded serialized version of '"+ext.rootOf(files[i])+"' in " +
@@ -211,10 +211,9 @@ public class ChromatinAccessibility {
 
 		time = new Date().getTime();
 		System.out.print("AllMerged");
-		if (Files.exists(dir + "allFilesMerged_" + CLASSES[0] + ".ser", false)) {
+		if (Files.exists(dir + "allFilesMerged_" + CLASSES[0] + ".ser")) {
 			for (int j = 0; j < CLASSES.length; j++) {
-				segs[files.length][j] = SegmentLists.load(dir + "allFilesMerged_" + CLASSES[j] + ".ser",
-																									false)
+				segs[files.length][j] = SegmentLists.load(dir + "allFilesMerged_" + CLASSES[j] + ".ser")
 																						.getLists();
 			}
 			// System.out.println("Re-loaded serialized version of the merged summaries in " +
@@ -273,7 +272,7 @@ public class ChromatinAccessibility {
 		byte chr;
 		boolean in;
 
-		files = Files.list(bed_dir, ".bed", false);
+		files = Files.list(bed_dir, ".bed");
 		segs = loadSegments(bed_dir);
 
 		file_dir = ext.parseDirectoryOfFile(filename);

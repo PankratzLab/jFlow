@@ -78,7 +78,7 @@ public class BlastAnnotationTesting {
 		new File(ext.parseDirectoryOfFile(annoFile)).mkdirs();
 		String[] blastResultFiles = Files.list("/home/pankrat2/shared/aric_exome_chip/Blasts/",
 																					 "GPL18544_humanexome-12v1_a.csv.blasted.ws.30.rep.0.tmp",
-																					 null, true, false, true);
+																					 null, true, true);
 		int minAlignmentLength = proj.getArrayType().getProbeLength() - 10;
 		int maxGaps = 10;
 		int maxMismatches = 10;
@@ -198,7 +198,7 @@ public class BlastAnnotationTesting {
 
 	public static void main(String[] args) {
 		// Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
-		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties", false);
+		Project proj = new Project("/home/pankrat2/lanej/projects/gedi_gwas.properties");
 		// String annoFile = proj.PROJECT_DIRECTORY.getValue() + "TestBlastLoad/blast.anno.vcf.gz";
 		testHistogram(proj);
 		// test(proj, annoFile);

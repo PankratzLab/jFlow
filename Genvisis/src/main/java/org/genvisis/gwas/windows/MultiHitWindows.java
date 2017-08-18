@@ -543,7 +543,7 @@ public class MultiHitWindows {
 																										 .window(c.getI(WINDOW));
 
 		if (c.has(CLI.ARG_PROJ)) {
-			generateHitWindows(outSuffix, pFile, hitParams, new Project(c.get(CLI.ARG_PROJ), false));
+			generateHitWindows(outSuffix, pFile, hitParams, new Project(c.get(CLI.ARG_PROJ)));
 		} else if (c.has(MARKER_SET)) {
 			generateHitWindows(outSuffix, pFile, hitParams, -1, c.get(MARKER_SET));
 		} else if (c.has(BUILD)) {

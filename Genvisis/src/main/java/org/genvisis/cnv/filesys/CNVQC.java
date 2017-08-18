@@ -18,8 +18,8 @@ public class CNVQC implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static CNVQC load(String filename, boolean jar) {
-		return (CNVQC) SerializedFiles.readSerial(filename, jar, true);
+	public static CNVQC load(String filename) {
+		return (CNVQC) SerializedFiles.readSerial(filename, true);
 	}
 
 	public CNVariantQC[] getCnVariantQCs() {

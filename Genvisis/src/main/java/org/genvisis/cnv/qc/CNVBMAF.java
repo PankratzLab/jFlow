@@ -182,7 +182,7 @@ public class CNVBMAF extends CNVBDeviation {
 	}
 
 	public static void test() {
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		// String display = proj.getFilename(proj.DISPLAY_MARKERS_FILENAME);
 		String display = proj.DISPLAY_MARKERS_FILENAMES.getValue()[0];
 		String[] markers = HashVec.loadFileToStringArray(display, false, new int[] {0}, true);

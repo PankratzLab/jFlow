@@ -106,7 +106,7 @@ public class Samtools {
 			Files.chmod(pwd + "samCountReadsPerChr");
 		}
 
-		files = Files.list(dir, null, ".bam", false, false);
+		files = Files.list(dir, null, ".bam", false);
 		if (files.length == 0) {
 			log.reportError("There were no .bam files to be found in " + dir);
 		}

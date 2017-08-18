@@ -26,7 +26,7 @@ public class RareVariants {
 		double[] perms;
 
 		wss = new WeightedSumStatistic(root);
-		subsets = HashVec.loadFileToStringMatrix(filename, false, null, false);
+		subsets = HashVec.loadFileToStringMatrix(filename, false, null);
 
 		time = new Date().getTime();
 		for (String[] subset : subsets) {
@@ -63,7 +63,7 @@ public class RareVariants {
 
 		subsets = new String[markerSets.length][][];
 		for (int k = 0; k < markerSets.length; k++) {
-			subsets[k] = HashVec.loadFileToStringMatrix(analysis_dir + markerSets[k], false, null, false);
+			subsets[k] = HashVec.loadFileToStringMatrix(analysis_dir + markerSets[k], false, null);
 		}
 		System.out.println(ext.getTime() + "\t" + pop);
 		wss = new WeightedSumStatistic(analysis_dir + pop);
@@ -80,7 +80,7 @@ public class RareVariants {
 																																									 + filename, "\t",
 																																									 new Logger()),
 																														 false, true),
-																						false, "\t", true, false, false);
+																						false, "\t", true, false);
 				ids = wss.getIDs();
 				trait = new double[ids.length];
 				for (int i = 0; i < ids.length; i++) {

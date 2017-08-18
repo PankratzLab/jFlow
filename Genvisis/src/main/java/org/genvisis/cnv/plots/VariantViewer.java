@@ -1,13 +1,5 @@
 package org.genvisis.cnv.plots;
 
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeType;
-import htsjdk.variant.variantcontext.GenotypesContext;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
-import htsjdk.variant.vcf.VCFHeader;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -79,8 +71,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.CLI;
 import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
@@ -105,6 +95,15 @@ import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
+
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeType;
+import htsjdk.variant.variantcontext.GenotypesContext;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFHeader;
+import net.miginfocom.swing.MigLayout;
 
 public class VariantViewer extends JFrame implements ActionListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	private static final String COLLAPSE_ISOFORMS_KEY = "Collapse Isoforms";
@@ -172,7 +171,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private String[] isoformsPresent;
 	private JButton previousGene, nextGene;
 	private Project proj;
-	private boolean jar;
 	private byte chr;
 	private int start;
 	private int stop;
@@ -352,9 +350,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 					return;
 				}
 				String tempFile = (file.startsWith("./") && proj != null)
-																																 ? proj.PROJECT_DIRECTORY.getValue()
-																																	 + file
-																																 : file;
+																																	? proj.PROJECT_DIRECTORY.getValue()
+																																		+ file
+																																	: file;
 				if (!Files.exists(tempFile)) {
 					String msg = "Error - region file '" + shortName + "' doesn't exist.";
 					if (proj != null) {
@@ -461,7 +459,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						String message = newSet.size() + " files have been added.  ";
 						int choice = JOptionPane.showOptionDialog(null,
 																											message
-																													+ " Would you like to keep this configuration for the next time VariantViewer is loaded?",
+																														+ " Would you like to keep this configuration for the next time VariantViewer is loaded?",
 																											"Preserve VariantViewer workspace?",
 																											JOptionPane.YES_NO_CANCEL_OPTION,
 																											JOptionPane.QUESTION_MESSAGE, null, null,
@@ -480,7 +478,6 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 		this.proj = proj;
 		log = proj == null ? new Logger() : proj.getLog();
-		jar = proj == null ? false : proj.JAR_STATUS.getValue();
 		this.vcfFiles = vcfFiles;
 		generateSampleLists(vcfFiles);
 		this.popFile = popFile;
@@ -498,7 +495,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		if (geneTrack.isAvailable()) {
 			String trackPath = geneTrack.get();
 			log.report("Loading track from " + trackPath);
-			track = GeneTrack.load(trackPath, jar);
+			track = GeneTrack.load(trackPath);
 			log.report("Loaded track in " + ext.getTimeElapsed(time));
 		} else {
 			log.report("Cannot create display without GeneTrack");
@@ -597,8 +594,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						chrMap.put((int) geneData[i][g].getChr(), isoMap);
 					}
 					isoMap.put(geneData[i][g].isCollapsedIsoforms()
-																												 ? COLLAPSE_ISOFORMS_KEY
-																												 : geneData[i][g].getNcbiAssessionNumbers()[0],
+																													? COLLAPSE_ISOFORMS_KEY
+																													: geneData[i][g].getNcbiAssessionNumbers()[0],
 										 geneData[i][g]);
 				}
 				for (Entry<Integer, HashMap<String, GeneData>> chrEntry : chrMap.entrySet()) {
@@ -727,10 +724,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		if (g instanceof Graphics2D) {
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_ANTIALIAS_OFF);
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		}
 		display = genePanel.getVisibleRect();
 		g.setColor(genePanel.getBackground());
@@ -1029,9 +1026,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 										}
 									} while (overlap
 													 && (vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
-													 + 2) < display.height/* && xOffset <= 20 */); // running off
-																																				 // top of
-																																				 // screen
+															 + 2) < display.height/* && xOffset <= 20 */); // running off
+																																						 // top of
+																																						 // screen
 									maxIndiRise = Math.max(indiRise, maxIndiRise);
 									DrawType dt = DrawType.getDrawType(vc.vc);
 									if (dt != null && !hiddenDrawTypes.contains(dt) && !overlap) {
@@ -1041,7 +1038,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 										}
 										plotted.add(vcRect);
 										if ((vcRect.y + vcRect.height + yStart + GENE_HEIGHT + dataPntSize
-										+ 2) < display.height) {
+												 + 2) < display.height) {
 											DrawPoint dp = new DrawPoint(vcRect.x, vcRect.y, vcRect.height, vcRect.width,
 																									 DrawType.getDrawType(vc.vc),
 																									 popColorMap.get(pop), geno.getSampleName(), vc);
@@ -1320,8 +1317,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		jlbl = new JLabel("Low Impact");
 		jlbl.setFont(jlbl.getFont()
 										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Low Impact"))
-																																														 ? Font.ITALIC
-																																														 : Font.PLAIN));
+																																															? Font.ITALIC
+																																															: Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 2");
 
@@ -1347,8 +1344,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		jlbl = new JLabel("Moderate Impact");
 		jlbl.setFont(jlbl.getFont()
 										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Moderate Impact"))
-																																																	? Font.ITALIC
-																																																	: Font.PLAIN));
+																																																	 ? Font.ITALIC
+																																																	 : Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 3");
 
@@ -1380,8 +1377,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		jlbl = new JLabel("High Impact");
 		jlbl.setFont(jlbl.getFont()
 										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("High Impact"))
-																																															? Font.ITALIC
-																																															: Font.PLAIN));
+																																															 ? Font.ITALIC
+																																															 : Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 4");
 
@@ -1406,8 +1403,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		jlbl = new JLabel("Modifier");
 		jlbl.setFont(jlbl.getFont()
 										 .deriveFont(hiddenDrawTypes.contains(DrawType.getDrawType("Modifier"))
-																																													 ? Font.ITALIC
-																																													 : Font.PLAIN));
+																																														? Font.ITALIC
+																																														: Font.PLAIN));
 		jlbl.addMouseListener(hideType);
 		legendPanel.add(jlbl, "cell 1 5");
 
@@ -1415,9 +1412,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		if (popColorMap != null) {
 			for (final Entry<String, Color> colEntry : popColorMap.entrySet()) {
 				String lbl = lblMap.containsKey(colEntry.getKey()) ? lblMap.get(colEntry.getKey())
-																													: colEntry.getKey() + " (n="
-																														+ getPopulationCount(colEntry.getKey())
-																														+ ")";
+																													 : colEntry.getKey() + " (n="
+																														 + getPopulationCount(colEntry.getKey())
+																														 + ")";
 				jlbl = new JLabel() {
 					/**
 					*
@@ -1442,7 +1439,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				final JLabel jlbl1 = new JLabel(lbl);
 				jlbl1.setFont(jlbl1.getFont()
 													 .deriveFont(hiddenPops.contains(colEntry.getKey()) ? Font.ITALIC
-																																						 : Font.PLAIN));
+																																							: Font.PLAIN));
 				jlbl1.addMouseListener(new MouseAdapter() {
 					@Override
 					public void mouseClicked(MouseEvent e) {
@@ -1480,7 +1477,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		float fsz = (float) Math.min(14d, 11 / prop);
 		// float fsz = 11f;
 		Font newFont = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
-																												 : Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
+																													: Fonts.SOURCE_CODE_PRO_REGULAR).deriveFont(fsz);
 		g.setFont(newFont);
 		FontMetrics fm = g.getFontMetrics();
 
@@ -1491,8 +1488,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		ArrayList<String> pops = new ArrayList<String>();
 
 		for (Entry<String, HashSet<String>> popSetEntry : (showExcludes
-																																	 ? popIndiMapWithExcludes.entrySet()
-																																	 : popIndiMap.entrySet())) {
+																																		? popIndiMapWithExcludes.entrySet()
+																																		: popIndiMap.entrySet())) {
 			for (VCFLocation vcfLoc : vcfLocs) {
 				if (DrawType.getDrawType(vcfLoc.vc) == null) {
 					continue;
@@ -1519,9 +1516,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						continue;
 					}
 					String draw = vcfLocs.get(v).mafMap.containsKey(pops.get(i))
-																																			? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)),
-																																										 4)
-																																			: "--";
+																																			 ? ext.formDeci(vcfLocs.get(v).mafMap.get(pops.get(i)),
+																																											4)
+																																			 : "--";
 					int width = fm.stringWidth(draw);
 					if (v < vcfLocs.size() - 1) {
 						if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1529,10 +1526,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						}
 					} else if (v > 0) {
 						String prevDraw = vcfLocs.get(v - 1).mafMap.containsKey(pops.get(i))
-																																								? ext.formDeci(vcfLocs.get(v
-																																																			- 1).mafMap.get(pops.get(i)),
-																																															 4)
-																																								: "--";
+																																								 ? ext.formDeci(vcfLocs.get(v
+																																																						- 1).mafMap.get(pops.get(i)),
+																																																4)
+																																								 : "--";
 						if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
 							draw = "*";
 						}
@@ -1570,9 +1567,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						continue;
 					}
 					String draw = vcfLocs.get(v).macMap.containsKey(pops.get(i))
-																																			? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)),
-																																										 4)
-																																			: "--";
+																																			 ? ext.formDeci(vcfLocs.get(v).macMap.get(pops.get(i)),
+																																											4)
+																																			 : "--";
 					int width = fm.stringWidth(draw);
 					if (v < vcfLocs.size() - 1) {
 						if (vcfLocs.get(v).x + width > vcfLocs.get(v + 1).x) {
@@ -1580,10 +1577,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 						}
 					} else if (v > 0) {
 						String prevDraw = vcfLocs.get(v - 1).macMap.containsKey(pops.get(i))
-																																								? ext.formDeci(vcfLocs.get(v
-																																																			- 1).macMap.get(pops.get(i)),
-																																															 4)
-																																								: "--";
+																																								 ? ext.formDeci(vcfLocs.get(v
+																																																						- 1).macMap.get(pops.get(i)),
+																																																4)
+																																								 : "--";
 						if (vcfLocs.get(v).x < vcfLocs.get(v - 1).x + fm.stringWidth(prevDraw)) {
 							draw = "*";
 						}
@@ -1633,7 +1630,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
 	private int getX(int pos) {
 		return (int) ((double) (pos - start) / (double) (stop - start)
-					 * (getWidth() - 2 * WIDTH_BUFFER))
+									* (getWidth() - 2 * WIDTH_BUFFER))
 					 + WIDTH_BUFFER;
 	}
 
@@ -1641,8 +1638,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		JFileChooser jfc = new JFileChooser(
 																				(proj != null
 																				 || geneFileName == null
-																																? proj.PROJECT_DIRECTORY.getValue()
-																																: ext.parseDirectoryOfFile(geneFileName)));
+																																 ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ext.parseDirectoryOfFile(geneFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(VariantViewer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -1783,10 +1780,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				if (g instanceof Graphics2D) {
 					((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 																						antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
-																										 : RenderingHints.VALUE_ANTIALIAS_OFF);
+																											: RenderingHints.VALUE_ANTIALIAS_OFF);
 					((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 																						antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-																										 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+																											: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 				}
 				super.paintComponent(g);
 			}
@@ -2038,8 +2035,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			public void actionPerformed(ActionEvent e) {
 				ListEditor le = ListEditor.createRegionListCreator(proj == null ? null : proj.getSamples(),
 																													 proj == null
-																																			 ? null
-																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																																				? null
+																																				: proj.PROJECT_DIRECTORY.getValue(),
 																													 true);
 				le.setModal(true);
 				le.setVisible(true);
@@ -2619,10 +2616,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 					selectedDrawPoint = activePoints.get(i);
 				}
 				genePanel.setToolTipText(selectedBlockDraw == null
-																													? selectedDrawPoint == null
-																																										 ? null
-																																										 : buildToolTip(selectedDrawPoint)
-																													: buildToolTip(selectedBlockDraw));
+																													 ? selectedDrawPoint == null
+																																											 ? null
+																																											 : buildToolTip(selectedDrawPoint)
+																													 : buildToolTip(selectedBlockDraw));
 				MouseEvent phantom = new MouseEvent(e.getComponent(), MouseEvent.MOUSE_MOVED,
 																						System.currentTimeMillis(), 0, x, e.getY(), 0, false);
 				ToolTipManager.sharedInstance().mouseMoved(phantom); // order of mouseMoved calls doesn't
@@ -2644,7 +2641,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 	private int getStart(boolean buffered) {
 		GeneData gd = getCurrentGeneData();
 		return gd == null ? (buffered ? -1 * MIN_BUFFER : 0)
-										 : getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
+											: getCurrentGeneData().getStart() - (buffered ? MIN_BUFFER : 0);
 	}
 
 	private int getStop() {
@@ -2853,8 +2850,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 			if (track == null) {
 				JOptionPane.showMessageDialog(this,
 																			"Cannot parse '"
-																					+ location
-																					+ "' since the gene track has either not been installed or did not load properly.",
+																						+ location
+																						+ "' since the gene track has either not been installed or did not load properly.",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			} else {
@@ -2862,8 +2859,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 				if (loc[0] == -1) {
 					JOptionPane.showMessageDialog(this,
 																				"'"
-																						+ location
-																						+ "' is not a valid gene name and is not a valid UCSC location.",
+																							+ location
+																							+ "' is not a valid gene name and is not a valid UCSC location.",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}

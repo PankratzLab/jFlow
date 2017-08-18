@@ -141,12 +141,12 @@ public class PennCNVPrep {
 																							 null,
 																							 null,
 																							 (preserveBafs
-																							 || correctionType == CORRECTION_TYPE.LRR_ONLY)
-																																														 ? markerData.getBAFs()
-																																														 : correctedLRRBAF[0],
+																								|| correctionType == CORRECTION_TYPE.LRR_ONLY)
+																																															 ? markerData.getBAFs()
+																																															 : correctedLRRBAF[0],
 																							 correctionType == CORRECTION_TYPE.XY
-																																									 ? correctedLRRBAF[1]
-																																									 : principalComponentsIntensity.getCorrectedLRR(),
+																																										? correctedLRRBAF[1]
+																																										: principalComponentsIntensity.getCorrectedLRR(),
 																							 abGenotypes, abGenotypes);
 					}
 				}
@@ -158,7 +158,7 @@ public class PennCNVPrep {
 				Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
 												 output.replaceAll("\\.ser",
 																					 "_") + notCorrected.size()
-														 + "_markersThatFailedCorrection.txt");
+																																								+ "_markersThatFailedCorrection.txt");
 			}
 		} else {
 			proj.getLog().reportFileExists(output);
@@ -186,8 +186,7 @@ public class PennCNVPrep {
 		PennCNVIndividual[] pennCNVIndividuals = initSamples(proj, dir, subSamples, false,
 																												 numMarkersPerWrite, proj.getLog());
 		for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
-			MarkerDataStorage markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i],
-																																	 false);
+			MarkerDataStorage markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i]);
 			MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
 			for (int j = 0; j < markerDatas.length; j++) {
 				addData(numMarkersThisRound, pennCNVIndividuals, markerDatas[j].getBAFs(),
@@ -212,12 +211,11 @@ public class PennCNVPrep {
 	 * This method is thread-safe and will ensure only one thread actually loads a given marker data
 	 * file. This allows marker data to be shared across threads to prevent unnecessary re-loading.
 	 */
-	private static MarkerDataStorage loadMarkersIfNeeded(String markerDataFile, boolean jar,
-																											 Logger log) {
+	private static MarkerDataStorage loadMarkersIfNeeded(String markerDataFile, Logger log) {
 		MarkerDataStorage markerDataStorage = fileToMarkerMap.get(markerDataFile);
 		if (markerDataStorage == null) {
 			// Load the MarkerDataStorage for this file in a thread-safe way
-			markerDataStorage = loadMarkers(markerDataFile, jar, log);
+			markerDataStorage = loadMarkers(markerDataFile, log);
 		}
 		return markerDataStorage;
 	}
@@ -225,14 +223,13 @@ public class PennCNVPrep {
 	/**
 	 * Synchronized to ensure the actual loading only happens once
 	 */
-	private static synchronized MarkerDataStorage loadMarkers(String markerDataFile, boolean jar,
-																														Logger log) {
+	private static synchronized MarkerDataStorage loadMarkers(String markerDataFile, Logger log) {
 		// Double-check to ensure another thread didn't already load this file
 		// while we were waiting for a lock
 		MarkerDataStorage markerDataStorage;
 		if (!fileToMarkerMap.containsKey(markerDataFile)) {
 			log.reportTimeInfo("Loading " + markerDataFile);
-			markerDataStorage = MarkerDataStorage.load(markerDataFile, jar);
+			markerDataStorage = MarkerDataStorage.load(markerDataFile);
 			log.reportTimeInfo("Finished loading " + markerDataFile);
 			fileToMarkerMap.put(markerDataFile, markerDataStorage);
 		} else {
@@ -280,9 +277,9 @@ public class PennCNVPrep {
 							.report(ext.getTime() + "\tData loaded = "
 											+ Math.round(((double) i / shadowSamples.length) * 100.0)
 											+ "%\tFree memory: " + Math.round(
-																								 ((double) MemUtils.availableMem()
-																								 / Runtime.getRuntime().maxMemory())
-																								 * 100.0)
+																												((double) MemUtils.availableMem()
+																												 / Runtime.getRuntime().maxMemory())
+																												* 100.0)
 											+ "%");
 
 				}
@@ -291,10 +288,9 @@ public class PennCNVPrep {
 			for (int i = 0; i < fileNamesOfMarkerDataInOrder.length; i++) {
 				MarkerDataStorage markerDataStorage;
 				if (forceLoadFromFiles) {
-					markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i], false);
+					markerDataStorage = MarkerDataStorage.load(fileNamesOfMarkerDataInOrder[i]);
 				} else {
-					markerDataStorage = loadMarkersIfNeeded(fileNamesOfMarkerDataInOrder[i], false,
-																									proj.getLog());
+					markerDataStorage = loadMarkersIfNeeded(fileNamesOfMarkerDataInOrder[i], proj.getLog());
 				}
 
 				MarkerData[] markerDatas = markerDataStorage.getMarkerDatas();
@@ -310,11 +306,11 @@ public class PennCNVPrep {
 							float maxMemory = Runtime.getRuntime().maxMemory();
 							proj.getLog()
 									.report(ext.getTime()
-															+ "\tData loaded = "
-															+ Math.round(((double) i / (double) proj.getMarkerNames().length * 100.0))
-															+ "%\tFree memory: "
-															+ Math.round(((double) freeMemory / (double) maxMemory * 100.0))
-															+ "%");
+													+ "\tData loaded = "
+													+ Math.round(((double) i / (double) proj.getMarkerNames().length * 100.0))
+													+ "%\tFree memory: "
+													+ Math.round(((double) freeMemory / (double) maxMemory * 100.0))
+													+ "%");
 						}
 					}
 					MarkerData markerData = markerDatas[j];
@@ -378,8 +374,8 @@ public class PennCNVPrep {
 			SerializedFiles.writeSerial(this, filename);
 		}
 
-		public static MarkerDataStorage load(String filename, boolean jar) {
-			return (MarkerDataStorage) SerializedFiles.readSerial(filename, jar, true);
+		public static MarkerDataStorage load(String filename) {
+			return (MarkerDataStorage) SerializedFiles.readSerial(filename, true);
 		}
 
 		public MarkerData[] getMarkerDatas() {
@@ -660,8 +656,7 @@ public class PennCNVPrep {
 				double memToUse = 0.75 * MemUtils.availableMem();
 				// Estimate worst-case memory use per thread
 				long worstCaseSize = Files.worstCaseDirSize(proj.SAMPLE_DATA_FILENAME.getValue(),
-																										"sampRAF",
-																										false);
+																										"sampRAF");
 				numSampleChunks = (int) Math.round((worstCaseSize / memToUse) / numThreads);
 			}
 
@@ -719,7 +714,7 @@ public class PennCNVPrep {
 																														sexStrategy);
 			proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
 			proj.saveProperties(shadowProjFile);
-			Project shadowProj = new Project(shadowProjFile, false);
+			Project shadowProj = new Project(shadowProjFile);
 
 			shadowProj.PROJECT_NAME.setValue(proj.PROJECT_NAME.getValue() + " - PC Corrected: "
 																			 + numComponents + "PCs, " + correctionType.name() + "; "
@@ -814,7 +809,7 @@ public class PennCNVPrep {
 		cmd.append(" tmpDir=").append(thisDir);
 		Qsub.qsub("ShadowCNVPrepFormatExport",
 							cmd.toString()
-									+ " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
+																					 + " -shadow sampleChunks=NeedToFillThisIn numThreads=1 -forceLoadFromFiles",
 							new String[][] {{""}}, memoryInMB, 3 * wallTimeInHours, 1);
 		cmd.append(" numMarkerThreads=").append(numMarkerThreads).append(" numThreads=")
 			 .append(numThreads).append(" numComponents=").append(numComponents).append(" markers=")
@@ -1015,7 +1010,7 @@ public class PennCNVPrep {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, logfile, false);
+			Project proj = new Project(filename, logfile);
 			if (batch > 0) {
 				batchCorrections(proj, java, classPath, memoryInMB, wallTimeInHours, dir, tmpDir, batch,
 												 numThreads, numMarkerThreads, numComponents);

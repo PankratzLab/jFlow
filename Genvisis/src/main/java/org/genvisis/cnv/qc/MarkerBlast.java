@@ -123,7 +123,7 @@ public abstract class MarkerBlast {
 												int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
 												boolean doBlast, int numThreads) {
 		super();
-		this.proj = new Project(proj.getPropertyFilename(), proj.JAR_STATUS.getValue()) {
+		this.proj = new Project(proj.getPropertyFilename()) {
 			@Override
 			public synchronized MarkerDetailSet getMarkerSet() {
 				if (naiveMarkerSet == null) {
@@ -157,8 +157,7 @@ public abstract class MarkerBlast {
 																			+ this.getClass().getName() + " without a "
 																			+ MarkerSet.class.getName());
 		}
-		MarkerDetailSet naiveMarkerSet = new MarkerDetailSet(MarkerSet.load(markerSetFile,
-																																				proj.JAR_STATUS.getValue()));
+		MarkerDetailSet naiveMarkerSet = new MarkerDetailSet(MarkerSet.load(markerSetFile));
 		if (overrideMarkerPositions.isEmpty()) {
 			return naiveMarkerSet;
 		}

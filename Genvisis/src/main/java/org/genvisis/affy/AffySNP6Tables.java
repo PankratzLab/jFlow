@@ -415,7 +415,7 @@ public class AffySNP6Tables {
 		}
 		proj = new Project();
 		if (filename != null) {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 		}
 		try {
 			if (SNP) {

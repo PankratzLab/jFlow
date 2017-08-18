@@ -427,7 +427,7 @@ public class CNVConcordance {
 		Map<String, double[]> qcMap = loadQC(proj.PROJECT_DIRECTORY.getValue() + qcFile);
 		filter.setCN(CN);
 		if (dir != null) {
-			String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv", false);
+			String[] cnvFiles = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".cnv");
 			cnvFiles = Files.toFullPaths(cnvFiles, proj.PROJECT_DIRECTORY.getValue() + dir);
 			proj.getLog().report(ArrayUtils.toStr(cnvFiles));
 			try {
@@ -436,7 +436,7 @@ public class CNVConcordance {
 				int start = filter.getMinNumMarkers();
 				CNVariantHash[] cNVariantHash = new CNVariantHash[cnvFiles.length];
 				for (int i = 0; i < cnvFiles.length; i++) {
-					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, false, proj.getLog());
+					cNVariantHash[i] = CNVariantHash.load(cnvFiles[i], 1, proj.getLog());
 					for (int j = 0; j < REPORT_HEADER.length; j++) {
 						writer.print(((i == 0) && (j == 0) ? "" : "\t") + REPORT_HEADER[j] + "."
 												 + ext.rootOf(cnvFiles[i]));
@@ -467,7 +467,7 @@ public class CNVConcordance {
 			}
 		} else {
 			CNVariantHash cNVariantHash = CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue() + cnvFile,
-																											 1, false, proj.getLog());
+																											 1, proj.getLog());
 			CNVConcordance cnvConcordance;
 
 			if (cnvControl == null) {
@@ -475,7 +475,7 @@ public class CNVConcordance {
 																						filter, numCNVs);
 			} else {
 				CNVariantHash controlHash = CNVariantHash.load(proj.PROJECT_DIRECTORY.getValue()
-																											 + cnvControl, 1, false, proj.getLog());
+																											 + cnvControl, 1, proj.getLog());
 				cnvConcordance = new CNVConcordance(proj, pairs, qcMap, lrrMax, callMin, cNVariantHash,
 																						controlHash, filter, numCNVs);
 			}
@@ -669,9 +669,9 @@ public class CNVConcordance {
 		Project proj;
 		if (ext.indexOfStr("proj=", args, true, false) >= 0) {
 			proj = new Project(ext.parseStringArg(args[ext.indexOfStr("proj=", args, true, false)], ""),
-												 logfile, false);
+												 logfile);
 		} else {
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 		}
 		CNVFilter filter = ProjectCNVFiltering.setupCNVFilterFromArgs(proj, args, null, defaults,
 																																	proj.getLog());

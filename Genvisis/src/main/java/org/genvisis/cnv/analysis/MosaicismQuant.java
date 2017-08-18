@@ -800,7 +800,7 @@ public class MosaicismQuant implements Calcfc {
 		}
 
 		private static FullMosiacResults readSerial(String fileName, Logger log) {
-			return (FullMosiacResults) SerializedFiles.readSerial(fileName, false, log, false, true);
+			return (FullMosiacResults) SerializedFiles.readSerial(fileName, log, false, true);
 		}
 
 	}
@@ -1372,7 +1372,7 @@ public class MosaicismQuant implements Calcfc {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			// test(proj);
 			quantMosaic(proj, bpWindow, numControls, numThreads);
 		} catch (Exception e) {

@@ -321,13 +321,12 @@ public class cnvTrio extends CNVariant {
 																	 TRIOS[fileType]);
 			rawRegionFrequency = determinRegionFrequencies(CNVariant.loadPlinkFile(proj.DATA_DIRECTORY.getValue(false,
 																																																					true)
-																																						 + COMBINED_TRIOS[fileType],
-																																						 false),
+																																						 + COMBINED_TRIOS[fileType]),
 																										 proj.getLog());
 			cnVariants = CNVariant.loadPlinkFile(proj.DATA_DIRECTORY.getValue(false, true)
-																					 + COMBINED_TRIOS[fileType], false);
+																					 + COMBINED_TRIOS[fileType]);
 		} else {
-			cnVariants = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
+			cnVariants = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile);
 			// rawRegionFrequency = determinRegionFrequencies(cnVariants, proj.getLog());
 		}
 		parseTrios(cnVariants, trios, proj.getSampleData(false),
@@ -790,7 +789,7 @@ public class cnvTrio extends CNVariant {
 
 			try {
 				BufferedReader reader = Files.getReader(proj.DATA_DIRECTORY.getValue(false, true)
-																								+ trioFile, false, true, false);
+																								+ trioFile, true, false);
 				String[] line = reader.readLine().trim().split(SPLITS[0]);
 				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
 				while (reader.ready()) {
@@ -1021,9 +1020,9 @@ public class cnvTrio extends CNVariant {
 			proj = new Project(ext.parseStringArg(args[ext.indexOfStr(COMMAND_PROJECT, args, true,
 																																false)],
 																						""),
-												 logFile, false);
+												 logFile);
 		} else {
-			proj = new Project(filename, logFile, false);
+			proj = new Project(filename, logFile);
 		}
 		if (ext.indexOfStr(COMMAND_PARSE, args, true, false) >= 0) {
 			trioFilter = CNVTrioFilter.setupCNVTrioFilterFromArgs(proj, args, true, proj.getLog());

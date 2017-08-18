@@ -59,7 +59,7 @@ public class BlastResults {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/singapore_PCs.properties", false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/singapore_PCs.properties");
 		getEm(proj);
 	}
 

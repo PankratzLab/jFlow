@@ -70,7 +70,7 @@ public class BamContamination {
 															 String pfbFile, FilterNGS filterNGS, int numthreads, Logger log) {
 		String[] bamFiles = null;
 		if (Files.isDirectory(bams)) {
-			bamFiles = Files.listFullPaths(bams, ".bam", false);
+			bamFiles = Files.listFullPaths(bams, ".bam");
 		} else {
 			bamFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
 		}

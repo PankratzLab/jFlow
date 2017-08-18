@@ -136,8 +136,8 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
 
 								} else {
 									proj.getLog()
-											.reportError("Query id (" + marker + ") did not end with " 
-																	 + PROBE_TAG.A.getTag() + "or " + PROBE_TAG.B.getTag() 
+											.reportError("Query id (" + marker + ") did not end with "
+																	 + PROBE_TAG.A.getTag() + "or " + PROBE_TAG.B.getTag()
 																	 + " which is required for an AFFY array");
 								}
 							} else if (proj.getArrayType() == ARRAY.ILLUMINA) {

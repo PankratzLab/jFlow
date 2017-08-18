@@ -153,7 +153,7 @@ public class Pedfile {
 		long time;
 
 		hash = HashVec.loadFileToHashString(phenotypeFile, new int[] {0, 1}, new int[] {phenoCol},
-																				false, "\t", false, false, false);
+																				false, "\t", false, false);
 
 		time = new Date().getTime();
 		ivs = Vectors.initializedArray(IntVector.class, 3);

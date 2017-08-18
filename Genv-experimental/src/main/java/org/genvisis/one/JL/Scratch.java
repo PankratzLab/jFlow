@@ -29,7 +29,7 @@ public class Scratch {
 		String pos = dir + "markerPositionsHG18.txt";
 		String mset = ext.rootOf(pos, false) + ".ser";
 		Markers.orderMarkers(null, pos, mset, log);
-		MarkerSetInfo markerSet = MarkerSet.load(mset, false);
+		MarkerSetInfo markerSet = MarkerSet.load(mset);
 
 		int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true,
 																					true);

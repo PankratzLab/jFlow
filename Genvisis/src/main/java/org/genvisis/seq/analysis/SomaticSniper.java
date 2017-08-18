@@ -33,7 +33,7 @@ public class SomaticSniper {
 		VcfPopulation vpop = VcfPopulation.load(vcfPop, POPULATION_TYPE.TUMOR_NORMAL, log);
 		String[] bamFiles = null;
 		if (Files.isDirectory(bams)) {
-			bamFiles = Files.list(bams, ".bam", false);
+			bamFiles = Files.list(bams, ".bam");
 		} else {
 			bamFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
 		}

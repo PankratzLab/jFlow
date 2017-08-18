@@ -277,7 +277,7 @@ public class SexCheck {
 		String[] bamFiles;
 		if (Files.isDirectory(dir)) {
 
-			bamFiles = Files.listFullPaths(dir, ".bam", false);
+			bamFiles = Files.listFullPaths(dir, ".bam");
 		} else {
 			bamFiles = HashVec.loadFileToStringArray(dir, false, new int[] {0}, true);
 		}

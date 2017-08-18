@@ -296,7 +296,7 @@ public class DemoProject extends Project {
 	}
 
 	public static void test() {
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		DemoProject demoProject = new DemoProject(proj, proj.PROJECT_DIRECTORY.getValue() + "Demo/",
 																							true, DEMO_TYPE.MARKER_FOCUS);
 		String[] adfa = null;

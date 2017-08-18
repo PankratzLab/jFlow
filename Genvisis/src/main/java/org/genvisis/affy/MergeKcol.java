@@ -42,7 +42,7 @@ public class MergeKcol implements Runnable {
 		String[] line;
 		// common folder output by apt-genotype, present in each subdirectory of Source
 		// check source directory
-		String[] dirList = Files.listDirectories(kColDir, false);
+		String[] dirList = Files.listDirectories(kColDir);
 
 		int counts = 0;
 
@@ -94,8 +94,8 @@ public class MergeKcol implements Runnable {
 		// check source directory
 		timeBegan = new Date().getTime();
 
-		String[] dirList = Files.listDirectories(kColDir, false);
-		String[] files = Files.list(kColDir + dirList[0], prefix, suffix, false, false);
+		String[] dirList = Files.listDirectories(kColDir);
+		String[] files = Files.list(kColDir + dirList[0], prefix, suffix, false);
 		System.out.println(files.length);
 		System.out.println(dirList.length);
 		fileCabinet = new Vector<Vector<String>>();

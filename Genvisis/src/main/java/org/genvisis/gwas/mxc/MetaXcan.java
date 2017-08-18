@@ -12,7 +12,7 @@ public class MetaXcan {
 	private static void runMany(String dataFolder, String extension, String mxc_folder,
 															String refFile, String freqFile, String db, String covar,
 															String posmap, String out, boolean overwrite, boolean verify) {
-		String[] files = Files.list(dataFolder, extension, false);
+		String[] files = Files.list(dataFolder, extension);
 		int numProcs = Math.min(24, files.length);
 
 		ArrayList<String> commands = new ArrayList<String>();

@@ -159,7 +159,7 @@ public class VCF {
 			if (bamDir != null) {
 				log.reportTimeInfo("Since a bam directory was provided, we will verify that all samples in the vcf have a corresponding bam file prior to filtering");
 				extractBams = true;
-				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam", false), log,
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam"), log,
 																							 true);
 				bamSample.generateMap();
 				bamSample.getBamSampleMap();
@@ -275,7 +275,7 @@ public class VCF {
 			}
 			if (extractBams) {
 				BamExtractor.extractAll(bamSample, outputDir, bpBuffer, true, true, numThreads, log);
-				bamSample = new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam", false), log,
+				bamSample = new BamExtractor.BamSample(Files.listFullPaths(outputDir, ".bam"), log,
 																							 true);
 				bamSample.generateMap();
 				bamSample.dumpToIGVMap(outputVCF, null);

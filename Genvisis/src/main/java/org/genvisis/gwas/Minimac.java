@@ -483,7 +483,7 @@ public class Minimac {
 		markerIndices = new int[files.length][markerNames.length];
 		for (int i = 0; i < files.length; i++) {
 			hash = HashVec.loadFileToHashString(ext.rootOf(files[i], false) + ".snps", new int[] {0},
-																					new int[] {-7}, false, "\t", false, false, false);
+																					new int[] {-7}, false, "\t", false, false);
 			for (int j = 0; j < markerNames.length; j++) {
 				markerIndices[i][j] = hash.containsKey(markerNames[j])
 																															 ? Integer.parseInt(hash.get(markerNames[j]))
@@ -687,7 +687,7 @@ public class Minimac {
 		others = new Vector<String>();
 
 		hash = HashVec.loadFileToHashString(compStrand, new int[] {0}, new int[] {2, 3, 4, 5}, false,
-																				"\t", true, false, false);
+																				"\t", true, false);
 		try {
 			reader = new BufferedReader(new FileReader(compRef));
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -1067,7 +1067,7 @@ public class Minimac {
 			} else if (extractSet != null) {
 				extractMarkerGenotypesFromMultipleHaplotypes(hapFileFormat, mapFileFormat, extractSet);
 			} else if (extract != null) {
-				if (Files.exists(extract, false)) {
+				if (Files.exists(extract)) {
 					markerNames = HashVec.loadFileToStringArray(extract, false, new int[] {0}, true);
 					rootForOutput = ext.rootOf(extract);
 				} else {

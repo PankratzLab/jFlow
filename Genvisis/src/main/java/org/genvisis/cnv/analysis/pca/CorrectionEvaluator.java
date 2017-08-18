@@ -79,7 +79,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
 	}
 
 	public static CorrectionEvaluator readSerial(String fileName, Logger log) {
-		return (CorrectionEvaluator) SerializedFiles.readSerial(fileName, false, log, false, true);
+		return (CorrectionEvaluator) SerializedFiles.readSerial(fileName, log, false, true);
 	}
 
 	public ExtProjectDataParser getParser() {

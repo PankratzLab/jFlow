@@ -16,10 +16,10 @@ public class FileProperty extends StringProperty {
 											String defVal, boolean dirOnly) {
 		super(proj, name, desc, group, editable, copyOnCorrection,
 					dirOnly ? ext.verifyDirFormat(defVal)
-								 : ext.replaceAllWith(defVal, "\\",
-																			"/")/*
-																					 * == null || "".equals(defVal) ? null : new File(defVal)
-																					 */);
+									: ext.replaceAllWith(defVal, "\\",
+																			 "/")/*
+																					  * == null || "".equals(defVal) ? null : new File(defVal)
+																					  */);
 		isDir = dirOnly;
 	}
 
@@ -79,7 +79,7 @@ public class FileProperty extends StringProperty {
 										+ valu;
 			}
 		}
-		if (!Files.exists(tempValue, getProject().JAR_STATUS.getValue())) {
+		if (!Files.exists(tempValue)) {
 			if (mkdirs/* && getProject().JAR_STATUS.getValue() */) {
 				if (isDir) {
 					(new File(tempValue)).mkdirs();
@@ -90,8 +90,7 @@ public class FileProperty extends StringProperty {
 				if (isDir) {
 					getProject().getLog().reportError("Error - directory '" + tempValue + "' does not exist");
 				} else {
-					if (!Files.exists(ext.parseDirectoryOfFile(tempValue),
-														getProject().JAR_STATUS.getValue())) {
+					if (!Files.exists(ext.parseDirectoryOfFile(tempValue))) {
 						getProject().getLog()
 												.reportError("Error - the directory ('"
 																		 + ext.parseDirectoryOfFile(tempValue)

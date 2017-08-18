@@ -203,7 +203,7 @@ public class GATK_Genotyper {
 			command += GATK_LanePrep.REGIONS_FILE_COMMAND + gatk.getRegionsFile();
 		}
 		Qsub.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours,
-							 numWithinSampleThreads);
+							numWithinSampleThreads);
 	}
 
 	public void runSingleSampleAllSites(String[] inputBams) {
@@ -344,7 +344,7 @@ public class GATK_Genotyper {
 			} else {
 				log.report(ext.getTime() + " Info - finding files with extension " + GATK.GVCF + GATK.GZ
 									 + " in " + rootInputDir);
-				inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF + GATK.GZ, false),
+				inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF + GATK.GZ),
 																			 rootInputDir);
 
 			}

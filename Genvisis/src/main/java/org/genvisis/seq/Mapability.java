@@ -27,8 +27,7 @@ public class Mapability {
 		double value, sum, mean, max;
 
 		header = Files.getHeaderOfFile(filename, "\t", new Logger());
-		data = HashVec.loadFileToStringMatrix(filename, true, ArrayUtils.arrayOfIndices(header.length),
-																					false);
+		data = HashVec.loadFileToStringMatrix(filename, true, ArrayUtils.arrayOfIndices(header.length));
 		indices = ext.indexFactors(REQS, header, false, true);
 
 		max = -1;
@@ -137,7 +136,7 @@ public class Mapability {
 
 		segs = new Segment[passes.length][];
 		for (int i = 0; i < passes.length; i++) {
-			data = HashVec.loadFileToStringMatrix(passes[i], false, new int[] {0, 1, 2}, false);
+			data = HashVec.loadFileToStringMatrix(passes[i], false, new int[] {0, 1, 2});
 			segs[i] = new Segment[data.length];
 			for (int j = 0; j < data.length; j++) {
 				segs[i][j] = new Segment("chr" + data[j][0] + ":" + data[j][1] + "-" + data[j][2]);

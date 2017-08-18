@@ -442,7 +442,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, logfile, false);
+			Project proj = new Project(filename, logfile);
 			createManhattans(proj, outputBase, altDataFile, numPCs, numThreads, false, LS_TYPE.REGULAR);
 		} catch (Exception e) {
 			e.printStackTrace();

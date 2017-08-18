@@ -393,7 +393,7 @@ public class CytoCompare {
 			System.exit(1);
 		}
 		if (filename != null) {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 		}
 		Logger log = new Logger(logFile);
 		compare(proj, dir, new String[] {cytoCNVariantFile}, cnpFile, reportedOverlapFile,

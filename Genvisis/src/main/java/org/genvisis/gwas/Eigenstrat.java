@@ -230,7 +230,7 @@ public class Eigenstrat {
 					System.out.println("There has been trouble in the past with the eigen .ind file not having both FID and IID; since "
 														 + targetRoot + ".fam"
 														 + " is present in the same directory, that will be used instead");
-					ids = HashVec.loadFileToVec(targetRoot + ".fam", false, new int[] {0, 1}, false, false);
+					ids = HashVec.loadFileToVec(targetRoot + ".fam", false, new int[] {0, 1}, false);
 					if (!ArrayUtils.equals(Matrix.extractColumn(ArrayUtils.splitStrings(ArrayUtils.toStringArray(ids),
 																																							true),
 																											1),
@@ -240,7 +240,7 @@ public class Eigenstrat {
 						System.err.println("But unfortunately, " + targetRoot + ".fam"
 															 + " doesn't match up with " + targetRoot
 															 + ".ind; duplicating IID instead for now");
-						ids = HashVec.loadFileToVec(targetRoot + ".ind", false, new int[] {0, 0}, false, false);
+						ids = HashVec.loadFileToVec(targetRoot + ".ind", false, new int[] {0, 0}, false);
 					}
 				}
 				scoreMatrix = new double[ids.size()][numEigens];

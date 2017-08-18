@@ -215,10 +215,10 @@ public class Mega_Analyses {
 		// hash1 = HashVec.loadFileToHashString(DIR+"files/_deCODE_results.txt", new int[] {0}, new
 		// int[] {9, 10}, false, "\t", true, false, false);
 		hash1 = HashVec.loadFileToHashString(DIR + "deCODE_results.txt", new int[] {0},
-																				 new int[] {9, 10, 8}, false, "\t", true, false, false);
+																				 new int[] {9, 10, 8}, false, "\t", true, false);
 		System.out.println("Loading DeCodeResults.LessDirty");
 		hash2 = HashVec.loadFileToHashString(DIR + "00src/DeCodeResults.LessDirty", new int[] {0},
-																				 new int[] {5, 6, 4}, false, "\t", true, false, false); // 7,
+																				 new int[] {5, 6, 4}, false, "\t", true, false); // 7,
 																																																// 8
 																																																// two
 																																																// different
@@ -686,7 +686,7 @@ public class Mega_Analyses {
 		Logger log;
 
 		log = new Logger(dir + "counts.log");
-		files = Files.list(dir, ".txt", false);
+		files = Files.list(dir, ".txt");
 		for (String file : files) {
 			log.report(file + "\t" + Files.countLines(dir + file, 0));
 		}

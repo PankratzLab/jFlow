@@ -47,7 +47,7 @@ public class MeanLRRset implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static MeanLRRset load(String filename, boolean jar) {
-		return (MeanLRRset) SerializedFiles.readSerial(filename, jar, true);
+	public static MeanLRRset load(String filename) {
+		return (MeanLRRset) SerializedFiles.readSerial(filename, true);
 	}
 }

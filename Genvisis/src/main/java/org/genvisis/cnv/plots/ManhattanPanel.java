@@ -91,8 +91,8 @@ public class ManhattanPanel extends AbstractPanel {
 		if (xAxisLabel != null && !"".equals(xAxisLabel) && displayXLabel) {
 			g.drawString(xAxisLabel,
 									 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
-											 - fontMetrics.stringWidth(xAxisLabel) / 2
-											 + axisYWidth/* WIDTH_Y_AXIS */,
+															 - fontMetrics.stringWidth(xAxisLabel) / 2
+															 + axisYWidth/* WIDTH_Y_AXIS */,
 									 getHeight() - 20);
 		}
 	}
@@ -118,7 +118,8 @@ public class ManhattanPanel extends AbstractPanel {
 			setNullMessage(null);
 		}
 		setForcePlotXmin(dataPoints.get(0).linearLoc - ManhattanPlot.LIN_CHR_BUFFER);
-		setForcePlotXmax(dataPoints.get(dataPoints.size() - 1).linearLoc + ManhattanPlot.LIN_CHR_BUFFER);
+		setForcePlotXmax(dataPoints.get(dataPoints.size() - 1).linearLoc
+										 + ManhattanPlot.LIN_CHR_BUFFER);
 		points = new PlotPoint[dataPoints.size()];
 		for (int i = 0, count = dataPoints.size(); i < count; i++) {
 			ManhattanDataPoint mdp = dataPoints.get(i);

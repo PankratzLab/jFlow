@@ -513,7 +513,7 @@ public class ParseSNPlocations {
 						log.report("Loading database...");
 						log.report("(if file is not found and it's searching for the wrong file, then force a recompile of MapSNPsAndGenes so that it gets the new constant from ParseSNPlocations)");
 
-						dbMarkerSet = SnpMarkerSet.load(db, false, log);
+						dbMarkerSet = SnpMarkerSet.load(db, log);
 						dbRSnumbers = dbMarkerSet.getRSnumbers();
 						dbPositions = dbMarkerSet.getPositions();
 						dbChrs = dbMarkerSet.getChrs();
@@ -679,7 +679,7 @@ public class ParseSNPlocations {
 					if (dbMarkerSet == null) {
 						log.report("Loading database...");
 
-						dbMarkerSet = SnpMarkerSet.load(db, false);
+						dbMarkerSet = SnpMarkerSet.load(db);
 						dbRSnumbers = dbMarkerSet.getRSnumbers();
 						dbPositions = dbMarkerSet.getPositions();
 						dbChrs = dbMarkerSet.getChrs();

@@ -112,7 +112,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
 		return new SegmentLists(lists);
 	}
 
-	public static SegmentLists load(String filename, boolean jar) {
-		return (SegmentLists) SerializedFiles.readSerial(filename, jar, true);
+	public static SegmentLists load(String filename) {
+		return (SegmentLists) SerializedFiles.readSerial(filename, true);
 	}
 }

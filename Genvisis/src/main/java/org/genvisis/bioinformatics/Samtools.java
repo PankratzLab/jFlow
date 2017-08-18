@@ -290,7 +290,7 @@ public class Samtools {
 		Vector<String> currentTrio;
 
 		result = new HashSet<String>();
-		filenames = Files.list(miniSamDir, ".bam", false);
+		filenames = Files.list(miniSamDir, ".bam");
 		isVisited = new boolean[filenames.length];
 		for (int i = 0; i < filenames.length; i++) {
 			if (!isVisited[i]) {

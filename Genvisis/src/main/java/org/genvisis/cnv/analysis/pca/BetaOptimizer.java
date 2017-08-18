@@ -506,8 +506,8 @@ public class BetaOptimizer {
 					}
 
 					boolean[] samplesForModels = ArrayUtils.booleanArray(proj.getSamples().length, false);
-					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, false,
-																													 new int[] {0}, false, true, "\t");
+					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, new int[] {0},
+																													 false, true, "\t");
 					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(),
 																									true, false);
 					boolean[] sampsPCs = ArrayUtils.booleanArray(proj.getSamples().length, false);
@@ -998,7 +998,7 @@ public class BetaOptimizer {
 					Markers.orderMarkers(null, affyhg19.get(), tmpSer, proj.getLog());
 
 				}
-				markerSet = MarkerSet.load(tmpSer, false);
+				markerSet = MarkerSet.load(tmpSer);
 				posIndices = ext.indexLargeFactors(namesToQuery, markerSet.getMarkerNames(), true, log,
 																					 true, false);
 
@@ -1205,7 +1205,7 @@ public class BetaOptimizer {
 
 		@SuppressWarnings("unchecked")
 		public static List<MarkerRsFormat> readSerial(String fileName, Logger log) {
-			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, false, log, false,
+			return (ArrayList<MarkerRsFormat>) SerializedFiles.readSerial(fileName, log, false,
 																																		true);
 		}
 
@@ -1280,7 +1280,7 @@ public class BetaOptimizer {
 		String[] betaFiles = null;
 		if (Files.isDirectory(betaLoc)) {
 			proj.getLog().reportTimeInfo("Searching " + betaLoc + " for files ending with " + ".beta");
-			betaFiles = Files.list(betaLoc, "", ".beta", true, false, true);
+			betaFiles = Files.list(betaLoc, "", ".beta", true, true);
 			proj.getLog().reportTimeInfo("found " + betaFiles.length + " beta files in " + betaLoc);
 		} else {
 			betaFiles = new String[] {betaLoc};
@@ -1367,7 +1367,7 @@ public class BetaOptimizer {
 			}
 			try {
 
-				Project proj = new Project(filename, false);
+				Project proj = new Project(filename);
 				optimize(proj, pcFile, proj.PROJECT_DIRECTORY.getValue() + out, betaDir, unRelatedFile,
 								 pcSamps, pvals, maxPCs, markerCallRate, 25, -1, numthreads);
 			} catch (Exception e) {
@@ -1377,7 +1377,7 @@ public class BetaOptimizer {
 	}
 
 	public static void maisn(String[] args) {
-		Project proj = new Project("/home/pankrat2/lanej/projects/Aric_gw6.properties", false);
+		Project proj = new Project("/home/pankrat2/lanej/projects/Aric_gw6.properties");
 		String out = proj.PROJECT_DIRECTORY.getValue() + "betaOpt/";
 		new File(out).mkdirs();
 		proj.AB_LOOKUP_FILENAME.setValue(out + "AB_LookupBeta.dat");
@@ -1393,7 +1393,7 @@ public class BetaOptimizer {
 		Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();
 		String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/" + args[0] + "/";
 
-		String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, false, true);
+		String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, true);
 		proj.getLog().reportTimeInfo("found " + betaFiles.length + " beta files in " + betaFileDir);
 		String pcFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/ohw_ws_20_ALL1000PCs_gc_corrected_OnTheFly_SampLRR_Recomp_LRR_035CR_096.PCs.extrapolated.txt";
 		String toUseFile = out + "Whites.txt";

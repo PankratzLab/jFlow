@@ -88,7 +88,7 @@ public class CreateDatabaseFromPlink {
 		notes = new Hashtable<String, String>();
 
 		freqfile = params[2][0];
-		alleles = HashVec.loadFileToStringMatrix(dir + freqfile, true, new int[] {2, 3}, false);
+		alleles = HashVec.loadFileToStringMatrix(dir + freqfile, true, new int[] {2, 3});
 		outfile = params[3][0];
 		for (int i = 1; i < params[3].length; i++) {
 			if (params[3][i].startsWith("labelAlleles=")) {
@@ -417,7 +417,7 @@ public class CreateDatabaseFromPlink {
 		tpedfile = params[0][0];
 		freqfile = params[1][0];
 		markerNames = HashVec.loadFileToStringArray(freqfile, true, new int[] {1}, false);
-		alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {2, 3}, false);
+		alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {2, 3});
 		outfile = params[2][0];
 
 		monomorphs = new IntVector();
@@ -557,7 +557,7 @@ public class CreateDatabaseFromPlink {
 
 		markerSet = new SnpMarkerSet(mapfile, false, log);
 		markerNames = markerSet.getMarkerNames();
-		alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {0, 2, 3}, false);
+		alleles = HashVec.loadFileToStringMatrix(freqfile, true, new int[] {0, 2, 3});
 		if (markerNames.length != alleles.length) {
 			log.reportError("Error - different number of markers in map file and frq file");
 			System.exit(1);
@@ -574,7 +574,7 @@ public class CreateDatabaseFromPlink {
 			hash = new Hashtable<String, String>();
 		} else {
 			hash = HashVec.loadFileToHashString(rlinker, new int[] {0}, new int[] {2}, false, "", false,
-																					false, false);
+																					false);
 		}
 
 		try {

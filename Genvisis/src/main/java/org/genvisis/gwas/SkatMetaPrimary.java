@@ -158,7 +158,7 @@ public class SkatMetaPrimary {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				// Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
 				Qsub.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
-									 qsubWalltime);
+									qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
 																																				+ cohort + ".bak"));
@@ -175,7 +175,7 @@ public class SkatMetaPrimary {
 					}
 				}
 				Qsub.qsub(batchDir + "finishUpOnSB_" + cohort, commands, 60000,
-									 (int) Math.ceil(iterations.length / 2.0), 16);
+									(int) Math.ceil(iterations.length / 2.0), 16);
 			} else {
 				new File(batchDir + "finishUpOnSB_" + cohort).delete();
 			}
@@ -201,14 +201,14 @@ public class SkatMetaPrimary {
 			commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save " + batchDir
 								 + "mergeRdataFiles.R";
 			Qsub.qsub(batchDir + "run_mergeRdataFiles_" + cohort, commands, qsubMem * 4, qsubWalltime,
-								 1);
+								1);
 			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-												 batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
+												batchDir + "chunk_" + cohort, 8, true, null, -1, qsubMem, qsubWalltime);
 			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-												 batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
-												 qsubWalltime);
+												batchDir + "chunkSB256_" + cohort, 16, true, "sb256", -1, qsubMem,
+												qsubWalltime);
 			Qsub.qsubMultiple(jobNamesWithAbsolutePaths, jobSizes, batchDir,
-												 batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
+												batchDir + "chunkSB_" + cohort, 16, true, "sb", -1, qsubMem, qsubWalltime);
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -428,7 +428,7 @@ public class SkatMetaPrimary {
 			} else {
 				commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
 				Qsub.qsub(batchDir + "run_additionals", batchDir, -1, commands, iterations, qsubMem,
-									 qsubWalltime);
+									qsubWalltime);
 				if (iterations.length == 0) {
 					new File(batchDir
 									 + "master.run_additionals").renameTo(new File(batchDir

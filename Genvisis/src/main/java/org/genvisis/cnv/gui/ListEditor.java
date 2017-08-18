@@ -94,8 +94,8 @@ public class ListEditor extends JDialog implements ActionListener {
 																									 boolean allowMissing) {
 		String title = "UCSC Regions List";
 		String listDesc = sampleNames == null
-																				 ? "UCSC regions (one per line, with optional tab-separated comments): "
-																				 : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
+																					? "UCSC regions (one per line, with optional tab-separated comments): "
+																					: "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
 		String defaultDir = dir;
 		boolean isEditor = false;
 		String fileToEdit = null;
@@ -109,8 +109,8 @@ public class ListEditor extends JDialog implements ActionListener {
 																									boolean allowMissing, String fileToEdit) {
 		String title = "UCSC Regions List";
 		String listDesc = sampleNames == null
-																				 ? "UCSC regions (one per line, with optional tab-separated comments): "
-																				 : "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
+																					? "UCSC regions (one per line, with optional tab-separated comments): "
+																					: "Sample IDs with (optional) UCSC regions and comments (tab-separated, one set per line): ";
 		String defaultDir = dir;
 		boolean isEditor = true;
 		return new ListEditor(title, listDesc, defaultDir, isEditor, fileToEdit,

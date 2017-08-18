@@ -22,12 +22,12 @@ public class SerialFloatArray implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SerialFloatArray load(String filename, boolean jar) {
-		return (SerialFloatArray) SerializedFiles.readSerial(filename, jar, true);
+	public static SerialFloatArray load(String filename) {
+		return (SerialFloatArray) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static void dump(String filename) {
-		float[] all = load(filename, false).getArray();
+		float[] all = load(filename).getArray();
 
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(filename + ".xln");

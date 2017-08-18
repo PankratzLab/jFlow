@@ -61,7 +61,8 @@ public class UCSCtrack {
 		System.out.println("Generating " + outfile);
 		try {
 			reader = new BufferedReader(new FileReader(filename));
-			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CNVariant.PLINK_CNV_HEADER,
+			if (!ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													 CNVariant.PLINK_CNV_HEADER,
 													 false)) {
 				reader.close();
 				return;

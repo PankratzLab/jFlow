@@ -161,7 +161,7 @@ public class Zcall {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 			// createZcallInputFile(proj, proj.getProjectDir() + samples,
 			// proj.getDir(Project.DATA_DIRECTORY) + "test.txt");
 			createZcallInputFile(proj, proj.PROJECT_DIRECTORY.getValue() + samples, null);

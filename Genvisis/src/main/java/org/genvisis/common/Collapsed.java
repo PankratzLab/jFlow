@@ -12,15 +12,10 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.RuleBasedCollator;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class Collapsed {
 	public static final int GREATER = 0;
@@ -33,54 +28,20 @@ public class Collapsed {
 																		 + "<k,K<l,L<m,M<n,N<o,O<p,P<q,Q<r,R<s,S<t,T"
 																		 + "<u,U<v,V<w,W<x,X<y,Y<z,Z";
 
-	public static String[] list(String directory, final String suffix, boolean jar) {
-		if (jar) {
-			try {
-				// System.err.println("I haven't been able to get listFiles() to work inside a jar file
-				// yet");
+	public static String[] list(String directory, final String suffix) {
+		String[] files;
 
-				URL repositoryURL = ClassLoader.getSystemResource("common/Files.class");
-				String repositoryPath = repositoryURL.getPath();
-				URI jarURI = new URI(repositoryPath.substring(0, repositoryPath.indexOf('!')));
-				JarFile jarFile = new JarFile(new File(jarURI));
-				Vector<String> v = new Vector<String>();
-
-				Enumeration<JarEntry> entries = jarFile.entries();
-				while (entries.hasMoreElements()) {
-					String entryName = entries.nextElement().getName();
-
-					if (entryName.startsWith(directory) && entryName.endsWith(suffix)) {
-						String trav = entryName.substring(directory.length());
-						if (trav.startsWith("/")) {
-							trav = trav.substring(1);
-						}
-						if (!trav.contains("/")) {
-							v.add(trav);
-						}
-					}
-				}
-				jarFile.close();
-				return toStringArray(v);
-			} catch (Exception e) {
-				System.err.println("Error reading files in jar file");
-				e.printStackTrace();
-				return null;
+		files = new File(directory).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String filename) {
+				return filename.endsWith(suffix);
 			}
+		});
+
+		if (files == null) {
+			return new String[0];
 		} else {
-			String[] files;
-
-			files = new File(directory).list(new FilenameFilter() {
-				@Override
-				public boolean accept(File file, String filename) {
-					return filename.endsWith(suffix);
-				}
-			});
-
-			if (files == null) {
-				return new String[0];
-			} else {
-				return files;
-			}
+			return files;
 		}
 	}
 
@@ -88,24 +49,14 @@ public class Collapsed {
 																															 int[] valueIndices,
 																															 String delimiterWithinHash,
 																															 boolean ignoreFirstLine) {
-		return loadFileToHashString(filename, keyIndex, valueIndices, delimiterWithinHash,
-																ignoreFirstLine, false);
-	}
-
-	public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-																															 int[] valueIndices,
-																															 String delimiterWithinHash,
-																															 boolean ignoreFirstLine,
-																															 boolean jar) {
 		return loadFileToHashString(filename, new int[] {keyIndex}, valueIndices, delimiterWithinHash,
-																ignoreFirstLine, jar);
+																ignoreFirstLine);
 	}
 
 	public static Hashtable<String, String> loadFileToHashString(String filename, int[] keyIndices,
 																															 int[] valueIndices,
 																															 String delimiterWithinHash,
-																															 boolean ignoreFirstLine,
-																															 boolean jar) {
+																															 boolean ignoreFirstLine) {
 		BufferedReader reader = null;
 		String[] line;
 		Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -164,17 +115,8 @@ public class Collapsed {
 		}
 	}
 
-	public static boolean exists(String filename, boolean jar) {
-		if (jar) {
-			try {
-				ClassLoader.getSystemResourceAsStream(filename).close();
-				return true;
-			} catch (Exception e) {
-				return false;
-			}
-		} else {
-			return new File(filename).exists();
-		}
+	public static boolean exists(String filename) {
+		return new File(filename).exists();
 	}
 
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,

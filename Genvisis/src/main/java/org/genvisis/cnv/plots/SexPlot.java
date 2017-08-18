@@ -160,7 +160,7 @@ public class SexPlot extends JFrame {
 		Vector<String> notes = new Vector<String>();
 		try {
 			BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(),
-																							proj.JAR_STATUS.getValue(), true, false);
+																							true, false);
 			if (reader == null) {
 				return;
 			}
@@ -234,7 +234,7 @@ public class SexPlot extends JFrame {
 		}
 
 		try {
-			loadSexCheckResults(new Project(filename, false));
+			loadSexCheckResults(new Project(filename));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

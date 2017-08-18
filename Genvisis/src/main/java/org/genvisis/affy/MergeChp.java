@@ -55,7 +55,7 @@ public class MergeChp implements Runnable {
 		// common folder output by apt-genotype, present in each subdirectory of Source
 		String commonSubFolder = commonSubFolderPattern;
 		// check source directory
-		String[] dirList = Files.listDirectories(affyResultsDir, false);
+		String[] dirList = Files.listDirectories(affyResultsDir);
 		if (!affyResultsDir.equals("") && !new File(affyResultsDir).exists()) {
 			log.reportError("the Project source location is invalid: " + affyResultsDir);
 			return;
@@ -126,9 +126,8 @@ public class MergeChp implements Runnable {
 			return;
 		}
 
-		String[] dirList = Files.listDirectories(affyResultsDir, false);
-		String[] files = Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename,
-																false);
+		String[] dirList = Files.listDirectories(affyResultsDir);
+		String[] files = Files.list(affyResultsDir + dirList[0] + commonSubFolder, commonFilename);
 		fileCabinet = new Vector<Vector<String>>();
 		for (int i = 0; i < numThreads; i++) {
 			fileCabinet.add(new Vector<String>());

@@ -41,7 +41,9 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		for (int i = 0; i < pvals.length; i++) {
 			descriptions[i] = "lambda = " + ext.formDeci(ArrayUtils.lambda(pvals[i]), 4) + " ("
 												+ labels[i] + ")";
-			log.report(ArrayUtils.toStr(ext.replaceAllWith(labels[i], "'", "").split(PSF.Regex.GREEDY_WHITESPACE)) + "\t"
+			log.report(ArrayUtils.toStr(ext.replaceAllWith(labels[i], "'", "")
+																		 .split(PSF.Regex.GREEDY_WHITESPACE))
+								 + "\t"
 								 + ext.formDeci(ArrayUtils.lambda(pvals[i]), 4));
 		}
 

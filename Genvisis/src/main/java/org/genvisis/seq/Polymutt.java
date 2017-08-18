@@ -49,7 +49,7 @@ public class Polymutt {
 		new File(dir + "batches/").mkdirs();
 		sourceDir = ext.verifyDirFormat(sourceDir);
 		v = new Vector<String>();
-		files = Files.list(sourceDir, ".bam", false);
+		files = Files.list(sourceDir, ".bam");
 		for (String file : files) {
 			root = ext.rootOf(file);
 			filename = root + "_batch";
@@ -75,7 +75,7 @@ public class Polymutt {
 		Files.write("T\tGLF_Index", "same_for_all.dat");
 		Files.writeArray(new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2", "fam	1	3	2	2	1"},
 										 "same_for_all.ped");
-		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2}, false);
+		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2});
 		for (String[] iteration : iterations) {
 			Files.writeArray(new String[] {"1 " + iteration[0] + ".bam.glf",
 																		 "2 " + iteration[1] + ".bam.glf",
@@ -134,7 +134,7 @@ public class Polymutt {
 		unknownAnnotations = new Vector<String>();
 		finishedAnnotations = new Vector<String>();
 		parsedAnnotations = SeattleSeq.loadAllBadAnnotationInDir(annotationDir, log);
-		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2}, false);
+		iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2});
 		for (String[] iteration : iterations) {
 			if (Files.exists(vcfDir + iteration[0] + ".vcf")) {
 				parseDenovo(vcfDir + iteration[0] + ".vcf", parsedAnnotations, unknownAnnotations,
@@ -357,7 +357,7 @@ public class Polymutt {
 	private static void findAllDenovo(String dir) {
 		String[] filenames;
 
-		filenames = Files.list(dir, ".vcf.gz", false);
+		filenames = Files.list(dir, ".vcf.gz");
 
 		Qsub.qsub("findAll", ext.pwd(), -1,
 							"java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
@@ -368,7 +368,7 @@ public class Polymutt {
 	private static void findAllLocalDenovo(String dir) {
 		String[] filenames;
 
-		filenames = Files.list(dir, "vcf_denovo.vcf", false);
+		filenames = Files.list(dir, "vcf_denovo.vcf");
 
 		for (String filename : filenames) {
 			System.out.println(filename);
@@ -576,7 +576,7 @@ public class Polymutt {
 			segments = null;
 		} else if (Files.exists(bedfile + ".ser")) {
 			log.report("Reading in preserialized " + bedfile + ".ser");
-			segments = SegmentLists.load(bedfile + ".ser", false).getLists();
+			segments = SegmentLists.load(bedfile + ".ser").getLists();
 		} else {
 			log.report("Importing " + bedfile);
 			segmentLists = SegmentLists.parseSegmentList(bedfile, 0, 1, 2, true);
@@ -944,7 +944,7 @@ public class Polymutt {
 		dir = ext.pwd();
 
 		count = 0;
-		files = Files.list(dir, ".out.vcf.gz", false);
+		files = Files.list(dir, ".out.vcf.gz");
 		new File(dir + "chunks/").mkdirs();
 		for (int i = 0; i < files.length; i++) {
 			if (!Files.exists(dir + ext.rootOf(files[i], false) + "_onTargetCoverage.vcf.gz")) {

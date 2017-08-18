@@ -10,7 +10,7 @@ public class SourceParserDep {
 																			String markerName, String filename) {
 		String genotype;
 		byte genoForward, genoAB;
-	
+
 		if (genotypeIndices[4] >= 0) {
 			genotype = line[genotypeIndices[4]];
 		} else {
@@ -64,7 +64,7 @@ public class SourceParserDep {
 				}
 			}
 		}
-	
+
 		return new byte[] {genoForward == -9 ? 1 : genoForward, genoAB};
 	}
 

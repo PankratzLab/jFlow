@@ -68,7 +68,7 @@ public class AutoMito {
 			ExtProjectDataParser parser = builder.build(proj, proj.SEXCHECK_RESULTS_FILENAME.getValue());
 
 			String[][] matrix = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(),
-																												 false, null, false);
+																												 false, null);
 			int sexIndex = ext.indexOfStr("CLASS=" + SampleData.EUPHEMISMS[1], matrix[0]);
 
 			for (int i = 1; i < matrix.length; i++) {
@@ -124,7 +124,7 @@ public class AutoMito {
 		parser.getNumericDataForTitle("HetEx");
 		parser.getNumericDataForTitle("LRR_SEX_z");
 
-		proj = new Project(proj.getPropertyFilename(), false);// reset everything
+		proj = new Project(proj.getPropertyFilename());// reset everything
 
 	}
 
@@ -176,7 +176,7 @@ public class AutoMito {
 		}
 
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			proj.setPropertyFilename(filename);
 			if (Double.isNaN(lrrSDSamp)) {
 				if (proj.getArrayType() == ARRAY.ILLUMINA) {

@@ -352,7 +352,7 @@ public class PRoCtOR {
 		if (!notCorrected.isEmpty()) {
 			Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
 											 shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-													 + "_markersThatFailedCorrection.txt");
+																																							+ "_markersThatFailedCorrection.txt");
 		}
 
 		TransposeData.reverseTranspose(shadowProject);
@@ -454,7 +454,7 @@ public class PRoCtOR {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR,
 													correctionType, strategy, numComponents, numThreads, callCNVs);
 			if (!"".equals(err)) {

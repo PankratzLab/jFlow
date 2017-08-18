@@ -563,7 +563,7 @@ public class BamQC {
 		} else {
 			log.report(ext.getTime() + " Info - loading all files from dir " + dir + " with extension "
 								 + commonExt);
-			inputbams = Files.toFullPaths(Files.list(dir, "", commonExt, true, false), dir);
+			inputbams = Files.toFullPaths(Files.list(dir, "", commonExt, true), dir);
 		}
 		return inputbams;
 	}

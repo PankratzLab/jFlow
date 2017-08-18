@@ -30,7 +30,6 @@ public class LaunchAction extends AbstractAction {
 	private String marker;
 	private String[] loc;
 	private int type;
-	private boolean jar;
 	private int plotStartX;
 	private int[] plotStartY;
 	private int plotWidth;
@@ -40,7 +39,6 @@ public class LaunchAction extends AbstractAction {
 		super(sample + " " + ArrayUtils.toStr(loc, " / "));
 		type = LAUNCH_TRAILER;
 		this.proj = proj;
-		jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		this.loc = loc;
 		plotStartX = Trailer.DEFAULT_STARTX;
@@ -58,7 +56,6 @@ public class LaunchAction extends AbstractAction {
 		super(sample + " " + loc);
 		type = LAUNCH_TRAILER;
 		this.proj = proj;
-		jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		this.loc = new String[] {loc};
 		plotStartX = Trailer.DEFAULT_STARTX;
@@ -72,7 +69,6 @@ public class LaunchAction extends AbstractAction {
 		super(marker);
 		type = LAUNCH_SCATTER;
 		this.proj = proj;
-		jar = proj.JAR_STATUS.getValue();
 		this.marker = marker;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -81,7 +77,6 @@ public class LaunchAction extends AbstractAction {
 		super(sample);
 		this.type = type;
 		this.proj = proj;
-		jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -91,7 +86,6 @@ public class LaunchAction extends AbstractAction {
 		type = APPEND_ID_TO_FILE;
 		this.filename = filename;
 		this.proj = proj;
-		jar = proj.JAR_STATUS.getValue();
 		this.sample = sample;
 		putValue(Action.SMALL_ICON, new ColorIcon(12, 12, color));
 	}
@@ -119,10 +113,10 @@ public class LaunchAction extends AbstractAction {
 				String[] cnvs = {};
 				for (int i = 0; i < loc.length; i++) {
 					String pos = loc[i].endsWith("p") || loc[i].endsWith("q")
-																																	 ? loc[i].substring(0,
-																																											loc[i].length()
-																																											- 1)
-																																	 : loc[i];
+																																		? loc[i].substring(0,
+																																											 loc[i].length()
+																																													- 1)
+																																		: loc[i];
 					Trailer t = new Trailer(proj, sample, cnvs, pos, new String[][] {{sample, pos}},
 																	plotStartX,
 																	plotStartY[i], plotWidth, plotHeight);
@@ -132,7 +126,7 @@ public class LaunchAction extends AbstractAction {
 			case LAUNCH_SCATTER:
 				if (sample != null || loc != null) {
 					ext.setClipboard(sample != null ? (sample)
-																				 : "" + loc != null ? ("\t" + ArrayUtils.toStr(loc)) : "");
+																					: "" + loc != null ? ("\t" + ArrayUtils.toStr(loc)) : "");
 				}
 				ScatterPlot.createAndShowGUI(proj, new String[] {marker}, null, false);
 				break;
@@ -158,7 +152,7 @@ public class LaunchAction extends AbstractAction {
 		switch (type) {
 			case LAUNCH_TRAILER:
 				return Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
-														+ Sample.SAMPLE_FILE_EXTENSION, jar); // needs to be updated anyway
+														+ Sample.SAMPLE_FILE_EXTENSION); // needs to be updated anyway
 			default:
 				return true;
 		}

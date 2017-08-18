@@ -49,7 +49,7 @@ public class MetaAnalysisParams {
 		problem = false;
 		runByChr = true;
 
-		if (!Files.exists(filename, false, false)) {
+		if (!Files.exists(filename, false)) {
 			log.report("File '" + filename
 								 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
 			System.exit(1);

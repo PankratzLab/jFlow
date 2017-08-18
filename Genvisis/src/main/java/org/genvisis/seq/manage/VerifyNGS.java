@@ -20,7 +20,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class VerifyNGS {
 
 	public static void verify(String bamDir, String vcfDir, Logger log) {
-		String[] bams = Files.list(bamDir, null, ".bam", true, false, true);
+		String[] bams = Files.list(bamDir, null, ".bam", true, true);
 		log.reportTimeInfo("found " + bams.length + " bams");
 		for (String bam : bams) {
 			log.reportTimeInfo("Validating " + bam);
@@ -35,7 +35,7 @@ public class VerifyNGS {
 				e.printStackTrace();
 			}
 		}
-		String[] vcfs = Files.list(vcfDir, null, ".vcf", true, false, true);
+		String[] vcfs = Files.list(vcfDir, null, ".vcf", true, true);
 		for (String vcf : vcfs) {
 			log.reportTimeInfo("Validating " + vcf);
 			VCFFileReader reader = new VCFFileReader(new File(vcf), true);

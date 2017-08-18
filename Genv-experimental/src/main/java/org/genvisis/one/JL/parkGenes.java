@@ -20,8 +20,7 @@ public class parkGenes {
 
 	public static void main(String[] args) {
 		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger())
-																									.getGTrack().get(),
-																				 false);
+																									.getGTrack().get());
 
 		LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
 																									 new Logger());

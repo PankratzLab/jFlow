@@ -335,7 +335,7 @@ public class QuantNormProject {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			System.out.println(filename);
 			proj.setPropertyFilename(filename);
 			proj.PROJECT_PROPERTIES_FILENAME.setValue(filename);

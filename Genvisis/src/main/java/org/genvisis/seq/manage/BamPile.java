@@ -364,7 +364,7 @@ public class BamPile extends Segment implements Serializable {
 	}
 
 	public static BamPile[] readSerial(String filename, Logger log) {
-		return (BamPile[]) SerializedFiles.readSerial(filename, false, log, false, true);
+		return (BamPile[]) SerializedFiles.readSerial(filename, log, false, true);
 	}
 
 }

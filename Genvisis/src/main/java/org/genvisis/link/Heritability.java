@@ -53,7 +53,7 @@ public class Heritability {
 
 		line = Files.getHeaderOfFile(dir + pheno, log);
 		phenoHash = HashVec.loadFileToHashString(dir + pheno, new int[] {0, 1}, new int[] {2},
-																						 pheno.endsWith(".csv"), "\t", true, false, false);
+																						 pheno.endsWith(".csv"), "\t", true, false);
 		covarHeader = null;
 		if (covars != null) {
 			// System.err.println("Error - covars not implemented for Merlin yet, will eventually
@@ -66,7 +66,7 @@ public class Heritability {
 			covarHash = HashVec.loadFileToHashString(dir + covars, new int[] {0, 1},
 																							 ArrayUtils.subArray(ArrayUtils.arrayOfIndices(covarHeader.length),
 																																	 2),
-																							 covars.endsWith(".csv"), "\t", true, false, false);
+																							 covars.endsWith(".csv"), "\t", true, false);
 			covarHeader = ArrayUtils.subArray(covarHeader, 2);
 		} else {
 			covarHash = new Hashtable<String, String>();
@@ -302,7 +302,7 @@ public class Heritability {
 		String merlinExec;
 
 		merlinExec = DEFAULT_MERLIN_EXEC;
-		phenos = Files.list(dir, ".txt", false);
+		phenos = Files.list(dir, ".txt");
 		results = new String[phenos.length];
 		for (int i = 0; i < phenos.length; i++) {
 			results[i] = computeWithMerlin(dir, pedigreeFile, phenos[i], covars, ext.rootOf(phenos[i]),
@@ -382,7 +382,7 @@ public class Heritability {
 			famIdHash = HashVec.loadFileToHashString(pedigreeFile, new int[] {1}, new int[] {0},
 																							 Files.determineDelimiter(pedigreeFile, log)
 																										.equals(","),
-																							 null, false, false, false);
+																							 null, false, false);
 
 			log.setLevel(8);
 
@@ -408,8 +408,7 @@ public class Heritability {
 							summary.close();
 							return;
 						}
-						data = HashVec.loadFileToStringMatrix(dbFile, true, indices, dbDelimiter, false, 1000,
-																									false);
+						data = HashVec.loadFileToStringMatrix(dbFile, true, indices, dbDelimiter, 1000, false);
 						use = RegressionModel.getRowsWithCompleteData(null,
 																													Matrix.prune(data, null,
 																																			 ArrayUtils.subArray(ArrayUtils.arrayOfIndices(line.length),

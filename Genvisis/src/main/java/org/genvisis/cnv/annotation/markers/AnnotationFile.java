@@ -20,7 +20,7 @@ public abstract class AnnotationFile {
 
 	/**
 	 * @param annotationFilename
-	 * @param log 
+	 * @param log
 	 */
 	public AnnotationFile(String annotationFilename, Logger log) {
 		super();

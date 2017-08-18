@@ -65,7 +65,7 @@ public class DGV_CNV {
 		skipTypes.put("insertion", "insertion");
 		skipTypes.put("mobile element insertion", "mobile element insertion");
 
-		String[] filesToParse = Files.list(DGVDir, null, ".txt", true, false, true);
+		String[] filesToParse = Files.list(DGVDir, null, ".txt", true, true);
 		for (String element : filesToParse) {
 			String out = element + ".cnv";
 
@@ -217,7 +217,7 @@ public class DGV_CNV {
 		copyHash.put("sequence", new int[] {2});
 		copyHash.put("tandem", new int[] {2});
 
-		String[] filesToParse = Files.list(DGVDir, null, ".txt", true, false, true);
+		String[] filesToParse = Files.list(DGVDir, null, ".txt", true, true);
 		log.reportTimeInfo("Found " + filesToParse.length + " files to parse");
 		for (String element : filesToParse) {
 			String out = element + ".cnv";

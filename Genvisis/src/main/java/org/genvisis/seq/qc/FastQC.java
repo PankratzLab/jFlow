@@ -108,7 +108,7 @@ public class FastQC {
 
 	public void parseResultsFiles(boolean allModules) {
 		if (!fail) {
-			String[] zipFiles = Files.toFullPaths(Files.list(rootOutputDir, ZIP, false), rootOutputDir);
+			String[] zipFiles = Files.toFullPaths(Files.list(rootOutputDir, ZIP), rootOutputDir);
 			if (zipFiles == null || zipFiles.length < 1) {
 				log.reportError("Error - did not find any files with extension" + ZIP
 												+ " in output directory " + rootOutputDir);
@@ -358,7 +358,7 @@ public class FastQC {
 				for (String element : BWA_Analysis.FQ_EXTS) {
 					for (String rootInputDir : rootInputDirs) {
 
-						String[] tmpFiles = Files.list(rootInputDir, element, false);
+						String[] tmpFiles = Files.list(rootInputDir, element);
 						if (tmpFiles != null && tmpFiles.length > 0) {
 							if (verbose) {
 								log.report("Info - found " + tmpFiles.length + " of type " + element + " in "

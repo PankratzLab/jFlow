@@ -301,7 +301,7 @@ public class Pipeline {
 																		 "PROJECT_DIRECTORY=" + projectDir},
 											 projectFile);
 		}
-		Project proj = new Project(projectFile, false);
+		Project proj = new Project(projectFile);
 		proj.ARRAY_TYPE.setValue(ARRAY.NGS);
 		proj.saveProperties();
 		return proj;

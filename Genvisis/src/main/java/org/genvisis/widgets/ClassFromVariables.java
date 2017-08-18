@@ -84,8 +84,8 @@ public class ClassFromVariables {
 			trans += "\t\tFiles.writeSerial(this, filename);\n";
 			trans += "\t}\n";
 			trans += "\n";
-			trans += "\tpublic static " + className + " load(String filename, boolean jar) {\n";
-			trans += "\t\treturn (" + className + ")Files.readSerial(filename, jar);\n";
+			trans += "\tpublic static " + className + " load(String filename) {\n";
+			trans += "\t\treturn (" + className + ")Files.readSerial(filename);\n";
 			trans += "\t}";
 		}
 

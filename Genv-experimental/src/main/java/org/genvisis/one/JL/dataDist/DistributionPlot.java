@@ -205,7 +205,7 @@ public class DistributionPlot {
 		CLI c = new CLI(ABLookup.class);
 		c.addArgWithDefault(CLI.ARG_PROJ, CLI.DESC_PROJ, null);
 		c.parseWithExit(args);
-		launch(new Project(c.get(CLI.ARG_PROJ), false));
+		launch(new Project(c.get(CLI.ARG_PROJ)));
 	}
 
 }

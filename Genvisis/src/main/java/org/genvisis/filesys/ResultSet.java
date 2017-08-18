@@ -196,8 +196,8 @@ public class ResultSet implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static ResultSet load(String filename, boolean jar, boolean kill) {
-		return (ResultSet) SerializedFiles.readSerial(filename, jar, kill);
+	public static ResultSet load(String filename, boolean kill) {
+		return (ResultSet) SerializedFiles.readSerial(filename, kill);
 	}
 
 }

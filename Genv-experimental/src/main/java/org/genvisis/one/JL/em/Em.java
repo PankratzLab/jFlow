@@ -51,7 +51,7 @@ public class Em {
 	 */
 	public static void main(String[] args) {
 		String export = "/Users/Kitty/temp/emflow/export.xln";
-		String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] {1, 2}, false);
+		String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] {1, 2});
 		Logger log = new Logger();
 		log.reportTimeInfo(data.length + " by " + data[0].length);
 

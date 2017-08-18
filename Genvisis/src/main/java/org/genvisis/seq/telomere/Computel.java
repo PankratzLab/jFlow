@@ -173,7 +173,7 @@ public class Computel {
 					if (Files.exists(finalResults)) {
 						String parsedFinalResults = finalResults + ".parsed";
 						String[][] file = HashVec.loadFileToStringMatrix(parsedFinalResults, false,
-																														 new int[] {0, 1}, false);
+																														 new int[] {0, 1});
 						for (int i = 0; i < file.length; i++) {
 							for (int j = 0; j < file[i].length; j++) {
 								file[i][j] = file[i][j].replaceAll("\"", "");
@@ -224,8 +224,6 @@ public class Computel {
 		log.report(config);
 		return config;
 	}
-
-
 
 
 

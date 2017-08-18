@@ -54,8 +54,8 @@ public class GeneSet implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static GeneSet load(String filename, boolean jar) {
-		return (GeneSet) SerializedFiles.readSerial(filename, jar, true);
+	public static GeneSet load(String filename) {
+		return (GeneSet) SerializedFiles.readSerial(filename, true);
 	}
 
 	public SegmentLists determineGeneSegments(int window) {

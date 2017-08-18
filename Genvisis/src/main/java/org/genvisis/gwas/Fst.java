@@ -169,16 +169,16 @@ public class Fst {
 		root = ext.removeDirectoryInfo(plinkRoot);
 
 		if (new File(dir + root + ".bim.ser").exists()) {
-			markerInfo = SerialStringMatrix.load(dir + root + ".bim.ser", false).getMatrix();
+			markerInfo = SerialStringMatrix.load(dir + root + ".bim.ser").getMatrix();
 		} else if (!new File(dir + root + ".bim").exists()) {
 			System.err.println("Error - algorithm requires a '" + root
 												 + ".bim' file to ensure marker order and allelic strand");
 			return null;
 		} else {
 			markerInfo = HashVec.loadFileToStringMatrix(dir + root + ".bim", false,
-																									new int[] {1, 0, 3, 4, 5}, false);
+																									new int[] {1, 0, 3, 4, 5});
 			new SerialStringMatrix(markerInfo).serialize(dir + root + ".bim.ser");
-			files = Files.list(dir, ".hwe.ser", false);
+			files = Files.list(dir, ".hwe.ser");
 			for (String file : files) {
 				count = 1;
 				do {
@@ -255,7 +255,7 @@ public class Fst {
 					}
 					new SerialIntMatrix(alleleCounts).serialize(dir + keys[i] + ".hwe.ser");
 				} else {
-					alleleCounts = SerialIntMatrix.load(dir + keys[i] + ".hwe.ser", false).getMatrix();
+					alleleCounts = SerialIntMatrix.load(dir + keys[i] + ".hwe.ser").getMatrix();
 				}
 			}
 		}
@@ -277,7 +277,7 @@ public class Fst {
 		dir = ext.parseDirectoryOfFile(filename);
 		if (incl == null) {
 			System.out.println("No specific ethnicities provided, using all in Fst calculations:");
-			files = Files.list(dir, ".hwe.ser", false);
+			files = Files.list(dir, ".hwe.ser");
 			incl = new String[files.length];
 			for (int i = 0; i < files.length; i++) {
 				incl[i] = files[i].substring(0, files[i].indexOf(".hwe.ser"));
@@ -314,7 +314,7 @@ public class Fst {
 
 		alleleCounts = new int[incl.length][][];
 		for (int i = 0; i < incl.length; i++) {
-			alleleCounts[i] = SerialIntMatrix.load(dir + incl[i] + ".hwe.ser", false).getMatrix();
+			alleleCounts[i] = SerialIntMatrix.load(dir + incl[i] + ".hwe.ser").getMatrix();
 		}
 
 		try {

@@ -58,7 +58,7 @@ public class BlastContamination {
 													 int numReadsPerThread, int blastWordSize, int reportWordSize,
 													 int numSampThreads, String outputDir, String outputRoot, int numBatches,
 													 int memoryInMB, int wallTimeInHours, Logger log) {
-		String[] fastaDbs = Files.toFullPaths(Files.list(dbDir, "nt.", "nsq", true, false), dbDir);
+		String[] fastaDbs = Files.toFullPaths(Files.list(dbDir, "nt.", "nsq", true), dbDir);
 		String[] fastaqs = null;
 		if (fastaDbs.length == 0) {
 			log.reportError("Did not find any \"nt\" database files listed in " + dbDir);
@@ -71,7 +71,7 @@ public class BlastContamination {
 			return;
 		}
 		if (fastaqDir != null && !fastaqDir.equals("")) {
-			fastaqs = Files.listFullPaths(fastaqDir, ".fastq", false);
+			fastaqs = Files.listFullPaths(fastaqDir, ".fastq");
 			if (fastaqs.length == 0) {
 				log.reportError("Did not find any .fastq files listed in " + fastaqDir);
 				return;

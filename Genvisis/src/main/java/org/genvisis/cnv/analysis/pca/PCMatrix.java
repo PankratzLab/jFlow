@@ -186,7 +186,7 @@ public class PCMatrix {
 
 		c.parseWithExit(args);
 
-		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		Project proj = new Project(c.get(CLI.ARG_PROJ));
 		String column = c.get(ARGS_COLUMN);
 		String pcFile = c.has(ARGS_PC_FILE) ? c.get(ARGS_PC_FILE)
 																				: proj.INTENSITY_PC_FILENAME.getValue();

@@ -37,13 +37,12 @@ public class ExomeDepthRun {
 																	 int numthreads, Logger log) {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams)
-																													 ? Files.listFullPaths(bams,
-																																								 BamOps.BAM_EXT,
-																																								 false)
-																													 : HashVec.loadFileToStringArray(bams,
-																																													 false,
-																																													 new int[] {0},
-																																													 true);
+																														? Files.listFullPaths(bams,
+																																									BamOps.BAM_EXT)
+																														: HashVec.loadFileToStringArray(bams,
+																																														false,
+																																														new int[] {0},
+																																														true);
 		String outputResultsDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
 															+ "results/";
 		new File(outputResultsDir).mkdirs();
@@ -77,7 +76,7 @@ public class ExomeDepthRun {
 		new File(projectDir).mkdirs();
 		String projectFile = projectDir + outputRoot + ".properties";
 		Files.write("", projectFile);
-		Project proj = new Project(projectFile, false);
+		Project proj = new Project(projectFile);
 		proj.PROJECT_DIRECTORY.setValue(projectDir);
 		proj.saveProperties(projectFile);
 		generateMarkerPositions(proj, eDepthAnalysis[0], log);

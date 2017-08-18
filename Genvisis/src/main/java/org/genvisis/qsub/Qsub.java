@@ -134,7 +134,7 @@ public class Qsub {
 		List<String> v;
 		int numThreads;
 
-		lines = HashVec.loadFileToStringArray(filename, false, false, null, false);
+		lines = HashVec.loadFileToStringArray(filename, false, null, false);
 
 		if (multiple) { // could be more elegant and incorporated with those below if desired
 			System.out.println("Creating a ScriptExecutor");

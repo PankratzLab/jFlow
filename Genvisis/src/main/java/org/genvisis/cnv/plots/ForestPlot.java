@@ -393,7 +393,7 @@ public class ForestPlot {
 	private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
 		String file;
 		LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
-		BufferedReader markerReader = Files.getReader(markerFile, false, true, false);
+		BufferedReader markerReader = Files.getReader(markerFile, true, false);
 
 		if (markerReader != null) {
 			try {
@@ -447,7 +447,7 @@ public class ForestPlot {
 		}
 		final HashMap<String, Integer> progSteps = new HashMap<String, Integer>();
 		for (String file : files.keySet()) {
-			int sz = Files.getSize(file, false);
+			int sz = Files.getSize(file);
 			progSteps.put(file, sz);
 			if (Thread.interrupted()) {
 				interruptLoading();
@@ -474,11 +474,11 @@ public class ForestPlot {
 			}
 
 			BufferedReader dataReader;
-			dataReader = Files.getReader(fileMap.getKey(), false, // not a jar file
-																	 true, // verbose mode on
-																	 log, false // don't kill the whole process, esp. if we're
-																							// running
-																							// a GUI
+			dataReader = Files.getReader(fileMap.getKey(), true, // not a jar file
+																	 log, // verbose mode on
+																	 false // don't kill the whole process, esp. if we're
+																				 // running
+																				 // a GUI
 			);
 			if (dataReader == null) {
 				continue;
@@ -746,7 +746,7 @@ public class ForestPlot {
 	}
 
 	public void screenCap(String subdir, boolean versionIfExists, Dimension size) {
-		//FIXME this aliases the forestpanel and will overwrite its size
+		// FIXME this aliases the forestpanel and will overwrite its size
 		ForestPanel p = getForestPanel();
 		p.setSize(size);
 		p.createImage();

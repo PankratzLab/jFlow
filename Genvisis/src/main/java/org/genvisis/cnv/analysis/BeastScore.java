@@ -349,17 +349,19 @@ public class BeastScore {
 	 * 
 	 * @param proj Project
 	 * @param cnvFile CNV File to score
-	 * @param isSexCNVs This flag applies sex-specific centroids to recompute LRRs.  If not, original LRRs will be used for scoring.
+	 * @param isSexCNVs This flag applies sex-specific centroids to recompute LRRs. If not, original
+	 *        LRRs will be used for scoring.
 	 */
-	public static void scoreCNVFile(Project proj, String cnvFile, boolean recomputeLRRsFromSexCentroids) {
+	public static void scoreCNVFile(Project proj, String cnvFile,
+																	boolean recomputeLRRsFromSexCentroids) {
 		SampleData sd = proj.getSampleData(false);
 
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		byte[] chr = markerSet.getChrs();
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
-		
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 
 		HashSet<String> inds = new HashSet<String>();
 		for (CNVariant cnv : cnvs) {
@@ -370,59 +372,69 @@ public class BeastScore {
 		for (String s : ids) {
 			cnvMap.put(s, new ArrayList<CNVariant>());
 		}
-		
+
 		for (CNVariant cnv : cnvs) {
 			cnvMap.get(cnv.getIndividualID()).add(cnv);
 		}
-		
+
 		CNVariant[][] cnvArr = new CNVariant[ids.size()][];
 		for (int i = 0; i < cnvArr.length; i++) {
-			cnvArr[i] = cnvMap.get(ids.get(i)).toArray(new CNVariant[0]); 
+			cnvArr[i] = cnvMap.get(ids.get(i)).toArray(new CNVariant[0]);
 		}
 
 		float[][][] centFem = null;
 		float[][][] centMal = null;
 		if (recomputeLRRsFromSexCentroids) {
 			if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())) {
-				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(), false).getCentroids();
+				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue()).getCentroids();
 			} else {
-				proj.getLog().reportError("Female-specific centroid file {" + proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				proj.getLog()
+						.reportError("Female-specific centroid file {"
+												 + proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue()
+												 + "} doesn't exist - LRR correction cannot complete.");
 				return;
 			}
 			if (Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(), false).getCentroids();
+				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue()).getCentroids();
 			} else {
-				proj.getLog().reportError("Male-specific centroid file {" + proj.SEX_CENTROIDS_MALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
+				proj.getLog()
+						.reportError("Male-specific centroid file {"
+												 + proj.SEX_CENTROIDS_MALE_FILENAME.getValue()
+												 + "} doesn't exist - LRR correction cannot complete.");
 				return;
 			}
 		}
-		
+
 		BeastScore[] idScores = new BeastScore[ids.size()];
 		for (int i = 0; i < ids.size(); i++) {
-			Sample samp = proj.getPartialSampleFromRandomAccessFile(ids.get(i), false, false, false, true, false);
-			float[] lrrs = recomputeLRRsFromSexCentroids ? samp.getLRRs((sd.getSexForIndividual(ids.get(i)) == 1) ? centMal : centFem) : samp.getLRRs();
+			Sample samp = proj.getPartialSampleFromRandomAccessFile(ids.get(i), false, false, false, true,
+																															false);
+			float[] lrrs = recomputeLRRsFromSexCentroids ? samp.getLRRs((sd.getSexForIndividual(ids.get(i)) == 1) ? centMal
+																																																						: centFem)
+																									 : samp.getLRRs();
 			idScores[i] = BeastScore.beastInd(proj, sd, lrrs, cnvArr[i], chr, positions, indicesByChr);
 		}
-		
+
 		String outFile = ext.rootOf(cnvFile, false) + "_beast.cnv";
-		 	
+
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t") + "\tSEX\tSCORE\tHEIGHT");
 		for (int i = 0; i < ids.size(); i++) {
 			CNVariant[] idCnvs = cnvArr[i];
 			float[] scores = idScores[i].getBeastScores();
 			float[] heights = idScores[i].getBeastHeights();
-			
+
 			for (int c = 0; c < idCnvs.length; c++) {
-				writer.println(idCnvs[c].toPlinkFormat() + "\t" + sd.getSexForIndividual(ids.get(i)) + "\t" + scores[c] + "\t" + heights[c]);
+				writer.println(idCnvs[c].toPlinkFormat() + "\t" + sd.getSexForIndividual(ids.get(i)) + "\t"
+											 + scores[c] + "\t" + heights[c]);
 			}
-			
+
 		}
 		writer.flush();
 		writer.close();
-		
+
 	}
-	
+
 	/**
 	 * Helper Function to compute the beast scores for cNVariantInds[][], where cNVariantInds.lenght =
 	 * number of individuals and cNVariantInds[i].length is the number of cnvs per indivdual

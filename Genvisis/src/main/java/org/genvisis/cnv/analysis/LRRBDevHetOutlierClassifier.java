@@ -334,7 +334,7 @@ public class LRRBDevHetOutlierClassifier {
 		}
 
 		if (project) {
-			Project proj = new Project(file, false);
+			Project proj = new Project(file);
 			SampleData sampleData = proj.getSampleData(false);
 			for (String id : ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToExclude())) {
 				for (String subID : sampleData.lookup(id)) {
@@ -353,11 +353,11 @@ public class LRRBDevHetOutlierClassifier {
 	private void loadAllFilesAllData(int idCol, String lrrHdr, String bdevHdr) {
 		String dir = ext.parseDirectoryOfFile(filename);
 		String prefix = filename.substring(dir.length());
-		String[] files = Files.list(dir, prefix, null, true, false);
+		String[] files = Files.list(dir, prefix, null, true);
 
 		for (String file : files) {
 			ArrayList<AnalysisData> fileData = new ArrayList<LRRBDevHetOutlierClassifier.AnalysisData>();
-			BufferedReader reader = Files.getReader(dir + file, false, true, false);
+			BufferedReader reader = Files.getReader(dir + file, true, false);
 			if (reader != null) {
 				String temp;
 				try {
@@ -425,7 +425,7 @@ public class LRRBDevHetOutlierClassifier {
 			loadAllFilesAllData(idCol, lrrHdr, bdevHdr);
 			return;
 		}
-		BufferedReader reader = Files.getReader(filename, false, true, false);
+		BufferedReader reader = Files.getReader(filename, true, false);
 		if (reader != null) {
 			String temp;
 			try {
@@ -487,7 +487,7 @@ public class LRRBDevHetOutlierClassifier {
 	private void loadData(int idCol, int lrrCol, int bdevCol) {
 		AnalysisData analysis = new AnalysisData(lrrCol, bdevCol);
 
-		BufferedReader reader = Files.getReader(filename, false, true, false);
+		BufferedReader reader = Files.getReader(filename, true, false);
 		if (reader != null) {
 			try {
 				String temp = reader.readLine();

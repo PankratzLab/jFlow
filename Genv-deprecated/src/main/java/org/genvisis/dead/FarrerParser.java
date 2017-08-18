@@ -65,7 +65,7 @@ public class FarrerParser {
 		}
 
 
-		files = Files.list(dir, "_add.out.txt", false);
+		files = Files.list(dir, "_add.out.txt");
 		for (String file : files) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));
@@ -141,7 +141,7 @@ public class FarrerParser {
 			}
 		}
 
-		files = Files.list(dir, ".assoc.logistic", false);
+		files = Files.list(dir, ".assoc.logistic");
 		for (String file : files) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + file));

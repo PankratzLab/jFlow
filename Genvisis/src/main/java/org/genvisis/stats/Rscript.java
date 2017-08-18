@@ -85,7 +85,7 @@ public class Rscript {
 			dir = ext.pwd();
 		}
 
-		files = Files.list(dir, ".R", false);
+		files = Files.list(dir, ".R");
 
 		v = new Vector<String>();
 		for (String file : files) {

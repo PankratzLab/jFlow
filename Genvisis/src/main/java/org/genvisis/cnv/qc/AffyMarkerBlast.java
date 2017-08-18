@@ -255,7 +255,7 @@ public class AffyMarkerBlast extends MarkerBlast {
 
 		c.parseWithExit(args);
 
-		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		Project proj = new Project(c.get(CLI.ARG_PROJ));
 		String probeFile = c.get(ARG_PROBE_FILE);
 		String annotFile = c.get(ARG_ANNOT_FILE);
 		int blastWordSize = c.getI(ARG_BLAST_WORD_SIZE);

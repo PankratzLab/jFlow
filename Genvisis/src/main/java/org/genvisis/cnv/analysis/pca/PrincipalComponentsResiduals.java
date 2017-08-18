@@ -333,8 +333,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		ClusterFilterCollection cluster;
 
 		if (Files.exists(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME))) {
-			cluster = ClusterFilterCollection.load(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME),
-																						 false);
+			cluster = ClusterFilterCollection.load(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
 		} else {
 			cluster = new ClusterFilterCollection();
 			log.report("Info - did not find the cluster filter file "
@@ -548,8 +547,8 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 		int sampIndex = 0;
 		try {
 			BufferedReader reader = Files.getReader(pcFilefull,
-																							proj == null ? false : proj.JAR_STATUS.getValue(),
-																							true, false);
+																							true,
+																							false);
 			String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			if (!line[0].equals("FID") || !line[1].equals("IID")) {
 				log.reportError("Error - different format than expected; first column should be FID and second column should be IID, followed by PCs");
@@ -576,8 +575,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
 			}
 			reader.close();
 			pcBasis = new double[numComponents][numSamples];
-			reader = Files.getReader(pcFilefull, proj == null ? false : proj.JAR_STATUS.getValue(), true,
-															 false);
+			reader = Files.getReader(pcFilefull, true, false);
 			reader.readLine();
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

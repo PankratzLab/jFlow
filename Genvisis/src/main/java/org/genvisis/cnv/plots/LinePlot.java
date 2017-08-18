@@ -950,8 +950,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true),
-																		 false));
+				createAndShowGUI(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true)));
 			}
 		});
 

@@ -75,7 +75,7 @@ public class GoogleMash implements Serializable {
 	}
 
 	public static GoogleMash load(String filename) {
-		return (GoogleMash) SerializedFiles.readSerial(filename, false, false);
+		return (GoogleMash) SerializedFiles.readSerial(filename, false);
 	}
 
 	public void queryAll(int numThreads) {

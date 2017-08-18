@@ -552,7 +552,7 @@ public class MDL implements Iterator<MarkerData> {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		System.out.println(proj.getMarkerNames().length);
 		String[] markers = proj.getMarkerNames();
 		long totalTime = System.currentTimeMillis();

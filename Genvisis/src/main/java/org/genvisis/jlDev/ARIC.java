@@ -15,7 +15,7 @@ import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
 public class ARIC {
 
 	public static void main(String[] args) {
-		Project proj = new Project("/home/pankrat2/lanej/projects/shadowAric_gw6.properties", false);
+		Project proj = new Project("/home/pankrat2/lanej/projects/shadowAric_gw6.properties");
 		String phenoDef = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/vte.txt";
 		String cnvs = "/home/pankrat2/shared/aric_gw6/shadow_ARICGenvisis_CEL_FULL/vte/penncnv.cnv";
 		String mapFile = "/panfs/roc/groups/5/pankrat2/public/bin/ref/mapability/hg18/wgEncodeCrgMapabilityAlign100mer.bedgraph";

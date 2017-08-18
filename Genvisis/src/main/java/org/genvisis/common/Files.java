@@ -19,20 +19,15 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
@@ -562,12 +557,8 @@ public class Files {
 		InputStream is = null;
 		InputStreamReader isReader = null;
 
-		if (!exists(filename, false) && !exists(filename, true)) {
+		if (!exists(filename)) {
 			throw new FileNotFoundException("File '" + filename + "' was no where to be found");
-		}
-
-		if (!exists(filename, false)) {
-			return null;
 		}
 
 		if (filename.endsWith(".gz")) {
@@ -992,7 +983,7 @@ public class Files {
 				line = fileParameters[i].trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				serializedFilename = GenParser.parseSerialFilename(line);
 				fileNames.add(line[0]);
-				if (Files.exists(serializedFilename, false)) {
+				if (Files.exists(serializedFilename)) {
 					if (log.getLevel() > 8) {
 						log.report("Loading pre-serialized data from '" + line[0] + "'");
 					}
@@ -1156,7 +1147,7 @@ public class Files {
 				line[0] = line[0].replaceAll("\"", "");
 
 				serializedFilename = GenParser.parseSerialFilename(line);
-				if (Files.exists(serializedFilename, false)) {
+				if (Files.exists(serializedFilename)) {
 					if (log.getLevel() > 8) {
 						log.report("Loading pre-serialized data from '" + line[0] + "'");
 					}
@@ -1980,20 +1971,15 @@ public class Files {
 		return null;
 	}
 
-	public static BufferedReader getReader(String filename, boolean jar, boolean verbose,
-																				 boolean kill) {
-		return getReader(filename, jar, verbose, new Logger(), kill);
+	public static BufferedReader getReader(String filename, boolean verbose, boolean kill) {
+		return getReader(filename, verbose, new Logger(), kill);
 	}
 
-	public static BufferedReader getReader(String filename, boolean jar, boolean verbose, Logger log,
+	public static BufferedReader getReader(String filename, boolean verbose, Logger log,
 																				 boolean kill) {
 		try {
-			if (Files.exists(filename, jar, false)) {
-				if (jar) {
-					return new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
-				} else {
-					return getAppropriateReader(filename);
-				}
+			if (Files.exists(filename, false)) {
+				return getAppropriateReader(filename);
 			} else {
 				if (verbose) {
 					log.reportError("Error - file not found: " + filename);
@@ -2013,16 +1999,36 @@ public class Files {
 		return null;
 	}
 
-	public static int getSize(String filename, boolean jar) {
+	public static BufferedReader getReaderInJar(String filename, boolean verbose, Logger log,
+																							boolean kill) {
+		try {
+			if (Files.existsInJar(filename, false)) {
+				return new BufferedReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(filename)));
+			} else {
+				if (verbose) {
+					log.reportError("Error - file not found: " + filename);
+				}
+				if (kill) {
+					System.exit(1);
+				}
+			}
+		} catch (Exception e) {
+			if (verbose) {
+				log.reportException(e);
+			}
+		}
+		if (kill) {
+			System.exit(1);
+		}
+		return null;
+	}
+
+	public static int getSize(String filename) {
 		int size = -1;
 
 		try {
-			if (Files.exists(filename, jar, false)) {
-				if (jar) {
-					size = ClassLoader.getSystemResourceAsStream(filename).available();
-				} else {
-					size = (int) new File(filename).length();
-				}
+			if (Files.exists(filename)) {
+				size = (int) new File(filename).length();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2031,8 +2037,22 @@ public class Files {
 		return size;
 	}
 
-	public static double[] getSizeScaled(String filename, boolean jar) {
-		int sz = getSize(filename, jar);
+	public static int getSizeInJar(String filename) {
+		int size = -1;
+
+		try {
+			if (Files.existsInJar(filename, false)) {
+				size = ClassLoader.getSystemResourceAsStream(filename).available();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return size;
+	}
+
+	public static double[] getSizeScaled(String filename) {
+		int sz = getSize(filename);
 		if (sz == -1) {
 			return new double[] {sz, -1};
 		}
@@ -2045,10 +2065,10 @@ public class Files {
 		return new double[] {temp, dec};
 	}
 
-	public static String getSizeScaledString(String filename, boolean jar) {
+	public static String getSizeScaledString(String filename) {
 		String[] bases = {"b", "kb", "Mb", "Gb", "Tb", "Eb"};
 
-		double[] sz = getSizeScaled(filename, jar);
+		double[] sz = getSizeScaled(filename);
 		if (sz[0] == -1) {
 			return "-1";
 		} else {
@@ -2065,7 +2085,7 @@ public class Files {
 
 		result = true;
 		for (String filename : filenames) {
-			if (!exists(dir + filename, false, treatEmptyAsMissing)) {
+			if (!exists(dir + filename, treatEmptyAsMissing)) {
 				result = false;
 				break;
 			}
@@ -2084,7 +2104,7 @@ public class Files {
 
 		result = true;
 		for (String filename : filenames) {
-			if (!exists(dir + filename, false, treatEmptyAsMissing)) {
+			if (!exists(dir + filename, treatEmptyAsMissing)) {
 				result = false;
 				break;
 			}
@@ -2093,28 +2113,31 @@ public class Files {
 		return result;
 	}
 
+	// public static boolean exists(String filename) {
+	// return exists(filename, false);
+	// }
+
 	public static boolean exists(String filename) {
 		return exists(filename, false);
 	}
 
-	public static boolean exists(String filename, boolean jar) {
-		return exists(filename, jar, false);
-	}
-
-	public static boolean exists(String filename, boolean jar, boolean treatEmptyAsMissing) {
+	public static boolean exists(String filename, boolean treatEmptyAsMissing) {
 		if (filename == null) {
 			return false;
 		}
-		if (jar) {
-			try {
-				ClassLoader.getSystemResourceAsStream(filename).close();
-				return !treatEmptyAsMissing || getSize(filename, jar) != 0;
-			} catch (Exception e) {
-				return false;
-			}
-		} else {
-			File f = new File(filename);
-			return f.exists() && (!treatEmptyAsMissing || getSize(filename, jar) != 0);
+		File f = new File(filename);
+		return f.exists() && (!treatEmptyAsMissing || getSize(filename) != 0);
+	}
+
+	public static boolean existsInJar(String filename, boolean treatEmptyAsMissing) {
+		if (filename == null) {
+			return false;
+		}
+		try {
+			ClassLoader.getSystemResourceAsStream(filename).close();
+			return !treatEmptyAsMissing || getSizeInJar(filename) != 0;
+		} catch (Exception e) {
+			return false;
 		}
 	}
 
@@ -2164,7 +2187,7 @@ public class Files {
 																			Logger log, String... filenames) {
 		boolean result = true;
 		for (String filename : filenames) {
-			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
+			if (!Files.exists(dir + filename, treatEmptyAsMissing)) {
 				if (!verbose || log == null) {
 					// If not logging, return on first failure
 					return false;
@@ -2211,7 +2234,7 @@ public class Files {
 																			boolean treatEmptyAsMissing, boolean verbose, Logger log) {
 		boolean result = true;
 		for (String filename : filenames) {
-			if (!Files.exists(dir + filename, false, treatEmptyAsMissing)) {
+			if (!Files.exists(dir + filename, treatEmptyAsMissing)) {
 				if (!verbose || log == null) {
 					// If not logging, return on first failure
 					return false;
@@ -2245,205 +2268,107 @@ public class Files {
 	 * directory. e.g. if there were 200 matching files, the largest being 20MB, this would return 200
 	 * * 20 * 1000000.
 	 */
-	public static long worstCaseDirSize(String directory, String suffix, boolean jar) {
-		String[] files = listFullPaths(directory, suffix, jar);
+	public static long worstCaseDirSize(String directory, String suffix) {
+		String[] files = listFullPaths(directory, suffix);
 
 		long size = -1;
 		// find the largest file
 		for (String f : files) {
-			size = Math.max(size, getSize(f, jar));
+			size = Math.max(size, getSize(f));
 		}
 
 		return files.length * size;
 	}
 
-	public static String[] listFullPaths(String directory, final String suffix, boolean jar) {
-		return list(directory, null, suffix, false, jar, true);
+	public static String[] listFullPaths(String directory, final String suffix) {
+		return list(directory, null, suffix, false, true);
 	}
 
-	public static String[] list(String directory, final String suffix, boolean jar) {
-		return list(directory, null, suffix, false, jar);
+	public static String[] list(String directory, final String suffix) {
+		return list(directory, null, suffix, false);
 	}
 
 	public static String[] list(String directory, final String prefix, final String suffix,
-															final boolean caseSensitive, boolean jar) {
-		return list(directory, prefix, suffix, caseSensitive, jar, false);
+															final boolean caseSensitive) {
+		return list(directory, prefix, suffix, caseSensitive, false);
 	}
 
 	// These variables need to be final in order to work in the FilenameFilter
 	// The only illegal character in all operating systems is the colon :
 	// so this was chosen to signify NOT
 	public static String[] list(String directory, final String prefix, final String suffix,
-															final boolean caseSensitive, boolean jar, final boolean fullPath) {
+															final boolean caseSensitive, final boolean fullPath) {
 		if (directory == null || directory.length() == 0) {
 			directory = "./";
 		}
 
-		if (jar) {
-			try {
-				// System.err.println("I haven't been able to get listFiles() to work inside a jar file
-				// yet");
+		String[] files;
 
-				URL repositoryURL = ClassLoader.getSystemResource("common/Files.class");
-				String repositoryPath = repositoryURL.getPath();
-				URI jarURI = new URI(repositoryPath.substring(0, repositoryPath.indexOf('!')));
-				JarFile jarFile = new JarFile(new File(jarURI));
-				Vector<String> v = new Vector<String>();
+		files = new File(directory).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String filename) {
+				boolean passes = true;
+				String pre, suf;
 
-				Enumeration<JarEntry> entries = jarFile.entries();
-				while (entries.hasMoreElements()) {
-					String entryName = entries.nextElement().getName();
-					boolean passes = true;
+				if (new File(file, filename).isDirectory()) {
+					return false;
+				}
 
-					if (!entryName.startsWith(directory)) {
+				pre = prefix == null ? null : (caseSensitive ? prefix : prefix.toLowerCase());
+				suf = suffix == null ? null : (caseSensitive ? suffix : suffix.toLowerCase());
+				filename = caseSensitive ? filename : filename.toLowerCase();
+
+				if (pre != null && !pre.equals("")) {
+					if (pre.startsWith(":")) {
+						if (filename.toLowerCase().startsWith(pre.substring(1).toLowerCase())) {
+							passes = false;
+						}
+					} else if (!filename.toLowerCase().startsWith(pre.toLowerCase())) {
 						passes = false;
 					}
+				}
 
-					if (prefix != null && !prefix.equals("")) {
-						if (prefix.startsWith(":")) {
-							if (entryName.toLowerCase().startsWith(prefix.toLowerCase())) {
-								passes = false;
-							}
-						} else if (!entryName.toLowerCase().startsWith(prefix.toLowerCase())) {
+				if (suf != null && !suf.equals("")) {
+					if (suf.startsWith(":")) {
+						if (filename.toLowerCase().endsWith(suf.substring(1).toLowerCase())) {
 							passes = false;
 						}
-					}
-
-					if (suffix != null && !suffix.equals("")) {
-						if (suffix.startsWith(":")) {
-							if (entryName.toLowerCase().endsWith(suffix.toLowerCase())) {
-								passes = false;
-							}
-						} else if (!entryName.toLowerCase().endsWith(suffix.toLowerCase())) {
-							passes = false;
-						}
-					}
-
-					if (passes) {
-						String trav = entryName.substring(directory.length());
-						if (trav.startsWith("/")) {
-							trav = trav.substring(1);
-						}
-						if (!trav.contains("/")) {
-							if (fullPath) {
-								v.add(directory + trav);
-							} else {
-								v.add(trav);
-							}
-						}
+					} else if (!filename.toLowerCase().endsWith(suf.toLowerCase())) {
+						passes = false;
 					}
 				}
 
-				jarFile.close();
-
-				return ArrayUtils.toStringArray(v);
-			} catch (Exception e) {
-				System.err.println("Error reading files in jar file");
-				e.printStackTrace();
-				return null;
+				return passes;
 			}
+		});
+
+		if (fullPath) {
+			for (int i = 0; i < files.length; i++) {
+				files[i] = directory + files[i];
+			}
+		}
+
+		if (files == null) {
+			return new String[0];
 		} else {
-			String[] files;
-
-			files = new File(directory).list(new FilenameFilter() {
-				@Override
-				public boolean accept(File file, String filename) {
-					boolean passes = true;
-					String pre, suf;
-
-					if (new File(file, filename).isDirectory()) {
-						return false;
-					}
-
-					pre = prefix == null ? null : (caseSensitive ? prefix : prefix.toLowerCase());
-					suf = suffix == null ? null : (caseSensitive ? suffix : suffix.toLowerCase());
-					filename = caseSensitive ? filename : filename.toLowerCase();
-
-					if (pre != null && !pre.equals("")) {
-						if (pre.startsWith(":")) {
-							if (filename.toLowerCase().startsWith(pre.substring(1).toLowerCase())) {
-								passes = false;
-							}
-						} else if (!filename.toLowerCase().startsWith(pre.toLowerCase())) {
-							passes = false;
-						}
-					}
-
-					if (suf != null && !suf.equals("")) {
-						if (suf.startsWith(":")) {
-							if (filename.toLowerCase().endsWith(suf.substring(1).toLowerCase())) {
-								passes = false;
-							}
-						} else if (!filename.toLowerCase().endsWith(suf.toLowerCase())) {
-							passes = false;
-						}
-					}
-
-					return passes;
-				}
-			});
-
-			if (fullPath) {
-				for (int i = 0; i < files.length; i++) {
-					files[i] = directory + files[i];
-				}
-			}
-
-			if (files == null) {
-				return new String[0];
-			} else {
-				return files;
-			}
+			return files;
 		}
 	}
 
-	public static String[] listDirectories(String directory, boolean jar) {
-		if (jar) {
-			try {
-				URL repositoryURL = ClassLoader.getSystemResource("common/Files.class");
-				String repositoryPath = repositoryURL.getPath();
-				URI jarURI = new URI(repositoryPath.substring(0, repositoryPath.indexOf('!')));
-				JarFile jarFile = new JarFile(new File(jarURI));
-				Vector<String> v = new Vector<String>();
-
-				Enumeration<JarEntry> entries = jarFile.entries();
-				while (entries.hasMoreElements()) {
-					String entryName = entries.nextElement().getName();
-
-					if (entryName.startsWith(directory)) {
-						String trav = entryName.substring(directory.length());
-						if (trav.startsWith("/")) {
-							trav = trav.substring(1);
-						}
-						if (trav.contains("/")) {
-							HashVec.addIfAbsent(trav.substring(0, trav.indexOf("/")), v, true);
-						}
-					}
-				}
-
-				jarFile.close();
-
-				return ArrayUtils.toStringArray(v);
-			} catch (Exception e) {
-				System.err.println("Error reading files in jar file");
-				e.printStackTrace();
-				return null;
+	public static String[] listDirectories(String directory) {
+		return new File(directory).list(new FilenameFilter() {
+			@Override
+			public boolean accept(File file, String filename) {
+				return new File(file, filename).isDirectory();
 			}
-		} else {
-			return new File(directory).list(new FilenameFilter() {
-				@Override
-				public boolean accept(File file, String filename) {
-					return new File(file, filename).isDirectory();
-				}
-			});
-		}
+		});
 	}
 
 	public static void summarizeAllFilesInDirectory(String dir) {
 		PrintWriter writer;
 		String[] data;
 
-		data = listAllFilesInTree(dir, false);
+		data = listAllFilesInTree(dir);
 		try {
 			writer = openAppropriateWriter(dir + "summaryOfFiles.xln");
 			writer.println("Full filename\tdirectory\tfilename\troot\textension");
@@ -2468,23 +2393,23 @@ public class Files {
 		}
 	}
 
-	public static String[] listAllFilesInTree(String dir, boolean jar) {
+	public static String[] listAllFilesInTree(String dir) {
 		Vector<String> allFiles;
 
 		allFiles = new Vector<String>();
-		traverseTree(dir, "", allFiles, jar);
+		traverseTree(dir, "", allFiles);
 		return ArrayUtils.toStringArray(allFiles);
 	}
 
-	private static void traverseTree(String root, String dir, List<String> allFiles, boolean jar) {
+	private static void traverseTree(String root, String dir, List<String> allFiles) {
 		String[] dirs;
 
-		dirs = listDirectories(root + dir, jar);
+		dirs = listDirectories(root + dir);
 		for (String dir2 : dirs) {
-			traverseTree(root, dir + dir2 + "/", allFiles, jar);
+			traverseTree(root, dir + dir2 + "/", allFiles);
 		}
 
-		HashVec.addAllInArrayToVector(ArrayUtils.addPrefixSuffixToArray(list(root + dir, null, jar),
+		HashVec.addAllInArrayToVector(ArrayUtils.addPrefixSuffixToArray(list(root + dir, null),
 																																		dir, null),
 																	allFiles);
 	}
@@ -2544,7 +2469,7 @@ public class Files {
 		boolean addFilename = false;
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
-		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
+		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false);
 		files = ArrayUtils.addStrToArray("outfile.xln", files, 0);
 		files = ArrayUtils.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
 																		 files, 1);
@@ -2581,7 +2506,7 @@ public class Files {
 		boolean problem;
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
-		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
+		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false);
 		params = parseControlFile(filename, "rename",
 															ArrayUtils.toStringArray(Matrix.transpose(new String[][] {files,
 																																												files}),
@@ -2742,9 +2667,9 @@ public class Files {
 
 			if (extract) {
 				// get all sub-directories
-				dirs = Files.listDirectories("./", false);
+				dirs = Files.listDirectories("./");
 				for (String dir : dirs) {
-					filenames = Files.list(dir, null, null, false, false);
+					filenames = Files.list(dir, null, null, false);
 					filesizes = new long[filenames.length];
 					for (int j = 0; j < filenames.length; j++) {
 						filesizes[j] = new File(dir + "/" + filenames[j]).length();
@@ -2785,7 +2710,7 @@ public class Files {
 			}
 
 			// get all files in the directory, excluding the crf itself and its corresponding log
-			filenames = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
+			filenames = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false);
 			newFilenames = new String[filenames.length];
 
 			for (int i = 0; i < filenames.length; i++) {
@@ -3148,7 +3073,7 @@ public class Files {
 		String[] files;
 
 
-		files = list(dir, suffix, false);
+		files = list(dir, suffix);
 		readers = new BufferedReader[files.length];
 		try {
 			for (int i = 0; i < files.length; i++) {
@@ -3254,7 +3179,7 @@ public class Files {
 					if (new File(trav + ".taken").exists()) {
 						done = false;
 					} else {
-						files = list("./", trav + ".", ".reserved", false, false);
+						files = list("./", trav + ".", ".reserved", false);
 						if (files.length > 1) {
 							rands = new int[files.length];
 							for (int i = 0; i < rands.length; i++) {
@@ -3297,7 +3222,7 @@ public class Files {
 		dir = ext.verifyDirFormat(dir);
 
 		max = -1;
-		files = list(dir, null, false);
+		files = list(dir, null);
 		for (String file : files) {
 			max = Math.max(max, new File(dir + file).lastModified());
 		}
@@ -4098,48 +4023,47 @@ public class Files {
 	}
 
 	public static String tail(String filename, int numLines) {
-	    RandomAccessFile fileHandler = null;
-	    try {
-	        fileHandler = new java.io.RandomAccessFile(new File(filename), "r");
-	        long fileLength = fileHandler.length() - 1;
-	        StringBuilder sb = new StringBuilder();
-	        int line = 0;
+		RandomAccessFile fileHandler = null;
+		try {
+			fileHandler = new java.io.RandomAccessFile(new File(filename), "r");
+			long fileLength = fileHandler.length() - 1;
+			StringBuilder sb = new StringBuilder();
+			int line = 0;
 
-	        for(long filePointer = fileLength; filePointer != -1; filePointer--){
-	            fileHandler.seek( filePointer );
-	            int readByte = fileHandler.readByte();
+			for (long filePointer = fileLength; filePointer != -1; filePointer--) {
+				fileHandler.seek(filePointer);
+				int readByte = fileHandler.readByte();
 
-	             if(readByte == 0xA) {
-	                if (filePointer < fileLength) {
-	                    line = line + 1;
-	                }
-	            } else if(readByte == 0xD) {
-	                if (filePointer < fileLength-1) {
-	                    line = line + 1;
-	                }
-	            }
-	            if (line >= numLines) {
-	                break;
-	            }
-	            sb.append((char)readByte );
-	        }
+				if (readByte == 0xA) {
+					if (filePointer < fileLength) {
+						line = line + 1;
+					}
+				} else if (readByte == 0xD) {
+					if (filePointer < fileLength - 1) {
+						line = line + 1;
+					}
+				}
+				if (line >= numLines) {
+					break;
+				}
+				sb.append((char) readByte);
+			}
 
-	        String lastLine = sb.reverse().toString();
-	        return lastLine;
-	    } catch(FileNotFoundException e) {
-	        e.printStackTrace();
-	        return null;
-	    } catch(IOException e) {
-	        e.printStackTrace();
-	        return null;
-	    }
-	    finally {
-	        if (fileHandler != null )
-	            try {
-	                fileHandler.close();
-	            } catch (IOException e) {
-	            }
-	    }
-	}	
+			String lastLine = sb.reverse().toString();
+			return lastLine;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (fileHandler != null)
+				try {
+					fileHandler.close();
+				} catch (IOException e) {
+				}
+		}
+	}
 
 }

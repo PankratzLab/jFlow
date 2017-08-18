@@ -50,7 +50,7 @@ public class Emmax {
 			System.exit(1);
 		}
 
-		phenoFiles = Files.list(phenoCovDir, phenoNameExtOrFullPath, false);
+		phenoFiles = Files.list(phenoCovDir, phenoNameExtOrFullPath);
 		if (phenoFiles.length == 0) {
 			log.reportError("No pheno file is found at " + phenoCovDir);
 			return;
@@ -101,13 +101,13 @@ public class Emmax {
 		}
 		// TODO consolidate with new method
 		Qsub.qsub(batchDir + "runEmmax", batchDir, -1, "[%0]",
-							 Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs,
-							 qsubWalltimeInHours);
+							Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs,
+							qsubWalltimeInHours);
 		// System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
 		Qsub.qsubMultiple(batchDir + "chunkSB_emmax",
-											 ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_",
-																											".qsub"),
-											 16, -1, qsubMemInMBs, qsubWalltimeInHours);
+											ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_",
+																										 ".qsub"),
+											16, -1, qsubMemInMBs, qsubWalltimeInHours);
 	}
 
 	public static void parseResults(String resultDir, double pValThreshold) {
@@ -131,7 +131,7 @@ public class Emmax {
 		String[] trav;
 		PrintWriter writer;
 
-		fileNames = Files.list(resultDir, ".log", false);
+		fileNames = Files.list(resultDir, ".log");
 		modelList = new Hashtable<String, String[]>();
 		for (String fileName2 : fileNames) {
 			found = false;

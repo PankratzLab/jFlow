@@ -96,7 +96,7 @@ public final class VCFData {
 		Set<String> idsSet = new HashSet<String>();
 		List<String> idsToInclude = new ArrayList<String>();
 		for (String s : (samplesToExport == null || samplesToExport.length == 0 ? allSamples
-																																					 : samplesToExport)) {
+																																						: samplesToExport)) {
 			idsSet.add(s);
 		}
 		Map<String, Integer> idIndexMap = new HashMap<String, Integer>();
@@ -123,19 +123,18 @@ public final class VCFData {
 		// }
 
 		ReferenceGenome refGen = !exportChrContig
-																						 ?
-																						 new ReferenceGenome(
-																																 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																									proj.getLog())
-																																					.getGRCFASTA()
-																																					.getAbsolute(),
-																																 proj.getLog())
-																						 : new ReferenceGenome(
-																																	 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																										proj.getLog())
-																																						.getFASTA()
-																																						.getAbsolute(),
-																																	 proj.getLog());
+																							? new ReferenceGenome(
+																																		Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																										 proj.getLog())
+																																						 .getGRCFASTA()
+																																						 .getAbsolute(),
+																																		proj.getLog())
+																							: new ReferenceGenome(
+																																		Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																										 proj.getLog())
+																																						 .getFASTA()
+																																						 .getAbsolute(),
+																																		proj.getLog());
 
 		if (refGen.getIndexedFastaSequenceFile().getSequenceDictionary() == null) {
 			proj.getLog()
@@ -156,7 +155,7 @@ public final class VCFData {
 
 		HashMap<Integer, List<String>> markersByChr = new HashMap<>();
 		for (String m : (markersToExport == null ? proj.getMarkerNames()
-																						: markersToExport)) {
+																						 : markersToExport)) {
 			Marker mkr = markerMap.get(m);
 			if (allowedChrs.isEmpty() || allowedChrs.contains((int) mkr.getChr())) {
 				List<String> mkrChr = markersByChr.get((int) mkr.getChr());
@@ -249,15 +248,15 @@ public final class VCFData {
 		if (cntA > 0) {
 			proj.getLog()
 					.reportTimeWarning("Found "
-																 + cntA
-																 + " possibly allele-flipped markers.  ALT allele is unknown, so these cannot be confirmed.");
+														 + cntA
+														 + " possibly allele-flipped markers.  ALT allele is unknown, so these cannot be confirmed.");
 		}
 
 		if (cntSA > 0) {
 			proj.getLog()
 					.reportTimeWarning("Found "
-																 + cntSA
-																 + " possibly strand- and allele-flipped markers.  ALT allele is unknown, so these cannot be confirmed.");
+														 + cntSA
+														 + " possibly strand- and allele-flipped markers.  ALT allele is unknown, so these cannot be confirmed.");
 		}
 		if (missSeq > 0) {
 			proj.getLog().reportTimeWarning("Found " + missSeq
@@ -266,8 +265,8 @@ public final class VCFData {
 		if (missAll > 0) {
 			proj.getLog()
 					.reportTimeWarning("Found "
-																 + missAll
-																 + " markers missing both alleles in the project data. These markers were dropped.");
+														 + missAll
+														 + " markers missing both alleles in the project data. These markers were dropped.");
 		}
 
 	}
@@ -603,7 +602,7 @@ public final class VCFData {
 			System.err.println("");
 			return;
 		}
-		proj = new Project(projFile, false);
+		proj = new Project(projFile);
 		samp = cli.get(SAMP_ARG);
 		mark = cli.get(MARK_ARG);
 		split = Boolean.parseBoolean(cli.get(SPLIT_ARG));

@@ -511,7 +511,7 @@ public class GCcorrectionIterator {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			if (!batch) {
 				iterate(proj, rootDir, bpModels, regressDistance, snpMAD, numThreads);
 			} else {

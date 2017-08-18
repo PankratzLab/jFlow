@@ -451,7 +451,7 @@ public class CNVFilter {
 																																									 markerSet.getPositions(),
 																																									 build, log));
 		} else if (fullPathToSnpMarkerSetFilename.endsWith(".ser")) {
-			MarkerSetInfo markerSet = MarkerSet.load(fullPathToSnpMarkerSetFilename, false);
+			MarkerSetInfo markerSet = MarkerSet.load(fullPathToSnpMarkerSetFilename);
 			setPositions(markerSet.getPositionsByChr());
 			setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
 																																									 markerSet.getPositions(),
@@ -487,8 +487,9 @@ public class CNVFilter {
 		if (fullPathToIndividualsToKeepFile == null || fullPathToIndividualsToKeepFile.equals("")) {
 			setIndHash(NO_FILTER_INDIVIDUAL_HASH);
 		} else {
-			setIndHash(HashVec.loadFileToStringArray(fullPathToIndividualsToKeepFile, false, false,
-																							 new int[] {0, 1}, true, false, "\t"));
+			setIndHash(HashVec.loadFileToStringArray(fullPathToIndividualsToKeepFile, false,
+																							 new int[] {0, 1},
+																							 true, false, "\t"));
 		}
 	}
 
@@ -610,7 +611,7 @@ public class CNVFilter {
 
 	public static LocusSet<CNVariant> filterCNVs(String cnvFile, String out, CNVFilter cnvFilter,
 																							 Logger log) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 		return filterCNVs(cnvs, out, cnvFilter, log);
 	}
 

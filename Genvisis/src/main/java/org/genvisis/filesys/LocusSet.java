@@ -427,12 +427,12 @@ public class LocusSet<T extends Segment> implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public static LocusSet<CNVariant> readSerialCnvSet(String filename, Logger log) {
-		return ((LocusSet<CNVariant>) SerializedFiles.readSerial(filename, false, log, false, true));
+		return ((LocusSet<CNVariant>) SerializedFiles.readSerial(filename, log, false, true));
 	}
 
 	@SuppressWarnings("unchecked")
 	public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
-		return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, false, log, false, true));
+		return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, log, false, true));
 	}
 
 }

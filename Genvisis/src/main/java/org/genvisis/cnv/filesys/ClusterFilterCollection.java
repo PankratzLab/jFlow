@@ -214,8 +214,8 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 		}
 	}
 
-	public static ClusterFilterCollection load(String filename, boolean jar) {
-		return (ClusterFilterCollection) SerializedFiles.readSerial(filename, jar, true);
+	public static ClusterFilterCollection load(String filename) {
+		return (ClusterFilterCollection) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static String getClusterFilterFilenameSelection(Project proj) {
@@ -228,8 +228,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 																																																									 true),
 																																											null,
 																																											ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-																																											false,
-																																											proj.JAR_STATUS.getValue())),
+																																											false)),
 																									proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME));
 		if (result == null) {
 			result = "cancel";
@@ -258,7 +257,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
 		master = new ClusterFilterCollection();
 		for (String filename : filenames) {
-			trav = load(filename, false);
+			trav = load(filename);
 			markerNames = trav.getMarkerNames();
 			for (String markerName : markerNames) {
 				masterArray = master.getClusterFilters(markerName);
@@ -286,7 +285,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 		ClusterFilterCollection trav;
 		int count;
 
-		trav = load(filename, false);
+		trav = load(filename);
 
 		count = 0;
 		try {
@@ -317,7 +316,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 		}
 
 		try {
-			collection = load(filename, false);
+			collection = load(filename);
 			outFile = ext.rootOf(filename, false) + "_dump.xln";
 			collection.exportToText(null, outFile);
 		} catch (Exception e) {
@@ -334,7 +333,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 			return;
 		}
 
-		collection = load(filename, false);
+		collection = load(filename);
 
 		for (Entry<String, ArrayList<ClusterFilter>> entry : collection.hash.entrySet()) {
 			for (ClusterFilter cf : entry.getValue()) {
