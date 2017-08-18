@@ -1,5 +1,10 @@
 package org.genvisis.cnv.gui;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.tribble.annotation.Strand;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,6 +40,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
@@ -45,12 +52,6 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
-
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.tribble.annotation.Strand;
-import net.miginfocom.swing.MigLayout;
 
 public class BlastFrame extends JFrame implements WindowFocusListener {
 
@@ -333,7 +334,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
 		contentPane.add(splitPane, BorderLayout.CENTER);
 
-		blastPanel = new JPanel();
+		blastPanel = getSizedPanel();
 		blastPanel.setLayout(new MigLayout("", BLAST_COL_DEF, ""));
 		scrollPane = new JScrollPane(blastPanel);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -472,15 +473,18 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		Collections.sort(sorted, new Comparator<BlastLabel>() {
 			@Override
 			public int compare(BlastLabel arg0, BlastLabel arg1) {
-				int res1 = (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(arg1.fullSegment.getChr()));
+				int res1 = (new Byte(arg0.fullSegment.getChr())).compareTo(new Byte(
+																																						arg1.fullSegment.getChr()));
 				if (res1 != 0) {
 					return res1;
 				}
-				res1 = (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(arg1.fullSegment.getStart()));
+				res1 = (new Integer(arg0.fullSegment.getStart())).compareTo(new Integer(
+																																								arg1.fullSegment.getStart()));
 				if (res1 != 0) {
 					return res1;
 				}
-				res1 = (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(arg1.fullSegment.getStop()));
+				res1 = (new Integer(arg0.fullSegment.getStop())).compareTo(new Integer(
+																																							 arg1.fullSegment.getStop()));
 				return res1;
 			}
 		});
@@ -533,10 +537,10 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 					probeDescLbl.setText("<reference sequence:>");
 					Segment seg = referenceAnnotation.getSeg();
 					int start = hasMatch ? seg.getStart()
-															 : referenceAnnotation.goLeft() ? seg.getStart() - len
-																															: seg.getStart();
+															: referenceAnnotation.goLeft() ? seg.getStart() - len
+																														: seg.getStart();
 					int stop = hasMatch ? seg.getStop() : referenceAnnotation.goLeft() ? seg.getStart()
-																																						 : seg.getStart() + len;
+																																						: seg.getStart() + len;
 					if (posStrand) {
 						stop = stop + 1;
 					} else {
@@ -573,7 +577,6 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 				String b = StrandOps.flipsIfNeeded(referenceAnnotation.getB().getBaseString(),
 																					 referenceAnnotation.getStrand(), false);
 				String abLblStr = "(A) " + a + " | (B) " + b;
-				System.out.println(abLblStr);
 				abLbl.setText(abLblStr);
 				BlastFrame.this.validate();
 				BlastFrame.this.repaint();
@@ -596,8 +599,50 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 
 	}
 
+	private JPanel getSizedPanel() {
+		return new JPanel() {
+			public Dimension getPreferredSize() {
+				Dimension d = super.getPreferredSize();
+
+				int h = d.height;
+
+				int w = 0;
+				if (locationLbl != null) {
+					w += locationLbl.getPreferredSize().width;
+				}
+				if (probeDescLbl != null) {
+					w += probeDescLbl.getPreferredSize().width;
+				}
+				if (strandLbl != null) {
+					w += strandLbl.getPreferredSize().width;
+				}
+				if (probeLengthLbl != null) {
+					w += probeLengthLbl.getPreferredSize().width;
+				}
+				if (nextBaseLbl != null) {
+					w += nextBaseLbl.getPreferredSize().width;
+				}
+				if (abLbl != null) {
+					w += abLbl.getPreferredSize().width;
+				}
+				if (probeShiftLbl != null) {
+					w += probeShiftLbl.getPreferredSize().width;
+				}
+				if (probeLbl != null) {
+					w += probeLbl.getPreferredSize().width;
+				}
+				if (d.width > w) {
+					w = d.width;
+				}
+
+				return new Dimension(w, h);
+			};
+		};
+	}
+
 	private JPanel getHeaderPanel() {
-		JPanel hdrPanel = new JPanel(new MigLayout("", BLAST_COL_DEF, "[][]"));
+		JPanel hdrPanel = getSizedPanel();
+		hdrPanel.setLayout(new MigLayout("", BLAST_COL_DEF, "[][]"));
 		hdrPanel.setBorder(null);
 		locationLbl = new JLabel();
 		Font lblFont = BlastLabel.LBL_FONT;// Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
@@ -606,8 +651,10 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		probeDescLbl = new JLabel("<reference sequence:>");
 		probeDescLbl.setFont(lblFont);
 		hdrPanel.add(probeDescLbl, "cell 0 1");
-		strandLbl = new JLabel(referenceAnnotation == null ? ""
-																											 : CNVHelper.decode(referenceAnnotation.getStrand()));
+		strandLbl = new JLabel(
+													 referenceAnnotation == null
+																											? ""
+																											: CNVHelper.decode(referenceAnnotation.getStrand()));
 		strandLbl.setFont(lblFont);
 		hdrPanel.add(strandLbl, "cell 1 0");
 		probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");
@@ -617,17 +664,18 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		nextBaseLbl = new JLabel();
 		nextBaseLbl.setFont(lblFont);
 		hdrPanel.add(nextBaseLbl, "alignx left, cell 4 0");
-		String abLblStr = referenceAnnotation == null ? ""
-																									: "(A) "
-																										+ StrandOps.flipsIfNeeded(referenceAnnotation.getA()
-																																																 .getBaseString(),
-																																							referenceAnnotation.getStrand(),
-																																							false)
-																										+ "- (B) "
-																										+ StrandOps.flipsIfNeeded(referenceAnnotation.getB()
-																																																 .getBaseString(),
-																																							referenceAnnotation.getStrand(),
-																																							false);
+		String abLblStr = referenceAnnotation == null
+																								 ? ""
+																								 : "(A) "
+																									 + StrandOps.flipsIfNeeded(referenceAnnotation.getA()
+																																																.getBaseString(),
+																																						 referenceAnnotation.getStrand(),
+																																						 false)
+																									 + "- (B) "
+																									 + StrandOps.flipsIfNeeded(referenceAnnotation.getB()
+																																																.getBaseString(),
+																																						 referenceAnnotation.getStrand(),
+																																						 false);
 		abLbl = new JLabel(abLblStr);
 		abLbl.setFont(lblFont);
 		hdrPanel.add(abLbl, "alignx center, cell 5 0");

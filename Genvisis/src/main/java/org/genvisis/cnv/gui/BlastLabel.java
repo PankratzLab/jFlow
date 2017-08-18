@@ -1,6 +1,12 @@
 package org.genvisis.cnv.gui;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.tribble.annotation.Strand;
+
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -19,11 +25,6 @@ import org.genvisis.common.Fonts;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.tribble.annotation.Strand;
-
 class ReferenceLabel extends JLabel {
 
 	private static final long serialVersionUID = 1L;
@@ -36,6 +37,13 @@ class ReferenceLabel extends JLabel {
 
 	public void setAnnotation(BlastAnnotation annot) {
 		this.annot = annot;
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		Dimension d = super.getPreferredSize();
+		d.width += this.getText().length() * BlastLabel.CHAR_PADDING;
+		return d;
 	}
 
 	@Override
@@ -89,8 +97,9 @@ class ReferenceLabel extends JLabel {
 public class BlastLabel extends JLabel {
 
 	private static final long serialVersionUID = 1L;
-	private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null ? Font.decode(Font.MONOSPACED)
-																																							 : Fonts.SOURCE_CODE_PRO_REGULAR);
+	private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null
+																																							? Font.decode(Font.MONOSPACED)
+																																							: Fonts.SOURCE_CODE_PRO_REGULAR);
 
 	public static void setFontSize(int size) {
 		LBL_FONT = BASE_FONT.deriveFont((float) size);
@@ -193,7 +202,7 @@ public class BlastLabel extends JLabel {
 		for (CigarElement ciggie : cig.getCigarElements()) {
 			if (ciggie.getOperator().consumesReferenceBases()) {
 				if (/* flipSequence && */!ciggie.getOperator().consumesReadBases()) {
-					Integer key = /* reverseSequence ? refSeq.getSequence().length() - strandInd + 1 : */ strandInd;
+					Integer key = /* reverseSequence ? refSeq.getSequence().length() - strandInd + 1 : */strandInd;
 					if (spaceSets.containsKey(key)) {
 						spaceSets.put(key, Math.max(spaceSets.get(key), ciggie.getLength()));
 					} else {
@@ -201,7 +210,7 @@ public class BlastLabel extends JLabel {
 					}
 					mySpaceSets.put(key, ciggie.getLength());
 					for (int i = strandInd; i < strandInd + ciggie.getLength(); i++) {
-						int ind = /* reverseSequence ? refSeq.getSequence().length() - i + 1 : */ i;
+						int ind = /* reverseSequence ? refSeq.getSequence().length() - i + 1 : */i;
 						spaces.add(ind);
 						mySpaces.add(ind);
 						// System.out.println(ind + " :: " + cig.toString());
@@ -228,6 +237,13 @@ public class BlastLabel extends JLabel {
 	// chr19:33,876,905-33,881,272
 
 	@Override
+	public Dimension getPreferredSize() {
+		Dimension d = super.getPreferredSize();
+		d.width += CHAR_PADDING * this.getText().length();
+		return d;
+	}
+
+	@Override
 	protected void paintComponent(Graphics g) {
 		FontMetrics fm = getFontMetrics(getFont());
 		int h = fm.getAscent();
@@ -237,9 +253,10 @@ public class BlastLabel extends JLabel {
 		int mySpacesCnt = 0;
 		int addedSpaces = 0;
 		for (int i = reverseSequence ? seqParts.size() - 1
-																 : 0; reverseSequence ? i >= 0
-																											: i < seqParts.size(); i += reverseSequence ? -1
-																																																	: 1) {
+																: 0; reverseSequence ? i >= 0
+																										: i < seqParts.size(); i += reverseSequence
+																																															 ? -1
+																																															 : 1) {
 			CigarSeq cs = seqParts.get(i);
 			boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
 			boolean read = cs.elem.getOperator().consumesReadBases();
@@ -266,9 +283,10 @@ public class BlastLabel extends JLabel {
 				boolean strike = diff && read && !ref;
 				int tempX = baseX;
 				for (int c = reverseSequence ? cs.elemSeq.length() - 1
-																		 : 0; reverseSequence ? c >= 0
-																													: c < cs.elemSeq.length(); c += reverseSequence ? -1
-																																																					: 1) {
+																		: 0; reverseSequence ? c >= 0
+																												: c < cs.elemSeq.length(); c += reverseSequence
+																																																			 ? -1
+																																																			 : 1) {
 					// if (expanded) {
 					// if (mySpaces.contains(charInd - addedSpaces)) {
 					// mySpacesCnt++;
@@ -307,7 +325,7 @@ public class BlastLabel extends JLabel {
 
 					if (expanded && !mySpaces.contains(charInd - addedSpaces)
 							&& (spaces.contains(charInd - mySpacesCnt)
-									&& !mySpaces.contains(charInd - mySpacesCnt))) {
+							&& !mySpaces.contains(charInd - mySpacesCnt))) {
 						Color col = g.getColor();
 						g.setColor(Color.BLACK);
 
@@ -344,9 +362,9 @@ public class BlastLabel extends JLabel {
 					// baseX += fm.charWidth('-');
 					// tempX = baseX;
 					//
-					//// charInd++;
+					// // charInd++;
 					// addedSpaces++;
-					//// c += strandFlipped ? 1 : -1;
+					// // c += strandFlipped ? 1 : -1;
 					// }
 					// g.setColor(col);
 					// charInd += cnt;
@@ -389,4 +407,3 @@ class CigarSeq {
 	}
 
 }
-
