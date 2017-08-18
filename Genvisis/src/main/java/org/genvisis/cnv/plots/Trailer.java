@@ -137,6 +137,8 @@ import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
 
 import net.miginfocom.swing.MigLayout;
 
+import net.miginfocom.swing.MigLayout;
+
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
 	public static final long serialVersionUID = 1L;
@@ -2461,52 +2463,55 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			ItemListener cnvListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent ie) {
-					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-					if (pennHmm == null) {
-						if (Files.exists(proj.HMM_FILENAME.getValue())) {
-							pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
+					if (ie.getStateChange() == ItemEvent.SELECTED) {
 
-						} else {
-							pennHmm = null;
-						}
-					}
-					if (pfb == null) {
-						if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
-							pfb = PFB.loadPFB(proj);
-
-						} else {
-							pfb = null;
-						}
-					}
-					if (pfb == null || pennHmm == null) {
+						JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
 						if (pennHmm == null) {
-							proj.getLog().reportError("Could not load " + proj.HMM_FILENAME.getName()
-																				+ " defined by " + proj.HMM_FILENAME.getValue());
-						} else if (pfb == null) {
-							proj.getLog().reportError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName()
-																				+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+							if (Files.exists(proj.HMM_FILENAME.getValue())) {
+								pennHmm = PennHmm.loadPennHmm(proj.HMM_FILENAME.getValue(), proj.getLog());
+
+							} else {
+								pennHmm = null;
+							}
 						}
-					} else {
-						CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample,
-																														 ArrayUtils.toDoubleArray(lrrs),
-																														 ArrayUtils.toDoubleArray(bafs),
-																														 gcModel, pfb, markerSet,
-																														 new int[] {chr}, null, false,
-																														 CNVCaller.DEFAULT_MIN_SITES,
-																														 CNVCaller.DEFAULT_MIN_CONF,
-																														 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT,
-																														 proj.NUM_THREADS.getValue(), true);
-						int externalCNVs = prepInternalClasses();
-						addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs,
-													 INTERNAL_CNV_TYPES.CNV_CALLER);
-						// addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(),
-						// externalCNVs,INTERNAL_CNV_TYPES.REV_CNV_CALLER);
-						// addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs,
-						// INTERNAL_CNV_TYPES.CONSENSUS);
-						sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-						updateCNVs(chr);
+						if (pfb == null) {
+							if (Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
+								pfb = PFB.loadPFB(proj);
+
+							} else {
+								pfb = null;
+							}
+						}
+						if (pfb == null || pennHmm == null) {
+							if (pennHmm == null) {
+								proj.getLog().reportError("Could not load " + proj.HMM_FILENAME.getName()
+																					+ " defined by " + proj.HMM_FILENAME.getValue());
+							} else if (pfb == null) {
+								proj.getLog().reportError("Could not load " + proj.CUSTOM_PFB_FILENAME.getName()
+																					+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
+							}
+						} else {
+							CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample,
+																															 ArrayUtils.toDoubleArray(lrrs),
+																															 ArrayUtils.toDoubleArray(bafs),
+																															 gcModel, pfb, markerSet,
+																															 new int[] {chr}, null, false,
+																															 CNVCaller.DEFAULT_MIN_SITES,
+																															 CNVCaller.DEFAULT_MIN_CONF,
+																															 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT,
+																															 proj.NUM_THREADS.getValue(), true);
+							int externalCNVs = prepInternalClasses();
+							addCnvsToPheno(callResult.getChrCNVs().getLoci(), externalCNVs,
+														 INTERNAL_CNV_TYPES.CNV_CALLER);
+							// addCnvsToPheno(callResult.getChrCNVsReverse().getLoci(),
+							// externalCNVs,INTERNAL_CNV_TYPES.REV_CNV_CALLER);
+							// addCnvsToPheno(callResult.getChrCNVsReverseConsensus().getLoci(), externalCNVs,
+							// INTERNAL_CNV_TYPES.CONSENSUS);
+							sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+							updateCNVs(chr);
+						}
+						jrb.setSelected(false);
 					}
-					jrb.setSelected(false);
 					updateGUI();
 				}
 			};
@@ -2520,19 +2525,21 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			ItemListener mosaicListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent ie) {
-					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-					MosaicBuilder builder = new MosaicBuilder();
-					builder.verbose(true);
-					MosaicismDetect md = builder.build(proj, sample, markerSet,
-																						 ArrayUtils.toDoubleArray(bafs));
-					Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
-					LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
-					int externalCNVs = prepInternalClasses();
-					addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_TYPES.MOSAIC_CALLER);
-					sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
-					updateCNVs(chr);
+					if (ie.getStateChange() == ItemEvent.SELECTED) {
+						JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+						MosaicBuilder builder = new MosaicBuilder();
+						builder.verbose(true);
+						MosaicismDetect md = builder.build(proj, sample, markerSet,
+																							 ArrayUtils.toDoubleArray(bafs));
+						Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
+						LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
+						int externalCNVs = prepInternalClasses();
+						addCnvsToPheno(mosSet.getLoci(), externalCNVs, INTERNAL_CNV_TYPES.MOSAIC_CALLER);
+						sampleData.getSampleHash().put(sample.toLowerCase(), indiPheno);
+						updateCNVs(chr);
 
-					jrb.setSelected(false);
+						jrb.setSelected(false);
+					}
 					updateGUI();
 				}
 			};
@@ -2544,10 +2551,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			ItemListener mosaicFListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent ie) {
-					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-					Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
-					quantHere(quantSeg, false);
-					jrb.setSelected(false);
+					if (ie.getStateChange() == ItemEvent.SELECTED) {
+						JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+						Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
+						quantHere(quantSeg, false);
+						jrb.setSelected(false);
+					}
 				}
 
 
@@ -2561,10 +2570,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			ItemListener beastHListener = new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent ie) {
-					JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
-					Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
-					beastHere(quantSeg, INTERNAL_CNV_TYPES.BEAST_SCORE_CUSTOM);
-					jrb.setSelected(false);
+					if (ie.getStateChange() == ItemEvent.SELECTED) {
+						JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
+						Segment quantSeg = new Segment(chr, positions[startMarker], positions[stopMarker]);
+						beastHere(quantSeg, INTERNAL_CNV_TYPES.BEAST_SCORE_CUSTOM);
+						jrb.setSelected(false);
+					}
 				}
 
 			};

@@ -184,11 +184,13 @@ public class MosaicismDetect {
 																															 segIndices),
 																					 mosIndices);
 			double[] bafsSub = ArrayUtils.subArray(ArrayUtils.subArray(bafs, segIndices), mosIndices);
+
 			ViterbiResult vtr = new ViterbiResult(ArrayUtils.subArray(states, mosIndices), null);
 			dud = vtr.analyzeStateSequence(proj, sample, sample, seg.getChr(), positions, names, 2, false,
 																		 verbose);
 			MosaicRegion[] tmp = new MosaicRegion[dud.getLoci().length];
 			double[] finalPDensit = Doubles.toArray(p_densityScored);
+			proj.getLog().reportTimeInfo("Scoring mosaic regions");
 			for (int i = 0; i < dud.getLoci().length; i++) {
 				CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
 				int numFMarkers = dud.getLoci()[i].getNumMarkers();
