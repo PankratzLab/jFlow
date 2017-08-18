@@ -2935,6 +2935,23 @@ public class Files {
 		}
 	}
 
+	public static void writeMatrix(String[][] matrix, String filename, String delimiterToUse,
+																 String nullValue) {
+		PrintWriter writer;
+
+		try {
+			writer = openAppropriateWriter(filename);
+			for (String[] element : matrix) {
+				writer.println(ArrayUtils.toStr(element, null, delimiterToUse, nullValue));
+			}
+			writer.flush();
+			writer.close();
+		} catch (Exception e) {
+			System.err.println("Error writing to " + filename);
+			e.printStackTrace();
+		}
+	}
+
 	public static boolean isFileReady(String filename, long timeOfFirstCheck,
 																		long timeIntervalBetweenChecking) {
 		File file;
