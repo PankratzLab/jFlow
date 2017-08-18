@@ -265,7 +265,8 @@ public class TrimToDependencies implements Serializable {
 																																	{"final ", ""}, {"public ", ""},
 																																	{"private ", ""},
 																																	{"protected ",
-																																	 ""}})).trim().split(PSF.Regex.GREEDY_WHITESPACE);
+																																	 ""}})).trim()
+																																				 .split(PSF.Regex.GREEDY_WHITESPACE);
 						if (line.length > 2) {
 							log.reportError("Error - thought I was parsing a method here:");
 							log.reportError(temp);
@@ -710,7 +711,7 @@ public class TrimToDependencies implements Serializable {
 	}
 
 	public static TrimToDependencies load(String filename) {
-		return (TrimToDependencies) SerializedFiles.readSerial(filename, false, new Logger(), false);
+		return (TrimToDependencies) SerializedFiles.readSerial(filename, new Logger(), false);
 	}
 
 	public static void main(String[] args) {
