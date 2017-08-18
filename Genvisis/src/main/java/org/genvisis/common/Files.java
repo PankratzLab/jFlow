@@ -557,12 +557,8 @@ public class Files {
 		InputStream is = null;
 		InputStreamReader isReader = null;
 
-		if (!exists(filename) && !exists(filename)) {
-			throw new FileNotFoundException("File '" + filename + "' was no where to be found");
-		}
-
 		if (!exists(filename)) {
-			return null;
+			throw new FileNotFoundException("File '" + filename + "' was no where to be found");
 		}
 
 		if (filename.endsWith(".gz")) {
@@ -1979,7 +1975,8 @@ public class Files {
 		return getReader(filename, verbose, new Logger(), kill);
 	}
 
-	public static BufferedReader getReader(String filename, boolean verbose, Logger log, boolean kill) {
+	public static BufferedReader getReader(String filename, boolean verbose, Logger log,
+																				 boolean kill) {
 		try {
 			if (Files.exists(filename, false)) {
 				return getAppropriateReader(filename);
