@@ -19,15 +19,15 @@ import org.genvisis.qsub.Qsub;
 public interface ImputationImpl {
 
 	class MiniMac {
-		
+
 		Logger log;
 		String minimacPath;
 		String outDir;
 		int threads;
-		
+
 		HashMap<Integer, String> refMap = new HashMap<Integer, String>();
 		HashMap<Integer, String> hapsMap = new HashMap<Integer, String>();
-		
+
 		public MiniMac(Project proj, int[] chrs, String hapsDir, String outDir) {
 			this.log = proj.getLog();
 			this.outDir = outDir;
@@ -42,47 +42,49 @@ public interface ImputationImpl {
 				return;
 			}
 			minimacPath = rsc.getAbsolute();
-			
+
 			// set without knowing if files exist:
 			for (int c : chrs) {
 				hapsMap.put(c, hapsDir + ShapeIt.outBase + c + ".vcf");
 			}
 			// OR:
 			// create based on existing output files:
-//			String[] hapsFiles = (new File(hapsDir)).list(new FilenameFilter() {
-//				@Override
-//				public boolean accept(File dir, String name) {
-//					return name.endsWith(".haps");
-//				}
-//			});
-//			for (String h : hapsFiles) {
-//				String chrStr = h.substring(ShapeIt.outBase.length(), h.lastIndexOf("."));
-//				int chr = -1;
-//				try {
-//					chr = Integer.parseInt(chrStr);
-//					hapsMap.put(chr, hapsDir + h);
-//				} catch (NumberFormatException e) {
-//					log.reportError("Couldn't parse chromosome number of haps file: " + h);
-//				}
-//			}
-			
+			// String[] hapsFiles = (new File(hapsDir)).list(new FilenameFilter() {
+			// @Override
+			// public boolean accept(File dir, String name) {
+			// return name.endsWith(".haps");
+			// }
+			// });
+			// for (String h : hapsFiles) {
+			// String chrStr = h.substring(ShapeIt.outBase.length(), h.lastIndexOf("."));
+			// int chr = -1;
+			// try {
+			// chr = Integer.parseInt(chrStr);
+			// hapsMap.put(chr, hapsDir + h);
+			// } catch (NumberFormatException e) {
+			// log.reportError("Couldn't parse chromosome number of haps file: " + h);
+			// }
+			// }
+
 			for (Integer c : hapsMap.keySet()) {
-				Resource refPanel = new Resources.Chr(proj.GENOME_BUILD_VERSION.getValue(), CHROMOSOME.valueOf("C" + c), log).getG1Kphase3v5RefPanel();
+				Resource refPanel = new Resources.Chr(proj.GENOME_BUILD_VERSION.getValue(),
+																							CHROMOSOME.valueOf("C" + c),
+																							log).getG1Kphase3v5RefPanel();
 				if (refPanel == null) {
 					log.reportError("Reference panel not found for chr " + c + "!");
 					continue;
 				}
 				refMap.put(c, refPanel.getAbsolute());
 			}
-			
+
 		}
-		
+
 		public void createScripts() {
 			String scriptFile = outDir + RUN;
 			PrintWriter writer = Files.getAppropriateWriter(scriptFile);
-			
+
 			Set<Integer> chrs = new HashSet<Integer>(hapsMap.keySet());
-			
+
 			for (Integer chr : chrs) {
 				String shapeItCmd = TEMPLATE
 																		.replace(MIN, minimacPath)
@@ -92,27 +94,31 @@ public interface ImputationImpl {
 																		.replace(OUT, outBase + chr.intValue());
 				writer.println(shapeItCmd);
 			}
-			
+
 			writer.flush();
 			writer.close();
-			
+
 			Files.chmod(scriptFile);
-			String commands = new StringBuilder().append("cd ").append(ext.parseDirectoryOfFile(scriptFile)).append("\n").append("./").append(RUN).toString();
-			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands, Files.PBS_MEM, Files.PBS_PROC, 1);
+			String commands = new StringBuilder().append("cd ")
+																					 .append(ext.parseDirectoryOfFile(scriptFile))
+																					 .append("\n").append("./").append(RUN).toString();
+			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands,
+								Files.PBS_MEM, Files.PBS_PROC, 1);
 		}
-		
+
 		String outBase = "mini_chr";
-		
+
 		String RUN = "runMinimac.sh";
 		String MIN = "$minimac";
 		String REF = "$ref";
 		String HAP = "$haps";
 		String OUT = "$out";
 		String THD = "$threads";
-		String TEMPLATE = MIN + " --refHaps " + REF + " --haps " + HAP + " --prefix " + OUT + " --cpus " + THD;
-		
+		String TEMPLATE = MIN + " --refHaps " + REF + " --haps " + HAP + " --prefix " + OUT + " --cpus "
+											+ THD;
+
 	}
-	
+
 	class ShapeIt {
 		Logger log;
 		String shapeItPath;
@@ -121,8 +127,9 @@ public interface ImputationImpl {
 		HashMap<Integer, String> mapMap = new HashMap<Integer, String>();
 		HashMap<Integer, String> plinkFileMap = new HashMap<Integer, String>();
 		HashMap<Integer, Boolean> plinkFileTypeMap = new HashMap<Integer, Boolean>();
-		
-		public ShapeIt(Project proj, int[] chrs, String plinkFileDir, String plinkChrFilePrefix, String outDir) {
+
+		public ShapeIt(Project proj, int[] chrs, String plinkFileDir, String plinkChrFilePrefix,
+									 String outDir) {
 			this.log = proj.getLog();
 			this.threads = proj.NUM_THREADS.getValue();
 			this.outDir = outDir;
@@ -136,16 +143,17 @@ public interface ImputationImpl {
 				return;
 			}
 			shapeItPath = rsc.getAbsolute();
-			
+
 			for (int i = 0; i < chrs.length; i++) {
-				Resource chrMap = new Resources.Chr(proj.GENOME_BUILD_VERSION.getValue(), CHROMOSOME.valueOf("C" + chrs[i]), log).getGeneticMap();
+				Resource chrMap = new Resources.Chr(proj.GENOME_BUILD_VERSION.getValue(),
+																						CHROMOSOME.valueOf("C" + chrs[i]), log).getGeneticMap();
 				if (chrMap == null) {
 					log.reportError("Genome map not found for chr " + chrs[i] + "!");
 					continue;
 				}
 				mapMap.put(chrs[i], chrMap.getAbsolute());
 			}
-			
+
 			for (int i = 0; i < chrs.length; i++) {
 				boolean bedSet = PSF.Plink.allFilesExist(plinkFileDir + plinkChrFilePrefix + chrs[i], true);
 				boolean pedSet = PSF.Plink.allFilesExist(plinkFileDir + plinkChrFilePrefix + chrs[i], true);
@@ -155,15 +163,15 @@ public interface ImputationImpl {
 				}
 			}
 		}
-		
+
 		public void createScripts() {
 			String scriptFile = outDir + RUN;
 			PrintWriter writer = Files.getAppropriateWriter(scriptFile);
-			
+
 			Set<Integer> chrs = new HashSet<Integer>();
 			chrs.addAll(mapMap.keySet());
 			chrs.retainAll(plinkFileMap.keySet());
-			
+
 			for (Integer chr : chrs) {
 				String shapeItCmd = TEMPLATE
 																		.replace(SHP, shapeItPath)
@@ -174,40 +182,47 @@ public interface ImputationImpl {
 																		.replace(OUT, outBase + chr.intValue());
 				writer.println(shapeItCmd);
 			}
-			
-			writer.flush();
-			writer.close();
-			
-			Files.chmod(scriptFile);
-			String commands = new StringBuilder().append("cd ").append(ext.parseDirectoryOfFile(scriptFile)).append("\n").append("./").append(RUN).toString();
-			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands, Files.PBS_MEM, Files.PBS_PROC, 1);
-			
-			createConvertScripts();
-		}
-		
-		private void createConvertScripts() {
-			String scriptFile = outDir + CON;
-			PrintWriter writer = Files.getAppropriateWriter(scriptFile);
-			
-			Set<Integer> chrs = new HashSet<Integer>();
-			chrs.addAll(mapMap.keySet());
-			chrs.retainAll(plinkFileMap.keySet());
-			
-			for (Integer chr : chrs) {
-				String hapFile = outBase + chr;
-				String outFile = outBase + chr + ".vcf";
-				String convertCmd = CONVERT.replace(SHP, shapeItPath).replace(HAP, hapFile).replace(OUT, outFile).replace(THD, threads + "");
-				writer.println(convertCmd);
-			}
-			
+
 			writer.flush();
 			writer.close();
 
 			Files.chmod(scriptFile);
-			String commands = new StringBuilder().append("cd ").append(ext.parseDirectoryOfFile(scriptFile)).append("\n").append("./").append(RUN).toString();
-			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands, Files.PBS_MEM, Files.PBS_PROC, 1);
+			String commands = new StringBuilder().append("cd ")
+																					 .append(ext.parseDirectoryOfFile(scriptFile))
+																					 .append("\n").append("./").append(RUN).toString();
+			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands,
+								Files.PBS_MEM, Files.PBS_PROC, 1);
+
+			createConvertScripts();
 		}
-		
+
+		private void createConvertScripts() {
+			String scriptFile = outDir + CON;
+			PrintWriter writer = Files.getAppropriateWriter(scriptFile);
+
+			Set<Integer> chrs = new HashSet<Integer>();
+			chrs.addAll(mapMap.keySet());
+			chrs.retainAll(plinkFileMap.keySet());
+
+			for (Integer chr : chrs) {
+				String hapFile = outBase + chr;
+				String outFile = outBase + chr + ".vcf";
+				String convertCmd = CONVERT.replace(SHP, shapeItPath).replace(HAP, hapFile)
+																	 .replace(OUT, outFile).replace(THD, threads + "");
+				writer.println(convertCmd);
+			}
+
+			writer.flush();
+			writer.close();
+
+			Files.chmod(scriptFile);
+			String commands = new StringBuilder().append("cd ")
+																					 .append(ext.parseDirectoryOfFile(scriptFile))
+																					 .append("\n").append("./").append(RUN).toString();
+			Qsub.qsub(ext.rootOf(new File(scriptFile).getAbsolutePath(), false) + ".qsub", commands,
+								Files.PBS_MEM, Files.PBS_PROC, 1);
+		}
+
 		static final String RUN = "runShapeIt.sh";
 		static final String CON = "runShapeItConvert.sh";
 		static final String SHP = "$shape";
@@ -220,9 +235,11 @@ public interface ImputationImpl {
 		static final String OUT = "$out";
 		static final String HAP = "$haps";
 		static final String outBase = "out_chr";
-		
-		static final String TEMPLATE = SHP + " " + TYP + " " + PLK + " -M " + MAP + " -T " + THD + " -O " + OUT + " --duohmm";
-		static final String CONVERT = SHP + " -convert --input-haps " + "$haps" + " --output-vcf " + OUT + " -T " + THD;
+
+		static final String TEMPLATE = SHP + " " + TYP + " " + PLK + " -M " + MAP + " -T " + THD
+																	 + " -O " + OUT + " --duohmm";
+		static final String CONVERT = SHP + " -convert --input-haps " + "$haps" + " --output-vcf " + OUT
+																	+ " -T " + THD;
 	}
-	
+
 }

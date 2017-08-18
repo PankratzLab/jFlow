@@ -325,7 +325,8 @@ public class SkatMeta2 {
 					fromPreConditionResults = getFirstCondition(resultFile,
 																											new String[] {"SingleSNP", "Chr", "Position"},
 																											new String[] {"SKATgene",
-																																		"ARIC_Whites_p_SingleSNP", "ARIC_Blacks_p_SingleSNP"},
+																																		"ARIC_Whites_p_SingleSNP",
+																																		"ARIC_Blacks_p_SingleSNP"},
 																											new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.0000001"},
 																											new String[] {"(ARIC_Whites_p_SingleSNP || ARIC_Blacks_p_SingleSNP) <= 0.00001",
 																																		"(ARIC_Whites_maf_SingleSNP || ARIC_Blacks_maf_SingleSNP) > 0"},
@@ -576,7 +577,8 @@ public class SkatMeta2 {
 														 ArrayUtils.addStrToArray(allEthnics, ethnics), chrList,
 														 new String[] {"SingleSNP", "T5Count", "T5"},
 														 resultsDirFilenameTemplate.replaceAll("_"
-																																	 + FILENAME_CHROMOSOME_SEGMENT, ""),
+																																	 + FILENAME_CHROMOSOME_SEGMENT,
+																																	 ""),
 														 log);
 
 		return result;
@@ -658,8 +660,8 @@ public class SkatMeta2 {
 																						resultsDir + pheno + "_cond" + startCondition, null));
 			Files.write(rScript, rScriptDir + pheno + "_cond" + startCondition + "_all.R");
 			Qsub.qsub(rScriptDir + "[%0]_cond[%1]_all",
-								 rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
-								 new String[][] {{pheno, startCondition}}, -1, 6, -1);
+								rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
+								new String[][] {{pheno, startCondition}}, -1, 6, -1);
 			new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"
 																														 + startCondition + "_all.sh"));
 		}
@@ -1748,8 +1750,8 @@ public class SkatMeta2 {
 																					resultsDir + pheno + "_cond" + currentCondition, null));
 		Files.write(rScript, rScriptDir + pheno + "_cond" + currentCondition + "_all.R");
 		Qsub.qsub(rScriptDir + "[%0]_cond[%1]_all",
-							 rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
-							 new String[][] {{pheno, currentCondition + ""}}, -1, 6, -1);
+							rcommand + " " + rScriptDir + "[%0]_cond[%1]_all.R",
+							new String[][] {{pheno, currentCondition + ""}}, -1, 6, -1);
 		new File(rScriptDir + "master.qsub").renameTo(new File(rScriptDir + pheno + "_cond"
 																													 + currentCondition + "_all.sh"));
 
@@ -3399,7 +3401,8 @@ public class SkatMeta2 {
 																																										 ethnics)),
 																	 chrs, new String[] {"SingleSNP", "T5Count", "T5"},
 																	 resultsDirFilenameTemplate.replaceAll("_"
-																																				 + FILENAME_CHROMOSOME_SEGMENT, ""),
+																																				 + FILENAME_CHROMOSOME_SEGMENT,
+																																				 ""),
 																	 log);
 				}
 			} else {

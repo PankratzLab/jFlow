@@ -37,12 +37,12 @@ public class ExomeDepthRun {
 																	 int numthreads, Logger log) {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams)
-																													 ? Files.listFullPaths(bams,
-																																								 BamOps.BAM_EXT)
-																													 : HashVec.loadFileToStringArray(bams,
-																																													 false,
-																																													 new int[] {0},
-																																													 true);
+																														? Files.listFullPaths(bams,
+																																									BamOps.BAM_EXT)
+																														: HashVec.loadFileToStringArray(bams,
+																																														false,
+																																														new int[] {0},
+																																														true);
 		String outputResultsDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
 															+ "results/";
 		new File(outputResultsDir).mkdirs();

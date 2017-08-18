@@ -498,7 +498,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, checkBox);
 						panel.contentPanel.add(checkBox,
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																			 + rowIndex);
+																						 + rowIndex);
 					} else if (req.getType() == GenvisisWorkflow.RequirementInputType.ENUM) {
 						Object o = req.getDefaultValue();
 						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
@@ -519,7 +519,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, jList);
 						panel.contentPanel.add(new JScrollPane(jList),
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																			 + rowIndex);
+																													 + rowIndex);
 					} else if (req.getType() != GenvisisWorkflow.RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -532,7 +532,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, textField);
 						panel.contentPanel.add(textField,
 																	 "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-																			 + rowIndex);
+																							+ rowIndex);
 						if (req.getType() == GenvisisWorkflow.RequirementInputType.FILE
 								|| req.getType() == GenvisisWorkflow.RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -546,7 +546,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 									String current = fileField.getText();
 
 									String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
-																								 : ext.parseDirectoryOfFile(current);
+																									: ext.parseDirectoryOfFile(current);
 									JFileChooser chooser = new JFileChooser(dir);
 									chooser.setMultiSelectionEnabled(false);
 									GenvisisWorkflow.RequirementInputType type = req.getType();
@@ -753,7 +753,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 										for (int i = 0; i < reqsMet.length; i++) {
 											reqLbls.get(lblIndex)
 														 .setForeground(reqsMet[i] ? greenDark
-																											: hasAny ? Color.GRAY : Color.RED);
+																											 : hasAny ? Color.GRAY : Color.RED);
 											lblIndex++;
 										}
 									}

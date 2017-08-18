@@ -517,7 +517,7 @@ public class PlinkExportOptions extends JDialog {
 
 	public String[] getFileExtensions() {
 		return rdbtnBinary.isSelected() ? new String[] {".bim", ".bed", ".fam"}
-																	 : new String[] {".map", ".ped"};
+																		: new String[] {".map", ".ped"};
 	}
 
 	public boolean getCancelled() {

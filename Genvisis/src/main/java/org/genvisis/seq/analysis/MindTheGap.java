@@ -25,8 +25,8 @@ import org.genvisis.common.Logger;
  */
 public class MindTheGap {
 
-	private boolean convertToFasta(	String inputBam, String r1, String r2, String samToFastQLoc,
-																	Logger log) {
+	private boolean convertToFasta(String inputBam, String r1, String r2, String samToFastQLoc,
+																 Logger log) {
 		String[] inputs = new String[] {inputBam};
 		String[] outputs = new String[] {r1, r2};
 		ArrayList<String> command = new ArrayList<String>();

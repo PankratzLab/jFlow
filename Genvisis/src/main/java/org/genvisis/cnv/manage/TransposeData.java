@@ -117,8 +117,8 @@ public class TransposeData {
 			return;
 		}
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
-																															+ allSampleNamesInProj[0]
-																															+ Sample.SAMPLE_FILE_EXTENSION);
+																													+ allSampleNamesInProj[0]
+																													+ Sample.SAMPLE_FILE_EXTENSION);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 		numBytes_Mark = allSampleNamesInProj.length * numBytesPerSampleMarker;
 		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (allSampleNamesInProj.length
@@ -181,7 +181,7 @@ public class TransposeData {
 									 + " markers\t" + numChunks_File + " chunks\t"
 									 + markerFileSizeSuggested / 1024 / 1024 / 1024 + "."
 									 + ((int) (markerFileSizeSuggested / 1024 / 1024 / 10.24)
-									 - (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
+											- (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
 									 + " gb\t" + numFiles + " files");
 
 
@@ -680,7 +680,7 @@ public class TransposeData {
 					// log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" +
 					// timeFormat.format(timerTransposeMemory), false, true);
 					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
-										 + timeFormat.format(timerTransposeMemory));
+											+ timeFormat.format(timerTransposeMemory));
 
 
 					// --- Step 2 --- Dump write buffer to marker files
@@ -699,8 +699,8 @@ public class TransposeData {
 						timerTmp = new Date().getTime();
 						writeBufferToRAF(writeBuffer, null, j, j,
 														 proj.SAMPLE_DIRECTORY.getValue(false, true)
-																 + listOfAllSamplesInProj[indexCurrentSampInProj]
-																 + Sample.SAMPLE_FILE_EXTENSION,
+																											+ listOfAllSamplesInProj[indexCurrentSampInProj]
+																											+ Sample.SAMPLE_FILE_EXTENSION,
 														 markFileParameterSection, markFileOutliersBytes);
 						indexCurrentSampInProj++;
 						// log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
@@ -925,9 +925,9 @@ public class TransposeData {
 			}
 			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put(
 																																	 (Integer.parseInt(line[0])
-																																			 % numMarkersInEachFile)
-																																			 + "\t" + sampleIndex + "\t"
-																																			 + line[2],
+																																		% numMarkersInEachFile)
+																																	 + "\t" + sampleIndex + "\t"
+																																	 + line[2],
 																																	 allOutliers.get(key));
 		}
 
@@ -1328,12 +1328,12 @@ public class TransposeData {
 							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							xs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tx");
@@ -1350,12 +1350,12 @@ public class TransposeData {
 							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							ys[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\ty");

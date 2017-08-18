@@ -863,7 +863,7 @@ public class MarkerDataLoader implements Runnable {
 		}
 		MarkerData[] markerDatas = new MarkerData[markers.length];
 		MarkerDataLoader markerDataLoader = loadMarkerDataFromListInSeparateThread(proj,
-																																																markers);
+																																							 markers);
 		for (int i = 0; i < markerDatas.length; i++) {
 			markerDatas[i] = markerDataLoader.requestMarkerData(i);
 			markerDataLoader.releaseIndex(i);

@@ -104,7 +104,8 @@ public class GenotypeMatrix implements Serializable {
 
 			// can be much more complex if you want, just see DosageData
 			if (idFile != null) {
-				ids = HashVec.loadFileToStringArray(idFile, true, new int[] {0}, false, false, Files.determineDelimiter(idFile, log));
+				ids = HashVec.loadFileToStringArray(idFile, true, new int[] {0}, false, false,
+																						Files.determineDelimiter(idFile, log));
 			}
 
 			dominance = parameters[0];

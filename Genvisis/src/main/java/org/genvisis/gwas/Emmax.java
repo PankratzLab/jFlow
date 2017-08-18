@@ -101,13 +101,13 @@ public class Emmax {
 		}
 		// TODO consolidate with new method
 		Qsub.qsub(batchDir + "runEmmax", batchDir, -1, "[%0]",
-							 Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs,
-							 qsubWalltimeInHours);
+							Matrix.toMatrix(ArrayUtils.toStringArray(scripts)), qsubMemInMBs,
+							qsubWalltimeInHours);
 		// System.out.println("scripts.size(): " + scripts.size() + "\nbatchDir: " + batchDir);
 		Qsub.qsubMultiple(batchDir + "chunkSB_emmax",
-											 ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_",
-																											".qsub"),
-											 16, -1, qsubMemInMBs, qsubWalltimeInHours);
+											ArrayUtils.stringArraySequence(scripts.size(), batchDir + "runEmmax_",
+																										 ".qsub"),
+											16, -1, qsubMemInMBs, qsubWalltimeInHours);
 	}
 
 	public static void parseResults(String resultDir, double pValThreshold) {

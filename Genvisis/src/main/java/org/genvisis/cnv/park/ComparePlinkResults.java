@@ -82,7 +82,8 @@ public class ComparePlinkResults {
 				try {
 					reader = new BufferedReader(new FileReader(file));
 					System.out.println(file.getName());
-					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+					indices = ext.indexFactors(MPERM_REQUIRED,
+																		 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
@@ -134,7 +135,8 @@ public class ComparePlinkResults {
 			for (int j = 0; j < files.length; j++) {
 				try {
 					reader = new BufferedReader(new FileReader(files[j]));
-					indices = ext.indexFactors(MPERM_REQUIRED, reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+					indices = ext.indexFactors(MPERM_REQUIRED,
+																		 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 																		 false, true);
 					begin = end = "";
 					while (reader.ready()) {
@@ -199,7 +201,8 @@ public class ComparePlinkResults {
 				System.out.println(files[i].getName());
 				try {
 					reader = new BufferedReader(new FileReader(files[i]));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), INDIV_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), INDIV_HEADER,
+													true);
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						aff = Integer.parseInt(line[2]) - 1;
@@ -221,7 +224,8 @@ public class ComparePlinkResults {
 				match = ext.replaceAllWith(files[i].getAbsolutePath(), ".cnv.indiv", ".cnv.summary.mperm");
 				try {
 					reader = new BufferedReader(new FileReader(match));
-					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), SUMMARY_MPERM_HEADER, true);
+					ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
+													SUMMARY_MPERM_HEADER, true);
 					for (int j = 0; j < 4; j++) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 						pvals[i][j] = Double.parseDouble(line[2]);

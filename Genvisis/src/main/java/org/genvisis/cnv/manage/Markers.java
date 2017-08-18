@@ -160,7 +160,8 @@ public class Markers {
 		Hashtable<String, String> hash = new Hashtable<String, String>();
 		String markerName, chr, position, delimiter, temp;
 		byte chrValue;
-		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames, numInvalidChrs, numInvalidPositions, numIncompleteLines;
+		int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames,
+				numInvalidChrs, numInvalidPositions, numIncompleteLines;
 
 		delimiter = Files.determineDelimiter(filename, log);
 

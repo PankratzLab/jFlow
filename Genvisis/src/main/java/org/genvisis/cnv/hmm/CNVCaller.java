@@ -802,9 +802,9 @@ public class CNVCaller {
 																						+ markerSet.getMarkerNames().length);
 					}
 					float[] lrrs = centroids == null ? curSample.getLRRs()
-																					: curSample.getLRRs(centroids.getCentroids());
+																					 : curSample.getLRRs(centroids.getCentroids());
 					float[] bafs = centroids == null ? curSample.getBAFs()
-																					: curSample.getBAFs(centroids.getCentroids());
+																					 : curSample.getBAFs(centroids.getCentroids());
 					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(),
 																					 ArrayUtils.toDoubleArray(lrrs),
 																					 ArrayUtils.toDoubleArray(bafs), gcModelTmp, pfbTmp,
@@ -1099,7 +1099,8 @@ public class CNVCaller {
 		Map<String, Integer> markerNames = proj.getMarkerIndices();
 		boolean[] markers = ArrayUtils.booleanArray(markerNames.size(), true);
 		String file = Files.isRelativePath(excludeFile) ? proj.PROJECT_DIRECTORY.getValue()
-																											+ excludeFile : excludeFile;
+																											+ excludeFile
+																										: excludeFile;
 		String[] drops = HashVec.loadFileToStringArray(file, true, new int[] {0}, false);
 		for (String s : drops) {
 			if (markerNames.containsKey(s)) {

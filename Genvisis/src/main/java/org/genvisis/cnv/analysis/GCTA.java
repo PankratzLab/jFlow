@@ -430,8 +430,9 @@ public class GCTA {
 	private static void run(Project proj, String sampFile, String[] phenoFiles, PHENO_TYPE pType,
 													int pcCovars, double grmCutoff, int numthreads) {
 		String[] samples = sampFile == null ? null
-																			 : HashVec.loadFileToStringArray(sampFile, false, new int[] {0},
-																																			 false, true, "\t");
+																				: HashVec.loadFileToStringArray(sampFile, false,
+																																				new int[] {0},
+																																				false, true, "\t");
 		Logger log = proj.getLog();
 		String outDir = proj.PROJECT_DIRECTORY.getValue() + "gcta/";
 		String plinkRoot = outDir + "gcta";

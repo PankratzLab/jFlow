@@ -36,9 +36,9 @@ public class ParseKcol implements Runnable {
 	public static final String CANCEL_OPTION_FILE = ".cancel_option";
 	public static final String HOLD_OPTION_FILE = ".hold_option";
 	public static final String FILENAME_AS_ID_OPTION = "[FILENAME_ROOT]";
-	public static final String[][] SNP_TABLE_FIELDS = { {"Name", "SNP Name"}, {"Chr", "Chromosome"},
+	public static final String[][] SNP_TABLE_FIELDS = {{"Name", "SNP Name"}, {"Chr", "Chromosome"},
 																										 {"Position"}};
-	public static final String[][] DATA_FIELDS = { {"GC Score", "GCscore", "Confidence"}, {"X Raw"},
+	public static final String[][] DATA_FIELDS = {{"GC Score", "GCscore", "Confidence"}, {"X Raw"},
 																								{"Y Raw"},
 																								{"X", "Chr", "Xvalue", "Log Ratio", "intensity_1",
 																								 "Signal A"},
@@ -46,8 +46,8 @@ public class ParseKcol implements Runnable {
 																								 "Signal B"},
 																								{"Theta"}, {"R"}, {"B Allele Freq"},
 																								{"Log R Ratio"}};
-	public static final String[][] GENOTYPE_FIELDS = { {"Allele1 - Forward", "Position", "Allele1",
-																											"genotype1", "Call"},
+	public static final String[][] GENOTYPE_FIELDS = {{"Allele1 - Forward", "Position", "Allele1",
+																										 "genotype1", "Call"},
 																										{"Allele2 - Forward", "Position", "Allele2",
 																										 "genotype2", "Forced Call"},
 																										{"Allele1 - AB"}, {"Allele2 - AB"},
@@ -151,8 +151,8 @@ public class ParseKcol implements Runnable {
 					} while (reader.ready()
 									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
 																				false)[0] == -1
-									 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
-									 && ext.indexOfStr(idHeader, line) == -1)));
+											 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+													 && ext.indexOfStr(idHeader, line) == -1)));
 
 					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
 					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
@@ -236,7 +236,7 @@ public class ParseKcol implements Runnable {
 								parseAtAt = false;
 							}
 							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-															: line[sampIndex];
+															 : line[sampIndex];
 						}
 
 						if (count == 0) {
@@ -494,10 +494,10 @@ public class ParseKcol implements Runnable {
 		overwriteOptions = new String[] {
 																		 "Rename new file " + trav + Sample.SAMPLE_FILE_EXTENSION,
 																		 "Overwrite existing file " + sampleName
-																				 + (versionToOverwrite == 0 ? ""
-																																	 : "."
-																																		 + versionToOverwrite)
-																				 + Sample.SAMPLE_FILE_EXTENSION,
+																																															 + (versionToOverwrite == 0 ? ""
+																																																													: "."
+																																																														+ versionToOverwrite)
+																																															 + Sample.SAMPLE_FILE_EXTENSION,
 																		 "Overwrite this and all future files", "Cancel parser"};
 
 		if (versionToOverwrite != -1) {
@@ -518,11 +518,11 @@ public class ParseKcol implements Runnable {
 				do {
 					response = JOptionPane.showOptionDialog(null,
 																									"Error - the same sample name '"
-																											+ sampleName
-																											+ "' is being parsed again and the previous file existed before the current command began.\n"
-																											+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-																											+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
-																											+ "What would you like to do?",
+																												+ sampleName
+																												+ "' is being parsed again and the previous file existed before the current command began.\n"
+																												+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+																												+ "If you would like to start from scratch, the safest thing would be to cancel now and delete all files in the sample directory.\n"
+																												+ "What would you like to do?",
 																									"What to do?", JOptionPane.DEFAULT_OPTION,
 																									JOptionPane.QUESTION_MESSAGE, null,
 																									overwriteOptions, overwriteOptions[0]);
@@ -647,8 +647,8 @@ public class ParseKcol implements Runnable {
 				// }
 			} while (reader.ready()
 							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-							 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
-							 && ext.indexOfStr(idHeader, line) == -1)));
+									 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+											 && ext.indexOfStr(idHeader, line) == -1)));
 
 			if (!reader.ready()) {
 				System.err.println("Error - reached the end of the file without finding a line with the following tokens: "
@@ -674,7 +674,7 @@ public class ParseKcol implements Runnable {
 						} else {
 							JOptionPane.showMessageDialog(null,
 																						"Could not auto-detect the delimiter used in the Final Reports file: could be '"
-																								+ delimiter + "' or '" + DELIMITERS[j] + "'",
+																									+ delimiter + "' or '" + DELIMITERS[j] + "'",
 																						"Error", JOptionPane.ERROR_MESSAGE);
 							return;
 						}
@@ -696,8 +696,8 @@ public class ParseKcol implements Runnable {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
 								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-								 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
-								 && ext.indexOfStr(idHeader, line) == -1)));
+										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+												 && ext.indexOfStr(idHeader, line) == -1)));
 				System.out.println(1);
 			}
 
@@ -743,7 +743,7 @@ public class ParseKcol implements Runnable {
 					parseAtAt = false;
 				}
 				sampleName = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-															: line[sampIndex];
+															 : line[sampIndex];
 				reader.reset();
 			}
 
@@ -754,12 +754,12 @@ public class ParseKcol implements Runnable {
 
 				response = JOptionPane.showOptionDialog(null,
 																								"These data (at least the first sample '"
-																										+ sampleName
-																										+ "') have already been parsed.\n"
-																										+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
-																										+ "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
-																										+ "Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"
-																										+ "What would you like to do?",
+																											+ sampleName
+																											+ "') have already been parsed.\n"
+																											+ "This happens if you inadvertently restarted the parser or if the parser was interrupted and manually restarted.\n"
+																											+ "If you would like to start from scratch, select \"Delete All\" earlier files.\n"
+																											+ "Otherwise, cancel or you can \"Customize\" and determine what to do on a sample-by-sample basis.\n"
+																											+ "What would you like to do?",
 																								"What to do?", JOptionPane.DEFAULT_OPTION,
 																								JOptionPane.QUESTION_MESSAGE, null,
 																								overwriteOptions, overwriteOptions[2]);
@@ -1004,7 +1004,7 @@ public class ParseKcol implements Runnable {
 					} while (reader.ready()
 									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
 																				false)[0] == -1
-									 || ext.indexOfStr(idHeader, line) == -1));
+											 || ext.indexOfStr(idHeader, line) == -1));
 
 					System.err.println("Searching: " + ArrayUtils.toStr(line));
 					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
@@ -1048,7 +1048,7 @@ public class ParseKcol implements Runnable {
 								parseAtAt = false;
 							}
 							trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
-															: line[sampIndex];
+															 : line[sampIndex];
 						} else {
 							done = true;
 							trav = null;
@@ -1075,7 +1075,7 @@ public class ParseKcol implements Runnable {
 													 + Sample.SAMPLE_FILE_EXTENSION).exists()) {
 								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
 																											 + (fixes.containsKey(trav) ? fixes.get(trav)
-																																								 : trav)
+																																									: trav)
 																											 + Sample.SAMPLE_FILE_EXTENSION);
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
@@ -1235,7 +1235,7 @@ public class ParseKcol implements Runnable {
 					line = reader.readLine().split(delimiter);
 					writer.println(file + "\t" + line[sampIndex] + "\t"
 												 + (line[sampIndex].indexOf("@") >= 0 ? line[sampIndex].split("@")[0]
-																														 : line[sampIndex]));
+																															: line[sampIndex]));
 					reader.close();
 				} catch (FileNotFoundException fnfe) {
 					System.err.println("Error: file \"" + file + "\" not found in "
@@ -1295,8 +1295,8 @@ public class ParseKcol implements Runnable {
 					} while (reader.ready()
 									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
 																				false)[0] == -1
-									 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
-									 && ext.indexOfStr(idHeader, line) == -1)));
+											 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+													 && ext.indexOfStr(idHeader, line) == -1)));
 					// if its the first directory, print the header
 
 					if (i == 0) {
@@ -1415,8 +1415,8 @@ public class ParseKcol implements Runnable {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
 								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
-								 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
-								 && ext.indexOfStr(idHeader, line) == -1)));
+										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
+												 && ext.indexOfStr(idHeader, line) == -1)));
 
 				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),

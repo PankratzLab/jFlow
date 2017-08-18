@@ -477,8 +477,8 @@ public class ForestPlot {
 			dataReader = Files.getReader(fileMap.getKey(), true, // not a jar file
 																	 log, // verbose mode on
 																	 false // don't kill the whole process, esp. if we're
-																							// running
-																							// a GUI
+																				 // running
+																				 // a GUI
 			);
 			if (dataReader == null) {
 				continue;
@@ -746,7 +746,7 @@ public class ForestPlot {
 	}
 
 	public void screenCap(String subdir, boolean versionIfExists, Dimension size) {
-		//FIXME this aliases the forestpanel and will overwrite its size
+		// FIXME this aliases the forestpanel and will overwrite its size
 		ForestPanel p = getForestPanel();
 		p.setSize(size);
 		p.createImage();

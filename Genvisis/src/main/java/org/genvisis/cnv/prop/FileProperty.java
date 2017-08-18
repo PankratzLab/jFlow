@@ -16,10 +16,10 @@ public class FileProperty extends StringProperty {
 											String defVal, boolean dirOnly) {
 		super(proj, name, desc, group, editable, copyOnCorrection,
 					dirOnly ? ext.verifyDirFormat(defVal)
-								 : ext.replaceAllWith(defVal, "\\",
-																			"/")/*
-																					 * == null || "".equals(defVal) ? null : new File(defVal)
-																					 */);
+									: ext.replaceAllWith(defVal, "\\",
+																			 "/")/*
+																					  * == null || "".equals(defVal) ? null : new File(defVal)
+																					  */);
 		isDir = dirOnly;
 	}
 

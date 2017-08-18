@@ -182,7 +182,8 @@ public class CorrectionIterator implements Serializable {
 					valid = false;
 				} else {
 					log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
-					String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] {0},
+					String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false,
+																																new int[] {0},
 																																false, true, "\t");
 					log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from "
 														 + samplesToBuildModels);

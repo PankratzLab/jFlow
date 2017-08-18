@@ -950,7 +950,8 @@ public class PhenoPrep {
 								}
 								if (Files.exists(dir + outFile)) {
 									rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1}, false,
-																													false, Files.determineDelimiter(dir + outFile,
+																													false,
+																													Files.determineDelimiter(dir + outFile,
 																																									 log));
 									rawData = ArrayUtils.removeFromArray(rawData, ext.MISSING_VALUES);
 									data = ArrayUtils.toDoubleArray(rawData);
@@ -1074,7 +1075,7 @@ public class PhenoPrep {
 		//
 		// summarizeAll(dir, idColName, phenos, covarsCommaDelimited, 0, null);
 		// System.exit(1);
-		
+
 		String usage = "\n" + "gwas.PhenoPrep requires 0-1 arguments\n"
 									 + "	 (0) name of directory (i.e. dir=" + dir + " (default))\n"
 									 + "	 (1) name of input file (i.e. file=" + filename + " (default))\n"

@@ -487,7 +487,8 @@ public class CNVFilter {
 		if (fullPathToIndividualsToKeepFile == null || fullPathToIndividualsToKeepFile.equals("")) {
 			setIndHash(NO_FILTER_INDIVIDUAL_HASH);
 		} else {
-			setIndHash(HashVec.loadFileToStringArray(fullPathToIndividualsToKeepFile, false, new int[] {0, 1},
+			setIndHash(HashVec.loadFileToStringArray(fullPathToIndividualsToKeepFile, false,
+																							 new int[] {0, 1},
 																							 true, false, "\t"));
 		}
 	}

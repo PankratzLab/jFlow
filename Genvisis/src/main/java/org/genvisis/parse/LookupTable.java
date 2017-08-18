@@ -89,7 +89,9 @@ public class LookupTable {
 			log.report("Memory available: " + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + "");
 			log.report("Loading keys from '" + hitsFile + "'");
 			hits = HashVec.loadFileToStringArray(hitsFile, ignoreFirstLine, new int[] {col}, true, false,
-																					 commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
+																					 commaDelimited ? ","
+																													: (tabDelimited ? "\t"
+																																					: PSF.Regex.GREEDY_WHITESPACE));
 			if (lessMemoryButSlower) {
 				Files.combineWithLessMemory(hits, ArrayUtils.toStringArray(params),
 																		new String[params.size()][], head, missingValue, outfile, log,

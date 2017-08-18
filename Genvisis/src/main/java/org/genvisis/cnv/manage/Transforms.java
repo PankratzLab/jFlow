@@ -20,7 +20,8 @@ public class Transforms {
 	public static final String[] SCOPES = {"Chromosome", "Genome"};
 
 	public static float[] transform(float[] input, int transformation_type,
-																	boolean transformSeparatelyByChromosome, MarkerSetInfo markerSet) {
+																	boolean transformSeparatelyByChromosome,
+																	MarkerSetInfo markerSet) {
 		int[][] indices;
 
 		if (transformSeparatelyByChromosome) {

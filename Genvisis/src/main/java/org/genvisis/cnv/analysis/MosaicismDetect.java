@@ -620,9 +620,9 @@ public class MosaicismDetect {
 
 		MosaicProducer producer = new MosaicProducer(proj, builder, proj.getSamples(), markerSet, segs);
 		WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer,
-																																												numThreads,
-																																												10,
-																																												proj.getLog());
+																																	numThreads,
+																																	10,
+																																	proj.getLog());
 		int numCalled = 0;
 		boolean wroteHeader = false;
 

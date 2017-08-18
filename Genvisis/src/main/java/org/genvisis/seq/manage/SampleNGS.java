@@ -45,7 +45,7 @@ public class SampleNGS {
 		} else {
 			try {
 				int[] ad = vc == null ? geno.getAD()
-														 : VCOps.getAppropriateAlleleDepths(vc, geno, true, log);
+															: VCOps.getAppropriateAlleleDepths(vc, geno, true, log);
 				addFloat(ad[0], DATA_TYPE.X, log);
 				addFloat(ad[1], DATA_TYPE.Y, log);
 			} catch (IllegalStateException ils) {

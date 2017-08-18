@@ -311,8 +311,8 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			double[] dataArray = new double[currentData.size()];
 			for (int i = 0; i < dataArray.length; i++) {
 				dataArray[i] = ext.isMissingValue(currentData.get(i)[1])
-																																? Double.NaN
-																																: Double.parseDouble(currentData.get(i)[1]);
+																																 ? Double.NaN
+																																 : Double.parseDouble(currentData.get(i)[1]);
 			}
 			hist = new org.genvisis.stats.Histogram(dataArray);
 			setHistogram(hist);
@@ -328,7 +328,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		float binHalf = (float) (hist.getBins().length > 1 ? ext.roundToSignificantFigures(minDiff
 																																											 / 2.0,
 																																											 sig + 1)
-																											: DEFAULT_HALF_BIN_SIZE);
+																											 : DEFAULT_HALF_BIN_SIZE);
 
 		forcePlotXmax = (float) (max + minDiff);
 		forcePlotXmin = (float) (min - minDiff);
@@ -340,24 +340,24 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (swapAxes) {
 				startX = 0f;
 				startY = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																 - binHalf),
+																																					- binHalf),
 																																 sig)
-												: (float) (hist.getBins()[i] - binHalf);
+												 : (float) (hist.getBins()[i] - binHalf);
 				stopX = hist.getCounts()[i];
 				stopY = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																+ binHalf),
+																																				 + binHalf),
 																																sig)
-											 : (float) (hist.getBins()[i] + binHalf);
+												: (float) (hist.getBins()[i] + binHalf);
 			} else {
 				startX = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																 - binHalf),
+																																					- binHalf),
 																																 sig)
-												: (float) (hist.getBins()[i] - binHalf);
+												 : (float) (hist.getBins()[i] - binHalf);
 				startY = 0f;
 				stopX = sig > 0 ? (float) ext.roundToSignificantFigures((float) (hist.getBins()[i]
-																																+ binHalf),
+																																				 + binHalf),
 																																sig)
-											 : (float) (hist.getBins()[i] + binHalf);
+												: (float) (hist.getBins()[i] + binHalf);
 				stopY = hist.getCounts()[i];
 			}
 			rectangles[i] = new GenericRectangle(startX, startY, stopX, stopY, (byte) 5, true, false,

@@ -163,7 +163,9 @@ public class UCSCtrack {
 					prevStart = -1;
 					while (reader.ready()) {
 						line = reader.readLine().trim()
-												 .split(commaDelimited ? "," : (tabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
+												 .split(commaDelimited ? ","
+																							 : (tabDelimited ? "\t"
+																															 : PSF.Regex.GREEDY_WHITESPACE));
 						passedFilter = true;
 						for (int i = 0; i < filterOps.length && passedFilter; i++) {
 							if (filterOps[i].equals("=")) {
@@ -249,7 +251,9 @@ public class UCSCtrack {
 						prevStart = -1;
 						while (reader.ready()) {
 							line = reader.readLine().trim()
-													 .split(mapCommaDelimited ? "," : (mapTabDelimited ? "\t" : PSF.Regex.GREEDY_WHITESPACE));
+													 .split(mapCommaDelimited ? ","
+																										: (mapTabDelimited ? "\t"
+																																			 : PSF.Regex.GREEDY_WHITESPACE));
 							start = Integer.parseInt(line[startIndex]);
 							stop = Integer.parseInt(line[stopIndex]);
 							if (start == stop) {

@@ -13,6 +13,7 @@ import junit.framework.Assert;
  */
 public class TestSeqOps {
 	private static final double DELTA = 1e-15;
+
 	/**
 	 * Test for {@link SeqOps#countMotif(String, String)}
 	 */

@@ -203,7 +203,7 @@ public class GATK_Genotyper {
 			command += GATK_LanePrep.REGIONS_FILE_COMMAND + gatk.getRegionsFile();
 		}
 		Qsub.qsub("GATK_Genotype_" + baseName, command, memoryInMB, wallTimeInHours,
-							 numWithinSampleThreads);
+							numWithinSampleThreads);
 	}
 
 	public void runSingleSampleAllSites(String[] inputBams) {

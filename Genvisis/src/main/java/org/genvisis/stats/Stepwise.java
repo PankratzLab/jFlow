@@ -384,9 +384,9 @@ public class Stepwise {
 			model.setVarNames(travNames, maxNameSize);
 			Rsum += ext.formStr(i + 1 + "", 4) + "\t"
 							+ (!Double.isFinite(model.getOverall()) ? "    ."
-																													 : ext.formStr(ext.formDeci(model.getOverall(),
-																																											1, true),
-																																				 7))
+																											: ext.formStr(ext.formDeci(model.getOverall(),
+																																								 1, true),
+																																		7))
 							+ "\t  " + ext.formDeci(model.getOverallSig(), 3, true) + "\t  "
 							+ ext.formDeci(model.getRsquare(), 3, true) + line_ending;
 			ModelSum += "------ Model " + (i + 1) + (i < 10 ? " -" : " ") + "---------------------------"

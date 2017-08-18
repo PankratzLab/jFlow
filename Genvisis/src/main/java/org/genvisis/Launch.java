@@ -94,7 +94,7 @@ public class Launch {
 																							 "peakat - takes the first or last N lines of a file, or counts the lines",
 																							 "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria",
 																							 CNVTrioFilter.COMMAND_CNV_TRIO_CRF
-																									 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
+																																																																											 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
 																							 VCF.VCF_INIT,
 																							 VCF.VCF_COMMAND,
 																							 CNVFilter.COMMAND_CNV_FILTER_CRF,

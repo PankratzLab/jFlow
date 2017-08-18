@@ -57,7 +57,7 @@ public class BamSample {
 		if (Double.isNaN(data)) {
 			throw new IllegalArgumentException(
 																				 "Size and num mapped reads cannot be NaN, size cannot be 0"
-																						 + bin.getUCSClocation());
+																				 + bin.getUCSClocation());
 		}
 		double scale = numTotalMappedReads > 0 ? SCALE_FACTOR_NUM_READS / numTotalMappedReads : 0;
 		return data * scale;
@@ -146,7 +146,7 @@ public class BamSample {
 		proj.getLog()
 				.reportTimeInfo(
 												"Percent het will be reported at variant sites with alt depth greater than "
-														+ MIN_NUM_MISMATCH);
+												+ MIN_NUM_MISMATCH);
 		if (ArrayUtils.countIf(traversalOrder, -1) > 0) {
 			throw new IllegalArgumentException("Not all indices accounted for");
 		}

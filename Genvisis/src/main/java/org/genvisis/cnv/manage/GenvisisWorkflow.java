@@ -937,7 +937,8 @@ public class GenvisisWorkflow {
 					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
 					boolean returnValue = mkrSetFile;
 					returnValue = returnValue && Files.exists(sampleDirectory);
-					returnValue = returnValue && Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0;
+					returnValue = returnValue
+												&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0;
 					returnValue = returnValue && proj.getSampleList() != null;
 					returnValue = returnValue && proj.getSampleList().getSamples().length > 0;
 					return returnValue;

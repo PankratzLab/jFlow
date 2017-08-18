@@ -385,16 +385,16 @@ public class ManhattanLoadGUI extends JDialog {
 			JCheckBox checkbox = value;
 
 			checkbox.setBackground(isSelected ? list.getSelectionBackground()
-																			 : list.getBackground());
+																				: list.getBackground());
 			checkbox.setForeground(isSelected ? list.getSelectionForeground()
-																			 : list.getForeground());
+																				: list.getForeground());
 			checkbox.setEnabled(value.isEnabled());
 			checkbox.setFont(getFont());
 			checkbox.setFocusPainted(false);
 			checkbox.setBorderPainted(true);
 			checkbox.setBorder(isSelected ? UIManager
 																							 .getBorder("List.focusCellHighlightBorder")
-																	 : noFocusBorder);
+																		: noFocusBorder);
 			return checkbox;
 		}
 	}

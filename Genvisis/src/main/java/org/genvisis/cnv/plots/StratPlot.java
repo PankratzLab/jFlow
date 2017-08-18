@@ -188,7 +188,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
 
 		// tree.selectFirstTwo();
 
-		//repaint();
+		// repaint();
 
 		setMinimumSize(new Dimension(20, 20));
 		setPreferredSize(new Dimension(1000, 720));

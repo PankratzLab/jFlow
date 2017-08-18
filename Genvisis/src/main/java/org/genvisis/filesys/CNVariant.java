@@ -229,7 +229,8 @@ public class CNVariant extends Segment {
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename) {
-		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true)));
+		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null,
+																																							true)));
 	}
 
 	public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH) {

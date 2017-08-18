@@ -108,47 +108,48 @@ public class ResultsPackager {
 																						"lnS1", "sd_lnS1", "lnS2", "sd_lnS2", "lnIm", "sd_lnIm",
 																						"lnIp", "sd_lnIp", "lnliknull", "lnlikfull"};
 	public static final String[] TDT_REQS = {"T", "U", "OR", "P", "L95", "U95"};
-	
+
 	public static void parseEasyQC(String inputFile, String outputFile) {
 		String[][] aliasesInOrder = {
-             Aliases.MARKER_NAMES,
-             Aliases.CHRS,
-             Aliases.POSITIONS,
-             {"strand"},
-             Aliases.ALLELES[0],
-             ArrayUtils.addStrToArray("base_allele", Aliases.ALLELES[1], 0),
-             Aliases.NS,
-             Aliases.ALLELE_FREQS,
-             ArrayUtils.addStrToArray("beta_int", Aliases.EFFECTS, 0),
-             ArrayUtils.addStrToArray("se_int", Aliases.STD_ERRS, 0),
-             ArrayUtils.addStrToArray("chi_P_2df", Aliases.PVALUES, 0),
-             ArrayUtils.addStrToArray("Imputation_value", Aliases.IMPUTATION_EFFICIENCY, 0)	
+																 Aliases.MARKER_NAMES,
+																 Aliases.CHRS,
+																 Aliases.POSITIONS,
+																 {"strand"},
+																 Aliases.ALLELES[0],
+																 ArrayUtils.addStrToArray("base_allele", Aliases.ALLELES[1], 0),
+																 Aliases.NS,
+																 Aliases.ALLELE_FREQS,
+																 ArrayUtils.addStrToArray("beta_int", Aliases.EFFECTS, 0),
+																 ArrayUtils.addStrToArray("se_int", Aliases.STD_ERRS, 0),
+																 ArrayUtils.addStrToArray("chi_P_2df", Aliases.PVALUES, 0),
+																 ArrayUtils.addStrToArray("Imputation_value",
+																													Aliases.IMPUTATION_EFFICIENCY, 0)
 		};
-		
+
 		String[] outputHeader = {
-           	"SNP",
-           	"CHR",
-           	"POS",
-           	"STRAND",
-           	"EFFECT_ALLELE",
-           	"OTHER_ALLELE",
-           	"N",
-           	"EAF",
-           	"BETA",
-           	"SE",
-           	"PVAL",
-           	"IMPUTATION"
+														 "SNP",
+														 "CHR",
+														 "POS",
+														 "STRAND",
+														 "EFFECT_ALLELE",
+														 "OTHER_ALLELE",
+														 "N",
+														 "EAF",
+														 "BETA",
+														 "SE",
+														 "PVAL",
+														 "IMPUTATION"
 		};
-		
+
 		BufferedReader reader;
 		PrintWriter writer;
 		String outFile = outputFile;
 		Logger log = new Logger();
-		
+
 		if (outputFile == null) {
 			outFile = ext.rootOf(inputFile, false) + "_out.txt";
 		}
-		
+
 		try {
 			reader = Files.getAppropriateReader(inputFile);
 		} catch (IOException e) {
@@ -157,51 +158,51 @@ public class ResultsPackager {
 			return;
 		}
 		writer = Files.getAppropriateWriter(outFile);
-		
+
 		String delimiter;
 		String line;
 		String[] parts;
 		int[] indices;
-		
+
 		try {
-  		line = reader.readLine();
-  		if (line == null) {
-  			log.reportError("unable to read input file!");
-  			return;
-  		}
-  		delimiter = ext.determineDelimiter(line);
-  		parts = line.trim().split(delimiter);
-  		indices = ext.indexFactors(aliasesInOrder, parts, false, true, false, log, false);
-  		
-  		int miss;
-  		if ((miss = ext.indexOfInt(-1, indices)) != -1) {
-  			log.reportError("Missing header element: " + ArrayUtils.toStr(aliasesInOrder[miss], ","));
-  			return;
-  		}
-  		
-  		writer.println(ArrayUtils.toStr(outputHeader, " "));
-  		
-  		StringBuilder sb;
-  		while((line = reader.readLine()) != null) {
-  			parts = line.trim().split(delimiter);
-  			sb = new StringBuilder();
-  			for (int i = 0; i < indices.length; i++) {
-  				sb.append(parts[indices[i]]);
-  				if (i < indices.length) {
-  					sb.append(" ");
-  				}
-  			}
-  		}
-  		
-  		writer.flush();
-  		writer.close();
-  		reader.close();
+			line = reader.readLine();
+			if (line == null) {
+				log.reportError("unable to read input file!");
+				return;
+			}
+			delimiter = ext.determineDelimiter(line);
+			parts = line.trim().split(delimiter);
+			indices = ext.indexFactors(aliasesInOrder, parts, false, true, false, log, false);
+
+			int miss;
+			if ((miss = ext.indexOfInt(-1, indices)) != -1) {
+				log.reportError("Missing header element: " + ArrayUtils.toStr(aliasesInOrder[miss], ","));
+				return;
+			}
+
+			writer.println(ArrayUtils.toStr(outputHeader, " "));
+
+			StringBuilder sb;
+			while ((line = reader.readLine()) != null) {
+				parts = line.trim().split(delimiter);
+				sb = new StringBuilder();
+				for (int i = 0; i < indices.length; i++) {
+					sb.append(parts[indices[i]]);
+					if (i < indices.length) {
+						sb.append(" ");
+					}
+				}
+			}
+
+			writer.flush();
+			writer.close();
+			reader.close();
 		} catch (IOException e) {
 			log.reportError("");
 		}
 	}
-	
-	
+
+
 	public static void parseIBCFormatFromGWAF(String dir, String resultsFile, String mapFile,
 																						String originalFrqFile, String customFrqFile,
 																						String markersToReport, double filter, String outfile,
@@ -229,15 +230,25 @@ public class ResultsPackager {
 		mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
 																					 "\t", false, false);
 		originalFreqHash = HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1},
-																										new int[] {2, 3}, false, "\t", false, false); // add 4 if you want global
-																														// frequency
+																										new int[] {2, 3}, false, "\t", false, false); // add
+																																																	// 4
+																																																	// if
+																																																	// you
+																																																	// want
+																																																	// global
+		// frequency
 
 		if (customFrqFile != null) {
 			System.err.println("Warning - use of custom freq file has not been tested properly; if it works then remove this warning");
 			customFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1},
-																										new int[] {2, 3, 4}, false, "\t", false, false); // add 4 if you want global
-																														// frequency instead of custom
-																														// Freq
+																										new int[] {2, 3, 4}, false, "\t", false, false); // add
+																																																		 // 4
+																																																		 // if
+																																																		 // you
+																																																		 // want
+																																																		 // global
+			// frequency instead of custom
+			// Freq
 		} else {
 			customFreqHash = null;
 		}
@@ -270,7 +281,8 @@ public class ResultsPackager {
 					if (originalFreqHash.containsKey(trav)) {
 						alleles = originalFreqHash.get(trav).split(PSF.Regex.GREEDY_WHITESPACE);
 					} else if (originalFreqHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
-						alleles = originalFreqHash.get(ext.replaceAllWith(trav, ".", "-")).split(PSF.Regex.GREEDY_WHITESPACE);
+						alleles = originalFreqHash.get(ext.replaceAllWith(trav, ".", "-"))
+																			.split(PSF.Regex.GREEDY_WHITESPACE);
 					} else {
 						alleles = new String[] {".", "."};
 						log.reportError("Error - no alleles from original .frq file for " + trav);
@@ -351,7 +363,7 @@ public class ResultsPackager {
 																					 "\t", false, false);
 		freqHash = HashVec.loadFileToHashString(dir + freqFile, new int[] {1}, new int[] {2, 3, 4},
 																						false, "\t", false, false); // 4 gets global
-																																							 // frequency
+																																				// frequency
 
 		try {
 			reader = Files.getAppropriateReader(dir + resultsFile);
@@ -451,7 +463,7 @@ public class ResultsPackager {
 			return;
 		}
 	}
-	
+
 	public static void parseSOLformat(String dir, String resultsFile, String mapFile, String freqFile,
 																		String markersToReport, double filter, double callRateThreshold,
 																		String outfile, Logger log) {
@@ -940,8 +952,10 @@ public class ResultsPackager {
 												 + logLikilihood_null_C + "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C
 																															 + "),1,TRUE)",
-												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),2,TRUE)",
-												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M + "),1,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M
+																																							+ "),2,TRUE)",
+												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M
+																																														 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M + "),2,TRUE)",

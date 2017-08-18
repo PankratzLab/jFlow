@@ -208,10 +208,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 																																													 // project
 
 		boolean[] toInclude = sp.hideExcludedSamples(panelIndex)
-																														? sp.getProject()
-																																.getSamplesToInclude(null, false)
-																														: ArrayUtils.booleanArray(samples.length,
-																																											true);
+																														 ? sp.getProject()
+																																 .getSamplesToInclude(null, false)
+																														 : ArrayUtils.booleanArray(samples.length,
+																																											 true);
 		out: if (plotType == PLOT_TYPE.BAF_LRR && sp.getDisplaygcAdjustor() != null
 						 && ArrayUtils.booleanArraySum(sp.getDisplaygcAdjustor()) == 1) {
 			for (int i = 0; i < sp.getDisplaygcAdjustor().length; i++) {
@@ -303,11 +303,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 							y = 0;
 						} else if (plotType == PLOT_TYPE.X_Y) {
 							x = (float) (cents[i][markerIndex][j][1]
-									/ (1 + Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)
-												 / Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)));
+													 / (1 + Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)
+																	/ Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)));
 							y = (float) (cents[i][markerIndex][j][1]
-									/ (1 + Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)
-												 / Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)));
+													 / (1 + Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)
+																	/ Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)));
 						} else {
 							x = cents[i][markerIndex][j][0];
 							y = cents[i][markerIndex][j][1];
@@ -353,7 +353,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			PlotPoint p = null;
 			int index = (numCents * 3) + i;
 			if (indi != null && (sp.hideExcludedSamples(panelIndex)
-					&& sampleData.individualShouldBeExcluded(samples[i]))) {
+													 && sampleData.individualShouldBeExcluded(samples[i]))) {
 				// if sample should be excluded then do nothing
 				genotype[i] = -3;
 				sex[i] = "e";
@@ -403,7 +403,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 
 				layer = (byte) ((sampleData.getClassCategoryAndIndex(currentClass)[0] == 2
-								&& classCode > 0) ? 1 : 0);
+												 && classCode > 0) ? 1 : 0);
 				layer = classCode; // TODO temporary fix, since was always zero otherwise
 
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
@@ -424,11 +424,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														datapoints[0][i],
 														datapoints[1][i],
 														type == PlotPoint.FILLED_CIRCLE
-																													 ? size
-																													 : (type == PlotPoint.FILLED_TRIANGLE
-																																															 ? (byte) (size
-																																															 + 5)
-																																															 : xFontSize),
+																														? size
+																														: (type == PlotPoint.FILLED_TRIANGLE
+																																																 ? (byte) (size
+																																																					 + 5)
+																																																 : xFontSize),
 														classCode == 0 ? 0 : (byte) (classCode + 3),
 														layer);
 				} else {
@@ -438,11 +438,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														datapoints[0][i],
 														datapoints[1][i],
 														type == PlotPoint.FILLED_CIRCLE
-																													 ? size
-																													 : (type == PlotPoint.FILLED_TRIANGLE
-																																															 ? (byte) (size
-																																															 + 5)
-																																															 : xFontSize),
+																														? size
+																														: (type == PlotPoint.FILLED_TRIANGLE
+																																																 ? (byte) (size
+																																																					 + 5)
+																																																 : xFontSize),
 														classCode, layer);
 				}
 				genotype[i] = genotypeCode;
@@ -540,10 +540,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
 																																																 sp.getCurrentMarkerData(),
 																																																 sp.hideExcludedSamples(panelIndex)
-																																																																	 ? sp.getProject()
-																																																																			 .getSamplesToInclude(null,
-																																																																														false)
-																																																																	 : null,
+																																																																		? sp.getProject()
+																																																																				.getSamplesToInclude(null,
+																																																																														 false)
+																																																																		: null,
 																																																 sex,
 																																																 sp.getClusterFilterCollection(),
 																																																 sp.getGCthreshold(),
@@ -731,7 +731,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				generateRectangles();
 				sp.setCurrentClusterFilter((byte) (sp.getClusterFilterCollection()
 																						 .getSize(sp.getMarkerName())
-					- 1));
+																					 - 1));
 				sp.displayClusterFilterIndex();
 				paintAgain();
 			}
@@ -835,7 +835,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				clusterFilterCollection.deleteClusterFilter(sp.getMarkerName(), newClusterFilter);
 				sp.setCurrentClusterFilter((byte) Math.min(newClusterFilter,
 																									 clusterFilterCollection.getSize(sp.getMarkerName())
-																									 - 1));
+																																		 - 1));
 				sp.setClusterFilterUpdated(true);
 				sp.displayClusterFilterIndex();
 				setPointsGeneratable(true);

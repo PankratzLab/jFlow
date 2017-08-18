@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class JobQueue {
-	
+
 	public enum QueueType {
 		EXEC, ROUTE;
 	}

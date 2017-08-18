@@ -480,7 +480,8 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 			progressBar.setStringPainted(false);
 			progressBar.setVisible(false);
 			// FIXME current understanding is that this method is a hook enqueued on the EDT after
-			// doInBackground returns. This handling should be moved to whatever is relying on output from this worker.
+			// doInBackground returns. This handling should be moved to whatever is relying on output from
+			// this worker.
 			get();
 			JOptionPane.showMessageDialog(null, "Log R Ratio Summarization Complete");
 

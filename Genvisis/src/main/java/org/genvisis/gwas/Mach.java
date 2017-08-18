@@ -279,7 +279,8 @@ public class Mach {
 		String[][] alleles;
 
 		snpData = HashVec.loadFileToStringArray(dir + "truncated_chr" + chr
-																						+ "_CEU_r22_nr.b36_fwd_legend.txt", true, new int[] {0, 1, 2, 3},
+																						+ "_CEU_r22_nr.b36_fwd_legend.txt", true,
+																						new int[] {0, 1, 2, 3},
 																						false);
 		markerNames = new String[snpData.length];
 		positions = new String[snpData.length];
@@ -706,7 +707,8 @@ public class Mach {
 			}
 			listIndividualsInMldose(ext.insertNumbers(dosageFormat, chrom), dir + "list.txt");
 		}
-		indIDs = HashVec.loadFileToStringArray(pedfile, false, new int[] {0, 1}, true, false, PSF.Regex.GREEDY_WHITESPACE);
+		indIDs = HashVec.loadFileToStringArray(pedfile, false, new int[] {0, 1}, true, false,
+																					 PSF.Regex.GREEDY_WHITESPACE);
 		log.report("Will be pulling information from " + chrHash.size() + " chromosomes");
 
 

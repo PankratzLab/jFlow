@@ -89,9 +89,11 @@ public class ClinVar {
 
 	}
 	private enum CLNSIG_SETS {
-		@SuppressWarnings("unchecked") PATH_SET(new HashSet<CLNSIG>(Arrays.asList(new CLNSIG[] {CLNSIG.PATHOGENIC}))),
-		@SuppressWarnings("unchecked") PATH_LIKELY_SET(new HashSet<CLNSIG>(Arrays.asList(new CLNSIG[] {CLNSIG.PATHOGENIC,
-																																																	 CLNSIG.LIKELY_PATHOGENIC})));
+		@SuppressWarnings("unchecked")
+		PATH_SET(new HashSet<CLNSIG>(Arrays.asList(new CLNSIG[] {CLNSIG.PATHOGENIC}))),
+		@SuppressWarnings("unchecked")
+		PATH_LIKELY_SET(new HashSet<CLNSIG>(Arrays.asList(new CLNSIG[] {CLNSIG.PATHOGENIC,
+																																		CLNSIG.LIKELY_PATHOGENIC})));
 
 
 		private HashSet<CLNSIG> set;
@@ -119,7 +121,7 @@ public class ClinVar {
 		return clnsigs;
 	}
 
-	private static void run(String vcf, Segment seg, String outputDir,double[] mafs) {
+	private static void run(String vcf, Segment seg, String outputDir, double[] mafs) {
 		new File(outputDir).mkdirs();
 		Logger log = new Logger(outputDir + "clinvar.log");
 		String subsetHG19Vcf = outputDir

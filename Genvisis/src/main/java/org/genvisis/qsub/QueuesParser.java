@@ -26,20 +26,21 @@ public class QueuesParser {
 	private static final String TAG_GROUP_CTRL_SLOPPY = "acl_group_sloppy = ";
 	private static final String TAG_ROUTE_DEST = "route_destinations = ";
 	private static final String TAG_MEM_DEFAULT = "resources_default.mem = ";
-	private static final String TAG_WALLTIME_DEFAULT= "resources_default.walltime = ";
-	private static final String TAG_PROC_DEFAULT= "resources_default.proc = ";
-	private static final String TAG_NODE_DEFAULT= "resources_default.nodes = ";
+	private static final String TAG_WALLTIME_DEFAULT = "resources_default.walltime = ";
+	private static final String TAG_PROC_DEFAULT = "resources_default.proc = ";
+	private static final String TAG_NODE_DEFAULT = "resources_default.nodes = ";
 
 	public static String[] loadIDInfo() throws IOException {
 		boolean win = Files.isWindows();
 		Runtime rt = Runtime.getRuntime();
-		String[] commands = win ? new String[]{"cmd","/c","echo","%USERNAME%"} : new String[]{"id"};
+		String[] commands = win ? new String[] {"cmd", "/c", "echo", "%USERNAME%"}
+														: new String[] {"id"};
 		Process proc = rt.exec(commands);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 		String s = stdInput.readLine();
 		stdInput.close();
-		return win ? new String[]{s.trim()} : s.split("\\s");
+		return win ? new String[] {s.trim()} : s.split("\\s");
 	}
 
 	/**
@@ -216,21 +217,24 @@ public class QueuesParser {
 					try {
 						curr.setDefaultProcCnt(Integer.parseInt(s.substring(TAG_PROC_DEFAULT.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'default proc count' tag but couldn't parse value: " + s.substring(TAG_PROC_DEFAULT.length()));
+						log.reportError("Found 'default proc count' tag but couldn't parse value: "
+														+ s.substring(TAG_PROC_DEFAULT.length()));
 					}
 				}
 				if (s.startsWith(TAG_NODE_DEFAULT)) {
 					try {
 						curr.setDefaultNodeCnt(Integer.parseInt(s.substring(TAG_NODE_DEFAULT.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'default node count' tag but couldn't parse value: " + s.substring(TAG_NODE_DEFAULT.length()));
+						log.reportError("Found 'default node count' tag but couldn't parse value: "
+														+ s.substring(TAG_NODE_DEFAULT.length()));
 					}
 				}
 				if (s.startsWith(TAG_WALLTIME_DEFAULT)) {
 					try {
 						curr.setDefaultWalltime(Integer.parseInt(s.substring(TAG_WALLTIME_DEFAULT.length())));
 					} catch (NumberFormatException e1) {
-						log.reportError("Found 'default walltime' tag but couldn't parse value: " + s.substring(TAG_WALLTIME_DEFAULT.length()));
+						log.reportError("Found 'default walltime' tag but couldn't parse value: "
+														+ s.substring(TAG_WALLTIME_DEFAULT.length()));
 					}
 				}
 				if (s.startsWith(TAG_NODE_MAX)) {

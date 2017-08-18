@@ -496,7 +496,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens, menuItemSave;
+		JMenuItem menuItemExit, menuItemOpen, menuItemRemove, menuItemRemoveAll, menuItemScreens,
+				menuItemSave;
 		final JCheckBoxMenuItem menuItemExclude, menuItemHist;
 
 		menuBar = new JMenuBar();
@@ -532,8 +533,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fileChooser = new JFileChooser(proj != null
-																																? proj.PROJECT_DIRECTORY.getValue()
-																																: ".");
+																																 ? proj.PROJECT_DIRECTORY.getValue()
+																																 : ".");
 				int fileOpenActionSelected = fileChooser.showSaveDialog(TwoDPlot.this);
 				if (fileOpenActionSelected == JFileChooser.APPROVE_OPTION) {
 					File fileToOpen = fileChooser.getSelectedFile();
@@ -627,7 +628,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	private void createScreenshotsFromFile() {
 		JFileChooser jfc = new JFileChooser(proj != null ? proj.PROJECT_DIRECTORY.getValue()
-																										: (new File(".")).toString());
+																										 : (new File(".")).toString());
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(TwoDPlot.this) == JFileChooser.APPROVE_OPTION) {
 			File selFile = jfc.getSelectedFile();
@@ -801,9 +802,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String[][] selectedValues = tree.getSelectionValues();
 		for (int i = 0; i < metaData.length; i++) {
 			resultList.add(metaData[i] == null
-																				? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
-																				: metaData[i][4] + " chr" + metaData[i][0] + ":"
-																					+ metaData[i][1]);
+																				 ? dataColumnsHash.get(selectedValues[i][0])[Integer.parseInt(selectedValues[i][1])]
+																				 : metaData[i][4] + " chr" + metaData[i][0] + ":"
+																					 + metaData[i][1]);
 		}
 		String[] result = resultList.toArray(new String[resultList.size()]);
 		return result;
@@ -915,8 +916,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					}
 				}
 				String key = linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS] == -1
-																																								? i + ""
-																																								: inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
+																																								 ? i + ""
+																																								 : inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
 				xHash.put(key, outLine);
 			}
 			if (selectedNodes.length > 1 && selectedNodes[1] != null && selectedNodes[1][0] != null
@@ -929,11 +930,11 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				for (int i = 0; i < dataOfSelectedFile.size(); i++) {
 					inLine = dataOfSelectedFile.get(i);
 					String key = linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS] == -1
-																																									? i + ""
-																																									: inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
+																																									 ? i + ""
+																																									 : inLine[linkerIndices.get(selectedFile)[DNA_INDEX_IN_LINKERS]];
 					if (xHash.containsKey(key)) {
 						String val = pipeY == null ? inLine[selectedColumn]
-																			: pipeY.pipe(inLine[selectedColumn]);
+																			 : pipeY.pipe(inLine[selectedColumn]);
 						if (val == null) { // rejected by pipe
 							xHash.remove(key);
 							continue;
@@ -1184,7 +1185,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			System.out.println("message: '" + message + "'");
 			choice = JOptionPane.showOptionDialog(null,
 																						message
-																								+ " Would you like to keep this configuration for the next time 2D Plot is loaded?",
+																									+ " Would you like to keep this configuration for the next time 2D Plot is loaded?",
 																						"Preserve 2D Plot workspace?",
 																						JOptionPane.YES_NO_CANCEL_OPTION,
 																						JOptionPane.QUESTION_MESSAGE, null, options,
@@ -1451,9 +1452,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			twoDPanel.setChartType(AbstractPanel.SCATTER_PLOT_TYPE);
 			colorKeyPanel.getClassRadioButtons()[colorLoaded
-																											? (colorKeyPanel.getClassRadioButtons().length
-																											- 1)
-																											: 0].setSelected(true);
+																											 ? (colorKeyPanel.getClassRadioButtons().length
+																													- 1)
+																											 : 0].setSelected(true);
 
 			twoDPanel.createImage();
 
@@ -1542,7 +1543,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 	private void loadColor(String baseDir, ScreenToCapture screencap) {
 		Hashtable<String, String> colorData = HashVec.loadFileToHashString(baseDir
-																																					 + screencap.colorFile,
+																																			 + screencap.colorFile,
 																																			 screencap.colorIDIndex,
 																																			 new int[] {screencap.colorIndex},
 																																			 "\t", true);

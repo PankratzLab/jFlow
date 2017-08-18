@@ -221,7 +221,8 @@ public class PlinkSeqMegs {
 																																					 numBatches, log);
 		String[] baseCommand = ArrayUtils.concatAll(PSF.Java.buildJavaCP(fullPathTojarFile),
 																								new String[] {"seq.analysis.PlinkSeqMegs",
-																															"vpop=" + vpopFile, PSF.Ext.NUM_THREADS_COMMAND
+																															"vpop=" + vpopFile,
+																															PSF.Ext.NUM_THREADS_COMMAND
 																																									+ numthreads
 																																									+ ""});
 		ArrayList<String> batches = new ArrayList<String>();
@@ -241,7 +242,7 @@ public class PlinkSeqMegs {
 
 			batches.add("qsub -q " + batch);
 			Qsub.qsub(batch, ArrayUtils.toStr(ArrayUtils.concatAll(baseCommand, batchCommand), " "),
-								 totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
+								totalMemoryRequestedInMb, walltimeRequestedInHours, numthreads);
 		}
 		Files.writeArray(batches.toArray(new String[batches.size()]),
 										 rootOut + ext.rootOf(vpopFile) + "master.sh");

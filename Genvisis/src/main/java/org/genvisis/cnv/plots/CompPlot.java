@@ -171,7 +171,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					String message = currSet.size() + " files have been added.  ";
 					int choice = JOptionPane.showOptionDialog(null,
 																										message
-																												+ " Would you like to keep this configuration for the next time CompPlot is loaded?",
+																													+ " Would you like to keep this configuration for the next time CompPlot is loaded?",
 																										"Preserve CompPlot workspace?",
 																										JOptionPane.YES_NO_CANCEL_OPTION,
 																										JOptionPane.QUESTION_MESSAGE, null, null, null);
@@ -219,7 +219,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 				File filename = new File(file);
 				filterFiles.add(filename.getName());
 				// Load the CNVs out of the files
-				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, proj.getLog());
+				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL,
+																									 proj.getLog());
 				hashes.add(cnvHash);
 			} else {
 				JOptionPane.showMessageDialog(null, "Error - File " + file
@@ -331,8 +332,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			public void actionPerformed(ActionEvent e) {
 				ListEditor le = ListEditor.createRegionListCreator(null,
 																													 proj == null
-																																			 ? null
-																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																																				? null
+																																				: proj.PROJECT_DIRECTORY.getValue(),
 																													 false);
 				le.setModal(true);
 				le.setVisible(true);
@@ -629,7 +630,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 					if (!deleted) {
 						JOptionPane.showMessageDialog(CompPlot.this,
 																					"Error - failed to delete file {" + e.getActionCommand()
-																							+ "}",
+																												 + "}",
 																					"Delete File Failed...", JOptionPane.ERROR_MESSAGE);
 					}
 					break;
@@ -682,8 +683,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
 			String file = e.getActionCommand();
 			ListEditor editor = ListEditor.createRegionListEditor(null,
 																														proj == null
-																																				? null
-																																				: proj.PROJECT_DIRECTORY.getValue(),
+																																				 ? null
+																																				 : proj.PROJECT_DIRECTORY.getValue(),
 																														false, file);
 			editor.setModal(true);
 			editor.setVisible(true);
@@ -712,7 +713,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 				return;
 			}
 			String tempFile = Files.isRelativePath(file) ? proj.PROJECT_DIRECTORY.getValue() + file
-																									: file;
+																									 : file;
 			if (!Files.exists(tempFile)) {
 				proj.message("Error - region file '" + tempFile + "' doesn't exist.");
 				regionFileNameBtn.get(shortName).setSelected(true);
@@ -757,7 +758,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 	private String chooseNewFiles() {
 		JFileChooser jfc = new JFileChooser(
 																				(proj != null
-																										 /* || regionFileName == null */? proj.PROJECT_DIRECTORY.getValue()
+																										 /* || regionFileName == null */ ? proj.PROJECT_DIRECTORY.getValue()
 																										 : null /*
 																														 * ext.parseDirectoryOfFile(
 																														 * regionFileName)

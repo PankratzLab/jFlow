@@ -686,10 +686,10 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
 			proj.getLog().report("Info - corrected a total of " + count + " of " + numTotalSamples + " "
 													 + (count == 1 ? "sample" : "samples"));
 		}
-//		if (!hasAnyCorrection) {
-//			proj.getLog().reportTimeWarning("Marker " + centroid.getMarkerData().getMarkerName()
-//																			+ " was unable to be corrected...");
-//		}
+		// if (!hasAnyCorrection) {
+		// proj.getLog().reportTimeWarning("Marker " + centroid.getMarkerData().getMarkerName()
+		// + " was unable to be corrected...");
+		// }
 	}
 
 	/**

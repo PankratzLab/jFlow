@@ -303,7 +303,7 @@ public class GATK_LanePrep extends BWA_Analysis {
 		command += GATK.KNOWN_SITES_INDEL_LOCATION_COMMAND
 							 + ArrayUtils.toStr(getGatk().getKnownSitesIndelFile(), GATK.SPLIT);
 		Qsub.qsub("GATK_Lane_Prep" + baseName, command, batches, memoryInMB, wallTimeInHours,
-							 getNumWithinSampleThreads() * getNumBetweenSampleThreads());
+							getNumWithinSampleThreads() * getNumBetweenSampleThreads());
 	}
 
 	private static class WorkerPicard implements Callable<Picard.PicardAnalysis> {
