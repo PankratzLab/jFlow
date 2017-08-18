@@ -153,7 +153,7 @@ public class ConcordanceProcessor extends AbstractSampleProcessor {
 												 + sn.fcsFile + " | " + fNum);
 			return;
 		}
-		autoData = HashVec.loadFileToStringMatrix(this.autoDir + file, true, null, false);
+		autoData = HashVec.loadFileToStringMatrix(this.autoDir + file, true, null);
 	}
 
 }

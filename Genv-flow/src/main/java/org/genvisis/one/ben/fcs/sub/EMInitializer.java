@@ -77,7 +77,7 @@ public class EMInitializer {
 	static final Logger log = new Logger();
 
 	static void run() {
-		String[] files = Files.list(DATA_DIR, DATA_EXT, false);
+		String[] files = Files.list(DATA_DIR, DATA_EXT);
 
 		int cnt = 0;
 		for (String f : files) {
@@ -166,7 +166,7 @@ public class EMInitializer {
 	}
 
 	public static MixtureMultivariateNormalDistribution load(String dir) {
-		String[] compFiles = Files.list(dir, ".comp", false);
+		String[] compFiles = Files.list(dir, ".comp");
 
 		List<Pair<Double, MultivariateNormalDistribution>> ret = new ArrayList<Pair<Double, MultivariateNormalDistribution>>();
 		double[] means;
@@ -177,7 +177,7 @@ public class EMInitializer {
 			String[] mns = HashVec.loadFileToStringArray(dir + compFiles[i] + ".means", false, null,
 																									 false);
 			String[][] cvrs = HashVec.loadFileToStringMatrix(dir + compFiles[i] + ".covars", false, null,
-																											 "\t", false, 10, false);
+																											 "\t", 10, false);
 
 			double comps = Double.parseDouble(cmp[0]);
 			means = new double[mns.length];
