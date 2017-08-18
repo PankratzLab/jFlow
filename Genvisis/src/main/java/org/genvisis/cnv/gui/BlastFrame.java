@@ -8,7 +8,6 @@ import htsjdk.tribble.annotation.Strand;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
@@ -436,7 +435,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		double filter = proj.BLAST_PROPORTION_MATCH_FILTER.getValue();
 		int probe = proj.ARRAY_TYPE.getValue().getProbeLength();
 		int alignFilter = (int) (filter * probe);
-		updateAnnotations(alignFilter);
+		updateAnnotations(alignFilter - 1);
 		updateLabels();
 	}
 
@@ -534,7 +533,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 					boolean hasMatch = blastResult.hasPerfectMatch(proj.getLog());
 					onT.size();
 					// if (hasMatch) {
-					probeDescLbl.setText("<reference sequence:>");
+					probeDescLbl.setText(PROBE_HDR_LBL);
 					Segment seg = referenceAnnotation.getSeg();
 					int start = hasMatch ? seg.getStart()
 															: referenceAnnotation.goLeft() ? seg.getStart() - len
@@ -640,6 +639,8 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		};
 	}
 
+	private static final String PROBE_HDR_LBL = "<probe sequence:>";
+
 	private JPanel getHeaderPanel() {
 		JPanel hdrPanel = getSizedPanel();
 		hdrPanel.setLayout(new MigLayout("", BLAST_COL_DEF, "[][]"));
@@ -647,23 +648,23 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 		locationLbl = new JLabel();
 		Font lblFont = BlastLabel.LBL_FONT;// Font.decode(Font.MONOSPACED).deriveFont(Font.PLAIN, 12);
 		locationLbl.setFont(lblFont);
-		hdrPanel.add(locationLbl, "cell 0 0");
-		probeDescLbl = new JLabel("<reference sequence:>");
+		hdrPanel.add(locationLbl, "cell 0 1");
+		probeDescLbl = new JLabel(PROBE_HDR_LBL);
 		probeDescLbl.setFont(lblFont);
-		hdrPanel.add(probeDescLbl, "cell 0 1");
+		hdrPanel.add(probeDescLbl, "cell 0 0");
 		strandLbl = new JLabel(
 													 referenceAnnotation == null
 																											? ""
 																											: CNVHelper.decode(referenceAnnotation.getStrand()));
 		strandLbl.setFont(lblFont);
-		hdrPanel.add(strandLbl, "cell 1 0");
+		hdrPanel.add(strandLbl, "cell 1 1");
 		probeLengthLbl = new JLabel(proj.ARRAY_TYPE.getValue().getProbeLength() + "");
 		probeLengthLbl.setFont(lblFont);
-		hdrPanel.add(probeLengthLbl, "cell 2 0");
-		hdrPanel.add(refLabel, "grow, cell 3 0");
+		hdrPanel.add(probeLengthLbl, "cell 2 1");
+		hdrPanel.add(refLabel, "grow, cell 3 1");
 		nextBaseLbl = new JLabel();
 		nextBaseLbl.setFont(lblFont);
-		hdrPanel.add(nextBaseLbl, "alignx left, cell 4 0");
+		hdrPanel.add(nextBaseLbl, "alignx left, cell 4 1");
 		String abLblStr = referenceAnnotation == null
 																								 ? ""
 																								 : "(A) "
@@ -678,32 +679,12 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
 																																						 false);
 		abLbl = new JLabel(abLblStr);
 		abLbl.setFont(lblFont);
-		hdrPanel.add(abLbl, "alignx center, cell 5 0");
+		hdrPanel.add(abLbl, "alignx center, cell 5 1");
 		probeShiftLbl = new JLabel();
 		probeShiftLbl.setFont(lblFont);
-		hdrPanel.add(probeShiftLbl, "cell 1 1, span 2");
-		hdrPanel.add(probeLbl, "grow, cell 3 1");
+		hdrPanel.add(probeShiftLbl, "cell 1 0, span 2");
+		hdrPanel.add(probeLbl, "grow, cell 3 0");
 		return hdrPanel;
-	}
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					// FIXME this is guaranteed to cause an NPE.
-					// Should convert to a standard constructor that
-					// handles default project creation.
-					BlastFrame frame = new BlastFrame(null, null);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
 	}
 
 }
