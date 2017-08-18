@@ -50,7 +50,7 @@ public class Emmax {
 			System.exit(1);
 		}
 
-		phenoFiles = Files.list(phenoCovDir, phenoNameExtOrFullPath, false);
+		phenoFiles = Files.list(phenoCovDir, phenoNameExtOrFullPath);
 		if (phenoFiles.length == 0) {
 			log.reportError("No pheno file is found at " + phenoCovDir);
 			return;
@@ -131,7 +131,7 @@ public class Emmax {
 		String[] trav;
 		PrintWriter writer;
 
-		fileNames = Files.list(resultDir, ".log", false);
+		fileNames = Files.list(resultDir, ".log");
 		modelList = new Hashtable<String, String[]>();
 		for (String fileName2 : fileNames) {
 			found = false;

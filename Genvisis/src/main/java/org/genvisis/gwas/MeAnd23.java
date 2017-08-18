@@ -20,7 +20,7 @@ public class MeAnd23 {
 
 	public static void generatePlinkFiles(String directory, String outputRoot, int numThreads,
 																				Logger log) {
-		String[] allFiles = Files.toFullPaths(Files.list(directory, ".txt", false), directory);
+		String[] allFiles = Files.toFullPaths(Files.list(directory, ".txt"), directory);
 		log.reportTimeInfo("Found " + allFiles.length + " potential 23andMe files with extension .txt");
 
 		PlinkGenerator[] plinkGenerators = new PlinkGenerator[allFiles.length];
@@ -67,7 +67,7 @@ public class MeAnd23 {
 																							PSF.Plink.getPlinkBedBimFam(mergedRoot), true, true,
 																							false, log);
 		if (!merged) {
-			String[] missnps = Files.list(ext.parseDirectoryOfFile(mergedRoot), ".missnp", false);
+			String[] missnps = Files.list(ext.parseDirectoryOfFile(mergedRoot), ".missnp");
 			if (missnps.length > 0) {
 				if (!addedExclude) {
 					command = addExclude(command, problematicMarkers);

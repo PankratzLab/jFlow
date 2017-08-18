@@ -227,17 +227,15 @@ public class ResultsPackager {
 		}
 
 		mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
-																					 "\t", false, false, false);
+																					 "\t", false, false);
 		originalFreqHash = HashVec.loadFileToHashString(dir + originalFrqFile, new int[] {1},
-																										new int[] {2, 3}, false, "\t", false, false,
-																										false); // add 4 if you want global
+																										new int[] {2, 3}, false, "\t", false, false); // add 4 if you want global
 																														// frequency
 
 		if (customFrqFile != null) {
 			System.err.println("Warning - use of custom freq file has not been tested properly; if it works then remove this warning");
 			customFreqHash = HashVec.loadFileToHashString(originalFrqFile, new int[] {1},
-																										new int[] {2, 3, 4}, false, "\t", false, false,
-																										false); // add 4 if you want global
+																										new int[] {2, 3, 4}, false, "\t", false, false); // add 4 if you want global
 																														// frequency instead of custom
 																														// Freq
 		} else {
@@ -350,9 +348,9 @@ public class ResultsPackager {
 			return;
 		}
 		mapHash = HashVec.loadFileToHashString(dir + mapFile, new int[] {1}, new int[] {0, 3}, false,
-																					 "\t", false, false, false);
+																					 "\t", false, false);
 		freqHash = HashVec.loadFileToHashString(dir + freqFile, new int[] {1}, new int[] {2, 3, 4},
-																						false, "\t", false, false, false); // 4 gets global
+																						false, "\t", false, false); // 4 gets global
 																																							 // frequency
 
 		try {
@@ -498,7 +496,7 @@ public class ResultsPackager {
 			return;
 		}
 		mapHash = HashVec.loadFileToHashString(mapFile, new int[] {1}, new int[] {0, 2, 3, 4}, false,
-																					 "\t", false, false, false);
+																					 "\t", false, false);
 
 		// TODO
 		// freqHash = HashVec.loadFileToHashString(dir+freqFile, new int[] {1}, new int[] {2,3,4},
@@ -1128,7 +1126,7 @@ public class ResultsPackager {
 		}
 		columnNamesToLoad = columnsTmp.toArray(new String[0]);
 
-		markerList = HashVec.loadFileToStringMatrix(fullPathMarkerList, false, null, false);
+		markerList = HashVec.loadFileToStringMatrix(fullPathMarkerList, false, null);
 		markers = new String[markerList.length];
 		displayMarkers = new String[markerList.length];
 		for (int i = 0; i < markerList.length; i++) {
@@ -1630,7 +1628,7 @@ public class ResultsPackager {
 				boolean oddsRatio = true;
 				String sortFileName = "/home/pankrat2/shared/Poynter_emim/forestPlotDisplayOrder.txt";
 				for (String[] fileSet : files) {
-					getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null, false),
+					getForestPlotParameterFile(HashVec.loadFileToStringMatrix(fileSet[0], false, null),
 																		 mkrFile, mkrColNm, analyses, analysisNms, null, fileSet[1],
 																		 null);
 					org.genvisis.cnv.plots.ForestPlot fp = new org.genvisis.cnv.plots.ForestPlot(ext.rootOf(fileSet[1],

@@ -104,15 +104,13 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		if (proj == null) {
 			markerLookup = new MarkerLookup(new Hashtable<String, String>());
 		} else {
-			if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false),
-											 proj.JAR_STATUS.getValue())) {
+			if (Files.exists(proj.MARKERLOOKUP_FILENAME.getValue(false, false))) {
 				markerLookup = proj.getMarkerLookup();
 				proj.getLog().report("Marker data is available for this project");
 			} else {
 				markerLookup = new MarkerLookup(new Hashtable<String, String>());
 			}
-			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-											 proj.JAR_STATUS.getValue())) {
+			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 				sampleData = proj.getSampleData(false);
 				proj.getLog().report("Sample lookup is available for this project");
 			}
@@ -649,7 +647,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 				// TODO this check will ALWAYS fail!
 				if (linkKeyIndicies[TwoDPlot.DNA_INDEX_IN_LINKERS] >= 0
 						&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + sample
-														+ Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+														+ Sample.SAMPLE_FILE_EXTENSION)) {
 					sample = linkerDataElem[TwoDPlot.DNA_INDEX_IN_LINKERS];
 				}
 				if (sample == null && sampleData != null) { // if Sample not already identified and if a
@@ -664,7 +662,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 					}
 					if (ids != null
 							&& Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, false) + ids[0]
-															+ Sample.SAMPLE_FILE_EXTENSION, proj.JAR_STATUS.getValue())) {
+															+ Sample.SAMPLE_FILE_EXTENSION)) {
 						sample = ids[0];
 					}
 				}

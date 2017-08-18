@@ -121,9 +121,9 @@ public class LongLDdb implements Serializable {
 		SerializedFiles.writeSerial(this, root + ".llddb");
 	}
 
-	public static LongLDdb load(String root, boolean jar, boolean createIfAbsent) {
-		if (Files.exists(root + ".llddb", jar)) {
-			return (LongLDdb) SerializedFiles.readSerial(root + ".llddb", jar, false);
+	public static LongLDdb load(String root, boolean createIfAbsent) {
+		if (Files.exists(root + ".llddb")) {
+			return (LongLDdb) SerializedFiles.readSerial(root + ".llddb", false);
 		} else if (createIfAbsent) {
 			return new LongLDdb();
 		} else {

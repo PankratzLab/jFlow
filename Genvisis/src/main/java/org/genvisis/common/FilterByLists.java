@@ -88,7 +88,7 @@ public class FilterByLists {
 				hash.put(filename, "1");
 			} else {
 				hash = HashVec.loadFileToHashString(listFile, listCols, new int[] {-7}, false, null, false,
-																						false, false);
+																						false);
 			}
 		}
 

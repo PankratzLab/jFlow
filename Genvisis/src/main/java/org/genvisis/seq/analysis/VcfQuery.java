@@ -531,8 +531,8 @@ public class VcfQuery {
 			if (qParams.getLocation() == Location.REMOTE) {
 				vcfs = Files.parseRemoteFTPFiles(qParams.getDir(), ".vcf.gz", log);
 			} else {
-				vcfs = Files.listFullPaths(qParams.getDir(), ".vcf", false);
-				gzVcfs = Files.listFullPaths(qParams.getDir(), ".vcf.gz", false);
+				vcfs = Files.listFullPaths(qParams.getDir(), ".vcf");
+				gzVcfs = Files.listFullPaths(qParams.getDir(), ".vcf.gz");
 			}
 			String[] all = ArrayUtils.concatAll(vcfs, gzVcfs);
 			if (all.length < 1) {

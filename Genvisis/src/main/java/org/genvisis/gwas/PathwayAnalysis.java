@@ -156,7 +156,7 @@ class KEGGpathway {
 		String[] noChrValues;
 		int[] noChrCounts;
 
-		genesAndSegs = HashVec.loadFileToStringMatrix(geneLocFile, true, new int[] {0, 1}, false);
+		genesAndSegs = HashVec.loadFileToStringMatrix(geneLocFile, true, new int[] {0, 1});
 		genes = new Hashtable<String, Vector<String>>();
 		maxChr = -1;
 		for (String[] genesAndSeg : genesAndSegs) {
@@ -339,7 +339,7 @@ public class PathwayAnalysis {
 		root = ext.rootOf(pheno, false);
 		exten = pheno.substring(pheno.lastIndexOf("."));
 		if (new File(root + ".markerNames").exists()) {
-			markerNames = SerialStringArray.load(root + ".markerNames", false).getArray();
+			markerNames = SerialStringArray.load(root + ".markerNames").getArray();
 		} else {
 			markerNames = HashVec.loadFileToStringArray("plink.bim", false, new int[] {1}, false);
 			new SerialStringArray(markerNames).serialize(root + ".markerNames");
@@ -450,7 +450,7 @@ public class PathwayAnalysis {
 		int count;
 
 		quant = ArrayUtils.determineType(pheno, 2, true) == 1;
-		markerNames = SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames", false)
+		markerNames = SerialStringArray.load(ext.rootOf(pheno, false) + ".markerNames")
 																	 .getArray();
 
 		count = 0;
@@ -507,8 +507,7 @@ public class PathwayAnalysis {
 			return "error";
 		}
 		if (ArrayUtils.equals(markerNames,
-													SerialStringArray.load(repDir + ext.rootOf(pheno, false) + ".markerNames",
-																								 false)
+													SerialStringArray.load(repDir + ext.rootOf(pheno, false) + ".markerNames")
 																					 .getArray(),
 													false)) {
 			System.out.println("Marker order matches with replicates");
@@ -530,7 +529,7 @@ public class PathwayAnalysis {
 		if (!new File(root + ".results").exists()) {
 			compress(results, markerNames, false);
 		}
-		pvals = SerialFloatArray.load(root + ".results", false).getArray();
+		pvals = SerialFloatArray.load(root + ".results").getArray();
 		score = calculateScore(pvals, included, p_thresh, nrss_thresh);
 		// System.out.println("score = "+score);
 
@@ -548,7 +547,7 @@ public class PathwayAnalysis {
 				}
 			}
 			if (new File(filename).exists()) {
-				pvals = SerialFloatArray.load(filename, false).getArray();
+				pvals = SerialFloatArray.load(filename).getArray();
 				travScore = calculateScore(pvals, included, p_thresh, nrss_thresh);
 				if (travScore >= score) {
 					hits++;

@@ -57,7 +57,7 @@ public class CorrelTypePcs {
 
 				for (int pcFile1Index = 0; pcFile1Index < fullPathPcFile.length; pcFile1Index++) {
 					String getItDir = ext.rootOf(fullPathPcFile[pcFile1Index], false) + SUB_DIR;
-					String[] gzippers = Files.list(getItDir, ".gz", false);
+					String[] gzippers = Files.list(getItDir, ".gz");
 
 					for (String gzipper : gzippers) {
 						ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
@@ -193,7 +193,7 @@ public class CorrelTypePcs {
 	public static void main(String[] args) {
 
 		ArrayList<String> pcFilesAll = new ArrayList<String>();
-		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties", false);
+		Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties");
 		pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/aric_exomeALL_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
 		pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeALL_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
 		ArrayList<String> pcFilesW = new ArrayList<String>();

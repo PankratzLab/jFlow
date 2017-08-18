@@ -671,7 +671,7 @@ public class SexChecks {
 		final String pedFile = proj.PEDIGREE_FILENAME.getValue();
 		if (Files.exists(pedFile)) {
 			log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
-			pedigreeMap = HashVec.loadFileToHashString(pedFile, 6, new int[] {4}, "\t", false, false);
+			pedigreeMap = HashVec.loadFileToHashString(pedFile, 6, new int[] {4}, "\t", false);
 		}
 
 		try {
@@ -1138,7 +1138,7 @@ public class SexChecks {
 		// par = true;
 		// filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 
 			if (check) {
 				sexCheck(proj, !skipSampleData, useMarkers);

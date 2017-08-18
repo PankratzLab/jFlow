@@ -110,7 +110,7 @@ public class TransposeData {
 		allMarkerNamesInProj = proj.getMarkerNames();
 		fingerPrint = MarkerSet.fingerprint(allSampleNamesInProj);
 		if (!Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0]
-											+ Sample.SAMPLE_FILE_EXTENSION, false)) {
+											+ Sample.SAMPLE_FILE_EXTENSION)) {
 			log.reportError("Could not locate file: " + proj.SAMPLE_DIRECTORY.getValue(true, true)
 											+ allSampleNamesInProj[0] + Sample.SAMPLE_FILE_EXTENSION
 											+ "; aborting transposeData");
@@ -118,7 +118,7 @@ public class TransposeData {
 		}
 		nullStatus = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
 																															+ allSampleNamesInProj[0]
-																															+ Sample.SAMPLE_FILE_EXTENSION, false);
+																															+ Sample.SAMPLE_FILE_EXTENSION);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 		numBytes_Mark = allSampleNamesInProj.length * numBytesPerSampleMarker;
 		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (allSampleNamesInProj.length
@@ -594,7 +594,7 @@ public class TransposeData {
 		nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false, true)
 																									 + proj.getMarkerLookup()
 																												 .getFirstMarkerDataRafFilename(),
-																									 false, false);
+																									 false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
 		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (listOfAllSamplesInProj.length
 																																			 * (long) listOfAllMarkersInProj.length
@@ -1015,8 +1015,7 @@ public class TransposeData {
 	}
 
 
-	public static byte getNullstatusFromRandomAccessFile(String filename, boolean isSampRafOrMdRaf,
-																											 boolean jar) {
+	public static byte getNullstatusFromRandomAccessFile(String filename, boolean isSampRafOrMdRaf) {
 		byte nullStatusOfTheFile = Byte.MIN_VALUE;
 		RandomAccessFile rafFile;
 
@@ -1476,7 +1475,7 @@ public class TransposeData {
 			System.exit(1);
 		}
 
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 
 		// transpose = true;
 		// lookup = true;

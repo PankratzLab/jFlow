@@ -341,7 +341,7 @@ public class IntensityCorrectionQC {
 	// }
 
 	public static void dumpToText(Project proj, String dir) {
-		String[] batches = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".icc", false);
+		String[] batches = Files.list(proj.PROJECT_DIRECTORY.getValue() + dir, ".icc");
 		ICCMarkerResultsBatch[] icMarkerResultsBatchs = new ICCMarkerResultsBatch[batches.length];
 		String[] classDefs = null;
 		int[] pcsTested = null;
@@ -796,7 +796,7 @@ public class IntensityCorrectionQC {
 			System.out.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, null, false);
+		Project proj = new Project(filename, null);
 		test2(proj, dataFile, svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR, numThreads, jumpPC);
 	}
 }

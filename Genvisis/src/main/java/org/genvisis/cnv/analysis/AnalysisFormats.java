@@ -89,7 +89,6 @@ public class AnalysisFormats implements Runnable {
 																					final HashSet<String> markersToWrite, String subDir,
 																					int threadCount) {
 		final String[] markerNames = proj.getMarkerNames();
-		final boolean jar;
 		final boolean gzip;
 		final String dir;
 		final String sampleDir;
@@ -100,7 +99,6 @@ public class AnalysisFormats implements Runnable {
 		dir = proj.PENNCNV_DATA_DIRECTORY.getValue(false, false) + (subDir == null ? "" : subDir);
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 		new File(dir).mkdirs();
-		jar = proj.JAR_STATUS.getValue();
 		// gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 
@@ -145,10 +143,10 @@ public class AnalysisFormats implements Runnable {
 						if (!Files.exists(exportFileName)) {
 							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of "
 												 + samples.length + "\t" + sampleName);
-							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION)) {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName
 																													 + Sample.SAMPLE_FILE_EXTENSION, false,
-																													 false, true, true, true, jar);
+																													 false, true, true, true);
 							} else {
 								log.reportError("Error - the " + sampleName + Sample.SAMPLE_FILE_EXTENSION
 																+ " is not found.");
@@ -218,7 +216,6 @@ public class AnalysisFormats implements Runnable {
 		final SampleData sampleData;
 		MarkerSetInfo ms;
 		byte[] markerChrs;
-		final boolean jar;
 		final boolean gzip;
 		final boolean[] centroidsMarkersList;
 		final boolean[] includeMarkersList;
@@ -234,7 +231,7 @@ public class AnalysisFormats implements Runnable {
 		if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_ORIG
 				|| chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
 			if (Files.exists(centFile)) {
-				tempCentroids = Centroids.load(centFile, proj.JAR_STATUS.getValue());
+				tempCentroids = Centroids.load(centFile);
 			} else if (chr11Strategy == CENTROID_STRATEGY.USE_CENT_IF_EXISTS_OTHERWISE_COMPUTE) {
 				computeCentroids = true;
 			}
@@ -295,8 +292,8 @@ public class AnalysisFormats implements Runnable {
 		final int[] markerIndicesToUse = ArrayUtils.booleanArrayToIndices(includeMarkersList);
 
 		if (Files.exists(centFilePathM) && Files.exists(centFilePathF)) {
-			centroids = new Centroids[] {Centroids.load(centFilePathM, proj.JAR_STATUS.getValue()),
-																	 Centroids.load(centFilePathM, proj.JAR_STATUS.getValue())};
+			centroids = new Centroids[] {Centroids.load(centFilePathM),
+																	 Centroids.load(centFilePathM)};
 		} else {
 			centroids = Centroids.computeSexSpecificCentroids(proj,
 																												new String[] {malePFBFile, femalePFBFile},
@@ -311,7 +308,6 @@ public class AnalysisFormats implements Runnable {
 		log.report("Exporting sex-specific sample data");
 
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
-		jar = proj.JAR_STATUS.getValue();
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 
 		if (!useExcluded) {
@@ -382,10 +378,10 @@ public class AnalysisFormats implements Runnable {
 						if (!Files.exists(exportFileName)) {
 							log.report(ext.getTime() + "\tExporting " + (sampleIndex + 1) + " of "
 												 + allSamples.length + ".");
-							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+							if (Files.exists(sampleDir + sampleName + Sample.SAMPLE_FILE_EXTENSION)) {
 								mySample = Sample.loadFromRandomAccessFile(sampleDir + sampleName
 																													 + Sample.SAMPLE_FILE_EXTENSION, false,
-																													 true, false, false, true, jar);
+																													 true, false, false, true);
 							} else {
 								log.reportError("Error - the " + sampleName + Sample.SAMPLE_FILE_EXTENSION
 																+ " is not found.");
@@ -481,7 +477,7 @@ public class AnalysisFormats implements Runnable {
 	public static String[] pennCNVSexHackSingleThreaded(Project proj, String gcModelFile) {
 		// exports data for chr23-chr26 and recodes them as chr1-chr4 in a new subdirectory
 		// ~/penndata/sexSpecific/
-		boolean jar, gzip, writeNewPFBs, writeCentroids, writeGCFile;
+		boolean gzip, writeNewPFBs, writeCentroids, writeGCFile;
 		boolean[] inclSampAll, inclSampMales, inclSampFemales;
 		int[] sampleSex;
 		byte[] markerChrs, genM, genF, genotypes;
@@ -730,7 +726,6 @@ public class AnalysisFormats implements Runnable {
 		log.report("Exporting sex-specific sample data");
 
 		sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
-		jar = proj.JAR_STATUS.getValue();
 		// gzip = proj.getBoolean(proj.PENNCNV_GZIP_YESNO);
 		gzip = proj.PENNCNV_GZIP_YESNO.getValue();
 
@@ -745,10 +740,10 @@ public class AnalysisFormats implements Runnable {
 			String exportFileName = (compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : "");
 			if (!Files.exists(exportFileName)) {
 				log.report(ext.getTime() + "\tTransforming " + (i + 1) + " of " + samples.length);
-				if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION, jar)) {
+				if (Files.exists(sampleDir + samples[i] + Sample.SAMPLE_FILE_EXTENSION)) {
 					samp = Sample.loadFromRandomAccessFile(sampleDir + samples[i]
 																								 + Sample.SAMPLE_FILE_EXTENSION, false, true, false,
-																								 false, true, jar);
+																								 false, true);
 				} else {
 					log.reportError("Error - the " + samples[i] + Sample.SAMPLE_FILE_EXTENSION
 													+ " is not found.");
@@ -1146,7 +1141,7 @@ public class AnalysisFormats implements Runnable {
 		// filterList = "data/drops.dat";
 		// markers = "finalMarkerList.dat";
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			if (gcmodel != null) {
 				String pennData = proj.getProperty(proj.PENNCNV_DATA_DIRECTORY);
 				String sexDir = pennData + "sexSpecific/";

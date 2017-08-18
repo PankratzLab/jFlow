@@ -244,7 +244,7 @@ public class SimpleM {
 	private static void test() {
 		String filename = "C:/bin/simpleM_Ex/snpSample.txt";// should be 200 in block mode,191 in single
 																												// frame mode
-		String[][] testData = HashVec.loadFileToStringMatrix(filename, false, null, false);
+		String[][] testData = HashVec.loadFileToStringMatrix(filename, false, null);
 		double[][] matrix = ArrayUtils.toDoubleArrays(testData, false);
 		String[] titles = new String[matrix.length];
 		for (int i = 0; i < titles.length; i++) {

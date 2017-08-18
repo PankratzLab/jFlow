@@ -173,7 +173,7 @@ public class HashVec {
 																									boolean ignoreFirstLine) {
 		return convertHashNullToHashSet(loadFileToHashString(filename, keyIndices, null, false,
 																												 delimiterWithinHash, ignoreFirstLine,
-																												 false, false));
+																												 false));
 	}
 
 	public static HashSet<String> loadToHashSet(String[] list) {
@@ -215,19 +215,12 @@ public class HashVec {
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
 																						 boolean onlyFirstColumn, boolean onlyIfAbsent) {
 		return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn ? new int[] {0} : null,
-												 onlyIfAbsent, false);
-	}
-
-	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
-																						 boolean onlyFirstColumn, boolean onlyIfAbsent,
-																						 boolean jar) {
-		return loadFileToVec(filename, ignoreFirstLine, onlyFirstColumn ? new int[] {0} : null,
-												 onlyIfAbsent, jar);
+												 onlyIfAbsent);
 	}
 
 	public static String[] loadFileToStringArray(String filename, boolean ignoreFirstLine, int[] cols,
 																							 boolean onlyIfAbsent) {
-		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, false);
+		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent);
 		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
@@ -235,50 +228,41 @@ public class HashVec {
 																							 Collection<String> commentIndicators, int[] cols,
 																							 boolean onlyIfAbsent) {
 		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, commentIndicators, cols,
-																		 onlyIfAbsent, false);
+																		 onlyIfAbsent);
 		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
-	public static String[] loadFileToStringArray(String filename, boolean jar,
-																							 boolean ignoreFirstLine, int[] cols,
-																							 boolean onlyIfAbsent) {
-		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, onlyIfAbsent, jar);
-		return v == null ? null : ArrayUtils.toStringArray(v);
-	}
-
-	public static String[] loadFileToStringArray(String filename, boolean jar,
-																							 boolean ignoreFirstLine, int[] cols,
-																							 boolean trimFirst, boolean onlyIfAbsent,
-																							 String delimiter) {
-		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent, jar,
+	public static String[] loadFileToStringArray(String filename, boolean ignoreFirstLine,
+																							 int[] cols, boolean trimFirst,
+																							 boolean onlyIfAbsent, String delimiter) {
+		Vector<String> v = loadFileToVec(filename, ignoreFirstLine, cols, trimFirst, onlyIfAbsent,
 																		 delimiter);
 		return v == null ? null : ArrayUtils.toStringArray(v);
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols,
-																						 boolean onlyIfAbsent, boolean jar) {
-		return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent, jar,
+																						 boolean onlyIfAbsent) {
+		return loadFileToVec(filename, ignoreFirstLine, cols, true, onlyIfAbsent,
 												 Files.determineDelimiter(filename, new Logger()));
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
 																						 Collection<String> commentIndicators, int[] cols,
-																						 boolean onlyIfAbsent, boolean jar) {
+																						 boolean onlyIfAbsent) {
 		return loadFileToVec(filename, ignoreFirstLine, commentIndicators, cols, true, onlyIfAbsent,
-												 jar,
 												 Files.determineDelimiter(filename, new Logger()));
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine, int[] cols,
-																						 boolean trimFirst, boolean onlyIfAbsent, boolean jar,
+																						 boolean trimFirst, boolean onlyIfAbsent,
 																						 String delimiter) {
 		return loadFileToVec(filename, ignoreFirstLine, Collections.emptyList(), cols, trimFirst,
-												 onlyIfAbsent, jar, delimiter);
+												 onlyIfAbsent, delimiter);
 	}
 
 	public static Vector<String> loadFileToVec(String filename, boolean ignoreFirstLine,
 																						 Collection<String> commentIndicators, int[] cols,
-																						 boolean trimFirst, boolean onlyIfAbsent, boolean jar,
+																						 boolean trimFirst, boolean onlyIfAbsent,
 																						 String delimiter) {
 		BufferedReader reader = null;
 		Vector<String> v = new Vector<String>();
@@ -287,7 +271,7 @@ public class HashVec {
 		int count;
 
 		try {
-			reader = Files.getReader(filename, jar, true, false);
+			reader = Files.getReader(filename, true, false);
 			if (reader == null) {
 				return null; // Should return empty? No - empty could be valid, we need to show something
 										 // invalid, so null or exception
@@ -340,22 +324,21 @@ public class HashVec {
 	}
 
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
-																									int[] cols, boolean jar) {
+																									int[] cols) {
 		return loadFileToStringMatrix(filename, ignoreFirstLine, cols,
-																	Files.determineDelimiter(filename, new Logger()), jar, 1000,
-																	false);
+																	Files.determineDelimiter(filename, new Logger()), 1000, false);
 	}
 
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
-																									int[] cols, String delimiter, boolean jar,
-																									int initialCapacity, boolean allowMissingData) {
+																									int[] cols, String delimiter, int initialCapacity,
+																									boolean allowMissingData) {
 		BufferedReader reader = null;
 		Vector<String[]> v = new Vector<String[]>(initialCapacity);
 		String temp;
 		String[] line, data;
 
 		try {
-			reader = Files.getReader(filename, jar, true, false);
+			reader = Files.getReader(filename, true, false);
 			if (reader == null) {
 				return null;
 			}
@@ -479,24 +462,15 @@ public class HashVec {
 																															 int[] valueIndices,
 																															 String delimiterWithinHash,
 																															 boolean ignoreFirstLine) {
-		return loadFileToHashString(filename, keyIndex, valueIndices, delimiterWithinHash,
-																ignoreFirstLine, false);
-	}
-
-	public static Hashtable<String, String> loadFileToHashString(String filename, int keyIndex,
-																															 int[] valueIndices,
-																															 String delimiterWithinHash,
-																															 boolean ignoreFirstLine,
-																															 boolean jar) {
 		return loadFileToHashString(filename, new int[] {keyIndex}, valueIndices, false,
-																delimiterWithinHash, ignoreFirstLine, jar, false);
+																delimiterWithinHash, ignoreFirstLine, false);
 	}
 
 	public static Hashtable<String, String> loadFileToHashString(String filename, int[] keyIndices,
 																															 int[] valueIndices,
 																															 boolean commaDelimitedFile,
 																															 String delimiterWithinHash,
-																															 boolean ignoreFirstLine, boolean jar,
+																															 boolean ignoreFirstLine,
 																															 boolean allowMissingData) {
 		BufferedReader reader = null;
 		String[] line;
@@ -508,7 +482,7 @@ public class HashVec {
 		}
 
 		try {
-			reader = Files.getReader(filename, jar, true, true);
+			reader = Files.getReader(filename, true, true);
 			if (ignoreFirstLine) {
 				reader.readLine();
 			}

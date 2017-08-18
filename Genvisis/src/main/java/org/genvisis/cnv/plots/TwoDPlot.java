@@ -201,8 +201,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		log = proj.getLog();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-										 proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 			sampleData = proj.getSampleData(false);
 		} else {
 			sampleData = null;
@@ -701,8 +700,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		// Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String,
 		// Integer>(sampleData.getLinkKeyIndex());
 		proj.resetSampleData();
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false),
-										 proj.JAR_STATUS.getValue())) {
+		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 			sampleData = proj.getSampleData(false);
 		}
 		sampleData = proj.getSampleData(false);
@@ -1827,7 +1825,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					Project proj = new Project(projFile, false);
+					Project proj = new Project(projFile);
 					TwoDPlot tdp = createGUI(proj, false, false);
 					tdp.createScreenshots(baseDir, screens);
 					tdp.windowClosing(null);

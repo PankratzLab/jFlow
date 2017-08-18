@@ -351,7 +351,7 @@ public class DBGAPMerge {
 			String line, delim;
 			StringBuilder sb;
 
-			varData = HashVec.loadFileToStringMatrix(varFile, true, new int[] {1, 2}, false); // ident
+			varData = HashVec.loadFileToStringMatrix(varFile, true, new int[] {1, 2}); // ident
 																																												// col, repl
 																																												// col,
 																																												// ignore

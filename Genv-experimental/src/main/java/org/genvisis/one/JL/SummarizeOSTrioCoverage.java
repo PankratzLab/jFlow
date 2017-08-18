@@ -31,7 +31,7 @@ public class SummarizeOSTrioCoverage {
 															 Logger log) throws IllegalStateException {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
 		vpop.report();
-		String[] files = Files.listFullPaths(indir, ".sorted.dedup.realigned.recal.txt", false);
+		String[] files = Files.listFullPaths(indir, ".sorted.dedup.realigned.recal.txt");
 		log.reportTimeInfo("Found " + files.length + " files to summarize");
 		Hashtable<String, String> map = new Hashtable<String, String>();
 		for (String file : files) {

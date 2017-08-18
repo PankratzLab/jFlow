@@ -208,8 +208,7 @@ public class CARDIA2017ResultsProcessor {
 		HashMap<String, SNP> mapMap = new HashMap<>();
 		HashMap<String, SNP> map = new HashMap<>();
 
-		String[][] matr = HashVec.loadFileToStringMatrix(mapFile, true, new int[] {0, 1, 2, 3, 4},
-																										 false);
+		String[][] matr = HashVec.loadFileToStringMatrix(mapFile, true, new int[] {0, 1, 2, 3, 4});
 		for (String[] line : matr) {
 			SNP snp = new SNP();
 			snp.name = isEA ? line[0] : line[2];
@@ -221,7 +220,7 @@ public class CARDIA2017ResultsProcessor {
 			mapMap.put(snp.name, snp);
 		}
 
-		matr = HashVec.loadFileToStringMatrix(infoFile, true, new int[] {0, 1, 2, 3, 4}, false);
+		matr = HashVec.loadFileToStringMatrix(infoFile, true, new int[] {0, 1, 2, 3, 4});
 		for (String[] line : matr) {
 			SNP snp = mapMap.get(line[0]);
 			if (snp == null) {

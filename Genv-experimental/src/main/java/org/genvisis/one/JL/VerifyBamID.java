@@ -97,7 +97,7 @@ public class VerifyBamID {
 	}
 
 	public static void runVerifies(String bamDir, String vcf, int nThreads) {
-		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
+		String[] bams = Files.listFullPaths(bamDir, ".bam");
 
 		// VerifyProducer producer = new VerifyProducer(bams, vcf);
 		// WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, nThreads, 10, new Logger());

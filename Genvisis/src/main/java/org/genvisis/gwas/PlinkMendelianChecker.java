@@ -1073,7 +1073,7 @@ public class PlinkMendelianChecker {
 		}
 		try {
 			if (projFile != null) {
-				(new PlinkMendelianChecker(new Project(projFile, false))).run();
+				(new PlinkMendelianChecker(new Project(projFile))).run();
 			} else if (ped != null) {
 				if (out == null) {
 					out = ext.parseDirectoryOfFile(ped);

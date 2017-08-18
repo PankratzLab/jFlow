@@ -58,7 +58,7 @@ public class VCFConstructor {
 													"Problem loading marker list file {" + markersFile + "}";
 				throw new UnsupportedOperationException(error);
 		}
-		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false, "\t");
+		markers = HashVec.loadFileToStringArray(markersFile, false, new int[] {0}, true, false, "\t");
 		SnpMarkerSet markerSet = new SnpMarkerSet(markers);
 		markerSet.parseSNPlocations(log);
 		locations = markerSet.getChrAndPositionsAsInts();
@@ -76,7 +76,7 @@ public class VCFConstructor {
 		// TODO refactor to use DosageData - adds complexity and requirements (map file, id file, etc)
 //		for FRZ5 data, all info is included in dosage file, so using DosageData is more than what's needed
 //		DosageData dd = new DosageData(dosageFile, null, null, false, log);
-		String[][] matr = HashVec.loadFileToStringMatrix(dosageFile, false, null, false);
+		String[][] matr = HashVec.loadFileToStringMatrix(dosageFile, false, null);
 		ids = ArrayUtils.subArray(Matrix.extractColumn(matr, 1), 1);
 		String[] snps = ArrayUtils.subArray(matr[0], 2);
 		

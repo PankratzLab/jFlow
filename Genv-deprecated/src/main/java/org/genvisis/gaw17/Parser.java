@@ -25,9 +25,9 @@ public class Parser {
 		Hashtable<String, String> snpInfo, sexInfo;
 
 		snpInfo = HashVec.loadFileToHashString(snpFile, new int[] {0}, new int[] {1, 2}, true, "\t",
-																					 true, false, false);
+																					 true, false);
 		sexInfo = HashVec.loadFileToHashString(sexFile, new int[] {0}, new int[] {1}, true, "\t", true,
-																					 false, false);
+																					 false);
 
 		for (int chr = 1; chr <= 22; chr++) {
 			try {

@@ -48,6 +48,6 @@ public class CytoGUI extends JFrame {
 		String logFile = "Chooseme.log";
 		String fileName = "C:/workspace/Genvisis/projects/HirchCyto.properties";
 		Logger log = new Logger(startDir + logFile);
-		new CytoGUI(new Project(fileName, false), startDir, log);
+		new CytoGUI(new Project(fileName), startDir, log);
 	}
 }

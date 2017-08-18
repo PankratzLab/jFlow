@@ -79,7 +79,7 @@ public class AffyProcess {
 			valid = false;
 		} else {
 			String dir = ext.parseDirectoryOfFile(chpFiles[0]);
-			String[] allFiles = Files.list(dir, null, false);
+			String[] allFiles = Files.list(dir, null);
 
 			log.reportTimeInfo("Attempting to find matched " + CN_C5_PATTERN + " files for "
 												 + chpFiles.length + " chp format files in " + dir);

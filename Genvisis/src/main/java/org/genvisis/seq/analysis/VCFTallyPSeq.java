@@ -361,7 +361,7 @@ public class VCFTallyPSeq extends VCFTally implements Serializable {
 			filterNGS.setAltAlleleDepthFilter(new int[] {altAlleleDepth});
 			VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.CASE_CONTROL, log);
 			vpop.report();
-			GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+			GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 
 			DumpMultiLoc.dumpMultiLoc(geneTrackFile, ext.rootOf(vpopFile) + ".multiLoc", log);
 			// GeneData[][] genes = geneTrack.getGenes();

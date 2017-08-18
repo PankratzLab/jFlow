@@ -344,7 +344,7 @@ public class GATK_Genotyper {
 			} else {
 				log.report(ext.getTime() + " Info - finding files with extension " + GATK.GVCF + GATK.GZ
 									 + " in " + rootInputDir);
-				inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF + GATK.GZ, false),
+				inputGVCFs = Files.toFullPaths(Files.list(rootInputDir, GATK.GVCF + GATK.GZ),
 																			 rootInputDir);
 
 			}

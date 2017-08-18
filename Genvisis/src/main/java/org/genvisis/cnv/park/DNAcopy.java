@@ -150,7 +150,7 @@ public class DNAcopy {
 			}
 		} else {
 			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(rootDirectory + included, false, false,
-																														true, true));
+																														true));
 			System.out.println("Using all indivduals listed in '" + included + "' (n=" + inds.length
 												 + ")");
 			for (String ind : inds) {
@@ -245,7 +245,7 @@ public class DNAcopy {
 			}
 			output = "Distribution_for_ALL." + sigfigs + "sigfig" + ".xln";
 		} else {
-			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(included, false, false, true, true));
+			inds = ArrayUtils.toStringArray(HashVec.loadFileToVec(included, false, false, true));
 			System.out.println("Using all dnas listed in '" + included + "' (n=" + inds.length + ")");
 			for (String ind : inds) {
 				if (ext.indexOfStr(ind + ".smooth", outputs) == -1) {

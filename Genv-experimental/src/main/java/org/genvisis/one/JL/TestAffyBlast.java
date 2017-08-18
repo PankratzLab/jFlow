@@ -7,7 +7,7 @@ import org.genvisis.cnv.qc.AffyMarkerBlast;
 public class TestAffyBlast {
 
 	public static void main(String[] args) {
-		Project proj = new Project("/home/pankrat2/lane0212/projects/Aric_gw6.properties", false);
+		Project proj = new Project("/home/pankrat2/lane0212/projects/Aric_gw6.properties");
 		String probeFile = "/home/pankrat2/public/bin/Arrays/affy_gw6/GenomeWideSNP_6.probe_tab";
 		String annotFile = "/home/pankrat2/public/bin/Arrays/affy_gw6/GenomeWideSNP_6.na35.annot.csv";
 		proj.BLAST_ANNOTATION_FILENAME.setValue(proj.DATA_DIRECTORY.getValue() + "STKblastTest.vcf.gz");

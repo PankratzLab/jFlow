@@ -1223,7 +1223,7 @@ public class GcAdjustor {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(null, null, false);
+		Project proj = new Project(null, null);
 		String fullPathToGcModel = "D:/data/gedi_gwas/CompareGC_CORRECTION/custom.gcmodel";
 		String fullPathToFileOfTestSamples = "D:/data/gedi_gwas/CompareGC_CORRECTION/testGCCorrection.txt";
 		test(proj, fullPathToGcModel, fullPathToFileOfTestSamples);

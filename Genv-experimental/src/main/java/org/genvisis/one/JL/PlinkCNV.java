@@ -38,12 +38,11 @@ public class PlinkCNV {
 			log.reportTimeInfo("Merging calls");
 			FilterCalls.mergeCNVs(cnvaFile, merge, FilterCalls.DEFAULT_CLEAN_FACTOR, null);
 		}
-		String[] filters = Files.list(dir, ".crf", false);
+		String[] filters = Files.list(dir, ".crf");
 
 		WorkerHive<PlinkResult> hive = new WorkerHive<PlinkResult>(6, 10, log);
 		GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.valueOf(build), log)
-																									.getGTrack().get(),
-																				 false);
+																									.getGTrack().get());
 		if (Files.exists(dir + "mitoCarta.txt")) {
 			String[] mitos = HashVec.loadFileToStringArray(dir + "mitoCarta.txt", false, new int[] {0},
 																										 true);
@@ -76,7 +75,7 @@ public class PlinkCNV {
 		Files.writeIterable(glist, dir + "geneList-" + build + ".txt");
 
 		for (String filter : filters) {// for each filter crf found
-			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null, false);
+			String[][] phenos = HashVec.loadFileToStringMatrix(dir + "pheno.dat", false, null);
 			final String filtFile = dir + filter;
 			String out = dir + ext.rootOf(filter) + ".cnv";
 
@@ -307,8 +306,8 @@ public class PlinkCNV {
 
 							int[] cols = new int[] {2, 3, 4, 5};
 							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
-																																PSF.Regex.GREEDY_WHITESPACE, false,
-																																1000, true);
+																																PSF.Regex.GREEDY_WHITESPACE, 1000,
+																																true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -355,8 +354,8 @@ public class PlinkCNV {
 
 							int[] cols = new int[] {2, 3, 4, 5, 6};
 							String[][] dataS = HashVec.loadFileToStringMatrix(load, true, cols,
-																																PSF.Regex.GREEDY_WHITESPACE, false,
-																																1000, true);
+																																PSF.Regex.GREEDY_WHITESPACE, 1000,
+																																true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -402,8 +401,8 @@ public class PlinkCNV {
 
 							int[] cols = new int[] {2, 3, 4, 5};
 							String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
-																																PSF.Regex.GREEDY_WHITESPACE, false,
-																																1000, true);
+																																PSF.Regex.GREEDY_WHITESPACE, 1000,
+																																true);
 							double[][] data = ArrayUtils.toDoubleArrays(dataS, true);
 							double[] phe = Matrix.extractColumn(data, 0);
 							for (int j = 1; j < cols.length; j++) {
@@ -542,12 +541,12 @@ public class PlinkCNV {
 			if (result.complete) {
 				String out = finalDir + result.key.substring(0, 26) + "_" + index + ".txt";
 				String[][] data = HashVec.loadFileToStringMatrix(result.file, false, null,
-																												 PSF.Regex.GREEDY_WHITESPACE, false,
-																												 1000, true);
+																												 PSF.Regex.GREEDY_WHITESPACE, 1000,
+																												 true);
 				log.reportTimeInfo("Loading paired " + ext.rootOf(result.file, false));
 				String[][] dataCount = HashVec.loadFileToStringMatrix(ext.rootOf(result.file, false), false,
 																															null, PSF.Regex.GREEDY_WHITESPACE,
-																															false, 1000, true);
+																															1000, true);
 				String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
 				HashSet<String> allSigGenesListSpecific = new HashSet<String>();
 

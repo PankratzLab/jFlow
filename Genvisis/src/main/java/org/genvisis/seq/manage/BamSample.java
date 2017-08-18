@@ -34,7 +34,7 @@ public class BamSample {
 		this.proj = proj;
 		this.bamFile = bamFile;
 		// bam file does not exist when processing cleaned sra runs
-		sampleName = Files.exists(bamFile, false) ? BamOps.getSampleName(bamFile) : ext.rootOf(bamFile);
+		sampleName = Files.exists(bamFile) ? BamOps.getSampleName(bamFile) : ext.rootOf(bamFile);
 		this.bamPiles = bamPiles;
 		process();
 	}

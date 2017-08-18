@@ -351,7 +351,7 @@ public class CushingCnvs {
 		ArrayList<LocusSet<PlinkEmpSeg>> plinkResults = new ArrayList<LocusSet<PlinkEmpSeg>>();
 		for (String element : cnvRemoveFilesstart) {
 			if (Files.isDirectory(element)) {
-				String[] tmpsCnvs = Files.list(element, null, ".cnv", true, false, true);
+				String[] tmpsCnvs = Files.list(element, null, ".cnv", true, true);
 				for (String tmpsCnv : tmpsCnvs) {
 					cnvFreqFiles.add(tmpsCnv);
 				}
@@ -789,7 +789,7 @@ public class CushingCnvs {
 		try {
 			Project proj = null;
 			if (fileName != null) {
-				proj = new Project(fileName, false);
+				proj = new Project(fileName);
 			}
 			Logger log = new Logger(ext.rootOf(cnvFiles[0], false) + ".mappability.log");
 			filter(proj, mappabilityFile, cnvFiles, cnvFreqFiles, geneTrackFile, callSubsetBed, log);

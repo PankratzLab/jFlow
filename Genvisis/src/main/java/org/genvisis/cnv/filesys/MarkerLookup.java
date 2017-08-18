@@ -33,8 +33,8 @@ public class MarkerLookup implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static MarkerLookup load(String filename, boolean jar) {
-		return (MarkerLookup) SerializedFiles.readSerial(filename, jar, true);
+	public static MarkerLookup load(String filename) {
+		return (MarkerLookup) SerializedFiles.readSerial(filename, true);
 	}
 
 	public String[] getMarkerList() {

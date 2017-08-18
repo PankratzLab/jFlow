@@ -90,9 +90,8 @@ public class AnotiaCNVs {
 			String gdi = "/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/GDI_percentile.txt";
 			Hashtable<String, String> gdiHash = HashVec.loadFileToHashString(gdi, new int[] {0},
 																																			 new int[] {4}, false, "\t",
-																																			 true, false, true);
-			LocusSet<GeneData> geneSet = GeneTrack.load("/Users/Kitty/workspace.other/Genvisis/Genvisis/resources/Genome/hg19/RefSeq_hg19.gtrack",
-																									false)
+																																			 true, true);
+			LocusSet<GeneData> geneSet = GeneTrack.load("/Users/Kitty/workspace.other/Genvisis/Genvisis/resources/Genome/hg19/RefSeq_hg19.gtrack")
 																						.convertToLocusSet(log);
 			ArrayList<SeqCNVariant> seqCNVariantsFiltered = new ArrayList<>();
 			HashMap<String, HashSet<String>> counts = new HashMap<>();

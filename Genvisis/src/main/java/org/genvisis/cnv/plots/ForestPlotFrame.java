@@ -840,7 +840,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
 			System.exit(1);
 		}
 		try {
-			final Project proj = (filename != null ? new Project(filename, false) : null);
+			final Project proj = (filename != null ? new Project(filename) : null);
 			log = new Logger(logfile);
 
 			// markerList = "list.txt";

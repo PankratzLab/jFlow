@@ -201,7 +201,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		Resource geneTrack = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
 																	.getGTrack();
 		if (geneTrack.isAvailable()) {
-			track = GeneTrack.load(geneTrack.get(), false);
+			track = GeneTrack.load(geneTrack.get());
 		} else {
 			JOptionPane.showMessageDialog(this,
 																		"Gene track is not installed. Gene boundaries will not be displayed.",
@@ -215,12 +215,11 @@ public class CompPlot extends JFrame implements ChrNavigator {
 		Iterator<String> fit = fileList.iterator();
 		while (fit.hasNext()) {
 			String file = fit.next();
-			if (Files.exists(file, false)) {
+			if (Files.exists(file)) {
 				File filename = new File(file);
 				filterFiles.add(filename.getName());
 				// Load the CNVs out of the files
-				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, false,
-																									 proj.getLog());
+				CNVariantHash cnvHash = CNVariantHash.load(file, CNVariantHash.CONSTRUCT_ALL, proj.getLog());
 				hashes.add(cnvHash);
 			} else {
 				JOptionPane.showMessageDialog(null, "Error - File " + file

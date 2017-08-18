@@ -59,7 +59,7 @@ public class GEDI_Analyses {
 			writer.println("DNA\tPlate#\tRow\tPlateLabel\tWell");
 			for (int i = 0; i < 120; i++) {
 				filename = ext.insertNumbers(pattern, i);
-				if (Files.exists(filename, false)) {
+				if (Files.exists(filename)) {
 					try {
 						reader = new BufferedReader(new FileReader(filename));
 						do {

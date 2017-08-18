@@ -176,7 +176,7 @@ public class SeattleSeq {
 		int linesSkipped;
 
 		hashFreq = HashVec.loadFileToHashString(freqFilename, new int[] {0}, new int[] {3}, false, "",
-																						true, false, false);
+																						true, false);
 
 		try {
 			reader = Files.getAppropriateReader(filename);
@@ -277,7 +277,7 @@ public class SeattleSeq {
 			log.reportError("Error - SeattleSeq annotation directory directory not found: " + directory);
 			log.reportError("        returning an empty hashtable");
 		} else {
-			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
+			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false);
 			log.report("Found " + files.length + " file(s) with a .SeattleSeq extension to include");
 			for (String file : files) {
 				try {
@@ -344,7 +344,7 @@ public class SeattleSeq {
 			log.reportError("Error - SeattleSeq annotation directory directory not found: " + directory);
 			log.reportError("        returning an empty hashtable");
 		} else {
-			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false, false);
+			files = Files.list(directory, "SeattleSeqAnnotation", ".txt.gz", false);
 			log.report(ext.getTime() + "\tFound " + files.length
 								 + " file(s) with a .SeattleSeq extension to include");
 			for (int f = 0; f < files.length; f++) {

@@ -55,7 +55,7 @@ public class VariantSorter {
 		int orientation;
 
 		favGenes = favoriteGenes.split(",");
-		files = Collapsed.list(dir, suffix, false);
+		files = Collapsed.list(dir, suffix);
 		System.out.println("Found " + files.length + " files to parse with the suffix: " + suffix);
 
 		System.out.println("Loading aliases...");
@@ -146,7 +146,7 @@ public class VariantSorter {
 		Collapsed.writeList(HashVec.getKeys(variants), dir + "siftInput.txt");
 
 		siftInfo = new Hashtable<String, String>();
-		if (Collapsed.exists(dir + "siftOutput.txt", false)) {
+		if (Collapsed.exists(dir + "siftOutput.txt")) {
 			try {
 				reader = new BufferedReader(new FileReader(dir + "siftOutput.txt"));
 				indices = Collapsed.indexFactors(SIFT_REQS, reader.readLine().trim().split("\\t"), true,

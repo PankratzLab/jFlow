@@ -235,7 +235,6 @@ public class Launch extends JFrame implements ActionListener {
 	}
 
 	private transient Project proj;
-	private final boolean jar;
 	private JComboBox projectsBox;
 	private transient List<String> projects;
 	private JTextArea output;
@@ -252,12 +251,10 @@ public class Launch extends JFrame implements ActionListener {
 	 * Constructs a "Launch" object, which contains the Genvisis app state.
 	 *
 	 * @param currentManifest Manifest for this execution
-	 * @param jar Whether or not this was launched from a .jar
 	 */
-	public Launch(LauncherManifest currentManifest, boolean jar) {
+	public Launch(LauncherManifest currentManifest) {
 		// Print the release version info
 		super("Genvisis " + VersionHelper.lastRelease(currentManifest.getVersion()).getNormalVersion());
-		this.jar = jar;
 		timestampOfPropertiesFile = -1;
 		timestampOfSampleDataFile = -1;
 		threadsRunning = new Vector<Thread>();
@@ -308,12 +305,12 @@ public class Launch extends JFrame implements ActionListener {
 	 */
 	public Project loadProject() {
 		proj = new Project(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
-											 + projects.get(indexOfCurrentProj), jar);
+											 + projects.get(indexOfCurrentProj));
 		proj.setGuiState(true);
 		timestampOfPropertiesFile = new Date().getTime();
 		timestampOfSampleDataFile = new Date().getTime();
 		// Warn if no project directory
-		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue(), proj.JAR_STATUS.getValue())) {
+		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue())) {
 			JOptionPane.showMessageDialog(null,
 																		"Error - the directory ('"
 																					+ proj.PROJECT_DIRECTORY.getValue()
@@ -499,7 +496,7 @@ public class Launch extends JFrame implements ActionListener {
 			// It's OK if there is no manifest
 		}
 
-		launchUI = new Launch(manifest, false);
+		launchUI = new Launch(manifest);
 		// FIXME switch to dedicated shutdown method that can notify anything that needs to respond to
 		// shutdown requests
 		launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

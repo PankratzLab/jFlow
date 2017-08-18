@@ -149,7 +149,7 @@ public class Conditional {
 				v.add(line[i]);
 			}
 			hash = HashVec.loadFileToHashString(baseDir + originalCovariatesFile, new int[] {0, 1},
-																					indices, false, "\t", false, false, false);
+																					indices, false, "\t", false, false);
 			try {
 				reader = new BufferedReader(new FileReader(dir + "counts.xln"));
 				writer = Files.openAppropriateWriter(dir + newCovariatesFile);
@@ -490,7 +490,7 @@ public class Conditional {
 			annotation = HashVec.loadFileToHashString(annotationFile, new int[] {0},
 																								ArrayUtils.subArray(ArrayUtils.arrayOfIndices(annotationHeader.length),
 																																		1),
-																								false, "\t", true, false, false);
+																								false, "\t", true, false);
 			annotationHeader = ArrayUtils.subArray(annotationHeader, 1);
 		} else if (annotationFile != null) {
 			log.reportError("Error - annotation file '" + annotationFile
@@ -602,7 +602,7 @@ public class Conditional {
 						}
 						if (run || iterate) {
 							if (new File(dirs[k] + doseFile + ".ser").exists()) {
-								dosageData = DosageData.load(dirs[k] + doseFile + ".ser", false);
+								dosageData = DosageData.load(dirs[k] + doseFile + ".ser");
 							} else {
 								dosageData = new DosageData(dirs[k] + doseFile, dirs[k] + "list.txt",
 																						dirs[k] + infoFile, true, log);
@@ -755,12 +755,10 @@ public class Conditional {
 				if (iterate) {
 					if (dirs.length > 1) {
 						filename = ext.rootOf(outfile, false) + ".InvVar1.out";
-						pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4},
-																									 false);
+						pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4});
 					} else {
 						filename = dirs[0] + ext.rootOf(outfile, false) + ".se.metal";
-						pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7},
-																									 false);
+						pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7});
 					}
 					countSig = 0;
 					minP = 1;
@@ -951,7 +949,7 @@ public class Conditional {
 		boolean reportMinimums = false;
 
 		log = new Logger(ext.rootOf(fileWithModels, false) + ".log");
-		models = HashVec.loadFileToStringMatrix(fileWithModels, true, new int[] {0, 1, 2, 3}, false);
+		models = HashVec.loadFileToStringMatrix(fileWithModels, true, new int[] {0, 1, 2, 3});
 		try {
 			w2 = Files.openAppropriateWriter(ext.rootOf(fileWithModels, false) + "_runs.xln");
 			w2.println("Region\tNumMarkers\tMarker\tbeta\tpval\tMarker\tmeta-beta\tmeta-pval");
@@ -971,12 +969,10 @@ public class Conditional {
 									 + 1;
 				if (dirs.length > 1) {
 					filename = filename + ".InvVar1.out";
-					pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4},
-																								 false);
+					pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 3, 4});
 				} else {
 					filename = dirs[0] + filename + ".se.metal";
-					pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7},
-																								 false);
+					pvals = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 5, 1, 2, 6, 7});
 				}
 				minP = 1;
 				minIndex = -1;
@@ -1037,7 +1033,7 @@ public class Conditional {
 
 				pvals = HashVec.loadFileToStringMatrix(ext.rootOf(filename, true) + "_"
 																							 + ext.rootOf(metaFile, true) + ".InvVar1.out", true,
-																							 new int[] {0, 5, 1, 2, 3, 4}, false);
+																							 new int[] {0, 5, 1, 2, 3, 4});
 				minP = 1;
 				minIndex = -1;
 				index = -1;
@@ -1075,7 +1071,7 @@ public class Conditional {
 		String[] markerNames, addlMarkers;
 		String markers;
 
-		if (!Files.exists(pheno, false)) {
+		if (!Files.exists(pheno)) {
 			System.err.println("Error - pheno file '" + pheno + "' does not exist");
 			return;
 		}
@@ -1091,7 +1087,7 @@ public class Conditional {
 		try {
 			writer = Files.openAppropriateWriter("runAllRegions");
 			for (int i = 0; i < markerNames.length; i++) {
-				if (Files.exists(markerNames[i], false)) {
+				if (Files.exists(markerNames[i])) {
 					writer.println("echo \"" + (i + 1) + " of " + markerNames.length + ": " + markerNames[i]
 												 + "\"");
 					writer.println("cp list.txt " + markerNames[i] + "/");
@@ -1166,7 +1162,7 @@ public class Conditional {
 				exp = ch.getCount(markerNames[i]);
 				writer.print(markerNames[i] + "\t" + exp + "\t");
 				filename = markerNames[i] + "/" + markers[i] + "_add.out.txt";
-				if (Files.exists(filename, false)) {
+				if (Files.exists(filename)) {
 					obs = Files.countLines(filename, 1);
 					writer.println(obs);
 					if (exp != obs) {
@@ -1351,7 +1347,7 @@ public class Conditional {
 				markersAndChrs = HashVec.loadFileToStringMatrix(regionListFilename, false,
 																												ArrayUtils.arrayOfIndices(Files.getHeaderOfFile(regionListFilename,
 																																																				log).length),
-																												"\t", false, 100, false);
+																												"\t", 100, false);
 			}
 			System.out.println("minNumValid=" + minNumValids);
 
@@ -1370,7 +1366,7 @@ public class Conditional {
 				for (int i = 0; i < markersAndChrs.length; i++) {
 					System.out.println("Processing " + (i + 1) + " of " + markersAndChrs.length + " "
 														 + markersAndChrs[i][0]);
-					if (!Files.exists("metas/" + markersAndChrs[i][0] + "_SE1.tbl", false)) {
+					if (!Files.exists("metas/" + markersAndChrs[i][0] + "_SE1.tbl")) {
 						try {
 							writer = Files.openAppropriateWriter("metas/" + markersAndChrs[i][0] + ".metal");
 							writer.println("MARKER " + markerName);
@@ -1420,7 +1416,7 @@ public class Conditional {
 
 						CmdLine.run("metal < " + "metas/" + markersAndChrs[i][0] + ".metal", "./", ps);
 					}
-					if (!Files.exists("metas/" + markersAndChrs[i][0] + "_SE1.tbl", false)) {
+					if (!Files.exists("metas/" + markersAndChrs[i][0] + "_SE1.tbl")) {
 						log.reportError("Error - failed to run meta-analysis for " + markersAndChrs[i][0]);
 					} else {
 						indices = ext.indexFactors(new String[] {"MarkerName", "Direction", "P-value",
@@ -1429,7 +1425,7 @@ public class Conditional {
 																														 + "_SE1.tbl", "\t", log),
 																			 false, true);
 						results = HashVec.loadFileToStringMatrix("metas/" + markersAndChrs[i][0] + "_SE1.tbl",
-																										 true, indices, false);
+																										 true, indices);
 
 						minValue = 1;
 						minMarker = null;
@@ -1474,11 +1470,11 @@ public class Conditional {
 									filename = ext.replaceAllWith(filename, "[%" + (k + 1) + "]",
 																								markersAndChrs[i][k]);
 								}
-								if (Files.exists(filename, false)) {
+								if (Files.exists(filename)) {
 									indices = ext.indexFactors(new String[] {"MarkerName", "BETA", "SE", "P"},
 																						 Files.getHeaderOfFile(filename, "\t", log), false,
 																						 true);
-									results = HashVec.loadFileToStringMatrix(filename, true, indices, false);
+									results = HashVec.loadFileToStringMatrix(filename, true, indices);
 									index = ext.indexOfStr(minMarker, Matrix.extractColumn(results, 0));
 									if (index == -1) {
 										System.err.println("Error - couldn't find '" + minMarker + "' in "

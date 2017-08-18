@@ -151,8 +151,7 @@ public class CNVFocus {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/cushings_corrected.properties",
-															 false);
+		Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/cushings_corrected.properties");
 		proj.verifyAndGenerateOutliers(true);
 		Segment cables1Loc = new Segment("chr18:20,714,528-20,840,434");
 		Segment alk = new Segment("chr2:28,961,923-31,735,067");

@@ -165,7 +165,7 @@ public class PCAPrep {
 		try {
 			// reader = Files.getReader(proj.getFilename(proj.MARKER_METRICS_FILENAME), false, true,
 			// false);
-			reader = Files.getReader(proj.MARKER_METRICS_FILENAME.getValue(), false, true, false);
+			reader = Files.getReader(proj.MARKER_METRICS_FILENAME.getValue(), true, false);
 			String[] header = reader.readLine().trim().split("\t");
 			int abIndex = ext.indexOfStr(MarkerMetrics.FULL_QC_BASE_HEADER[2], header);
 			if (abIndex == -1) {

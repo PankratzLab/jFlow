@@ -140,7 +140,7 @@ public class MarkerBlastQC {
 				System.err.println(usage);
 				System.exit(1);
 			} else {
-				proj = new Project(filename, false);
+				proj = new Project(filename);
 			}
 			if (proj == null) {
 				System.err.println("Invalid project");

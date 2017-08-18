@@ -1528,7 +1528,7 @@ public class MarkerMetrics {
 		indices = ext.indexFactors(new String[] {"DNA", phenotype}, header, false, true);
 		hash = HashVec.loadFileToHashString(filename, new int[] {indices[0]}, new int[] {indices[1]},
 																				filename.endsWith(".csv"), null, true,
-																				proj.JAR_STATUS.getValue(), false);
+																				false);
 
 		samples = proj.getSamples();
 		deps = new double[samples.length];
@@ -1783,7 +1783,7 @@ public class MarkerMetrics {
 			// pheno = "Class=BAF_Outliers";
 			// countFilters = true;
 
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 
 			if (sexSeparation) {
 				separationOfSexes(proj, markersSubset);

@@ -197,7 +197,7 @@ public class CALiCo {
 			}
 
 		} else {
-			models = Files.list(phenoCovarDir, ".xln", false);
+			models = Files.list(phenoCovarDir, ".xln");
 			idVariable = new int[models.length];
 			for (int i = 0; i < models.length; i++) {
 				idVariable[i] = ext.indexOfStr(Files.getHeaderOfFile(phenoCovarDir + models[i], null)[0],
@@ -802,13 +802,13 @@ public class CALiCo {
 		// determine which samples have complete data for pheotype AND all covariates
 		keysToRemove = new ArrayList<Integer>();
 		hashPheno = HashVec.loadFileToHashString(outputDir + root + "_pheno.dat", new int[] {0, 1},
-																						 new int[] {2}, false, "\t", true, false, false);
+																						 new int[] {2}, false, "\t", true, false);
 		hashCovariates = HashVec.loadFileToHashString(outputDir + root + "_covars.dat",
 																									new int[] {0, 1},
 																									ArrayUtils.subArray(ArrayUtils.arrayOfIndices(args.length
 																																																- 6),
 																																			2),
-																									false, "\t", true, false, false);
+																									false, "\t", true, false);
 		keys = HashVec.getKeys(hashPheno);
 		for (int i = 0; i < keys.length; i++) {
 			if (ext.isMissingValue(hashPheno.get(keys[i]))) {

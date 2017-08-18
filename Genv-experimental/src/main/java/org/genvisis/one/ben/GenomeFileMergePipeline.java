@@ -63,7 +63,7 @@ public class GenomeFileMergePipeline {
 	}
 
 	public void loadIDLookupFile(String file, boolean ignoreFirstLine) {
-		String[][] ids = HashVec.loadFileToStringMatrix(file, ignoreFirstLine, new int[] {0, 1}, false);
+		String[][] ids = HashVec.loadFileToStringMatrix(file, ignoreFirstLine, new int[] {0, 1});
 		for (int i = 0; i < ids.length; i++) {
 			if (idMap.containsKey(ids[i][0])) {
 				log.report("Warning - duplicate FID found on line " + i + ": " + ids[i][0]);
@@ -81,11 +81,11 @@ public class GenomeFileMergePipeline {
 	}
 
 	public void addProject(String propertiesFile) {
-		Project proj = new Project(propertiesFile, false);
+		Project proj = new Project(propertiesFile);
 		String plinkDir = proj.PROJECT_DIRECTORY.getValue() + "plink/";
 		String genDir = plinkDir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR;
 		String genFile = genDir = "plink.genome";
-		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
+		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF);
 		boolean plink = false;
 		boolean qc = false;
 		String msg;
@@ -196,7 +196,7 @@ public class GenomeFileMergePipeline {
 											+ "\" not found! Data set will be dropped: " + name);
 			return;
 		}
-		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF, false);
+		String[] rel = Files.list(genDir, SEARCHFOR_RELATEDS_SUFF);
 		if (rel == null || rel.length == 0 || "".equals(rel[0]) || !Files.exists(genDir + rel[0])) {
 			log.reportError("Error - genome relateds file matching filename pattern \"*"
 											+ SEARCHFOR_RELATEDS_SUFF + "\" not found in directory " + genomeDir
@@ -304,7 +304,7 @@ public class GenomeFileMergePipeline {
 																		Files.getHeaderOfFile(files.get(p).relatedsFile, log), false,
 																		log, true, false);
 			String[][] relatedsData = HashVec.loadFileToStringMatrix(files.get(p).relatedsFile, true,
-																															 cols, false);
+																															 cols);
 
 			for (String[] parts : relatedsData) {
 				fid1 = parts[0];

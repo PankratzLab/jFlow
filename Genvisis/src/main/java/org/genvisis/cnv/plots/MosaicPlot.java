@@ -115,7 +115,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 
 		String mosaicFile = proj.MOSAIC_RESULTS_FILENAME.getValue();
 
-		if (!Files.exists(mosaicFile, proj.JAR_STATUS.getValue())) {
+		if (!Files.exists(mosaicFile)) {
 			JOptionPane.showMessageDialog(null, "Could not find file: " + mosaicFile, "Error",
 																		JOptionPane.ERROR_MESSAGE);
 			return;
@@ -130,7 +130,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		samples = new Vector<String[]>();
 		datapoints = new Vector<double[]>();
 		try {
-			reader = Files.getReader(mosaicFile, proj.JAR_STATUS.getValue(), true, true);
+			reader = Files.getReader(mosaicFile, true, true);
 			if (!ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, false)) {
 				proj.message("Different Mosaicism header than expected (see log); this could blow up");
 			}
@@ -178,7 +178,7 @@ public class MosaicPlot extends JFrame implements ActionListener {
 		}
 
 		try {
-			loadMosaicismResults(new Project(filename, false));
+			loadMosaicismResults(new Project(filename));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

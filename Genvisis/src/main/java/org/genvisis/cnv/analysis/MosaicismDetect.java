@@ -655,7 +655,7 @@ public class MosaicismDetect {
 		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
 		c.parseWithExit(args);
 
-		Project proj = new Project(c.get(CLI.ARG_PROJ), false);
+		Project proj = new Project(c.get(CLI.ARG_PROJ));
 
 		callMosaicRegions(proj, c.get(CLI.ARG_OUTFILE), c.getI(CLI.ARG_THREADS));
 

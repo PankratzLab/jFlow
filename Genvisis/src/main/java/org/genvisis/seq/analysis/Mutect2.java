@@ -322,8 +322,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 			log.reportTimeInfo("Will not merge results as strict tumor normal comparison");
 		}
 		String[][] tumorNormalMatchedBams = HashVec.loadFileToStringMatrix(fileOftumorNormalMatchedBams,
-																																			 false, new int[] {0, 1},
-																																			 false);
+																																			 false, new int[] {0, 1});
 		Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads,
 																	log);
 		WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,

@@ -153,7 +153,7 @@ public class CALiCoResultsPackager {
 	public static ModelSNP[] loadModels(ModelData md) throws IOException {
 		ArrayList<ModelSNP> keys = new ArrayList<ModelSNP>();
 		String[][] keyLines = HashVec.loadFileToStringMatrix(runDir + "conditionals.txt", false,
-																												 new int[] {0, 1}, false);
+																												 new int[] {0, 1});
 		for (String[] keyLine : keyLines) {
 			ModelSNP m = new ModelSNP();
 			m.modelSNP = keyLine[1];

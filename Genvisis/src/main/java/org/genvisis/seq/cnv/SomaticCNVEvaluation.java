@@ -132,10 +132,10 @@ public class SomaticCNVEvaluation {
 				log.reportException(e);
 			}
 		}
-		String[][] results = HashVec.loadFileToStringMatrix(outFile, false, null, false);
+		String[][] results = HashVec.loadFileToStringMatrix(outFile, false, null);
 		String geneOutFile = ext.addToRoot(outFile, ".genes");
 		try {
-			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true), false);
+			GeneTrack geneTrack = GeneTrack.load(proj.getGeneTrackFilename(true));
 			PrintWriter writer = Files.openAppropriateWriter(geneOutFile);
 			writer.println(ArrayUtils.toStr(results[0]) + "\tGENE");
 			for (int i = 1; i < results.length; i++) {
@@ -348,8 +348,7 @@ public class SomaticCNVEvaluation {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties",
-															 false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/CushingsPCCorrected.properties");
 		String[] cnvFiles = proj.CNV_FILENAMES.getValue();
 		String vpopFile = proj.PROJECT_DIRECTORY.getValue() + "TN.vpop";
 		int numthreads = 4;

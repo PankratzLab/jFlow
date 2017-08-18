@@ -14,12 +14,12 @@ public class processMetal {
 		String[] conv = new String[] {"rsID", "alt", "ref", "beta", "p"};
 		String[] required = new String[] {"MarkerName", "Allele1", "Allele2", "Effect", "P.value"};
 		String dir = "/Volumes/Beta/data/wbcGwasMetal/oldWbcMeta/";
-		String[] metals = Files.listFullPaths(dir, ".metal", false);
+		String[] metals = Files.listFullPaths(dir, ".metal");
 		Logger log = new Logger();
 		for (String metal : metals) {
 			String[] header = Files.getHeaderOfFile(metal, log);
 			int[] indices = ext.indexFactors(required, header, true, true);
-			String[][] file = HashVec.loadFileToStringMatrix(metal, false, indices, false);
+			String[][] file = HashVec.loadFileToStringMatrix(metal, false, indices);
 			file[0] = conv;
 			Files.writeMatrix(file, ext.rootOf(metal, false) + ".beta", "\t");
 		}

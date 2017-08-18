@@ -114,7 +114,7 @@ public class UKBBParsingPipeline {
 											+ ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
 		if (!Files.exists(propFile)) {
 			Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
-			proj = new Project(propFile, false);
+			proj = new Project(propFile);
 			proj.PROJECT_NAME.setValue(projName);
 			proj.PROJECT_DIRECTORY.setValue(projDir);
 			proj.SOURCE_DIRECTORY.setValue(sourceDir);
@@ -130,13 +130,13 @@ public class UKBBParsingPipeline {
 			proj.saveProperties();
 		} else {
 			log.reportTime("Project properties file already exists; skipping creation.");
-			proj = new Project(propFile, false);
+			proj = new Project(propFile);
 		}
 	}
 
 	protected void createSampleList() {
 		famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3,
-																																				4, 5}, false);
+																																				4, 5});
 		String[] allSamples = Matrix.extractColumn(famData, 1);
 		@SuppressWarnings("deprecation")
 		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
@@ -460,8 +460,7 @@ public class UKBBParsingPipeline {
 		long t1 = System.nanoTime();
 		final String[][] bimData = HashVec.loadFileToStringMatrix(fs.bimFile, false, new int[] {0, 1,
 																																														2, 3,
-																																														4, 5},
-																															false);
+																																														4, 5});
 		log.reportTime("Loaded chr" + fs.chr + " .bim data in " + ext.getTimeElapsedNanos(t1));
 		final int nInd = famData.length;
 

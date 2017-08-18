@@ -15,7 +15,7 @@ public class processChargeBetas {
 
 	public static void main(String[] args) {
 		String betaDir = "C:/data/misc/ChargeBetas/";
-		String[] betaFiles = Files.list(betaDir, "", ".txt", true, false, true);
+		String[] betaFiles = Files.list(betaDir, "", ".txt", true, true);
 		Logger log = new Logger(betaDir + "log.log");
 		for (String betaFile : betaFiles) {
 			String[] top = Files.getFirstNLinesOfFile(betaFile, 2, log);

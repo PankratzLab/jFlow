@@ -677,7 +677,7 @@ public class PlinkData {
 
 		targetMarkers = targetMarkersFilename;
 		if (targetMarkers != null && new File(targetMarkers).exists()) {
-			targets = HashVec.loadFileToStringArray(targetMarkers, false, false, new int[] {0}, false);
+			targets = HashVec.loadFileToStringArray(targetMarkers, false, new int[] {0}, false);
 			indices = new int[targets.length];
 			prob = false;
 			for (int i = 0; i < targets.length; i++) {
@@ -745,9 +745,8 @@ public class PlinkData {
 		if (clusterFiltersFilename != null) {
 			// clusterFiltersFilename =
 			// proj.getProperty(proj.PROJECT_DIRECTORY)+proj.getProperty(proj.DATA_DIRECTORY)+clusterFiltersFilename;
-			if (Files.exists(clusterFiltersFilename, proj.JAR_STATUS.getValue())) {
-				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename,
-																															 proj.JAR_STATUS.getValue());
+			if (Files.exists(clusterFiltersFilename)) {
+				clusterFilterCollection = ClusterFilterCollection.load(clusterFiltersFilename);
 			} else {
 				proj.message("Error - cluster filter collection is not found at '" + clusterFiltersFilename
 										 + "'");
@@ -1247,8 +1246,7 @@ public class PlinkData {
 		if (clusterFilterFileName == null) {
 			clusterFilterCollection = null;
 		} else {
-			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName,
-																														 proj.JAR_STATUS.getValue());
+			clusterFilterCollection = ClusterFilterCollection.load(clusterFilterFileName);
 		}
 
 		MarkerDetailSet markerSet = proj.getMarkerSet();
@@ -2370,7 +2368,7 @@ public class PlinkData {
 			log.report(usage);
 
 		} else if (conversionToRun.equals("-genvisisToPed")) {
-			proj = new Project(projPropertyFileFullPath, false);
+			proj = new Project(projPropertyFileFullPath);
 			log = proj.getLog();
 			log.report(ext.getTime() + "\tConverting Genvisis to PLINK text (.ped) data set.");
 			String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);
@@ -2381,7 +2379,7 @@ public class PlinkData {
 																					proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
 
 		} else if (conversionToRun.equals("-genvisisToBed")) {
-			proj = new Project(projPropertyFileFullPath, false);
+			proj = new Project(projPropertyFileFullPath);
 			log = proj.getLog();
 			log.report(ext.getTime() + "\tConverting from Genvisis to PLINK binary (.bed) data set.");
 			String clusterFile = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue(false, true);

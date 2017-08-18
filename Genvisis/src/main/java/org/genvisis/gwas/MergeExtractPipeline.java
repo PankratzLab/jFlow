@@ -174,8 +174,7 @@ public class MergeExtractPipeline {
 				}
 			}
 		}
-		markers = HashVec.loadFileToStringArray(markersFile, false, false, new int[] {0}, true, false,
-																						"\t");
+		markers = HashVec.loadFileToStringArray(markersFile, false, new int[] {0}, true, false, "\t");
 		SnpMarkerSet markerSet = new SnpMarkerSet(markers, false, log);
 		markerSet.parseSNPlocations(log);
 		markerLocations = markerSet.getChrAndPositionsAsInts();

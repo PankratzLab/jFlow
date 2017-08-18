@@ -117,7 +117,7 @@ public class Launch {
 			if (new File(filename).length() == 0) {
 				temp = ext.rootOf(filename);
 			} else {
-				temp = Files.getReader(filename, false, true, log, true).readLine();
+				temp = Files.getReader(filename, true, log, true).readLine();
 			}
 
 			temp = temp.trim();
@@ -296,7 +296,7 @@ public class Launch {
 			System.exit(1);
 		}
 
-		if (!Files.exists(filename, false, false)) {
+		if (!Files.exists(filename, false)) {
 			if (create) {
 				new File(filename).createNewFile();
 			} else {

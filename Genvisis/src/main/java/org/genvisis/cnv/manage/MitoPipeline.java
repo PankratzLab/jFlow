@@ -191,7 +191,7 @@ public class MitoPipeline {
 			log.report("Project properties file can be found at " + filename);
 			Files.write("PROJECT_NAME=" + projectName, filename);
 		}
-		proj = new Project(filename, null, false, false);
+		proj = new Project(filename, null, false);
 	}
 
 	public void initProjectDir() {
@@ -331,7 +331,7 @@ public class MitoPipeline {
 
 		sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
 		if (Files.exists(sampleDirectory)
-				&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION, false).length > 0
+				&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0
 				&& proj.getSampleList() != null && proj.getSampleList().getSamples().length > 0) {
 			sampleList = proj.getSampleList();
 			log.report("Detected that "
@@ -356,7 +356,7 @@ public class MitoPipeline {
 			} else if (result == 6) {
 				doAbLookup = true;
 			}
-			if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null, false).length == 0)) {
+			if (Files.exists(sampleDirectory) && (Files.list(sampleDirectory, null).length == 0)) {
 				log.reportError("\nMake sure your " + IMPORT_EXTENSION
 												+ " argument is set to the right file extension");
 			}
@@ -455,9 +455,8 @@ public class MitoPipeline {
 					recomputeLRR_PCs = true;
 				}
 				sampsToUseRecompute = ArrayUtils.booleanArray(proj.getSamples().length, false);
-				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, false,
-																																			 new int[] {0}, false, true,
-																																			 "\t"),
+				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] {0},
+																																			 false, true, "\t"),
 																				 proj.getSamples(), true, false);
 
 				// int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] {
@@ -764,8 +763,7 @@ public class MitoPipeline {
 			}
 
 			DNAIndex = getDNAIndex(proj, proj.PROJECT_DIRECTORY.getValue() + residualFile);
-			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + residualFile, false, true,
-															 false);
+			reader = Files.getReader(proj.PROJECT_DIRECTORY.getValue() + residualFile, true, false);
 			writer = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue() + finalReport);
 
 			while (reader.ready()) {
@@ -801,7 +799,7 @@ public class MitoPipeline {
 		String sampleQcFile = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY;
 		try {
 			DNAIndex = getDNAIndex(proj, sampleQcFile);
-			reader = Files.getReader(sampleQcFile, false, true, false);
+			reader = Files.getReader(sampleQcFile, true, false);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");
 				qcLookup.put(line[DNAIndex], ArrayUtils.toStr(ArrayUtils.subArray(line, 1)));
@@ -1167,7 +1165,7 @@ public class MitoPipeline {
 																 dataExtension, idHeader, abLookup, targetMarkers, medianMarkers,
 																 markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
 			} else {
-				proj = new Project(filename, logfile, false);
+				proj = new Project(filename, logfile);
 				proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory,
 																 dataExtension, idHeader, abLookup, targetMarkers, medianMarkers,
 																 markerPositions, sampleLRRSdFilter, sampleCallRateFilter, logfile);
@@ -1176,7 +1174,7 @@ public class MitoPipeline {
 				build = proj.GENOME_BUILD_VERSION.getValue();
 			}
 		} else {
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 		}
 		if (Double.parseDouble(sampleLRRSdFilter) < 0) {
 			switch (proj.ARRAY_TYPE.getValue()) {

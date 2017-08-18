@@ -521,7 +521,7 @@ public class Markers {
 			System.exit(1);
 		}
 
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 
 		try {
 			if (!snpTable.equals("")) {

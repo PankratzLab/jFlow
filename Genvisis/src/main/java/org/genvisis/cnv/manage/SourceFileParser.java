@@ -611,7 +611,7 @@ public class SourceFileParser implements Runnable {
 							 + " files in: " + proj.SOURCE_DIRECTORY.getValue(false, true));
 
 		String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-																proj.SOURCE_FILENAME_EXTENSION.getValue(), false);
+																proj.SOURCE_FILENAME_EXTENSION.getValue());
 
 		int unmatchedFileCount = new File(proj.SOURCE_DIRECTORY.getValue(false,
 																																		 true)).listFiles().length;
@@ -1197,7 +1197,7 @@ public class SourceFileParser implements Runnable {
 
 	public static void deleteAllFilesInDirectory(Project proj, String dir, String ext) {
 		String[] filesToDelete;
-		filesToDelete = Files.list(dir, ext, false);
+		filesToDelete = Files.list(dir, ext);
 		for (String element : filesToDelete) {
 			new File(dir + element).delete();
 		}
@@ -1682,7 +1682,7 @@ public class SourceFileParser implements Runnable {
 															+ (fixes.containsKey(sampleIdent) ? "-->" + fixes.get(sampleIdent)
 																															 : "")
 															+ " again at line " + count);
-							samp = Sample.loadFromRandomAccessFile(sampleFilename, proj.JAR_STATUS.getValue());
+							samp = Sample.loadFromRandomAccessFile(sampleFilename);
 							data = samp.getAllData();
 							genotypes = samp.getAllGenotypes();
 						} else {
@@ -1909,7 +1909,7 @@ public class SourceFileParser implements Runnable {
 		}
 
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			if (map) {
 				SourceParserUtils.mapFilenamesToSamples(proj, mapOutput);
 			} else if (parseAlleleLookupFromFinalReports) {

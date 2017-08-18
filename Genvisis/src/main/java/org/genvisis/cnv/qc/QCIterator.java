@@ -105,7 +105,7 @@ public class QCIterator implements Runnable {
 		Hashtable<String, CNVSampleQC> cnvSampleQCHash = CNVSampleQC.getSampleQCs(proj, SampleQCFile);
 		log.report(ext.getTime() + " Loading cnvQCs from " + proj.PROJECT_DIRECTORY.getValue()
 							 + plinkCnvQCs);
-		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false)
+		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs)
 																			.getCnVariantQCs();
 		log.report(ext.getTime() + " Finished loading cnvQCs from " + proj.PROJECT_DIRECTORY.getValue()
 							 + plinkCnvQCs);
@@ -144,7 +144,7 @@ public class QCIterator implements Runnable {
 
 		log = proj.getLog();
 		if (markerMAFser != null) {
-			markerFreqs = MarkerFreqs.load(proj.PROJECT_DIRECTORY.getValue() + markerMAFser, false);
+			markerFreqs = MarkerFreqs.load(proj.PROJECT_DIRECTORY.getValue() + markerMAFser);
 			mafs = markerFreqs.getMafs();
 		} else {
 			markerFreqs = null;
@@ -757,7 +757,7 @@ public class QCIterator implements Runnable {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			log = proj.getLog();
 			System.out.println("Logging progress to " + log.getFilename());
 			if (convert) {

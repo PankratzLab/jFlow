@@ -34,7 +34,7 @@ public class PhaserNGS {
 	private static void run(String phaserPy, String vcf, String bamDir, String outDir) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "phaser.log");
-		String[] bams = Files.listFullPaths(bamDir, ".bam", false);
+		String[] bams = Files.listFullPaths(bamDir, ".bam");
 		// VCFOps.extractSegments( vcf, "/Volumes/Beta/ref/mica.targets.bed", 10, bamDir,
 		// ext.parseDirectoryOfFile(vcf) + "extracted/", false, true, false, 1,
 		// log);

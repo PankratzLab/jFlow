@@ -25,7 +25,7 @@ public class ImputeChecker {
 	public static void run(String dir, String immunoChip, String aricImpute) {
 		Logger log = new Logger(dir + "log.log");
 		int idIndex = ext.indexOfStr("External Id", Files.getHeaderOfFile(immunoChip, log));
-		String[][] immunoRs = HashVec.loadFileToStringMatrix(immunoChip, false, null, false);
+		String[][] immunoRs = HashVec.loadFileToStringMatrix(immunoChip, false, null);
 		Hashtable<String, Integer> index = new Hashtable<String, Integer>();
 		for (int i = 0; i < immunoRs.length; i++) {
 			index.put(immunoRs[i][idIndex], i);

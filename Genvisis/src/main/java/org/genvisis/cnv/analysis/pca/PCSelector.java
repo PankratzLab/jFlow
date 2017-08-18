@@ -322,7 +322,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		new Project(filename, false);
+		new Project(filename);
 		// select(proj, absStatMin, STAT_TYPE.SPEARMAN_CORREL, SELECTION_TYPE.STAT);
 		try {
 		} catch (Exception e) {

@@ -269,12 +269,12 @@ public class ImputationPipeline {
 
 		public static void runShapeIt(String projPropFile, int[] chrs, String plinkFileDir,
 																	String plinkPrefix, String outDir) {
-			Project proj = new Project(projPropFile, false);
+			Project proj = new Project(projPropFile);
 			new ImputationImpl.ShapeIt(proj, chrs, plinkFileDir, plinkPrefix, outDir).createScripts();
 		}
 
 		public static void runMinimac(String projPropFile, int[] chrs, String hapsDir, String outDir) {
-			Project proj = new Project(projPropFile, false);
+			Project proj = new Project(projPropFile);
 			new ImputationImpl.MiniMac(proj, chrs, hapsDir, outDir).createScripts();
 		}
 
@@ -292,7 +292,7 @@ public class ImputationPipeline {
 
 		private static ImputationPipeline setupPipe(String projPropFile, String refFile,
 																								String plinkSubdir) {
-			Project proj = new Project(projPropFile, false);
+			Project proj = new Project(projPropFile);
 			ImputationPipeline ip = new ImputationPipeline(proj, refFile);
 			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
 			return ip;

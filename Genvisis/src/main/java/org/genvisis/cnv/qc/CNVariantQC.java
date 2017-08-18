@@ -131,7 +131,7 @@ public class CNVariantQC implements Serializable {
 
 	public static CNVariantQC[][][] prepCNVQCsForComparison(Project proj, String plinkCnvQCs,
 																													Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
-		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false)
+		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs)
 																			.getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
@@ -147,7 +147,7 @@ public class CNVariantQC implements Serializable {
 
 	public static void filterCNVQCsByComparison(Project proj, String plinkCnvQCs,
 																							Hashtable<String, Hashtable<String, Integer>> defineCompHash) {
-		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs, false)
+		CNVariantQC[] cnVariantQCs = CNVQC.load(proj.PROJECT_DIRECTORY.getValue() + plinkCnvQCs)
 																			.getCnVariantQCs();
 		String[] inds = getIDList(cnVariantQCs, defineCompHash);
 		if (inds.length < 2) {
@@ -172,8 +172,7 @@ public class CNVariantQC implements Serializable {
 	}
 
 	public static CNVariantQC[] getCNVariantQCFromPlinkFile(Project proj, String plinkCnvs) {
-		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + plinkCnvs,
-																									 false);
+		CNVariant[] fileCNVs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + plinkCnvs);
 		CNVariantQC[] cnVariantQCs = new CNVariantQC[fileCNVs.length];
 		for (int i = 0; i < fileCNVs.length; i++) {
 			cnVariantQCs[i] = new CNVariantQC(fileCNVs[i]);

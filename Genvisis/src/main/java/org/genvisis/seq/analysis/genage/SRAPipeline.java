@@ -163,7 +163,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		String[] sraFiles;
 		if (Files.isDirectory(sraInput)) {
 			log.reportTimeInfo("Gathering sra files from " + sraInput);
-			sraFiles = Files.listFullPaths(sraInput, ".sra", false);
+			sraFiles = Files.listFullPaths(sraInput, ".sra");
 		} else {
 			log.reportTimeInfo("Reading sra files from " + sraInput);
 			sraFiles = HashVec.loadFileToStringArray(sraInput, false, new int[] {0}, true);
@@ -198,7 +198,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 		Project proj = Pipeline.getProjectFor(atType, rootOutDir);
 		String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
-		String[] serFiles = Files.listFullPaths(serDir, ".ser", false);
+		String[] serFiles = Files.listFullPaths(serDir, ".ser");
 		log.reportTimeInfo("Allocating fake bam files associated with " + serFiles.length
 											 + " .ser files in " + serDir);
 

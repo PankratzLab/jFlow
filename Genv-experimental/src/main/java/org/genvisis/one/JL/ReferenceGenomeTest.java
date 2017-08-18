@@ -110,7 +110,7 @@ public class ReferenceGenomeTest {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(args[0], false);
+		Project proj = new Project(args[0]);
 		testRef2(proj);
 	}
 }

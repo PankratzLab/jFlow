@@ -294,7 +294,7 @@ public class MendelErrors {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			detectMendelMarkers(proj);
 		} catch (Exception e) {
 			e.printStackTrace();

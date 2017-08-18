@@ -65,7 +65,7 @@ public class GWAF {
 		new File("batches/").mkdirs();
 		count = startAt;
 		try {
-			if (!Files.exists(dir + "kmat.Rfile", false)) {
+			if (!Files.exists(dir + "kmat.Rfile")) {
 				writer = Files.openAppropriateWriter(dir + "createKmat.R");
 				if (versionOfGWAF == 2) {
 					writer.println("library(kinship2)");
@@ -141,7 +141,7 @@ public class GWAF {
 						}
 					}
 				}
-				if (!Files.exists(dir + "kmat.Rfile", false)) {
+				if (!Files.exists(dir + "kmat.Rfile")) {
 					v.insertElementAt("R --no-save < createKmat.R > createKmat.log", 0);
 				}
 				Files.writeArray(ArrayUtils.toStringArray(v), dir + "master." + pheno);
@@ -338,7 +338,7 @@ public class GWAF {
 		}
 
 		alleleHash = HashVec.loadFileToHashString(dir + infoFile, new int[] {0}, new int[] {1, 2},
-																							false, "\t", true, false, false);
+																							false, "\t", true, false);
 
 		try {
 			reader = Files.getAppropriateReader(dir + resultsFile);

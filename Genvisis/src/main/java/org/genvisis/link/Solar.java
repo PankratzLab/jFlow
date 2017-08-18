@@ -107,7 +107,7 @@ public class Solar {
 
 		// hash = tools.pullTraitFromDB(trait);
 		hash = HashVec.loadFileToHashString(trait, new int[] {0, 1}, new int[] {2}, trait.endsWith(","),
-																				null, false, false, false);
+																				null, false, false);
 
 		reader = new BufferedReader(new FileReader("re_chrom" + ext.chrome(chr) + ".pre"));
 		writer = Files.openAppropriateWriter("solar.ptypes");

@@ -171,8 +171,8 @@ public class FocusedSample {
 	}
 
 	public static void test() {
-		Project proj = new Project(null, false);
-		Project proj2 = new Project(null, false);
+		Project proj = new Project(null);
+		Project proj2 = new Project(null);
 		proj2.setProperty(proj.PROJECT_DIRECTORY, proj.PROJECT_DIRECTORY.getValue() + "subSample/");
 		String[] markers = proj.getTargetMarkers();
 		focusAProject(proj, proj2, markers, null, proj.getMarkerSet().getFingerprint(), 8, true,

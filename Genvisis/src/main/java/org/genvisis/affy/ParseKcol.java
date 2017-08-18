@@ -605,7 +605,7 @@ public class ParseKcol implements Runnable {
 		System.out.println(ext.getTime() + "\tSearching for "
 											 + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
 											 + proj.SOURCE_DIRECTORY.getValue(false, true));
-		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), "gw6_split", "", false, false);
+		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true), "gw6_split", "", false);
 		// Files.list(kColDir+dirList[0], prefix ,suffix,false ,false);
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
 											 + " with a " + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)
@@ -769,7 +769,7 @@ public class ParseKcol implements Runnable {
 						break;
 					case 0:
 						filesToDelete = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true),
-																			 Sample.SAMPLE_FILE_EXTENSION, false);
+																			 Sample.SAMPLE_FILE_EXTENSION);
 						for (String element : filesToDelete) {
 							new File(proj.SAMPLE_DIRECTORY.getValue(false, true) + element).delete();
 						}
@@ -1076,8 +1076,7 @@ public class ParseKcol implements Runnable {
 								samp = Sample.loadFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, true)
 																											 + (fixes.containsKey(trav) ? fixes.get(trav)
 																																								 : trav)
-																											 + Sample.SAMPLE_FILE_EXTENSION,
-																											 proj.JAR_STATUS.getValue());
+																											 + Sample.SAMPLE_FILE_EXTENSION);
 								data = samp.getAllData();
 								genotypes = samp.getAllGenotypes();
 							} else {
@@ -1211,7 +1210,7 @@ public class ParseKcol implements Runnable {
 											 + proj.getProperty(proj.SOURCE_FILENAME_EXTENSION) + " files in: "
 											 + proj.SOURCE_DIRECTORY.getValue(false, true));
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION));
 		System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
 											 + " to parse");
 
@@ -1274,10 +1273,10 @@ public class ParseKcol implements Runnable {
 			return;
 		}
 
-		String[] dirList = Files.listDirectories(proj.SOURCE_DIRECTORY.getValue(false, true), false);
+		String[] dirList = Files.listDirectories(proj.SOURCE_DIRECTORY.getValue(false, true));
 		String[] chunkFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true) + dirList[0]
 																		 + commonSubFolder,
-																		 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+																		 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION));
 
 		int counts = 0;
 
@@ -1392,7 +1391,7 @@ public class ParseKcol implements Runnable {
 		int expIndex;
 
 		files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+											 proj.getProperty(proj.SOURCE_FILENAME_EXTENSION));
 		if (files.length == 0) {
 			System.err.println("Error - no files to parse");
 			return;
@@ -1608,7 +1607,7 @@ public class ParseKcol implements Runnable {
 			return;
 		}
 
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 
 		try {
 			if (map) {

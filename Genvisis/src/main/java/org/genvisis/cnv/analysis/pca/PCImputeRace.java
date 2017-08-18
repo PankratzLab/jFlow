@@ -440,7 +440,7 @@ public class PCImputeRace {
 		Hashtable<String, String> plinkFam = HashVec.loadFileToHashString(plinkroot + ".fam",
 																																			new int[] {0, 1},
 																																			new int[] {2, 3}, false, "\t",
-																																			false, false, false);
+																																			false, false);
 		Set<String> keeps = keepFile == null ? plinkFam.keySet()
 																				 : HashVec.loadFileToHashSet(keepFile, new int[] {0, 1},
 																																		 "\t", false);
@@ -554,7 +554,7 @@ public class PCImputeRace {
 				System.err.println(usage);
 				System.exit(1);
 			} else if (arg.startsWith("proj=")) {
-				proj = new Project(arg.split("=")[1], false);
+				proj = new Project(arg.split("=")[1]);
 				numArgs--;
 			} else if (arg.startsWith("inFile=")) {
 				inFile = arg.split("=")[1];

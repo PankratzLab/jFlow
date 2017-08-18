@@ -73,7 +73,7 @@ public class ExportCNVsToPedFormat {
 		String exten;
 
 		log.report("Generating files for " + outputRoot);
-		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot), false)) {
+		if (!Files.exists(ext.parseDirectoryOfFile(outputRoot))) {
 			log.report("Created directory: '" + ext.parseDirectoryOfFile(outputRoot) + "'");
 			new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
 		}
@@ -86,14 +86,13 @@ public class ExportCNVsToPedFormat {
 				sampleListHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {0, 1},
 																																			new int[] {-7},
 																																			pedFilename.endsWith(".csv"),
-																																			"\t", false, false, false);
+																																			"\t", false, false);
 				dnaHashFromCnvOrPedData = HashVec.loadFileToHashString(pedFilename, new int[] {6, 6},
 																															 new int[] {-7},
 																															 pedFilename.endsWith(".csv"), "\t",
-																															 false, false, false);
+																															 false, false);
 				dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
-																										PSF.Regex.GREEDY_WHITESPACE, false, 10000,
-																										false);
+																										PSF.Regex.GREEDY_WHITESPACE, 10000, false);
 				HashSet<String> dnaSet = new HashSet<String>();
 				for (String[] element : dnaMapping) {
 					if (dnaSet.contains(element[2])) {
@@ -133,7 +132,7 @@ public class ExportCNVsToPedFormat {
 		cnVector = CNVariant.loadPlinkFile(cnvFilename,
 																			 cnvIsDNAKeyed ? dnaHashFromCnvOrPedData
 																										 : sampleListHashFromCnvOrPedData,
-																			 false, false);
+																			 false);
 		if (mzTwins.size() > 0) {
 			numBaseCNVs = cnVector.size();
 			for (int i = 0; i < numBaseCNVs; i++) {

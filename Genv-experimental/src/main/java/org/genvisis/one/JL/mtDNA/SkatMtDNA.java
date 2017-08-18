@@ -193,7 +193,7 @@ public class SkatMtDNA {
 
 	private static void addPhenoToFam(String famFile, VcfPopulation vpop, String cases,
 																		String controls) {
-		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null, false);
+		String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, null);
 		for (int i = 0; i < fam.length; i++) {
 			String[] famline = fam[i];
 			String[] sPop = vpop.getPopulationForInd(famline[0], RETRIEVE_TYPE.SUPER);

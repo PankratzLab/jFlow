@@ -19,7 +19,7 @@ public class DumpExons {
 		genes.add("PRKAR1A");
 
 		GeneTrack geneTrack = GeneTrack
-				.load(Resources.genome(GENOME_BUILD.valueOf("HG19"), new Logger()).getGTrack().get(), false);
+				.load(Resources.genome(GENOME_BUILD.valueOf("HG19"), new Logger()).getGTrack().get());
 
 		String top = "browser position chr1:14621-14712\ntrack name=\"Target Regions\"";
 

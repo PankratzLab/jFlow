@@ -142,7 +142,7 @@ public final class Resources {
 			localResources = new HashSet<String>();
 			String resourceDir = LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
 			if (Files.exists(resourceDir)) {
-				for (String resource : Files.listAllFilesInTree(resourceDir, false)) {
+				for (String resource : Files.listAllFilesInTree(resourceDir)) {
 					localResources.add(new File(resourceDir + resource).getAbsolutePath());
 				}
 			}

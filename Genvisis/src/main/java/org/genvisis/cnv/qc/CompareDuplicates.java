@@ -110,8 +110,7 @@ public class CompareDuplicates {
 		discordantCounts = new int[markerNames.length];
 
 		pairs = HashVec.loadFileToStringMatrix(proj.PROJECT_DIRECTORY.getValue() + pairFile, false,
-																					 new int[] {0, 1}, "\t", proj.JAR_STATUS.getValue(), 100,
-																					 false);
+																					 new int[] {0, 1}, "\t", 100, false);
 
 		try {
 			writer = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
@@ -174,7 +173,7 @@ public class CompareDuplicates {
 			// filename = "D:/home/npankrat/projects/TsaiPilot.properties";
 			// filename = "D:/home/npankrat/projects/SDRG.properties";
 			filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
-			allPairs(new Project(filename, false), pairs);
+			allPairs(new Project(filename), pairs);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -239,7 +239,7 @@ public class HitWindowsLD {
 			log.reportError("Warning - assuming haploview format");
 			fileType = 2;
 		}
-		String[] files = Files.list(dir, fileExt, false);
+		String[] files = Files.list(dir, fileExt);
 		log.report("Info - found " + files.length + " files with extension " + fileExt
 							 + " in directory " + dir);
 		for (String file : files) {
@@ -407,8 +407,8 @@ public class HitWindowsLD {
 			SerializedFiles.writeSerial(this, filename);
 		}
 
-		public static ReferenceMap load(String filename, boolean jar) {
-			return (ReferenceMap) SerializedFiles.readSerial(filename, jar, true);
+		public static ReferenceMap load(String filename) {
+			return (ReferenceMap) SerializedFiles.readSerial(filename, true);
 		}
 
 		public boolean inReference(String marker) {
@@ -480,7 +480,7 @@ public class HitWindowsLD {
 			String refMapSer = ext.rootOf(mapFile, false) + ".ser";
 			if (Files.exists(refMapSer)) {
 				log.report(ext.getTime() + " Info - Loading serialized map file " + refMapSer);
-				referenceMap = ReferenceMap.load(refMapSer, false);
+				referenceMap = ReferenceMap.load(refMapSer);
 				log.report(ext.getTime() + " Info - Finished loading serialized map file " + refMapSer);
 			} else {
 				try {

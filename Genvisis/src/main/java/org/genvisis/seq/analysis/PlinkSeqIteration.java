@@ -15,7 +15,7 @@ public class PlinkSeqIteration {
 	public static void runPlinkSeq(String dir, String phenoFile, String resourceDirectory,
 																 String outputRoot, String[] locGroups, boolean overwriteExisting,
 																 int macStart, int macStop, int numThreads, Logger log) {
-		String[] vcfs = Files.listFullPaths(dir, ".vcf.gz", false);
+		String[] vcfs = Files.listFullPaths(dir, ".vcf.gz");
 		String finalSummary = dir + "finalBurden.summary";
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(finalSummary);

@@ -262,8 +262,8 @@ public class Transformations {
 		IntVector duds;
 		int count;
 
-		line = HashVec.loadFileToStringArray(filename, false, ignoreFirstLine, new int[] {column}, true,
-																				 false, commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
+		line = HashVec.loadFileToStringArray(filename, ignoreFirstLine, new int[] {column}, true, false,
+																				 commaDelimited ? "," : PSF.Regex.GREEDY_WHITESPACE);
 		dv = new DoubleVector();
 		duds = new IntVector();
 		for (int i = 0; i < line.length; i++) {

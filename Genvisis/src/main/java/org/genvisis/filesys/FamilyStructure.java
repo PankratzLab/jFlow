@@ -83,8 +83,7 @@ public class FamilyStructure {
 
 	public FamilyStructure(String filename, boolean loadDNAs, Logger log) {
 
-		String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null,
-																																				 false));
+		String[][] pedCols = Matrix.transpose(HashVec.loadFileToStringMatrix(filename, false, null));
 		if (pedCols == null) {
 			return;
 		}

@@ -18,14 +18,14 @@ import com.google.common.primitives.Ints;
 
 public class ConsolidateTaxons {
 	public static void consolidate(String rootDir) {
-		String[] dirs = Files.listDirectories(rootDir, false);
+		String[] dirs = Files.listDirectories(rootDir);
 		Logger log = new Logger();
 		ArrayList<Hashtable<String, String[]>> taxa = new ArrayList<Hashtable<String, String[]>>();
 		HashSet<String> allTaxa = new HashSet<String>();
 		String output = rootDir + "taxaSummary.txt";
 		log.reportTimeInfo("NUMDIRS = " + dirs.length);
 		for (String dir : dirs) {
-			String[] contams = Files.listFullPaths(rootDir + dir + "/", "", false);
+			String[] contams = Files.listFullPaths(rootDir + dir + "/", "");
 			log.reportTimeInfo("Current directory " + rootDir + dir + " Number of files "
 												 + contams.length);
 

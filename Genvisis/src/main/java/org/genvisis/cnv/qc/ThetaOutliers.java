@@ -53,7 +53,7 @@ public class ThetaOutliers {
 		filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
 		if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")) {
 			sampleList = proj.getSampleList().getSamples();
-		} else if (Files.exists(filename, proj.JAR_STATUS.getValue())) {
+		} else if (Files.exists(filename)) {
 			log.report("filename: " + filename);
 			sampleList = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 		} else {
@@ -203,7 +203,7 @@ public class ThetaOutliers {
 
 		filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
 		// Project proj = new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false);
-		proj = new Project(filename, false);
+		proj = new Project(filename);
 		loadData(proj, true, (byte) 12);
 
 		// MarkerData[] markers = MarkerSet.loadFromList(proj, new String[] {"rs17080321", "rs7898873",

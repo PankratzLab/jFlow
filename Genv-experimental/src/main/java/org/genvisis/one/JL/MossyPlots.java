@@ -32,7 +32,7 @@ public class MossyPlots {
 		new File(outDir).mkdirs();
 		proj.getLog().reportTimeInfo(mosBaseFile);
 		SampleData sampleData = proj.getSampleData(false);
-		String[][] mos = HashVec.loadFileToStringMatrix(mosBaseFile, false, null, false);
+		String[][] mos = HashVec.loadFileToStringMatrix(mosBaseFile, false, null);
 		String mosFile = outDir + "mosResults_excludesTagged.txt";
 
 		ArrayList<String> filtered = new ArrayList<String>();
@@ -431,13 +431,13 @@ public class MossyPlots {
 
 
 	public static void main(String[] args) {
-		Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties", false);
+		Project proj = new Project("C:/workspace/Genvisis/projects/Cushings.properties");
 		// generateGCModel(proj, new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
 		// proj.getLog()), 1000000);
 
 
 		String[] mosResults = Files.list(proj.RESULTS_DIRECTORY.getValue(), "Mosaicism", ".xln", true,
-																		 false, true);
+																		 true);
 		for (String mosResult : mosResults) {
 			plot(proj, mosResult);
 		}

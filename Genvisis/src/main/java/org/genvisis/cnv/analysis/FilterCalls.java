@@ -196,9 +196,7 @@ public class FilterCalls {
 
 		sampleData = proj == null ? null : proj.getSampleData(false);
 
-		List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true,
-																											proj == null ? false
-																																	: proj.JAR_STATUS.getValue());
+		List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true);
 		HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
 		for (CNVariant cnv : cnvList) {
 			ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t"
@@ -277,11 +275,11 @@ public class FilterCalls {
 	public static void cnvStats(String cnvList, String[] cnvFiles, String outputFile, double score,
 															int probes, double overlapThreshold) {
 		System.out.println(ext.getTime() + "] Loading Plink-formatted CNV files...");
-		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(cnvList, false);
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(cnvList);
 		ArrayList<CNVariant> compCNVs = new ArrayList<CNVariant>();
 		HashSet<String> ids = new HashSet<String>();
 		for (String file : cnvFiles) {
-			CNVariant[] cnvs = CNVariant.loadPlinkFile(file, false);
+			CNVariant[] cnvs = CNVariant.loadPlinkFile(file);
 			for (CNVariant cnv : cnvs) {
 				compCNVs.add(cnv);
 				ids.add(cnv.getFamilyID() + "\t" + cnv.getIndividualID());
@@ -682,7 +680,7 @@ public class FilterCalls {
 	public static void mergeCNVs(Project proj, String in, String out, double distanceQuotient) {
 		Logger log = proj.getLog();
 		log.report(ext.getTime() + "] Loading CNV file...");
-		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(in, false);
+		CNVariant[] srcCNVs = CNVariant.loadPlinkFile(in);
 		int initialCount = srcCNVs.length;
 
 		try {
@@ -1032,11 +1030,11 @@ public class FilterCalls {
 	}
 
 	public static void mergeCNVs(String in, String out, float distanceQuotient, String bimFile) {
-		List<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true, false);
+		List<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true);
 
 		int[][] positions = null;
 		if (bimFile != null) {
-			MarkerSetInfo markerSet = MarkerSet.load(bimFile, false);
+			MarkerSetInfo markerSet = MarkerSet.load(bimFile);
 			positions = markerSet.getPositionsByChr();
 		}
 
@@ -1407,7 +1405,7 @@ public class FilterCalls {
 	public static void filterExclusions(String dir, String in, String out, String indivFile,
 																			boolean exclude) {
 		PrintWriter writer;
-		List<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true);
 		boolean[] remove = ArrayUtils.booleanArray(cnvs.size(), !exclude);
 		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile,
 																																															new int[] {
@@ -1416,7 +1414,6 @@ public class FilterCalls {
 																																															null,
 																																															false,
 																																															"\t",
-																																															false,
 																																															false,
 																																															false));
 
@@ -1474,7 +1471,7 @@ public class FilterCalls {
 		filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
 		filter.computeCentromereMidPoints();
 
-		CNVariant[] centromeric = CNVariant.loadPlinkFile(dir + in, false);
+		CNVariant[] centromeric = CNVariant.loadPlinkFile(dir + in);
 
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(dir + out);
@@ -1547,7 +1544,7 @@ public class FilterCalls {
 																																		build,
 																																		log);
 			} else if (markerSetFilenameToBreakUpCentromeres.endsWith(".ser")) {
-				SnpMarkerSet markerSet = SnpMarkerSet.load(markerSetFilenameToBreakUpCentromeres, false);
+				SnpMarkerSet markerSet = SnpMarkerSet.load(markerSetFilenameToBreakUpCentromeres);
 				markerSet.sortMarkers();
 				pos = markerSet.getPositionsByChr();
 				bnds = Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
@@ -1690,7 +1687,6 @@ public class FilterCalls {
 																												 ? null
 																												 : HashVec.loadFileToStringArray(individualsToKeepFile,
 																																												 false,
-																																												 false,
 																																												 new int[] {
 																																																		0,
 																																																		1},
@@ -1830,9 +1826,9 @@ public class FilterCalls {
 		SegmentLists segList;
 
 		if (segmentFile.endsWith(".segs")) {
-			segList = SegmentLists.load(segmentFile, false);
+			segList = SegmentLists.load(segmentFile);
 		} else if (new File(segmentFile + ".segs").exists()) {
-			segList = SegmentLists.load(segmentFile + ".segs", false);
+			segList = SegmentLists.load(segmentFile + ".segs");
 		} else {
 			segList = SegmentLists.parseUCSCSegmentList(segmentFile, false);
 			segList.serialize(segmentFile + ".segs");
@@ -2015,7 +2011,7 @@ public class FilterCalls {
 		}
 
 		System.out.println(ext.getTime() + "\tLoading plink file...");
-		cnvs = CNVariant.loadPlinkFile(filein, false);
+		cnvs = CNVariant.loadPlinkFile(filein);
 
 		System.out.println(ext.getTime() + "\tDetermining acceptability...");
 		for (int i = 0; i < cnvs.length; i++) {
@@ -2132,8 +2128,8 @@ public class FilterCalls {
 		int count;
 		boolean unique;
 
-		list1 = CNVariant.loadPlinkFile(firstCNVfile, false);
-		list2 = CNVariant.loadPlinkFile(secondCNVfile, false);
+		list1 = CNVariant.loadPlinkFile(firstCNVfile);
+		list2 = CNVariant.loadPlinkFile(secondCNVfile);
 
 		try {
 			writer = Files.openAppropriateWriter(outputfile);
@@ -2605,7 +2601,7 @@ public class FilterCalls {
 				// -stats in= out= list= famFile= minScore=10 number=15 overlap=.50
 				cnvStats(in, listFiles, out, score, number, overlap);
 			} else if (projName != null) {
-				Project proj = new Project(projName, false);
+				Project proj = new Project(projName);
 				if (dir != null && !"".equals(dir)) {
 					CNVStats(proj, dir, in);
 				} else if (merge) {

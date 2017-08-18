@@ -535,7 +535,7 @@ public class BWA_Analysis {
 			log.report(ext.getTime() + " Info - gathering samples by lane from " + rootInputDir);
 		}
 		for (String element : FQ_EXTS) {
-			String[] tmpFiles = Files.list(rootInputDir, element, false);
+			String[] tmpFiles = Files.list(rootInputDir, element);
 			if (tmpFiles != null && tmpFiles.length > 0) {
 				if (verbose) {
 					log.report("Info - found " + tmpFiles.length + " of type " + element);

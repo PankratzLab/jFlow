@@ -101,8 +101,8 @@ public class Mappability<SEGMENT extends Segment> {
 	public static void computeCNVMappability(String mappabilityFile, String cnvFile,
 																					 String geneTrackFile, String callSubsetBed, Logger log) {
 		BedOps.verifyBedIndex(mappabilityFile, log);
-		LocusSet<GeneData> gLocusSet = GeneTrack.load(geneTrackFile, false).convertToLocusSet(log);
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		LocusSet<GeneData> gLocusSet = GeneTrack.load(geneTrackFile).convertToLocusSet(log);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 		LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log) {
 
 			/**

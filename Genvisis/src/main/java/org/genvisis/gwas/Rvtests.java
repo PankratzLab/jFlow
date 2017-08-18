@@ -24,7 +24,7 @@ public class Rvtests {
 			log.report("Warning - a '/' symbol has been added to the following entry " + resultsDir);
 		}
 
-		files = Files.list(dirOfPedFiles, ".ped", false);
+		files = Files.list(dirOfPedFiles, ".ped");
 		iterations = new String[files.length][2];
 		for (int i = 0; i < files.length; i++) {
 			iterations[i][0] = files[i];
@@ -88,7 +88,7 @@ public class Rvtests {
 			}
 		}
 
-		filenames = Files.list(resultsDir, null, false);
+		filenames = Files.list(resultsDir, null);
 		for (String filename : filenames) {
 			newFilename = filename;
 			for (int j = 0; j < conversionTable.size(); j++) {

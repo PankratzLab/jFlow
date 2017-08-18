@@ -33,7 +33,7 @@ public class PopGen {
 		String[] vcfs = null;
 		switch (location) {
 			case LOCAL:
-				vcfs = Files.listFullPaths(directory, vcfSuffix, false);
+				vcfs = Files.listFullPaths(directory, vcfSuffix);
 				break;
 			case REMOTE:
 				vcfs = Files.parseRemoteFTPFiles(directory, vcfSuffix, log);

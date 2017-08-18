@@ -156,7 +156,7 @@ public class OpenCyto {
 	private static String[] getInput(String input, Logger log) {
 		if (Files.isDirectory(input)) {
 			log.reportTimeInfo("Assuming " + input + " is a directory, finding all files with .fcs extension");
-			String[] allFiles = Files.listAllFilesInTree(input, false);
+			String[] allFiles = Files.listAllFilesInTree(input);
 			List<String> fcsFiles = new ArrayList<>();
 			for (String file : allFiles) {
 				if (file.endsWith(".fcs")) {

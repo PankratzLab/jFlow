@@ -298,10 +298,10 @@ public class SampleData {
 
 		try {
 			filename = proj.SAMPLE_DATA_FILENAME.getValue();
-			if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
+			if (!Files.exists(filename)) {
 				proj.message("SampleData file does not exist: " + filename);
 				SampleData.createMinimalSampleData(proj);
-				if (!Files.exists(filename, proj.JAR_STATUS.getValue())) {
+				if (!Files.exists(filename)) {
 					proj.message("Could not create a minimal sample data file at: " + filename);
 					throw new IllegalStateException("Could not create a minimal sample data file at: "
 																					+ filename);
@@ -309,7 +309,7 @@ public class SampleData {
 					proj.message("Generated a temporary sample data file at " + filename);
 				}
 			}
-			reader = Files.getReader(filename, proj.JAR_STATUS.getValue(), true, true);
+			reader = Files.getReader(filename, true, true);
 			header = reader.readLine().split("\t");
 			int findDnaIndex = ext.indexOfStr("DNA", header);
 			int famIndex = ext.indexOfStr("FID", header);
@@ -496,7 +496,7 @@ public class SampleData {
 			Runnable cnvLoadingRunnable = new Runnable() {
 				@Override
 				public void run() {
-					loadCNVs(cnvFilenames, proj.JAR_STATUS.getValue(), proj.getLog());
+					loadCNVs(cnvFilenames, proj.getLog());
 					IndiPheno.setCNVsLoaded();
 					loadedCNVs = true;
 				}
@@ -513,7 +513,7 @@ public class SampleData {
 
 		String[] plinkFilenames = proj.PLINK_DIR_FILEROOTS.getValue();
 		if (plinkFilenames.length > 0) {
-			loadPlinkFiles(plinkFilenames, proj.JAR_STATUS.getValue());
+			loadPlinkFiles(plinkFilenames);
 		} else {
 			plinkClasses = new String[0];
 		}
@@ -623,7 +623,7 @@ public class SampleData {
 		}
 	}
 
-	public void loadCNVs(String[] files, boolean jar, Logger log) {
+	public void loadCNVs(String[] files, Logger log) {
 		Vector<Hashtable<String, CNVariant[]>> finalHashes;
 		CNVariantHash[] cnvhs;
 		IndiPheno indi;
@@ -633,7 +633,7 @@ public class SampleData {
 		Vector<String> missingFiles = new Vector<String>();
 
 		for (int i = 0; i < files.length; i++) {
-			if (!Files.exists(files[i], proj.JAR_STATUS.getValue())) {
+			if (!Files.exists(files[i])) {
 				missingFiles.add(files[i]);
 				files = ArrayUtils.removeFromArray(files, i);
 				i--;
@@ -649,7 +649,7 @@ public class SampleData {
 		for (int i = 0; i < files.length; i++) {
 			cnvClasses[i] = ext.rootOf(files[i]);
 			System.out.println(i + "\t" + cnvClasses[i]);
-			cnvhs[i] = CNVariantHash.load(files[i], CNVariantHash.CONSTRUCT_BY_IND, jar, log);
+			cnvhs[i] = CNVariantHash.load(files[i], CNVariantHash.CONSTRUCT_BY_IND, log);
 		}
 		log.report("Read in CNV data in " + ext.getTimeElapsed(time));
 
@@ -694,7 +694,7 @@ public class SampleData {
 		}
 	}
 
-	public void loadPlinkFiles(String[] files, boolean jar) {
+	public void loadPlinkFiles(String[] files) {
 		String[] tempPlinkClasses = new String[files.length];
 		int cnt = 0;
 		for (String file : files) {
@@ -1129,7 +1129,7 @@ public class SampleData {
 
 		sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
 
-		if (!Files.exists(sampleDatafilename, proj.JAR_STATUS.getValue())) {
+		if (!Files.exists(sampleDatafilename)) {
 			// JOptionPane.showMessageDialog(null, "Cannot add as a color key without an existing
 			// SampleData file", "Error", JOptionPane.ERROR_MESSAGE);
 			System.err.println("Cannot add as a color key without an existing SampleData file");
@@ -1294,7 +1294,7 @@ public class SampleData {
 
 			// load the sample data without the color key column which has to bed deleted
 			String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false,
-																																	 colToLoad, false);
+																																	 colToLoad);
 
 			String sampleDataDelimiter = Files.determineDelimiter(sampleDatafilename, null);
 
@@ -1345,8 +1345,7 @@ public class SampleData {
 		// String sampleDatafilename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 		// in memory backup
-		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null,
-																																 false);
+		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null);
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
 		int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
 		// fail if can't find linker
@@ -1482,8 +1481,7 @@ public class SampleData {
 		PrintWriter writer;
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 		// in memory backup
-		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null,
-																																 false);
+		String[][] sampleDataMatrix = HashVec.loadFileToStringMatrix(sampleDatafilename, false, null);
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleDatafilename, log);
 		int linkerIndex = ext.indexOfStr(linker, sampleDataHeader);
 		// fail if can't find linker
@@ -1723,7 +1721,7 @@ public class SampleData {
 		ArrayList<String> foundMissing = new ArrayList<String>();
 
 		try {
-			BufferedReader reader = Files.getReader(pedFile, false, true, false);
+			BufferedReader reader = Files.getReader(pedFile, true, false);
 			String temp = reader.readLine().trim();
 			String delim = ext.determineDelimiter(temp);
 			line = temp.split(delim);
@@ -1806,7 +1804,7 @@ public class SampleData {
 		String delim = ",";
 		ArrayList<String> foundMissing = new ArrayList<String>();
 		try {
-			BufferedReader reader = Files.getReader(sampleMapCsv, false, true, false);
+			BufferedReader reader = Files.getReader(sampleMapCsv, true, false);
 			line = reader.readLine().trim().split(delim);
 			String[] header = line;
 			int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true, false);
@@ -1983,10 +1981,9 @@ public class SampleData {
 			System.exit(1);
 		}
 
-		Project thisProject = new Project(filename, false);
+		Project thisProject = new Project(filename);
 
-		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false),
-										 thisProject.JAR_STATUS.getValue())) {
+		if (Files.exists(thisProject.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 			thisProject.getSampleData(false);
 		} else {
 			try {

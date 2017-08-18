@@ -38,7 +38,7 @@ public class SerialHash implements Serializable {
 	}
 
 	public static Hashtable<String, String> loadSerializedStringHash(String filename) {
-		return load(filename, false).getStringHash();
+		return load(filename).getStringHash();
 	}
 
 	private void setStringArrayHash(Hashtable<String, String[]> stringArrayHash) {
@@ -57,7 +57,7 @@ public class SerialHash implements Serializable {
 	}
 
 	public static Hashtable<String, String[]> loadSerializedStringArrayHash(String filename) {
-		return load(filename, false).getStringArrayHash();
+		return load(filename).getStringArrayHash();
 	}
 
 	private void setStringIntArrayHash(Hashtable<String, int[]> stringIntArrayHash) {
@@ -76,7 +76,7 @@ public class SerialHash implements Serializable {
 	}
 
 	public static Hashtable<String, int[]> loadSerializedStringIntArrayHash(String filename) {
-		return load(filename, false).getStringIntArrayHash();
+		return load(filename).getStringIntArrayHash();
 	}
 
 	private void setIntHash(Hashtable<Integer, Integer> intHash) {
@@ -94,7 +94,7 @@ public class SerialHash implements Serializable {
 	}
 
 	public static Hashtable<Integer, Integer> loadSerializedIntHash(String filename) {
-		return load(filename, false).getIntHash();
+		return load(filename).getIntHash();
 	}
 
 	private void setLongHash(Hashtable<Long, Long> longHash) {
@@ -112,14 +112,14 @@ public class SerialHash implements Serializable {
 	}
 
 	public static Hashtable<Long, Long> loadSerializedLongHash(String filename) {
-		return load(filename, false).getLongHash();
+		return load(filename).getLongHash();
 	}
 
 	public void serialize(String filename) {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	private static SerialHash load(String filename, boolean jar) {
-		return (SerialHash) SerializedFiles.readSerial(filename, jar, true);
+	private static SerialHash load(String filename) {
+		return (SerialHash) SerializedFiles.readSerial(filename, true);
 	}
 }

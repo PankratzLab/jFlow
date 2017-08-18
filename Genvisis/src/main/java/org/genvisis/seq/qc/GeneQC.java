@@ -131,8 +131,7 @@ public class GeneQC {
 																											 ext.indexFactors(targets,
 																																				Files.getHeaderOfFile(output,
 																																															log),
-																																				true, true),
-																											 false);
+																																				true, true));
 		ArrayList<Integer> numMrnaTotal = new ArrayList<Integer>();
 		ArrayList<Integer> numMrnaNonUTR = new ArrayList<Integer>();
 		Hashtable<String, Integer> index = new Hashtable<String, Integer>();
@@ -284,7 +283,7 @@ public class GeneQC {
 		};
 		ArrayList<GeneData> genes = new ArrayList<GeneData>();
 
-		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+		GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 
 		for (int i = 0; i < geneTrack.getGenes().length; i++) {
 			for (int j = 0; j < geneTrack.getGenes()[i].length; j++) {

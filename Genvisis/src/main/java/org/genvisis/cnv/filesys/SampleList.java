@@ -69,8 +69,8 @@ public class SampleList implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SampleList load(String filename, boolean jar) {
-		return (SampleList) SerializedFiles.readSerial(filename, jar, true);
+	public static SampleList load(String filename) {
+		return (SampleList) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static SampleList generateSampleList(Project proj) {
@@ -89,9 +89,8 @@ public class SampleList implements Serializable {
 		// System.exit(1);
 		// }
 
-		if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true), false)) {
-			files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION,
-												 false);
+		if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true))) {
+			files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION);
 		} else {
 			log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("
 											+ proj.SAMPLE_DIRECTORY.getValue(false, true)
@@ -186,10 +185,10 @@ public class SampleList implements Serializable {
 		}
 
 		if (outliers) {
-			serializeOutliers(new Project(filename, false));
+			serializeOutliers(new Project(filename));
 		} else {
 			try {
-				generateSampleList(new Project(filename, false));
+				generateSampleList(new Project(filename));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

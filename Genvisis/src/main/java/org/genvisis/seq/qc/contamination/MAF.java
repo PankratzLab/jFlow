@@ -88,7 +88,7 @@ public class MAF {
 			System.exit(1);
 		}
 		try {
-			computeMAF(new Project(filename, false));
+			computeMAF(new Project(filename));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

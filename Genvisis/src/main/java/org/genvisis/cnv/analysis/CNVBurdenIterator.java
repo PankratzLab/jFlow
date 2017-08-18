@@ -137,8 +137,7 @@ public class CNVBurdenIterator {
 
 		famIDs = new HashSet<String>();
 		if (famFile != null && !"".equals(famFile)) {
-			famIDs.addAll(HashVec.loadFileToHashString(famFile, ID_COLS, null, false, "\t", false, false,
-																								 false)
+			famIDs.addAll(HashVec.loadFileToHashString(famFile, ID_COLS, null, false, "\t", false, false)
 													 .keySet());
 		}
 
@@ -431,7 +430,7 @@ public class CNVBurdenIterator {
 		}
 		Hashtable<String, String> dataTable = HashVec.loadFileToHashString(dataFile, idCols,
 																																			 inclGenderDataCols, false,
-																																			 "\t", true, false, true);
+																																			 "\t", true, true);
 		idData = new HashMap<String, MappedData>();
 		for (java.util.Map.Entry<String, String> entry : dataTable.entrySet()) {
 			String[] dataLine = entry.getValue().split("\t");
@@ -475,7 +474,7 @@ public class CNVBurdenIterator {
 	}
 
 	private void loadCNVs(String cnvFile) {
-		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true, false);
+		List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true);
 
 		for (CNVariant cnv : cnvs) {
 			CNVData indiv = idData.get(cnv.getFamilyID() + "\t" + cnv.getIndividualID());

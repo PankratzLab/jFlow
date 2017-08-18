@@ -207,7 +207,7 @@ public class PrincipalComponentsCrossTabs extends PrincipalComponentsResiduals {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			crossTabulate(proj, numPCs, alternateDataFile, true);
 		} catch (Exception e) {
 			e.printStackTrace();

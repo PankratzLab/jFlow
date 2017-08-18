@@ -11,10 +11,10 @@ public class UniqCel {
 	public static void main(String[] args) {
 		String dir = "/scratch.global/lanej/Affy6_1000g/affy6/";
 		String p1 = dir + "phase1_2/";
-		String[] celsP1 = Files.list(p1, ".CEL", false);
+		String[] celsP1 = Files.list(p1, ".CEL");
 
 		String p2 = dir + "phase3/";
-		String[] celsP2 = Files.list(p2, ".CEL", false);
+		String[] celsP2 = Files.list(p2, ".CEL");
 
 		ArrayList<String> finalCels = new ArrayList<String>();
 		for (String element : celsP1) {

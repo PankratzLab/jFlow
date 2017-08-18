@@ -48,8 +48,8 @@ public class AffyCentroids implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static AffyCentroids load(String filename, boolean jar) {
-		return (AffyCentroids) SerializedFiles.readSerial(filename, jar, true);
+	public static AffyCentroids load(String filename) {
+		return (AffyCentroids) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static float calcR(float x, float y) {
@@ -164,7 +164,7 @@ public class AffyCentroids implements Serializable {
 		log = proj.getLog();
 		markerSet = proj.getMarkerSet();
 		markerSet.getMarkerNames();
-		affyCentroids = Centroids.load(centroidsFile, proj.JAR_STATUS.getValue());
+		affyCentroids = Centroids.load(centroidsFile);
 
 		if (affyCentroids.getFingerprint() != markerSet.getFingerprint()) {
 			log.reportError("Error - fingerprint for Centroids file '" + centroidsFile
@@ -388,7 +388,7 @@ public class AffyCentroids implements Serializable {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		proj = new Project(filename, logfile, false);
+		proj = new Project(filename, logfile);
 		try {
 			if (fromGenotypes) {
 				parseCentroids(proj, ArrayUtils.booleanArray(proj.getSamples().length, true), 1,

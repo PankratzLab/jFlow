@@ -382,7 +382,7 @@ public class Pedigree extends FamilyStructure {
 			// sexDict = HashVec.loadFileToHashString(sexFile, new int[]{1, 2}, new int[]{3, 4}, false,
 			// "\t", true, false, true);
 			sexDict = HashVec.loadFileToHashString(sexFile, new int[] {0}, new int[] {3, 4}, false, "\t",
-																						 true, false, true);
+																						 true, true);
 		} else {
 			log.report("Warning - no sex check file found, sex will be set to '0' for all individuals.  Otherwise, first run SexChecks and then re-run.");
 			sexDict = new Hashtable<String, String>();
@@ -447,7 +447,7 @@ public class Pedigree extends FamilyStructure {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			build(proj, out, null, overwrite);
 		} catch (Exception e) {
 			e.printStackTrace();

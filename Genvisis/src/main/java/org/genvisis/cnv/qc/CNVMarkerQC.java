@@ -251,7 +251,7 @@ public class CNVMarkerQC implements Runnable {
 			return;
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			proj.setLog(new Logger(proj.PROJECT_DIRECTORY.getValue() + "CNVMarkerQCLog.txt"));
 			if (!convert) {
 				computeMAFs(proj, numThreads, excludeSamples, markerFreqSer);

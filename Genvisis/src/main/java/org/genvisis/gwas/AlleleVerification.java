@@ -32,14 +32,13 @@ public class AlleleVerification {
 			if (indices[3] == -1) {
 				log.report("Couldn't find chromosome in " + filename + ".");
 				data = HashVec.loadFileToStringMatrix(filename, false,
-																							null,
-																							false);
+																							null);
 				data = addPosition(data, posFile, log);
 				indices[3] = data[0].length - 1;
 				dataHeader = ArrayUtils.addStrToArray("Chr", dataHeader);
 				data[0] = dataHeader;
 			} else {
-				data = HashVec.loadFileToStringMatrix(filename, false, null, false);
+				data = HashVec.loadFileToStringMatrix(filename, false, null);
 			}
 
 			header = Files.getHeaderOfFile(freqFile, log);
@@ -200,7 +199,7 @@ public class AlleleVerification {
 		String[] header = Files.getHeaderOfFile(posFile, log);
 		int[] indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS},
 																		 header, false, false, false, false);
-		String[][] positions = HashVec.loadFileToStringMatrix(posFile, true, indices, false);
+		String[][] positions = HashVec.loadFileToStringMatrix(posFile, true, indices);
 
 		String[][] results = Files.combineInMemory(keys, positions, "NA", true, true, log);
 		data = ArrayUtils.append(data, results);

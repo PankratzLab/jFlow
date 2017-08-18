@@ -359,7 +359,7 @@ public class BeastScore {
 		int[] positions = markerSet.getPositions();
 		int[][] indicesByChr = markerSet.getIndicesByChr();
 		
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 
 		HashSet<String> inds = new HashSet<String>();
 		for (CNVariant cnv : cnvs) {
@@ -384,13 +384,13 @@ public class BeastScore {
 		float[][][] centMal = null;
 		if (recomputeLRRsFromSexCentroids) {
 			if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())) {
-				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(), false).getCentroids();
+				centFem = Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue()).getCentroids();
 			} else {
 				proj.getLog().reportError("Female-specific centroid file {" + proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
 				return;
 			}
 			if (Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
-				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(), false).getCentroids();
+				centMal = Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue()).getCentroids();
 			} else {
 				proj.getLog().reportError("Male-specific centroid file {" + proj.SEX_CENTROIDS_MALE_FILENAME.getValue() + "} doesn't exist - LRR correction cannot complete.");
 				return;

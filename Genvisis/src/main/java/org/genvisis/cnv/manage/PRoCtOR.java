@@ -454,7 +454,7 @@ public class PRoCtOR {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			String err = shadow(proj, tempDir, outputBase, callrate, recomputeLRR,
 													correctionType, strategy, numComponents, numThreads, callCNVs);
 			if (!"".equals(err)) {

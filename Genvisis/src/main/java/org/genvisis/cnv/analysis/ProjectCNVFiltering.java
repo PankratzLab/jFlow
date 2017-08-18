@@ -48,7 +48,7 @@ public class ProjectCNVFiltering {
 
 	private static void loadMarkerSet(Project proj, CNVFilter filter) {
 		String markerSetFile = proj.MARKERSET_FILENAME.getValue();
-		MarkerSetInfo markerSet = MarkerSet.load(markerSetFile, false);
+		MarkerSetInfo markerSet = MarkerSet.load(markerSetFile);
 		filter.setPositions(markerSet.getPositionsByChr());
 		filter.setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
 																																												markerSet.getPositions(),
@@ -147,7 +147,7 @@ public class ProjectCNVFiltering {
 																									CNVFilter cnvFilter, boolean mergePrior,
 																									boolean freqFilterPrior, FreqFilter freqFilter,
 																									boolean ifMergeAndFreqMergeFirst) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile);
 		return filterCNVFile(proj, cnvs, out, cnvFilter, mergePrior, freqFilterPrior, freqFilter,
 												 ifMergeAndFreqMergeFirst, false);
 	}
@@ -266,9 +266,9 @@ public class ProjectCNVFiltering {
 			proj = new Project(ext.parseStringArg(args[ext.indexOfStr(CNVFilter.COMMAND_PROJECT, args,
 																																true, false)],
 																						""),
-												 logfile, false);
+												 logfile);
 		} else {
-			proj = new Project(filename, null, false);
+			proj = new Project(filename, null);
 		}
 		CNVFilter cnvFilter = setupCNVFilterFromArgs(proj, args, null, true, proj.getLog());
 		FreqFilter freqFilter = CNVFilter.setupFreqFilterFromArgs(args, cnvFilter, proj.getLog());

@@ -244,7 +244,7 @@ public class ChromosomalSV {
 			System.err.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, false);
+		Project proj = new Project(filename);
 		run(proj, numthreads);
 
 	}

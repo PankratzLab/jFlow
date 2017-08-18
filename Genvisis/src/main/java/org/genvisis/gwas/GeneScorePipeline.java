@@ -408,8 +408,7 @@ public class GeneScorePipeline {
 				if (errorMsg.equals("")) {
 					if (indices[1] == -1 || indices[2] == -1) {
 						// No chromosomes/positions
-						snps = HashVec.loadFileToStringArray(filename, false, true, new int[] {indices[0]},
-																								 false);// fileData.keySet().toArray(new
+						snps = HashVec.loadFileToStringArray(filename, true, new int[] {indices[0]}, false);// fileData.keySet().toArray(new
 																												// String[fileData.size()]);
 						Files.writeArray(snps, ext.rootOf(filename, false) + ".snps");
 						MapSNPsAndGenes.procSNPsToGenes(ext.parseDirectoryOfFile(filename),
@@ -1133,8 +1132,7 @@ public class GeneScorePipeline {
 						finalCols[finalInd++] = col;
 					}
 				}
-				String[][] bimData = HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols,
-																														false);
+				String[][] bimData = HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols);
 
 				PrintWriter writer = Files.getAppropriateWriter(prefDir + "/subsetData_"
 																												+ filePrefix.getKey() + ".xln");

@@ -304,7 +304,7 @@ public class Pathways implements Serializable {
 
 	public static void test() {
 		String geneTrack = "N:/statgen/NCBI/RefSeq_hg19.gtrack";
-		GeneTrack geneTrack2 = GeneTrack.load(geneTrack, false);
+		GeneTrack geneTrack2 = GeneTrack.load(geneTrack);
 		Logger log = new Logger();
 
 		String keggSer = "D:/data/Project_Tsai_Project_021/KeggTest/kegg.ser";

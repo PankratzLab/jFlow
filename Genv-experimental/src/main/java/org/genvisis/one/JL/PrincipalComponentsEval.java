@@ -413,7 +413,7 @@ public class PrincipalComponentsEval {
 			System.out.println(usage);
 			System.exit(1);
 		}
-		Project proj = new Project(filename, null, false);
+		Project proj = new Project(filename, null);
 		if (separate) {
 			// evaluatePCsIntensityCorrection( proj, markers, evalFile, output, sampleFile,
 			// svdRegression ? LS_TYPE.SVD : LS_TYPE.REGULAR,

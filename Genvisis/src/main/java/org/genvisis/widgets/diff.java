@@ -40,7 +40,7 @@ public class diff {
 				Thread.sleep(200);
 			} catch (InterruptedException ie) {
 			}
-			files = Files.list("./", ".difftemp", false);
+			files = Files.list("./", ".difftemp");
 			if (files.length > 1) {
 				if (files.length > 2) {
 					System.err.println("Error - Select only 2 files at a time");
@@ -78,7 +78,7 @@ public class diff {
 	public static void deleteAll() {
 		String[] files;
 
-		files = Files.list("./", ".difftemp", false);
+		files = Files.list("./", ".difftemp");
 		for (String file : files) {
 			new File(file).delete();
 		}

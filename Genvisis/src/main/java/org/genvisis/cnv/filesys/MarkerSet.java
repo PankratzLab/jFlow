@@ -191,8 +191,8 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static MarkerSet load(String filename, boolean jar) {
-		return (MarkerSet) SerializedFiles.readSerial(filename, jar, true);
+	public static MarkerSet load(String filename) {
+		return (MarkerSet) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static long fingerprint(String[] names) {

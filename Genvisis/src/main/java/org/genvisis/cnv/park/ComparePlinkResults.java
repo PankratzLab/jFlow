@@ -300,7 +300,7 @@ public class ComparePlinkResults {
 			hash = new Hashtable<String, boolean[]>();
 			for (int i = 0; i < files.length; i++) {
 				System.out.println(files[i].getName());
-				cnvs = CNVariant.loadPlinkFile(files[i].getAbsolutePath(), false);
+				cnvs = CNVariant.loadPlinkFile(files[i].getAbsolutePath());
 				for (CNVariant cnv : cnvs) {
 					trav = cnv.getFingerprint();
 					if (hash.containsKey(trav)) {

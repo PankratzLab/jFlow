@@ -290,7 +290,7 @@ public class ChargeS {
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
 																										annotationFile.endsWith(".csv"), "\t", true,
-																										false, false);
+																										false);
 			log.report("Getting keys");
 			keys = HashVec.getKeys(annotationHash, false);
 			log.report("Removing quotes");
@@ -301,14 +301,14 @@ public class ChargeS {
 			}
 			log.report("Reading marker names required");
 			if (chrPosCombo) {
-				markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0, 1}, false,
-																										false, Files.determineDelimiter(genoFile, log));
+				markerNames = HashVec.loadFileToStringArray(genoFile, true, new int[] {0, 1}, false, false,
+																										Files.determineDelimiter(genoFile, log));
 				for (int i = 0; i < markerNames.length; i++) {
 					markerNames[i] = "chr" + ext.replaceAllWith(markerNames[i], "\t", ":");
 				}
 			} else {
-				markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0}, false,
-																										false, Files.determineDelimiter(genoFile, log));
+				markerNames = HashVec.loadFileToStringArray(genoFile, true, new int[] {0}, false, false,
+																										Files.determineDelimiter(genoFile, log));
 			}
 			log.report("Writing map to file");
 			try {
@@ -335,7 +335,7 @@ public class ChargeS {
 		}
 		if (Files.exists(genoFile + ".ser")) {
 			System.out.println("Loading serialized version: " + genoFile + ".ser");
-			gens = GenotypeMatrix.load(genoFile + ".ser", false);
+			gens = GenotypeMatrix.load(genoFile + ".ser");
 		} else {
 			System.out.println("Loading: " + genoFile);
 			gens = new GenotypeMatrix(genoFile, null, genoFile + ".burdenInfo", log);
@@ -496,7 +496,7 @@ public class ChargeS {
 																									Files.determineDelimiter(dir + annotationFile,
 																																					 log)
 																											 .equals(","),
-																									"\t", true, false, false);
+																									"\t", true, false);
 
 		ids = null;
 		chr = 1;
@@ -620,7 +620,7 @@ public class ChargeS {
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
 																										annotationFile.endsWith(".csv"), "\t", true,
-																										false, false);
+																										false);
 			log.report("Getting keys");
 			keys = HashVec.getKeys(annotationHash, false);
 			log.report("Removing quotes");
@@ -631,8 +631,8 @@ public class ChargeS {
 			}
 			log.report("Reading marker names required");
 
-			markerNames = HashVec.loadFileToStringArray(genoFile, false, true, new int[] {0, 1}, false,
-																									false, Files.determineDelimiter(genoFile, log));
+			markerNames = HashVec.loadFileToStringArray(genoFile, true, new int[] {0, 1}, false, false,
+																									Files.determineDelimiter(genoFile, log));
 			for (int i = 0; i < markerNames.length; i++) {
 				markerNames[i] = "chr" + ext.replaceAllWith(markerNames[i], "\t", ":");
 			}
@@ -662,7 +662,7 @@ public class ChargeS {
 		}
 		if (Files.exists(genoFile + ".ser")) {
 			System.out.println("Loading serialized version: " + genoFile + ".ser");
-			gens = GenotypeMatrix.load(genoFile + ".ser", false);
+			gens = GenotypeMatrix.load(genoFile + ".ser");
 		} else {
 			System.out.println("Loading: " + genoFile);
 			gens = new GenotypeMatrix(genoFile, null, genoFile + ".burdenInfo", log);

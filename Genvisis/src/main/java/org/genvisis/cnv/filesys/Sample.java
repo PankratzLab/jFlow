@@ -683,8 +683,7 @@ public class Sample implements Serializable {
 
 		// centroids = Centroids.load(proj.getFilename(proj.CUSTOM_CENTROIDS_FILENAME),
 		// proj.getJarStatus());
-		centroids = Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-															 proj.JAR_STATUS.getValue());
+		centroids = Centroids.load(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
 		if (centroids.getFingerprint() != getFingerprint()) {
 			System.err.println("Error - mismatched fingerprint for " + sampleName);
 		}
@@ -899,12 +898,12 @@ public class Sample implements Serializable {
 		// (time/60000) + " min " + ((time%60000)/1000) + " sec");
 	}
 
-	public static Sample loadFromSerialized(String filename, boolean jar) {
-		return (Sample) SerializedFiles.readSerial(filename, jar, true);
+	public static Sample loadFromSerialized(String filename) {
+		return (Sample) SerializedFiles.readSerial(filename, true);
 	}
 
-	public static Sample loadFromRandomAccessFile(String filename, boolean jar) {
-		return loadFromRandomAccessFile(filename, true, true, true, true, true, jar);
+	public static Sample loadFromRandomAccessFile(String filename) {
+		return loadFromRandomAccessFile(filename, true, true, true, true, true);
 	}
 
 	/**
@@ -913,7 +912,7 @@ public class Sample implements Serializable {
 	@SuppressWarnings("unchecked")
 	public static Sample loadFromRandomAccessFile(String filename, boolean loadGC, boolean loadXY,
 																								boolean loadBAF, boolean loadLRR,
-																								boolean loadAbOrForwardGenotypes, boolean jar) {
+																								boolean loadAbOrForwardGenotypes) {
 		Sample result = null;
 		int numMarkers;
 		RandomAccessFile file;
@@ -1254,7 +1253,7 @@ public class Sample implements Serializable {
 	}
 
 
-	public static byte getNullstatusFromRandomAccessFile(String filename, boolean jar) {
+	public static byte getNullstatusFromRandomAccessFile(String filename) {
 		byte nullStatusOfTheFile = Byte.MIN_VALUE;
 		RandomAccessFile sampleFile;
 
@@ -1511,7 +1510,7 @@ public class Sample implements Serializable {
 	}
 
 	public static void main(String[] args) {
-		Project proj = new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false);
+		Project proj = new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true));
 		String[] samples = proj.getSamples();
 		Sample samp = proj.getFullSampleFromRandomAccessFile(samples[0]);
 		samp.writeToFile(proj.getMarkerNames(), "F:/sampleOut.dat");

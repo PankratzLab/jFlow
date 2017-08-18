@@ -504,7 +504,7 @@ public class ConditionalAnalysisPipeline {
 					HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
 
 					// should only ever be one directory...
-					String[] factorDirs = Files.listDirectories(studyDir, false);
+					String[] factorDirs = Files.listDirectories(studyDir);
 					for (String factorDir : factorDirs) {
 						String dir = studyDir + factorDir + "/";
 						String file = null;
@@ -755,7 +755,7 @@ public class ConditionalAnalysisPipeline {
 
 
 	private static Region[] parseSetupFile(String file) {
-		String[][] rgnDefs = HashVec.loadFileToStringMatrix(file, false, new int[] {0, 1, 2}, false);
+		String[][] rgnDefs = HashVec.loadFileToStringMatrix(file, false, new int[] {0, 1, 2});
 		Region[] rgns = new Region[rgnDefs.length];
 		for (int i = 0; i < rgnDefs.length; i++) {
 			Region rgn = new Region();
@@ -999,7 +999,7 @@ public class ConditionalAnalysisPipeline {
 			headerMap.put(study, factorMap);
 			String iterPath = ext.verifyDirFormat(region.analysisRootDir + iterDirs[0]);
 			String iterStudyDir = iterPath + study + "/";
-			String[] factorDirs = Files.listDirectories(iterStudyDir, false);
+			String[] factorDirs = Files.listDirectories(iterStudyDir);
 			for (String factorDir : factorDirs) {
 				StringBuilder hdr1SB = new StringBuilder(study).append("\t").append(factorDir)
 																											 .append("\t\t\tMeta\tMeta\tMeta");
@@ -1027,7 +1027,7 @@ public class ConditionalAnalysisPipeline {
 				String iterMarker = iterDirs[i].split("_")[2];
 				String iterPath = ext.verifyDirFormat(region.analysisRootDir + iterDirs[i]);
 				String iterStudyDir = iterPath + study + "/";
-				String[] factorDirs = Files.listDirectories(iterStudyDir, false);
+				String[] factorDirs = Files.listDirectories(iterStudyDir);
 
 				for (String factorDir : factorDirs) {
 					ArrayList<StringBuilder> iterSBs = resultsMap.get(study).get(factorDir);
@@ -1099,7 +1099,7 @@ public class ConditionalAnalysisPipeline {
 		for (String study : dataDefs.keySet()) {
 			String iterPath = ext.verifyDirFormat(region.analysisRootDir + iterDirs[0]);
 			String iterStudyDir = iterPath + study + "/";
-			String[] factorDirs = Files.listDirectories(iterStudyDir, false);
+			String[] factorDirs = Files.listDirectories(iterStudyDir);
 			for (String factorDir : factorDirs) {
 				PrintWriter writer = Files.getAppropriateWriter(region.analysisRootDir + "/" + region.label
 																												+ "_" + study + "_" + factorDir
@@ -1154,7 +1154,7 @@ public class ConditionalAnalysisPipeline {
 				HashMap<String, DataDefinitions> popDefs = dataDefs.get(study);
 
 				// should only ever be one directory...
-				String[] factorDirs = Files.listDirectories(iterStudyDir, false);
+				String[] factorDirs = Files.listDirectories(iterStudyDir);
 				for (String factorDir : factorDirs) {
 					String dir = iterStudyDir + factorDir + "/";
 					String file = null;
@@ -1178,7 +1178,7 @@ public class ConditionalAnalysisPipeline {
 
 						int[] indices = ext.indexFactors(factors, Files.getHeaderOfFile(dir + file, null),
 																						 false, true, false, false);
-						String[][] fileData = HashVec.loadFileToStringMatrix(dir + file, true, indices, false);
+						String[][] fileData = HashVec.loadFileToStringMatrix(dir + file, true, indices);
 
 						HashMap<String, StringBuilder> markerResultsMap = factorResultsMap.get(factorDir);
 						if (markerResultsMap == null) {

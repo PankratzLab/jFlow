@@ -1657,13 +1657,13 @@ public class Metal {
 		time = new Date().getTime();
 		log.report(ext.getTime() + "\tLoading " + filenames[0], false, true);
 		hash1 = HashVec.loadFileToHashString(filenames[0], indices[0][0], indices[0][1], false, "\t",
-																				 true, false, false);
+																				 true, false);
 		log.report("Finished loading " + hash1.size() + " markers in " + ext.getTimeElapsed(time));
 
 		time = new Date().getTime();
 		log.report(ext.getTime() + "\tLoading " + filenames[1], false, true);
 		hash2 = HashVec.loadFileToHashString(filenames[1], indices[1][0], indices[1][1], false, "\t",
-																				 true, false, false);
+																				 true, false);
 		log.report("Finished loading " + hash2.size() + " markers in " + ext.getTimeElapsed(time));
 
 		log.report(ext.getTime() + "\tParsing markers");

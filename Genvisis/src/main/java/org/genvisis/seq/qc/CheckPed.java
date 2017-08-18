@@ -92,7 +92,7 @@ public class CheckPed {
 				sexDict = HashVec.loadFileToHashString(sexCheck, new int[] {0},
 																							 new int[] {ext.indexOfStr("Sex",
 																																				 SexChecks.SEX_HEADER)},
-																							 false, "\t", true, false, true);
+																							 false, "\t", true, true);
 			} else {
 				if (sexCheck != null) {
 					log.reportError("Sex check file: " + sexCheck + " is not valid.");
@@ -797,7 +797,7 @@ public class CheckPed {
 		Double minRel = c.getD(relatedThresh);
 
 		if (c.has(CLI.ARG_PROJ)) {
-			validate(new Project(c.get(CLI.ARG_PROJ), false), genomePath, sexPath, minRel);
+			validate(new Project(c.get(CLI.ARG_PROJ)), genomePath, sexPath, minRel);
 		} else {
 			validate(c.get(pedigree), genomePath, sexPath, minRel, new Logger("checkPed.log"), "");
 		}

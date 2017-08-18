@@ -31,7 +31,7 @@ public class GEO_expression {
 		int index, count;
 		Hashtable<String, String> hash;
 
-		files = Files.list(".", ".txt", false);
+		files = Files.list(".", ".txt");
 		targets = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
 		try {
 			names = HashVec.loadFileToStringArray(filename, false, new int[] {1}, false);
@@ -112,7 +112,7 @@ public class GEO_expression {
 		String[] line;
 		double[][] resids;
 
-		data = HashVec.loadFileToStringMatrix(filename, false, null, false);
+		data = HashVec.loadFileToStringMatrix(filename, false, null);
 		indeps = ArrayUtils.toDoubleArray(ArrayUtils.subArray(Matrix.extractColumn(data, 2), 2));
 		resids = new double[data[0].length - 3][];
 		for (int i = 3; i < data[0].length; i++) {
@@ -202,14 +202,14 @@ public class GEO_expression {
 		String[] line, files, contents;
 		String dest;
 
-		files = Files.list(dir, ".gz", false);
+		files = Files.list(dir, ".gz");
 		dest = dir + "unzipped/";
 		new File(dest).mkdirs();
 		try {
 			writer = Files.openAppropriateWriter(dir + "list.xln");
 			for (String file : files) {
 				Zip.unzipFile(dir + file, dir);
-				contents = Files.list(dir, ".txt", false);
+				contents = Files.list(dir, ".txt");
 				writer.print(file);
 				for (String content : contents) {
 					try {

@@ -292,7 +292,7 @@ public class Zip {
 		}
 
 		new File(dirout).mkdirs();
-		files = Files.list(dirin, null, false);
+		files = Files.list(dirin, null);
 		if (numThreads > 1) {
 			GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
 			WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads, log);
@@ -394,7 +394,7 @@ public class Zip {
 		boolean retainOriginalTimestamp = true;
 
 		// get all files in the directory, excluding the crf itself and its corresponding log
-		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false, false);
+		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false);
 		files = ArrayUtils.addStrToArray("# Output directory (i.e., sometimes more efficient if on a different drive); default is the same directory as the original file",
 																		 files, 0);
 		files = ArrayUtils.addStrToArray("outputDirectory=", files, 1);

@@ -795,7 +795,7 @@ public class CNVBeast {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, logfile, false);
+			Project proj = new Project(filename, logfile);
 			analyze(proj, fullPathToBeastExe, overWriteExistingFiles, analysisDirectory, outputCNVFile,
 							samplesToAnalyzeFile, gcCorrect, numThreads);
 		} catch (Exception e) {

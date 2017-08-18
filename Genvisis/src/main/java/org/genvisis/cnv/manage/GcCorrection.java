@@ -267,7 +267,7 @@ public class GcCorrection {
 																					".gc_corrected");
 		Files.copyFileUsingFileChannels(projOriginal.PROJECT_PROPERTIES_FILENAME.getValue(),
 																		newProjectFile, projOriginal.getLog());
-		Project projCorrected = new Project(newProjectFile, false);
+		Project projCorrected = new Project(newProjectFile);
 		String newDir = projOriginal.PROJECT_DIRECTORY.getValue() + "gc_corrected/";
 		projOriginal.getLog().reportTimeInfo("Preparing project " + newProjectFile + " in " + newDir);
 		new File(newDir).mkdirs();
@@ -331,7 +331,7 @@ public class GcCorrection {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			proj.PROJECT_PROPERTIES_FILENAME.setValue(filename);
 			if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
 				String gcBase = Files.exists("N:/statgen/NCBI/hg19.gc5Base.txt.gz") ? "N:/statgen/NCBI/hg19.gc5Base.txt.gz"

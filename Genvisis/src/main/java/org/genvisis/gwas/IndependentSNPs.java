@@ -123,7 +123,7 @@ public class IndependentSNPs {
 
 		log.report("Reading results file: " + filename, false, true);
 		time = new Date().getTime();
-		results = ResultSet.load(dir + filename + ".rset", false, false);
+		results = ResultSet.load(dir + filename + ".rset", false);
 		log.report("...finished in " + ext.getTimeElapsed(time));
 
 		scores = new Hashtable<String, Float>();
@@ -134,7 +134,7 @@ public class IndependentSNPs {
 				dirs[j] = ext.verifyDirFormat(dirs[j]);
 			}
 			for (int j = 0; j < dirs.length; j++) {
-				files = Files.list(dirs[j], ".csv", false);
+				files = Files.list(dirs[j], ".csv");
 				for (String file : files) {
 					try {
 						reader = new BufferedReader(new FileReader(dirs[j] + file));
@@ -666,7 +666,7 @@ public class IndependentSNPs {
 											 directoryOfIlluminaScores, param[0] + "", param[1], param[2],
 											 filteringDataset, forceBeforeFile, forceAfterFile, forceRegardlessFile, log);
 				data = HashVec.loadFileToStringMatrix(dir + param[0] + "_" + param[1] + "_" + param[2]
-																							+ "_tags.xln", false, new int[] {0, 1, 2, 3}, false);
+																							+ "_tags.xln", false, new int[] {0, 1, 2, 3});
 				keys = Sort.getSortedIndices(Matrix.extractColumn(data, 2));
 
 				bins = new int[7];

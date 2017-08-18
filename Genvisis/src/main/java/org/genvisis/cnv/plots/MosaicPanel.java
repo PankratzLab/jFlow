@@ -94,7 +94,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 		colorHash = new Hashtable<String, Byte>();
 		String mosaicColorFile = proj.MOSAIC_COLOR_CODES_FILENAME.getValue();
 		try {
-			reader = Files.getReader(mosaicColorFile, proj.JAR_STATUS.getValue(), true, false);
+			reader = Files.getReader(mosaicColorFile, true, false);
 			if (reader != null) {
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

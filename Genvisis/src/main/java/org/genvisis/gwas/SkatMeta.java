@@ -53,7 +53,7 @@ public class SkatMeta {
 		String root, commands, filename;
 		Vector<String> v, remaining;
 
-		files = Files.list("./", null, ".rdata", false, false);
+		files = Files.list("./", null, ".rdata", false);
 		log.report("There are " + files.length + " total .Rdata files");
 
 		dir = new File(dir).getAbsolutePath() + "/";
@@ -208,7 +208,7 @@ public class SkatMeta {
 
 		log = new Logger(dir + "splitAll.log");
 		new File(dir + "batchSplits/").mkdir();
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -391,7 +391,7 @@ public class SkatMeta {
 		}
 
 		log = new Logger(dir + "consolidateAll.log");
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -507,7 +507,7 @@ public class SkatMeta {
 		runningByChr = maps.runningByChr();
 		snpInfoFile = maps.getSnpInfoFilename();
 
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		maxChr = getMaxChr();

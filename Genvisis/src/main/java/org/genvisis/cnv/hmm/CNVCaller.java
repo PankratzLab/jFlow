@@ -1172,7 +1172,7 @@ public class CNVCaller {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			boolean[] markersToUse = null;
 			if (excludeFile != null && !"".equals(excludeFile)) {
 				markersToUse = loadMarkersToUse(proj, excludeFile);
@@ -1202,10 +1202,8 @@ public class CNVCaller {
 					if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
 							&& Files.exists(proj.SEX_CENTROIDS_MALE_FILENAME.getValue())) {
 						sexCents = new Centroids[] {
-																				Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue(),
-																											 proj.JAR_STATUS.getValue()),
-																				Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue(),
-																											 proj.JAR_STATUS.getValue())};
+																				Centroids.load(proj.SEX_CENTROIDS_MALE_FILENAME.getValue()),
+																				Centroids.load(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())};
 					}
 				}
 				callGenomeCnvs(proj, output, sexCents, markersToUse, minNumMarkers,

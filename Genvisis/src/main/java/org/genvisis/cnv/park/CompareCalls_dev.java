@@ -300,7 +300,7 @@ public class CompareCalls_dev {
 		int nochange = 0;
 		int totalCount = 0;
 		int newCalls = 0;
-		fileCNVs = CNVariant.loadPlinkFile(cnvfile, false);
+		fileCNVs = CNVariant.loadPlinkFile(cnvfile);
 		inds = toStringArray(getIDList(fileCNVs));
 		allIndCNVs = getindCNVsfromFile(fileCNVs);
 		Hashtable<Byte, List<Integer>> markers = getMarkerLookup(rootDir, markerFile);
@@ -774,7 +774,7 @@ public class CompareCalls_dev {
 	private static CNVariant[][] getFileCNVs(String[] files) {
 		CNVariant[][] fileCNVs = new CNVariant[files.length][];
 		for (int i = 0; i < files.length; i++) {
-			fileCNVs[i] = CNVariant.loadPlinkFile(files[i], false);
+			fileCNVs[i] = CNVariant.loadPlinkFile(files[i]);
 		}
 		return fileCNVs;
 	}

@@ -461,7 +461,7 @@ public class GcAdjustorParameter implements Serializable {
 		if (centroidFiles != null) {
 			centroids = new Centroids[centroidFiles.length];
 			for (int i = 0; i < centroids.length; i++) {
-				centroids[i] = Centroids.load(centroidFiles[i], false);
+				centroids[i] = Centroids.load(centroidFiles[i]);
 			}
 		}
 		String[] samples = proj.getSamples();

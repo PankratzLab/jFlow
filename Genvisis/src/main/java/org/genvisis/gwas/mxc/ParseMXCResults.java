@@ -52,7 +52,7 @@ public class ParseMXCResults {
 																	line, true, false, false, false, log, false);
 
 
-		return HashVec.loadFileToStringMatrix(filename, omitHeader, cols, false);
+		return HashVec.loadFileToStringMatrix(filename, omitHeader, cols);
 	}
 
 	private static String[][] removeNAs(String[][] matrix, int[] cols) {
@@ -115,11 +115,11 @@ public class ParseMXCResults {
 																					line, false,
 																					true, false, false);
 
-		metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices, false);
+		metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices);
 
 		float bf = (float) 0.05 / metal.length;
 
-		String[][] positions = HashVec.loadFileToStringMatrix(posfile, false, null, false);
+		String[][] positions = HashVec.loadFileToStringMatrix(posfile, false, null);
 
 		String[] keys = Matrix.extractColumn(metal, 0);
 		String[][] results = null;
@@ -148,7 +148,7 @@ public class ParseMXCResults {
 			}
 		});
 
-		String[][] mxc = HashVec.loadFileToStringMatrix(mxcfile, false, null, false);
+		String[][] mxc = HashVec.loadFileToStringMatrix(mxcfile, false, null);
 
 		// get position ranges for genes
 		String[][] genePositions = loadGenes(genesFile, true, log);
@@ -354,7 +354,7 @@ public class ParseMXCResults {
 
 	private static void combine(String pattern, Logger log) {
 		String[] files = Files.list(ext.parseDirectoryOfFile(pattern), ext.rootOf(pattern), ".csv",
-																true, false, true);
+																true, true);
 
 		String[][] data, genes = null;
 		String[] header, keys;
@@ -369,7 +369,7 @@ public class ParseMXCResults {
 																						"numSug"},
 															header, false, false);
 
-			data = HashVec.loadFileToStringMatrix(s, false, cols, false);
+			data = HashVec.loadFileToStringMatrix(s, false, cols);
 			data[0] = new String[] {"Gene", "p_" + label, "beta_" + label, "sig_" + label,
 															"sugg_" + label};
 
@@ -378,7 +378,7 @@ public class ParseMXCResults {
 																								Aliases.POSITIONS},
 																header, false, true, false, false);
 
-				genes = HashVec.loadFileToStringMatrix(s, false, cols, false);
+				genes = HashVec.loadFileToStringMatrix(s, false, cols);
 				genes[0] = new String[] {"Gene", "Chr", "pos"};
 
 				// we want our keys to be the longest set of genes so far
@@ -428,7 +428,7 @@ public class ParseMXCResults {
 			System.exit(1);
 		}
 
-		String[][] indices = HashVec.loadFileToStringMatrix(indicesFile, true, cols, false);
+		String[][] indices = HashVec.loadFileToStringMatrix(indicesFile, true, cols);
 		indices = removeNAs(indices, new int[] {1, 2});
 		Arrays.sort(indices, new Comparator<String[]>() {
 			@Override
@@ -455,7 +455,7 @@ public class ParseMXCResults {
 			System.exit(1);
 		}
 
-		String[][] mxc = HashVec.loadFileToStringMatrix(mxcFile, true, cols, false);
+		String[][] mxc = HashVec.loadFileToStringMatrix(mxcFile, true, cols);
 		mxc = removeNAs(mxc, new int[] {1, 2});
 		Arrays.sort(mxc, new Comparator<String[]>() {
 			@Override

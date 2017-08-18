@@ -45,7 +45,7 @@ public class FilterVariantLists {
 			System.exit(1);
 		}
 
-		files = Files.list(dir, ".snplist", false);
+		files = Files.list(dir, ".snplist");
 		new File(dir + "filtered/").mkdirs();
 		for (String file : files) {
 			try {

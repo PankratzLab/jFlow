@@ -623,8 +623,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	}
 
-	public static MarkerDetailSet load(String filename, boolean jar) {
-		return (MarkerDetailSet) SerializedFiles.readSerial(filename, jar, false);
+	public static MarkerDetailSet load(String filename) {
+		return (MarkerDetailSet) SerializedFiles.readSerial(filename, false);
 	}
 
 	public void serialize(String filename) {

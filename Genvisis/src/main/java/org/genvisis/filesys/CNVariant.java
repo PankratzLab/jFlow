@@ -228,26 +228,25 @@ public class CNVariant extends Segment {
 		return array;
 	}
 
-	public static CNVariant[] loadPlinkFile(String filename, boolean jar) {
-		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true,
-																																							jar)));
+	public static CNVariant[] loadPlinkFile(String filename) {
+		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null, true)));
 	}
 
-	public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH, boolean jar) {
+	public static CNVariant[] loadPlinkFile(String filename, boolean includeLOH) {
 		return CNVariant.sortCNVsInPlace(CNVariant.toCNVariantArray(loadPlinkFile(filename, null,
-																																							includeLOH, jar)));
+																																							includeLOH)));
 	}
 
 	public static List<CNVariant> loadPlinkFile(String filename,
 																							Hashtable<String, String> sampleHash,
-																							boolean includeLOH, boolean jar) {
+																							boolean includeLOH) {
 		BufferedReader reader;
 		List<CNVariant> v = null;
 		String[] line;
 
 		v = new ArrayList<CNVariant>();
 		try {
-			reader = Files.getReader(filename, jar, true, true);
+			reader = Files.getReader(filename, true, true);
 
 			reader.mark(1000);
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -327,8 +326,8 @@ public class CNVariant extends Segment {
 		CNVariant[] list1, list2, consensus;
 		Vector<CNVariant> v = new Vector<CNVariant>();
 
-		list1 = loadPlinkFile(file1, false);
-		list2 = loadPlinkFile(file2, false);
+		list1 = loadPlinkFile(file1);
+		list2 = loadPlinkFile(file2);
 
 		for (CNVariant element : list1) {
 			for (CNVariant element2 : list2) {
@@ -392,8 +391,8 @@ public class CNVariant extends Segment {
 		HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
 		Vector<String> outputLines = new Vector<String>();
 
-		list1 = loadPlinkFile(file1, false);
-		list2 = loadPlinkFile(file2, false);
+		list1 = loadPlinkFile(file1);
+		list2 = loadPlinkFile(file2);
 
 		for (CNVariant element : list1) {
 			for (CNVariant element2 : list2) {
@@ -536,8 +535,8 @@ public class CNVariant extends Segment {
 		HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
 		Vector<String> outputLines = new Vector<String>();
 
-		list1 = loadPlinkFile(file1, false);
-		list2 = loadPlinkFile(file2, false);
+		list1 = loadPlinkFile(file1);
+		list2 = loadPlinkFile(file2);
 
 		for (CNVariant element : list1) {
 			for (CNVariant element2 : list2) {
@@ -712,7 +711,7 @@ public class CNVariant extends Segment {
 	}
 
 	public static LocusSet<CNVariant> loadLocSet(String cnvFile, Logger log) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 		LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log);
 		return cLocusSet;
 

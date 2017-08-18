@@ -92,9 +92,9 @@ public class StringLDdb implements Serializable {
 		SerializedFiles.writeSerial(this, root + ".slddb");
 	}
 
-	public static StringLDdb load(String root, boolean jar, boolean createIfAbsent) {
-		if (Files.exists(root + ".slddb", jar)) {
-			return (StringLDdb) SerializedFiles.readSerial(root + ".slddb", jar, false);
+	public static StringLDdb load(String root, boolean createIfAbsent) {
+		if (Files.exists(root + ".slddb")) {
+			return (StringLDdb) SerializedFiles.readSerial(root + ".slddb", false);
 		} else if (createIfAbsent) {
 			return new StringLDdb();
 		} else {

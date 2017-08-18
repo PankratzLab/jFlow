@@ -50,7 +50,7 @@ public final class MarkerStats {
 	}
 
 	private static void generateMarkerStats(String projectPath, String outName) {
-		Project proj = new Project(projectPath, false);
+		Project proj = new Project(projectPath);
 		String outFile = proj.PROJECT_DIRECTORY.getValue() + outName;
 		Map<String, Integer> markerIndices = proj.getMarkerIndices();
 		Logger log = proj.getLog();

@@ -460,7 +460,7 @@ public class PlinkExportOptions extends JDialog {
 																		Files.list(proj.DATA_DIRECTORY.getValue(false, true),
 																							 null,
 																							 ext.removeDirectoryInfo(proj.getProperty(proj.CLUSTER_FILTER_COLLECTION_FILENAME)),
-																							 false, proj.JAR_STATUS.getValue()));
+																							 false));
 	}
 
 	private String[] getTargetMarkersOptions() {

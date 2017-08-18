@@ -1372,7 +1372,7 @@ public class MosaicismQuant implements Calcfc {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			// test(proj);
 			quantMosaic(proj, bpWindow, numControls, numThreads);
 		} catch (Exception e) {

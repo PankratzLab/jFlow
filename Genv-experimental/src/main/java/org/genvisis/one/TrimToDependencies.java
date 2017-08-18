@@ -654,7 +654,7 @@ public class TrimToDependencies implements Serializable {
 		log = new Logger();
 		// log = new Logger("trimming.log", false);
 
-		filenames = Files.listAllFilesInTree(source_directory, false);
+		filenames = Files.listAllFilesInTree(source_directory);
 		fileBits = new FileInfo[filenames.length];
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].endsWith(".java")) {

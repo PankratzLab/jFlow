@@ -10,7 +10,7 @@ import org.genvisis.common.ext;
 public class DumpMito {
 
 	public static void main(String[] args) {
-		MarkerSetInfo markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser", false);
+		MarkerSetInfo markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser");
 		// int[][] indices = markerSet.getIndicesByChr();
 		String[] mitoCurrent = HashVec.loadFileToStringArray("/Users/Kitty/git/affySnp6/MT.119.txt",
 																												 false, new int[] {0}, true);

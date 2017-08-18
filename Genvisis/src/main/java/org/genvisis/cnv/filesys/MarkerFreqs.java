@@ -41,17 +41,17 @@ public class MarkerFreqs implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static MarkerFreqs load(String filename, boolean jar) {
+	public static MarkerFreqs load(String filename) {
 		if (Files.exists(filename)) {
-			return (MarkerFreqs) SerializedFiles.readSerial(filename, jar, true);
+			return (MarkerFreqs) SerializedFiles.readSerial(filename, true);
 		} else {
 			return null;
 		}
 	}
 
 	public static void exportToText(String filename, String mafFilename, String exportFilename) {
-		Project proj = new Project(filename, false);
-		MarkerFreqs markerMAF = load(proj.PROJECT_DIRECTORY.getValue() + mafFilename, false);
+		Project proj = new Project(filename);
+		MarkerFreqs markerMAF = load(proj.PROJECT_DIRECTORY.getValue() + mafFilename);
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		double[] mafs = markerMAF.getMafs();

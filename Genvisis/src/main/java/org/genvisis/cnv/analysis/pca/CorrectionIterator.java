@@ -182,8 +182,8 @@ public class CorrectionIterator implements Serializable {
 					valid = false;
 				} else {
 					log.reportTimeInfo("Loading model builders from " + samplesToBuildModels);
-					String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, false,
-																																new int[] {0}, false, true, "\t");
+					String[] sampsForMods = HashVec.loadFileToStringArray(samplesToBuildModels, false, new int[] {0},
+																																false, true, "\t");
 					log.reportTimeInfo("Loaded " + sampsForMods.length + " model builders from "
 														 + samplesToBuildModels);
 
@@ -1051,7 +1051,7 @@ public class CorrectionIterator implements Serializable {
 		}
 
 		String[] customPlotFiles = Files.list(proj.PROJECT_DIRECTORY.getValue(), null,
-																					".pc_evaluation.titles.txt", false, false, true);
+																					".pc_evaluation.titles.txt", false, true);
 
 		ArrayList<String[]> plotters = new ArrayList<String[]>();
 		for (String customPlotFile : customPlotFiles) {
@@ -1893,7 +1893,7 @@ public class CorrectionIterator implements Serializable {
 			System.exit(1);
 		}
 		try {
-			Project project = new Project(proj, false);
+			Project project = new Project(proj);
 
 			runAll(project, markers, samplesToBuildModels, defaultDir, pcFile, pedFile, lstype,
 						 recomputeLRR, pcPercent, true, numThreads);

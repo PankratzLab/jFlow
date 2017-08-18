@@ -275,7 +275,7 @@ public class DemoPackage {
 			System.exit(1);
 		}
 		try {
-			proj = new Project(filename, logfile, false);
+			proj = new Project(filename, logfile);
 
 			// guiAccess(proj);
 			generateDemoPackage(proj, demoDirectory, markersFile, samplesFile, numThreads,
@@ -302,8 +302,6 @@ public class DemoPackage {
 		Files.copyFile(proj.SAMPLE_DATA_FILENAME.getValue(),
 									 "demo/data/" + ext.removeDirectoryInfo(proj.SAMPLE_DATA_FILENAME.getValue()));
 
-		// proj.setJarStatus(true);
-		proj.JAR_STATUS.setValue(true);
 		proj.setProperty(proj.PROJECT_DIRECTORY, "demo/");
 		proj.setProperty(proj.SOURCE_DIRECTORY, "demo/");
 		proj.saveProperties("projects/" + ext.removeDirectoryInfo(proj.getPropertyFilename()));

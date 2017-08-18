@@ -89,7 +89,7 @@ public class Plink {
 
 		imiss = loadImissFile("plink.imiss");
 
-		inds = HashVec.loadFileToStringArray(root + ".fam", false, false, new int[] {0, 1, 5}, false);
+		inds = HashVec.loadFileToStringArray(root + ".fam", false, new int[] {0, 1, 5}, false);
 		filter = new Vector<String>();
 		count = 0;
 		for (String ind : inds) {
@@ -258,7 +258,7 @@ public class Plink {
 			return;
 		}
 
-		inds = HashVec.loadFileToStringArray(root + ".fam", false, false, new int[] {0, 1, 5}, false);
+		inds = HashVec.loadFileToStringArray(root + ".fam", false, new int[] {0, 1, 5}, false);
 		filter = new Vector<String>();
 		count = 0;
 		for (String ind : inds) {
@@ -332,7 +332,7 @@ public class Plink {
 
 		hash = HashVec.loadFileToHashString(ids,
 																				filterPairs ? new int[] {0, 1, 2, 3} : new int[] {0, 1},
-																				null, false, "\t", false, false, false);
+																				null, false, "\t", false, false);
 
 		try {
 			reader = new BufferedReader(new FileReader(genomeFile));
@@ -373,7 +373,7 @@ public class Plink {
 	public static void removeIndividuals(String genomeFile, String ids) {
 		String[] line;
 		Hashtable<String, String> hash = HashVec.loadFileToHashString(ids, new int[] {0, 1}, null,
-																																	false, "\t", false, false, false);
+																																	false, "\t", false, false);
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(genomeFile));
 			PrintWriter writer = Files.openAppropriateWriter(genomeFile + "_" + ext.rootOf(ids));
@@ -423,21 +423,21 @@ public class Plink {
 		if (iMissFile == null) {
 			log.report("Warning - no .imiss file specified, indiviudals will not be preferentially selected based on call rate");
 			callrates = new Hashtable<String, String>();
-		} else if (!Files.exists(iMissFile, false)) {
+		} else if (!Files.exists(iMissFile)) {
 			log.reportError("Error - specified .imiss file missing , indiviudals will not be preferentially selected based on call rate");
 			callrates = new Hashtable<String, String>();
 		} else {
 			ext.checkHeader(Files.getHeaderOfFile(iMissFile, PSF.Regex.GREEDY_WHITESPACE, log),
 											IMISS_HEADER, true);
 			callrates = HashVec.loadFileToHashString(iMissFile, new int[] {0, 1}, new int[] {5}, false,
-																							 "\t", false, false, false);
+																							 "\t", false, false);
 			log.report("Successfully loaded '" + iMissFile + "'");
 		}
 
 		if (lrrFile == null) {
 			log.report("Warning - no LRR_SD file specified, indiviudals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
-		} else if (!Files.exists(lrrFile, false)) {
+		} else if (!Files.exists(lrrFile)) {
 			log.reportError("Error - specified LRR_SD file (" + lrrFile
 											+ ") is missing, individuals will not be preferentially selected based on LRR_SD");
 			lrr_sds = new Hashtable<String, String>();
@@ -449,7 +449,7 @@ public class Plink {
 																						 false, log, true);
 			if (properHeader) {
 				lrr_sds = HashVec.loadFileToHashString(lrrFile, new int[] {0}, new int[] {2}, false, "\t",
-																							 false, false, false);
+																							 false, false);
 				log.report("Successfully loaded '" + lrrFile + "'");
 			} else {
 				log.reportError("Error - specified LRR_SD file has an improper header (looking for \"SAMPLE\" and \"LRR_SD\" as the first two columns of file.");
@@ -461,14 +461,14 @@ public class Plink {
 		if (famFile == null) {
 			log.report("Warning - no .fam SD file specified, assuming .genome file is complete");
 			in = new Hashtable<String, String>();
-		} else if (!Files.exists(famFile, false)) {
+		} else if (!Files.exists(famFile)) {
 			log.reportError("Error - specified .fam file (" + famFile
 											+ ") is missing, assuming .genome file is complete");
 			in = new Hashtable<String, String>();
 			famFile = null;
 		} else {
 			in = HashVec.loadFileToHashString(famFile, new int[] {0, 1}, new int[] {-7}, false, "\t",
-																				false, false, false);
+																				false, false);
 			log.report("Successfully loaded '" + famFile + "'");
 		}
 
@@ -712,9 +712,9 @@ public class Plink {
 		log.report("");
 
 
-		if (Files.exists("ofInterest.txt", false)) {
+		if (Files.exists("ofInterest.txt")) {
 			trav = HashVec.loadFileToHashString("ofInterest.txt", new int[] {0, 1}, new int[] {-7}, false,
-																					"\t", false, false, false);
+																					"\t", false, false);
 			log.report("Found file 'ofInterest.txt' with " + trav.size() + " records");
 			ids = HashVec.getKeys(trav, false);
 			counts = new int[3];
@@ -976,7 +976,7 @@ public class Plink {
 		// GenParser.parse(args, log);
 		new File(dir + "topHits.xln").delete();
 
-		models = Files.list(dir, ".assoc.linear", false);
+		models = Files.list(dir, ".assoc.linear");
 
 		hits = new Hits();
 		params = new String[models.length];

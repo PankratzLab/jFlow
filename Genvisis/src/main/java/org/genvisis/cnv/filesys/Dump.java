@@ -35,7 +35,7 @@ public class Dump {
 		PrintWriter writer;
 
 		try {
-			Sample samp = Sample.loadFromRandomAccessFile(filename, false);
+			Sample samp = Sample.loadFromRandomAccessFile(filename);
 			float[] gcs = samp.getGCs();
 			float[] xs = samp.getXs();
 			float[] ys = samp.getYs();
@@ -78,7 +78,7 @@ public class Dump {
 		PrintWriter writer;
 
 		try {
-			MarkerSetInfo set = MarkerSet.load(filename, false);
+			MarkerSetInfo set = MarkerSet.load(filename);
 			String[] markerNames = set.getMarkerNames();
 			byte[] chrs = set.getChrs();
 			int[] positions = set.getPositions();

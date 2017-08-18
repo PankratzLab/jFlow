@@ -62,8 +62,8 @@ public class LibraryNGS implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static LibraryNGS load(String filename, boolean jar) {
-		return (LibraryNGS) SerializedFiles.readSerial(filename, jar, true);
+	public static LibraryNGS load(String filename) {
+		return (LibraryNGS) SerializedFiles.readSerial(filename, true);
 	}
 
 	public int[] indicesInLibrary(Segment segment) {
@@ -95,7 +95,7 @@ public class LibraryNGS implements Serializable {
 																	log);
 			libraryNGS.serialize(serLibrary);
 		} else {
-			libraryNGS = load(serLibrary, false);
+			libraryNGS = load(serLibrary);
 		}
 		return libraryNGS;
 	}
@@ -403,8 +403,8 @@ public class LibraryNGS implements Serializable {
 			SerializedFiles.writeSerial(this, filename);
 		}
 
-		public static LibraryReadDepthResults load(String filename, boolean jar) {
-			return (LibraryReadDepthResults) SerializedFiles.readSerial(filename, jar, true);
+		public static LibraryReadDepthResults load(String filename) {
+			return (LibraryReadDepthResults) SerializedFiles.readSerial(filename, true);
 		}
 
 		public int getTotalNumReads() {
@@ -506,8 +506,7 @@ public class LibraryNGS implements Serializable {
 		summaryResults.setTotalPercentCoveredAtDepth(new double[filterNGS.getReadDepthFilter().length]);
 		summaryResults.setTotalPercentGCAtDepth(new double[filterNGS.getReadDepthFilter().length]);
 		for (String libraryReadDepthResultFile : libraryReadDepthResultFiles) {
-			LibraryReadDepthResults curReadDepthResults = LibraryReadDepthResults.load(libraryReadDepthResultFile,
-																																								 false);
+			LibraryReadDepthResults curReadDepthResults = LibraryReadDepthResults.load(libraryReadDepthResultFile);
 			for (int j = 0; j < summaryResults.getTargetReadDepthResults().length; j++) {
 				if (summaryResults.getTargetReadDepthResults()[j] == null) {
 					summaryResults.getTargetReadDepthResults()[j] = new TargetReadDepthResults(0,

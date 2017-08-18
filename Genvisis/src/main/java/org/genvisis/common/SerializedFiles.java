@@ -35,8 +35,16 @@ public class SerializedFiles {
 		return readSerial(filename, false, new Logger(), true);
 	}
 
+	public static Object readSerial(String filename, boolean kill) {
+		return readSerial(filename, false, new Logger(), kill);
+	}
+
 	public static Object readSerial(String filename, boolean jar, boolean kill) {
 		return readSerial(filename, jar, new Logger(), kill);
+	}
+
+	public static Object readSerial(String filename, Logger log, boolean kill) {
+		return readSerial(filename, false, log, kill, filename.endsWith(".gz"));
 	}
 
 	public static Object readSerial(String filename, boolean jar, Logger log, boolean kill) {

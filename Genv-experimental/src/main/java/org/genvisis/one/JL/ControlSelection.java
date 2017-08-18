@@ -54,8 +54,7 @@ public class ControlSelection {
 			// String phenoFile =
 			// "/Volumes/Beta/data/controlSelection/plink/centerPheno2.txt";
 
-			String[] phenoFiles = Files.listFullPaths("/Volumes/Beta/data/controlSelection/centerPhenos/", ".txt",
-					false);
+			String[] phenoFiles = Files.listFullPaths("/Volumes/Beta/data/controlSelection/centerPhenos/", ".txt");
 
 			for (String phenoFile : phenoFiles) {
 				String pheno = ext.rootOf(phenoFile);
@@ -70,12 +69,12 @@ public class ControlSelection {
 
 				//
 				Hashtable<String, String> have = HashVec.loadFileToHashString(mds, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 				Hashtable<String, String> keeps = HashVec.loadFileToHashString(keepSamples, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 
 				Hashtable<String, String> hash = HashVec.loadFileToHashString(phenoFile, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, false, true);
+						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
 
 				HashMap<String, ArrayList<String>> centers = new HashMap<>();
 				for (String sample : hash.keySet()) {

@@ -47,7 +47,7 @@ public class CytoAgilentParse {
 	 */
 	public static String[] parseCytoToGenvisis(Project proj, Logger log) {
 		String[] files = Files.list(proj.SOURCE_DIRECTORY.getValue(false, true),
-																proj.getProperty(proj.SOURCE_FILENAME_EXTENSION), false);
+																proj.getProperty(proj.SOURCE_FILENAME_EXTENSION));
 		if (files.length < 1) {
 			log.reportError("Error - did not find any files to parse, please make sure the filename extension is set in the project properties file "
 											+ proj.getPropertyFilename());
@@ -342,7 +342,7 @@ public class CytoAgilentParse {
 			System.exit(1);
 		}
 		Logger log = new Logger(logFile);
-		Project proj = new Project(filename, false);
+		Project proj = new Project(filename);
 		parseCytoToGenvisis(proj, log);
 	}
 }

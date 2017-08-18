@@ -676,7 +676,7 @@ public class SkatMeta2 {
 		String condFile;
 		String root;
 
-		Files.list(sourceRDataFilesDir, ".RData", false);
+		Files.list(sourceRDataFilesDir, ".RData");
 		phenoCondStratum = new String[3];
 		try {
 			temp1 = sourceRDataFilesDir.split("/");
@@ -719,7 +719,7 @@ public class SkatMeta2 {
 			new File(rScriptDir).mkdirs();
 		}
 
-		folders = Files.listDirectories(sourceRDataFilesDir, false);
+		folders = Files.listDirectories(sourceRDataFilesDir);
 		if (ext.indexOfStr("EAAA", folders) != -1) {
 			Sort.reverseSort(folders);
 		}
@@ -1650,7 +1650,7 @@ public class SkatMeta2 {
 			phenoAndCondition = phenoAndCondition.substring(0, phenoAndCondition.length() - 1);
 		}
 
-		files = Files.list(sourceRDataFilesDir, ".RData", false);
+		files = Files.list(sourceRDataFilesDir, ".RData");
 		rscript = ("library(seqMeta)\n" + "library(\"methods\")\n" + "temp <- load(\"" + snpInfoFile
 							 + "\")\n" + "SNPInfo <- get(temp)\n" + "rm(list=temp)\n" + "rm(temp)\n"
 							 // + "names(SNPInfo) <- c(\"Name\", names(SNPInfo)[2:length(SNPInfo)])\n"
@@ -1663,7 +1663,7 @@ public class SkatMeta2 {
 		}
 
 		condFile = "";
-		files = Files.list(condFileDir, ".txt", false);
+		files = Files.list(condFileDir, ".txt");
 		for (String file : files) {
 			count = 0;
 			temp2 = file.split("\\.")[0].split("_");
@@ -2290,9 +2290,9 @@ public class SkatMeta2 {
 		String[] result;
 		String[] folders;
 
-		folders = Files.listDirectories(dir, false);
+		folders = Files.listDirectories(dir);
 		if (folders == null || folders.length < 1) {
-			return Files.list(dir, null, ".RData", false, false, true);
+			return Files.list(dir, null, ".RData", false, true);
 		} else {
 			result = new String[0];
 			for (String folder : folders) {
@@ -3876,7 +3876,7 @@ public class SkatMeta2 {
 			log = new Logger();
 		}
 
-		phenoGroups = groupFileNames(Files.list(resultsDir, null, ".csv", false, false),
+		phenoGroups = groupFileNames(Files.list(resultsDir, null, ".csv", false),
 																 columnIndeciesOfPhenoConditionEthnicAnalysis, log);
 		if (ethnics == null || ethnics.length < 1) {
 			ethnics = getEthnicList(phenoGroups, log);

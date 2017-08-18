@@ -178,7 +178,7 @@ public class Quantiles {
 	public static void developQuantiles(String fileName, int[] toQuantileColumns, int numQ,
 																			Logger log) {
 
-		String[][] toQ = HashVec.loadFileToStringMatrix(fileName, false, null, false);// sample,data
+		String[][] toQ = HashVec.loadFileToStringMatrix(fileName, false, null);// sample,data
 		double[][] qData = new double[toQuantileColumns.length][toQ.length];
 		for (int i = 0; i < toQ.length; i++) {// for sample
 			for (int j = 0; j < toQuantileColumns.length; j++) {// for type

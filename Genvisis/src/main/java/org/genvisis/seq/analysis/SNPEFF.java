@@ -74,7 +74,7 @@ public class SNPEFF {
 
 	public boolean runSnpEffCountOnBamDirectory(String inputDirectory, String output, String build,
 																							String match, String bedFile, int numThreads) {
-		String[] inputBams = Files.toFullPaths(Files.list(inputDirectory, match, false),
+		String[] inputBams = Files.toFullPaths(Files.list(inputDirectory, match),
 																					 inputDirectory);
 		if (inputBams != null && inputBams.length > 0) {
 			return runSnpEFFCount(inputBams, output, build, bedFile, numThreads);

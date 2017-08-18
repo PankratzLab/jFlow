@@ -237,7 +237,7 @@ public class VCFImporter {
 		new File(newProjectDir).mkdirs();
 		String newProjectFile = ext.addToRoot(proj.getPropertyFilename(), type + "");
 		Files.copyFile(proj.getPropertyFilename(), newProjectFile);
-		Project projNorm = new Project(newProjectFile, false);
+		Project projNorm = new Project(newProjectFile);
 
 		// TODO uncomment
 		// projNorm.setProperty(Project.PROJECT_NAME, projNorm.getProperty(Project.PROJECT_NAME) + type
@@ -393,7 +393,7 @@ public class VCFImporter {
 
 		String newProjectFile = ext.addToRoot(proj.getPropertyFilename(), type + "");
 		Files.copyFile(proj.getPropertyFilename(), newProjectFile);
-		Project projNorm = new Project(newProjectFile, false);
+		Project projNorm = new Project(newProjectFile);
 		projNorm.PROJECT_NAME.setValue(projNorm.PROJECT_NAME.getValue() + type);
 		projNorm.PROJECT_DIRECTORY.setValue(newProjectDir + type);
 		projNorm.saveProperties();
@@ -537,7 +537,7 @@ public class VCFImporter {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			test(proj, vcf, gc5Base, PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED, numRounds, 1);
 			// test2(proj, vcf, numRounds, numThreads, numDecompressThreads);
 		} catch (Exception e) {

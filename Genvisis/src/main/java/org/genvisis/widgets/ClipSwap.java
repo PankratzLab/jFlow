@@ -293,7 +293,7 @@ public class ClipSwap {
 			return false;
 		}
 
-		keys = SerialStringArray.load("savedKeysForLookup.ser", false).getArray();
+		keys = SerialStringArray.load("savedKeysForLookup.ser").getArray();
 		if (new Date().getTime() - time > 1 * 1000) { // report if it took more than a second
 			log.report("Loaded serialized keys in " + ext.getTimeElapsed(time));
 		}

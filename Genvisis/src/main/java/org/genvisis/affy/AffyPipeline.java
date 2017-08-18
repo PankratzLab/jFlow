@@ -237,7 +237,7 @@ public class AffyPipeline {
 		probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
 		String tmpMarkerSet = outDir + analysisName + "tmpMarkerSet.ser";
 		Markers.orderMarkers(null, markerPositionFile, tmpMarkerSet, log);
-		MarkerSetInfo markerSet = MarkerSet.load(tmpMarkerSet, false);
+		MarkerSetInfo markerSet = MarkerSet.load(tmpMarkerSet);
 		String[] names = markerSet.getMarkerNames();
 
 		HashMap<String, String> track = new HashMap<String, String>();
@@ -453,7 +453,7 @@ public class AffyPipeline {
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles;
 		if (Files.isDirectory(cels)) {
-			celFiles = Files.list(cels, null, ".cel", false, false, true);
+			celFiles = Files.list(cels, null, ".cel", false, true);
 		} else {
 			celFiles = HashVec.loadFileToStringArray(cels, false, new int[] {0}, true);
 		}
@@ -516,7 +516,7 @@ public class AffyPipeline {
 
 					String projectFile = outDir + analysisName + ".properties";
 					Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
-					Project proj = new Project(projectFile, false);
+					Project proj = new Project(projectFile);
 					proj.PROJECT_NAME.setValue(analysisName);
 					proj.PROJECT_DIRECTORY.setValue(outDir);
 					proj.SOURCE_DIRECTORY.setValue(analysisName + "_00src");
@@ -546,7 +546,7 @@ public class AffyPipeline {
 						}
 						// proj.setSourceFileHeaders(proj.getSourceFileHeaders(true));
 						proj.saveProperties();
-						proj = new Project(projectFile, false);
+						proj = new Project(projectFile);
 						SourceFileParser.createFiles(proj, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
 						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(),

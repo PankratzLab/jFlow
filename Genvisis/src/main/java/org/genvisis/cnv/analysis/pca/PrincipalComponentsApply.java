@@ -325,7 +325,7 @@ public class PrincipalComponentsApply {
 																							 Logger log) {
 			ArrayList<MarkerLoadings> ml = new ArrayList<MarkerLoadings>();
 			try {
-				BufferedReader reader = Files.getReader(markerLoadingFile, false, true, false);
+				BufferedReader reader = Files.getReader(markerLoadingFile, true, false);
 				String[] line = reader.readLine().trim().split("\t");
 				int[] indices = ext.indexFactors(LOADING_FIRST, line, true, true);
 				if (indices == null || indices[0] != 0) {
@@ -396,7 +396,7 @@ public class PrincipalComponentsApply {
 		private void loadSingularValues() {
 			int numSingular = 0;
 			try {
-				BufferedReader reader = Files.getReader(singularFile, false, true, false);
+				BufferedReader reader = Files.getReader(singularFile, true, false);
 				String[] line = reader.readLine().trim().split("\t");
 				int[] indices = ext.indexFactors(line, SINGULAR_HEADER, true, false);
 				if (indices == null) {

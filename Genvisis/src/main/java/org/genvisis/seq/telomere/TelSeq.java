@@ -203,7 +203,7 @@ public class TelSeq {
 		result.add("BAM\t" + ArrayUtils.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
 		for (TelSeqResult telSeqResult : results) {
 			if (Files.exists(telSeqResult.output)) {
-				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null, false);
+				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null);
 				for (String[] element : data) {
 					result.add(ext.rootOf(telSeqResult.output) + "\t"
 										 + ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t"

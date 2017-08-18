@@ -657,7 +657,7 @@ public class CentroidCompute {
 
 	public static void main(String[] args) {
 		try {
-			Project proj = new Project(null, false);
+			Project proj = new Project(null);
 			// test(proj);
 			test2(proj);
 		} catch (Exception e) {

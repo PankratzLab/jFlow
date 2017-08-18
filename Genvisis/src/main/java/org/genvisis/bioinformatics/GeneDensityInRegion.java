@@ -27,8 +27,7 @@ public class GeneDensityInRegion {
 
 		// TODO not clear if this should be pulling from resources?
 		geneSet = GeneSet.load(Aliases.getPathToFileInReferenceDirectory(GeneSet.REFSEQ_DB, true,
-																																		 new Logger()),
-													 false);
+																																		 new Logger()));
 		genes = geneSet.getSet();
 		loc = Positions.parseUCSClocation(region);
 		regionAsGene = new GeneData("", new String[0], (byte) loc[0], true, (byte) 0, loc[1], loc[2],

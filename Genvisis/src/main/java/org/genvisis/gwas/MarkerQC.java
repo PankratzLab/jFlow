@@ -339,7 +339,7 @@ public class MarkerQC {
 		String reason, simpleReason;
 
 		try {
-			if (Files.exists(dir + params[0][1], false)) {
+			if (Files.exists(dir + params[0][1])) {
 				log.report("Using existing file: " + dir + params[0][1]);
 			} else {
 				log.report("Generating new source file: " + dir + params[0][1]);

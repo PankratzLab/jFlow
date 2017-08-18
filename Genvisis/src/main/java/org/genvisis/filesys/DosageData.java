@@ -260,7 +260,7 @@ public class DosageData implements Serializable {
 		// int numDigitsMin = parameters[12]; // unused
 		// int numDigitsMax = parameters[13]; // unused
 
-		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0, 1}, false);
+		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0, 1});
 		if (numDataCols == 1) {
 			dosageValues = new float[keepTotal][ids.length];
 		} else {
@@ -621,7 +621,7 @@ public class DosageData implements Serializable {
 																				new int[] {0, 1},
 																				Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length),
 																													 2, traits.length),
-																				false, "\t", true, false, false);
+																				false, "\t", true, false);
 		traits = ArrayUtils.subArray(traits, 2);
 
 		markerNames = markerSet.getMarkerNames();
@@ -831,16 +831,15 @@ public class DosageData implements Serializable {
 													Logger log) {
 		String[] markersToKeep = extractMarkers == null ? null
 																									 : HashVec.loadFileToStringArray(extractMarkers,
-																																									 false, false,
-																																									 new int[] {0},
-																																									 true, false,
-																																									 "\t");
+																																									 false, new int[] {0},
+																																									 true,
+																																									 false, "\t");
 		int[][] regions;
 		if (regionsFile == null) {
 			regions = null;
 		} else {
-			String[] rgns = HashVec.loadFileToStringArray(regionsFile, false, false, new int[] {0}, true,
-																										false, "\t");
+			String[] rgns = HashVec.loadFileToStringArray(regionsFile, false, new int[] {0}, true, false,
+																										"\t");
 			regions = new int[rgns.length][];
 			for (int i = 0; i < rgns.length; i++) {
 				regions[i] = Positions.parseUCSClocation(rgns[i]);
@@ -1768,13 +1767,13 @@ public class DosageData implements Serializable {
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
 		alleles = markerSet.getAlleles();
-		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0, 1}, false);
+		ids = HashVec.loadFileToStringMatrix(idFile, false, new int[] {0, 1});
 
 		if (extract == null) {
 			keeps = null;
 		} else {
-			markersToKeep = HashVec.loadFileToStringArray(extract, false, false, new int[] {0}, true,
-																										false, "\t");
+			markersToKeep = HashVec.loadFileToStringArray(extract, false, new int[] {0}, true, false,
+																										"\t");
 			keeps = HashVec.loadToHashSet(markersToKeep);
 			root = ext.rootOf(outfile, false);
 			markerSet = markerSet.trim(markersToKeep, true, false, log); // allows missing markers, but
@@ -2252,8 +2251,8 @@ public class DosageData implements Serializable {
 		}
 	}
 
-	public static DosageData load(String filename, boolean jar) {
-		return (DosageData) SerializedFiles.readSerial(filename, jar, true);
+	public static DosageData load(String filename) {
+		return (DosageData) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static DosageData loadPlinkBinary(String dir, int[][] regionsToKeep,
@@ -2262,7 +2261,7 @@ public class DosageData implements Serializable {
 		DosageData dd = new DosageData();
 
 		String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false,
-																												new int[] {0, 1, 2, 3, 4, 5}, false);
+																												new int[] {0, 1, 2, 3, 4, 5});
 		HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<String>();
 		if (markersToKeep != null) {
 			for (String s : markersToKeep) {
@@ -2298,7 +2297,7 @@ public class DosageData implements Serializable {
 
 
 		dd.ids = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".fam", false,
-																						new int[] {0, 1, 2, 3, 4, 5}, false);
+																						new int[] {0, 1, 2, 3, 4, 5});
 		int numMarkers = ArrayUtils.booleanArraySum(markersToInclude);// Files.countLines(dir +
 																																	// plinkRoot +
 		// ".bim", 0);
@@ -2421,9 +2420,9 @@ public class DosageData implements Serializable {
 
 		if (markersToUseFile != null && !"".equals(markersToUseFile)) {
 			if (Files.exists(markersToUseFile)) {
-				markers = HashVec.loadFileToStringArray(markersToUseFile, false, false, new int[] {0},
-																								true,
-																								false, "\t");
+				markers = HashVec.loadFileToStringArray(markersToUseFile, false, new int[] {0}, true,
+																								false,
+																								"\t");
 			}
 		} else {
 			log.reportError("Error - specified markers file: \"" + markersToUseFile
@@ -2438,9 +2437,9 @@ public class DosageData implements Serializable {
 
 		if (regionsToUseFile != null && !"".equals(regionsToUseFile)) {
 			if (Files.exists(regionsToUseFile)) {
-				String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, false,
-																											new int[] {0},
-																											true, false, "\t");
+				String[] rgns = HashVec.loadFileToStringArray(regionsToUseFile, false, new int[] {0},
+																											true,
+																											false, "\t");
 				regions = new int[rgns.length][];
 				for (int i = 0; i < rgns.length; i++) {
 					regions[i] = Positions.parseUCSClocation(rgns[i]);

@@ -38,8 +38,7 @@ public class ExomeDepthRun {
 		VcfPopulation vpop = null;
 		String[] allReferenceBamFiles = Files.isDirectory(bams)
 																													 ? Files.listFullPaths(bams,
-																																								 BamOps.BAM_EXT,
-																																								 false)
+																																								 BamOps.BAM_EXT)
 																													 : HashVec.loadFileToStringArray(bams,
 																																													 false,
 																																													 new int[] {0},
@@ -77,7 +76,7 @@ public class ExomeDepthRun {
 		new File(projectDir).mkdirs();
 		String projectFile = projectDir + outputRoot + ".properties";
 		Files.write("", projectFile);
-		Project proj = new Project(projectFile, false);
+		Project proj = new Project(projectFile);
 		proj.PROJECT_DIRECTORY.setValue(projectDir);
 		proj.saveProperties(projectFile);
 		generateMarkerPositions(proj, eDepthAnalysis[0], log);

@@ -50,8 +50,8 @@ public class SerialStringMatrix implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SerialStringMatrix load(String filename, boolean jar) {
-		return (SerialStringMatrix) SerializedFiles.readSerial(filename, jar, true);
+	public static SerialStringMatrix load(String filename) {
+		return (SerialStringMatrix) SerializedFiles.readSerial(filename, true);
 	}
 
 	public static void main(String[] args) {

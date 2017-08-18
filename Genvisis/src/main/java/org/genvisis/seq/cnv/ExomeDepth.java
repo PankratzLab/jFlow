@@ -566,8 +566,7 @@ public class ExomeDepth {
 																	 int numBatches, int numthreads, int wallTimeInHours,
 																	 int memoryInMb, Logger log) {
 		String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
-																																									BamOps.BAM_EXT,
-																																									false)
+																																									BamOps.BAM_EXT)
 																														: HashVec.loadFileToStringArray(bams,
 																																														false,
 																																														new int[] {0},

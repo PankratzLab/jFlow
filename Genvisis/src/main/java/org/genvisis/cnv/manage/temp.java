@@ -58,15 +58,15 @@ public class temp {
 
 		System.exit(1);
 
-		Files.list("", "", true);
+		Files.list("", "");
 
 		System.exit(1);
 
 		String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\data\\";
-		String[] peeps = HashVec.loadFileToStringArray(dir + "peeps.txt", false, false,
-																									 new int[] {0, 1}, true);
-		String[] cnvs = HashVec.loadFileToStringArray(dir + "parkin_introns.cnv", false, false,
-																									new int[] {2, 3, 4, 5, 6, 7}, true);
+		String[] peeps = HashVec.loadFileToStringArray(dir + "peeps.txt", false, new int[] {0, 1},
+																									 true);
+		String[] cnvs = HashVec.loadFileToStringArray(dir + "parkin_introns.cnv", false, new int[] {2, 3, 4, 5, 6, 7},
+																									true);
 
 		try {
 			writer = Files.openAppropriateWriter(dir + "real_introns.cnv");
@@ -149,7 +149,7 @@ public class temp {
 
 	public static void main(String[] args) throws IOException {
 		try {
-			yap(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true), false));
+			yap(new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true)));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -145,7 +145,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			if (fileChooser.isSelected()) {
 				startDir = fileChooser.getNavDir();
 				log.report(startDir);
-				workBenchFiles = Files.list(startDir, WORKBENCH_EXT, false);
+				workBenchFiles = Files.list(startDir, WORKBENCH_EXT);
 				checkFiles(workBenchFiles, WORKBENCH_EXT, true);
 				if (!errorFindingFromWorkBench()) {
 					// assign fileBoxes and update the panel to reflect found files
@@ -191,7 +191,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 	 * Currently we only allow .txt extenstions (SAMPLES_EXT)
 	 */
 	private boolean errorFindingFromWorkBench() {
-		String[] allFiles = Files.list(startDir, SAMPLES_EXT, false);
+		String[] allFiles = Files.list(startDir, SAMPLES_EXT);
 		boolean error = false;
 		ArrayList<String> tmpFile = new ArrayList<String>();
 		ArrayList<String> tmpName = new ArrayList<String>();
@@ -380,7 +380,7 @@ public class CytoPanel extends JPanel implements ActionListener {
 			CytoCNVariant.writeIndCNVariantFiles(CytoCNVariant.directToInds(workBenchFile, log), dir,
 																					 log);
 		}
-		String[] cnvsToCat = Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT, false), dir);
+		String[] cnvsToCat = Files.toFullPaths(Files.list(dir, CytoCNVariant.CNV_EXT), dir);
 		cnvsToCat = filterCNP(proj, cnvsToCat);
 		Files.cat(cnvsToCat, dir + FINAL_CNV, Files.CAT_KEEP_FIRST_HEADER, log);
 		if (!projectHasCNVFile(proj, CNV_DIR + FINAL_CNV, log)) {

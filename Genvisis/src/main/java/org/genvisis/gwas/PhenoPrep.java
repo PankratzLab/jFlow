@@ -567,7 +567,7 @@ public class PhenoPrep {
 		indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log, true,
 															 true);
 		hash = HashVec.loadFileToHashString(extras, new int[] {idIndex}, indices, commaDelimitedFile,
-																				"\t", true, false, false);
+																				"\t", true, false);
 
 		newFinalHeader = new String[finalHeader.length + indices.length];
 		for (int i = 0; i < finalHeader.length; i++) {
@@ -625,10 +625,10 @@ public class PhenoPrep {
 
 			if (pedFormat || fastFormat) {
 				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1, 2, 3, 4}, false,
-																						delimiter, false, false, false);
+																						delimiter, false, false);
 			} else {
 				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1}, false,
-																						delimiter, false, false, false);
+																						delimiter, false, false);
 			}
 			if (variablesAllInOneFile || fastFormat) {
 				try {
@@ -826,7 +826,7 @@ public class PhenoPrep {
 		List<String> params;
 		String[] files, vars;
 
-		files = Files.list("./", ".csv", false);
+		files = Files.list("./", ".csv");
 		if (files.length > 0) {
 			vars = Files.getHeaderOfFile(files[0], ",", null, log);
 		} else {
@@ -949,9 +949,8 @@ public class PhenoPrep {
 																	null, histogram, log);
 								}
 								if (Files.exists(dir + outFile)) {
-									rawData = HashVec.loadFileToStringArray(dir + outFile, false, true, new int[] {1},
-																													false, false,
-																													Files.determineDelimiter(dir + outFile,
+									rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1}, false,
+																													false, Files.determineDelimiter(dir + outFile,
 																																									 log));
 									rawData = ArrayUtils.removeFromArray(rawData, ext.MISSING_VALUES);
 									data = ArrayUtils.toDoubleArray(rawData);

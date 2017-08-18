@@ -363,7 +363,7 @@ public class BAFContamination {
 
 	public static void main(String[] args) {
 		// int numArgs = args.length;
-		Project proj = new Project(null, false);
+		Project proj = new Project(null);
 		test(proj, 4);
 	}
 

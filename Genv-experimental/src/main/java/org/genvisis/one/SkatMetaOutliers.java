@@ -139,8 +139,7 @@ public class SkatMetaOutliers {
 		// Array.subArray(Array.intArray(header.length), 1), false)));
 		phenoTmp = Matrix.toDoubleArrays(HashVec.loadFileToStringMatrix(phenoFilename, true,
 																																		ArrayUtils.subArray(ArrayUtils.arrayOfIndices(header.length),
-																																												1),
-																																		false));
+																																												1)));
 		pheno = new double[phenoTmp.length];
 		for (int i = 0; i < pheno.length; i++) {
 			pheno[i] = phenoTmp[i][0];

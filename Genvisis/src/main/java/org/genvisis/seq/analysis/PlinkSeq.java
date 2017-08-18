@@ -145,8 +145,7 @@ public class PlinkSeq implements Serializable {
 					init = loadData(pseqProject, LOAD_TYPES.PHENO, pseqProject.getPhenoFile());
 				}
 				if (init) {
-					String[] reqFiles = Files.listFullPaths(pseqProject.getResourceDirectory(), REQ_FILE,
-																									false);
+					String[] reqFiles = Files.listFullPaths(pseqProject.getResourceDirectory(), REQ_FILE);
 
 					if (init && loadReq && reqFiles != null && reqFiles.length > 0) {
 						log.reportTimeInfo("Found the following " + REQ_FILE

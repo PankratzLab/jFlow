@@ -737,7 +737,7 @@ public class SampleQC {
 			System.exit(1);
 		}
 		try {
-			Project proj = new Project(filename, false);
+			Project proj = new Project(filename);
 			parseAndAddToSampleData(proj, numQ, numPCs, justQuantiles, gcCorrectedLrrSd,
 															duplicatesSetFile, correctFidIids);
 		} catch (Exception e) {

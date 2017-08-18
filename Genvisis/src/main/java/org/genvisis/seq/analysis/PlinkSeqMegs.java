@@ -46,7 +46,7 @@ public class PlinkSeqMegs {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.CASE_CONTROL, log);
 		vpop.report();
 
-		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+		GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 
 		geneTrack.setGeneSetFilename(geneTrackFile);
 		Pathways pathways = Pathways.load(keggPathwayFile);
@@ -189,7 +189,7 @@ public class PlinkSeqMegs {
 		VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.CASE_CONTROL, log);
 		vpop.report();
 
-		GeneTrack geneTrack = GeneTrack.load(geneTrackFile, false);
+		GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 
 		geneTrack.setGeneSetFilename(geneTrackFile);
 		Pathways pathways = Pathways.load(keggPathwayFile);

@@ -58,7 +58,7 @@ public class Pipeline {
 
 	public Pipeline(String bamDir) {
 		this.bamDir = bamDir;
-		String[] bams = Files.list(bamDir, "", ".bam", true, false);
+		String[] bams = Files.list(bamDir, "", ".bam", true);
 		ids = Arrays.stream(bams).map(ext::rootOf).filter(id -> !id.contains("."))
 								.filter(id -> !id.contains("_")).collect(Collectors.toSet());
 	}

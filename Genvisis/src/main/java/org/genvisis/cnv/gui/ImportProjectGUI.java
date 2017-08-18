@@ -443,7 +443,7 @@ public class ImportProjectGUI extends JDialog {
 		}
 
 		String projDir = txtFldProjDir.getText().trim();
-		Project actualProj = new Project(filename, false);
+		Project actualProj = new Project(filename);
 		actualProj.PROJECT_NAME.setValue(name);
 		actualProj.PROJECT_DIRECTORY.setValue(projDir);
 

@@ -86,7 +86,7 @@ public class SeqMeta {
 		String root, commands, filename;
 		Vector<String> v, remaining;
 
-		files = Files.list("./", null, ".rdata", false, false);
+		files = Files.list("./", null, ".rdata", false);
 		log.report("There are " + files.length + " total .Rdata files");
 
 		dir = new File(dir).getAbsolutePath() + "/";
@@ -248,7 +248,7 @@ public class SeqMeta {
 
 		log = new Logger(dir + "splitAll.log");
 		new File(dir + "batchSplits/").mkdir();
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -431,7 +431,7 @@ public class SeqMeta {
 		}
 
 		log = new Logger(dir + "consolidateAll.log");
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 
 		phenotypes = maps.getPhenotypesWithFilenameAliases();
 		studies = maps.getStudies();
@@ -547,7 +547,7 @@ public class SeqMeta {
 		runningByChr = maps.runningByChr();
 		snpInfoFile = maps.getSnpInfoFilename();
 
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		maxChr = getMaxChr();
@@ -955,7 +955,7 @@ public class SeqMeta {
 		methods = maps.getMethods();
 
 		log = new Logger(dir + "parseAll.log");
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		dir = ext.verifyDirFormat(dir);
@@ -1034,7 +1034,7 @@ public class SeqMeta {
 		studies = maps.getStudies();
 		races = maps.getRacesWithFilenameAliases();
 		methods = maps.getMethods();
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 		sampleSizes = new String[races.length][studies.length][phenotypes.length];
 
@@ -1317,7 +1317,7 @@ public class SeqMeta {
 		races = maps.getRacesWithFilenameAliases();
 
 		log = new Logger(dir + "checkNs.log");
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		commands = new Vector<String>();
@@ -1507,7 +1507,7 @@ public class SeqMeta {
 			return;
 		}
 
-		files = Files.list(dir, ".Rdata", false);
+		files = Files.list(dir, ".Rdata");
 		finalSets = identifySet(maps, files, log);
 
 		for (int i = 0; i < phenotypes.length; i++) {
@@ -1747,7 +1747,7 @@ public class SeqMeta {
 
 
 		// match all rdata files to pheno/study/race
-		files = Files.list(dir, ".Rdata", false);
+		files = Files.list(dir, ".Rdata");
 		finalSets = identifySet(maps, files, log);
 
 		lineCounts = new Vector<String>();
@@ -2845,7 +2845,7 @@ public class SeqMeta {
 			return;
 		}
 
-		files = Files.list(dir, ".Rdata", false);
+		files = Files.list(dir, ".Rdata");
 		finalSets = identifySet(maps, files, log);
 		markersOfInterest = HashVec.loadFileToHashSet(betasFor, false);
 
@@ -2911,7 +2911,7 @@ public class SeqMeta {
 		}
 		dir = ext.verifyDirFormat(dir);
 
-		files = Files.list(dir, ".Rdata", false);
+		files = Files.list(dir, ".Rdata");
 		finalSets = identifySet(maps, files, new Logger());
 		new File(dir + "mockRdata/").mkdirs();
 		for (int i = 0; i < finalSets.length; i++) {
@@ -3026,7 +3026,7 @@ public class SeqMeta {
 
 		dir = ext.verifyDirFormat(dir);
 
-		files = Files.list(dir, ".Rdata", false);
+		files = Files.list(dir, ".Rdata");
 		log.setLevel(4);
 		finalSets = identifySet(maps, files, log);
 
@@ -3382,7 +3382,7 @@ public class SeqMeta {
 		studies = maps.getStudies();
 		races = maps.getRacesWithFilenameAliases();
 		methods = maps.getMethods();
-		files = Files.list(dir, null, ".Rdata", false, false);
+		files = Files.list(dir, null, ".Rdata", false);
 		finalSets = identifySet(maps, files, log);
 
 		method = null;
@@ -3404,7 +3404,7 @@ public class SeqMeta {
 			hashFilename = dir + phenotypes[i][0] + "/" + phenotypes[i][0] + "_mafs.ser";
 			if (Files.exists(hashFilename)) {
 				log.report("Reloading from " + hashFilename);
-				mafs = SerialFloatArray.load(hashFilename, false).getArray();
+				mafs = SerialFloatArray.load(hashFilename).getArray();
 			} else {
 				mafs = null;
 				for (int k = 0; k < races.length; k++) {
@@ -3877,7 +3877,7 @@ public class SeqMeta {
 		}
 
 		hash = HashVec.loadFileToHashString(forestMarkerList, new int[] {0}, null, false, null, false,
-																				false, false);
+																				false);
 
 		for (String group : groups) {
 			try {

@@ -353,8 +353,7 @@ public class MarkerDataLoader implements Runnable {
 				currentIndexBeingLoaded += currentDirection;
 			}
 			filename = markerLookup.get(markerNames[currentIndexBeingLoaded]).split("\t")[0];
-			if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename,
-												proj.JAR_STATUS.getValue())) {
+			if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename)) {
 				proj.message("Error - could not load data from '"
 										 + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + filename
 										 + "'; because the file could not be found");

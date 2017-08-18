@@ -29,7 +29,7 @@ public class ConvertToMDRformat {
 		Vector<String> markers;
 		int count;
 
-		markers = HashVec.loadFileToVec(dir + prefix + ".map", false, new int[] {1}, false, false);
+		markers = HashVec.loadFileToVec(dir + prefix + ".map", false, new int[] {1}, false);
 		for (int i = 0; i < markers.size(); i++) {
 			alleles.add(new Vector<String>());
 		}

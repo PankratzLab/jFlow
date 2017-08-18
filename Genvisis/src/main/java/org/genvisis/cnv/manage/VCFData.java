@@ -603,7 +603,7 @@ public final class VCFData {
 			System.err.println("");
 			return;
 		}
-		proj = new Project(projFile, false);
+		proj = new Project(projFile);
 		samp = cli.get(SAMP_ARG);
 		mark = cli.get(MARK_ARG);
 		split = Boolean.parseBoolean(cli.get(SPLIT_ARG));

@@ -14,7 +14,7 @@ import htsjdk.tribble.annotation.Strand;
 public final class CNVHelper {
 	
 	public static void generateRegionsFileFromCNVFile(String cnvFile) {
-		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile, false);
+		CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 		String outFile = ext.rootOf(cnvFile, false) + "_regions.txt";
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		

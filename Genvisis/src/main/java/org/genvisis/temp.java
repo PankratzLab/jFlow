@@ -77,8 +77,7 @@ public class temp {
 	public static void downloadAll(String filename, String dir) {
 		String[][] files;
 
-		files = HashVec.loadFileToStringMatrix(filename, false, new int[] {0, 1}, "\t", false, 1000,
-																					 false);
+		files = HashVec.loadFileToStringMatrix(filename, false, new int[] {0, 1}, "\t", 1000, false);
 
 		for (String[] file : files) {
 			Internat.downloadFile(file[0], dir + file[1]);
@@ -101,13 +100,12 @@ public class temp {
 		String[][] trios;
 		String commands;
 
-		trios = HashVec.loadFileToStringMatrix(infile, true, new int[] {4, 5, 6}, "\t", false, 100,
-																					 false);
+		trios = HashVec.loadFileToStringMatrix(infile, true, new int[] {4, 5, 6}, "\t", 100, false);
 		for (int i = 0; i < trios.length; i++) {
 			boolean fine = true;
 			for (int j = 0; j < 3; j++) {
 				// if (!Files.exists("D:/BOSS/TriosSamples/penn_data/"+trios[i][j], false)) {
-				if (!Files.exists("penn_data/" + trios[i][j], false)) {
+				if (!Files.exists("penn_data/" + trios[i][j])) {
 					// if (!Files.exists(trios[i][j], false)) {
 					trios[i][j] += "*";
 					fine = false;
@@ -257,7 +255,7 @@ public class temp {
 		dir = new File(".").getAbsolutePath();
 		dir = ext.verifyDirFormat(dir);
 
-		files = Files.list(dir, null, false);
+		files = Files.list(dir, null);
 		times = new long[files.length];
 		for (int i = 0; i < files.length; i++) {
 			times[i] = new File(dir + files[i]).lastModified();
@@ -358,7 +356,7 @@ public class temp {
 			System.out.println("Launching " + geneNames[i]);
 			geneNames[i] = geneNames[i].split(",")[0];
 			if (Files.exists(dir + geneNames[i])) {
-				batchFiles = Files.list(dir + geneNames[i], ".bat", false);
+				batchFiles = Files.list(dir + geneNames[i], ".bat");
 				for (String batchFile : batchFiles) {
 					try {
 						Runtime.getRuntime().exec(dir + geneNames[i] + "/" + batchFile);

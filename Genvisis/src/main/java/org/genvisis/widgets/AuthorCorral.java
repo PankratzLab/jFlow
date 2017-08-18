@@ -35,7 +35,7 @@ public class AuthorCorral {
 	 * Tab-Delimited Authorship file: [0] First [1] Middle [2] Last [3] Dept/Div/Inst [4] Institution [5] City, State, Country, Zip [6] E-mail [7+] contribution columns - title taken verbatim from column title
 	 */
 	public static void run(String inFile, String outFile, boolean rtfOutput, boolean printErr, boolean periodsAfterInitials) throws IOException {
-		BufferedReader inReader = Files.getReader(inFile, false, true, true);
+		BufferedReader inReader = Files.getReader(inFile, true, true);
 		String[] header = inReader.readLine().split("\t");
 
 		ArrayList<String> authorNamesOrder = new ArrayList<String>();

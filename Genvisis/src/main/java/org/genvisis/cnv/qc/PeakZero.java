@@ -155,7 +155,7 @@ public class PeakZero {
 
 		try {
 			if (check) {
-				checkDists(new Project(filename, false), "");
+				checkDists(new Project(filename), "");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

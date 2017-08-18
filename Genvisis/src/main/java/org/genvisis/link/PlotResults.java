@@ -153,7 +153,7 @@ public class PlotResults extends JFrame implements ActionListener {
 	private final Color[] colorScheme = DEFAULT_COLOR_SCHEME;
 
 	public PlotResults(String title, String[] dirs, double[][][][] newData, double[][][][] newInfo,
-										 String[][][][] newMarkerInfo, boolean jar) {
+										 String[][][][] newMarkerInfo) {
 		super(title == null ? "Linkage Plots" : title);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -619,7 +619,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		last.setEnabled(chr != NUM_CHR);
 	}
 
-	public static void loadResults(String dir, boolean jar) {
+	public static void loadResults(String dir) {
 		BufferedReader reader;
 		String[] line, dirs, files;
 		double[][][][] data, info;
@@ -637,7 +637,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		Dimension screenSize;
 		String title;
 
-		dirs = Files.listDirectories(dir, jar);
+		dirs = Files.listDirectories(dir);
 		screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		prog = new ProgressBarDialog("Loading results...", 0, dirs.length * 23, screenSize.width,
 																 screenSize.height, 0);
@@ -651,7 +651,7 @@ public class PlotResults extends JFrame implements ActionListener {
 		info = new double[dirs.length][NUM_CHR][][];
 		markerData = new String[dirs.length][NUM_CHR][][];
 		for (int i = 0; i < dirs.length; i++) {
-			files = Files.list(dir + dirs[i], "", jar);
+			files = Files.list(dir + dirs[i], "");
 			resultType = -1;
 			for (int j = 0; resultType < 0 && j < files.length; j++) {
 				for (int k = 0; resultType < 0 && k < RESULT_TYPES.length; k++) {
@@ -677,7 +677,7 @@ public class PlotResults extends JFrame implements ActionListener {
 					filename = ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][0], "\\d\\d",
 																				ext.chrome(chr));
 					try {
-						reader = Files.getReader(dir + dirs[i] + "/" + filename, jar, false, false);
+						reader = Files.getReader(dir + dirs[i] + "/" + filename, false, false);
 						if (reader == null) {
 							throw new FileNotFoundException(filename);
 						}
@@ -715,7 +715,7 @@ public class PlotResults extends JFrame implements ActionListener {
 					filename = ext.replaceAllWith(RESULT_TYPE_NAMES[resultType][1], "\\d\\d",
 																				ext.chrome(chr));
 					try {
-						reader = Files.getReader(dir + dirs[i] + "/" + filename, jar, false, false);
+						reader = Files.getReader(dir + dirs[i] + "/" + filename, false, false);
 						result = new Vector<double[]>();
 						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 														RESULT_TYPE_HEADERS[resultType][1], true);
@@ -749,10 +749,10 @@ public class PlotResults extends JFrame implements ActionListener {
 														 + ArrayUtils.toStr(infoIV.toArray(), ", "));
 				}
 
-				if (Files.exists(dir + dirs[i] + "/markerPositions.dat", jar)) {
+				if (Files.exists(dir + dirs[i] + "/markerPositions.dat")) {
 					hash = new Hashtable<String, Vector<String>>();
 					try {
-						reader = Files.getReader(dir + dirs[i] + "/markerPositions.dat", jar, true, false);
+						reader = Files.getReader(dir + dirs[i] + "/markerPositions.dat", true, false);
 						ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 														MARKER_POS_HEADER, true);
 						while (reader.ready()) {
@@ -796,13 +796,13 @@ public class PlotResults extends JFrame implements ActionListener {
 		}
 		prog.close();
 
-		if (Files.exists(dir + "title.txt", jar)) {
-			title = HashVec.loadFileToStringArray(dir + "title.txt", jar, false, new int[] {0}, true,
-																						false, "\t")[0];
+		if (Files.exists(dir + "title.txt")) {
+			title = HashVec.loadFileToStringArray(dir + "title.txt", false, new int[] {0}, true, false,
+																						"\t")[0];
 		} else {
 			title = null;
 		}
-		new PlotResults(title, dirs, data, info, markerData, jar);
+		new PlotResults(title, dirs, data, info, markerData);
 	}
 
 
@@ -824,8 +824,6 @@ public class PlotResults extends JFrame implements ActionListener {
 		// String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\BOSS\\Linkage\\results\\";
 		String dir = "D:/BOSS/Linkage/results/";
 		// String dir = "D:/BOSS/Linkage/PCA_all_files/results/";
-		String jar_dir = "results/";
-		boolean jar = false;
 
 		String usage = "\\n" + "link.PlotResults requires 0-1 arguments\n"
 									 + "   (0) directory (i.e. dir=" + dir + " (default))\n" + "";
@@ -838,7 +836,6 @@ public class PlotResults extends JFrame implements ActionListener {
 				dir = arg.split("=")[1];
 				numArgs--;
 			} else if (arg.startsWith("-notJar")) {
-				jar = false;
 				numArgs--;
 			}
 		}
@@ -847,7 +844,7 @@ public class PlotResults extends JFrame implements ActionListener {
 			System.exit(1);
 		}
 		try {
-			loadResults(jar ? jar_dir : dir, jar);
+			loadResults(dir);
 			// loadAllegroResults(dir, jar);
 		} catch (Exception e) {
 			e.printStackTrace();

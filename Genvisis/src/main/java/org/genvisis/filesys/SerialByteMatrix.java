@@ -20,7 +20,7 @@ public class SerialByteMatrix implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SerialByteMatrix load(String filename, boolean jar) {
-		return (SerialByteMatrix) SerializedFiles.readSerial(filename, jar, true);
+	public static SerialByteMatrix load(String filename) {
+		return (SerialByteMatrix) SerializedFiles.readSerial(filename, true);
 	}
 }

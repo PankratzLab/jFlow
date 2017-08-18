@@ -100,7 +100,7 @@ public class LrrSd extends Parallelizable {
 			if (centroidsFile == null) {
 				cents = null;
 			} else {
-				cents = Centroids.load(centroidsFile, false).getCentroids();
+				cents = Centroids.load(centroidsFile).getCentroids();
 			}
 
 			if (progMon != null) {
@@ -406,7 +406,7 @@ public class LrrSd extends Parallelizable {
 		Hashtable<String, String> subset = new Hashtable<String, String>();
 		if (useFile != null) {
 			if (Files.exists(useFile)) {
-				subset = HashVec.loadFileToHashString(useFile, 0, new int[] {0}, null, false, false);
+				subset = HashVec.loadFileToHashString(useFile, 0, new int[] {0}, null, false);
 				if (subset.size() == 0) {
 					log.reportError("Error - did not find any samples in the subset file " + useFile);
 					return null;
@@ -527,8 +527,7 @@ public class LrrSd extends Parallelizable {
 		numPassing = 0;
 		try {
 			PSF.checkInterrupted();
-			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true,
-																							false);
+			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false);
 			PrintWriter writerUse = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ outputBase + PCA.PCA_SAMPLES);
 			PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
@@ -629,8 +628,7 @@ public class LrrSd extends Parallelizable {
 		int count = 0;
 		int numPassing = 0;
 		try {
-			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), false, true,
-																							false);
+			BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false);
 			if (!reader.ready()) {
 				reader.close();
 				log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
@@ -971,7 +969,7 @@ public class LrrSd extends Parallelizable {
 		try {
 			// filename = "/home/npankrat/projects/GEDI.properties";
 			// filenameOfListOfSamples = "D:/data/GEDI/plate51.txt";
-			proj = new Project(filename, false);
+			proj = new Project(filename);
 			if (filter) {
 				proj.SAMPLE_CALLRATE_THRESHOLD.setValue(Double.parseDouble(sampleCallRateFilter));
 				filterSamples(proj, outputBase, markersForCallrateFile, markersForEverythingElseFile,

@@ -20,7 +20,7 @@ public class SerialDoubleArray implements Serializable {
 		SerializedFiles.writeSerial(this, filename);
 	}
 
-	public static SerialDoubleArray load(String filename, boolean jar) {
-		return (SerialDoubleArray) SerializedFiles.readSerial(filename, jar, true);
+	public static SerialDoubleArray load(String filename) {
+		return (SerialDoubleArray) SerializedFiles.readSerial(filename, true);
 	}
 }
