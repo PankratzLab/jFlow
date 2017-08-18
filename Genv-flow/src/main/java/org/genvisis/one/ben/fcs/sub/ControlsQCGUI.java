@@ -969,7 +969,7 @@ public class ControlsQCGUI extends JFrame {
 		private DataFile() {}
 
 		public static DataFile construct(String dataFile, Logger log) {
-			String[][] data = HashVec.loadFileToStringMatrix(dataFile, false, null, false);
+			String[][] data = HashVec.loadFileToStringMatrix(dataFile, false, null);
 
 			DataFile df = new DataFile();
 			df.fileName = dataFile;

@@ -606,7 +606,7 @@ public class FCSPlotControlPanel extends JPanel {
 		prevFCSDir = ext.parseDirectoryOfFile(files[0].trim());
 
 		for (String f : fileSet) {
-			String sz = Files.getSizeScaledString(f, false);
+			String sz = Files.getSizeScaledString(f);
 			String dt = "";
 			final DataControlPanel dcp = new DataControlPanel(f, sz, dt, dataListener);
 			dcp.addMouseListener(new MouseAdapter() {
