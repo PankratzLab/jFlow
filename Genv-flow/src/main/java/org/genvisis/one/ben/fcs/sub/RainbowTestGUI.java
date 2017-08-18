@@ -830,7 +830,7 @@ public class RainbowTestGUI extends JFrame {
 	@SuppressWarnings("unchecked")
 	private synchronized void loadCache() {
 		if (Files.exists(CACHE_FILE) && (new File(CACHE_FILE).length() > 0)) {
-			cache = (HashMap<String, CacheObject>) SerializedFiles.readSerial(CACHE_FILE, false, false);
+			cache = (HashMap<String, CacheObject>) SerializedFiles.readSerial(CACHE_FILE, false);
 		}
 		if (cache == null) {
 			cache = new HashMap<String, RainbowTestGUI.CacheObject>();

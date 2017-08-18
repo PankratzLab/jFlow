@@ -182,7 +182,7 @@ public class SamplingPipeline {
 			if (!f.startsWith(csvDir)) {
 				f = csvDir + f;
 			}
-			String[][] strData = HashVec.loadFileToStringMatrix(f, false, null, false);
+			String[][] strData = HashVec.loadFileToStringMatrix(f, false, null);
 			for (int i = 1; i < strData.length; i++) {
 				String[] line = strData[i];
 				if (!"sd".equalsIgnoreCase(line[0]) && !"mean".equalsIgnoreCase(line[0])) {
@@ -201,7 +201,7 @@ public class SamplingPipeline {
 			if (!f.startsWith(csvDir)) {
 				f = csvDir + f;
 			}
-			String[][] strData = HashVec.loadFileToStringMatrix(f, false, null, false);
+			String[][] strData = HashVec.loadFileToStringMatrix(f, false, null);
 			for (int i = 1; i < strData.length; i++) {
 				String[] line = strData[i];
 				if (!"sd".equalsIgnoreCase(line[0]) && !"mean".equalsIgnoreCase(line[0])) {

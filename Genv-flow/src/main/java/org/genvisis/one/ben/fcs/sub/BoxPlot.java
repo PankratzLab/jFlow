@@ -238,7 +238,7 @@ public class BoxPlot extends JFrame {
 	private void loadFile(String file) {
 		currentFile = file;
 		selected.clear();
-		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, ",", false, 1000, true);
+		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, ",", 1000, true);
 		final ArrayList<OneDPanel> panels = new ArrayList<OneDPanel>();
 		final ArrayList<String> headers = new ArrayList<String>();
 		ArrayList<String> dataSources = new ArrayList<String>();
