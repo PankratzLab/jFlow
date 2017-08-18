@@ -285,6 +285,8 @@ public class PRoCtOR {
 		ShadowMarkerDataWriter smdw = new ShadowMarkerDataWriter();
 		smdw.setOutputDirectory(newTransposedDir);
 		smdw.setupMarkerFiles(proj);
+		Files.copyFile(proj.SAMPLELIST_FILENAME.getValue(),
+									 shadowProject.SAMPLELIST_FILENAME.getValue());
 
 		PcCorrectionProducer producer = new PcCorrectionProducer(principalComponentsResiduals,
 																														 numComponents, sampleSex,
@@ -352,7 +354,7 @@ public class PRoCtOR {
 		if (!notCorrected.isEmpty()) {
 			Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
 											 shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-																																							+ "_markersThatFailedCorrection.txt");
+													 + "_markersThatFailedCorrection.txt");
 		}
 
 		TransposeData.reverseTranspose(shadowProject);
