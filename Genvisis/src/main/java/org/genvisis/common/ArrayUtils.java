@@ -2264,7 +2264,7 @@ public class ArrayUtils {
 			}
 		}
 
-		return Joiner.on(delimiter).join(array);
+		return Joiner.on(delimiter).join(cleanList);
 	}
 
 	/**
