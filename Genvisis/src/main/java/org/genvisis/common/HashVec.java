@@ -332,6 +332,14 @@ public class HashVec {
 	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
 																									int[] cols, String delimiter, int initialCapacity,
 																									boolean allowMissingData) {
+		return loadFileToStringMatrix(filename, ignoreFirstLine, cols, delimiter, initialCapacity,
+																	allowMissingData, false);
+	}
+
+	public static String[][] loadFileToStringMatrix(String filename, boolean ignoreFirstLine,
+																									int[] cols, String delimiter, int initialCapacity,
+																									boolean allowMissingData,
+																									boolean treatEmptyAsNull) {
 		BufferedReader reader = null;
 		Vector<String[]> v = new Vector<String[]>(initialCapacity);
 		String temp;
@@ -354,7 +362,8 @@ public class HashVec {
 				} else {
 					data = new String[cols.length];
 					for (int i = 0; i < cols.length; i++) {
-						if (allowMissingData && line.length <= cols[i]) {
+						if (allowMissingData
+								&& (line.length <= cols[i] || (treatEmptyAsNull && line[cols[i]].equals("")))) {
 							data[i] = null;
 						} else {
 							data[i] = line[cols[i]];
