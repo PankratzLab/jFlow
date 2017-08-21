@@ -171,6 +171,10 @@ public class ContingencyTable {
 		double[][] expecteds;
 		double total;
 
+		if (data.length < 2 || data[0].length < 2) {
+			throw new IllegalArgumentException("Contigency tables must be at least 2x2 to calculate expecteds");
+		}
+
 		rowSums = computeRowSums(data);
 		colSums = computeColSums(data);
 		total = ArrayUtils.sum(rowSums);
