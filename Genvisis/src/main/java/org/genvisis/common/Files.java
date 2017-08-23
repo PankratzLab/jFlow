@@ -2937,12 +2937,17 @@ public class Files {
 
 	public static void writeMatrix(String[][] matrix, String filename, String delimiterToUse,
 																 String nullValue) {
+		writeMatrix(matrix, filename, delimiterToUse, nullValue, null);
+	}
+
+	public static void writeMatrix(String[][] matrix, String filename, String delimiterToUse,
+																 String nullValue, boolean[] display) {
 		PrintWriter writer;
 
 		try {
 			writer = openAppropriateWriter(filename);
 			for (String[] element : matrix) {
-				writer.println(ArrayUtils.toStr(element, null, delimiterToUse, nullValue));
+				writer.println(ArrayUtils.toStr(element, display, delimiterToUse, nullValue));
 			}
 			writer.flush();
 			writer.close();
