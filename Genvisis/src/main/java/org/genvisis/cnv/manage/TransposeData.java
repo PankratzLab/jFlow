@@ -181,7 +181,7 @@ public class TransposeData {
 									 + " markers\t" + numChunks_File + " chunks\t"
 									 + markerFileSizeSuggested / 1024 / 1024 / 1024 + "."
 									 + ((int) (markerFileSizeSuggested / 1024 / 1024 / 10.24)
-											- (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
+									 - (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
 									 + " gb\t" + numFiles + " files");
 
 
@@ -620,15 +620,17 @@ public class TransposeData {
 				numRoundsLoadingMarkerFiles = (int) Math.ceil((double) listOfAllSamplesInProj.length
 																											/ (double) numSamples_WriteBuffer);
 				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
-				backupOlderFiles(proj.SAMPLE_DIRECTORY.getValue(true, false),
-												 new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, true);
-				log.report("--\nProject:\t" + listOfAllMarkersInProj.length + " markers\t"
-									 + listOfAllSamplesInProj.length + " samples" + "\nHeapSpace:\t"
-									 + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max"
-									 + "\nwriteBuffer:\t" + numSamples_WriteBuffer + " samples\t"
-									 + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp
-																	/ Runtime.getRuntime().maxMemory() * 100, 1)
-									 + "% heap efficiency");
+				// backupOlderFiles(proj.SAMPLE_DIRECTORY.getValue(true, false),
+				// new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, true);
+				log.reportTime("--");
+				log.reportTime("Project:\t" + listOfAllMarkersInProj.length + " markers\t"
+											 + listOfAllSamplesInProj.length + " samples");
+				log.reportTime("HeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
+											 + " max");
+				log.reportTime("writeBuffer:\t" + numSamples_WriteBuffer + " samples\t"
+											 + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp
+																			/ Runtime.getRuntime().maxMemory() * 100, 1)
+											 + "% heap efficiency");
 
 
 				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
@@ -646,10 +648,51 @@ public class TransposeData {
 																																 listOfAllSamplesInProj);
 
 				indexCurrentSampInProj = 0;
-
-				markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
 				indexFirstSampleCurrentMdRafLoadingRound = 0;
-				log.report("--\ni (<" + numRoundsLoadingMarkerFiles + ")\tLoad\tTranspose\tWrite");
+				boolean del = false;
+				int numExisting = new File(proj.SAMPLE_DIRECTORY.getValue()).list(new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
+					}
+				}).length;
+				if (numExisting > 0) {
+					log.reportTime("Found "
+												 + numExisting
+												 + " existing sampRAF files");
+				}
+				for (String samp : listOfAllSamplesInProj) {
+					String fName = proj.SAMPLE_DIRECTORY.getValue() + samp + Sample.SAMPLE_FILE_EXTENSION;
+					if (Files.exists(fName)) {
+						if (del) {
+							new File(fName).delete();
+						} else {
+							int lenByt = Files.getSize(fName);
+							if (Math.abs(lenByt - numBytes_PerSamp) < 1024) {
+								indexCurrentSampInProj++;
+								indexFirstSampleCurrentMdRafLoadingRound++;
+							} else {
+								del = true;
+								new File(fName).delete();
+							}
+						}
+					}
+				}
+				if (indexCurrentSampInProj > 0) {
+					log.reportTime("Keeping "
+												 + indexCurrentSampInProj
+												 + " sampRAF files"
+												 + (numExisting > indexCurrentSampInProj
+																																? (" and deleting "
+																																	 + (numExisting - indexCurrentSampInProj) + " existing incomplete sampRAF files.")
+																																: "."));
+				}
+
+				numRoundsLoadingMarkerFiles = (int) Math.ceil((double) (listOfAllSamplesInProj.length - indexCurrentSampInProj)
+																											/ (double) numSamples_WriteBuffer);
+				markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
+				log.reportTime("--");
+				log.reportTime("i (<" + numRoundsLoadingMarkerFiles + ")\tLoad\tTranspose\tWrite");
 				for (int i = 0; i < numRoundsLoadingMarkerFiles; i++) {
 					logTemp = "";
 					if ((i + 1) == numRoundsLoadingMarkerFiles && numMarkers_LastRound != 0) {
@@ -680,7 +723,7 @@ public class TransposeData {
 					// log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" +
 					// timeFormat.format(timerTransposeMemory), false, true);
 					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
-											+ timeFormat.format(timerTransposeMemory));
+										 + timeFormat.format(timerTransposeMemory));
 
 
 					// --- Step 2 --- Dump write buffer to marker files
@@ -699,15 +742,15 @@ public class TransposeData {
 						timerTmp = new Date().getTime();
 						writeBufferToRAF(writeBuffer, null, j, j,
 														 proj.SAMPLE_DIRECTORY.getValue(false, true)
-																											+ listOfAllSamplesInProj[indexCurrentSampInProj]
-																											+ Sample.SAMPLE_FILE_EXTENSION,
+																 + listOfAllSamplesInProj[indexCurrentSampInProj]
+																 + Sample.SAMPLE_FILE_EXTENSION,
 														 markFileParameterSection, markFileOutliersBytes);
 						indexCurrentSampInProj++;
 						// log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
 					}
 
 					indexFirstSampleCurrentMdRafLoadingRound += numSamples_WriteBuffer;
-					log.report(logTemp);
+					log.reportTime(logTemp);
 				}
 
 				if (allOutliers != null && allOutliers.size() != 0) {
@@ -925,9 +968,9 @@ public class TransposeData {
 			}
 			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put(
 																																	 (Integer.parseInt(line[0])
-																																		% numMarkersInEachFile)
-																																	 + "\t" + sampleIndex + "\t"
-																																	 + line[2],
+																																			 % numMarkersInEachFile)
+																																			 + "\t" + sampleIndex + "\t"
+																																			 + line[2],
 																																	 allOutliers.get(key));
 		}
 
@@ -1328,12 +1371,12 @@ public class TransposeData {
 							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																											+ 1]});
+																																				+ 1]});
 						} else {
 							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																										 + 1]});
+																																			 + 1]});
 						}
 						if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							xs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tx");
@@ -1350,12 +1393,12 @@ public class TransposeData {
 							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																											+ 1]});
+																																				+ 1]});
 						} else {
 							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																										 + 1]});
+																																			 + 1]});
 						}
 						if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							ys[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\ty");
