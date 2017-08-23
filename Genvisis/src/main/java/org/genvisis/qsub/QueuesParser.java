@@ -277,7 +277,7 @@ public class QueuesParser {
 					}
 				}
 				if (s.startsWith(TAG_GROUPS)) {
-					String[] groups = s.substring(TAG_ROUTE_DEST.length()).trim().split(",");
+					String[] groups = s.substring(TAG_GROUPS.length()).trim().split(",");
 					for (String g : groups) {
 						curr.getAllowedGroups().add(g);
 					}
