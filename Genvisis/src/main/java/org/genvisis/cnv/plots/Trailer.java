@@ -3390,16 +3390,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
 					// boolean fastQC = false;//gcFastButton.isSelected();
 					GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;// !gcFastButton.isSelected();
+					Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
+					boolean[] markersForEverythingElse = new boolean[markerIndexMap.size()];
+					// If updateRegion, exclude markers outside of the current region
+					Set<Marker> toUse = updateRegion ? curMarkers : markerIndexMap.keySet();
+
 					if (updateGenome) {
-						Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
-						boolean[] markersForEverythingElseGenome = new boolean[markerIndexMap.size()];
-						Arrays.fill(markersForEverythingElseGenome, true);
-						for (Marker droppedMarker : dropped) {
-							markersForEverythingElseGenome[markerIndexMap.get(droppedMarker)] = false;
-						}
-						qcGenome = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
-																						markersForCallrate, markersForEverythingElseGenome,
-																						gcModelToUse, correctionMethod, log);
+						// Exclude dropped markers
+						toUse = new HashSet<>(toUse);
+						toUse.removeAll(dropped);
 					}
 					// if (updateChr) {
 					// boolean[] markersForEverythingElseChromosome = Array.booleanNegative(dropped);
@@ -3413,18 +3412,16 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					// qcChromo = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate,
 					// markersForEverythingElseChromosome, gcModelToUse, fastQC, log);
 					// }
-					if (updateRegion) {
-						Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
-						boolean[] markersForEverythingElseRegion = new boolean[markerIndexMap.size()];
-						for (Marker marker : curMarkers) {
-							if (!dropped.contains(marker)) {
-								markersForEverythingElseRegion[markerIndexMap.get(marker)] = true;
-							}
+
+					// Apply the update(s)
+					if (updateGenome || updateChr || updateRegion) {
+						for (Marker marker : toUse) {
+							markersForEverythingElse[markerIndexMap.get(marker)] = true;
 						}
-						// GC correction not valid for a region
+
 						qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
-																						markersForCallrate, markersForEverythingElseRegion,
-																						null, correctionMethod, log);
+																						markersForCallrate, markersForEverythingElse,
+																						gcModelToUse, correctionMethod, log);
 					}
 					updateQCDisplay();
 				}
