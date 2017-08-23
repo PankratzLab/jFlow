@@ -580,6 +580,7 @@ public class TransposeData {
 		String[] markerDataRafFilenames;
 		SimpleDateFormat timeFormat;
 		String markerFile;
+		String filename;
 		Logger log;
 
 		log = proj.getLog();
@@ -660,26 +661,35 @@ public class TransposeData {
 												 + numExisting
 												 + " existing sampRAF files");
 				}
+				boolean del = false;
+				int deleted = 0;
 				for (String samp : listOfAllSamplesInProj) {
 					String fName = proj.SAMPLE_DIRECTORY.getValue() + samp + Sample.SAMPLE_FILE_EXTENSION;
 					if (Files.exists(fName)) {
-						new File(fName).delete();
-						int lenByt = Files.getSize(fName);
-						if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
-							indexCurrentSampInProj++;
-							indexFirstSampleCurrentMdRafLoadingRound++;
-						} else {
+						if (del) {
 							new File(fName).delete();
+							deleted++;
+						} else {
+							int lenByt = Files.getSize(fName);
+							if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
+								indexCurrentSampInProj++;
+								indexFirstSampleCurrentMdRafLoadingRound++;
+							} else {
+								new File(fName).delete();
+								deleted++;
+								del = true; // delete all after a failure
+							}
 						}
+					} else {
+						break;
 					}
 				}
 				if (indexCurrentSampInProj > 0) {
-					log.reportTime("Keeping "
+					log.reportTime("Starting at sample "
 												 + indexCurrentSampInProj
-												 + " sampRAF files"
 												 + (numExisting > indexCurrentSampInProj
 																																? (" and deleting "
-																																	 + (numExisting - indexCurrentSampInProj) + " existing incomplete sampRAF files.")
+																																	 + deleted + " existing sampRAF files.")
 																																: "."));
 				}
 
@@ -736,11 +746,20 @@ public class TransposeData {
 																																		 fingerprintForMarkers);
 
 						timerTmp = new Date().getTime();
-						writeBufferToRAF(writeBuffer, null, j, j,
-														 proj.SAMPLE_DIRECTORY.getValue(false, true)
-																 + listOfAllSamplesInProj[indexCurrentSampInProj]
-																 + Sample.SAMPLE_FILE_EXTENSION,
-														 markFileParameterSection, markFileOutliersBytes);
+						filename = proj.SAMPLE_DIRECTORY.getValue(false, true)
+											 + listOfAllSamplesInProj[indexCurrentSampInProj]
+											 + Sample.SAMPLE_FILE_EXTENSION;
+						boolean write = true;
+						if (Files.exists(filename)) {
+							int lenByt = Files.getSize(filename);
+							if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
+								write = false;
+							}
+						}
+						if (write) {
+							writeBufferToRAF(writeBuffer, null, j, j, filename,
+															 markFileParameterSection, markFileOutliersBytes);
+						}
 						indexCurrentSampInProj++;
 						// log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
 					}
