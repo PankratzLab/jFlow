@@ -35,7 +35,8 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.SortedSetMultimap;
 
 // PRincipal COmponents Residuals - PR [o] C[t]O R
 public class PRoCtOR {
@@ -147,14 +148,14 @@ public class PRoCtOR {
 			@SuppressWarnings("deprecation")
 			long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(proj.getSamples());
 			fingerprint = f;
-			ListMultimap<Byte, Marker> chrMap = proj.getMarkerSet().getChrMap();
+			SortedSetMultimap<Byte, Marker> chrMap = proj.getMarkerSet().getChrMap();
 			int numMarkers = 2500;
 			for (Byte b : chrMap.keySet()) {
-				List<Marker> mkrs = chrMap.get(b);
+				List<Marker> mkrs = ImmutableList.copyOf(chrMap.get(b));
 				int[] indLists = ArrayUtils.splitUp(mkrs.size(), (mkrs.size() / numMarkers) + 1);
 				int total = 0;
 				for (int cnt : indLists) {
-					String mkrFile = getMDRAFName((int) b, total, total + cnt);
+					String mkrFile = getMDRAFName(b, total, total + cnt);
 					String[] mkrNmArr = new String[cnt];
 					for (int i = total; i < total + cnt; i++) {
 						markerLookup.put(mkrs.get(i).getName(), mkrFile);
@@ -354,7 +355,7 @@ public class PRoCtOR {
 		if (!notCorrected.isEmpty()) {
 			Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
 											 shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-													 + "_markersThatFailedCorrection.txt");
+																																							+ "_markersThatFailedCorrection.txt");
 		}
 
 		TransposeData.reverseTranspose(shadowProject);
