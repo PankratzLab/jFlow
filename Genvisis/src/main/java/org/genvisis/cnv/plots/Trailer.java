@@ -749,7 +749,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																															 // are
 																															 // necessary
 					mouseMoved(phantom);
-					Trailer.this.repaint();
+					repaint();
 					return;
 				}
 
@@ -757,7 +757,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 			selectedCNV = null;
 			cnvPanel.setToolTipText(null);
-			Trailer.this.repaint();
+			repaint();
 		}
 	};
 
@@ -1622,42 +1622,45 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				g.setFont(new Font("Arial", 0, 20));
 				g.drawString("B Allele Frequency", WIDTH_BUFFER, 20);
 
-				g.setFont(new Font("Arial", 0, 10));
-				if (lrrs != null) {
+				if (bafs == null) {
+					g.drawString("Error - no BAF values present for sample.", (getWidth() / 2) - 175,
+											 (getHeight() / 2) - 10);
+				} else if (lrrs == null) {
+					g.drawString("Error - no LRR values present for sample.", (getWidth() / 2) - 175,
+											 (getHeight() / 2) - 10);
+				} else {
+					g.setFont(new Font("Arial", 0, 10));
 					for (Marker marker : curMarkers) {
-						if (!lrrs.get(marker).isNaN()) {
-							if (dropped.contains(marker)
-									|| (excludeManager != null && !excludeManager.hasColorFor(marker.getName()))) {
-								if (excludeManager != null && !excludeManager.hasColorFor(marker.getName())) {
-
-								} else {
-									g.drawString("X", Trailer.this.getX(marker.getPosition()),
-															 getHeight() - (int) (bafs.get(marker)
-																										* (double) (getHeight() - 2 * HEIGHT_BUFFER))
-																																						 - HEIGHT_BUFFER + 5);
-								}
-							} else if (genotypes != null && genotypes.get(marker) == -1) {
-								g.drawString("+", Trailer.this.getX(marker.getPosition()),
-														 getHeight() - (int) (bafs.get(marker)
-																									* (double) (getHeight() - 4 * HEIGHT_BUFFER))
-																																					 - HEIGHT_BUFFER / 2);
-							} else if (bafs != null && bafs.containsKey(marker)) {
-								g.fillOval(Trailer.this.getX(marker.getPosition()),
-													 getHeight() - (int) (bafs.get(marker)
-																								* (double) (getHeight() - 4 * HEIGHT_BUFFER))
-																																		- HEIGHT_BUFFER,
-													 SIZE, SIZE);
-							} else {
-								g.setFont(new Font("Arial", 0, 20));
-								g.drawString("Error - no BAF values present for sample.", (getWidth() / 2) - 175,
-														 (getHeight() / 2) - 10);
-							}
+						int x = Trailer.this.getX(marker.getPosition());
+						if (lrrs.get(marker).isNaN()) {
+							// TODO print something for NaNs?
+						} else if (dropped.contains(marker)) {
+							g.drawString("X", x,
+													 getHeight()
+																	 - (int) (bafs.get(marker)
+																						* (double) (getHeight() - 2 * HEIGHT_BUFFER))
+																	 - (HEIGHT_BUFFER + 5));
+						} else if (excludeManager != null && !excludeManager.hasColorFor(marker.getName())) {
+							// FIXME ??
+						} else if (genotypes != null && genotypes.get(marker) == -1) {
+							g.drawString("+", x,
+													 getHeight()
+																	 - (int) (bafs.get(marker)
+																						* (double) (getHeight() - 4 * HEIGHT_BUFFER))
+																	 - HEIGHT_BUFFER / 2);
+						} else if (bafs != null && bafs.containsKey(marker)) {
+							g.fillOval(x,
+												 getHeight()
+														- (int) (bafs.get(marker) * (double) (getHeight() - 4 * HEIGHT_BUFFER))
+														- HEIGHT_BUFFER,
+												 SIZE, SIZE);
 						}
 					}
 				}
 			}
 		};
 		dataPanel.add(bafPanel, "grow");
+
 		registerMouse(bafPanel);
 
 		getContentPane().add(dataPanel, BorderLayout.CENTER);
@@ -1821,8 +1824,6 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		descrPanel.add(compPanel, "cell 0 1");
 		compPanel.setPreferredSize(new Dimension(compPanel.getPreferredSize().width, 95));
-
-		new JPanel();
 
 		navPanel = new RegionNavigator(this);
 		descrPanel.add(navPanel, "cell 0 2");
@@ -2424,7 +2425,6 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 							setCentroid(jrb.getText());
 							loadValues();
 							updateGUI();
-							repaint();
 							isSettingCentroid = false;
 						} else {
 							setCentroid(jrb.getText());
@@ -2435,7 +2435,6 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						bafs = originalBAFs;
 						loadValues();
 						updateGUI();
-						repaint();
 					}
 				}
 			};
@@ -4054,15 +4053,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						} else {
 							currentParamIndex = -1;
 						}
-						trailer.loadValues();
-						trailer.updateGUI();
-						trailer.repaint();
 					} else {
 						currentParamIndex = -1;
-						trailer.loadValues();
-						trailer.updateGUI();
-						trailer.repaint();
 					}
+					trailer.loadValues();
+					trailer.updateGUI();
 				}
 
 			};
