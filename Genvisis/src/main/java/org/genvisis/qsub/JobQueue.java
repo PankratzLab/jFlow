@@ -209,6 +209,9 @@ public final class JobQueue {
 		this.defaultProc = procCnt;
 	}
 
+	/**
+	 * @param defWall in hours
+	 */
 	public void setDefaultWalltime(int defWall) {
 		this.defaultWalltime = defWall;
 	}

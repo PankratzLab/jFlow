@@ -210,8 +210,11 @@ public final class QueueProperties {
 		if (Files.exists(propFile)) {
 			loadFile(propFile);
 		} else {
-			log.report("No queue properties file found; Initializing programmatically.  Please edit the generated queue.properties file by hand with relevant information.");
-			init(propFile);
+			if (!Files.isWindows()) {
+				log.reportTimeWarning("No queue properties file found; Initializing programmatically.  Please edit the generated queue.properties file {"
+															+ propFile + "} by hand with relevant information.");
+				init(propFile);
+			}
 		}
 	}
 
@@ -277,7 +280,9 @@ public final class QueueProperties {
 					qList.add(q);
 				}
 			}
-			save(propFile);
+			if (!qList.isEmpty()) {
+				save(propFile);
+			}
 		}
 	}
 

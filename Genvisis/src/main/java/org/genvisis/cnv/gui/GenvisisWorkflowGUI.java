@@ -270,16 +270,22 @@ public class GenvisisWorkflowGUI extends JDialog {
 					}
 				}
 			};
+
 			btnExportToText = new JButton("Export To Text");
 			btnExportToText.setActionCommand("Export");
 			btnExportToText.addActionListener(listener);
 			btnExportToText.setMargin(btnInsets);
-			buttonPane.add(btnExportToText, "cell 8 0, alignx right");
+
 			btnExportToTextDefaults = new JButton("Export Defaults");
 			btnExportToTextDefaults.setActionCommand("ExportDefaults");
 			btnExportToTextDefaults.addActionListener(listener);
 			btnExportToTextDefaults.setMargin(btnInsets);
-			buttonPane.add(btnExportToTextDefaults, "cell 9 0, alignx right");
+			if (!Files.isWindows()) {
+				buttonPane.add(btnExportToText, "cell 8 0, alignx right");
+				buttonPane.add(btnExportToTextDefaults, "cell 9 0, alignx right");
+			} else {
+				buttonPane.add(btnExportToText, "cell 9 0, alignx right");
+			}
 			btnOk = new JButton("Run");
 			btnOk.setMargin(btnInsets);
 			btnOk.setActionCommand("Run");
@@ -498,7 +504,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, checkBox);
 						panel.contentPanel.add(checkBox,
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																						 + rowIndex);
+																			 + rowIndex);
 					} else if (req.getType() == GenvisisWorkflow.RequirementInputType.ENUM) {
 						Object o = req.getDefaultValue();
 						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
@@ -519,7 +525,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, jList);
 						panel.contentPanel.add(new JScrollPane(jList),
 																	 "alignx right, aligny center, growx, gapleft 20, cell 1 "
-																													 + rowIndex);
+																			 + rowIndex);
 					} else if (req.getType() != GenvisisWorkflow.RequirementInputType.NONE) {
 						JTextField textField = new JTextField();
 						textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -532,7 +538,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						reqInputFields.put(req, textField);
 						panel.contentPanel.add(textField,
 																	 "alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-																							+ rowIndex);
+																			 + rowIndex);
 						if (req.getType() == GenvisisWorkflow.RequirementInputType.FILE
 								|| req.getType() == GenvisisWorkflow.RequirementInputType.DIR) {
 							JButton fileBtn = new JButton();
@@ -546,7 +552,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 									String current = fileField.getText();
 
 									String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
-																									: ext.parseDirectoryOfFile(current);
+																								 : ext.parseDirectoryOfFile(current);
 									JFileChooser chooser = new JFileChooser(dir);
 									chooser.setMultiSelectionEnabled(false);
 									GenvisisWorkflow.RequirementInputType type = req.getType();
@@ -753,7 +759,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 										for (int i = 0; i < reqsMet.length; i++) {
 											reqLbls.get(lblIndex)
 														 .setForeground(reqsMet[i] ? greenDark
-																											 : hasAny ? Color.GRAY : Color.RED);
+																											: hasAny ? Color.GRAY : Color.RED);
 											lblIndex++;
 										}
 									}
@@ -875,6 +881,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 							String cmd = step.getCommandLine(proj, variables);
 							GenvisisWorkflow.addStepInfo(output, step, cmd);
 						}
+						boolean win = Files.isWindows();
 						String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
 						String suggFile = file + ext.getTimestampForFilename() + ".pbs";
 						String runFile = file + ext.getTimestampForFilename() + ".run";
@@ -882,12 +889,14 @@ public class GenvisisWorkflowGUI extends JDialog {
 						if (useDefaults) {
 							Qsub.qsubDefaults(suggFile, command);
 						} else {
-							file = Qsub.qsubGUI(suggFile, command);
-							if (file != null) {
-								if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
-									file = file + ".pbs";
+							if (!win) {
+								file = Qsub.qsubGUI(suggFile, command);
+								if (file != null) {
+									if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
+										file = file + ".pbs";
+									}
+									runFile = ext.rootOf(file, false) + ".run";
 								}
-								runFile = ext.rootOf(file, false) + ".run";
 							}
 						}
 						if (file != null) {
