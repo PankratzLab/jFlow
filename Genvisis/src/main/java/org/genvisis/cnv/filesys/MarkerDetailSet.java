@@ -292,9 +292,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			cmp = alleleB.compareTo(o.alleleB);
 			if (cmp != 0)
 				return cmp;
-			cmp = refAllele.compareTo(o.refAllele);
-			if (cmp != 0)
-				return cmp;
+			if (refAllele != null && o.refAllele != null) {
+				cmp = refAllele.compareTo(o.refAllele);
+				if (cmp != 0)
+					return cmp;
+			} else {
+				if (refAllele == null && o.refAllele != null)
+					return -1;
+				if (refAllele != null && o.refAllele == null) {
+					return 1;
+				}
+			}
 			cmp = name.compareTo(o.name);
 			return cmp;
 		}
