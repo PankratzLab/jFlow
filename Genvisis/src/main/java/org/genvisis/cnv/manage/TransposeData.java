@@ -631,7 +631,7 @@ public class TransposeData {
 											 + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp
 																			/ Runtime.getRuntime().maxMemory() * 100, 1)
 											 + "% heap efficiency");
-
+				log.reportTime("Bytes per Sample:\t" + numBytes_PerSamp);
 
 				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
 
@@ -649,7 +649,6 @@ public class TransposeData {
 
 				indexCurrentSampInProj = 0;
 				indexFirstSampleCurrentMdRafLoadingRound = 0;
-				boolean del = false;
 				int numExisting = new File(proj.SAMPLE_DIRECTORY.getValue()).list(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
@@ -664,17 +663,13 @@ public class TransposeData {
 				for (String samp : listOfAllSamplesInProj) {
 					String fName = proj.SAMPLE_DIRECTORY.getValue() + samp + Sample.SAMPLE_FILE_EXTENSION;
 					if (Files.exists(fName)) {
-						if (del) {
-							new File(fName).delete();
+						new File(fName).delete();
+						int lenByt = Files.getSize(fName);
+						if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
+							indexCurrentSampInProj++;
+							indexFirstSampleCurrentMdRafLoadingRound++;
 						} else {
-							int lenByt = Files.getSize(fName);
-							if (Math.abs(lenByt - numBytes_PerSamp) < 1024) {
-								indexCurrentSampInProj++;
-								indexFirstSampleCurrentMdRafLoadingRound++;
-							} else {
-								del = true;
-								new File(fName).delete();
-							}
+							new File(fName).delete();
 						}
 					}
 				}
@@ -727,7 +722,8 @@ public class TransposeData {
 
 
 					// --- Step 2 --- Dump write buffer to marker files
-					for (int j = 0; j < numSamples_WriteBuffer; j++) {
+					for (int j = 0; j < numSamples_WriteBuffer
+													&& indexCurrentSampInProj < listOfAllSamplesInProj.length; j++) {
 						if (sampRafFileOutliers == null
 								|| sampRafFileOutliers[indexCurrentSampInProj].size() == 0) {
 							markFileOutliersBytes = new byte[0];
@@ -751,6 +747,9 @@ public class TransposeData {
 
 					indexFirstSampleCurrentMdRafLoadingRound += numSamples_WriteBuffer;
 					log.reportTime(logTemp);
+
+					if (indexCurrentSampInProj == listOfAllSamplesInProj.length)
+						break;
 				}
 
 				if (allOutliers != null && allOutliers.size() != 0) {
@@ -769,7 +768,7 @@ public class TransposeData {
 			} catch (OutOfMemoryError oome) {
 				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
 				deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, false), null,
-												new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, false, null);
+												new String[] {"outliers.ser"}, false, null);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
