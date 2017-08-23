@@ -662,7 +662,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 * @return an unmodifiable {@link SortedSetMultimap} from chromosome (sorted) to {@link Marker}s
 	 *         (sorted by position)
 	 */
-	public SortedSetMultimap getChrMap() {
+	public SortedSetMultimap<Byte, Marker> getChrMap() {
 		SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
 		if (chrMap == null) {
 			chrMap = generateChrMap();
