@@ -210,7 +210,7 @@ public final class QueueProperties {
 		if (Files.exists(propFile)) {
 			loadFile(propFile);
 		} else {
-			if (!Files.isWindows()) {
+			if (Files.programExists("qsub")) {
 				log.reportTimeWarning("No queue properties file found; Initializing programmatically.  Please edit the generated queue.properties file {"
 															+ propFile + "} by hand with relevant information.");
 				init(propFile);

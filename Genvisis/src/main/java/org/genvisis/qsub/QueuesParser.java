@@ -122,8 +122,8 @@ public class QueuesParser {
 	 */
 	public static List<JobQueue> parseQueues(String username, String currGroup, String[] allGroups,
 																					 Logger log) {
-		if (Files.isWindows()) {
-			log.reportError("Job queueing is not supported on Windows systems.  Please retry on a system that supports job queues and the qsub command.");
+		if (!Files.programExists("qsub")) {
+			log.reportError("Job queueing is not supported - 'qsub' command not found.  Please retry on a system that supports job queues and the qsub command.");
 			return new ArrayList<JobQueue>();
 		}
 		Runtime rt = Runtime.getRuntime();

@@ -280,7 +280,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			btnExportToTextDefaults.setActionCommand("ExportDefaults");
 			btnExportToTextDefaults.addActionListener(listener);
 			btnExportToTextDefaults.setMargin(btnInsets);
-			if (!Files.isWindows()) {
+			if (Files.programExists("qsub")) {
 				buttonPane.add(btnExportToText, "cell 8 0, alignx right");
 				buttonPane.add(btnExportToTextDefaults, "cell 9 0, alignx right");
 			} else {
@@ -881,7 +881,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 							String cmd = step.getCommandLine(proj, variables);
 							GenvisisWorkflow.addStepInfo(output, step, cmd);
 						}
-						boolean win = Files.isWindows();
+						boolean hasQsub = Files.programExists("qsub");
 						String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
 						String suggFile = file + ext.getTimestampForFilename() + ".pbs";
 						String runFile = file + ext.getTimestampForFilename() + ".run";
@@ -889,7 +889,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						if (useDefaults) {
 							Qsub.qsubDefaults(suggFile, command);
 						} else {
-							if (!win) {
+							if (hasQsub) {
 								file = Qsub.qsubGUI(suggFile, command);
 								if (file != null) {
 									if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
