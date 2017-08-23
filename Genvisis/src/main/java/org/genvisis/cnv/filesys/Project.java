@@ -709,8 +709,8 @@ public class Project implements PropertyChangeListener {
 																																													this,
 																																													PropertyKeys.KEY_GENOME_BUILD_VERSION,
 																																													"The build version of the genome, options are "
-																																																																 + Arrays.asList(GENOME_BUILD.values())
-																																																																				 .toString(),
+																																															+ Arrays.asList(GENOME_BUILD.values())
+																																																			.toString(),
 																																													GROUP.IMPORT,
 																																													false,
 																																													COPY.VALUE,
@@ -933,10 +933,10 @@ public class Project implements PropertyChangeListener {
 			} else {
 				// error reading headers; let's delete
 				getLog().reportError(ext.getTime()
-														 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+																 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 				getLog().reportError(ext.getTime()
-														 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-														 + Sample.SAMPLE_FILE_EXTENSION + " files.");
+																 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+																 + Sample.SAMPLE_FILE_EXTENSION + " files.");
 				getLog().reportError(ext.getTime()
 														 + "]\tA quick check (which may be incorrect) suggest this "
 														 + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
@@ -1763,7 +1763,20 @@ public class Project implements PropertyChangeListener {
 	 *        JOptionPane.PLAIN_MESSAGE
 	 */
 	public void message(String str, String windowTitle, int messageIcon) {
-		log.reportError(str);
+		switch (messageIcon) {
+			case JOptionPane.ERROR_MESSAGE:
+				log.reportError(str);
+				break;
+			case JOptionPane.WARNING_MESSAGE:
+				log.report("Warning - " + str);
+				break;
+			case JOptionPane.INFORMATION_MESSAGE:
+			case JOptionPane.PLAIN_MESSAGE:
+			case JOptionPane.QUESTION_MESSAGE:
+			default:
+				log.report(str);
+				break;
+		}
 		if (gui) {
 			JOptionPane.showMessageDialog(null, str, windowTitle, messageIcon);
 		}
@@ -1778,7 +1791,7 @@ public class Project implements PropertyChangeListener {
 	 *
 	 */
 	public void message(String str) {
-		message(str, "Error", JOptionPane.ERROR_MESSAGE);
+		message(str, "Alert", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public String getLocationOfSNP_Map(boolean verbose) {
@@ -2247,7 +2260,7 @@ public class Project implements PropertyChangeListener {
 
 	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
 		return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-																		 : sourceFileHeaders;
+																		: sourceFileHeaders;
 	}
 
 	public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
