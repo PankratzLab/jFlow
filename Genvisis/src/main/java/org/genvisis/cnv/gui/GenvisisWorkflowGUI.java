@@ -884,9 +884,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 						boolean hasQsub = Files.programExists("qsub");
 						String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
 						String suggFile = file + ext.getTimestampForFilename() + ".pbs";
-						String runFile = file + ext.getTimestampForFilename() + ".run";
 						String command = output.toString();
-						if (useDefaults) {
+						if (useDefaults || !hasQsub) {
 							Qsub.qsubDefaults(suggFile, command);
 						} else {
 							if (hasQsub) {
@@ -895,14 +894,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 									if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
 										file = file + ".pbs";
 									}
-									runFile = ext.rootOf(file, false) + ".run";
 								}
 							}
-						}
-						if (file != null) {
-							Files.write(output.toString(), runFile);
-							proj.message("GenvisisPipeline commands written to " + runFile,
-													 "Command File Written", JOptionPane.INFORMATION_MESSAGE);
 						}
 					}
 				} catch (Exception e) {
