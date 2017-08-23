@@ -34,7 +34,7 @@ public class QueuesParser {
 		boolean win = Files.isWindows();
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = win ? new String[] {"cmd", "/c", "echo", "%USERNAME%"}
-														: new String[] {"id"};
+													 : new String[] {"id"};
 		Process proc = rt.exec(commands);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -49,10 +49,11 @@ public class QueuesParser {
 	 * @return
 	 */
 	public static String getUserName() {
+		boolean win = Files.isWindows();
 		String uid = "";
 		try {
 			uid = loadIDInfo()[0];
-			uid = uid.substring(uid.indexOf('(') + 1, uid.length() - 1);
+			uid = win ? uid : uid.substring(uid.indexOf('(') + 1, uid.length() - 1);
 		} catch (IOException e) {
 			// error from running 'id' or from reading input; either way, unable to determine username
 		}
@@ -173,7 +174,7 @@ public class QueuesParser {
 				if (s.startsWith(TAG_WALLTIME_MIN)) {
 					String s1 = s.substring(TAG_WALLTIME_MIN.length()).trim();
 					try {
-						curr.setMinWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
+						curr.setMinWalltime(parseTime(s1));
 					} catch (NumberFormatException e1) {
 						log.reportError("Found 'minimum walltime' tag but couldn't parse value: "
 														+ s1.substring(0, s1.indexOf(':')).trim());
@@ -182,7 +183,7 @@ public class QueuesParser {
 				if (s.startsWith(TAG_WALLTIME_MAX)) {
 					String s1 = s.substring(TAG_WALLTIME_MAX.length()).trim();
 					try {
-						curr.setMaxWalltime(Integer.parseInt(s1.substring(0, s1.indexOf(':'))));
+						curr.setMaxWalltime(parseTime(s1));
 					} catch (NumberFormatException e1) {
 						log.reportError("Found 'maximum walltime' tag but couldn't parse value: "
 														+ s1.substring(0, s1.indexOf(':')).trim());
@@ -231,7 +232,8 @@ public class QueuesParser {
 				}
 				if (s.startsWith(TAG_WALLTIME_DEFAULT)) {
 					try {
-						curr.setDefaultWalltime(Integer.parseInt(s.substring(TAG_WALLTIME_DEFAULT.length())));
+						curr.setDefaultWalltime(parseTime(s.substring(TAG_WALLTIME_DEFAULT.length())
+																							 .trim()));
 					} catch (NumberFormatException e1) {
 						log.reportError("Found 'default walltime' tag but couldn't parse value: "
 														+ s.substring(TAG_WALLTIME_DEFAULT.length()));
@@ -297,6 +299,14 @@ public class QueuesParser {
 		return queues;
 	}
 
+	private static int parseTime(String time) {
+		String hrsStr = time.split(":")[0];
+		int hrs = Integer.parseInt(hrsStr);
+		if (hrs == 0) {
+			hrs = 1;
+		}
+		return hrs;
+	}
 
 	private static void checkIfQueueAllowed(JobQueue curr, String username, String currGroup,
 																					String[] allGroups) {
