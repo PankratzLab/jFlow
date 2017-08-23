@@ -37,13 +37,19 @@ The key things to know about this structure are:
 
 ### Command line
 
-For building on the command line, simply run `mvn` from the top-level `pom-genvisis` level. This will call the [install goal](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) by default - building all modules and copying them to your [local Maven repository](https://maven.apache.org/guides/introduction/introduction-to-repositories.html).
+For building on the command line, simply run `mvn` from the top-level `pom-genvisis` directory. This will call the [install goal](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) by default - building all modules and copying them to your [local Maven repository](https://maven.apache.org/guides/introduction/introduction-to-repositories.html).
 
 ### Eclipse
 
 1. Import the top-level Genvisis directory as an [Existing Maven Project](http://javapapers.com/java/import-maven-project-into-eclipse/). Eclipse will create projects automatically for `pom-genvisis` and all sub-modules.
 
 That's it! You can now develop Genvisis code.
+
+#### Caveats / Troubleshooting
+
+When importing, Eclipse will recognize that Genvisis is a multi-module build and create a project for each module. However, if additional modules are added later, Eclipse will not automatically import these.
+
+So if you know a new module has been added, or are seeing odd missing dependency errors, try re-importing Maven projects from the `pom-genvisis` directory.
 
 #### Building the Genvisis application
 
