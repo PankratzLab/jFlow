@@ -3178,23 +3178,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			byte[] genotypesProjOrder = samp.getAB_Genotypes();
 
 			List<Marker> projOrderMarkers = markerDetailSet.getMarkers();
-			lrrs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-			bafs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-			genotypes = genotypesProjOrder == null ? null
-																						 : Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-			int i = 0;
-			for (Marker marker : projOrderMarkers) {
-				lrrs.put(marker, lrrsProjOrder[i]);
-				bafs.put(marker, bafsProjOrder[i]);
-				if (genotypesProjOrder != null) {
-					genotypes.put(marker, genotypesProjOrder[i]);
-				}
-				i++;
-			}
-
 			float[] lrrValuesProjOrder;
 			float[] originalBAFsProjOrder = new float[bafsProjOrder.length];
 
+			// Perform transformations if needed on project-ordered lrrs/bafs
 			if (transformation_type > 0) {
 				lrrValuesProjOrder = Transforms.transform(lrrsProjOrder, transformation_type,
 																									transformSeparatelyByChromosome,
@@ -3214,14 +3201,22 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				originalBAFsProjOrder = bafsProjOrder;
 			}
 
+			// Convert project-ordered lrrs/bafs to genomic position ordering
+			lrrs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
+			bafs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
+			genotypes = genotypesProjOrder == null ? null
+																						 : Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			lrrValues = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			originalBAFs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-			i = 0;
+			int i = 0;
 			for (Marker marker : projOrderMarkers) {
 				lrrs.put(marker, lrrsProjOrder[i]);
 				lrrValues.put(marker, lrrValuesProjOrder[i]);
 				bafs.put(marker, bafsProjOrder[i]);
 				originalBAFs.put(marker, originalBAFsProjOrder[i]);
+				if (genotypesProjOrder != null) {
+					genotypes.put(marker, genotypesProjOrder[i]);
+				}
 				i++;
 			}
 
