@@ -404,14 +404,17 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			String[][] tmp;
 			if (regions != null) {
-				String[][] tmp = new String[regions.length + 1][];
+				tmp = new String[regions.length + 1][];
 				System.arraycopy(regions, 0, tmp, 0, regions.length);
-				tmp[tmp.length - 1] = new String[] {sample, "chr" + chr + ":" + start + "-" + stop};
-				regions = tmp;
-				promptAddRegionSave = promptAndSaveRegions(promptAddRegionSave);
-				showRegion(regions.length - 1);
+			} else {
+				tmp = new String[1][];
 			}
+			tmp[tmp.length - 1] = new String[] {sample, "chr" + chr + ":" + start + "-" + stop};
+			regions = tmp;
+			promptAddRegionSave = promptAndSaveRegions(promptAddRegionSave);
+			showRegion(regions.length - 1);
 		}
 
 	};
@@ -2024,6 +2027,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		JMenuItem addRegion = new JMenuItem();
 		addRegion.setAction(addRegionAction);
 		addRegion.setText(REGION_LIST_ADD);
+		addRegion.setToolTipText("Add the displayed region to the current list");
 		addRegion.setFont(font);
 		fileMenu.add(addRegion);
 
