@@ -1,22 +1,29 @@
 package org.genvisis.stats;
 
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
-public class CTable {
-	// TODO merge with list in ext
-	public static String[] DEFAULT_NULL_VALUES = {"", ".", "NA", "na", "N/A", "n/a", "NaN", "Missing",
-																								"missing"};
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 
-	private Hashtable<String, Integer> cells;
-	private String[][] rowLabels, columnLabels;
-	private String[] nullValues;
+public class CTable {
+	private static final Set<String> DEFAULT_NULL_VALUES = ImmutableSet.of("", ".", "NA", "na", "N/A",
+																																				 "n/a",
+																																				 "NaN", "Missing",
+																																				 "missing");
+	private static final String MISSING = "Missing";
+
+	private Table<String, String, Integer> table;
+	private Map<String, String> rowLabels;
+	private Map<String, String> colLabels;
+	private Map<String, Integer> rowCounts;
+	private Map<String, Integer> colCounts;
 	private boolean showRowProportions;
 
 	public CTable() {}
@@ -29,103 +36,102 @@ public class CTable {
 		this(matrix[0], matrix[1]);
 	}
 
-
-	// This is a finished copy for the labels format, but haven't been used.
-	public CTable(String[] array1, String[] array2) {
-		String index;
-		Vector<String> rowLabelVector, columnLabelVector;
-
-		if (array1.length != array2.length) {
+	/**
+	 * Construct a new contingency table from a set of parallel arrays. Each index {@code i} from [0,
+	 * data.length] adds 1 to the count of the row/column combination {@code rowData[i]} and
+	 * {@code colData[i]}.
+	 *
+	 * @param rowData Array of row data
+	 * @param colData Array of column data
+	 */
+	public CTable(String[] rowData, String[] colData) {
+		// These are parallel arrays and thus must be the same size
+		if (rowData.length != colData.length) {
 			System.err.println("Error - arrays are not of the same length");
 		}
 
-		// Create the Hashtable cells, ArrayList rowLabels, and ArrayList columnLabels
-		cells = new Hashtable<String, Integer>();
-		rowLabelVector = new Vector<String>();
-		columnLabelVector = new Vector<String>();
-		for (int i = 0; i < array1.length; i++) {
-			index = array1[i] + " x " + array2[i];
-			if (cells.containsKey(index)) {
-				cells.put(index, cells.get(index) + 1);
-			} else {
-				cells.put(index, 1);
-			}
-
-			HashVec.addIfAbsent(array1[i], rowLabelVector);
-			HashVec.addIfAbsent(array2[i], columnLabelVector);
+		// Parse the data points to build the table
+		table = TreeBasedTable.create();
+		for (int i = 0; i < rowData.length; i++) {
+			String rowKey = sanitizeNull(rowData[i]);
+			String colKey = sanitizeNull(colData[i]);
+			int count = 1 + safeGet(rowKey, colKey);
+			table.put(rowKey, colKey, count);
 		}
 
-		Collections.sort(rowLabelVector);
-		Collections.sort(columnLabelVector);
-		rowLabels = new String[rowLabelVector.size()][2];
-		columnLabels = new String[columnLabelVector.size()][2];
-		// for(int i=0; i<array1.length; i++) {
-		for (int i = 0; i < rowLabelVector.size(); i++) {
-			rowLabels[i][0] = rowLabels[i][1] = rowLabelVector.get(i);
-		}
-		for (int i = 0; i < columnLabelVector.size(); i++) {
-			columnLabels[i][0] = columnLabels[i][1] = columnLabelVector.get(i);
-		}
-		// Need to add missing value processing here
+		rowLabels = buildIdentityMap(table.rowKeySet());
+		colLabels = buildIdentityMap(table.columnKeySet());
 
-		nullValues = DEFAULT_NULL_VALUES;
+		// Get total counts for rows/columns
+		rowCounts = new HashMap<>();
+		for (String rowKey : table.rowKeySet()) {
+			rowCounts.put(rowKey, sum(table.row(rowKey)));
+		}
+
+		colCounts = new HashMap<>();
+		for (String colKey : table.columnKeySet()) {
+			colCounts.put(colKey, sum(table.column(colKey)));
+		}
+
 		showRowProportions = false;
 	}
 
-	public void setCustomNullValues(String[] newNullValues) {
-		nullValues = newNullValues;
-	}
-
 	public String[] getFinalRowLabels() {
-		return Matrix.extractColumn(rowLabels, 1);
+		return table.rowKeySet().toArray(new String[table.rowKeySet().size()]);
 	}
 
 	public String[] getFinalColunLabels() {
-		return Matrix.extractColumn(columnLabels, 1);
+		return table.columnKeySet().toArray(new String[table.columnKeySet().size()]);
 	}
 
 
+	/**
+	 * Each element in these arrays be a length 2 array. Index 0 is the original row or column label,
+	 * Index 1 is the new label to use.
+	 * 
+	 * @param customRowLabelsAndOrder Array mapping row labels
+	 * @param customColumnLabelsAndOrder Array mapping column labels
+	 */
 	public void setCustomLabelsAndOrder(String[][] customRowLabelsAndOrder,
 																			String[][] customColumnLabelsAndOrder) {
-		if (customRowLabelsAndOrder != null) {
-			rowLabels = customRowLabelsAndOrder;
+		if (customRowLabelsAndOrder != null && customRowLabelsAndOrder.length > 0) {
+			rowLabels = buildMap(customRowLabelsAndOrder);
 		}
 
-		if (customColumnLabelsAndOrder != null) {
-			columnLabels = customColumnLabelsAndOrder;
+		if (customColumnLabelsAndOrder != null && customColumnLabelsAndOrder.length > 0) {
+			colLabels = buildMap(customColumnLabelsAndOrder);
 		}
 	}
 
 	public String getCTableInHtml() {
-		String output;
-		int[][] contingencyTable;
-		double[][] rowProportions;
+		StringBuilder output = new StringBuilder("<html><table border=\"1\"><tr><td></td>");
 
-		output = "<html><table border=\"1\">";// <tr><td></td>" + columnLabels.get(1) + "</tr>";
-
-		contingencyTable = getContingencyTable();
-		rowProportions = Matrix.computeRowProportions(contingencyTable);
-		for (int i = -1; i < rowLabels.length; i++) {
-			for (int j = -1; j < columnLabels.length; j++) {
-				if (i == -1) {
-					if (j == -1) {
-						output = output + "<tr><td></td>";
-					} else {
-						output = output + "<td>" + columnLabels[j][1] + "</td>";
-					}
-				} else if (j == -1) {
-					output = output + "<tr><td align=\"center\">" + rowLabels[i][1] + "</td>";
-				} else {
-					output = output + "<td align=\"center\">" + contingencyTable[i][j]
-									 + (showRowProportions ? " (" + ext.formDeci(rowProportions[i][j], 3, true) + ")"
-																				 : "")
-									 + "</td>";
-				}
-			}
-			output = output + "</tr>";
+		for (String col : colLabels.keySet()) {
+			output.append("<td>");
+			output.append(colLabels.get(col));
+			output.append("</td>");
 		}
-		output = output + "</table>" + "</html>";
-		return output;
+		output.append("</tr>");
+
+		for (String row : rowLabels.keySet()) {
+			output.append("<tr><td align=\"center\">");
+			output.append(rowLabels.get(row));
+			output.append("</td>");
+			for (String col : colLabels.keySet()) {
+				output.append("<td align=\"center\">");
+				int count = safeGet(row, col);
+				output.append(count);
+				if (showRowProportions) {
+					double proportion = count / rowCounts.get(row).doubleValue();
+					output.append(" (" + ext.formDeci(proportion, 3, true) + ")");
+				}
+				output.append("</td>");
+			}
+			output.append("</tr>");
+		}
+		output.append("</table></html>");
+
+		return output.toString();
 	}
 
 	public static String[][] extrapolateCounts(String[] rows, int[] genotype) {
@@ -151,33 +157,82 @@ public class CTable {
 	}
 
 	public int[][] getContingencyTable() {
-		String[] possibleRowValues, possibleColumnValues;
-		int[][] result;
-
-		result = new int[rowLabels.length][columnLabels.length];
-		for (int i = 0; i < rowLabels.length; i++) {
-			for (int j = 0; j < columnLabels.length; j++) {
-				result[i][j] = 0;
-				if (rowLabels[i][0] == null) {
-					possibleRowValues = nullValues;
-				} else {
-					possibleRowValues = new String[] {rowLabels[i][0]};
-				}
-				if (columnLabels[j][0] == null) {
-					possibleColumnValues = nullValues;
-				} else {
-					possibleColumnValues = new String[] {columnLabels[j][0]};
-				}
-				for (String possibleRowValue : possibleRowValues) {
-					for (String possibleColumnValue : possibleColumnValues) {
-						if (cells.containsKey(possibleRowValue + " x " + possibleColumnValue)) {
-							result[i][j] += cells.get(possibleRowValue + " x " + possibleColumnValue);
-						}
-					}
-				}
+		// Convert the table to an int[][] of counts
+		int[][] result = new int[table.rowKeySet().size()][table.columnKeySet().size()];
+		int i = 0;
+		for (String row : rowLabels.keySet()) {
+			int j = 0;
+			for (String col : colLabels.keySet()) {
+				result[i][j++] = safeGet(row, col);
 			}
+			i++;
 		}
 		return result;
+	}
+
+	/**
+	 * Helper method to return the value at a given row/column combination. Handles missing values
+	 * appropriately.
+	 */
+	private int safeGet(String row, String col) {
+		if (table.contains(row, col)) {
+			return table.get(row, col);
+		}
+
+		// Missing value
+		return 0;
+	}
+
+	/**
+	 * Helper method to unify all {@link #DEFAULT_NULL_VALUES}
+	 *
+	 * @return The input string if not {@code null} and not in {@link #DEFAULT_NULL_VALUES}. Otherwise
+	 *         {@link #MISSING}
+	 */
+	private String sanitizeNull(String key) {
+		if (key == null || DEFAULT_NULL_VALUES.contains(key)) {
+			return MISSING;
+		}
+		return key;
+	}
+
+	/**
+	 * Helper method to convert a 2-D string array to a map.
+	 */
+	private Map<String, String> buildMap(String[][] labels) {
+		Map<String, String> map = new LinkedHashMap<>();
+
+		for (int i = 0; i < labels.length; i++) {
+			String[] pair = labels[i];
+			if (pair.length != 2) {
+				throw new IllegalArgumentException("When setting custom row/column labels, must provide arrays of [original label, new label]");
+			}
+			map.put(pair[0], pair[1]);
+		}
+		return map;
+	}
+
+	/**
+	 * Helper method to build a map of strings to themselves
+	 */
+	private Map<String, String> buildIdentityMap(Set<String> values) {
+		// Use a LinkedHashMap to provide consistent ordering.
+		Map<String, String> identity = new LinkedHashMap<>();
+		for (String v : values) {
+			identity.put(v, v);
+		}
+		return identity;
+	}
+
+	/**
+	 * Helper method to sum the counts in a row or column
+	 */
+	private Integer sum(Map<String, Integer> rowOrColumn) {
+		int c = 0;
+		for (Integer i : rowOrColumn.values()) {
+			c += i;
+		}
+		return c;
 	}
 
 }
