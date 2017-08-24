@@ -5,6 +5,7 @@
 package org.genvisis.stats;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Matrix;
@@ -171,9 +172,28 @@ public class ContingencyTable {
 		double[][] expecteds;
 		double total;
 
-		if (data.length < 2 || data[0].length < 2) {
-			throw new IllegalArgumentException("Contigency tables must be at least 2x2 to calculate expecteds");
+		// Empty in, empty out
+		if (data.length == 0) {
+			return Arrays.copyOf(data, data.length);
 		}
+
+		final int expectedLength = data[0].length;
+
+		// Ensure table is square
+		for (int i = 0; i < data.length; i++) {
+			if (data[i].length != expectedLength) {
+				throw new IllegalArgumentException("Contigency table rows must have an equal number of columns");
+			}
+		}
+
+		if (data.length == 1 || expectedLength == 1) {
+			// Not empty, but number of rows and/or columns is 1
+			throw new IllegalArgumentException("Contigency tables must be at least 2x2 to calculate expecteds");
+		} else if (expectedLength == 0) {
+			// Empty in, empty out
+			return Arrays.copyOf(data, data.length);
+		}
+
 
 		rowSums = computeRowSums(data);
 		colSums = computeColSums(data);
