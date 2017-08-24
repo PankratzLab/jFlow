@@ -3,6 +3,7 @@ package org.genvisis.cnv.plots;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,7 +66,15 @@ public class MarkerGraphics {
 		this.heightBuffer = heightBuffer;
 		this.markerStatsFile = markerStatsFile;
 		log = proj.getLog();
-		String markerSetFilename = proj.PLINK_DIR_FILEROOTS.getValue() + "plink.bim";
+		String[] plinkDirs = proj.PLINK_DIR_FILEROOTS.getValue();
+		String markerSetFilename = "plink.bim";
+		for (String root : plinkDirs) {
+			String tmp = root + File.separator + ".bim";
+			if (Files.exists(tmp, true)) {
+				markerSetFilename = tmp;
+				break;
+			}
+		}
 
 		int genomeBuild = proj.GENOME_BUILD_VERSION.getValue().getBuildInt();
 		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilename,
