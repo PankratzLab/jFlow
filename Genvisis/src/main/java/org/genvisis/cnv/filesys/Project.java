@@ -133,7 +133,7 @@ public class Project implements PropertyChangeListener {
 		CYTO_SPECIFIC("CytoSpecific"),
 		PC_INTENSITY_CORRECTION("PC Intensity Correction"),
 		OPTIMIZATION_PARAMETERS("Optimization Parameters"),
-		PLINK("Plink Directory/Filename Roots (edit to remove extension)"),
+		PLINK("Plink Directory + File Root(s)"),
 		COLORS("Colors"),
 		SPECIAL_HIDDEN("HIDDEN");
 
