@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
@@ -29,15 +30,16 @@ import org.genvisis.seq.manage.StrandOps;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -290,9 +292,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			cmp = alleleB.compareTo(o.alleleB);
 			if (cmp != 0)
 				return cmp;
-			cmp = refAllele.compareTo(o.refAllele);
-			if (cmp != 0)
-				return cmp;
+			if (refAllele != null && o.refAllele != null) {
+				cmp = refAllele.compareTo(o.refAllele);
+				if (cmp != 0)
+					return cmp;
+			} else {
+				if (refAllele == null && o.refAllele != null)
+					return -1;
+				if (refAllele != null && o.refAllele == null) {
+					return 1;
+				}
+			}
 			cmp = name.compareTo(o.name);
 			return cmp;
 		}
@@ -305,7 +315,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	private final long markerSetFingerprint;
 
 	private transient Reference<Map<String, Marker>> markerNameMapRef = null;
-	private transient Reference<ListMultimap<Byte, Marker>> chrMapRef = null;
+	private transient Reference<SortedSetMultimap<Byte, Marker>> chrMapRef = null;
 	private transient Reference<SetMultimap<GenomicPosition, Marker>> genomicPositionMapRef = null;
 	private transient Reference<Map<Marker, Integer>> markerIndexMapRef = null;
 	private transient Reference<String[]> markerNameArrayRef = null;
@@ -409,14 +419,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return markerNameMapBuilder.build();
 	}
 
-	private ListMultimap<Byte, Marker> generateChrMap() {
-		ImmutableListMultimap.Builder<Byte, Marker> chrMapBuilder = ImmutableListMultimap.builder();
+	private SortedSetMultimap<Byte, Marker> generateChrMap() {
+		TreeMultimap<Byte, Marker> chrTreeMultimap = TreeMultimap.create();
 		for (Marker marker : markers) {
-			chrMapBuilder.put(marker.getChr(), marker);
+			chrTreeMultimap.put(marker.getChr(), marker);
 		}
-		chrMapBuilder.orderKeysBy(Ordering.natural());
-		chrMapBuilder.orderValuesBy(Ordering.natural());
-		return chrMapBuilder.build();
+		return Multimaps.unmodifiableSortedSetMultimap(chrTreeMultimap);
 	}
 
 	private SetMultimap<GenomicPosition, Marker> generateGenomicPositionMap() {
@@ -651,13 +659,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	/**
 	 * 
-	 * @return a {@link ListMultimap} from chromosome (sorted) to {@link Marker}s (sorted by position)
+	 * @return an unmodifiable {@link SortedSetMultimap} from chromosome (sorted) to {@link Marker}s
+	 *         (sorted by position)
 	 */
-	public ListMultimap<Byte, Marker> getChrMap() {
-		ListMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
+	public SortedSetMultimap<Byte, Marker> getChrMap() {
+		SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
 		if (chrMap == null) {
 			chrMap = generateChrMap();
-			chrMapRef = new SoftReference<ListMultimap<Byte, Marker>>(chrMap);
+			chrMapRef = new SoftReference<SortedSetMultimap<Byte, Marker>>(chrMap);
 		}
 		return chrMap;
 	}
@@ -713,7 +722,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	public LinkedHashSet<Marker> getMarkersInSeg(Segment seg) {
-		List<Marker> chrMarkers = getChrMap().get(seg.getChr());
+		SortedSet<Marker> chrMarkers = getChrMap().get(seg.getChr());
 		Iterator<Marker> markerIter = chrMarkers.iterator();
 		Marker curMarker = null;
 		while (markerIter.hasNext()) {
@@ -858,15 +867,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	@Override
 	@Deprecated
 	public int[][] getPositionsByChr() {
-		ListMultimap<Byte, Marker> chrMap = getChrMap();
+		SortedSetMultimap<Byte, Marker> chrMap = getChrMap();
 		int[][] positionsByChr = new int[MarkerSet.CHR_INDICES][];
 
 		for (byte chr : chrMap.keySet()) {
 			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
-				List<Marker> markers = chrMap.get(chr);
+				SortedSet<Marker> markers = chrMap.get(chr);
 				positionsByChr[chr] = new int[markers.size()];
-				for (int i = 0; i < markers.size(); i++) {
-					positionsByChr[chr][i] = markers.get(i).getPosition();
+				int i = 0;
+				for (Marker marker : markers) {
+					positionsByChr[chr][i] = marker.getPosition();
+					i++;
 				}
 			}
 		}
@@ -876,16 +887,18 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	@Override
 	@Deprecated
 	public int[][] getIndicesByChr() {
-		ListMultimap<Byte, Marker> chrMap = getChrMap();
+		SortedSetMultimap<Byte, Marker> chrMap = getChrMap();
 		Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
 		int[][] indicesByChr = new int[MarkerSet.CHR_INDICES][0];
 
 		for (byte chr : chrMap.keySet()) {
 			if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
-				List<Marker> markers = chrMap.get(chr);
+				SortedSet<Marker> markers = chrMap.get(chr);
 				indicesByChr[chr] = new int[markers.size()];
-				for (int i = 0; i < markers.size(); i++) {
-					indicesByChr[chr][i] = markerIndexMap.get(markers.get(i));
+				int i = 0;
+				for (Marker marker : markers) {
+					indicesByChr[chr][i] = markerIndexMap.get(marker);
+					i++;
 				}
 			}
 		}
