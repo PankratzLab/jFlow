@@ -2319,7 +2319,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
 
 		classCount = new CTable(called, sex);// This is the problem.
-		classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(new String[][] {{"-1", "Genotype missing"},
 																											 {"1", "Genotype NOT missing"}},
 																			 sampleData.getActualClassColorKey(0));
@@ -2342,7 +2341,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanel.add(qcPanelLabel, "cell 1 4");
 
 		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
-		classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1", CTable.DEFAULT_NULL_VALUES));
 		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0),
 																										 new String[] {null, "missing"}),
 																			 new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
@@ -2374,9 +2372,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																					 - SampleData.BASIC_CLASSES.length));
 			qcPanelLabel = new JLabel("Callrate by " + sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
-			classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1",
-																															ArrayUtils.addStrToArray("0",
-																																											 CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
 			// {"1","Genotype NOT missing"}},
 			// Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
@@ -2401,9 +2396,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																												false),
 																														 1)),
 																JLabel.LEFT);
-			classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1",
-																															ArrayUtils.addStrToArray("0",
-																																											 CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
 			// {"1","Genotype NOT missing"}},
 			// Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
@@ -2420,9 +2412,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			// classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
 			qcPanelLabel = new JLabel("Allele Freq by " + sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
-			classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1",
-																															ArrayUtils.addStrToArray("0",
-																																											 CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
 			// new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
 			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
@@ -2443,9 +2432,6 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																																												false),
 																														 1)),
 																JLabel.LEFT);
-			classCount.setCustomNullValues(ArrayUtils.addStrToArray("-1",
-																															ArrayUtils.addStrToArray("0",
-																																											 CTable.DEFAULT_NULL_VALUES)));
 			// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass-SampleData.BASIC_CLASSES.length),
 			// new String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"}});
 			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
