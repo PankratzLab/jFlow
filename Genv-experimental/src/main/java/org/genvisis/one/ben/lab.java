@@ -765,6 +765,55 @@ public class lab {
 
 	}
 
+	private static void testBatching() {
+		Set<String> complete;
+		String[] listAllSamplesInProj;
+		int batchMax;
+		Logger log = new Logger();
+
+		complete = new HashSet<>();
+		listAllSamplesInProj = new String[] {
+																				 "0",
+																				 "1",
+																				 "2",
+																				 "3",
+																				 "4",
+																				 "5",
+																				 "6",
+																				 "7",
+																				 "8",
+																				 "9",
+																				 "10",
+																				 "11",
+																				 "12",
+																				 "13",
+																				 "14",
+																				 "15",
+																				 "16",
+																				 "17",
+																				 "18",
+																				 "19",
+																				 "20",
+																				 "21",
+																				 "22",
+																				 "23",
+		};
+		complete.add(listAllSamplesInProj[5]);
+		complete.add(listAllSamplesInProj[14]);
+		complete.add(listAllSamplesInProj[15]);
+		// complete.add(listAllSamplesInProj[16]);
+		batchMax = 4;
+
+		int[][] ranges = TransposeData.breakIntoRangesOfIndices(complete, listAllSamplesInProj,
+																														batchMax, log);
+		System.out.println("");
+		for (int[] batch : ranges) {
+			int batchRange = batch[batch.length - 1] - batch[0] + 1;
+			boolean range = batchRange == batchMax || batchRange == batch.length;
+			System.out.println("Contigu: " + range + " | " + ArrayUtils.toStr(batch, ", "));
+		}
+	}
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -774,8 +823,7 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			proj = new Project("D:/projects/FarrarReparse.properties");
-			TransposeData.reverseTranspose(proj);
+
 			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";

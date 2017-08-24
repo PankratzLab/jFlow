@@ -9,10 +9,16 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+
+import javax.swing.JOptionPane;
 
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -20,7 +26,9 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
@@ -546,25 +554,12 @@ public class TransposeData {
 		}
 	}
 
-	/**
-	 * Reversely transpose .mdRaf data to .sampRaf data.
-	 *
-	 * @param proj The Genvisis project for the reverse transpose.
-	 * @param log The log file. If set as null, the default file
-	 *        Genvisis_TransposeData_yyyyMMdd_HHmmss.log will be used.
-	 */
-	@SuppressWarnings("unchecked")
 	public static void reverseTranspose(Project proj) {
-		// boolean isCurrentOutFileComplete;
-		boolean done; // safe;
+		boolean done;
 		byte nullStatus = 0;
 		byte numBytesPerSampleMarker;
 		int numBytes_PerSamp;
 		int numSamples_WriteBuffer;
-		int numMarkers_LastRound;
-		int numRoundsLoadingMarkerFiles;
-		int indexCurrentSampInProj;
-		int indexFirstSampleCurrentMdRafLoadingRound;
 		int indexFirstMarkerCurrentIteration;
 		long fingerprintForMarkers, fingerprintForSamples;
 		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerTmp;
@@ -582,6 +577,10 @@ public class TransposeData {
 		String markerFile;
 		String filename;
 		Logger log;
+		Set<String> successes;
+		int[][] batchIndices;
+		int[] batch;
+		boolean range;
 
 		log = proj.getLog();
 		log.report("Reverse transposing data for the project in " + proj.PROJECT_DIRECTORY.getValue());
@@ -590,23 +589,17 @@ public class TransposeData {
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		listOfAllSamplesInProj = proj.getSamples();
 		listOfAllMarkersInProj = proj.getMarkerNames();
-		fingerprintForSamples = MarkerSet.fingerprint(listOfAllSamplesInProj);
+		@SuppressWarnings("deprecation")
+		long f = MarkerSet.fingerprint(listOfAllSamplesInProj);
+		fingerprintForSamples = f;
 		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
 		nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false, true)
 																									 + proj.getMarkerLookup()
 																												 .getFirstMarkerDataRafFilename(),
 																									 false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-		if (new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace() <= (listOfAllSamplesInProj.length
-																																			 * (long) listOfAllMarkersInProj.length
-																																			 * numBytesPerSampleMarker)) {
-			log.reportError("Not enough disk space for all the new data to be created. Available: "
-											+ ext.prettyUpSize(new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace(),
-																				 1)
-											+ "; Required: "
-											+ ext.prettyUpSize(new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace(),
-																				 1)
-											+ ").");
+		if (!checkFreeSpaceOrLog(proj, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
+														 numBytesPerSampleMarker)) {
 			return;
 		}
 		numBytes_PerSamp = listOfAllMarkersInProj.length * numBytesPerSampleMarker;
@@ -616,93 +609,34 @@ public class TransposeData {
 		numSamples_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_PerSamp),
 																			listOfAllSamplesInProj.length);
 
-		while (!done) {
+		String TEMP_SUCCESS_FILE = "success.temp";
+		String successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
+		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
+																				 : new HashSet<>();
+
+		while (!done) { // used to recover from OutOfMemory ONLY
 			try {
-				numRoundsLoadingMarkerFiles = (int) Math.ceil((double) listOfAllSamplesInProj.length
-																											/ (double) numSamples_WriteBuffer);
-				numMarkers_LastRound = listOfAllSamplesInProj.length % numSamples_WriteBuffer;
-				// backupOlderFiles(proj.SAMPLE_DIRECTORY.getValue(true, false),
-				// new String[] {Sample.SAMPLE_FILE_EXTENSION, "outliers.ser"}, true);
-				log.reportTime("--");
-				log.reportTime("Project:\t" + listOfAllMarkersInProj.length + " markers\t"
-											 + listOfAllSamplesInProj.length + " samples");
-				log.reportTime("HeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
-											 + " max");
-				log.reportTime("writeBuffer:\t" + numSamples_WriteBuffer + " samples\t"
-											 + ext.formDeci((double) numSamples_WriteBuffer * numBytes_PerSamp
-																			/ Runtime.getRuntime().maxMemory() * 100, 1)
-											 + "% heap efficiency");
-				log.reportTime("Bytes per Sample:\t" + numBytes_PerSamp);
+				batchIndices = breakIntoRangesOfIndices(successes, listOfAllSamplesInProj,
+																								numSamples_WriteBuffer, log);
+
+				writeStatMsg(log, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
+										 numSamples_WriteBuffer, numBytes_PerSamp);
 
 				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
 
-				// timerLoadFiles = 0;
 				timerTmp = new Date().getTime();
-				if (new File(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
-					allOutliers = (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(true,
-																																																									true)
-																																							+ "outliers.ser");
-				} else {
-					allOutliers = new Hashtable<String, Float>();
-				}
+				allOutliers = loadOutliers(proj);
 				sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers,
 																																 listOfAllSamplesInProj);
 
-				indexCurrentSampInProj = 0;
-				indexFirstSampleCurrentMdRafLoadingRound = 0;
-				int numExisting = new File(proj.SAMPLE_DIRECTORY.getValue()).list(new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						return name.endsWith(Sample.SAMPLE_FILE_EXTENSION);
-					}
-				}).length;
-				if (numExisting > 0) {
-					log.reportTime("Found "
-												 + numExisting
-												 + " existing sampRAF files");
-				}
-				boolean del = false;
-				int deleted = 0;
-				for (String samp : listOfAllSamplesInProj) {
-					String fName = proj.SAMPLE_DIRECTORY.getValue() + samp + Sample.SAMPLE_FILE_EXTENSION;
-					if (Files.exists(fName)) {
-						if (del) {
-							new File(fName).delete();
-							deleted++;
-						} else {
-							int lenByt = Files.getSize(fName);
-							if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
-								indexCurrentSampInProj++;
-								indexFirstSampleCurrentMdRafLoadingRound++;
-							} else {
-								new File(fName).delete();
-								deleted++;
-								del = true; // delete all after a failure
-							}
-						}
-					} else {
-						break;
-					}
-				}
-				if (indexCurrentSampInProj > 0) {
-					log.reportTime("Starting at sample "
-												 + indexCurrentSampInProj
-												 + (numExisting > indexCurrentSampInProj
-																																? (" and deleting "
-																																	 + deleted + " existing sampRAF files.")
-																																: "."));
-				}
-
-				numRoundsLoadingMarkerFiles = (int) Math.ceil((double) (listOfAllSamplesInProj.length - indexCurrentSampInProj)
-																											/ (double) numSamples_WriteBuffer);
 				markerDataRafFilenames = proj.getMarkerLookup().getMarkerDataRafFilenames();
 				log.reportTime("--");
-				log.reportTime("i (<" + numRoundsLoadingMarkerFiles + ")\tLoad\tTranspose\tWrite");
-				for (int i = 0; i < numRoundsLoadingMarkerFiles; i++) {
+				log.reportTime("i (<" + batchIndices.length + ")\tLoad\tTranspose\tWrite");
+				for (int i = 0; i < batchIndices.length; i++) {
 					logTemp = "";
-					if ((i + 1) == numRoundsLoadingMarkerFiles && numMarkers_LastRound != 0) {
-						numSamples_WriteBuffer = numMarkers_LastRound;
-					}
+					batch = batchIndices[i];
+					int batchRange = batch[batch.length - 1] - batch[0] + 1;
+					range = batchRange == numSamples_WriteBuffer || batchRange == batch.length;
 
 					// --- Step 1 --- Load mdRaf files into buffer, and transpose the buffer
 					timerLoadFiles = 0;
@@ -711,12 +645,20 @@ public class TransposeData {
 					for (String markerDataRafFilename : markerDataRafFilenames) {
 						timerTmp = new Date().getTime();
 						markerFile = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + markerDataRafFilename;
-						readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompress(markerFile,
-																																								 null,
-																																								 indexFirstSampleCurrentMdRafLoadingRound,
-																																								 numSamples_WriteBuffer,
-																																								 fingerprintForSamples,
-																																								 log);
+						if (range) {
+							readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(markerFile,
+																																												null,
+																																												batch[0],
+																																												batch.length,
+																																												fingerprintForSamples,
+																																												log);
+						} else {
+							readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressIndices(markerFile,
+																																													null,
+																																													batch,
+																																													fingerprintForSamples,
+																																													log);
+						}
 						timerLoadFiles += (new Date().getTime() - timerTmp);
 
 						timerTmp = new Date().getTime();
@@ -725,20 +667,15 @@ public class TransposeData {
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 						indexFirstMarkerCurrentIteration += readBuffer.length;
 					}
-					// log.report(i + "\t" + timeFormat.format(timerLoadFiles) + "\t" +
-					// timeFormat.format(timerTransposeMemory), false, true);
 					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
 										 + timeFormat.format(timerTransposeMemory));
 
-
 					// --- Step 2 --- Dump write buffer to marker files
-					for (int j = 0; j < numSamples_WriteBuffer
-													&& indexCurrentSampInProj < listOfAllSamplesInProj.length; j++) {
-						if (sampRafFileOutliers == null
-								|| sampRafFileOutliers[indexCurrentSampInProj].size() == 0) {
+					for (int j = 0; j < batch.length; j++) {
+						if (sampRafFileOutliers == null || sampRafFileOutliers[batch[j]].size() == 0) {
 							markFileOutliersBytes = new byte[0];
 						} else {
-							markFileOutliersBytes = Compression.objToBytes(sampRafFileOutliers[indexCurrentSampInProj]);
+							markFileOutliersBytes = Compression.objToBytes(sampRafFileOutliers[batch[j]]);
 						}
 						markFileParameterSection = getParameterSectionForSampRaf(listOfAllMarkersInProj.length,
 																																		 nullStatus,
@@ -747,7 +684,7 @@ public class TransposeData {
 
 						timerTmp = new Date().getTime();
 						filename = proj.SAMPLE_DIRECTORY.getValue(false, true)
-											 + listOfAllSamplesInProj[indexCurrentSampInProj]
+											 + listOfAllSamplesInProj[batch[j]]
 											 + Sample.SAMPLE_FILE_EXTENSION;
 						boolean write = true;
 						if (Files.exists(filename)) {
@@ -760,15 +697,9 @@ public class TransposeData {
 							writeBufferToRAF(writeBuffer, null, j, j, filename,
 															 markFileParameterSection, markFileOutliersBytes);
 						}
-						indexCurrentSampInProj++;
-						// log.report("\t" + timeFormat.format(timerWriteFiles), false, true);
 					}
 
-					indexFirstSampleCurrentMdRafLoadingRound += numSamples_WriteBuffer;
 					log.reportTime(logTemp);
-
-					if (indexCurrentSampInProj == listOfAllSamplesInProj.length)
-						break;
 				}
 
 				if (allOutliers != null && allOutliers.size() != 0) {
@@ -781,15 +712,23 @@ public class TransposeData {
 			} catch (FileNotFoundException e) {
 				System.err.println(ext.getTime() + "\tFileNotFoundException");
 				e.printStackTrace();
+				proj.message("Major error - file not found:\n" + e.getMessage()
+										 + "\nPlease check log for more info.", "Error - File Missing!",
+										 JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
 			} catch (IOException e) {
 				System.err.println(ext.getTime() + "\tIOException");
 				e.printStackTrace();
+				proj.message("Major error:\n" + e.getMessage() + "\nPlease check log for more info.",
+										 "Error!", JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
 			} catch (OutOfMemoryError oome) {
-				numSamples_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numSamples_WriteBuffer, -1);
-				deleteOlderRafs(proj.SAMPLE_DIRECTORY.getValue(true, false), null,
-												new String[] {"outliers.ser"}, false, null);
+				log.reportTimeWarning("Ran out of memory!  Trying again...");
 			} catch (Exception e) {
 				e.printStackTrace();
+				proj.message("Major error:\n" + e.getMessage() + "\nPlease check log for more info.",
+										 "Error!", JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
 			}
 
 		}
@@ -797,6 +736,106 @@ public class TransposeData {
 		log.report("--\nFinished reversely transposing data. Total Time used: "
 							 + timeFormat.format(timerOverAll));
 	}
+
+	public static int[][] breakIntoRangesOfIndices(Set<String> complete,
+																								 String[] listAllSamplesInProj,
+																								 int batchMax, Logger log) {
+		List<int[]> batches = new ArrayList<>();
+		if (complete == null || complete.isEmpty()) {
+			// break into batches normally
+			int[] batch = new int[Math.min(batchMax, listAllSamplesInProj.length)];
+			for (int i = 0; i < listAllSamplesInProj.length; i++) {
+				if (i > 0 && i % batchMax == 0) {
+					batches.add(batch);
+					batch = new int[Math.min(batchMax, listAllSamplesInProj.length - i)];
+				}
+				batch[i % batchMax] = i;
+			}
+			batches.add(batch);
+		} else {
+			List<Integer> orphans = new ArrayList<>();
+			for (int i = 0; i < listAllSamplesInProj.length; i++) {
+				if (complete.contains(listAllSamplesInProj[i])) {
+					continue;
+				} else {
+					int s = i;
+					int e = i;
+					for (int j = i + 1; j < listAllSamplesInProj.length; j++) {
+						if (complete.contains(listAllSamplesInProj[j])) {
+							break;
+						}
+						e++;
+					}
+					while (e - s + 1 >= batchMax) {
+						int[] batch = ArrayUtils.arrayOfIndices(batchMax, s);
+						batches.add(batch);
+						s += batchMax;
+					}
+					for (int j = s; j <= e; j++) {
+						orphans.add(j);
+					}
+					i = e + 1; // skip next, as we know it's in "complete"
+				}
+			}
+			while (orphans.size() > batchMax) {
+				int[] batch = new int[batchMax];
+				for (int i = 0; i < batch.length; i++) {
+					batch[i] = orphans.remove(0);
+				}
+				batches.add(batch);
+			}
+			if (!orphans.isEmpty()) {
+				int[] batch = new int[orphans.size()];
+				for (int i = 0; i < batch.length; i++) {
+					batch[i] = orphans.get(i);
+				}
+				batches.add(batch);
+			}
+		}
+
+		return batches.toArray(new int[batches.size()][]);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Hashtable<String, Float> loadOutliers(Project proj) {
+		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
+			return (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(true,
+																																																			 true)
+																																	 + "outliers.ser");
+		} else {
+			return new Hashtable<String, Float>();
+		}
+	}
+
+
+	private static void writeStatMsg(Logger log, int numSamp, int numMark, long sampBuffer,
+																	 long numBytes_PerSamp) {
+		log.reportTime("--");
+		log.reportTime("Project:\t" + numMark + " markers\t" + numSamp + " samples");
+		log.reportTime("HeapSpace:\t" + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1) + " max");
+		log.reportTime("writeBuffer:\t" + sampBuffer + " samples\t"
+									 + ext.formDeci((double) sampBuffer * numBytes_PerSamp
+																	/ Runtime.getRuntime().maxMemory() * 100, 1)
+									 + "% heap efficiency");
+		log.reportTime("Bytes per Sample:\t" + numBytes_PerSamp);
+	}
+
+	private static boolean checkFreeSpaceOrLog(Project proj, int numSamp, int numMark,
+																						 int numBytesPerSampleMarker) {
+		Logger log = proj.getLog();
+		long freeSpace = new File(proj.PROJECT_DIRECTORY.getValue()).getFreeSpace();
+		long reqrSpace = (numSamp * numMark * numBytesPerSampleMarker);
+		if (freeSpace <= reqrSpace) {
+			log.reportError("Not enough disk space for all the new data to be created. Available: "
+											+ ext.prettyUpSize(freeSpace, 1)
+											+ "; Required: "
+											+ ext.prettyUpSize(reqrSpace, 1)
+											+ ").");
+			return false;
+		}
+		return true;
+	}
+
 
 	private static void reverseTransposeBuffer(byte[][] input_markerLeadBuffer,
 																						 byte[][] output_sampleLeadBuffer,
