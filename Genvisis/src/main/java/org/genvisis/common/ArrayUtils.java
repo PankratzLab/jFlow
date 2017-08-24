@@ -284,9 +284,21 @@ public class ArrayUtils {
 	 * @return array of integers with values initialized to their respective indices
 	 */
 	public static int[] arrayOfIndices(int size) {
+		return arrayOfIndices(size, 0);
+	}
+
+	/**
+	 * Creates an integer array of given size and initializes values to their respective indices plus
+	 * the given offset
+	 *
+	 * @param size size of array
+	 * @param start starting offset
+	 * @return array of integers with values initialized to their respective indices
+	 */
+	public static int[] arrayOfIndices(int size, int start) {
 		int[] arr = new int[size];
 		for (int i = 0; i < size; i++) {
-			arr[i] = i;
+			arr[i] = i + start;
 		}
 		return arr;
 	}
@@ -1846,7 +1858,7 @@ public class ArrayUtils {
 						quantiles[i] = array[keys[(int) index - 1]];
 					} else {
 						quantiles[i] = (float) (qs[i] * array[keys[(int) Math.floor(index) - 1]]
-																		+ (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+													 + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
 					}
 				}
 			} catch (Exception e) {
@@ -2346,7 +2358,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str.append((i == 0 ? "" : delimiter)
 								 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																		 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
+																		: ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
 		return str.toString();
@@ -2376,7 +2388,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
 						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
+																: ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -4640,8 +4652,8 @@ public class ArrayUtils {
 			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
 																														 Math.min(0.50,
 																																			proportionOfGlobalMaxRequiredForLocalMaxima
-																																						* proportionOfGlobalMaxRequiredForLocalMaxima
-																																						* 300 / array.length));
+																																					* proportionOfGlobalMaxRequiredForLocalMaxima
+																																					* 300 / array.length));
 			if (array.length < 50) {
 				// System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
 			}
@@ -5094,7 +5106,8 @@ public class ArrayUtils {
 	}
 
 	public static void main(String[] args) {
-		double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2, 16,
+		double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2,
+										 16,
 										 16.2};
 		// float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f,
 		// 22.2f, 22.2f, 16, 16.2f};
