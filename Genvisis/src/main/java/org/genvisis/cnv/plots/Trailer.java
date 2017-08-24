@@ -3364,7 +3364,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		Marker dummyStart = new Marker("dummyStart", new GenomicPosition(chr, start - 1));
 		Marker dummyStop = new Marker("dummyStop", new GenomicPosition(chr, stop + 1));
 		curMarkers = markerChrMap.get(chr).subSet(dummyStart, dummyStop);
-		start = curMarkers.first().getPosition();
+		if (!curMarkers.isEmpty()) {
+			start = curMarkers.first().getPosition();
+		}
 
 		displayIndex();
 
@@ -3411,6 +3413,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					// qcChromo = LrrSd.LrrSdPerSample(proj, sample, samp, centroids, markersForCallrate,
 					// markersForEverythingElseChromosome, gcModelToUse, fastQC, log);
 					// }
+
+					// If there are no valid markers to display, no need to proceed
+					if (toUse.isEmpty()) {
+						return;
+					}
 
 					// Apply the update(s)
 					if (updateGenome || updateChr || updateRegion) {
