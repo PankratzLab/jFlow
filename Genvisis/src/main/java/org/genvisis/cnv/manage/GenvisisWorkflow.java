@@ -1895,7 +1895,7 @@ public class GenvisisWorkflow {
 			});
 		}
 
-		private Step generateCreatePCsStep(Step transposeStep) {
+		private Step generateMitoCNEstimateStep(Step transposeStep) {
 			// FIXME http://genvisis.org/MitoPipeline/#illumina_marker_lists has illumina markers.. this
 			// should be linked to, or
 			// these steps split or something...
@@ -1924,7 +1924,7 @@ public class GenvisisWorkflow {
 			final Requirement externalBetaFileReq = new OptionalFileRequirement("An external beta file to optimize PC selection.",
 																																					"");
 
-			return register(new Step("Create Principal Components File and Mitochondrial Copy-Number Estimates File",
+			return register(new Step("Create Mitochondrial Copy-Number Estimates File",
 															 "",
 															 new Requirement[][] {{transposeStepReq}, {medianMarkersReq},
 																										{lrrSdThresholdReq}, {callrateThresholdReq},
@@ -2612,7 +2612,7 @@ public class GenvisisWorkflow {
 		sb.generateAnnotateSampleDataStep(sampleQCStep,
 																			createSampleDataStep,
 																			gwasQCStep);
-		sb.generateCreatePCsStep(transposeStep);
+		sb.generateMitoCNEstimateStep(transposeStep);
 		Step pfbStep = sb.generatePFBStep(parseSamplesStep);
 		sb.generateSexCentroidsStep();
 		sb.generateCNVStep(pfbStep, gcModelStep);
