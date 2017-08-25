@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +50,8 @@ public class TransposeData {
 	public static final byte MARKERDATA_MARKERNAMELEN_START = 17;
 	public static final byte MARKERDATA_MARKERNAMELEN_LEN = 4;
 	public static final byte MARKERDATA_MARKERNAME_START = 21;
+
+	private static final String TEMP_SUCCESS_FILE = "success.temp";
 
 	/**
 	 * Transpose data from sample based structure into Marker based structure. The input is a set of
@@ -609,10 +612,10 @@ public class TransposeData {
 		numSamples_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_PerSamp),
 																			listOfAllSamplesInProj.length);
 
-		String TEMP_SUCCESS_FILE = "success.temp";
 		String successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
 		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
 																				 : new HashSet<>();
+		PrintWriter writer = Files.getAppropriateWriter(successFile, true);
 
 		while (!done) { // used to recover from OutOfMemory ONLY
 			try {
@@ -696,6 +699,7 @@ public class TransposeData {
 						if (write) {
 							writeBufferToRAF(writeBuffer, null, j, j, filename,
 															 markFileParameterSection, markFileOutliersBytes);
+							writer.println(filename);
 						}
 					}
 
@@ -708,6 +712,7 @@ public class TransposeData {
 				}
 
 				done = true;
+				writer.close();
 
 			} catch (FileNotFoundException e) {
 				System.err.println(ext.getTime() + "\tFileNotFoundException");
@@ -735,6 +740,7 @@ public class TransposeData {
 		timerOverAll = (new Date().getTime() - timerOverAll);
 		log.report("--\nFinished reversely transposing data. Total Time used: "
 							 + timeFormat.format(timerOverAll));
+		new File(successFile).delete();
 	}
 
 	public static int[][] breakIntoRangesOfIndices(Set<String> complete,
