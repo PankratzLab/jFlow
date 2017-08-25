@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -216,26 +217,28 @@ public class ext {
 
 	public static int indexOfStr(String target, String[] array, boolean caseSensitive,
 															 boolean exactMatch, Logger log, boolean verbose) {
-		int[] indices;
-
-		indices = indicesOfStr(target, array, caseSensitive, exactMatch);
+		// FIXME if not verbose we don't actually use the fact that there could be more than one match,
+		// which could potentially shorten search time.
+		int[] indices = indicesOfStr(target, array, caseSensitive, exactMatch);
 
 		if (indices.length == 0) {
 			if (verbose) {
+				String error = "Error - '" + target + "' was not found in array";
 				if (log == null) {
-					System.err.println("Error - '" + target + "' was not found in array");
+					System.err.println(error);
 				} else {
-					log.reportError("Error - '" + target + "' was not found in array");
+					log.reportError(error);
 				}
 			}
 			return -1;
 		}
 
 		if (indices.length > 1 && verbose) {
+			String warning = "Warning - '" + target + "' was found more than once in the array";
 			if (log == null) {
-				System.err.println("Warning - '" + target + "' was found more than once in the array");
+				System.err.println(warning);
 			} else {
-				log.reportError("Warning - '" + target + "' was found more than once in the array");
+				log.reportError(warning);
 			}
 		}
 
@@ -244,25 +247,27 @@ public class ext {
 
 	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive,
 																	 boolean exactMatch) {
-		IntVector indices;
 
-		indices = new IntVector();
+		int[] indices = new int[array.length];
+		int numMatches = 0;
+
+		if (!caseSensitive) {
+			target = target.toLowerCase();
+		}
+
 		for (int i = 0; i < array.length; i++) {
-			if (exactMatch) {
-				if (caseSensitive ? array[i].equals(target)
-													: array[i].toLowerCase().equals(target.toLowerCase())) {
-					indices.add(i);
-				}
-			} else {
-				if (caseSensitive ? array[i].contains(target) || target.contains(array[i])
-													: array[i].toLowerCase().contains(target.toLowerCase())
-														|| target.toLowerCase().contains(array[i].toLowerCase())) {
-					indices.add(i);
-				}
+			String toCheck = array[i];
+			if (!caseSensitive) {
+				toCheck = toCheck.toLowerCase();
+			}
+
+			if ((exactMatch && target.equals(toCheck))
+					|| (!exactMatch && (target.contains(toCheck) || toCheck.contains(target)))) {
+				indices[numMatches++] = i;
 			}
 		}
 
-		return Ints.toArray(indices);
+		return Arrays.copyOf(indices, numMatches);
 	}
 
 	public static int[] indicesWithinString(String target, String str) {
