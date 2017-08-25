@@ -124,7 +124,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 			if (newValue instanceof String[] || newValue instanceof String) {
 				String[] vals = newValue instanceof String[] ? (String[]) newValue
-																										 : new String[] {(String) newValue};
+																										: new String[] {(String) newValue};
 				if (vals.length == 1 && "".equals(vals[0])) {
 					return true;
 				}
@@ -841,16 +841,16 @@ public class ProjectPropertiesEditor extends JFrame {
 					value = set[0].getPath();
 					if (!set[0].exists()) {
 						value = ((StringListProperty) proj.getProperty(key)).isDirectory()
-																																							 ? ext.verifyDirFormat(value)
-																																							 : ext.replaceAllWith(value,
-																																																		"\\",
-																																																		"/");
+																																							? ext.verifyDirFormat(value)
+																																							: ext.replaceAllWith(value,
+																																																	 "\\",
+																																																	 "/");
 					} else {
 						value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																				 : ext.replaceAllWith(value, "\\", "/");
+																				: ext.replaceAllWith(value, "\\", "/");
 					}
 					value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																			 : ext.replaceAllWith(value, "\\", "/");
+																			: ext.replaceAllWith(value, "\\", "/");
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
@@ -860,13 +860,13 @@ public class ProjectPropertiesEditor extends JFrame {
 						String fNm = set[k].getPath();
 						if (!set[k].exists()) {
 							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory()
-																																							 ? ext.verifyDirFormat(fNm)
-																																							 : ext.replaceAllWith(fNm,
-																																																		"\\",
-																																																		"/");
+																																							? ext.verifyDirFormat(fNm)
+																																							: ext.replaceAllWith(fNm,
+																																																	 "\\",
+																																																	 "/");
 						} else {
 							fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
-																				 : ext.replaceAllWith(fNm, "\\", "/");
+																				: ext.replaceAllWith(fNm, "\\", "/");
 						}
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
@@ -881,12 +881,12 @@ public class ProjectPropertiesEditor extends JFrame {
 				value = set.getPath();
 				if (!set.exists()) {
 					value = ((FileProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
-																																			 : ext.replaceAllWith(value,
-																																														"\\",
-																																														"/");
+																																			: ext.replaceAllWith(value,
+																																													 "\\",
+																																													 "/");
 				} else {
 					value = set.isDirectory() ? ext.verifyDirFormat(value)
-																		: ext.replaceAllWith(value, "\\", "/");
+																	 : ext.replaceAllWith(value, "\\", "/");
 				}
 				if (!key.equals(proj.SOURCE_DIRECTORY.getName())
 						&& !key.equals(proj.PROJECT_DIRECTORY.getName())) {
@@ -1085,7 +1085,6 @@ public class ProjectPropertiesEditor extends JFrame {
 					}
 					setValue(newValue);
 
-					editing = false;
 					stopCellEditing();
 					fireEditingStopped();
 					if (table != null) {
@@ -1243,8 +1242,10 @@ public class ProjectPropertiesEditor extends JFrame {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
+								String text = label.getText();
+								File value = text.isEmpty() ? null : new File(text);
 								fileChooser.setMultiSelectionEnabled(false);
-								if (Files.exists(value.toString())) {
+								if (value != null && Files.exists(value.toString())) {
 									fileChooser.setSelectedFile((File) value);
 								}
 								if (isDir) {
@@ -1301,6 +1302,11 @@ public class ProjectPropertiesEditor extends JFrame {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
+								String[] text = label.getText().split(";");
+								File[] value = new File[text.length];
+								for (int i = 0; i < text.length; i++) {
+									value[i] = new File(text[i]);
+								}
 								fileChooser.setMultiSelectionEnabled(true);
 								if (isDir) {
 									fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1309,14 +1315,8 @@ public class ProjectPropertiesEditor extends JFrame {
 								}
 								Object newValue = value;
 								if (fileChooser.showOpenDialog(sourceButton) == JFileChooser.APPROVE_OPTION) {
-									// FileChooserCellEditor.this.setValue(fileChooser.getSelectedFiles());
-									// table.setValueAt(fileChooser.getSelectedFiles(), row, column);
 									newValue = fileChooser.getSelectedFiles();
-								} /*
-									 * else {
-									 * 
-									 * FileChooserCellEditor.this.setValue(value); }
-									 */
+								}
 
 								if (sourceButton == buttonReplace) {
 									setValue(newValue);
@@ -1330,7 +1330,6 @@ public class ProjectPropertiesEditor extends JFrame {
 									}
 									setValue(values.toArray(new File[values.size()]));
 								}
-								// table.setValueAt(newValue, row, column);
 
 								fireEditingStopped();
 								if (table != null) {
