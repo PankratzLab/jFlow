@@ -2305,16 +2305,25 @@ public class GenvisisWorkflow {
 						CNVCaller.callAutosomalCNVs(proj, output, samples, null, null, null,
 																				CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
 																				PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
-						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output);
+						String file = proj.PROJECT_DIRECTORY.getValue() + output;
+						if (Files.exists(file)) {
+							proj.CNV_FILENAMES.addValue(file);
+						}
 					}
 					if (scope != CALLING_SCOPE.AUTOSOMAL) {
 						CNVCaller.callGenomeCnvs(proj, output, cents, null, CNVCaller.DEFAULT_MIN_SITES,
 																		 CNVCaller.DEFAULT_MIN_CONF,
 																		 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
-
-						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv");
-						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv");
-						proj.CNV_FILENAMES.addValue(proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv");
+						String[] files = {
+						                  proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv",
+						                  proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv",
+						                  proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv"
+						};
+						for (String f : files) {
+							if (Files.exists(f)) {
+								proj.CNV_FILENAMES.addValue(f);
+							}
+						}
 					}
 
 					proj.saveProperties(new Property[] {proj.CNV_FILENAMES});

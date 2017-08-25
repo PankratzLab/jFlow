@@ -802,9 +802,9 @@ public class CNVCaller {
 																						+ markerSet.getMarkerNames().length);
 					}
 					float[] lrrs = centroids == null ? curSample.getLRRs()
-																					 : curSample.getLRRs(centroids.getCentroids());
+																					: curSample.getLRRs(centroids.getCentroids());
 					float[] bafs = centroids == null ? curSample.getBAFs()
-																					 : curSample.getBAFs(centroids.getCentroids());
+																					: curSample.getBAFs(centroids.getCentroids());
 					CNVCallResult cnvs = callCNVsFor(proj, pennHmmTmp, curSample.getSampleName(),
 																					 ArrayUtils.toDoubleArray(lrrs),
 																					 ArrayUtils.toDoubleArray(bafs), gcModelTmp, pfbTmp,
@@ -1074,6 +1074,11 @@ public class CNVCaller {
 
 	private static void writeOutput(CNVCallerIterator callerIterator, String output, Logger log) {
 		try {
+			boolean hasAny = callerIterator.hasNext();
+			if (!hasAny) {
+				log.reportTimeWarning("No CNVs found to be written to " + output);
+				return;
+			}
 			new File(ext.parseDirectoryOfFile(output)).mkdir();
 			PrintWriter writer = Files.openAppropriateWriter(output);
 			writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
@@ -1100,7 +1105,7 @@ public class CNVCaller {
 		boolean[] markers = ArrayUtils.booleanArray(markerNames.size(), true);
 		String file = Files.isRelativePath(excludeFile) ? proj.PROJECT_DIRECTORY.getValue()
 																											+ excludeFile
-																										: excludeFile;
+																									 : excludeFile;
 		String[] drops = HashVec.loadFileToStringArray(file, true, new int[] {0}, false);
 		for (String s : drops) {
 			if (markerNames.containsKey(s)) {
