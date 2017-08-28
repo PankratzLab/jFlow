@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +16,8 @@ import java.util.Set;
 
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -814,6 +815,29 @@ public class lab {
 		}
 	}
 
+	private static void testRev() {
+		Project proj = new Project("D:/projects/FarrarReparse.properties");
+		String dir = proj.SAMPLE_DIRECTORY.getValue();
+		String[] files = Files.list(dir, Sample.SAMPLE_FILE_EXTENSION);
+
+		for (String f : files) {
+			try {
+				Sample.loadOutOfRangeValuesFromRandomAccessFile(dir + f);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	private static void testRevTran() {
+		Project proj = new Project("D:/projects/FarrarReparse.properties");
+		TransposeData.reverseTranspose(proj);
+		System.out.println("TEST");
+		testRev();
+	}
+
+
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
 		Project proj;
@@ -823,21 +847,8 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-
-			filename = "F:/testProjectSrc/UKBB_AffyAxiom/00src/ukb_baf_chr21_v2.txt";
-			BufferedReader reader = Files.getAppropriateReader(filename);
-			boolean done = false;
-			String line;
-			while (!done) {
-				try {
-					done = (reader.readLine() == null);
-				} catch (InterruptedIOException e) {
-					done = true;
-				}
-			}
-			reader.close();
-			System.out.println("Done");
-
+			// testRev();
+			testRevTran();
 			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";

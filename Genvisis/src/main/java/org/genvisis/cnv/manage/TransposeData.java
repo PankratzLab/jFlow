@@ -22,7 +22,6 @@ import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -117,7 +116,7 @@ public class TransposeData {
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		allSampleNamesInProj = proj.getSamples();
 		allMarkerNamesInProj = proj.getMarkerNames();
-		fingerPrint = MarkerSet.fingerprint(allSampleNamesInProj);
+		fingerPrint = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSampleNamesInProj);
 		if (!Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0]
 											+ Sample.SAMPLE_FILE_EXTENSION)) {
 			log.reportError("Could not locate file: " + proj.SAMPLE_DIRECTORY.getValue(true, true)
@@ -361,7 +360,7 @@ public class TransposeData {
 						timerTmp = new Date().getTime();
 						writeBufferToRAF(writeBuffer, writeBufferSizes, j, index_WriteBufferEnd,
 														 markerFilenames[markerFileIndex], markFileParameterSection,
-														 markFileOutliersBytes);
+														 markFileOutliersBytes, true);
 
 						PSF.checkInterrupted();
 
@@ -591,7 +590,7 @@ public class TransposeData {
 		listOfAllSamplesInProj = proj.getSamples();
 		listOfAllMarkersInProj = proj.getMarkerNames();
 		@SuppressWarnings("deprecation")
-		long f = MarkerSet.fingerprint(listOfAllSamplesInProj);
+		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(listOfAllSamplesInProj);
 		fingerprintForSamples = f;
 		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
 		nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false, true)
@@ -599,6 +598,7 @@ public class TransposeData {
 																												 .getFirstMarkerDataRafFilename(),
 																									 false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+		System.out.println("Writing " + numBytesPerSampleMarker + " per marker");
 		if (!checkFreeSpaceOrLog(proj, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
 														 numBytesPerSampleMarker)) {
 			return;
@@ -684,7 +684,7 @@ public class TransposeData {
 																																		 fingerprintForMarkers);
 
 						timerTmp = new Date().getTime();
-						filename = proj.SAMPLE_DIRECTORY.getValue(false, true)
+						filename = proj.SAMPLE_DIRECTORY.getValue(true, true)
 											 + listOfAllSamplesInProj[batch[j]]
 											 + Sample.SAMPLE_FILE_EXTENSION;
 						boolean write = true;
@@ -696,7 +696,7 @@ public class TransposeData {
 						}
 						if (write) {
 							writeBufferToRAF(writeBuffer, null, j, j, filename,
-															 markFileParameterSection, markFileOutliersBytes);
+															 markFileParameterSection, markFileOutliersBytes, false);
 							writer.println(filename);
 						}
 					}
@@ -822,18 +822,14 @@ public class TransposeData {
 		}
 	}
 
-	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, String fileName,
-																			byte[] head, byte[] tail) {
-		writeBufferToRAF(buffer, bufferLength, 0, buffer.length, fileName, head, tail);
-	}
-
 	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int start, int end,
-																			String fileName, byte[] head, byte[] tail) {
+																			String fileName, byte[] head, byte[] tail,
+																			boolean writeTailLength) {
 		BufferedOutputStream markerFile;
 		try {
 			markerFile = new BufferedOutputStream(new FileOutputStream(fileName,
 																																 head == null ? true : false));
-			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail);
+			writeBufferToRAF(buffer, bufferLength, start, end, markerFile, head, tail, writeTailLength);
 			markerFile.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -866,7 +862,7 @@ public class TransposeData {
 
 	public static void writeBufferToRAF(byte[][] buffer, int[] bufferLength, int indexOfStart,
 																			int indexOfEnd, BufferedOutputStream markerFile, byte[] head,
-																			byte[] tail) {
+																			byte[] tail, boolean writeTailLength) {
 		if (buffer == null || indexOfStart < 0 || indexOfEnd >= buffer.length
 				|| indexOfEnd < indexOfStart) {
 			System.err.println("\nTranspose Data encoutered the following error: buffer is null, or start index of buffer is negative, or end index is less than the start index, or end index is over the buffer size.");
@@ -895,7 +891,9 @@ public class TransposeData {
 				}
 			}
 			if (tail != null && tail.length != 0) {
-				markerFile.write(Compression.intToBytes(tail.length));
+				if (writeTailLength) {
+					markerFile.write(Compression.intToBytes(tail.length));
+				}
 				if (tail.length != 0) {
 					markerFile.write(tail);
 				}

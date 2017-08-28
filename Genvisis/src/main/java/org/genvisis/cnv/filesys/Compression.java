@@ -507,7 +507,7 @@ public class Compression {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-										 | ((~abGenotype + 1) & 0x03));
+			| ((~abGenotype + 1) & 0x03));
 		}
 	}
 
@@ -528,7 +528,7 @@ public class Compression {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-																		 | ((~abGenotype + 1) & 0x03));
+														 | ((~abGenotype + 1) & 0x03));
 		}
 	}
 
