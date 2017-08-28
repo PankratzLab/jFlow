@@ -1,7 +1,6 @@
 package org.genvisis.cnv.manage;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringJoiner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;

@@ -71,7 +71,7 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(lblPbsQueue, "cell 0 2,alignx left");
 		}
 		{
-			comboQueue = new JComboBox();
+			comboQueue = new JComboBox<>();
 			comboQueue.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ie) {
 					if (ie.getStateChange() == ItemEvent.SELECTED) {
@@ -103,7 +103,7 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(spinMem, "flowx,cell 1 4");
 		}
 		{
-			JLabel lblWallTime = new JLabel("Wall time (dd/hh/mm):");
+			JLabel lblWallTime = new JLabel("Wall time (hh/mm):");
 			contentPanel.add(lblWallTime, "cell 0 5");
 		}
 		{
@@ -115,13 +115,13 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(lblQueueMinmax, "cell 1 3");
 		}
 		{
-			comboMemUnit = new JComboBox();
+			comboMemUnit = new JComboBox<>();
 			comboMemUnit.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					updateMemDefault();
 				}
 			});
-			comboMemUnit.setModel(new DefaultComboBoxModel(MEM_UNITS));
+			comboMemUnit.setModel(new DefaultComboBoxModel<>(MEM_UNITS));
 			comboMemUnit.setSelectedIndex(1);
 			contentPanel.add(comboMemUnit, "cell 1 4");
 		}
@@ -134,18 +134,8 @@ public class QueuePicker extends JDialog {
 			contentPanel.add(label, "cell 1 4");
 		}
 		{
-			spinWallDay = new JSpinner();
-			spinWallDay.setModel(new SpinnerNumberModel(0, 0, 999, 1));
-			spinWallDay.setEditor(new JSpinner.NumberEditor(spinWallDay, "00"));
-			contentPanel.add(spinWallDay, "flowx,cell 1 5");
-		}
-		{
-			JLabel label = new JLabel(":");
-			contentPanel.add(label, "cell 1 5");
-		}
-		{
 			spinWallHours = new JSpinner();
-			spinWallHours.setModel(new SpinnerNumberModel(0, 0, 24, 1));
+			spinWallHours.setModel(new SpinnerNumberModel(0, 0, 99, 1));
 			spinWallHours.setEditor(new JSpinner.NumberEditor(spinWallHours, "00"));
 			contentPanel.add(spinWallHours, "cell 1 5");
 		}
@@ -238,7 +228,6 @@ public class QueuePicker extends JDialog {
 
 			QueueProperties.setDefaultQueueName(jq.getName());
 
-			System.out.println("NEW DEFAULT QUEUE: " + jq.getName());
 			QueueProperties.save(QueueProperties.PROPERTIES_FILE);
 		}
 	}
@@ -336,7 +325,7 @@ public class QueuePicker extends JDialog {
 		lblWalltimeMinMax.setText(sb.toString());
 
 		long m;
-		int p, wH = 0, wD = 0;
+		int p, wH = 0;
 		m = jq.getDefaultMem();
 		p = jq.getDefaultProc();
 
@@ -344,10 +333,6 @@ public class QueuePicker extends JDialog {
 			p = 1;
 		}
 		wH = jq.getDefaultWalltime();
-		if (wH > 24) {
-			wD = wH / 24;
-			wH = wH % 24;
-		}
 
 		int pMin = jq.getMinProc();
 		if (pMin < 0)
@@ -359,7 +344,6 @@ public class QueuePicker extends JDialog {
 
 		spinProc.setModel(new SpinnerNumberModel(p, pMin, pMax, 1));
 		spinProc.setEditor(new JSpinner.NumberEditor(spinProc, "00"));
-
 
 		if (m < 0) {
 			m = 0;
@@ -396,7 +380,16 @@ public class QueuePicker extends JDialog {
 
 		spinProc.setValue(p);
 
-		spinWallDay.setValue(wD);
+		if (jq.getMaxWalltime() > 0
+				&& ((SpinnerNumberModel) spinWallHours.getModel()).getMaximum()
+																													.compareTo(jq.getMaxWalltime()) != 0) {
+			((SpinnerNumberModel) spinWallHours.getModel()).setMaximum(jq.getMaxWalltime());
+		}
+		if (jq.getMinWalltime() >= 0
+				&& ((SpinnerNumberModel) spinWallHours.getModel()).getMinimum()
+																													.compareTo(jq.getMinWalltime()) != 0) {
+			((SpinnerNumberModel) spinWallHours.getModel()).setMinimum(jq.getMinWalltime());
+		}
 		spinWallHours.setValue(wH);
 		settingLimits = false;
 		repaint();
@@ -428,10 +421,9 @@ public class QueuePicker extends JDialog {
 	private boolean cancelled = false;
 	private JSpinner spinProc;
 	private JSpinner spinMem;
-	private JComboBox comboMemUnit;
-	private JSpinner spinWallDay;
+	private JComboBox<String> comboMemUnit;
 	private JSpinner spinWallHours;
-	private JComboBox comboQueue;
+	private JComboBox<String> comboQueue;
 
 	private JCheckBox chckbxSetAsDefaults;
 	private JTextField txtFldFilename;
@@ -446,9 +438,7 @@ public class QueuePicker extends JDialog {
 	}
 
 	public int getWalltimeHours() {
-		int days = ((Number) spinWallDay.getValue()).intValue();
 		int hrs = ((Number) spinWallHours.getValue()).intValue();
-		hrs += (days * 24);
 		return hrs;
 	}
 
@@ -483,7 +473,7 @@ public class QueuePicker extends JDialog {
 			premadeQueues.put(jq.getName(), jq);
 		}
 		names[queues.size()] = "";
-		comboQueue.setModel(new DefaultComboBoxModel(names));
+		comboQueue.setModel(new DefaultComboBoxModel<String>(names));
 		comboQueue.setSelectedItem(QueueProperties.getDefaultQueueName());
 	}
 
