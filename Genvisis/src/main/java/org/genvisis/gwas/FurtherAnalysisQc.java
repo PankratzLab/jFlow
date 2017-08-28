@@ -118,6 +118,7 @@ public class FurtherAnalysisQc extends Qc {
 			case AFFY_GW6_CN:
 				return DEFAULT_AFFY_MARKER_QC_THRESHOLDS;
 			case ILLUMINA:
+			case AFFY_AXIOM:
 				return DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS;
 			default:
 				throw new IllegalArgumentException("Undefined for " + arrayType.getClass().getName() + ": "

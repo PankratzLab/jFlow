@@ -1,6 +1,7 @@
 package org.genvisis.cnv.manage;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
@@ -936,11 +938,12 @@ public class GenvisisWorkflow {
 					String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
 					boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
 					boolean returnValue = mkrSetFile;
-					returnValue = returnValue && Files.exists(sampleDirectory);
-					returnValue = returnValue
-												&& Files.list(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION).length > 0;
 					returnValue = returnValue && proj.getSampleList() != null;
+					returnValue = returnValue && Files.exists(sampleDirectory);
 					returnValue = returnValue && proj.getSampleList().getSamples().length > 0;
+					
+					returnValue = returnValue && Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) > 0;
+					
 					return returnValue;
 				}
 
@@ -1096,8 +1099,7 @@ public class GenvisisWorkflow {
 
 				@Override
 				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-					return Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
-														MarkerData.MARKER_DATA_FILE_EXTENSION).length > 0;
+					return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false), MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
 				}
 			});
 		}
@@ -1212,8 +1214,9 @@ public class GenvisisWorkflow {
 			final Requirement exportAllReq = new OptionalBoolRequirement("Export all markers in project.",
 																																	 true);
 
+			String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
 			final Requirement targetMarkersReq = new FileRequirement("A targetMarkers files listing the markers to QC.",
-																															 proj.TARGET_MARKERS_FILENAMES.getValue()[0]);
+																															 tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? tgtMkrFiles[0] : "");
 			final Set<String> sampleDataHeaders;
 			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
 				sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
@@ -1460,6 +1463,7 @@ public class GenvisisWorkflow {
 				case AFFY_GW6_CN:
 					defaultCallrate = MarkerQC.DEFAULT_AFFY_CALLRATE_THRESHOLD;
 					break;
+				case AFFY_AXIOM: 
 				case ILLUMINA:
 					defaultCallrate = MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
 					break;
@@ -2587,7 +2591,7 @@ public class GenvisisWorkflow {
 
 		Step parseSamplesStep;
 		Step markerBlastStep;
-		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN) {
+		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
 			parseSamplesStep = sb.generateParseSamplesStep();
 			markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
 		} else {

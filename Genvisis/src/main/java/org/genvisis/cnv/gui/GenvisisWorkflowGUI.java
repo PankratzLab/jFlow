@@ -119,7 +119,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		JPanel optionPanel = new JPanel();
 		JScrollPane scrollPane = new JScrollPane(optionPanel);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL_SPEED);
 		contentPanel.setLayout(new MigLayout("", "[grow]", "[][][]"));
@@ -359,11 +359,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 		actMap.put("Action.escape", escapeAction);
 
 		pack();
-		// panels start out visible to help with spacing (otherwise the containing jscrollpane is too
-		// small)
-		// for (JPanel panel : panels.values()) {
-		// ((JAccordionPanel) panel).shrink();
-		// }
 	}
 
 	protected void doClose() {
@@ -508,7 +503,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 					} else if (req.getType() == GenvisisWorkflow.RequirementInputType.ENUM) {
 						Object o = req.getDefaultValue();
 						Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
-						JComboBox combo = new JComboBox(vals);
+						JComboBox<Enum<?>> combo = new JComboBox<>(vals);
 						combo.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
 						combo.setFont(combo.getFont().deriveFont(14));
 						combo.setSelectedItem(o);
@@ -1094,7 +1089,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 				} else if (j instanceof JSpinner) {
 					val = ((JSpinner) j).getValue().toString();
 				} else if (j instanceof JComboBox) {
-					val = ((JComboBox) j).getSelectedItem().toString();
+					val = ((JComboBox<?>) j).getSelectedItem().toString();
 				} else if (j instanceof JList<?>) {
 					val = ListSelectionRequirement.createArgValString(((JList<?>) j).getSelectedValuesList());
 				}
