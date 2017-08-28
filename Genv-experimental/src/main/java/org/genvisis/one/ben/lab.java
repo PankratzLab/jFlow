@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import java.util.Set;
 
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -804,8 +804,8 @@ public class lab {
 		// complete.add(listAllSamplesInProj[16]);
 		batchMax = 4;
 
-		int[][] ranges = TransposeData.breakIntoRangesOfIndices(complete, listAllSamplesInProj,
-																														batchMax, log);
+		int[][] ranges = ArrayUtils.splitUpIntoBinsOfIndices(listAllSamplesInProj, complete,
+																												 batchMax, log);
 		System.out.println("");
 		for (int[] batch : ranges) {
 			int batchRange = batch[batch.length - 1] - batch[0] + 1;
@@ -823,6 +823,20 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+
+			filename = "F:/testProjectSrc/UKBB_AffyAxiom/00src/ukb_baf_chr21_v2.txt";
+			BufferedReader reader = Files.getAppropriateReader(filename);
+			boolean done = false;
+			String line;
+			while (!done) {
+				try {
+					done = (reader.readLine() == null);
+				} catch (InterruptedIOException e) {
+					done = true;
+				}
+			}
+			reader.close();
+			System.out.println("Done");
 
 			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";

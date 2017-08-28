@@ -2515,6 +2515,64 @@ public class ArrayUtils {
 		return splits;
 	}
 
+	public static int[][] splitUpIntoBinsOfIndices(String[] values, Set<String> drops,
+																								 int binSizeMax, Logger log) {
+		List<int[]> batches = new ArrayList<>();
+		if (drops == null || drops.isEmpty()) {
+			// break into batches normally
+			int[] batch = new int[Math.min(binSizeMax, values.length)];
+			for (int i = 0; i < values.length; i++) {
+				if (i > 0 && i % binSizeMax == 0) {
+					batches.add(batch);
+					batch = new int[Math.min(binSizeMax, values.length - i)];
+				}
+				batch[i % binSizeMax] = i;
+			}
+			batches.add(batch);
+		} else {
+			List<Integer> orphans = new ArrayList<>();
+			for (int i = 0; i < values.length; i++) {
+				if (drops.contains(values[i])) {
+					continue;
+				} else {
+					int s = i;
+					int e = i;
+					for (int j = i + 1; j < values.length; j++) {
+						if (drops.contains(values[j])) {
+							break;
+						}
+						e++;
+					}
+					while (e - s + 1 >= binSizeMax) {
+						int[] batch = arrayOfIndices(binSizeMax, s);
+						batches.add(batch);
+						s += binSizeMax;
+					}
+					for (int j = s; j <= e; j++) {
+						orphans.add(j);
+					}
+					i = e + 1; // skip next, as we know it's in "complete"
+				}
+			}
+			while (orphans.size() > binSizeMax) {
+				int[] batch = new int[binSizeMax];
+				for (int i = 0; i < batch.length; i++) {
+					batch[i] = orphans.remove(0);
+				}
+				batches.add(batch);
+			}
+			if (!orphans.isEmpty()) {
+				int[] batch = new int[orphans.size()];
+				for (int i = 0; i < batch.length; i++) {
+					batch[i] = orphans.get(i);
+				}
+				batches.add(batch);
+			}
+		}
+
+		return batches.toArray(new int[batches.size()][]);
+	}
+
 	/**
 	 * Creates an array of Strings and copies the contents of a {@link Collection} into it
 	 *
@@ -5103,34 +5161,5 @@ public class ArrayUtils {
 			}
 		});
 		return sorted;
-	}
-
-	public static void main(String[] args) {
-		double[] data = {11.8, 0.93, 1.76, 14, 16.5, 17.1, 32.5, 33.4, 16.8, 21.5, 13.1, 22.2, 22.2,
-										 16,
-										 16.2};
-		// float[] data = {11.8f, 0.93f, 1.76f, 14, 16.5f, 17.1f, 32.5f, 33.4f, 16.8f, 21.5f, 13.1f,
-		// 22.2f, 22.2f, 16, 16.2f};
-
-		System.out.println(ArrayUtils.toStr(quantiles(data)));
-
-		System.out.println(1.1 - (int) 1 == 0.1); // false
-		System.out.println(Math.abs((1.1 - 1) - 0.1) <= 0.00000001); // true
-
-		System.out.println(stdev(new double[] {2, 4, 4, 4, 5, 5, 7, 9}, true));
-		// double alleleFreq = 0.2;
-		// double stdev = 0.12;
-		// double[] array = new double[10000];
-		// for (int i = 0; i<array.length; i++) {
-		// array[i] = 0;
-		// for (int j = 0; j < 2; j++) {
-		// array[i] += Math.random() < alleleFreq?0.5:0;
-		// }
-		// array[i] += (Math.random()<0.5?-1:1)*ProbDist.NormDistReverse(Math.random())*stdev;
-		// }
-		// System.out.println(Array.toStr(getLocalModes(array, 0.1, 0.15, 0.01, false)));
-		//
-		// Files.writeList(Array.toStringArray(array), "oi.xln");
-
 	}
 }

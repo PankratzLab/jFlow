@@ -10,12 +10,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -619,8 +617,8 @@ public class TransposeData {
 
 		while (!done) { // used to recover from OutOfMemory ONLY
 			try {
-				batchIndices = breakIntoRangesOfIndices(successes, listOfAllSamplesInProj,
-																								numSamples_WriteBuffer, log);
+				batchIndices = ArrayUtils.splitUpIntoBinsOfIndices(listOfAllSamplesInProj, successes,
+																													 numSamples_WriteBuffer, log);
 
 				writeStatMsg(log, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
 										 numSamples_WriteBuffer, numBytes_PerSamp);
@@ -741,65 +739,6 @@ public class TransposeData {
 		log.report("--\nFinished reversely transposing data. Total Time used: "
 							 + timeFormat.format(timerOverAll));
 		new File(successFile).delete();
-	}
-
-	public static int[][] breakIntoRangesOfIndices(Set<String> complete,
-																								 String[] listAllSamplesInProj,
-																								 int batchMax, Logger log) {
-		List<int[]> batches = new ArrayList<>();
-		if (complete == null || complete.isEmpty()) {
-			// break into batches normally
-			int[] batch = new int[Math.min(batchMax, listAllSamplesInProj.length)];
-			for (int i = 0; i < listAllSamplesInProj.length; i++) {
-				if (i > 0 && i % batchMax == 0) {
-					batches.add(batch);
-					batch = new int[Math.min(batchMax, listAllSamplesInProj.length - i)];
-				}
-				batch[i % batchMax] = i;
-			}
-			batches.add(batch);
-		} else {
-			List<Integer> orphans = new ArrayList<>();
-			for (int i = 0; i < listAllSamplesInProj.length; i++) {
-				if (complete.contains(listAllSamplesInProj[i])) {
-					continue;
-				} else {
-					int s = i;
-					int e = i;
-					for (int j = i + 1; j < listAllSamplesInProj.length; j++) {
-						if (complete.contains(listAllSamplesInProj[j])) {
-							break;
-						}
-						e++;
-					}
-					while (e - s + 1 >= batchMax) {
-						int[] batch = ArrayUtils.arrayOfIndices(batchMax, s);
-						batches.add(batch);
-						s += batchMax;
-					}
-					for (int j = s; j <= e; j++) {
-						orphans.add(j);
-					}
-					i = e + 1; // skip next, as we know it's in "complete"
-				}
-			}
-			while (orphans.size() > batchMax) {
-				int[] batch = new int[batchMax];
-				for (int i = 0; i < batch.length; i++) {
-					batch[i] = orphans.remove(0);
-				}
-				batches.add(batch);
-			}
-			if (!orphans.isEmpty()) {
-				int[] batch = new int[orphans.size()];
-				for (int i = 0; i < batch.length; i++) {
-					batch[i] = orphans.get(i);
-				}
-				batches.add(batch);
-			}
-		}
-
-		return batches.toArray(new int[batches.size()][]);
 	}
 
 	@SuppressWarnings("unchecked")

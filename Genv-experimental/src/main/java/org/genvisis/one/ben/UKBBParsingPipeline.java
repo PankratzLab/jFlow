@@ -1110,33 +1110,6 @@ public class UKBBParsingPipeline {
 
 	}
 
-	public static void run() {
-		String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
-		String sourceDir = dir + "00src/";
-		String projDir = dir + "project/";
-		String propFileDir = "D:/projects/";
-		String projName = "UKBioBank";
-		String famFile = dir + "ukb1773_l2r_chrY_v2_s488374.fam";
-
-		if (!Files.isWindows()) {
-			dir = "/scratch.global/cole0482/UKBB/";
-			// sourceDir = dir + "00src/";
-			sourceDir = "/scratch.global/bb/all/";
-			projDir = dir + "project/";
-			propFileDir = "/home/pankrat2/cole0482/projects/";
-			famFile = dir + "ukb1773_l2r_chrY_v2_s488374.fam";
-		}
-
-		UKBBParsingPipeline parser = new UKBBParsingPipeline();
-		parser.setSourceDir(sourceDir);
-		parser.setProjectDir(projDir);
-		parser.setProjectPropertiesDir(propFileDir);
-		parser.setProjectName(projName);
-		parser.setFamFile(famFile);
-		parser.setImportGenosAsAB(true);
-		parser.runPipeline();
-	}
-
 	private static final String ARG_SRC_DIR = "source=";
 	private static final String ARG_PROJ_DIR = "projDir=";
 	private static final String ARG_PROP_DIR = "propFile=";
@@ -1155,12 +1128,6 @@ public class UKBBParsingPipeline {
 		String propFileDir = "";
 		String projName = "";
 		String famFile = "";
-
-		boolean testing = true; // TODO REMOVE
-		if (testing) {
-			run();
-			return;
-		}
 
 		CLI cli = new CLI(UKBBParsingPipeline.class);
 
