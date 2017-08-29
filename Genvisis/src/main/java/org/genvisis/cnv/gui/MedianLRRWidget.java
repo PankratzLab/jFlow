@@ -257,7 +257,9 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 				try {
 					fileNameToVisualize = medianLRRWorker.get();
 					TwoDPlot twoDplot = TwoDPlot.createGUI(proj, true, true);
-					twoDplot.showSpecificFile(fileNameToVisualize, 2, 3);
+					twoDplot.showSpecificFile(fileNameToVisualize,// 2, 3);
+																		MedianLRRWorker.CLASSES_TO_DUMP.length + 1,
+																		MedianLRRWorker.CLASSES_TO_DUMP.length + 2);
 					twoDplot.updateGUI();
 
 				} catch (InterruptedException e) {
@@ -339,7 +341,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 				String overwrite[] = {"Overwrite", "Cancel"};
 				int promptResult = JOptionPane.showOptionDialog(this,
 																												"The Files for Analysis " + customName
-																															+ " Exist",
+																														+ " Exist",
 																												"Warning - Analysis Files Exist",
 																												JOptionPane.DEFAULT_OPTION,
 																												JOptionPane.WARNING_MESSAGE, null,
@@ -435,7 +437,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
 			if (!Files.exists(prop.getValue())) {
 				JOptionPane.showMessageDialog(null,
 																			"This option requires a valid setting for the project property: "
-																						+ prop.getName());
+																					+ prop.getName());
 				for (JToggleButton btn : toggles()) {
 					btn.setSelected(false);
 				}
