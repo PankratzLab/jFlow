@@ -23,7 +23,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -247,7 +246,6 @@ public class ext {
 
 	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive,
 																	 boolean exactMatch) {
-
 		int[] indices = new int[array.length];
 		int numMatches = 0;
 
@@ -930,33 +928,46 @@ public class ext {
 
 	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
 																	 Logger log, boolean verbose, boolean kill) {
+		if (subset.length == 1) {
+			// If we're looking up a single string, use indexOfStr to avoid computation cost of building a
+			// map.
+			return new int[] {indexOfStr(subset[0], superset, casesensitive, true, log, verbose)};
+		}
+
 		int[] indices = new int[subset.length];
 		boolean err = false;
 
-		for (int i = 0; i < subset.length; i++) {
-			indices[i] = -1;
-			for (int j = 0; j < superset.length; j++) {
-				if (casesensitive ? subset[i].equals(superset[j])
-													: subset[i].equalsIgnoreCase(superset[j])) {
-					if (indices[i] == -1) {
-						indices[i] = j;
-					} else {
-						log.reportError("Error - more than one factor was named '" + subset[i] + "'");
-						err = true;
-					}
-				}
+		// Map the superset strings to their indices in the array
+		Map<String, Integer> supersetMap = new HashMap<>();
+		for (int i = 0; i < superset.length; i++) {
+			String s = superset[i];
+			if (casesensitive) {
+				s = s.toLowerCase();
 			}
-			if (indices[i] == -1) {
+			if (supersetMap.containsKey(s)) {
 				if (verbose) {
-					if (kill) {
-						log.reportError("Error - no factor was named '" + subset[i] + "'");
-					} else {
-						// log.reportError("Warning - no factor was named '" + subset[i] + "' in the String
-						// array:\n" + Array.toStr(superset));
-						log.reportError("Warning - no factor was named '" + subset[i] + "'");
-					}
+					log.reportError("Error - more than one factor was named '" + superset[i] + "'");
 				}
 				err = true;
+			} else {
+				supersetMap.put(s, i);
+			}
+		}
+
+		// Loop through our query strings and look up their indices in the map
+		for (int i = 0; i < subset.length; i++) {
+			String s = subset[i];
+			if (casesensitive) {
+				s = s.toLowerCase();
+			}
+			if (supersetMap.containsKey(s)) {
+				indices[i] = supersetMap.get(s);
+			} else {
+				err = true;
+				indices[i] = -1;
+				if (verbose) {
+					log.reportError("Error - no factor was named '" + subset[i] + "'");
+				}
 			}
 		}
 
