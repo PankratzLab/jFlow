@@ -245,27 +245,24 @@ public class PowerCalculator {
 			// rangeOfMaf(0.001, 0.01, 465, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
 			// rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
-			// rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant,
-			// MDS
-			// rangeOfMaf(0.001, 0.01, 127, 507, 300000, false); // Poynter's renwal on ototoxicity
-			// rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renwal on ototoxicity
+			// rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant, MDS
+//			rangeOfMaf(0.001, 0.01, 127, 507, 300000, false); // Poynter's renwal on ototoxicity
+//			rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renwal on ototoxicity
+			
+//			rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 1000000, false); // Poynter's GCT R21
+//			rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 50000, false); // Poynter's GCT R21
 
-			// rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 1000000, false); // Poynter's GCT
-			// R21
-			// rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 50000, false); // Poynter's GCT
-			// R21
+//			rangeOfMaf(0.001, 0.01, 665 , 1119 , 100000, false); // Poynter's MDS-AML resubmission, discovery
+//			rangeOfMaf(0.001, 0.01, 665 , 1119 , 50000, false); // Poynter's MDS-AML resubmission, meta
+//			rangeOfMaf(0.001, 0.01, 1700 , 4597, 100000, false); // Poynter's MDS-AML resubmission, replication
+//			rangeOfMaf(0.001, 0.01, 1700 , 4597, 50000, false); // Poynter's MDS-AML resubmission, replication
+//			rangeOfMaf(0.001, 0.01, 665 + 1700 , 1119 + 4597, 100000, false); // Poynter's MDS-AML resubmission, meta
 
-			// rangeOfMaf(0.001, 0.01, 665 , 1119 , 100000, false); // Poynter's MDS-AML resubmission,
-			// discovery
-			// rangeOfMaf(0.001, 0.01, 665 , 1119 , 50000, false); // Poynter's MDS-AML resubmission, meta
-			// rangeOfMaf(0.001, 0.01, 1700 , 4597, 100000, false); // Poynter's MDS-AML resubmission,
-			// replication
-			rangeOfMaf(0.001, 0.01, 1700, 4597, 50000, false); // Poynter's MDS-AML resubmission,
-																												 // replication
-			// rangeOfMaf(0.001, 0.01, 665 + 1700 , 1119 + 4597, 100000, false); // Poynter's MDS-AML
-			// resubmission, meta
+//			rangeOfMaf(0.001, 0.01, 192, 406, 1000000, false); // Logan's Ewings grant
+//			rangeOfMaf(0.001, 0.01, 598, 598, 1000000, false); // Logan's Ewings grant
+			rangeOfMaf(0.001, 0.01, 338, 717, 1000000, false); // Logan's Ewings grant
 
-
+			
 			// rangeOfRelativeRisk(0.15, 200, false);
 			// getSampleSize();
 			// getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
