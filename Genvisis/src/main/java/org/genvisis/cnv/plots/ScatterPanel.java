@@ -178,6 +178,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		boolean[] isNewGenotypingDifferent = null;
 		Logger log;
 		int countMissing;
+		int numClassCodeLessThanZero = 0;
 
 		log = sp.getProject().getLog();
 		disabledClassValues = sp.getDisabledClassValues();// panelIndex);
@@ -413,7 +414,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					uniqueValueCounts.add(classCode + "");
 				}
 				if (classCode < 0) {
-					log.reportError("Error - classCode is less than 0 (" + classCode + ")");
+					numClassCodeLessThanZero++;
 				}
 				if (currentClass < SampleData.BASIC_CLASSES.length
 						&& SampleData.BASIC_CLASSES[currentClass].equals(SampleData.GENOTYPE) && chr > 22
@@ -491,6 +492,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		}
 		if (countMissing >= 10) {
 			log.reportError("Total of " + countMissing + " samples without data in SampleData");
+		}
+		if (numClassCodeLessThanZero >= 20) {
+			log.reportError("Total of " + numClassCodeLessThanZero + " samples with a missing class code (e.g., less than zero)");
 		}
 
 		// callRate=(samples.length-callRate)*100/samples.length;
