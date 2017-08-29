@@ -105,8 +105,8 @@ public class ImputationPrep {
 	/**
 	 * @param proj Project to run for. Must have a {@link Project#BLAST_ANNOTATION_FILENAME} or an
 	 *        {@link MarkerDetailSet} that otherwise includes Ref/Alt alleles
-	 * @param referenceFile The reference set file (preferably gzipped). Must include chromosome,
-	 *        position, ref allele, and alt allele
+	 * @param referenceFile The reference panel / site list file (preferably gzipped). Must include
+	 *        chromosome, position, ref allele, and alt allele
 	 */
 	public ImputationPrep(Project proj, String referenceFile) {
 		super();

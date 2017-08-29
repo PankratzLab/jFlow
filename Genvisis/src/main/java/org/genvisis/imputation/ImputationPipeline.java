@@ -13,6 +13,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.VCFData;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Sort;
@@ -207,7 +208,6 @@ public class ImputationPipeline {
 																																									 writtenDNAs,
 																																									 proj.getLog());
 
-		// UNUSED - could potentially apply
 		String clusterFilterFileName = proj.CLUSTER_FILTER_COLLECTION_FILENAME.getValue();
 
 		// TODO multi-thread
@@ -322,9 +322,52 @@ public class ImputationPipeline {
 		boolean useGRC = true;
 		IMPUTATION_PIPELINE_PATH path = null;
 
-		String usage = "\n" +
-									 "org.genvisis.imputation.ImputationPipeline requires 0-1 arguments\n" +
-									 "   (1) Project properties filename (i.e. proj=" + projFile + " (default))\n" +
+		String usage = "\n"
+									 +
+									 "org.genvisis.imputation.ImputationPipeline requires 3+ arguments\n"
+									 +
+									 "   (1) Project properties filename (i.e. proj="
+									 + projFile
+									 + " (default))\n"
+									 +
+									 "   (2) A comma-separated list of chromosomes to export, or null for all (may be omitted) (i.e. chrs="
+									 + chrs
+									 + " (default))\n"
+									 +
+									 "   (3) Imputation Pipeline path (i.e. one of "
+									 + ArrayUtils.toStr(IMPUTATION_PIPELINE_PATH.values(), ", ")
+									 + "))\n"
+									 +
+									 "   --------------------- \n"
+									 +
+									 "   The following arguments may be necessary depending on chosen pipeline:\n"
+									 +
+									 "   (a) Reference Panel / Site List file, with mkr, chr, pos, ref, and alt columns (i.e. ref="
+									 + refFile + " (default))\n" +
+									 "   (b) Subdirectory in which to create PLINK files (i.e. plinkDir="
+									 + plinkSubdir + " (default))\n" +
+									 "   (c) PLINK output prefix (i.e. plinkPrefix=" + plinkPrefix + " (default))\n" +
+									 "   (d) Output directory and fileroot (i.e outDirAndRoot=" + outDirAndRoot
+									 + " (default))\n" +
+									 "   (e) Output directory (i.e outDir=" + outDir + " (default))\n" +
+									 "   (f) Export contigs as 'chr1' instead of '1' (i.e. useGRC=" + useGRC
+									 + " (default))\n" +
+									 "   (g) Directory with output from ShapeIt (i.e. hapsDir=" + hapsDir
+									 + " (default))\n" +
+									 "   --------------------- \n" +
+									 "   Additional pipeline argument requirements are as follows:\n" +
+									 "\tVCF_ONLY:\n" +
+									 "\t\trefFile, plinkSubdir, outDirAndRoot, useGRC\n" +
+									 "\tPLINK_ONLY:\n" +
+									 "\t\trefFile, plinkSubdir, outDirAndRoot\n" +
+									 "\tPLINK_SHAPE:\n" +
+									 "\t\trefFile, plinkSubdir, outDir\n" +
+									 "\tPLINK_SHAPE_MINI:\n" +
+									 "\t\trefFile, plinkSubdir,\n" +
+									 "\tMINI:\n" +
+									 "\t\thapsDir, outDir\n" +
+									 "\tSHAPE:\n" +
+									 "\t\tplinkSubdir, plinkPrefix, outDir\n" +
 									 "";
 
 		for (int i = 0; i < args.length; i++) {
@@ -367,7 +410,7 @@ public class ImputationPipeline {
 			}
 		}
 
-		if (numArgs != 0) {
+		if (numArgs != 0 || path == null) {
 			System.err.println(usage);
 			System.exit(1);
 		}
