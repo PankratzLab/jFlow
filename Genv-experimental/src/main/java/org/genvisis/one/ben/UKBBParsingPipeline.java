@@ -1112,7 +1112,7 @@ public class UKBBParsingPipeline {
 
 	private static final String ARG_SRC_DIR = "source=";
 	private static final String ARG_PROJ_DIR = "projDir=";
-	private static final String ARG_PROP_DIR = "propFile=";
+	private static final String ARG_PROP_DIR = "propDir=";
 	private static final String ARG_PROJ_NAME = "projName=";
 	private static final String ARG_FAM_FILE = "fam=";
 
