@@ -709,8 +709,8 @@ public class Project implements PropertyChangeListener {
 																																													this,
 																																													PropertyKeys.KEY_GENOME_BUILD_VERSION,
 																																													"The build version of the genome, options are "
-																																															+ Arrays.asList(GENOME_BUILD.values())
-																																																			.toString(),
+																																																																 + Arrays.asList(GENOME_BUILD.values())
+																																																																				 .toString(),
 																																													GROUP.IMPORT,
 																																													false,
 																																													COPY.VALUE,
@@ -933,10 +933,10 @@ public class Project implements PropertyChangeListener {
 			} else {
 				// error reading headers; let's delete
 				getLog().reportError(ext.getTime()
-																 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+														 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 				getLog().reportError(ext.getTime()
-																 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-																 + Sample.SAMPLE_FILE_EXTENSION + " files.");
+														 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+														 + Sample.SAMPLE_FILE_EXTENSION + " files.");
 				getLog().reportError(ext.getTime()
 														 + "]\tA quick check (which may be incorrect) suggest this "
 														 + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
@@ -1025,7 +1025,8 @@ public class Project implements PropertyChangeListener {
 			if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
 				log.report("Attempting to generate MarkerDetails from "
 									 + BLAST_ANNOTATION_FILENAME.getValue());
-				MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(naiveMarkerSet,
+				MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(this,
+																																											naiveMarkerSet,
 																																											BLAST_ANNOTATION_FILENAME.getValue(),
 																																											log);
 				if (generatedMarkerSet != null) {
@@ -2260,7 +2261,7 @@ public class Project implements PropertyChangeListener {
 
 	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
 		return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-																		: sourceFileHeaders;
+																		 : sourceFileHeaders;
 	}
 
 	public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {

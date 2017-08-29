@@ -308,7 +308,13 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 	}
 
-	public static final long serialVersionUID = 6L;
+	public static final long serialVersionUID = 7L;
+
+	public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
+																																											 "DefinedChr",
+																																											 "DefinedPos",
+																																											 "BestMatchChr",
+																																											 "BestMatchPos");
 
 	private final ImmutableList<Marker> markers;
 	private final int hashCode;
@@ -468,10 +474,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return chrs;
 	}
 
-	public static MarkerDetailSet parseFromBLASTAnnotation(MarkerSetInfo naiveMarkerSet,
-																												 String blastAnnotation,
-																												 Logger log) {
-		String[] markerNames = naiveMarkerSet.getMarkerNames();
+	public static MarkerDetailSet parseFromBLASTAnnotation(Project proj,
+																												 MarkerSetInfo naiveMarkerSet,
+																												 String blastAnnotation, Logger log) {
+		final String[] markerNames = naiveMarkerSet.getMarkerNames();
+		final Joiner tabJoiner = Joiner.on('\t');
 		List<Marker> markers = Lists.newArrayListWithCapacity(markerNames.length);
 		if (!Files.exists(blastAnnotation)) {
 			log.reportTimeWarning("Could not find " + blastAnnotation
@@ -493,6 +500,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		ArrayList<String> missingSeqMkrs = new ArrayList<String>();
+		PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY
+																													+ "MarkerPositionBLASTIssues.txt");
+		issuesWriter.write(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
 		for (int i = 0; i < markerNames.length; i++) {
 
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
@@ -583,22 +593,33 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 					}
 				}
 			}
-			byte chr;
-			int position;
+			byte bestMatchChr;
+			int bestMatchPosition;
 			if (bestMatch == null) {
 				missingPositionCount++;
-				chr = 0;
-				position = 0;
+				bestMatchChr = 0;
+				bestMatchPosition = 0;
 			} else {
 				Segment seg = bestMatch.getRefLoc();
-				chr = seg.getChr();
-				position = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
+				bestMatchChr = seg.getChr();
+				bestMatchPosition = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
 			}
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
 			}
-			markers.add(new Marker(markerNames[i], new GenomicPosition(chr, position), a, b));
+			if (bestMatchPosition != naiveMarkerSet.getPositions()[i]
+					|| bestMatchChr != naiveMarkerSet.getChrs()[i]) {
+				issuesWriter.write(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
+																					naiveMarkerSet.getPositions()[i], bestMatchChr,
+																					bestMatchPosition));
+			}
+			// Until assumption of chr-pos order is resolved and a method to choose best hit is
+			// implemented, the naive marker positions will always be used.
+			markers.add(new Marker(markerNames[i], new GenomicPosition(naiveMarkerSet.getChrs()[i],
+																																 naiveMarkerSet.getPositions()[i]),
+														 a, b));
 		}
+		issuesWriter.close();
 		if (ambiguousPositionCount > 0) {
 			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
 											+ ambiguousPositionCount + " marker"
