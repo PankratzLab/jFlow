@@ -308,7 +308,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		}
 	}
 
-	public static final long serialVersionUID = 7L;
+	public static final long serialVersionUID = 8L;
 
 	public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
 																																											 "DefinedChr",
@@ -474,6 +474,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		return chrs;
 	}
 
+	/**
+	 * 
+	 * @param proj Project to parse MarkerDetailSet from
+	 * @param naiveMarkerSet a MarkerSetInfo with the chr and pos supplied by the array in Project
+	 *        order
+	 * @param blastAnnotation blast.vcf filename
+	 * @param log
+	 * @return a MarkerDetailSet generated using this BLAST annotation and the order of the
+	 *         naiveMarkerSet
+	 */
 	public static MarkerDetailSet parseFromBLASTAnnotation(Project proj,
 																												 MarkerSetInfo naiveMarkerSet,
 																												 String blastAnnotation, Logger log) {
@@ -500,9 +510,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		ArrayList<String> missingSeqMkrs = new ArrayList<String>();
-		PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY
+		PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ "MarkerPositionBLASTIssues.txt");
-		issuesWriter.write(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
+		issuesWriter.println(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
 		for (int i = 0; i < markerNames.length; i++) {
 
 			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
@@ -609,9 +619,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			}
 			if (bestMatchPosition != naiveMarkerSet.getPositions()[i]
 					|| bestMatchChr != naiveMarkerSet.getChrs()[i]) {
-				issuesWriter.write(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
-																					naiveMarkerSet.getPositions()[i], bestMatchChr,
-																					bestMatchPosition));
+				issuesWriter.println(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
+																						naiveMarkerSet.getPositions()[i], bestMatchChr,
+																						bestMatchPosition));
 			}
 			// Until assumption of chr-pos order is resolved and a method to choose best hit is
 			// implemented, the naive marker positions will always be used.
