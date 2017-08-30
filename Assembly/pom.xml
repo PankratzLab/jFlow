@@ -20,7 +20,7 @@
 		<assemblyName>genvisis</assemblyName>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
 		<!-- Default settings just cause assembly .jar to be copied in place -->
-		<genv.upload.exe>dir</genv.upload.exe>
+		<genv.upload.exe>echo</genv.upload.exe>
 		<genv.upload.path>${project.build.directory}</genv.upload.path>
 		<genv.copy.path>${project.build.directory}</genv.copy.path>
 	</properties>
