@@ -921,17 +921,17 @@ public class ext {
 		return indices;
 	}
 
-	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
+	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
 																	 boolean kill) {
-		return indexFactors(subset, superset, casesensitive, new Logger(), true, kill);
+		return indexFactors(subset, superset, caseSensitive, new Logger(), true, kill);
 	}
 
-	public static int[] indexFactors(String[] subset, String[] superset, boolean casesensitive,
+	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
 																	 Logger log, boolean verbose, boolean kill) {
 		if (subset.length == 1) {
 			// If we're looking up a single string, use indexOfStr to avoid computation cost of building a
 			// map.
-			return new int[] {indexOfStr(subset[0], superset, casesensitive, true, log, verbose)};
+			return new int[] {indexOfStr(subset[0], superset, caseSensitive, true, log, verbose)};
 		}
 
 		int[] indices = new int[subset.length];
@@ -941,7 +941,7 @@ public class ext {
 		Map<String, Integer> supersetMap = new HashMap<>();
 		for (int i = 0; i < superset.length; i++) {
 			String s = superset[i];
-			if (casesensitive) {
+			if (caseSensitive) {
 				s = s.toLowerCase();
 			}
 			if (supersetMap.containsKey(s)) {
@@ -957,7 +957,7 @@ public class ext {
 		// Loop through our query strings and look up their indices in the map
 		for (int i = 0; i < subset.length; i++) {
 			String s = subset[i];
-			if (casesensitive) {
+			if (caseSensitive) {
 				s = s.toLowerCase();
 			}
 			if (supersetMap.containsKey(s)) {
