@@ -4181,7 +4181,7 @@ public class SeqMeta {
                                               Aliases.PVALUES},
                               header, false, true, false, false);
 
-      results = HashVec.loadFileToStringMatrix(filename, true, cols, false);
+      results = HashVec.loadFileToStringMatrix(filename, true, cols);
       for (int i = 0; i < results.length; i++) {
         double p = Double.parseDouble(results[i][3]);
         if (p < minPval) {
@@ -4195,7 +4195,7 @@ public class SeqMeta {
       String covarFile = pheno[0] + "_covar.txt";
 
       PrintWriter out = Files.getAppropriateWriter(covarFile, true);
-      if (!Files.exists(covarFile, false, true)) {
+      if (!Files.exists(covarFile, false)) {
         out.write("SNP\tchr\tstart\tend");
       }
       int start = Math.max(0, pos - 250000);
