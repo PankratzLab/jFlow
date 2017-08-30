@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
@@ -921,11 +922,28 @@ public class ext {
 		return indices;
 	}
 
+	/**
+	 * @see #indexFactors(String[], String[], boolean, Logger, boolean, boolean)
+	 */
 	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
 																	 boolean kill) {
 		return indexFactors(subset, superset, caseSensitive, new Logger(), true, kill);
 	}
 
+	/**
+	 * For each string in a subset, identify the index of the first matching string in a superset
+	 *
+	 * @param subset Query strings to identify indices in superset
+	 * @param superset Space to search for subset strings
+	 * @param caseSensitive Whether or not to consider case when comparing subset and superset strings
+	 * @param log Logger instance to use when reporting
+	 * @param verbose If true, report any mismatches (default: {@code true})
+	 * @param kill If true and there are any
+	 * @return Parallel array of subset indices in the superset (-1 if not found)
+	 *
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 * @see #indexOfStr
+	 */
 	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
 																	 Logger log, boolean verbose, boolean kill) {
 		if (subset.length == 1) {
@@ -938,21 +956,7 @@ public class ext {
 		boolean err = false;
 
 		// Map the superset strings to their indices in the array
-		Map<String, Integer> supersetMap = new HashMap<>();
-		for (int i = 0; i < superset.length; i++) {
-			String s = superset[i];
-			if (caseSensitive) {
-				s = s.toLowerCase();
-			}
-			if (supersetMap.containsKey(s)) {
-				if (verbose) {
-					log.reportError("Error - more than one factor was named '" + superset[i] + "'");
-				}
-				err = true;
-			} else {
-				supersetMap.put(s, i);
-			}
-		}
+		Map<String, Integer> supersetMap = makeIndexMap(superset, caseSensitive, verbose, log, kill);
 
 		// Loop through our query strings and look up their indices in the map
 		for (int i = 0; i < subset.length; i++) {
@@ -994,6 +998,9 @@ public class ext {
 	// return attendance;
 	// }
 	//
+	/**
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
 																	 boolean kill) {
@@ -1002,6 +1009,9 @@ public class ext {
 												kill);
 	}
 
+	/**
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
 																	 Logger log, boolean kill) {
@@ -1009,80 +1019,209 @@ public class ext {
 												kill);
 	}
 
+	/**
+	 * For each set of aliases in a subset, identify the index of the best matching string in a
+	 * superset
+	 *
+	 * @param targetsWithAlts Array of query strings, each having one or more possible alternatives
+	 * @param superset Space to search for subset strings
+	 * @param preferFirstInTargetsOverFirstInSuperset For each target, whether we prefer lower indices
+	 *        in the alts or the superset array
+	 * @param caseSensitive Whether or not to consider case when comparing subset and superset strings
+	 * @param exactMatch Whether or not we require a perfect match between a target and superset
+	 *        string, or if it is sufficient for one to be a substring of the other
+	 * @param verbose If true, report any mismatches (default: {@code true})
+	 * @param log Logger instance to use when reporting
+	 * @param kill If true and there are any
+	 * @return Parallel array of the best target indices in the superset (-1 indicates target was not
+	 *         found)
+	 *
+	 * @see #indexFactors(String[], String[], boolean, Logger, boolean, boolean)
+	 * @see #indexOfStr
+	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean preferFirstInTargetsOverFirstInSuperset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
 																	 Logger log, boolean kill) {
-		int[] finalIndices;
-		IntVector[] possibleIndices;
+		int[] finalIndices = new int[targetsWithAlts.length];
 		boolean err = false;
-		int index, minIndex;
 
-		possibleIndices = Vectors.initializedArray(IntVector.class, targetsWithAlts.length);
-		if (preferFirstInTargetsOverFirstInSuperset) {
-			for (int j = 0; j < targetsWithAlts.length; j++) {
-				minIndex = Integer.MAX_VALUE;
-				for (int i = 0; i < superset.length; i++) {
-					index = indexOfStr(superset[i], targetsWithAlts[j], caseSensitive, exactMatch);
-					if (index != -1) {
-						if (index < minIndex) {
-							possibleIndices[j].insertElementAt(i, 0);
-							minIndex = index;
-						} else {
-							possibleIndices[j].add(i);
-						}
-					}
+		// Exact match requires a different algorithm, since there is not an efficient way to create an
+		// "inexact" map without generating a complete dictionary.
+		if (!exactMatch) {
+			if (!caseSensitive) {
+				// Since we will be iterating through the superset once for each alt string, we do a single
+				// pass here to convert the superset to lowercase. We use a new array to avoid unintended
+				// modification of the inputs
+				String[] tmp = new String[superset.length];
+				for (int i = 0; i < tmp.length; i++) {
+					tmp[i] = superset[i].toLowerCase();
 				}
+				superset = tmp;
 			}
-		} else {
-			for (int i = 0; i < superset.length; i++) {
-				for (int j = 0; j < targetsWithAlts.length; j++) {
-					if (indexOfStr(superset[i], targetsWithAlts[j], caseSensitive, exactMatch) != -1) {
-						possibleIndices[j].add(i);
-					}
-				}
-			}
-		}
 
-		finalIndices = new int[targetsWithAlts.length];
-		for (int i = 0; i < targetsWithAlts.length; i++) {
-			if (possibleIndices[i].size() == 0) {
-				if (verbose) {
-					if (log != null) {
-						log.reportError((kill ? "Error" : "Warning") + " - no factor named '"
-														+ ArrayUtils.toStr(targetsWithAlts[i], "/") + "'");
+			// Each index in the outer array is a target, with a parallel position in finalIndices
+			for (int i = 0; i < targetsWithAlts.length; i++) {
+				// Track the current superset index for this target
+				int index = -1;
+				// Matching any alt in the superset is sufficient for this target
+				for (int j = 0; j < targetsWithAlts[i].length; j++) {
+					String alt = targetsWithAlts[i][j];
+					if (!caseSensitive) {
+						// Again we do have to compare each alt to each superset string, so we do a single
+						// conversion to lowercase to reduce the loop complexity
+						alt = alt.toLowerCase();
 					}
-				}
-				finalIndices[i] = -1;
-				err = true;
-			} else {
-				finalIndices[i] = possibleIndices[i].elementAt(0);
-				if (possibleIndices[i].size() > 1) {
-					if (verbose) {
-						if (log != null) {
-							String msg = "Warning - multiple factors matched; using "
-													 + superset[possibleIndices[i].elementAt(0)] + " and not ";
-							for (int j = 1; j < possibleIndices[i].size(); j++) {
-								msg += (j == 1 ? "" : " or ") + superset[possibleIndices[i].elementAt(j)];
+
+					// We have to loop through the complete superset to report multiple matches
+					for (int k = 0; k < superset.length; k++) {
+						if (superset[k].contains(alt) || alt.contains(superset[k])) {
+							if (index == -1) {
+								// First match so we can just set the index for this target
+								index = k;
+							} else {
+								// We've already found a match for this target
+								err = true;
+								if (verbose) {
+									log.reportError("Error - multiple alts found in superset: " + superset[index]
+																	+ ", " + superset[k]);
+								}
+
+								// If we prefer the first match in the alt list, then the previously found index
+								// value is the preferred value (since we are iterating in order of the alt array)
+								// If we prefer the first match in the target list, then we take the smaller of the
+								// indices
+								if (!preferFirstInTargetsOverFirstInSuperset && k < index) {
+									index = k;
+								}
 							}
-							log.reportError(msg, true, true);
+						}
+					}
+				}
+				// Set the final value after iterating through all alts
+				finalIndices[i] = index;
+				if (index == -1) {
+					// target not found
+					err = true;
+					if (verbose) {
+						log.reportError("Error - no factor matched alts: "
+														+ Arrays.stream(targetsWithAlts[i]).collect(Collectors.joining(", ")));
+					}
+				}
+			}
+			return finalIndices;
+		}
+
+		// If we are doing an exact match, using a Map over the superset can be much faster than
+		// iterating. However, if we are only looking for a single target then creating the map would be
+		// a waste
+		if (targetsWithAlts.length == 1 && targetsWithAlts[0].length == 1) {
+			// If we're looking up a single string, use indexOfStr to avoid computation cost of building a
+			// map.
+			return new int[] {indexOfStr(targetsWithAlts[0][0], superset, caseSensitive, true, log,
+																	 verbose)};
+		}
+
+		// Make the map. NB: this method takes care of reporting duplicate strings in the superset
+		Map<String, Integer> indexMap = makeIndexMap(superset, caseSensitive, verbose, log, kill);
+
+		// For each target, we'll check the superset map for each alt
+		for (int i = 0; i < targetsWithAlts.length; i++) {
+			int index = -1;
+			for (int j = 0; j < targetsWithAlts[i].length; j++) {
+				if (indexMap.containsKey(targetsWithAlts[i][j])) {
+					// If the alt is found, we check the index
+					int altIndex = indexMap.get(targetsWithAlts[i][j]);
+					if (index == -1) {
+						// This is the first alt we've found so use its index
+						index = altIndex;
+					} else {
+						// Multiple matches
+						if (verbose) {
+							log.reportError("Error - multiple alts found in superset: " + superset[index] + ", "
+															+ superset[altIndex]);
+						}
+
+						// This logic is the same as for the inexact algorithm
+						if (!preferFirstInTargetsOverFirstInSuperset && altIndex < index) {
+							index = altIndex;
 						}
 					}
 				}
 			}
+			finalIndices[i] = index;
+			if (index == -1) {
+				// Target not found
+				err = true;
+				if (verbose) {
+					log.reportError("Error - no factor matched alts: "
+													+ Arrays.stream(targetsWithAlts[i]).collect(Collectors.joining(", ")));
+				}
+			}
 		}
+
 		if (kill && err) {
+			// System exit if requested
 			System.exit(1);
 		}
+
 		return finalIndices;
 	}
 
 
+	/**
+	 * Helper method to turn an array of String to a map of those strings to the first index that
+	 * string appears in the array.
+	 *
+	 * @param superset The array to convert to a map
+	 * @param caseSensitive If false, all strings will be {@link String#toLowerCase()}'d
+	 * @param verbose Whether or not to print error messages
+	 * @param log Log to use if verbose
+	 * @param kill If multiple strings are present in the given superset, will exit
+	 * @return The constructed map
+	 */
+	private static Map<String, Integer> makeIndexMap(String[] superset, boolean caseSensitive,
+																									 boolean verbose, Logger log, boolean kill) {
+		Map<String, Integer> supersetMap = new HashMap<>();
+		boolean err = false;
+		for (int i = 0; i < superset.length; i++) {
+			String s = superset[i];
+			if (caseSensitive) {
+				s = s.toLowerCase();
+			}
+			if (supersetMap.containsKey(s)) {
+				if (verbose) {
+					log.reportError("Error - more than one factor was named '" + superset[i] + "'");
+				}
+				err = true;
+			} else {
+				supersetMap.put(s, i);
+			}
+		}
+
+		if (kill && err) {
+			System.exit(1);
+		}
+		return supersetMap;
+	}
+
+	/**
+	 * @see #indexMap(String[], String[], boolean, Logger, boolean, boolean)
+	 */
 	public static Map<String, Integer> indexMap(String[] subset, String[] superset,
 																							boolean casesensitive, boolean kill) {
 		return indexMap(subset, superset, casesensitive, new Logger(), true, kill);
 	}
 
+	/**
+	 * @param subset
+	 * @param superset
+	 * @param casesensitive
+	 * @param log
+	 * @param verbose
+	 * @param kill
+	 * @return Map from subset strings to the indices of those strings in the superset
+	 */
 	public static Map<String, Integer> indexMap(String[] subset, String[] superset,
 																							boolean casesensitive, Logger log, boolean verbose,
 																							boolean kill) {
