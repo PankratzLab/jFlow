@@ -686,7 +686,8 @@ public class SeqMeta {
                   if ((!Files.exists(outputFilename) && !Files.exists(outputFilename + ".gz"))
                       || (new File(outputFilename).length() < 100
                           && new File(outputFilename + ".gz").length() < 100)) {
-                    Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","), outputFilename);
+                    // Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","),
+                    // outputFilename);
                     if (new File(objectFilename).length() > 1024) {
                       commands.add("results <- " + method[2] + "(" + objectName + ", SNPInfo="
                                    + (SINGLE_VARIANTS[ext.indexOfStr(method[2], ALGORITHMS)]
@@ -702,14 +703,14 @@ public class SeqMeta {
                       commands.add("write.table( results, \"" + outputFilename
                                    + "\", sep=\",\", row.names = F)");
                       count++;
-                    } else {
-                      if (chr < 23) {
-                        log.report("Creating a dummy file for " + outputFilename + " because "
-                                   + objectFilename + " has a filesize of "
-                                   + new File(objectFilename).length());
-                      }
-                      Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","),
-                                  outputFilename);
+                      // } else {
+                      // if (chr < 23) {
+                      // log.report("Creating a dummy file for " + outputFilename + " because "
+                      // + objectFilename + " has a filesize of "
+                      // + new File(objectFilename).length());
+                      // }
+                      // Files.write(ArrayUtils.toStr(getHeaderForMethod(method), ","),
+                      // outputFilename);
                     }
                   }
                 }
@@ -2950,18 +2951,14 @@ public class SeqMeta {
                             String[] header, Logger log) {
     String[] list;
     int[] skips, cols;
-    int maxChr;
 
-    maxChr = getMaxChr(snpInfoChrDir);
-    list = new String[maxChr];
-    for (int chr = 1; chr <= maxChr; chr++) {
-      list[chr - 1] = dir
-                      + ext.replaceAllWith(pattern, "#",
-                                           chr == 23 ? "X"
-                                                     : (chr == 24 ? "Y"
-                                                                  : (chr == 25 ? "XY" : chr + "")));
+    if (pattern.contains("#")) {
+      list = Files.list(dir, pattern.split("#")[0], pattern.split("#")[1], false, true);
+    } else {
+      list = Files.list(dir, pattern, null, false, true);
     }
-    String[] h = Files.getHeaderOfFile(list[0], ",", log);
+
+    String[] h = Files.getHeaderOfFile(list[0], ",!", log);
     cols = ext.indexFactors(header, h, false, log, false, false, false);
     skips = ArrayUtils.intArray(list.length, 1);
     skips[0] = 0;
