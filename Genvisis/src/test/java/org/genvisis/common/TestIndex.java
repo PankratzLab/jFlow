@@ -8,9 +8,13 @@ import java.util.Random;
 import org.junit.Assert;
 
 /**
- * Benchmark tests for String index methods in {@link ext} methods.
+ * Tests for String index methods in {@link ext}.
  */
 public class TestIndex {
+
+	private static final String i1d = "IndexFactors1D";
+	private static final String i2d = "IndexFactors2D";
+	private static final String iStr = "IndexOfStr";
 
 	private String[] superset;
 	private String[][] targets;
@@ -65,7 +69,7 @@ public class TestIndex {
 		int[] result = ext.indexLargeFactors(superset, superset, false, new Logger(), false,
 																				 false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexLargeFactors", result, t, expectedHash);
+		reportArrayHash("ext.indexLargeFactors", result, t, expectedHash);
 	}
 
 	/**
@@ -78,7 +82,7 @@ public class TestIndex {
 		int[] result = ext.indexFactors(superset, superset, false, new Logger(), false,
 																		false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexFactors - 1D", result, t, expectedHash);
+		reportArrayHash(i1d, result, t, expectedHash);
 	}
 
 	/**
@@ -91,35 +95,86 @@ public class TestIndex {
 		long t = System.currentTimeMillis();
 		int[] result = ext.indexFactors(targets, superset, true, true, true, false, log, false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexFactors - 2D,target,exact", result, t, -1585103590);
+		reportArrayHash(i2d + ",target,exact", result, t, -1585103590);
 		t = System.currentTimeMillis();
 		result = ext.indexFactors(targets, superset, false, true, true, false, log, false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexFactors - 2D,super,exact", result, t, -404192925);
+		reportArrayHash(i2d + ",super,exact", result, t, -404192925);
 		t = System.currentTimeMillis();
 		result = ext.indexFactors(targets, superset, true, true, false, false, log, false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexFactors - 2D,target,fuzzy", result, t, -842850808);
+		reportArrayHash(i2d + ",target,fuzzy", result, t, -842850808);
 		t = System.currentTimeMillis();
 		result = ext.indexFactors(targets, superset, false, true, false, false, log, false);
 		t = System.currentTimeMillis() - t;
-		report("ext.indexFactors - 2D,super,fuzzy", result, t, 254970431);
+		reportArrayHash(i2d + ",super,fuzzy", result, t, 254970431);
 	}
 
 	/**
-	 * Helper method for reporting results of benchmark test
+	 * Test the exactMatch flag of the index methods
+	 */
+	public void exactMatch() {
+		final String[] superset = new String[] {"the", "jellyfish", "is", "immortal"};
+		final String query = "is";
+
+		reportIndex(iStr + " - exact", 2, ext.indexOfStr(query, superset, true, true));
+		reportIndex(iStr + " - fuzzy", 1, ext.indexOfStr(query, superset, true, false));
+		reportIndex(i2d + " - exact", 2,
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true, false,
+																 false)[0]);
+		reportIndex(i2d + " - fuzzy", 1,
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, false, false,
+																 false)[0]);
+	}
+
+	/**
+	 * Test the caseSensitive flag of the index methods
+	 */
+	public void caseSensitive() {
+		final String[] superset = new String[] {"GoLdY", "the", "gopher", "goldy"};
+		final String query = "goldy";
+		final String sen = " - case sensitive";
+		final String ins = " - case insensitive";
+
+		reportIndex(iStr + sen, 3, ext.indexOfStr(query, superset, true, true));
+		reportIndex(iStr + ins, 0, ext.indexOfStr(query, superset, false, true));
+		reportIndex(i1d + sen, 3,
+								ext.indexFactors(new String[] {query}, superset, true, new Logger(), false,
+																 false)[0]);
+		reportIndex(i1d + ins, 0,
+								ext.indexFactors(new String[] {query}, superset, false, new Logger(), false,
+																 false)[0]);
+		reportIndex(i2d + sen, 3,
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true, false,
+																 false)[1]);
+		reportIndex(i2d + ins, 0,
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, false, true, false,
+																 false)[1]);
+	}
+
+	/**
+	 * Helper method for reporting results of benchmark test, ensuring the result array has not
+	 * changed from an expected value
 	 *
 	 * @param method Method name that was tested
 	 * @param result Resulting index array from method
 	 * @param time How long it took to create the index array
 	 * @param expectedHash Hash code of resultant array via original methods.
 	 */
-	private void report(String method, int[] result, long time, int expectedHash) {
+	private void reportArrayHash(String method, int[] result, long time, int expectedHash) {
 		int hash = Arrays.hashCode(result);
 		System.out.print(method + " - finished in: " + time + "ms. Expected hash: " + expectedHash
 										 + " - got: " + hash);
 		System.out.println();
 		Assert.assertEquals(expectedHash, hash);
+	}
+
+	/**
+	 * Helper method for reporting results of index tests, ensuring the result has not changed
+	 */
+	private void reportIndex(String name, int expected, int actual) {
+		System.out.println(name + ", expected: " + expected + ", actual: " + actual);
+		Assert.assertEquals(expected, actual);
 	}
 
 	/**
@@ -136,6 +191,8 @@ public class TestIndex {
 		test.naiveMap();
 		test.indexFactors1D();
 		test.indexFactors2D();
+		test.caseSensitive();
+		test.exactMatch();
 
 		// NB: doesn't match output
 		// test.indexLargeFactors();
