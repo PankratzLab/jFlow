@@ -955,7 +955,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						}
 						endStep(step, code);
 						if (code == FINAL_CODE.FAILED) {
-							StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(step.getDescription())
+							StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(step.getName())
 																																												 .append(":");
 							if (e != null) {
 								proj.getLog().reportException(e, 0);
