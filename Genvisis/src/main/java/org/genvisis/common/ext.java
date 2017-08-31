@@ -196,20 +196,40 @@ public class ext {
 		return -1;
 	}
 
-	public static int indexOfStr(String target, String[] array) {
-		return indexOfStr(target, array, true, true, new Logger(), false);
+	/**
+	 * @see #indexOfStr(String, String[], boolean, boolean, Logger, boolean)
+	 */
+	public static int indexOfStr(String target, String[] superset) {
+		return indexOfStr(target, superset, true, true, new Logger(), false);
 	}
 
-	public static int indexOfStr(String target, String[] array, boolean caseSensitive,
+	/**
+	 * @see #indexOfStr(String, String[], boolean, boolean, Logger, boolean)
+	 */
+	public static int indexOfStr(String target, String[] superset, boolean caseSensitive,
 															 boolean exactMatch) {
-		return indexOfStr(target, array, caseSensitive, exactMatch, new Logger(), false);
+		return indexOfStr(target, superset, caseSensitive, exactMatch, new Logger(), false);
 	}
 
-	public static int indexOfStr(String target, String[] array, boolean caseSensitive,
+	/**
+	 * Identify the index of the first string in a superset matching a target string
+	 *
+	 * @param target String of interest
+	 * @param superset Space to search for target string
+	 * @param caseSensitive Whether or not to consider case when comparing subset and superset strings
+	 * @param exactMatch Whether or not we require a perfect match between a target and superset
+	 * @param verbose If true, report any mismatches (default: {@code true})
+	 * @param log Logger instance to use when reporting
+	 * @return First index of the target string in the superset, or -1 if not found
+	 *
+	 * @see #indexFactors
+	 * @see #indicesOfStr
+	 */
+	public static int indexOfStr(String target, String[] superset, boolean caseSensitive,
 															 boolean exactMatch, Logger log, boolean verbose) {
 		// FIXME if not verbose we don't actually use the fact that there could be more than one match,
 		// which could potentially shorten search time.
-		int[] indices = indicesOfStr(target, array, caseSensitive, exactMatch);
+		int[] indices = indicesOfStr(target, superset, caseSensitive, exactMatch);
 
 		if (indices.length == 0) {
 			if (verbose) {
@@ -235,17 +255,28 @@ public class ext {
 		return indices[0];
 	}
 
-	public static int[] indicesOfStr(String target, String[] array, boolean caseSensitive,
+	/**
+	 * Identify the indices of all strings in a superset matching a target string
+	 *
+	 * @param target String of interest
+	 * @param superset Space to search for target string
+	 * @param caseSensitive Whether or not to consider case when comparing subset and superset strings
+	 * @param exactMatch Whether or not we require a perfect match between a target and superset
+	 * @return Array of all indices in the superset that match the target
+	 *
+	 * @see #indexOfStr
+	 */
+	public static int[] indicesOfStr(String target, String[] superset, boolean caseSensitive,
 																	 boolean exactMatch) {
-		int[] indices = new int[array.length];
+		int[] indices = new int[superset.length];
 		int numMatches = 0;
 
 		if (!caseSensitive) {
 			target = target.toLowerCase();
 		}
 
-		for (int i = 0; i < array.length; i++) {
-			String toCheck = array[i];
+		for (int i = 0; i < superset.length; i++) {
+			String toCheck = superset[i];
 			if (!caseSensitive) {
 				toCheck = toCheck.toLowerCase();
 			}
