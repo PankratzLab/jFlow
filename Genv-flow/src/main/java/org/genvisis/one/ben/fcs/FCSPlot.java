@@ -125,12 +125,12 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 				if (getGatingStrategy() != null) {
 					props.setProperty(PROPKEY_GATEFILE,
 														getGatingStrategy().getFile() == null ? ""
-																																	: getGatingStrategy().getFile());
+																																 : getGatingStrategy().getFile());
 				}
 				ArrayList<String> files = fcsControls.getAddedFiles();
 				props.setProperty(PROPKEY_FCSFILES,
 													files.isEmpty() ? ""
-																					: ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
+																				 : ArrayUtils.toStr(ArrayUtils.toStringArray(files), ";"));
 				File f = new File(PROPERTIES_FILE);
 				OutputStream out = new FileOutputStream(f);
 				props.store(out, "");
@@ -346,8 +346,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	private JMenuBar menuBar() {
 		JMenuBar menuBar;
 		JMenu menu;
-		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave,
-				menuItemClass, menuItemClassSel;
+		JMenuItem menuItemExit, menuItemOpen, menuItemExport, menuItemDump, menuItemEM, menuItemSave, menuItemClass, menuItemClassSel;
 
 		menuBar = new JMenuBar();
 		menu = new JMenu("File");
@@ -734,8 +733,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 		boolean applyTemplate = false;
 		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
-																														 : workbench.addNewSample(filename,
-																																											applyTemplate);
+																														: workbench.addNewSample(filename,
+																																										 applyTemplate);
 		refreshGating();
 
 		if (loadedData.containsKey(filename)) {
@@ -773,8 +772,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 	public void setCurrentSampleInWSP(String filename) {
 		currentSampleID = workbench.containsSampleFile(filename) ? workbench.getSampleID(filename)
-																														 : workbench.addNewSample(filename,
-																																											false);
+																														: workbench.addNewSample(filename,
+																																										 false);
 	}
 
 	public Workbench getWorkbench() {
@@ -855,7 +854,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 	public List<Gate> getGatingForCurrentPlot() {
 		ArrayList<Gate> gateList = new ArrayList<>();
 		ArrayList<Gate> children = parentGate == null ? getGatingStrategy().getRootGates()
-																									: parentGate.getChildGates();
+																								 : parentGate.getChildGates();
 		for (Gate g : children) {
 			boolean y = getYDataName().equals(FCSPlot.HISTOGRAM_COL) ? true : false;
 			if (g.getYDimension() == null || y) {
@@ -1049,7 +1048,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 
 	public Classification[] getClassifications(boolean prev) {
 		Classification[] res = (prev ? classifierResultsPrevPerGate
-																 : classifierResultsPerGate).get(selectedVis);
+																: classifierResultsPerGate).get(selectedVis);
 		boolean[] gating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
 		if (parentGate != null) {
 			gating = parentGate.gate(dataLoader);
@@ -1240,7 +1239,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
 		}
 
 		for (int i = 0, count = data[0].length; i < count; i++) {
-			if (toDump[i]) {
+			if (toDump == null || toDump[i]) {
 				for (int p = 0, pcount = params.size(); p < pcount; p++) {
 					writer.print(data[p][i]);
 					if (p < pcount - 1) {
