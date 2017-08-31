@@ -185,16 +185,6 @@ public class ext {
 		return index;
 	}
 
-	public static int indexOfStr(String target, String[][] array, boolean caseSensitive) {
-		for (int i = 0; i < array.length; i++) {
-			if (caseSensitive ? array[i][0].equals(target)
-												: array[i][0].toLowerCase().equals(target.toLowerCase())) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
 	public static int indexOfAnyStr(String target, String[][] array, boolean caseSensitive) {
 		for (int i = 0; i < array.length; i++) {
 			for (int j = 0; j < array[i].length; j++) {
