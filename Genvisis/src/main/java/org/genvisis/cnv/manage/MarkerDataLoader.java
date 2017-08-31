@@ -308,7 +308,7 @@ public class MarkerDataLoader implements Runnable {
 		String filename;
 		int[] markerIndicesInProj = null;
 		int[] markerIndicesInFile;
-		int[][] markerIndicesInSelection;
+		int[] markerIndicesInSelection;
 		long fingerprint;
 		int count;
 		MarkerSetInfo markerSet;
@@ -378,26 +378,20 @@ public class MarkerDataLoader implements Runnable {
 			if (allRemaining.size() == 0) {
 				filenames.remove(filename);
 			}
-			markerIndicesInFile = new int[v.size()];
-			markerIndicesInProj = new int[v.size()];
-			markerIndicesInSelection = new int[v.size()][];
 			// plinkMarkerAlleles = new String[v.size()][];
-			for (int j = 0; j < v.size() && !killed; j++) {
-				line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
-				markerIndicesInProj[j] = ext.indexOfStr(line[0], allMarkersInProj, true, true); // modified
-																																												// here to
-																																												// fix the
-																																												// bug
-				markerIndicesInFile[j] = Integer.parseInt(line[1]);
-				markerIndicesInSelection[j] = ext.indicesOfStr(line[0], markerNames, true, true);
-				if (markerIndicesInSelection[j].length > 1) {
-					log.report("FYI, marker " + line[0] + " was requested "
-										 + markerIndicesInSelection[j].length + " times");
-				}
-				// if (plinkFormat) {
-				// plinkMarkerAlleles[j] = new String[] {line[2], line[3]};
-				// }
+			String[] remainingMarkerNames = new String[v.size()];
+			markerIndicesInFile = new int[v.size()];
+
+			// Set up the arrays of marker names and indices
+			for (int i = 0; i < v.size() && !killed; i++) {
+				line = v.elementAt(i).split(PSF.Regex.GREEDY_WHITESPACE);
+				remainingMarkerNames[i] = line[0];
+				markerIndicesInFile[i] = Integer.parseInt(line[1]);
 			}
+
+			// Get the indices of our markers in a) all project markers and b) the currently loaded markers
+			markerIndicesInProj = ext.indexFactors(remainingMarkerNames, allMarkersInProj, true, false);
+			markerIndicesInSelection = ext.indexFactors(remainingMarkerNames, markerNames, true, false);
 
 			// if (plinkFormat) {
 			// collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj,
@@ -414,17 +408,15 @@ public class MarkerDataLoader implements Runnable {
 			// }
 
 			for (int k = 0; k < markerIndicesInProj.length && !killed; k++) {
-				for (int i = 0; i < markerIndicesInSelection[k].length; i++) {
-					markerData[markerIndicesInSelection[k][i]] = collection[k];
-					loaded[markerIndicesInSelection[k][i]] = true;
+					markerData[markerIndicesInSelection[k]] = collection[k];
+					loaded[markerIndicesInSelection[k]] = true;
 					count++;
 					numberCurrentlyLoaded++;
-					if (markerData[markerIndicesInSelection[k][i]].getFingerprint() != fingerprint) {
+					if (markerData[markerIndicesInSelection[k]].getFingerprint() != fingerprint) {
 						log.reportError("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: "
-														+ markerData[markerIndicesInSelection[k][i]].getFingerprint()
+														+ markerData[markerIndicesInSelection[k]].getFingerprint()
 														+ ", while expecting: " + fingerprint);
 					}
-				}
 			}
 
 			while (!killed && numberCurrentlyLoaded > readAheadLimit) {
