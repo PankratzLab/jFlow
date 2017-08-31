@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 
+import javax.swing.JOptionPane;
+
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -146,6 +148,10 @@ public class GenvisisWorkflow {
 
 		public abstract void run(Project proj, Map<Step, Map<Requirement, String>> variables);
 
+		/**
+		 * Used to cancel a step
+		 * @param proj
+		 */
 		public void gracefulDeath(Project proj) {
 			return;
 		}
@@ -179,7 +185,10 @@ public class GenvisisWorkflow {
 		}
 
 		public abstract boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables);
-
+		
+		/**
+		 * Reset failed flag, fail reasons, and cleanup.
+		 */
 		public void resetRun() {
 			failed = false;
 			failReasons.clear();

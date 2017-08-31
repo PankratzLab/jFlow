@@ -306,6 +306,7 @@ public class SamplingPipeline {
 			}
 		}
 
+		new File(outDir).mkdirs();
 		PrintWriter writer = Files.getAppropriateWriter(outDir + "p1.files.txt");
 		for (String s : p1Sampling) {
 			writer.println(s);

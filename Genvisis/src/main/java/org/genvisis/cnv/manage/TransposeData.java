@@ -147,7 +147,7 @@ public class TransposeData {
 
 		done = false;
 		timerOverAll = new Date().getTime();
-		numMarkers_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_Mark),
+		numMarkers_WriteBuffer = Math.min(getOptimalNumSamplesBasedOnHeapSpace(-1, numBytes_Mark),
 																			allMarkerNamesInProj.length);
 		while (!done) {
 			PSF.checkInterrupted();
@@ -391,7 +391,7 @@ public class TransposeData {
 				System.err.println(ext.getTime() + "\tIOException");
 				e.printStackTrace();
 			} catch (OutOfMemoryError oome) {
-				numMarkers_WriteBuffer = getOptimaleNumSamplesBasingOnHeapSpace(numMarkers_WriteBuffer, -1);
+				numMarkers_WriteBuffer = getOptimalNumSamplesBasedOnHeapSpace(numMarkers_WriteBuffer, -1);
 				deleteOlderRafs(proj.MARKER_DATA_DIRECTORY.getValue(true, false), null,
 												new String[] {MarkerData.MARKER_DATA_FILE_EXTENSION, "outliers.ser"},
 												false,
@@ -607,7 +607,7 @@ public class TransposeData {
 
 		done = false;
 		timerOverAll = new Date().getTime();
-		numSamples_WriteBuffer = Math.min(getOptimaleNumSamplesBasingOnHeapSpace(-1, numBytes_PerSamp),
+		numSamples_WriteBuffer = Math.min(getOptimalNumSamplesBasedOnHeapSpace(-1, numBytes_PerSamp),
 																			listOfAllSamplesInProj.length);
 
 		String successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
@@ -1048,8 +1048,8 @@ public class TransposeData {
 		return markerFileHead;
 	}
 
-	public static int getOptimaleNumSamplesBasingOnHeapSpace(int currentNumSamplesInHeapSpace,
-																													 int numBytesPerSample) {
+	public static int getOptimalNumSamplesBasedOnHeapSpace(int currentNumSamplesInHeapSpace,
+																												 int numBytesPerSample) {
 		if (currentNumSamplesInHeapSpace <= 0) {
 			return (int) ((Runtime.getRuntime().maxMemory() * 0.75) / numBytesPerSample);
 		} else {

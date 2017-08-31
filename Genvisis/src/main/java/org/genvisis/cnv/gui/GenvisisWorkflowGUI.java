@@ -973,8 +973,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 																										 failureMessage.toString(), "Error!",
 																										 JOptionPane.YES_NO_OPTION,
 																										 JOptionPane.ERROR_MESSAGE, null, opts,
-																										 opts[2]);
-							if (opt == JOptionPane.CLOSED_OPTION || opt == 2) { // closed or cancel
+																										 opts[opts.length - 1]);
+							if (opt == JOptionPane.CLOSED_OPTION || opt == opts.length - 1) { // closed or cancel
 								for (Step resetStep : steps) {
 									resetStep.resetRun();
 								}
