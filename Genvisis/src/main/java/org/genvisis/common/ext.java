@@ -961,7 +961,7 @@ public class ext {
 		// Loop through our query strings and look up their indices in the map
 		for (int i = 0; i < subset.length; i++) {
 			String s = subset[i];
-			if (caseSensitive) {
+			if (!caseSensitive) {
 				s = s.toLowerCase();
 			}
 			if (supersetMap.containsKey(s)) {
@@ -1129,9 +1129,13 @@ public class ext {
 		for (int i = 0; i < targetsWithAlts.length; i++) {
 			int index = -1;
 			for (int j = 0; j < targetsWithAlts[i].length; j++) {
-				if (indexMap.containsKey(targetsWithAlts[i][j])) {
+				String alt = targetsWithAlts[i][j];
+				if (!caseSensitive) {
+					alt = alt.toLowerCase();
+				}
+				if (indexMap.containsKey(alt)) {
 					// If the alt is found, we check the index
-					int altIndex = indexMap.get(targetsWithAlts[i][j]);
+					int altIndex = indexMap.get(alt);
 					if (index == -1) {
 						// This is the first alt we've found so use its index
 						index = altIndex;
@@ -1186,7 +1190,7 @@ public class ext {
 		boolean err = false;
 		for (int i = 0; i < superset.length; i++) {
 			String s = superset[i];
-			if (caseSensitive) {
+			if (!caseSensitive) {
 				s = s.toLowerCase();
 			}
 			if (supersetMap.containsKey(s)) {
