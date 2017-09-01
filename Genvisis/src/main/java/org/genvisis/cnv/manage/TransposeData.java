@@ -562,7 +562,7 @@ public class TransposeData {
 		int numSamples_WriteBuffer;
 		int indexFirstMarkerCurrentIteration;
 		long fingerprintForMarkers, fingerprintForSamples;
-		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerTmp;
+		long timerOverAll, timerLoadFiles, timerTransposeMemory, timerWrite, timerTmp;
 		byte[] markFileParameterSection;
 		byte[][] readBuffer;
 		byte[] markFileOutliersBytes = null;
@@ -598,7 +598,6 @@ public class TransposeData {
 																												 .getFirstMarkerDataRafFilename(),
 																									 false);
 		numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-		System.out.println("Writing " + numBytesPerSampleMarker + " per marker");
 		if (!checkFreeSpaceOrLog(proj, listOfAllSamplesInProj.length, listOfAllMarkersInProj.length,
 														 numBytesPerSampleMarker)) {
 			return;
@@ -642,6 +641,7 @@ public class TransposeData {
 					// --- Step 1 --- Load mdRaf files into buffer, and transpose the buffer
 					timerLoadFiles = 0;
 					timerTransposeMemory = 0;
+					timerWrite = 0;
 					indexFirstMarkerCurrentIteration = 0;
 					for (String markerDataRafFilename : markerDataRafFilenames) {
 						timerTmp = new Date().getTime();
@@ -668,11 +668,11 @@ public class TransposeData {
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 						indexFirstMarkerCurrentIteration += readBuffer.length;
 					}
-					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
-										 + timeFormat.format(timerTransposeMemory));
+					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory));
 
 					// --- Step 2 --- Dump write buffer to marker files
 					for (int j = 0; j < batch.length; j++) {
+						timerTmp = new Date().getTime();
 						if (sampRafFileOutliers == null || sampRafFileOutliers[batch[j]].size() == 0) {
 							markFileOutliersBytes = new byte[0];
 						} else {
@@ -683,7 +683,6 @@ public class TransposeData {
 																																		 markFileOutliersBytes.length,
 																																		 fingerprintForMarkers);
 
-						timerTmp = new Date().getTime();
 						filename = proj.SAMPLE_DIRECTORY.getValue(true, true)
 											 + listOfAllSamplesInProj[batch[j]]
 											 + Sample.SAMPLE_FILE_EXTENSION;
@@ -698,8 +697,10 @@ public class TransposeData {
 							writeBufferToRAF(writeBuffer, null, j, j, filename,
 															 markFileParameterSection, markFileOutliersBytes, false);
 							writer.println(filename);
+							timerWrite += (new Date().getTime() - timerTmp);
 						}
 					}
+					logTemp += "\t" + timeFormat.format(timerWrite);
 
 					log.reportTime(logTemp);
 				}
