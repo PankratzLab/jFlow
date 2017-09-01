@@ -253,7 +253,7 @@ public class ImputationPipeline {
 																vcfDirAndRoot);
 	}
 
-	private static class ImputationPipeRunner {
+	protected static class ImputationPipeRunner {
 
 		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir,
 															String vcfDirAndRoot, boolean useGRC) {
@@ -294,19 +294,21 @@ public class ImputationPipeline {
 																								String plinkSubdir) {
 			Project proj = new Project(projPropFile);
 			ImputationPipeline ip = new ImputationPipeline(proj, refFile);
-			ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
+			if (Files.exists(plinkSubdir)) {
+				ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
+			}
 			return ip;
 		}
 
 	}
 
-	private enum IMPUTATION_PIPELINE_PATH {
+	public enum IMPUTATION_PIPELINE_PATH {
 		VCF_ONLY,
 		PLINK_ONLY,
-		PLINK_SHAPE,
-		PLINK_SHAPE_MINI,
-		SHAPE,
-		MINI;
+		PLINK_SHAPEIT,
+		PLINK_SHAPEIT_MINIMAC,
+		SHAPEIT,
+		MINIMAC;
 	}
 
 	public static void main(String[] args) {
@@ -360,13 +362,13 @@ public class ImputationPipeline {
 									 "\t\trefFile, plinkSubdir, outDirAndRoot, useGRC\n" +
 									 "\tPLINK_ONLY:\n" +
 									 "\t\trefFile, plinkSubdir, outDirAndRoot\n" +
-									 "\tPLINK_SHAPE:\n" +
+									 "\tPLINK_SHAPEIT:\n" +
 									 "\t\trefFile, plinkSubdir, outDir\n" +
-									 "\tPLINK_SHAPE_MINI:\n" +
-									 "\t\trefFile, plinkSubdir,\n" +
-									 "\tMINI:\n" +
+									 "\tPLINK_SHAPEIT_MINIMAC:\n" +
+									 "\t\trefFile, plinkSubdir\n" +
+									 "\tMINIMAC:\n" +
 									 "\t\thapsDir, outDir\n" +
-									 "\tSHAPE:\n" +
+									 "\tSHAPEIT:\n" +
 									 "\t\tplinkSubdir, plinkPrefix, outDir\n" +
 									 "";
 
@@ -422,17 +424,17 @@ public class ImputationPipeline {
 				case PLINK_ONLY:
 					ImputationPipeRunner.runPlink(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
 					break;
-				case PLINK_SHAPE:
+				case PLINK_SHAPEIT:
 					ImputationPipeRunner.runPlinkAndShapeIt(projFile, chrs, refFile, plinkSubdir, outDir);
 					break;
-				case PLINK_SHAPE_MINI:
+				case PLINK_SHAPEIT_MINIMAC:
 					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile, plinkSubdir,
 																												 outDir);
 					break;
-				case MINI:
+				case MINIMAC:
 					ImputationPipeRunner.runMinimac(projFile, chrs, hapsDir, outDir);
 					break;
-				case SHAPE:
+				case SHAPEIT:
 					ImputationPipeRunner.runShapeIt(projFile, chrs, plinkSubdir, plinkPrefix, outDir);
 					break;
 				default:

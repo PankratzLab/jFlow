@@ -104,6 +104,7 @@ import org.genvisis.common.StartupValidation;
 import org.genvisis.common.VersionHelper;
 import org.genvisis.common.ext;
 import org.genvisis.cyto.CytoGUI;
+import org.genvisis.imputation.ImputationGUI;
 import org.genvisis.meta.GenvisisVersion;
 import org.genvisis.meta.Info;
 
@@ -160,6 +161,7 @@ public class Launch extends JFrame implements ActionListener {
 	public static final String GENERATE_ABLOOKUP = "Generate AB Lookup";
 	public static final String EXPORT_TO_PLINK = "Export to PLINK format";
 	public static final String EXPORT_TO_VCF = "Export to VCF format";
+	public static final String EXPORT_FOR_IMPUTE = "Export for imputation";
 	public static final String GENERATE_PENNCNV_FILES = "Generate PennCNV files";
 	public static final String PARSE_RAW_PENNCNV_RESULTS = "Parse raw PennCNV results files";
 	public static final String POPULATIONBAF = "Compute Population BAF file";
@@ -217,10 +219,10 @@ public class Launch extends JFrame implements ActionListener {
 		MENUS.put("Plots", ImmutableList.copyOf(plotIcons.keySet()));
 		MENUS.put("Tools",
 							ImmutableList.of(GENERATE_ABLOOKUP, EXPORT_TO_PLINK, EXPORT_TO_VCF,
-															 GENERATE_PENNCNV_FILES, PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF,
-															 GCMODEL, CUSTOM_CENTROIDS, DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH,
-															 PRINCIPAL_COMPONENTS, GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA,
-															 TEST));
+															 EXPORT_FOR_IMPUTE, GENERATE_PENNCNV_FILES,
+															 PARSE_RAW_PENNCNV_RESULTS, POPULATIONBAF, GCMODEL, CUSTOM_CENTROIDS,
+															 DENOVO_CNV, EXPORT_CNVS, CYTO_WORKBENCH, PRINCIPAL_COMPONENTS,
+															 GENERATE_DEMO_PACKAGE, ADD_QC_TO_SAMPLE_DATA, TEST));
 		MENUS.put("Help", ImmutableList.of("Contents", "Search", "About"));
 
 		File versionList = new File(Info.VERSIONS_KNOWN_LIST);
@@ -313,10 +315,10 @@ public class Launch extends JFrame implements ActionListener {
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue())) {
 			JOptionPane.showMessageDialog(null,
 																		"Error - the directory ('"
-																					+ proj.PROJECT_DIRECTORY.getValue()
-																					+ "') for project '"
-																					+ proj.PROJECT_NAME.getValue()
-																					+ "' did not exist; creating now. If this was in error, please edit the property file.",
+																				+ proj.PROJECT_DIRECTORY.getValue()
+																				+ "') for project '"
+																				+ proj.PROJECT_NAME.getValue()
+																				+ "' did not exist; creating now. If this was in error, please edit the property file.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -396,7 +398,7 @@ public class Launch extends JFrame implements ActionListener {
 		@Override
 		public void uncaughtException(Thread t, Throwable e) {
 			if (log != null) {
-				log.reportError("Uncaught Exception in Thread {" + t.getName() + "}:");
+				log.reportError("Uncaught Exception in Thread {" + t.getName() + "}: " + e.getMessage());
 				log.reportException(e);
 			} else {
 				System.err.println("Error - Uncaught Exception in Thread {" + t.getName() + "}:");
@@ -944,7 +946,9 @@ public class Launch extends JFrame implements ActionListener {
 
 				VCFData.exportGenvisisToVCF(proj, sampFile, markFile, splitChrs, useGRCRefGen, chrsToWrite,
 																		root);
-
+			} else if (command.equals(EXPORT_FOR_IMPUTE)) {
+				ImputationGUI dialog = new ImputationGUI(proj);
+				dialog.setVisible(true);
 			} else if (command.equals(GENERATE_PENNCNV_FILES)) {
 				org.genvisis.cnv.analysis.AnalysisFormats.penncnv(proj, proj.getSampleList().getSamples(),
 																													null, null, proj.NUM_THREADS.getValue());
@@ -1083,7 +1087,7 @@ public class Launch extends JFrame implements ActionListener {
 																																									"gc5Base.txt",
 																																									true, false, log),
 																									proj.PROJECT_DIRECTORY.getValue()
-																																																		 + "data/custom.gcModel",
+																											+ "data/custom.gcModel",
 																									100);
 			} else if (command.equals(MARKER_METRICS)) {
 				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
@@ -1227,8 +1231,8 @@ public class Launch extends JFrame implements ActionListener {
 
 			int delete = JOptionPane.showConfirmDialog(null,
 																								 "<html>Would you like to delete this project properties: "
-																											 + toDelete
-																											 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+																										 + toDelete
+																										 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
 																								 "Delete Project", JOptionPane.WARNING_MESSAGE);
 			if (delete != JOptionPane.YES_OPTION) {
 				return;
@@ -1272,7 +1276,7 @@ public class Launch extends JFrame implements ActionListener {
 			// FIXME this should be unified with the drop down combobox selector
 			for (
 
-					 int i = 0; i < projects.size(); i++) {
+			int i = 0; i < projects.size(); i++) {
 				if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
 					projectsBox.setSelectedIndex(i);
 					log.report("Selecting: " + projects.get(i));
@@ -1459,8 +1463,8 @@ public class Launch extends JFrame implements ActionListener {
 			Files.writeArray(new String[] {
 																		 "PROJECT_NAME=Example",
 																		 "PROJECT_DIRECTORY="
-																														 + LaunchProperties.directoryOfLaunchProperties()
-																														 + "example/",
+																				 + LaunchProperties.directoryOfLaunchProperties()
+																				 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}

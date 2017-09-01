@@ -273,4 +273,25 @@ public class ImputationPrep {
 		}
 		return false;
 	}
+
+	public static void validateRefFile(String referenceFile, Logger log) throws IOException,
+																																			IllegalArgumentException {
+		BufferedReader reader;
+		reader = Files.getAppropriateReader(referenceFile);
+		String header = reader.readLine();
+		if (header == null) {
+			log.reportError("Reference file is empty");
+			throw new IllegalArgumentException("Reference file is empty");
+		}
+		String delim = ext.determineDelimiter(header);
+		int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false, false);
+		for (int index : cols) {
+			if (index < 0) {
+				throw new IllegalArgumentException("Invalid Reference File header");
+			}
+		}
+		reader.close();
+	}
+
+
 }
