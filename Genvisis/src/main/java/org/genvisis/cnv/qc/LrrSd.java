@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
 import org.genvisis.cnv.filesys.Centroids;
@@ -76,12 +77,7 @@ public class LrrSd extends Parallelizable {
 		PrintWriter writer;
 		Sample fsamp;
 		float[][][] cents;
-		byte[] chrs/* , abGenotypes, forwardGenotypes */;
-		// float[] lrrs, bafs, bafsWide;
-		// double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost,
-		// gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound;
-		// int[] bafBinCounts;
-		// boolean multimodal;
+		byte[] chrs;
 		int subIndex = -1;
 		Logger log;
 
@@ -90,7 +86,6 @@ public class LrrSd extends Parallelizable {
 
 		ProgressMonitor progMon = proj.getProgressMonitor();
 		if (progMon != null) {
-			System.out.println(progMon);
 			progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1,
 																	 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		}
@@ -98,7 +93,18 @@ public class LrrSd extends Parallelizable {
 		log = proj.getLog();
 		try {
 			if (centroidsFile == null) {
-				cents = null;
+				byte nullStat = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue()
+																																 + samples[samples.length / 2]
+																																 + Sample.SAMPLE_FILE_EXTENSION);
+				if (Sample.isLrrNull(nullStat) || Sample.isBafNull(nullStat)) {
+					proj.getLog()
+							.reportTimeWarning("LRRs and/or BAFs are missing and centroids were not found.");
+					proj.getLog()
+							.reportTimeWarning("Creating centroids; LRR/BAF will be computed on the fly based on centroid values.");
+					cents = CentroidCompute.computeAndDumpCentroids(proj).getCentroids();
+				} else {
+					cents = null;
+				}
 			} else {
 				cents = Centroids.load(centroidsFile).getCentroids();
 			}
@@ -114,9 +120,10 @@ public class LrrSd extends Parallelizable {
 			if (subIndex <= 0) {
 				// proj.getLog().reportError("Error - was not able to detect any autosomal markers for
 				// sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
-				proj.getLog().reportError(
-																	"Error - was not able to detect any autosomal markers for sample QC in "
-																	+ proj.MARKERSET_FILENAME.getValue());
+				proj.getLog()
+						.reportError(
+												 "Error - was not able to detect any autosomal markers for sample QC in "
+														 + proj.MARKERSET_FILENAME.getValue());
 				return;
 			}
 			if (chrs[subIndex] != 23) {
@@ -132,9 +139,10 @@ public class LrrSd extends Parallelizable {
 			}
 
 			int numAb = (markersForCallrate == null ? chrs.length
-																							: ArrayUtils.booleanArraySum(markersForCallrate));
-			int numAllElse = (markersForEverythingElse == null ? subIndex
-																												 : ArrayUtils.booleanArraySum(markersForEverythingElse));
+																						 : ArrayUtils.booleanArraySum(markersForCallrate));
+			int numAllElse = (markersForEverythingElse == null
+																												? subIndex
+																												: ArrayUtils.booleanArraySum(markersForEverythingElse));
 			if (threadNumber == 1) {// we can just show this once
 				proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
 				proj.getLog().report("Info - using " + numAllElse
@@ -151,13 +159,17 @@ public class LrrSd extends Parallelizable {
 			}
 			if (numAb < 1000) {
 				proj.getLog()
-						.report("Warning - using " + numAb + (numAb == 1 ? " marker" : " markers")
-										+ " for sample call rate may result in inaccurate sample qc, please consider using more");
+						.report("Warning - using "
+												+ numAb
+												+ (numAb == 1 ? " marker" : " markers")
+												+ " for sample call rate may result in inaccurate sample qc, please consider using more");
 			}
 			if (numAllElse < 1000) {
 				proj.getLog()
-						.report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers")
-										+ " for other qc metrics may result in inaccurate sample qc, please consider using more");
+						.report("Warning - using "
+												+ numAllElse
+												+ (numAllElse == 1 ? " marker" : " markers")
+												+ " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
 			// writer = new PrintWriter(new
@@ -230,28 +242,29 @@ public class LrrSd extends Parallelizable {
 	 * @param log
 	 * @return
 	 */
-	public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet, String sampleID,
+	public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet,
+																				String sampleID,
 																				Sample fsamp, float[][][] cents,
 																				boolean[] markersForCallrate,
 																				boolean[] markersForEverythingElse, GcModel gcModel,
 																				GC_CORRECTION_METHOD correctionMethod, Logger log) {
 		byte[] abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost,
-				gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
+		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
 		int[] bafBinCounts;
 		boolean multimodal;
 
 		lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
 		bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
+
 		bafsWide = bafs;
 		markersForEverythingElse = markersForEverythingElse == null ? proj.getAutosomalMarkerBoolean()
-																																: markersForEverythingElse;
+																															 : markersForEverythingElse;
 		if (markersForEverythingElse == null || markersForEverythingElse.length == 0) {
 			proj.getLog()
 					.reportTimeWarning("Could not determine appropriate marker subset, lrr_sd.xln data for sample "
-														 + fsamp.getSampleName()
-														 + " will be based on all markers, not just autosomal markers");
+																 + fsamp.getSampleName()
+																 + " will be based on all markers, not just autosomal markers");
 			markersForEverythingElse = null;
 		} else {
 			lrrs = ArrayUtils.subArray(lrrs, markersForEverythingElse);
@@ -263,10 +276,10 @@ public class LrrSd extends Parallelizable {
 		// TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
 		if (markersForCallrate != null) {// we do not need autosomal only markers here...
 			abGenotypes = (abGenotypes == null ? abGenotypes
-																				 : ArrayUtils.subArray(abGenotypes, markersForCallrate));
+																				: ArrayUtils.subArray(abGenotypes, markersForCallrate));
 			forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes
-																									 : ArrayUtils.subArray(forwardGenotypes,
-																																				 markersForCallrate));
+																									: ArrayUtils.subArray(forwardGenotypes,
+																																				markersForCallrate));
 		}
 
 		bafBinCounts = new int[101];
@@ -319,7 +332,7 @@ public class LrrSd extends Parallelizable {
 		if (gcModel != null) {
 			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
 																														 cents == null ? fsamp.getLRRs()
-																																					 : fsamp.getLRRs(cents),
+																																					: fsamp.getLRRs(cents),
 																														 gcModel, correctionMethod, true, true,
 																														 false);
 			if (!gcAdjustor.isFail()) {
@@ -343,7 +356,8 @@ public class LrrSd extends Parallelizable {
 					tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																		CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
 				}
-				tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+				tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp,
+																															 CNVCaller.MIN_LRR_MEDIAN_ADJUST,
 																															 CNVCaller.MAX_LRR_MEDIAN_ADJUST,
 																															 false));
 				lrrsdPostBound = ArrayUtils.stdev(tmp, true);
@@ -386,7 +400,7 @@ public class LrrSd extends Parallelizable {
 		// proj.getLog());
 		files = ArrayUtils.stringArraySequence(numThreads,
 																					 ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
-																											 + ".");
+																							 + ".");
 		Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), ArrayUtils.intArray(files.length, 0),
 							proj.getLog());
 		for (String file : files) {
@@ -459,8 +473,9 @@ public class LrrSd extends Parallelizable {
 		for (int indice : indices) {
 			if (indice == -1) {
 				allGood = false;
-				proj.getLog().reportError("Error - The sample QC file " + proj.SAMPLE_QC_FILENAME.getValue()
-																	+ " did not contain the proper headings, this should not happen");
+				proj.getLog()
+						.reportError("Error - The sample QC file " + proj.SAMPLE_QC_FILENAME.getValue()
+												 + " did not contain the proper headings, this should not happen");
 			}
 		}
 		return allGood;
@@ -496,7 +511,8 @@ public class LrrSd extends Parallelizable {
 	 * @param log
 	 */
 	public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate,
-																		String markersForEverythingElse, int numThreads, String useFile,
+																		String markersForEverythingElse, int numThreads,
+																		String useFile,
 																		boolean gcMetrics) {
 		Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
 		int[] indices;
@@ -745,7 +761,8 @@ public class LrrSd extends Parallelizable {
 	}
 
 	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile,
-													String markersForEverythingElseFile, int numThreads, String centroidsFile,
+													String markersForEverythingElseFile, int numThreads,
+													String centroidsFile,
 													boolean gcMetrics) {
 		String[] markers;
 		boolean[] markersForCallrate, markersForEverythingElse;
@@ -788,7 +805,8 @@ public class LrrSd extends Parallelizable {
 		if (markersForEverythingElseFile != null) {
 			markersForEverythingElse = getMarkerSubset(proj,
 																								 HashVec.loadFileToStringArray(markersForEverythingElseFile,
-																																							 false, new int[] {0},
+																																							 false,
+																																							 new int[] {0},
 																																							 false),
 																								 markers);
 			if (markersForEverythingElse == null) {
@@ -909,11 +927,15 @@ public class LrrSd extends Parallelizable {
 		String outputBase = null;
 		boolean gcMetrics = true;
 
-		String usage = "\n" + "cnv.qc.LrrSd requires 0-6 arguments\n"
+		String usage = "\n"
+									 + "cnv.qc.LrrSd requires 0-6 arguments\n"
 									 + "   (1) project properties filename (i.e. proj="
-									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false) + " (default))\n"
+									 + org.genvisis.cnv.Launch.getDefaultDebugProjectFile(false)
+									 + " (default))\n"
 									 + "   (2) centroids with which to compute LRRs (i.e. cents=genotype.cent (not the default; to be found in data/ directory))\n"
-									 + "   (3) number of threads to use (i.e. threads=" + numThreads + " (default))\n"
+									 + "   (3) number of threads to use (i.e. threads="
+									 + numThreads
+									 + " (default))\n"
 									 + "   (4) optional: if you only want to look at a subset of the samples, filename of sample list (i.e. subsample=these.txt (not the default))\n"
 									 + "   (5) optional: if you only want to compute AB_callrate and Forward_callrate from a subset of the markers, filename of marker list (i.e. callRateMarkers=those.txt (not the default))\n"
 									 + "   (6) optional: if you only want to compute the other qc metrics (excluding AB_callrate and Forward_callrate) from a subset of the markers, filename of marker list (i.e. otherMarkers=this.txt (not the default))\n"
