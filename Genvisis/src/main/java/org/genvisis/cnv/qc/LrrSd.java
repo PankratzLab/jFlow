@@ -749,61 +749,34 @@ public class LrrSd extends Parallelizable {
 		init(proj, customSampleFileList, callRate, theRest, centroidsFile, numThreads);
 	}
 
+	private static boolean[] loadMarkers(Project proj, String markersFile) {
+		String[] markers;
+		boolean[] returnMarkers;
+		markers = proj.getMarkerNames();
+		if (markersFile != null) {
+			returnMarkers = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersFile, false,
+																																					new int[] {0}, false),
+																			markers);
+			if (returnMarkers == null) {
+				proj.getLog().reportError("Error - Some markers listed in " + markersFile
+																	+ " were not found in the current project, or were duplicates");
+			} else {
+				return returnMarkers;
+			}
+		}
+		returnMarkers = new boolean[markers.length];
+		Arrays.fill(returnMarkers, true);
+		return returnMarkers;
+	}
+
 	public static void init(Project proj, String customSampleFileList, String markersForCallrateFile,
 													String markersForEverythingElseFile, int numThreads,
 													String centroidsFile,
 													boolean gcMetrics) {
-		String[] markers;
 		boolean[] markersForCallrate, markersForEverythingElse;
-		BaselineUnclusteredMarkers bum;
-		Logger log;
 
-		log = proj.getLog();
-
-		if (!BaselineUnclusteredMarkers.baselineUnclusteredMarkersFileExists(proj)) {
-			log.report("Baseline Unclustered Markers file does not exist and will be created now");
-			if (!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)) {
-				log.reportError("Error - Baseline Unclustered Markers file could not be created");
-				return;
-			}
-		}
-
-		markers = proj.getMarkerNames();
-		if (markersForCallrateFile != null) {
-			markersForCallrate = getMarkerSubset(proj,
-																					 HashVec.loadFileToStringArray(markersForCallrateFile,
-																																				 false, new int[] {0},
-																																				 false),
-																					 markers);
-			if (markersForCallrate == null) {
-				log.reportError("Error - Some markers listed in " + markersForCallrateFile
-												+ " were not found in the current project, or were duplicates");
-				return;
-			}
-		} else {
-			markersForCallrate = new boolean[markers.length];
-			Arrays.fill(markersForCallrate, true);
-		}
-		bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
-		for (int i = 0; i < markersForCallrate.length; i++) {
-			if (markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
-				markersForCallrate[i] = false;
-			}
-		}
-		markersForEverythingElse = null;
-		if (markersForEverythingElseFile != null) {
-			markersForEverythingElse = getMarkerSubset(proj,
-																								 HashVec.loadFileToStringArray(markersForEverythingElseFile,
-																																							 false,
-																																							 new int[] {0},
-																																							 false),
-																								 markers);
-			if (markersForEverythingElse == null) {
-				log.reportError("Error - Some markers listed in " + markersForEverythingElseFile
-												+ " were not found in the current project, or were duplicates");
-				return;
-			}
-		}
+		markersForCallrate = loadMarkers(proj, markersForCallrateFile);
+		markersForEverythingElse = loadMarkers(proj, markersForEverythingElseFile);
 
 		init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
 				 gcMetrics, numThreads);
