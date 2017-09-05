@@ -3,6 +3,7 @@ package org.genvisis.cnv;
 import java.awt.AWTError;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -34,11 +35,14 @@ import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -241,7 +245,7 @@ public class Launch extends JFrame implements ActionListener {
 	}
 
 	private transient Project proj;
-	private JComboBox projectsBox;
+	private JComboBox<String> projectsBox;
 	private transient List<String> projects;
 	private JTextArea output;
 	private JScrollPane scrollPane;
@@ -289,7 +293,7 @@ public class Launch extends JFrame implements ActionListener {
 
 		// update the project box
 		if (projectsBox != null) {
-			projectsBox.setModel(new DefaultComboBoxModel(projNames));
+			projectsBox.setModel(new DefaultComboBoxModel<String>(projNames));
 		}
 
 		// update the menu
@@ -760,14 +764,27 @@ public class Launch extends JFrame implements ActionListener {
 	 */
 	private void addProjectSelector(final Container pane) {
 
-		projectsBox = new JComboBox();
-		projectsBox.setPreferredSize(new Dimension(175, (int)projectsBox.getPreferredSize().getHeight()));
+		projectsBox = new JComboBox<>();
+		projectsBox.setRenderer(new DefaultListCellRenderer() {
+			@Override
+			public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+																										boolean isSelected, boolean cellHasFocus) {
+				JComponent comp = (JComponent) super.getListCellRendererComponent(list, value, index,
+																																					isSelected, cellHasFocus);
+				if (-1 < index && null != value) {
+					list.setToolTipText((String) value);
+				}
+				return comp;
+			}
+		});
+		projectsBox.setPreferredSize(new Dimension(175, (int) projectsBox.getPreferredSize()
+																																		 .getHeight()));
 		// In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
 		// on the dropdown menu
 		projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
 		String[] projNames = LaunchProperties.getListOfProjectNames();
 		projNames = ArrayUtils.sortedCopyAlphanum(projNames);
-		projectsBox.setModel(new DefaultComboBoxModel(projNames));
+		projectsBox.setModel(new DefaultComboBoxModel<String>(projNames));
 
 		if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
 			projectsBox.setSelectedIndex(indexOfCurrentProj);
@@ -1132,7 +1149,7 @@ public class Launch extends JFrame implements ActionListener {
 
 				List<String> list = Lists.newArrayList(proj.getSampleData(false).getMetaHeaders());
 				Collections.sort(list);
-				JComboBox jcb = new JComboBox();
+				JComboBox<String> jcb = new JComboBox<>();
 				for (String header : list) {
 					jcb.addItem(header);
 				}
