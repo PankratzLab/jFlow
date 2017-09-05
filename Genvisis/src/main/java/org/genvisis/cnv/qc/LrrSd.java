@@ -93,18 +93,7 @@ public class LrrSd extends Parallelizable {
 		log = proj.getLog();
 		try {
 			if (centroidsFile == null) {
-				byte nullStat = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue()
-																																 + samples[samples.length / 2]
-																																 + Sample.SAMPLE_FILE_EXTENSION);
-				if (Sample.isLrrNull(nullStat) || Sample.isBafNull(nullStat)) {
-					proj.getLog()
-							.reportTimeWarning("LRRs and/or BAFs are missing and centroids were not found.");
-					proj.getLog()
-							.reportTimeWarning("Creating centroids; LRR/BAF will be computed on the fly based on centroid values.");
-					cents = CentroidCompute.computeAndDumpCentroids(proj).getCentroids();
-				} else {
-					cents = null;
-				}
+				cents = null;
 			} else {
 				cents = Centroids.load(centroidsFile).getCentroids();
 			}
@@ -866,6 +855,20 @@ public class LrrSd extends Parallelizable {
 			if (!BaselineUnclusteredMarkers.createBaselineUnclusteredMarkersFileFromSamples(proj)) {
 				log.reportError("Error - Baseline Unclustered Markers file could not be created");
 				return;
+			}
+		}
+
+		if (centroidsFile == null) {
+			byte nullStat = Sample.getNullstatusFromRandomAccessFile(proj.SAMPLE_DIRECTORY.getValue()
+																															 + samples[samples.length / 2]
+																															 + Sample.SAMPLE_FILE_EXTENSION);
+			if (Sample.isLrrNull(nullStat) || Sample.isBafNull(nullStat)) {
+				proj.getLog()
+						.reportTimeWarning("LRRs and/or BAFs are missing and centroids were not found.");
+				proj.getLog()
+						.reportTimeWarning("Creating centroids; LRR/BAF will be computed on the fly based on centroid values.");
+				CentroidCompute.computeAndDumpCentroids(proj);
+				centroidsFile = proj.CUSTOM_CENTROIDS_FILENAME.getValue(true, false);
 			}
 		}
 
