@@ -117,6 +117,10 @@ import com.google.common.collect.Lists;
  */
 public class Launch extends JFrame implements ActionListener {
 
+	// UI preferred size constants
+	private static final int CONTENT_PANE_HEIGHT = 500;
+	private static final int CONTENT_PANE_WIDTH = 700;
+
 	public static final long serialVersionUID = 1L;
 
 	// Menu entry constants
@@ -569,7 +573,7 @@ public class Launch extends JFrame implements ActionListener {
 		contentPane.add(progBar, BorderLayout.SOUTH);
 		progBar.setVisible(false);
 
-		contentPane.setPreferredSize(new Dimension(650, 500));
+		contentPane.setPreferredSize(new Dimension(CONTENT_PANE_WIDTH, CONTENT_PANE_HEIGHT));
 		setContentPane(contentPane);
 	}
 
@@ -757,6 +761,7 @@ public class Launch extends JFrame implements ActionListener {
 	private void addProjectSelector(final Container pane) {
 
 		projectsBox = new JComboBox();
+		projectsBox.setPreferredSize(new Dimension(175, (int)projectsBox.getPreferredSize().getHeight()));
 		// In JDK1.4 this prevents action events from being fired when the up/down arrow keys are used
 		// on the dropdown menu
 		projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
