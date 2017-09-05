@@ -879,6 +879,7 @@ public class Sample implements Serializable {
 			}
 
 			if (outOfRangeValuesEachSample != null && outOfRangeValuesEachSample.size() > 0) {
+				//TODO log here?
 				outOfRangeValuesWriteBuffer = Compression.objToBytes(outOfRangeValuesEachSample);
 				rafFile.write(outOfRangeValuesWriteBuffer);
 				rafFile.seek(PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LOCATION);

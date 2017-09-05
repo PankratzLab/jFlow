@@ -33,6 +33,7 @@ public class Compression {
 	public static final float REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT = (float) -13.1071; // {2,
 																																																	// 0,
 																																																	// 1}
+	public static final float FLOAT_DELTA = 0.0001f;
 	public static final byte REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES = 1;
 	// public static final int BYTES_PER_SAMPLE_MARKER = 22;
 	public static final int BYTES_PER_SAMPLE_MARKER = 12;
@@ -406,64 +407,37 @@ public class Compression {
 	 * @param lrr the float to be converted.
 	 * @param array the byte[] to hold the output.
 	 * @param startPosition the position of byte[] array to hold the output.
-	 * @return
-	 * @throws Elision
+	 * @return 0 if the float was compressed, -1 if out of range
 	 */
 	public static byte lrrCompress(float lrr, byte[] array, int startPosition) {
 		int data;
-		float high = REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
-		float low = -REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT;
+		float absCutoff = Math.abs(REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT);
 
+		// NaN is OK - use special NaN flag
 		if (Float.isNaN(lrr)) {
 			array[startPosition] = REDUCED_PRECISION_LRR_NAN_BYTES[0];
 			array[startPosition + 1] = REDUCED_PRECISION_LRR_NAN_BYTES[1];
 			array[startPosition + 2] = REDUCED_PRECISION_LRR_NAN_BYTES[2];
 			return 0;
-		} else if (lrr < low || lrr > high
-							 || ((Math.abs(lrr) - high) < 0.0001f && (Math.abs(lrr) - high) > -0.0001f)) {// (Math.abs(lrr)
-																																														// -
-																																														// 13.1071f)
-																																														// <
-																																														// 0.0001f
-																																														// &&
-																																														// (Math.abs(lrr)
-																																														// -
-																																														// 13.1071f)
-																																														// >
-																																														// -0.0001f)
-																																														// added
-																																														// in
-																																														// case
-																																														// you
-																																														// are
-																																														// lucky
-																																														// and
-																																														// have
-																																														// an
-																																														// lrr=-13.10708
-																																														// and
-																																														// it
-																																														// gets
-																																														// rounded
-																																														// to
-																																														// -13.1071
-																																														// on
-																																														// compression
+		}
+
+		float absLrr = Math.abs(lrr);
+
+		// If we're more than the delta tolerance beyond the cutoff, mark as out of range
+		if (absLrr - absCutoff > FLOAT_DELTA) {
 			array[startPosition] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[0];
 			array[startPosition + 1] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[1];
 			array[startPosition + 2] = REDUCED_PRECISION_LRR_OUT_OF_RANGE_FLAG_BYTES[2];
 			return -1;
-		} else {
-			// TODO : could maybe fix ((Math.abs(lrr) - 13.1071f) < 0.0001f) etc check here instead with
-			// note below
-			// Note: Currently, the conversion from float to int is through the operation of *10000. Need
-			// to change it to bit conversion to pursue higher accuracy.
-			data = Math.round(lrr * 10000);
-			array[startPosition] = (byte) ((data >> 30 & 0x2) | ((data >> 16) & 0x1));
-			array[startPosition + 1] = (byte) ((data >> 8) & 0xff);
-			array[startPosition + 2] = (byte) (data & 0xff);
-			return 0;
 		}
+
+		// Note: Currently, the conversion from float to int is through the operation of *10000. Need
+		// to change it to bit conversion to pursue higher accuracy.
+		data = Math.round(lrr * 10000);
+		array[startPosition] = (byte) ((data >> 30 & 0x2) | ((data >> 16) & 0x1));
+		array[startPosition + 1] = (byte) ((data >> 8) & 0xff);
+		array[startPosition + 2] = (byte) (data & 0xff);
+		return 0;
 	}
 
 	/**
@@ -507,7 +481,7 @@ public class Compression {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			return (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-			| ((~abGenotype + 1) & 0x03));
+										 | ((~abGenotype + 1) & 0x03));
 		}
 	}
 
@@ -528,7 +502,7 @@ public class Compression {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | (abGenotype & 0x03));
 		} else {
 			array[startPosition] = (byte) (((forwardGenotype << 3) & 0xf8) | ((abGenotype & 0x80) >> 5)
-														 | ((~abGenotype + 1) & 0x03));
+																		 | ((~abGenotype + 1) & 0x03));
 		}
 	}
 
