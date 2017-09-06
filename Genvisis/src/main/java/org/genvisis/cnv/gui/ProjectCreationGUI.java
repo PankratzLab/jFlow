@@ -334,8 +334,13 @@ public class ProjectCreationGUI extends JDialog {
 		panel.add(btnCancel, "cell 1 0");
 
 		updateSourceFileNotice();
-		UITools.setSize(this, new Dimension(650, 500));
-		this.pack();
+		pack();
+		// Grow slightly to look less crowded
+		UITools.setSize(this, (int) (getWidth() * 1.10), (int)(getHeight() * 1.15));
+		// ensure minimum size
+		setMinimumSize(getPreferredSize());
+		// center
+		UITools.centerComponent(this);
 	}
 
 	private boolean checkValues() {
