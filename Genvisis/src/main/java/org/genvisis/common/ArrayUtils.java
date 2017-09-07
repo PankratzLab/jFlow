@@ -1858,7 +1858,7 @@ public class ArrayUtils {
 						quantiles[i] = array[keys[(int) index - 1]];
 					} else {
 						quantiles[i] = (float) (qs[i] * array[keys[(int) Math.floor(index) - 1]]
-													 + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+																		+ (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
 					}
 				}
 			} catch (Exception e) {
@@ -2259,13 +2259,20 @@ public class ArrayUtils {
 	 * Prints an array of objects separated by the specified delimiter
 	 *
 	 * @param array an array of objects
+	 * @param display boolean array indicating which values to print
 	 * @param delimiter String delimiter
+	 * @param nullValue String to use in place of null
 	 * @return String of printed objects
 	 */
 	public static String toStr(Object[] array, boolean[] display, String delimiter,
 														 String nullValue) {
 		boolean commaDelimited = delimiter.equals(",");
 		List<String> cleanList = Lists.newArrayList();
+
+		if (nullValue == null) {
+			nullValue = "null";
+		}
+
 		for (int i = 0; i < array.length; i++) {
 			if (display == null || display[i]) {
 				String val = array[i] == null ? nullValue : array[i].toString();
@@ -2358,7 +2365,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str.append((i == 0 ? "" : delimiter)
 								 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																		: ext.formDeci(array[i], minSigFigs, maxSigFigs)));
+																		 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
 		return str.toString();
@@ -2388,7 +2395,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
 						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																: ext.formDeci(array[i], minSigFigs, maxSigFigs));
+																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -4710,8 +4717,8 @@ public class ArrayUtils {
 			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
 																														 Math.min(0.50,
 																																			proportionOfGlobalMaxRequiredForLocalMaxima
-																																					* proportionOfGlobalMaxRequiredForLocalMaxima
-																																					* 300 / array.length));
+																																						* proportionOfGlobalMaxRequiredForLocalMaxima
+																																						* 300 / array.length));
 			if (array.length < 50) {
 				// System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
 			}
