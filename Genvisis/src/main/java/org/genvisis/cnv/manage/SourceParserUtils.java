@@ -70,7 +70,7 @@ public class SourceParserUtils {
 							writer.println(file + "\t" + line[sampIndex]
 														 + (line[sampIndex].indexOf("@") >= 0 ? "\t"
 																																		+ line[sampIndex].split("@")[0]
-																																	: ""));
+																																 : ""));
 						}
 						if (!longFormat || !reader.ready()) {
 							done = true;
@@ -129,10 +129,11 @@ public class SourceParserUtils {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
+								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true,
+																			false,
 																			false)[0] == -1
-										 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
-												 && ext.indexOfStr(idHeader, line) == -1)));
+								 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
+								 && ext.indexOfStr(idHeader, line) == -1)));
 
 				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
 																		true)[0];
@@ -145,7 +146,8 @@ public class SourceParserUtils {
 						alleles = hash.get(line[snpIndex]);
 					} else {
 						if (i != 0) {
-							log.reportError("Error - snp '" + line[snpIndex] + "' first seen in file #" + i + " ("
+							log.reportError("Error - snp '" + line[snpIndex] + "' first seen in file #" + i
+															+ " ("
 															+ files[i] + ") and not earlier");
 						}
 						hash.put(line[snpIndex],

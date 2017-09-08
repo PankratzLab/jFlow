@@ -1,5 +1,8 @@
 package org.genvisis.cnv.filesys;
 
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.ref.Reference;
@@ -41,9 +44,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
-
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
 	public static class Marker implements Serializable, Comparable<Marker> {
@@ -69,7 +69,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		 * @param a Allele for A (reference status is used to set ref allele)
 		 * @param b Allele for B (reference status is used to set ref allele)
 		 */
-		public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b) {
+		public Marker(String name, GenomicPosition genomicPosition, Allele a,
+									Allele b) {
 			super();
 			this.name = name;
 			this.genomicPosition = genomicPosition;
@@ -170,7 +171,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				case B:
 					return alleleB;
 				default:
-					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
+					throw new IllegalStateException("Undefined refAllele instance:"
+																					+ refAllele.toString());
 
 			}
 		}
@@ -185,7 +187,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				case B:
 					return alleleA;
 				default:
-					throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
+					throw new IllegalStateException("Undefined refAllele instance:"
+																					+ refAllele.toString());
 
 			}
 		}
@@ -238,9 +241,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			int result = 1;
 			result = prime * result + ((alleleA == null) ? 0 : alleleA.hashCode());
 			result = prime * result + ((alleleB == null) ? 0 : alleleB.hashCode());
-			result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
+			result = prime * result
+							 + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
-			result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
+			result = prime * result
+							 + ((refAllele == null) ? 0 : refAllele.hashCode());
 			return result;
 		}
 
@@ -310,7 +315,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public static final long serialVersionUID = 8L;
 
-	public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
+	public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists
+																																				 .newArrayList("Marker",
 																																											 "DefinedChr",
 																																											 "DefinedPos",
 																																											 "BestMatchChr",
@@ -330,12 +336,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	private transient Reference<int[]> positionArrayRef = null;
 
 	public MarkerDetailSet(MarkerSetInfo markerSet) {
-		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(),
+		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet
+																																	 .getPositions(),
 				 markerSet.getFingerprint());
 	}
 
 	public MarkerDetailSet(MarkerSetInfo markerSet, char[][] abAlleles) {
-		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions(), abAlleles,
+		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet
+																																	 .getPositions(), abAlleles,
 				 markerSet.getFingerprint());
 	}
 
@@ -349,27 +357,31 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	@SuppressWarnings("deprecation")
-	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions, char[][] abAlleles) {
-		this(markerNames, chrs, positions, abAlleles, MarkerSet.fingerprint(markerNames));
+	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions,
+												 char[][] abAlleles) {
+		this(markerNames, chrs, positions, abAlleles, MarkerSet
+																													 .fingerprint(markerNames));
 	}
 
-	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions, char[][] abAlleles,
-												 long markerSetFingerprint) {
+	public MarkerDetailSet(String[] markerNames, byte[] chrs, int[] positions,
+												 char[][] abAlleles, long markerSetFingerprint) {
 		super();
 		int numMarkers = markerNames.length;
 		if (numMarkers != chrs.length || numMarkers != positions.length
 				|| (abAlleles != null && numMarkers != abAlleles.length)) {
 			throw new IllegalArgumentException(
 																				 this.getClass().getName()
-																				 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
+																						 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
 		}
 		ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
 		for (int i = 0; i < markerNames.length; i++) {
 			String name = markerNames[i];
-			GenomicPosition genomicPosition = new GenomicPosition(chrs[i], positions[i]);
+			GenomicPosition genomicPosition = new GenomicPosition(chrs[i],
+																														positions[i]);
 			Marker marker;
 			if (abAlleles != null) {
-				marker = new Marker(name, genomicPosition, abAlleles[i][0], abAlleles[i][1]);
+				marker = new Marker(name, genomicPosition, abAlleles[i][0],
+														abAlleles[i][1]);
 			} else {
 				marker = new Marker(name, genomicPosition);
 			}
@@ -387,7 +399,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		this.hashCode = generateHashCode();
 	}
 
-	private static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
+	private static BlastAnnotation closestChrMatch(byte naiveChr,
+																								 int naivePosition,
 																								 Iterable<BlastAnnotation> matches) {
 		// If more than one match, try choosing one with chr that matches naiveChr (chr
 		// won't be affected by build) and closest position to naivePosition
@@ -397,11 +410,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				if (bestMatch == null) {
 					bestMatch = annotation;
 				} else {
-					if (Math.abs(naivePosition
-											 - annotation.getRefLoc().getStart()) < Math.abs(
-																																			 naivePosition
-																																			 - bestMatch.getRefLoc()
-																																									.getStart())) {
+					if (Math.abs(naivePosition - annotation.getRefLoc().getStart()) < Math
+																																								.abs(naivePosition
+																																										 - bestMatch.getRefLoc()
+																																																.getStart())) {
 						bestMatch = annotation;
 					}
 				}
@@ -418,7 +430,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	private Map<String, Marker> generateMarkerNameMap() {
-		ImmutableMap.Builder<String, Marker> markerNameMapBuilder = ImmutableMap.builder();
+		ImmutableMap.Builder<String, Marker> markerNameMapBuilder = ImmutableMap
+																																						.builder();
 		for (Marker marker : markers) {
 			markerNameMapBuilder.put(marker.getName(), marker);
 		}
@@ -434,7 +447,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	private SetMultimap<GenomicPosition, Marker> generateGenomicPositionMap() {
-		ImmutableSetMultimap.Builder<GenomicPosition, Marker> genomicPositionMapBuilder = ImmutableSetMultimap.builder();
+		ImmutableSetMultimap.Builder<GenomicPosition, Marker> genomicPositionMapBuilder = ImmutableSetMultimap
+																																																					.builder();
 		for (Marker marker : markers) {
 			genomicPositionMapBuilder.put(marker.getGenomicPosition(), marker);
 		}
@@ -443,7 +457,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	private Map<Marker, Integer> generateMarkerIndexMap() {
-		ImmutableMap.Builder<Marker, Integer> indexMapBuilder = ImmutableMap.builder();
+		ImmutableMap.Builder<Marker, Integer> indexMapBuilder = ImmutableMap
+																																				.builder();
 		for (int i = 0; i < markers.size(); i++) {
 			indexMapBuilder.put(markers.get(i), i);
 		}
@@ -486,16 +501,19 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 */
 	public static MarkerDetailSet parseFromBLASTAnnotation(Project proj,
 																												 MarkerSetInfo naiveMarkerSet,
-																												 String blastAnnotation, Logger log) {
+																												 String blastAnnotation,
+																												 Logger log) {
 		final String[] markerNames = naiveMarkerSet.getMarkerNames();
 		final Joiner tabJoiner = Joiner.on('\t');
 		List<Marker> markers = Lists.newArrayListWithCapacity(markerNames.length);
 		if (!Files.exists(blastAnnotation)) {
-			log.reportTimeWarning("Could not find " + blastAnnotation
+			log.reportTimeWarning("Could not find "
+														+ blastAnnotation
 														+ ", cannot generate BLAST Annotation based Marker Set");
 			return null;
 		}
-		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation.initForMarkers(markerNames);
+		Map<String, MarkerBlastAnnotation> masterMarkerList = MarkerBlastAnnotation
+																																							 .initForMarkers(markerNames);
 		MarkerAnnotationLoader annotationLoader = new MarkerAnnotationLoader(
 																																				 null,
 																																				 blastAnnotation,
@@ -503,20 +521,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 																																														 naiveMarkerSet),
 																																				 true, log);
 		annotationLoader.setReportEvery(10000);
-		List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
+		List<Map<String, ? extends AnnotationParser>> parsers = Lists
+																																 .newArrayList();
 		parsers.add(masterMarkerList);
 		annotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 
 		int missingPositionCount = 0;
 		int ambiguousPositionCount = 0;
 		ArrayList<String> missingSeqMkrs = new ArrayList<String>();
-		PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+		PrintWriter issuesWriter = Files
+																		.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
 																													+ "MarkerPositionBLASTIssues.txt");
 		issuesWriter.println(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
 		for (int i = 0; i < markerNames.length; i++) {
 
-			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
-			int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
+			MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList
+																																		.get(markerNames[i]);
+			int interrogationPosition = markerBlastAnnotation
+																											 .getMarkerSeqAnnotation()
 																											 .getInterrogationPosition();
 			int positionOffset;
 			Allele a;
@@ -527,9 +549,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				a = Allele.NO_CALL;
 				b = Allele.NO_CALL;
 			} else {
-				int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
+				int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation()
+																							 .getSequence().length();
 				positionOffset = interrogationPosition - probeLength + 1;
-				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+				MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation
+																																			 .getMarkerSeqAnnotation();
 				Strand strand = markerSeqAnnotation.getStrand();
 				a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
 				b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
@@ -547,7 +571,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				}
 			}
 			boolean ambiguousPosition = false;
-			List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+			List<BlastAnnotation> perfectMatches = markerBlastAnnotation
+																																	.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
 																																										 log);
 			BlastAnnotation bestMatch = null;
 			if (perfectMatches.size() == 1) {
@@ -555,8 +580,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			} else if (!perfectMatches.isEmpty()) {
 				// TODO implement liftOver here to check which match is actually in naiveMarkerSet
 				ambiguousPosition = true;
-				bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
-																		perfectMatches);
+				bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i],
+																		naiveMarkerSet.getPositions()[i], perfectMatches);
 				if (bestMatch == null) {
 					log.reportTimeWarning("Arbitrarily selecting first of "
 																+ perfectMatches.size()
@@ -567,9 +592,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				}
 			} else {
 				// Otherwise, choose lowest e-value match from non-perfect matches
-				List<BlastAnnotation> onTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+				List<BlastAnnotation> onTargetMatches = markerBlastAnnotation
+																																		 .getAnnotationsFor(
+																																												BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
 																																												log);
-				List<BlastAnnotation> offTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
+				List<BlastAnnotation> offTargetMatches = markerBlastAnnotation
+																																			.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
 																																												 log);
 				Set<BlastAnnotation> nonPerfectMatches = Sets.newHashSet();
 				nonPerfectMatches.addAll(onTargetMatches);
@@ -591,8 +619,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 					//
 					ambiguousPosition = true;
 					bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i],
-																			naiveMarkerSet.getPositions()[i],
-																			bestMatches);
+																			naiveMarkerSet.getPositions()[i], bestMatches);
 					if (bestMatch == null) {
 						log.reportTimeWarning("Arbitrarily selecting first of "
 																	+ bestMatches.size()
@@ -612,48 +639,58 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			} else {
 				Segment seg = bestMatch.getRefLoc();
 				bestMatchChr = seg.getChr();
-				bestMatchPosition = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
+				bestMatchPosition = bestMatch.getEffectiveInterrogationPosition(
+																																				positionOffset, log);
 			}
 			if (ambiguousPosition) {
 				ambiguousPositionCount++;
 			}
 			if (bestMatchPosition != naiveMarkerSet.getPositions()[i]
 					|| bestMatchChr != naiveMarkerSet.getChrs()[i]) {
-				issuesWriter.println(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
-																						naiveMarkerSet.getPositions()[i], bestMatchChr,
-																						bestMatchPosition));
+				issuesWriter.println(tabJoiner.join(markerNames[i],
+																						naiveMarkerSet.getChrs()[i],
+																						naiveMarkerSet.getPositions()[i],
+																						bestMatchChr, bestMatchPosition));
 			}
 			// Until assumption of chr-pos order is resolved and a method to choose best hit is
 			// implemented, the naive marker positions will always be used.
-			markers.add(new Marker(markerNames[i], new GenomicPosition(naiveMarkerSet.getChrs()[i],
+			markers.add(new Marker(markerNames[i], new GenomicPosition(naiveMarkerSet
+																																							 .getChrs()[i],
 																																 naiveMarkerSet.getPositions()[i]),
 														 a, b));
 		}
 		issuesWriter.close();
 		if (ambiguousPositionCount > 0) {
-			log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
+			log.reportError("Warning - there "
+											+ (ambiguousPositionCount > 1 ? "were " : "was ")
 											+ ambiguousPositionCount + " marker"
 											+ (ambiguousPositionCount > 1 ? "s" : "")
 											+ " with ambiguous BLAST matches");
 		}
 		if (missingPositionCount > 0) {
-			log.reportError("Warning - there " + (missingPositionCount > 1 ? "were " : "was ")
-											+ missingPositionCount + " marker" + (missingPositionCount > 1 ? "s" : "")
+			log.reportError("Warning - there "
+											+ (missingPositionCount > 1 ? "were " : "was ")
+											+ missingPositionCount + " marker"
+											+ (missingPositionCount > 1 ? "s" : "")
 											+ " missing a BLAST result and association position");
 		}
 		if (missingSeqMkrs.size() > 0) {
-			log.reportError("Warning - there " + (missingSeqMkrs.size() > 1 ? "were " : "was ")
-											+ missingSeqMkrs.size() + " marker" + (missingSeqMkrs.size() > 1 ? "s " : "")
+			log.reportError("Warning - there "
+											+ (missingSeqMkrs.size() > 1 ? "were " : "was ")
+											+ missingSeqMkrs.size() + " marker"
+											+ (missingSeqMkrs.size() > 1 ? "s " : "")
 											+ " missing a BLAST probe sequence.");
 		}
 
 		MarkerDetailSet markerDetailSet = new MarkerDetailSet(markers);
 
 		if (markerDetailSet.getFingerprint() != naiveMarkerSet.getFingerprint()) {
-			throw new IllegalStateException(markerDetailSet.getClass().getName() + " fingerprint ("
+			throw new IllegalStateException(markerDetailSet.getClass().getName()
+																			+ " fingerprint ("
 																			+ markerDetailSet.getFingerprint()
 																			+ ") does not match naive "
-																			+ naiveMarkerSet.getClass().getName() + " fingerprint ("
+																			+ naiveMarkerSet.getClass().getName()
+																			+ " fingerprint ("
 																			+ naiveMarkerSet.getFingerprint() + ")");
 		}
 
@@ -680,7 +717,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 
 	public Map<String, Marker> getMarkerNameMap() {
-		Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
+		Map<String, Marker> markerNameMap = markerNameMapRef == null
+																																? null
+																																: markerNameMapRef
+																																									.get();
 		if (markerNameMap == null) {
 			markerNameMap = generateMarkerNameMap();
 			markerNameMapRef = new SoftReference<Map<String, Marker>>(markerNameMap);
@@ -694,7 +734,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 *         (sorted by position)
 	 */
 	public SortedSetMultimap<Byte, Marker> getChrMap() {
-		SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
+		SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null
+																															: chrMapRef.get();
 		if (chrMap == null) {
 			chrMap = generateChrMap();
 			chrMapRef = new SoftReference<SortedSetMultimap<Byte, Marker>>(chrMap);
@@ -709,8 +750,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 */
 	public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
 		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null
-																																														? null
-																																														: genomicPositionMapRef.get();
+																																													 ? null
+																																													 : genomicPositionMapRef
+																																																									.get();
 		if (genomicPositionMap == null) {
 			genomicPositionMap = generateGenomicPositionMap();
 			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(
@@ -725,11 +767,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	}
 
 	public Map<Marker, Integer> getMarkerIndexMap() {
-		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null ? null
-																																		: markerIndexMapRef.get();
+		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null
+																																	 ? null
+																																	 : markerIndexMapRef
+																																											.get();
 		if (markerIndexMap == null) {
 			markerIndexMap = generateMarkerIndexMap();
-			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);
+			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(
+																																	markerIndexMap);
 		}
 		return markerIndexMap;
 	}
@@ -742,8 +787,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 			writer = Files.getAppropriateWriter(filename);
 			for (Marker marker : markers) {
 				writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(),
-																						marker.getPosition(),
-																						marker.getA(), marker.getB()));
+																						marker.getPosition(), marker.getA(), marker.getB()));
 			}
 			writer.close();
 		} catch (Exception e) {
@@ -809,7 +853,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	@Override
 	@Deprecated
-	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
+	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr,
+																		 Logger log) {
 		Collection<Marker> segMarkers = getMarkersInSeg(seg);
 		Iterator<Marker> segMarkersIter = segMarkers.iterator();
 		Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
@@ -847,7 +892,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		// FIXME Maintaining a reference to a mutable returned array is dangerous. Fix anywhere that is
 		// relying on this method not building a fresh array every time it is called and
 		// remove/reimplement
-		String[] markerNames = markerNameArrayRef == null ? null : markerNameArrayRef.get();
+		String[] markerNames = markerNameArrayRef == null ? null
+																										 : markerNameArrayRef.get();
 		if (markerNames == null) {
 			markerNames = generateMarkerNameArray();
 			markerNameArrayRef = new SoftReference<String[]>(markerNames);
@@ -948,7 +994,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	@Deprecated
 	public Map<String, Integer> getMarkerIndices() {
 		Map<Marker, Integer> markerIndices = getMarkerIndexMap();
-		Map<String, Integer> indices = Maps.newHashMapWithExpectedSize(markerIndices.size());
+		Map<String, Integer> indices = Maps
+																			 .newHashMapWithExpectedSize(markerIndices.size());
 		for (Map.Entry<Marker, Integer> entry : markerIndices.entrySet()) {
 			indices.put(entry.getKey().getName(), entry.getValue());
 		}

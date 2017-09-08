@@ -64,7 +64,7 @@ public class FilterCalls {
 	 * Score/Probe thresholds for CNVStats, altering these will alter the number of columns in the
 	 * outputted stats file
 	 */
-	private static final double[][] CNV_STATS_THRESHOLDS = new double[][] {{10, 10}, {10, 20}};
+	private static final double[][] CNV_STATS_THRESHOLDS = new double[][] { {10, 10}, {10, 20}};
 
 	public static final float DEFAULT_CLEAN_FACTOR = 0.2f;
 
@@ -171,8 +171,7 @@ public class FilterCalls {
 	 * Write a file about the contents of a given CNV file.<br />
 	 * Output format:<br />
 	 * <br />
-	 * <code>|	SAMPLE/DNA	|	FID	|	IID	|	Exclude	|	LRRSD	|	#CNVs	|	#CNVs_c10p10	|	#CNVs_c20p10	|</code>
-	 * <br />
+	 * <code>|	SAMPLE/DNA	|	FID	|	IID	|	Exclude	|	LRRSD	|	#CNVs	|	#CNVs_c10p10	|	#CNVs_c20p10	|</code> <br />
 	 * <br />
 	 * Columns can change depending on an internal array, CNV_STATS_THRESHOLDS, which define the
 	 * thresholds for the last few columns
@@ -304,7 +303,8 @@ public class FilterCalls {
 				if (comp.getScore() < score) {
 					continue;
 				}
-				if (/* (comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && */comp.getNumMarkers() < probes/* ) */) {
+				if (/* (comp.getCN() == 0 && comp.getNumMarkers() < 3) || (comp.getCN() != 0 && */comp
+																																															.getNumMarkers() < probes/* ) */) {
 					continue;
 				}
 				if (comp.getCN() == 2) {
@@ -436,7 +436,8 @@ public class FilterCalls {
 		int cnt = 0;
 		int step = size / 10;
 		int cnvCount = 0;
-		for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
+		for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap
+																																																.entrySet()) {
 			if (cnt > 0 && cnt % step == 0) {
 				log.report(ext.getTime() + "] \t" + ((cnt / step) * 10) + "% complete");
 			}
@@ -450,14 +451,16 @@ public class FilterCalls {
 				log.reportError("Error - could not look up the sample " + fidiid
 												+ " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
 												+ ", cannot load sample to compute beast score");
-				log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
+				log
+					 .reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
 												+ fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
 				continue;
 			}
 			try {
 				lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 			} catch (NullPointerException npe) {
-				log.reportError("Error - could not load data for the sample " + ind + "\t" + fidiid
+				log
+					 .reportError("Error - could not load data for the sample " + ind + "\t" + fidiid
 												+ ", please ensure samples have been parsed prior to computing beast score");
 				log.report("Skipping beast score for sample " + ind + "\t" + fidiid);
 				continue;
@@ -623,8 +626,8 @@ public class FilterCalls {
 																																			 Math.max(actualCNV1.cnv.getScore(),
 																																								actualCNV2.cnv.getScore()),
 																																			 actualCNV2.markerStop
-																																																						- actualCNV1.markerStart
-																																																						+ 1,
+																																					 - actualCNV1.markerStart
+																																					 + 1,
 																																			 actualCNV1.cnv.getSource()));
 
 						setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames, lrrs);
@@ -719,7 +722,8 @@ public class FilterCalls {
 			int cnt = 0;
 			int step = size / 10;
 			int cnvCount = 0;
-			for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
+			for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap
+																																																	.entrySet()) {
 				if (cnt > 0 && cnt % step == 0) {
 					log.report(ext.getTime() + "] \t" + ((cnt / step) * 10) + "% complete");
 				}
@@ -737,14 +741,16 @@ public class FilterCalls {
 					log.reportError("Error - could not look up the sample " + fidiid
 													+ " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
 													+ ", cannot load sample to compute beast score");
-					log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
+					log
+						 .reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
 													+ fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
 					continue;
 				}
 				try {
 					lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
 				} catch (NullPointerException npe) {
-					log.reportError("Error - could not load data for the sample "
+					log
+						 .reportError("Error - could not load data for the sample "
 													+ ind
 													+ "\t"
 													+ fidiid
@@ -877,7 +883,7 @@ public class FilterCalls {
 						// less than distanceQuotient percent space vs # of markers
 						float mkQ = (float) ((cnv.markerStop - cnv.markerStart + 1))
 												/ (float) ((actualCNV1.cnv.getNumMarkers()
-																		+ actualCNV2.cnv.getNumMarkers()));
+												+ actualCNV2.cnv.getNumMarkers()));
 						boolean markerQuotient = mkQ < distanceQuotient;
 						// less than 100% of total called base pairs
 						float bpQ = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) / (float) bpSize;
@@ -910,8 +916,8 @@ public class FilterCalls {
 																																				 Math.max(actualCNV1.cnv.getScore(),
 																																									actualCNV2.cnv.getScore()),
 																																				 actualCNV2.markerStop
-																																																							- actualCNV1.markerStart
-																																																							+ 1,
+																																						 - actualCNV1.markerStart
+																																						 + 1,
 																																				 actualCNV1.cnv.getSource()));
 
 							setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames,
@@ -1089,7 +1095,8 @@ public class FilterCalls {
 
 		StringBuilder status = new StringBuilder();
 
-		for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
+		for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap
+																																																.entrySet()) {
 			String fidiid = entry.getKey();
 
 			for (java.util.Map.Entry<Byte, ArrayList<CNVariant>> chrEntry : entry.getValue().entrySet()) {
@@ -1120,7 +1127,7 @@ public class FilterCalls {
 																				curr.getStart(), next.getStop(), curr.getCN(),
 																				Math.max(curr.getScore(), next.getScore()),
 																				(int) (curr.getNumMarkers() + next.getNumMarkers()
-																							 + (null == positions ? 0 : szDiff[1])),
+																				+ (null == positions ? 0 : szDiff[1])),
 																				0));
 							status.append(fidiid).append(" > ").append(curr.getChr()).append("{")
 										.append(curr.getStart()).append(", ").append(next.getStop()).append("}")
@@ -1408,7 +1415,8 @@ public class FilterCalls {
 		PrintWriter writer;
 		List<CNVariant> cnvs = CNVariant.loadPlinkFile(dir + in, null, true);
 		boolean[] remove = ArrayUtils.booleanArray(cnvs.size(), !exclude);
-		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(indivFile,
+		HashSet<String> indivList = HashVec.convertHashNullToHashSet(HashVec.loadFileToHashString(
+																																															indivFile,
 																																															new int[] {
 																																																				 0,
 																																																				 1},
@@ -1505,10 +1513,11 @@ public class FilterCalls {
 		}
 		if (commonInOutOrIgnore != COMMON_IGNORED) {
 			filter.setCommonIn(commonInOutOrIgnore == COMMON_IN);
-			filter.setCommonReference(Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,
+			filter.setCommonReference(Segment.loadUCSCregions(
+																												Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,
 																																											 true, true,
 																																											 log)
-																												+ DEFAULT_COMMON_CNP_REFERENCE, false));
+																														+ DEFAULT_COMMON_CNP_REFERENCE, false));
 		}
 		filter.setIndividualsToKeepFromFile(individualsToKeepFile);
 		if (filenameOfProblematicRegions != null && !"".equals(filenameOfProblematicRegions)) {
@@ -1685,15 +1694,16 @@ public class FilterCalls {
 			individualsToKeepFile = null;
 		}
 		individualsToKeepList = individualsToKeepFile == null
-																													? null
-																													: HashVec.loadFileToStringArray(individualsToKeepFile,
-																																													false,
-																																													new int[] {
-																																																		 0,
-																																																		 1},
-																																													true,
-																																													false,
-																																													"\t");
+																												 ? null
+																												 : HashVec.loadFileToStringArray(
+																																												 individualsToKeepFile,
+																																												 false,
+																																												 new int[] {
+																																																		0,
+																																																		1},
+																																												 true,
+																																												 false,
+																																												 "\t");
 
 		filter(dir, in, out, delSize, dupSize, number, score, filenameOfProblematicRegions,
 					 commonInOutOrIgnore, individualsToKeepList, breakupCentromeres,
@@ -1717,20 +1727,24 @@ public class FilterCalls {
 		int[][] centromereBoundaries;
 
 		problemRegions = filenameOfProblematicRegions == null
-																													? new Segment[0]
-																													: Segment.loadUCSCregions(filenameOfProblematicRegions,
-																																										0, false, log);
-		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
+																												 ? new Segment[0]
+																												 : Segment.loadUCSCregions(
+																																									 filenameOfProblematicRegions,
+																																									 0, false, log);
+		centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(
+																																								markerSetFilenameToBreakUpCentromeres,
 																																								build, log);
 		centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 		commonReference = commonInOutOrIgnore != COMMON_IGNORED
-																														? Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,
-																																																										 true,
-																																																										 true,
-																																																										 log)
-																																											+ DEFAULT_COMMON_CNP_REFERENCE,
-																																											false)
-																														: new Segment[0];
+																													 ? Segment.loadUCSCregions(
+																																										 Files.firstDirectoryThatExists(
+																																																										DEFAULT_REGION_DIRECTORIES,
+																																																										true,
+																																																										true,
+																																																										log)
+																																												 + DEFAULT_COMMON_CNP_REFERENCE,
+																																										 false)
+																													 : new Segment[0];
 		indHash = individualsToKeepList == null ? null : HashVec.loadToHashSet(individualsToKeepList);
 
 		try {
@@ -1746,12 +1760,12 @@ public class FilterCalls {
 				cnv = new CNVariant(line);
 				if (((cnv.getCN() == 1 && cnv.getSize() >= delSize[0] * 1000) || // heterozygous deletion
 						 (cnv.getCN() == 0 && cnv.getSize() >= delSize[1] * 1000) || // homozygous deletion
-						 (cnv.getCN() > 2 && cnv.getSize() >= dupSize[0] * 1000) // duplications
-				// ignoring homozygotic duplications
-				)
+						(cnv.getCN() > 2 && cnv.getSize() >= dupSize[0] * 1000) // duplications
+						// ignoring homozygotic duplications
+						)
 						&& (((cnv.getCN() == 1 || cnv.getCN() == 3 || cnv.getCN() == 4)
-								 && cnv.getNumMarkers() >= number[0])
-								|| (cnv.getCN() == 0 && cnv.getNumMarkers() >= number[1]))
+						&& cnv.getNumMarkers() >= number[0])
+						|| (cnv.getCN() == 0 && cnv.getNumMarkers() >= number[1]))
 						&& cnv.getScore() > score && !inOneOfTheseRegions(cnv, problemRegions)) {
 
 					if ((commonInOutOrIgnore == COMMON_IGNORED
@@ -1794,12 +1808,13 @@ public class FilterCalls {
 					}
 				}
 			}
-			System.err.println("Identified "
+			System.err
+								.println("Identified "
 												 + countCentromeric
 												 + " CNVs that spanned centromeres; these were "
 												 + (breakupCentromeres
-																							 ? "broken up into two CNVs, one on each side of the centromere"
-																							 : "retained as is"));
+																							? "broken up into two CNVs, one on each side of the centromere"
+																							: "retained as is"));
 			System.err.println("Identified " + countGiant
 												 + " gigantic CNVs ( 10+ Mb or 500+ probes ), of which "
 												 + countGiantCentromeric + " spanned a centromere");
@@ -1955,7 +1970,7 @@ public class FilterCalls {
 					}
 					accepted = (double) countAcceptable
 										 / (double) (lastSNP - firstSNP
-																 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
+										 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
 				} else {
 					index = firstSNP;
 					accepted = false;
@@ -2060,7 +2075,7 @@ public class FilterCalls {
 						}
 						accepted = (double) countAcceptable
 											 / (double) (lastSNP - firstSNP
-																	 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
+											 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
 					} else {
 						index = firstSNP;
 						accepted = false;
@@ -2115,10 +2130,10 @@ public class FilterCalls {
 					 + score
 					 + "_"
 					 + (commonInOutOrIgnore == COMMON_IN
-																							 ? "isCNP"
-																							 : (commonInOutOrIgnore == COMMON_OUT
-																																										? "notCNP"
-																																										: "CNPstatusIgnored"))
+																							? "isCNP"
+																							: (commonInOutOrIgnore == COMMON_OUT
+																																									? "notCNP"
+																																									: "CNPstatusIgnored"))
 					 + ".cnv";
 
 	}
@@ -2219,13 +2234,16 @@ public class FilterCalls {
 		List<String> params;
 		String problematicRegionsLocation = "";
 
-		problematicRegionsLocation = Aliases.getPathToFileInReferenceDirectory("problematicRegions_hg19.dat",
+		problematicRegionsLocation = Aliases.getPathToFileInReferenceDirectory(
+																																					 "problematicRegions_hg19.dat",
 																																					 false, log);
 		if (problematicRegionsLocation == null) {
 			problematicRegionsLocation = "problematicRegions_hg19.dat";
 		}
 
-		params = Files.parseControlFile(filename,
+		params = Files
+									.parseControlFile(
+																		filename,
 																		"filterCNVs",
 																		new String[] {
 																									"dir=",
@@ -2332,8 +2350,7 @@ public class FilterCalls {
 		boolean merge = false;
 		float mergeFactor = DEFAULT_CLEAN_FACTOR;
 
-		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo,
-				proportionOfProbesThatNeedToPassForFinalInclusion;
+		double totalRequired, delRequired, dupRequired, totalLimitedTo, delLimitedTo, dupLimitedTo, proportionOfProbesThatNeedToPassForFinalInclusion;
 		totalRequired = delRequired = dupRequired = totalLimitedTo = delLimitedTo = dupLimitedTo = proportionOfProbesThatNeedToPassForFinalInclusion = 0.0;
 		String famFile = null;
 
