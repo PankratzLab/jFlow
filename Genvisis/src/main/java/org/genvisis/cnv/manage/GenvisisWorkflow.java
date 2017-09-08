@@ -1006,10 +1006,11 @@ public class GenvisisWorkflow {
 					boolean returnValue = mkrSetFile;
 					returnValue = returnValue && proj.getSampleList() != null;
 					returnValue = returnValue && Files.exists(sampleDirectory);
-					returnValue = returnValue && proj.getSampleList().getSamples().length > 0;
 					
-					returnValue = returnValue && Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) > 0;
-					
+					int numSamples = proj.getSampleList().getSamples().length;
+					returnValue = returnValue && numSamples > 0;
+					returnValue = returnValue && Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) == numSamples;
+					// checking the validity / completeness of each sample would be a Good Thing, but too costly time-wise for larger projects
 					return returnValue;
 				}
 
