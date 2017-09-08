@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import javax.swing.JComponent;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
 
@@ -14,6 +13,7 @@ import javax.swing.Timer;
  */
 public class JProgressBarListener extends AbstractTaskListener {
 
+	private final boolean hideWhenDone;
 	private final JProgressBar progressBar;
 
 	// Timer to hide and reset the progress bar after a delay
@@ -25,11 +25,16 @@ public class JProgressBarListener extends AbstractTaskListener {
 		}
 	});
 
+	public JProgressBarListener(String... channels) {
+		this(true, channels);
+	}
+
 	/**
 	 * @see {@link AbstractTaskListener#AbstractTaskListener(String...)}
 	 */
-	public JProgressBarListener(String... channels) {
+	public JProgressBarListener(boolean hideWhenDone, String... channels) {
 		super(channels);
+		this.hideWhenDone = hideWhenDone;
 		// #showProgress is scaled from 0 to 100 by SwingWorker.
 		progressBar = new JProgressBar(0, 100);
 		// We make the progress bar visible at the beginning to be counted for real estate when
@@ -73,7 +78,7 @@ public class JProgressBarListener extends AbstractTaskListener {
 	 *
 	 * @return The backing {@link JProgressBar}
 	 */
-	public JComponent getBar() {
+	public JProgressBar getBar() {
 		return progressBar;
 	}
 
@@ -104,6 +109,8 @@ public class JProgressBarListener extends AbstractTaskListener {
 		// Ensure indeterminate state is cleared
 		progressBar.setIndeterminate(false);
 		// Start the hide timer
-		timer.restart();
+		if (hideWhenDone) {
+			timer.restart();
+		}
 	}
 }
