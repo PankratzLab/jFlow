@@ -226,7 +226,8 @@ public class Files {
 		}
 
 		if (commands.split("\\n").length > 1) {
-			log.reportError("Addition to execList has multiple lines, not appropriate for a serial executor");
+			log
+				 .reportError("Addition to execList has multiple lines, not appropriate for a serial executor");
 			return;
 		}
 
@@ -569,7 +570,8 @@ public class Files {
 		if (filename.endsWith(".gz")) {
 			try {
 				if (!Files.checkJVMUpToDateApprox()) {
-					System.err.println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
+					System.err
+										.println("\nYOUR VERSION OF JAVA IS OUT OF DATE; reading gzipped files may fail.");
 				}
 			} catch (Exception e) {
 			}
@@ -822,7 +824,8 @@ public class Files {
 			file2 = paramV.get(4);
 			lookup2 = Integer.parseInt(paramV.get(5));
 			if (!paramV.get(6).equals(lookup2 + "")) {
-				log.reportError("FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
+				log
+					 .reportError("FYI - ignoring other indices for file2; with mergeSNPs, only presence is kept");
 			}
 			keepRowsUniqueToFile2 = paramV.get(7).trim().toLowerCase().equals("true");
 			mergedFile = paramV.get(8);
@@ -1547,7 +1550,8 @@ public class Files {
 																																		sf)
 																											 + (stdev
 																															 ? " (+/- "
-																																 + ext.formDeci(ArrayUtils.stdev(array),
+																																 + ext.formDeci(
+																																								ArrayUtils.stdev(array),
 																																								sf)
 																																 + ")"
 																															 : ""))
@@ -1561,11 +1565,13 @@ public class Files {
 						writer.print("\t"
 												 + (ArrayUtils.sum(counts) > 0
 																											? (percent
-																																? ext.formDeci(means[files.length]
+																																? ext.formDeci(
+																																							 means[files.length]
 																																									 / ArrayUtils.sum(counts)
 																																									 * 100, sf)
 																																	+ "%"
-																																: ext.formDeci(means[files.length]
+																																: ext.formDeci(
+																																							 means[files.length]
 																																									 / ArrayUtils.sum(counts),
 																																							 sf))
 																											: (blank ? "" : ".")));
@@ -2507,7 +2513,8 @@ public class Files {
 		// get all files in the directory, excluding the crf itself and its corresponding log
 		files = Files.list("./", ":" + ext.rootOf(filename), ":.crf", false);
 		files = ArrayUtils.addStrToArray("outfile.xln", files, 0);
-		files = ArrayUtils.addStrToArray("# include add_filename_as_first_column after the output filename if you want it",
+		files = ArrayUtils.addStrToArray(
+																		 "# include add_filename_as_first_column after the output filename if you want it",
 																		 files, 1);
 		for (int i = 3; i < files.length; i++) {
 			files[i] += " skip=1";
@@ -2554,7 +2561,8 @@ public class Files {
 			for (int i = 0; i < matchingFilenames.length; i++) {
 				line = params.get(i).trim().split("\t", -1);
 				if (line.length != 2) {
-					log.reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
+					log
+						 .reportError("Error - skipping this line, invalid number of arguments (needs to be tab delimited): "
 													+ ArrayUtils.toStr(line, "/"));
 					problem = true;
 				} else {
@@ -2661,7 +2669,8 @@ public class Files {
 		int[] order, indices;
 
 		echo = extract = false;
-		params = parseControlFile(filename,
+		params = parseControlFile(
+															filename,
 															"subs",
 															new String[] {
 																						"# echo reports what it's going to change without actually doing it",
@@ -2722,7 +2731,8 @@ public class Files {
 					}
 
 					if (filesizes[order[0]] < summedSizes) {
-						System.out.println("  a dominant file could not be found; extraction skipped for this directory");
+						System.out
+											.println("  a dominant file could not be found; extraction skipped for this directory");
 					} else {
 						for (int j = 0; j < Math.min(order.length, 1); j++) {
 							if (echo) {
@@ -2795,7 +2805,8 @@ public class Files {
 				skips = ArrayUtils.addIntToArray(0, ArrayUtils.intArray(originalFiles.length - 1, 1), 0);
 			}
 			if (skips.length != originalFiles.length) {
-				log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
+				log
+					 .reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
 												+ finalFile + "; aborting...");
 				return;
 			}
@@ -3099,12 +3110,14 @@ public class Files {
 						writer.println(reader.readLine());
 					} else {
 						if (!allowUnevenBlocks) {
-							System.out.println("Error - invalid block size or trailing whitespace; last block size was only "
+							System.out
+												.println("Error - invalid block size or trailing whitespace; last block size was only "
 																 + i);
 							writer.close();
 							try {
 								writer = openAppropriateWriter(filename + "_BLOCK_ERROR.log");
-								writer.println("Error - invalid block size or trailing whitespace; last block size was only "
+								writer
+											.println("Error - invalid block size or trailing whitespace; last block size was only "
 															 + i);
 								writer.close();
 							} catch (Exception e) {
@@ -3744,7 +3757,8 @@ public class Files {
 		ArrayList<String> remoteVcfs = new ArrayList<String>();
 		URL url;
 		if (!ftpdirAddress.startsWith("ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/")) {
-			log.reportTimeWarning("Did not detect that "
+			log
+				 .reportTimeWarning("Did not detect that "
 														+ ftpdirAddress
 														+ " was an ftp address starting with ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/");
 			log.reportTimeWarning("\t this parsing method is therefore un-tested");
@@ -3820,12 +3834,14 @@ public class Files {
 					if (line.length == 1) {
 						log.report("Will delete all instances of \"" + line[0] + "\"");
 					} else if (line[1].indexOf(line[0]) != -1) {
-						log.reportError("Error - the replacement cannot be an extension of itself otherwise it will result in an infinite loop");
+						log
+							 .reportError("Error - the replacement cannot be an extension of itself otherwise it will result in an infinite loop");
 						log.reportError("\"" + line + "\" to \"" + line[1] + "\"");
 						problem = true;
 					}
 					if (line.length > 2) {
-						log.reportError("Warning - the following line has more than two TABs in it, only the first and second will be used");
+						log
+							 .reportError("Warning - the following line has more than two TABs in it, only the first and second will be used");
 						log.reportError(temp);
 					}
 
@@ -3875,7 +3891,9 @@ public class Files {
 	public static void replaceAllFromParameters(String filename, Logger log) {
 		List<String> params;
 
-		params = Files.parseControlFile(filename,
+		params = Files
+									.parseControlFile(
+																		filename,
 																		"replaceAll",
 																		new String[] {
 																									"file=input.txt.gz",

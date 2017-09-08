@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -61,10 +62,13 @@ import org.genvisis.cnv.manage.GenvisisWorkflow.ListSelectionRequirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Requirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.ResourceRequirement;
 import org.genvisis.cnv.manage.GenvisisWorkflow.Step;
+import org.genvisis.cnv.manage.GenvisisWorkflow.StepTask;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+import org.genvisis.common.gui.JProgressBarListener;
+import org.genvisis.common.gui.Task;
 import org.genvisis.qsub.Qsub;
 
 import com.google.common.collect.Lists;
@@ -84,6 +88,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private final ConcurrentMap<Step, JAccordionPanel> panels = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, Map<GenvisisWorkflow.Requirement, ? extends JComponent>> varFields = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, JProgressBar> progBars = Maps.newConcurrentMap();
+	public ConcurrentMap<Step, JProgressBarListener> progListeners = Maps.newConcurrentMap();
+	public ConcurrentMap<Step, Task<Void, Void>> progTasks = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, ArrayList<JButton>> fileBtns = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, JLabel> alreadyRunLbls = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, JButton> cancelStepBtns = Maps.newConcurrentMap();
@@ -369,17 +375,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 		dispose();
 	}
 
-	AbstractAction interruptAction = new AbstractAction() {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			if (runThread != null) {
-				runThread.interrupt();
-			}
-		}
-	};
-
 	private JAccordionPanel createPanel(final Step step, final int index) {
 		final JAccordionPanel panel = new JAccordionPanel();
 
@@ -409,21 +404,31 @@ public class GenvisisWorkflowGUI extends JDialog {
 		checkBoxes.put(step, chckbx);
 		panel.topPanel.add(chckbx, "cell 0 0");
 
-		JProgressBar stepProgBar = new JProgressBar();
+		JProgressBarListener progListener = new JProgressBarListener(false, step.getName());
+		JProgressBar stepProgBar = progListener.getBar();
 		progBars.put(step, stepProgBar);
+		progListeners.put(step, progListener);
 		stepProgBar.setVisible(false);
 		panel.topPanel.add(stepProgBar, "cell 1 0, alignx right, hidemode 3, split 2");
 		JLabel alreadyRanLbl = new JLabel("Output Already Exists!");
 		alreadyRanLbl.setVisible(false);
 		alreadyRunLbls.put(step, alreadyRanLbl);
 		panel.topPanel.add(alreadyRanLbl, "cell 1 0, alignx right, hidemode 3");
-		JButton cancelStepButton = new JButton(interruptAction);
+		JButton cancelStepButton = new JButton();
+		cancelStepButton.addActionListener(e -> {
+			Task<Void, Void> st = progTasks.get(step);
+			if (st != null) {
+				st.cancel(true);
+			}
+		});
 		cancelStepButton.setIcon(Grafik.getImageIcon("images/redx.png"));
 		cancelStepButton.setVisible(false);
 		cancelStepButton.setIconTextGap(0);
 		cancelStepButton.setMargin(new Insets(1, 1, 0, 1));
 		cancelStepBtns.put(step, cancelStepButton);
-		panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
+		if (!step.getFlags().contains(org.genvisis.cnv.manage.GenvisisWorkflow.Flag.MULTITHREADED)) {
+			panel.topPanel.add(cancelStepButton, "cell 1 0, alignx right, hidemode 3");
+		}
 
 		JLabel descLbl = new JLabel("<html><center><p>" + step.getDescription()
 																+ "</p></center></html>");
@@ -610,24 +615,29 @@ public class GenvisisWorkflowGUI extends JDialog {
 	}
 
 	public void startStep(Step step) {
-		if (alreadyRunLbls.get(step).isVisible()) {
-			alreadyRunLbls.get(step).setVisible(false);
-		}
-		progBars.get(step).setString("Running...");
-		progBars.get(step).setStringPainted(true);
-		progBars.get(step).setIndeterminate(true);
-		progBars.get(step).setVisible(true);
-		cancelStepBtns.get(step).setVisible(true);
-		cancelStepBtns.get(step).setEnabled(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (alreadyRunLbls.get(step).isVisible()) {
+					alreadyRunLbls.get(step).setVisible(false);
+				}
+				progBars.get(step).setString("Running...");
+				progBars.get(step).setStringPainted(true);
+				progBars.get(step).setIndeterminate(true);
+				progBars.get(step).setVisible(true);
+				cancelStepBtns.get(step).setVisible(true);
+				cancelStepBtns.get(step).setEnabled(true);
+			}
+		});
 	}
 
 	public void endStep(Step step, FINAL_CODE code) {
 		String resp = code.getMessage();
 		progBars.get(step).setString(resp);
 		progBars.get(step).setIndeterminate(false);
+		cancelStepBtns.get(step).setVisible(false);
 		cancelStepBtns.get(step).setEnabled(false);
 	}
-
 
 	/**
 	 * Helper {@link DocumentListener} that redirects both {@link #insertUpdate(DocumentEvent)} and
@@ -824,37 +834,28 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private JButton btnCancel;
 
 	private void lockup(final boolean lock) {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					for (JCheckBox box : checkBoxes.values()) {
-						box.setEnabled(!lock);
-					}
-					for (Map<GenvisisWorkflow.Requirement, ? extends JComponent> flds : varFields.values()) {
-						for (JComponent fld : flds.values()) {
-							fld.setEnabled(!lock);
-						}
-					}
-					for (ArrayList<JButton> btns : fileBtns.values()) {
-						for (JButton btn : btns) {
-							btn.setEnabled(!lock);
-						}
-					}
-					btnSelectAll.setEnabled(!lock);
-					btnDeselectAll.setEnabled(!lock);
-					btnSelectValid.setEnabled(!lock);
-					btnCancel.setEnabled(!lock);
-					btnOk.setEnabled(!lock);
-					btnExportToText.setEnabled(!lock);
-					btnExportToTextDefaults.setEnabled(!lock);
+		SwingUtilities.invokeLater(() -> {
+			for (JCheckBox box : checkBoxes.values()) {
+				box.setEnabled(!lock);
+			}
+			for (Map<GenvisisWorkflow.Requirement, ? extends JComponent> flds : varFields.values()) {
+				for (JComponent fld : flds.values()) {
+					fld.setEnabled(!lock);
 				}
-			});
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+			}
+			for (ArrayList<JButton> btns : fileBtns.values()) {
+				for (JButton btn : btns) {
+					btn.setEnabled(!lock);
+				}
+			}
+			btnSelectAll.setEnabled(!lock);
+			btnDeselectAll.setEnabled(!lock);
+			btnSelectValid.setEnabled(!lock);
+			btnCancel.setEnabled(!lock);
+			btnOk.setEnabled(!lock);
+			btnExportToText.setEnabled(!lock);
+			btnExportToTextDefaults.setEnabled(!lock);
+		});
 	}
 
 	private void exportToText(final boolean useDefaults) {
@@ -908,7 +909,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}).start();
 	}
 
-	enum FINAL_CODE {
+	public enum FINAL_CODE {
 		COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
 
 		private String message;
@@ -922,6 +923,85 @@ public class GenvisisWorkflowGUI extends JDialog {
 		}
 	}
 
+	public void nextStep(StepTask currentTask, FINAL_CODE returnCode, Set<Step> selectedSteps,
+											 Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables) {
+		Throwable e;
+		Step currentStep = currentTask.getStep();
+		progTasks.remove(currentStep);
+		endStep(currentStep, returnCode);
+
+		Step nextStep = null;
+		if (returnCode == FINAL_CODE.FAILED) {
+			e = currentTask.getFailureException();
+			StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(currentStep.getName())
+																																								 .append(":");
+			if (e != null) {
+				proj.getLog().reportException(e, 0);
+				failureMessage.append("\n").append(e.getMessage());
+			} else if (currentTask.getFailed()) {
+				for (String msg : currentTask.getFailureMessages()) {
+					failureMessage.append("\n").append(msg);
+				}
+			} else if (!currentStep.checkIfOutputExists(variables)) {
+				failureMessage.append("\nUnknown error occurred.");
+			}
+			failureMessage.append("\nPlease check project log for more details.");
+			String[] opts = {"Continue", "Retry", "Cancel"};
+			int opt = JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this,
+																						 failureMessage.toString(), "Error!",
+																						 JOptionPane.YES_NO_OPTION,
+																						 JOptionPane.ERROR_MESSAGE, null, opts,
+																						 opts[opts.length - 1]);
+			if (opt == JOptionPane.CLOSED_OPTION || opt == opts.length - 1) { // closed or cancel
+				nextStep = null;
+			} else if (opt == 1) { // retry
+				// TODO implement Step.cleanupAfterFailure()
+				nextStep = currentStep;
+			} else {
+				nextStep = findNext(currentStep, selectedSteps);
+			}
+		} else if (returnCode == FINAL_CODE.CANCELLED) {
+			boolean continueExec = death(currentStep, selectedSteps);
+			if (!continueExec) {
+				// TODO implement Step.cleanupAfterFailure()
+				nextStep = null;
+			} else {
+				nextStep = findNext(currentStep, selectedSteps);
+			}
+		} else {
+			nextStep = findNext(currentStep, selectedSteps);
+		}
+		if (nextStep != null) {
+			runStep(nextStep, selectedSteps, variables);
+		} else {
+			end();
+		}
+	}
+
+	private Step findNext(Step step, Set<Step> selectedSteps) {
+		Iterator<Step> iter = selectedSteps.iterator();
+		while (iter.hasNext()) {
+			if (step.equals(iter.next()) && iter.hasNext()) {
+				return iter.next();
+			}
+		}
+		return null;
+	}
+
+	private void end() {
+		lockup(false);
+		running = false;
+	}
+
+	private void runStep(Step step, Set<Step> options,
+											 Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables) {
+		startStep(step);
+		Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables,
+																								options);
+		progTasks.put(step, stepTask);
+		stepTask.execute();
+	}
+
 	private void run() {
 		running = true;
 		runThread = new Thread(new Runnable() {
@@ -932,98 +1012,40 @@ public class GenvisisWorkflowGUI extends JDialog {
 				Set<Step> options = getSelectedOptions();
 				Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables = getVariables();
 				if (checkRequirementsAndNotify(variables)) {
-					for (Step step : options) {
-						startStep(step);
-						Throwable e = null;
-						FINAL_CODE code = FINAL_CODE.COMPLETE;
-						try {
-							step.setNecessaryPreRunProperties(proj, variables);
-							step.run(proj, variables);
-						} catch (RuntimeException e1) {
-							if (e1.getCause() instanceof InterruptedException) {
-								code = FINAL_CODE.CANCELLED;
-							}
-							e = e1;
-							System.gc();
-						} catch (Exception e1) {
-							e = e1;
-							System.gc();
-						}
-						if (code != FINAL_CODE.CANCELLED
-								&& (e != null || step.getFailed() || !step.checkIfOutputExists(variables))) {
-							code = FINAL_CODE.FAILED;
-						}
-						endStep(step, code);
-						if (code == FINAL_CODE.FAILED) {
-							StringBuilder failureMessage = new StringBuilder("Error Occurred on Step ").append(step.getName())
-																																												 .append(":");
-							if (e != null) {
-								proj.getLog().reportException(e, 0);
-								failureMessage.append("\n").append(e.getMessage());
-							} else if (step.getFailed()) {
-								for (String msg : step.getFailureMessages()) {
-									failureMessage.append("\n").append(msg);
-								}
-							} else if (!step.checkIfOutputExists(variables)) {
-								failureMessage.append("\nUnknown error occurred.");
-							}
-							failureMessage.append("\nPlease check project log for more details.");
-							String[] opts = {"Continue", "Retry", "Cancel"};
-							int opt = JOptionPane.showOptionDialog(GenvisisWorkflowGUI.this,
-																										 failureMessage.toString(), "Error!",
-																										 JOptionPane.YES_NO_OPTION,
-																										 JOptionPane.ERROR_MESSAGE, null, opts,
-																										 opts[opts.length - 1]);
-							if (opt == JOptionPane.CLOSED_OPTION || opt == opts.length - 1) { // closed or cancel
-								for (Step resetStep : steps) {
-									resetStep.resetRun();
-								}
-								break;
-							} else if (opt == 1) { // retry
-								step.resetRun();
-							} else {
-								// continue
-							}
-						} else if (code == FINAL_CODE.CANCELLED) {
-							step.gracefulDeath(proj);
-							// TODO remove message when gracefulDeath is implemented for each step
-							JOptionPane.showMessageDialog(GenvisisWorkflowGUI.this,
-																						"Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.",
-																						"Error", JOptionPane.ERROR_MESSAGE);
-							boolean foundMore = false;
-							for (Step step2 : steps.tailSet(step)) {
-								if (options.contains(step2)) {
-									foundMore = true;
-									break;
-								}
-							}
-							boolean continueExec = false;
-							if (foundMore) {
-								int opt = JOptionPane.showConfirmDialog(GenvisisWorkflowGUI.this,
-																												"A step was cancelled.  Do you wish to continue?",
-																												"Step Cancelled",
-																												JOptionPane.YES_NO_OPTION);
-								if (opt == JOptionPane.YES_OPTION) {
-									continueExec = true;
-								}
-							}
-							if (!continueExec) {
-								for (Step resetStep : steps) {
-									resetStep.resetRun();
-								}
-								break;
-							}
-						}
-
-					}
+					Step first = options.iterator().next();
+					runStep(first, options, variables);
 				}
-
-				lockup(false);
-				running = false;
 			}
 		});
 		runThread.start();
+	}
 
+
+
+	protected boolean death(Step step, Set<Step> options) {
+		step.gracefulDeath(proj);
+		// TODO remove message when gracefulDeath is implemented for each step
+		JOptionPane.showMessageDialog(GenvisisWorkflowGUI.this,
+																	"Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.",
+																	"Error", JOptionPane.ERROR_MESSAGE);
+		boolean foundMore = false;
+		for (Step step2 : steps.tailSet(step)) {
+			if (options.contains(step2)) {
+				foundMore = true;
+				break;
+			}
+		}
+		boolean continueExec = false;
+		if (foundMore) {
+			int opt = JOptionPane.showConfirmDialog(GenvisisWorkflowGUI.this,
+																							"A step was cancelled.  Do you wish to continue?",
+																							"Step Cancelled",
+																							JOptionPane.YES_NO_OPTION);
+			if (opt == JOptionPane.YES_OPTION) {
+				continueExec = true;
+			}
+		}
+		return continueExec;
 	}
 
 	private boolean checkRequirementsAndNotify(Map<Step, Map<Requirement, String>> variables) {

@@ -7,6 +7,7 @@ import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
 
 public abstract class Property<T> {
+
 	private final Project myProj;
 	private final String name;
 	private final String desc;
@@ -17,8 +18,7 @@ public abstract class Property<T> {
 	private T value;
 
 	public Property(Project proj, String name, String description, GROUP group, boolean editable,
-									COPY copyOnCorrection,
-									T defVal) {
+									COPY copyOnCorrection, T defVal) {
 		this.myProj = proj;
 		this.name = name;
 		this.desc = description;
@@ -87,5 +87,4 @@ public abstract class Property<T> {
 	public String toString() {
 		return getName() + "=" + getValueString();
 	}
-
 }

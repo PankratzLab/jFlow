@@ -12,7 +12,8 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
 public class FamilyStructure {
-	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"}, {"mo"},
+	public static final String[][] TYPICAL_HEADERS = { {"FID", "famid"}, {"IID", "id"}, {"fa"},
+																										{"mo"},
 																										{"sex"}};
 
 	private static final byte MISSING_VALUE_BYTE = (byte) -9;
@@ -101,9 +102,9 @@ public class FamilyStructure {
 		for (int i = 0; i < count; i++) {
 			ids[i] = new String[] {fids[i], iids[i], fas[i], mos[i]};
 			genders[i] = ext.isMissingValue(pedCols[4][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-																										 : Byte.parseByte(pedCols[4][i]);
+																										: Byte.parseByte(pedCols[4][i]);
 			affections[i] = ext.isMissingValue(pedCols[5][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-																												: Byte.parseByte(pedCols[5][i]);
+																											 : Byte.parseByte(pedCols[5][i]);
 
 			if (pedCols.length > 7) {
 				mzTwinIds[i] = ext.isMissingValue(pedCols[7][i]) ? null : pedCols[7][i];
@@ -157,12 +158,12 @@ public class FamilyStructure {
 
 	public int getIndexOfFaInIDs(int indivIndex) {
 		return MISSING_ID_STR.equals(fas[indivIndex]) ? -1
-																									: getIndIndex(fids[indivIndex], fas[indivIndex]);
+																								 : getIndIndex(fids[indivIndex], fas[indivIndex]);
 	}
 
 	public int getIndexOfMoInIDs(int indivIndex) {
 		return MISSING_ID_STR.equals(mos[indivIndex]) ? -1
-																									: getIndIndex(fids[indivIndex], mos[indivIndex]);
+																								 : getIndIndex(fids[indivIndex], mos[indivIndex]);
 	}
 
 	public String getMO(int index) {

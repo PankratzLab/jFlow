@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringJoiner;
 
-import javax.swing.JOptionPane;
-
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -34,6 +32,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.gui.GenvisisWorkflowGUI.FINAL_CODE;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.CALLING_SCOPE;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
@@ -55,6 +54,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.common.gui.Task;
 import org.genvisis.gwas.Ancestry;
 import org.genvisis.gwas.FurtherAnalysisQc;
 import org.genvisis.gwas.MarkerQC;
@@ -76,15 +76,98 @@ import com.google.common.collect.Sets;
 
 public class GenvisisWorkflow {
 
+	public static class StepTask extends Task<Void, Void> {
+		GenvisisWorkflowGUI gui;
+		protected Throwable failureException;
+		private ArrayList<String> failReasons = new ArrayList<String>();
+		protected FINAL_CODE returnCode = FINAL_CODE.CANCELLED;
+		private boolean failed = false;
+		private Project proj;
+		private Step step;
+		private Set<Step> selectedSteps;
+		private Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables;
+		private Thread bgThread;
+		
+		public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, Set<Step> selectedSteps, Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables) {
+			this(gui, step, proj, selectedSteps, variables, 0);
+		}
+		
+		public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj,
+										Set<Step> selectedSteps, Map<Step, Map<GenvisisWorkflow.Requirement, String>> variables, int numUpdates) {
+			super(step.getName(), numUpdates);
+			this.proj = proj;
+			this.gui = gui;
+			this.step = step;
+			this.selectedSteps = selectedSteps;
+			this.variables = variables;
+		}
+
+		@Override
+		protected Void doInBackground() throws Exception {
+			this.bgThread = Thread.currentThread();
+			Exception e = null;
+			FINAL_CODE code = FINAL_CODE.COMPLETE;
+			try {
+				this.step.setNecessaryPreRunProperties(proj, variables);
+				this.step.run(proj, variables);
+			} catch (RuntimeException e1) {
+				if (e1.getCause() instanceof InterruptedException) {
+					code = FINAL_CODE.CANCELLED;
+				}
+				e = e1;
+			} catch (Exception e1) {
+				e = e1;
+			}
+			if (code != FINAL_CODE.CANCELLED
+					&& (e != null || getFailed() || !this.step.checkIfOutputExists(variables))) {
+				code = FINAL_CODE.FAILED;
+			}
+			failureException = e;
+			returnCode = code;
+			return null;
+		}
+
+		@SuppressWarnings("deprecation") // uses Thread.stop();
+		@Override
+		protected void done() {
+			if (this.isCancelled()) {
+				bgThread.stop();
+				returnCode = FINAL_CODE.CANCELLED;
+			}
+			gui.nextStep(this, returnCode, selectedSteps, variables);
+		}
+		
+		public void setFailed(String reason) {
+			failed = true;
+			failReasons.add(reason);
+		}
+
+		public List<String> getFailureMessages() {
+			return failReasons;
+		}
+
+		public Throwable getFailureException() {
+			return failureException;
+		}
+
+		public Step getStep() {
+			return this.step;
+		}
+
+		public boolean getFailed() {
+			return failed;
+		}
+
+	}
+	
 	public abstract class Step implements Comparable<Step> {
 		private String name;
 		private String desc;
 		private Requirement[][] requirements;
-		private boolean failed = false;
-		private ArrayList<String> failReasons = new ArrayList<String>();
 		private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
 		private Set<Flag> stepFlags;
 		private final double priority;
+		
 
 		/**
 		 * 
@@ -121,6 +204,8 @@ public class GenvisisWorkflow {
 			this.stepFlags = Sets.immutableEnumSet(flags);
 			this.priority = priority;
 		}
+		
+
 
 		public String getName() {
 			return this.name;
@@ -130,24 +215,11 @@ public class GenvisisWorkflow {
 			return this.desc;
 		}
 
-		public boolean getFailed() {
-			return failed;
-		}
-
-		public void setFailed(String reason) {
-			failed = true;
-			failReasons.add(reason);
-		}
-
-		public List<String> getFailureMessages() {
-			return failReasons;
-		}
-
 		public abstract void setNecessaryPreRunProperties(Project proj,
 																											Map<Step, Map<Requirement, String>> variables);
 
 		public abstract void run(Project proj, Map<Step, Map<Requirement, String>> variables);
-
+		
 		/**
 		 * Used to cancel a step
 		 * @param proj
@@ -185,14 +257,6 @@ public class GenvisisWorkflow {
 		}
 
 		public abstract boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables);
-		
-		/**
-		 * Reset failed flag, fail reasons, and cleanup.
-		 */
-		public void resetRun() {
-			failed = false;
-			failReasons.clear();
-		}
 
 		public abstract String getCommandLine(Project proj,
 																					Map<Step, Map<Requirement, String>> variables);
@@ -227,8 +291,6 @@ public class GenvisisWorkflow {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + ((desc == null) ? 0 : desc.hashCode());
-			result = prime * result + ((failReasons == null) ? 0 : failReasons.hashCode());
-			result = prime * result + (failed ? 1231 : 1237);
 			result = prime * result + ((name == null) ? 0 : name.hashCode());
 			long temp;
 			temp = Double.doubleToLongBits(priority);
@@ -252,13 +314,6 @@ public class GenvisisWorkflow {
 					return false;
 			} else if (!desc.equals(other.desc))
 				return false;
-			if (failReasons == null) {
-				if (other.failReasons != null)
-					return false;
-			} else if (!failReasons.equals(other.failReasons))
-				return false;
-			if (failed != other.failed)
-				return false;
 			if (name == null) {
 				if (other.name != null)
 					return false;
@@ -275,9 +330,14 @@ public class GenvisisWorkflow {
 				return false;
 			return true;
 		}
-
+		
+		public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj,
+																								Map<Step, Map<Requirement, String>> variables, Set<Step> selectedSteps) {
+			StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
+			return st;
+		}
+		
 	}
-
 
 	public abstract static class Requirement {
 		private final String description;
@@ -908,7 +968,7 @@ public class GenvisisWorkflow {
 
 
 			return register(new Step("Parse Sample Files", "", requirements,
-															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MEMORY), priority()) {
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -931,8 +991,7 @@ public class GenvisisWorkflow {
 					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 					switch (retCode) {
 						case 0:
-							setFailed("Operation failure, please check log for more information.");
-							break;
+							throw new RuntimeException("Operation failure, please check log for more information.");
 						case 1:
 						case 6:
 						default:
@@ -1042,12 +1101,10 @@ public class GenvisisWorkflow {
 					try {
 						int retStat = SampleData.createSampleData(pedFile, sampleMapCsv, proj);
 						if (retStat == -1) {
-							setFailed("SampleData already exists - please delete and try again.");
-							return;
+							throw new RuntimeException("SampleData already exists - please delete and try again.");
 						}
 					} catch (Elision e) {
-						setFailed(e.getMessage());
-						return;
+						throw new RuntimeException(e.getMessage());
 					}
 				}
 
@@ -1180,7 +1237,7 @@ public class GenvisisWorkflow {
 
 			return register(new Step("Run Sample QC Metrics", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {getNumThreadsReq()},},
-															 EnumSet.noneOf(Flag.class), priority()) {
+															 EnumSet.of(Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -1242,7 +1299,7 @@ public class GenvisisWorkflow {
 																										{exportAllReq, targetMarkersReq},
 																										{batchHeadersReq},
 																										{getNumThreadsReq()}},
-															 EnumSet.noneOf(Flag.class), priority()) {
+															 EnumSet.of(Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -1404,8 +1461,7 @@ public class GenvisisWorkflow {
 						Pedigree.build(proj, null, null, false);
 					}
 					if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
-						setFailed("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
-						return;
+						throw new RuntimeException("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
 					}
 
 					proj.getLog().report("Running PLINK");
@@ -1413,7 +1469,7 @@ public class GenvisisWorkflow {
 					boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, PLINK_SUBDIR + PLINKROOT,
 																															 null, null);
 					if (!create) {
-						setFailed("Creation of initial PLINK files failed.");
+						throw new RuntimeException("Creation of initial PLINK files failed.");
 					}
 					proj.PLINK_DIR_FILEROOTS.addValue(proj.PROJECT_DIRECTORY.getValue() + PLINK_SUBDIR
 																						+ PLINKROOT);
@@ -1708,7 +1764,7 @@ public class GenvisisWorkflow {
 			final Requirement parseSamplesStepReq = new StepRequirement(parseSamplesStep);
 			return register(new Step("Create Mosaic Arms File", "",
 															 new Requirement[][] {{parseSamplesStepReq}, {getNumThreadsReq()}},
-															 EnumSet.noneOf(Flag.class), priority()) {
+															 EnumSet.of(Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -1945,7 +2001,7 @@ public class GenvisisWorkflow {
 																										{homozygousOnlyReq}, {gcRegressionDistanceReq},
 																										{getNumThreadsReq()}, {pcSelectionSamplesReq},
 																										{externalBetaFileReq}},
-															 EnumSet.noneOf(Flag.class), priority()) {
+															 EnumSet.of(Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -2015,7 +2071,7 @@ public class GenvisisWorkflow {
 																				 proj.GENOME_BUILD_VERSION.getValue(), pvalOpt, betaFile,
 																				 plot, false, PRE_PROCESSING_METHOD.NONE, proj.getLog());
 					} else {
-						setFailed(PCAPrep.errorMessage(retCode));
+						throw new RuntimeException(PCAPrep.errorMessage(retCode));
 					}
 				}
 
@@ -2172,7 +2228,7 @@ public class GenvisisWorkflow {
 		private Step generateSexCentroidsStep() {
 			return register(new Step("Create Sex-Specific Centroids; Filter PFB file", "",
 															 new Requirement[][] {{getNumThreadsReq()},},
-															 EnumSet.of(Flag.RUNTIME),
+															 EnumSet.of(Flag.RUNTIME, Flag.MULTITHREADED),
 															 priority()) {
 
 				@Override
@@ -2265,7 +2321,7 @@ public class GenvisisWorkflow {
 																										{useCentroidsReq},
 																										{getNumThreadsReq()},
 																										{outputFileReq}},
-															 EnumSet.of(Flag.MEMORY),
+															 EnumSet.of(Flag.MEMORY, Flag.MULTITHREADED),
 															 priority()) {
 
 				@Override
@@ -2440,7 +2496,7 @@ public class GenvisisWorkflow {
 																										{getNumThreadsReq()},
 																										{setupCNVCalling},
 															 },
-															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME), priority()) {
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -2469,7 +2525,7 @@ public class GenvisisWorkflow {
 																				 recomputeLRRPCs, type, strategy, numComponents,
 																				 totalThreads, cnvCalling);
 					if (retMsg != null && !"".equals(retMsg)) {
-						setFailed(retMsg);
+						throw new RuntimeException(retMsg);
 					}
 				}
 
@@ -2543,7 +2599,7 @@ public class GenvisisWorkflow {
 																						false)) {
 						ABLookup.applyABLookupToFullSampleFiles(proj, filename);
 					} else {
-						setFailed("Failed to fill in missing alleles - please check log for more info.");
+						throw new RuntimeException("Failed to fill in missing alleles - please check log for more info.");
 					}
 				}
 
