@@ -968,7 +968,7 @@ public class GenvisisWorkflow {
 
 
 			return register(new Step("Parse Sample Files", "", requirements,
-															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MEMORY), priority()) {
+															 EnumSet.of(Flag.MEMORY, Flag.RUNTIME, Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,

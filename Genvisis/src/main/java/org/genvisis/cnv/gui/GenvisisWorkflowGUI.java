@@ -615,33 +615,20 @@ public class GenvisisWorkflowGUI extends JDialog {
 	}
 
 	public void startStep(Step step) {
-		if (!SwingUtilities.isEventDispatchThread()) {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						actualStartStep(step);
-					}
-				});
-			} catch (InvocationTargetException | InterruptedException e2) {
-				actualStartStep(step);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				if (alreadyRunLbls.get(step).isVisible()) {
+					alreadyRunLbls.get(step).setVisible(false);
+				}
+				progBars.get(step).setString("Running...");
+				progBars.get(step).setStringPainted(true);
+				progBars.get(step).setIndeterminate(true);
+				progBars.get(step).setVisible(true);
+				cancelStepBtns.get(step).setVisible(true);
+				cancelStepBtns.get(step).setEnabled(true);
 			}
-		} else {
-			actualStartStep(step);
-		}
-	}
-
-
-	public void actualStartStep(Step step) {
-		if (alreadyRunLbls.get(step).isVisible()) {
-			alreadyRunLbls.get(step).setVisible(false);
-		}
-		progBars.get(step).setString("Running...");
-		progBars.get(step).setStringPainted(true);
-		progBars.get(step).setIndeterminate(true);
-		progBars.get(step).setVisible(true);
-		cancelStepBtns.get(step).setVisible(true);
-		cancelStepBtns.get(step).setEnabled(true);
+		});
 	}
 
 	public void endStep(Step step, FINAL_CODE code) {
@@ -847,45 +834,28 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private JButton btnCancel;
 
 	private void lockup(final boolean lock) {
-		if (SwingUtilities.isEventDispatchThread()) {
-			doActualLockup(lock);
-		} else {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						doActualLockup(lock);
-					}
-				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		SwingUtilities.invokeLater(() -> {
+			for (JCheckBox box : checkBoxes.values()) {
+				box.setEnabled(!lock);
 			}
-		}
-	}
-
-	private void doActualLockup(boolean lock) {
-		for (JCheckBox box : checkBoxes.values()) {
-			box.setEnabled(!lock);
-		}
-		for (Map<GenvisisWorkflow.Requirement, ? extends JComponent> flds : varFields.values()) {
-			for (JComponent fld : flds.values()) {
-				fld.setEnabled(!lock);
+			for (Map<GenvisisWorkflow.Requirement, ? extends JComponent> flds : varFields.values()) {
+				for (JComponent fld : flds.values()) {
+					fld.setEnabled(!lock);
+				}
 			}
-		}
-		for (ArrayList<JButton> btns : fileBtns.values()) {
-			for (JButton btn : btns) {
-				btn.setEnabled(!lock);
+			for (ArrayList<JButton> btns : fileBtns.values()) {
+				for (JButton btn : btns) {
+					btn.setEnabled(!lock);
+				}
 			}
-		}
-		btnSelectAll.setEnabled(!lock);
-		btnDeselectAll.setEnabled(!lock);
-		btnSelectValid.setEnabled(!lock);
-		btnCancel.setEnabled(!lock);
-		btnOk.setEnabled(!lock);
-		btnExportToText.setEnabled(!lock);
-		btnExportToTextDefaults.setEnabled(!lock);
+			btnSelectAll.setEnabled(!lock);
+			btnDeselectAll.setEnabled(!lock);
+			btnSelectValid.setEnabled(!lock);
+			btnCancel.setEnabled(!lock);
+			btnOk.setEnabled(!lock);
+			btnExportToText.setEnabled(!lock);
+			btnExportToTextDefaults.setEnabled(!lock);
+		});
 	}
 
 	private void exportToText(final boolean useDefaults) {
@@ -1009,19 +979,13 @@ public class GenvisisWorkflowGUI extends JDialog {
 	}
 
 	private Step findNext(Step step, Set<Step> selectedSteps) {
-		Step nextStep = null;
 		Iterator<Step> iter = selectedSteps.iterator();
-		boolean next = false;
 		while (iter.hasNext()) {
-			if (next) {
-				nextStep = iter.next();
-				break;
-			}
-			if (iter.next().equals(step)) {
-				next = true;
+			if (step.equals(iter.next()) && iter.hasNext()) {
+				return iter.next();
 			}
 		}
-		return nextStep;
+		return null;
 	}
 
 	private void end() {
