@@ -30,6 +30,10 @@ public class JProgressBarListener extends AbstractTaskListener {
 	}
 
 	/**
+	 * Usage note: do not call <code>setVisible(false)</code> on the internal JProgressBar within a
+	 * few lines of instantiation, as the internal component listener will not fire, and the first
+	 * time the component is set to visible it will be rehidden automatically.
+	 * 
 	 * @see {@link AbstractTaskListener#AbstractTaskListener(String...)}
 	 */
 	public JProgressBarListener(boolean hideWhenDone, String... channels) {
