@@ -39,6 +39,7 @@ public class StepTask extends Task<Void, Void> {
 
 	@Override
 	protected Void doInBackground() throws Exception {
+		this.gui.startStep(this.step);
 		this.bgThread = Thread.currentThread();
 		Exception e = null;
 		Step.FINAL_CODE code = Step.FINAL_CODE.COMPLETE;
@@ -70,6 +71,7 @@ public class StepTask extends Task<Void, Void> {
 			bgThread.stop();
 			returnCode = Step.FINAL_CODE.CANCELLED;
 		}
+		gui.endStep(this.step, returnCode);
 		gui.nextStep(this, returnCode, selectedSteps, variables);
 	}
 

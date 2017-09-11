@@ -611,34 +611,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 	}
 
 	public void startStep(Step step) {
-		if (!SwingUtilities.isEventDispatchThread()) {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					actualStartStep(step);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-				actualStartStep(step);
-			}
-		} else {
-			actualStartStep(step);
-		}
-	}
-
-	public void endStep(Step step, FINAL_CODE code) {
-		if (!SwingUtilities.isEventDispatchThread()) {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					actualEndStep(step, code);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-				actualEndStep(step, code);
-			}
-		} else {
-			actualEndStep(step, code);
-		}
-	}
-
-	public void actualStartStep(Step step) {
 		if (alreadyRunLbls.get(step).isVisible()) {
 			alreadyRunLbls.get(step).setVisible(false);
 		}
@@ -654,7 +626,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 		cancelStepBtns.get(step).setToolTipText(enableCancel ? cancel1 : cancel2);
 	}
 
-	public void actualEndStep(Step step, FINAL_CODE code) {
+	public void endStep(Step step, FINAL_CODE code) {
 		String resp = code.getMessage();
 		progBars.get(step).setString(resp);
 		cancelStepBtns.get(step).setVisible(false);
@@ -937,7 +909,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 		Throwable e;
 		Step currentStep = currentTask.getStep();
 		progTasks.remove(currentStep);
-		endStep(currentStep, returnCode);
 
 		Step nextStep = null;
 		if (returnCode == FINAL_CODE.FAILED) {
@@ -1004,7 +975,6 @@ public class GenvisisWorkflowGUI extends JDialog {
 
 	private void runStep(Step step, Set<Step> options,
 											 Map<Step, Map<Requirement, String>> variables) {
-		startStep(step);
 		Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables,
 																								options);
 		progTasks.put(step, stepTask);
