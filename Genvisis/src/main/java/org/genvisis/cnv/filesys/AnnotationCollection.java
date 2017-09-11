@@ -28,6 +28,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.MultimapBuilder;
+
 public class AnnotationCollection implements Serializable, TextExport {
 	private static final long serialVersionUID = 1L;
 
@@ -62,15 +65,15 @@ public class AnnotationCollection implements Serializable, TextExport {
 																									 + commentsHash.get(c) + "' from all markers (n="
 																									 + annotationMarkerLists.get(c + "").size()
 																									 + ") from the annotation database",
-																						 "Warning", JOptionPane.ERROR_MESSAGE);
-		if (response == 0) {
+																						 "Warning", JOptionPane.OK_CANCEL_OPTION);
+		if (response == JOptionPane.OK_OPTION) {
 			serialize(proj.BACKUP_DIRECTORY.getValue(true, true) + "annotationsBeforeRemoving_"
 								+ ext.replaceWithLinuxSafeCharacters(commentsHash.get(c), true) + ".ser."
 								+ (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())));
 			commentsHash.remove(c);
 			markers = annotationMarkerLists.get(c + "");
-			for (int i = 0; markers != null && i < markers.size(); i++) {
-				removeAnnotationForMarker(markers.elementAt(i), c);
+			for (String marker : markers) {
+				markerAnnotations.get(marker).remove(c + "");
 			}
 			System.out.println(ext.listWithCommas(HashVec.getKeys(annotationMarkerLists)));
 			annotationMarkerLists.remove(c + "");
@@ -95,8 +98,7 @@ public class AnnotationCollection implements Serializable, TextExport {
 
 	public void removeAnnotationForMarker(String markerName, char c) {
 		if (markerAnnotations.containsKey(markerName)) {
-			if (markerAnnotations.get(markerName).contains(c + "")) {
-				markerAnnotations.get(markerName).remove(c + "");
+			if (markerAnnotations.get(markerName).remove(c + "")) {
 				annotationMarkerLists.get(c + "").remove(markerName);
 			} else {
 				System.err.println("Error - cannot remove " + c + " from " + markerName
