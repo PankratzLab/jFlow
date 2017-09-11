@@ -158,7 +158,7 @@ public class CTable {
 
 	public int[][] getContingencyTable() {
 		// Convert the table to an int[][] of counts
-		int[][] result = new int[table.rowKeySet().size()][table.columnKeySet().size()];
+		int[][] result = new int[rowLabels.keySet().size()][colLabels.keySet().size()];
 		int i = 0;
 		for (String row : rowLabels.keySet()) {
 			int j = 0;
