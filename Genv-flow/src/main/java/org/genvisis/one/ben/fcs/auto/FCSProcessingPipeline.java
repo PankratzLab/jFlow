@@ -139,7 +139,7 @@ public class FCSProcessingPipeline {
 		PIPELINE pipe = null;
 		// boolean test = true;
 		// if (test) {
-		// fcs = wsp = auto = out = "F:/Flow/Annotation/viz/wsp/";
+		// fcs = wsp = auto = out = "F:/Flow/test3/";
 		// out += "out/";
 		// new FCSProcessingPipeline(fcs, wsp, auto, out).run(PIPELINE.PCTS_CNTS);
 		// return;

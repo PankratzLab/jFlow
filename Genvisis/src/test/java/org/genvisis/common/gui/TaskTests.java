@@ -403,9 +403,9 @@ public class TaskTests {
 		// testExpanding();
 		// testIndeterminate();
 		// testMixedIndeterminate();
-		// testProgressMonitor();
-		 testLogger();
-//		 testTextArea();
-//		testConsole();
+		testProgressMonitor();
+		// testLogger();
+		// testTextArea();
+		// testConsole();
 	}
 }

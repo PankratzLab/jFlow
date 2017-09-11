@@ -73,7 +73,7 @@ public class MitoPipeline {
 	private static final String PC_MARKER_COMMAND = "PCmarkers=";
 	private static final String MITO_MARKER_COMMAND = "mitochondrialMarkers=";
 	private static final String USE_FILE_COMMAND = "useFile=";
-	static final String PC_OPT_FILE = "pcOptFile=";
+	public static final String PC_OPT_FILE = "pcOptFile=";
 
 	private static final String IMPORT_EXTENSION = "dirExt=";
 	private static final long RECOMMENDED_MEMORY = 1000000000;
@@ -182,7 +182,8 @@ public class MitoPipeline {
 	public void initProject(String path) {
 		if (Files.exists(filename)) {
 			Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
-			log.report("Using project file " + filename
+			log.report("Using project file "
+								 + filename
 								 + ", you may also specify project filename using the command line argument \"proj=\"");
 		} else {
 			// if (proj != null) {
@@ -287,7 +288,8 @@ public class MitoPipeline {
 		proj.saveProperties();
 	}
 
-	public static Project initializeProject(Project proj, String projectName, String projectDirectory,
+	public static Project initializeProject(Project proj, String projectName,
+																					String projectDirectory,
 																					String sourceDirectory, String dataExtension,
 																					String idHeader, String abLookup, String targetMarkers,
 																					String medianMarkers, String markerPositions,
@@ -323,7 +325,8 @@ public class MitoPipeline {
 		log.report("Memory available = " + memoryAvailable + "  ("
 							 + ext.prettyUpSize(memoryAvailable, 1) + ")");
 		if (memoryAvailable < RECOMMENDED_MEMORY) {
-			log.reportError("\nWarning - " + ext.prettyUpSize(memoryAvailable, 1)
+			log.reportError("\nWarning - "
+											+ ext.prettyUpSize(memoryAvailable, 1)
 											+ " may not be enough RAM to get the job done; add the following -Xmx argument at the command line to increase the amount of memory to the Java virtual machine");
 			log.reportError("java -Xmx10g -jar /path/to/genvisis.jar ... ");
 			log.reportError("which will allocate 10 Gb of RAM (likewise, you can set it to -Xmx2g for 2 GB or -Xmx250 for 250Gb)\n");
@@ -337,8 +340,8 @@ public class MitoPipeline {
 			log.report("Detected that "
 								 + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length
 																												 + " samples have"
-																											 : sampleList.getSamples().length
-																												 + " sample has")
+																											: sampleList.getSamples().length
+																												+ " sample has")
 								 + " already been parsed");
 			// log.report("Skipping sample import step for the analysis. If this is an incorrect number of
 			// samples, please remove (or change the name of) " +
@@ -553,12 +556,12 @@ public class MitoPipeline {
 				if (mitoResourceAvailable) {
 					BetaOptimizer.optimize(proj,
 																 proj.PROJECT_DIRECTORY.getValue()
-																			 + pcApply.getExtrapolatedPCsFile(),
+																		 + pcApply.getExtrapolatedPCsFile(),
 																 proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
 																 requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log)
 																																								 .getTotalWBC()
 																																								 .get())
-																						 : betaFile,
+																						: betaFile,
 																 betaOptFile,
 																 proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
 																 pvalOpt, numComponents, markerCallRateFilter, 2, 0.0000000001,
@@ -575,7 +578,7 @@ public class MitoPipeline {
 		boolean dbSnpA = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP()
 															.isAvailable(true);
 		if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
-										|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
+				|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
 			log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue()
 														+ " , performing liftover and using rsIDs from " + GENOME_BUILD.HG19);
 			dbSnpA = Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().isAvailable(true);
@@ -736,8 +739,9 @@ public class MitoPipeline {
 			}
 		}
 		if (notParsed.size() > 0) {
-			proj.getLog().reportError("Error - detected that not all markers (missing " + notParsed.size()
-																+ ") were properly parsed, halting: This should not happen");
+			proj.getLog().reportError("Error - detected that not all markers (missing "
+																		+ notParsed.size()
+																		+ ") were properly parsed, halting: This should not happen");
 		}
 		return allParsed;
 	}

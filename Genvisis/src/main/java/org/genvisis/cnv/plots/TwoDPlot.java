@@ -504,11 +504,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
 		menuItemOpen = new JMenuItem("Open File", KeyEvent.VK_O);
-		menuItemOpen.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addFile();
-			}
+		menuItemOpen.addActionListener(e -> {
+			addFile();
 		});
 		menu.add(menuItemOpen);
 		menuItemRemove = new JMenuItem("Remove Selected Data", KeyEvent.VK_O);
@@ -1112,7 +1109,6 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		updateGUI();
 		tree.expandRow(dataKeys.indexOf(filename));
 		twoDPanel.paintAgain();
-
 	}
 
 	@Override
