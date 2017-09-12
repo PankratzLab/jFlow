@@ -88,7 +88,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private final ConcurrentMap<Step, JLabel> descLabels = Maps.newConcurrentMap();
 	private final ConcurrentMap<Step, Map<Requirement, JLabel>> requirementsLabels = Maps.newConcurrentMap();
 	private final ConcurrentMap<Step, JAccordionPanel> panels = Maps.newConcurrentMap();
-	public ConcurrentMap<Step, Map<Requirement, ? extends JComponent>> varFields = Maps.newConcurrentMap();
+	public ConcurrentMap<Step, Map<Requirement, JComponent>> varFields = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, JProgressBar> progBars = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, JProgressBarListener> progListeners = Maps.newConcurrentMap();
 	public ConcurrentMap<Step, Task<Void, Void>> progTasks = Maps.newConcurrentMap();
@@ -451,23 +451,24 @@ public class GenvisisWorkflowGUI extends JDialog {
 			panel.contentPanel.add(reqLbl, "cell 0 1");
 
 			Map<Requirement, JLabel> reqLbls = new java.util.HashMap<Requirement, JLabel>();
-			int rowIndex = 2;
-			addLabels(reqs, panel.contentPanel, rowIndex, reqLbls, new ArrayList<Integer>());
 			requirementsLabels.put(step, reqLbls);
+			int rowIndex = 2;
+			addLabels(step, reqs, panel.contentPanel, rowIndex, new ArrayList<Integer>());
 
 			Map<Requirement, JComponent> reqInputFields = Maps.newLinkedHashMap();
-			rowIndex = 2;
-			addReqFields(step, reqs, panel.contentPanel, rowIndex, reqInputFields);
 			varFields.put(step, reqInputFields);
+			rowIndex = 2;
+			addReqFields(step, reqs, panel.contentPanel, rowIndex);
 		}
 
 		return panel;
 
 	}
 
-	private void addToPanel(Step step, Requirement req, JPanel panel, int rowIndex,
-													Map<Requirement, JComponent> reqInputFields) {
-
+	private Map<Requirement, JComponent> addToPanel(Step step, Requirement req,
+																									JPanel panel,
+																									int rowIndex) {
+		Map<Requirement, JComponent> reqInputFields = Maps.newLinkedHashMap();
 		if (req.getType() == Requirement.RequirementInputType.BOOL) {
 			JCheckBox checkBox = new JCheckBox();
 			checkBox.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
@@ -568,32 +569,48 @@ public class GenvisisWorkflowGUI extends JDialog {
 				list.add(fileBtn);
 			}
 		}
+		return reqInputFields;
 	}
 
-	private int addReqFields(Step step, RequirementSet rs, JPanel panel, int rowIndex,
-													 Map<Requirement, JComponent> reqInputFields) {
-
+	/**
+	 * 
+	 * @param step Step
+	 * @param rs RequirementSet
+	 * @param panel Panel to which to add components
+	 * @param rowIndex row index at which to start adding components
+	 * @return last used row index
+	 */
+	private int addReqFields(Step step, RequirementSet rs, JPanel panel, int rowIndex) {
 		List<Requirement> levelReqs = rs.getRequirements();
 		List<RequirementSet> levelReqSets = rs.getRequirementSets();
 
 		for (int i = 0; i < levelReqs.size(); i++) {
-			addToPanel(step, levelReqs.get(i), panel, rowIndex, reqInputFields);
+			varFields.get(step).putAll(addToPanel(step, levelReqs.get(i), panel, rowIndex));
 			if (i < levelReqs.size() - 1 || levelReqSets.size() > 0) {
-				rowIndex += 2;
+				rowIndex += 2; // skip past join labels (e.g. "AND" / "OR")
 			}
 		}
 		for (int i = 0; i < levelReqSets.size(); i++) {
-			rowIndex = addReqFields(step, levelReqSets.get(i), panel, rowIndex, reqInputFields);
+			rowIndex = addReqFields(step, levelReqSets.get(i), panel, rowIndex);
 			rowIndex++;
 			if (i < levelReqSets.size() - 1) {
-				rowIndex += 1;
+				rowIndex += 1; // skip past join labels
 			}
 		}
 		return rowIndex;
 	}
 
-	private int addLabels(RequirementSet rs, JPanel panel, int rowIndex,
-												Map<Requirement, JLabel> reqLbls, List<Integer> argSetNums) {
+	/**
+	 * Add requirement labels (and recursively add sub-labels) to a panel;
+	 * 
+	 * @param rs RequirementSet
+	 * @param panel JPanel
+	 * @param rowIndex rowIndex on which to start adding labels
+	 * @param argSetNums Argument index prefixes for sub-requirement indices
+	 * @return last used row index
+	 */
+	private int addLabels(Step step, RequirementSet rs, JPanel panel, int rowIndex,
+												List<Integer> argSetNums) {
 		List<Requirement> levelReqs = rs.getRequirements();
 		List<RequirementSet> levelReqSets = rs.getRequirementSets();
 		String join = rs.getJoinString();
@@ -608,7 +625,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 																				 + "</p></html>");
 			requirementLbl.setFont(requirementLbl.getFont().deriveFont(Font.PLAIN, 9));
 			panel.add(requirementLbl, "aligny top, cell 0 " + rowIndex);
-			reqLbls.put(levelReqs.get(i), requirementLbl);
+			requirementsLabels.get(step).put(levelReqs.get(i), requirementLbl);
 			if (i < levelReqs.size() - 1 || levelReqSets.size() > 0) {
 				JLabel joinLbl = new JLabel(join);
 				joinLbl.setFont(joinLbl.getFont().deriveFont(Font.PLAIN, 10));
@@ -616,16 +633,21 @@ public class GenvisisWorkflowGUI extends JDialog {
 				rowIndex++;
 			}
 		}
-		int num = 0;
+		// for each subset of requirements
 		for (int i = 0; i < levelReqSets.size(); i++) {
-			Integer add = Integer.valueOf(argSetNums.size() == 0
-																													? ++num
-																													: (i + 1));
+			Integer add = Integer.valueOf(i + 1);
+			// track argument index to which we're adding sub-requirements (i.e. {1, 1} becomes "1.1.N"
+			// for each of N sub-requirements)
 			argSetNums.add(add);
-			rowIndex = addLabels(levelReqSets.get(i), panel, rowIndex, reqLbls, argSetNums);
+			// recursively add sub-requirements, recording the rowIndex of the last subitem added to the
+			// panel
+			rowIndex = addLabels(step, levelReqSets.get(i), panel, rowIndex, argSetNums);
+			// remove last argument index but keep higher ones (i.e. {1, 1} becomes {1} and next iteration
+			// becomes {1, 2}
 			argSetNums.remove(argSetNums.size() - 1);
 			rowIndex++;
 			if (i < levelReqSets.size() - 1) {
+				// if we have more requirements, add a label for the logical operator of this RequirementSet
 				JLabel joinLbl = new JLabel(join);
 				joinLbl.setFont(joinLbl.getFont().deriveFont(Font.PLAIN, 10));
 				panel.add(joinLbl, "gapleft 18, cell 0 " + rowIndex + " 2 1");
@@ -922,8 +944,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 					proj.message("WARNING: Failed to create Genvisis workflow script. See log.");
 				}
 
-				lockup(false);
-				running = false;
+				end();
 			}
 		}).start();
 	}
@@ -1017,6 +1038,8 @@ public class GenvisisWorkflowGUI extends JDialog {
 				if (checkRequirementsAndNotify(variables)) {
 					Step first = options.iterator().next();
 					runStep(first, options, variables);
+				} else {
+					end();
 				}
 			}
 		});
@@ -1097,11 +1120,11 @@ public class GenvisisWorkflowGUI extends JDialog {
 	private Map<Step, Map<Requirement, String>> getVariables() {
 
 		Map<Step, Map<Requirement, String>> returnVars = Maps.newHashMap();
-		for (Entry<Step, Map<Requirement, ? extends JComponent>> entry : varFields.entrySet()) {
+		for (Entry<Step, Map<Requirement, JComponent>> entry : varFields.entrySet()) {
 			Map<Requirement, String> values = Maps.newHashMap();
 			returnVars.put(entry.getKey(), values);
-			for (Entry<Requirement, ? extends JComponent> reqComp : entry.getValue()
-																																	 .entrySet()) {
+			for (Entry<Requirement, JComponent> reqComp : entry.getValue()
+																												 .entrySet()) {
 				String val = "";
 				Requirement req = reqComp.getKey();
 				JComponent j = reqComp.getValue();
