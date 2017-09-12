@@ -1,6 +1,5 @@
 package org.genvisis.cnv.workflow;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
@@ -31,7 +30,7 @@ public abstract class Step implements Comparable<Step> {
 
 	private String name;
 	private String desc;
-	private Requirement[][] requirements;
+	private RequirementSet requirements;
 	private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
 	private Set<Requirement.Flag> stepFlags;
 	private final double priority;
@@ -47,7 +46,7 @@ public abstract class Step implements Comparable<Step> {
 	 *        included by default if {@link GenvisisWorkflow.#getNumThreadsReq()} is a requirement
 	 * @param priority determines order in the workflow
 	 */
-	public Step(String name, String desc, Requirement[][] requirements,
+	public Step(String name, String desc, RequirementSet requirements,
 							Collection<Requirement.Flag> flags,
 							double priority) {
 		this.name = name;
@@ -56,14 +55,12 @@ public abstract class Step implements Comparable<Step> {
 		this.stepFlags = EnumSet.copyOf(flags);
 		ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
 		relatedStepsBuilder.add(this);
-		for (Requirement[] group : requirements) {
-			for (Requirement req : group) {
-				if (req instanceof Requirement.StepRequirement && req != null) {
-					Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
-					if (requiredStep != null) {
-						relatedStepsBuilder.add(requiredStep);
-						relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
-					}
+		for (Requirement req : requirements.getFlatRequirementsList()) {
+			if (req instanceof Requirement.StepRequirement && req != null) {
+				Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
+				if (requiredStep != null) {
+					relatedStepsBuilder.add(requiredStep);
+					relatedStepsBuilder.addAll(requiredStep.getRelatedSteps());
 				}
 			}
 		}
@@ -101,18 +98,7 @@ public abstract class Step implements Comparable<Step> {
 		if (variables.get(this) == null) {
 			return false;
 		}
-		for (Requirement[] group : getRequirements()) {
-			boolean groupMet = false;
-			for (Requirement req : group) {
-				if (req.checkRequirement(variables.get(this).get(req), stepSelections, variables)) {
-					groupMet = true;
-					break;
-				}
-			}
-			if (!groupMet)
-				return false;
-		}
-		return true;
+		return this.requirements.satisfiesRequirements(this, stepSelections, variables);
 	}
 
 	/**
@@ -120,7 +106,7 @@ public abstract class Step implements Comparable<Step> {
 	 *         satisfy the step pre-requisites - effectively this means elements of the first array
 	 *         are AND'd together, while elements of the second array are OR'd.
 	 */
-	public Requirement[][] getRequirements() {
+	public RequirementSet getRequirements() {
 		return requirements;
 	}
 
@@ -163,7 +149,7 @@ public abstract class Step implements Comparable<Step> {
 		long temp;
 		temp = Double.doubleToLongBits(priority);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + Arrays.deepHashCode(requirements);
+		result = prime * result + requirements.hashCode();
 		result = prime * result + ((stepFlags == null) ? 0 : stepFlags.hashCode());
 		return result;
 	}
@@ -189,7 +175,7 @@ public abstract class Step implements Comparable<Step> {
 			return false;
 		if (Double.doubleToLongBits(priority) != Double.doubleToLongBits(other.priority))
 			return false;
-		if (!Arrays.deepEquals(requirements, other.requirements))
+		if (!requirements.equals(other.requirements))
 			return false;
 		if (stepFlags == null) {
 			if (other.stepFlags != null)

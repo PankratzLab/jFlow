@@ -48,6 +48,7 @@ import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -155,12 +156,18 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateIlluminaMarkerPositionsStep() {
-			final Requirement snpMapReq = new Requirement.FileRequirement("An Illumina SNP_map file.",
-																												proj.getLocationOfSNP_Map(false));
-			final Requirement manifestReq = new Requirement.FileRequirement("An Illumina Manifest file.",
-																													proj.getLocationOfSNP_Map(false));
-			return register(new Step("Create Marker Positions (if not already exists)", "",
-															 new Requirement[][] {{snpMapReq, manifestReq}},
+			final Requirement snpMapReq = new Requirement.FileRequirement(
+																																		"An Illumina SNP_map file.",
+																																		proj.getLocationOfSNP_Map(false));
+			final Requirement manifestReq = new Requirement.FileRequirement(
+																																			"An Illumina Manifest file.",
+																																			proj.getLocationOfSNP_Map(false));
+
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(snpMapReq)
+																																									 .add(manifestReq));
+			return register(new Step("Create Marker Positions (if not already exists)", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class),
 															 priority()) {
 
@@ -178,7 +185,8 @@ public class GenvisisWorkflow {
 					if (Files.exists(snpMap)) {
 						org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, snpMap);
 					} else if (Files.exists(manifest)) {
-						MarkerBlast.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
+						MarkerBlast.extractMarkerPositionsFromManifest(manifest,
+																													 ARRAY.ILLUMINA,
 																													 FILE_SEQUENCE_TYPE.MANIFEST_FILE,
 																													 proj.MARKER_POSITION_FILENAME.getValue(false,
 																																																	false),
@@ -210,14 +218,18 @@ public class GenvisisWorkflow {
 
 		private Step generateIlluminaMarkerBlastAnnotationStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			final Requirement manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
-																															IlluminaMarkerBlast.EXAMPLE_MANIFEST);
-			final Requirement[][] requirements = new Requirement[][] {{parseSamplesStepReq},
-																																{manifestFileReq},
-																																{getNumThreadsReq()}};
+			final Requirement manifestFileReq = new Requirement.FileRequirement(
+																																					ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
+																																					IlluminaMarkerBlast.EXAMPLE_MANIFEST);
 
-			return register(new Step("Run Marker BLAST Annotation", "", requirements,
-															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED),
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(manifestFileReq)
+																												 .add(getNumThreadsReq());
+
+			return register(new Step("Run Marker BLAST Annotation", "", reqSet,
+															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
+																					Requirement.Flag.MULTITHREADED),
 															 priority()) {
 
 				@Override
@@ -256,16 +268,20 @@ public class GenvisisWorkflow {
 		private Step generateAffyMarkerBlastAnnotationStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-			final Requirement probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
-																													 AffyMarkerBlast.EXAMPLE_PROBE_FILE);
-			final Requirement annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
-																													 AffyMarkerBlast.EXAMPLE_ANNOT_FILE);
-			final Requirement[][] requirements = new Requirement[][] {{parseSamplesStepReq},
-																																{probeFileReq}, {annotFileReq},
-																																{getNumThreadsReq()}};
+			final Requirement probeFileReq = new Requirement.FileRequirement(
+																																			 ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
+																																			 AffyMarkerBlast.EXAMPLE_PROBE_FILE);
+			final Requirement annotFileReq = new Requirement.FileRequirement(
+																																			 ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
+																																			 AffyMarkerBlast.EXAMPLE_ANNOT_FILE);
 
-			return register(new Step("Run Marker BLAST Annotation", "", requirements,
-															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED),
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
+																												 .add(probeFileReq).add(annotFileReq)
+																												 .add(getNumThreadsReq());
+
+			return register(new Step("Run Marker BLAST Annotation", "", reqSet,
+															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
+																					Requirement.Flag.MULTITHREADED),
 															 priority()) {
 
 				@Override
@@ -310,23 +326,24 @@ public class GenvisisWorkflow {
 
 		private Step generateParseSamplesStep(final Step markerPositionsStep) {
 
-			final Requirement markerPositionsReq = new Requirement.FileRequirement("Marker Positions file must already exist.",
-																																 proj.MARKER_POSITION_FILENAME.getValue(false,
-																																																				false));
+			final Requirement markerPositionsReq = new Requirement.FileRequirement(
+																																						 "Marker Positions file must already exist.",
+																																						 proj.MARKER_POSITION_FILENAME.getValue(false,
+																																																										false));
 
-			final Requirement[][] requirements;
+			final RequirementSet reqSet = RequirementSetBuilder.and();
 			if (markerPositionsStep == null) {
-				requirements = new Requirement[][] {{markerPositionsReq}, {getNumThreadsReq()}};
+				reqSet.add(markerPositionsReq).add(getNumThreadsReq());
 			} else {
-				final Requirement markerPositionsStepReq = new Requirement.StepRequirement(markerPositionsStep);
-				requirements = new Requirement[][] {{markerPositionsStepReq, markerPositionsReq},
-																						{getNumThreadsReq()}};
+				final Requirement markerPositionsStepReq = new Requirement.StepRequirement(
+																																									 markerPositionsStep);
+				reqSet.add(RequirementSetBuilder.or().add(markerPositionsReq).add(markerPositionsStepReq))
+							.add(getNumThreadsReq());
 			}
 
-
-
-			return register(new Step("Parse Sample Files", "", requirements,
-															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED), priority()) {
+			return register(new Step("Parse Sample Files", "", reqSet,
+															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
+																					Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -349,7 +366,8 @@ public class GenvisisWorkflow {
 					int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
 					switch (retCode) {
 						case 0:
-							throw new RuntimeException("Operation failure, please check log for more information.");
+							throw new RuntimeException(
+																				 "Operation failure, please check log for more information.");
 						case 1:
 						case 6:
 						default:
@@ -364,11 +382,13 @@ public class GenvisisWorkflow {
 					boolean returnValue = mkrSetFile;
 					returnValue = returnValue && proj.getSampleList() != null;
 					returnValue = returnValue && Files.exists(sampleDirectory);
-					
+
 					int numSamples = proj.getSampleList().getSamples().length;
 					returnValue = returnValue && numSamples > 0;
-					returnValue = returnValue && Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) == numSamples;
-					// checking the validity / completeness of each sample would be a Good Thing, but too costly time-wise for larger projects
+					returnValue = returnValue
+												&& Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) == numSamples;
+					// checking the validity / completeness of each sample would be a Good Thing, but too
+					// costly time-wise for larger projects
 					return returnValue;
 				}
 
@@ -405,15 +425,18 @@ public class GenvisisWorkflow {
 		private Step generateCreateSampleDataStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-			final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement("Create a minimal SampleData.txt file from sample files",
-																																				 true);
+			final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement(
+																																										 "Create a minimal SampleData.txt file from sample files",
+																																										 true);
 
 			final String pedPreset = proj.PEDIGREE_FILENAME.getValue();
 
-			final Requirement pedigreeReq = new Requirement("Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \""
-																											+ ArrayUtils.toStr(MitoPipeline.PED_INPUT,
-																																				 ", ")
-																											+ "\"", Requirement.RequirementInputType.FILE,
+			final Requirement pedigreeReq = new Requirement(
+																											"Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \""
+																													+ ArrayUtils.toStr(MitoPipeline.PED_INPUT,
+																																						 ", ")
+																													+ "\"",
+																											Requirement.RequirementInputType.FILE,
 																											pedPreset) {
 
 				@Override
@@ -426,10 +449,13 @@ public class GenvisisWorkflow {
 			// check for SampleMap only if we haven't found a pedigree
 			final String sampMapPreset = Files.exists(pedPreset) ? null : getLocationOfSampleMap();
 
-			final Requirement sampMapReq = new Requirement("A Sample_Map.csv file, with at least two columns having headers \""
-																										 + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \""
-																										 + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"",
-																										 Requirement.RequirementInputType.FILE, sampMapPreset) {
+			final Requirement sampMapReq = new Requirement(
+																										 "A Sample_Map.csv file, with at least two columns having headers \""
+																												 + MitoPipeline.SAMPLEMAP_INPUT[1]
+																												 + "\" and \""
+																												 + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"",
+																										 Requirement.RequirementInputType.FILE,
+																										 sampMapPreset) {
 
 				@Override
 				public boolean checkRequirement(String arg, Set<Step> stepSelections,
@@ -437,10 +463,13 @@ public class GenvisisWorkflow {
 					return Files.exists(arg);
 				}
 			};
-			return register(new Step("Create SampleData.txt File", "",
-															 new Requirement[][] {{parseSamplesStepReq},
-																										{createMinimalSampleDataReq, pedigreeReq,
-																										 sampMapReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(createMinimalSampleDataReq)
+																																									 .add(pedigreeReq)
+																																									 .add(sampMapReq));
+			return register(new Step("Create SampleData.txt File", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -494,8 +523,10 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateTransposeStep(final Step parseSamplesStep) {
-			return register(new Step("Transpose Data into Marker-Dominant Files", "",
-															 new Requirement[][] {{new Requirement.StepRequirement(parseSamplesStep)}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(new Requirement.StepRequirement(
+																																															parseSamplesStep));
+			return register(new Step("Transpose Data into Marker-Dominant Files", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY), priority()) {
 
 				@Override
@@ -522,22 +553,25 @@ public class GenvisisWorkflow {
 
 				@Override
 				public boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables) {
-					return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false), MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
+					return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
+																	MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
 				}
 			});
 		}
 
 		private Step generateGCModelStep() {
-			final Requirement.ResourceRequirement gcBaseResourceReq = new Requirement.ResourceRequirement("GC Base file",
-																																						Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																														 proj.getLog())
-																																										 .getModelBase());
-			final Requirement gcModelOutputReq = new Requirement.OutputFileRequirement("GCModel output file must be specified.",
-																																		 proj.GC_MODEL_FILENAME.getValue());
+			final Requirement.ResourceRequirement gcBaseResourceReq = new Requirement.ResourceRequirement(
+																																																		"GC Base file",
+																																																		Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																																										 proj.getLog())
+																																																						 .getModelBase());
+			final Requirement gcModelOutputReq = new Requirement.OutputFileRequirement(
+																																								 "GCModel output file must be specified.",
+																																								 proj.GC_MODEL_FILENAME.getValue());
 
-			return register(new Step("Compute GCMODEL File", "",
-															 new Requirement[][] {{gcBaseResourceReq},
-																										{gcModelOutputReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(gcBaseResourceReq)
+																												 .add(gcModelOutputReq);
+			return register(new Step("Compute GCMODEL File", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -563,7 +597,7 @@ public class GenvisisWorkflow {
 
 					String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
 					String gcOutputFile = variables == null ? null
-																									: variables.get(this).get(gcModelOutputReq);
+																								 : variables.get(this).get(gcModelOutputReq);
 					if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
 						kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
 					}
@@ -593,9 +627,9 @@ public class GenvisisWorkflow {
 
 		private Step generateSampleQCStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-
-			return register(new Step("Run Sample QC Metrics", "",
-															 new Requirement[][] {{parseSamplesStepReq}, {getNumThreadsReq()},},
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
+																												 .add(getNumThreadsReq());
+			return register(new Step("Run Sample QC Metrics", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
@@ -634,12 +668,17 @@ public class GenvisisWorkflow {
 		private Step generateMarkerQCStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-			final Requirement exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
-																																	 true);
+			final Requirement exportAllReq = new Requirement.OptionalBoolRequirement(
+																																							 "Export all markers in project.",
+																																							 true);
 
 			String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
-			final Requirement targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
-																															 tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? tgtMkrFiles[0] : "");
+			final Requirement targetMarkersReq = new Requirement.FileRequirement(
+																																					 "A targetMarkers files listing the markers to QC.",
+																																					 tgtMkrFiles != null
+																																							 && tgtMkrFiles.length >= 1
+																																																				 ? tgtMkrFiles[0]
+																																																				 : "");
 			final Set<String> sampleDataHeaders;
 			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
 				sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
@@ -648,16 +687,21 @@ public class GenvisisWorkflow {
 			}
 			final Set<String> defaultBatchHeaders = Sets.intersection(sampleDataHeaders,
 																																MarkerMetrics.DEFAULT_SAMPLE_DATA_BATCH_HEADERS);
-			final Requirement.ListSelectionRequirement batchHeadersReq = new Requirement.ListSelectionRequirement("SampleData column headers to use as batches for batch effects calculations",
-																																										sampleDataHeaders,
-																																										defaultBatchHeaders,
-																																										true);
+			final Requirement.ListSelectionRequirement batchHeadersReq = new Requirement.ListSelectionRequirement(
+																																																						"SampleData column headers to use as batches for batch effects calculations",
+																																																						sampleDataHeaders,
+																																																						defaultBatchHeaders,
+																																																						true);
 
-			return register(new Step("Run Marker QC Metrics", "",
-															 new Requirement[][] {{parseSamplesStepReq},
-																										{exportAllReq, targetMarkersReq},
-																										{batchHeadersReq},
-																										{getNumThreadsReq()}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(exportAllReq)
+																																									 .add(targetMarkersReq))
+																												 .add(batchHeadersReq)
+																												 .add(getNumThreadsReq());
+
+			return register(new Step("Run Marker QC Metrics", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
@@ -673,7 +717,7 @@ public class GenvisisWorkflow {
 					boolean[] samplesToExclude = proj.getSamplesToExclude();
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					Set<String> batchHeaders = ImmutableSet.copyOf(Requirement.ListSelectionRequirement.parseArgValString(variables.get(this)
-																																																						 .get(batchHeadersReq)));
+																																																												 .get(batchHeadersReq)));
 					MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
 				}
 
@@ -683,7 +727,7 @@ public class GenvisisWorkflow {
 					String tgtFile = variables.get(this).get(targetMarkersReq);
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					List<String> batchHeaders = Requirement.ListSelectionRequirement.parseArgValString(variables.get(this)
-																																													.get(batchHeadersReq));
+																																																			.get(batchHeadersReq));
 					String batchHeadersArg = String.join(",", batchHeaders);
 					StringJoiner args = new StringJoiner(" ");
 					args.add(Files.getRunString());
@@ -713,21 +757,29 @@ public class GenvisisWorkflow {
 			final Requirement sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
 			final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
 			final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-			final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement("Add Estimated Sex to Sample Data",
-																																				 true);
+			final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement(
+																																										 "Add Estimated Sex to Sample Data",
+																																										 true);
 
-			final Requirement oneHittersReq = new Requirement.FileRequirement("List of markers that do not cross hybridize",
-																														MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
+			final Requirement oneHittersReq = new Requirement.FileRequirement(
+																																				"List of markers that do not cross hybridize",
+																																				MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
 			final Requirement markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
-			final Requirement noCrossHybeReq = new Requirement.BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
-																														 false);
+			final Requirement noCrossHybeReq = new Requirement.BoolRequirement(
+																																				 "Use only X and Y chromosome R values to identify sex discriminating markers",
+																																				 false);
 
-			return register(new Step("Run Sex Checks", "",
-															 new Requirement[][] {{parseSamplesStepReq}, {sampleDataStepReq},
-																										{transposeStepReq}, {sampleQCStepReq},
-																										{addToSampleDataReq},
-																										{oneHittersReq, markerBlastStepReq,
-																										 noCrossHybeReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(sampleDataStepReq)
+																												 .add(transposeStepReq)
+																												 .add(sampleQCStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(oneHittersReq)
+																																									 .add(markerBlastStepReq)
+																																									 .add(noCrossHybeReq));
+
+			return register(new Step("Run Sex Checks", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -775,7 +827,7 @@ public class GenvisisWorkflow {
 					return cmd.append(Files.getRunString())
 										.append(" cnv.qc.SexChecks -check proj=" + projPropFile).toString()
 								 + (discriminatingMarkersFile == null ? ""
-																											: " useMarkers=" + discriminatingMarkersFile)
+																										 : " useMarkers=" + discriminatingMarkersFile)
 								 + (addToSampleData ? "" : " -skipSampleData");
 				}
 
@@ -789,16 +841,21 @@ public class GenvisisWorkflow {
 
 		private Step generatePlinkExportStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			final Requirement pedigreeRequirement = new Requirement.FileRequirement("A pedigree.dat file must exist.",
-																																	proj.PEDIGREE_FILENAME.getValue(false,
-																																																	false));
-			final Requirement createPedigreeRequirement = new Requirement.BoolRequirement("Create a minimal pedigree.dat file [will pull information from SexChecks step results].",
-																																				false);
+			final Requirement pedigreeRequirement = new Requirement.FileRequirement(
+																																							"A pedigree.dat file must exist.",
+																																							proj.PEDIGREE_FILENAME.getValue(false,
+																																																							false));
+			final Requirement createPedigreeRequirement = new Requirement.BoolRequirement(
+																																										"Create a minimal pedigree.dat file [will pull information from SexChecks step results].",
+																																										false);
 
-			return register(new Step("Create PLINK Files", "",
-															 new Requirement[][] {{parseSamplesStepReq},
-																										{pedigreeRequirement,
-																										 createPedigreeRequirement}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(pedigreeRequirement)
+																																									 .add(createPedigreeRequirement));
+
+			return register(new Step("Create PLINK Files", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY), priority()) {
 
 				@Override
@@ -820,7 +877,8 @@ public class GenvisisWorkflow {
 						Pedigree.build(proj, null, null, false);
 					}
 					if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
-						throw new RuntimeException("Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
+						throw new RuntimeException(
+																			 "Creation of Pedigree file in [Create/Run PLINK Files] step failed.");
 					}
 
 					proj.getLog().report("Running PLINK");
@@ -885,7 +943,7 @@ public class GenvisisWorkflow {
 				case AFFY_GW6_CN:
 					defaultCallrate = MarkerQC.DEFAULT_AFFY_CALLRATE_THRESHOLD;
 					break;
-				case AFFY_AXIOM: 
+				case AFFY_AXIOM:
 				case ILLUMINA:
 					defaultCallrate = MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
 					break;
@@ -893,11 +951,13 @@ public class GenvisisWorkflow {
 					throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
 																						 + ": " + proj.getArrayType().toString());
 			}
-			final Requirement callrateReq = new Requirement.ThresholdRequirement(QC_METRIC.CALLRATE.getUserDescription(),
-																															 defaultCallrate);
+			final Requirement callrateReq = new Requirement.ThresholdRequirement(
+																																					 QC_METRIC.CALLRATE.getUserDescription(),
+																																					 defaultCallrate);
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
+																												 .add(callrateReq);
 
-			return register(new Step("Run GWAS QC", "",
-															 new Requirement[][] {{plinkExportStepReq}, {callrateReq}},
+			return register(new Step("Run GWAS QC", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -914,7 +974,8 @@ public class GenvisisWorkflow {
 					new RelationAncestryQc(dir, PLINKROOT, markerQCThresholds, log).run(false);
 					if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + PLINKROOT
 											 + ".genome").exists()) {
-						proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR
+						proj.GENOME_CLUSTER_FILENAME.setValue(dir + Qc.QC_SUBDIR
+																									+ RelationAncestryQc.GENOME_DIR
 																									+ PLINKROOT + ".genome");
 						proj.saveProperties();
 					}
@@ -967,15 +1028,19 @@ public class GenvisisWorkflow {
 
 		private Step generateAncestryStep(final Step gwasQCStep) {
 			final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-			final Requirement putativeWhitesReq = new Requirement.FileRequirement("File with FID/IID pairs of putative white samples",
-																																"");
-			final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
-																																						Resources.hapMap(log)
-																																										 .getUnambiguousHapMapFounders());
+			final Requirement putativeWhitesReq = new Requirement.FileRequirement(
+																																						"File with FID/IID pairs of putative white samples",
+																																						"");
+			final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement(
+																																																		"PLINK root of HapMap founders",
+																																																		Resources.hapMap(log)
+																																																						 .getUnambiguousHapMapFounders());
 
-			return register(new Step("Run Ancestry Checks", "",
-															 new Requirement[][] {{gwasQCStepReq}, {putativeWhitesReq},
-																										{hapMapFoundersReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(gwasQCStepReq).add(putativeWhitesReq)
+																												 .add(hapMapFoundersReq);
+
+			return register(new Step("Run Ancestry Checks", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -1022,27 +1087,33 @@ public class GenvisisWorkflow {
 			final Requirement plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
 			final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
 			final Requirement ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
-			final Requirement unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
-																																"");
-			final Requirement europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
-																																"");
+			final Requirement unrelatedsFileReq = new Requirement.FileRequirement(
+																																						"File with list of unrelated FID/IID pairs to use for marker QC",
+																																						"");
+			final Requirement europeansFilesReq = new Requirement.FileRequirement(
+																																						"File with list of European samples to use for Hardy-Weinberg equilibrium tests",
+																																						"");
 
-			List<Requirement[]> requirementsList = Lists.newArrayList();
-			requirementsList.add(new Requirement[] {plinkExportStepReq});
-			requirementsList.add(new Requirement[] {gwasQCStepReq, unrelatedsFileReq});
-			requirementsList.add(new Requirement[] {ancestryStepReq, europeansFilesReq});
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(plinkExportStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(gwasQCStepReq)
+																																									 .add(unrelatedsFileReq))
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(ancestryStepReq)
+																																									 .add(europeansFilesReq));
 			final Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
 			for (QC_METRIC metric : QC_METRIC.values()) {
 				Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
 				String defaultVal = defaultThresholds.get(metric);
-				final Requirement metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
-																															 defaultVal);
-				requirementsList.add(new Requirement[] {metricReq});
+				final Requirement metricReq = new Requirement.ThresholdRequirement(
+																																					 metric.getUserDescription(),
+																																					 defaultVal);
+				reqSet.add(metricReq);
 				metricRequirements.put(metric, metricReq);
 			}
 
-			return register(new Step("Run Further Analysis QC", "",
-															 requirementsList.toArray(new Requirement[requirementsList.size()][]),
+			return register(new Step("Run Further Analysis QC", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -1121,8 +1192,9 @@ public class GenvisisWorkflow {
 
 		private Step generateMosaicArmsStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			return register(new Step("Create Mosaic Arms File", "",
-															 new Requirement[][] {{parseSamplesStepReq}, {getNumThreadsReq()}},
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
+																												 .add(getNumThreadsReq());
+			return register(new Step("Create Mosaic Arms File", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
@@ -1171,13 +1243,17 @@ public class GenvisisWorkflow {
 																								final Step createSampleDataStep,
 																								final Step gwasQCStep) {
 			final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-			final Requirement createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
-			final Requirement skipIDingDuplicatesReq = new Requirement.BoolRequirement("Skip identifying duplicates",
-																																		 false);
+			final Requirement createSampleDataStepReq = new Requirement.StepRequirement(
+																																									createSampleDataStep);
+			final Requirement skipIDingDuplicatesReq = new Requirement.BoolRequirement(
+																																								 "Skip identifying duplicates",
+																																								 false);
 			final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-			final Requirement notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("Do not use GC corrected LRR SD?",
-																																		 false);
-			final Requirement gcCorrectedLrrSdReq = new Requirement("GC Corrected LRR SD must exist in Sample QC File",
+			final Requirement notGcCorrectedLrrSdReq = new Requirement.BoolRequirement(
+																																								 "Do not use GC corrected LRR SD?",
+																																								 false);
+			final Requirement gcCorrectedLrrSdReq = new Requirement(
+																															"GC Corrected LRR SD must exist in Sample QC File",
 																															Requirement.RequirementInputType.NONE) {
 
 				@Override
@@ -1190,25 +1266,39 @@ public class GenvisisWorkflow {
 				}
 
 			};
-			final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD Threshold",
-																																	proj.LRRSD_CUTOFF.getValue(),
-																																	proj.LRRSD_CUTOFF.getMinValue(),
-																																	proj.LRRSD_CUTOFF.getMaxValue());
+			final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement(
+																																							"LRR SD Threshold",
+																																							proj.LRRSD_CUTOFF.getValue(),
+																																							proj.LRRSD_CUTOFF.getMinValue(),
+																																							proj.LRRSD_CUTOFF.getMaxValue());
 
-			final Requirement callrateThresholdReq = new Requirement.DoubleRequirement("Callrate Threshold",
-																																		 proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
-																																		 proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
-																																		 proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
-			final Requirement numQReq = new Requirement.PosIntRequirement("Number of Quantiles to Generate", 10);
-			final Requirement replaceFIDIIDReq = new Requirement.OptionalBoolRequirement("Replace FID and IID with data from Pedigree",
-																																			 false);
-			return register(new Step("Annotate Sample Data File", "",
-															 new Requirement[][] {{sampleQCStepReq}, {createSampleDataStepReq},
-																										{skipIDingDuplicatesReq, gwasQCStepReq},
-																										{notGcCorrectedLrrSdReq, gcCorrectedLrrSdReq},
-																										{lrrSdThresholdReq}, {callrateThresholdReq},
-																										{numQReq},
-																										{replaceFIDIIDReq}},
+			final Requirement callrateThresholdReq = new Requirement.DoubleRequirement(
+																																								 "Callrate Threshold",
+																																								 proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
+																																								 proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
+																																								 proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
+			final Requirement numQReq = new Requirement.PosIntRequirement(
+																																		"Number of Quantiles to Generate",
+																																		10);
+			final Requirement replaceFIDIIDReq = new Requirement.OptionalBoolRequirement(
+																																									 "Replace FID and IID with data from Pedigree",
+																																									 false);
+
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(sampleQCStepReq)
+																												 .add(createSampleDataStepReq)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(skipIDingDuplicatesReq)
+																																									 .add(gwasQCStepReq))
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(notGcCorrectedLrrSdReq)
+																																									 .add(gcCorrectedLrrSdReq))
+																												 .add(lrrSdThresholdReq)
+																												 .add(callrateThresholdReq)
+																												 .add(numQReq)
+																												 .add(replaceFIDIIDReq);
+
+			return register(new Step("Annotate Sample Data File", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -1326,41 +1416,60 @@ public class GenvisisWorkflow {
 			// should be linked to, or
 			// these steps split or something...
 			final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
-			final Requirement medianMarkersReq = new Requirement.FileRequirement("MedianMarkers file must exist.",
-																															 "");
-			final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD threshold to filter samples.",
-																																	proj.LRRSD_CUTOFF.getValue(),
-																																	proj.LRRSD_CUTOFF.getMinValue(),
-																																	proj.LRRSD_CUTOFF.getMaxValue());
-			final Requirement callrateThresholdReq = new Requirement.DoubleRequirement("Call rate threshold to filter markers.",
-																																		 MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
-																																		 0.0, 1.0);
-			final Requirement qcPassingOnlyReq = new Requirement.OptionalBoolRequirement("Compute PCs with samples passing QC only",
-																																			 true);
-			final Requirement imputeNaNs = new Requirement.OptionalBoolRequirement("Impute mean value for NaN", true);
-			final Requirement recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for PC markers?",
-																																							 true);
-			final Requirement recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for median markers?",
+			final Requirement medianMarkersReq = new Requirement.FileRequirement(
+																																					 "MedianMarkers file must exist.",
+																																					 "");
+			final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement(
+																																							"LRR SD threshold to filter samples.",
+																																							proj.LRRSD_CUTOFF.getValue(),
+																																							proj.LRRSD_CUTOFF.getMinValue(),
+																																							proj.LRRSD_CUTOFF.getMaxValue());
+			final Requirement callrateThresholdReq = new Requirement.DoubleRequirement(
+																																								 "Call rate threshold to filter markers.",
+																																								 MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
+																																								 0.0, 1.0);
+			final Requirement qcPassingOnlyReq = new Requirement.OptionalBoolRequirement(
+																																									 "Compute PCs with samples passing QC only",
 																																									 true);
-			final Requirement homozygousOnlyReq = new Requirement.OptionalBoolRequirement("Homozygous only?", true);
-			final Requirement gcRegressionDistanceReq = new Requirement.PosIntRequirement("Regression distance for the GC adjustment",
-																																				GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
-			final Requirement pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
-																																						"");
-			final Requirement externalBetaFileReq = new Requirement.OptionalFileRequirement("An external beta file to optimize PC selection.",
-																																					"");
+			final Requirement imputeNaNs = new Requirement.OptionalBoolRequirement(
+																																						 "Impute mean value for NaN",
+																																						 true);
+			final Requirement recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement(
+																																													 "Should recompute Log-R ratio for PC markers?",
+																																													 true);
+			final Requirement recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement(
+																																															 "Should recompute Log-R ratio for median markers?",
+																																															 true);
+			final Requirement homozygousOnlyReq = new Requirement.OptionalBoolRequirement(
+																																										"Homozygous only?",
+																																										true);
+			final Requirement gcRegressionDistanceReq = new Requirement.PosIntRequirement(
+																																										"Regression distance for the GC adjustment",
+																																										GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
+			final Requirement pcSelectionSamplesReq = new Requirement.OptionalFileRequirement(
+																																												"A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
+																																												"");
+			final Requirement externalBetaFileReq = new Requirement.OptionalFileRequirement(
+																																											"An external beta file to optimize PC selection.",
+																																											"");
+
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(transposeStepReq)
+																												 .add(medianMarkersReq)
+																												 .add(lrrSdThresholdReq)
+																												 .add(callrateThresholdReq)
+																												 .add(qcPassingOnlyReq)
+																												 .add(imputeNaNs)
+																												 .add(recomputeLrrPCMarkersReq)
+																												 .add(recomputeLrrMedianMarkersReq)
+																												 .add(homozygousOnlyReq)
+																												 .add(gcRegressionDistanceReq)
+																												 .add(getNumThreadsReq())
+																												 .add(pcSelectionSamplesReq)
+																												 .add(externalBetaFileReq);
 
 			return register(new Step("Create Mitochondrial Copy-Number Estimates File",
-															 "",
-															 new Requirement[][] {{transposeStepReq}, {medianMarkersReq},
-																										{lrrSdThresholdReq}, {callrateThresholdReq},
-																										{qcPassingOnlyReq}, {imputeNaNs},
-																										{recomputeLrrPCMarkersReq},
-																										{recomputeLrrMedianMarkersReq},
-																										{homozygousOnlyReq}, {gcRegressionDistanceReq},
-																										{getNumThreadsReq()}, {pcSelectionSamplesReq},
-																										{externalBetaFileReq}},
-															 EnumSet.of(Requirement.Flag.MULTITHREADED), priority()) {
+															 "", reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -1423,10 +1532,13 @@ public class GenvisisWorkflow {
 																				markerCallRateFilter,
 																				useFile, proj.getSampleList(), proj.getLog());
 					if (retCode == PCAPrep.SUCCESS_CODE) {
-						MitoPipeline.estimateMtDNACN(proj, numThreads, medianMarkers, numComponents, outputBase,
-																				 homozygousOnly, markerCallRateFilter, betaOptFile, pedFile,
+						MitoPipeline.estimateMtDNACN(proj, numThreads, medianMarkers, numComponents,
+																				 outputBase,
+																				 homozygousOnly, markerCallRateFilter, betaOptFile,
+																				 pedFile,
 																				 recomputeLRRPCs, recomputeLRRMedian, sampLrr,
-																				 imputeMeanForNaN, gcCorrect, bpGcModel, regressionDistance,
+																				 imputeMeanForNaN, gcCorrect, bpGcModel,
+																				 regressionDistance,
 																				 proj.GENOME_BUILD_VERSION.getValue(), pvalOpt, betaFile,
 																				 plot, false, PRE_PROCESSING_METHOD.NONE, proj.getLog());
 					} else {
@@ -1509,19 +1621,26 @@ public class GenvisisWorkflow {
 
 		private Step generatePFBStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			final Requirement sampleSubsetReq = new Requirement.FileRequirement("A Sample subset file must exist.",
-																															proj.SAMPLE_SUBSET_FILENAME.getValue());
+			final Requirement sampleSubsetReq = new Requirement.FileRequirement(
+																																					"A Sample subset file must exist.",
+																																					proj.SAMPLE_SUBSET_FILENAME.getValue());
 			String defaultOutputFile;
 			if (Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue())) {
 				defaultOutputFile = ext.rootOf(proj.SAMPLE_SUBSET_FILENAME.getValue()) + ".pfb";
 			} else {
 				defaultOutputFile = proj.CUSTOM_PFB_FILENAME.getValue();
 			}
-			final Requirement outputFileReq = new Requirement.OutputFileRequirement("PFB (population BAF) output file must be specified.",
-																																	defaultOutputFile);
-			return register(new Step("Compute Population BAF files", "",
-															 new Requirement[][] {{parseSamplesStepReq, sampleSubsetReq},
-																										{outputFileReq}},
+			final Requirement outputFileReq = new Requirement.OutputFileRequirement(
+																																							"PFB (population BAF) output file must be specified.",
+																																							defaultOutputFile);
+
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(parseSamplesStepReq)
+																																									 .add(sampleSubsetReq))
+																												 .add(outputFileReq);
+
+			return register(new Step("Compute Population BAF files", "", reqSet,
 															 EnumSet.noneOf(Requirement.Flag.class), priority()) {
 
 				@Override
@@ -1585,8 +1704,11 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateSexCentroidsStep() {
-			return register(new Step("Create Sex-Specific Centroids; Filter PFB file", "",
-															 new Requirement[][] {{getNumThreadsReq()},},
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(getNumThreadsReq());
+			return register(new Step(
+															 "Create Sex-Specific Centroids; Filter PFB file",
+															 "",
+															 reqSet,
 															 EnumSet.of(Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED),
 															 priority()) {
 
@@ -1621,8 +1743,8 @@ public class GenvisisWorkflow {
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 
 					int numThreads = resolveThreads(variables == null ? "-1"
-																														: variables.get(this)
-																																			 .get(getNumThreadsReq()));
+																													 : variables.get(this)
+																																			.get(getNumThreadsReq()));
 					String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
 													 + proj.getPropertyFilename() + " -sexSpecific "
 													 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
@@ -1651,20 +1773,25 @@ public class GenvisisWorkflow {
 		}
 
 		private Step generateCNVStep(Step pfbStep, Step gcModelStep) {
-			final Requirement hmmFile = new Requirement.FileRequirement("Hidden Markov Model File Must Exist",
-																											proj.HMM_FILENAME.getValue());
+			final Requirement hmmFile = new Requirement.FileRequirement(
+																																	"Hidden Markov Model File Must Exist",
+																																	proj.HMM_FILENAME.getValue());
 			final Requirement pfbStepReq = new Requirement.StepRequirement(pfbStep);
-			final Requirement pfbFileReq = new Requirement.FileRequirement("PFB File Must Exist",
-																												 proj.CUSTOM_PFB_FILENAME.getValue());
+			final Requirement pfbFileReq = new Requirement.FileRequirement(
+																																		 "PFB File Must Exist",
+																																		 proj.CUSTOM_PFB_FILENAME.getValue());
 			final Requirement gcModelStepReq = new Requirement.StepRequirement(gcModelStep);
-			final Requirement gcModelFileReq = new Requirement.FileRequirement("GCMODEL File Must Exist",
-																														 proj.GC_MODEL_FILENAME.getValue());
-			final Requirement callingTypeReq = new Requirement.EnumRequirement(CNVCaller.CNV_SCOPE_DESC,
-																														 CNVCaller.CALLING_SCOPE.AUTOSOMAL);
-			final Requirement useCentroidsReq = new Requirement.OptionalBoolRequirement("If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
-																																			true);
+			final Requirement gcModelFileReq = new Requirement.FileRequirement(
+																																				 "GCMODEL File Must Exist",
+																																				 proj.GC_MODEL_FILENAME.getValue());
+			final Requirement callingTypeReq = new Requirement.EnumRequirement(
+																																				 CNVCaller.CNV_SCOPE_DESC,
+																																				 CNVCaller.CALLING_SCOPE.AUTOSOMAL);
+			final Requirement useCentroidsReq = new Requirement.OptionalBoolRequirement(
+																																									"If calling chromosomal CNVs, use sex-specific centroids to recalculate LRR/BAF values?",
+																																									true);
 			final Requirement outputFileReq = new Requirement.OutputFileRequirement("Output filename.",
-																																	"cnvs/genvisis.cnv") {
+																																							"cnvs/genvisis.cnv") {
 				@Override
 				public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																				Map<Step, Map<Requirement, String>> variables) {
@@ -1673,13 +1800,20 @@ public class GenvisisWorkflow {
 				}
 			};
 
-			return register(new Step("Call CNVs", "",
-															 new Requirement[][] {{hmmFile}, {pfbStepReq, pfbFileReq},
-																										{gcModelStepReq, gcModelFileReq},
-																										{callingTypeReq},
-																										{useCentroidsReq},
-																										{getNumThreadsReq()},
-																										{outputFileReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(hmmFile)
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(pfbStepReq)
+																																									 .add(pfbFileReq))
+																												 .add(RequirementSetBuilder.or()
+																																									 .add(gcModelStepReq)
+																																									 .add(gcModelFileReq))
+																												 .add(callingTypeReq)
+																												 .add(useCentroidsReq)
+																												 .add(getNumThreadsReq())
+																												 .add(outputFileReq);
+
+			return register(new Step("Call CNVs", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.MULTITHREADED),
 															 priority()) {
 
@@ -1741,9 +1875,9 @@ public class GenvisisWorkflow {
 																		 CNVCaller.DEFAULT_MIN_CONF,
 																		 PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
 						String[] files = {
-						                  proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv",
-						                  proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv",
-						                  proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv"
+															proj.PROJECT_DIRECTORY.getValue() + output + "_23M.cnv",
+															proj.PROJECT_DIRECTORY.getValue() + output + "_23F.cnv",
+															proj.PROJECT_DIRECTORY.getValue() + output + "_24M.cnv"
 						};
 						for (String f : files) {
 							if (Files.exists(f)) {
@@ -1821,10 +1955,12 @@ public class GenvisisWorkflow {
 
 		private Step generatePCCorrectedProjectStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			final Requirement numPCsReq = new Requirement.PosIntRequirement("Number of principal components for correction.",
-																													MitoPipeline.DEFAULT_NUM_COMPONENTS);
-			final Requirement outputBaseReq = new Requirement.OutputFileRequirement("Output file path (relative to project directory) and baseName for principal components correction files",
-																																	MitoPipeline.FILE_BASE) {
+			final Requirement numPCsReq = new Requirement.PosIntRequirement(
+																																			"Number of principal components for correction.",
+																																			MitoPipeline.DEFAULT_NUM_COMPONENTS);
+			final Requirement outputBaseReq = new Requirement.OutputFileRequirement(
+																																							"Output file path (relative to project directory) and baseName for principal components correction files",
+																																							MitoPipeline.FILE_BASE) {
 				@Override
 				public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																				Map<Step, Map<Requirement, String>> variables) {
@@ -1833,29 +1969,40 @@ public class GenvisisWorkflow {
 					return super.checkRequirement(finalReport, stepSelections, variables);
 				}
 			};
-			final Requirement callrateReq = new Requirement.DoubleRequirement("Call-rate filter for determining high-quality markers",
-																														MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
-																														0.0, 1.0);
-			final Requirement recomputeLrrReq = new Requirement.OptionalBoolRequirement("Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
-																																			false);
-			final Requirement tempDirReq = new Requirement.OptionalFileRequirement("Temporary directory for intermediate files (which tend to be very large)",
-																																 "");
+			final Requirement callrateReq = new Requirement.DoubleRequirement(
+																																				"Call-rate filter for determining high-quality markers",
+																																				MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
+																																				0.0, 1.0);
+			final Requirement recomputeLrrReq = new Requirement.OptionalBoolRequirement(
+																																									"Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
+																																									false);
+			final Requirement tempDirReq = new Requirement.OptionalFileRequirement(
+																																						 "Temporary directory for intermediate files (which tend to be very large)",
+																																						 "");
 			final Requirement correctionStrategyReq = new Requirement.EnumRequirement("Correction Type",
-																																		CORRECTION_TYPE.XY);
-			final Requirement sexChromosomeStrategyReq = new Requirement.EnumRequirement("Sex Chromosome Strategy",
-																																			 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
-			final Requirement setupCNVCalling = new Requirement.OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?",
-																																			false);
-			return register(new Step("Create PC-Corrected Project", "",
-															 new Requirement[][] {{parseSamplesStepReq}, {numPCsReq},
-																										{outputBaseReq},
-																										{callrateReq}, {recomputeLrrReq}, {tempDirReq},
-																										{correctionStrategyReq},
-																										{sexChromosomeStrategyReq},
-																										{getNumThreadsReq()},
-																										{setupCNVCalling},
-															 },
-															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED), priority()) {
+																																								CORRECTION_TYPE.XY);
+			final Requirement sexChromosomeStrategyReq = new Requirement.EnumRequirement(
+																																									 "Sex Chromosome Strategy",
+																																									 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
+			final Requirement setupCNVCalling = new Requirement.OptionalBoolRequirement(
+																																									"Create script with steps to process corrected data and call CNVs?",
+																																									false);
+
+			final RequirementSet reqSet = RequirementSetBuilder.and()
+																												 .add(parseSamplesStepReq)
+																												 .add(numPCsReq)
+																												 .add(outputBaseReq)
+																												 .add(callrateReq)
+																												 .add(recomputeLrrReq)
+																												 .add(tempDirReq)
+																												 .add(correctionStrategyReq)
+																												 .add(sexChromosomeStrategyReq)
+																												 .add(getNumThreadsReq())
+																												 .add(setupCNVCalling);
+
+			return register(new Step("Create PC-Corrected Project", "", reqSet,
+															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
+																					Requirement.Flag.MULTITHREADED), priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -1938,8 +2085,8 @@ public class GenvisisWorkflow {
 
 		private Step generateABLookupStep(final Step parseSamplesStep) {
 			final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-			return register(new Step("Generate AB Lookup File", "",
-															 new Requirement[][] {{parseSamplesStepReq}},
+			final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq);
+			return register(new Step("Generate AB Lookup File", "", reqSet,
 															 EnumSet.of(Requirement.Flag.RUNTIME), priority()) {
 
 				@Override
@@ -1958,7 +2105,8 @@ public class GenvisisWorkflow {
 																						false)) {
 						ABLookup.applyABLookupToFullSampleFiles(proj, filename);
 					} else {
-						throw new RuntimeException("Failed to fill in missing alleles - please check log for more info.");
+						throw new RuntimeException(
+																			 "Failed to fill in missing alleles - please check log for more info.");
 					}
 				}
 
@@ -2013,7 +2161,8 @@ public class GenvisisWorkflow {
 
 		Step parseSamplesStep;
 		Step markerBlastStep;
-		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
+		if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
+				|| proj.getArrayType() == ARRAY.AFFY_AXIOM) {
 			parseSamplesStep = sb.generateParseSamplesStep();
 			markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
 		} else {
@@ -2106,15 +2255,12 @@ public class GenvisisWorkflow {
 		Step cnv = sb.generateCNVStep(pfb, gc);
 		Map<Step, Map<Requirement, String>> stepOpts = new HashMap<>();
 		HashMap<Requirement, String> cnvOpts = new HashMap<>();
-		Requirement[][] reqs = cnv.getRequirements();
-		for (Requirement[] reqArr : reqs) {
-			if (reqArr.length > 1) {
-				continue;
-			}
-			if (reqArr[0].getDescription().equals(CNVCaller.CNV_SCOPE_DESC)) {
-				cnvOpts.put(reqArr[0], CNVCaller.CALLING_SCOPE.BOTH.toString());
-			} else if (reqArr[0].getDescription().equals(NUM_THREADS_DESC)) {
-				cnvOpts.put(reqArr[0], "" + (Runtime.getRuntime().availableProcessors() - 1));
+		List<Requirement> reqs = cnv.getRequirements().getFlatRequirementsList();
+		for (Requirement req : reqs) {
+			if (req.getDescription().equals(CNVCaller.CNV_SCOPE_DESC)) {
+				cnvOpts.put(req, CNVCaller.CALLING_SCOPE.BOTH.toString());
+			} else if (req.getDescription().equals(NUM_THREADS_DESC)) {
+				cnvOpts.put(req, "" + (Runtime.getRuntime().availableProcessors() - 1));
 			}
 		}
 		stepOpts.put(cnv, cnvOpts);
