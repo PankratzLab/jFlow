@@ -82,7 +82,7 @@ public abstract class RequirementSet {
 		return true;
 	}
 
-	private static class UnitaryRequirementSet extends RequirementSet {
+	private static final class UnitaryRequirementSet extends RequirementSet {
 		private UnitaryRequirementSet() {}
 
 		@Override
@@ -114,7 +114,7 @@ public abstract class RequirementSet {
 
 	}
 
-	public static class OrRequirementSet extends RequirementSet {
+	public static final class OrRequirementSet extends RequirementSet {
 
 		private OrRequirementSet() {}
 
@@ -146,7 +146,7 @@ public abstract class RequirementSet {
 
 	}
 
-	public static class AndRequirementSet extends RequirementSet {
+	public static final class AndRequirementSet extends RequirementSet {
 
 		private AndRequirementSet() {}
 

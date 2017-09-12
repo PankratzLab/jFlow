@@ -61,6 +61,7 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
+import org.genvisis.cnv.workflow.RequirementSet.AndRequirementSet;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Step.FINAL_CODE;
 import org.genvisis.cnv.workflow.StepTask;
@@ -603,7 +604,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 																 + ": ");
 			indLbl.setFont(indLbl.getFont().deriveFont(Font.PLAIN, 9));
 			panel.add(indLbl, "gapleft 25, aligny top, split 1, cell 0 " + rowIndex);
-			JLabel requirementLbl = new JLabel("<html><p>" + levelReqs.get(i).getDescription()
+			JLabel requirementLbl = new JLabel("<html><p>" + sanitize(levelReqs.get(i).getDescription())
 																				 + "</p></html>");
 			requirementLbl.setFont(requirementLbl.getFont().deriveFont(Font.PLAIN, 9));
 			panel.add(requirementLbl, "aligny top, cell 0 " + rowIndex);
@@ -627,11 +628,22 @@ public class GenvisisWorkflowGUI extends JDialog {
 			if (i < levelReqSets.size() - 1) {
 				JLabel joinLbl = new JLabel(join);
 				joinLbl.setFont(joinLbl.getFont().deriveFont(Font.PLAIN, 10));
-				panel.add(joinLbl, "gapleft 18, cell 0 " + rowIndex);
+				panel.add(joinLbl, "gapleft 18, cell 0 " + rowIndex + " 2 1");
+
+				if (rs instanceof AndRequirementSet) {
+					JSeparator jSep = new JSeparator(JSeparator.HORIZONTAL);
+					jSep.setForeground(jSep.getForeground().brighter());
+					panel.add(jSep, "cell 0 " + rowIndex + " 2 1, pad 1 0 0 0, growx");
+				}
+
 				rowIndex++;
 			}
 		}
 		return rowIndex;
+	}
+
+	private String sanitize(String str) {
+		return str.replaceAll("<", "&lt;");
 	}
 
 	public Set<Step> getSelectedOptions() {
