@@ -516,11 +516,12 @@ public class AffyPipeline {
 					String propFileDir = Info.GENVISIS_HOME + "projects/";
 					log.reportTimeInfo("Generating Genvisis project properties file in " + propFileDir);
 
+					String outDirFull = new File(outDir).getAbsolutePath();
 					String projectFile = propFileDir + analysisName + ".properties";
-					Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
+					Files.write("PROJECT_DIRECTORY=" + outDirFull, projectFile);
 					Project proj = new Project(projectFile);
 					proj.PROJECT_NAME.setValue(analysisName);
-					proj.PROJECT_DIRECTORY.setValue(outDir);
+					proj.PROJECT_DIRECTORY.setValue(outDirFull);
 					proj.SOURCE_DIRECTORY.setValue(analysisName + "_00src");
 					proj.PROJECT_NAME.setValue(analysisName);
 					proj.XY_SCALE_FACTOR.setValue((double) 100);
