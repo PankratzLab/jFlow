@@ -30,6 +30,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.meta.Info;
 
 /**
  * @author lane0212
@@ -512,9 +513,10 @@ public class AffyPipeline {
 																										 normalizationResult.getQuantNormFile(),
 																										 maxWritersOpen, log);
 					AS6TCN.parseCNTable(markerBuffer);
-					log.reportTimeInfo("Generating Genvisis project in " + outDir);
+					String propFileDir = Info.GENVISIS_HOME + "projects/";
+					log.reportTimeInfo("Generating Genvisis project properties file in " + propFileDir);
 
-					String projectFile = outDir + analysisName + ".properties";
+					String projectFile = propFileDir + analysisName + ".properties";
 					Files.write("PROJECT_DIRECTORY=" + outDir, projectFile);
 					Project proj = new Project(projectFile);
 					proj.PROJECT_NAME.setValue(analysisName);
@@ -549,7 +551,8 @@ public class AffyPipeline {
 						proj = new Project(projectFile);
 						SourceFileParser.createFiles(proj, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
-						CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
+						CentroidCompute.computeAndDumpCentroids(proj,
+																										proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
 																										new CentroidBuilder(), numThreads, 2);
 						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), false, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
@@ -582,23 +585,38 @@ public class AffyPipeline {
 		GENOME_BUILD build = GENOME_BUILD.HG18;
 
 		String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
-									 + "   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n"
+									 + "   (1) analysis name (i.e. analysisName="
+									 + analysisName
+									 + " (default))\n"
 									 + "   (2) a directory or full path to a file containing .cel files for analyiss (i.e. cels="
-									 + cels + " (default))\n"
+									 + cels
+									 + " (default))\n"
 									 + "   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch="
-									 + targetSketch + " (default))\n"
+									 + targetSketch
+									 + " (default))\n"
 									 + "   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/) (i.e. aptExeDir="
-									 + aptExeDir + " (default))\n"
+									 + aptExeDir
+									 + " (default))\n"
 									 + "   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/) (i.e. aptLibDir="
-									 + aptLibDir + " (default))\n" + "   (6) output directory  (i.e. outDir=" + outDir
+									 + aptLibDir
+									 + " (default))\n"
+									 + "   (6) output directory  (i.e. outDir="
+									 + outDir
 									 + " (default))\n"
 									 + "   (7) full path to a file of marker positions (i.e. markerPositions="
-									 + markerPositions + " (default))\n" + "   (8) optional: number of threads (i.e. "
-									 + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n"
+									 + markerPositions
+									 + " (default))\n"
+									 + "   (8) optional: number of threads (i.e. "
+									 + PSF.Ext.NUM_THREADS_COMMAND
+									 + "="
+									 + numThreads
+									 + " (default))\n"
 									 + "   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer="
-									 + markerBuffer + " (default))\n"
+									 + markerBuffer
+									 + " (default))\n"
 									 + "   (10) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen="
-									 + maxWritersOpen + " (default))\n"
+									 + maxWritersOpen
+									 + " (default))\n"
 									 + "   (11) optional: use the full affymetrix cdf, which contains more mitochondrial probesets (i.e. -full (not the default))\n"
 									 + "   (12) specify the genome build to use - ensuring the build matches your marker positions (i.e. build="
 									 + build + " (default))\n" + "";
