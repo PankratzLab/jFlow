@@ -13,11 +13,11 @@ import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 
 public class CTable {
+
 	private static final Set<String> DEFAULT_NULL_VALUES = ImmutableSet.of("", ".", "NA", "na", "N/A",
-																																				 "n/a",
-																																				 "NaN", "Missing",
-																																				 "missing");
-	private static final String MISSING = "Missing";
+																																				 "n/a", "NaN",
+																																				 "Missing", "missing");
+	public static final String MISSING = "Missing";
 
 	private Table<String, String, Integer> table;
 	private Map<String, String> rowLabels;
@@ -26,16 +26,6 @@ public class CTable {
 	private Map<String, Integer> colCounts;
 	private boolean showRowProportions;
 
-	public CTable() {}
-
-	public CTable(int[] array1, int[] array2) {
-		this(ArrayUtils.toStringArray(array1), ArrayUtils.toStringArray(array2));
-	}
-
-	public CTable(String[][] matrix) {
-		this(matrix[0], matrix[1]);
-	}
-
 	/**
 	 * Construct a new contingency table from a set of parallel arrays. Each index {@code i} from [0,
 	 * data.length] adds 1 to the count of the row/column combination {@code rowData[i]} and
@@ -43,24 +33,31 @@ public class CTable {
 	 *
 	 * @param rowData Array of row data
 	 * @param colData Array of column data
+	 * @param axis Logic to use in adding "missing value" axis. Default: {@link AddMissing#NATURAL}
 	 */
-	public CTable(String[] rowData, String[] colData) {
+	public CTable(String[][] rowLabels, String[][] colLabels, String[] rowData, String[] colData) {
 		// These are parallel arrays and thus must be the same size
-		if (rowData.length != colData.length) {
+		if (rowData.length != colData.length || rowLabels.length != colLabels.length) {
 			System.err.println("Error - arrays are not of the same length");
 		}
+
+		// NB: label arrays can be empty, which means "use actual values"
+		// need to add "missing" category somewhere? if size == 1 or empty array
+
+		this.rowLabels = buildMap(rowLabels);
+		this.colLabels = buildMap(colLabels);
 
 		// Parse the data points to build the table
 		table = TreeBasedTable.create();
 		for (int i = 0; i < rowData.length; i++) {
-			String rowKey = sanitizeNull(rowData[i]);
-			String colKey = sanitizeNull(colData[i]);
+			String rowKey = sanitizeData(rowData[i], this.rowLabels);
+			String colKey = sanitizeData(colData[i], this.colLabels);
 			int count = 1 + safeGet(rowKey, colKey);
 			table.put(rowKey, colKey, count);
 		}
 
-		rowLabels = buildIdentityMap(table.rowKeySet());
-		colLabels = buildIdentityMap(table.columnKeySet());
+		validateSize(this.rowLabels);
+		validateSize(this.colLabels);
 
 		// Get total counts for rows/columns
 		rowCounts = new HashMap<>();
@@ -76,31 +73,28 @@ public class CTable {
 		showRowProportions = false;
 	}
 
+	/**
+	 * Ensure the map has at least at least 2 entries. If it only has one entry, we can attempt to
+	 * auto-correct this by adding a {@link #MISSING} identity mapping
+	 *
+	 * @param labelMap
+	 * @throws IllegalStateException if we can not get the map to 2 valid entries
+	 */
+	private void validateSize(Map<String, String> labelMap) {
+		if (labelMap.size() == 0 || (labelMap.size() == 1 && labelMap.containsKey(MISSING))) {
+			throw new IllegalStateException("No values found for contingency table");
+		}
+		if (labelMap.size() == 1) {
+			labelMap.put(MISSING, MISSING);
+		}
+	}
+
 	public String[] getFinalRowLabels() {
 		return table.rowKeySet().toArray(new String[table.rowKeySet().size()]);
 	}
 
 	public String[] getFinalColunLabels() {
 		return table.columnKeySet().toArray(new String[table.columnKeySet().size()]);
-	}
-
-
-	/**
-	 * Each element in these arrays be a length 2 array. Index 0 is the original row or column label,
-	 * Index 1 is the new label to use.
-	 * 
-	 * @param customRowLabelsAndOrder Array mapping row labels
-	 * @param customColumnLabelsAndOrder Array mapping column labels
-	 */
-	public void setCustomLabelsAndOrder(String[][] customRowLabelsAndOrder,
-																			String[][] customColumnLabelsAndOrder) {
-		if (customRowLabelsAndOrder != null && customRowLabelsAndOrder.length > 0) {
-			rowLabels = buildMap(customRowLabelsAndOrder);
-		}
-
-		if (customColumnLabelsAndOrder != null && customColumnLabelsAndOrder.length > 0) {
-			colLabels = buildMap(customColumnLabelsAndOrder);
-		}
 	}
 
 	public String getCTableInHtml() {
@@ -134,7 +128,8 @@ public class CTable {
 		return output.toString();
 	}
 
-	public static String[][] extrapolateCounts(String[] rows, int[] genotype) {
+	public static CTable extrapolateCounts(String[][] rowLabels, String[][] colLabels, String[] rows,
+																				 int[] genotype) {
 		int maxValue;
 		String[][] extrapolate;
 
@@ -153,7 +148,7 @@ public class CTable {
 			}
 		}
 
-		return extrapolate;
+		return new CTable(rowLabels, colLabels, extrapolate[0], extrapolate[1]);
 	}
 
 	public int[][] getContingencyTable() {
@@ -185,43 +180,50 @@ public class CTable {
 
 	/**
 	 * Helper method to unify all {@link #DEFAULT_NULL_VALUES}
+	 * 
+	 * @param expectedValues set of acceptable key values
 	 *
 	 * @return The input string if not {@code null} and not in {@link #DEFAULT_NULL_VALUES}. Otherwise
 	 *         {@link #MISSING}
 	 */
-	private String sanitizeNull(String key) {
+	private String sanitizeData(String key, Map<String, String> expectedValues) {
 		if (key == null || DEFAULT_NULL_VALUES.contains(key)) {
-			return MISSING;
+			key = MISSING;
+		}
+		if (!expectedValues.containsKey(key)) {
+			expectedValues.put(key, key);
 		}
 		return key;
 	}
 
 	/**
 	 * Helper method to convert a 2-D string array to a map.
+	 * 
+	 * @param labels each sub-array is an expected value with an optional display label
 	 */
 	private Map<String, String> buildMap(String[][] labels) {
+		if (labels == null) {
+			throw new IllegalArgumentException("Error: labels cannot be null.");
+		}
 		Map<String, String> map = new LinkedHashMap<>();
 
 		for (int i = 0; i < labels.length; i++) {
 			String[] pair = labels[i];
-			if (pair.length != 2) {
-				throw new IllegalArgumentException("When setting custom row/column labels, must provide arrays of [original label, new label]");
+
+			if (pair == null || pair.length == 0 || pair.length > 2) {
+				throw new IllegalArgumentException(
+																					 "Error: label mappings must be in the form [observed value, (optional) display value].");
 			}
-			map.put(pair[0], pair[1]);
+			if (pair[0].equals(MISSING)) {
+				map.put(MISSING, "missing value");
+			} else if (pair.length == 1) {
+				map.put(pair[0], pair[0]);
+			} else {
+				map.put(pair[0], pair[1]);
+			}
+
 		}
 		return map;
-	}
-
-	/**
-	 * Helper method to build a map of strings to themselves
-	 */
-	private Map<String, String> buildIdentityMap(Set<String> values) {
-		// Use a LinkedHashMap to provide consistent ordering.
-		Map<String, String> identity = new LinkedHashMap<>();
-		for (String v : values) {
-			identity.put(v, v);
-		}
-		return identity;
 	}
 
 	/**

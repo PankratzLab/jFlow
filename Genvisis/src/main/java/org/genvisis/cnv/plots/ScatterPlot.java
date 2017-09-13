@@ -115,7 +115,6 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
@@ -2317,11 +2316,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanel.add(qcPanelLabel, "cell 1 3");
 
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
-
-		classCount = new CTable(called, sex);// This is the problem.
-		classCount.setCustomLabelsAndOrder(new String[][] {{"-1", "Genotype missing"},
-																											 {"1", "Genotype NOT missing"}},
-																			 sampleData.getActualClassColorKey(0));
+		String[][] rowLabels = new String[][] {{"-1", "Genotype missing"}, {"1", "Genotype NOT missing"}};
+		String[][] colLabels = sampleData.getActualClassColorKey(0);
+		classCount = new CTable(rowLabels, colLabels, called, sex);// This is the problem.
 
 		// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"}, {"1","Genotype
 		// NOT missing"}}, Matrix.addRow(sampleData.getActualClassColorKey(0), new String[] {null,
@@ -2340,10 +2337,9 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 1 4");
 
-		classCount = new CTable(CTable.extrapolateCounts(sex, genotype));
-		classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0),
-																										 new String[] {null, "missing"}),
-																			 new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
+		rowLabels = sampleData.getActualClassColorKey(0);
+		colLabels =  new String[][] {{"A", "Allele A"}, {"B", "Allele B"}};
+		classCount = CTable.extrapolateCounts(rowLabels, colLabels, sex, genotype);
 
 		// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new
 		// String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"},
@@ -2365,11 +2361,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		// currentClass = getCurrentClass();
 		if (currentClass > SampleData.BASIC_CLASSES.length
 				&& currentClass < sampleData.getBasicClasses().length + sampleData.getNumActualClasses()) {
-			classCount = new CTable(called, otherClass);// This is the problem.
-			classCount.setCustomLabelsAndOrder(new String[][] {{"-1", "Genotype missing"},
-																												 {"1", "Genotype NOT missing"}},
-																				 sampleData.getActualClassColorKey(currentClass
-																																					 - SampleData.BASIC_CLASSES.length));
+			rowLabels = new String[][] {{"-1", "Genotype missing"}, {"1", "Genotype NOT missing"}};
+			colLabels = sampleData.getActualClassColorKey(currentClass - SampleData.BASIC_CLASSES.length);
+
+			classCount = new CTable(rowLabels, colLabels, called, otherClass);// This is the problem.
 			qcPanelLabel = new JLabel("Callrate by " + sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
 			// classCount.setCustomLabelsAndOrder(new String[][] {{"-1","Genotype missing"},
@@ -2403,12 +2398,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 			qcPanelLabel.setFont(new Font("Arial", 0, 14));
 			qcPanel.add(qcPanelLabel, "cell 1 6");
-
-			classCount = new CTable(CTable.extrapolateCounts(otherClass, genotype));
-			classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(currentClass
-																																												 - SampleData.BASIC_CLASSES.length),
-																											 new String[] {null, "missing"}),
-																				 new String[][] {{"A", "Allele A"}, {"B", "Allele B"}});
+			
+			rowLabels = sampleData.getActualClassColorKey(currentClass - SampleData.BASIC_CLASSES.length);
+			colLabels = new String[][] {{"A", "Allele A"}, {"B", "Allele B"}};
+			
+			classCount = CTable.extrapolateCounts(rowLabels, colLabels, otherClass, genotype);
 			// classCount.replaceIdWithLabel(SampleData.KEYS_FOR_BASIC_CLASSES[1],sampleData.getActualClassColorKey(0));
 			qcPanelLabel = new JLabel("Allele Freq by " + sampleData.getClassName(currentClass) + ": ",
 																JLabel.LEFT);
