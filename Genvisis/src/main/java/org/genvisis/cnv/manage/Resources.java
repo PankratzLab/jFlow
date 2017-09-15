@@ -53,7 +53,7 @@ public final class Resources {
 	public static final String GENOME_DIR = "Genome";
 	private static Set<Resource> allResources = null;
 
-	public static LaunchKey LAST_RESOURCE_CHECK = new LaunchKey("0", false, "LAST_RESOURCE_CHECK");
+	public static final LaunchKey LAST_RESOURCE_CHECK = new LaunchKey("0", false, "LAST_RESOURCE_CHECK");
 
 	private Resources() {
 		// prevent instantiation of utility class
