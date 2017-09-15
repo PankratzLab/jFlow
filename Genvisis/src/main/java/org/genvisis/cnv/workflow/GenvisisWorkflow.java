@@ -728,7 +728,6 @@ public class GenvisisWorkflow {
 					int numThreads = resolveThreads(variables.get(this).get(getNumThreadsReq()));
 					List<String> batchHeaders = Requirement.ListSelectionRequirement.parseArgValString(variables.get(this)
 																																																			.get(batchHeadersReq));
-					String batchHeadersArg = String.join(",", batchHeaders);
 					StringJoiner args = new StringJoiner(" ");
 					args.add(Files.getRunString());
 					args.add(MarkerMetrics.class.getCanonicalName());
@@ -736,6 +735,7 @@ public class GenvisisWorkflow {
 					args.add("proj=" + proj.getPropertyFilename());
 					if (!allMarkers)
 						args.add("markers=" + tgtFile);
+					String batchHeadersArg = String.join(",", batchHeaders);
 					args.add(MarkerMetrics.BATCH_HEADERS_ARG + "=" + batchHeadersArg);
 					args.add(PSF.Ext.NUM_THREADS_COMMAND + numThreads);
 					return args.toString();
@@ -855,8 +855,19 @@ public class GenvisisWorkflow {
 																																									 .add(pedigreeRequirement)
 																																									 .add(createPedigreeRequirement));
 
+
 			return register(new Step("Create PLINK Files", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY), priority()) {
+
+				@Override
+				public Map<Requirement, String> getDefaultRequirementValues() {
+					Map<Requirement, String> varMap = super.getDefaultRequirementValues();
+					if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
+						// if no pedigree, default to creating a minimal one
+						varMap.put(createPedigreeRequirement, Boolean.TRUE.toString());
+					}
+					return varMap;
+				}
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -914,9 +925,10 @@ public class GenvisisWorkflow {
 						cmd.append(Files.getRunString()).append(" cnv.filesys.Pedigree proj=")
 							 .append(projPropFile).append("\n");
 					}
+
 					cmd.append(Files.getRunString())
 						 .append(" cnv.manage.PlinkData -genvisisToBed plinkdata=" + PLINK_SUBDIR + PLINKROOT
-										 + " gcthreshold=-1 proj=")
+										 + " proj=")
 						 .append(proj.getPropertyFilename());
 					return cmd.toString();
 				}
@@ -2244,6 +2256,58 @@ public class GenvisisWorkflow {
 	}
 
 
+	public static void setupImputation(String projectProperties) {
+		Project proj = new Project(projectProperties);
+		StepBuilder sb = (new GenvisisWorkflow(proj, null)).new StepBuilder();
+
+		Step parseSamples = sb.generateParseSamplesStep();
+		Step transpose = sb.generateTransposeStep(parseSamples);
+		Step sampleData = sb.generateCreateSampleDataStep(parseSamples);
+		Step blast = sb.generateAffyMarkerBlastAnnotationStep(parseSamples);
+		Step sampleQc = sb.generateSampleQCStep(parseSamples);
+		Step markerQc = sb.generateMarkerQCStep(parseSamples);
+		Step sexChecks = sb.generateSexChecksStep(parseSamples, blast, sampleData, transpose,
+																							sampleQc);
+		Step exportPlink = sb.generatePlinkExportStep(parseSamples);
+		Step gwasQc = sb.generateGwasQCStep(exportPlink);
+		Step ancestry = sb.generateAncestryStep(gwasQc);
+		Step faqcStep = sb.generateFurtherAnalysisQCStep(exportPlink, gwasQc, ancestry);
+
+		Map<Step, Map<Requirement, String>> varMap = new HashMap<>();
+		varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+		varMap.put(markerQc, markerQc.getDefaultRequirementValues());
+		varMap.put(sexChecks, sexChecks.getDefaultRequirementValues());
+		varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
+		varMap.put(gwasQc, gwasQc.getDefaultRequirementValues());
+		varMap.put(ancestry, ancestry.getDefaultRequirementValues());
+		varMap.put(faqcStep, faqcStep.getDefaultRequirementValues());
+
+		String s1 = sampleQc.getCommandLine(proj, varMap);
+		String s2 = markerQc.getCommandLine(proj, varMap);
+		String s3 = sexChecks.getCommandLine(proj, varMap);
+		String s4 = exportPlink.getCommandLine(proj, varMap);
+		String s5 = gwasQc.getCommandLine(proj, varMap);
+		String s6 = ancestry.getCommandLine(proj, varMap);
+		String s7 = faqcStep.getCommandLine(proj, varMap);
+
+		String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline.";
+		String suggFile = file + ext.getTimestampForFilename() + ".pbs";
+		String runFile = file + ext.getTimestampForFilename() + ".run";
+
+		StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+
+		addStepInfo(output, sampleQc, s1);
+		addStepInfo(output, markerQc, s2);
+		addStepInfo(output, sexChecks, s3);
+		addStepInfo(output, exportPlink, s4);
+		addStepInfo(output, gwasQc, s5);
+		addStepInfo(output, ancestry, s6);
+		addStepInfo(output, faqcStep, s7);
+
+		Qsub.qsubDefaults(suggFile, output.toString());
+		Files.write(output.toString(), runFile);
+	}
+
 	public static void setupCNVCalling(String projectProperties) {
 		Project pcProj = new Project(projectProperties);
 		StepBuilder sb = (new GenvisisWorkflow(pcProj, null)).new StepBuilder();
@@ -2271,7 +2335,7 @@ public class GenvisisWorkflow {
 		String s4 = cent.getCommandLine(pcProj, null);
 		String s5 = cnv.getCommandLine(pcProj, stepOpts);
 
-		String file = pcProj.PROJECT_DIRECTORY.getValue() + "CNVCallingPipeline";
+		String file = pcProj.PROJECT_DIRECTORY.getValue() + "CNVCallingPipeline.";
 		String suggFile = file + ext.getTimestampForFilename() + ".pbs";
 		String runFile = file + ext.getTimestampForFilename() + ".run";
 

@@ -1,5 +1,8 @@
 package org.genvisis.seq.manage;
 
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -40,9 +43,6 @@ import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.contamination.MAF;
 
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
-
 /**
  * Class to import a vcf into Genvisis format
  *
@@ -62,8 +62,10 @@ public class VCFImporter {
 		HashSet<String> verifiedSamples = verifySamples(proj, vcfFile, samples);
 		ArrayList<LocusID> markers = new ArrayList<VCOps.LocusID>(1000000);
 		log.reportTimeWarning("Only un-ambigous and biallelic variants will be exported...until we figure these out");
-		FilterNGS.VariantContextFilter niceAllele = new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
-																																									 new VARIANT_FILTER_BOOLEAN[] {VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
+		FilterNGS.VariantContextFilter niceAllele = new FilterNGS.VariantContextFilter(
+																																									 new VARIANT_FILTER_DOUBLE[] {},
+																																									 new VARIANT_FILTER_BOOLEAN[] {
+																																																								 VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
 																																																								 VARIANT_FILTER_BOOLEAN.AMBIGUOUS_FILTER},
 																																									 null, null, log);
 		SampleNGS[] vcSamples = SampleNGS.getSamples(verifiedSamples);
@@ -325,7 +327,8 @@ public class VCFImporter {
 		String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
 		List<String[]> sampleChunks = ArrayUtils.splitUpArray(samples, numRounds, proj.getLog());
-		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(numThreads,
+		WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(
+																																											 numThreads,
 																																											 10,
 																																											 proj.getLog());
 		proj.SAMPLE_DIRECTORY.getValue(true, false);
@@ -400,13 +403,15 @@ public class VCFImporter {
 		projNorm.DATA_DIRECTORY.getValue(true, false);
 
 		if (projNorm.getSamples() == null || projNorm.getSamples().length == 0) {
-			VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(proj,
+			VCFSamplePrepWorker vPrepWorker = new VCFSamplePrepWorker(
+																																proj,
 																																projNorm.SAMPLE_DIRECTORY.getValue(true,
 																																																	 false),
 																																PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED,
 																																gcModel);
 			Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
-			WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker,
+			WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(
+																																															vPrepWorker,
 																																															numThreads,
 																																															0,
 																																															proj.getLog());
@@ -453,10 +458,12 @@ public class VCFImporter {
 										 useFile);
 		projNorm.getSamplesToInclude(null);
 		MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100,
-																projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98,
-																useFile, null, null, null, true, true, true, false, true, false, -1,
+																projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true,
+																0.98,
+																useFile, null, null, null, true, true, true, false, true, false,
+																-1,
 																-1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false,
-																true, PRE_PROCESSING_METHOD.NONE);
+																true, PRE_PROCESSING_METHOD.NONE, false);
 		SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
 		sampleQC.addQCsToSampleData(5, true);
 		sampleQC.addPCsToSampleData(5, 10, true);

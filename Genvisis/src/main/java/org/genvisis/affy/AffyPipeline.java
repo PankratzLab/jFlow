@@ -8,10 +8,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.genvisis.cnv.LaunchProperties;
+import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -23,6 +24,7 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -30,7 +32,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.meta.Info;
 
 /**
  * @author lane0212
@@ -238,7 +239,8 @@ public class AffyPipeline {
 		probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
 		String tmpMarkerSet = outDir + analysisName + "tmpMarkerSet.ser";
 		Markers.orderMarkers(null, markerPositionFile, tmpMarkerSet, log);
-		MarkerSetInfo markerSet = MarkerSet.load(tmpMarkerSet);
+		@SuppressWarnings("deprecation")
+		MarkerSetInfo markerSet = org.genvisis.cnv.filesys.MarkerSet.load(tmpMarkerSet);
 		String[] names = markerSet.getMarkerNames();
 
 		HashMap<String, String> track = new HashMap<String, String>();
@@ -449,7 +451,7 @@ public class AffyPipeline {
 	public static void run(String aptExeDir, String aptLibDir, String cels, String outDir,
 												 String quantNormTarget, String analysisName, String markerPositions,
 												 int markerBuffer, int maxWritersOpen, boolean full, int numThreads,
-												 GENOME_BUILD build) {
+												 GENOME_BUILD build, boolean prepImputation) {
 		new File(outDir).mkdirs();
 		Logger log = new Logger(outDir + "affyPipeline.log");
 		String[] celFiles;
@@ -513,7 +515,7 @@ public class AffyPipeline {
 																										 normalizationResult.getQuantNormFile(),
 																										 maxWritersOpen, log);
 					AS6TCN.parseCNTable(markerBuffer);
-					String propFileDir = Info.GENVISIS_HOME + "projects/";
+					String propFileDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
 					log.reportTimeInfo("Generating Genvisis project properties file in " + propFileDir);
 
 					String outDirFull = new File(outDir).getAbsolutePath();
@@ -558,6 +560,7 @@ public class AffyPipeline {
 						Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), false, numThreads);
 						TransposeData.transposeData(proj, 2000000000, false);
 						SampleData.createMinimalSampleData(proj);
+						GenvisisWorkflow.setupImputation(proj.getPropertyFilename());
 					} else {
 						log.reportTimeWarning("Missing file " + markerPositions);
 						log.reportTimeWarning("Please provide the marker position at the command line, or use the Genvisis gui to finish parsing your affy project");
@@ -583,6 +586,7 @@ public class AffyPipeline {
 		int maxWritersOpen = 1000000;
 		int numArgs = args.length;
 		boolean full = false;
+		boolean prepImputation = false;
 		GENOME_BUILD build = GENOME_BUILD.HG18;
 
 		String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
@@ -659,6 +663,9 @@ public class AffyPipeline {
 			} else if (arg.startsWith("-full")) {
 				full = true;
 				numArgs--;
+			} else if (arg.startsWith("-prepImputation")) {
+				prepImputation = true;
+				numArgs--;
 			} else if (arg.startsWith("build=")) {
 				try {
 					build = GENOME_BUILD.valueOf(ext.parseStringArg(arg, ""));
@@ -680,7 +687,7 @@ public class AffyPipeline {
 		}
 		try {
 			run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions,
-					markerBuffer, maxWritersOpen, full, numThreads, build);
+					markerBuffer, maxWritersOpen, full, numThreads, build, prepImputation);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

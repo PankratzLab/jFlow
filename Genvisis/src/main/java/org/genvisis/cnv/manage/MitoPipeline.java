@@ -34,6 +34,7 @@ import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
@@ -314,7 +315,8 @@ public class MitoPipeline {
 																	 boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
 																	 boolean gcCorrect, int bpGcModel, int regressionDistance,
 																	 GENOME_BUILD build, double[] pvalOpt, String betaFile,
-																	 boolean plot, boolean skipEval, PRE_PROCESSING_METHOD method) {
+																	 boolean plot, boolean skipEval, PRE_PROCESSING_METHOD method,
+																	 boolean prepImputation) {
 		String sampleDirectory;
 		SampleList sampleList;
 		Logger log;
@@ -405,6 +407,9 @@ public class MitoPipeline {
 				// we make sure each marker has an entry in the projects Markerlookup. I am doing this in
 				// case previous steps have already failed, and this should catch it
 				if (verifyAllProjectMarkersAreAvailable(proj)) {
+					if (prepImputation) {
+						GenvisisWorkflow.setupImputation(proj.getPropertyFilename());
+					}
 					// check that all target markers are available
 					if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(),
 															 PC_MARKER_COMMAND)) {
@@ -740,8 +745,8 @@ public class MitoPipeline {
 		}
 		if (notParsed.size() > 0) {
 			proj.getLog().reportError("Error - detected that not all markers (missing "
-																		+ notParsed.size()
-																		+ ") were properly parsed, halting: This should not happen");
+																+ notParsed.size()
+																+ ") were properly parsed, halting: This should not happen");
 		}
 		return allParsed;
 	}
@@ -936,6 +941,7 @@ public class MitoPipeline {
 		double[] pvalOpt = DEFAULT_PVAL_OPTS;
 		String betaFile = null;
 		boolean skipProjectCreation = false;
+		boolean prepImputation = false;
 
 		String usage = "\n";
 		usage += "The MitoPipeline currently requires 5 arguments and allows for many more optional arguments:\n";
@@ -1137,6 +1143,10 @@ public class MitoPipeline {
 				numArgs--;
 			} else if (arg.startsWith("-SkipProjectCreationWithLongUndocumentedFlag")) {
 				skipProjectCreation = true;
+				numArgs--;
+			} else if (arg.startsWith("-prepImputation")) {
+				prepImputation = true;
+				numArgs--;
 			} else {
 				System.err.println("\n\nError - invalid argument " + arg + "\n\n");
 			}
@@ -1216,7 +1226,7 @@ public class MitoPipeline {
 															pedFile, sampleMapCsv, recomputeLRR_PCs, recomputeLRR_Median,
 															recompSampleSpecific, doAbLookup, imputeMeanForNaN, gcCorrect,
 															bpGcModel, regressionDistance, build, pvalOpt, betaFile, plot, false,
-															PRE_PROCESSING_METHOD.NONE);
+															PRE_PROCESSING_METHOD.NONE, prepImputation);
 			attempts++;
 			if (result == 41 || result == 40) {
 				proj.getLog().report("Attempting to restart pipeline once to fix SampleList problem");

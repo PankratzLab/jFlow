@@ -1,5 +1,9 @@
 package org.genvisis.seq.manage;
 
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,10 +53,6 @@ import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
 import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
-
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
 
 /**
  * Class for converting bam files to Genvisis compatable format
@@ -142,8 +142,9 @@ public class BamImport {
 
 		@Override
 		public BamPileConversionResults call() throws Exception {
-			String sampleName = Files.exists(result.getBam()) ? BamOps.getSampleName(result.getBam(), log)
-																												: ext.rootOf(result.getBam());
+			String sampleName = Files.exists(result.getBam())
+																											 ? BamOps.getSampleName(result.getBam(), log)
+																											 : ext.rootOf(result.getBam());
 			String sampleFile = proj.SAMPLE_DIRECTORY.getValue()
 													+ sampleName
 													+ Sample.SAMPLE_FILE_EXTENSION;
@@ -152,13 +153,13 @@ public class BamImport {
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
 				sample = bamSample.getSampleName();
 				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
-																											: null;
+																										 : null;
 				outliers = bamSample.writeSample(fingerPrint);
 			} else {
 				log.reportFileExists(sampleFile);
 				sample = sampleName;
 				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
-																											: null;
+																										 : null;
 				outliers = null;
 			}
 			return this;
@@ -410,7 +411,8 @@ public class BamImport {
 																																						.mergeOverlapping(true),
 																																		captureBuffer);//
 				} else {
-					log.reportError("The bed file " + binBed
+					log.reportError("The bed file "
+													+ binBed
 													+ " had overlapping segments, currently non -overlapping segments are required");
 					throw new IllegalArgumentException();
 				}
@@ -486,7 +488,8 @@ public class BamImport {
 		long fingerPrint = proj.getMarkerSet().getFingerprint();
 		BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
 																																							 fingerPrint, log);
-		WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
+		WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(
+																																																								conversionProducer,
 																																																								numthreads,
 																																																								10,
 																																																								log);
@@ -542,7 +545,7 @@ public class BamImport {
 		} else {
 			proj.getLog()
 					.reportTimeWarning(proj.CUSTOM_CENTROIDS_FILENAME.getValue()
-														 + " exists, and currently is the proxy for LRR computation being completed");
+																 + " exists, and currently is the proxy for LRR computation being completed");
 		}
 		proj.saveProperties();
 		// All below stuff is just for fun...
@@ -570,7 +573,8 @@ public class BamImport {
 
 		RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
 																											 proj.getMarkerSet(), correcteds);
-		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+		WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(
+																																														producer,
 																																														numthreads,
 																																														10,
 																																														proj.getLog());
@@ -633,8 +637,12 @@ public class BamImport {
 					if (i % 1000 == 0) {
 						proj.getLog().reportTimeInfo("Loaded gc content for " + (i + 1) + " bins");
 					}
-					writer.println(markerNames[i] + "\t" + markerSet.getChrs()[i] + "\t"
-												 + markerSet.getPositions()[i] + "\t"
+					writer.println(markerNames[i]
+												 + "\t"
+												 + markerSet.getChrs()[i]
+												 + "\t"
+												 + markerSet.getPositions()[i]
+												 + "\t"
 												 + ReferenceGenome.getPercentGC(referenceGenome.getSequenceFor(analysisSet.getLoci()[i].getBufferedSegment(buffer),
 																																											 aName,
 																																											 buffer > 100000)));
@@ -719,12 +727,13 @@ public class BamImport {
 																			true,
 																			0, null, null, null, null, false, false, true, false, true,
 																			false, -1, -1, GENOME_BUILD.HG19,
-																			MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true, method);
+																			MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true, method,
+																			false);
 
 					String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
 																								 "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-																																						 + "_pc_corrected_"
-																																						 + base);
+																										 + "_pc_corrected_"
+																										 + base);
 					String newName = proj.PROJECT_NAME.getValue() + "_"
 													 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
 					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile,
@@ -746,7 +755,7 @@ public class BamImport {
 						PennCNVPrep.exportSpecialPennCNV(proj,
 																						 "correction/",
 																						 pcCorrected.PROJECT_DIRECTORY.getValue()
-																														+ "tmpPCCorrection/",
+																								 + "tmpPCCorrection/",
 																						 correctionPCs, null, numthreads, 1, false,
 																						 LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
 																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
@@ -755,7 +764,7 @@ public class BamImport {
 						PennCNVPrep.exportSpecialPennCNV(pcCorrected,
 																						 "correction/",
 																						 pcCorrected.PROJECT_DIRECTORY.getValue()
-																														+ "tmpPCCorrection/",
+																								 + "tmpPCCorrection/",
 																						 correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
 																						 true, true, CORRECTION_TYPE.XY,
 																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
@@ -906,7 +915,7 @@ public class BamImport {
 					NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indice[compRight]]);
 					if (aType != ASSAY_TYPE.WGS
 							&& ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
-									|| (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET))) {
+							|| (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET))) {
 						goodOffTargets.add(names[indice[j]]);
 						problems.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
 						all.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");

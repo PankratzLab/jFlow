@@ -2,6 +2,7 @@ package org.genvisis.cnv.workflow;
 
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -114,6 +115,14 @@ public abstract class Step implements Comparable<Step> {
 
 	public abstract String getCommandLine(Project proj,
 																				Map<Step, Map<Requirement, String>> variables);
+
+	public Map<Requirement, String> getDefaultRequirementValues() {
+		Map<Requirement, String> varMap = new HashMap<>();
+		for (Requirement r : this.requirements.getFlatRequirementsList()) {
+			varMap.put(r, r.getDefaultValue().toString());
+		}
+		return varMap;
+	}
 
 	/**
 	 * @return A {@link Collection} of the complete network of {@link Step)s related to this {@code

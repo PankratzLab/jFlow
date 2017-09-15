@@ -847,8 +847,9 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+
 			// testRev();
-			testRevTran();
+			// testRevTran();
 			// run();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";
