@@ -3688,7 +3688,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (start < 0) {
 			start = 1;
 		}
-		if (stop > markerChrMap.get(chr).last().getPosition()) {
+		if (markerChrMap.containsKey(chr) && stop > markerChrMap.get(chr).last().getPosition()) {
 			stop = markerChrMap.get(chr).last().getPosition();
 		}
 
