@@ -1,9 +1,5 @@
 package org.genvisis.seq.manage;
 
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,9 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
@@ -53,6 +51,10 @@ import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
 import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
+
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
 
 /**
  * Class for converting bam files to Genvisis compatable format
@@ -1111,16 +1113,29 @@ public class BamImport {
 		int captureBuffer = CAPTURE_BUFFER;
 		String vcf = null;
 		int correctionPCs = 4;
+		ASSAY_TYPE assayType = ASSAY_TYPE.WXS;
+		ASSEMBLY_NAME assembly = ASSEMBLY_NAME.HG19;
 
 
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
-		usage += "(1) filename (i.e. proj= ( nodefault))\n" + "";
-		usage += "(2) bed file to import  (i.e. importBed=" + binBed + " ( no default))\n" + "";
+		usage += "(1) filename (i.e. proj= (no default))\n" + "";
+		usage += "(2) bed file to import  (i.e. importBed=" + binBed + " (default))\n" + "";
 		usage += Ext.getNumThreadsCommand(3, numthreads);
-		usage += "(4) bed file to import  (i.e. captureBed=" + captureBed + " ( no default))\n" + "";
-		usage += "(5) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= ( no default))\n"
+		usage += "(4) Assay type ("
+						 + Arrays.stream(ASSAY_TYPE.values()).map(ASSAY_TYPE::name)
+										 .collect(Collectors.joining(", "))
+						 + ")  (i.e. assayType=" + assayType.name() + " (default))\n" + "";
+		usage += "(5) bed file to import  (i.e. captureBed=" + captureBed
+						 + " (default, not used with assayType=" + ASSAY_TYPE.WGS.name() + "))\n" + "";
+
+		usage += "(6) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= (no default))\n"
 						 + "";
-		usage += "(6) number of PCs to correct with  (i.e. correctionPCs= ( no default))\n" + "";
+		usage += "(7) number of PCs to correct with  (i.e. correctionPCs=" + correctionPCs
+						 + " (default))\n" + "";
+		usage += "(8) Genome assembly ("
+						 + Arrays.stream(ASSEMBLY_NAME.values()).map(ASSEMBLY_NAME::name)
+										 .collect(Collectors.joining(", "))
+						 + ")  (i.e. assembly=" + assembly.name() + " (default))\n";
 
 
 		for (String arg : args) {
@@ -1145,6 +1160,12 @@ public class BamImport {
 			} else if (arg.startsWith("correctionPCs")) {
 				correctionPCs = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("assayType")) {
+				assayType = ASSAY_TYPE.valueOf(ext.parseStringArg(arg));
+				numArgs--;
+			} else if (arg.startsWith("assembly")) {
+				assembly = ASSEMBLY_NAME.valueOf(ext.parseStringArg(arg));
+				numArgs--;
 			}
 
 			else {
@@ -1157,9 +1178,13 @@ public class BamImport {
 		}
 		try {
 			Project proj = new Project(filename);
+			if (assayType.equals(ASSAY_TYPE.WGS)) {
+				captureBed = null;
+				binBed = null;
+			}
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-															 ASSAY_TYPE.WXS, ASSEMBLY_NAME.HG19, null,
-															 proj.getReferenceGenomeFASTAFilename(), true, numthreads);
+															 assayType, assembly, null, proj.getReferenceGenomeFASTAFilename(),
+															 true, numthreads);
 		} catch (Exception e) {
 			new Logger().reportException(e);
 		}
