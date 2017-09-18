@@ -143,8 +143,8 @@ public class BamImport {
 		@Override
 		public BamPileConversionResults call() throws Exception {
 			String sampleName = Files.exists(result.getBam())
-																											 ? BamOps.getSampleName(result.getBam(), log)
-																											 : ext.rootOf(result.getBam());
+																												? BamOps.getSampleName(result.getBam(), log)
+																												: ext.rootOf(result.getBam());
 			String sampleFile = proj.SAMPLE_DIRECTORY.getValue()
 													+ sampleName
 													+ Sample.SAMPLE_FILE_EXTENSION;
@@ -153,13 +153,13 @@ public class BamImport {
 				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
 				sample = bamSample.getSampleName();
 				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
-																										 : null;
+																											: null;
 				outliers = bamSample.writeSample(fingerPrint);
 			} else {
 				log.reportFileExists(sampleFile);
 				sample = sampleName;
 				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
-																										 : null;
+																											: null;
 				outliers = null;
 			}
 			return this;
@@ -545,7 +545,7 @@ public class BamImport {
 		} else {
 			proj.getLog()
 					.reportTimeWarning(proj.CUSTOM_CENTROIDS_FILENAME.getValue()
-																 + " exists, and currently is the proxy for LRR computation being completed");
+														 + " exists, and currently is the proxy for LRR computation being completed");
 		}
 		proj.saveProperties();
 		// All below stuff is just for fun...
@@ -732,8 +732,8 @@ public class BamImport {
 
 					String pcCorrectedFile = ext.addToRoot(proj.getPropertyFilename(),
 																								 "." + proj.INTENSITY_PC_NUM_COMPONENTS.getValue()
-																										 + "_pc_corrected_"
-																										 + base);
+																																						 + "_pc_corrected_"
+																																						 + base);
 					String newName = proj.PROJECT_NAME.getValue() + "_"
 													 + proj.INTENSITY_PC_NUM_COMPONENTS.getValue() + "_pc_corrected_" + base;
 					Files.copyFileUsingFileChannels(proj.getPropertyFilename(), pcCorrectedFile,
@@ -755,7 +755,7 @@ public class BamImport {
 						PennCNVPrep.exportSpecialPennCNV(proj,
 																						 "correction/",
 																						 pcCorrected.PROJECT_DIRECTORY.getValue()
-																								 + "tmpPCCorrection/",
+																														+ "tmpPCCorrection/",
 																						 correctionPCs, null, numthreads, 1, false,
 																						 LS_TYPE.REGULAR, -1, true, true, CORRECTION_TYPE.XY,
 																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
@@ -764,7 +764,7 @@ public class BamImport {
 						PennCNVPrep.exportSpecialPennCNV(pcCorrected,
 																						 "correction/",
 																						 pcCorrected.PROJECT_DIRECTORY.getValue()
-																								 + "tmpPCCorrection/",
+																														+ "tmpPCCorrection/",
 																						 correctionPCs, null, 1, 24, true, LS_TYPE.REGULAR, 5,
 																						 true, true, CORRECTION_TYPE.XY,
 																						 CHROMOSOME_X_STRATEGY.BIOLOGICAL);
@@ -915,7 +915,7 @@ public class BamImport {
 					NGS_MARKER_TYPE right = NGS_MARKER_TYPE.getType(names[indice[compRight]]);
 					if (aType != ASSAY_TYPE.WGS
 							&& ((compLeft != j && left != NGS_MARKER_TYPE.OFF_TARGET)
-							|| (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET))) {
+									|| (compRight != j && right != NGS_MARKER_TYPE.OFF_TARGET))) {
 						goodOffTargets.add(names[indice[j]]);
 						problems.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
 						all.add(names[indice[j]] + "\tLIKELY_OFF_TARGET_PROBLEM");
