@@ -53,7 +53,8 @@ public final class Resources {
 	public static final String GENOME_DIR = "Genome";
 	private static Set<Resource> allResources = null;
 
-	public static final LaunchKey LAST_RESOURCE_CHECK = new LaunchKey("0", false, "LAST_RESOURCE_CHECK");
+	public static final LaunchKey LAST_RESOURCE_CHECK = new LaunchKey("0", false,
+																																		"LAST_RESOURCE_CHECK");
 
 	private Resources() {
 		// prevent instantiation of utility class
@@ -975,8 +976,12 @@ public final class Resources {
 						return null;
 					}
 					if (Files.exists(extracted)) {
-						// If return path is a file, ensure extracted file can be used
+						// Ensure extracted file can be used
 						Files.chmod(extracted);
+
+						// Set all extracted files to public read/execute
+						boolean recursive = Files.isDirectory(extracted);
+						Files.chmod(extracted, recursive ? "-R " : "" + "a+rX");
 					}
 				}
 				return extracted;
@@ -1206,7 +1211,7 @@ public final class Resources {
 			if (isRemotelyAvailable()) {
 				try {
 					HttpDownloadUtility.downloadFile(remotePath, localPath, true, log);
-
+					setToPublic();
 					// verify the download
 					String md5Remote = getMD5Remote();
 					if (md5Remote == null) {
@@ -1228,6 +1233,13 @@ public final class Resources {
 				log.reportError("Resource is not available for download: " + remotePath);
 			}
 			return false;
+		}
+
+		/**
+		 * chmods the local file to public read access (and execute access if necessary)
+		 */
+		protected void setToPublic() {
+			Files.chmod(localPath, "a+rX");
 		}
 
 		private String absolutePath() {

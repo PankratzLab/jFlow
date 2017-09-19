@@ -161,8 +161,8 @@ public class Files {
 		try {
 			for (int i = 0; i < numBatches; i++) {
 				writers[i] = openAppropriateWriter(i == 0 && numBatches == 1 ? root_batch_name
-																																		: root_batch_name
-																																			+ "." + (i + 1));
+																																		 : root_batch_name
+																																			 + "." + (i + 1));
 				if (init != null) {
 					writers[i].println(init);
 					writers[i].println();
@@ -240,7 +240,16 @@ public class Files {
 		}
 	}
 
-	public static boolean chmod(String filename, boolean verbose) {
+	/**
+	 * chmod a file when in a non-windows platform
+	 * 
+	 * @param filename file to chmod
+	 * @param chmodArgs args to the chmod program
+	 * @param verbose true to print failures
+	 * @return true on success, false on failure (or Windows)
+	 */
+	public static boolean chmod(String filename, String chmodArgs, boolean verbose) {
+
 		if (Files.isWindows()) {
 			if (verbose) {
 				System.err.println("chmod not attempted on windows platform");
@@ -248,7 +257,7 @@ public class Files {
 			return false;
 		} else {
 			try {
-				Runtime.getRuntime().exec("chmod +x " + filename).waitFor();
+				Runtime.getRuntime().exec("chmod " + chmodArgs + " " + filename).waitFor();
 				return true;
 			} catch (Exception e) {
 				if (verbose) {
@@ -260,6 +269,25 @@ public class Files {
 		}
 	}
 
+	/**
+	 * 
+	 * @see #chmod(String, String, boolean)
+	 */
+	public static boolean chmod(String filename, String chmodArg) {
+		return chmod(filename, chmodArg, true);
+	}
+
+	/**
+	 * 
+	 * @see #chmod(String, String, boolean) with default args of "+x"
+	 */
+	public static boolean chmod(String filename, boolean verbose) {
+		return chmod(filename, "+x", verbose);
+	}
+
+	/**
+	 * @see #chmod(String, boolean)
+	 */
 	public static boolean chmod(String filename) {
 		return chmod(filename, true);
 	}
@@ -538,8 +566,8 @@ public class Files {
 		if (reader == null) {
 			throw new FileNotFoundException(
 																			"Error: file \""
-																					+ filename
-																					+ "\" not found in current directory, or any of the alternate directories");
+																			+ filename
+																			+ "\" not found in current directory, or any of the alternate directories");
 		}
 
 		return reader;
@@ -559,7 +587,7 @@ public class Files {
 	}
 
 	public static InputStreamReader getAppropriateInputStreamReader(String filename)
-																																									throws FileNotFoundException {
+																																									 throws FileNotFoundException {
 		InputStream is = null;
 		InputStreamReader isReader = null;
 
@@ -669,7 +697,7 @@ public class Files {
 	 * {@link #openAppropriateWriter(String, boolean)} with append set to false
 	 */
 	public static PrintWriter openAppropriateWriter(String filename) throws FileNotFoundException,
-																																	IOException {
+																																	 IOException {
 		return openAppropriateWriter(filename, false);
 	}
 
@@ -681,7 +709,7 @@ public class Files {
 	 */
 	public static PrintWriter openAppropriateWriter(String filename,
 																									boolean append) throws FileNotFoundException,
-																																 IOException {
+																																	IOException {
 		PrintWriter writer;
 
 		if (filename.endsWith(".gz")) {
@@ -1382,7 +1410,7 @@ public class Files {
 
 				if (hash.containsKey(key)) {
 					data[i] = hideIndex ? ArrayUtils.subArray(lookupSource[hash.get(key)], 1)
-														 : lookupSource[hash.get(key)];
+															: lookupSource[hash.get(key)];
 				} else {
 					data[i] = ArrayUtils.stringArray(hideIndex ? numColsInValues - 1 : numColsInValues,
 																					 missingValue);
@@ -1544,37 +1572,37 @@ public class Files {
 						if (parameter[1].equals("mean")) {
 							writer.print("\t"
 													 + (counts[j] > 0
-																					 ? (percent
-																										 ? ext.formDeci(means[j] * 100, sf) + "%"
-																										 : ext.formDeci(means[j],
-																																		sf)
-																											 + (stdev
-																															 ? " (+/- "
-																																 + ext.formDeci(
-																																								ArrayUtils.stdev(array),
-																																								sf)
-																																 + ")"
-																															 : ""))
-																					 : (blank ? "" : ".")));
+																						? (percent
+																											 ? ext.formDeci(means[j] * 100, sf) + "%"
+																											 : ext.formDeci(means[j],
+																																			sf)
+																												 + (stdev
+																																	? " (+/- "
+																																		+ ext.formDeci(
+																																									 ArrayUtils.stdev(array),
+																																									 sf)
+																																		+ ")"
+																																	: ""))
+																						: (blank ? "" : ".")));
 						} else {
 							writer.print("\t" + (counts[j] > 0 ? ext.formDeci(ArrayUtils.stdev(array), sf)
-																								: (blank ? "" : ".")));
+																								 : (blank ? "" : ".")));
 						}
 					}
 					if (parameter[1].equals("mean")) {
 						writer.print("\t"
 												 + (ArrayUtils.sum(counts) > 0
-																											? (percent
-																																? ext.formDeci(
-																																							 means[files.length]
-																																									 / ArrayUtils.sum(counts)
-																																									 * 100, sf)
-																																	+ "%"
-																																: ext.formDeci(
-																																							 means[files.length]
-																																									 / ArrayUtils.sum(counts),
-																																							 sf))
-																											: (blank ? "" : ".")));
+																											 ? (percent
+																																	? ext.formDeci(
+																																								 means[files.length]
+																																								 / ArrayUtils.sum(counts)
+																																								 * 100, sf)
+																																		+ "%"
+																																	: ext.formDeci(
+																																								 means[files.length]
+																																								 / ArrayUtils.sum(counts),
+																																								 sf))
+																											 : (blank ? "" : ".")));
 					} else {
 						// TODO calculate the overall stdev of crossing files.
 					}
@@ -1598,7 +1626,7 @@ public class Files {
 						writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0") : counts[j]));
 					}
 					writer.print("\t" + (ArrayUtils.sum(counts) == 0 ? (blank ? "" : "0")
-																													: ArrayUtils.sum(counts)));
+																													 : ArrayUtils.sum(counts)));
 
 				} else if (parameter[1].contains("percentile")) {
 					percentile = Integer.parseInt(parameter[1].split(" ")[0].trim());
@@ -1626,8 +1654,8 @@ public class Files {
 							writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0") : array[array.length - 1]));
 						} else {
 							writer.print("\t" + (counts[j] == 0 ? (blank ? "" : "0")
-																								 : array[(int) (((double) percentile / 100)
-																																* array.length + .5)]));
+																									: array[(int) (((double) percentile / 100)
+																																 * array.length + .5)]));
 						}
 					}
 				}
@@ -1871,7 +1899,7 @@ public class Files {
 				colCount = Files.getHeaderOfFile(infile, log).length;
 				log.report("There are " + colCount + " columns in the file");
 				suggestedStep = (int) ((double) memoryAvailable / 40
-												/ ((double) filesize / (double) colCount));
+															 / ((double) filesize / (double) colCount));
 				log.report("( " + memoryAvailable + " / 40 ) / ( " + filesize + " / " + colCount + " ) = "
 									 + suggestedStep);
 				if (step == -1) {
@@ -3847,7 +3875,7 @@ public class Files {
 
 					if (!line[0].equals("")) {
 						list.add(line.length > 1 ? new String[] {line[0], line[1]}
-																		: new String[] {line[0], ""});
+																		 : new String[] {line[0], ""});
 					}
 				}
 			}
