@@ -229,7 +229,7 @@ public class MarkerData implements Serializable {
 			throw new IllegalArgumentException("Mismatched sample sizes");
 
 		}
-		if (lrrs == null) {
+		if (lrrs == null && params.getCentroids() == null) {
 			return null;
 		} else {
 			float[][] recompBAFLRR = params.getCentroids() == null
@@ -243,7 +243,11 @@ public class MarkerData implements Serializable {
 																																								recompBAFLRR[1][i],
 																																								params.getGcContent()[markerIndexInProject]);
 				if (Float.isNaN(recompBAFLRR[1][i])) {
-					recompBAFLRR[1][i] = lrrs[i];
+					if (lrrs == null) {
+						recompBAFLRR[1][i] = Float.NaN;
+					} else {
+						recompBAFLRR[1][i] = lrrs[i];
+					}
 				}
 			}
 			return recompBAFLRR;
