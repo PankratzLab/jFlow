@@ -241,6 +241,13 @@ public class GcAdjustorParameter implements Serializable {
 																																																		: 1
 																																																			+ centroids.length][];
 			float[] intensites = samp.getLRRs();
+			if (intensites == null && centroids != null && centroids.length > 0) {
+				proj.getLog()
+						.reportTimeWarning("No LRRs were detected, will use centroids (first centroid) to compute baseline gc correction");
+				intensites = samp.getLRRs(centroids[0].getCentroids());
+			} else {
+				throw new IllegalStateException("Could not detect sample LRRs and centroids were not provided for gc correction");
+			}
 			for (int i = 0; i < builders.length; i++) {
 				ArrayList<GcAdjustorParameter> parameters = getParams(builders[i], compute[i][0],
 																															intensites, autoIndices);
