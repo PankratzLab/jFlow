@@ -178,6 +178,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
 		public BamPileResult call() throws Exception {
 			String ser = serDir + ext.rootOf(bamFile) + ".ser";
 			if (!Files.exists(ser)) {
+				BamOps.verifyIndex(bamFile, log);
 				BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
 																										 filterNGS, aName, log);
 				ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
