@@ -97,6 +97,9 @@ public final class GateTree {
 			{"central memory helper Tcells (CCR7+ CD45RA-)", "Helper Tcells-CD4+"},
 			{"HLA-DR+", "Helper Tcells-CD4+"},
 			{"activated helper Tcells (CD4+ HLA-DR+)", "Helper Tcells-CD4+"},
+			{"naive helper Tcells (CD95- CD28+)", "Helper Tcells-CD4+"},
+			{"effector memory helper Tcells (CD95- CD28-)", "Helper Tcells-CD4+"},
+			{"central memory helper Tcells (CD95+ CD28+)", "Helper Tcells-CD4+"},
 			{"CD4-", "Tcells (CD3+ CD19-)"},
 			{"CD8+", "CD4-"},
 			{"cytotoxic Tcells-CD8+", "Tcells (CD3+ CD19-)"},
@@ -122,6 +125,15 @@ public final class GateTree {
 			{"central memory cytotoxic Tcells (CCR7+ , CD45RA-)", "cytotoxic Tcells-CD8+"},
 			{"HLA-DR+", "cytotoxic Tcells-CD8+"},
 			{"activated cytotoxic Tcells (CD8+ HLA-DR+)", "cytotoxic Tcells-CD8+"},
+			{"naive cytotoxic Tcells (CD95- , CD28+)", "cytotoxic Tcells-CD8+"},
+			{"central memory cytotoxic Tcells (CD95+ , CD28+)", "cytotoxic Tcells-CD8+"},
+			{"effector memory cytotoxic Tcells (CD95- , CD28-)", "cytotoxic Tcells-CD8+"},
+			{"pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)",
+			 "effector memory cytotoxic Tcells (CD95- , CD28-)"},
+			{"pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)",
+			 "effector memory cytotoxic Tcells (CD95- , CD28-)"},
+			{"pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)",
+			 "effector memory cytotoxic Tcells (CD95- , CD28-)"},
 			{"CD3-", "Live cells (PE-)"},
 			{"B cells (CD3- CD19+)", "CD3-"},
 			{"IgDgate", "B cells (CD3- CD19+)"},
@@ -130,6 +142,7 @@ public final class GateTree {
 			{"naive Bcells (CD27- IgD+)", "B cells (CD3- CD19+)"},
 			{"IgD- memory Bcells (CD27+)", "B cells (CD3- CD19+)"},
 			{"IgD+ memory Bcells (CD27+)", "B cells (CD3- CD19+)"},
+
 	};
 
 }
