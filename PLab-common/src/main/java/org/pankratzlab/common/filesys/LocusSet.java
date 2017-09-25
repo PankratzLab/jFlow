@@ -163,22 +163,27 @@ public class LocusSet<T extends Segment> implements Serializable {
     return bufSet;
   }
 
+  /**
+   * @return true if there are overlapping loci in the LocusSet
+   */
   public boolean hasOverlap() {
-    boolean hasOverlap = false;
-    out: for (int i = 0; i < loci.length; i++) {
-      T[] overlaps = getOverLappingLoci(loci[i]);
-      if (overlaps != null && overlaps.length > 0) {
-        for (int j = 0; j < overlaps.length; j++) {
-          if (!overlaps[j].equals(loci[i])) {
-            hasOverlap = true;
-            break out;
+    for (T locus : loci) {
+      T[] overlaps = getOverLappingLoci(locus);
+      if (overlaps != null) {
+        for (T overlap : overlaps) {
+          if (!overlap.equals(locus)) {
+            // If an overlap exists and is not the interrogated locus, there is an overlap
+            return true;
           }
         }
       }
     }
-    return hasOverlap;
+    return false;
   }
 
+  /**
+   * @return true if there are no overlapping loci in the LocusSet
+   */
   public boolean hasNoOverlap() {
     return !hasOverlap();
   }
