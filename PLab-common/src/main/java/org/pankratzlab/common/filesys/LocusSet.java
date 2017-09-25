@@ -163,7 +163,7 @@ public class LocusSet<T extends Segment> implements Serializable {
     return bufSet;
   }
 
-  public boolean hasNoOverlap() {
+  public boolean hasOverlap() {
     boolean hasOverlap = false;
     out: for (int i = 0; i < loci.length; i++) {
       T[] overlaps = getOverLappingLoci(loci[i]);
@@ -177,6 +177,10 @@ public class LocusSet<T extends Segment> implements Serializable {
       }
     }
     return hasOverlap;
+  }
+
+  public boolean hasNoOverlap() {
+    return !hasOverlap();
   }
 
   public LocusSet<Segment> mergeOverlapping() {
