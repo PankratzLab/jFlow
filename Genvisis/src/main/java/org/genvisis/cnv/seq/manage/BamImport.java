@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.genvisis.cnv.analysis.CentroidCompute;
@@ -53,11 +54,12 @@ import org.pankratzlab.common.PSF.Ext;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
-import org.pankratzlab.common.ext;
+import com.google.common.collect.ImmutableMap;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -68,8 +70,9 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class BamImport {
 
   public static final int CAPTURE_BUFFER = 4000;
-  public static final int BIN_SIZE_WXS = 20000;
-  public static final int BIN_SIZE_WGS = 2000;
+
+  private static final Map<ASSAY_TYPE, Integer> BIN_SIZE = ImmutableMap.of(ASSAY_TYPE.WXS, 20000,
+                                                                           ASSAY_TYPE.WGS, 1000);
 
   /**
    * Some enums that define NGS "marker" types
@@ -408,37 +411,37 @@ public class BamImport {
     LocusSet<Segment> analysisSet;
     LocusSet<BEDFeatureSeg> bLocusSet = null;
     LocusSet<Segment> genomeBinsMinusBinsCaputure = null;
-    if (atype == ASSAY_TYPE.WXS) {
-      if (binBed == null || BedOps.verifyBedIndex(binBed, log)) {
-        BEDFileReader readerBin = new BEDFileReader(binBed, false);
-        bLocusSet = readerBin.loadAll(log);
-        readerBin.close();
-        BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-        readerCapture.close();
-        if (!bLocusSet.hasNoOverlap()) {
-
-          log.memoryFree();
-          genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE_WXS)
-                                                       .removeThese(LocusSet.combine(bLocusSet,
-                                                                                     readerCapture.loadAll(log),
-                                                                                     true, log)
-                                                                            .mergeOverlapping(true),
-                                                                    captureBuffer);//
-        } else {
-          log.reportError("The bed file " + binBed
-                          + " had overlapping segments, currently non -overlapping segments are required");
-          throw new IllegalArgumentException();
-        }
-      }
-    } else if (atype == ASSAY_TYPE.WGS) {
-      genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE_WGS);
-      String tmp = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
-      Files.write("0\t1\t100000", tmp);
-      BEDFileReader readerBin = new BEDFileReader(tmp, false);
+    if (!BIN_SIZE.containsKey(atype)) {
+      throw new IllegalArgumentException("Invalid assay type " + atype);
+    }
+    if (binBed == null && atype.equals(ASSAY_TYPE.WGS)) {
+      binBed = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
+      Files.write("0\t1\t100000", binBed);
+    }
+    if (captureBed == null && atype.equals(ASSAY_TYPE.WGS)) {
+      captureBed = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
+      Files.write("0\t1\t100000", captureBed);
+    }
+    if (binBed == null || BedOps.verifyBedIndex(binBed, log)) {
+      BEDFileReader readerBin = new BEDFileReader(binBed, false);
       bLocusSet = readerBin.loadAll(log);
       readerBin.close();
-    } else {
-      throw new IllegalArgumentException("Invalid assay type " + atype);
+      BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
+      readerCapture.close();
+      if (bLocusSet.hasNoOverlap()) {
+
+        log.memoryFree();
+        genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE.get(atype))
+                                                     .removeThese(LocusSet.combine(bLocusSet,
+                                                                                   readerCapture.loadAll(log),
+                                                                                   true, log)
+                                                                          .mergeOverlapping(true),
+                                                                  captureBuffer);//
+      } else {
+        log.reportError("The bed file " + binBed
+                        + " had overlapping segments, currently non -overlapping segments are required");
+        throw new IllegalArgumentException();
+      }
     }
     log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by " + atype
                        + " analysis  set");
@@ -1110,7 +1113,7 @@ public class BamImport {
     int numArgs = args.length;
     String filename = null;
     String binBed = "binsToImport.bed";
-    String captureBed = "AgilentCaptureRegions.txt";
+    String captureBed = null;
     int numthreads = 24;
     int captureBuffer = CAPTURE_BUFFER;
     String vcf = null;
@@ -1127,8 +1130,8 @@ public class BamImport {
              + Arrays.stream(ASSAY_TYPE.values()).map(ASSAY_TYPE::name)
                      .collect(Collectors.joining(", "))
              + ")  (i.e. assayType=" + assayType.name() + " (default))\n" + "";
-    usage += "(5) bed file to import  (i.e. captureBed=" + captureBed
-             + " (default, not used with assayType=" + ASSAY_TYPE.WGS.name() + "))\n" + "";
+    usage += "(5) bed file to import  (i.e. captureBed=AgilentCaptureRegions.txt (not the default, optional with assayType="
+             + ASSAY_TYPE.WGS.name() + "))\n" + "";
 
     usage += "(6) a vcf, if provided the variants will be imported with bp resolution  (i.e. vcf= (no default))\n"
              + "";
@@ -1195,10 +1198,6 @@ public class BamImport {
     }
     try {
       Project proj = new Project(filename);
-      if (assayType.equals(ASSAY_TYPE.WGS)) {
-        captureBed = null;
-        binBed = null;
-      }
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
                                assayType, assembly, normMethod, null,
                                proj.getReferenceGenomeFASTAFilename(), true, createSubsetVCF,
