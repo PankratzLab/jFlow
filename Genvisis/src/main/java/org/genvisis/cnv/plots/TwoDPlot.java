@@ -199,10 +199,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String[] previouslyLoadedFiles;
 
 		this.proj = proj;
-		log = proj.getLog();
+		log = proj == null ? new Logger() : proj.getLog();
 		size = DEFAULT_SIZE;
 
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
+		if (proj != null && Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
 			sampleData = proj.getSampleData(false);
 		} else {
 			sampleData = null;
@@ -304,7 +304,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			public void componentHidden(ComponentEvent e) {}
 		});
 
-		if (promptOnClose) {
+		if (proj != null && promptOnClose) {
 			previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
 			String errMsg = "";
 			Set<String> failed = new HashSet<String>();
@@ -692,19 +692,21 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 
 	public void reloadSampleDataUI() {
-		// Note: This line resets the sample data by setting it to null which will cause linkKeyIndex to
-		// be lost.
-		// Make sure to set it back after resetting sample data
-		// Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String,
-		// Integer>(sampleData.getLinkKeyIndex());
-		proj.resetSampleData();
-		if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
+		if (proj != null) {
+			// Note: This line resets the sample data by setting it to null which will cause linkKeyIndex
+			// to
+			// be lost.
+			// Make sure to set it back after resetting sample data
+			// Hashtable<String, Integer> linkKeyIndexCopy = new Hashtable<String,
+			// Integer>(sampleData.getLinkKeyIndex());
+			proj.resetSampleData();
+			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false))) {
+				sampleData = proj.getSampleData(false);
+			}
 			sampleData = proj.getSampleData(false);
+			// sampleData.setLinkKeyIndex(linkKeyIndexCopy);
+			colorKeyPanel.updateSampleData(sampleData);
 		}
-		sampleData = proj.getSampleData(false);
-		// sampleData.setLinkKeyIndex(linkKeyIndexCopy);
-
-		colorKeyPanel.updateSampleData(sampleData);
 		colorKeyPanel.updateColorVariablePanel();
 
 		twoDPanel.paintAgain();
@@ -1087,7 +1089,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	public void showSpecificFile(String filename, int colForX, int colForY) {
-		if (promptOnClose) {
+		if (proj != null && promptOnClose) {
 			String[] prevFiles = proj.TWOD_LOADED_FILENAMES.getValue();
 			if (Arrays.binarySearch(prevFiles, filename) < 0) {
 				// the supplied file was not found so load it
@@ -1124,7 +1126,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			GuiManager.disposeOfParentFrame(this);
 			return;
 		}
-		if (!promptOnClose) { // TODO add flag for dispose or hide on close
+		if (proj == null || !promptOnClose) { // TODO add flag for dispose or hide on close
 			GuiManager.hideParentFrame(this);
 			return;
 		}
@@ -1230,6 +1232,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 
 	public static class ScreenToCapture {
+		String outputName;
 		String dataXFile;
 		String dataYFile;
 		String colorFile;
@@ -1243,7 +1246,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices,
 													 float[] displayWindow, boolean excluded, boolean colorKey,
-													 boolean appendColorKey, boolean hist) {
+													 boolean appendColorKey, boolean hist, String outputFilename) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
@@ -1261,6 +1264,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			isHistogram = hist;
 			createColorKey = colorKey;
 			includeColorKey = appendColorKey;
+			outputName = outputFilename;
 		}
 	}
 
@@ -1275,12 +1279,14 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 																									"proj=",
 																									"dir=",
 																									"# Per-line:",
-																									"# after being set once, all tags can be duplicated in a subsequent line by omitting them; the only necessary tags are {xDataColumn=<> and yDataColumn=<>}",
-																									"# fileX=<> fileY=<> xDataColumn=<> yDataColumn=<> xIDColumn=<> yIDColumn=<> colorFile=<> colorDataColumn=<> colorIDColumn=<> minX=<> minY=<> maxX=<> maxY=<> hideExcluded=True/False colorKey=True/False includeColorKey=True/False isHistogram=True/False",},
+																									"# after being set once, all tags can be duplicated in a subsequent line by omitting them; the only necessary tags are {xDataColumn=<> and yDataColumn=<>}. If the output tag is not specified for each line, the created file will be named as <xFilename>_<xDataColumn>_<yFilename>_<yDataColumn>",
+																									"# fileX=<> fileY=<> xDataColumn=<> yDataColumn=<> xIDColumn=<> yIDColumn=<> colorFile=<> colorDataColumn=<> colorIDColumn=<> minX=<> minY=<> maxX=<> maxY=<> hideExcluded=True/False colorKey=True/False includeColorKey=True/False isHistogram=True/False output=<>",},
 																		log);
 
 		return params;
 	}
+
+	private static final String SCRN_TAG_OUTPUT = "output";
 
 	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines,
 																														 boolean fail) {
@@ -1302,6 +1308,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		tagSet.add("isHistogram");
 		tagSet.add("colorKey");
 		tagSet.add("includeColorKey");
+		tagSet.add(SCRN_TAG_OUTPUT);
 
 		HashMap<String, ArrayList<String>> tagValues = new HashMap<String, ArrayList<String>>();
 		for (String tagKey : tagSet) {
@@ -1345,6 +1352,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 																								 + "\" detected.");
 						}
 					} else {
+						if (tag.equals(SCRN_TAG_OUTPUT)) {
+							values.add(null);
+						}
 						values.add(values.get(values.size() - 1));
 					}
 				}
@@ -1364,6 +1374,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			boolean isHistogram = false;
 			boolean colorKey = false;
 			boolean inclKey = false;
+			String output = null;
 
 			files[0] = tagValues.get("fileX").get(i);
 			files[1] = tagValues.get("fileY").get(i);
@@ -1387,8 +1398,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			colorKey = Boolean.parseBoolean(tagValues.get("colorKey").get(i));
 			inclKey = Boolean.parseBoolean(tagValues.get("includeColorKey").get(i));
 
+			output = tagValues.get("output").get(i);
+
 			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes,
-																							 colorKey, inclKey, isHistogram);
+																							 colorKey, inclKey, isHistogram, output);
 			caps.add(sc);
 		}
 
@@ -1459,19 +1472,21 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			twoDPanel.createImage();
 
 			int count = 1;
-			String basename = "";
-			if (screencap.dataXFile != null) {
-				basename += ext.rootOf(screencap.dataXFile, true);
-				basename += "_";
-				basename += dataColumnsHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
-			}
-			if (screencap.dataYFile != null) {
-				if (!basename.equals("")) {
+			String basename = screencap.outputName;
+			if (basename == null) {
+				if (screencap.dataXFile != null) {
+					basename += ext.rootOf(screencap.dataXFile, true);
 					basename += "_";
+					basename += dataColumnsHash.get(baseDir + screencap.dataXFile)[screencap.xDataIndex];
 				}
-				basename += ext.rootOf(screencap.dataYFile, true);
-				basename += "_";
-				basename += dataColumnsHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
+				if (screencap.dataYFile != null) {
+					if (!basename.equals("")) {
+						basename += "_";
+					}
+					basename += ext.rootOf(screencap.dataYFile, true);
+					basename += "_";
+					basename += dataColumnsHash.get(baseDir + screencap.dataYFile)[screencap.yDataIndex];
+				}
 			}
 			String screenname = basename;
 			while ((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true)
@@ -1753,7 +1768,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose, fileExts);
 		twoDPlot.setOpaque(true); // content panes must be opaque
 		if (!headless) {
-			frame = new JFrame("Genvisis - 2D Plot - " + proj.PROJECT_NAME.getValue());
+			frame = new JFrame("Genvisis - 2D Plot"
+												 + (proj != null ? " - " + proj.PROJECT_NAME.getValue() : ""));
 			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			frame.setJMenuBar(twoDPlot.menuBar());
 			frame.setContentPane(twoDPlot);
@@ -1821,14 +1837,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		List<String> params = parseControlFile(filename, log);
 
 		if (params != null) {
-			final String projFile = params.get(0).split("=")[1];
+			String[] parts = params.get(0).split("=");
+			final String projFile = parts.length == 1 ? null : parts[1];
 			final String baseDir = params.get(1).split("=")[1];
 			final ArrayList<ScreenToCapture> screens = condenseCtrlFile(params.subList(2, params.size()),
 																																	true);
 			javax.swing.SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					Project proj = new Project(projFile);
+					Project proj = projFile == null ? null : new Project(projFile);
 					TwoDPlot tdp = createGUI(proj, false, false);
 					tdp.createScreenshots(baseDir, screens);
 					tdp.windowClosing(null);
