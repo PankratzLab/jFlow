@@ -10,6 +10,7 @@ import org.genvisis.bioinformatics.SuperNovo;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.analysis.MeanLRR;
 import org.genvisis.cnv.analysis.cnvTrio;
+import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.CNVConcordance;
 import org.genvisis.cnv.qc.CNVTrioFilter;
 import org.genvisis.common.ArrayUtils;
@@ -94,7 +95,7 @@ public class Launch {
 																							 "peakat - takes the first or last N lines of a file, or counts the lines",
 																							 "grep - filters a file line by line depending on the presence/absence of inclusion/exclusion criteria",
 																							 CNVTrioFilter.COMMAND_CNV_TRIO_CRF
-																																																																											 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
+																									 + CNVTrioFilter.COMMAND_CNV_TRIO_CRF_DESCRIPTION,
 																							 VCF.VCF_INIT,
 																							 VCF.VCF_COMMAND,
 																							 CNVFilter.COMMAND_CNV_FILTER_CRF,
@@ -108,6 +109,7 @@ public class Launch {
 																							 "search - takes a merged dbGap data set and searches for specific keywords",
 																							 "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",
 																							 GeneScorePipeline.COMMAND_GENESCORE,
+																							 TwoDPlot.COMMAND_TWO_D_SCREENSHOTS,
 	};
 
 	public static void run(String filename, Logger log) throws Elision {
@@ -245,6 +247,8 @@ public class Launch {
 				DBGapLookup.fromParameters(filename, log);
 			} else if (temp.equalsIgnoreCase("dbgap")) {
 				DBGapExtract.fromParameters(filename, log);
+			} else if (temp.equalsIgnoreCase(TwoDPlot.COMMAND_TWO_D_SCREENSHOTS)) {
+				TwoDPlot.fromParameters(filename, log);
 			} else {
 				log.reportError("Error - '" + temp + "' is an invalid launch type, options include:");
 				log.reportError(ArrayUtils.toStr(LAUNCH_TYPES, "\n"));

@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
@@ -1263,11 +1264,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		}
 	}
 
+	public static final String COMMAND_TWO_D_SCREENSHOTS = "twoDScreenshots";
+
 	private static List<String> parseControlFile(String filename, Logger log) {
 		List<String> params;
 
 		params = Files.parseControlFile(filename,
-																		"twoDScreenshots",
+																		COMMAND_TWO_D_SCREENSHOTS,
 																		new String[] {
 																									"proj=",
 																									"dir=",
@@ -1307,7 +1310,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		HashSet<String> lineTagEntries = new HashSet<String>();
 		for (String line : ctrlLines) {
-			String[] lineTags = line.split(PSF.Regex.GREEDY_WHITESPACE);
+			String[] lineTags = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			for (String lineTag : lineTags) {
 				String tagKey = lineTag.split("=")[0];
 				String tagValue = lineTag.split("=").length > 1 ? lineTag.split("=")[1] : "-1";
@@ -1551,7 +1554,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private byte getColorForScreenshot(String id) {
-		return (byte) (colorData.get(id) == null ? 0 : colorData.get(id).intValue());
+		return (byte) (colorData == null || colorData.get(id) == null ? 0 : colorData.get(id)
+																																								 .intValue());
 	}
 
 
@@ -1744,24 +1748,25 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	 */
 	public static TwoDPlot createGUI(Project proj, boolean show, boolean promptOnClose,
 																	 String... fileExts) {
-		JFrame frame = new JFrame("Genvisis - 2D Plot - " + proj.PROJECT_NAME.getValue());
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-		// Create and set up the content pane.
+		boolean headless = GraphicsEnvironment.isHeadless();
+		JFrame frame = null;
 		TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose, fileExts);
-		frame.setJMenuBar(twoDPlot.menuBar());
 		twoDPlot.setOpaque(true); // content panes must be opaque
-		frame.setContentPane(twoDPlot);
-		frame.addWindowListener(twoDPlot);
-		frame.setMinimumSize(new Dimension(20, 20));
-		UITools.setSize(frame, 0.75, 0.75);
-		// frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
+		if (!headless) {
+			frame = new JFrame("Genvisis - 2D Plot - " + proj.PROJECT_NAME.getValue());
+			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			frame.setJMenuBar(twoDPlot.menuBar());
+			frame.setContentPane(twoDPlot);
+			frame.addWindowListener(twoDPlot);
+			frame.setMinimumSize(new Dimension(20, 20));
+			UITools.setSize(frame, 0.75, 0.75);
+			// frame.setExtendedState(frame.getExtendedState()|JFrame.MAXIMIZED_BOTH);
 
-		// Display the window.
-		frame.pack();
-		UITools.centerComponent(frame);
-		frame.setVisible(show);
-
+			// Display the window.
+			frame.pack();
+			UITools.centerComponent(frame);
+			frame.setVisible(show);
+		}
 		return twoDPlot;
 	}
 

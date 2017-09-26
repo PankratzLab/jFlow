@@ -30,6 +30,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
 
 public class lab {
@@ -837,6 +838,53 @@ public class lab {
 		testRev();
 	}
 
+	private static void filterFCSList() {
+		String filename = "F:/Flow/test3/filter/list.txt";
+		String file = "F:/Flow/test3/filter/already.txt";
+
+		String[] samp = HashVec.loadFileToStringArray(filename, false, null, false);
+		String[] fnum = HashVec.loadFileToStringArray(file, false, null, false);
+		HashSet<String> used = new HashSet<>();
+		for (String f : fnum) {
+			used.add(f);
+		}
+
+		PrintWriter writer = Files.getAppropriateWriter("F:/Flow/test3/filter/listOut.xln");
+		for (String s : samp) {
+			String temp = s.replace("./", "").replace("_", " ").replace("-", " ").replace("/", " ");
+			String[] pts = temp.split(" ");
+			String date = null;
+			String fn = null;
+			for (int i = 0; i < pts.length; i++) {
+				if (date == null && pts[i].startsWith("201")) {
+					date = pts[i] + "-" + pts[i + 1] + "-" + pts[i + 2];
+				}
+				if (fn == null && pts[i].startsWith("F")) {
+					if (pts[i].length() > 1) {
+						if (Character.isDigit(pts[i].charAt(2))) {
+							fn = pts[i];
+						}
+					}
+				}
+			}
+			if (fn != null) {
+				writer.println(date + "\t" + fn + "\t"
+											 + (used.contains(fn) ? "1" : "0") + "\t" + s);
+			}
+		}
+
+		writer.flush();
+		writer.close();
+	}
+
+	private static void vcfTest(String filename, String probAttrName) {
+		String dir = ext.parseDirectoryOfFile(filename);
+		DosageData dd1 = new DosageData(filename, null, null, false, new Logger());
+		DosageData dd2 = DosageData.loadVCF(filename, null, null, null);
+		dd1.writeToFile(dir + "pd_var1.db.xln.gz", dir + "pd_var1.xln.gz", null, null, new Logger());
+		dd2.writeToFile(dir + "pd_var2.db.xln.gz", dir + "pd_var2.xln.gz", null, null, new Logger());
+		System.out.println("Done");
+	}
 
 	public static void main(String[] args) throws IOException {
 		int numArgs = args.length;
@@ -847,6 +895,11 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			file = "F:/vcfDosage/PD_variants.vcf";
+			// file = "/scratch.global/cole0482/vcfTest/chr20.dose.vcf.gz";
+			// vcfTest(file, "GP");
+			filename = VCFCleaner.fixVCF(file);
+			// vcfTest(file, "GP");
 
 			// testRev();
 			// testRevTran();
