@@ -75,7 +75,6 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Numbers;
-import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 
@@ -1236,6 +1235,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		String dataXFile;
 		String dataYFile;
 		String colorFile;
+		String title = "TEST";
 		int xDataIndex, yDataIndex, colorIndex;
 		int xIDIndex, yIDIndex, colorIDIndex;
 		float minX, minY, maxX, maxY;
@@ -1287,28 +1287,45 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 	}
 
 	private static final String SCRN_TAG_OUTPUT = "output";
+	private static final String SCRN_TAG_TITLE = "title";
+
+	private static final String SCRN_TAG_COLOR_FILE = "colorFile";
+	private static final String SCRN_TAG_COLOR_DATA_COL = "colorDataColumn";
+	private static final String SCRN_TAG_COLOR_ID_COL = "colorIDColumn";
 
 	private static ArrayList<ScreenToCapture> condenseCtrlFile(java.util.List<String> ctrlLines,
 																														 boolean fail) {
+		// TODO refactor these into an enum or objects, defining:
+		// - is required?
+		// - use prev if missing?
+
 		HashSet<String> tagSet = new HashSet<String>();
 		tagSet.add("fileX");
 		tagSet.add("fileY");
-		tagSet.add("colorFile");
 		tagSet.add("xDataColumn");
 		tagSet.add("yDataColumn");
-		tagSet.add("colorDataColumn");
 		tagSet.add("xIDColumn");
 		tagSet.add("yIDColumn");
-		tagSet.add("colorIDColumn");
 		tagSet.add("minX");
 		tagSet.add("minY");
 		tagSet.add("maxX");
 		tagSet.add("maxY");
+		tagSet.add(SCRN_TAG_COLOR_FILE);
+		tagSet.add(SCRN_TAG_COLOR_DATA_COL);
+		tagSet.add(SCRN_TAG_COLOR_ID_COL);
 		tagSet.add("hideExcluded");
 		tagSet.add("isHistogram");
 		tagSet.add("colorKey");
 		tagSet.add("includeColorKey");
 		tagSet.add(SCRN_TAG_OUTPUT);
+		tagSet.add(SCRN_TAG_TITLE);
+
+		HashSet<String> notRqrd = new HashSet<>();
+		notRqrd.add(SCRN_TAG_OUTPUT);
+		notRqrd.add(SCRN_TAG_TITLE);
+		notRqrd.add(SCRN_TAG_COLOR_ID_COL);
+		notRqrd.add(SCRN_TAG_COLOR_DATA_COL);
+		notRqrd.add(SCRN_TAG_COLOR_FILE);
 
 		HashMap<String, ArrayList<String>> tagValues = new HashMap<String, ArrayList<String>>();
 		for (String tagKey : tagSet) {
@@ -1317,7 +1334,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		HashSet<String> lineTagEntries = new HashSet<String>();
 		for (String line : ctrlLines) {
-			String[] lineTags = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+			String[] lineTags = line.trim().split(ext.REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES);
 			for (String lineTag : lineTags) {
 				String tagKey = lineTag.split("=")[0];
 				String tagValue = lineTag.split("=").length > 1 ? lineTag.split("=")[1] : "-1";
@@ -1346,13 +1363,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 				if (!lineTagEntries.contains(tag)) {
 					ArrayList<String> values = tagValues.get(tag);
 					if (values.isEmpty()) {
-						System.err.println("Error - missing argument \"" + tag + "\" detected.");
-						if (fail) {
-							throw new IllegalArgumentException("Error - missing argument \"" + tag
-																								 + "\" detected.");
+						if (notRqrd.contains(tag)) {
+							values.add(null);
+						} else {
+							System.err.println("Error - missing argument \"" + tag + "\" detected.");
+							if (fail) {
+								throw new IllegalArgumentException("Error - missing argument \"" + tag
+																									 + "\" detected.");
+							}
 						}
 					} else {
-						if (tag.equals(SCRN_TAG_OUTPUT)) {
+						if (tag.equals(SCRN_TAG_OUTPUT) || tag.equalsIgnoreCase(SCRN_TAG_TITLE)) {
 							values.add(null);
 						}
 						values.add(values.get(values.size() - 1));
@@ -1382,11 +1403,17 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			dataCols[0] = Integer.parseInt(tagValues.get("xDataColumn").get(i));
 			dataCols[1] = Integer.parseInt(tagValues.get("yDataColumn").get(i));
-			dataCols[2] = Integer.parseInt(tagValues.get("colorDataColumn").get(i));
+			dataCols[2] = tagValues.get("colorDataColumn").get(i) == null
+																																	 ? -1
+																																	 : Integer.parseInt(tagValues.get("colorDataColumn")
+																																															 .get(i));
 
 			idCols[0] = Integer.parseInt(tagValues.get("xIDColumn").get(i));
 			idCols[1] = Integer.parseInt(tagValues.get("yIDColumn").get(i));
-			idCols[2] = Integer.parseInt(tagValues.get("colorIDColumn").get(i));
+			idCols[2] = tagValues.get("colorIDColumn").get(i) == null
+																															 ? -1
+																															 : Integer.parseInt(tagValues.get("colorIDColumn")
+																																													 .get(i));
 
 			window[0] = Float.parseFloat(tagValues.get("minX").get(i));
 			window[1] = Float.parseFloat(tagValues.get("maxX").get(i));
@@ -1436,6 +1463,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			hideExcludes = screencap.hideExcluded;
 			setHistogram(screencap.isHistogram);
 
+			twoDPanel.setTitle(screencap.title);
+			twoDPanel.setDisplayTitle(screencap.title != null);
+
 			twoDPanel.setForcePlotXmin(screencap.minX);
 			twoDPanel.setForcePlotXmax(screencap.maxX);
 			twoDPanel.setForcePlotYmin(screencap.minY);
@@ -1473,6 +1503,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 			int count = 1;
 			String basename = screencap.outputName;
+			boolean addPng = !screencap.outputName.endsWith(".png");
 			if (basename == null) {
 				if (screencap.dataXFile != null) {
 					basename += ext.rootOf(screencap.dataXFile, true);
@@ -1490,12 +1521,13 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			}
 			String screenname = basename;
 			while ((new File(baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true)
-											 + ".png")).exists()) {
+											 + (addPng ? ".png" : ""))).exists()) {
 				screenname = basename + "_v" + count;
 				count++;
 			}
 
-			screenname = baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true) + ".png";
+			screenname = baseDir + ext.replaceWithLinuxSafeCharacters(screenname, true)
+									 + (addPng ? ".png" : "");
 
 			if (screencap.createColorKey) {
 				// Use a JFrame for it's 'pack()' method - this shrinks colorKeyPanel to the minimum
