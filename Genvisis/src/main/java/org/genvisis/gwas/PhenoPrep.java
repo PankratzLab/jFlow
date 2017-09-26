@@ -341,7 +341,7 @@ public class PhenoPrep {
 			}
 
 			indices = ext.indexFactors(ArrayUtils.insertStringAt(pheno, covars, 0), header, false, log,
-																 true, false);
+																 true);
 			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Header looks like this: ");
 				log.reportError(ArrayUtils.toStr(header, " / "));
@@ -564,8 +564,7 @@ public class PhenoPrep {
 											+ idColName + ") as the main file; aborting all");
 			System.exit(1);
 		}
-		indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log, true,
-															 true);
+		indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log, true);
 		hash = HashVec.loadFileToHashString(extras, new int[] {idIndex}, indices, commaDelimitedFile,
 																				"\t", true, false);
 

@@ -79,8 +79,7 @@ public class DuplicateConcordance1 {
 			markerIndices = null;
 		} else {
 			markerNames = targetMarkers;
-			markerIndices = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true, log, false,
-																						false);
+			markerIndices = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true, log, false);
 			for (int i = 0; i < markerIndices.length; i++) {
 				if (markerIndices[i] == -1) {
 					log.reportError("Marker " + markerNames[i] + " could not be found in project");
@@ -100,8 +99,7 @@ public class DuplicateConcordance1 {
 		}
 		String[] sampleDataHeader = Files.getHeaderOfFile(sampleData, log);
 		String[] sampleDataCols = new String[] {"DNA", SampleQC.EXCLUDE_HEADER, "DuplicateId"};
-		int[] sampleDataIndices = ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false,
-																							 false);
+		int[] sampleDataIndices = ext.indexFactors(sampleDataCols, sampleDataHeader, false, log, false);
 		for (int i = 0; i < sampleDataIndices.length; i++) {
 			if (sampleDataIndices[i] == -1) {
 				log.reportError("Could not find " + sampleDataCols[i]

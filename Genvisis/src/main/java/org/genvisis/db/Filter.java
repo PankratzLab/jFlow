@@ -118,7 +118,7 @@ public class Filter {
 
 	public void determineIndices(String[] header) throws Elision {
 		try {
-			variableIndices = ext.indexFactors(variableNames, header, false, false);
+			variableIndices = ext.indexFactors(variableNames, header, false);
 			if (ArrayUtils.min(variableIndices) == -1) {
 				throw new Elision("Filter variable name was not found in the file to be filtered");
 			}

@@ -390,8 +390,8 @@ public class MarkerDataLoader implements Runnable {
 			}
 
 			// Get the indices of our markers in a) all project markers and b) the currently loaded markers
-			markerIndicesInProj = ext.indexFactors(remainingMarkerNames, allMarkersInProj, true, false);
-			markerIndicesInSelection = ext.indexFactors(remainingMarkerNames, markerNames, true, false);
+			markerIndicesInProj = ext.indexFactors(remainingMarkerNames, allMarkersInProj, true);
+			markerIndicesInSelection = ext.indexFactors(remainingMarkerNames, markerNames, true);
 
 			// if (plinkFormat) {
 			// collection = PlinkData.loadBedUsingRAF(allMarkersInProj, allChrsInProj, allPosInProj,

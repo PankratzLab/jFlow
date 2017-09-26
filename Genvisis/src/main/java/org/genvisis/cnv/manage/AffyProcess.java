@@ -190,10 +190,10 @@ public class AffyProcess {
 				do {
 					line = reader.readLine().trim().split("\t", -1);
 				} while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-																										false, true, false, false)[0] == -1);
+																										false, true, false)[0] == -1);
 
 				writer.println(ArrayUtils.toStr(AFFY_CHP_HEADER));
-				int[] indices = ext.indexFactors(AFFY_CHP_HEADER, line, true, false);
+				int[] indices = ext.indexFactors(AFFY_CHP_HEADER, line, true);
 				int numSnps = 0;
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(delimiter);
@@ -206,9 +206,9 @@ public class AffyProcess {
 				do {
 					line = reader.readLine().trim().split("\t", -1);
 				} while (reader.ready() && ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-																										false, true, false, false)[0] == -1);
+																										false, true, false)[0] == -1);
 
-				indices = ext.indexFactors(AFFY_CN_CHP_HEADER, line, true, false);
+				indices = ext.indexFactors(AFFY_CN_CHP_HEADER, line, true);
 				int numCN = 0;
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(delimiter);

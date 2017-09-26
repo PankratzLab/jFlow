@@ -465,7 +465,7 @@ public class MitoPipeline {
 				sampsToUseRecompute = ArrayUtils.booleanArray(proj.getSamples().length, false);
 				int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] {0},
 																																			 false, true, "\t"),
-																				 proj.getSamples(), true, false);
+																				 proj.getSamples(), true);
 
 				// int[] indices = ext.indexFactors(HashVec.loadFileToStringArray(samps, false, new int[] {
 				// 0 }, false), proj.getSamples(), true, false);

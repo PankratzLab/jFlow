@@ -169,7 +169,7 @@ public class SexPlot extends JFrame {
 				proj.message("The header in file '" + proj.SEXCHECK_RESULTS_FILENAME.getValue()
 										 + "' is not as expected and may cause problems; see log for more detail");
 			}
-			int[] indices = ext.indexFactors(SEX_CHECKS_REQUIREMENTS, line, false, false);
+			int[] indices = ext.indexFactors(SEX_CHECKS_REQUIREMENTS, line, false);
 			for (int index : indices) {
 				if (index == -1) {
 					return;

@@ -172,7 +172,7 @@ public class ResultsPackager {
 			}
 			delimiter = ext.determineDelimiter(line);
 			parts = line.trim().split(delimiter);
-			indices = ext.indexFactors(aliasesInOrder, parts, false, true, false, log, false);
+			indices = ext.indexFactors(aliasesInOrder, parts, false, true, false, log);
 
 			int miss;
 			if ((miss = ext.indexOfInt(-1, indices)) != -1) {
@@ -372,7 +372,7 @@ public class ResultsPackager {
 			temp = reader.readLine().trim();
 			delimiter = ext.determineDelimiter(temp);
 			line = temp.split(delimiter);
-			indices = ext.indexFactors(PLINK_REQS, line, false, log, false, false);
+			indices = ext.indexFactors(PLINK_REQS, line, false, log, false);
 			if (indices[4] == -1 && indices[5] == -1) {
 				log.reportError("Error - results file did not contain a column for 'OR' (logistic) or 'BETA' (linear); aborting");
 				return;
@@ -521,7 +521,7 @@ public class ResultsPackager {
 			temp = reader.readLine().trim();
 			delimiter = ext.determineDelimiter(temp);
 			line = temp.split(delimiter);
-			indices = ext.indexFactors(SOL_REQS, line, false, log, false, false);
+			indices = ext.indexFactors(SOL_REQS, line, false, log, false);
 
 			// TODO: Need to revisit after logistic has been implemented
 			if (indices[4] == -1 && indices[5] == -1) {
@@ -1271,8 +1271,8 @@ public class ResultsPackager {
 		try {
 			reader = new BufferedReader(new FileReader(fullPathStatResults));
 			line = reader.readLine().split("\t");
-			markerColumnIndex = ext.indexFactors(new String[] {nameOfMarkerColumn}, line, false, true)[0];
-			indices = ext.indexFactors(columnNamesToBeLoaded, line, false, true);
+			markerColumnIndex = ext.indexFactors(new String[] {nameOfMarkerColumn}, line, false)[0];
+			indices = ext.indexFactors(columnNamesToBeLoaded, line, false);
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				for (int i = 0; i < markersToBeLoaded.length; i++) {

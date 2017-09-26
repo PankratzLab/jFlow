@@ -27,7 +27,7 @@ public class AlleleVerification {
 			String[] dataHeader = header;
 			int[] indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
 																											 Aliases.ALLELES[1], Aliases.CHRS},
-																			 header, false, true, false, false);
+																			 header, false, true, false);
 			String[][] data;
 			if (indices[3] == -1) {
 				log.report("Couldn't find chromosome in " + filename + ".");
@@ -43,7 +43,7 @@ public class AlleleVerification {
 
 			header = Files.getHeaderOfFile(freqFile, log);
 			int[] cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.ALLELE_FREQS},
-																		header, false, true, false, false);
+																		header, false, true, false);
 			Hashtable<String, String> frequencies = HashVec.loadFileToHashString(freqFile, cols[0],
 																																					 new int[] {cols[1]},
 																																					 null, true);
@@ -75,7 +75,7 @@ public class AlleleVerification {
 					header = Files.getHeaderOfFile(r, new Logger());
 					cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
 																									Aliases.ALLELES[1]},
-																	header, false, true, false, false);
+																	header, false, true, false);
 
 					ref = HashVec.loadFileToHashString(r, cols[0], new int[] {cols[1], cols[2]}, "\t", true);
 				}
@@ -198,7 +198,7 @@ public class AlleleVerification {
 		String[] keys = Matrix.extractColumn(data, 0);
 		String[] header = Files.getHeaderOfFile(posFile, log);
 		int[] indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS},
-																		 header, false, false, false, false);
+																		 header, false, false, false);
 		String[][] positions = HashVec.loadFileToStringMatrix(posFile, true, indices);
 
 		String[][] results = Files.combineInMemory(keys, positions, "NA", true, true, log);

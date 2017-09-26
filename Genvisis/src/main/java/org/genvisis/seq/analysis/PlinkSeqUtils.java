@@ -344,7 +344,7 @@ public class PlinkSeqUtils {
 			if (Files.exists(resultsFile)) {
 				String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);
 				if (header != null) {
-					int[] indices = ext.indexFactors(HEADER, header, true, false);
+					int[] indices = ext.indexFactors(HEADER, header, true);
 					String curLoc = null;
 					int index = 0;
 					try {

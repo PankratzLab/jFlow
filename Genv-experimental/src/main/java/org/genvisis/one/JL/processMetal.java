@@ -18,7 +18,7 @@ public class processMetal {
 		Logger log = new Logger();
 		for (String metal : metals) {
 			String[] header = Files.getHeaderOfFile(metal, log);
-			int[] indices = ext.indexFactors(required, header, true, true);
+			int[] indices = ext.indexFactors(required, header, true);
 			String[][] file = HashVec.loadFileToStringMatrix(metal, false, indices);
 			file[0] = conv;
 			Files.writeMatrix(file, ext.rootOf(metal, false) + ".beta", "\t");

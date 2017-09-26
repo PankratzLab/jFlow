@@ -329,7 +329,7 @@ public class MultiHitWindows {
 																			true, log)[0];
 			int posIndex = ext.indexFactors(new String[][] {pFile.getPos()}, line, false, false, true,
 																			true, log)[0];
-			int[] pvalIndices = ext.indexFactors(pFile.getPvals(), line, false, log, false, false);
+			int[] pvalIndices = ext.indexFactors(pFile.getPvals(), line, false, log, false);
 
 			if (markerIndex == -1 || chrIndex == -1 || posIndex == -1) {
 				log.reportError("Aborting - did not find identifying column headers (marker, chr, position) in file: "

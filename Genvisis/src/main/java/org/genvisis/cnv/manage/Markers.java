@@ -306,7 +306,7 @@ public class Markers {
 			reader = Files.getAppropriateReader(snpTable);
 			int[] indices = ext.indexFactors(SourceFileParser.SNP_TABLE_FIELDS,
 																			 reader.readLine().trim().split(delimiter), false, true,
-																			 true, true);
+																			 true);
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split(delimiter);
 				if (line.length <= indices[0] || line.length < indices[1] || line.length <= indices[2]) {

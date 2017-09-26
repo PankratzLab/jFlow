@@ -458,7 +458,7 @@ public class MosaicismQuant implements Calcfc {
 				return new BafSelection(new double[0], new int[0]);
 			}
 			int[] indicesInSeg = ext.indexLargeFactors(markersInSeg, markerSet.getMarkerNames(), true,
-																								 proj.getLog(), true, false);
+																								 proj.getLog(), true);
 			double[] bafs = ArrayUtils.toDoubleArray(samp.getBAFs());
 			ArrayList<Integer> bafIndicesToUse = new ArrayList<Integer>();
 
@@ -887,7 +887,7 @@ public class MosaicismQuant implements Calcfc {
 		Segment segTest = new Segment((byte) 11, 0, Integer.MAX_VALUE);
 		int[] currentIndices = ext.indexLargeFactors(markerSet.getMarkersIn(segTest, indices),
 																								 markerSet.getMarkerNames(), true, proj.getLog(),
-																								 true, false);
+																								 true);
 		MosaicParamsBuilder builder = new MosaicParamsBuilder();
 		ComputeParams params = builder.build();
 		MosaicismQuant mosiacismQuant = new MosaicismQuant(proj, sampleMosiac,

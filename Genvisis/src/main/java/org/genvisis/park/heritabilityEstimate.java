@@ -39,7 +39,7 @@ public class heritabilityEstimate {
 			phenoNames = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 			v = ArrayUtils.toStringVector(covariates);
 			v.insertElementAt(trait, 0);
-			indices = ext.indexFactors(ArrayUtils.toStringArray(v), phenoNames, true, true);
+			indices = ext.indexFactors(ArrayUtils.toStringArray(v), phenoNames, true);
 
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);

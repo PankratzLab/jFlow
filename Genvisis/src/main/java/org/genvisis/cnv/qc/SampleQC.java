@@ -548,8 +548,7 @@ public class SampleQC {
 		String[] projSamples = proj.getSamples();
 		String[] fileSamples = HashVec.loadFileToStringArray(lrrSdToLoad, false,
 																												 new int[] {sampleColumn}, false);
-		int[] indices = ext.indexLargeFactors(fileSamples, projSamples, true, proj.getLog(), false,
-																					false);
+		int[] indices = ext.indexLargeFactors(fileSamples, projSamples, true, proj.getLog(), false);
 		return fileSamples.length - ArrayUtils.countIf(indices, -1) == projSamples.length;
 	}
 
@@ -592,8 +591,7 @@ public class SampleQC {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(lrrSdToLoad);
 				String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				int[] indicesToLoad = ext.indexFactors(qcTitlesToLoad, header, true, proj.getLog(), true,
-																							 false);
+				int[] indicesToLoad = ext.indexFactors(qcTitlesToLoad, header, true, proj.getLog(), true);
 				int sampleColumn = ext.indexOfStr(sampleColumnName, header);
 				if (ArrayUtils.countIf(indicesToLoad, -1) > 0 || sampleColumn < 0) {
 					proj.getLog().reportError("Could not find all desired columns in qc file " + lrrSdToLoad);

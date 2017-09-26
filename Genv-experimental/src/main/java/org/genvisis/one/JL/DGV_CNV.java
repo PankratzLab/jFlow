@@ -76,11 +76,10 @@ public class DGV_CNV {
 				BufferedReader reader = Files.getAppropriateReader(element);
 				reader.readLine();
 
-				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true,
-																				 false);
+				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
 					indices = ext.indexFactors(COPY_NUMBER_VARIATION_MAP, Files.getHeaderOfFile(element, log),
-																		 true, false);
+																		 true);
 					dgv = false;
 				}
 				int lineNum = 0;
@@ -224,8 +223,7 @@ public class DGV_CNV {
 			try {
 				PrintWriter writer = Files.openAppropriateWriter(out);
 				writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true,
-																				 false);
+				int[] indices = ext.indexFactors(HEADER_DGV, Files.getHeaderOfFile(element, log), true);
 				try {
 					BufferedReader reader = Files.getAppropriateReader(element);
 					reader.readLine();

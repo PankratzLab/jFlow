@@ -2462,8 +2462,7 @@ public class ArrayUtils {
 		String[][] stringSplits = splitUpStringArray(strings, nChunks, log);
 		boolean[][] stringBoolSplits = new boolean[stringSplits.length][];
 		for (int i = 0; i < stringBoolSplits.length; i++) {
-			int[] indicesThisChunk = ext.indexLargeFactors(stringSplits[i], strings, true, log, true,
-																										 false);
+			int[] indicesThisChunk = ext.indexLargeFactors(stringSplits[i], strings, true, log, true);
 			stringBoolSplits[i] = new boolean[strings.length];
 			Arrays.fill(stringBoolSplits[i], false);
 			for (int j = 0; j < indicesThisChunk.length; j++) {

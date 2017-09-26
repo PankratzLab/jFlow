@@ -78,7 +78,7 @@ public class ExomeDepth {
 		this.outputRoot = outputRoot;
 		if (!fail) {
 			fail = ArrayUtils.countIf(ext.indexLargeFactors(analysisBamFiles, allReferenceBamFiles, true,
-																											log, true, false),
+																											log, true),
 																-1) > 0;
 			if (fail) {
 				log.reportError("Could not detect all analysis .bam files in the complete reference set");
@@ -508,7 +508,7 @@ public class ExomeDepth {
 				log.reportFileNotFound(getAnnoExomeDepthOutput());
 			} else {
 				String[] header = Files.getHeaderOfFile(getAnnoExomeDepthOutput(), log);
-				int[] indices = ext.indexFactors(RESULT_PARSE, header, true, false);
+				int[] indices = ext.indexFactors(RESULT_PARSE, header, true);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
 					log.reportError("Did not find complete header " + ArrayUtils.toStr(RESULT_PARSE) + " in "
 													+ getAnnoExomeDepthOutput());

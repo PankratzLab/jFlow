@@ -285,15 +285,14 @@ public class CytoCNVariant extends CNVariant {
 			do {
 				line = reader.readLine().trim().split(SPLITS[0], -1);
 				count++;
-			} while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false,
-																									 false)[0] == -1));
+			} while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false)[0] == -1));
 			if (!reader.ready()) {
 				log.reportError("Error - did not find the neccesary column headers in file "
 												+ cytoCNVariantFile);
 				return null;
 			}
 			header = line;
-			indicesCommon = ext.indexFactors(CYTO_ABERATION_HEADER[0], header, false, false);
+			indicesCommon = ext.indexFactors(CYTO_ABERATION_HEADER[0], header, false);
 			indicesSamples = determineSampleIndices(header, log);
 			reader.close();
 
@@ -354,8 +353,7 @@ public class CytoCNVariant extends CNVariant {
 			do {
 				line = reader.readLine().trim().split(SPLITS[0], -1);
 				count++;
-			} while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false,
-																									 false)[0] == -1));
+			} while (reader.ready() && (ext.indexFactors(CYTO_ABERATION_HEADER, line, false, true, false)[0] == -1));
 			if (!reader.ready()) {
 				log.reportError("Error - did not find the neccesary column headers in file "
 												+ cytoCNVariantFile);

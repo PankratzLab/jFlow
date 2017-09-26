@@ -700,7 +700,7 @@ public class ConditionalAnalysisPipeline {
 
 		String delim = ext.determineDelimiter(line);
 		String[] hdr = line.split(delim);
-		int[] indices = ext.indexFactors(aliases, hdr, false, true, false, false);
+		int[] indices = ext.indexFactors(aliases, hdr, false, true, false);
 
 		double minPVal = thresh;
 		// String minPValStr = null;
@@ -736,7 +736,7 @@ public class ConditionalAnalysisPipeline {
 
 		String delim = ext.determineDelimiter(line);
 		String[] hdr = line.split(delim);
-		int[] indices = ext.indexFactors(aliases, hdr, false, true, false, false);
+		int[] indices = ext.indexFactors(aliases, hdr, false, true, false);
 
 		String[] deets = new String[3];
 		while ((line = reader.readLine()) != null) {
@@ -1177,7 +1177,7 @@ public class ConditionalAnalysisPipeline {
 																								// replace the instance each time [is this true?]
 
 						int[] indices = ext.indexFactors(factors, Files.getHeaderOfFile(dir + file, null),
-																						 false, true, false, false);
+																						 false, true, false);
 						String[][] fileData = HashVec.loadFileToStringMatrix(dir + file, true, indices);
 
 						HashMap<String, StringBuilder> markerResultsMap = factorResultsMap.get(factorDir);

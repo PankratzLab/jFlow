@@ -364,7 +364,7 @@ public class DBGAPMerge {
 			line = dataReader.readLine();
 			delim = ext.determineDelimiter(line);
 			parts = line.split(delim, -1);
-			int[] factors = ext.indexFactors(colsToLoad, parts, false, false);
+			int[] factors = ext.indexFactors(colsToLoad, parts, false);
 
 			writer = Files.getAppropriateWriter(outputFile);
 			sb = new StringBuilder();

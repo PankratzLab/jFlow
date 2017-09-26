@@ -1423,7 +1423,7 @@ public class Conditional {
 																										 "Allele1", "Allele2", "Effect", "StdErr"},
 																			 Files.getHeaderOfFile("metas/" + markersAndChrs[i][0]
 																														 + "_SE1.tbl", "\t", log),
-																			 false, true);
+																			 false);
 						results = HashVec.loadFileToStringMatrix("metas/" + markersAndChrs[i][0] + "_SE1.tbl",
 																										 true, indices);
 
@@ -1472,8 +1472,7 @@ public class Conditional {
 								}
 								if (Files.exists(filename)) {
 									indices = ext.indexFactors(new String[] {"MarkerName", "BETA", "SE", "P"},
-																						 Files.getHeaderOfFile(filename, "\t", log), false,
-																						 true);
+																						 Files.getHeaderOfFile(filename, "\t", log), false);
 									results = HashVec.loadFileToStringMatrix(filename, true, indices);
 									index = ext.indexOfStr(minMarker, Matrix.extractColumn(results, 0));
 									if (index == -1) {

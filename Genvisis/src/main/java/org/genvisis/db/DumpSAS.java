@@ -149,7 +149,7 @@ public class DumpSAS {
 				vars = ArrayUtils.toStringArray(v);
 				v.insertElementAt("CAReID", 0);
 				// v.insertElementAt("ID", 0);
-				indices = ext.indexFactors(ArrayUtils.toStringArray(v), header, false, true);
+				indices = ext.indexFactors(ArrayUtils.toStringArray(v), header, false);
 				writer.println("\t" + ArrayUtils.toStr(ArrayUtils.subArray(header, indices)));
 				writer.print("\t");
 				for (int j = 1; j < indices.length; j++) {
@@ -506,14 +506,12 @@ public class DumpSAS {
 															+ "'). However, there was no such column header in the file.");
 							error = true;
 						}
-						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false,
-																			 false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false);
 					} else {
 						foundAnID = false;
 						// TODO If case insensitivity is necessary, make sure all downstream calls can and do
 						// ignore case (including GenParser)
-						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false,
-																			 false);
+						indices = ext.indexFactors(ArrayUtils.toStringArray(ids), header, true, log, false);
 						for (int j = 0; j < ids.size(); j++) {
 							if (indices[j] != -1) {
 								if (foundAnID) {
@@ -541,7 +539,7 @@ public class DumpSAS {
 
 					hash = hashes.get(file);
 					keys = HashVec.getKeys(hash);
-					indices = ext.indexFactors(keys, header, true, false);
+					indices = ext.indexFactors(keys, header, true);
 					Arrays.sort(indices);
 					for (int indice : indices) {
 						writer.print(" '" + header[indice] + "'=" + header[indice]

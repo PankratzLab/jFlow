@@ -413,12 +413,12 @@ public class Picard {
 				do {
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				} while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
-																										 true, false, false)[0] == -1));
+																										 true, false)[0] == -1));
 				if (!reader.ready()) {
 					log.reportError("Error - could not find neccesary header "
 													+ ArrayUtils.toStr(PICARD_METRICS) + " in file " + picardMetricsFile);
 				} else {
-					int[] indices = ext.indexFactors(PICARD_METRICS, line, true, false);
+					int[] indices = ext.indexFactors(PICARD_METRICS, line, true);
 					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 					for (int i = 0; i < indices.length; i++) {
 						try {

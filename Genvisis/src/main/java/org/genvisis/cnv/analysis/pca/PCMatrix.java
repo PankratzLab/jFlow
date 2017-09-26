@@ -96,8 +96,8 @@ public class PCMatrix {
 		final String file = proj.SAMPLE_DATA_FILENAME.getValue();
 		// Find the index of the column of interest
 		String[] headerOfFile = Files.getHeaderOfFile(file, log);
-		int[] valCols = ext.indexFactors(new String[] {column}, headerOfFile, false, false);
-		int[] keyCols = ext.indexFactors(new String[] {"FID", "IID"}, headerOfFile, false, false);
+		int[] valCols = ext.indexFactors(new String[] {column}, headerOfFile, false);
+		int[] keyCols = ext.indexFactors(new String[] {"FID", "IID"}, headerOfFile, false);
 
 		if (valCols == null || valCols.length == 0) {
 			log.reportError(PCMatrix.class + ": requested column (" + column

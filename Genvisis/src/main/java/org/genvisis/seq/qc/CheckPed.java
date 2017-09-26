@@ -150,7 +150,7 @@ public class CheckPed {
 				BufferedReader genomeReader = Files.getAppropriateReader(genome);
 				int[] indices = ext.indexFactors(new String[] {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
 																											 "Z2", "PI_HAT"},
-																				 Plink.CLUSTER_HEADER, false, true);
+																				 Plink.CLUSTER_HEADER, false);
 				int fid1 = indices[0];
 				int iid1 = indices[1];
 				int fid2 = indices[2];

@@ -28,7 +28,7 @@ public class Mapability {
 
 		header = Files.getHeaderOfFile(filename, "\t", new Logger());
 		data = HashVec.loadFileToStringMatrix(filename, true, ArrayUtils.arrayOfIndices(header.length));
-		indices = ext.indexFactors(REQS, header, false, true);
+		indices = ext.indexFactors(REQS, header, false);
 
 		max = -1;
 		sum = 0;

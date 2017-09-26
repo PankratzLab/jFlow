@@ -98,7 +98,7 @@ public class CushingCnvs {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(filname);
 				String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				int[] indices = ext.indexFactors(header, EMP_HEADER, true, false);
+				int[] indices = ext.indexFactors(header, EMP_HEADER, true);
 
 				while (reader.ready()) {
 					String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

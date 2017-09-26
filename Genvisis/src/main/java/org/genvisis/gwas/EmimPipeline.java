@@ -477,7 +477,7 @@ public class EmimPipeline {
 			}
 			int[] resultFileIndices = ext.indexFactors(headers,
 																								 Files.getHeaderOfFile(resultFiles[i], log), true,
-																								 log, false, false);
+																								 log, false);
 			for (int j = 0; j < headers.length; j++) {
 				if (resultFileIndices[j] == -1) {
 					log.reportError("Could not find " + headers[j] + " in " + resultFiles[i]);

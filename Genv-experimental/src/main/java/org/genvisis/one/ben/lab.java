@@ -341,7 +341,7 @@ public class lab {
 
 	private static HashMap<String, String> loadCallrates(String callrateFile) {
 		String[] hdr = Files.getHeaderOfFile(callrateFile, new Logger());
-		int[] mkrInds = ext.indexFactors(Aliases.MARKER_NAMES, hdr, false, false);
+		int[] mkrInds = ext.indexFactors(Aliases.MARKER_NAMES, hdr, false);
 		int mkrInd = -1;
 		for (int m : mkrInds) {
 			if (m >= 0) {

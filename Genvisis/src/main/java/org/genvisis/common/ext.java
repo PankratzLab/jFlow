@@ -903,13 +903,11 @@ public class ext {
 	 * @param casesensitive : case sensitive match
 	 * @param log
 	 * @param verbose : report duplicate matches, and no matches
-	 * @param kill : system.exit(1) if duplicates are found, or subset member is not contained in
-	 *        superset
 	 * @return indices of subset in superset
 	 *
 	 */
 	public static int[] indexLargeFactors(String[] subset, String[] superset, boolean casesensitive,
-																				Logger log, boolean verbose, boolean kill) {
+																				Logger log, boolean verbose) {
 		Hashtable<String, Integer> track = new Hashtable<String, Integer>();
 		int[] indices = new int[subset.length];
 		Arrays.fill(indices, -1);
@@ -937,18 +935,14 @@ public class ext {
 				err = true;
 			}
 		}
-		if (kill && err) {
-			System.exit(1);
-		}
 		return indices;
 	}
 
 	/**
-	 * @see #indexFactors(String[], String[], boolean, Logger, boolean, boolean)
+	 * @see #indexFactors(String[], String[], boolean, Logger, boolean)
 	 */
-	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
-																	 boolean kill) {
-		return indexFactors(subset, superset, caseSensitive, new Logger(), true, kill);
+	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive) {
+		return indexFactors(subset, superset, caseSensitive, new Logger(), true);
 	}
 
 	/**
@@ -959,14 +953,13 @@ public class ext {
 	 * @param caseSensitive Whether or not to consider case when comparing subset and superset strings
 	 * @param log Logger instance to use when reporting
 	 * @param verbose If true, report any mismatches (default: {@code true})
-	 * @param kill If true and there are any
 	 * @return Parallel array of subset indices in the superset (-1 if not found)
 	 *
 	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)
 	 * @see #indexOfStr
 	 */
 	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
-																	 Logger log, boolean verbose, boolean kill) {
+																	 Logger log, boolean verbose) {
 		if (subset.length == 1) {
 			// If we're looking up a single string, use indexOfStr to avoid computation cost of building a
 			// map.
@@ -996,10 +989,6 @@ public class ext {
 			}
 		}
 
-		if (kill && err) {
-			System.exit(1);
-		}
-
 		return indices;
 	}
 
@@ -1023,11 +1012,9 @@ public class ext {
 	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)
 	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
-																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
-																	 boolean kill) {
+																	 boolean caseSensitive, boolean exactMatch, boolean verbose) {
 		return indexFactors(targetsWithAlts, superset, caseSensitive, exactMatch, verbose,
-												new Logger(),
-												kill);
+												new Logger());
 	}
 
 	/**
@@ -1035,7 +1022,7 @@ public class ext {
 	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
-																	 Logger log, boolean kill) {
+																	 Logger log) {
 		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log);
 	}
 
@@ -1055,7 +1042,7 @@ public class ext {
 	 * @return Parallel array of the best target indices in the superset (-1 indicates target was not
 	 *         found)
 	 *
-	 * @see #indexFactors(String[], String[], boolean, Logger, boolean, boolean)
+	 * @see #indexFactors(String[], String[], boolean, Logger, boolean)
 	 * @see #indexOfStr
 	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
@@ -1249,7 +1236,7 @@ public class ext {
 
 		if (!casesensitive) {
 			// TODO implement CaseInsensitiveMap solution (maybe Apache Commons)
-			int[] indexArr = indexFactors(subset, superset, casesensitive, log, verbose, kill);
+			int[] indexArr = indexFactors(subset, superset, casesensitive, log, verbose);
 			for (int i = 0; i < subset.length; i++) {
 				indices.put(subset[i], indexArr[i]);
 			}

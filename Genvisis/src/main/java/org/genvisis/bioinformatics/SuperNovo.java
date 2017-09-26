@@ -2108,7 +2108,7 @@ public class SuperNovo {
 				reader = new BufferedReader(new FileReader(resultDir + resultFilename));
 				// header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				header = reader.readLine().trim().split("\t");
-				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
+				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false);
 				while (reader.ready()) {
 					line = reader.readLine().split("\t");
 					if (Double.parseDouble(line[6]) >= callScoreThreshold) {
@@ -2432,7 +2432,7 @@ public class SuperNovo {
 				reader = new BufferedReader(new FileReader(resultDir + resultFilename));
 				// header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				header = reader.readLine().trim().split("\t");
-				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false, true);
+				indices = ext.indexFactors(COLUMNS_NEEDED_FROM_PHASE1_OUTPUT, header, false);
 				while (reader.ready()) {
 					line = reader.readLine().split("\t");
 					if (Double.parseDouble(line[6]) >= callScoreThreshold) {

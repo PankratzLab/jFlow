@@ -762,8 +762,7 @@ public class SourceFileParser implements Runnable {
 				if (count < 20) {
 					log.report(ArrayUtils.toStr(line), true, true, 11);
 				}
-				if (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
-														 false)[0] != -1) {
+				if (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false)[0] != -1) {
 					foundSNPon = count;
 				}
 				if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
@@ -839,7 +838,7 @@ public class SourceFileParser implements Runnable {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-																										 false, true, false, false)[0] == -1
+																										 false, true, false)[0] == -1
 																		|| (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
 																				&& ext.indexOfStr(idHeader, line) == -1)));
 			}
@@ -848,7 +847,7 @@ public class SourceFileParser implements Runnable {
 			PSF.checkInterrupted();
 			log.report(ext.getTime() + "]\tSearching for data fields...");
 			// check immediately to make sure these fields are valid
-			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false, false); // dataIndices
+			indices = ext.indexFactors(Sample.DATA_FIELDS, line, false, true, false); // dataIndices
 			// if (indices[3] == -1 || indices[4] == -1) {
 			// log.reportError("Error - at the very least the files need to contain
 			// "+Array.toStr(Sample.DATA_FIELDS[3], "/")+" and "+Array.toStr(Sample.DATA_FIELDS[4], "/"));
@@ -859,7 +858,7 @@ public class SourceFileParser implements Runnable {
 
 			// TODO check different fields depending upon Affy/Illumina flag
 			log.report(ext.getTime() + "]\tSearching for other fields...");
-			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false, false); // genotypeIndices
+			indices = ext.indexFactors(Sample.GENOTYPE_FIELDS, line, false, true, false); // genotypeIndices
 			// if (indices[0] == -1 || indices[1] == -1) {
 			// log.reportError("Error - the files need to contain "+Array.toStr(Sample.GENOTYPE_FIELDS[0],
 			// "/")+" and "+Array.toStr(Sample.GENOTYPE_FIELDS[1], "/"));
@@ -870,10 +869,9 @@ public class SourceFileParser implements Runnable {
 			}
 
 			if (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)) {
-				ext.indexFactors(new String[] {idHeader}, line, false, true); // sampIndex
+				ext.indexFactors(new String[] {idHeader}, line, false); // sampIndex
 			}
-			snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, true,
-																	true)[0];
+			snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, true)[0];
 
 			idHeader = proj.ID_HEADER.getValue();
 			reader.mark(1000);
@@ -884,7 +882,7 @@ public class SourceFileParser implements Runnable {
 				sampIndex = -7;
 				parseAtAt = false;
 			} else {
-				sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+				sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
 				line = reader.readLine().split(delimiter);
 				parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
 				if (parseAtAt && line[sampIndex].indexOf("@") == -1) {

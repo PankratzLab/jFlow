@@ -498,7 +498,7 @@ public class ForestPlot {
 					hdr = header.trim().split(delimiter);
 				}
 				int idIndex = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, hdr, false, true,
-																			 false, false)[0];
+																			 false)[0];
 
 				for (ForestInput inputData : fileMap.getValue()) {
 					if (Thread.interrupted()) {

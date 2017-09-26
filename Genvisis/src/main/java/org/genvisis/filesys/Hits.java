@@ -28,7 +28,7 @@ public class Hits {
 		int[] indices;
 
 		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
-															 Files.getHeaderOfFile(filename, log), false, true, true, log, true);
+															 Files.getHeaderOfFile(filename, log), false, true, true, log);
 		incorporateFromFile(filename, indices, threshold, log);
 	}
 

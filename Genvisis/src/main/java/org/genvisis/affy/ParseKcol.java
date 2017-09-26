@@ -149,19 +149,18 @@ public class ParseKcol implements Runnable {
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()
-									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
-																				false)[0] == -1
+									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 											 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
 													 && ext.indexOfStr(idHeader, line) == -1)));
 
-					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
-					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
+					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false);
+					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false);
 					if (idHeader.equals(FILENAME_AS_ID_OPTION)) {
 						sampIndex = -7;
 					} else {
-						sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+						sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
 					}
-					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0];
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
@@ -646,7 +645,7 @@ public class ParseKcol implements Runnable {
 				// System.out.println(Array.toStr(line));
 				// }
 			} while (reader.ready()
-							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 									 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
 											 && ext.indexOfStr(idHeader, line) == -1)));
 
@@ -695,14 +694,14 @@ public class ParseKcol implements Runnable {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
 												 && ext.indexOfStr(idHeader, line) == -1)));
 				System.out.println(1);
 			}
 
 			// check immediately to make sure these fields are valid
-			indices = ext.indexFactors(DATA_FIELDS, line, false, true, true, false); // dataIndices
+			indices = ext.indexFactors(DATA_FIELDS, line, false, true, true); // dataIndices
 			if (indices[3] == -1 || indices[4] == -1) {
 				System.err.println("Error - at the very least the files need to contain "
 													 + ArrayUtils.toStr(DATA_FIELDS[3], "/") + " and "
@@ -712,7 +711,7 @@ public class ParseKcol implements Runnable {
 
 				return;
 			}
-			indices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, true, false); // genotypeIndices
+			indices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, true); // genotypeIndices
 			if (indices[4] == -1 && (indices[0] == -1 || indices[1] == -1)) {
 				System.err.println("Error - the files need to contain "
 													 + ArrayUtils.toStr(GENOTYPE_FIELDS[0], "/") + " and "
@@ -725,7 +724,7 @@ public class ParseKcol implements Runnable {
 				abLookupRequired = true;
 			}
 
-			snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, true, true)[0];
+			snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, true)[0];
 
 			// parseAtAt = Boolean.parseBoolean(proj.getProperty(proj.PARSE_AT_AT_SYMBOL));
 			parseAtAt = proj.getProperty(proj.PARSE_AT_AT_SYMBOL);
@@ -734,7 +733,7 @@ public class ParseKcol implements Runnable {
 				sampleName = files[0].substring(0,
 																				files[0].indexOf(proj.getProperty(proj.SOURCE_FILENAME_EXTENSION)));
 			} else {
-				sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+				sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
 				reader.mark(1000);
 				line = reader.readLine().split(delimiter);
 				if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
@@ -1002,15 +1001,14 @@ public class ParseKcol implements Runnable {
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()
-									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
-																				false)[0] == -1
+									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 											 || ext.indexOfStr(idHeader, line) == -1));
 
 					System.err.println("Searching: " + ArrayUtils.toStr(line));
-					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false, false);
-					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false, false);
-					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
-					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+					dataIndices = ext.indexFactors(DATA_FIELDS, line, false, true, false);
+					genotypeIndices = ext.indexFactors(GENOTYPE_FIELDS, line, false, true, false);
+					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
+					snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0];
 
 					if (dataIndices[3] == -1 || dataIndices[4] == -1) {
 						System.err.println("Error - File format not consistent! At the very least the files need to contain "
@@ -1230,7 +1228,7 @@ public class ParseKcol implements Runnable {
 															 + idHeader);
 						return;
 					}
-					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
 
 					line = reader.readLine().split(delimiter);
 					writer.println(file + "\t" + line[sampIndex] + "\t"
@@ -1293,8 +1291,7 @@ public class ParseKcol implements Runnable {
 					do {
 						line = reader.readLine().trim().split(delimiter, -1);
 					} while (reader.ready()
-									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false,
-																				false)[0] == -1
+									 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 											 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
 													 && ext.indexOfStr(idHeader, line) == -1)));
 					// if its the first directory, print the header
@@ -1414,13 +1411,13 @@ public class ParseKcol implements Runnable {
 				do {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
-								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1
+								 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1
 										 || (!idHeader.equals(FILENAME_AS_ID_OPTION)
 												 && ext.indexOfStr(idHeader, line) == -1)));
 
-				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, true)[0];
+				snpIndex = ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
-																	 false, false);
+																	 false);
 
 				while (reader.ready()) {
 					line = reader.readLine().split(delimiter);

@@ -142,7 +142,7 @@ public class IndependentSNPs {
 						while (reader.ready() && !line[0].startsWith("Locus_Name")) {
 							line = reader.readLine().trim().split(",");
 						}
-						indices = ext.indexFactors(ILLUMINA_TARGET_COLUMNS, line, false, null, false, false);
+						indices = ext.indexFactors(ILLUMINA_TARGET_COLUMNS, line, false, null, false);
 						if (!reader.ready()) {
 							log.reportError("Error - failed to parse '" + file
 															+ "'; no line started with 'Locus_Name'");

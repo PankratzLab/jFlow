@@ -1137,7 +1137,7 @@ public class VCFOps {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToPopFile);
 				String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
-				int[] indices = ext.indexFactors(HEADER, header, true, false);
+				int[] indices = ext.indexFactors(HEADER, header, true);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
 					log.reportError("Could not find required headers " + ArrayUtils.toStr(HEADER) + " in "
 													+ fullPathToPopFile);
@@ -1349,8 +1349,7 @@ public class VCFOps {
 				new MatchesVisualized(matchDir, ext.removeDirectoryInfo(anchorList),
 															ext.removeDirectoryInfo(barnacleList),
 															ext.removeDirectoryInfo(factorFile),
-															ext.indexFactors(run, Files.getHeaderOfFile(factorFile, log), true,
-																							 false),
+															ext.indexFactors(run, Files.getHeaderOfFile(factorFile, log), true),
 															ext.removeDirectoryInfo(pairs));
 
 				for (String delete : deletes) {

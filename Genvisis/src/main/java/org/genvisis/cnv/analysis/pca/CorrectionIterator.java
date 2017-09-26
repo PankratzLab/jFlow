@@ -189,7 +189,7 @@ public class CorrectionIterator implements Serializable {
 														 + samplesToBuildModels);
 
 					int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true,
-																								proj.getLog(), true, false);
+																								proj.getLog(), true);
 					samplesForModels = ArrayUtils.booleanArray(proj.getSamples().length, false);
 					for (int i = 0; i < indices.length; i++) {
 						samplesForModels[indices[i]] = true;
@@ -513,7 +513,7 @@ public class CorrectionIterator implements Serializable {
 				int[] indices = ext.indexFactors(numericStratCats,
 																				 Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(),
 																															 proj.getLog()),
-																				 true, false);
+																				 true);
 				ArrayList<Integer> use = new ArrayList<Integer>();
 				for (int i = 0; i < indices.length; i++) {
 					if (indices[i] >= 0) {
@@ -831,8 +831,7 @@ public class CorrectionIterator implements Serializable {
 																							 "Solar_StdError", "Solar_Kurt", "Solar_KurtWarning"};
 
 						System.out.println(tmpHerit);
-						int[] indices = ext.indexFactors(toExtract, Files.getHeaderOfFile(tmpHerit, log), true,
-																						 false);
+						int[] indices = ext.indexFactors(toExtract, Files.getHeaderOfFile(tmpHerit, log), true);
 						if (ArrayUtils.countIf(indices, -1) > 0) {
 							log.reportError("Could not find " + ArrayUtils.toStr(toExtract) + " in " + tmpHerit);
 							return null;

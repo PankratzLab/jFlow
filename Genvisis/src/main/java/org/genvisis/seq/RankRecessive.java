@@ -36,7 +36,7 @@ public class RankRecessive {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			header = reader.readLine().trim().split("\\t", -1);
-			indices = ext.indexFactors(REQS, header, false, true);
+			indices = ext.indexFactors(REQS, header, false);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\\t", -1);
 				HashVec.addToHashArrayVec(hash, line[1],

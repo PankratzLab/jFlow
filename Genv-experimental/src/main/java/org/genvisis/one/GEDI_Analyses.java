@@ -65,7 +65,7 @@ public class GEDI_Analyses {
 						do {
 							temp = reader.readLine();
 						} while (!temp.contains("Well"));
-						indices = ext.indexFactors(columns_needed, temp.trim().split(","), false, true);
+						indices = ext.indexFactors(columns_needed, temp.trim().split(","), false);
 						while (reader.ready()) {
 							line = reader.readLine().trim().split(",");
 							writer.println(line[indices[0]] + "\t" + i + "\t" + line[indices[1]] + "\t"

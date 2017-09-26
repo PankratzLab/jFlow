@@ -131,7 +131,7 @@ public class GeneQC {
 																											 ext.indexFactors(targets,
 																																				Files.getHeaderOfFile(output,
 																																															log),
-																																				true, true));
+																																				true));
 		ArrayList<Integer> numMrnaTotal = new ArrayList<Integer>();
 		ArrayList<Integer> numMrnaNonUTR = new ArrayList<Integer>();
 		Hashtable<String, Integer> index = new Hashtable<String, Integer>();

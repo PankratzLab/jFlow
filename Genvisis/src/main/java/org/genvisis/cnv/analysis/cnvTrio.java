@@ -233,8 +233,8 @@ public class cnvTrio extends CNVariant {
 		try {
 			BufferedReader reader = Files.getAppropriateReader(fullPathToTrioFile);
 			String[] header = reader.readLine().trim().split("\t");
-			int[] cnvIndices = ext.indexFactors(PLINK_CNV_HEADER, header, true, log, true, false);
-			int[] trioIndics = ext.indexFactors(OUTPUT_HEADER, header, true, false);
+			int[] cnvIndices = ext.indexFactors(PLINK_CNV_HEADER, header, true, log, true);
+			int[] trioIndics = ext.indexFactors(OUTPUT_HEADER, header, true);
 			boolean allThere = true;
 			for (int i = 0; i < PLINK_CNV_HEADER.length; i++) {
 				if (cnvIndices[i] < 0) {
@@ -791,7 +791,7 @@ public class cnvTrio extends CNVariant {
 				BufferedReader reader = Files.getReader(proj.DATA_DIRECTORY.getValue(false, true)
 																								+ trioFile, true, false);
 				String[] line = reader.readLine().trim().split(SPLITS[0]);
-				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true, true);
+				int[] indices = ext.indexFactors(PED_TRIO_HEADER, line, true);
 				while (reader.ready()) {
 					line = reader.readLine().trim().split(SPLITS[0]);
 					String dna = line[indices[4]];

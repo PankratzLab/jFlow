@@ -744,7 +744,7 @@ public class Mega_Analyses {
 		for (String[] element : STUDIES) {
 			header = Files.getHeaderOfFile(DIR + "filtered/" + element[1], log);
 			indices = ext.indexFactors(new String[][] {{"MarkerName"}, {"Information", "Rsq"}}, header,
-																 false, true, true, true);
+																 false, true, true);
 			// purifyDuplicateMarkers(DIR+"filtered/"+STUDIES[i][1], indices[0], indices[1], false, log);
 			// log.report("Parsing "+STUDIES[i][0]+" using "+header[indices[0]]+" and
 			// "+header[indices[1]]);

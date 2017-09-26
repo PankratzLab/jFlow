@@ -78,7 +78,7 @@ public class HapMapParser {
 			reader = Files.getReader(filename, dir);
 			temp = reader.readLine();
 			indices = ext.indexFactors(TARGETS_WITH_ALTS, temp.trim().split("\\t", -1), false, false,
-																 true, log, true);
+																 true, log);
 
 			writer = Files.openAppropriateWriter((new File(dir).exists() ? dir : "") + root + ".map");
 			trans = null;

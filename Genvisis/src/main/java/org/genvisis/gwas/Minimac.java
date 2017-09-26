@@ -244,7 +244,7 @@ public class Minimac {
 			reader.mark(5000);
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(new String[][] {{"MarkerName", "SNP", "RSID"}, {"Chr"}}, line,
-																 false, true, true, false);
+																 false, true, true);
 			if (ArrayUtils.min(indices) == -1) {
 				System.err.println("Error - assuming there is no header; found '" + ArrayUtils.toStr(line)
 													 + "' as first line");
@@ -300,7 +300,7 @@ public class Minimac {
 
 		indices = ext.indexFactors(markers,
 															 HashVec.loadFileToStringArray(mapFile, false, new int[] {1}, false),
-															 false, false);
+															 false);
 		hash = new Hashtable<String, String>();
 		for (int i = 0; i < indices.length; i++) {
 			hash.put(indices[i] + "", i + "");

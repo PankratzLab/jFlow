@@ -1074,7 +1074,7 @@ public class GcAdjustor {
 			log.report("Info - parsing gc model file " + fullPathToGcModel);
 
 			int[] indices = ext.indexFactors(Files.getHeaderOfFile(fullPathToGcModel, log), GC_HEADER,
-																			 true, false);
+																			 true);
 			if (ArrayUtils.countIf(indices, -1) > 0) {
 				log.reportError("Error - could not find correct header for gc model file "
 												+ fullPathToGcModel);

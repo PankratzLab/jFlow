@@ -479,7 +479,7 @@ public class LrrSd extends Parallelizable {
 		// proj.getLog());
 		String[] header = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), proj.getLog());
 		int[] indices = ext.indexFactors(MitoPipeline.SAMPLE_DATA_ADDITION_HEADERS, header, true,
-																		 proj.getLog(), false, false);
+																		 proj.getLog(), false);
 		for (int indice : indices) {
 			if (indice < 0) {
 				added = false;
@@ -549,7 +549,7 @@ public class LrrSd extends Parallelizable {
 				return new int[] {numPassing, count};
 			}
 			line = reader.readLine().trim().split(delim);
-			indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true, false);
+			indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true);
 
 			if (!checkIndices(proj, indices)) {
 				writerUse.close();
@@ -642,7 +642,7 @@ public class LrrSd extends Parallelizable {
 			}
 			String delim = "\t";
 			String[] line = reader.readLine().trim().split(delim);
-			int[] indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true, false);
+			int[] indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true);
 
 			if (!checkIndices(proj, indices)) {
 				reader.close();
@@ -708,8 +708,7 @@ public class LrrSd extends Parallelizable {
 			Arrays.fill(markerSubset, true);
 		} else {
 			Arrays.fill(markerSubset, false);
-			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true,
-																								 false);
+			int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true);
 			for (int i = 0; i < indicesToUse.length; i++) {
 				if (indicesToUse[i] < 0) {
 					return null;

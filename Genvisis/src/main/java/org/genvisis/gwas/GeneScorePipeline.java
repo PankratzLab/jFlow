@@ -638,7 +638,7 @@ public class GeneScorePipeline {
 					BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
 					String line = reader.readLine();
 					String[] dataHdrs = line.split(PSF.Regex.GREEDY_WHITESPACE);
-					int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, false);
+					int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false);
 					int ind = -1;
 					for (int i : indices) {
 						if (i > 0) {
@@ -1031,7 +1031,7 @@ public class GeneScorePipeline {
 				int cnt = 0;
 				String dataHdr = dataReader.readLine();
 				String[] dataHdrs = dataHdr.split(PSF.Regex.GREEDY_WHITESPACE);
-				int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, false);
+				int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false);
 				int ind = -1;
 				for (int i : indices) {
 					if (i > 0) {
@@ -1124,7 +1124,7 @@ public class GeneScorePipeline {
 				}
 
 				String[] header = Files.getHeaderOfFile(crossFilterFile, null);
-				int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null, false);
+				int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null);
 				int[] finalCols = new int[cols.length - ArrayUtils.countIf(cols, -1)];
 				int finalInd = 0;
 				for (int col : cols) {

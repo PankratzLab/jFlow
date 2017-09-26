@@ -286,7 +286,7 @@ public class ChargeS {
 																																						log)[0],
 																								 "\"", "")
 																 .split(Files.determineDelimiter(annotationFile, log)),
-															false, true, true, log, true);
+															false, true, true, log);
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
 																										annotationFile.endsWith(".csv"), "\t", true,
@@ -616,7 +616,7 @@ public class ChargeS {
 																																						log)[0],
 																								 "\"", "")
 																 .split(Files.determineDelimiter(annotationFile, log)),
-															false, true, true, log, true);
+															false, true, true, log);
 			log.report("Loading map positions");
 			annotationHash = HashVec.loadFileToHashString(annotationFile, new int[] {cols[0]}, cols,
 																										annotationFile.endsWith(".csv"), "\t", true,

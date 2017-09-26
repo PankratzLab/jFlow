@@ -29,8 +29,7 @@ public class Dinumt {
 	private static QCParams getQCParams(String bamQCOutput, String bamFile, Logger log) {
 		String[] dataToLoad = new String[] {"numOnTarget", "Total Base Pairs Targeted",
 																				"AverageOnTargetInsertSize", "OnTargetInsertSizeStdev"};
-		int[] indices = ext.indexFactors(dataToLoad, Files.getHeaderOfFile(bamQCOutput, log), true,
-																		 false);
+		int[] indices = ext.indexFactors(dataToLoad, Files.getHeaderOfFile(bamQCOutput, log), true);
 
 
 		String[] stats = HashVec.loadFileToStringArray(bamQCOutput, true, indices,

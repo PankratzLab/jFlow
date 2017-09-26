@@ -218,7 +218,7 @@ public class FamilyStructure {
 	}
 
 	public static boolean likelyPedHeader(String[] line) {
-		return ArrayUtils.countIf(ext.indexFactors(TYPICAL_HEADERS, line, false, true, false, false),
+		return ArrayUtils.countIf(ext.indexFactors(TYPICAL_HEADERS, line, false, true, false),
 															-1) < 3;
 	}
 }

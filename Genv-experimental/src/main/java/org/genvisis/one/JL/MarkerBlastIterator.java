@@ -744,7 +744,7 @@ public class MarkerBlastIterator {
 	private static void extractOneHitWondersFrom(String toExtractFile, String[] oneHitters,
 																							 String outputFile, Logger log) {
 		String[] toExtracts = HashVec.loadFileToStringArray(toExtractFile, false, new int[] {0}, false);
-		int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false, false);
+		int[] indices = ext.indexLargeFactors(toExtracts, oneHitters, true, log, false);
 		try {
 			PrintWriter writer = Files.openAppropriateWriter(outputFile);
 			PrintWriter writerNot = Files.openAppropriateWriter(ext.addToRoot(outputFile, "Not"));

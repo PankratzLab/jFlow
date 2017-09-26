@@ -84,7 +84,7 @@ public class ComparePlinkResults {
 					System.out.println(file.getName());
 					indices = ext.indexFactors(MPERM_REQUIRED,
 																		 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
-																		 false, true);
+																		 false);
 					begin = end = "";
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -137,7 +137,7 @@ public class ComparePlinkResults {
 					reader = new BufferedReader(new FileReader(files[j]));
 					indices = ext.indexFactors(MPERM_REQUIRED,
 																		 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
-																		 false, true);
+																		 false);
 					begin = end = "";
 					while (reader.ready()) {
 						line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

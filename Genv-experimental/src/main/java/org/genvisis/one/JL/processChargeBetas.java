@@ -38,7 +38,7 @@ public class processChargeBetas {
 					String[] line = reader.readLine().trim().split("\t");
 					if (line[0].equals("ID")) {
 						writer.println(ArrayUtils.toStr(BetaOptimizer.BETA_HEADER));
-						indices = ext.indexFactors(required, line, true, false);
+						indices = ext.indexFactors(required, line, true);
 					}
 
 					else if (indices != null) {

@@ -153,7 +153,7 @@ public class ColorExt {
 		if (Files.exists(file)) {
 			String[] header = Files.getHeaderOfFile(file, proj.getLog());
 			int markerIndex = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, header, true, true,
-																				 false, proj.getLog(), false)[0];
+																				 false, proj.getLog())[0];
 			int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
 			if (markerIndex < 0 || classIndex < 0) {
 				if (markerIndex < 0) {

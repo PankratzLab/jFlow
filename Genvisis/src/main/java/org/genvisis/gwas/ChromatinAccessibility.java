@@ -322,7 +322,7 @@ public class ChromatinAccessibility {
 				indices = ext.indexFactors(PVAL_HEADER,
 																	 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
 																	 false,
-																	 false, true, true);
+																	 false, true);
 				count = 0;
 				while (reader.ready()) {
 					count++;

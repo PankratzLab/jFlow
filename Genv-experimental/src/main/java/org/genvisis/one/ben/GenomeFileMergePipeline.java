@@ -168,7 +168,7 @@ public class GenomeFileMergePipeline {
 			reader = Files.getAppropriateReader(genFile);
 			line = reader.readLine();
 			reader.close();
-			factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, false);
+			factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false);
 			for (int i = 0; i < factors.length; i++) {
 				if (factors[i] == -1) {
 					log.reportError("Error - column " + GENOME_COLUMNS[i]
@@ -302,7 +302,7 @@ public class GenomeFileMergePipeline {
 
 			int[] cols = ext.indexFactors(RELATEDS_COLUMNS,
 																		Files.getHeaderOfFile(files.get(p).relatedsFile, log), false,
-																		log, true, false);
+																		log, true);
 			String[][] relatedsData = HashVec.loadFileToStringMatrix(files.get(p).relatedsFile, true,
 																															 cols);
 
@@ -367,7 +367,7 @@ public class GenomeFileMergePipeline {
 			try {
 				reader = Files.getAppropriateReader(files.get(p).genomeFile);
 				line = reader.readLine();
-				factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false, false);
+				factors = ext.indexFactors(GENOME_COLUMNS, line.trim().split(PSF.Regex.GREEDY_WHITESPACE), false);
 
 				while ((line = reader.readLine()) != null) {
 					line = line.trim();

@@ -1040,7 +1040,7 @@ public class PlinkData {
 
 	public static int[] getSortedIndicesOfTargetSamplesInProj(String[] allSampInProj,
 																														String[] targetSamples) {
-		int[] indices = ext.indexLargeFactors(targetSamples, allSampInProj, false, null, true, false);
+		int[] indices = ext.indexLargeFactors(targetSamples, allSampInProj, false, null, true);
 		Arrays.sort(indices);
 		return indices;
 	}
@@ -1095,8 +1095,7 @@ public class PlinkData {
 		allMarkersInProj = markerSet.getMarkerNames();
 		chrs = markerSet.getChrs();
 		positions = markerSet.getPositions();
-		int[] posInProj = ext.indexLargeFactors(inputTargetMarkers, allMarkersInProj, false, log, true,
-																						false);
+		int[] posInProj = ext.indexLargeFactors(inputTargetMarkers, allMarkersInProj, false, log, true);
 		for (int i = 0; i < inputTargetMarkers.length; i++) {
 			if (posInProj[i] == -1) {
 				log.reportError("Warning - the following marker from target marker list is not found in whole project's marker list: "

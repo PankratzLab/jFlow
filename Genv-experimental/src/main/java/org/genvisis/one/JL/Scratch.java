@@ -31,8 +31,7 @@ public class Scratch {
 		Markers.orderMarkers(null, pos, mset, log);
 		MarkerSetInfo markerSet = MarkerSet.load(mset);
 
-		int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true,
-																					true);
+		int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true);
 		int[][] indices = markerSet.getIndicesByChr();
 		ArrayList<String> outMarks = new ArrayList<String>();
 		outMarks.add("SNP Name\tChr\tPosition");

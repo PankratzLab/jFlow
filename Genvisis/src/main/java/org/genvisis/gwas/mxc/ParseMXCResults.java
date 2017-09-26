@@ -113,7 +113,7 @@ public class ParseMXCResults {
 
 		int[] valueIndices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.PVALUES},
 																					line, false,
-																					true, false, false);
+																					true, false);
 
 		metal = HashVec.loadFileToStringMatrix(metalfile, true, valueIndices);
 
@@ -270,7 +270,7 @@ public class ParseMXCResults {
 		int[] index = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.REF_ALLELES,
 																									 Aliases.ALT_ALLELES, Aliases.EFFECTS,
 																									 Aliases.STD_ERRS, Aliases.PVALUES},
-																	 header, false, true, false, false);
+																	 header, false, true, false);
 
 		if (index[0] == -1) {
 			log.reportError("Unable to find SNP column. Aborting.");
@@ -314,7 +314,7 @@ public class ParseMXCResults {
 
 	private static void qqplot(String filename, String out, Logger log) {
 		String[] header = Files.getHeaderOfFile(filename, log);
-		int[] cols = ext.indexFactors(new String[] {"pvalue"}, header, false, false);
+		int[] cols = ext.indexFactors(new String[] {"pvalue"}, header, false);
 		String[] data = HashVec.loadFileToStringArray(filename, true, cols, false);
 		data = ArrayUtils.removeMissingValues(data);
 
@@ -367,7 +367,7 @@ public class ParseMXCResults {
 
 			cols = ext.indexFactors(new String[] {"gene_name", "pvalue", "effect_size", "numSig",
 																						"numSug"},
-															header, false, false);
+															header, false);
 
 			data = HashVec.loadFileToStringMatrix(s, false, cols);
 			data[0] = new String[] {"Gene", "p_" + label, "beta_" + label, "sig_" + label,
@@ -376,7 +376,7 @@ public class ParseMXCResults {
 			if (genes == null || data.length > genes.length) {
 				cols = ext.indexFactors(new String[][] {new String[] {"gene_name"}, Aliases.CHRS,
 																								Aliases.POSITIONS},
-																header, false, true, false, false);
+																header, false, true, false);
 
 				genes = HashVec.loadFileToStringMatrix(s, false, cols);
 				genes[0] = new String[] {"Gene", "Chr", "pos"};
@@ -421,7 +421,7 @@ public class ParseMXCResults {
 		String[] header = Files.getHeaderOfFile(indicesFile, log);
 		int[] cols = ext.indexFactors(new String[][] {Aliases.GENE_UNITS, Aliases.POSITIONS,
 																									Aliases.CHRS},
-																	header, false, true, false, false);
+																	header, false, true, false);
 		if (ArrayUtils.min(cols) == -1) {
 			log.reportError("Expected " + indicesFile
 											+ " to be of the form: Gene Label, Position, Chromosome");
@@ -448,7 +448,7 @@ public class ParseMXCResults {
 		header = Files.getHeaderOfFile(mxcFile, log);
 		cols = ext.indexFactors(new String[][] {new String[] {"gene_name"}, Aliases.POSITIONS,
 																						Aliases.CHRS, Aliases.PVALUES},
-														header, false, true, false, false);
+														header, false, true, false);
 
 		if (ArrayUtils.min(cols) == -1) {
 			log.reportError("Invalid header for " + mxcFile);

@@ -84,7 +84,7 @@ public class SourceFileHeaderData implements Serializable {
 			}
 			if ("[Data]".equals(line) || line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
 					|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
-															false, false)[0] != -1) {
+															false)[0] != -1) {
 				break;
 			}
 			String[] parts = line.trim().split(",");
@@ -94,7 +94,7 @@ public class SourceFileHeaderData implements Serializable {
 		if (!"[Data]".equals(line)
 				&& !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
 						 || ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false,
-																 true, false, false)[0] != -1)) {
+																 true, false)[0] != -1)) {
 			log.reportError("Error - malformed or missing header.");
 			throw new Elision(file);
 		}
@@ -106,7 +106,7 @@ public class SourceFileHeaderData implements Serializable {
 			lineCnt++;
 			if (!(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
 						|| ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line.split(delim), false, true,
-																false, false)[0] != -1)) {
+																false)[0] != -1)) {
 				log.reportError("Error - malformed or missing header.  Header must start with 'rs' or 'SNP' or contain one of the following: "
 												+ ArrayUtils.toStr(SourceFileParser.SNP_HEADER_OPTIONS[0]) + ".");
 				throw new Elision(file);
@@ -168,7 +168,7 @@ public class SourceFileHeaderData implements Serializable {
 
 	private static void parseColumnsBestGuess(String[] parts,
 																						SourceFileHeaderData frhd) throws Elision {
-		int[] indices = ext.indexFactors(LOOKUP, parts, false, true, false, false);
+		int[] indices = ext.indexFactors(LOOKUP, parts, false, true, false);
 		if (indices[0] == -1) {
 			throw new Elision("Error - missing SNP ID column");
 		}

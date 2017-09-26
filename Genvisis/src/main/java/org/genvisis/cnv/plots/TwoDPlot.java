@@ -1645,7 +1645,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		dataColumnsHash.put(filename, header);
 
-		linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
+		linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log);
 
 		if (linkKeyIndices[DNA_INDEX_IN_LINKERS] == -1) {
 			log.report("Sample ID not automatically identified for file '" + filename

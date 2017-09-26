@@ -222,7 +222,7 @@ public class MDL implements Iterator<MarkerData> {
 	private ArrayList<FileMatch> matchFileNames() {
 		ArrayList<FileMatch> files = new ArrayList<MDL.FileMatch>();
 		int[] indicesInProject = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true,
-																									 proj.getLog(), true, false);
+																									 proj.getLog(), true);
 		String currentFile = "";
 		int currentIndex = -1;
 		for (int i = 0; i < markerNames.length; i++) {

@@ -208,7 +208,7 @@ public class WeightedSumStatistic {
 	}
 
 	public void setSubset(String[] markers) {
-		subset = ext.indexFactors(markers, markerNames, false, true);
+		subset = ext.indexFactors(markers, markerNames, false);
 		validateSubset();
 		reset();
 	}

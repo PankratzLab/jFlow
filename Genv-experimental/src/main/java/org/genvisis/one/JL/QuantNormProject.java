@@ -98,7 +98,7 @@ public class QuantNormProject {
 																							 LrrSd.NUMERIC_COLUMNS);
 		int[] indices = ext.indexFactors(fullHeader,
 																		 Files.getHeaderOfFile(orginalFiles[0], projOriginal.getLog()),
-																		 true, false);
+																		 true);
 		String[][] newColums = Files.paste(orginalFiles, comboQC, indices, 0, titles,
 																			 new String[] {LrrSd.SAMPLE_COLUMN}, projOriginal.getLog());
 		ArrayList<Integer> lrrIndices = new ArrayList<Integer>();

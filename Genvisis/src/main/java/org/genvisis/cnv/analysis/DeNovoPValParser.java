@@ -54,7 +54,7 @@ public class DeNovoPValParser {
 			outHeader[trioHeader.length + 2] = "P-Val";
 			writer.println(ArrayUtils.toStr(outHeader, "\t"));
 			int[] idxs = ext.indexFactors(new String[] {"FID", "IID", "CHR", "BP1", "BP2"}, trioHeader,
-																		true, false);
+																		true);
 			String[] colsOfInterest = new String[] {"Paternal_origin(F)=", "Maternal_origin(M)=",
 																							"P-value="};
 
@@ -75,7 +75,7 @@ public class DeNovoPValParser {
 						String dnvLine = dnvReader.readLine();
 						if (dnvLine.contains(colsOfInterest[0])) {
 							String[] dnvSplit = dnvLine.split(" ");
-							int[] outIdxs = ext.indexFactors(colsOfInterest, dnvSplit, true, false);
+							int[] outIdxs = ext.indexFactors(colsOfInterest, dnvSplit, true);
 							for (int i = 0; i < outIdxs.length; i++) {
 								lineOut[line.length + i] = dnvSplit[outIdxs[i] + 1];
 							}

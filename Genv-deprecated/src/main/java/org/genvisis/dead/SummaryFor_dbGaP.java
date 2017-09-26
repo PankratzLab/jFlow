@@ -38,11 +38,11 @@ public class SummaryFor_dbGaP {
 		try {
 			reader = new BufferedReader(new FileReader(dir + results));
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];
-			orCol = ext.indexFactors(new String[] {"OR"}, line, true, false)[0];
-			statCol = ext.indexFactors(new String[] {"STAT"}, line, true, true)[0];
-			pCol = ext.indexFactors(new String[] {"P"}, line, true, true)[0];
-			testCol = ext.indexFactors(new String[] {"TEST"}, line, true, true)[0];
+			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false)[0];
+			orCol = ext.indexFactors(new String[] {"OR"}, line, true)[0];
+			statCol = ext.indexFactors(new String[] {"STAT"}, line, true)[0];
+			pCol = ext.indexFactors(new String[] {"P"}, line, true)[0];
+			testCol = ext.indexFactors(new String[] {"TEST"}, line, true)[0];
 			System.out.println(ext.getTime() + "\tReading in p-values for " + test + " in " + results);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -64,12 +64,12 @@ public class SummaryFor_dbGaP {
 			writer = Files.openAppropriateWriter(dir + "summary.xln");
 			writer.println(ArrayUtils.toStr(FINAL_HEADER));
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false, true)[0];
-			a1Col = ext.indexFactors(new String[] {"A1"}, line, true, false)[0];
-			a2Col = ext.indexFactors(new String[] {"A2"}, line, true, true)[0];
-			genoCol = ext.indexFactors(new String[] {"GENO"}, line, true, true)[0];
-			pCol = ext.indexFactors(new String[] {"P"}, line, true, true)[0];
-			testCol = ext.indexFactors(new String[] {"TEST"}, line, true, true)[0];
+			snpCol = ext.indexFactors(new String[] {"SNP"}, line, false)[0];
+			a1Col = ext.indexFactors(new String[] {"A1"}, line, true)[0];
+			a2Col = ext.indexFactors(new String[] {"A2"}, line, true)[0];
+			genoCol = ext.indexFactors(new String[] {"GENO"}, line, true)[0];
+			pCol = ext.indexFactors(new String[] {"P"}, line, true)[0];
+			testCol = ext.indexFactors(new String[] {"TEST"}, line, true)[0];
 			System.out.println(ext.getTime() + "\tReading in counts and p-values from " + HWE_FILE);
 			while (reader.ready()) {
 				reader.readLine();

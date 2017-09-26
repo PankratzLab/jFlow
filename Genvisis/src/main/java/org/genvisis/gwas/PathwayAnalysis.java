@@ -404,7 +404,7 @@ public class PathwayAnalysis {
 			indices = ext.indexFactors(new String[] {"SNP", "TEST", "P"},
 																 reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), false,
 																 new Logger(),
-																 false, false);
+																 false);
 			results = new float[markerNames.length];
 			root = ext.rootOf(filename);
 			if (root.endsWith(".assoc")) {

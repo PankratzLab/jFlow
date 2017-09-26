@@ -450,7 +450,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
 			// Adding headers of the file
 			namesHash.put(filename, header);
 
-			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log, false);
+			linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, log);
 
 			if (linkKeyIndices[0] == -1) {
 				log.report("ID linker not automatically identified for file '" + filename

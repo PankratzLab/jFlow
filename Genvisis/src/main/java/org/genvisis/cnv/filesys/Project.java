@@ -2036,14 +2036,13 @@ public class Project implements PropertyChangeListener {
 	 */
 	public int[] getAutosomalMarkerIndices() {
 		String[] autosomalMarkers = getAutosomalMarkers();
-		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true,
-																					false);
+		int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true);
 		return indices;
 	}
 
 	public int[] getMarkersForChrsIndices(int[] chrs) {
 		String[] chrMkrs = getMarkersForChrs(chrs);
-		int[] indices = ext.indexLargeFactors(chrMkrs, getMarkerNames(), true, log, true, false);
+		int[] indices = ext.indexLargeFactors(chrMkrs, getMarkerNames(), true, log, true);
 		return indices;
 	}
 

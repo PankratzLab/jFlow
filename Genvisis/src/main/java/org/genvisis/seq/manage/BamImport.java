@@ -713,7 +713,7 @@ public class BamImport {
 				tmpList = HashVec.loadFileToStringArray(type.getFile(), true, new int[] {0}, true);
 			}
 			ArrayList<String> autosomalToUse = new ArrayList<String>();
-			int[] indices = ext.indexLargeFactors(tmpList, autoMarks, true, proj.getLog(), false, false);
+			int[] indices = ext.indexLargeFactors(tmpList, autoMarks, true, proj.getLog(), false);
 			for (int indice : indices) {
 				if (indice >= 0) {
 					autosomalToUse.add(autoMarks[indice]);

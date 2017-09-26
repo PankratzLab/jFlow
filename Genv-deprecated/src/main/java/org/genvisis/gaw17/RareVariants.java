@@ -79,7 +79,7 @@ public class RareVariants {
 																														 Files.getHeaderOfFile(analysis_dir
 																																									 + filename, "\t",
 																																									 new Logger()),
-																														 false, true),
+																														 false),
 																						false, "\t", true, false);
 				ids = wss.getIDs();
 				trait = new double[ids.length];

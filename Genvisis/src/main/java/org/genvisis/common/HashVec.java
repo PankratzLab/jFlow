@@ -387,7 +387,7 @@ public class HashVec {
 	public static Map<String, String> loadFileColumnToMap(String filename, String key, String value,
 																												Logger log) {
 		int[] indices = ext.indexFactors(new String[] {key, value},
-																		 Files.getHeaderOfFile(filename, log), true, false);
+																		 Files.getHeaderOfFile(filename, log), true);
 		if (indices[0] < 0)
 			throw new IllegalArgumentException("Could not find column " + key + " in " + filename);
 		if (indices[1] < 0)
@@ -452,7 +452,7 @@ public class HashVec {
 				System.err.println("Error - '" + keyHeader + "' not found in " + filename);
 				System.exit(1);
 			}
-			valueIndices = ext.indexFactors(valueHeaders, line, false, true);
+			valueIndices = ext.indexFactors(valueHeaders, line, false);
 
 			reader.close();
 			return loadFileToHashString(filename, keyIndex, valueIndices, delimiterWithinHash, true);
@@ -548,7 +548,7 @@ public class HashVec {
 		String[] header = firstLine.split(delimiter);
 
 		int keyCol = ext.indexOfStr(key, header);
-		int[] valueCols = ext.indexFactors(values, header, true, true);
+		int[] valueCols = ext.indexFactors(values, header, true);
 
 		return loadFileToHashVec(filename, keyCol, valueCols, delimiter, true, onlyIfAbsent);
 	}

@@ -883,10 +883,10 @@ public abstract class MarkerBlast {
 				String[] line = reader.readLine().trim().split(delimiter);
 
 				if (!start
-						&& ArrayUtils.countIf(ext.indexFactors(required, line, true, log, false, false),
+						&& ArrayUtils.countIf(ext.indexFactors(required, line, true, log, false),
 																	-1) == 0) {
 					start = true;
-					extract = ext.indexFactors(required, line, true, log, false, false);
+					extract = ext.indexFactors(required, line, true, log, false);
 					writer.println("Name\tChr\tPosition");
 				} else if (start) {
 					String[] lineMP = null;

@@ -87,7 +87,7 @@ public class PennCNVPrep {
 																								 CHROMOSOME_X_STRATEGY sexStrategy) {
 		String output = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir) + dir
 										+ STORAGE_BASE + ext.indexLargeFactors(markers, proj.getMarkerNames(), true,
-																													 proj.getLog(), true, true)[0]
+																													 proj.getLog(), true)[0]
 										+ STORAGE_EXT;
 		if (!Files.exists(output)) {
 			new File(ext.parseDirectoryOfFile(output)).mkdirs();
@@ -177,7 +177,7 @@ public class PennCNVPrep {
 		int[] sampleIndicesInProject = ext.indexLargeFactors(ArrayUtils.subArray(proj.getSamples(),
 																																						 samplesToExport),
 																												 proj.getSamples(), true, proj.getLog(),
-																												 true, true);
+																												 true);
 		// int numMarkersPerWrite =
 		// Integer.parseInt(proj.getProperty(Project.MAX_MARKERS_LOADED_PER_CYCLE));
 		int numMarkersPerWrite = proj.getProperty(proj.MAX_MARKERS_LOADED_PER_CYCLE);
@@ -255,7 +255,7 @@ public class PennCNVPrep {
 		int[] subSampleIndicesInProject = ext.indexLargeFactors(ArrayUtils.subArray(proj.getSamples(),
 																																								samplesToExport),
 																														proj.getSamples(), true, proj.getLog(),
-																														true, true);
+																														true);
 		String[] subSamples = ArrayUtils.subArray(proj.getSamples(), samplesToExport);
 		proj.getLog().report("Info - checking for existing files in " + correctedSampleDirectory
 												 + "...");

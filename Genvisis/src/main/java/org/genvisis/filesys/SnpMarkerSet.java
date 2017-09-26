@@ -179,7 +179,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		log.report("Assuming there is a header");
 		return ext.indexFactors(HEADER_ELEMEMTS, Files.getHeaderOfFile(filename, null, log), true,
 														true,
-														true, log, false);
+														true, log);
 	}
 
 	public SnpMarkerSet(String filename, int[] indices, boolean header, boolean verbose, Logger log) {
@@ -194,7 +194,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			String temp = Files.getFirstNLinesOfFile(filename, 1, log)[0];
 			temp = ext.replaceAllWith(temp, stringReplacements);
 			indices = ext.indexFactors(SnpMarkerSet.HEADER_ELEMEMTS, temp.split(delimiter), true, true,
-																 false, log, false);
+																 false, log);
 			header = true;
 		}
 

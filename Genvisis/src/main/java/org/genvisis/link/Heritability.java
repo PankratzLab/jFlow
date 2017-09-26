@@ -403,7 +403,7 @@ public class Heritability {
 						dbDelimiter = Files.determineDelimiter(dbFile, log);
 						dbHeader = Files.getHeaderOfFile(dbFile, dbDelimiter, log);
 						line[0] = dbHeader[0];
-						indices = ext.indexFactors(line, dbHeader, false, log, true, false);
+						indices = ext.indexFactors(line, dbHeader, false, log, true);
 						if (ArrayUtils.min(indices) == -1) {
 							summary.close();
 							return;

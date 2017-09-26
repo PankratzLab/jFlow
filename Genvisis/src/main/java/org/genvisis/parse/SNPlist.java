@@ -41,7 +41,7 @@ public class SNPlist {
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			line = reader.readLine().trim().split("\t");
-			indices = ext.indexFactors(FIELDS, line, false, true, true, true);
+			indices = ext.indexFactors(FIELDS, line, false, true, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t", -1);
 				HashVec.addToHashHash(hashes, line[indices[0]], line[indices[1]], line[indices[2]]);

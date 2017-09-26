@@ -269,7 +269,7 @@ public class HitWindows {
 			reader = new BufferedReader(new FileReader(inputHits));
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 			indices = ext.indexFactors(new String[][] {{"Trait"}, Aliases.CHRS, Aliases.POSITIONS},
-																 header, false, true, true, true);
+																 header, false, true, true);
 			if (!ArrayUtils.equals(indices, new int[] {0, 1, 2})) {
 				log.reportError("Error - currently expecting format: Trait\tChr\tPosition");
 			}

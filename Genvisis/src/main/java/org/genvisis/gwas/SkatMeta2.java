@@ -1280,7 +1280,7 @@ public class SkatMeta2 {
 																		 FILENAME_ETHNIC_SEGMENT, FILENAME_ANALYSIS_SEGMENT};
 		line = ext.rootOf(fileDirAndNameTemplate).replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT, "")
 							.split(delimiter);
-		indices = ext.indexFactors(fileNameSegments, line, true, false);
+		indices = ext.indexFactors(fileNameSegments, line, true);
 
 		return indices;
 	}
@@ -2329,11 +2329,10 @@ public class SkatMeta2 {
 			header = reader.readLine();
 			delimiter = ext.determineDelimiter(header);
 			line = header.replaceAll("\"", "").split(delimiter);
-			indicesKey = ext.indexFactors(namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, line, false,
-																		true);
+			indicesKey = ext.indexFactors(namesOfColumnsToBeIncludedInTheKeyOfTheOutputHash, line, false);
 			if (namesOfColumnsToBeIncludedInTheValueOfTheOutputHash != null) {
 				indicesOther = ext.indexFactors(namesOfColumnsToBeIncludedInTheValueOfTheOutputHash, line,
-																				false, false);
+																				false);
 			}
 			if (criteria != null) {
 				tmp2 = parseCriteria(line, criteria, log);
@@ -2505,7 +2504,7 @@ public class SkatMeta2 {
 					delimiter = Files.determineDelimiter(snpInfoFile, null);
 					reader = Files.getAppropriateReader(snpInfoFile);
 					line = reader.readLine().split(delimiter);
-					indices = ext.indexFactors(SNPINFO_COLUMNS, line, false, true);
+					indices = ext.indexFactors(SNPINFO_COLUMNS, line, false);
 					while (notYetFound.size() > 0 && reader.ready()) {
 						line = reader.readLine().split(delimiter);
 						loop = notYetFound.size();
@@ -2923,7 +2922,7 @@ public class SkatMeta2 {
 					for (int k = 0; k < tmp.length; k++) {
 						tmp[k] = tmp[k].trim();
 					}
-					criteriaColumnIndices[i] = ext.indexFactors(tmp, headerFromTheFile, false, false);
+					criteriaColumnIndices[i] = ext.indexFactors(tmp, headerFromTheFile, false);
 					break;
 				}
 			}
@@ -2971,7 +2970,7 @@ public class SkatMeta2 {
 				log.reportError("No column has the name 'p'. Program halted.");
 				System.exit(0);
 			}
-			indices = ext.indexFactors(columnNamesToOutput, columnNamesOfTheData, false, true);
+			indices = ext.indexFactors(columnNamesToOutput, columnNamesOfTheData, false);
 			snpsWithSignificantPval = new Hashtable<String, Double>();
 
 			try {
@@ -3583,7 +3582,7 @@ public class SkatMeta2 {
 									reader = Files.getAppropriateReader(resultsDir + analysesGroup.get(analysis));
 									indices = ext.indexFactors(GENE_RESULT_COLUMNS,
 																						 reader.readLine().replaceAll("\"", "").split(","),
-																						 false, false);
+																						 false);
 									isError = false;
 									for (int i = 0; i < indices.length; i++) {
 										if (indices[i] < 0) {
@@ -3688,7 +3687,7 @@ public class SkatMeta2 {
 									reader = Files.getAppropriateReader(resultsDir + analysesGroup.get(analysis));
 									indices = ext.indexFactors(GENE_RESULT_COLUMNS,
 																						 reader.readLine().replaceAll("\"", "").split(","),
-																						 false, false);
+																						 false);
 									isError = false;
 									for (int i = 0; i < indices.length; i++) {
 										if (indices[i] < 0) {

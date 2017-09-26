@@ -487,7 +487,7 @@ public class Rscript {
 			} else {
 				ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
 				try {
-					int[] indices = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true, false);
+					int[] indices = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true);
 					BufferedReader reader = Files.getAppropriateReader(file);
 					reader.readLine();
 					while (reader.ready()) {
@@ -1363,7 +1363,7 @@ public class Rscript {
 
 					log.reportError("Could not find all Y value columns in " + dataFile);
 					int[] indices = ext.indexFactors(dataYvalueColumns, Files.getHeaderOfFile(dataFile, log),
-																					 true, false);
+																					 true);
 					boolean[] extract = ArrayUtils.booleanArray(indices.length, false);
 					for (int i = 0; i < extract.length; i++) {
 						if (indices[i] >= 0) {

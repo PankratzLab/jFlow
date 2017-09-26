@@ -40,7 +40,7 @@ public class CNVToFamilyRegions {
 			PrintWriter writer = Files.getAppropriateWriter(out);
 
 			int[] idx = ext.indexFactors(new String[] {"FID", "IID", "CHR", "BP1", "BP2"},
-																	 CNVariant.PLINK_CNV_HEADER, true, true);
+																	 CNVariant.PLINK_CNV_HEADER, true);
 
 			// Skip header
 			reader.readLine();

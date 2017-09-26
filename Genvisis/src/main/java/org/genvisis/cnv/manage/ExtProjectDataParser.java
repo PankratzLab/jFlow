@@ -185,7 +185,7 @@ public class ExtProjectDataParser {
 																											ext.splitLine(line.trim(),
 																																		typedFileParser.getSeparator(),
 																																		proj.getLog()),
-																											true, proj.getLog(), false, false),
+																											true, proj.getLog(), false),
 																		 -1) > 0);
 		} else {
 
@@ -225,7 +225,7 @@ public class ExtProjectDataParser {
 						proj.getLog()
 								.reportTimeWarning("String columns were already provided, skipping string column assignment");
 					} else {
-						int[] tmp = ext.indexFactors(stringDataTitles, header, true, false);
+						int[] tmp = ext.indexFactors(stringDataTitles, header, true);
 						determined = stringDataTitles.length == 0 || ArrayUtils.min(tmp) >= 0;
 						if (!determined) {
 							if (verbose) {
@@ -243,7 +243,7 @@ public class ExtProjectDataParser {
 								.reportTimeWarning("Numeric columns were already provided, skipping numeric column assignment");
 					} else {
 
-						int[] tmp = ext.indexFactors(numericDataTitles, header, true, false);
+						int[] tmp = ext.indexFactors(numericDataTitles, header, true);
 
 						determined = numericDataTitles.length == 0 || ArrayUtils.min(tmp) >= 0;
 						if (!determined) {

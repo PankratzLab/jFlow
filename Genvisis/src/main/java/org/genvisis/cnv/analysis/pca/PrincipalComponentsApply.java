@@ -327,7 +327,7 @@ public class PrincipalComponentsApply {
 			try {
 				BufferedReader reader = Files.getReader(markerLoadingFile, true, false);
 				String[] line = reader.readLine().trim().split("\t");
-				int[] indices = ext.indexFactors(LOADING_FIRST, line, true, true);
+				int[] indices = ext.indexFactors(LOADING_FIRST, line, true);
 				if (indices == null || indices[0] != 0) {
 					log.reportError("Error - Marker Loading file  must have "
 													+ ArrayUtils.toStr(LOADING_FIRST) + " in the first column");
@@ -398,7 +398,7 @@ public class PrincipalComponentsApply {
 			try {
 				BufferedReader reader = Files.getReader(singularFile, true, false);
 				String[] line = reader.readLine().trim().split("\t");
-				int[] indices = ext.indexFactors(line, SINGULAR_HEADER, true, false);
+				int[] indices = ext.indexFactors(line, SINGULAR_HEADER, true);
 				if (indices == null) {
 					log.reportError("Error - singular value file must have header "
 													+ ArrayUtils.toStr(SINGULAR_HEADER));

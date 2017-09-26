@@ -133,7 +133,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 	public void dumpResults(String fullPathToOutputBase) {
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		int[] markerIndicesInProject = ext.indexLargeFactors(markersToTest, markerSet.getMarkerNames(),
-																												 true, getProj().getLog(), true, false);
+																												 true, getProj().getLog(), true);
 		byte[] chrs = markerSet.getChrs();
 		int[] pos = markerSet.getPositions();
 		for (int i = 0; i < manhattanTests.length; i++) {
@@ -281,7 +281,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
 					titles[titleIndex] = header[i];
 				}
 			}
-			int[] titleIndices = ext.indexFactors(titles, header, true, true);
+			int[] titleIndices = ext.indexFactors(titles, header, true);
 			double[][] data = new double[titles.length][proj.getSamples().length];
 			boolean[][] masks = new boolean[titles.length][proj.getSamples().length];
 			for (int i = 0; i < masks.length; i++) {

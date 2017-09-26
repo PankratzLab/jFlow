@@ -74,7 +74,7 @@ public class extractMarkers {
 			chrome = ext.chrome(Integer.parseInt(chr));
 			markerNames = new LinkageMap("map" + chrome + ".dat").getMarkerNames();
 			markersPicked = ArrayUtils.toStringArray(hash.get(chr));
-			indices = ext.indexFactors(markersPicked, markerNames, false, false);
+			indices = ext.indexFactors(markersPicked, markerNames, false);
 
 			if (ArrayUtils.min(indices) < 0) {
 				System.err.println("Error - the following markers were not found in " + "map" + chrome

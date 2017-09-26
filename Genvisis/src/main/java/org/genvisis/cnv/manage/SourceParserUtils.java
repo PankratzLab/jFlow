@@ -53,7 +53,7 @@ public class SourceParserUtils {
 														+ idHeader);
 						return;
 					}
-					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false, true)[0];
+					sampIndex = ext.indexFactors(new String[] {idHeader}, line, false)[0];
 
 					// ParseAffymetrix, ParseAffySNP6, and ParseDbgap ::>
 					// line = reader.readLine().split(delimiter);
@@ -130,15 +130,13 @@ public class SourceParserUtils {
 					line = reader.readLine().trim().split(delimiter, -1);
 				} while (reader.ready()
 								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true,
-																			false,
 																			false)[0] == -1
 								 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
 								 && ext.indexOfStr(idHeader, line) == -1)));
 
-				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false,
-																		true)[0];
+				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
-																	 false, false);
+																	 false);
 
 				while (reader.ready()) {
 					line = reader.readLine().split(delimiter);

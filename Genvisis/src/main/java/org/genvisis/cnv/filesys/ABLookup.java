@@ -578,7 +578,7 @@ public class ABLookup {
 				line = temp.trim().split(",");
 			} while (reader.ready() && (!temp.contains("Name") || !temp.contains("SNP")));
 			indices = ext.indexFactors(new String[][] {{"Name", "MarkerName"}, {"SNP"}}, line, false,
-																 true, true, log, true);
+																 true, true, log);
 			prev = temp;
 			while (reader.ready()) {
 				temp = reader.readLine();
@@ -813,7 +813,7 @@ public class ABLookup {
 			} else {
 
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				int[] colIndices = ext.indexFactors(AB_LOOKUP_COLS, line, false, log, true, false);
+				int[] colIndices = ext.indexFactors(AB_LOOKUP_COLS, line, false, log, true);
 
 				markerIndex = colIndices[0];
 				first = colIndices[1];

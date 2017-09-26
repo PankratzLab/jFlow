@@ -71,8 +71,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
 
 			BufferedReader reader = Files.getAppropriateReader(sraTable);
 
-			int[] indices = ext.indexFactors(requiredHeader, reader.readLine().trim().split("\t"), true,
-																			 false);
+			int[] indices = ext.indexFactors(requiredHeader, reader.readLine().trim().split("\t"), true);
 			int numLoaded = 0;
 			while (reader.ready()) {
 				String[] line = reader.readLine().trim().split("\t");

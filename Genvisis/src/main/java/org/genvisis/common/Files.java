@@ -1682,7 +1682,7 @@ public class Files {
 		try {
 			reader = new BufferedReader(new FileReader(filename));
 			header = reader.readLine().trim().split(delimiter);
-			valueIndices = ext.indexFactors(values, header, true, log, true, true);
+			valueIndices = ext.indexFactors(values, header, true, log, true);
 			filterIndices = new int[filters.length];
 			filterTargets = new String[filters.length];
 			for (int i = 0; i < filters.length; i++) {
@@ -3354,7 +3354,7 @@ public class Files {
 		boolean has = true;
 		if (toSearch.length > header.length) {
 			has = false;
-		} else if (ArrayUtils.countIf(ext.indexFactors(toSearch, header, true, log, verbose, false),
+		} else if (ArrayUtils.countIf(ext.indexFactors(toSearch, header, true, log, verbose),
 																	-1) > 0) {
 			if (verbose) {
 				log.reportError("Searched header " + ArrayUtils.toStr(header));
@@ -3488,7 +3488,7 @@ public class Files {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				String[] tmp = ext.splitLine(line.trim(), delimiter, log);
-				if (ArrayUtils.countIf(ext.indexFactors(containing, tmp, false, log, false, false),
+				if (ArrayUtils.countIf(ext.indexFactors(containing, tmp, false, log, false),
 															 -1) == 0) {
 					reader.close();
 					return tmp;

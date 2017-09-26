@@ -60,8 +60,7 @@ public class GDIAnnotator implements SegmentAnnotator {
 	 */
 	public static GDIAnnotator getDefaultGDIAnnotator(Logger log) {
 		String gdiFile = Resources.annotation(log).getGDI().get();
-		int[] indices = ext.indexFactors(REQUIRED_HEADER, Files.getHeaderOfFile(gdiFile, log), true,
-																		 false);
+		int[] indices = ext.indexFactors(REQUIRED_HEADER, Files.getHeaderOfFile(gdiFile, log), true);
 
 		Map<String, String> attributes = new HashMap<String, String>();
 

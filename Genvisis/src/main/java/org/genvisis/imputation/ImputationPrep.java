@@ -138,7 +138,7 @@ public class ImputationPrep {
 				throw new IllegalArgumentException("Reference file is empty");
 			}
 			String delim = ext.determineDelimiter(header);
-			int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false, false);
+			int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false);
 			for (int index : cols) {
 				if (index < 0) {
 					throw new IllegalArgumentException("Invalid Reference File header");
@@ -284,7 +284,7 @@ public class ImputationPrep {
 			throw new IllegalArgumentException("Reference file is empty");
 		}
 		String delim = ext.determineDelimiter(header);
-		int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false, false);
+		int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false);
 		for (int index : cols) {
 			if (index < 0) {
 				throw new IllegalArgumentException("Invalid Reference File header");

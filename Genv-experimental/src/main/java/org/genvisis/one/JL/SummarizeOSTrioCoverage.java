@@ -374,8 +374,7 @@ public class SummarizeOSTrioCoverage {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(coverageTrio);
 				String[] header = new String[] {avgC + "_" + off, avgC + "_" + mo, avgC + "_" + fa};
-				int[] indices = ext.indexFactors(header, Files.getHeaderOfFile(coverageTrio, log), true,
-																				 true);
+				int[] indices = ext.indexFactors(header, Files.getHeaderOfFile(coverageTrio, log), true);
 				reader.readLine();
 
 				while (reader.ready()) {

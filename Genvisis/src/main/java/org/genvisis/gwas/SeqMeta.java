@@ -1450,7 +1450,7 @@ public class SeqMeta {
 				header = ext.splitCommasIntelligently(reader.readLine(), true, log);
 				needs = new String[][] {Aliases.MARKER_NAMES, Aliases.GENE_UNITS,
 																new String[] {functionFlagName}, Aliases.CHRS};
-				indices = ext.indexFactors(needs, header, false, true, true, log, false);
+				indices = ext.indexFactors(needs, header, false, true, true, log);
 				if (ArrayUtils.min(indices) == -1) {
 					log.reportError("Improper header for file '" + filename + "', found: "
 													+ ArrayUtils.toStr(header, "/") + "\nMissing one of these: "
@@ -1551,8 +1551,7 @@ public class SeqMeta {
 							// ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])],
 							// Array.intArray(expected.length), false, log, true);
 
-							indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false,
-																				 true);
+							indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false);
 
 							while (reader.ready()) {
 								line = ext.splitCommasIntelligently(reader.readLine(), true, log);
@@ -1659,7 +1658,7 @@ public class SeqMeta {
 		try {
 			reader = Files.getAppropriateReader(filename);
 			header = ext.splitCommasIntelligently(reader.readLine(), true, log);
-			indices = ext.indexFactors(new String[] {"Name", "maf"}, header, false, true);
+			indices = ext.indexFactors(new String[] {"Name", "maf"}, header, false);
 			while (reader.ready()) {
 				line = ext.splitCommasIntelligently(reader.readLine(), true, log);
 				if (snpGeneFunctionalHash.containsKey(line[indices[0]]) && !line[indices[1]].equals("NA")
@@ -3724,7 +3723,7 @@ public class SeqMeta {
 				if (hash.containsKey(chr + "")) {
 					markerNames = ArrayUtils.toStringArray(hash.get(chr + ""));
 					header = Files.getHeaderOfFile(dir + ext.insertNumbers(genoPattern, chr, 1), ",!", log);
-					indices = ext.indexFactors(markerNames, header, false, false);
+					indices = ext.indexFactors(markerNames, header, false);
 					params = dir + ext.insertNumbers(genoPattern, chr, 1) + " 0";
 					if (!hitup) {
 						writer.println(dir + ext.insertNumbers(genoPattern, chr, 1) + " 0 , header out="

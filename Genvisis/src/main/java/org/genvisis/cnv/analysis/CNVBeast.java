@@ -168,7 +168,7 @@ public class CNVBeast {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(summaryFile);
 				String[] beastHeader = reader.readLine().trim().split(BEAST_DELIM);
-				int[] indices = ext.indexFactors(beastHeader, BEAST_RESULTS_HEADER, true, false);
+				int[] indices = ext.indexFactors(beastHeader, BEAST_RESULTS_HEADER, true);
 				if (ArrayUtils.countIf(indices, -1) == 0) {
 					while (reader.ready()) {
 						String[] beastLine = reader.readLine().trim().split(BEAST_DELIM);
@@ -671,8 +671,7 @@ public class CNVBeast {
 			String[] samps = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
 																										 + samplesToAnalyzeFile, false, new int[] {0},
 																										 true);
-			int[] indices = ext.indexLargeFactors(samps, proj.getSamples(), true, proj.getLog(), true,
-																						false);
+			int[] indices = ext.indexLargeFactors(samps, proj.getSamples(), true, proj.getLog(), true);
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] >= 0) {
 					samplesToUse[indices[i]] = true;

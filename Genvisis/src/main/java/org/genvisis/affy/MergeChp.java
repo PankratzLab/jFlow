@@ -78,7 +78,7 @@ public class MergeChp implements Runnable {
 							line = reader.readLine().trim().split(delimiter, -1);
 
 						} while (reader.ready() && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line,
-																												 false, true, false, false)[0] == -1));
+																												 false, true, false)[0] == -1));
 						// if its the first directory, print the header
 
 						if (i == 0) {

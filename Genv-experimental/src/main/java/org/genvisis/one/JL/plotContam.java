@@ -25,7 +25,7 @@ public class plotContam {
 																													 false, new int[] {0}, true);
 
 			String[][] all = HashVec.loadFileToStringMatrix(file, false, null);
-			int[] indices = ext.indexFactors(sampsToPlot, samps, false, false);
+			int[] indices = ext.indexFactors(sampsToPlot, samps, false);
 			indices = ArrayUtils.removeAllValues(indices, -1);
 
 			String withMedian = ext.rootOf(file, false) + "withMedian.txt";

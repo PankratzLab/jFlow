@@ -1525,7 +1525,7 @@ public class MarkerMetrics {
 		// filename = proj.getFilename(proj.SAMPLE_DATA_FILENAME);
 		filename = proj.SAMPLE_DATA_FILENAME.getValue();
 		header = Files.getHeaderOfFile(filename, log);
-		indices = ext.indexFactors(new String[] {"DNA", phenotype}, header, false, true);
+		indices = ext.indexFactors(new String[] {"DNA", phenotype}, header, false);
 		hash = HashVec.loadFileToHashString(filename, new int[] {indices[0]}, new int[] {indices[1]},
 																				filename.endsWith(".csv"), null, true,
 																				false);

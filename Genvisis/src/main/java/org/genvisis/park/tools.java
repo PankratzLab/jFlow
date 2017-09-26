@@ -364,8 +364,7 @@ public class tools {
 		try {
 			reader = new BufferedReader(new FileReader(dbFile));
 			index = ext.indexFactors(new String[] {trait},
-															 reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), true,
-															 true)[0];
+															 reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), true)[0];
 			while (reader.ready()) {
 				line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
 				hash.put(line[1] + "\t" + line[2], line[index]);

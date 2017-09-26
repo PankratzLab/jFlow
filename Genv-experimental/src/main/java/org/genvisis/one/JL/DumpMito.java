@@ -15,7 +15,7 @@ public class DumpMito {
 		String[] mitoCurrent = HashVec.loadFileToStringArray("/Users/Kitty/git/affySnp6/MT.119.txt",
 																												 false, new int[] {0}, true);
 		int[] indicesM = ext.indexLargeFactors(mitoCurrent, markerSet.getMarkerNames(), true,
-																					 new Logger(), true, true);
+																					 new Logger(), true);
 		String[] mitos = new String[indicesM.length];
 		System.out.print(mitos.length);
 		for (int i = 0; i < indicesM.length; i++) {

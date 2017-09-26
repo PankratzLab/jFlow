@@ -870,8 +870,7 @@ public class LibraryNGS implements Serializable {
 			List<Double> tmpGCContent = new ArrayList<Double>(9000000);
 			try {
 				BufferedReader reader = Files.getAppropriateReader(fullPathToBaitLibrary);
-				int[] indices = ext.indexFactors(reader.readLine().trim().split("\t"), BAITS_HEADER, true,
-																				 false);
+				int[] indices = ext.indexFactors(reader.readLine().trim().split("\t"), BAITS_HEADER, true);
 				if (ArrayUtils.countIf(indices, -1) > 0) {
 					log.reportError("Error - could not detect proper header in baits file "
 													+ fullPathToBaitLibrary);

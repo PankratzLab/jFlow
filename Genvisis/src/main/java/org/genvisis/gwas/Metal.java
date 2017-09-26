@@ -104,9 +104,9 @@ public class Metal {
 																													 : outfile);
 			// header = reader.readLine().trim().split("\t");
 			header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-			indices = ext.indexFactors(CONVERSION_REQS, header, false, true, true, true);
+			indices = ext.indexFactors(CONVERSION_REQS, header, false, true, true);
 			if (useSE) {
-				seIndex = ext.indexFactors(new String[][] {{"SE"}}, header, false, false, true, true)[0];
+				seIndex = ext.indexFactors(new String[][] {{"SE"}}, header, false, false, true)[0];
 			} else {
 				seIndex = -1;
 			}
@@ -203,7 +203,7 @@ public class Metal {
 			header = reader.readLine().trim().split(delimiterIn);
 
 			markerIndices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false,
-																			 log, false);
+																			 log);
 			if (markerIndices[0] == -1) {
 				log.reportError("Error - no unit of analysis in file " + filename + " ("
 												+ ArrayUtils.toStr(unitOfAnlaysis, "/") + ")");
@@ -212,7 +212,7 @@ public class Metal {
 				return;
 			}
 
-			alleleIndices = ext.indexFactors(Aliases.ALLELES, header, false, true, false, log, false);
+			alleleIndices = ext.indexFactors(Aliases.ALLELES, header, false, true, false, log);
 			if (ArrayUtils.min(alleleIndices) == -1 && ArrayUtils.sum(alleleIndices) != -2) {
 				log.reportError("Error - found only one allele in file " + filename + " (need "
 												+ ArrayUtils.toStr(Aliases.ALLELES[0], "/") + " AND "
@@ -222,13 +222,13 @@ public class Metal {
 				alleleIndices[1] = -1;
 			}
 			nSNPsIndex = ext.indexFactors(new String[][] {{"NALLELES", "num_variants"}}, header, false,
-																		true, false, log, false)[0];
+																		true, false, log)[0];
 
 			writer.print(unitOfAnlaysis[0] + delimiterOut + Aliases.ALLELES[0][0] + delimiterOut
 									 + Aliases.ALLELES[1][0]);
 			reqIndices = new int[REQS.length][];
 			for (int i = 0; i < REQS.length; i++) {
-				reqIndices[i] = ext.indexFactors(REQS[i], header, false, true, false, log, false);
+				reqIndices[i] = ext.indexFactors(REQS[i], header, false, true, false, log);
 				if (i == PVAL_ANALYSIS && reqIndices[i][2] == -1 && defaultN >= 0) {
 					reqIndices[i][2] = Integer.MAX_VALUE;
 				}
@@ -251,7 +251,7 @@ public class Metal {
 					}
 				}
 			}
-			freqIndices = ext.indexFactors(FREQS, header, false, true, false, log, false);
+			freqIndices = ext.indexFactors(FREQS, header, false, true, false, log);
 			if (freqIndices[0] == -1 && ArrayUtils.min(ArrayUtils.subArray(freqIndices, 1)) == -1) {
 				freqIndices = null;
 			} else {
@@ -430,8 +430,7 @@ public class Metal {
 				travCommaDelimited = filenames[i].endsWith(".csv") || filenames[i].endsWith(".csv.gz");
 				header = Files.getHeaderOfFile(dir + filenames[i], log);
 
-				indices = ext.indexFactors(new String[][] {unitOfAnalysis}, header, false, true, true, log,
-																	 false);
+				indices = ext.indexFactors(new String[][] {unitOfAnalysis}, header, false, true, true, log);
 				if (indices[0] == -1) {
 					log.reportError("Error parsing '" + dir + filenames[i] + "'");
 					writer.close();
@@ -442,7 +441,7 @@ public class Metal {
 					mappings.add("MARKER " + travMarker);
 				}
 
-				indices = ext.indexFactors(Aliases.ALLELES, header, false, true, true, log, false);
+				indices = ext.indexFactors(Aliases.ALLELES, header, false, true, true, log);
 				if (ArrayUtils.min(indices) == -1) {
 					log.reportError("Error parsing '" + dir + filenames[i] + "'");
 					writer.close();
@@ -453,7 +452,7 @@ public class Metal {
 					mappings.add("ALLELE " + travAlleles[0] + " " + travAlleles[1]);
 				}
 
-				indices = ext.indexFactors(REQS[analysisType], header, false, true, true, log, false);
+				indices = ext.indexFactors(REQS[analysisType], header, false, true, true, log);
 				if (analysisType == PVAL_ANALYSIS && defaultWeights != null) {
 					indices[2] = 0;
 				}
@@ -487,7 +486,7 @@ public class Metal {
 						mappings.add("WEIGHT " + travReqs[2]);
 					}
 
-					indices = ext.indexFactors(FREQS, header, false, true, false, log, false);
+					indices = ext.indexFactors(FREQS, header, false, true, false, log);
 					if (indices[0] != -1) {
 						travFreq = ArrayUtils.subArray(header, indices, "");
 						if (!travFreq[0].equals(prevFreq[0])) {
@@ -501,7 +500,7 @@ public class Metal {
 
 				if (mafValues != null) {
 					int freqIndex = ext.indexFactors(new String[][] {Aliases.ALLELE_FREQS}, header, false,
-																					 true, true, false)[0];
+																					 true, true)[0];
 					if (freqIndex < 0) {
 						writer.close();
 						throw new IllegalArgumentException("input file " + filenames[i]
@@ -1050,7 +1049,7 @@ public class Metal {
 		String[][] newResults = new String[hwResults.length][];
 
 		int[] hwInd = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES}, hwResults[0], false, true,
-																	 false, false);
+																	 false);
 		int mkrInd = hwInd[0];
 
 		HashSet<String> hwMkrs = new HashSet<String>();
@@ -1066,7 +1065,7 @@ public class Metal {
 		String[] line = headerLine.split(delim);
 		int[] topInd = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
 																										Aliases.POSITIONS},
-																		line, false, true, false, false);
+																		line, false, true, false);
 		int topMkrInd = topInd[0];
 		String readLine = null;
 		while ((readLine = reader.readLine()) != null) {
@@ -1648,10 +1647,10 @@ public class Metal {
 		for (int i = 0; i < filenames.length; i++) {
 			indices[i][0] = ext.indexFactors(new String[][] {{"MarkerName"}},
 																			 Files.getHeaderOfFile(filenames[i], log), false, true, true,
-																			 log, true);
+																			 log);
 			indices[i][1] = ext.indexFactors(new String[][] {{"Direction"}},
 																			 Files.getHeaderOfFile(filenames[i], log), false, true, true,
-																			 log, true);
+																			 log);
 		}
 
 		time = new Date().getTime();

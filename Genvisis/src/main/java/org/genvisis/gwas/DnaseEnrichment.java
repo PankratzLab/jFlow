@@ -822,7 +822,7 @@ public class DnaseEnrichment {
 		// get header indices
 		return (ext.indexFactors(new String[][] {P_VALUE_FILE_HEADERS[0], P_VALUE_FILE_HEADERS[1],
 																						 P_VALUE_FILE_HEADERS[2], P_VALUE_FILE_HEADERS[3]},
-														 headers, false, true, true, false));
+														 headers, false, true, true));
 	}
 
 	private static class OutputFileFormat implements Serializable {

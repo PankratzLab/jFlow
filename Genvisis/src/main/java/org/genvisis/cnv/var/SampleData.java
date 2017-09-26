@@ -980,7 +980,7 @@ public class SampleData {
 	public static int[] determineKeyIndices(String filename) {
 		String[] header;
 		header = Files.getHeaderOfFile(filename, null);
-		int[] linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, null, false);
+		int[] linkKeyIndices = ext.indexFactors(LINKERS, header, false, true, false, null);
 
 		if (linkKeyIndices[0] == -1) {
 			System.out.println("ID linker not automatically identified for file '" + filename
@@ -1247,7 +1247,7 @@ public class SampleData {
 		} else {
 			headersArray = header.trim().split(PSF.Regex.GREEDY_WHITESPACE);
 		}
-		indices = ext.indexFactors(LINKERS, headersArray, false, true, false, null, false);
+		indices = ext.indexFactors(LINKERS, headersArray, false, true, false, null);
 
 		if (indices[0] == -1) {
 			System.err.println("ID linker not automatically identified for Sample Data. Assuming the first column.");
@@ -1725,7 +1725,7 @@ public class SampleData {
 			String temp = reader.readLine().trim();
 			String delim = ext.determineDelimiter(temp);
 			line = temp.split(delim);
-			int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true, false);
+			int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true);
 			boolean allElementsMissing = true;
 			for (int ind : indices) {
 				if (ind >= 0) {
@@ -1807,7 +1807,7 @@ public class SampleData {
 			BufferedReader reader = Files.getReader(sampleMapCsv, true, false);
 			line = reader.readLine().trim().split(delim);
 			String[] header = line;
-			int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true, false);
+			int[] indices = ext.indexFactors(MitoPipeline.SAMPLEMAP_INPUT, line, true);
 			if (indices[1] == -1 || indices[2] == -1) {
 				log.reportError("Error - Columns \"" + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \""
 												+ MitoPipeline.SAMPLEMAP_INPUT[2] + "\" must be provided in .csv format "

@@ -1411,7 +1411,7 @@ public class GenvisisWorkflow {
 					}
 					String[] reqHdr = {SampleQC.EXCLUDE_HEADER, "ExcludeNote", "Use", "UseNote", "Use_cnv",
 														 "Use_cnvNote"};
-					int[] facts = ext.indexFactors(reqHdr, header, false, false);
+					int[] facts = ext.indexFactors(reqHdr, header, false);
 					for (int i : facts) {
 						if (i == -1) {
 							return false;

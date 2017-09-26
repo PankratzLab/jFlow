@@ -83,7 +83,7 @@ public class QuantiSNP {
 				temp = reader.readLine();
 			} while (reader.ready() && !temp.contains("SNP Name") && !temp.contains("Sample ID"));
 
-			indices = ext.indexFactors(FIELDS, temp.trim().split(","), false, true);
+			indices = ext.indexFactors(FIELDS, temp.trim().split(","), false);
 
 			index = indices[ext.indexOfStr("SNP Name", FIELDS)];
 			while (reader.ready()) {
@@ -122,7 +122,7 @@ public class QuantiSNP {
 						System.err.println("Error - went through enitre file without finding a line containing both 'SNP Name' and 'Sample Name/Sample ID'");
 						System.exit(1);
 					}
-					indices = ext.indexFactors(FIELDS, temp.trim().split(","), false, true);
+					indices = ext.indexFactors(FIELDS, temp.trim().split(","), false);
 
 					count = 0;
 					while (reader.ready()) {

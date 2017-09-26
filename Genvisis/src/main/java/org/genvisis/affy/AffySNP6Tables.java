@@ -334,7 +334,7 @@ public class AffySNP6Tables {
 			do {
 				line = reader.readLine().trim().split(delimiter, -1);
 			} while (reader.ready()
-							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false, false)[0] == -1));
+							 && (ext.indexFactors(SNP_HEADER_OPTIONS, line, false, true, false)[0] == -1));
 			header = ArrayUtils.toStr(line);
 		} catch (IOException ioe) {
 			log.reportError("Error reading file \"" + tableName + "\"");

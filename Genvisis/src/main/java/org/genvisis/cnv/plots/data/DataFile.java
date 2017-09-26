@@ -52,8 +52,7 @@ public class DataFile {
 
 	private void loadAndIndexHeader() {
 		this.fullHeader = Files.getHeaderOfFile(filename, log);
-		linkIndices = ext.indexFactors(linkers, fullHeader, false, true, false, log,
-																	 false);
+		linkIndices = ext.indexFactors(linkers, fullHeader, false, true, false, log);
 	}
 
 	public boolean hasRequiredData() {

@@ -133,7 +133,7 @@ public class eQTLs {
 			} else {
 				reqs = REQS_WITHOUT_STDERR;
 			}
-			indices = ext.indexFactors(reqs, header, false, true, true, log, false);
+			indices = ext.indexFactors(reqs, header, false, true, true, log);
 
 			reader = new BufferedReader(new FileReader(filename));
 			writer = Files.openAppropriateWriter(outfile);

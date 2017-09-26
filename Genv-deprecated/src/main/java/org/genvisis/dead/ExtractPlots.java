@@ -136,7 +136,7 @@ public class ExtractPlots {
 						temp = reader.readLine();
 					} while (reader.ready() && !temp.contains("SNP Name"));
 					line = temp.split(",");
-					indices = ext.indexFactors(PLOT_NEEDS, line, false, true);
+					indices = ext.indexFactors(PLOT_NEEDS, line, false);
 					snpNameIndex = ext.indexOfStr("SNP Name", line);
 					sampleNameIndex = ext.indexOfStr("Sample Name", line);
 
@@ -246,7 +246,7 @@ public class ExtractPlots {
 						temp = reader.readLine();
 					} while (reader.ready() && !temp.contains("SNP Name"));
 					line = temp.split(",");
-					indices = ext.indexFactors(PLOT_NEEDS, line, false, true);
+					indices = ext.indexFactors(PLOT_NEEDS, line, false);
 					snpNameIndex = ext.indexOfStr("SNP Name", line);
 					sampleNameIndex = ext.indexOfStr("Sample Name", line);
 

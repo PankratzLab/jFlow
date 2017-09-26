@@ -57,16 +57,16 @@ public class CNVSampleQC {
 			String[] line;
 			do {
 				line = reader.readLine().trim().split("\t", -1);
-			} while (reader.ready() && (ext.indexFactors(QC_HEADS, line, false, true)[0] == -1)
-							 && (ext.indexFactors(ID_HEADS, line, false, true)[0] == -1));
+			} while (reader.ready() && (ext.indexFactors(QC_HEADS, line, false)[0] == -1)
+							 && (ext.indexFactors(ID_HEADS, line, false)[0] == -1));
 			if (!reader.ready()) {
 				log.reportError("Error - reached the end of the file without finding a line with the following tokens: "
 												+ ArrayUtils.toStr(QC_HEADS));
 				log.reportError("      - perhaps the delimiter is set incorrectly? Determing most stable delimiter...");
 				reader.close();
 			}
-			int[] QCIndices = ext.indexFactors(QC_HEADS, line, false, true);
-			int[] IDIndices = ext.indexFactors(ID_HEADS, line, false, true);
+			int[] QCIndices = ext.indexFactors(QC_HEADS, line, false);
+			int[] IDIndices = ext.indexFactors(ID_HEADS, line, false);
 			while (reader.ready()) {
 				line = reader.readLine().split("\t");
 				cnvSampleQCs.add(new CNVSampleQC(line[IDIndices[0]], line[IDIndices[1]], line[IDIndices[2]],

@@ -96,7 +96,7 @@ public class GenCNV implements Runnable {
 		for (int i = 0; i < phenos.length; i++) {
 			if (hasVariance(phenos[i])) {
 				int count = 0;
-				int[] indices = ext.indexFactors(phenos[i].getArrayInds(), headers, true, true);
+				int[] indices = ext.indexFactors(phenos[i].getArrayInds(), headers, true);
 				for (int k = 0; k < gpedGenos.length; k++) {
 					double[] indeps = ArrayUtils.toDoubleArray(ArrayUtils.subArray(gpedGenos[k], indices));
 					analysis.getSignificance()[i].addNumTotal();

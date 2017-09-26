@@ -384,7 +384,7 @@ public class MarkerQC {
 				writers[3] = Files.openAppropriateWriter(dir + params[2][1] + "_allAnnotations.out");
 				line = reader.readLine().trim().split("\\t");
 				indices = ext.indexFactors(ArrayUtils.subArray(Matrix.extractColumn(params, 0), 3), line,
-																	 false, log, true, false);
+																	 false, log, true);
 				counts = new int[3][indices.length]; // all, primary, only
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("\\t");

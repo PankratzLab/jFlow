@@ -2964,7 +2964,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 		// int colorCol = -1;
 		int popCol = -1;
 
-		int[] idCols = ext.indexFactors(Aliases.INDIVIDUAL_ID, header, false, false);
+		int[] idCols = ext.indexFactors(Aliases.INDIVIDUAL_ID, header, false);
 		for (int i : idCols) {
 			if (i > -1) {
 				iidCol = i;

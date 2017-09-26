@@ -38,7 +38,7 @@ public class CountProxies {
 
 		hash = new Hashtable<String, Vector<String>>();
 		line = Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger());
-		indices = ext.indexFactors(HEADER_EXPECTATIONS, line, false, true, true, true);
+		indices = ext.indexFactors(HEADER_EXPECTATIONS, line, false, true, true);
 
 		try {
 			reader = new BufferedReader(new FileReader(filename));

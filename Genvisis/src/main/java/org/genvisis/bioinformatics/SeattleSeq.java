@@ -66,7 +66,7 @@ public class SeattleSeq {
 			reader = new BufferedReader(new FileReader(filename));
 			writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".input");
 			line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-			indices = ext.indexFactors(NEEDS, line, false, true, true, true);
+			indices = ext.indexFactors(NEEDS, line, false, true, true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				if (!line[indices[0]].startsWith("chr")) {
@@ -188,7 +188,7 @@ public class SeattleSeq {
 			// if (temp.startsWith("#"));
 			temp = temp.substring(1).trim();
 			line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
-			indices = ext.indexFactors(RELEVANTS, line, false, true, true, log, true);
+			indices = ext.indexFactors(RELEVANTS, line, false, true, true, log);
 
 			prev = "";
 
@@ -357,7 +357,7 @@ public class SeattleSeq {
 					temp = reader.readLine().trim();
 					temp = temp.substring(1).trim();
 					line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
-					indices = ext.indexFactors(RELEVANTS, line, false, true, true, log, true);
+					indices = ext.indexFactors(RELEVANTS, line, false, true, true, log);
 
 					prev = "";
 

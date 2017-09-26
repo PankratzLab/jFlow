@@ -144,7 +144,7 @@ public class FocusedSample {
 			log.reportTimeInfo("Markers to export = " + markersToUse.length);
 			log.reportTimeInfo("Samples to export = " + ArrayUtils.booleanArraySum(samplesToUse));
 			int[] markerToUseIndices = ext.indexLargeFactors(markersToUse, original.getMarkerNames(),
-																											 true, log, true, false);
+																											 true, log, true);
 			WorkerHive<FocusedSample> hive = new WorkerHive<FocusedSample>(numThreads, 10, log);
 			WorkerSubset[] workerSubsets = getWorkers(original, newFocus, markerToUseIndices,
 																								samplesToUse, newFingerPrint, overwriteExisting);

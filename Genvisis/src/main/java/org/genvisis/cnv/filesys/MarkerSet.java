@@ -218,8 +218,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
 	 */
 	@Override
 	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true,
-																 false);
+		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true);
 	}
 
 

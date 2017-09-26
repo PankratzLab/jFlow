@@ -44,8 +44,7 @@ public class CleanupSNPresults {
 
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
-			indices = ext.indexFactors(REQS, reader.readLine().trim().split("\t", -1), false, false, true,
-																 true);
+			indices = ext.indexFactors(REQS, reader.readLine().trim().split("\t", -1), false, false, true);
 			while (reader.ready()) {
 				line = reader.readLine().toUpperCase().split("\t", -1);
 				checkLine = check.checkPair(line[indices[3]], line[indices[2]], false)

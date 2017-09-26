@@ -44,7 +44,7 @@ public class SNPEffAnnotation {
 
 		} else if (firstLine.length == 3) {
 			// snps, chr, and pos
-			int[] factors = ext.indexFactors(FACTORS, firstLine, false, true, true, false);
+			int[] factors = ext.indexFactors(FACTORS, firstLine, false, true, true);
 			if (ArrayUtils.countIf(factors, -1) > 0) {
 				log.reportError("Error - files containing three columns of data must contain RS ID's, Chromosomes, and Positions.");
 				return null;
@@ -56,7 +56,7 @@ public class SNPEffAnnotation {
 			}
 		} else if (firstLine.length >= 5) {
 			// snps, chr, and pos
-			int[] factors = ext.indexFactors(FACTORS_5, firstLine, false, true, true, false);
+			int[] factors = ext.indexFactors(FACTORS_5, firstLine, false, true, true);
 			if (ArrayUtils.countIf(factors, -1) > 0) {
 				log.reportError("Error - files containing five or more columns of data must contain RS ID's, Chromosomes, Positions, and Ref and Alt alleles.");
 				return null;
@@ -84,7 +84,7 @@ public class SNPEffAnnotation {
 																																								 // parse, not VCF
 			fileToUse = ext.rootOf(file, false) + "_positions.xln";
 			indicesToUse = ext.indexFactors(FACTORS, Files.getHeaderOfFile(fileToUse, log), false, true,
-																			true, false);
+																			true);
 		}
 		String newFile = ext.rootOf(file, false) + "_snpEffLookup.txt";
 		int cnt = 0;

@@ -65,7 +65,7 @@ public class MatchSamples {
 			factorIndices = ext.indexFactors(factorTargets, Files.getHeaderOfFile(dir + factorfile,
 																																						PSF.Regex.GREEDY_WHITESPACE,
 																																						new Logger()),
-																			 false, true);
+																			 false);
 			ids = HashVec.loadFileToStringArray(dir + factorfile, true, new int[] {0}, false);
 			matrix = HashVec.loadFileToStringMatrix(dir + factorfile, true, factorIndices,
 																							PSF.Regex.GREEDY_WHITESPACE,

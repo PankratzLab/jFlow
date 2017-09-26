@@ -40,7 +40,7 @@ public class UCSCtrack {
 															 new String[] {"", DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY,
 																						 "../" + DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY});
 			header = reader.readLine().trim().split("\t", -1);
-			indices = ext.indexFactors(NEEDS, header, false, true, true, log, false);
+			indices = ext.indexFactors(NEEDS, header, false, true, true, log);
 			idIndex = ext.indexOfStr("IID", header);
 			if (idIndex == -1) {
 				throw new IOException("Column header 'IID' is required in sample database file in order to lookup affection status");

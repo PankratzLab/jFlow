@@ -13,7 +13,7 @@ public class VariantList {
 		int[] indices;
 
 		header = Files.getHeaderOfFile(filename, log);
-		indices = ext.indexFactors(HEADER, header, false, true, true, log, true);
+		indices = ext.indexFactors(HEADER, header, false, true, true, log);
 
 		return HashVec.loadFileToStringMatrix(filename, true, new int[] {indices[0], indices[1],
 																																		 indices[2], indices[3]});

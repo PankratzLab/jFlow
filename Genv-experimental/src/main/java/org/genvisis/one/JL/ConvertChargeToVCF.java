@@ -66,7 +66,7 @@ public class ConvertChargeToVCF {
 			writer.writeHeader(vcfHeader);
 			try {
 				int[] indices = ext.indexFactors(CHARGE_HEADER, Files.getHeaderOfFile(fullPathToFile, log),
-																				 true, false);
+																				 true);
 				BufferedReader reader = Files.getAppropriateReader(fullPathToFile);
 				reader.readLine();
 				int count = 0;

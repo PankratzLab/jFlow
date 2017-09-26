@@ -707,7 +707,7 @@ public class IntensityCorrectionQC {
 			}
 			reader.close();
 			int[] indices = ext.indexLargeFactors(samples.toArray(new String[samples.size()]),
-																						proj.getSamples(), true, log, true, true);
+																						proj.getSamples(), true, log, true);
 
 			reader = Files.getAppropriateReader(dataFile);
 			reader.readLine();

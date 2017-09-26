@@ -254,11 +254,11 @@ public class comp {
 
 			indices = ext.indexFactors(ArrayUtils.addStrToArray(traits[trt],
 																													ArrayUtils.toStringArray(included), 0),
-																 factorNames, true, log, true, true);
+																 factorNames, true, log, true);
 			limits = ext.indexFactors(ArrayUtils.addStrToArray(traits[trt],
 																												 ArrayUtils.toStringArray(limitKeys), 0),
-																factorNames, true, log, true, true);
-			idIndices = ext.indexFactors(DEFAULT_ID_NAMES, factorNames, false, true, false, false);
+																factorNames, true, log, true);
+			idIndices = ext.indexFactors(DEFAULT_ID_NAMES, factorNames, false, true, false);
 			M = indices.length - 1;
 
 			if (optionFlagged("oneperfamily") && idIndices[1] == -1) {

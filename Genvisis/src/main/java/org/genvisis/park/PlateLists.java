@@ -94,7 +94,7 @@ public class PlateLists {
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			line = reader.readLine().trim().split("\t");
-			indices = ext.indexFactors(COLS, line, false, true);
+			indices = ext.indexFactors(COLS, line, false);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t");
 				dna = new DnaSample(line[indices[ext.indexOfStr("DNA#", COLS)]],
@@ -284,9 +284,9 @@ public class PlateLists {
 																									 + LABELS[i][0]));
 				line = reader.readLine().trim().split("\t");
 				if (ext.eqArrays(line, CREATE_HEADER)) {
-					indices = ext.indexFactors(UPDATE_FROM_CREATE_HEADER, line, false, true);
+					indices = ext.indexFactors(UPDATE_FROM_CREATE_HEADER, line, false);
 				} else {
-					indices = ext.indexFactors(UPDATE_HEADER, line, false, true);
+					indices = ext.indexFactors(UPDATE_HEADER, line, false);
 				}
 				while (reader.ready()) {
 					line = reader.readLine().trim().split("\t");
@@ -347,7 +347,7 @@ public class PlateLists {
 		try {
 			reader = new BufferedReader(new FileReader(dir + filename));
 			line = reader.readLine().trim().split("\t");
-			indices = ext.indexFactors(new String[] {"UniqueID", "DNA"}, line, false, true);
+			indices = ext.indexFactors(new String[] {"UniqueID", "DNA"}, line, false);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split("\t");
 				dna = new DnaSample(line[indices[1]], line[indices[0]], ext.rootOf(filename));

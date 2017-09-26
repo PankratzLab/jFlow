@@ -509,7 +509,7 @@ public class BetaOptimizer {
 					String[] pcSamps = HashVec.loadFileToStringArray(usedInPCFile, false, new int[] {0},
 																													 false, true, "\t");
 					int[] indicesPC = ext.indexLargeFactors(pcSamps, proj.getSamples(), true, proj.getLog(),
-																									true, false);
+																									true);
 					boolean[] sampsPCs = ArrayUtils.booleanArray(proj.getSamples().length, false);
 
 					for (int i = 0; i < indicesPC.length; i++) {
@@ -524,7 +524,7 @@ public class BetaOptimizer {
 															 + singleRaceSamples);
 
 						int[] indices = ext.indexLargeFactors(sampsForMods, proj.getSamples(), true,
-																									proj.getLog(), true, false);
+																									proj.getLog(), true);
 						for (int i = 0; i < indices.length; i++) {
 							samplesForModels[indices[i]] = true;
 						}
@@ -881,7 +881,7 @@ public class BetaOptimizer {
 																							 MarkerSetInfo markerSet,
 																							 Logger log) {
 		String[] header = Files.getHeaderOfFile(betaFile, log);
-		int[] indices = ext.indexFactors(BETA_HEADER, header, false, false);
+		int[] indices = ext.indexFactors(BETA_HEADER, header, false);
 		int ambi = 0;
 
 		if (ArrayUtils.countIf(indices, -1) > 0) {
@@ -984,7 +984,7 @@ public class BetaOptimizer {
 																										 String outSer, Logger log) {
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
-		int[] indices = ext.indexLargeFactors(namesToQuery, markerNames, true, log, true, false);
+		int[] indices = ext.indexLargeFactors(namesToQuery, markerNames, true, log, true);
 		int[] posIndices = indices;
 		if (proj.GENOME_BUILD_VERSION.getValue() != GENOME_BUILD.HG19) {
 			if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
@@ -1000,7 +1000,7 @@ public class BetaOptimizer {
 				}
 				markerSet = MarkerSet.load(tmpSer);
 				posIndices = ext.indexLargeFactors(namesToQuery, markerSet.getMarkerNames(), true, log,
-																					 true, false);
+																					 true);
 
 			} else {
 				throw new IllegalArgumentException("Genome version must be "

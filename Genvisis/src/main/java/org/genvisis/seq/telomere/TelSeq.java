@@ -194,7 +194,7 @@ public class TelSeq {
 
 		// Only interested in these columns currently, do not know what to do
 		// with TEL* and GC*
-		int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true, false);
+		int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true);
 		if (ArrayUtils.countIf(indices, -1) > 0) {
 			throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
 		}
