@@ -962,7 +962,7 @@ public class ext {
 	 * @param kill If true and there are any
 	 * @return Parallel array of subset indices in the superset (-1 if not found)
 	 *
-	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)
 	 * @see #indexOfStr
 	 */
 	public static int[] indexFactors(String[] subset, String[] superset, boolean caseSensitive,
@@ -977,7 +977,7 @@ public class ext {
 		boolean err = false;
 
 		// Map the superset strings to their indices in the array
-		Map<String, Integer> supersetMap = makeIndexMap(superset, caseSensitive, verbose, log, kill);
+		Map<String, Integer> supersetMap = makeIndexMap(superset, caseSensitive, verbose, log);
 
 		// Loop through our query strings and look up their indices in the map
 		for (int i = 0; i < subset.length; i++) {
@@ -1020,7 +1020,7 @@ public class ext {
 	// }
 	//
 	/**
-	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)
 	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
@@ -1031,13 +1031,12 @@ public class ext {
 	}
 
 	/**
-	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)
+	 * @see #indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)
 	 */
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
 																	 Logger log, boolean kill) {
-		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log,
-												kill);
+		return indexFactors(targetsWithAlts, superset, false, caseSensitive, exactMatch, verbose, log);
 	}
 
 	/**
@@ -1053,7 +1052,6 @@ public class ext {
 	 *        string, or if it is sufficient for one to be a substring of the other
 	 * @param verbose If true, report any mismatches (default: {@code true})
 	 * @param log Logger instance to use when reporting
-	 * @param kill If true and there are any
 	 * @return Parallel array of the best target indices in the superset (-1 indicates target was not
 	 *         found)
 	 *
@@ -1063,7 +1061,7 @@ public class ext {
 	public static int[] indexFactors(String[][] targetsWithAlts, String[] superset,
 																	 boolean preferFirstInTargetsOverFirstInSuperset,
 																	 boolean caseSensitive, boolean exactMatch, boolean verbose,
-																	 Logger log, boolean kill) {
+																	 Logger log) {
 		int[] finalIndices = new int[targetsWithAlts.length];
 		boolean err = false;
 
@@ -1144,7 +1142,7 @@ public class ext {
 		}
 
 		// Make the map. NB: this method takes care of reporting duplicate strings in the superset
-		Map<String, Integer> indexMap = makeIndexMap(superset, caseSensitive, verbose, log, kill);
+		Map<String, Integer> indexMap = makeIndexMap(superset, caseSensitive, verbose, log);
 
 		// For each target, we'll check the superset map for each alt
 		for (int i = 0; i < targetsWithAlts.length; i++) {
@@ -1184,11 +1182,11 @@ public class ext {
 				}
 			}
 		}
-
-		if (kill && err) {
-			// System exit if requested
-			System.exit(1);
-		}
+		//
+		// if (kill && err) {
+		// // System exit if requested
+		// System.exit(1);
+		// }
 
 		return finalIndices;
 	}
@@ -1206,7 +1204,7 @@ public class ext {
 	 * @return The constructed map
 	 */
 	private static Map<String, Integer> makeIndexMap(String[] superset, boolean caseSensitive,
-																									 boolean verbose, Logger log, boolean kill) {
+																									 boolean verbose, Logger log) {
 		Map<String, Integer> supersetMap = new HashMap<>();
 		boolean err = false;
 		for (int i = 0; i < superset.length; i++) {
@@ -1224,9 +1222,6 @@ public class ext {
 			}
 		}
 
-		if (kill && err) {
-			System.exit(1);
-		}
 		return supersetMap;
 	}
 

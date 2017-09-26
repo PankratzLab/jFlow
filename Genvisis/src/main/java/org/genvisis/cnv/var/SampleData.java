@@ -408,9 +408,9 @@ public class SampleData {
 			}
 
 			sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classes, true, false, true,
-																			 log.getLevel() >= 1 ? true : false, log, false)[0];
+																			 log.getLevel() >= 1 ? true : false, log)[0];
 			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classes, false, false,
-																					 true, log.getLevel() >= 1 ? true : false, log, false)[0];
+																					 true, log.getLevel() >= 1 ? true : false, log)[0];
 			log.report("Class list: " + ArrayUtils.toStr(classes), true, true, 1);
 
 			sexCountHash = new CountVector();

@@ -324,11 +324,11 @@ public class MultiHitWindows {
 			String[] line = temp.trim().split(delimiter);
 
 			int markerIndex = ext.indexFactors(new String[][] {pFile.getMarkers()}, line, false, false,
-																				 true, true, log, false)[0];
+																				 true, true, log)[0];
 			int chrIndex = ext.indexFactors(new String[][] {pFile.getChrs()}, line, false, false, true,
-																			true, log, false)[0];
+																			true, log)[0];
 			int posIndex = ext.indexFactors(new String[][] {pFile.getPos()}, line, false, false, true,
-																			true, log, false)[0];
+																			true, log)[0];
 			int[] pvalIndices = ext.indexFactors(pFile.getPvals(), line, false, log, false, false);
 
 			if (markerIndex == -1 || chrIndex == -1 || posIndex == -1) {

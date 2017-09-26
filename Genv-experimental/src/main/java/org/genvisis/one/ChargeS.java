@@ -490,7 +490,7 @@ public class ChargeS {
 		indices = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS,
 																							 Aliases.POSITIONS, Aliases.ALLELES[0],
 																							 Aliases.ALLELES[1]},
-															 header, true, false, true, true, log, true);
+															 header, true, false, true, true, log);
 		annotationHash = HashVec.loadFileToHashString(dir + annotationFile, new int[] {indices[0]},
 																									ArrayUtils.subArray(indices, 1),
 																									Files.determineDelimiter(dir + annotationFile,

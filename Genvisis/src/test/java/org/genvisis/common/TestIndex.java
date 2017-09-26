@@ -87,25 +87,25 @@ public class TestIndex {
 
 	/**
 	 * Benchmark the
-	 * {@link ext#indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger, boolean)}
+	 * {@link ext#indexFactors(String[][], String[], boolean, boolean, boolean, boolean, Logger)}
 	 * method (with a 2D input array)
 	 */
 	public void indexFactors2D() {
 		Logger log = new Logger();
 		long t = System.currentTimeMillis();
-		int[] result = ext.indexFactors(targets, superset, true, true, true, false, log, false);
+		int[] result = ext.indexFactors(targets, superset, true, true, true, false, log);
 		t = System.currentTimeMillis() - t;
 		reportArrayHash(i2d + ",target,exact", result, t, -1585103590);
 		t = System.currentTimeMillis();
-		result = ext.indexFactors(targets, superset, false, true, true, false, log, false);
+		result = ext.indexFactors(targets, superset, false, true, true, false, log);
 		t = System.currentTimeMillis() - t;
 		reportArrayHash(i2d + ",super,exact", result, t, -404192925);
 		t = System.currentTimeMillis();
-		result = ext.indexFactors(targets, superset, true, true, false, false, log, false);
+		result = ext.indexFactors(targets, superset, true, true, false, false, log);
 		t = System.currentTimeMillis() - t;
 		reportArrayHash(i2d + ",target,fuzzy", result, t, -842850808);
 		t = System.currentTimeMillis();
-		result = ext.indexFactors(targets, superset, false, true, false, false, log, false);
+		result = ext.indexFactors(targets, superset, false, true, false, false, log);
 		t = System.currentTimeMillis() - t;
 		reportArrayHash(i2d + ",super,fuzzy", result, t, 254970431);
 	}

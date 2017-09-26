@@ -2195,7 +2195,7 @@ public class SeqMeta {
 			}
 			indices = ext.indexFactors(new String[][] {Aliases.GENE_UNITS, Aliases.CHRS,
 																								 Aliases.POSITIONS},
-																 header, false, false, true, false, log, true);
+																 header, false, false, true, false, log);
 			while (reader.ready()) {
 				temp = reader.readLine();
 				if (delimiter.equals(",")) {
@@ -3601,7 +3601,7 @@ public class SeqMeta {
 			header = Files.getHeaderOfFile(filenames[i], ",!", log);
 			indices = ext.indexFactors(new String[][] {{"Name", "SNP", "gene"}, {"p"},
 																								 {"cmafUsed", "cmaf", "maf"}, {"ntotal"}},
-																 header, true, false, true, false, log, false);
+																 header, true, false, true, false, log);
 			if (ArrayUtils.min(indices) == -1) {
 				log.reportError("Error - header for file " + filenames[i] + "; aborting pleiotropy for "
 												+ outputFile);

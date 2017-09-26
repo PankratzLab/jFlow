@@ -49,7 +49,7 @@ public class ParseMXCResults {
 																																"SKATgene"},
 																									Aliases.POSITIONS_START,
 																									Aliases.POSITIONS_STOP, Aliases.CHRS},
-																	line, true, false, false, false, log, false);
+																	line, true, false, false, false, log);
 
 
 		return HashVec.loadFileToStringMatrix(filename, omitHeader, cols);

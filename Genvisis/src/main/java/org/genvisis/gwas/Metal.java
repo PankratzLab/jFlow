@@ -934,7 +934,7 @@ public class Metal {
 																									 Aliases.PVALUES, Aliases.IMPUTATION_EFFICIENCY};
 			for (int i = 0; i < inputFiles.length; i++) {
 				header = Files.getHeaderOfFile(inputFiles[i], log);
-				indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log, false);
+				indices = ext.indexFactors(headersWithAlts, header, true, false, true, true, log);
 				fileParameters[i + 4] = inputFiles[i] + " 0";
 				altHeaders.put(ext.removeDirectoryInfo(inputFiles[i]), new Hashtable<String, String>());
 				for (int j = 0; j < indices.length; j++) {
@@ -952,7 +952,7 @@ public class Metal {
 					}
 				}
 				indices = ext.indexFactors(new String[][] {Aliases.CHRS, Aliases.POSITIONS}, header, true,
-																	 false, true, true, log, false);
+																	 false, true, true, log);
 				if (indices[0] != -1) {
 					try {
 						reader = Files.getAppropriateReader(inputFiles[i]);// new BufferedReader(new

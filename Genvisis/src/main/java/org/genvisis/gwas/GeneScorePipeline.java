@@ -388,7 +388,7 @@ public class GeneScorePipeline {
 				temp = reader.readLine();
 				delimiter = ext.determineDelimiter(temp);
 				header = temp.trim().split(delimiter);
-				indices = ext.indexFactors(factors, header, false, false, true, true, log, false);
+				indices = ext.indexFactors(factors, header, false, false, true, true, log);
 				markerMap = new HashMap<String, int[]>();
 				String errorMsg = "";
 				if (indices[0] == -1) {
@@ -732,8 +732,7 @@ public class GeneScorePipeline {
 						BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
 						String line = reader.readLine();
 						String[] temp = line.split(PSF.Regex.GREEDY_WHITESPACE);
-						int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger(),
-																						 false);
+						int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger());
 						while ((line = reader.readLine()) != null) {
 							String mkr = line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[0]];
 							if (hitMkrSet.contains(mkr)) {
