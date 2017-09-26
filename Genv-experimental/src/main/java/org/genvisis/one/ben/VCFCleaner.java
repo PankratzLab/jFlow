@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
-public class VCFFixer {
+public class VCFCleaner {
 
 
 	public static String fixVCF(String vcfFile) throws IOException {
@@ -17,9 +17,16 @@ public class VCFFixer {
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		String line = null;
 		boolean pastChrome = false;
+		StringBuilder sb;
 		while ((line = reader.readLine()) != null) {
 			if (pastChrome) {
 				line = line.replace("\t\t\t", "\t").replaceAll("\t\t", "\t");
+				int ind = line.indexOf(",");
+				if (ind > 0) {
+					sb = new StringBuilder(line.substring(0, ind));
+					sb.append(line.substring(line.indexOf("\t", ind)));
+					line = sb.toString();
+				}
 			} else if (line.startsWith("FORMAT")) {
 				line = fixFormatLine(line);
 			} else if (line.startsWith("#CHROM")) {
