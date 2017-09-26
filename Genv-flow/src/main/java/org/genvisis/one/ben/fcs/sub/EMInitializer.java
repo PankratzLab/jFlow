@@ -92,7 +92,7 @@ public class EMInitializer {
 			try {
 				BufferedReader reader = Files.getAppropriateReader(DATA_DIR + f);
 				String[] parts = reader.readLine().split("\t");
-				int[] fact = ext.indexFactors(DATA_COLUMNS, parts, false, false);
+				int[] fact = ext.indexFactors(DATA_COLUMNS, parts, false);
 				String line = null;
 				while ((line = reader.readLine()) != null) {
 					parts = line.split("\t");

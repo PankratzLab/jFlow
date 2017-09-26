@@ -104,7 +104,7 @@ public class CBCApplicator implements Runnable {
 			return;
 		}
 		panel1DataColumn = ext.indexOfStr(PNL_1_CBC_START, hdr);
-		panel2DataColumns = ext.indexFactors(PNL_2_CBC_COLS, hdr, false, false);
+		panel2DataColumns = ext.indexFactors(PNL_2_CBC_COLS, hdr, false);
 		if (panel1DataColumn == -1) {
 			log.reportError("missing column " + PNL_1_CBC_START + " from CBC file: " + cbcDir + files[0]);
 			return;
