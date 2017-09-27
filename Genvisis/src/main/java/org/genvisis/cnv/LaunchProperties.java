@@ -2,6 +2,7 @@ package org.genvisis.cnv;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -111,17 +112,25 @@ public class LaunchProperties {
 							updatePropertiesFile("launch.properties");
 						} else {
 							Files.ensurePathExists(defaultDir);
-							JFileChooser jfc = new JFileChooser(defaultDir);
-							jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-							jfc.setDialogTitle("Choose launch properties directory:");
-							jfc.setMultiSelectionEnabled(false);
-							int resp = jfc.showDialog(null, "Select");
-							if (resp == JFileChooser.APPROVE_OPTION) {
-								String newPath = jfc.getSelectedFile().getAbsolutePath();
+							if (!GraphicsEnvironment.isHeadless()) {
+								JFileChooser jfc = new JFileChooser(defaultDir);
+								jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+								jfc.setDialogTitle("Choose launch properties directory:");
+								jfc.setMultiSelectionEnabled(false);
+								int resp = jfc.showDialog(null, "Select");
+								if (resp == JFileChooser.APPROVE_OPTION) {
+									String newPath = jfc.getSelectedFile().getAbsolutePath();
 
-								customPropertiesDir = newPath + System.getProperty("file.separator");
-								updatePropertiesFile(customPropertiesDir + "launch.properties");
+									customPropertiesDir = newPath + System.getProperty("file.separator");
+									updatePropertiesFile(customPropertiesDir + "launch.properties");
+									propFile = new File(propertiesFile);
+								}
+							} else {
+								customPropertiesDir = defaultDir;
+								propertiesFile = defaultDir + System.getProperty("file.separator")
+																 + "launch.properties";
 								propFile = new File(propertiesFile);
+								System.out.println("Using default properties location of: " + propertiesFile);
 							}
 						}
 					} else {
@@ -133,7 +142,7 @@ public class LaunchProperties {
 
 				if (!propFile.exists() && !propFile.createNewFile()) {
 					System.err.println("Failed to create launch properties: " + propertiesFile
-														 + ". Genvisis can not continue, please check error logs.");
+														 + ". Genvisis can not continue.");
 					System.exit(-1);
 				}
 
@@ -155,7 +164,8 @@ public class LaunchProperties {
 				save();
 			} catch (Exception e) {
 				System.err.println("Failed to load launch properties: " + propertiesFile
-													 + ". Genvisis can not continue, please check error logs.");
+													 + ". Genvisis can not continue.");
+				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
