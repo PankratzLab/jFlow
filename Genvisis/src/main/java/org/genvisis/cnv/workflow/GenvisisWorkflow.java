@@ -93,7 +93,8 @@ public class GenvisisWorkflow {
 		proj = project;
 		log = project.getLog();
 		this.launch = launch;
-		numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC, proj.NUM_THREADS.getValue());
+		numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC,
+																											proj.NUM_THREADS.getValue());
 
 		steps = Collections.unmodifiableSortedSet(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
 	}
@@ -343,7 +344,8 @@ public class GenvisisWorkflow {
 
 			return register(new Step("Parse Sample Files", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-																					Requirement.Flag.MULTITHREADED), priority()) {
+																					Requirement.Flag.MULTITHREADED),
+															 priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
@@ -383,10 +385,11 @@ public class GenvisisWorkflow {
 					returnValue = returnValue && proj.getSampleList() != null;
 					returnValue = returnValue && Files.exists(sampleDirectory);
 
-					int numSamples = proj.getSampleList().getSamples().length;
+					int numSamples = returnValue ? proj.getSampleList().getSamples().length : 0;
 					returnValue = returnValue && numSamples > 0;
 					returnValue = returnValue
-												&& Files.countFiles(sampleDirectory, Sample.SAMPLE_FILE_EXTENSION) == numSamples;
+												&& Files.countFiles(sampleDirectory,
+																						Sample.SAMPLE_FILE_EXTENSION) == numSamples;
 					// checking the validity / completeness of each sample would be a Good Thing, but too
 					// costly time-wise for larger projects
 					return returnValue;
@@ -433,9 +436,9 @@ public class GenvisisWorkflow {
 
 			final Requirement pedigreeReq = new Requirement(
 																											"Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \""
-																													+ ArrayUtils.toStr(MitoPipeline.PED_INPUT,
-																																						 ", ")
-																													+ "\"",
+																											+ ArrayUtils.toStr(MitoPipeline.PED_INPUT,
+																																				 ", ")
+																											+ "\"",
 																											Requirement.RequirementInputType.FILE,
 																											pedPreset) {
 
@@ -451,9 +454,9 @@ public class GenvisisWorkflow {
 
 			final Requirement sampMapReq = new Requirement(
 																										 "A Sample_Map.csv file, with at least two columns having headers \""
-																												 + MitoPipeline.SAMPLEMAP_INPUT[1]
-																												 + "\" and \""
-																												 + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"",
+																										 + MitoPipeline.SAMPLEMAP_INPUT[1]
+																										 + "\" and \""
+																										 + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"",
 																										 Requirement.RequirementInputType.FILE,
 																										 sampMapPreset) {
 
@@ -597,7 +600,7 @@ public class GenvisisWorkflow {
 
 					String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
 					String gcOutputFile = variables == null ? null
-																								 : variables.get(this).get(gcModelOutputReq);
+																									: variables.get(this).get(gcModelOutputReq);
 					if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
 						kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
 					}
@@ -676,9 +679,9 @@ public class GenvisisWorkflow {
 			final Requirement targetMarkersReq = new Requirement.FileRequirement(
 																																					 "A targetMarkers files listing the markers to QC.",
 																																					 tgtMkrFiles != null
-																																							 && tgtMkrFiles.length >= 1
-																																																				 ? tgtMkrFiles[0]
-																																																				 : "");
+																																																															 && tgtMkrFiles.length >= 1
+																																																																													? tgtMkrFiles[0]
+																																																																													: "");
 			final Set<String> sampleDataHeaders;
 			if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
 				sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
@@ -827,7 +830,7 @@ public class GenvisisWorkflow {
 					return cmd.append(Files.getRunString())
 										.append(" cnv.qc.SexChecks -check proj=" + projPropFile).toString()
 								 + (discriminatingMarkersFile == null ? ""
-																										 : " useMarkers=" + discriminatingMarkersFile)
+																											: " useMarkers=" + discriminatingMarkersFile)
 								 + (addToSampleData ? "" : " -skipSampleData");
 				}
 
@@ -1755,8 +1758,8 @@ public class GenvisisWorkflow {
 				public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
 
 					int numThreads = resolveThreads(variables == null ? "-1"
-																													 : variables.get(this)
-																																			.get(getNumThreadsReq()));
+																														: variables.get(this)
+																																			 .get(getNumThreadsReq()));
 					String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
 													 + proj.getPropertyFilename() + " -sexSpecific "
 													 + PSF.Ext.NUM_THREADS_COMMAND + numThreads;
@@ -2014,7 +2017,8 @@ public class GenvisisWorkflow {
 
 			return register(new Step("Create PC-Corrected Project", "", reqSet,
 															 EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-																					Requirement.Flag.MULTITHREADED), priority()) {
+																					Requirement.Flag.MULTITHREADED),
+															 priority()) {
 
 				@Override
 				public void setNecessaryPreRunProperties(Project proj,
