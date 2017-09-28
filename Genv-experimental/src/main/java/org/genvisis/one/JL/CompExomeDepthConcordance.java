@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -27,7 +28,8 @@ public class CompExomeDepthConcordance {
 		for (String file : files) {
 			log.reportTimeInfo("Loading " + file);
 			LocusSet<CNVariant> tmp = CNVariant.loadLocSet(file, log);
-			Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(tmp, log);
+			Map<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(tmp, log);
+
 			ArrayList<CNVariant> indsForThisFile = new ArrayList<CNVariant>();
 			for (String ind : iidMatch.keySet()) {
 				if (inds.containsKey(ind)) {

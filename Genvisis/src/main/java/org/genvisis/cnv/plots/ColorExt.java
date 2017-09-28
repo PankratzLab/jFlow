@@ -223,6 +223,7 @@ public class ColorExt {
 		private final Hashtable<E, E> lookup;// items associated with category
 		// (marker->PoorQualityCategory)
 		private final Hashtable<E, ColorItem<E>> manager; // categories associated
+		private boolean colorBAF;
 		// with color item
 		// (PoorQualityCategory->blue)
 
@@ -233,10 +234,19 @@ public class ColorExt {
 			for (E e : manager.keySet()) {
 				toUse.add(e);
 			}
+			this.colorBAF = false;
 		}
 
 		public Set<E> getToUse() {
 			return toUse;
+		}
+
+		public boolean isColorBAF() {
+			return colorBAF;
+		}
+
+		public void setColorBAF(boolean colorBAF) {
+			this.colorBAF = colorBAF;
 		}
 
 		public Hashtable<E, E> getLookup() {

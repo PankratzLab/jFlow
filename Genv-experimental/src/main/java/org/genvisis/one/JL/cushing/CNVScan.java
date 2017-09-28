@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +52,7 @@ public class CNVScan {
 		vpop.report();
 		HashSet<String> lqs = HashVec
 				.loadFileToHashSet("/Volumes/Beta2/NGS/Cushings/cnvs/CUSHING_FREQ_V3.lowerQualitySamples.txt", false);
-		Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(
+		Map<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(
 				LocusSet.combine(CNVariant.loadLocSet(cnvFile, log), CNVariant.loadLocSet(g1000Cnvs, log), true, log),
 				log);
 		// Hashtable<String, LocusSet<CNVariant>> set =
@@ -157,7 +156,7 @@ public class CNVScan {
 
 	}
 
-	private static void splitIntoCaseControl(Logger log, VcfPopulation vpop, Hashtable<String, LocusSet<CNVariant>> set,
+	private static void splitIntoCaseControl(Logger log, VcfPopulation vpop, Map<String, LocusSet<CNVariant>> set,
 			List<CNVariant> cushings, List<CNVariant> controls, String caseDef, HashSet<String> notControls,
 			HashSet<String> lq) {
 		for (String ind : set.keySet()) {

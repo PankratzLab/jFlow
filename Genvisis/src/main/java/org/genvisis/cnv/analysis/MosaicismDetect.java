@@ -601,7 +601,11 @@ public class MosaicismDetect {
 		MosaicBuilder builder = new MosaicBuilder();// most customizing can be done in the builder if
 																								// needed
 		builder.indicesByChr(indicesByChr);
-
+		boolean[] cnOnly = proj.getCNMarkers();
+		builder.use(ArrayUtils.booleanNegative(cnOnly));
+		proj.getLog().reportTimeWarning("Skipping " + ArrayUtils.booleanArraySum(cnOnly)
+																		+ " copy number only markers for mosaic regions and array type "
+																		+ proj.ARRAY_TYPE.getValue().toString());
 		// develop segments to call on
 		ArrayList<Segment> callSegs = new ArrayList<>();
 

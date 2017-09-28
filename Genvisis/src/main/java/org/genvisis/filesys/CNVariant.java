@@ -9,10 +9,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.cnv.hmm.PennHmm;
@@ -724,7 +726,8 @@ public class CNVariant extends Segment {
 		return getUniqueInds(cLocusSet, log);
 	}
 
-	public static HashSet<String> getUniqueInds(LocusSet<CNVariant> cLocusSet, Logger log) {
+	public static <T extends CNVariant> HashSet<String> getUniqueInds(LocusSet<T> cLocusSet,
+																																		Logger log) {
 		HashSet<String> uniqueInds = new HashSet<String>();
 		for (int i = 0; i < cLocusSet.getLoci().length; i++) {
 			CNVariant tmp = cLocusSet.getLoci()[i];
@@ -733,34 +736,44 @@ public class CNVariant extends Segment {
 		return uniqueInds;
 	}
 
-	public static Hashtable<String, LocusSet<CNVariant>> breakIntoInds(LocusSet<CNVariant> set,
+	/**
+	 * 
+	 * Will break the {@link LocusSet} into a map between FID/IID and {@link CNVariant}s belonging to
+	 * that sample
+	 * 
+	 * @param set
+	 * @param log
+	 * @return
+	 */
+	public static <T extends CNVariant> Map<String, LocusSet<T>> breakIntoInds(LocusSet<T> set,
 																																		 Logger log) {
-		Hashtable<String, ArrayList<CNVariant>> cnvSplits = new Hashtable<String, ArrayList<CNVariant>>();
+		HashMap<String, ArrayList<T>> cnvSplits = new HashMap<>();
 		for (int i = 0; i < set.getLoci().length; i++) {
-			CNVariant tmp = set.getLoci()[i];
+			T tmp = set.getLoci()[i];
 			String key = tmp.getFamilyID() + "\t" + tmp.getIndividualID();
 			if (!cnvSplits.containsKey(key)) {
-				cnvSplits.put(key, new ArrayList<CNVariant>());
+				cnvSplits.put(key, new ArrayList<T>());
 			}
 			cnvSplits.get(key).add(tmp);
 		}
-		Hashtable<String, LocusSet<CNVariant>> setSplit = new Hashtable<String, LocusSet<CNVariant>>();
+		HashMap<String, LocusSet<T>> setSplit = new HashMap<>();
 
 		for (String fidIid : cnvSplits.keySet()) {
-			ArrayList<CNVariant> indCNVs = cnvSplits.get(fidIid);
-			LocusSet<CNVariant> indSet = new LocusSet<CNVariant>(indCNVs.toArray(new CNVariant[indCNVs.size()]),
-																													 true, log) {
+			ArrayList<T> indCNVs = cnvSplits.get(fidIid);
+			if (!indCNVs.isEmpty()) {
+				LocusSet<T> indSet = new LocusSet<T>(indCNVs,
+																						 true, log) {
 
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 1L;
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
 
-			};
-			setSplit.put(fidIid, indSet);
+				};
+				setSplit.put(fidIid, indSet);
+			}
 		}
 		return setSplit;
-
 	}
 
 	/**

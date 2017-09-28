@@ -1632,6 +1632,14 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					g.setFont(new Font("Arial", 0, 10));
 					for (Marker marker : curMarkers) {
 						int x = Trailer.this.getX(marker.getPosition());
+						if (currentColorManager != null
+								&& currentColorManager.isColorBAF()
+								&& currentColorManager.hasColorFor(marker.getName())) {
+							Color managed = currentColorManager.getColorItemForVar(marker.getName()).getColor();
+							if (managed != null) {
+								g.setColor(managed);
+							}
+						}
 						if (lrrs.get(marker).isNaN()) {
 							// TODO print something for NaNs?
 						} else if (dropped.contains(marker)) {
@@ -1655,6 +1663,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 														- HEIGHT_BUFFER,
 												 SIZE, SIZE);
 						}
+
 					}
 				}
 			}

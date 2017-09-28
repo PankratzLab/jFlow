@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -34,7 +35,8 @@ public class AnotiaCNVs {
 			String outDir = "/Volumes/Beta/data/ANOTIA/CNVs/CUSHINGS_FP_EXOME_DEPTH/cnvResults/";
 			Logger log = new Logger(outDir + "log.log");
 			VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
-			Hashtable<String, LocusSet<CNVariant>> set = CNVariant.breakIntoInds(CNVariant.loadLocSet(cnvFile,
+			Map<String, LocusSet<CNVariant>> set = CNVariant
+					.breakIntoInds(CNVariant.loadLocSet(cnvFile,
 																																																log),
 																																					 log);
 			ArrayList<CNVariant> anotia = new ArrayList<>();

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,7 +72,7 @@ public class SomaticCNVEvaluation {
 		// log.reportTimeInfo(markFilter.length + " filter files detected");
 
 		LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
-		Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
+		Map<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
 		Set<String> tumors = vpop.getTumorSamples();
 		ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
 		SampleData sampleData = proj.getSampleData(false);
@@ -181,12 +180,12 @@ public class SomaticCNVEvaluation {
 	private static class TNCNVProducer extends AbstractProducer<TNCNV> {
 		private final Project proj;
 
-		private final Hashtable<String, LocusSet<CNVariant>> inds;
+		private final Map<String, LocusSet<CNVariant>> inds;
 		private final List<TNTrack> tncnvs;
 		private int index;
 		private final BeastFilt beastFilt;
 
-		public TNCNVProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> inds,
+		public TNCNVProducer(Project proj, Map<String, LocusSet<CNVariant>> inds,
 												 List<TNTrack> tncnvs, BeastFilt beastFilt) {
 			super();
 			this.proj = proj;

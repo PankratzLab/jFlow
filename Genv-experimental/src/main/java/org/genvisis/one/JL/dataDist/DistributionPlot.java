@@ -2,7 +2,7 @@ package org.genvisis.one.JL.dataDist;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
@@ -71,7 +71,7 @@ public class DistributionPlot {
 			MarkerSetInfo markerSet = proj.getMarkerSet();
 			LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(proj.CNV_FILENAMES.getValue()[0],
 																											proj.getLog());
-			final Hashtable<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs,
+			final Map<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs,
 																																									proj.getLog());
 
 			lrrScat = initialize("LRR bin", "Log count");

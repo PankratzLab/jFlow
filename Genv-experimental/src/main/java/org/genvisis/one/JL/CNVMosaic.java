@@ -2,7 +2,7 @@ package org.genvisis.one.JL;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -133,7 +133,7 @@ public class CNVMosaic {
 			String output = ext.addToRoot(cnvFile, ".mosaicMetrics");
 			if (!Files.exists(output)) {
 				LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, proj.getLog());
-				Hashtable<String, LocusSet<CNVariant>> indSets = CNVariant.breakIntoInds(cnvs,
+				Map<String, LocusSet<CNVariant>> indSets = CNVariant.breakIntoInds(cnvs,
 																																								 proj.getLog());
 				int numSampsRemoved = 0;
 				int numCNVsRemoved = 0;
@@ -356,13 +356,13 @@ public class CNVMosaic {
 
 	private static class MosaicForceProducer extends AbstractProducer<MosaicRegion[]> {
 		private final Project proj;
-		private final Hashtable<String, LocusSet<CNVariant>> indSets;
+		private final Map<String, LocusSet<CNVariant>> indSets;
 		private int index;
 		private final String[] fidsIids;
 		private final SampleData sampleData;
 		// private int[][] indicesByChr;
 
-		public MosaicForceProducer(Project proj, Hashtable<String, LocusSet<CNVariant>> indSets) {
+		public MosaicForceProducer(Project proj, Map<String, LocusSet<CNVariant>> indSets) {
 			super();
 			this.proj = proj;
 			this.indSets = indSets;
