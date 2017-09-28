@@ -1246,7 +1246,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
 		public ScreenToCapture(String[] files, int[] dataIndices, int[] idIndices,
 													 float[] displayWindow, boolean excluded, boolean colorKey,
-													 boolean appendColorKey, boolean hist, String outputFilename) {
+													 boolean appendColorKey, boolean hist, String outputFilename, String title) {
 			dataXFile = files[0];
 			dataYFile = files[1];
 			colorFile = files[2];
@@ -1265,6 +1265,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			createColorKey = colorKey;
 			includeColorKey = appendColorKey;
 			outputName = outputFilename;
+			this.title = title;
 		}
 	}
 
@@ -1375,8 +1376,9 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 					} else {
 						if (tag.equals(SCRN_TAG_OUTPUT) || tag.equalsIgnoreCase(SCRN_TAG_TITLE)) {
 							values.add(null);
+						} else {
+							values.add(values.get(values.size() - 1));
 						}
-						values.add(values.get(values.size() - 1));
 					}
 				}
 			}
@@ -1396,6 +1398,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			boolean colorKey = false;
 			boolean inclKey = false;
 			String output = null;
+			String title = null;
 
 			files[0] = tagValues.get("fileX").get(i);
 			files[1] = tagValues.get("fileY").get(i);
@@ -1426,9 +1429,10 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 			inclKey = Boolean.parseBoolean(tagValues.get("includeColorKey").get(i));
 
 			output = tagValues.get("output").get(i);
+			title = tagValues.get("title").get(i);
 
 			ScreenToCapture sc = new ScreenToCapture(files, dataCols, idCols, window, hideExcludes,
-																							 colorKey, inclKey, isHistogram, output);
+																							 colorKey, inclKey, isHistogram, output, title);
 			caps.add(sc);
 		}
 
