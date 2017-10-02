@@ -103,6 +103,9 @@ public class BamSegPileUp implements Iterator<BamPile> {
     numReturned++;
     if (numReturned % 1000 == 0) {
       log.reportTimeInfo(numReturned + " queries found of " + bamPiles.length + " for " + bam);
+      log.memoryUsed();
+      log.memoryTotal();
+      log.memoryMax();
     }
 
     return currentPile;
