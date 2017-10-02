@@ -344,7 +344,8 @@ public class Logger implements Serializable {
   public long memoryMax() {
     long memory;
 
-    report("Used heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().maxMemory(), 1));
+    report("Max available heap size is: "
+           + ext.prettyUpSize(memory = Runtime.getRuntime().maxMemory(), 1));
 
     return memory;
   }
