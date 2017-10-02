@@ -19,6 +19,14 @@ public class Images {
 		String[] imageFiles = HashVec.loadFileToStringArray(dir + listFile, false, new int[] {0},
 																												false);
 		System.out.println("Complete!");
+		stitchImages(dir, imageFiles, outFile, bgColor,
+									drawInnerBorder,
+									drawOuterBorder);
+	}
+	
+	public static void stitchImages(String dir, String[] imageFiles, String outFile, Color bgColor,
+																	boolean drawInnerBorder,
+																	boolean drawOuterBorder/* , boolean pack */) {
 		int maxWid = 0;
 		int maxHgt = 0;
 
