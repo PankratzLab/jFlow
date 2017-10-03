@@ -1803,7 +1803,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 		JFrame frame = null;
 		TwoDPlot twoDPlot = new TwoDPlot(proj, promptOnClose, fileExts);
 		twoDPlot.setOpaque(true); // content panes must be opaque
-		if (!headless) {
+		if (!headless && show) {
 			frame = new JFrame("Genvisis - 2D Plot"
 												 + (proj != null ? " - " + proj.PROJECT_NAME.getValue() : ""));
 			frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
