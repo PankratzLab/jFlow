@@ -337,10 +337,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		project.getProgressMonitor().beginDeterminateTask(PROG_KEY, "Displaying ScatterPlot...", 10,
 																											ProgressMonitor.DISPLAY_MODE.GUI_ONLY);
 
-		JPanel scatterPlotPanel = new JPanel();
+		JPanel scatterPlotContentPanel = new JPanel();
 
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setContentPane(scatterPlotPanel);
+		setContentPane(scatterPlotContentPanel);
 		addWindowListener(this);
 
 		SampleList sampleList;
@@ -609,7 +609,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		// centBoxes[0].setSelected(true);
 		// }
 
-		inputMapAndActionMap(scatterPlotPanel);
+		inputMapAndActionMap(scatterPlotContentPanel);
 		// inputMapAndActionMap(annotationPanel);
 		// inputMapAndActionMap(annotationScrollPane);
 
@@ -701,6 +701,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		blastParams = null;
 		markerProjectIndices = null;
 		plinkMarkerLoaders.clear();
+		getContentPane().removeAll();
+		removeAll();
 	}
 
 	@Override
