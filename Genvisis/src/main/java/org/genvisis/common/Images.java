@@ -67,7 +67,7 @@ public class Images {
 		System.out.print("Drawing image files: <");
 		for (int i = 0; i < imageFiles.length; i++) {
 			System.out.print("-");
-			int y = (i / arrSzRows) * maxHgt;
+			int y = (i / (arrSzRows + 1)) * maxHgt;
 			int x = (i % arrSzCols) * maxWid;
 			Graphics2D graphics = finalImage.createGraphics();
 			BufferedImage image = images.get(imageFiles[i]);
