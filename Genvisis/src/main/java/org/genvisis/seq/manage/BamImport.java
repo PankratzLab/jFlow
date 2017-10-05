@@ -47,6 +47,7 @@ import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
+import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
 import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
 import org.genvisis.seq.qc.FilterNGS;
@@ -131,14 +132,18 @@ public class BamImport {
 		private Hashtable<String, Float> outliers;
 		private final Logger log;
 		private final long fingerPrint;
+		private final NORMALIZATON_METHOD normMethod;
+
 
 		public BamPileConversionResults(Project proj, BamPileResult result, long fingerPrint,
+																		NORMALIZATON_METHOD normMethod,
 																		Logger log) {
 			super();
 			this.proj = proj;
 			this.result = result;
-			outliers = new Hashtable<String, Float>();
+			outliers = new Hashtable<>();
 			this.fingerPrint = fingerPrint;
+			this.normMethod = normMethod;
 			this.log = log;
 		}
 
@@ -152,7 +157,8 @@ public class BamImport {
 													+ Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(sampleFile)) {
 
-				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log));
+				BamSample bamSample = new BamSample(proj, result.getBam(), result.loadResults(log),
+																						normMethod);
 				sample = bamSample.getSampleName();
 				bamIndexStats = Files.exists(result.getBam()) ? BamOps.getBamIndexStats(result.getBam())
 																											: null;
@@ -185,15 +191,18 @@ public class BamImport {
 		private final Project proj;
 		private final BamPileResult[] pileResults;
 		private final long fingerPrint;
+		private final NORMALIZATON_METHOD normMethod;
 		private final Logger log;
 		private int index;
 
 		private BamPileConverterProducer(Project proj, BamPileResult[] pileResults, long fingerPrint,
+																		 NORMALIZATON_METHOD normMethod,
 																		 Logger log) {
 			super();
 			this.proj = proj;
 			this.pileResults = pileResults;
 			this.fingerPrint = fingerPrint;
+			this.normMethod = normMethod;
 			this.log = log;
 		}
 
@@ -205,7 +214,8 @@ public class BamImport {
 		@Override
 		public Callable<BamPileConversionResults> next() {
 			BamPileResult current = pileResults[index];
-			BamPileConversionResults conv = new BamPileConversionResults(proj, current, fingerPrint, log);
+			BamPileConversionResults conv = new BamPileConversionResults(proj, current, fingerPrint,
+																																	 normMethod, log);
 			index++;
 			return conv;
 		}
@@ -280,7 +290,7 @@ public class BamImport {
 
 			}
 
-			ArrayList<VariantSeg> segs = new ArrayList<BamImport.VariantSeg>();
+			ArrayList<VariantSeg> segs = new ArrayList<>();
 
 			try {
 
@@ -324,6 +334,7 @@ public class BamImport {
 																							String optionalVCF, int captureBuffer,
 																							int correctionPCs, boolean compileProject,
 																							ASSAY_TYPE atType, ASSEMBLY_NAME aName,
+																							NORMALIZATON_METHOD normMethod,
 																							String[] bamsToImport, String refGenome,
 																							boolean doCorrection,
 																							int numthreads) {
@@ -352,8 +363,8 @@ public class BamImport {
 																											 filterNGS,
 																											 analysisSet.analysisSet.getStrictSegments(),
 																											 aName, log);
-			WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<BamPileResult>(pileProducer,
-																																						numthreads, 2, log);
+			WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<>(pileProducer,
+																															 numthreads, 2, log);
 			int index = 0;
 			proj.SAMPLE_DIRECTORY.getValue(true, false);
 			proj.XY_SCALE_FACTOR.setValue((double) 10);
@@ -370,7 +381,7 @@ public class BamImport {
 			if (compileProject) {
 				compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
 											 analysisSet.markerTypes, analysisSet.analysisSet,
-											 analysisSet.offTargetsToUse, results, aName, doCorrection);
+											 analysisSet.offTargetsToUse, results, aName, normMethod, doCorrection);
 			}
 
 
@@ -484,12 +495,14 @@ public class BamImport {
 																		 List<MarkerFileType> markerTypes,
 																		 LocusSet<Segment> analysisSet, String[] offTargetsToUse,
 																		 BamPileResult[] results, ASSEMBLY_NAME aName,
+																		 NORMALIZATON_METHOD normMethod,
 																		 boolean doCorrection) {
 		String[] mappedReadCounts = new String[bamsToImport.length + 1];
 		mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
 		long fingerPrint = proj.getMarkerSet().getFingerprint();
 		BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
-																																							 fingerPrint, log);
+																																							 fingerPrint,
+																																							 normMethod, log);
 		WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(
 																																																								conversionProducer,
 																																																								numthreads,
@@ -1115,7 +1128,7 @@ public class BamImport {
 		int correctionPCs = 4;
 		ASSAY_TYPE assayType = ASSAY_TYPE.WXS;
 		ASSEMBLY_NAME assembly = ASSEMBLY_NAME.HG19;
-
+		NORMALIZATON_METHOD normMethod = NORMALIZATON_METHOD.GENOME;
 
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
 		usage += "(1) filename (i.e. proj= (no default))\n" + "";
@@ -1136,6 +1149,10 @@ public class BamImport {
 						 + Arrays.stream(ASSEMBLY_NAME.values()).map(ASSEMBLY_NAME::name)
 										 .collect(Collectors.joining(", "))
 						 + ")  (i.e. assembly=" + assembly.name() + " (default))\n";
+		usage += "(9) Normalization method ("
+						 + Arrays.stream(NORMALIZATON_METHOD.values()).map(NORMALIZATON_METHOD::name)
+										 .collect(Collectors.joining(", "))
+						 + ")  (i.e. normMethod=" + normMethod.name() + " (default))\n";
 
 
 		for (String arg : args) {
@@ -1166,6 +1183,9 @@ public class BamImport {
 			} else if (arg.startsWith("assembly")) {
 				assembly = ASSEMBLY_NAME.valueOf(ext.parseStringArg(arg));
 				numArgs--;
+			} else if (arg.startsWith("normMethod")) {
+				normMethod = NORMALIZATON_METHOD.valueOf(ext.parseStringArg(arg));
+				numArgs--;
 			}
 
 			else {
@@ -1183,7 +1203,8 @@ public class BamImport {
 				binBed = null;
 			}
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-															 assayType, assembly, null, proj.getReferenceGenomeFASTAFilename(),
+															 assayType, assembly, normMethod, null,
+															 proj.getReferenceGenomeFASTAFilename(),
 															 true, numthreads);
 		} catch (Exception e) {
 			new Logger().reportException(e);

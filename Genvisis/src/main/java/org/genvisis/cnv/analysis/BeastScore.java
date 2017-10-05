@@ -138,11 +138,42 @@ public class BeastScore {
 		return inverseTransformedDataScaleMAD;
 	}// JOHN hijack this
 
+
+	/**
+	 * Designed to apply a scaling factor from a single range to additional ranges
+	 * 
+	 * For example, develop the scaling factor on the autosome, and apply to sex chromosomes.
+	 * 
+	 * requires that the length of {@link BeastScore#indicesToChunk} be 1
+	 * 
+	 * @param scaleFactorMAD
+	 * @param propagateTo the initial scaling from {@link BeastScore#indicesToChunk} will be applied
+	 *        to these indices as well
+	 * @return
+	 */
+
+	public float[] getPropagatedScaling(double scaleFactorMAD, int[] propagateTo) {
+		if (indicesToChunk == null || indicesToChunk.length != 1) {
+			throw new IllegalArgumentException("Indices to chunk must be of length 1");
+		}
+		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, use, scaleFactorMAD,
+																									log);
+		if (indicesMADScaled == null || indicesMADScaled.length != 1) {
+			throw new IllegalArgumentException("Internal error developing scaling factor");
+		}
+		return getscaleMADData(inputData, new int[][] {propagateTo}, use, indicesMADScaled,
+													 log);
+	}
+
+
+	/**
+	 * @param scaleFactorMAD
+	 * @return
+	 */
 	public float[] getScaleMadRawData(double scaleFactorMAD) {
 		float[] indicesMADScaled = getscaleMADIndices(indicesToChunk, inputData, use, scaleFactorMAD,
 																									log);
-		float[] madScale = getscaleMADData(inputData, indicesToChunk, use, indicesMADScaled, log);
-		return madScale;
+		return getscaleMADData(inputData, indicesToChunk, use, indicesMADScaled, log);
 	}
 
 	/**

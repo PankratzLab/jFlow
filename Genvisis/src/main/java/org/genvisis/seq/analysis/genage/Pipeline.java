@@ -16,6 +16,7 @@ import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.telomere.Computel;
 import org.genvisis.seq.telomere.TelSeq;
 
@@ -205,6 +206,7 @@ public class Pipeline {
 			Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
 			BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
 																				 false, ngsSample.getaType(), ngsSample.getaName(),
+																				 NORMALIZATON_METHOD.GENOME,
 																				 new String[] {bamFile}, refGenome, false, 1);
 
 			ArrayList<String> input = new ArrayList<String>();

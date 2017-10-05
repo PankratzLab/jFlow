@@ -20,6 +20,7 @@ import org.genvisis.seq.SeqVariables.PLATFORM;
 import org.genvisis.seq.analysis.genage.Pipeline.PIPELINE_PARTS;
 import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
+import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.sra.SRARunTable;
 import org.genvisis.sra.SRASample;
@@ -208,7 +209,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		}
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-																			 true, atType, aName, fakeBams, referenceGenomeFasta, false,
+																			 true, atType, aName, NORMALIZATON_METHOD.GENOME, fakeBams,
+																			 referenceGenomeFasta, false,
 																			 numThreads);
 	}
 

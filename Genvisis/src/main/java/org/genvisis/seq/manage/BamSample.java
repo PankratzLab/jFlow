@@ -1,6 +1,8 @@
 package org.genvisis.seq.manage;
 
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -16,6 +18,23 @@ import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
  * @author lane0212 Handles the data storage and normalization prior to conversion to {@link Sample}
  */
 public class BamSample {
+
+	/**
+	 * The scope of the normalization scaling factor derivation
+	 *
+	 */
+	public enum NORMALIZATON_METHOD {
+		/**
+		 * Typical, but if whole chromosomal arms/large events exist, chromosome-based normalization can
+		 * become very skewed
+		 */
+		CHROMOSOME,
+		/**
+		 * Not sure if this is the preffered method yet, but might be a safer bet
+		 */
+		GENOME;
+	}
+
 	private static final double MAX_MAPQ = 60;
 	private static final double SCALE_FACTOR_NUM_READS = 1000000;
 	private static final double MAD_FACTOR = 1.4826;
@@ -28,18 +47,26 @@ public class BamSample {
 	private double[] mapQs;
 	private double[] percentWithMismatch;
 	private final Project proj;
+	private final NORMALIZATON_METHOD normMethod;
 
-	public BamSample(Project proj, String bamFile, BamPile[] bamPiles) {
+	/**
+	 * @param proj
+	 * @param bamFile the full path to the bamFile
+	 * @param bamPiles {@link BamPile} array to turn into a {@link BamSample}
+	 */
+	BamSample(Project proj, String bamFile, BamPile[] bamPiles, NORMALIZATON_METHOD normMethod) {
 		super();
 		this.proj = proj;
 		this.bamFile = bamFile;
 		// bam file does not exist when processing cleaned sra runs
-		sampleName = Files.exists(bamFile) ? BamOps.getSampleName(bamFile) : ext.rootOf(bamFile);
+		sampleName = Files.exists(bamFile) ? BamOps.getSampleName(bamFile, proj.getLog())
+																			 : ext.rootOf(bamFile);
 		this.bamPiles = bamPiles;
+		this.normMethod = normMethod;
 		process();
 	}
 
-	public String getSampleName() {
+	String getSampleName() {
 		return sampleName;
 	}
 
@@ -75,19 +102,19 @@ public class BamSample {
 			rpkmVal = 0;
 		}
 
-		public int getRpkmVal() {
+		int getRpkmVal() {
 			return rpkmVal;
 		}
 
-		public void setRpkmVal(int rpkmVal) {
+		void setRpkmVal(int rpkmVal) {
 			this.rpkmVal = rpkmVal;
 		}
 
-		public boolean[] getMask() {
+		boolean[] getMask() {
 			return mask;
 		}
 
-		public NGS_MARKER_TYPE getType() {
+		NGS_MARKER_TYPE getType() {
 			return type;
 		}
 
@@ -112,7 +139,7 @@ public class BamSample {
 		}
 		proj.getLog().reportTimeInfo("Mapping queried segments");
 		int[] traversalOrder = ArrayUtils.intArray(markerNames.length, -1);
-		Hashtable<String, Integer> lookup = new Hashtable<String, Integer>();
+		Map<String, Integer> lookup = new HashMap<>();
 		for (int i = 0; i < bamPiles.length; i++) {
 			lookup.put(bamPiles[i].getBin().getUCSClocation(), i);// if we store marker positions by start
 																														// instead of midpoint, this will not be
@@ -124,7 +151,7 @@ public class BamSample {
 
 			Segment markerSeg = new Segment(markerNames[i].split("\\|")[0]);
 			if (!lookup.containsKey(markerSeg.getUCSClocation())) {
-				System.err.println(markerSeg.getUCSClocation());
+				proj.getLog().reportError("A major mismatching issue with " + markerSeg.getUCSClocation());
 				throw new IllegalArgumentException("A major mismatching issue");
 			}
 			int bamPileIndex = lookup.get(markerSeg.getUCSClocation());// if more than 1, identical so
@@ -142,7 +169,7 @@ public class BamSample {
 			}
 		}
 
-		proj.getLog().reportTimeInfo("Computing Normalized depths");
+		proj.getLog().reportTimeInfo("Computing Normalized depths using method: " + normMethod);
 		proj.getLog()
 				.reportTimeInfo(
 												"Percent het will be reported at variant sites with alt depth greater than "
@@ -182,29 +209,42 @@ public class BamSample {
 				percentWithMismatch[i] = 0;
 			}
 		}
-		int[][] chrIndices = markerSet.getIndicesByChr();
-
-		BeastScore beastScoreFirst = new BeastScore(ArrayUtils.toFloatArray(rawDepth), chrIndices,
-																								null,
-																								proj.getLog());
-		beastScoreFirst.setUse(params[0].getMask());
-		float[] scaleMAD = beastScoreFirst.getScaleMadRawData(MAD_FACTOR);// http://www.genomebiology.com/2014/15/12/550
-
-		for (int i = 1; i < params.length; i++) {
-			BeastScore beastScoretmp = new BeastScore(scaleMAD, chrIndices, null, proj.getLog());
-			beastScoretmp.setUse(params[i].getMask());
-			scaleMAD = beastScoretmp.getScaleMadRawData(MAD_FACTOR);
+		int[][] normalizationIndices;
+		switch (normMethod) {
+			case CHROMOSOME:
+				normalizationIndices = markerSet.getIndicesByChr();
+				break;
+			case GENOME:
+				normalizationIndices = new int[][] {proj.getAutosomalMarkerIndices()};
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid normalization method: " + normMethod);
 		}
 
-		for (int i = 0; i < chrIndices.length; i++) {
+		BeastScore beastScoreFirst = new BeastScore(ArrayUtils.toFloatArray(rawDepth),
+																								normalizationIndices,
+																								null,
+																								proj.getLog());
+		int[] allProjectIndices = ArrayUtils.arrayOfIndices(proj.getMarkerNames().length);
+		beastScoreFirst.setUse(params[0].getMask());
+		float[] scaleMAD = getAppropriateScaling(beastScoreFirst, allProjectIndices, normMethod);
+
+		for (int i = 1; i < params.length; i++) {
+			BeastScore beastScoretmp = new BeastScore(scaleMAD, normalizationIndices, null,
+																								proj.getLog());
+			beastScoretmp.setUse(params[i].getMask());
+			scaleMAD = getAppropriateScaling(beastScoretmp, allProjectIndices, normMethod);
+		}
+
+		for (int i = 0; i < normalizationIndices.length; i++) {
 			boolean error = false;
-			for (int j = 0; j < chrIndices[i].length; j++) {
-				int index = chrIndices[i][j];
+			for (int j = 0; j < normalizationIndices[i].length; j++) {
+				int index = normalizationIndices[i][j];
 
 				if (!Float.isFinite(scaleMAD[index])) {// should only happen if the MAD is NaN
 					if (!error) {
 						String warning = "Found invalid scale MAD depth for " + bamFile + ", bin "
-														 + markerSet.getMarkerNames()[chrIndices[i][j]];
+														 + markerSet.getMarkerNames()[normalizationIndices[i][j]];
 						warning += "Setting all of chr" + i + " to 0";
 						warning += "This is usually caused by having zero passing reads for chr " + i;
 						proj.getLog().reportTimeWarning(warning);
@@ -213,8 +253,8 @@ public class BamSample {
 				}
 			}
 			if (error) {
-				for (int j = 0; j < chrIndices[i].length; j++) {
-					scaleMAD[chrIndices[i][j]] = 0;
+				for (int j = 0; j < normalizationIndices[i].length; j++) {
+					scaleMAD[normalizationIndices[i][j]] = 0;
 				}
 
 			}
@@ -234,8 +274,8 @@ public class BamSample {
 		}
 	}
 
-	public Hashtable<String, Float> writeSample(long fingerprint) {
-		Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+	Hashtable<String, Float> writeSample(long fingerprint) {
+		Hashtable<String, Float> outliers = new Hashtable<>();
 		byte[] genos = ArrayUtils.byteArray(bamPiles.length, (byte) 1);
 		float[] blankLRRs = ArrayUtils.floatArray(bamPiles.length, 1);
 		String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sampleName
@@ -248,20 +288,18 @@ public class BamSample {
 		sample.saveToRandomAccessFile(sampleFile, outliers, sampleName);
 		return outliers;
 	}
+
+	private static float[] getAppropriateScaling(BeastScore beastScore, int[] allProjectIndices,
+																							 NORMALIZATON_METHOD normMethod) {
+		// http://www.genomebiology.com/2014/15/12/550
+		switch (normMethod) {
+			case CHROMOSOME:
+				return beastScore.getScaleMadRawData(MAD_FACTOR);
+			case GENOME:
+				return beastScore.getPropagatedScaling(MAD_FACTOR, allProjectIndices);
+			default:
+				throw new IllegalArgumentException("Invalid normalization method: " + normMethod);
+		}
+	}
 }
 
-//
-// // // if(Array.min(normDepth)<0){
-// // // System.err.println("less dan 0");
-// // // System.exit(1);
-// // // }
-// double maxNorm = Array.max(normDepth);
-// double minNorm = Array.min(normDepth);
-// for (int i = 0; i < normDepth.length; i++) {
-// normDepth[i] = (normDepth[i] - minNorm) / (maxNorm - minNorm);
-// normDepth[i] += 1;
-// // normDepth[i] *= 10;
-// }
-// System.out.println(Array.mean(normDepth));
-// System.out.println(Array.min(normDepth));
-// System.out.println(Array.max(normDepth))
