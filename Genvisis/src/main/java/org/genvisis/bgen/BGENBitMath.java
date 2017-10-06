@@ -3,21 +3,20 @@ package org.genvisis.bgen;
 
 final class BGENBitMath {
 
-	public static final int bitsToInt(boolean littleEndian, byte... bitVals) {
+	/**
+	 * Turn an array of byte values (expected to be bit value flags) into an integer by bitwise-OR-ing
+	 * the values and then shifting the result by one position.
+	 * 
+	 * @param littleEndian Order of importance
+	 * @param bitVals Vararg of bytes, expected to be bits
+	 * @return
+	 */
+	public static final int bitsToInt(boolean littleEndian, boolean... bitVals) {
 		int n = 0;
-		if (littleEndian) {
-			for (int i = 0; i < bitVals.length; i++) {
-				n |= bitVals[i];
-				if (i < bitVals.length - 1) {
-					n <<= 1;
-				}
-			}
-		} else {
-			for (int i = bitVals.length - 1; i >= 0; i--) {
-				n |= bitVals[i];
-				if (i > 0) {
-					n <<= 1;
-				}
+		for (int i = 0; i < bitVals.length; i++) {
+			n |= bitVals[i] ? 1 : 0;
+			if (i < bitVals.length - 1) {
+				n <<= 1;
 			}
 		}
 		return n;
@@ -30,10 +29,9 @@ final class BGENBitMath {
 	 * @param p position of desired bit
 	 * @return bit value at position <code>p</code> in value <code>v</code>.
 	 */
-	public static final byte getBit(long v, int p) {
-		return (byte) ((v >> p) & 1);
+	public static final boolean getBit(long v, int p) {
+		return getBit(v, p, 64);
 	}
-
 
 	/**
 	 * Get the Nth bit from a byte value
@@ -42,8 +40,17 @@ final class BGENBitMath {
 	 * @param p position of desired bit
 	 * @return bit value at position <code>p</code> in value <code>v</code>.
 	 */
-	public static final byte getBit(byte v, int p) {
-		return (byte) ((v >> p) & 1);
+	public static final boolean getBit(byte v, int p) {
+		return getBit((long) v, p, 8);
+	}
+
+	private static final boolean getBit(long v, int p, int maxBitsInType) {
+		if (p <= 0 || p > maxBitsInType) {
+			throw new IllegalArgumentException("Requested index (" + p
+																				 + ") is outside the number of bits in this type [1-"
+																				 + maxBitsInType + "]");
+		}
+		return ((v >> p) & 1) == 1 ? true : false;
 	}
 
 	/**

@@ -1,11 +1,12 @@
 package org.genvisis.bgen;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+
+import org.genvisis.bgen.BGENReader.BGENRecord;
+import org.genvisis.bgen.BGENReader.BGENRecordMetaData;
 
 public final class BGENIterators {
 
@@ -33,24 +34,22 @@ public final class BGENIterators {
 	 */
 	static final class BGENRecordIterator implements Iterator<BGENReader.BGENRecord> {
 		final BGENReader reader;
-		final List<BGENReader.BGENRecordMetaData> records;
-		int read = 0;
+		private Iterator<BGENRecordMetaData> iterator;
 
 		BGENRecordIterator(BGENReader reader, Collection<BGENReader.BGENRecordMetaData> records) {
 			this.reader = reader;
-			this.records = records instanceof List ? (List<BGENReader.BGENRecordMetaData>) records
-																						: new ArrayList<>(records);
+			this.iterator = records.iterator();
 		}
 
 		@Override
 		public boolean hasNext() {
-			return read < records.size();
+			return iterator.hasNext();
 		}
 
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
-				return reader.readRecord(records.get(read++));
+				return reader.readRecord(iterator.next());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -60,18 +59,18 @@ public final class BGENIterators {
 
 	/**
 	 * BGENQueryIterator searches for the next record based on the subclass implementation of
-	 * <code>findNextRecord()</code>.<br />
-	 * The <code>hasNext()</code> method will scan forward through metadata blocks searching for the
-	 * next variant record. The <code>next()</code> method then reads the full variant information.
-	 * This implies a few things: <br/>
+	 * {@code findNextRecord()}.<br />
+	 * The {@code hasNext()} method will scan forward through metadata blocks searching for the next
+	 * variant record. The {@code next()} method then reads the full variant information. <br/>
+	 * This implies a few things:
 	 * <ul>
-	 * <li>(a) as BGEN files are not ordered, <code>hasNext()</code> will only return false when the
-	 * end of the file is reached,</li>
+	 * <li>(a) as BGEN files are not ordered, {@code hasNext()} will only return false when the end of
+	 * the file is reached,</li>
 	 * <li>
-	 * (b) <code>hasNext()</code> may block for a indeterminate amount of time as it scans for the
-	 * next valid variant record,</li>
-	 * <li>and (c) the <code>next()</code> method itself is fast, as it already has the next variant
-	 * record ready.</li>
+	 * (b) {@code hasNext()} may block for a indeterminate amount of time as it scans for the next
+	 * valid variant record,</li>
+	 * <li>and (c) the {@code next()} method itself is fast, as it already has the next variant record
+	 * ready.</li>
 	 * </ul>
 	 * 
 	 */
@@ -99,10 +98,12 @@ public final class BGENIterators {
 		public boolean hasNext() {
 			if (end)
 				return false;
-			try {
-				next = findNextRecord();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			if (next == null) {
+				try {
+					next = findNextRecord();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
 			if (next == null) {
 				end = true;
@@ -121,7 +122,9 @@ public final class BGENIterators {
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
-				return next == null ? null : reader.readRecord(next);
+				next = null;
+				BGENRecord rec = hasNext() ? reader.readRecord(next) : null;
+				return rec;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

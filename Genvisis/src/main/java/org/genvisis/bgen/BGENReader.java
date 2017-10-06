@@ -29,18 +29,17 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	/**
 	 * Open a BGEN file.<br />
 	 * <br />
-	 * If <code>buildMap</code> is set to <code>TRUE</code>, the reader will scan through the file and
-	 * parse the variant record header blocks, storing the data into a genomically-ordered set of
-	 * record headers along with their associated locations in file. This makes later reading of the
-	 * file extremely fast, but carries a significant initial time cost. Intended usage should
-	 * therefore be thoughtfully considered and if a streaming model is the best-fit, the
-	 * <code>buildMap</code> parameter should be set to <code>FALSE</code> and the various
-	 * <code>query()</code> methods used instead.<br />
+	 * If {@code buildMap} is set to {@code TRUE}, the reader will scan through the file and parse the
+	 * variant record header blocks, storing the data into a genomically-ordered set of record headers
+	 * along with their associated locations in file. This makes later reading of the file extremely
+	 * fast, but carries a significant initial time cost. Intended usage should therefore be
+	 * thoughtfully considered and if a streaming model is the best-fit, the {@code buildMap}
+	 * parameter should be set to {@code FALSE} and the various {@code query()} methods used instead.<br />
 	 * <br />
 	 * If a serialized file of the map data exists (built with
-	 * {@link BGENTools#serializeMapInfo(BGENReader, String)}), <code>buildMap</code> should be set to
-	 * <code>FALSE</code> and after this method, {@link BGENTools#loadMapInfo(BGENReader, String)}
-	 * should be called.
+	 * {@link BGENTools#serializeMapInfo(BGENReader, String)}), {@code buildMap} should be set to
+	 * {@code FALSE} and after this method, {@link BGENTools#loadMapInfo(BGENReader, String)} should
+	 * be called.
 	 * 
 	 * 
 	 * @param file BGEN file
@@ -54,7 +53,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	/**
-	 * Indicates <code>close()</code> has been called.
+	 * Indicates {@code close()} has been called.
 	 */
 	private boolean closed = false;
 	/**
@@ -170,7 +169,8 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		if (hasSampleNames) {
 			samples = new String[(int) sampleCount];
 			raf.read(read);
-			// long numBytesSampIDBlock = unsignedIntToLong(read, true);
+			long numBytesSampIDBlock = BGENBitMath.unsignedIntToLong(read, true);
+			System.out.println("Samp: " + numBytesSampIDBlock);
 			raf.read(read);
 			long sampleCount2 = BGENBitMath.unsignedIntToLong(read, true);
 			if (sampleCount != sampleCount2) {
@@ -210,7 +210,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		long layoutFlag;
 		long hasSampFlag;
 
-		byte b0, b1, b2, b3, b4, b5, b6;
+		boolean b0, b1, b2, b3, b4, b5, b6;
 
 		long ord = BGENBitMath.unsignedIntToLong(read, true);
 		b0 = BGENBitMath.getBit(ord, 0);
@@ -225,7 +225,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		layoutFlag = BGENBitMath.bitsToInt(false, b2, b3, b4, b5);
 
 		b6 = BGENBitMath.getBit(ord, 31);
-		hasSampFlag = b6;
+		hasSampFlag = b6 ? 1 : 0;
 
 		return new long[] {compressionFlag, layoutFlag, hasSampFlag};
 	}
@@ -423,12 +423,13 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	/**
-	 * Request an iterator of all records for the specified variant IDs. If map info is present, will
-	 * return a {@link BGENIterators.BGENRecordIterator}, otherwise will return a
-	 * {@link BGENIterators.BGENRecordQueryIterator}.
+	 * Request an Iterable of all records for the specified variant IDs. Will return a
+	 * {@link BGENIterators.BGENIterable} wrapped around either a
+	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
+	 * {@link BGENIterators.BGENRecordQueryIterator} if not.
 	 * 
 	 * @param variantIDs Collections of variant IDs
-	 * @return Iterator
+	 * @return Iterable
 	 */
 	public Iterable<BGENRecord> query(Collection<String> variantIDs) {
 		boolean hasMap = checkAndReportIfEmpty();
@@ -456,16 +457,17 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * 
 	 * @param chr String chromosome
 	 * @return Iterable
-	 * @throws NumberFormatException if <code>chr</code> is not a valid number
+	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
 	public Iterable<BGENRecord> query(String chr) {
 		return query(Integer.parseInt(chr));
 	}
 
 	/**
-	 * Request an iterator of all records on the given chromosome. If map info is present, will return
-	 * a {@link BGENIterators.BGENRecordIterator}, otherwise will return a
-	 * {@link BGENIterators.BGENRegionQueryIterator}.
+	 * Request an iterator of all records on the given chromosome. Will return a
+	 * {@link BGENIterators.BGENIterable} wrapped around either a
+	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
+	 * {@link BGENIterators.BGENRegionQueryIterator} if not.
 	 * 
 	 * @param chr Chromosome to query
 	 * @return Iterable
@@ -494,16 +496,17 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @param start Region start (inclusive)
 	 * @param stop Region stop (inclusive)
 	 * @return Iterable
-	 * @throws NumberFormatException if <code>chr</code> is not a valid number
+	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
 	public Iterable<BGENRecord> query(String chr, int start, int stop) {
 		return query(Integer.parseInt(chr), start, stop);
 	}
 
 	/**
-	 * Request an iterator of all records on the given chromosome within a specified region. If map
-	 * info is present, will return a {@link BGENIterators.BGENRecordIterator}, otherwise will return
-	 * a {@link BGENIterators.BGENRegionQueryIterator}.
+	 * Request an iterator of all records on the given chromosome within a specified region. Will
+	 * return a {@link BGENIterators.BGENIterable} wrapped around either a
+	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
+	 * {@link BGENIterators.BGENRegionQueryIterator} if not.
 	 * 
 	 * @param chr Chromosome to query
 	 * @param start Region start (inclusive)
@@ -537,11 +540,10 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	/**
 	 * @see {@link BGENReader#query(int, int[][])}
 	 * @param chr Chromosome to query
-	 * @param regions int arrays of
-	 *        <code>{{start1, stop1}, {start2, stop2}, ... , {startN, stopN}}</code> (start and stop
-	 *        both inclusive)
+	 * @param regions int arrays of {@code start1, stop1}, {start2, stop2}, ... , {startN, stopN}}}
+	 *        (start and stop both inclusive)
 	 * @return Iterable
-	 * @throws NumberFormatException if <code>chr</code> is not a valid number
+	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
 	public Iterable<BGENRecord> query(String chr, int[][] regions) {
 		return query(Integer.parseInt(chr), regions);
@@ -549,16 +551,16 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 
 
 	/**
-	 * Request an iterator of all records on the given chromosome within the specified regions. If map
-	 * info is present, will return a {@link BGENIterators.BGENRecordIterator}, otherwise will return
-	 * a {@link BGENIterators.BGENRegionQueryIterator}.
+	 * Request an iterator of all records on the given chromosome within the specified regions. Will
+	 * return a {@link BGENIterators.BGENIterable} wrapped around either a
+	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
+	 * {@link BGENIterators.BGENRegionQueryIterator} if not.
 	 * 
 	 * @param chr Chromosome to query
-	 * @param regions int arrays of
-	 *        <code>{{start1, stop1}, {start2, stop2}, ... , {startN, stopN}}</code> (start and stop
-	 *        both inclusive)
+	 * @param regions int arrays of {@code start1, stop1}, {start2, stop2}, ... , {startN, stopN}}}
+	 *        (start and stop both inclusive)
 	 * @return Iterable
-	 * @throws NumberFormatException if <code>chr</code> is not a valid number
+	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
 	public Iterable<BGENRecord> query(int chr, int[][] regions) {
 		boolean hasMap = checkAndReportIfEmpty();
@@ -630,11 +632,15 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	/**
-	 * @return Array of String sample names, or <code>null</code> if {@link #hasSampleNames()} is
-	 *         <code>false</code>.
+	 * @return Array of String sample names, or {@code null} if {@link #hasSampleNames()} is
+	 *         {@code false}.
 	 */
 	public String[] getSamples() {
 		return samples;
+	}
+
+	public static void main(String[] args) throws IOException {
+		System.out.println(BGENBitMath.getBit(5, 9));
 	}
 
 	public enum COMPRESSION {

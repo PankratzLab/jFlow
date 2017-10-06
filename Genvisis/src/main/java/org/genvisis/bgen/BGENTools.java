@@ -30,7 +30,9 @@ import org.genvisis.bgen.BGENReader.BGENRecord;
 import org.genvisis.bgen.BGENReader.BGENRecordMetaData;
 import org.genvisis.bgen.BGENReader.COMPRESSION;
 
-public class BGENTools {
+public final class BGENTools {
+
+	private BGENTools() {}
 
 	public static double[][] readLayout1Record(boolean skip, RandomAccessFile in,
 																						 BGENRecordMetaData r, COMPRESSION c)
@@ -206,7 +208,7 @@ public class BGENTools {
 		int bitReadPtr = 0;
 
 		for (int n = 0; n < sampleCount; n++) {
-			byte[] sampProb = new byte[probBits];
+			boolean[] sampProb = new boolean[probBits];
 			/*-
 			 * let Z = ploidy[n]
 			 * let K = N_alleles
@@ -263,10 +265,10 @@ public class BGENTools {
 		return data;
 	}
 
-	private static double readLayout2Probs(byte[] probBits, int probMax) {
+	private static double readLayout2Probs(boolean[] probBits, int probMax) {
 		int probVal = 0;
 		for (int i = 0; i < probBits.length; i++) {
-			probVal |= probBits[i];
+			probVal |= probBits[i] ? 1 : 0;
 			if (i < probBits.length - 1) {
 				probVal <<= 1;
 			}
