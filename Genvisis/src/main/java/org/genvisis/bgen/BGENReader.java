@@ -807,11 +807,4 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		BGENReader reader = BGENReader.open("F:/BGEN/PD_variants.bgen", false);
-		for (BGENRecord r : reader) {
-			System.out.println(r.getMetaData().rsId);
-		}
-	}
-
 }
