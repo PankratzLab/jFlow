@@ -56,7 +56,7 @@ final class BGENBitMath {
 	/**
 	 * Converts a byte array to an long
 	 * 
-	 * from http://www.petefreitag.com/item/183.cfm
+	 * Adapted from http://www.petefreitag.com/item/183.cfm
 	 * 
 	 * @param b an array of bytes
 	 * @return a long representing the value of the byte array
