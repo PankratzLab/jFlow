@@ -8,7 +8,7 @@ final class BGENBitMath {
 	 * the values and then shifting the result by one position.
 	 * 
 	 * @param littleEndian Order of importance
-	 * @param bitVals Vararg of bytes, expected to be bits
+	 * @param bitVals boolean vararg of bit flags
 	 * @return
 	 */
 	public static final int bitsToInt(boolean littleEndian, boolean... bitVals) {
@@ -54,37 +54,22 @@ final class BGENBitMath {
 	}
 
 	/**
-	 * Converts a 4 byte array of unsigned bytes to an long
+	 * Converts a byte array to an long
 	 * 
 	 * from http://www.petefreitag.com/item/183.cfm
 	 * 
-	 * @param b an array of 4 unsigned bytes
-	 * @return a long representing the unsigned int
+	 * @param b an array of bytes
+	 * @return a long representing the value of the byte array
 	 */
-	public static final long unsignedIntToLong(byte[] b, boolean littleEndian) {
+	public static final long bytesToLong(byte[] b, boolean littleEndian) {
 		long l = 0;
-		l |= b[littleEndian ? 3 : 0] & 0xFF;
-		l <<= 8;
-		l |= b[littleEndian ? 2 : 1] & 0xFF;
-		l <<= 8;
-		l |= b[littleEndian ? 1 : 2] & 0xFF;
-		l <<= 8;
-		l |= b[littleEndian ? 0 : 3] & 0xFF;
+		for (int i = 0; i < b.length; i++) {
+			l |= b[littleEndian ? (b.length - i - 1) : i] & 0xFF;
+			if (i < b.length - 1) {
+				l <<= 8;
+			}
+		}
 		return l;
-	}
-
-	/**
-	 * Converts a two byte array to an integer
-	 * 
-	 * @param b a byte array of length 2
-	 * @return an int representing the unsigned short
-	 */
-	public static final int unsignedShortToInt(byte[] b, boolean littleEndian) {
-		int i = 0;
-		i |= b[littleEndian ? 1 : 0] & 0xFF;
-		i <<= 8;
-		i |= b[littleEndian ? 0 : 1] & 0xFF;
-		return i;
 	}
 
 }

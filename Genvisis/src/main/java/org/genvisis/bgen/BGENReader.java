@@ -134,16 +134,16 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		byte[] read;
 		read = new byte[4];
 		raf.read(read);
-		setRecordStart(BGENBitMath.unsignedIntToLong(read, true) + 4);
+		setRecordStart(BGENBitMath.bytesToLong(read, true) + 4);
 
 		raf.read(read);
-		headerLength = BGENBitMath.unsignedIntToLong(read, true);
+		headerLength = BGENBitMath.bytesToLong(read, true);
 
 		raf.read(read);
-		recordCount = BGENBitMath.unsignedIntToLong(read, true);
+		recordCount = BGENBitMath.bytesToLong(read, true);
 
 		raf.read(read);
-		sampleCount = BGENBitMath.unsignedIntToLong(read, true);
+		sampleCount = BGENBitMath.bytesToLong(read, true);
 
 		raf.read(magicBytes = new byte[4]);
 
@@ -174,10 +174,10 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		if (hasSampleNames) {
 			samples = new String[(int) sampleCount];
 			raf.read(read);
-			long numBytesSampIDBlock = BGENBitMath.unsignedIntToLong(read, true);
+			long numBytesSampIDBlock = BGENBitMath.bytesToLong(read, true);
 			long readB = 8;
 			raf.read(read);
-			long sampleCount2 = BGENBitMath.unsignedIntToLong(read, true);
+			long sampleCount2 = BGENBitMath.bytesToLong(read, true);
 			if (sampleCount != sampleCount2) {
 				raf.close();
 				throw new IOException(
@@ -191,7 +191,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			for (int i = 0; i < sampleCount; i++) {
 				raf.read(lenByt);
 				readB += lenByt.length;
-				int len = BGENBitMath.unsignedShortToInt(lenByt, true);
+				int len = (int) BGENBitMath.bytesToLong(lenByt, true);
 				if (len != identByt.length) {
 					identByt = new byte[len];
 				}
@@ -224,7 +224,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 
 		boolean b0, b1, b2, b3, b4, b5, b6;
 
-		long ord = BGENBitMath.unsignedIntToLong(read, true);
+		long ord = BGENBitMath.bytesToLong(read, true);
 		b0 = BGENBitMath.getBit(ord, 0);
 		b1 = BGENBitMath.getBit(ord, 1);
 
@@ -286,33 +286,33 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		if (layout == LAYOUT.V1) {
 			byte[] nB = new byte[4];
 			in.read(nB);
-			r.N = BGENBitMath.unsignedIntToLong(nB, true);
+			r.N = BGENBitMath.bytesToLong(nB, true);
 		} else {
 			r.N = sampleCount;
 		}
 
 		// id
 		in.read(read);
-		readV = new byte[BGENBitMath.unsignedShortToInt(read, true)];
+		readV = new byte[(int) BGENBitMath.bytesToLong(read, true)];
 		in.read(readV);
 		r.setId(new String(readV, StandardCharsets.US_ASCII));
 
 		// rs_id
 		in.read(read);
-		readV = new byte[BGENBitMath.unsignedShortToInt(read, true)];
+		readV = new byte[(int) BGENBitMath.bytesToLong(read, true)];
 		in.read(readV);
 		r.setRsId(new String(readV, StandardCharsets.US_ASCII));
 
 		// chr
 		in.read(read);
-		readV = new byte[BGENBitMath.unsignedShortToInt(read, true)];
+		readV = new byte[(int) BGENBitMath.bytesToLong(read, true)];
 		in.read(readV);
 		r.setChr(Integer.parseInt(new String(readV, StandardCharsets.US_ASCII)));
 
 		// pos
 		read = new byte[4];
 		in.read(read);
-		r.setPos(BGENBitMath.unsignedIntToLong(read, true));
+		r.setPos(BGENBitMath.bytesToLong(read, true));
 
 		// number of alleles
 		if (layout == LAYOUT.V1) {
@@ -320,7 +320,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		} else if (layout == LAYOUT.V2) {
 			read = new byte[2];
 			in.read(read);
-			numAll = BGENBitMath.unsignedShortToInt(read, true);
+			numAll = (int) BGENBitMath.bytesToLong(read, true);
 		} else {
 			throw new UnsupportedOperationException("Only V1 and V2 layouts are currently supported.");
 		}
@@ -332,20 +332,20 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		}
 		for (int i = 0; i < numAll; i++) {
 			in.read(read);
-			readV = new byte[(int) BGENBitMath.unsignedIntToLong(read, true)];
+			readV = new byte[(int) BGENBitMath.bytesToLong(read, true)];
 			in.read(readV);
 			r.getAlleles()[i] = new String(readV, StandardCharsets.US_ASCII).intern();
 		}
 
 		if (layout == LAYOUT.V2) {
 			in.read(read);
-			r.blockLength = BGENBitMath.unsignedIntToLong(read, true);
+			r.blockLength = BGENBitMath.bytesToLong(read, true);
 		} else {
 			if (compress == COMPRESSION.NONE) {
 				r.blockLength = 6 * r.N;
 			} else {
 				in.read(read);
-				r.blockLength = BGENBitMath.unsignedIntToLong(read, true);
+				r.blockLength = BGENBitMath.bytesToLong(read, true);
 			}
 		}
 
@@ -804,6 +804,13 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 
 		public double[][] getData() {
 			return data;
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		BGENReader reader = BGENReader.open("F:/BGEN/PD_variants.bgen", false);
+		for (BGENRecord r : reader) {
+			System.out.println(r.getMetaData().rsId);
 		}
 	}
 

@@ -76,9 +76,9 @@ public final class BGENTools {
 			byte[] prob2B = {output[p + 2], output[p + 3]};
 			byte[] prob3B = {output[p + 4], output[p + 5]};
 			int prob1, prob2, prob3;
-			prob1 = BGENBitMath.unsignedShortToInt(prob1B, true);
-			prob2 = BGENBitMath.unsignedShortToInt(prob2B, true);
-			prob3 = BGENBitMath.unsignedShortToInt(prob3B, true);
+			prob1 = (int) BGENBitMath.bytesToLong(prob1B, true);
+			prob2 = (int) BGENBitMath.bytesToLong(prob2B, true);
+			prob3 = (int) BGENBitMath.bytesToLong(prob3B, true);
 			data[n] = new double[] {prob1 / (double) 32768, prob2 / (double) 32768,
 															prob3 / (double) 32768};
 		}
@@ -101,7 +101,7 @@ public final class BGENTools {
 			uncompLength = 6 * r.N;
 		} else {
 			in.read(read);
-			uncompLength = BGENBitMath.unsignedIntToLong(read, true);
+			uncompLength = BGENBitMath.bytesToLong(read, true);
 		}
 
 		if (r.blockLength > Integer.MAX_VALUE) {
@@ -144,11 +144,11 @@ public final class BGENTools {
 
 		block = new byte[4];
 		System.arraycopy(output, 0, block, 0, 4); // 0-3
-		long sampleCount = BGENBitMath.unsignedIntToLong(block, true);
+		long sampleCount = BGENBitMath.bytesToLong(block, true);
 
 		block = new byte[2];
 		System.arraycopy(output, 4, block, 0, 2); // 4,5
-		int alleleCount = BGENBitMath.unsignedShortToInt(block, true);
+		int alleleCount = (int) BGENBitMath.bytesToLong(block, true);
 
 		// int ploidyMin = output[6];
 		// int ploidyMax = output[7];
