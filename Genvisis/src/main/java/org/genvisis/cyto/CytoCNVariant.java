@@ -82,6 +82,26 @@ public class CytoCNVariant extends CNVariant {
   }
 
   /**
+   * Constructor for performing merge updates
+   */
+  private CytoCNVariant(CytoCNVariant base, int newstop, String newCytoBand, String newProbe,
+                        String newGene) {
+    super(base.getFamilyID(), base.getIndividualID(), base.getChr(), base.getStart(), newstop,
+          base.getCN(), base.getScore(), base.getNumMarkers(), base.getSource());
+    probeNamestmp = base.probeNamestmp;
+    genestmp = base.genestmp;
+    cytoBandtmp = base.cytoBandtmp;
+    avgLogRatio = base.avgLogRatio;
+    // TODO, how to properly format this when there are multiple cytobands, need to know for proper
+    // ISCN formatting?
+    if (!cytoBandtmp.contains(newCytoBand)) {
+      cytoBandtmp.add(newCytoBand);
+    }
+    probeNamestmp.add(newProbe);
+    addGene(newGene);
+  }
+
+  /**
    * Returns ISCN format such as "p22.33(1,770,348-1,783,772)x1" or "p11.2(57,189,194-57,596,150)x3"
    * <p>
    * x1 = deletion
@@ -155,41 +175,37 @@ public class CytoCNVariant extends CNVariant {
 
   /**
    * A method that will update a CytoCNVariants as we scan through a file
+   * 
+   * @return a new CytoCNVariant from the merged CytoCNVariants or null on failure
    */
-  public boolean update(String newCytoBand, byte newChr, int newstop, String newProbeName,
-                        String newGene, double newAvgLogratio, Logger log) {
-    boolean updated = true;
+  public CytoCNVariant merge(String newCytoBand, byte newChr, int newstop, String newProbeName,
+                             String newGene, double newAvgLogratio, Logger log) {
+    boolean merge = true;
     if (probeNamestmp == null) {
       log.reportError("Error - this method can only be used with the temporary constructor");
-      updated = false;
+      merge = false;
     }
-    // TODO, how to properly format this when there are multiple cytobands, need to know for proper
-    // ISCN formatting?
-    if (!cytoBandtmp.contains(newCytoBand)) {
-      cytoBandtmp.add(newCytoBand);
-    }
+
     if (!isSameChr(newChr)) {
       log.reportError("Error - this aberation spans multiple chromosomes, this should not happen");
-      updated = false;
+      merge = false;
     }
     if (newstop <= stop) {
       log.reportError("Error - the current stop being added is less than the previous stop position, this should not happen");
-      updated = false;
+      merge = false;
     }
     if (newstop <= start) {
       log.reportError("Error - the current stop being added is less than the start position, this should not happen");
-      updated = false;
+      merge = false;
     }
     if (!isSame(newAvgLogratio)) {
       log.reportError("Error - the current logRatio does not equal the previous, this should not happen");
-      updated = false;
+      merge = false;
     }
-    if (updated) {
-      probeNamestmp.add(newProbeName);
-      addGene(newGene);
-      stop = newstop;
+    if (merge) {
+      return new CytoCNVariant(this, newstop, newCytoBand, newProbeName, newGene);
     }
-    return updated;
+    return null;
   }
 
   public boolean isSameChr(byte newChr) {
@@ -499,9 +515,12 @@ public class CytoCNVariant extends CNVariant {
             if (tmps[i].isSame(logRatio) && tmps[i].isSameChr(chr)) {// if it is the same aberration
                                                                      // as the previous line we
                                                                      // update it
-              if (!tmps[i].update(cytoBand, chr, stop, probe, gene, logRatio, log)) {
+              CytoCNVariant merged = tmps[i].merge(cytoBand, chr, stop, probe, gene, logRatio, log);
+              if (merged == null) {
                 log.reportError("Error - could not update the variant for sample " + sampleNames[i]
                                 + " on line " + ArrayUtils.toStr(line));
+              } else {
+                tmps[i] = merged;
               }
             } else {// else we finalize the previous and create a new one
               tmps[i].finalizeVariant();

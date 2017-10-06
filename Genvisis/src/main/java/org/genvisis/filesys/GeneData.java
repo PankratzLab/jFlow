@@ -22,72 +22,56 @@ public class GeneData extends Segment implements Serializable {
   public GeneData(String geneName, String[] ncbiAssessionNumbers, byte chr,
                   boolean positionFinalized, byte strand, int startTranscription, int stop,
                   int[][] exonBoundaries, byte multiLoc, boolean collapsedIsoformGene) {
+    super(chr, startTranscription, stop);
     this.geneName = geneName;
     this.ncbiAssessionNumbers = ncbiAssessionNumbers;
-    this.chr = chr;
     this.positionFinalized = positionFinalized;
     this.strand = strand;
-    start = startTranscription;
-    this.stop = stop;
     this.exonBoundaries = exonBoundaries;
     this.multiLoc = multiLoc;
     collapsed = collapsedIsoformGene;
   }
 
   public GeneData(String refGeneLine) {
-    String[] line, starts, stops;
+    this(refGeneLine.split("\t", -1));
 
-    line = refGeneLine.split("\t", -1);
-    geneName = line[12];
-    ncbiAssessionNumbers = new String[] {line[1]};
+  }
 
-    if (!line[2].startsWith("chr")) {
-      System.err.println("Error - don't know how to parse the chromosome from '" + line[2] + "'");
-    } else {
-      try {
-        if (line[2].contains("_")) {
-          chr = Positions.chromosomeNumber(line[2].substring(3, line[2].indexOf("_")));
-          positionFinalized = false;
-        } else {
-          chr = Positions.chromosomeNumber(line[2].substring(3));
-          positionFinalized = true;
-        }
-      } catch (Exception e) {
-        System.err.println("Error - parsing chr (" + line[2] + ") for accession " + line[1]);
-        chr = -1;
-        positionFinalized = false;
-      }
-    }
-    if (line[3].equals("+")) {
+  private GeneData(String[] refGeneLine) {
+    super(parseRefGeneChr(refGeneLine), Integer.parseInt(refGeneLine[4]),
+          Integer.parseInt(refGeneLine[5]));
+    geneName = refGeneLine[12];
+    ncbiAssessionNumbers = new String[] {refGeneLine[1]};
+
+    positionFinalized = chr != -1 && !refGeneLine[2].contains("_");
+
+    if (refGeneLine[3].equals("+")) {
       strand = PLUS_STRAND;
-    } else if (line[3].equals("-")) {
+    } else if (refGeneLine[3].equals("-")) {
       strand = MINUS_STRAND;
     } else {
-      System.err.println("Error - unknown strand '" + line[3] + "' for accession '" + line[1]
-                         + "'");
+      System.err.println("Error - unknown strand '" + refGeneLine[3] + "' for accession '"
+                         + refGeneLine[1] + "'");
     }
 
-    start = Integer.parseInt(line[4]);
-    stop = Integer.parseInt(line[5]);
-
-    starts = line[9].trim().split(",", -1);
-    stops = line[10].trim().split(",", -1);
-    if (starts.length != stops.length || starts.length - 1 != Integer.parseInt(line[8])) {
+    String[] starts = refGeneLine[9].trim().split(",", -1);
+    String[] stops = refGeneLine[10].trim().split(",", -1);
+    if (starts.length != stops.length || starts.length - 1 != Integer.parseInt(refGeneLine[8])) {
       System.err.println("Error - file format error: different number of start (n=" + starts.length
-                         + ") and stop (n=" + stops.length + ") exon boundaries for " + line[1]
-                         + "/" + line[12]);
+                         + ") and stop (n=" + stops.length + ") exon boundaries for "
+                         + refGeneLine[1] + "/" + refGeneLine[12]);
     } else {
       exonBoundaries = new int[starts.length - 1][2];
       for (int i = 0; i < starts.length - 1; i++) {
         if (starts[i].equals("")) {
           System.err.println("Error - missing start position for exon " + (i + 1) + " of "
-                             + line[1]);
+                             + refGeneLine[1]);
         } else {
           exonBoundaries[i][0] = Integer.parseInt(starts[i]);
         }
         if (stops[i].equals("")) {
           System.err.println("Error - missing stop position for exon " + (i + 1) + " of "
-                             + line[1]);
+                             + refGeneLine[1]);
         } else {
           exonBoundaries[i][1] = Integer.parseInt(stops[i]);
         }
@@ -95,6 +79,28 @@ public class GeneData extends Segment implements Serializable {
     }
 
     collapsed = false;
+  }
+
+  private static byte parseRefGeneChr(String[] line) {
+
+    byte chr = -1;
+
+    if (!line[2].startsWith("chr")) {
+      System.err.println("Error - don't know how to parse the chromosome from '" + line[2] + "'");
+    } else {
+      try {
+        if (line[2].contains("_")) {
+          chr = Positions.chromosomeNumber(line[2].substring(3, line[2].indexOf("_")));
+        } else {
+          chr = Positions.chromosomeNumber(line[2].substring(3));
+        }
+      } catch (Exception e) {
+        System.err.println("Error - parsing chr (" + line[2] + ") for accession " + line[1]);
+      }
+    }
+
+    return chr;
+
   }
 
   @Override

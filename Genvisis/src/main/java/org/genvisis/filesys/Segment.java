@@ -58,11 +58,9 @@ public class Segment implements Serializable, Comparable<Segment> {
 
   public static final long serialVersionUID = 1L;
 
-  protected byte chr;
-  protected int start;
-  protected int stop;
-
-  public Segment() {}
+  protected final byte chr;
+  protected final int start;
+  protected final int stop;
 
   public Segment(byte chr, int start, int stop) {
     this.chr = chr;

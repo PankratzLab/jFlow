@@ -101,11 +101,10 @@ public class CNVariant extends Segment {
   }
 
   public CNVariant(String[] plinkLine, int sourceIndex) {
+    super(Positions.chromosomeNumber(plinkLine[2]), Integer.parseInt(plinkLine[3]),
+          Integer.parseInt(plinkLine[4]));
     familyID = plinkLine[0];
     individualID = plinkLine[1];
-    chr = Positions.chromosomeNumber(plinkLine[2]);
-    start = Integer.parseInt(plinkLine[3]);
-    stop = Integer.parseInt(plinkLine[4]);
     cn = Integer.parseInt(plinkLine[5]);
     score = Double.parseDouble(plinkLine[6]);
     numMarkers = Integer.parseInt(plinkLine[7]);
@@ -114,11 +113,9 @@ public class CNVariant extends Segment {
 
   public CNVariant(String familyID, String individualID, byte chr, int start, int stop, int cn,
                    double score, int numMarkers, int source) {
+    super(chr, start, stop);
     this.familyID = familyID;
     this.individualID = individualID;
-    this.chr = chr;
-    this.start = start;
-    this.stop = stop;
     this.cn = cn;
     this.score = score;
     this.numMarkers = numMarkers;
@@ -126,11 +123,9 @@ public class CNVariant extends Segment {
   }
 
   public CNVariant(CNVariant cnv) {
+    super(cnv.chr, cnv.start, cnv.stop);
     familyID = cnv.familyID;
     individualID = cnv.individualID;
-    chr = cnv.chr;
-    start = cnv.start;
-    stop = cnv.stop;
     cn = cnv.cn;
     score = cnv.score;
     numMarkers = cnv.numMarkers;
@@ -138,10 +133,7 @@ public class CNVariant extends Segment {
   }
 
   public CNVariant(String ucscLocation) {
-    int[] loc = Positions.parseUCSClocation(ucscLocation);
-    chr = Positions.chromosomeNumber(loc[0] + "");
-    start = loc[1];
-    stop = loc[2];
+    super(ucscLocation);
   }
 
   public void setFamilyID(String famID) {
