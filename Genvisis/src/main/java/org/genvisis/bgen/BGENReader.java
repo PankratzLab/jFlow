@@ -175,7 +175,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			samples = new String[(int) sampleCount];
 			raf.read(read);
 			long numBytesSampIDBlock = BGENBitMath.unsignedIntToLong(read, true);
-			System.out.println("Samp: " + numBytesSampIDBlock);
+			long readB = 8;
 			raf.read(read);
 			long sampleCount2 = BGENBitMath.unsignedIntToLong(read, true);
 			if (sampleCount != sampleCount2) {
@@ -190,12 +190,19 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			byte[] identByt = new byte[0];
 			for (int i = 0; i < sampleCount; i++) {
 				raf.read(lenByt);
+				readB += lenByt.length;
 				int len = BGENBitMath.unsignedShortToInt(lenByt, true);
 				if (len != identByt.length) {
 					identByt = new byte[len];
 				}
 				raf.read(identByt);
+				readB += len;
 				samples[i] = new String(identByt, StandardCharsets.US_ASCII);
+			}
+			if (readB != numBytesSampIDBlock) {
+				throw new IOException(
+															"Number of bytes recorded for sample ID header does not match the number of bytes read.  Expected "
+																	+ numBytesSampIDBlock + " | Read " + readB);
 			}
 		}
 		raf.seek(getRecordStartByte());
