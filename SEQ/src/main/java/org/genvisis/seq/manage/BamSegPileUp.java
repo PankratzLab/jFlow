@@ -1,8 +1,12 @@
 package org.genvisis.seq.manage;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.lang.ref.SoftReference;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
@@ -11,9 +15,15 @@ import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Segment;
+import com.google.common.collect.ImmutableRangeMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeMap;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeRangeMap;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
@@ -27,13 +37,15 @@ public class BamSegPileUp implements Iterator<BamPile> {
 
   private final String bam;
   private int numReturned;
-  private final BamPile[] bamPiles;
-  private final SamReader reader;
+  private final Map<Byte, RangeMap<Integer, BamPile>> bamPileMap;
+  private final BamPile[] bamPileArray;
+  private final Set<Segment> segsPiled;
+  private final Map<Segment, SoftReference<String[]>> refSequences;
+  private final CloseableIterator<SAMRecord> samRecordIterator;
   private final Logger log;
   private final AggregateFilter filter;
   private final ASSEMBLY_NAME aName;
   private final FilterNGS filterNGS;
-  private int queryIndex;
   private final ReferenceGenome referenceGenome;
 
   /**
@@ -50,65 +62,95 @@ public class BamSegPileUp implements Iterator<BamPile> {
     this.bam = bam;
     this.aName = aName;
     numReturned = 0;
-    reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
+    SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
+    samRecordIterator = reader.queryOverlapping(BamOps.convertSegsToQI(intervals,
+                                                                       reader.getFileHeader(), 0,
+                                                                       false, aName.addChr(), log));
     this.log = log;
     referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
-    bamPiles = new BamPile[intervals.length];
+    bamPileMap = Maps.newHashMap();
+    bamPileArray = new BamPile[intervals.length];
+    for (Segment interval : intervals) {
+      byte chr = interval.getChr();
+      int start = interval.getStart();
+      int stop = interval.getStop();
+      RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(chr);
+      if (chrRangeMap == null) {
+        chrRangeMap = TreeRangeMap.create();
+        bamPileMap.put(chr, chrRangeMap);
+      }
+      chrRangeMap.put(Range.closed(start, stop), new BamPile(interval));
+    }
+    this.segsPiled = Sets.newHashSetWithExpectedSize(intervals.length);
+    this.refSequences = Maps.newHashMap();
     this.filterNGS = filterNGS;
     filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
-    for (int i = 0; i < intervals.length; i++) {
-      bamPiles[i] = new BamPile(intervals[i]);
-    }
-    queryIndex = 0;
   }
 
   @Override
   public boolean hasNext() {
-    return queryIndex < bamPiles.length;
+    return samRecordIterator.hasNext();
   }
 
   @Override
   public BamPile next() {
-    BamPile currentPile = bamPiles[queryIndex];
-    String[] currentRef = null;
-    if (referenceGenome != null) {
-      currentRef = referenceGenome.getSequenceFor(currentPile.getBin(), aName, false);
+    SAMRecord samRecord = samRecordIterator.next();
+    Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
+    if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return null;
+    RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
+    if (chrRangeMap == null) {
+      log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
+                            + " returned from BAM query but not found in requested intervals");
+      chrRangeMap = ImmutableRangeMap.of();
+      bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
     }
-    Segment cs = currentPile.getBin();
-    String chr = Positions.getChromosomeUCSC(cs.getChr(), aName.addChr(), true);
-    if (cs.getChr() == 26) {
-      chr = aName.getMitoContig();
-    }
-    if (cs.getChr() > 0) {
-      CloseableIterator<SAMRecord> iterator = reader.queryOverlapping(chr, cs.getStart(),
-                                                                      cs.getStop());
-      while (iterator.hasNext()) {
-        SAMRecord samRecord = iterator.next();
-        if (!filter.filterOut(samRecord)) {
-          Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-          boolean overlaps = samRecordSegment.overlaps(cs);
-          if (!overlaps) {
-            String error = "non overlapping record returned for query";
-            log.reportError(error);
-            throw new IllegalStateException(error);
-          } else {
-            currentPile.addRecord(samRecord, currentRef, filterNGS.getPhreadScoreFilter(), log);
-          }
+    Collection<BamPile> overlappingPiles = chrRangeMap.subRangeMap(Range.open(samRecordSegment.getStart(),
+                                                                              samRecordSegment.getStop()))
+                                                      .asMapOfRanges().values();
+
+    for (BamPile bamPile : overlappingPiles) {
+      Segment cs = bamPile.getBin();
+      if (!filter.filterOut(samRecord)) {
+        boolean overlaps = samRecordSegment.overlaps(cs);
+        if (!overlaps) {
+          String error = "non overlapping record returned for query";
+          log.reportError(error);
+          throw new IllegalStateException(error);
+        } else {
+          bamPile.addRecord(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
+                            log);
         }
       }
-      iterator.close();
-
+      if (segsPiled.add(cs) && segsPiled.size() % 1000 == 0) {
+        log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
+                           + " for " + bam);
+        log.memoryUsed();
+        log.memoryTotal();
+        log.memoryMax();
+      }
     }
-    queryIndex++;
-    numReturned++;
-    if (numReturned % 1000 == 0) {
-      log.reportTimeInfo(numReturned + " queries found of " + bamPiles.length + " for " + bam);
-      log.memoryUsed();
-      log.memoryTotal();
-      log.memoryMax();
-    }
+    return null;
+  }
 
-    return currentPile;
+  public BamPile[] summarizeAndFinalize() {
+    List<BamPile> bamPiles = Lists.newArrayList();
+    for (RangeMap<Integer, BamPile> chrRangeMap : bamPileMap.values()) {
+      for (BamPile bamPile : chrRangeMap.asMapOfRanges().values()) {
+        bamPile.summarize();
+        bamPiles.add(bamPile);
+      }
+    }
+    return bamPiles.toArray(new BamPile[bamPiles.size()]);
+  }
+
+  private String[] getReferenceSequence(Segment interval) {
+    SoftReference<String[]> refSeqRef = refSequences.get(interval);
+    String[] refSeq = refSeqRef == null ? null : refSeqRef.get();
+    if (refSeq == null) {
+      refSeq = referenceGenome.getSequenceFor(interval, aName, false);
+      refSequences.put(interval, new SoftReference<String[]>(refSeq));
+    }
+    return refSeq;
   }
 
   /**
@@ -180,13 +222,10 @@ public class BamSegPileUp implements Iterator<BamPile> {
         BamOps.verifyIndex(bamFile, log);
         BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
                                                      filterNGS, aName, log);
-        ArrayList<BamPile> bamPiles = new ArrayList<>();
         while (bamSegPileUp.hasNext()) {
-          BamPile bamPile = bamSegPileUp.next();
-          bamPile.summarize();
-          bamPiles.add(bamPile);
+          bamSegPileUp.next();
         }
-        BamPile[] bamPilesFinal = bamPiles.toArray(new BamPile[bamPiles.size()]);
+        BamPile[] bamPilesFinal = bamSegPileUp.summarizeAndFinalize();
         int numMiss = 0;
         for (BamPile element : bamPilesFinal) {
           numMiss += element.getNumBasesWithMismatch();
