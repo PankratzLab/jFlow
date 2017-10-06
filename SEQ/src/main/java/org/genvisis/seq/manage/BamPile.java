@@ -84,6 +84,49 @@ public class BamPile extends Segment implements Serializable {
 
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Arrays.hashCode(avgMapQ);
+    result = prime * result + Arrays.hashCode(avgPhread);
+    result = prime * result + ((bin == null) ? 0 : bin.hashCode());
+    result = prime * result + Arrays.hashCode(counts);
+    result = prime * result + numBasesOverlap;
+    result = prime * result + numBasesWithMismatch;
+    result = prime * result + numOverlappingReads;
+    long temp;
+    temp = Double.doubleToLongBits(overallAvgDepth);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(overallAvgMapQ);
+    result = prime * result + (int) (temp ^ (temp >>> 32));
+    result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    BamPile other = (BamPile) obj;
+    if (!Arrays.equals(avgMapQ, other.avgMapQ)) return false;
+    if (!Arrays.equals(avgPhread, other.avgPhread)) return false;
+    if (bin == null) {
+      if (other.bin != null) return false;
+    } else if (!bin.equals(other.bin)) return false;
+    if (!Arrays.equals(counts, other.counts)) return false;
+    if (numBasesOverlap != other.numBasesOverlap) return false;
+    if (numBasesWithMismatch != other.numBasesWithMismatch) return false;
+    if (numOverlappingReads != other.numOverlappingReads) return false;
+    if (Double.doubleToLongBits(overallAvgDepth) != Double.doubleToLongBits(other.overallAvgDepth)) return false;
+    if (Double.doubleToLongBits(overallAvgMapQ) != Double.doubleToLongBits(other.overallAvgMapQ)) return false;
+    if (refAllele == null) {
+      if (other.refAllele != null) return false;
+    } else if (!refAllele.equals(other.refAllele)) return false;
+    return true;
+  }
+
   public double[] getAvgMapQ() {
     return avgMapQ;
   }
