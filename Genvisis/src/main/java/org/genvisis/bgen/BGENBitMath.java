@@ -14,7 +14,7 @@ final class BGENBitMath {
 	public static final int bitsToInt(boolean littleEndian, boolean... bitVals) {
 		int n = 0;
 		for (int i = 0; i < bitVals.length; i++) {
-			n |= bitVals[i] ? 1 : 0;
+			n |= bitVals[littleEndian ? i : (bitVals.length - 1 - i)] ? 1 : 0;
 			if (i < bitVals.length - 1) {
 				n <<= 1;
 			}
@@ -45,7 +45,7 @@ final class BGENBitMath {
 	}
 
 	private static final boolean getBit(long v, int p, int maxBitsInType) {
-		if (p <= 0 || p > maxBitsInType) {
+		if (p < 0 || p > maxBitsInType) {
 			throw new IllegalArgumentException("Requested index (" + p
 																				 + ") is outside the number of bits in this type [1-"
 																				 + maxBitsInType + "]");

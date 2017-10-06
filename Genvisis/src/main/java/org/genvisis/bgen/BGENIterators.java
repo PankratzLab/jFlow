@@ -1,6 +1,7 @@
 package org.genvisis.bgen;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,28 +29,55 @@ public final class BGENIterators {
 
 	}
 
+	static abstract class BGENRAFIterator implements Iterator<BGENReader.BGENRecord> {
+		final BGENReader reader;
+		final RandomAccessFile raf;
+
+		public BGENRAFIterator(BGENReader reader, RandomAccessFile raf) {
+			this.reader = reader;
+			this.raf = raf;
+		}
+
+		public BGENRAFIterator(BGENReader reader) {
+			this.reader = reader;
+			try {
+				this.raf = reader.initFilePointer();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+	}
+
 	/**
 	 * Iterator over a specific set of BGENRecords
 	 * 
 	 */
-	static final class BGENRecordIterator implements Iterator<BGENReader.BGENRecord> {
-		final BGENReader reader;
+	static final class BGENRecordIterator extends BGENRAFIterator {
 		private Iterator<BGENRecordMetaData> iterator;
 
 		BGENRecordIterator(BGENReader reader, Collection<BGENReader.BGENRecordMetaData> records) {
-			this.reader = reader;
+			super(reader);
 			this.iterator = records.iterator();
 		}
 
 		@Override
 		public boolean hasNext() {
-			return iterator.hasNext();
+			boolean has = iterator.hasNext();
+			if (!has) {
+				try {
+					this.raf.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			return has;
 		}
 
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
-				return reader.readRecord(iterator.next());
+				return reader.readRecord(this.raf, iterator.next());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -74,8 +102,7 @@ public final class BGENIterators {
 	 * </ul>
 	 * 
 	 */
-	static abstract class BGENQueryIterator implements Iterator<BGENReader.BGENRecord> {
-		protected final BGENReader reader;
+	static abstract class BGENQueryIterator extends BGENRAFIterator {
 		private BGENReader.BGENRecordMetaData next = null;
 		private boolean end = false;
 
@@ -86,12 +113,7 @@ public final class BGENIterators {
 		 * @param regions
 		 */
 		BGENQueryIterator(BGENReader reader) {
-			this.reader = reader;
-			try {
-				this.reader.reset();
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+			super(reader);
 		}
 
 		@Override
@@ -107,6 +129,13 @@ public final class BGENIterators {
 			}
 			if (next == null) {
 				end = true;
+				if (end) {
+					try {
+						this.raf.close();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
 			}
 			return next != null;
 		}
@@ -122,8 +151,8 @@ public final class BGENIterators {
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
+				BGENRecord rec = hasNext() ? reader.readRecord(this.raf, next) : null;
 				next = null;
-				BGENRecord rec = hasNext() ? reader.readRecord(next) : null;
 				return rec;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -151,7 +180,9 @@ public final class BGENIterators {
 			BGENReader.BGENRecordMetaData r = null;
 			boolean inVars = false;
 			do {
-				r = this.reader.getMetaData(this.reader.getRAF().getFilePointer(), false);
+				if (this.raf.getFilePointer() == this.raf.length())
+					return null;
+				r = this.reader.getMetaData(this.raf, this.raf.getFilePointer(), false);
 				inVars = (variantIDs.contains(r.id) || variantIDs.contains(r.rsId));
 			} while (!inVars);
 			if (!inVars)
@@ -179,13 +210,24 @@ public final class BGENIterators {
 			BGENReader.BGENRecordMetaData r = null;
 			boolean inRegion = false;
 			do {
-				r = this.reader.getMetaData(this.reader.getRAF().getFilePointer(), false);
-				inRegion = regions.keySet().contains(r.getChr());
-				for (int[] rgn : regions.get(r.getChr())) {
-					if (r.getPos() >= rgn[0] && r.getPos() <= rgn[1]) {
-						inRegion = true;
+				if (this.raf.getFilePointer() == this.raf.length())
+					return null;
+				r = this.reader.getMetaData(this.raf, this.raf.getFilePointer(), false);
+				inRegion = regions.containsKey(r.getChr());
+				if (inRegion && regions.get(r.getChr()) != null) {
+					inRegion = false;
+					for (int[] rgn : regions.get(r.getChr())) {
+						if (r.getPos() >= rgn[0] && r.getPos() <= rgn[1]) {
+							inRegion = true;
+							break;
+						}
+					}
+					if (!inRegion) {
 						break;
 					}
+				}
+				if (!inRegion) {
+					this.raf.skipBytes((int) r.blockLength);
 				}
 			} while (!inRegion);
 			if (!inRegion)
@@ -199,10 +241,10 @@ public final class BGENIterators {
 	 * record.
 	 * 
 	 */
-	static final class BGENIterator implements Iterator<BGENReader.BGENRecord> {
-		private final BGENReader reader;
+	static final class BGENIterator extends BGENRAFIterator {
 		private final long N;
 		private long read = 0;
+
 		/**
 		 * Read data if true or metadata only if false
 		 */
@@ -215,7 +257,13 @@ public final class BGENIterators {
 		 * @param readInFull Read data if true or metadata only if false
 		 */
 		BGENIterator(BGENReader reader, boolean readInFull) {
-			this.reader = reader;
+			super(reader);
+			this.N = reader.getRecordCount();
+			this.readFully = readInFull;
+		}
+
+		public BGENIterator(BGENReader reader, RandomAccessFile raf, boolean readInFull) {
+			super(reader, raf);
 			this.N = reader.getRecordCount();
 			this.readFully = readInFull;
 		}
@@ -229,12 +277,20 @@ public final class BGENIterators {
 		public BGENReader.BGENRecord next() {
 			try {
 				read++;
-				return reader.readNextRecord(readFully);
+				BGENRecord rec = reader.readNextRecord(this.raf, this.raf.getFilePointer(), readFully);
+				return rec;
 			} catch (IOException e) {
 				throw new RuntimeException(e);
+			} finally {
+				if (read == N) {
+					try {
+						this.raf.close();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
 			}
 		}
-
 	}
 
 	/**

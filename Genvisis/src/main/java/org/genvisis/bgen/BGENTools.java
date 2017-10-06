@@ -38,21 +38,13 @@ public final class BGENTools {
 																						 BGENRecordMetaData r, COMPRESSION c)
 																																								 throws IOException {
 		byte[] read = new byte[4];
-		long blockLength;
-
-		if (c == COMPRESSION.NONE) {
-			blockLength = 6 * r.N;
-		} else {
-			in.read(read);
-			blockLength = BGENBitMath.unsignedIntToLong(read, true);
-		}
 
 		if (skip) {
-			in.skipBytes((int) blockLength);
+			in.skipBytes((int) r.blockLength);
 			return null;
 		}
 
-		read = new byte[(int) blockLength];
+		read = new byte[(int) r.blockLength];
 		in.read(read);
 		byte[] output;
 
@@ -98,25 +90,21 @@ public final class BGENTools {
 																						 BGENRecordMetaData r, COMPRESSION c)
 																																								 throws IOException {
 		byte[] read = new byte[4];
-		long blockLength;
 		long uncompLength;
-		in.read(read);
-		blockLength = BGENBitMath.unsignedIntToLong(read, true);
 
 		if (skip) {
-			in.skipBytes((int) blockLength);
+			in.skipBytes((int) r.blockLength);
 			return null;
 		}
 
 		if (c == COMPRESSION.NONE) {
 			uncompLength = 6 * r.N;
 		} else {
-			blockLength -= 4;
 			in.read(read);
 			uncompLength = BGENBitMath.unsignedIntToLong(read, true);
 		}
 
-		if (blockLength > Integer.MAX_VALUE) {
+		if (r.blockLength > Integer.MAX_VALUE) {
 			System.err.println("Compressed data > Integer MAX - you're going to encounter problems.");
 		}
 
@@ -124,7 +112,7 @@ public final class BGENTools {
 			System.err.println("Uncompressed data > Integer MAX - you're going to encounter problems.");
 		}
 
-		byte[] block = new byte[(int) blockLength];
+		byte[] block = new byte[(int) r.blockLength - (c == COMPRESSION.NONE ? 0 : 4)];
 		byte[] output;
 		in.read(block);
 

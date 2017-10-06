@@ -57,6 +57,10 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 */
 	private boolean closed = false;
 	/**
+	 * Filename of BGEN file
+	 */
+	private String filename;
+	/**
 	 * Underlying file object
 	 */
 	private RandomAccessFile raf;
@@ -116,6 +120,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @throws IOException
 	 */
 	private void openFile(String file, boolean buildMap) throws IOException {
+		filename = file;
 		raf = new RandomAccessFile(file, "r");
 		ptrMap = new HashMap<>();
 		chrSets = new HashMap<Integer, TreeSet<BGENRecordMetaData>>();
@@ -129,7 +134,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		byte[] read;
 		read = new byte[4];
 		raf.read(read);
-		recordStart = BGENBitMath.unsignedIntToLong(read, true) + 4;
+		setRecordStart(BGENBitMath.unsignedIntToLong(read, true) + 4);
 
 		raf.read(read);
 		headerLength = BGENBitMath.unsignedIntToLong(read, true);
@@ -193,7 +198,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 				samples[i] = new String(identByt, StandardCharsets.US_ASCII);
 			}
 		}
-		raf.seek(recordStart);
+		raf.seek(getRecordStartByte());
 	}
 
 	private final boolean testMagicBytes(byte[] magicBytes) {
@@ -236,7 +241,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @throws IOException
 	 */
 	private void readMap() throws IOException {
-		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, false);
+		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false);
 		while (mapIter.hasNext()) {
 			mapIter.next();
 		}
@@ -325,17 +330,26 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			r.getAlleles()[i] = new String(readV, StandardCharsets.US_ASCII).intern();
 		}
 
+		if (layout == LAYOUT.V2) {
+			in.read(read);
+			r.blockLength = BGENBitMath.unsignedIntToLong(read, true);
+		} else {
+			if (compress == COMPRESSION.NONE) {
+				r.blockLength = 6 * r.N;
+			} else {
+				in.read(read);
+				r.blockLength = BGENBitMath.unsignedIntToLong(read, true);
+			}
+		}
+
 		r.lenByt = in.getFilePointer() - filePointer;
 		return r;
 	}
 
-	BGENRecord readRecord(BGENRecordMetaData mapData) throws IOException {
+	BGENRecord readRecord(RandomAccessFile raf, BGENRecordMetaData mapData) throws IOException {
 		BGENRecord rec = new BGENRecord(mapData);
-		long curr = raf.getFilePointer();
-		if (curr != mapData.ptrByt + mapData.lenByt) {
+		if (raf.getFilePointer() != mapData.ptrByt + mapData.lenByt) {
 			raf.seek(mapData.ptrByt + mapData.lenByt);
-		} else {
-			curr = -1;
 		}
 		switch (layout) {
 			case V2:
@@ -347,43 +361,34 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			default:
 				throw new UnsupportedOperationException("Layout version " + layout + " is not supported.");
 		}
-		if (curr >= 0) {
-			raf.seek(curr);
-		}
 		return rec;
 	}
 
-	BGENRecord readNextRecord(boolean readFull) throws IOException {
-		BGENRecordMetaData r = getMetaData(raf.getFilePointer(), true);
-		BGENRecord rec = new BGENRecord(r);
-		switch (layout) {
-			case V2:
-				rec.data = BGENTools.readLayout2Record(!readFull, raf, r, compress);
-				break;
-			case V1:
-				rec.data = BGENTools.readLayout1Record(!readFull, raf, r, compress);
-				break;
-			default:
-				throw new UnsupportedOperationException("Layout version " + layout + " is not supported.");
-		}
-		return rec;
+	BGENRecord readNextRecord(RandomAccessFile raf, long location, boolean readFull)
+																																									throws IOException {
+		BGENRecordMetaData r = getMetaData(raf, location, true);
+		return readRecord(raf, r);
 	}
 
-	BGENRecordMetaData getMetaData(long filePointer, boolean save) throws IOException {
+	/**
+	 * Synchronized on {@code this} if the record metadata is not already cached.
+	 * 
+	 * @param filePointer Location of variant header to read
+	 * @param save Cache metadata if true
+	 * @return {@link BGENRecordMetaData}
+	 * @throws IOException
+	 */
+	BGENRecordMetaData getMetaData(RandomAccessFile raf, long filePointer, boolean save)
+																																											throws IOException {
 		BGENRecordMetaData brmd = ptrMap.get(filePointer);
 		if (brmd == null) {
-			long curr = raf.getFilePointer();
-			if (curr != filePointer) {
+			if (raf.getFilePointer() != filePointer) {
 				// allow non-linear reads
 				raf.seek(filePointer);
 			}
 			brmd = initRecord(filePointer, raf, layout);
 			if (save) {
 				ptrMap.put(filePointer, brmd);
-			}
-			if (curr != filePointer) {
-				// return to prev. place in file if not reading sequentially
-				raf.seek(curr);
 			}
 		} else {
 			raf.skipBytes((int) brmd.lenByt);
@@ -403,14 +408,20 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		}
 	}
 
+	/**
+	 * Initialize a new RandomAccessFile object and seek to the start of the first record.
+	 * 
+	 * @return RandomAccessFile
+	 * @throws IOException
+	 */
+	RandomAccessFile initFilePointer() throws IOException {
+		RandomAccessFile raf1 = new RandomAccessFile(filename, "r");
+		raf1.seek(recordStart);
+		return raf1;
+	}
 
 	@Override
 	public Iterator<BGENRecord> iterator() {
-		try {
-			reset();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 		return new BGENIterators.BGENIterator(this, true);
 	}
 
@@ -604,11 +615,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		if (closed) {
 			return;
 		}
-		raf.seek(recordStart);
-	}
-
-	RandomAccessFile getRAF() {
-		return raf;
+		raf.seek(getRecordStartByte());
 	}
 
 	public long getRecordCount() {
@@ -639,8 +646,12 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		return samples;
 	}
 
-	public static void main(String[] args) throws IOException {
-		System.out.println(BGENBitMath.getBit(5, 9));
+	public long getRecordStartByte() {
+		return recordStart;
+	}
+
+	public void setRecordStart(long recordStart) {
+		this.recordStart = recordStart;
 	}
 
 	public enum COMPRESSION {
@@ -664,6 +675,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		long N;
 		long ptrByt;
 		long lenByt;
+		long blockLength;
 
 		@Override
 		public int compareTo(BGENRecordMetaData o) {
