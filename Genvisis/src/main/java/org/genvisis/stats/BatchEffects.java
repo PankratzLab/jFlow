@@ -245,8 +245,6 @@ public class BatchEffects {
 			}
 		}
 		logger.report("parsing complete");
-
-		// report on samples included in analysis
 		logger.report(numSamplesIncluded + " samples will be included in analysis. " + (numSampleLinesFromFactorData - numSamplesIncluded) + " lines of potential sample data were excluded from the factor file. " 
 				+ (sampleBatchMap.size() - numSamplesIncluded) + " lines of potential sample data were excluded from the batch file. ");
 	}
