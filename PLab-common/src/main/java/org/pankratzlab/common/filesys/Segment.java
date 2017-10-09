@@ -190,10 +190,6 @@ public class Segment implements Serializable, Comparable<Segment> {
     return getStop() - getStart() + 1;
   }
 
-  public boolean equals(Segment seg) {
-    return getChr() == seg.getChr() && getStart() == seg.getStart() && getStop() == seg.getStop();
-  }
-
   public int amountOfOverlapInBasepairs(Segment seg) {
     if (overlaps(seg)) {
       return getIntersection(seg, new Logger()).getSize();
