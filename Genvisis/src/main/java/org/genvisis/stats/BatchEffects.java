@@ -105,7 +105,8 @@ public class BatchEffects {
 		// write matrix to file because twoDPlot.createScreenshots requires data to be in a file 
 		logger.report("writing negative log10 p-value matrix to file...");
 		Files.writeMatrix(negLog10PValueMatrix, outputFileName, "\t");
-		logger.report("NEW TEXT FILE: " + outputFileName + "\nwriting to file complete.");
+		logger.report("new text file: " + outputFileName);
+		logger.report("writing to file complete");
 
 		// set up and configure TwoDPlot and ScreenToCapture objects needed for image creation
 		TwoDPlot twoDPlot = TwoDPlot.createGUI(null, false, false);
@@ -127,17 +128,18 @@ public class BatchEffects {
 
 		// create individual images
 		String targetDirectory = System.getProperty("user.dir") + "/";
-		logger.report("Creating screenshots...");
+		logger.report("creating screenshots...");
 		twoDPlot.createScreenshots(targetDirectory, screens);
 		for (int i = 0; i < plotFileNames.length; i++) {
 			plotFileNames[i] += ".png";
-			logger.report("NEW IMAGE: " + plotFileNames[i]);
+			logger.report("new image: " + plotFileNames[i]);
 		}
 
 		// create aggregate image
 		String summaryImageFileName = System.currentTimeMillis() + "_Aggregate.png";
 		Images.stitchImages(targetDirectory, plotFileNames, summaryImageFileName, null, false, false);
-		logger.report("NEW AGGREGATE IMAGE: " + summaryImageFileName + "\nBatchEffects has completed running.");
+		logger.report("new aggregate image: " + summaryImageFileName);
+		logger.report("batchEffects has completed running");
 	}
 
 	/**
@@ -191,7 +193,7 @@ public class BatchEffects {
 			}
 			negLog10PValueMatrix[i + 1][negLog10PValueMatrix[i].length - 1] = String.valueOf(-1.0 * Math.log10(minPValue)); // add minimum batch effect p-value for current factor to last index of array
 		}
-		logger.report("p-value matrix complete.");
+		logger.report("p-value matrix complete");
 
 		return negLog10PValueMatrix;
 	}
@@ -206,7 +208,7 @@ public class BatchEffects {
 	 * @throws IOException
 	 */
 	private void parseFiles(@Nonnull String batchFilePath, @Nonnull String factorFilePath) throws FileNotFoundException, ParseException, IOException {
-		logger.report("Parsing data from files...");
+		logger.report("parsing data from files...");
 
 		// parse batch file
 		Map<String, String> sampleBatchMap = HashVec.loadFileToHashString(batchFilePath, new int[] {0}, new int[] {1}, false, null, true, false);
@@ -239,10 +241,10 @@ public class BatchEffects {
 			if (sampleIncluded) { 
 				numSamplesIncluded++; 
 			} else {
-				logger.report("Line excluded from factor file: " + line);
+				logger.report("line excluded from factor file: " + line);
 			}
 		}
-		logger.report("Parsing complete.");
+		logger.report("parsing complete");
 
 		// report on samples included in analysis
 		logger.report(numSamplesIncluded + " samples will be included in analysis. " + (numSampleLinesFromFactorData - numSamplesIncluded) + " lines of potential sample data were excluded from the factor file. " 
