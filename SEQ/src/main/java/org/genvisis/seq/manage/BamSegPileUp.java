@@ -4,7 +4,6 @@ import java.io.File;
 import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -18,7 +17,6 @@ import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
 import com.google.common.collect.ImmutableRangeMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
@@ -36,7 +34,6 @@ import htsjdk.samtools.util.CloseableIterator;
 public class BamSegPileUp implements Iterator<BamPile> {
 
   private final String bam;
-  private int numReturned;
   private final Map<Byte, RangeMap<Integer, BamPile>> bamPileMap;
   private final BamPile[] bamPileArray;
   private final Set<Segment> segsPiled;
@@ -61,7 +58,6 @@ public class BamSegPileUp implements Iterator<BamPile> {
     super();
     this.bam = bam;
     this.aName = aName;
-    numReturned = 0;
     SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
     samRecordIterator = reader.queryOverlapping(BamOps.convertSegsToQI(intervals,
                                                                        reader.getFileHeader(), 0,
@@ -70,7 +66,8 @@ public class BamSegPileUp implements Iterator<BamPile> {
     referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
     bamPileMap = Maps.newHashMap();
     bamPileArray = new BamPile[intervals.length];
-    for (Segment interval : intervals) {
+    for (int i = 0; i < intervals.length; i++) {
+      Segment interval = intervals[i];
       byte chr = interval.getChr();
       int start = interval.getStart();
       int stop = interval.getStop();
@@ -79,7 +76,9 @@ public class BamSegPileUp implements Iterator<BamPile> {
         chrRangeMap = TreeRangeMap.create();
         bamPileMap.put(chr, chrRangeMap);
       }
-      chrRangeMap.put(Range.closed(start, stop), new BamPile(interval));
+      BamPile bamPile = new BamPile(interval);
+      chrRangeMap.put(Range.closed(start, stop), bamPile);
+      bamPileArray[i] = bamPile;
     }
     this.segsPiled = Sets.newHashSetWithExpectedSize(intervals.length);
     this.refSequences = Maps.newHashMap();
@@ -95,22 +94,22 @@ public class BamSegPileUp implements Iterator<BamPile> {
   @Override
   public BamPile next() {
     SAMRecord samRecord = samRecordIterator.next();
-    Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-    if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return null;
-    RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
-    if (chrRangeMap == null) {
-      log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
-                            + " returned from BAM query but not found in requested intervals");
-      chrRangeMap = ImmutableRangeMap.of();
-      bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
-    }
-    Collection<BamPile> overlappingPiles = chrRangeMap.subRangeMap(Range.open(samRecordSegment.getStart(),
-                                                                              samRecordSegment.getStop()))
-                                                      .asMapOfRanges().values();
+    if (!filter.filterOut(samRecord)) {
+      Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
+      if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return null;
+      RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
+      if (chrRangeMap == null) {
+        log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
+                              + " returned from BAM query but not found in requested intervals");
+        chrRangeMap = ImmutableRangeMap.of();
+        bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
+      }
+      Collection<BamPile> overlappingPiles = chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(),
+                                                                                  samRecordSegment.getStop()))
+                                                        .asMapOfRanges().values();
 
-    for (BamPile bamPile : overlappingPiles) {
-      Segment cs = bamPile.getBin();
-      if (!filter.filterOut(samRecord)) {
+      for (BamPile bamPile : overlappingPiles) {
+        Segment cs = bamPile.getBin();
         boolean overlaps = samRecordSegment.overlaps(cs);
         if (!overlaps) {
           String error = "non overlapping record returned for query";
@@ -120,27 +119,23 @@ public class BamSegPileUp implements Iterator<BamPile> {
           bamPile.addRecord(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
                             log);
         }
-      }
-      if (segsPiled.add(cs) && segsPiled.size() % 1000 == 0) {
-        log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
-                           + " for " + bam);
-        log.memoryUsed();
-        log.memoryTotal();
-        log.memoryMax();
+        if (segsPiled.add(cs) && segsPiled.size() % 1000 == 0) {
+          log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
+                             + " for " + bam);
+          log.memoryUsed();
+          log.memoryTotal();
+          log.memoryMax();
+        }
       }
     }
     return null;
   }
 
   public BamPile[] summarizeAndFinalize() {
-    List<BamPile> bamPiles = Lists.newArrayList();
-    for (RangeMap<Integer, BamPile> chrRangeMap : bamPileMap.values()) {
-      for (BamPile bamPile : chrRangeMap.asMapOfRanges().values()) {
-        bamPile.summarize();
-        bamPiles.add(bamPile);
-      }
+    for (BamPile bamPile : bamPileArray) {
+      bamPile.summarize();
     }
-    return bamPiles.toArray(new BamPile[bamPiles.size()]);
+    return bamPileArray;
   }
 
   private String[] getReferenceSequence(Segment interval) {
