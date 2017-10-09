@@ -215,29 +215,29 @@ public class BatchEffects {
 
 		// parse factor file
 		BufferedReader reader = Files.getAppropriateReader(factorFilePath);
-		String[] currentLine;
+		String[] rowData;
 		int expectedNumColumns = -1;
 		// read factor column headers
-		if (reader.ready()) {
-			currentLine = reader.readLine().split("\t");
-			if (currentLine.length >= 2) {
-				expectedNumColumns = currentLine.length;
-				for (int i = 1; i < currentLine.length; i++) { // this loop starts at 1 to exclude the sample id column
-					factorLabels.add(currentLine[i]);
+		String line = reader.readLine();
+		if (line != null) {
+			rowData = line.split("\t");
+			if (rowData.length >= 2) {
+				expectedNumColumns = rowData.length;
+				for (int i = 1; i < rowData.length; i++) { // this loop starts at 1 to exclude the sample id column
+					factorLabels.add(rowData[i]);
 					factorValuesToInclude.add(new ArrayList<>()); // each sub-list represents a different factor
 				}
 			} else {
-				throw new ParseException("Error: expected at least 2 column headers in factor data. Found " + currentLine.length + ".", 0);
+				throw new ParseException("Error: expected at least 2 column headers in factor data. Found " + rowData.length + ".", 0);
 			}
 		}
 		// read factor sample data
 		long numSampleLinesFromFactorData = 0;
 		long numSamplesIncluded = 0;
-		while (reader.ready()) {
+		while ((line = reader.readLine()) != null) {
 			numSampleLinesFromFactorData++;
-			String line = reader.readLine();
-			currentLine = line.split("\t");
-			boolean sampleIncluded = addSampleIfValid(currentLine, sampleBatchMap, expectedNumColumns); // add current sample's batch and factor data to class level data structures if passes validation
+			rowData = line.split("\t");
+			boolean sampleIncluded = addSampleIfValid(rowData, sampleBatchMap, expectedNumColumns); // add current sample's batch and factor data to class level data structures if passes validation
 			if (sampleIncluded) { 
 				numSamplesIncluded++; 
 			} else {
