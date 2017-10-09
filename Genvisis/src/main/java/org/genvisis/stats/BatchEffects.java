@@ -261,7 +261,9 @@ public class BatchEffects {
 	private boolean addSampleIfValid(String[] factorDataForSample, Map<String, String> sampleBatchMap, int expectedLength) {
 		boolean includeSample = true;
 
-		if (factorDataForSample.length != expectedLength) { includeSample = false; }
+		if (factorDataForSample.length != expectedLength) { 
+			includeSample = false; 
+			}
 
 		// exclude sample if the sample id from the factor file does not match any from the batch file OR if the batch value associated with that sample id is missing 
 		if (includeSample) {
