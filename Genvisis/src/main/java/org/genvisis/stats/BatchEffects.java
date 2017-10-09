@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.commons.math3.stat.inference.TTest;
+import org.genvisis.CLI;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.plots.TwoDPlot.ScreenToCapture;
 import org.genvisis.common.ArrayUtils;
@@ -35,6 +36,7 @@ public class BatchEffects {
 	private final List<List<Double>> factorValuesToInclude;
 	private double maxNegLog10PValue;
 	private final Logger logger;
+	private double pValueTruncation = 1.0E-300;
 
 	private BatchEffects(Logger logger) {
 		batchLabels = new ArrayList<>();
@@ -70,32 +72,19 @@ public class BatchEffects {
 	 * @throws FileNotFoundException if either String path parameter does not lead to a valid file.
 	 * @throws ParseException instance containing parsed batch and factor data.
 	 * @throws IOException
+	 * @throws org.apache.commons.cli.ParseException 
 	 */
-	public static void main(String[] args) throws FileNotFoundException, ParseException, IOException {
-		BatchEffects instance = null;
-		if (args.length == 2 || args.length == 3) {
-			instance = BatchEffects.getInstance(args[0], args[1], new Logger());
-			if (args.length == 3) {
-				double pValueTruncation;
-				try {
-					pValueTruncation = Double.parseDouble(args[2]);
-					instance.createNegLog10PValueScatterPlotScreenshots(pValueTruncation);
-				} catch (NumberFormatException e) {
-					throw new NumberFormatException("Error: p-value truncation value not parsable to a double.");
-				}
-			} else {
-				instance.createNegLog10PValueScatterPlotScreenshots();
-			}
-		} else {
-			new Logger().report("Error: the number of arguments expected did not match the number received. Please enter the following arguments in this order: file path to sample batch data, file path to sample factor data, (optional) lower p-value truncation boundary (default is 1.0E-300 if no argument is included).", true, true);
-		}
-	}
-
-	/**
-	 * Calls {@link #createNegLog10PValueScatterPlotScreenshots(double)} with a default p-value truncation value of 1E-300. 
-	 */
-	public void createNegLog10PValueScatterPlotScreenshots() {
-		createNegLog10PValueScatterPlotScreenshots(1E-300);
+	public static void main(String[] args) throws FileNotFoundException, ParseException, IOException, org.apache.commons.cli.ParseException {
+		CLI cli = new CLI("BatchEffect-Plots");
+		cli.addArgWithDefault("pValueTruncation", "Batch effect p-values less than this double value will be set to this value.", 1.0E-300);
+		cli.addArg("batchFilePath", "String path to file containing labels in first row, sample identifiers in first column, and batch values in second column.", true, CLI.Arg.FILE);
+		cli.addArg("factorFilePath", "String path to file containing labels in first row, sample identifiers in first column, and factor values in subsequent columns.", true, CLI.Arg.FILE);
+		cli.parse(args);
+		if (cli.has("batchFilePath") && cli.has("factorFilePath")) {
+			BatchEffects instance = BatchEffects.getInstance(cli.get("batchFilePath"), cli.get("factorFilePath"), new Logger());
+			instance.pValueTruncation = cli.getD("pValueTruncation");
+			instance.createNegLog10PValueScatterPlotScreenshots();
+		} 
 	}
 
 	/**
@@ -106,10 +95,8 @@ public class BatchEffects {
 	 * <li>individual scatter plot images
 	 * <li>aggregate image containing individual images stitched together
 	 * </ul>
-	 * 
-	 * @param pValueTruncation p-values less than this double value will be set to this value.
 	 */
-	public void createNegLog10PValueScatterPlotScreenshots(double pValueTruncation) {
+	public void createNegLog10PValueScatterPlotScreenshots() {
 		// create negative log10 p-value matrix from class-level batch and factor data
 		String[][] negLog10PValueMatrix;
 		negLog10PValueMatrix = this.getNegLog10PValueMatrix(pValueTruncation);
