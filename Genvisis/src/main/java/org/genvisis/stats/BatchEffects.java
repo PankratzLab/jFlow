@@ -125,15 +125,16 @@ public class BatchEffects {
 		twoDPlot.getPanel().setSize(800, 600); // this line determines the size of each individual image
 		twoDPlot.getPanel().overrideAxisLabels("Factors", "-Log10(P-Value)");
 		List<ScreenToCapture> screens = new ArrayList<>();
-		String[] plotFileNames = new String[negLog10PValueMatrix[0].length - 2];
-		for (int i = 1; i < negLog10PValueMatrix[0].length - 1; i++) {
+		String[] plotFileNames = new String[negLog10PValueMatrix[0].length - 1];
+		for (int i = 1; i < negLog10PValueMatrix[0].length; i++) {
 			String[] files = {outputFileName, outputFileName, null};
 			int[] dataIndices = {0, i, -1};
 			int[] idIndices = {0, 0, -1};
 			float[] displayWindow = {0, negLog10PValueMatrix.length, 0, (float)(Math.ceil(this.maxNegLog10PValue))};
 			String plotFileName = System.currentTimeMillis() + "_" + i;
 			plotFileNames[i - 1] = plotFileName;
-			ScreenToCapture screen = new ScreenToCapture(files, dataIndices, idIndices, displayWindow, false, false, false, false, plotFileName, this.batchLabels.get(i - 1));
+			String title = (i == negLog10PValueMatrix[0].length - 1)?"Min.P-Value":this.batchLabels.get(i - 1);
+			ScreenToCapture screen = new ScreenToCapture(files, dataIndices, idIndices, displayWindow, false, false, false, false, plotFileName, title);
 			screens.add(screen);
 		}
 
@@ -201,7 +202,7 @@ public class BatchEffects {
 					maxNegLog10PValue = negLog10PValue;
 				}
 			}
-			negLog10PValueMatrix[i + 1][negLog10PValueMatrix[i].length - 1] = String.valueOf(minPValue); // add minimum batch effect p-value for current factor to last index of array
+			negLog10PValueMatrix[i + 1][negLog10PValueMatrix[i].length - 1] = String.valueOf(-1.0 * Math.log10(minPValue)); // add minimum batch effect p-value for current factor to last index of array
 		}
 		logger.report("p-value matrix complete.");
 
