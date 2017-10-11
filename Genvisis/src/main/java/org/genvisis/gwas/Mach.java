@@ -125,9 +125,17 @@ public class Mach {
 		// "+(trimming?"truncated":"genotypes")+"_chr#_CEU_r22_nr.b36_fwd.phase --crossover
 		// MACH_step1_chr#.rec --errormap MACH_step1_chr#.erate --greedy --mle --mldetails --prefix
 		// MACH_step2_chr#\n";
-		commands += EXECUTABLE + " -d " + prefixSubset + ".chr#.dat -p " + prefixSubset
+		commands += EXECUTABLE
+								+ " -d "
+								+ prefixSubset
+								+ ".chr#.dat -p "
+								+ prefixSubset
 								+ ".chr#.ped --rounds 30 --states 400 --phase --interim 5 --sample 5 --prefix MACH_step1_chr#\n";
-		commands += EXECUTABLE + " -d " + prefixAll + ".chr#.dat -p " + prefixAll
+		commands += EXECUTABLE
+								+ " -d "
+								+ prefixAll
+								+ ".chr#.dat -p "
+								+ prefixAll
 								+ ".chr#.ped --crossover MACH_step1_chr#.rec --errormap MACH_step1_chr#.erate --phase --prefix MACH_step2_chr#\n";
 		commands += "cd .." + "\n";
 		commands += "\n";
@@ -207,7 +215,8 @@ public class Mach {
 			writer.close();
 			reader.close();
 		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + "genotypes_chr" + chr + "_CEU_r22_nr.b36_fwd_legend.txt"
+			System.err.println("Error: file \"" + "genotypes_chr" + chr
+												 + "_CEU_r22_nr.b36_fwd_legend.txt"
 												 + "\" not found in current directory");
 			System.exit(1);
 		} catch (IOException ioe) {
@@ -543,7 +552,7 @@ public class Mach {
 						}
 					}
 					for (int j = 0; j < (inc + step > markerNames.length ? markerNames.length - inc
-																															 : step); j++) {
+																															: step); j++) {
 						trav = "";
 						while (ext.indexOfChar((char) (c = in.read()), DELIMITERS) == -1 && (char) c != '\n') {
 							trav += (char) c;
@@ -567,7 +576,7 @@ public class Mach {
 				}
 
 				for (int i = 0; i < (inc + step > markerNames.length ? markerNames.length - inc
-																														 : step); i++) {
+																														: step); i++) {
 					if (allMarkers
 							|| ext.indexOfStr(markerNames[inc + i].split(PSF.Regex.GREEDY_WHITESPACE)[0],
 																subset) >= 0) {
@@ -651,11 +660,12 @@ public class Mach {
 		System.out.println("Beginning extraction at " + ext.getTime());
 
 		trav = dosageFormat.endsWith(".gz") ? dosageFormat.substring(0, dosageFormat.lastIndexOf("."))
-																				: dosageFormat;
+																			 : dosageFormat;
 		machFormat = trav.endsWith(".mldose");
-		trav = markerInfoFormat.endsWith(".gz") ? markerInfoFormat.substring(0,
-																																				 markerInfoFormat.lastIndexOf("."))
-																						: markerInfoFormat;
+		trav = markerInfoFormat.endsWith(".gz")
+																					 ? markerInfoFormat.substring(0,
+																																				markerInfoFormat.lastIndexOf("."))
+																					 : markerInfoFormat;
 		if (machFormat && !trav.endsWith(".mlinfo")) {
 			System.err.println("Error - mismatched format patterns, assuming these are output from minimac");
 		}
@@ -929,7 +939,7 @@ public class Mach {
 	// boolean prob;
 	// long time;
 	//
-	//// FileReader in;
+	// // FileReader in;
 	// InputStreamReader in;
 	// String[][] data;
 	// String trav;
@@ -956,7 +966,7 @@ public class Mach {
 	// chrHash = new Hashtable<String,Vector<String>>();
 	// v = new Vector<String>();
 	// try {
-	//// reader = new BufferedReader(new FileReader(markerList));
+	// // reader = new BufferedReader(new FileReader(markerList));
 	// reader = Files.getAppropriateReader(markerList);
 	// count = 0;
 	// while (reader.ready()) {
@@ -1078,7 +1088,7 @@ public class Mach {
 	// verbose);
 	//
 	// for (int i = 0; i<chrKeys.length; i++) {
-	//// log.report(".", false, verbose);
+	// // log.report(".", false, verbose);
 	// chr = Integer.parseInt(chrKeys[i]);
 	// dosageFile = ext.insertNumbers(dosageFormat, chr);
 	// indices = indicesHash.get(chrKeys[i]);
@@ -1113,7 +1123,7 @@ public class Mach {
 	// log.reportError(" Make sure that the delimiter is set correctly");
 	// }
 	//
-	//// line[1] == 'MLDOSE' column
+	// // line[1] == 'MLDOSE' column
 	//
 	// for (int j = 0; j<indices.length; j++) {
 	// if (indices[j] != -1) {
@@ -1392,7 +1402,7 @@ public class Mach {
 		SnpMarkerSet map;
 		boolean[] use;
 		String[] rsqs;
-		char[][] alleles;
+		String[][] alleles;
 
 		if (!dir.equals("") && !new File(dir).exists()) {
 			System.err.println("Could not find directory: " + dir);
@@ -1592,7 +1602,8 @@ public class Mach {
 		try {
 			reader = new BufferedReader(new FileReader("plink.imiss"));
 			ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
-											new String[] {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO", "F_MISS"}, true,
+											new String[] {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO", "F_MISS"},
+											true,
 											true);
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -1611,9 +1622,9 @@ public class Mach {
 		for (int i = 0; i < ids.length; i++) {
 			HashVec.addToHashVec(hashV,
 													 genders[i] + "_"
-																	+ affections[i],
+															 + affections[i],
 													 ids[i][0] + "\t" + ids[i][1] + "\t"
-																									 + hash.get(ids[i][0] + "\t" + ids[i][1]),
+															 + hash.get(ids[i][0] + "\t" + ids[i][1]),
 													 false);
 		}
 
@@ -1755,50 +1766,86 @@ public class Mach {
 		// extract = "list11.txt";
 
 		String usage = "\n" + "gwas.Mach requires 0-1 arguments\n"
-									 + "   (1) root of plink file system (i.e. root=" + root + " (default))\n"
-									 + "   (2) individuals to keep (i.e. keeps=" + keeps + " (default))\n"
-									 + "   (3) markers to exclude (i.e. exclude=" + excludes + " (default))\n"
+									 + "   (1) root of plink file system (i.e. root="
+									 + root
+									 + " (default))\n"
+									 + "   (2) individuals to keep (i.e. keeps="
+									 + keeps
+									 + " (default))\n"
+									 + "   (3) markers to exclude (i.e. exclude="
+									 + excludes
+									 + " (default))\n"
 									 + "   (4) convert .bim to .dat using prefix provided (i.e. convert=pd200 (not the default))\n"
-									 + " OR\n" + "   -createFiles (creates batch that creates files for MACH)\n"
-									 + " OR\n" + "   -gethapmap (downloads data)\n" + " OR\n"
+									 + " OR\n"
+									 + "   -createFiles (creates batch that creates files for MACH)\n"
+									 + " OR\n"
+									 + "   -gethapmap (downloads data)\n"
+									 + " OR\n"
 									 + "   (1) create batch files for MACH phasing (i.e. -batches (not the default))\n"
 									 + "   (2) nodes to use (i.e. nodesToUse="
 									 + ArrayUtils.toStr(new String[] {"v1", "v2", "..."}, ",")
-									 + " (default; qsubs only; full names, comma-delimited))\n" + " OR\n"
+									 + " (default; qsubs only; full names, comma-delimited))\n"
+									 + " OR\n"
 									 + "   chromosome to trim from source phase files (i.e. trim=1 (not the default))\n"
-									 + " OR\n" + "   list IDs from .mldose file (i.e. list=chr21.mldose)\n" + " OR\n"
+									 + " OR\n"
+									 + "   list IDs from .mldose file (i.e. list=chr21.mldose)\n"
+									 + " OR\n"
 									 + "   (1) trim the phased HapMap data for targetted imputation (i.e. trim=17 (not the default))\n"
 									 + " OR\n"
 									 + "   (1) decode trimmed phased HapMap data (i.e. decode=17 (not the default))\n"
 									 + " OR\n"
 									 + "   (1) extract PLINK dosage files from MACH .mldose file (i.e. -extractDosage (not the default))\n"
-									 + "   (2) pedigree file (i.e. ped=" + pedfile + " (default))\n"
-									 + "   (3) format of dosage filenames (i.e. doseFormat=" + doseFormat
-									 + " (default))\n" + "   (4) format of marker info filenames (i.e. infoFormat="
-									 + infoFormat + " (default))\n"
+									 + "   (2) pedigree file (i.e. ped="
+									 + pedfile
+									 + " (default))\n"
+									 + "   (3) format of dosage filenames (i.e. doseFormat="
+									 + doseFormat
+									 + " (default))\n"
+									 + "   (4) format of marker info filenames (i.e. infoFormat="
+									 + infoFormat
+									 + " (default))\n"
 									 + "   (5) (optional) list of subset of markers to test (i.e. subset="
-									 + markerSubset + " (default))\n" + " OR\n"
+									 + markerSubset
+									 + " (default))\n"
+									 + " OR\n"
 									 + "   (1) recreate .mldose/.mlinfo with a subset of markers (i.e. extract=markerList.txt (not the default; list requires chr in second column))\n"
-									 + "   (2) format of dosage filenames (i.e. doseFormat=" + doseFormat
-									 + " (default))\n" + "   (3) format of marker info filenames (i.e. infoFormat="
-									 + infoFormat + " (default))\n"
+									 + "   (2) format of dosage filenames (i.e. doseFormat="
+									 + doseFormat
+									 + " (default))\n"
+									 + "   (3) format of marker info filenames (i.e. infoFormat="
+									 + infoFormat
+									 + " (default))\n"
 									 + "   (4) (optional) create batch to quickly parse .mldose files (i.e. -intEx (not the default))\n"
 									 + "   (5) (optional) split files up by region name into separate directories (i.e. splitByRegion=[index of region name in markerList file] (not the default))\n"
 									 + " OR\n"
 									 + "   (1) create database .xln file from a .mldose/.mlinfo pair (i.e. database=fileRoot (not the default))\n"
 									 + " OR\n"
 									 + "   (1) extract PLINK genotype files from MACH .mlprob file (i.e. -extractGenotypes (not the default))\n"
-									 + "   (2) pedigree file (i.e. ped=" + pedfile + " (default))\n"
-									 + "   (3) MACH file name root (i.e. probFormat=" + probFormat + " (default))\n"
-									 + "   (4) rsq threshold for marker inclusion (i.e. rsq=" + rsqThreshold
-									 + " (default))\n" + "   (5) prob threshold for genotype calling (i.e. prob="
-									 + probRequirement + " (default))\n"
+									 + "   (2) pedigree file (i.e. ped="
+									 + pedfile
+									 + " (default))\n"
+									 + "   (3) MACH file name root (i.e. probFormat="
+									 + probFormat
+									 + " (default))\n"
+									 + "   (4) rsq threshold for marker inclusion (i.e. rsq="
+									 + rsqThreshold
+									 + " (default))\n"
+									 + "   (5) prob threshold for genotype calling (i.e. prob="
+									 + probRequirement
+									 + " (default))\n"
 									 + "   (6) (optional) list of subset of markers to test (i.e. subset="
-									 + markerSubset + " (default))\n" + " OR\n"
+									 + markerSubset
+									 + " (default))\n"
+									 + " OR\n"
 									 + "   (1) extract PLINK genotype files for all chromosomes using defaults (i.e. -extractAllGenotypes (not the default))\n"
-									 + "   (2) MACH file name root (i.e. mach=" + machRoot + " (default))\n" + " OR\n"
+									 + "   (2) MACH file name root (i.e. mach="
+									 + machRoot
+									 + " (default))\n"
+									 + " OR\n"
 									 + "   (1) pick best call rate from gender/affection crosstab (i.e. -pickBest (not the default))\n"
-									 + "   (2) size of each cell (i.e. pickSize=" + pickSize + " (default))\n"
+									 + "   (2) size of each cell (i.e. pickSize="
+									 + pickSize
+									 + " (default))\n"
 									 + " OR\n"
 									 + "   (1) check which chromosomes have been completed (i.e. -check (not the default))\n"
 									 + "";

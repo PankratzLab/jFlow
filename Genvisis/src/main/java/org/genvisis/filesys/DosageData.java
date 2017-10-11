@@ -17,6 +17,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +29,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.genvisis.bgen.BGENReader;
+import org.genvisis.bgen.BGENReader.BGENRecord;
+import org.genvisis.bgen.BGENTools;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.common.ArrayUtils;
@@ -52,23 +56,6 @@ import com.google.common.primitives.Ints;
 public class DosageData implements Serializable {
 	public static final long serialVersionUID = 1L;
 
-	enum DosageFileType {
-
-		MACH_MLDOSE_FORMAT,
-		GEN_FORMAT,
-		GWAF_FORMAT,
-		PLINK_FORMAT,
-		MACH_MLPROB_FORMAT,
-		MINIMAC_DOSE_FORMAT,
-		IMPUTE2_DOSE_FORMAT,
-		DATABASE_DOSE_FORMAT,
-		BEAGLE_DOSE_FORMAT,
-		PLINK_BFILE_FORMAT,
-		FREEZE5_FORMAT;
-
-	}
-
-
 	public static final int MACH_MLDOSE_FORMAT = 0;
 	public static final int GEN_FORMAT = 1;
 	public static final int GWAF_FORMAT = 2;
@@ -81,6 +68,7 @@ public class DosageData implements Serializable {
 	public static final int PLINK_BFILE_FORMAT = 9;
 	public static final int FREEZE5_FORMAT = 10;
 	public static final int VCF_FORMAT = 11;
+	public static final int BGEN_FORMAT = 12;
 
 	public static final int MACH_ID_TYPE = 0;
 	public static final int SEPARATE_FILE_ID_TYPE = 1;
@@ -89,8 +77,9 @@ public class DosageData implements Serializable {
 
 	private static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
 	private static final int MARKER_DOMINANT_FORMAT = 1;
-	private static final int PLINK_BINARY_FORMAT = 2;
+	private static final int PLINK_FORMAT_INTERNAL = 2;
 	private static final int VCF_FORMAT_INTERNAL = 3;
+	private static final int BGEN_FORMAT_INTERNAL = 4;
 
 	public static final int CHR_INFO_IN_FILENAME = -2;
 
@@ -114,31 +103,29 @@ public class DosageData implements Serializable {
 																						{MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
 																						 -1, -1, -1, -1, 0, 0, 3, 3}, // .mldose (MACH)
 																						{SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3,
-																						 0,
-																						 1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
+																						 0, 1, 3, 4, 0, 2, 2, 1, 0, 3}, // .gen
 																						{IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0, -1,
 																						 -1, -1, -1, 1, 2, 0, 3}, // .fhsR (GWAF)
 																						{FID_IID_TYPE, 3, MARKER_DOMINANT_FORMAT, 2, 1, 0, 1,
-																						 2,
-																						 -1, -1, 0, 3, 3, 3}, // .dosage (PLINK)
+																						 2, -1, -1, 0, 3, 3, 3}, // .dosage (PLINK)
 																						{MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 2, 0, 0,
 																						 -1, -1, -1, -1, 0, 4, 3, 3}, // .mlprob (MACH)
 																						{MACH_ID_TYPE, 2, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0,
 																						 -1, -1, -1, -1, 0, 5, 3, 3}, // .dose (MINIMAC)
 																						{SEPARATE_FILE_ID_TYPE, 5, MARKER_DOMINANT_FORMAT, 3,
-																						 0,
-																						 1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
+																						 0, 1, 3, 4, CHR_INFO_IN_FILENAME, 2, 0, 1, 3, 3}, // .impute2
 																						{FID_IID_TYPE, 3, INDIVIDUAL_DOMINANT_FORMAT, 1, 1, 0,
 																						 3, 4, -1, 2, 0, 6, 3, 3}, // .db.xln
 																						{SEPARATE_FILE_ID_TYPE, 3, MARKER_DOMINANT_FORMAT, 1,
-																						 1,
-																						 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
-																						{FID_IID_TYPE, 3, PLINK_BINARY_FORMAT, -1, -1, -1, -1,
-																						 -1, -1, -1, -1, -1, -1, -1},
+																						 1, 0, 1, 2, -1, -1, 2, 1, 4, 4}, // .dose (BEAGLE)
+																						{FID_IID_TYPE, 3, PLINK_FORMAT_INTERNAL, -1, -1, -1,
+																						 -1, -1, -1, -1, -1, -1, -1, -1},
 																						{IID_TYPE, 1, INDIVIDUAL_DOMINANT_FORMAT, 1, 0, 0, -1,
 																						 -1, -1, -1, 0, 0, 3, 3}, // freeze5
 																						{FID_IID_TYPE, 3, VCF_FORMAT_INTERNAL, -1, -1, -1, -1,
-																						 -1, -1, -1, -1, -1, -1, -1},
+																						 -1, -1, -1, -1, -1, -1, -1}, // vcf
+																						{FID_IID_TYPE, 3, BGEN_FORMAT_INTERNAL, -1, -1, -1, -1,
+																						 -1, -1, -1, -1, -1, -1, -1}, // bgen
 	};
 
 	private SnpMarkerSet markerSet;
@@ -146,7 +133,7 @@ public class DosageData implements Serializable {
 	private String[][] ids;
 	private float[][] dosageValues;
 	private float[][][] genotypeProbabilities;
-	private char[][] alleles;
+	private String[][] alleles;
 	private byte[] chrs;
 	private int[] positions;
 	private String labelPrepend;
@@ -209,11 +196,13 @@ public class DosageData implements Serializable {
 										int[][] regions, String[] markers, String markerNamePrepend, boolean verbose,
 										Logger log) {
 		DosageData dd = null;
-		if (parameters[2] == PLINK_BINARY_FORMAT) {
+		if (parameters[2] == PLINK_FORMAT_INTERNAL) {
 			dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers,
 													 ext.rootOf(dosageFile, true), markerNamePrepend, true);
 		} else if (parameters[2] == VCF_FORMAT_INTERNAL) {
 			dd = loadVCF(dosageFile, regions, markers, markerNamePrepend);
+		} else if (parameters[2] == BGEN_FORMAT_INTERNAL) {
+			dd = loadBGEN(dosageFile, mapFile, regions, markers, markerNamePrepend, log);
 		}
 		if (dd != null) {
 			alleles = dd.alleles;
@@ -287,7 +276,7 @@ public class DosageData implements Serializable {
 			genotypeProbabilities = new float[keepTotal][ids.length][numDataCols];
 		}
 		if (indexA1 != -1) {
-			alleles = new char[keepTotal][2];
+			alleles = new String[keepTotal][2];
 		}
 		if (indexChr == CHR_INFO_IN_FILENAME) {
 			Matcher m = Pattern.compile(CHR_REGEX).matcher(dosageFile);
@@ -402,7 +391,7 @@ public class DosageData implements Serializable {
 								log.reportError(msg);
 							}
 						}
-						alleles[index][0] = line[indexA1].charAt(0);
+						alleles[index][0] = line[indexA1];
 					}
 					if (indexA2 != -1) {
 						if (line[indexA2].length() > 1 || !Sequence.validAllele(line[indexA2])) {
@@ -412,7 +401,7 @@ public class DosageData implements Serializable {
 								log.reportError(msg);
 							}
 						}
-						alleles[index][1] = line[indexA2].charAt(0);
+						alleles[index][1] = line[indexA2];
 					}
 					if (indexChr >= 0) {
 						try {
@@ -633,7 +622,7 @@ public class DosageData implements Serializable {
 		double[][] indeps;
 		boolean logistic;
 		RegressionModel model;
-		char[][] alleles;
+		String[][] alleles;
 		double[] betas, stderrs, pvals, stats;
 
 		traits = Files.getHeaderOfFile(phenoFile, "\t", log);
@@ -1339,7 +1328,7 @@ public class DosageData implements Serializable {
 
 		byte missingChr = 0;
 		int missingPos = 0;
-		char[] missingAlleles = null;
+		String[] missingAlleles = null;
 		float missingDosage = Float.NaN;
 		float missingGeno = Float.NaN;
 
@@ -1460,14 +1449,14 @@ public class DosageData implements Serializable {
 		// don't use merge, as it sorts markers after merging
 		// ddNew.markerSet = SnpMarkerSet.merge(dd1.markerSet, dd2.markerSet);
 		byte[] chrSrc, chrSrc2;
-		char[][] alleleSrc, alleleSrc2;
+		String[][] alleleSrc, alleleSrc2;
 		int[] posSrc, posSrc2;
 
 		for (String s : droppedMarkers) {
 			markers.remove(s);
 		}
 
-		ddNew.alleles = new char[markers.size()][];
+		ddNew.alleles = new String[markers.size()][];
 		ddNew.chrs = new byte[markers.size()];
 		ddNew.positions = new int[markers.size()];
 		int dd1NumAnnot = dd1.markerSet.getAnnotation() == null
@@ -1760,10 +1749,10 @@ public class DosageData implements Serializable {
 		float[] genotypeProbabilities;
 		byte[] chrs;
 		int[] positions;
-		char[][] alleles;
+		String[][] alleles;
 		byte chr;
 		int position;
-		char[] allelePair;
+		String[] allelePair;
 
 		BufferedReader reader;
 		String[] line, markerNames;
@@ -1889,7 +1878,7 @@ public class DosageData implements Serializable {
 			Files.chmod("awk_command.bat", false);
 			CmdLine.run((dos ? "" : "./") + "awk_command.bat", "./", System.err);
 		} else {
-			allelePair = new char[2];
+			allelePair = new String[2];
 			if (fromParameters[3] > 1) {
 				genotypeProbabilities = new float[fromParameters[3]];
 			} else {
@@ -1990,11 +1979,11 @@ public class DosageData implements Serializable {
 								log.reportError("Warning - invalid allele ('" + line[fromParameters[6]]
 																+ "') at marker " + markerNames[i]);
 							}
-							allelePair[0] = line[fromParameters[6]].charAt(0);
+							allelePair[0] = line[fromParameters[6]];
 						} else if (alleles != null) {
 							allelePair[0] = alleles[i][0];
 						} else {
-							allelePair[0] = '~';
+							allelePair[0] = "~";
 						}
 
 						// gathering alleles if available
@@ -2004,11 +1993,11 @@ public class DosageData implements Serializable {
 								log.reportError("Warning - invalid allele ('" + line[fromParameters[7]]
 																+ "') at marker " + markerNames[i]);
 							}
-							allelePair[1] = line[fromParameters[7]].charAt(0);
+							allelePair[1] = line[fromParameters[7]];
 						} else if (alleles != null) {
 							allelePair[1] = alleles[i][1];
 						} else {
-							allelePair[1] = '~';
+							allelePair[1] = "~";
 						}
 
 						// gathering chromosome if available
@@ -2063,7 +2052,7 @@ public class DosageData implements Serializable {
 
 							// adding alleles if required
 							if (toParameters[6] >= 0) {
-								if (allelePair[0] == '~' || allelePair[1] == '~') {
+								if (allelePair[0] == "~" || allelePair[1] == "~") {
 									log.reportError("Error - file format requires alleles and none were supplied via the map file or the source dosage file");
 									System.exit(1);
 								}
@@ -2269,6 +2258,8 @@ public class DosageData implements Serializable {
 			return PLINK_BFILE_FORMAT;
 		} else if (dosageFile.endsWith(".vcf")) {
 			return VCF_FORMAT;
+		} else if (dosageFile.endsWith(".bgen")) {
+			return BGEN_FORMAT;
 		} else if (dosageFile.endsWith(".frz.xln")) {
 			return FREEZE5_FORMAT;
 		} else {
@@ -2279,6 +2270,109 @@ public class DosageData implements Serializable {
 
 	public static DosageData load(String filename) {
 		return (DosageData) SerializedFiles.readSerial(filename, true);
+	}
+
+	public static DosageData loadBGEN(String file, String indexFile, int[][] regionsToKeep,
+																		String[] markersToKeep, String markerNamePrepend, Logger log) {
+		BGENReader reader;
+		try {
+			reader = BGENReader.open(file, false);
+		} catch (IOException e) {
+			log.reportException(e);
+			return null;
+		}
+
+		if (regionsToKeep != null && markersToKeep != null) {
+			log.reportError("Extracting both regions and specific markers from BGEN files is not implemented.");
+			return null;
+		}
+
+		if (indexFile != null && !"".equals(indexFile) && Files.exists(indexFile)) {
+			try {
+				BGENTools.loadMapInfo(reader, indexFile);
+			} catch (ClassNotFoundException e) {
+				log.reportError("Problem occured while loading index file {" + indexFile
+												+ "}.  Loading will proceed without map info (likely much slower).");
+				log.reportException(e);
+			} catch (IOException e) {
+				log.reportError("Problem occured while loading index file {" + indexFile
+												+ "}.  Loading will proceed without map info (likely much slower).");
+				log.reportException(e);
+			}
+		}
+
+		Map<Integer, List<int[]>> regions = null;
+		Collection<String> variants = null;
+
+		if (regionsToKeep != null) {
+			regions = new HashMap<>();
+			for (int[] rgn : regionsToKeep) {
+				List<int[]> chrRgn = regions.get(rgn[0]);
+				if (chrRgn == null) {
+					chrRgn = new ArrayList<>();
+					regions.put(rgn[0], chrRgn);
+				}
+				chrRgn.add(new int[] {rgn[1], rgn[2]});
+			}
+		} else if (markersToKeep != null) {
+			variants = new HashSet<String>();
+			for (String m : markersToKeep) {
+				variants.add(m);
+			}
+		}
+
+		DosageData dd = new DosageData();
+		dd.ids = new String[(int) reader.getSampleCount()][];
+		for (int i = 0; i < reader.getSampleCount(); i++) {
+			dd.ids[i] = new String[] {reader.getSamples()[i], reader.getSamples()[i]};
+		}
+		int index = 0;
+		List<String> markersList = new ArrayList<>();
+		List<Integer> chrs = new ArrayList<>();
+		List<Integer> poss = new ArrayList<>();
+		List<String[]> all = new ArrayList<>();
+		List<float[][]> probs = new ArrayList<>();
+		for (BGENRecord rec : (regions != null ? reader.query(regions)
+																					: (markersToKeep != null ? reader.query(variants)
+																																	: reader))) {
+			chrs.add(rec.getMetaData().getChr());
+			poss.add((int) rec.getMetaData().getPos());
+			markersList.add(rec.getMetaData().getRsID());
+			all.add(new String[] {rec.getMetaData().getAlleles()[0],
+														rec.getMetaData().getAlleles()[1]});
+			float[][] probArr = new float[rec.getData().length][];
+			for (int i = 0; i < rec.getData().length; i++) {
+				probArr[i] = ArrayUtils.toFloatArray(rec.getData()[i]);
+			}
+			probs.add(probArr);
+			index++;
+		}
+
+		int numMarkers = markersList.size();
+		dd.genotypeProbabilities = probs.toArray(new float[numMarkers][][]);
+		dd.alleles = all.toArray(new String[numMarkers][]);
+		dd.chrs = new byte[numMarkers];
+		dd.positions = new int[numMarkers];
+		for (int i = 0; i < numMarkers; i++) {
+			dd.chrs[i] = (byte) chrs.get(i).intValue();
+			dd.positions[i] = poss.get(i).intValue();
+		}
+		dd.labelPrepend = markerNamePrepend;
+		String[] markerNames = markersList.toArray(new String[numMarkers]);
+
+		dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false,
+																		false);
+
+		dd.empty = markerNames.length == 0;
+
+		markersList = null;
+		chrs = null;
+		poss = null;
+		all = null;
+		probs = null;
+		markerNames = null;
+
+		return dd;
 	}
 
 	public static DosageData loadVCF(String file, int[][] regionsToKeep, String[] markersToKeep,
@@ -2348,7 +2442,7 @@ public class DosageData implements Serializable {
 
 		int numMarkers = keepList.size();
 		dd.genotypeProbabilities = new float[numMarkers][dd.ids.length][];
-		dd.alleles = new char[numMarkers][2];
+		dd.alleles = new String[numMarkers][2];
 		dd.chrs = new byte[numMarkers];
 		dd.positions = new int[numMarkers];
 		dd.labelPrepend = markerNamePrepend;
@@ -2364,10 +2458,10 @@ public class DosageData implements Serializable {
 			}
 			dd.chrs[i] = Positions.chromosomeNumber(vc.getContig());
 			dd.positions[i] = vc.getStart();
-			dd.alleles[i] = new char[vc.getAlleles().size()];
-			dd.alleles[i][0] = vc.getReference().getBaseString().charAt(0);
+			dd.alleles[i] = new String[vc.getAlleles().size()];
+			dd.alleles[i][0] = vc.getReference().getBaseString();
 			for (int j = 1; j < dd.alleles[i].length; j++) {
-				dd.alleles[i][j] = vc.getAlternateAlleles().get(j - 1).getBaseString().charAt(0);
+				dd.alleles[i][j] = vc.getAlternateAlleles().get(j - 1).getBaseString();
 			}
 			GenotypesContext gc = vc.getGenotypes();
 			for (int j = 0; j < gc.size(); j++) {
@@ -2387,7 +2481,7 @@ public class DosageData implements Serializable {
 		dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false,
 																		false);
 
-		dd.empty = markerNames.length > 0;
+		dd.empty = markerNames.length == 0;
 
 		return dd;
 	}
@@ -2438,7 +2532,7 @@ public class DosageData implements Serializable {
 		int numMarkers = ArrayUtils.booleanArraySum(markersToInclude);// Files.countLines(dir +
 																																	// plinkRoot +
 		// ".bim", 0);
-		dd.alleles = new char[numMarkers][2];
+		dd.alleles = new String[numMarkers][2];
 		dd.chrs = new byte[numMarkers];
 		dd.positions = new int[numMarkers];
 
@@ -2457,8 +2551,8 @@ public class DosageData implements Serializable {
 													 + bimData[i][1];
 			dd.chrs[index] = decodeChr(bimData[i][0]);
 			dd.positions[index] = Integer.parseInt(bimData[i][3]);
-			dd.alleles[index][0] = bimData[i][4].charAt(0);
-			dd.alleles[index][1] = bimData[i][5].charAt(0);
+			dd.alleles[index][0] = bimData[i][4];
+			dd.alleles[index][1] = bimData[i][5];
 			index++;
 		}
 		dd.markerSet = new SnpMarkerSet(markerNames, dd.chrs, dd.positions, dd.alleles, null, false,

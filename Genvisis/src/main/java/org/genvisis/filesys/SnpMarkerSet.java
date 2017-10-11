@@ -108,7 +108,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 																				 {1, CHR_INFO_IN_FILENAME, 2, -1, -1, -1, 3, 4, 5, 6, 7, 8,
 																					9}, // 13
 																				 {0, 1, 2, -1, 3, 4}, // 14
-			// make sure to add an entry into HEADERS as well
+	// make sure to add an entry into HEADERS as well
 	};
 
 	private long fingerprint;
@@ -116,7 +116,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 	private byte[] chrs;
 	private int[] positions;
 	private double[] centiMorgans;
-	private char[][] alleles;
+	private String[][] alleles;
 	private String[][] annotation;
 	// if any more information is added, BE SURE TO ADD TO sortMarkers()
 	private Vector<String> nonRSmarkerNames;
@@ -134,12 +134,12 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		this(markerNames, chrs, positions, null, null, false, true, new Logger());
 	}
 
-	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles,
+	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, String[][] alleles,
 											String[][] annotation, boolean sort, boolean verbose) {
 		this(markerNames, chrs, rawPositions, alleles, annotation, sort, verbose, new Logger());
 	}
 
-	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, char[][] alleles,
+	public SnpMarkerSet(String[] markerNames, byte[] chrs, int[] rawPositions, String[][] alleles,
 											String[][] annotation, boolean sort, boolean verbose, Logger log) {
 		if (markerNames.length != chrs.length || markerNames.length != rawPositions.length
 				|| (annotation != null && annotation.length != markerNames.length)) {
@@ -232,7 +232,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		if (indices[4] == -1 || indices[5] == -1) {
 			alleles = null;
 		} else {
-			alleles = new char[count][2];
+			alleles = new String[count][2];
 		}
 		if (indices.length == 6) {
 			annotation = null;
@@ -256,10 +256,10 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				centiMorgans[i] = Double.parseDouble(line[indices[3]]);
 			}
 			if (indices[4] != -1) {
-				alleles[i][0] = line[indices[4]].charAt(0);
+				alleles[i][0] = line[indices[4]];
 			}
 			if (indices[5] != -1) {
-				alleles[i][1] = line[indices[5]].charAt(0);
+				alleles[i][1] = line[indices[5]];
 			}
 			if (indices.length > 6) {
 				for (int j = 6; j < indices.length; j++) {
@@ -428,7 +428,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		return centiMorgans;
 	}
 
-	public char[][] getAlleles() {
+	public String[][] getAlleles() {
 		return alleles;
 	}
 
@@ -477,10 +477,10 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 					line[indices[3]] = centiMorgans == null ? "0" : ext.formDeci(centiMorgans[i], 5, false);
 				}
 				if (indices[4] != -1) {
-					line[indices[4]] = alleles == null ? "." : Character.toString(alleles[i][0]);
+					line[indices[4]] = alleles == null ? "." : alleles[i][0];
 				}
 				if (indices[5] != -1) {
-					line[indices[5]] = alleles == null ? "." : Character.toString(alleles[i][1]);
+					line[indices[5]] = alleles == null ? "." : alleles[i][1];
 				}
 				if (indices.length > 6) {
 					for (int j = 6; j < indices.length; j++) {
@@ -564,8 +564,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				// log.reportError(srcPositions[index-1]+"\t"+srcPositions[index]);
 				centiMorgans[i] = srcCentiMorgans[index - 1]
 													+ (srcCentiMorgans[index] - srcCentiMorgans[index - 1])
-														* (positions[i] - srcPositions[index - 1])
-														/ (srcPositions[index] - srcPositions[index - 1]);
+													* (positions[i] - srcPositions[index - 1])
+													/ (srcPositions[index] - srcPositions[index - 1]);
 			} else {
 				log.reportError("Error - finding nearby markers");
 			}
@@ -614,9 +614,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		}
 
 		Set<String> excludeMarkers = excludeMarkersFile == null
-																														? new HashSet<String>()
-																														: HashVec.loadFileToHashSet(excludeMarkersFile,
-																																												false);
+																													 ? new HashSet<String>()
+																													 : HashVec.loadFileToHashSet(excludeMarkersFile,
+																																											 false);
 
 		try {
 			writer = Files.getAppropriateWriter(filename);
@@ -625,9 +625,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				if (!excludeMarkers.contains(markerNames[i])) {
 					countAs_and_Ts = countGs_and_Cs = 0;
 					for (int j = 0; j < alleles[i].length; j++) {
-						if (alleles[i][j] == 'A' || alleles[i][j] == 'T') {
+						if (alleles[i][j].intern() == "A" || alleles[i][j].intern() == "T") {
 							countAs_and_Ts++;
-						} else if (alleles[i][j] == 'G' || alleles[i][j] == 'C') {
+						} else if (alleles[i][j].intern() == "G" || alleles[i][j].intern() == "C") {
 							countGs_and_Cs++;
 						} else if (ext.indexOfStr(alleles[i][j] + "", NULL_ALLLES) == -1
 											 && ext.indexOfStr(alleles[i][j] + "", INDEL_ALLLES) == -1) {
@@ -691,8 +691,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		while (anchorIndex < anchorOrder.length && localIndex < localOrder.length) {
 			if (chrs[localOrder[localIndex]] < anchorChrs[anchorOrder[anchorIndex]]
 					|| (chrs[localOrder[localIndex]] == anchorChrs[anchorOrder[anchorIndex]]
-							&& positions[localOrder[localIndex]] < anchorPositions[anchorOrder[anchorIndex]]
-																										 - withinXbp)) {
+					&& positions[localOrder[localIndex]] < anchorPositions[anchorOrder[anchorIndex]]
+																								 - withinXbp)) {
 				localIndex++;
 			} else if (chrs[localOrder[localIndex]] == anchorChrs[anchorOrder[anchorIndex]]
 								 && positions[localOrder[localIndex]] >= anchorPositions[anchorOrder[anchorIndex]]
@@ -742,7 +742,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		}
 	}
 
-	public void setAlleles(char[][] alleles2) {
+	public void setAlleles(String[][] alleles2) {
 		alleles = alleles2;
 	}
 
@@ -879,7 +879,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 				}
 
 				String[] pts = (markerNames[i].startsWith("chr") ? markerNames[i].substring(3)
-																												 : markerNames[i]).split(":");
+																												: markerNames[i]).split(":");
 				int c = -1, p = -1;
 
 				try {
@@ -1025,7 +1025,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		String[] markerNames, newMarkerNames;
 		byte[] chrs, newChrs;
 		int[] positions, newPositions;
-		char[][] newAlleles;
+		String[][] newAlleles;
 		String[][] newAnnotation;
 
 		markerNames = getMarkerNames();
@@ -1066,7 +1066,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		String[] markerNames, newMarkerNames;
 		byte[] newChrs;
 		int[] newPositions;
-		char[][] newAlleles;
+		String[][] newAlleles;
 		String[][] newAnnotation;
 		boolean error;
 		HashSet<String> hash, dupeHash = null;
@@ -1137,7 +1137,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		if (alleles == null) {
 			newAlleles = null;
 		} else {
-			newAlleles = new char[count][];
+			newAlleles = new String[count][];
 		}
 		if (annotation == null) {
 			newAnnotation = null;
@@ -1282,7 +1282,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		String[] markerNames;
 		byte[] chrs, travChrs;
 		int[] rawPositions, travPositions;
-		char[][] alleles, travAlleles;
+		String[][] alleles, travAlleles;
 		int index;
 
 		arraysOfMarkerNames = new String[sets.length][];
@@ -1297,7 +1297,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 		markerNames = Matrix.extractColumn(annotation, 0);
 		annotation = ArrayUtils.toMatrix(Matrix.extractColumns(annotation,
 																													 ArrayUtils.subArray(ArrayUtils.arrayOfIndices(sets.length
-																																																				 + 2),
+																																												 + 2),
 																																							 1),
 																													 "\t"));
 
@@ -1334,7 +1334,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 			rawPositions = null;
 		}
 		if (ArrayUtils.booleanArraySum(hasAlleles) > 0) {
-			alleles = new char[markerNames.length][];
+			alleles = new String[markerNames.length][];
 
 			for (int i = 0; i < sets.length; i++) {
 				if (hasPositions[i]) {
@@ -1344,9 +1344,9 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
 						if (alleles[index] == null) {
 							alleles[index] = travAlleles[j];
 						} else if ((travAlleles[j][0] != alleles[index][0]
-												&& travAlleles[j][0] != alleles[index][1])
+											 && travAlleles[j][0] != alleles[index][1])
 											 || (travAlleles[j][1] != alleles[index][0]
-													 && travAlleles[j][1] != alleles[index][1])) {
+											 && travAlleles[j][1] != alleles[index][1])) {
 							System.err.println("Error - mismatched alleles for marker "
 																 + arraysOfMarkerNames[i][j] + " (" + travAlleles[j][0] + "/"
 																 + travAlleles[j][1] + " but previously " + alleles[index][0] + "/"

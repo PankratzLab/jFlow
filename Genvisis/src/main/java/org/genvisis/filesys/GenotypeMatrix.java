@@ -34,7 +34,7 @@ public class GenotypeMatrix implements Serializable {
 	public static final int MARKER_DOMINANT_FORMAT = 1;
 
 	// public static final String[][] HEADS = {{}, {"id"}};
-	public static final String[][] HEADS = {{}, {"CHROM", "POS"}};
+	public static final String[][] HEADS = { {}, {"CHROM", "POS"}};
 	public static final String[] DELIMITERS = {"\t", ",", " "};
 	public static final String[] MISSING_VALUES = {".", "NA"};
 
@@ -45,10 +45,10 @@ public class GenotypeMatrix implements Serializable {
 	 */
 
 	/** 0 1 2 3 4 5 6 */
-	public static final int[][] PARAMETERS = {{MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1, 0}, // .csv
-																																												// (ChargeS
-																																												// Houston
-																																												// format)
+	public static final int[][] PARAMETERS = { {MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1, 0}, // .csv
+																																												 // (ChargeS
+																																												 // Houston
+																																												 // format)
 																						{MARKER_DOMINANT_FORMAT, 0, 1, 1, 0, 2, 1}, // .txt
 																																												// (ChargeS
 																																												// Boston
@@ -125,7 +125,8 @@ public class GenotypeMatrix implements Serializable {
 				if (dominance == INDIVIDUAL_DOMINANT_FORMAT) {
 					for (int i = 0; i < markerNames.length; i++) {
 						if (!markerNames[i].equals(line[headerHead.length + i])) {
-							log.reportError("Error - mismatched name at marker " + (i + 1) + " of " + genotypeFile
+							log.reportError("Error - mismatched name at marker " + (i + 1) + " of "
+															+ genotypeFile
 															+ "; expecting " + markerNames[i] + " given map file " + markerFile
 															+ ", found " + line[headerHead.length + i]);
 							System.exit(1);
@@ -140,7 +141,8 @@ public class GenotypeMatrix implements Serializable {
 					}
 					if (problem) {
 						log.reportError("Error - mismatched head of header row: expecting '"
-														+ ArrayUtils.toStr(headerHead, "/") + "' but found '"
+														+ ArrayUtils.toStr(headerHead, "/")
+														+ "' but found '"
 														+ ArrayUtils.toStr(ArrayUtils.subArray(line, 0, headerHead.length), "/")
 														+ "'");
 					}
@@ -183,7 +185,8 @@ public class GenotypeMatrix implements Serializable {
 
 					if (line.length - firstGenotypeCol != ids.length) {
 						log.reportError("Error - mismatched number of elements in line "
-														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
+														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile
+														+ "; expecting "
 														+ ids.length + "+" + firstGenotypeCol + ", found " + line.length);
 						log.reportError("First few ids: '" + ids[0] + "', '" + ids[1] + "', '" + ids[2]
 														+ "'... '" + ids[ids.length - 2] + "', '" + ids[ids.length - 1] + "'");
@@ -202,7 +205,8 @@ public class GenotypeMatrix implements Serializable {
 					line = ext.replaceAllWith(reader.readLine(), "\"", "").trim().split(delimiter);
 					if (line.length - firstGenotypeCol != markerNames.length) {
 						log.reportError("Error - mismatched number of elements in line "
-														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile + "; expecting "
+														+ (i + 1 + (headerRow ? 1 : 0)) + " of " + genotypeFile
+														+ "; expecting "
 														+ markerNames.length + "+" + firstGenotypeCol + ", found "
 														+ line.length);
 						System.exit(1);
@@ -250,13 +254,14 @@ public class GenotypeMatrix implements Serializable {
 		double[][] indeps;
 		boolean logistic;
 		RegressionModel model;
-		char[][] alleles;
+		String[][] alleles;
 		double[] betas, stderrs, pvals, stats;
 		String[] names, namesUsed;
 
 		traits = Files.getHeaderOfFile(phenoFile, Files.determineDelimiter(phenoFile, log), log);
 		names = ArrayUtils.subArray(traits, 1);
-		hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
+		hash = HashVec.loadFileToHashString(phenoFile,
+																				new int[] {0},
 																				Arrays.copyOfRange(ArrayUtils.arrayOfIndices(traits.length),
 																													 1, traits.length),
 																				phenoFile.endsWith(".csv"), "\t", true, false);
@@ -341,7 +346,7 @@ public class GenotypeMatrix implements Serializable {
 					}
 					names[0] = "SNP";
 					model = logistic ? new LogisticRegression(deps, indeps, names, false, false)
-													 : new LeastSquares(deps, indeps, names, false, false);
+													: new LeastSquares(deps, indeps, names, false, false);
 					betas = model.getBetas();
 					stderrs = model.getSEofBs();
 					pvals = model.getSigs();
@@ -425,7 +430,7 @@ public class GenotypeMatrix implements Serializable {
 		// private String[] ids;
 		// private byte[][] values;
 
-		char[][] alleles;
+		String[][] alleles;
 		String[] markerNames;
 		byte[] chrs;
 		int[] positions;
