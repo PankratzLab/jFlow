@@ -1,5 +1,7 @@
 package org.genvisis.one.ben;
 
+import htsjdk.variant.variantcontext.Allele;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -41,6 +45,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -61,12 +66,14 @@ public class UKBBParsingPipeline {
 	String propFileDir;
 	String projName;
 
-	boolean importGenoAsAB;
+	// AB fields in RAF files are only 2 bits and can't hold full genotype values
+	final boolean importGenoAsAB = false;
 
 	Project proj;
 	HashMap<Integer, FileSet> fileSets;
 	long fingerprint = 0L;
 	String famFile;
+	String annotFile;
 	String[][] famData;
 	// MkrName + SampName + type -> Value || Write as MkrProjInd + SampName + type
 	ConcurrentHashMap<String, Float> oorValues;
@@ -91,8 +98,8 @@ public class UKBBParsingPipeline {
 		famFile = famFile2;
 	}
 
-	public void setImportGenosAsAB(boolean importAsAB) {
-		importGenoAsAB = importAsAB;
+	public void setAnnotationCSV(String csv) {
+		annotFile = csv;
 	}
 
 	public void runPipeline() {
@@ -103,6 +110,7 @@ public class UKBBParsingPipeline {
 		writeLookup();
 		createMarkerPositions();
 		writeMarkerSet();
+		writeMarkerDetailSet();
 		writeOutliers();
 		createSampRAFsFromMDRAFs();
 		createPED();
@@ -372,12 +380,64 @@ public class UKBBParsingPipeline {
 		}
 	}
 
+	protected void writeMarkerDetailSet() {
+		if (!Files.exists(proj.MARKER_DETAILS_FILENAME.getValue())) {
+			if (null == annotFile || "".equals(annotFile)) {
+				log.reportError("Affymetrix annotation file not found.  To call CNVs, A/B alleles will be needed and determining these requires an Affymetrix annotation file.");
+				return;
+			}
+			Iterable<Marker> markerIterable;
+			try {
+				markerIterable = loadMarkers();
+				MarkerDetailSet mds = new MarkerDetailSet(markerIterable);
+				mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			log.report("Project marker detail set file already exists; skipping creation.");
+		}
+	}
+
+	private Iterable<Marker> loadMarkers() throws IOException {
+		String[] headerFactors = {"Affy SNP ID", "dbSNP RS ID", "Chromosome",
+															"Physical Position", "Allele A", "Allele B", "Ref Allele"};
+		int[] hdrInds = null;
+		BufferedReader reader = Files.getAppropriateReader(annotFile);
+		ArrayList<Marker> markers = new ArrayList<>();
+		String line = null;
+		boolean foundHeader = false;
+		String[] parts;
+		while ((line = reader.readLine()) != null) {
+			if (line.charAt(0) == '#')
+				continue;
+			if (!foundHeader) {
+				foundHeader = true; // first nonComment line
+				hdrInds = ext.indexFactors(headerFactors, ext.splitCommasIntelligently(line, true, log),
+																	 false);
+				continue;
+			}
+			parts = ext.splitCommasIntelligently(line, true, log);
+			markers.add(new Marker(parts[hdrInds[1]].equals("---") ? parts[hdrInds[0]]
+																														: parts[hdrInds[1]],
+														 new GenomicPosition((byte) Integer.parseInt(parts[hdrInds[2]]),
+																								 Integer.parseInt(parts[hdrInds[3]])),
+														 Allele.create(parts[hdrInds[4]],
+																					 parts[hdrInds[4]] == parts[hdrInds[6]]),
+														 Allele.create(parts[hdrInds[5]],
+																					 parts[hdrInds[5]] == parts[hdrInds[6]])));
+
+		}
+		reader.close();
+		return markers;
+	}
+
 	protected void writeOutliers() {
 		Hashtable<String, Float> allOutliers = new Hashtable<>();
 		Map<String, Integer> mkrInds = proj.getMarkerIndices();
 		for (Entry<String, Float> ent : oorValues.entrySet()) {
 			String[] pts = ent.getKey().split("\t");
-			allOutliers.put(mkrInds.get(pts[0]) + "\t" + pts[1] + "\t" + pts[0], ent.getValue());
+			allOutliers.put(mkrInds.get(pts[0]) + "\t" + pts[1] + "\t" + pts[2], ent.getValue());
 		}
 		oorValues = null;
 
@@ -659,7 +719,7 @@ public class UKBBParsingPipeline {
 
 				oor = !Compression.xyCompressAllowNegative(x, mkrBuff, buffInd);
 				if (oor) {
-					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tx", x);
+					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
 				oor = !Compression.xyCompressAllowNegative(y,
@@ -667,7 +727,7 @@ public class UKBBParsingPipeline {
 																									 buffInd
 																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
-					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\ty", y);
+					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\ty", y);
 				}
 
 				buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
@@ -708,21 +768,21 @@ public class UKBBParsingPipeline {
 				System.exit(1);
 			}
 			float lrr = Float.NaN;
-			for (String lrrStr : lrrStrs) {
+			for (int samp = 0; samp < lrrStrs.length; samp++) {
 				try {
-					lrr = Float.parseFloat(lrrStr);
+					lrr = Float.parseFloat(lrrStrs[samp]);
 				} catch (NumberFormatException e) {
-					if (ext.isMissingValue(lrrStr)) {
+					if (ext.isMissingValue(lrrStrs[samp])) {
 						lrr = Float.NaN;
 					} else {
-						log.reportError("Malformed LRR value: " + lrrStr + " for chr " + fs.chr);
+						log.reportError("Malformed LRR value: " + lrrStrs[samp] + " for chr " + fs.chr);
 						System.exit(1);
 					}
 				}
 				oor = -1 == Compression.lrrCompress(lrr, mkrBuff, buffInd);
 				buffInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
 				if (oor) {
-					outOfRangeTable.put((i - startBatchInd) + "\t" + i + "\tlrr", lrr);
+					outOfRangeTable.put((i - startBatchInd) + "\t" + samp + "\tlrr", lrr);
 				}
 			}
 			lrrStrs = null;
@@ -1115,12 +1175,15 @@ public class UKBBParsingPipeline {
 	private static final String ARG_PROP_DIR = "propDir=";
 	private static final String ARG_PROJ_NAME = "projName=";
 	private static final String ARG_FAM_FILE = "fam=";
+	private static final String ARG_ANNOT_CSV = "annot=";
 
 	private static final String DESC_SRC_DIR = "Directory of UK BioBank source files";
 	private static final String DESC_PROJ_DIR = "Directory in which to create parsed files";
 	private static final String DESC_PROP_DIR = "Directory in which to create project properties file";
 	private static final String DESC_PROJ_NAME = "Project name";
 	private static final String DESC_FAM_FILE = "UKBioBank-provided, PLINK-formatted .fam file";
+	private static final String DESC_ANNOT_CSV = "Affymetrix annotation .csv file";
+
 
 	public static void main(String[] args) {
 		String sourceDir = "";
@@ -1128,6 +1191,7 @@ public class UKBBParsingPipeline {
 		String propFileDir = "";
 		String projName = "";
 		String famFile = "";
+		String annotFile = "";
 
 		CLI cli = new CLI(UKBBParsingPipeline.class);
 
@@ -1136,6 +1200,7 @@ public class UKBBParsingPipeline {
 		cli.addArg(ARG_PROP_DIR, DESC_PROP_DIR, true);
 		cli.addArgWithDefault(ARG_PROJ_NAME, DESC_PROJ_NAME, "UKBioBank");
 		cli.addArg(ARG_FAM_FILE, DESC_FAM_FILE, true);
+		cli.addArg(ARG_ANNOT_CSV, DESC_ANNOT_CSV, false);
 
 		cli.parseWithExit(args);
 
@@ -1144,6 +1209,9 @@ public class UKBBParsingPipeline {
 		propFileDir = cli.get(ARG_PROP_DIR);
 		projName = cli.get(ARG_PROJ_NAME);
 		famFile = cli.get(ARG_FAM_FILE);
+		if (cli.has(ARG_ANNOT_CSV)) {
+			annotFile = cli.get(ARG_ANNOT_CSV);
+		}
 
 		UKBBParsingPipeline parser = new UKBBParsingPipeline();
 		parser.setSourceDir(sourceDir);
@@ -1151,7 +1219,9 @@ public class UKBBParsingPipeline {
 		parser.setProjectPropertiesDir(propFileDir);
 		parser.setProjectName(projName);
 		parser.setFamFile(famFile);
-		parser.setImportGenosAsAB(true);
+		if (!"".equals(annotFile)) {
+			parser.setAnnotationCSV(annotFile);
+		}
 		parser.runPipeline();
 	}
 
