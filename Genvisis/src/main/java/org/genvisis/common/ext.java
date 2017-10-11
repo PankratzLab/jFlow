@@ -46,7 +46,7 @@ public class ext {
 
 	public static final Character UNSAFE_CHAR_REPLACEMENT = '_';
 	public static final String[] MISSING_VALUES = {"", ".", "NA", "NaN", "x", "#N/A", "--", "-"};
-	public static final String[][] META_REPLACEMENTS = {{"{Tab}", "\t"}, {"{Space}", " "},
+	public static final String[][] META_REPLACEMENTS = { {"{Tab}", "\t"}, {"{Space}", " "},
 																											{"{!}", "!"}, {"{#}", "#"}, {"{+}", "+"}};
 	public static final String[] COMMON_IDS = {"id", "IID", "IndID", "gwas_id"};
 	public static final String REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES = PSF.Regex.regexSplitPreserveQuoted(" ");
@@ -499,7 +499,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -530,7 +530,7 @@ public class ext {
 		}
 
 		result = new DecimalFormat(theFormat).format(num);
-		if (ext.replaceAllWith(result, new String[][] {{"0", ""}, {".", ""}}).equals("-")) {
+		if (ext.replaceAllWith(result, new String[][] { {"0", ""}, {".", ""}}).equals("-")) {
 			result = result.substring(1);
 		}
 		return result;
@@ -685,9 +685,9 @@ public class ext {
 				break;
 			case MICROSECONDS:
 				elapsed = TimeUnit.MICROSECONDS.toMillis(timeElapsed) > 9
-																																	? formatMillisElapsed(timeElapsed
-																																												/ 1000)
-																																	: (timeElapsed + " µs");
+																																 ? formatMillisElapsed(timeElapsed
+																																 / 1000)
+																																 : (timeElapsed + " µs");
 				break;
 			case MILLISECONDS:
 				elapsed = formatMillisElapsed(timeElapsed);
@@ -697,9 +697,9 @@ public class ext {
 				break;
 			case NANOSECONDS:
 				elapsed = TimeUnit.NANOSECONDS.toMillis(timeElapsed) > 9
-																																 ? formatMillisElapsed(timeElapsed
-																																											 / 1000000)
-																																 : (timeElapsed + " ns");
+																																? formatMillisElapsed(timeElapsed
+																																/ 1000000)
+																																: (timeElapsed + " ns");
 				break;
 			case SECONDS:
 				elapsed = formatMillisElapsed(timeElapsed * 1000);
@@ -1309,7 +1309,7 @@ public class ext {
 			}
 		}
 		for (int i = 0; i < (observed.length < expected.length ? observed.length
-																													 : expected.length); i++) {
+																													: expected.length); i++) {
 			if (!observed[i].equalsIgnoreCase(expected[i])
 					|| (caseSensitive && !observed[i].equals(expected[i]))) {
 				log.reportError("Error - Expecting " + expected[i] + " in column " + (i + 1) + "; got "
@@ -1509,7 +1509,7 @@ public class ext {
 
 
 	public static String removeQuotesFromExcelToken(String ori) {
-		return removeQuotesFromExcelToken(ori, new String[][] {{"\t", "[TAB]"}, {",", "[COMMA]"}});
+		return removeQuotesFromExcelToken(ori, new String[][] { {"\t", "[TAB]"}, {",", "[COMMA]"}});
 	}
 
 	public static String removeQuotesFromExcelToken(String ori, String[][] theReplacements) {
@@ -1991,8 +1991,8 @@ public class ext {
 			if (str.charAt(i) == ',') {
 				if (numCommas % 2 == 0) {
 					v.add(removeAndSimplifyQuotes
-																				? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
-																				: str.substring(startIndex, i));
+																			 ? removeAndSimplifyQuotes(str.substring(startIndex, i), log)
+																			 : str.substring(startIndex, i));
 					// System.out.println(v.elementAt(v.size()-1));
 					startIndex = i + 1;
 					if (insideQuotes && str.charAt(i - 1) != '\"') {
@@ -2010,7 +2010,7 @@ public class ext {
 			}
 		}
 		v.add(removeAndSimplifyQuotes ? removeAndSimplifyQuotes(str.substring(startIndex), log)
-																	: str.substring(startIndex));
+																 : str.substring(startIndex));
 
 		return ArrayUtils.toStringArray(v);
 	}
