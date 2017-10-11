@@ -210,7 +210,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
 		BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
 																			 true, atType, aName, NORMALIZATON_METHOD.GENOME, fakeBams,
-																			 referenceGenomeFasta, false,
+																			 referenceGenomeFasta, false, true,
 																			 numThreads);
 	}
 
@@ -319,6 +319,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
 
 			BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, aType,
+																		true,
 																		log, new ReferenceGenome(refGenome,
 																														 log));
 		}

@@ -336,7 +336,7 @@ public class BamImport {
 																							ASSAY_TYPE atType, ASSEMBLY_NAME aName,
 																							NORMALIZATON_METHOD normMethod,
 																							String[] bamsToImport, String refGenome,
-																							boolean doCorrection,
+																							boolean doCorrection, boolean createSubsetVCF,
 																							int numthreads) {
 
 		if (proj.getArrayType() == ARRAY.NGS) {
@@ -356,7 +356,8 @@ public class BamImport {
 																														log);
 			log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 			AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
-																										 captureBuffer, atType, log, referenceGenome);
+																										 captureBuffer, atType, createSubsetVCF, log,
+																										 referenceGenome);
 			FilterNGS filterNGS = new FilterNGS(20, 20, null);
 			PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir,
 																											 referenceGenome.getReferenceFasta(),
@@ -401,7 +402,8 @@ public class BamImport {
 	 */
 	public static AnalysisSets generateAnalysisSet(Project proj, String binBed, String captureBed,
 																								 String optionalVCF, int captureBuffer,
-																								 ASSAY_TYPE atype, Logger log,
+																								 ASSAY_TYPE atype, boolean createSubsetVCF,
+																								 Logger log,
 
 																								 ReferenceGenome referenceGenome) {
 		LocusSet<Segment> analysisSet;
@@ -445,7 +447,7 @@ public class BamImport {
 		log.memoryFree();
 
 		String vcfToCount = optionalVCF;
-		if (atype == ASSAY_TYPE.WXS) {
+		if (atype == ASSAY_TYPE.WXS && createSubsetVCF) {
 			String subsetVcf = VCFOps.extractSegments(vcfToCount, captureBed, 100, null,
 																								proj.PROJECT_DIRECTORY.getValue() + "vcf/", false,
 																								false, 1, log);
@@ -702,17 +704,17 @@ public class BamImport {
 																															 int correctionPCs, int numthreads) {
 		proj.SAMPLE_CALLRATE_THRESHOLD.setValue(0.0);
 		proj.LRRSD_CUTOFF.setValue(.60);
-		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(Math.max(200, correctionPCs));
+		proj.INTENSITY_PC_NUM_COMPONENTS.setValue(correctionPCs);
 		String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
 		ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
 		Files.writeArray(ArrayUtils.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
 		String[] autoMarks = proj.getAutosomalMarkers();
 		for (MarkerFileType type : types) {
-			String rootBase = "";
+			String rootBase = proj.PROJECT_NAME.getValue() + "_" + correctionPCs + "PCs_";
 			if (type.getType() == null) {
-				rootBase = rootBase + "BAM_PCS_ALL_MARKERS";
+				rootBase = rootBase + "BAM_ALL_MARKERS";
 			} else {
-				rootBase = rootBase + "BAM_PCS_" + type.getType().getFlag();
+				rootBase = rootBase + "BAM_" + type.getType().getFlag();
 			}
 			String markerfile = proj.PROJECT_DIRECTORY.getValue() + rootBase
 													+ "autosomal_inputMarkers.txt";
@@ -1129,7 +1131,7 @@ public class BamImport {
 		ASSAY_TYPE assayType = ASSAY_TYPE.WXS;
 		ASSEMBLY_NAME assembly = ASSEMBLY_NAME.HG19;
 		NORMALIZATON_METHOD normMethod = NORMALIZATON_METHOD.GENOME;
-
+		boolean createSubsetVCF = false;
 		String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
 		usage += "(1) filename (i.e. proj= (no default))\n" + "";
 		usage += "(2) bed file to import  (i.e. importBed=" + binBed + " (default))\n" + "";
@@ -1154,7 +1156,9 @@ public class BamImport {
 										 .collect(Collectors.joining(", "))
 						 + ")  (i.e. normMethod=" + normMethod.name() + " (default))\n";
 
-
+		usage += "(10) If method the Assay type is " + ASSAY_TYPE.WXS
+						 + " create a subset vcf from targeted regions. This is often not neccesary if your vcf is already trimmed  (i.e. -createSubsetVCF)\n"
+						 + "";
 		for (String arg : args) {
 			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
 				System.err.println(usage);
@@ -1186,7 +1190,14 @@ public class BamImport {
 			} else if (arg.startsWith("normMethod")) {
 				normMethod = NORMALIZATON_METHOD.valueOf(ext.parseStringArg(arg));
 				numArgs--;
+			} else if (arg.startsWith("normMethod")) {
+				normMethod = NORMALIZATON_METHOD.valueOf(ext.parseStringArg(arg));
+				numArgs--;
+			} else if (arg.startsWith("-createSubsetVCF")) {
+				createSubsetVCF = true;
+				numArgs--;
 			}
+
 
 			else {
 				System.err.println("Error - invalid argument: " + arg);
@@ -1205,7 +1216,7 @@ public class BamImport {
 			importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
 															 assayType, assembly, normMethod, null,
 															 proj.getReferenceGenomeFASTAFilename(),
-															 true, numthreads);
+															 true, createSubsetVCF, numthreads);
 		} catch (Exception e) {
 			new Logger().reportException(e);
 		}

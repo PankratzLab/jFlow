@@ -126,7 +126,9 @@ public class BamSample {
 		MarkerSetInfo markerSet = proj.getMarkerSet();
 		String[] markerNames = markerSet.getMarkerNames();
 		if (markerNames.length != bamPiles.length) {
-			throw new IllegalArgumentException("Mismatched marker sizes, this is bad");
+			throw new IllegalArgumentException("Mismatched marker sizes, this is bad, was expecting "
+																				 + markerNames.length + " and found "
+																				 + bamPiles.length);
 		}
 		rawDepth = new double[bamPiles.length];
 		mapQs = new double[bamPiles.length];
