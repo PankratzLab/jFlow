@@ -12,6 +12,7 @@ import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -625,7 +626,7 @@ public class TransposeData {
 				writeBuffer = new byte[numSamples_WriteBuffer][numBytes_PerSamp];
 
 				timerTmp = new Date().getTime();
-				allOutliers = loadOutliers(proj);
+				allOutliers = loadMarkerDataOutliers(proj);
 				sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers,
 																																 listOfAllSamplesInProj);
 
@@ -743,7 +744,7 @@ public class TransposeData {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static Hashtable<String, Float> loadOutliers(Project proj) {
+	private static Hashtable<String, Float> loadMarkerDataOutliers(Project proj) {
 		if (new File(proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser").exists()) {
 			return (Hashtable<String, Float>) SerializedFiles.readSerial(proj.MARKER_DATA_DIRECTORY.getValue(true,
 																																																			 true)
@@ -986,20 +987,20 @@ public class TransposeData {
 		String key;
 		String[] line;
 
+		HashMap<String, Integer> sampleIndexMap = new HashMap<>();
 		result = new Hashtable[sampleNamesWholeProj.length];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = new Hashtable<String, Float>();
+			sampleIndexMap.put(sampleNamesWholeProj[i], i);
 		}
 
 		keys = allOutliers.keys();
 		while (keys.hasMoreElements()) {
 			key = keys.nextElement();
 			line = key.split("\t");
-			for (int i = 0; i < sampleNamesWholeProj.length; i++) {
-				if (sampleNamesWholeProj[i].equals(line[1])) {
-					result[i].put(Integer.parseInt(line[0]) + "\t" + line[2], allOutliers.get(key));
-					break;
-				}
+			if (sampleIndexMap.containsKey(line[1])) {
+				result[sampleIndexMap.get(line[1])].put(Integer.parseInt(line[0]) + "\t" + line[2],
+																								allOutliers.get(key));
 			}
 		}
 
@@ -1266,6 +1267,23 @@ public class TransposeData {
 		}
 
 		return outOfRangeValues;
+	}
+
+	public static String[] loadMarkerNamesFromRAF(String markerFilename) throws IOException,
+																																			ClassNotFoundException {
+		RandomAccessFile file;
+		byte[] parameters;
+		file = new RandomAccessFile(markerFilename, "r");
+		parameters = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+		file.read(parameters);
+		int markernamesSectionLength = Compression.bytesToInt(parameters,
+																													MARKERDATA_MARKERNAMELEN_START);
+
+		parameters = new byte[markernamesSectionLength];
+		file.read(parameters);
+		String[] markerNames = (String[]) Compression.bytesToObj(parameters);
+		file.close();
+		return markerNames;
 	}
 
 	@SuppressWarnings("unchecked")
