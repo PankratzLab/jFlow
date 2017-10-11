@@ -16,7 +16,11 @@ public class Sequence {
 	}
 
 	public static String flip(String allele) {
-		return flip(allele.charAt(0)) + "";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < allele.length(); i++) {
+			sb.append(flip(allele.charAt(i)));
+		}
+		return sb.toString();
 	}
 
 	public static boolean validAllele(String allele) {
