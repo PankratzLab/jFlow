@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.qc.FilterNGS;
@@ -20,8 +21,10 @@ import com.google.common.collect.ImmutableRangeMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeMap;
+import com.google.common.collect.TreeRangeSet;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
@@ -34,7 +37,7 @@ import htsjdk.samtools.util.CloseableIterator;
 public class BamSegPileUp implements Iterator<BamPile> {
 
   private final String bam;
-  private final Map<Byte, RangeMap<Integer, BamPile>> bamPileMap;
+  private final Map<Byte, RangeMap<Integer, Set<BamPile>>> bamPileMap;
   private final BamPile[] bamPileArray;
   private final Set<Segment> segsPiled;
   private final Map<Segment, SoftReference<String[]>> refSequences;
@@ -61,7 +64,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT);
     samRecordIterator = reader.queryOverlapping(BamOps.convertSegsToQI(intervals,
                                                                        reader.getFileHeader(), 0,
-                                                                       false, aName.addChr(), log));
+                                                                       true, aName.addChr(), log));
     this.log = log;
     referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
     bamPileMap = Maps.newHashMap();
@@ -71,13 +74,26 @@ public class BamSegPileUp implements Iterator<BamPile> {
       byte chr = interval.getChr();
       int start = interval.getStart();
       int stop = interval.getStop();
-      RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(chr);
+      RangeMap<Integer, Set<BamPile>> chrRangeMap = bamPileMap.get(chr);
       if (chrRangeMap == null) {
         chrRangeMap = TreeRangeMap.create();
         bamPileMap.put(chr, chrRangeMap);
       }
       BamPile bamPile = new BamPile(interval);
-      chrRangeMap.put(Range.closed(start, stop), bamPile);
+      Range<Integer> curSegmentRange = Range.closed(start, stop);
+      Map<Range<Integer>, Set<BamPile>> existingSubRangeMapOfRanges = chrRangeMap.subRangeMap(curSegmentRange)
+                                                                                 .asMapOfRanges();
+      if (existingSubRangeMapOfRanges.isEmpty()) {
+        chrRangeMap.put(curSegmentRange, Sets.newHashSet(bamPile));
+      } else {
+        existingSubRangeMapOfRanges.values().forEach(s -> s.add(bamPile));
+        RangeSet<Integer> unmappedRange = TreeRangeSet.create();
+        unmappedRange.add(curSegmentRange);
+        unmappedRange.removeAll(existingSubRangeMapOfRanges.keySet());
+        for (Range<Integer> range : unmappedRange.asRanges()) {
+          chrRangeMap.put(range, Sets.newHashSet(bamPile));
+        }
+      }
       bamPileArray[i] = bamPile;
     }
     this.segsPiled = Sets.newHashSetWithExpectedSize(intervals.length);
@@ -97,7 +113,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
     if (!filter.filterOut(samRecord)) {
       Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
       if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return null;
-      RangeMap<Integer, BamPile> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
+      RangeMap<Integer, Set<BamPile>> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
       if (chrRangeMap == null) {
         log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
                               + " returned from BAM query but not found in requested intervals");
@@ -106,8 +122,9 @@ public class BamSegPileUp implements Iterator<BamPile> {
       }
       Collection<BamPile> overlappingPiles = chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(),
                                                                                   samRecordSegment.getStop()))
-                                                        .asMapOfRanges().values();
-
+                                                        .asMapOfRanges().values().stream()
+                                                        .flatMap(Collection::stream)
+                                                        .collect(Collectors.toSet());
       for (BamPile bamPile : overlappingPiles) {
         Segment cs = bamPile.getBin();
         boolean overlaps = samRecordSegment.overlaps(cs);
