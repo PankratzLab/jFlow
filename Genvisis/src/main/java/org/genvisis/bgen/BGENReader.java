@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -204,8 +205,17 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 															"Number of bytes recorded for sample ID header does not match the number of bytes read.  Expected "
 																	+ numBytesSampIDBlock + " | Read " + readB);
 			}
+		} else {
+			initSamples();
 		}
 		raf.seek(getRecordStartByte());
+	}
+
+	private void initSamples() {
+		samples = new String[(int) sampleCount];
+		for (int i = 0; i < samples.length; i++) {
+			samples[i] = "(unknown_sample_" + (1 + i) + ")";
+		}
 	}
 
 	private final boolean testMagicBytes(byte[] magicBytes) {
@@ -494,7 +504,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		boolean hasMap = checkAndReportIfEmpty();
 		Iterator<BGENRecord> iter = new BGENIterators.EmptyIterator();
 		if (!hasMap) {
-			HashMap<Integer, int[][]> rgns = new HashMap<>();
+			HashMap<Integer, List<int[]>> rgns = new HashMap<>();
 			rgns.put(chr, null);
 			iter = new BGENIterators.BGENRegionQueryIterator(this, rgns);
 		} else {
@@ -521,6 +531,49 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	/**
+	 * Request an iterator of all records within the specified regions. Will return a
+	 * {@link BGENIterators.BGENIterable} wrapped around either a
+	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
+	 * {@link BGENIterators.BGENRegionQueryIterator} if not.
+	 * 
+	 * @param chr Chromosome to query
+	 * @param start Region start (inclusive)
+	 * @param stop Region stop (inclusive)
+	 * @return Iterable
+	 */
+	public Iterable<BGENRecord> query(Map<Integer, List<int[]>> regions) {
+		boolean hasMap = checkAndReportIfEmpty();
+		Iterator<BGENRecord> iter = new BGENIterators.EmptyIterator();
+		if (!hasMap) {
+			iter = new BGENIterators.BGENRegionQueryIterator(this, regions);
+		} else {
+			Set<BGENRecordMetaData> chrData = new HashSet<>();
+			List<BGENRecordMetaData> chrList = new ArrayList<>();
+			Set<Integer> chrs = regions.keySet();
+			for (Integer chr : chrs) {
+				if (chrSets.containsKey(chr)) {
+					chrData.addAll(chrSets.get(chr));
+				}
+			}
+			if (chrData.isEmpty()) {
+				iter = new BGENIterators.EmptyIterator();
+			} else {
+				for (BGENRecordMetaData rec : chrData) {
+					if (!chrs.contains(rec.chr))
+						continue;
+					for (int[] rgn : regions.get(rec.chr)) {
+						if (rec.getPos() >= rgn[0] || rec.getPos() <= rgn[1]) {
+							chrList.add(rec);
+						}
+					}
+				}
+				iter = new BGENIterators.BGENRecordIterator(this, chrList);
+			}
+		}
+		return new BGENIterators.BGENIterable(iter);
+	}
+
+	/**
 	 * Request an iterator of all records on the given chromosome within a specified region. Will
 	 * return a {@link BGENIterators.BGENIterable} wrapped around either a
 	 * {@link BGENIterators.BGENRecordIterator} if map info is present, or a
@@ -535,8 +588,10 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		boolean hasMap = checkAndReportIfEmpty();
 		Iterator<BGENRecord> iter = new BGENIterators.EmptyIterator();
 		if (!hasMap) {
-			HashMap<Integer, int[][]> rgns = new HashMap<>();
-			rgns.put(chr, new int[][] {{start, stop}});
+			HashMap<Integer, List<int[]>> rgns = new HashMap<>();
+			ArrayList<int[]> rgn = new ArrayList<>();
+			rgn.add(new int[] {start, stop});
+			rgns.put(chr, rgn);
 			iter = new BGENIterators.BGENRegionQueryIterator(this, rgns);
 		} else {
 			Set<BGENRecordMetaData> chrData;
@@ -556,14 +611,14 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	/**
-	 * @see {@link BGENReader#query(int, int[][])}
+	 * @see {@link BGENReader#query(int, List<int[]>)}
 	 * @param chr Chromosome to query
-	 * @param regions int arrays of {@code start1, stop1}, {start2, stop2}, ... , {startN, stopN}}}
-	 *        (start and stop both inclusive)
+	 * @param regions List of int arrays of {@code start1, stop1}, {start2, stop2}, ... , {startN,
+	 *        stopN}}} (start and stop both inclusive)
 	 * @return Iterable
 	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
-	public Iterable<BGENRecord> query(String chr, int[][] regions) {
+	public Iterable<BGENRecord> query(String chr, List<int[]> regions) {
 		return query(Integer.parseInt(chr), regions);
 	}
 
@@ -580,11 +635,11 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @return Iterable
 	 * @throws NumberFormatException if {@code chr} is not a valid number
 	 */
-	public Iterable<BGENRecord> query(int chr, int[][] regions) {
+	public Iterable<BGENRecord> query(int chr, List<int[]> regions) {
 		boolean hasMap = checkAndReportIfEmpty();
 		Iterator<BGENRecord> iter = new BGENIterators.EmptyIterator();
 		if (!hasMap) {
-			HashMap<Integer, int[][]> rgns = new HashMap<>();
+			HashMap<Integer, List<int[]>> rgns = new HashMap<>();
 			rgns.put(chr, regions);
 			iter = new BGENIterators.BGENRegionQueryIterator(this, rgns);
 		} else {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.genvisis.bgen.BGENReader.BGENRecord;
@@ -184,6 +185,9 @@ public final class BGENIterators {
 					return null;
 				r = this.reader.getMetaData(this.raf, this.raf.getFilePointer(), false);
 				inVars = (variantIDs.contains(r.id) || variantIDs.contains(r.rsId));
+				if (!inVars) {
+					this.raf.skipBytes((int) r.blockLength);
+				}
 			} while (!inVars);
 			if (!inVars)
 				return null;
@@ -199,9 +203,9 @@ public final class BGENIterators {
 	 *
 	 */
 	static final class BGENRegionQueryIterator extends BGENQueryIterator {
-		private final Map<Integer, int[][]> regions;
+		private final Map<Integer, List<int[]>> regions;
 
-		BGENRegionQueryIterator(BGENReader reader, Map<Integer, int[][]> regions) {
+		BGENRegionQueryIterator(BGENReader reader, Map<Integer, List<int[]>> regions) {
 			super(reader);
 			this.regions = regions;
 		}
