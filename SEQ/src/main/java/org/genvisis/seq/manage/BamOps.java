@@ -180,7 +180,7 @@ public class BamOps {
    * @return new reader
    */
   public static SamReader getDefaultReader(String bamOrSam, ValidationStringency stringency,
-                                           List<Option> options) {
+                                           Iterable<Option> options) {
     SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
     samReaderFactory.validationStringency(stringency);
     for (Option option : options) {
