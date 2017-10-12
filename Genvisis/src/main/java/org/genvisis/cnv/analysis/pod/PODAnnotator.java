@@ -109,7 +109,7 @@ public class PODAnnotator {
 																									 Arrays.asList(set.getLoci()), offDNA,
 																									 moDNA,
 																									 faDNA,
-																									 sType);
+																									 sType, InformativeBAF.CHEBYSHEV);
 
 		List<PODRegion<T>> regionResults = new ArrayList<>();
 		for (int i = 0; i < set.getLoci().length; i++) {

@@ -305,7 +305,7 @@ public class PODAnalysis {
 																				 List<Segment> segmentSearchSpaces,
 
 																				 String offDNA, String moDNA, String faDNA,
-																				 SEARCH_SPACE_TYPE type) {
+																				 SEARCH_SPACE_TYPE type, double sdCut) {
 
 		proj.getLog().reportTimeInfo("POD for " + offDNA + " with type " + type);
 
@@ -318,7 +318,7 @@ public class PODAnalysis {
 		InformativeResult informativeResult = InformativeBAF.getInformativeIndices(bafs,
 																																							 off.getAB_Genotypes(),
 																																							 BAF_STRATEGY.HET_ONLY,
-																																							 InformativeBAF.CHEBYSHEV);
+																																							 sdCut);
 		if (type == SEARCH_SPACE_TYPE.INDIVIDUAL) {
 			for (Segment searchSpace : segmentSearchSpaces) {
 

@@ -100,7 +100,7 @@ public class testKSPOD {
 				String moDNA = pedigree.getiDNA(pair[2]);
 				completed.add(offDNA);
 				List<PODResults> results = PODAnalysis.analyze(proj, markerDetailSet, segments, offDNA, moDNA, faDNA,
-						searchType);
+						searchType, 0);
 
 				writer.flush();
 				String stat = "NA";
@@ -142,7 +142,7 @@ public class testKSPOD {
 						if (moDNA != null || faDNA != null) {
 
 							List<PODResults> results = PODAnalysis.analyze(proj, markerDetailSet, segments, offDNA,
-									moDNA, faDNA, searchType);
+									moDNA, faDNA, searchType, 0);
 
 							writer.flush();
 							String stat = "NA";
