@@ -55,9 +55,11 @@ import org.genvisis.common.ext;
 
 public class UKBBParsingPipeline {
 
-	private static final int MAX_MDRAF_THREADS_PER_CHR = 3;
-	private static final int MAX_CHR_THREADS = 10;
-	private static final int MAX_MKRS_PER_MDRAF = 2500;
+	int maxMDRAFThreadsPerChr = 8;
+	int maxChrThreads = 4;
+	int maxMarkersPerMDRAF = 1500;
+	int logEveryNMins = 5;
+	double scaleFactor = 100d;
 
 	Logger log = new Logger();
 
@@ -75,8 +77,6 @@ public class UKBBParsingPipeline {
 	String famFile;
 	String annotFile;
 	String[][] famData;
-	// MkrName + SampName + type -> Value || Write as MkrProjInd + SampName + type
-	ConcurrentHashMap<String, Float> oorValues;
 
 	public void setProjectName(String projName2) {
 		projName = projName2;
@@ -102,6 +102,22 @@ public class UKBBParsingPipeline {
 		annotFile = csv;
 	}
 
+	private void setScaleFactor(double scale) {
+		scaleFactor = scale;
+	}
+
+	private void setMarkersPerMDRAF(int mkrsPerFile) {
+		maxMarkersPerMDRAF = mkrsPerFile;
+	}
+
+	private void setThreadsPerChromosomeCount(int threadsPerChr) {
+		maxMDRAFThreadsPerChr = threadsPerChr;
+	}
+
+	private void setChromosomeThreadCount(int chrThreads) {
+		maxChrThreads = chrThreads;
+	}
+
 	public void runPipeline() {
 		createProject();
 		createSampleList();
@@ -111,7 +127,12 @@ public class UKBBParsingPipeline {
 		createMarkerPositions();
 		writeMarkerSet();
 		writeMarkerDetailSet();
-		writeOutliers();
+		try {
+			writeOutliers();
+		} catch (ClassNotFoundException | IOException e) {
+			log.reportError("Problem occurred while loading outliers from marker files. Attempting to continue...");
+			log.reportException(e);
+		}
 		createSampRAFsFromMDRAFs();
 		createPED();
 		createSampleData();
@@ -126,7 +147,7 @@ public class UKBBParsingPipeline {
 			proj.PROJECT_NAME.setValue(projName);
 			proj.PROJECT_DIRECTORY.setValue(projDir);
 			proj.SOURCE_DIRECTORY.setValue(sourceDir);
-			proj.XY_SCALE_FACTOR.setValue(1d);
+			proj.XY_SCALE_FACTOR.setValue(scaleFactor);
 			proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
 			proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
 			proj.ID_HEADER.setValue("NULL");
@@ -171,6 +192,7 @@ public class UKBBParsingPipeline {
 			FileSet fs = fileSets.get(chr);
 			if (fs == null) {
 				fs = new FileSet();
+				fs.log = this.log;
 				fs.chr = chr;
 				fs.famFile = famFile;
 				fileSets.put(chr, fs);
@@ -261,12 +283,10 @@ public class UKBBParsingPipeline {
 
 	protected void parseMarkerData() {
 		long time = System.nanoTime();
-		oorValues = new ConcurrentHashMap<String, Float>();
 
 		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(),
-																																		 MAX_CHR_THREADS));
+																																		 maxChrThreads));
 
-		int logEveryNMins = 30;
 		final MarkerLogger mkrLog = new MarkerLogger(log, logEveryNMins);
 		CountDownLatch cdl = new CountDownLatch(fileSets.size());
 
@@ -432,14 +452,27 @@ public class UKBBParsingPipeline {
 		return markers;
 	}
 
-	protected void writeOutliers() {
+	protected void writeOutliers() throws ClassNotFoundException, IOException {
 		Hashtable<String, Float> allOutliers = new Hashtable<>();
+
+		String[] mdRAFs = new File(proj.MARKER_DATA_DIRECTORY.getValue()).list((File f, String n) -> {
+			return n.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
+		});
+
 		Map<String, Integer> mkrInds = proj.getMarkerIndices();
-		for (Entry<String, Float> ent : oorValues.entrySet()) {
-			String[] pts = ent.getKey().split("\t");
-			allOutliers.put(mkrInds.get(pts[0]) + "\t" + pts[1] + "\t" + pts[2], ent.getValue());
+		String[] samples = proj.getSamples();
+		for (String mdRAF : mdRAFs) {
+			String[] fileMkrs = TransposeData.loadMarkerNamesFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+																															 + mdRAF);
+			Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+																																						+ mdRAF);
+			for (Entry<String, Float> outlier : outliers.entrySet()) {
+				String[] pts = outlier.getKey().split("\t");
+				int mkrInd = mkrInds.get(fileMkrs[Integer.parseInt(pts[0])]);
+				int sampInd = Integer.parseInt(pts[1]);
+				allOutliers.put(mkrInd + "\t" + samples[sampInd] + "\t" + pts[2], outlier.getValue());
+			}
 		}
-		oorValues = null;
 
 		SerializedFiles.writeSerial(allOutliers, proj.MARKER_DATA_DIRECTORY.getValue(true, true)
 																						 + "outliers.ser");
@@ -542,7 +575,7 @@ public class UKBBParsingPipeline {
 		final byte nullStatus = getNullStatus();
 
 		String[] mkrNames = Matrix.extractColumn(bimData, 1);
-		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / MAX_MKRS_PER_MDRAF) + 1, log);
+		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / maxMarkersPerMDRAF) + 1, log);
 		String[] existing = readWritten();
 		ArrayList<Runnable> runners = new ArrayList<Runnable>();
 
@@ -575,38 +608,14 @@ public class UKBBParsingPipeline {
 					}
 				});
 			} else {
-				runners.add(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							long t1 = System.nanoTime();
-							Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
-																																										+ mdRAFName);
-							for (Entry<String, Float> outlier : outliers.entrySet()) {
-								String[] pts = outlier.getKey().split("\t");
-								int mkrInd = Integer.parseInt(pts[0]);
-								int sampInd = Integer.parseInt(pts[1]);
-								oorValues.put(bimData[s + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
-															outlier.getValue());
-							}
-							log.reportTime("Found existing mdRAF - " + mdRAFName + "; loaded outliers in "
-														 + ext.getTimeElapsedNanos(t1));
-							cdl.countDown();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
+				cdl.countDown();
 			}
 			start = end;
 		}
 
 		if (runners.size() > 0) {
-			// while (cdl.getCount() > runners.size()) {
-			// cdl.countDown();
-			// }
 			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(),
-																																			 MAX_MDRAF_THREADS_PER_CHR));
+																																			 maxMDRAFThreadsPerChr));
 			for (Runnable r : runners) {
 				executor.submit(r);
 			}
@@ -617,7 +626,6 @@ public class UKBBParsingPipeline {
 				/**/
 			}
 
-			System.gc();
 		}
 	}
 
@@ -664,31 +672,24 @@ public class UKBBParsingPipeline {
 		int bedBlockSize = (int) Math.ceil(nInd / 4.0);
 		int binBlockSize = nInd * 8;
 
-		String conLine;
-		String[] cons;
-		String lrrLine;
-		String[] lrrStrs;
-		String bafLine;
-		String[] bafStrs;
+		int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
+		int markerBlockSize = nInd * bytesPerSamp;
+		byte[] mkrBuff;
+		String[] parts;
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			markerLogger.logMarker(fs.chr, startBatchInd, mkrNames.length, i);
 
-			int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus());
-			int markerBlockSize = nInd * bytesPerSamp;
-
-			byte[] mkrBuff = new byte[markerBlockSize];
+			mkrBuff = new byte[markerBlockSize];
 			int buffInd = 0;
 
-			conLine = frs.conIn.readLine();
-			cons = conLine.split(" ");
-			conLine = null;
-			if (cons.length != nInd) {
-				log.reportError("Mismatched # of confidence scores {fnd: " + cons.length + ", exp: "
+			parts = frs.conIn.readLine().split(" ");
+			if (parts.length != nInd) {
+				log.reportError("Mismatched # of confidence scores {fnd: " + parts.length + ", exp: "
 												+ nInd + "}.  File: " + fs.conFile);
 				System.exit(1);
 			}
 			float gcV;
-			for (String con : cons) {
+			for (String con : parts) {
 				gcV = 1 - Float.parseFloat(con);
 				if (gcV == 2) { // i.e. 1 - (-1)
 					gcV = Float.NaN;
@@ -696,7 +697,7 @@ public class UKBBParsingPipeline {
 				Compression.gcBafCompress(gcV, mkrBuff, buffInd);
 				buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 			}
-			cons = null;
+			parts = null;
 
 			byte[] intensBytes = new byte[binBlockSize];
 			frs.binIn.seek(((long) i) * ((long) binBlockSize));
@@ -717,15 +718,20 @@ public class UKBBParsingPipeline {
 				// x = (float) (Math.log(x) / Math.log(2));
 				// y = (float) (Math.log(y) / Math.log(2));
 
-				oor = !Compression.xyCompressAllowNegative(x, mkrBuff, buffInd);
+				oor = !Compression.xyCompressPositiveOnly(x == -1
+																												 ? Float.NaN
+																												 : (float) (x / proj.XY_SCALE_FACTOR.getValue()),
+																									mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
-				oor = !Compression.xyCompressAllowNegative(y,
-																									 mkrBuff,
-																									 buffInd
-																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+				oor = !Compression.xyCompressPositiveOnly(y == -1
+																												 ? Float.NaN
+																												 : (float) (y / proj.XY_SCALE_FACTOR.getValue()),
+																									mkrBuff,
+																									buffInd
+																											+ (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\ty", y);
 				}
@@ -734,16 +740,14 @@ public class UKBBParsingPipeline {
 			}
 			intensBytes = null;
 
-			bafLine = frs.bafIn.readLine();
-			bafStrs = bafLine.split(" ");
-			bafLine = null;
-			if (bafStrs.length != nInd) {
-				log.reportError("Mismatched # of BAF values {fnd: " + bafStrs.length + ", exp: "
+			parts = frs.bafIn.readLine().split(" ");
+			if (parts.length != nInd) {
+				log.reportError("Mismatched # of BAF values {fnd: " + parts.length + ", exp: "
 												+ nInd + "}.  File: " + fs.bafFile);
 				System.exit(1);
 			}
 			float baf = Float.NaN;
-			for (String bafStr : bafStrs) {
+			for (String bafStr : parts) {
 				try {
 					baf = Float.parseFloat(bafStr);
 				} catch (NumberFormatException e) {
@@ -757,25 +761,23 @@ public class UKBBParsingPipeline {
 				Compression.gcBafCompress(baf, mkrBuff, buffInd);
 				buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
 			}
-			bafStrs = null;
+			parts = null;
 
-			lrrLine = frs.lrrIn.readLine();
-			lrrStrs = lrrLine.split(" ");
-			lrrLine = null;
-			if (lrrStrs.length != nInd) {
-				log.reportError("Mismatched # of L2R values {fnd: " + lrrStrs.length + ", exp: "
+			parts = frs.lrrIn.readLine().split(" ");
+			if (parts.length != nInd) {
+				log.reportError("Mismatched # of L2R values {fnd: " + parts.length + ", exp: "
 												+ nInd + "}.  File: " + fs.lrrFile);
 				System.exit(1);
 			}
 			float lrr = Float.NaN;
-			for (int samp = 0; samp < lrrStrs.length; samp++) {
+			for (int samp = 0; samp < parts.length; samp++) {
 				try {
-					lrr = Float.parseFloat(lrrStrs[samp]);
+					lrr = Float.parseFloat(parts[samp]);
 				} catch (NumberFormatException e) {
-					if (ext.isMissingValue(lrrStrs[samp])) {
+					if (ext.isMissingValue(parts[samp])) {
 						lrr = Float.NaN;
 					} else {
-						log.reportError("Malformed LRR value: " + lrrStrs[samp] + " for chr " + fs.chr);
+						log.reportError("Malformed LRR value: " + parts[samp] + " for chr " + fs.chr);
 						System.exit(1);
 					}
 				}
@@ -785,7 +787,7 @@ public class UKBBParsingPipeline {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + samp + "\tlrr", lrr);
 				}
 			}
-			lrrStrs = null;
+			parts = null;
 
 			byte[] markerBytes = new byte[bedBlockSize];
 			frs.bedIn.seek(3L + ((long) i) * ((long) bedBlockSize)); // ALWAYS seek forward
@@ -809,25 +811,18 @@ public class UKBBParsingPipeline {
 
 			mdRAF.write(mkrBuff);
 			mkrBuff = null;
-
 		}
 
+		log.reportTime("Writing " + outOfRangeTable.size() + " outliers to " + mdRAFName);
 		byte[] oorBytes = Compression.objToBytes(outOfRangeTable);
 		mdRAF.write(Compression.intToBytes(oorBytes.length));
 		mdRAF.write(oorBytes);
+		log.reportTime("Finished writing outliers to " + mdRAFName);
 
 		mdRAF.close();
 
 		frs.close();
 		frs = null;
-
-		for (Entry<String, Float> entry : outOfRangeTable.entrySet()) {
-			String[] pts = entry.getKey().split("\t");
-			int mkrInd = Integer.parseInt(pts[0]);
-			int sampInd = Integer.parseInt(pts[1]);
-			oorValues.put(bimData[startBatchInd + mkrInd][1] + "\t" + famData[sampInd][1] + "\t" + pts[2],
-										entry.getValue());
-		}
 
 		oorBytes = null;
 		outOfRangeTable = null;
@@ -920,8 +915,8 @@ public class UKBBParsingPipeline {
 		}
 
 		private void startLogging(int minutes) {
-			timer.schedule(logging, 1000 * 60 * 2, 1000 * 60 * minutes); // wait two minutes, then every
-																																	 // ten minutes
+			// wait two minutes, then every N minutes
+			timer.schedule(logging, 1000 * 60 * 2, 1000 * 60 * minutes);
 		}
 
 		public void stopLogging() {
@@ -964,6 +959,7 @@ public class UKBBParsingPipeline {
 					}
 					// chrKeys.get(chr).add(pct < 0.993 ? v + "% (" + pctStr + ")" : "C");
 					chrKeys.get(chr).add(pct < 0.993 ? v + "%" : "C");
+					// chrKeys.get(chr).add((mkrMap.get(k) - bin[1]) + "/" + bin[2]);
 				}
 				for (ArrayList<String> cK : chrKeys.values()) {
 					if (cK.size() > max) {
@@ -1054,6 +1050,8 @@ public class UKBBParsingPipeline {
 		HashMap<Integer, Long> bafInds;
 
 		List<String[]> mkrBins;
+
+		Logger log;
 
 		/**
 		 * Expected files
@@ -1163,11 +1161,36 @@ public class UKBBParsingPipeline {
 		}
 
 		boolean isComplete() {
-			return Files.exists(bimFile) && Files.exists(bedFile) && Files.exists(famFile)
-						 && Files.exists(bafFile)
-						 && Files.exists(lrrFile) && Files.exists(intFile) && Files.exists(conFile);
+			boolean a = Files.exists(bimFile);
+			boolean b = Files.exists(bedFile);
+			boolean c = Files.exists(famFile);
+			boolean d = Files.exists(bafFile);
+			boolean e = Files.exists(lrrFile);
+			boolean f = Files.exists(intFile);
+			boolean g = Files.exists(conFile);
+			if (!a) {
+				log.reportTimeWarning("Missing BIM file for chr " + chr);
+			}
+			if (!b) {
+				log.reportTimeWarning("Missing BED file for chr " + chr);
+			}
+			if (!c) {
+				log.reportTimeWarning("Missing FAM file for chr " + chr);
+			}
+			if (!d) {
+				log.reportTimeWarning("Missing BAF file for chr " + chr);
+			}
+			if (!e) {
+				log.reportTimeWarning("Missing LRR file for chr " + chr);
+			}
+			if (!f) {
+				log.reportTimeWarning("Missing INT file for chr " + chr);
+			}
+			if (!g) {
+				log.reportTimeWarning("Missing CON file for chr " + chr);
+			}
+			return a && b && c && d && e && f && g;
 		}
-
 	}
 
 	private static final String ARG_SRC_DIR = "source=";
@@ -1192,6 +1215,10 @@ public class UKBBParsingPipeline {
 		String projName = "";
 		String famFile = "";
 		String annotFile = "";
+		int chrThreads;
+		int threadsPerChr;
+		int mkrsPerFile;
+		double scale;
 
 		CLI cli = new CLI(UKBBParsingPipeline.class);
 
@@ -1201,6 +1228,10 @@ public class UKBBParsingPipeline {
 		cli.addArgWithDefault(ARG_PROJ_NAME, DESC_PROJ_NAME, "UKBioBank");
 		cli.addArg(ARG_FAM_FILE, DESC_FAM_FILE, true);
 		cli.addArg(ARG_ANNOT_CSV, DESC_ANNOT_CSV, false);
+		cli.addArg("chrThreads", "Number of chromosome threads", false);
+		cli.addArg("threadsPerChr", "Number of threads PER chromosome", false);
+		cli.addArg("markersPerFile", "Number of markers per mdRAF file", false);
+		cli.addArg("scaleFactor", "Scaling factor for X/Y", false);
 
 		cli.parseWithExit(args);
 
@@ -1212,6 +1243,10 @@ public class UKBBParsingPipeline {
 		if (cli.has(ARG_ANNOT_CSV)) {
 			annotFile = cli.get(ARG_ANNOT_CSV);
 		}
+		chrThreads = cli.has("chrThreads") ? cli.getI("chrThreads") : -1;
+		threadsPerChr = cli.has("threadsPerChr") ? cli.getI("threadsPerChr") : -1;
+		mkrsPerFile = cli.has("mkrsPerFile") ? cli.getI("mkrsPerFile") : -1;
+		scale = cli.has("scaleFactor") ? cli.getD("scaleFactor") : -1;
 
 		UKBBParsingPipeline parser = new UKBBParsingPipeline();
 		parser.setSourceDir(sourceDir);
@@ -1221,6 +1256,18 @@ public class UKBBParsingPipeline {
 		parser.setFamFile(famFile);
 		if (!"".equals(annotFile)) {
 			parser.setAnnotationCSV(annotFile);
+		}
+		if (chrThreads != -1) {
+			parser.setChromosomeThreadCount(chrThreads);
+		}
+		if (threadsPerChr != -1) {
+			parser.setThreadsPerChromosomeCount(threadsPerChr);
+		}
+		if (mkrsPerFile != -1) {
+			parser.setMarkersPerMDRAF(mkrsPerFile);
+		}
+		if (scale > 0) {
+			parser.setScaleFactor(scale);
 		}
 		parser.runPipeline();
 	}
