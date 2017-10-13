@@ -68,8 +68,8 @@ public class ReferenceGenome {
       int binsAdded = 0;
       while (currentStop < length) {
         Segment seg = new Segment(chr, currentStart, currentStop);
-        currentStart += bpBinSize + 1;
-        currentStop += bpBinSize + 1;
+        currentStart += bpBinSize;
+        currentStop += bpBinSize;
         currentStop = Math.min(length, currentStop);
         if (seg.getSize() != bpBinSize) {
           log.reportTimeWarning("bin " + seg.getUCSClocation() + " size (" + seg.getSize()
