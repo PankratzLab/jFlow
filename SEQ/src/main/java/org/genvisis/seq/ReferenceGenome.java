@@ -5,23 +5,18 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ArrayUtils.BYTE_DECODE_FORMAT;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.ext;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.variant.variantcontext.VariantContext;
-
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
@@ -63,9 +58,9 @@ public class ReferenceGenome {
    * @return
    */
   public LocusSet<Segment> getBins(int bpBinSize) {
-    ArrayList<Segment> bins = new ArrayList<>();
+    List<Segment> bins = new ArrayList<>();
     SAMSequenceDictionary samSequenceDictionary = indexedFastaSequenceFile.getSequenceDictionary();
-    System.out.println(samSequenceDictionary.getSequences().size() + " contigs detected");
+    log.report(samSequenceDictionary.getSequences().size() + " contigs detected");
     for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {
       int length = samSequenceRecord.getSequenceLength();
       byte chr = Positions.chromosomeNumber(samSequenceRecord.getSequenceName());
