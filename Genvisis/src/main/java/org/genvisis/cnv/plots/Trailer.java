@@ -2972,9 +2972,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		int curX = e.getPoint().x;
-		int distance = startX - curX;
+		double distanceInPixels = startX - curX; // startX is the location of the mouse cursor when the mouse button was clicked
 
-		distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
+		// calculate drag distance in number of genomic positions
+		double trailerGenomicPositionRange = stop - start;
+		double trailerDisplayWidthInPixels = getWidth() - 2 * WIDTH_BUFFER;
+		double genomicPositionsPerPixel = trailerGenomicPositionRange / trailerDisplayWidthInPixels;
+		int distance = (int)(distanceInPixels * genomicPositionsPerPixel);
 
 		if (distance < 0) {
 			distance = Math.max(distance, 1 - start);
