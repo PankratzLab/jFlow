@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -137,7 +138,7 @@ public class DBGAPMerge {
 	}
 
 	public ArrayList<DataColumn> readDataDict(FileSet fs) throws ParserConfigurationException,
-																												SAXException, IOException {
+																											 SAXException, IOException {
 		ArrayList<DataColumn> dict = new ArrayList<DBGAPMerge.DataColumn>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -314,6 +315,42 @@ public class DBGAPMerge {
 		writer.flush();
 		writer.close();
 
+		writer = Files.getAppropriateWriter(outMap);
+		writer.println("Source\tStudy\tTable\tVariable\tVariableID\tfinalColumnName\tcustomColumnName\tDescription\tUnits\tVariableMapping\tComment");
+		for (String key : dataColumnKeys) {
+			lineOut = new StringBuilder();
+
+			FileSet fs = dataColumnMap.get(key).get(0); // TODO fix selection of fileset?
+
+			DataColumn dc = fs.dataDefs.get(fs.getIndexOfDataColumn(key));
+
+			lineOut.append(dc.source).append("\t");
+			lineOut.append(dc.study).append("\t");
+			lineOut.append(dc.table).append("\t");
+			lineOut.append(dc.varName).append("\t");
+			lineOut.append(dc.varID).append("\t");
+			lineOut.append(key).append("\t");
+			lineOut.append(".").append("\t");
+			lineOut.append(dc.varDesc).append("\t");
+			lineOut.append(dc.varUnit == null ? "." : dc.varUnit).append("\t");
+			if (dc.varValueDescriptions.isEmpty()) {
+				lineOut.append(".").append("\t");
+			} else {
+				for (Entry<String, String> ent : dc.varValueDescriptions.entrySet()) {
+					lineOut.append(ent.getKey()).append("=").append(ent.getValue()).append(";");
+				}
+			}
+			if (dc.comment != null && !"".equals(dc.comment)) {
+				lineOut.append("\t").append(dc.comment);
+			} else {
+				lineOut.append("\t").append(".");
+			}
+
+			writer.println(lineOut.toString());
+		}
+		writer.flush();
+		writer.close();
+
 	}
 
 	public static void main(String[] args) {
@@ -418,9 +455,11 @@ public class DBGAPMerge {
 			String logfile = null;
 			Logger log;
 
-			String usage = "\n" + "one.ben.DBGAPExtract requires 4+ arguments\n"
+			String usage = "\n"
+										 + "one.ben.DBGAPExtract requires 4+ arguments\n"
 										 + "   (1) Searched variables file (output from DBGapLookup) (i.e. variables="
-										 + varFile + " (default))\n"
+										 + varFile
+										 + " (default))\n"
 										 + "   (2) Merged dbGap data file (data output from DBGapMerge ) (i.e. dataFile="
 										 + dataFile + " (default))\n"
 										 + "   (3) Extracted output filename (i.e. outputFile=" + outputFile
@@ -539,8 +578,10 @@ public class DBGAPMerge {
 			String mapFile;
 			StringBuilder sb;
 
-			params = Files.parseControlFile(filename, "search",
-																			new String[] {"mergeMap.xln   searchCols=3,7,9,10 outputCols=0,5,6,3,7,9,10 out=searchTerms.xln  crf=dbgap.crf",
+			params = Files.parseControlFile(filename,
+																			"search",
+																			new String[] {
+																										"mergeMap.xln   searchCols=3,7,9,10 outputCols=0,5,6,3,7,9,10 out=searchTerms.xln  crf=dbgap.crf",
 																										"# search terms below, one per line:"},
 																			log);
 			if (params != null) {
