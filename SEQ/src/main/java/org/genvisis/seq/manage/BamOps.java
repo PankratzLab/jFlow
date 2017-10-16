@@ -234,7 +234,11 @@ public class BamOps {
                                         segs[i].getStop() + bpBuffer);
     }
     if (optimize) {
+      int preOp = qIntervals.length;
       qIntervals = QueryInterval.optimizeIntervals(qIntervals);
+      int postOp = qIntervals.length;
+      log.report(String.format("Query optimization consolidated from %d to %d, an improvement of %d",
+                               preOp, postOp, preOp - postOp));
     }
     return qIntervals;
   }
