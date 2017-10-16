@@ -112,6 +112,7 @@ public class BamSegPileUp {
 	 * @throws IOException when thrown by {@link SamReader}
 	 */
 	public BamPile[] pileup() throws IOException {
+		log.report("Initializing bam reading for " + bam);
 		try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
 																										Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
 				 CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(BamOps.convertSegsToQI(bamPileArray,
@@ -120,9 +121,16 @@ public class BamSegPileUp {
 																																																				 true,
 																																																				 aName.addChr(),
 																																																				 log))) {
+			log.report("Iteraring through reads for " + bam);
+			int readsProcessed = 0;
 			while (samRecordIterator.hasNext()) {
 				process(samRecordIterator.next());
+				readsProcessed++;
+				if (readsProcessed % 10000000 == 0) {
+					log.report("Processed " + readsProcessed + " reads for " + bam);
+				}
 			}
+			log.report("Finalizing bam piles for " + bam);
 			summarizeAndFinalize();
 			return bamPileArray;
 		}
@@ -156,7 +164,7 @@ public class BamSegPileUp {
 					bamPile.addRecord(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
 														log);
 				}
-				if (segsPiled.add(cs) && segsPiled.size() % 1000 == 0) {
+				if (segsPiled.add(cs) && segsPiled.size() % 10000 == 0) {
 					log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
 														 + " for " + bam);
 					log.memoryUsed();
