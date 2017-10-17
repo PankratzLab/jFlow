@@ -40,15 +40,16 @@ class PODGenotype {
 
 		static GenoCompResult getSharedAlleleCount(Genotype off, Genotype p) {
 			int equals = off == p ? 1 : 0;
+			int bothCalled = off != Genotype.NC && p != Genotype.NC ? 1 : 0;
 			switch (p) {
 				case AA:
-					return new GenoCompResult(equals, off.getNumA());
+					return new GenoCompResult(equals, off.getNumA(), bothCalled);
 				case AB:
-					return new GenoCompResult(equals, off.getNumA() + off.getNumB());
+					return new GenoCompResult(equals, off.getNumA() + off.getNumB(), bothCalled);
 				case BB:
-					return new GenoCompResult(equals, off.getNumB());
+					return new GenoCompResult(equals, off.getNumB(), bothCalled);
 				case NC:
-					return new GenoCompResult(0, 0);
+					return new GenoCompResult(0, 0, 0);
 				default:
 					throw new IllegalArgumentException("Invalid genotype");
 

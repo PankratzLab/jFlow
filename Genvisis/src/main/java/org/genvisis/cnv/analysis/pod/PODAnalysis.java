@@ -11,6 +11,8 @@ import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Generated;
+
 import org.genvisis.cnv.analysis.pod.InformativeBAF.BAF_STRATEGY;
 import org.genvisis.cnv.analysis.pod.InformativeBAF.InformativeResult;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.PODResults.Builder;
@@ -79,14 +81,18 @@ public class PODAnalysis {
 		private int numPODMaternal;
 		private int numPODPaternal;
 		private int numNONE;
+
+		private int numMaternalBothCalled;
 		private int numMaternalAlleleMatch;
 		private int numMaternalExactMatch;
 
+		private int numPaternalBothCalled;
 		private int numPaternalAlleleMatch;
 		private int numPaternalExactMatch;
 
 		private COMPLETION_STATUS completionStatus;
 
+		@Generated("SparkTools")
 		private PODResults(Builder builder) {
 			this.offDNA = builder.offDNA;
 			this.moDNA = builder.moDNA;
@@ -99,11 +105,33 @@ public class PODAnalysis {
 			this.numPODMaternal = builder.numPODMaternal;
 			this.numPODPaternal = builder.numPODPaternal;
 			this.numNONE = builder.numNONE;
+			this.numMaternalBothCalled = builder.numMaternalBothCalled;
 			this.numMaternalAlleleMatch = builder.numMaternalAlleleMatch;
 			this.numMaternalExactMatch = builder.numMaternalExactMatch;
+			this.numPaternalBothCalled = builder.numPaternalBothCalled;
 			this.numPaternalAlleleMatch = builder.numPaternalAlleleMatch;
 			this.numPaternalExactMatch = builder.numPaternalExactMatch;
 			this.completionStatus = builder.completionStatus;
+		}
+
+		private double getProportionAlleleMatch(POD parent) {
+			switch (parent) {
+				case MATERNAL:
+					if (numMaternalBothCalled > 0) {
+						return (double) numMaternalAlleleMatch / (2 * numMaternalBothCalled);
+					}
+					return Double.NaN;
+				case PATERNAL:
+					if (numPaternalBothCalled > 0) {
+						return (double) numPaternalAlleleMatch / (2 * numPaternalBothCalled);
+					}
+					return Double.NaN;
+				case NONE:
+				default:
+					throw new IllegalArgumentException();
+
+			}
+
 		}
 
 		private double getProportionPOD(POD pod) {
@@ -136,9 +164,13 @@ public class PODAnalysis {
 													 "NUM_HET",
 													 "numBAFInformative",
 													 "numSNPInformative", "numPODMaternal", "numPODPaternal", "numNONE",
-													 "proportionMaternal", "proportionPaternal",
-													 "numMaternalAlleleMatch", "numMaternalExactMatch",
-													 "numPaternalAlleleMatch", "numPaternalExactMatch",
+													 "proportionPODMaternal", "proportionPODPaternal",
+													 "numMaternalBothCalled", "numMaternalAlleleMatch",
+													 "proportionMaternalAlleleMatch",
+													 "numMaternalExactMatch",
+													 "numPaternalBothCalled", "numPaternalAlleleMatch",
+													 "proportionPaternalAlleleMatch",
+													 "numPaternalExactMatch",
 													 "completionStatus"
 
 			};
@@ -160,12 +192,147 @@ public class PODAnalysis {
 			joiner.add(Integer.toString(numNONE));
 			joiner.add(Double.toString(getProportionPOD(POD.MATERNAL)));
 			joiner.add(Double.toString(getProportionPOD(POD.PATERNAL)));
+			joiner.add(Integer.toString(numMaternalBothCalled));
 			joiner.add(Integer.toString(numMaternalAlleleMatch));
+			joiner.add(Double.toString(getProportionAlleleMatch(POD.MATERNAL)));
 			joiner.add(Integer.toString(numMaternalExactMatch));
+			joiner.add(Integer.toString(numPaternalBothCalled));
 			joiner.add(Integer.toString(numPaternalAlleleMatch));
+			joiner.add(Double.toString(getProportionAlleleMatch(POD.PATERNAL)));
 			joiner.add(Integer.toString(numPaternalExactMatch));
 			joiner.add(completionStatus.toString());
 			return joiner.toString();
+		}
+
+		/**
+		 * Creates builder to build {@link PODResults}.
+		 * 
+		 * @return created builder
+		 */
+		@Generated("SparkTools")
+		public static Builder builder() {
+			return new Builder();
+		}
+
+		/**
+		 * Builder to build {@link PODResults}.
+		 */
+		@Generated("SparkTools")
+		public static final class Builder {
+			private String offDNA;
+			private String moDNA;
+			private String faDNA;
+			private List<Segment> searchSpace;
+			private int numtotal;
+			private int numHet;
+			private int numBAFInformative;
+			private int numSNPInformative;
+			private int numPODMaternal;
+			private int numPODPaternal;
+			private int numNONE;
+			private int numMaternalBothCalled;
+			private int numMaternalAlleleMatch;
+			private int numMaternalExactMatch;
+			private int numPaternalBothCalled;
+			private int numPaternalAlleleMatch;
+			private int numPaternalExactMatch;
+			private COMPLETION_STATUS completionStatus;
+
+			Builder() {}
+
+			private Builder withOffDNA(String offDNA) {
+				this.offDNA = offDNA;
+				return this;
+			}
+
+			private Builder withMoDNA(String moDNA) {
+				this.moDNA = moDNA;
+				return this;
+			}
+
+			private Builder withFaDNA(String faDNA) {
+				this.faDNA = faDNA;
+				return this;
+			}
+
+			private Builder withSearchSpace(List<Segment> searchSpace) {
+				this.searchSpace = searchSpace;
+				return this;
+			}
+
+			private Builder withNumtotal(int numtotal) {
+				this.numtotal = numtotal;
+				return this;
+			}
+
+			private Builder withNumHet(int numHet) {
+				this.numHet = numHet;
+				return this;
+			}
+
+			private Builder withNumBAFInformative(int numBAFInformative) {
+				this.numBAFInformative = numBAFInformative;
+				return this;
+			}
+
+			private Builder withNumSNPInformative(int numSNPInformative) {
+				this.numSNPInformative = numSNPInformative;
+				return this;
+			}
+
+			private Builder withNumPODMaternal(int numPODMaternal) {
+				this.numPODMaternal = numPODMaternal;
+				return this;
+			}
+
+			private Builder withNumPODPaternal(int numPODPaternal) {
+				this.numPODPaternal = numPODPaternal;
+				return this;
+			}
+
+			private Builder withNumNONE(int numNONE) {
+				this.numNONE = numNONE;
+				return this;
+			}
+
+			private Builder withNumMaternalBothCalled(int numMaternalBothCalled) {
+				this.numMaternalBothCalled = numMaternalBothCalled;
+				return this;
+			}
+
+			private Builder withNumMaternalAlleleMatch(int numMaternalAlleleMatch) {
+				this.numMaternalAlleleMatch = numMaternalAlleleMatch;
+				return this;
+			}
+
+			private Builder withNumMaternalExactMatch(int numMaternalExactMatch) {
+				this.numMaternalExactMatch = numMaternalExactMatch;
+				return this;
+			}
+
+			private Builder withNumPaternalBothCalled(int numPaternalBothCalled) {
+				this.numPaternalBothCalled = numPaternalBothCalled;
+				return this;
+			}
+
+			private Builder withNumPaternalAlleleMatch(int numPaternalAlleleMatch) {
+				this.numPaternalAlleleMatch = numPaternalAlleleMatch;
+				return this;
+			}
+
+			private Builder withNumPaternalExactMatch(int numPaternalExactMatch) {
+				this.numPaternalExactMatch = numPaternalExactMatch;
+				return this;
+			}
+
+			private Builder withCompletionStatus(COMPLETION_STATUS completionStatus) {
+				this.completionStatus = completionStatus;
+				return this;
+			}
+
+			PODResults build() {
+				return new PODResults(this);
+			}
 		}
 
 
@@ -174,103 +341,7 @@ public class PODAnalysis {
 		 * 
 		 * @return created builder
 		 */
-		private static Builder builder() {
-			return new Builder();
-		}
 
-		/**
-		 * Builder to build {@link PODResults}.
-		 */
-		static class Builder {
-			private String offDNA;
-			private String moDNA = ".";
-			private String faDNA = ".";
-			private List<Segment> searchSpace = new ArrayList<>();
-			private int numtotal = -1;
-			private int numHet = -1;
-			private int numBAFInformative = -1;
-			private int numSNPInformative = -1;
-			private int numPODMaternal = -1;
-			private int numPODPaternal = -1;
-			private int numNONE = -1;
-			private int numMaternalAlleleMatch = -1;
-			private int numMaternalExactMatch = -1;
-			private int numPaternalAlleleMatch = -1;
-			private int numPaternalExactMatch = -1;
-			private COMPLETION_STATUS completionStatus;
-
-			public Builder() {
-				// dont need init params
-			}
-
-			private void withOffDNA(String offDNA) {
-				this.offDNA = offDNA;
-			}
-
-			private void withMoDNA(String moDNA) {
-				this.moDNA = moDNA;
-			}
-
-			private void withFaDNA(String faDNA) {
-				this.faDNA = faDNA;
-			}
-
-			private void withSearchSpace(List<Segment> searchSpace) {
-				this.searchSpace = searchSpace;
-			}
-
-			private void withNumtotal(int numtotal) {
-				this.numtotal = numtotal;
-			}
-
-			private void withNumHet(int numHet) {
-				this.numHet = numHet;
-			}
-
-			private void withNumBAFInformative(int numBAFInformative) {
-				this.numBAFInformative = numBAFInformative;
-			}
-
-			private void withNumSNPInformative(int numSNPInformative) {
-				this.numSNPInformative = numSNPInformative;
-			}
-
-			private void withNumPODMaternal(int numPODMaternal) {
-				this.numPODMaternal = numPODMaternal;
-			}
-
-			private void withPODNumPaternal(int numPaternal) {
-				this.numPODPaternal = numPaternal;
-			}
-
-			private void withNumNONE(int numNONE) {
-				this.numNONE = numNONE;
-			}
-
-			private void withNumMaternalAlleleMatch(int numMaternalAlleleMatch) {
-				this.numMaternalAlleleMatch = numMaternalAlleleMatch;
-			}
-
-			private void withNumMaternalExactMatch(int numMaternalExactMatch) {
-				this.numMaternalExactMatch = numMaternalExactMatch;
-			}
-
-			private void withNumPaternalAlleleMatch(int numPaternalAlleleMatch) {
-				this.numPaternalAlleleMatch = numPaternalAlleleMatch;
-			}
-
-			private void withNumPaternalExactMatch(int numPaternalExactMatch) {
-				this.numPaternalExactMatch = numPaternalExactMatch;
-			}
-
-			private void withCompletionStatus(COMPLETION_STATUS completionStatus) {
-				this.completionStatus = completionStatus;
-			}
-
-			private PODResults build() {
-				return new PODResults(this);
-			}
-		}
 	}
 
 
@@ -385,6 +456,7 @@ public class PODAnalysis {
 			GenoCompResult genoCompResult = compGenos(offSub, moSub);
 			builder.withNumMaternalExactMatch(genoCompResult.numExactMatch);
 			builder.withNumMaternalAlleleMatch(genoCompResult.numAlleleMatch);
+			builder.withNumMaternalBothCalled(genoCompResult.numBothCalled);
 			if (faDNA == null) {
 				builder.withCompletionStatus(COMPLETION_STATUS.MO_ONLY);
 			}
@@ -397,6 +469,7 @@ public class PODAnalysis {
 			GenoCompResult genoCompResult = compGenos(offSub, faSub);
 			builder.withNumPaternalExactMatch(genoCompResult.numExactMatch);
 			builder.withNumPaternalAlleleMatch(genoCompResult.numAlleleMatch);
+			builder.withNumPaternalBothCalled(genoCompResult.numBothCalled);
 			if (moDNA == null) {
 				builder.withCompletionStatus(COMPLETION_STATUS.FA_ONLY);
 			}
@@ -459,7 +532,7 @@ public class PODAnalysis {
 					builder.withNumNONE(count);
 					break;
 				case PATERNAL:
-					builder.withPODNumPaternal(count);
+					builder.withNumPODPaternal(count);
 					break;
 				default:
 					break;
@@ -471,13 +544,15 @@ public class PODAnalysis {
 	}
 
 	static class GenoCompResult {
-		int numExactMatch;
-		int numAlleleMatch;
+		final int numExactMatch;
+		final int numAlleleMatch;
+		final int numBothCalled;
 
-		GenoCompResult(int numExactMatch, int numAlleleMatch) {
+		GenoCompResult(int numExactMatch, int numAlleleMatch, int numBothCalled) {
 			super();
 			this.numExactMatch = numExactMatch;
 			this.numAlleleMatch = numAlleleMatch;
+			this.numBothCalled = numBothCalled;
 		}
 
 		int getNumExactMatch() {
@@ -488,6 +563,11 @@ public class PODAnalysis {
 			return numAlleleMatch;
 		}
 
+		int getNumBothCalled() {
+			return numBothCalled;
+		}
+
+
 	}
 
 
@@ -495,14 +575,17 @@ public class PODAnalysis {
 	private static GenoCompResult compGenos(SubSample off, SubSample p) {
 		int numExactMatch = 0;
 		int numAlleleMatch = 0;
+		int numBothCalled = 0;
+
 		for (int i = 0; i < off.getGenos().length; i++) {
 			GenoCompResult tmp = Genotype.getSharedAlleleCount(Genotype.fromByte(off.getGenos()[i]),
 																												 Genotype.fromByte(p.getGenos()[i]));
 			numExactMatch += tmp.numExactMatch;
 			numAlleleMatch += tmp.numAlleleMatch;
+			numBothCalled += tmp.numBothCalled;
 		}
 
-		return new GenoCompResult(numExactMatch, numAlleleMatch);
+		return new GenoCompResult(numExactMatch, numAlleleMatch, numBothCalled);
 	}
 
 
