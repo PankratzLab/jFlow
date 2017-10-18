@@ -2969,31 +2969,40 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		inDrag = false;
 	}
 
+	// this method laterally shifts the display area for trailer plot
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		int curX = e.getPoint().x;
-		int distance = startX - curX;
+		// calculate drag distance in pixels
+		int curX = e.getPoint().x; // curX is the current location of the mouse cursor
+		double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor when the mouse button was clicked
 
-		distance *= (stop - start) / (getWidth() - 2 * WIDTH_BUFFER);
+		// calculate drag distance in number of base pairs
+		double currentDisplayRangeInBasePairs = stop - start;
+		double currentDisplayRangeInPixels = getWidth() - 2 * WIDTH_BUFFER;
+		double basePairsPerPixel = currentDisplayRangeInBasePairs / currentDisplayRangeInPixels;
+		int scrollDistanceInBasePairs = (int)(scrollDistanceInPixels * basePairsPerPixel);
+		
+		scrollTrailerPlotLaterally(scrollDistanceInBasePairs);
 
-		if (distance < 0) {
-			distance = Math.max(distance, 1 - start);
-		} else {
-			distance = Math.min(distance, markerChrMap.get(chr).last().getPosition() - stop);
-		}
-
-		if ((start <= 1 && distance < 0)
-				|| (stop >= markerChrMap.get(chr).last().getPosition() && distance > 0)) {
-
-		} else {
-			start += distance;
-			stop += distance;
-		}
-
-		if (inDrag) {
-			updateGUI();
+		// update mouse cursor position
 			startX = curX;
+	}
+	
+	private void scrollTrailerPlotLaterally(int scrollDistanceInBasePairs) {
+		// adjust scroll distance if it would move the display area beyond the allowable range
+		int distanceToMinDisplayPosition = 1 - start;
+		if (scrollDistanceInBasePairs < distanceToMinDisplayPosition) {
+			scrollDistanceInBasePairs = distanceToMinDisplayPosition;
 		}
+		int distanceToMaxDisplayPosition = markerChrMap.get(chr).last().getPosition() - stop;
+		if (scrollDistanceInBasePairs > distanceToMaxDisplayPosition) {
+			scrollDistanceInBasePairs = distanceToMaxDisplayPosition;
+		}
+		
+		// update plot
+		start += scrollDistanceInBasePairs;
+		stop += scrollDistanceInBasePairs;
+		updateGUI();
 	}
 
 	@Override
