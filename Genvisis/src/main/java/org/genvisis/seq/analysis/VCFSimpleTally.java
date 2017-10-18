@@ -25,6 +25,7 @@ import org.genvisis.common.ExcelConverter.ExcelConversionParams;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerHive;
@@ -1693,10 +1694,10 @@ public class VCFSimpleTally {
 	public static void test(String vcf, String[] vpopsCase, String omimDir,
 													String[] otherGenesOfInterest, String genesetDir, double maf,
 													boolean controlSpecifiComp, boolean controlSpecifiEnrich,
-													VariantContextFilter caseQualFilter, boolean doclustering) {
+													VariantContextFilter caseQualFilter, boolean doclustering,
+													int numThreads) {
 		// popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
 		// ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
-		int numThreads = 24;
 		for (int i = 0; i < vpopsCase.length; i++) {
 
 			ArrayList<ExcelConversionParams> excelFile = new ArrayList<ExcelConversionParams>();
@@ -1977,6 +1978,7 @@ public class VCFSimpleTally {
 		boolean controlSpecifiEnrich = false;
 		boolean doclustering = false;
 		double[] mafs = new double[] {0.01};
+		int numThreads = 24;
 
 		String usage = "\n" + "seq.analysis.VCFSimpleTally requires 0-1 arguments\n"
 									 + "   (1) vcf (i.e. vcf=" + vcf + " (default))\n"
@@ -1990,8 +1992,8 @@ public class VCFSimpleTally {
 									 + "   (7) for each control group, run a specific tally  (i.e. controlSpecifiComp="
 									 + controlSpecifiComp + " (default))\n"
 									 + "   (8) for each control group, do enrichment (i.e. controlSpecifiEnrich="
-									 + controlSpecifiEnrich + " (default))\n" +
-
+									 + controlSpecifiEnrich + " (default))\n"
+									 + "   (9) " + PSF.Ext.NUM_THREADS_COMMAND + "(" + numThreads + " (default))\n" +
 									 "";
 
 		for (String arg : args) {
@@ -2025,6 +2027,9 @@ public class VCFSimpleTally {
 			} else if (arg.startsWith("-doclustering")) {
 				doclustering = true;
 				numArgs--;
+			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+				numThreads = ext.parseIntArg(arg);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -2039,7 +2044,7 @@ public class VCFSimpleTally {
 				for (double maf : mafs) {
 					test(vcf, new String[] {vpops}, omimDir, otherGenesOfInterest, null, maf,
 							 controlSpecifiComp,
-							 controlSpecifiEnrich, null, doclustering);
+							 controlSpecifiEnrich, null, doclustering, numThreads);
 				}
 			}
 		} catch (Exception e) {

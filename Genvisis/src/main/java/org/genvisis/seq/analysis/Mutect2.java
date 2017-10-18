@@ -402,7 +402,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 		for (double maf : mafs) {
 			VariantContextFilter filter = FilterNGS.generateFilter(type, maf, failureFilter, log);
 			VCFSimpleTally.test(vcf, new String[] {popDir + ext.removeDirectoryInfo(vpops)}, omim, extras,
-													genesetDir, maf, controlSpecifiComp, false, filter, false);
+													genesetDir, maf, controlSpecifiComp, false, filter, false, 24);
 		}
 	}
 
