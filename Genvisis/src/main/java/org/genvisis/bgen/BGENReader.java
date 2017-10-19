@@ -3,6 +3,7 @@ package org.genvisis.bgen;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -258,7 +259,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @throws IOException
 	 */
 	private void readMap() throws IOException {
-		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false);
+		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false);
 		while (mapIter.hasNext()) {
 			mapIter.next();
 		}
@@ -727,7 +728,10 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		V2;
 	}
 
-	public final static class BGENRecordMetaData implements Comparable<BGENRecordMetaData> {
+	public final static class BGENRecordMetaData implements Comparable<BGENRecordMetaData>, Serializable {
+
+		private static final long serialVersionUID = 1L;
+
 		String id;
 		String rsId;
 		private int chr;

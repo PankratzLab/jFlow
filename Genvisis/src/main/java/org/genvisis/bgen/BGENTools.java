@@ -29,6 +29,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.genvisis.bgen.BGENReader.BGENRecord;
 import org.genvisis.bgen.BGENReader.BGENRecordMetaData;
 import org.genvisis.bgen.BGENReader.COMPRESSION;
+import org.genvisis.common.ext;
 
 public final class BGENTools {
 
@@ -302,8 +303,9 @@ public final class BGENTools {
 		}
 		ObjectOutputStream oos;
 		File f = new File(mapFile);
-		if (f.exists() || !f.mkdirs()) {
-			System.err.println("Error - No valid path to file: " + mapFile);
+		new File(ext.parseDirectoryOfFile(mapFile)).mkdirs();
+		if (f.exists()) {
+			System.err.println("Error - BGEN map file already exists: " + mapFile);
 			return;
 		}
 

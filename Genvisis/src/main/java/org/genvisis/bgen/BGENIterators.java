@@ -253,6 +253,7 @@ public final class BGENIterators {
 		 * Read data if true or metadata only if false
 		 */
 		private boolean readFully = true;
+		private boolean closeWhenDone = true;
 
 		/**
 		 * @see {@link BGENIterator}
@@ -266,10 +267,12 @@ public final class BGENIterators {
 			this.readFully = readInFull;
 		}
 
-		public BGENIterator(BGENReader reader, RandomAccessFile raf, boolean readInFull) {
+		public BGENIterator(BGENReader reader, RandomAccessFile raf, boolean readInFull,
+												boolean closeWhenDone) {
 			super(reader, raf);
 			this.N = reader.getRecordCount();
 			this.readFully = readInFull;
+			this.closeWhenDone = closeWhenDone;
 		}
 
 		@Override
@@ -286,7 +289,7 @@ public final class BGENIterators {
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			} finally {
-				if (read == N) {
+				if (read == N && closeWhenDone) {
 					try {
 						this.raf.close();
 					} catch (IOException e) {
