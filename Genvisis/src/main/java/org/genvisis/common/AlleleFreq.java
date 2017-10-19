@@ -52,13 +52,12 @@ public class AlleleFreq {
 		return HWE((double) pp, (double) pq, (double) pr, (double) qq, (double) qr, (double) rr);
 	}
 
-	public static double HWE(double pp, double pq, double qq) {
+	public static double[][] getObsExp(double pp, double pq, double qq) {
 		double total = pp + pq + qq;
 		double p = (pp * 2 + pq) / (2 * total);
 		double q = (qq * 2 + pq) / (2 * total);
 		double[] observed = new double[3];
 		double[] expected = new double[3];
-		double chi;
 
 		observed[0] = pp;
 		observed[1] = pq;
@@ -68,22 +67,17 @@ public class AlleleFreq {
 		expected[1] = 2 * p * q * total;
 		expected[2] = q * q * total;
 
-		chi = 0;
-		for (int i = 0; i < 3; i++) {
-			chi += (observed[i] - expected[i]) * (observed[i] - expected[i]) / expected[i];
-		}
-
-		return chi;
+		return new double[][] {observed, expected};
 	}
 
-	public static double HWE(double pp, double pq, double pr, double qq, double qr, double rr) {
+	public static double[][] getObsExp(double pp, double pq, double pr, double qq, double qr,
+																		 double rr) {
 		double total = pp + pq + pr + qq + qr + rr;
 		double p = (pp * 2 + pq + pr) / (2 * total);
 		double q = (qq * 2 + pq + qr) / (2 * total);
 		double r = (rr * 2 + pr + qr) / (2 * total);
 		double[] observed = new double[6];
 		double[] expected = new double[6];
-		double chi;
 
 		observed[0] = pp;
 		observed[1] = pq;
@@ -99,9 +93,22 @@ public class AlleleFreq {
 		expected[4] = 2 * q * r * total;
 		expected[5] = r * r * total;
 
+		return new double[][] {observed, expected};
+	}
+
+	public static double HWE(double pp, double pq, double qq) {
+		return HWE(getObsExp(pp, pq, qq));
+	}
+
+	public static double HWE(double pp, double pq, double pr, double qq, double qr, double rr) {
+		return HWE(getObsExp(pp, pq, pr, qq, qr, rr));
+	}
+
+	public static double HWE(double[][] obsExp) {
+		double chi;
 		chi = 0;
-		for (int i = 0; i < 6; i++) {
-			chi += (observed[i] - expected[i]) * (observed[i] - expected[i]) / expected[i];
+		for (int i = 0; i < obsExp[0].length; i++) {
+			chi += (obsExp[0][i] - obsExp[1][i]) * (obsExp[0][i] - obsExp[1][i]) / obsExp[1][i];
 		}
 
 		return chi;
@@ -175,4 +182,50 @@ public class AlleleFreq {
 	public static void main(String[] args) throws IOException {
 		System.err.println("This is much more useful when called from a program...");
 	}
+
+	public static String getHWETableHTML(int[] values) {
+		if (values.length != 3 && values.length != 6) {
+			System.err.println("Error - can't compute Hardy Weinberg from " + values.length
+												 + " classes of alleleCounts");
+			return null;
+		}
+		double[][] vals = values.length == 3 ? getObsExp(values[0], values[1], values[2])
+																				: getObsExp(values[0], values[1], values[2], values[3],
+																										values[4], values[5]);
+		StringBuilder output = new StringBuilder("<html><table border=\"1\"><tr><td></td>");
+		String[] colLabels = values.length == 3 ? new String[] {"PP", "PQ", "QQ"} : new String[] {"PP",
+																																															"PQ",
+																																															"PR",
+																																															"QQ",
+																																															"QR",
+																																															"RR"};
+
+		for (String col : colLabels) {
+			output.append("<td>");
+			output.append(col);
+			output.append("</td>");
+		}
+		output.append("</tr>");
+
+		output.append("<tr>");
+		output.append("<td>Obs:</td>");
+		for (double v : vals[0]) {
+			output.append("<td align=\"center\">");
+			output.append(v);
+			output.append("</td>");
+		}
+		output.append("</tr>");
+		output.append("<tr>");
+		output.append("<td>Exp:</td>");
+		for (double v : vals[1]) {
+			output.append("<td align=\"center\">");
+			output.append(ext.prettyP(v));
+			output.append("</td>");
+		}
+		output.append("</tr>");
+		output.append("</table></html>");
+
+		return output.toString();
+	}
+
 }

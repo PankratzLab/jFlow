@@ -2313,6 +2313,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanel.add(qcPanelLabel, "cell 0 3");
 		qcPanelLabel = new JLabel("p= " + ext.prettyP(hweP), JLabel.LEFT);
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
+		qcPanelLabel.setToolTipText(AlleleFreq.getHWETableHTML(alleleCounts));
 		qcPanel.add(qcPanelLabel, "cell 1 3");
 
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
@@ -2320,18 +2321,14 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 																					 {"1", "Genotype NOT missing"}};
 		String[][] colLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
 		classCount = new CTable(rowLabels, colLabels, called, sex);
+		int[][] table = classCount.getContingencyTable();
+		double pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
 
 		qcPanelLabel = new JLabel("Callrate by sex:", JLabel.LEFT);
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 0 4");
-		qcPanelLabel = new JLabel(
-															"p= "
-																	+
-																	ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
-																																													false),
-																															 1)),
-															JLabel.LEFT);
+		qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 1 4");
@@ -2339,21 +2336,14 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		rowLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
 		colLabels = new String[][] { {"A", "Allele A"}, {"B", "Allele B"}};
 		classCount = CTable.extrapolateCounts(rowLabels, colLabels, sex, genotype);
+		table = classCount.getContingencyTable();
+		pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
 
-		// classCount.setCustomLabelsAndOrder(Matrix.addRow(sampleData.getActualClassColorKey(0), new
-		// String[] {null, "missing"}), new String[][] {{"A","Allele A"}, {"B","Allele B"},
-		// {".","Missing"}});
 		qcPanelLabel = new JLabel("Allele Freq by sex: ", JLabel.LEFT);
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 0 5");
-		qcPanelLabel = new JLabel(
-															"p= "
-																	+
-																	ext.prettyP(ProbDist.ChiDist(ContingencyTable.ChiSquare(classCount.getContingencyTable(),
-																																													false),
-																															 1)),
-															JLabel.LEFT);
+		qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
 		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
 		qcPanelLabel.setFont(new Font("Arial", 0, 14));
 		qcPanel.add(qcPanelLabel, "cell 1 5");
