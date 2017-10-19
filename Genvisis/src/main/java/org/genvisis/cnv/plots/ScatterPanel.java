@@ -209,10 +209,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 																																													 // project
 
 		boolean[] toInclude = sp.hideExcludedSamples(panelIndex)
-																														 ? sp.getProject()
-																																 .getSamplesToInclude(null, false)
-																														 : ArrayUtils.booleanArray(samples.length,
-																																											 true);
+																														? sp.getProject()
+																																.getSamplesToInclude(null, false)
+																														: ArrayUtils.booleanArray(samples.length,
+																																											true);
 		out: if (plotType == PLOT_TYPE.BAF_LRR && sp.getDisplaygcAdjustor() != null
 						 && ArrayUtils.booleanArraySum(sp.getDisplaygcAdjustor()) == 1) {
 			for (int i = 0; i < sp.getDisplaygcAdjustor().length; i++) {
@@ -304,11 +304,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 							y = 0;
 						} else if (plotType == PLOT_TYPE.X_Y) {
 							x = (float) (cents[i][markerIndex][j][1]
-													 / (1 + Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)
-																	/ Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)));
+									/ (1 + Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)
+												 / Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)));
 							y = (float) (cents[i][markerIndex][j][1]
-													 / (1 + Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)
-																	/ Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)));
+									/ (1 + Math.cos(cents[i][markerIndex][j][0] * Math.PI / 2)
+												 / Math.sin(cents[i][markerIndex][j][0] * Math.PI / 2)));
 						} else {
 							x = cents[i][markerIndex][j][0];
 							y = cents[i][markerIndex][j][1];
@@ -347,34 +347,26 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 		uniqueValueCounts = new CountVector();
 		indPtMap = new HashMap<>();
 		countMissing = 0;
-
+		boolean[] incl = ArrayUtils.booleanArray(samples.length, true);
 		for (int i = 0; i < samples.length; i++) {
 			indi = sampleData.getIndiFromSampleHash(samples[i]);
 
 			PlotPoint p = null;
 			int index = (numCents * 3) + i;
 			if (indi != null && (sp.hideExcludedSamples(panelIndex)
-													 && sampleData.individualShouldBeExcluded(samples[i]))) {
+					&& sampleData.individualShouldBeExcluded(samples[i]))) {
 				// if sample should be excluded then do nothing
 				genotype[i] = -3;
 				sex[i] = "e";
 				otherClass[i] = "e";
-
+				incl[i] = false;
 			} else if (indi != null) {
 				genotypeCode = (byte) (alleleCounts[i] + 1);
-				// genotypeCode = determineCodeFromClass(1, alleleCounts[i], indi, chr, position);
-				// if (gcScores[i]<gcThreshold) {
-				// genotypeCode = 0;
-				// }
-				// clusterFilterCollection = sp.getClusterFilterCollection();
-				// clusterFilterCollection.filterMarker(markerData[markerIndex]);
-
 
 				// additional genotypeFilters
 				if (currentClass == 1) {
 					classCode = genotypeCode;
-				} else if (sampleData.getClassName(currentClass)
-														 .startsWith(SampleData.PLINK_CLASS_PREFIX)) {
+				} else if (sampleData.getClassName(currentClass).startsWith(SampleData.PLINK_CLASS_PREFIX)) {
 					byte indiCode = sp.getPlinkGenotypeForIndi(samples[i], currentClass);// chr1:159,937,288-159,945,728
 					classCode = (byte) (indiCode + 1);
 				} else {
@@ -404,11 +396,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 
 				layer = (byte) ((sampleData.getClassCategoryAndIndex(currentClass)[0] == 2
-												 && classCode > 0) ? 1 : 0);
+								&& classCode > 0) ? 1 : 0);
 				layer = classCode; // TODO temporary fix, since was always zero otherwise
 
 				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
-					uniqueValueCounts.add(0 + "");
+					uniqueValueCounts.add(-1 + "");
 					genotype[i] = 0;
 				} else {
 					uniqueValueCounts.add(classCode + "");
@@ -425,11 +417,11 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														datapoints[0][i],
 														datapoints[1][i],
 														type == PlotPoint.FILLED_CIRCLE
-																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
-																																																 ? (byte) (size
-																																																					 + 5)
-																																																 : xFontSize),
+																													 ? size
+																													 : (type == PlotPoint.FILLED_TRIANGLE
+																																															 ? (byte) (size
+																																															 + 5)
+																																															 : xFontSize),
 														classCode == 0 ? 0 : (byte) (classCode + 3),
 														layer);
 				} else {
@@ -439,34 +431,16 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														datapoints[0][i],
 														datapoints[1][i],
 														type == PlotPoint.FILLED_CIRCLE
-																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
-																																																 ? (byte) (size
-																																																					 + 5)
-																																																 : xFontSize),
+																													 ? size
+																													 : (type == PlotPoint.FILLED_TRIANGLE
+																																															 ? (byte) (size
+																																															 + 5)
+																																															 : xFontSize),
 														classCode, layer);
 				}
 				genotype[i] = genotypeCode;
-				// sex[i]=(sexCode==1?"Female":(sexCode==2?"Male":"Missing"));
-				// for (int j=0; j<sampleData.getActualClassColorKey(0).length; j++) {
-				// if (sampleData.getActualClassColorKey(0)[j][0].equals(determineCodeFromClass(2,
-				// alleleCounts[i], indi, chr, position)+"")){
-				// sex[i]=sampleData.getActualClassColorKey(0)[j][1];
-				// break;
-				// }
-				// sex[i]="Missing";
-				// }
-				sex[i] = sampleData.determineCodeFromClass(2, alleleCounts[i], indi, chr, position) + "";
-
-				// for (int j=0; j<sampleData.getActualClassColorKey(1).length; j++) {
-				// if (sampleData.getActualClassColorKey(1)[j][0].equals(classCode+"")){
-				// otherClass[i]=sampleData.getActualClassColorKey(1)[j][1];
-				// break;
-				// }
-				// otherClass[i]="Missing";
-				// }
-				// classCounts.add(code+"");
-				// if (type == PlotPoint.MISSING || type == PlotPoint.NOT_A_NUMBER) callRate++;
+				sex[i] = sampleData.determineCodeFromClass(3, alleleCounts[i], indi, chr, position)
+								 + "";
 				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr,
 																													position)
 												+ "";
@@ -494,12 +468,14 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			log.reportError("Total of " + countMissing + " samples without data in SampleData");
 		}
 		if (numClassCodeLessThanZero >= 20) {
-			log.reportError("Total of " + numClassCodeLessThanZero + " samples with a missing class code (e.g., less than zero)");
+			log.reportError("Total of " + numClassCodeLessThanZero
+											+ " samples with a missing class code (e.g., less than zero)");
 		}
 
 		// callRate=(samples.length-callRate)*100/samples.length;
 		if (getUpdateQcPanel()) {
-			sp.updateQcPanel(chr, genotype, sex, otherClass, panelIndex);
+			sp.updateQcPanel(chr, ArrayUtils.subArray(genotype, incl), ArrayUtils.subArray(sex, incl),
+											 otherClass, panelIndex);
 			setUpdateQCPanel(false);
 		}
 		sp.updateColorKey(uniqueValueCounts.convertToHash(), panelIndex);
@@ -544,10 +520,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 			Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
 																																																 sp.getCurrentMarkerData(),
 																																																 sp.hideExcludedSamples(panelIndex)
-																																																																		? sp.getProject()
-																																																																				.getSamplesToInclude(null,
-																																																																														 false)
-																																																																		: null,
+																																																																	 ? sp.getProject()
+																																																																			 .getSamplesToInclude(null,
+																																																																														false)
+																																																																	 : null,
 																																																 sex,
 																																																 sp.getClusterFilterCollection(),
 																																																 sp.getGCthreshold(),
@@ -735,7 +711,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				generateRectangles();
 				sp.setCurrentClusterFilter((byte) (sp.getClusterFilterCollection()
 																						 .getSize(sp.getMarkerName())
-																					 - 1));
+					- 1));
 				sp.displayClusterFilterIndex();
 				paintAgain();
 			}
@@ -839,7 +815,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				clusterFilterCollection.deleteClusterFilter(sp.getMarkerName(), newClusterFilter);
 				sp.setCurrentClusterFilter((byte) Math.min(newClusterFilter,
 																									 clusterFilterCollection.getSize(sp.getMarkerName())
-																																		 - 1));
+																									 - 1));
 				sp.setClusterFilterUpdated(true);
 				sp.displayClusterFilterIndex();
 				setPointsGeneratable(true);
