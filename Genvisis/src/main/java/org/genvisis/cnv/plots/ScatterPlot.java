@@ -3,6 +3,7 @@ package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -701,7 +702,11 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		blastParams = null;
 		markerProjectIndices = null;
 		plinkMarkerLoaders.clear();
-		getContentPane().removeAll();
+		Container contentPane = getContentPane();
+		contentPane.removeAll();
+		if (contentPane instanceof JPanel) {
+			((JPanel)getContentPane()).getActionMap().clear();
+		}
 		removeAll();
 	}
 
