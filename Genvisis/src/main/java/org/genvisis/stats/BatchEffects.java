@@ -66,9 +66,13 @@ public class BatchEffects {
 
 	/**
 	 * Parses factor and batch data from files, then creates batch effect screenshots.
-	 * see {@link #parseFiles(String,String)} for more information on how to format input files.
+	 * See {@link #parseFiles(String,String)} for more information on how to format input files. 
+	 * Command line arguments use unordered name=value format.
 	 * 
-	 * @param args <ul><li>first argument (required) is full path to file with batch data. <li>second argument (required) is full path to file with factor data. <li>third argument (optional) is lower truncation boundary for p-values. </ul>
+	 * @param args unordered arguments that follow name=value format<ul>
+	 * <li>"batchFilePath": (required) String path to file containing labels in first row, sample identifiers in first column, and batch values in second column
+	 * <li>"factorFilePath": (required) String path to file containing labels in first row, sample identifiers in first column, and factor values in subsequent columns
+	 * <li>"pValueTruncation": (optional) batch effect p-values less than this double value will be set to this value. default value is 1.0E-300 </ul>
 	 * @throws FileNotFoundException if either String path parameter does not lead to a valid file.
 	 * @throws ParseException instance containing parsed batch and factor data.
 	 * @throws IOException
