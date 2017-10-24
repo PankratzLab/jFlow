@@ -143,11 +143,15 @@
 			<groupId>com.github.zafarkhaja</groupId>
 			<artifactId>java-semver</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>pcingola</groupId>
 			<artifactId>SnpEff</artifactId>
 		</dependency>
+
 	</dependencies>
 
 </project>

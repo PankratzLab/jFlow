@@ -32,6 +32,11 @@
 			<groupId>org.flowcyt</groupId>
 			<artifactId>CFCS</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
 
 	</dependencies>
 </project>
