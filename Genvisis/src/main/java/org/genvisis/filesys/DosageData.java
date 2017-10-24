@@ -202,7 +202,7 @@ public class DosageData implements Serializable {
 		} else if (parameters[2] == VCF_FORMAT_INTERNAL) {
 			dd = loadVCF(dosageFile, regions, markers, markerNamePrepend);
 		} else if (parameters[2] == BGEN_FORMAT_INTERNAL) {
-			dd = loadBGEN(dosageFile, mapFile, regions, markers, markerNamePrepend, log);
+			dd = loadBGEN(dosageFile, mapFile, idFile, regions, markers, markerNamePrepend, log);
 		}
 		if (dd != null) {
 			alleles = dd.alleles;
@@ -2272,7 +2272,8 @@ public class DosageData implements Serializable {
 		return (DosageData) SerializedFiles.readSerial(filename, true);
 	}
 
-	public static DosageData loadBGEN(String file, String indexFile, int[][] regionsToKeep,
+	public static DosageData loadBGEN(String file, String indexFile, String idFile,
+																		int[][] regionsToKeep,
 																		String[] markersToKeep, String markerNamePrepend, Logger log) {
 		BGENReader reader;
 		try {
@@ -2321,12 +2322,18 @@ public class DosageData implements Serializable {
 			}
 		}
 
+		if (Files.exists(idFile)) {
+			String[] ids = HashVec.loadFileToStringArray(idFile, false, null, false);
+			if (ids != null) {
+				reader.setSamples(ids);
+			}
+		}
+
 		DosageData dd = new DosageData();
 		dd.ids = new String[(int) reader.getSampleCount()][];
 		for (int i = 0; i < reader.getSampleCount(); i++) {
 			dd.ids[i] = new String[] {reader.getSamples()[i], reader.getSamples()[i]};
 		}
-		int index = 0;
 		List<String> markersList = new ArrayList<>();
 		List<Integer> chrs = new ArrayList<>();
 		List<Integer> poss = new ArrayList<>();
@@ -2345,7 +2352,6 @@ public class DosageData implements Serializable {
 				probArr[i] = ArrayUtils.toFloatArray(rec.getData()[i]);
 			}
 			probs.add(probArr);
-			index++;
 		}
 
 		int numMarkers = markersList.size();

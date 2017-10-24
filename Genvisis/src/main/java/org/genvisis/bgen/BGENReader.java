@@ -709,6 +709,18 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		return samples;
 	}
 
+	/**
+	 * @param samples List of sample names, which will be shallowly-copied to a new array.
+	 */
+	public void setSamples(String[] samples) {
+		if (samples.length != (int) sampleCount) {
+			throw new IllegalArgumentException(
+																				 "Provided list of samples must have the same number of values as the recorded sample count.  Expected "
+																						 + sampleCount + "; Given: " + samples.length);
+		}
+		this.samples = Arrays.copyOf(samples, samples.length);
+	}
+
 	public long getRecordStartByte() {
 		return recordStart;
 	}
