@@ -85,6 +85,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.NumberFormatter;
 
+import net.miginfocom.swing.MigLayout;
+
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -147,8 +149,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.primitives.Floats;
-
-import net.miginfocom.swing.MigLayout;
 
 public class Trailer extends JFrame implements ChrNavigator, ActionListener, ClickListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
@@ -490,6 +490,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			doScreenCapture(null);
+		}
+	};
+
+	AbstractAction sampleToClipboardAction = new AbstractAction() {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			ext.setClipboard(sample);
 		}
 	};
 
@@ -875,7 +884,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						String message = newSet.size() + " files have been added.  ";
 						int choice = JOptionPane.showOptionDialog(null,
 																											message
-																														+ " Would you like to keep this configuration for the next time Trailer is loaded?",
+																													+ " Would you like to keep this configuration for the next time Trailer is loaded?",
 																											"Preserve Trailer workspace?",
 																											JOptionPane.YES_NO_OPTION,
 																											JOptionPane.QUESTION_MESSAGE, null, null,
@@ -1278,10 +1287,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					end = getX(cnvs[i][j].getStop());
 					Color[] colors = getAColor(source);
 					Color cnvColor = cnvs[i][j].getCN() == PennHmm.LOH_FLAG
-																																	? Color.GRAY
-																																	: colors[cnvs[i][j].getCN() < 2
-																																																	? 0
-																																																	: 1];
+																																 ? Color.GRAY
+																																 : colors[cnvs[i][j].getCN() < 2
+																																																? 0
+																																																: 1];
 					g.setColor(cnvColor);
 					g.fillRoundRect(begin, (yIndex + 2) * 15, end - begin + 1, 10, 2, 2);
 					g.setColor(Color.BLACK);
@@ -1309,7 +1318,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	private int getX(int pos) {
 		return (int) ((double) (pos - start) / (double) (stop - start)
-									* (getWidth() - 2 * WIDTH_BUFFER))
+					 * (getWidth() - 2 * WIDTH_BUFFER))
 					 + WIDTH_BUFFER;
 	}
 
@@ -1334,8 +1343,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		JFileChooser jfc = new JFileChooser(
 																				(proj != null
 																				 || regionFileName == null
-																																	 ? proj.PROJECT_DIRECTORY.getValue()
-																																	 : ext.parseDirectoryOfFile(regionFileName)));
+																																	? proj.PROJECT_DIRECTORY.getValue()
+																																	: ext.parseDirectoryOfFile(regionFileName)));
 		jfc.setMultiSelectionEnabled(true);
 		if (jfc.showOpenDialog(Trailer.this) == JFileChooser.APPROVE_OPTION) {
 			File[] files = jfc.getSelectedFiles();
@@ -1496,8 +1505,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						g.setColor(Color.LIGHT_GRAY);
 						g.drawLine(WIDTH_BUFFER,
 											 getHeight() - (int) ((double) (0 - min) / (double) (max - min)
-																						* (getHeight() - 2 * HEIGHT_BUFFER))
-																		 - HEIGHT_BUFFER,
+													 * (getHeight() - 2 * HEIGHT_BUFFER))
+													 - HEIGHT_BUFFER,
 											 getWidth() - WIDTH_BUFFER, getHeight()
 																									- (int) ((double) (0 - min)
 																													 / (double) (max - min)
@@ -1535,29 +1544,30 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 														 Trailer.this.getX(marker.getPosition()), getHeight()
 																																			- (int) ((double) (min - min)
 																																							 / (double) (max
-																																													 - min)
+																																							 - min)
 																																							 * (getHeight()
-																																									- 2
-																																										* HEIGHT_BUFFER))
+																																			- 2
+																																			* HEIGHT_BUFFER))
 																																			- HEIGHT_BUFFER);
 							} else if (lrrValues.get(marker) > max) {
 								g.drawString("^",
 														 Trailer.this.getX(marker.getPosition()), getHeight()
 																																			- (int) ((double) (max - min)
 																																							 / (double) (max
-																																													 - min)
+																																							 - min)
 																																							 * (getHeight()
-																																									- 2
-																																										* HEIGHT_BUFFER))
+																																			- 2
+																																			* HEIGHT_BUFFER))
 																																			- HEIGHT_BUFFER);
 							} else {
-								g.fillOval(Trailer.this.getX(marker.getPosition()), getHeight()
-																																		- (int) ((double) (lrrValues.get(marker)
-																																											 - min)
-																																						 / (max - min)
-																																						 * (getHeight() - 2
-																																															* HEIGHT_BUFFER))
-																																		- HEIGHT_BUFFER,
+								g.fillOval(Trailer.this.getX(marker.getPosition()),
+													 getHeight()
+															 - (int) ((double) (lrrValues.get(marker)
+																				- min)
+																				/ (max - min)
+																				* (getHeight() - 2
+															 * HEIGHT_BUFFER))
+															 - HEIGHT_BUFFER,
 													 SIZE, SIZE);
 							}
 						}
@@ -1645,22 +1655,22 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 						} else if (dropped.contains(marker)) {
 							g.drawString("X", x,
 													 getHeight()
-																	 - (int) (bafs.get(marker)
-																						* (double) (getHeight() - 2 * HEIGHT_BUFFER))
-																	 - (HEIGHT_BUFFER + 5));
+															 - (int) (bafs.get(marker)
+															 * (double) (getHeight() - 2 * HEIGHT_BUFFER))
+															 - (HEIGHT_BUFFER + 5));
 						} else if (excludeManager != null && !excludeManager.hasColorFor(marker.getName())) {
 							// FIXME ??
 						} else if (genotypes != null && genotypes.get(marker) == -1) {
 							g.drawString("+", x,
 													 getHeight()
-																	 - (int) (bafs.get(marker)
-																						* (double) (getHeight() - 4 * HEIGHT_BUFFER))
-																	 - HEIGHT_BUFFER / 2);
+															 - (int) (bafs.get(marker)
+															 * (double) (getHeight() - 4 * HEIGHT_BUFFER))
+															 - HEIGHT_BUFFER / 2);
 						} else if (bafs != null && bafs.containsKey(marker)) {
 							g.fillOval(x,
 												 getHeight()
-														- (int) (bafs.get(marker) * (double) (getHeight() - 4 * HEIGHT_BUFFER))
-														- HEIGHT_BUFFER,
+														 - (int) (bafs.get(marker) * (double) (getHeight() - 4 * HEIGHT_BUFFER))
+														 - HEIGHT_BUFFER,
 												 SIZE, SIZE);
 						}
 
@@ -1813,9 +1823,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 					}
 					regions[regionIndex] = regionDetails;
 					commentLabel.setText(regions[regionIndex][2].isEmpty() ? BLANK_COMMENT
-																																 : "region #" + (regionIndex + 1)
-																																	 + ":  "
-																																	 + regions[regionIndex][2]);
+																																: "region #" + (regionIndex + 1)
+																																	+ ":  "
+																																	+ regions[regionIndex][2]);
 					promptCommentSave = promptAndSaveRegions(promptCommentSave);
 				}
 				commentLabel.setVisible(true);
@@ -2037,8 +2047,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			public void actionPerformed(ActionEvent e) {
 				ListEditor le = ListEditor.createRegionListCreator(proj == null ? null : proj.getSamples(),
 																													 proj == null
-																																				? null
-																																				: proj.PROJECT_DIRECTORY.getValue(),
+																																			 ? null
+																																			 : proj.PROJECT_DIRECTORY.getValue(),
 																													 true);
 				le.setModal(true);
 				le.setVisible(true);
@@ -2098,10 +2108,17 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 		JMenuItem screencap2 = new JMenuItem();
 		screencap2.setAction(screencapClipboardAction);
-		screencap2.setMnemonic(KeyEvent.VK_C);
+		screencap2.setMnemonic(KeyEvent.VK_P);
 		screencap2.setText("Screen Capture to Clipboard");
 		screencap2.setFont(font);
 		fileMenu.add(screencap2);
+
+		JMenuItem sampleToClipboard = new JMenuItem();
+		sampleToClipboard.setAction(sampleToClipboardAction);
+		sampleToClipboard.setMnemonic(KeyEvent.VK_C);
+		sampleToClipboard.setText("Copy Sample Name to Clipboard");
+		sampleToClipboard.setFont(font);
+		fileMenu.add(sampleToClipboard);
 
 		fileMenu.add(new JSeparator());
 
@@ -2534,7 +2551,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 																					+ " defined by " + proj.CUSTOM_PFB_FILENAME.getValue());
 							}
 						} else {
-							CNVCallResult callResult = CNVCaller.callCNVsFor(proj, pennHmm, sample,
+							CNVCallResult callResult = CNVCaller.callCNVsFor(proj,
+																															 pennHmm,
+																															 sample,
 																															 ArrayUtils.toDoubleArray(getLRRsAsArray()),
 																															 ArrayUtils.toDoubleArray(getBAFsAsArray()),
 																															 gcModel, pfb, markerSet,
@@ -2815,8 +2834,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	protected void editRegionFile(String file) {
 		ListEditor editor = ListEditor.createRegionListEditor(proj == null ? null : proj.getSamples(),
 																													proj == null
-																																			 ? null
-																																			 : proj.PROJECT_DIRECTORY.getValue(),
+																																			? null
+																																			: proj.PROJECT_DIRECTORY.getValue(),
 																													true, file);
 		editor.setModal(true);
 		editor.setVisible(true);
@@ -2974,20 +2993,21 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 	public void mouseDragged(MouseEvent e) {
 		// calculate drag distance in pixels
 		int curX = e.getPoint().x; // curX is the current location of the mouse cursor
-		double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor when the mouse button was clicked
+		double scrollDistanceInPixels = startX - curX; // startX is the location of the mouse cursor
+																									 // when the mouse button was clicked
 
 		// calculate drag distance in number of base pairs
 		double currentDisplayRangeInBasePairs = stop - start;
 		double currentDisplayRangeInPixels = getWidth() - 2 * WIDTH_BUFFER;
 		double basePairsPerPixel = currentDisplayRangeInBasePairs / currentDisplayRangeInPixels;
-		int scrollDistanceInBasePairs = (int)(scrollDistanceInPixels * basePairsPerPixel);
-		
+		int scrollDistanceInBasePairs = (int) (scrollDistanceInPixels * basePairsPerPixel);
+
 		scrollTrailerPlotLaterally(scrollDistanceInBasePairs);
 
 		// update mouse cursor position
-			startX = curX;
+		startX = curX;
 	}
-	
+
 	private void scrollTrailerPlotLaterally(int scrollDistanceInBasePairs) {
 		// adjust scroll distance if it would move the display area beyond the allowable range
 		int distanceToMinDisplayPosition = 1 - start;
@@ -2998,7 +3018,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (scrollDistanceInBasePairs > distanceToMaxDisplayPosition) {
 			scrollDistanceInBasePairs = distanceToMaxDisplayPosition;
 		}
-		
+
 		// update plot
 		start += scrollDistanceInBasePairs;
 		stop += scrollDistanceInBasePairs;
@@ -3221,8 +3241,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			// Convert project-ordered lrrs/bafs to genomic position ordering
 			lrrs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			bafs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-			genotypes = genotypesProjOrder == null ? null
-																						 : Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
+			genotypes = genotypesProjOrder == null
+																						? null
+																						: Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			lrrValues = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			originalBAFs = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
 			int i = 0;
@@ -3329,7 +3350,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				if (!sample.equals(proj.SAMPLE_DIRECTORY.getValue(false, true) + " directory is empty")) {
 					JOptionPane.showMessageDialog(this,
 																				"Sample '" + sample
-																							+ "' was not present in the SampleData file",
+																						+ "' was not present in the SampleData file",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 				}
 				return;
@@ -3370,7 +3391,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 				} else {
 					JOptionPane.showMessageDialog(this,
 																				"Data was not found for the next sample in the list ("
-																							+ newSample + ").",
+																						+ newSample + ").",
 																				"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -3528,7 +3549,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		try {
 			String file = regionFileName.startsWith("./") ? proj.PROJECT_DIRECTORY.getValue()
 																											+ regionFileName
-																										: regionFileName;
+																									 : regionFileName;
 			reader = Files.getAppropriateReader(file);// Files.getReader(file, jar, false, false);
 			System.out.print("Loading regions from " + regionFileName + "...");
 			v = new Vector<String[]>();
@@ -3554,24 +3575,24 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 			if (invalidSamples > 0) {
 				JOptionPane.showMessageDialog(null,
 																			"Error - there were " + invalidSamples
-																						+ " invalid samples in '" + regionFileName
-																						+ "' that were ignored because they could not be found",
+																					+ " invalid samples in '" + regionFileName
+																					+ "' that were ignored because they could not be found",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 			}
 			if (countMissingRegions > 0) {
 				JOptionPane.showMessageDialog(null,
 																			"Warning - there were "
-																						+ countMissingRegions
-																						+ " lines in '"
-																						+ regionFileName
-																						+ "' without a chromosomal region listed; using \"chr1\" for all missing values",
+																					+ countMissingRegions
+																					+ " lines in '"
+																					+ regionFileName
+																					+ "' without a chromosomal region listed; using \"chr1\" for all missing values",
 																			"Warning", JOptionPane.ERROR_MESSAGE);
 			}
 			if (ignoredLines > 1) {
 				JOptionPane.showMessageDialog(null,
 																			"Error - there were " + ignoredLines + " regions in '"
-																						+ regionFileName
-																						+ "' that were ignored due to improper formatting",
+																					+ regionFileName
+																					+ "' that were ignored due to improper formatting",
 																			"Error", JOptionPane.ERROR_MESSAGE);
 			}
 			reader.close();
