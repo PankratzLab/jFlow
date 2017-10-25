@@ -48,6 +48,7 @@ public class RegionNavigator extends JPanel {
 	private final ChrNavigator chrNav;
 
 	public static final String DEFAULT_LOCATION = "chr1";
+
 	// public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
 
 	/**
@@ -63,13 +64,13 @@ public class RegionNavigator extends JPanel {
 				final String command = ae.getActionCommand();
 
 				if (command.equals(RegionNavigator.FIRST_CHR)) {
-					chrNav.setPosition("chr1");
+					chrNav.setPosition("chr" + cNav.getFirstAvailableChr());
 				} else if (command.equals(RegionNavigator.PREVIOUS_CHR)) {
 					chrNav.setPosition("chr" + Math.max(getChr() - 1, 1));
 				} else if (command.equals(RegionNavigator.NEXT_CHR)) {
 					chrNav.setPosition("chr" + Math.min(getChr() + 1, 26));
 				} else if (command.equals(RegionNavigator.LAST_CHR)) {
-					chrNav.setPosition("chr26");
+					chrNav.setPosition("chr" + cNav.getLastAvailableChr());
 				} else if (command.equals(RegionNavigator.NAV_CHR)) {
 					chrNav.setPosition(getChrText());
 				}
@@ -129,5 +130,16 @@ public class RegionNavigator extends JPanel {
 		 *        {@link Positions#parseUCSClocation(String)}.
 		 */
 		void setPosition(String chr);
+
+		/**
+		 * @return the lowest available chromosome number
+		 */
+		byte getFirstAvailableChr();
+
+		/**
+		 * @return the highest available chromosome number
+		 */
+		byte getLastAvailableChr();
+
 	}
 }

@@ -3310,6 +3310,16 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		updateGUI();
 	}
 
+	@Override
+	public byte getFirstAvailableChr() {
+		return markerDetailSet.getChrs()[0];
+	}
+
+	@Override
+	public byte getLastAvailableChr() {
+		return markerDetailSet.getChrs()[markerDetailSet.getChrs().length - 1];
+	}
+
 	private float[] getLRRsAsArray() {
 		if (lrrs == null)
 			return null;
