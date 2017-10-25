@@ -439,7 +439,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														classCode, layer);
 				}
 				genotype[i] = genotypeCode;
-				sex[i] = sampleData.determineCodeFromClass(3, alleleCounts[i], indi, chr, position)
+				int actSexClassIndex = sampleData.getSexClassIndex() + sampleData.getBasicClasses().length;
+				sex[i] = sampleData.determineCodeFromClass(actSexClassIndex, alleleCounts[i],
+																									 indi, chr, position)
 								 + "";
 				otherClass[i] = sampleData.determineCodeFromClass(currentClass, alleleCounts[i], indi, chr,
 																													position)
