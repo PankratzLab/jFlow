@@ -778,30 +778,33 @@ public class UKBBParsingPipeline {
 				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
 											 intensBytes[binInd++]};
 
-				a = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				b = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 
-				x = (float) (Math.log(a / b) / log2);
-				y = (float) ((Math.log(a * b) / log2) / 2);
+				x = (float) (x / scaleFactor);
+				y = (float) (y / scaleFactor);
+
+				// x = (float) (Math.log(a / b) / log2);
+				// y = (float) ((Math.log(a * b) / log2) / 2);
 				// x = DoubleMath.log2((a / b), RoundingMode.HALF_UP);
 				// y = DoubleMath.log2((a * b), RoundingMode.HALF_UP) / 2;
 				// x = (float) (Math.log(x) / Math.log(2));
 				// y = (float) (Math.log(y) / Math.log(2));
 
-				oor = !Compression.xyCompressAllowNegative(x == -1
-																													? Float.NaN
-																													: (float) (x),
-																									 mkrBuff, buffInd);
+				oor = !Compression.xyCompressPositiveOnly(x == -1
+																												 ? Float.NaN
+																												 : (float) (x),
+																									mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
-				oor = !Compression.xyCompressAllowNegative(y == -1
-																													? Float.NaN
-																													: (float) (y),
-																									 mkrBuff,
-																									 buffInd
-																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+				oor = !Compression.xyCompressPositiveOnly(y == -1
+																												 ? Float.NaN
+																												 : (float) (y),
+																									mkrBuff,
+																									buffInd
+																											+ (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\ty", y);
 				}
