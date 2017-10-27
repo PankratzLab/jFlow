@@ -1,14 +1,11 @@
 package org.genvisis.stats;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
 
@@ -19,10 +16,10 @@ import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.plots.TwoDPlot.ScreenToCapture;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.Images;
 import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * This class is designed to look for batch effects within sample factor data. It accomplishes this
@@ -44,35 +41,14 @@ public class BatchEffects {
 	private final Logger logger;
 	private double pValueTruncation = 1.0E-300;
 
-	private BatchEffects(Logger logger) {
-		batchLabels = new ArrayList<>();
-		factorLabels = new ArrayList<>();
-		batchValuesToInclude = new ArrayList<>();
-		factorValuesToInclude = new ArrayList<>();
-		this.logger = logger;
-	}
 
-	/**
-	 * Returns BatchEffects instance containing parsed batch and factor data. see
-	 * {@link #parseFiles(String,String)} for more information on how to format input files.
-	 * 
-	 * @param batchFilePath String path to file containing labels in first row, sample identifiers in
-	 *        first column, and batch values in second column.
-	 * @param factorFilePath String path to file containing labels in first row, sample identifiers in
-	 *        first column, and factor values in subsequent columns.
-	 * @param logger Logger used by instance.
-	 * @return BatchEffects instance containing parsed batch and factor data.
-	 * @throws FileNotFoundException if either String path parameter does not lead to a valid file.
-	 * @throws ParseException if file with factor data contains fewer than 2 column labels.
-	 * @throws IOException
-	 */
-	public static BatchEffects getInstance(@Nonnull String batchFilePath,
-																				 @Nonnull String factorFilePath,
-																				 @Nonnull Logger logger) throws FileNotFoundException,
-																																 ParseException, IOException {
-		BatchEffects instance = new BatchEffects(logger);
-		instance.parseFiles(batchFilePath, factorFilePath);
-		return instance;
+
+	BatchEffects(BatchEffectsBuilder b) {
+		this.batchLabels = ImmutableList.copyOf(b.getBatchLabels());
+		this.factorLabels = ImmutableList.copyOf(b.getFactorLabels());
+		this.batchValuesToInclude = ImmutableList.copyOf(b.getBatchValuesToInclude());
+		this.factorValuesToInclude = ImmutableList.copyOf(b.getFactorValuesToInclude());
+		this.logger = b.getLogger();
 	}
 
 	/**
@@ -108,8 +84,9 @@ public class BatchEffects {
 							 true, CLI.Arg.FILE);
 		cli.parse(args);
 		if (cli.has("batchFilePath") && cli.has("factorFilePath")) {
-			BatchEffects instance = BatchEffects.getInstance(cli.get("batchFilePath"),
-																											 cli.get("factorFilePath"), new Logger());
+			BatchEffectsBuilder builder = new BatchEffectsBuilder(new Logger());
+			BatchEffects instance = builder.build(cli.get("batchFilePath"),
+																						cli.get("factorFilePath"));
 			instance.pValueTruncation = cli.getD("pValueTruncation");
 			instance.createNegLog10PValueScatterPlotScreenshots();
 		}
@@ -247,134 +224,6 @@ public class BatchEffects {
 	}
 
 	/**
-	 * Parses sample batch and factor information from files to class-level data structures.
-	 * 
-	 * @param batchFilePath String path to file containing labels in first row, sample identifiers in
-	 *        first column, and batch values in second column.
-	 * @param factorFilePath String path to file containing labels in first row, sample identifiers in
-	 *        first column, and factor values in subsequent columns.
-	 * @throws FileNotFoundException if either String path parameter does not lead to a valid file.
-	 * @throws ParseException if file with factor data contains fewer than 2 column labels.
-	 * @throws IOException
-	 */
-	private void parseFiles(@Nonnull String batchFilePath,
-													@Nonnull String factorFilePath) throws FileNotFoundException,
-																													ParseException, IOException {
-		logger.report("parsing data from files...");
-
-		// parse batch file
-		Map<String, String> sampleBatchMap = HashVec.loadFileToHashString(batchFilePath, new int[] {0},
-																																			new int[] {1}, false, null,
-																																			true, false);
-
-		// parse factor file
-		BufferedReader reader = Files.getAppropriateReader(factorFilePath);
-		String[] rowData;
-		int expectedNumColumns = -1;
-		// read factor column headers
-		String line = reader.readLine();
-		if (line != null) {
-			rowData = line.split("\t");
-			if (rowData.length >= 2) {
-				expectedNumColumns = rowData.length;
-				for (int i = 1; i < rowData.length; i++) { // this loop starts at 1 to exclude the sample id
-																									 // column
-					factorLabels.add(rowData[i]);
-					factorValuesToInclude.add(new ArrayList<>()); // each sub-list represents a different
-																												// factor
-				}
-			} else {
-				throw new ParseException("Error: expected at least 2 column headers in factor data. Found "
-																 + rowData.length + ".", 0);
-			}
-		}
-		// read factor sample data
-		long numSampleLinesFromFactorData = 0;
-		long numSamplesIncluded = 0;
-		while ((line = reader.readLine()) != null) {
-			numSampleLinesFromFactorData++;
-			rowData = line.split("\t");
-			boolean sampleIncluded = addSampleIfValid(rowData, sampleBatchMap, expectedNumColumns);
-			if (sampleIncluded) {
-				numSamplesIncluded++;
-			} else {
-				logger.report("line excluded from factor file: " + line);
-			}
-		}
-		logger.report("parsing complete");
-		logger.report(numSamplesIncluded + " samples will be included in analysis. "
-									+ (numSampleLinesFromFactorData - numSamplesIncluded)
-									+ " lines of potential sample data were excluded from the factor file. "
-									+ (sampleBatchMap.size() - numSamplesIncluded)
-									+ " lines of potential sample data were excluded from the batch file. ");
-	}
-
-	/**
-	 * If sample passes validation, adds sample values to class-level data structures that will be
-	 * used for analysis. Sample will fail validation if it is missing any data or if any of its
-	 * factor values cannot be parsed as a double.
-	 * 
-	 * @param factorDataForSample array of factor data. index 0 should be the sample identifier.
-	 *        subsequent indices should be factor values for that sample.
-	 * @param sampleBatchMap map of sample identifier to batch value.
-	 * @param expectedLength expected length of factorDataForSample parameter.
-	 * @return a boolean value indicating whether the sample was added to class-level data structures
-	 *         that will be used for analysis.
-	 */
-	private boolean addSampleIfValid(String[] factorDataForSample, Map<String, String> sampleBatchMap,
-																	 int expectedLength) {
-		boolean includeSample = true;
-
-		if (factorDataForSample.length != expectedLength) {
-			includeSample = false;
-		}
-
-		// exclude sample if the sample id from the factor file does not match any from the batch file
-		// OR if the batch value associated with that sample id is missing
-		if (includeSample) {
-			String batchValue = sampleBatchMap.get(factorDataForSample[0]);
-			if (batchValue == null || ext.isMissingValue(batchValue)) {
-				includeSample = false;
-			}
-		}
-
-		// exclude sample if any of its factor values are missing or do not parse into doubles
-		List<Double> parsedValues = new ArrayList<>();
-		if (includeSample) {
-			for (int i = 0; includeSample && i < factorDataForSample.length; i++) {
-				if (ext.isMissingValue(factorDataForSample[i])) {
-					includeSample = false;
-				}
-				if (includeSample && i != 0) {
-					try {
-						double d = Double.parseDouble(factorDataForSample[i]);
-						parsedValues.add(d);
-					} catch (NumberFormatException e) {
-						includeSample = false;
-					}
-				}
-			}
-		}
-
-		// if sample passes validation, add to class-level data structures that will be used for
-		// analysis
-		if (includeSample) {
-			String batchValue = sampleBatchMap.get(factorDataForSample[0]); // index 0 is the sample id
-			if (!batchLabels.contains(batchValue)) {
-				batchLabels.add(batchValue);
-			}
-			batchValuesToInclude.add(batchValue);
-			for (int i = 0; i < parsedValues.size(); i++) {
-				double currentValue = parsedValues.get(i);
-				factorValuesToInclude.get(i).add(currentValue);
-			}
-		}
-
-		// return boolean indication of whether sample was included
-		return includeSample;
-	}
-
-	/**
 	 * Splits the values from sampleValues into two arrays, based on the true/false indices found in
 	 * sampleMembership.
 	 * 
@@ -435,28 +284,28 @@ public class BatchEffects {
 	 * Returns a view on batchLabels list.
 	 */
 	public List<String> getBatchLabels() {
-		return Collections.unmodifiableList(batchLabels);
+		return batchLabels;
 	}
 
 	/**
 	 * Returns a view on factorLabels list.
 	 */
 	public List<String> getFactorLabels() {
-		return Collections.unmodifiableList(factorLabels);
+		return factorLabels;
 	}
 
 	/**
 	 * Returns a view on batchValuesToInclude.
 	 */
 	public List<String> getBatchValuesToInclude() {
-		return Collections.unmodifiableList(batchValuesToInclude);
+		return batchValuesToInclude;
 	}
 
 	/**
 	 * Returns a view on factorValuesToInclude.
 	 */
 	public List<List<Double>> getFactorValuesToInclude() {
-		return Collections.unmodifiableList(factorValuesToInclude);
+		return factorValuesToInclude;
 	}
 
 }
