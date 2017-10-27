@@ -57,45 +57,47 @@ public class BatchEffectsBuilder {
 																																			true, false);
 
 		// parse factor file
-		BufferedReader reader = Files.getAppropriateReader(factorFilePath);
-		String[] rowData;
-		int expectedNumColumns = -1;
-		// read factor column headers
-		String line = reader.readLine();
-		if (line != null) {
-			rowData = line.split("\t");
-			if (rowData.length >= 2) {
-				expectedNumColumns = rowData.length;
-				for (int i = 1; i < rowData.length; i++) { // this loop starts at 1 to exclude the sample id
-																									 // column
-					factorLabels.add(rowData[i]);
-					factorValuesToInclude.add(new ArrayList<>()); // each sub-list represents a different
-																												// factor
+		try (BufferedReader reader = Files.getAppropriateReader(factorFilePath)) {
+			String[] rowData;
+			int expectedNumColumns = -1;
+			// read factor column headers
+			String line = reader.readLine();
+			if (line != null) {
+				rowData = line.split("\t");
+				if (rowData.length >= 2) {
+					expectedNumColumns = rowData.length;
+					for (int i = 1; i < rowData.length; i++) { // this loop starts at 1 to exclude the sample
+																										 // id
+																										 // column
+						factorLabels.add(rowData[i]);
+						factorValuesToInclude.add(new ArrayList<>()); // each sub-list represents a different
+																													// factor
+					}
+				} else {
+					throw new ParseException("Error: expected at least 2 column headers in factor data. Found "
+																	 + rowData.length + ".", 0);
 				}
-			} else {
-				throw new ParseException("Error: expected at least 2 column headers in factor data. Found "
-																 + rowData.length + ".", 0);
 			}
-		}
-		// read factor sample data
-		long numSampleLinesFromFactorData = 0;
-		long numSamplesIncluded = 0;
-		while ((line = reader.readLine()) != null) {
-			numSampleLinesFromFactorData++;
-			rowData = line.split("\t");
-			boolean sampleIncluded = addSampleIfValid(rowData, sampleBatchMap, expectedNumColumns);
-			if (sampleIncluded) {
-				numSamplesIncluded++;
-			} else {
-				logger.report("line excluded from factor file: " + line);
+			// read factor sample data
+			long numSampleLinesFromFactorData = 0;
+			long numSamplesIncluded = 0;
+			while ((line = reader.readLine()) != null) {
+				numSampleLinesFromFactorData++;
+				rowData = line.split("\t");
+				boolean sampleIncluded = addSampleIfValid(rowData, sampleBatchMap, expectedNumColumns);
+				if (sampleIncluded) {
+					numSamplesIncluded++;
+				} else {
+					logger.report("line excluded from factor file: " + line);
+				}
 			}
+			logger.report("parsing complete");
+			logger.report(numSamplesIncluded + " samples will be included in analysis. "
+										+ (numSampleLinesFromFactorData - numSamplesIncluded)
+										+ " lines of potential sample data were excluded from the factor file. "
+										+ (sampleBatchMap.size() - numSamplesIncluded)
+										+ " lines of potential sample data were excluded from the batch file. ");
 		}
-		logger.report("parsing complete");
-		logger.report(numSamplesIncluded + " samples will be included in analysis. "
-									+ (numSampleLinesFromFactorData - numSamplesIncluded)
-									+ " lines of potential sample data were excluded from the factor file. "
-									+ (sampleBatchMap.size() - numSamplesIncluded)
-									+ " lines of potential sample data were excluded from the batch file. ");
 		return new BatchEffects(this);
 	}
 
