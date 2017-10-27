@@ -39,7 +39,7 @@ public class BatchEffects {
 
 	private double maxNegLog10PValue;
 	private final Logger logger;
-	private double pValueTruncation = 1.0E-300;
+	private static final double DEFAULT_PVALUE_TRUNCTATION = 1.0E-300;
 
 
 
@@ -75,7 +75,7 @@ public class BatchEffects {
 		CLI cli = new CLI("BatchEffect-Plots");
 		cli.addArgWithDefault("pValueTruncation",
 													"Batch effect p-values less than this double value will be set to this value.",
-													1.0E-300);
+													DEFAULT_PVALUE_TRUNCTATION);
 		cli.addArg("batchFilePath",
 							 "String path to file containing labels in first row, sample identifiers in first column, and batch values in second column.",
 							 true, CLI.Arg.FILE);
@@ -87,9 +87,16 @@ public class BatchEffects {
 			BatchEffectsBuilder builder = new BatchEffectsBuilder(new Logger());
 			BatchEffects instance = builder.build(cli.get("batchFilePath"),
 																						cli.get("factorFilePath"));
-			instance.pValueTruncation = cli.getD("pValueTruncation");
-			instance.createNegLog10PValueScatterPlotScreenshots();
+			instance.createNegLog10PValueScatterPlotScreenshots(cli.getD("pValueTruncation"));
 		}
+	}
+
+	/**
+	 * Calls {@link BatchEffects#createNegLog10PValueScatterPlotScreenshots(double)} with default
+	 * p-value truncation.
+	 */
+	public void createNegLog10PValueScatterPlotScreenshots() {
+		createNegLog10PValueScatterPlotScreenshots(DEFAULT_PVALUE_TRUNCTATION);
 	}
 
 	/**
@@ -100,8 +107,10 @@ public class BatchEffects {
 	 * <li>individual scatter plot images
 	 * <li>aggregate image containing individual images stitched together
 	 * </ul>
+	 * 
+	 * @param pValueTruncation p-values less than this double value will be set to this value.
 	 */
-	public void createNegLog10PValueScatterPlotScreenshots() {
+	public void createNegLog10PValueScatterPlotScreenshots(double pValueTruncation) {
 		// create negative log10 p-value matrix from class-level batch and factor data
 		String[][] negLog10PValueMatrix;
 		negLog10PValueMatrix = this.getNegLog10PValueMatrix(pValueTruncation);
@@ -148,6 +157,15 @@ public class BatchEffects {
 		Images.stitchImages(targetDirectory, plotFileNames, summaryImageFileName, null, false, false);
 		logger.report("new aggregate image: " + summaryImageFileName);
 		logger.report("batchEffects has completed running");
+	}
+
+	/**
+	 * Calls {@link BatchEffects#getNegLog10PValueMatrix(double)} with default p-value truncation.
+	 * 
+	 * @return two-dimensional array of negative log10 p-values
+	 */
+	public String[][] getNegLog10PValueMatrix() {
+		return getNegLog10PValueMatrix(DEFAULT_PVALUE_TRUNCTATION);
 	}
 
 	/**
