@@ -1400,6 +1400,12 @@ public class VCFOps {
 		return root;
 	}
 
+	public static String addToRoot(String vcf, String addition) {
+		String root = getAppropriateRoot(vcf, false);
+		String extension = vcf.substring(root.length());
+		return root + addition + extension;
+	}
+
 	/**
 	 * @param vcf
 	 * @param idFile
