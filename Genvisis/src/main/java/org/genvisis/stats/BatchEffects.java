@@ -223,10 +223,10 @@ public class BatchEffects {
 			negLog10PValueMatrix[i + 1][0] = String.valueOf(i + 1);
 			double minPValue = Double.MAX_VALUE;
 			// loop for each batch
+			TTest tTest = new TTest();
 			for (int j = 0; j < batchMembershipMatrix.length; j++) {
 				double[][] tTestGroups = createTTestGroups(batchMembershipMatrix[j],
 																									 factorValuesToInclude.get(i));
-				TTest tTest = new TTest();
 				// run t-test for current factor values of current batch compared with current factor values
 				// of all other batches combined
 				double pValue = tTest.tTest(tTestGroups[0], tTestGroups[1]);
