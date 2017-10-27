@@ -124,7 +124,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 	public static final PLOT_TYPE DEFAULT_TYPE = PLOT_TYPE.DOT_PLOT;
 
-	enum STATUS {
+	public enum STATUS {
 		IMAGE_NULL,
 		IMAGE_STARTED,
 		IMAGE_COMPLETE;

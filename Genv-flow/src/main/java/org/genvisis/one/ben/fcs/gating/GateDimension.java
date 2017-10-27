@@ -6,6 +6,11 @@ public class GateDimension {
 	String paramName;
 	Gate owner;
 
+	@Override
+	public String toString() {
+		return super.toString() + "--" + paramName;
+	}
+
 	public GateDimension(Gate gate, String param) {
 		this.paramName = param;
 		this.owner = gate;
