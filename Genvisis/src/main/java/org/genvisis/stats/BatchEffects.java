@@ -113,8 +113,7 @@ public class BatchEffects {
 	 */
 	public void createNegLog10PValueScatterPlotScreenshots(double pValueTruncation) {
 		// create negative log10 p-value matrix from class-level batch and factor data
-		String[][] negLog10PValueMatrix;
-		negLog10PValueMatrix = this.getNegLog10PValueMatrix(pValueTruncation);
+		String[][] negLog10PValueMatrix = getNegLog10PValueMatrix(pValueTruncation);
 		String outputFileName = System.currentTimeMillis() + "_" + pValueTruncation + ".txt";
 
 		// write matrix to file because twoDPlot.createScreenshots requires data to be in a file
