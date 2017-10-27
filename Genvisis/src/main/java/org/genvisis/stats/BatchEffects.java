@@ -2,6 +2,7 @@ package org.genvisis.stats;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -114,7 +115,7 @@ public class BatchEffects {
 		// create negative log10 p-value matrix from class-level batch and factor data
 		String[][] negLog10PValueMatrix;
 		negLog10PValueMatrix = this.getNegLog10PValueMatrix(pValueTruncation);
-		String outputFileName = System.currentTimeMillis() + ".txt";
+		String outputFileName = System.currentTimeMillis() + "_" + pValueTruncation + ".txt";
 
 		// write matrix to file because twoDPlot.createScreenshots requires data to be in a file
 		logger.report("writing negative log10 p-value matrix to file...");
@@ -149,13 +150,23 @@ public class BatchEffects {
 		twoDPlot.createScreenshots(targetDirectory, screens);
 		for (int i = 0; i < plotFileNames.length; i++) {
 			plotFileNames[i] += ".png";
-			logger.report("new image: " + plotFileNames[i]);
 		}
 
 		// create aggregate image
-		String summaryImageFileName = System.currentTimeMillis() + "_Aggregate.png";
-		Images.stitchImages(targetDirectory, plotFileNames, summaryImageFileName, null, false, false);
-		logger.report("new aggregate image: " + summaryImageFileName);
+		String outFile = System.currentTimeMillis() + "_" + pValueTruncation + ".png";
+		Images.stitchImages(targetDirectory, plotFileNames, outFile, null, false, false);
+		logger.report("new aggregate image: " + outFile);
+
+		// delete individual image files
+		for (String fileName : plotFileNames) {
+			try {
+				java.nio.file.Files.deleteIfExists(Paths.get(targetDirectory, fileName));
+			} catch (IOException e) {
+				logger.reportError("Error during clean up - " + targetDirectory + fileName
+													 + " could not be deleted.");
+			}
+		}
+
 		logger.report("batchEffects has completed running");
 	}
 
