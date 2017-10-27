@@ -14,6 +14,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.iterators.ArrayIterator;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -157,6 +159,7 @@ public class UKBBParsingPipeline {
 			proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
 
 			proj.saveProperties();
+			log.reportTime("Created project properties file: " + propFile);
 		} else {
 			log.reportTime("Project properties file already exists; skipping creation.");
 			proj = new Project(propFile);
@@ -175,6 +178,7 @@ public class UKBBParsingPipeline {
 			sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
 			sl = null;
 			allSamples = null;
+			log.reportTime("Created sample list file: " + proj.SAMPLELIST_FILENAME.getValue());
 		} else {
 			log.reportTime("Project sample list file already exists; skipping creation.");
 		}
@@ -336,13 +340,14 @@ public class UKBBParsingPipeline {
 				for (String[] bin : mkrBins) {
 					end = start + bin.length;
 					mdRAF = getMDRAFName(fs.chr, start, end);
-					for (String s : bin) {
-						lookup.put(s, mdRAF);
+					for (int m = 0; m < bin.length; m++) {
+						lookup.put(bin[m], mdRAF + "\t" + m);
 					}
 					start = end;
 				}
 			}
 			new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+			log.reportTime("Created marker lookup file: " + proj.MARKERLOOKUP_FILENAME.getValue());
 		} else {
 			log.reportTime("Project marker lookup file already exists; skipping creation.");
 		}
@@ -391,10 +396,13 @@ public class UKBBParsingPipeline {
 
 	protected void writeMarkerSet() {
 		if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+			long t1 = System.nanoTime();
 			String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
 																										new int[] {0}, false);
 			Markers.orderMarkers(mkrs, proj.MARKER_POSITION_FILENAME.getValue(),
 													 proj.MARKERSET_FILENAME.getValue(), log);
+			mkrs = null;
+			log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
 		} else {
 			log.reportTime("Project marker set file already exists; skipping creation.");
 		}
@@ -420,14 +428,25 @@ public class UKBBParsingPipeline {
 	}
 
 	private Iterable<Marker> loadMarkers() throws IOException {
+		String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
+																									new int[] {0}, false);
 		String[] headerFactors = {"Affy SNP ID", "dbSNP RS ID", "Chromosome",
 															"Physical Position", "Allele A", "Allele B", "Ref Allele"};
 		int[] hdrInds = null;
 		BufferedReader reader = Files.getAppropriateReader(annotFile);
-		ArrayList<Marker> markers = new ArrayList<>();
+		HashMap<String, Integer> markerIndices = new HashMap<>();
+		ArrayList<Integer> allInds = new ArrayList<>(mkrs.length);
+		for (int i = 0; i < mkrs.length; i++) {
+			markerIndices.put(mkrs[i], i);
+			allInds.add(i);
+		}
+		final Marker[] markers = new Marker[mkrs.length];
 		String line = null;
 		boolean foundHeader = false;
 		String[] parts;
+		String mkrName;
+		int inAnnotNotProj = 0;
+		int ind;
 		while ((line = reader.readLine()) != null) {
 			if (line.charAt(0) == '#')
 				continue;
@@ -438,18 +457,65 @@ public class UKBBParsingPipeline {
 				continue;
 			}
 			parts = ext.splitCommasIntelligently(line, true, log);
-			markers.add(new Marker(parts[hdrInds[1]].equals("---") ? parts[hdrInds[0]]
-																														: parts[hdrInds[1]],
-														 new GenomicPosition((byte) Integer.parseInt(parts[hdrInds[2]]),
-																								 Integer.parseInt(parts[hdrInds[3]])),
-														 Allele.create(parts[hdrInds[4]],
-																					 parts[hdrInds[4]] == parts[hdrInds[6]]),
-														 Allele.create(parts[hdrInds[5]],
-																					 parts[hdrInds[5]] == parts[hdrInds[6]])));
+			mkrName = isMissing(parts[hdrInds[1]]) ? parts[hdrInds[0]] : parts[hdrInds[1]];
 
+			if (!markerIndices.containsKey(mkrName)) {
+				if (markerIndices.containsKey(parts[hdrInds[0]])) {
+					mkrName = parts[hdrInds[0]];
+					ind = markerIndices.get(mkrName);
+				} else {
+					inAnnotNotProj++;
+					ind = -1;
+				}
+			} else {
+				ind = markerIndices.get(mkrName);
+			}
+			if (ind != -1) {
+				allInds.remove(Integer.valueOf(ind));
+				markers[markerIndices.get(mkrName)] = new Marker(
+																												 mkrName,
+																												 new GenomicPosition(
+																																						 !isMissing(parts[hdrInds[2]])
+																																																					? Positions.chromosomeNumber(parts[hdrInds[2]],
+																																																																			 log)
+																																																					: (byte) 0,
+																																						 !isMissing(parts[hdrInds[3]])
+																																																					? Integer.parseInt(parts[hdrInds[3]])
+																																																					: 0),
+																												 !isMissing(parts[hdrInds[4]])
+																																											? Allele.create(parts[hdrInds[4]],
+																																																			parts[hdrInds[4]] == parts[hdrInds[6]])
+																																											: Allele.NO_CALL,
+																												 !isMissing(parts[hdrInds[5]])
+																																											? Allele.create(parts[hdrInds[5]],
+																																																			parts[hdrInds[5]] == parts[hdrInds[6]])
+																																											: Allele.NO_CALL);
+			}
+		}
+		if (inAnnotNotProj > 0) {
+			log.reportTimeWarning("Found "
+														+ inAnnotNotProj
+														+ " markers in the annotation file that were not present in the project data.");
+		}
+		if (allInds.size() > 0) {
+			log.reportError(allInds.size()
+											+ " markers were not found in the annotation file! Missing marker indices: "
+											+ allInds.toString());
 		}
 		reader.close();
-		return markers;
+		markerIndices = null;
+		mkrs = null;
+		return new Iterable<MarkerDetailSet.Marker>() {
+			@Override
+			public Iterator<Marker> iterator() {
+				return new ArrayIterator<Marker>(markers);
+			}
+		};
+	}
+
+	private boolean isMissing(String value) {
+		return value.equals("---") || value.equals("\"---\"") || value.equals("-")
+					 || value.equals("\"-\"");
 	}
 
 	protected void writeOutliers() throws ClassNotFoundException, IOException {
@@ -676,6 +742,7 @@ public class UKBBParsingPipeline {
 		int markerBlockSize = nInd * bytesPerSamp;
 		byte[] mkrBuff;
 		String[] parts;
+		double log2 = Math.log(2);
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			markerLogger.logMarker(fs.chr, startBatchInd, mkrNames.length, i);
 
@@ -703,7 +770,7 @@ public class UKBBParsingPipeline {
 			frs.binIn.seek(((long) i) * ((long) binBlockSize));
 			frs.binIn.read(intensBytes);
 
-			float x, y;
+			float a, b, x, y;
 			boolean oor;
 			for (int bitInd = 0, binInd = 0; bitInd < nInd; bitInd++) {
 				byte[] intA = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
@@ -711,27 +778,30 @@ public class UKBBParsingPipeline {
 				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
 											 intensBytes[binInd++]};
 
-				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				// x = LongMath.log2((long) (x / y), RoundingMode.HALF_UP);
-				// y = LongMath.log2((long) (x * y), RoundingMode.HALF_UP) / 2;
+				a = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				b = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+
+				x = (float) (Math.log(a / b) / log2);
+				y = (float) ((Math.log(a * b) / log2) / 2);
+				// x = DoubleMath.log2((a / b), RoundingMode.HALF_UP);
+				// y = DoubleMath.log2((a * b), RoundingMode.HALF_UP) / 2;
 				// x = (float) (Math.log(x) / Math.log(2));
 				// y = (float) (Math.log(y) / Math.log(2));
 
-				oor = !Compression.xyCompressPositiveOnly(x == -1
-																												 ? Float.NaN
-																												 : (float) (x / proj.XY_SCALE_FACTOR.getValue()),
-																									mkrBuff, buffInd);
+				oor = !Compression.xyCompressAllowNegative(x == -1
+																													? Float.NaN
+																													: (float) (x),
+																									 mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
-				oor = !Compression.xyCompressPositiveOnly(y == -1
-																												 ? Float.NaN
-																												 : (float) (y / proj.XY_SCALE_FACTOR.getValue()),
-																									mkrBuff,
-																									buffInd
-																											+ (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+				oor = !Compression.xyCompressAllowNegative(y == -1
+																													? Float.NaN
+																													: (float) (y),
+																									 mkrBuff,
+																									 buffInd
+																											 + (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\ty", y);
 				}
