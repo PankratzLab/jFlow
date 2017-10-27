@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -277,8 +276,8 @@ public class BatchEffects {
 		}
 
 		// assign sample values to two groups, based on boolean sample membership
-		List<Double> group1 = new LinkedList<>();
-		List<Double> group2 = new LinkedList<>();
+		List<Double> group1 = new ArrayList<>();
+		List<Double> group2 = new ArrayList<>();
 		for (int i = 0; i < sampleValues.size(); i++) {
 			if (sampleMembership[i] == true) {
 				group1.add(sampleValues.get(i));
