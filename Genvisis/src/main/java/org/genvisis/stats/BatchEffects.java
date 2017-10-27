@@ -22,21 +22,21 @@ import org.genvisis.common.Logger;
 import com.google.common.collect.ImmutableList;
 
 /**
- * This class is designed to look for batch effects within sample factor data. It accomplishes this
- * goal by running t-tests on sample factor data organized by batch, then visualizing the results.
+ * Looks for batch effects within sample factor data. Accomplished by running t-tests on sample
+ * factor data organized by batch, then visualizing the results.
  * 
  * @author Travis Rogers
  */
 public class BatchEffects {
 	private final List<String> batchLabels;
 	private final List<String> factorLabels;
-
-	// the batchValuesToInclude list and factorValuesToInclude sublists have parallel indices, each
-	// index representing a value (batch value or factor value, respectively) for a particular sample
+	/*
+	 * the batchValuesToInclude list and factorValuesToInclude sub-lists have parallel indices, each
+	 * index representing a value (batch value or factor value, respectively) for a particular sample
+	 */
 	private final List<String> batchValuesToInclude;
-	// each superlist in factorValuesToInclude represents the sample values for a particular factor.
+	// each list in factorValuesToInclude represents the sample values for a particular factor
 	private final List<List<Double>> factorValuesToInclude;
-
 	private double maxNegLog10PValue;
 	private final Logger logger;
 	private static final double DEFAULT_PVALUE_TRUNCTATION = 1.0E-300;
@@ -108,7 +108,7 @@ public class BatchEffects {
 	 * <li>aggregate image containing individual images stitched together
 	 * </ul>
 	 * 
-	 * @param pValueTruncation p-values less than this double value will be set to this value.
+	 * @param pValueTruncation p-values less than this double value will be set to this value
 	 */
 	public void createNegLog10PValueScatterPlotScreenshots(double pValueTruncation) {
 		// create negative log10 p-value matrix from class-level batch and factor data
@@ -174,8 +174,8 @@ public class BatchEffects {
 	 * arbitrary numerical index. For a given factor, each p-value represents the result of a t-test
 	 * of the values for one batch compared with all other batches combined.
 	 * 
-	 * @param pValueTruncation p-values less than this double value will be set to this value.
-	 * @return two-dimensional array of negative log10 p-values.
+	 * @param pValueTruncation p-values less than this double value will be set to this value
+	 * @return two-dimensional array of negative log10 p-values
 	 */
 	public String[][] getNegLog10PValueMatrix(double pValueTruncation) {
 		// create boolean matrix representing sample membership in each of the batches detected. each
