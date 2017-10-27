@@ -1,6 +1,7 @@
 package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,12 +12,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
@@ -28,6 +34,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
@@ -368,124 +375,6 @@ public class lab {
 		info = null;
 		return callrateMap;
 	}
-
-	static class MarkerLookup {
-		private final HashMap<String, ArrayList<String>> markerLookup;
-		private final HashMap<String, String> reverseLookup;
-
-		public MarkerLookup() {
-			markerLookup = new HashMap<>();
-			reverseLookup = new HashMap<>();
-		}
-
-		public void addMarker(String[] line) {
-			ArrayList<String> mkrs = markerLookup.get(line[0]);
-			if (mkrs == null) {
-				mkrs = new ArrayList<>();
-				markerLookup.put(line[0], mkrs);
-			}
-			for (int i = 1; i < line.length; i++) {
-				mkrs.add(line[i]);
-				reverseLookup.put(line[i], line[0]);
-			}
-		}
-
-		public Set<String> getNewMarkers() {
-			return markerLookup.keySet();
-		}
-
-		public ArrayList<String> getOldMarkers(String s) {
-			return markerLookup.get(s);
-		}
-
-	}
-
-	public static MarkerLookup loadMarkerInfoFile(String mkrInfoFile) throws IOException {
-		BufferedReader reader = Files.getAppropriateReader(mkrInfoFile);
-		String line;
-		MarkerLookup ml = new MarkerLookup();
-		while ((line = reader.readLine()) != null) {
-			String[] pts = line.split("[\\s]+");
-			ml.addMarker(pts);
-		}
-		reader.close();
-		return ml;
-	}
-
-	/**
-	 * 
-	 * @param mkrInfoFile Duplicates file. Expects the following format:<br/>
-	 *        <code>NewMarkerName &lt;...markers to combine into this marker&gt;</code>
-	 * @throws IOException
-	 */
-	public static void markerDuplicateFilter(String mkrInfoFile, String missDropsFile,
-																					 String callrateFile, String outFile) throws IOException {
-
-		HashMap<String, String> callrates = loadCallrates(callrateFile);
-		if (callrates == null)
-			return;
-		String[] missDropsArr = HashVec.loadFileToStringArray(missDropsFile, false, null, false);
-		HashSet<String> missDrops = new HashSet<>();
-		for (String m : missDropsArr) {
-			missDrops.add(m);
-		}
-
-		MarkerLookup ml = loadMarkerInfoFile(mkrInfoFile);
-
-		HashSet<String> allDrops = new HashSet<>();
-
-		for (String s : ml.getNewMarkers()) {
-			ArrayList<String> oldMkrs = ml.getOldMarkers(s);
-			if (oldMkrs.size() == 0) {
-				continue;
-			} else if (oldMkrs.size() == 1) {
-				if (missDrops.contains(oldMkrs.get(0))) {
-					allDrops.add(oldMkrs.get(0));
-				}
-			} else {
-				boolean droppedAll = true;
-				for (String o : oldMkrs) {
-					if (!missDrops.contains(o)) {
-						droppedAll = false;
-						break;
-					}
-				}
-				if (!droppedAll) {
-					// if droppedAll == true, all markers will be added through miss_drops, so no worry
-					ArrayList<Double> mkrCalls = new ArrayList<>();
-					for (String o : oldMkrs) {
-						if (missDrops.contains(o)) {
-							mkrCalls.add(-1d);
-						} else {
-							String callStr = callrates.get(o);
-							if (callStr == null) {
-								System.err.println("Error - no callrate info for marker: " + o);
-								mkrCalls.add(-1d);
-							} else {
-								mkrCalls.add(Double.parseDouble(callStr));
-							}
-						}
-					}
-					double maxCall = 0;
-					int maxInd = -1;
-					for (int i = 0; i < mkrCalls.size(); i++) {
-						if (mkrCalls.get(i) > maxCall) {
-							maxInd = i;
-							maxCall = mkrCalls.get(i);
-						}
-					}
-					for (int i = 0; i < mkrCalls.size(); i++) {
-						if (maxInd == i)
-							continue;
-						allDrops.add(oldMkrs.get(i));
-					}
-				}
-			}
-		}
-
-		Files.writeIterable(allDrops, outFile);
-	}
-
 
 	public static void affy6BimLookup() {
 		// String bimFile =
@@ -886,7 +775,153 @@ public class lab {
 		System.out.println("Done");
 	}
 
-	public static void main(String[] args) throws IOException {
+	private static void testUKBBMarkerOutliers() {
+		Project proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+		String[] files = new File(proj.MARKER_DATA_DIRECTORY.getValue()).list();
+		int count = 5;
+		Random rand = new Random();
+		for (int i = 0; i < files.length && count > 0; i++) {
+			String fil = files[rand.nextInt(files.length)];
+			if (fil.endsWith(".mdRAF")) {
+				count = 0;
+				if (!fil.startsWith(proj.MARKER_DATA_DIRECTORY.getValue())) {
+					fil = ext.verifyDirFormat(proj.MARKER_DATA_DIRECTORY.getValue()) + fil;
+				}
+				Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(fil);
+				int k = 20;
+				for (Entry<String, Float> ent : outliers.entrySet()) {
+					System.out.println(ent.getKey() + " | " + ent.getValue());
+					if (k-- == 0) {
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	private static void rebuildMarkerOutliers() throws ClassNotFoundException, IOException {
+		long t1 = System.nanoTime();
+		Project proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+		String mkrDir = ext.verifyDirFormat(proj.MARKER_DATA_DIRECTORY.getValue());
+		String[] files = new File(mkrDir).list((File f, String e) -> {
+			return e.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
+		});
+		String[] samples = proj.getSamples();
+		Map<String, Integer> mkrProjInds = proj.getMarkerIndices();
+		Hashtable<String, Float> allOutliers = new Hashtable<>();
+		String fil;
+		Hashtable<String, Float> mkrOutliers;
+		String[] markers;
+		String[] pts;
+		int ind;
+		String samp;
+		String type;
+		System.out.println("Prepped in " + ext.getTimeElapsedNanos(t1));
+		long t2 = System.nanoTime();
+		for (String mdraf : files) {
+			t1 = System.nanoTime();
+			fil = mdraf.startsWith(mkrDir) ? mdraf : mkrDir + mdraf;
+			mkrOutliers = TransposeData.loadOutliersFromRAF(fil);
+			markers = TransposeData.loadMarkerNamesFromRAF(fil);
+			for (Entry<String, Float> outlier : mkrOutliers.entrySet()) {
+				pts = outlier.getKey().split("\t");
+				ind = mkrProjInds.get(markers[Integer.parseInt(pts[0])]);
+				samp = samples[Integer.parseInt(pts[1])];
+				type = pts[2];
+				allOutliers.put(ind + "\t" + samp + "\t" + type, outlier.getValue());
+			}
+			System.out.println("Loaded outliers from " + mdraf + " in " + ext.getTimeElapsedNanos(t1));
+		}
+		SerializedFiles.writeSerial(allOutliers, proj.MARKER_DATA_DIRECTORY.getValue(true, true)
+																						 + "outliers.ser");
+		System.out.println("Rebuilt outliers in " + ext.getTimeElapsedNanos(t2));
+	}
+
+	private static void dumpSingleMDRAFOutliers() {
+		String[] files = {
+											"/scratch.global/cole0482/UKBB2/project/transposed/markers.12.19398.20890.mdRAF",
+											"/scratch.global/cole0482/UKBB2/project/transposed/markers.7.17681.19154.mdRAF",
+											"/scratch.global/cole0482/UKBB2/project/transposed/markers.3.5980.7475.mdRAF",
+											"/scratch.global/cole0482/UKBB2/project/transposed/markers.4.7415.8898.mdRAF",
+		};
+		for (String file : files) {
+			Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(file);
+			PrintWriter writer = Files.getAppropriateWriter(ext.rootOf(file, false) + "_outliers.xln");
+			for (Entry<String, Float> out : outliers.entrySet()) {
+				writer.println(out.getKey() + "\t" + out.getValue());
+			}
+			writer.close();
+		}
+	}
+
+	private static void dumpXValues(Project proj) {
+		PrintWriter writer = Files.getAppropriateWriter("/home/pankrat2/cole0482/"
+																										+ proj.PROJECT_NAME.getValue() + "_Xvalues.txt");
+
+		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
+		while (mdl.hasNext()) {
+			MarkerData md = mdl.next();
+			for (float x : md.getXs()) {
+				writer.println(x);
+			}
+		}
+		mdl.shutdown();
+
+		for (String file : new File(proj.MARKER_DATA_DIRECTORY.getValue()).list((e, f) -> {
+			return f.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
+		})) {
+			System.out.println(file);
+			for (Entry<String, Float> entry : TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+																																							+ file).entrySet()) {
+				if (entry.getKey().endsWith("\tx")) {
+					writer.println(entry.getValue());
+				}
+			}
+		}
+
+		writer.close();
+	}
+
+	private static void runXYHistogram(Project proj) {
+		double scale = proj.XY_SCALE_FACTOR.getValue().doubleValue();
+		int binSize = proj.XY_SCALE_FACTOR.getValue().intValue();
+		System.out.println("Bin Size: " + binSize);
+
+		HashMap<Integer, AtomicInteger> binXCounts = new HashMap<>();
+
+		boolean[] sampling = new boolean[proj.getMarkerNames().length];
+		int every = 5;
+		for (int i = 0; i < sampling.length; i++) {
+			if (i % every == 0) {
+				sampling[i] = true;
+			}
+		}
+
+		MDL mdl = new MDL(proj, proj.getMarkerSet(), ArrayUtils.subArray(proj.getMarkerNames(),
+																																		 sampling));
+		while (mdl.hasNext()) {
+			MarkerData md = mdl.next();
+			for (float x : md.getXs()) {
+				if (Float.isNaN(x)) {
+					continue;
+				}
+				int bin = (int) (((double) (x * scale)) / binSize); // correct???
+				AtomicInteger cnt = binXCounts.get(bin);
+				if (cnt == null) {
+					cnt = new AtomicInteger(0);
+					binXCounts.put(bin, cnt);
+				}
+				cnt.incrementAndGet();
+			}
+		}
+		mdl.shutdown();
+
+		for (Entry<Integer, AtomicInteger> entry : binXCounts.entrySet()) {
+			System.out.println(entry.getKey() + "\t" + entry.getValue().get());
+		}
+	}
+
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		int numArgs = args.length;
 		Project proj;
 		String filename = "lab.dat";
@@ -895,15 +930,11 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			file = "F:/vcfDosage/PD_variants.vcf";
-			// file = "/scratch.global/cole0482/vcfTest/chr20.dose.vcf.gz";
-			// vcfTest(file, "GP");
-			filename = VCFCleaner.fixVCF(file);
-			// vcfTest(file, "GP");
 
-			// testRev();
-			// testRevTran();
-			// run();
+			proj = new Project(args[0]);
+			runXYHistogram(proj);
+
+			// dumpSingleMDRAFOutliers();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";
 			// String mkrInfoFile = "/home/pankrat2/cole0482/Affy6_duplicates.txt";
 			// String missDropsFile = dir + "quality_control/further_analysis_QC/miss_drops.dat";
