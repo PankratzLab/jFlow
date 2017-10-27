@@ -23,7 +23,7 @@ public class UKBBExtract {
 		byte[] intensBytes = new byte[binBlockSize];
 		float a, b, x, y;
 		double log2 = Math.log(2);
-		int logEvery = numToExtract / 5;
+		int logEvery = Math.max(1, numToExtract / 5);
 		for (int i = markerStart; i < markerStart + numToExtract; i++) {
 			if ((i - markerStart) % logEvery == 0) {
 				System.out.println("Wrote marker " + i);
