@@ -77,11 +77,11 @@ public class BatchEffects {
 													"Batch effect p-values less than this double value will be set to this value.",
 													DEFAULT_PVALUE_TRUNCTATION);
 		cli.addArg("batchFilePath",
-							 "String path to file containing labels in first row, sample identifiers in first column, and batch values in second column.",
-							 true, CLI.Arg.FILE);
+							 "Path to file containing labels in first row, sample identifiers in first column, and batch values in second column.",
+							 true);
 		cli.addArg("factorFilePath",
-							 "String path to file containing labels in first row, sample identifiers in first column, and factor values in subsequent columns.",
-							 true, CLI.Arg.FILE);
+							 "Path to file containing labels in first row, sample identifiers in first column, and factor values in subsequent columns.",
+							 true);
 		cli.parse(args);
 		if (cli.has("batchFilePath") && cli.has("factorFilePath")) {
 			BatchEffectsBuilder builder = new BatchEffectsBuilder(new Logger());
