@@ -3,6 +3,9 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -27,12 +30,86 @@ public class VisualizationProcessor implements SampleProcessor {
 		this.outDir = o;
 	}
 
+	private static String[][] hardcodedAddlImages = {
+																									 {"effector helper Tcells (CD95/CD28)",
+																										"effector helper Tcells (CCR7- CD45RA+)"},
+																									 {"naive helper Tcells (CD95/CD28)",
+																										"naive helper Tcells (CCR7+ CD45RA+)"},
+																									 {"effector memory helper Tcells (CD95/CD28)",
+																										"effector memory helper Tcells (CCR7- CD45RA-)"},
+																									 {"central memory helper Tcells (CD95/CD28)",
+																										"central memory helper Tcells (CCR7+ CD45RA-)"},
+																									 {"effector cytotoxic Tcells (CD95/CD28)",
+																										"effector cytotoxic Tcells  (CCR7-  CD45RA+)"},
+																									 {"naive cytotoxic Tcells (CD95/CD28)",
+																										"naive cytotoxic Tcells (CCR7+ , CD45RA+)"},
+																									 {
+																										"effector memory cytotoxic Tcells (CD95/CD28)",
+																										"effector memory cytotoxic Tcells (CCR7- , CD45RA-)"},
+																									 {
+																										"central memory cytotoxic Tcells (CD95/CD28)",
+																										"central memory cytotoxic Tcells (CCR7+ , CD45RA-)"},
+	};
+
+	static class AddlImage {
+		String xDim;
+		String yDim;
+		String parentName;
+		String name;
+
+		public AddlImage(String x, String y, String p, String n) {
+			this.xDim = x;
+			this.yDim = y;
+			this.parentName = p;
+			this.name = n;
+		}
+	}
+
+	static final Map<String, List<AddlImage>> addlImgs = new HashMap<>();
+
+	{
+		String key;
+		key = "effector helper Tcells (CCR7- CD45RA+)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"effector helper Tcells (CD95/CD28)"));
+		key = "naive helper Tcells (CCR7+ CD45RA+)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"naive helper Tcells (CD95/CD28)"));
+		key = "effector memory helper Tcells (CCR7- CD45RA-)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"effector memory helper Tcells (CD95/CD28)"));
+		key = "central memory helper Tcells (CCR7+ CD45RA-)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"central memory helper Tcells (CD95/CD28)"));
+		key = "effector cytotoxic Tcells  (CCR7-  CD45RA+)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"effector cytotoxic Tcells (CD95/CD28)"));
+		key = "naive cytotoxic Tcells (CCR7+ , CD45RA+)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"naive cytotoxic Tcells (CD95/CD28)"));
+		key = "effector memory cytotoxic Tcells (CCR7- , CD45RA-)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"effector memory cytotoxic Tcells (CD95/CD28)"));
+		key = "central memory cytotoxic Tcells (CCR7+ , CD45RA-)";
+		addlImgs.put(key, new ArrayList<AddlImage>());
+		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+																				"central memory cytotoxic Tcells (CD95/CD28)"));
+	}
+
 	@Override
 	public void processSample(SampleNode sn, Logger log) throws IOException {
 		System.gc();
 		final FCSPlot fcp = new FCSPlot();
 		fcp.getPanel().setColorScheme(new Color[] {Color.BLACK, Color.RED,
 																							 new Color(128, 128, 128, 64)});
+		fcp.getPanel().allowSkip = false;
 
 		long time1 = System.nanoTime();
 		fcp.loadWorkspaceFile(sn.wspFile);
@@ -54,8 +131,24 @@ public class VisualizationProcessor implements SampleProcessor {
 			String outFile = outDir + cleanedName + "/" + cleanedName + "."
 											 + ext.replaceWithLinuxSafeCharacters(g.getName());
 
+
 			if (Files.exists(outFile + ".png")) {
-				continue;
+				if (addlImgs.containsKey(g.getName())) {
+					boolean all = true;
+					for (AddlImage addl : addlImgs.get(g.getName())) {
+						String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+															+ ext.replaceWithLinuxSafeCharacters(addl.name);
+						if (!Files.exists(outFile2 + ".png")) {
+							all = false;
+							break;
+						}
+					}
+					if (all) {
+						continue;
+					}
+				} else {
+					continue;
+				}
 			}
 
 			hasAll = false;
@@ -89,7 +182,6 @@ public class VisualizationProcessor implements SampleProcessor {
 		fcp.getPanel().setLayersInBase(new byte[] {0, 1, 99});
 		fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
 
-		// for (String s : FCSProcessingPipeline.GATE_NAMES) {
 		long time4 = System.nanoTime();
 		ArrayList<String> gateNames = new ArrayList<>();
 		ArrayList<long[]> gateTimes = new ArrayList<>();
@@ -104,14 +196,27 @@ public class VisualizationProcessor implements SampleProcessor {
 											 + ext.replaceWithLinuxSafeCharacters(g.getName());
 
 			if (Files.exists(outFile + ".png")) {
-				continue;
+				if (addlImgs.containsKey(g.getName())) {
+					boolean all = true;
+					for (AddlImage addl : addlImgs.get(g.getName())) {
+						String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+															+ ext.replaceWithLinuxSafeCharacters(addl.name);
+						if (!Files.exists(outFile2 + ".png")) {
+							all = false;
+							break;
+						}
+					}
+					if (all) {
+						continue;
+					}
+				} else {
+					continue;
+				}
 			}
 
 			gateNames.add(s);
 
-			if (g.getParentGate() != null) {
-				fcp.gateSelected(g.getParentGate(), false);
-			}
+			fcp.gateSelected(g.getParentGate(), false);
 			times[0] = System.nanoTime();
 
 			if (g.getXDimension() == null && g.getYDimension() != null) {
@@ -154,6 +259,23 @@ public class VisualizationProcessor implements SampleProcessor {
 			// fcp.getPanel().createImage();
 			// fcp.screencap(outFile + "_prev.png");
 			gateTimes.add(times);
+
+			if (addlImgs.containsKey(g.getName())) {
+				for (AddlImage addl : addlImgs.get(g.getName())) {
+					String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+														+ ext.replaceWithLinuxSafeCharacters(addl.name);
+					if (Files.exists(outFile2 + ".png")) {
+						continue;
+					}
+					fcp.setXDataName(addl.xDim);
+					fcp.setYDataName(addl.yDim);
+					fcp.getPanel().setTitle(addl.name);
+					fcp.getPanel().setForceGatesChanged();
+					fcp.getPanel().createImage();
+					fcp.screencap(outFile2 + ".png");
+				}
+			}
+
 		}
 
 		loader.emptyAndReset();

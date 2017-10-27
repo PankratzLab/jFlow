@@ -327,7 +327,7 @@ public class SamplingPipeline {
 		if (!checkReady() && !filesSampled) {
 			return;
 		}
-		int proc = Runtime.getRuntime().availableProcessors() / 2;
+		int proc = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 		final ThreadPoolExecutor threadPool1 = new ThreadPoolExecutor(
 																																	proc,
 																																	proc,

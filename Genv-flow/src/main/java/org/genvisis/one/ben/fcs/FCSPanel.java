@@ -74,6 +74,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 	volatile boolean forceGatesChanged = false;
 	volatile boolean lackingData = true;
 
+	public boolean allowSkip = true;
+
 	private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_GATE;
 
 	boolean drag = false;
@@ -251,7 +253,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		xCol = newX;
 		yCol = newY;
 
-
 		if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
 			scaleChanged = true;
 		}
@@ -268,9 +269,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		}
 		dataCount = count;
 
-
 		dataChanged = dataChanged || scaleChanged;
-
 
 		PLOT_TYPE plotType = fcp.getPlotType();
 		if (plotType != prevPlotType) {
@@ -287,10 +286,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		showMedSD[2] = mY;
 		showMedSD[3] = sdY;
 
-		gatesChanged = rectangles != null && rectangles.length != rects.size()
-									 || polygons != null && polygons.length != polys.size() || forceGatesChanged;
+		gatesChanged = (rectangles != null && rectangles.length != rects.size())
+									 || (polygons != null && polygons.length != polys.size()) || forceGatesChanged;
 		forceGatesChanged = false;
-
 
 		rectangles = rects.toArray(new GenericRectangle[rects.size()]);
 		polygons = polys.toArray(new GenericPath[polys.size()]);
@@ -303,11 +301,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 		// setForcePlotYMin(0);
 
 		boolean skip = !columnsChangedX && !columnsChangedY && !dataChanged && !optionsChanged
-									 && !gatesChanged
+									 && !gatesChanged;
 		/*
 		 * && ! typeChanged / * don 't need to regen if only type has changed , for now
 		 */;
-		if (skip) {
+		if (skip && allowSkip) {
 			return;
 		}
 
@@ -315,18 +313,22 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 			updateGating();
 		}
 
-		xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) : xData;
-		yData = columnsChangedY || dataChanged || yData == null
-																													 ? isHistogram() ? null
-																																					: fcp.getAxisData(false,
-																																														false)
-																													 : yData;
+		// xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) :
+		// xData;
+		// yData = columnsChangedY || dataChanged || yData == null
+		// ? isHistogram() ? null
+		// : fcp.getAxisData(false,
+		// false)
+		// : yData;
+
+		xData = fcp.getAxisData(true, true);
+		yData = isHistogram() ? null : fcp.getAxisData(true, false);
 
 		if (isHistogram()) {
 			points = new PlotPoint[0];
-			if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) {
-				return;
-			}
+			// if (!columnsChangedX && !dataChanged && histLines != null && histLines.size() > 0) {
+			// return;
+			// }
 
 			double[] minMax = ArrayUtils.minMax(xData);
 			int range = (int) Math.ceil(minMax[1]) - (int) Math.floor(minMax[0]) + 1;
