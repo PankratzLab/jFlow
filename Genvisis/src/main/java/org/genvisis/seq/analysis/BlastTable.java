@@ -20,6 +20,7 @@ import org.genvisis.common.Logger;
  */
 public class BlastTable {
 
+	private final boolean incAllMarkers;
 	private final String targetToken;
 	private final String[] searchTerms;
 	private final Logger logger;
@@ -41,12 +42,14 @@ public class BlastTable {
 	 * @param logger logger to be used for error and log reporting
 	 */
 	public BlastTable(@Nonnull String token, @Nonnull String searchTerms[], @Nonnull String inputFile,
-										@Nonnull String outputFile, @Nonnull Logger logger) {
+										@Nonnull String outputFile, boolean includeAllMarkersInOutput,
+										@Nonnull Logger logger) {
 		this.targetToken = token;
 		this.searchTerms = searchTerms;
 		this.logger = logger;
 		this.inputFile = inputFile;
 		this.outputFile = outputFile;
+		this.incAllMarkers = includeAllMarkersInOutput;
 	}
 
 	/**
@@ -61,6 +64,9 @@ public class BlastTable {
 	 */
 	public static void main(String[] args) throws ParseException, IOException {
 		CLI cli = new CLI("BlastTable");
+		String allMarkersFlag = "am";
+		cli.addFlag(allMarkersFlag, "Include all input markers in the output.",
+								"includeAllMarkersInOutput");
 		String inFile = "inputFile";
 		cli.addArg(inFile, "Path to input blast.vcf file.", true);
 		String outFile = "outputFile";
@@ -73,8 +79,9 @@ public class BlastTable {
 		cli.parse(args);
 		String[] searchTerms = cli.get(delimSearchTerms).split(delim);
 		Logger logger = new Logger();
+		boolean incAllMarkers = (cli.has(allMarkersFlag) ? true : false);
 		BlastTable instance = new BlastTable(cli.get(token), searchTerms, cli.get(inFile),
-																				 cli.get(outFile), logger);
+																				 cli.get(outFile), incAllMarkers, logger);
 		boolean success = instance.createBlastTableFile();
 		if (success) {
 			logger.report("BlastTable completed successfully.");
@@ -153,20 +160,21 @@ public class BlastTable {
 							if (tokenValue.contains(searchTerms[i])) {
 								outputValues[MARKER_COLUMNS_TO_INCLUDE.length + i] = token;
 								includeSample = true;
-							} else {
-								outputValues[MARKER_COLUMNS_TO_INCLUDE.length + i] = ".";
 							}
 						}
-						if (includeSample) {
+						if (includeSample || incAllMarkers) {
 							// transfer desired marker data to output
 							for (int i = 0; i < MARKER_COLUMNS_TO_INCLUDE.length; i++) {
 								String currentColumnLabel = MARKER_COLUMNS_TO_INCLUDE[i];
 								outputValues[i] = columnData[mapOfLabelToColumnNumber.get(currentColumnLabel)];
 							}
+							for (int i = 0; i < searchTerms.length; i++) { // add period to empty array indices
+								if (outputValues[MARKER_COLUMNS_TO_INCLUDE.length + i] == null) {
+									outputValues[MARKER_COLUMNS_TO_INCLUDE.length + i] = ".";
+								}
+							}
 							writer.println(String.join("\t", outputValues));
 						}
-					} else {
-						throw new BlastTableException("Canceled blast table creation - expected token was not found for every marker in blast.vcf file.");
 					}
 				}
 			}
