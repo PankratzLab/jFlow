@@ -6,7 +6,7 @@ package org.genvisis.seq.manage.mtdna;
 import org.genvisis.common.Logger;
 import org.junit.Test;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Kitty
@@ -28,12 +28,12 @@ public class TestRCRS {
 	@Test
 	public void rcrsTest() {
 		RCRS rcrs = RCRS.getRCRS(new Logger());
-		Assert.assertEquals(NAME, rcrs.getRcrsRef().getName());
-		Assert.assertEquals(LENGTH, rcrs.getRcrsRef().length());
-		Assert.assertEquals(LENGTH, rcrs.getBases().length);
-		Assert.assertEquals(BP_750, rcrs.getBases()[750]);
-		Assert.assertEquals(BP_1018, rcrs.getBases()[1018]);
-		Assert.assertEquals(BP_13506, rcrs.getBases()[13506]);
+		assertEquals(NAME, rcrs.getRcrsRef().getName());
+		assertEquals(LENGTH, rcrs.getRcrsRef().length());
+		assertEquals(LENGTH, rcrs.getBases().length);
+		assertEquals(BP_750, rcrs.getBases()[750]);
+		assertEquals(BP_1018, rcrs.getBases()[1018]);
+		assertEquals(BP_13506, rcrs.getBases()[13506]);
 	}
 
 }
