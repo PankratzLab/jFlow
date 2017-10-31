@@ -1,7 +1,5 @@
 package org.genvisis.seq.analysis;
 
-import htsjdk.tribble.annotation.Strand;
-
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
@@ -20,6 +18,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.Histogram.DynamicHistogram;
+
+import htsjdk.tribble.annotation.Strand;
 
 public class Blast {
 	public static final String[] DB_EXTs = new String[] {".nsq", ".nin", ".nhr"};
@@ -118,9 +118,9 @@ public class Blast {
 				String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
 																				 OUT_FMT, DEFAULT_OUT_FMT + " std"
 																									+ (taxonMode ? " staxids" : " btop"),
-																				 WORD_SIZE, blastWordSize + "",
-																				 evalue != DEFAULT_EVALUE ? E : "",
-																				 evalue != DEFAULT_EVALUE ? evalue + "" : ""};
+																				 WORD_SIZE, Integer.toString(blastWordSize),
+																				 E,
+																				 Double.toString(evalue)};
 				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
 				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
 				builder.STIN(fStream);
