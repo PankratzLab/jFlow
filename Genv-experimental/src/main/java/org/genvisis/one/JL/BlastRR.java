@@ -15,7 +15,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastResults;
-import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
 import org.genvisis.seq.analysis.Blast.FastaEntry;
 import org.genvisis.seq.manage.ReferenceGenome;
 
@@ -26,14 +25,14 @@ import htsjdk.samtools.SAMSequenceRecord;
  * Testing trimmed down blast
  *
  */
-class BlastRR {
+public class BlastRR {
 
 	public static void main(String[] args) {
 
 		// where tmp file will end up
 		String outDir = args[0];
 
-		int segmentSize = 100;
+		int segmentSize = 1000;
 		int stepSize = 100;
 
 		new File(outDir).mkdirs();
@@ -56,36 +55,20 @@ class BlastRR {
 			Blast blast = new Blast(rg.getReferenceFasta(), 50, 50, logger, false, false);
 			blast.setEvalue(10000);
 
-			// Previously, without blast.setEvalue(XXXX) set, we get
-
-			// [Genvisis 0.0.0-unknown] 12:09:10PM Error - Error: Too many
-			// positional arguments (1), the offending value:
-			// [Genvisis 0.0.0-unknown] 12:09:10PM Error - Error:
-			// (CArgException::eSynopsis) Too many positional arguments (1), the
-			// offending value:
-			// [Genvisis 0.0.0-unknown] 12:09:10PM Error - Irregular termination
-			// in process: blastn -db
-			// /Users/Kitty/.genvisis/resources/Genome/hg19/hg19.fa -outfmt 7
-			// std btop -word_size 50 | java.lang.UNIXProcess@7c53a9eb
-			// [Genvisis 0.0.0-unknown] 12:09:10PM Error - Unsuccessful
-			// termination as indication by non-zero result code from "blastn"
-			// program. Please investigate and try again. If this error
-			// persists, or if you believe a non-zero response code from
-			// "blastn" is not irregular, please contact the Genvisis
-			// developers.
-
 			String tmpFile = outDir + record.getSequenceName() + ".blast.tmp.gz";
 			PrintWriter tmpWriter = Files.getAppropriateWriter(tmpFile);
 			FastaEntry[] fastaArray = fastaList.toArray(new FastaEntry[fastaList.size()]);
-			BlastResultsSummary[] blasts = blast.blastSequence(fastaArray, tmpWriter);
+
+			blast.blastSequence(fastaArray, tmpWriter);
 			tmpWriter.close();
 
 			try {
 				BufferedReader reader = Files.getAppropriateReader(tmpFile);
 				while (reader.ready()) {
 					BlastResults blastResults = new BlastResults(reader.readLine().trim().split("\t"), logger);
-					System.out.println(blastResults.getBtop());
-					// if(!blastResults.)
+					System.out.println(blastResults.getQueryID() + " matched to " + blastResults.getSubjectID()
+							+ " start=" + blastResults.getSstart() + " stop=" + blastResults.getSstop());
+
 				}
 
 				reader.close();
