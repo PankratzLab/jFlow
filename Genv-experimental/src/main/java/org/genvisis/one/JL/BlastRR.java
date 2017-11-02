@@ -1,17 +1,14 @@
 package org.genvisis.one.JL;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
+import org.genvisis.common.CmdLineProcess;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastResults;
@@ -22,7 +19,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
 /**
- * Testing trimmed down blast
+ * Testing trimmed down blast - that does not rely on intermediate files
  *
  */
 public class BlastRR {
@@ -32,14 +29,13 @@ public class BlastRR {
 		// where tmp file will end up
 		String outDir = args[0];
 
-		int segmentSize = 1000;
-		int stepSize = 100;
+		int segmentSize = 10000;
+		int stepSize = 10000;
 
 		new File(outDir).mkdirs();
 		Logger logger = new Logger();
 		ReferenceGenome rg = new ReferenceGenome(GENOME_BUILD.HG19, logger);
 		SAMSequenceDictionary samSequenceDictionary = rg.getDictionary();
-
 		for (SAMSequenceRecord record : samSequenceDictionary.getSequences()) {
 			int chrLength = record.getSequenceLength();
 			List<FastaEntry> fastaList = new LinkedList<>();
@@ -52,31 +48,32 @@ public class BlastRR {
 					fastaList.add(new FastaEntry(record.getSequenceName() + "_" + start + "_" + stop, sequence));
 				}
 			}
-			Blast blast = new Blast(rg.getReferenceFasta(), 50, 50, logger, false, false);
+			logger.reportTimeInfo("Blasting " + fastaList.size() + " entries from contig " + record.getSequenceName());
+			Blast blast = new Blast(rg.getReferenceFasta(), 500, 500, logger, false, false);
 			blast.setEvalue(10000);
 
-			String tmpFile = outDir + record.getSequenceName() + ".blast.tmp.gz";
-			PrintWriter tmpWriter = Files.getAppropriateWriter(tmpFile);
 			FastaEntry[] fastaArray = fastaList.toArray(new FastaEntry[fastaList.size()]);
 
-			blast.blastSequence(fastaArray, tmpWriter);
-			tmpWriter.close();
+			CmdLineProcess cmdLineProcess = blast.getCmdLineProcess(fastaArray);
+			int numRecords = 0;
+			while (cmdLineProcess.hasNext()) {
+				String line = cmdLineProcess.next();
 
-			try {
-				BufferedReader reader = Files.getAppropriateReader(tmpFile);
-				while (reader.ready()) {
-					BlastResults blastResults = new BlastResults(reader.readLine().trim().split("\t"), logger);
-					System.out.println(blastResults.getQueryID() + " matched to " + blastResults.getSubjectID()
+				if (!line.startsWith("#")) {
+					numRecords++;
+					logger.reportTimeInfo("blast has returned " + numRecords + " matches for queries from "
+							+ record.getSequenceName());
+					String[] result = line.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+					BlastResults blastResults = new BlastResults(result, logger);
+					logger.reportTimeInfo(blastResults.getQueryID() + " matched to " + blastResults.getSubjectID()
 							+ " start=" + blastResults.getSstart() + " stop=" + blastResults.getSstop());
-
 				}
-
-				reader.close();
-			} catch (FileNotFoundException e) {
-				logger.reportException(e);
-			} catch (IOException e) {
-				logger.reportException(e);
-
+			}
+			boolean error = cmdLineProcess.waitFor();
+			if (error) {
+				logger.reportError(
+						"Unsuccessful termination as indication by non-zero result code from \"blastn\" program.  Please investigate and try again.  "
+								+ "If this error persists, or if you believe a non-zero response code from \"blastn\" is not irregular, please contact the Genvisis developers.");
 			}
 
 		}

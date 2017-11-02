@@ -115,21 +115,7 @@ public class Blast {
 
 		if (!Files.isWindows()) {
 			if (!fail) {
-				String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
-																				 OUT_FMT, DEFAULT_OUT_FMT + " std"
-																									+ (taxonMode ? " staxids" : " btop"),
-																				 WORD_SIZE, Integer.toString(blastWordSize),
-																				 E,
-																				 Double.toString(evalue)};
-				FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
-				CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
-				builder.STIN(fStream);
-				builder.inputMode(INPUT_Mode.STIN);
-				builder.outputMode(OUTPUT_Mode.STOUT_CAPTURE_ITERATOR);
-				builder.errorMode(ERR_Mode.STERR_CAPTURE_BY_LOG);
-				builder.log(log);
-				builder.verbose(verbose);
-				CmdLineProcess cmdLineProcess = builder.build(command);
+				CmdLineProcess cmdLineProcess = getCmdLineProcess(fastaEntries);
 				for (int i = 0; i < bSummaries.length; i++) {
 					bSummaries[i] = new BlastResultsSummary(fastaEntries[i].getName(), taxonMode,
 																									reportWordSize);
@@ -168,6 +154,26 @@ public class Blast {
 			log.reportError("This command can only be used on *.nix systems, apologies");
 		}
 		return bSummaries;
+	}
+
+
+	public CmdLineProcess getCmdLineProcess(FastaEntry[] fastaEntries) {
+		String[] command = new String[] {BLAST_COMMANDS.BLASTN.getCommand(), DB, fastaDb,
+																		 OUT_FMT, DEFAULT_OUT_FMT + " std"
+																							+ (taxonMode ? " staxids" : " btop"),
+																		 WORD_SIZE, Integer.toString(blastWordSize),
+																		 E,
+																		 Double.toString(evalue)};
+		FastaEntryInputStream fStream = new FastaEntryInputStream(fastaEntries, log);
+		CmdLineProcess.Builder builder = new CmdLineProcess.Builder();
+		builder.STIN(fStream);
+		builder.inputMode(INPUT_Mode.STIN);
+		builder.outputMode(OUTPUT_Mode.STOUT_CAPTURE_ITERATOR);
+		builder.errorMode(ERR_Mode.STERR_CAPTURE_BY_LOG);
+		builder.log(log);
+		builder.verbose(verbose);
+		CmdLineProcess cmdLineProcess = builder.build(command);
+		return cmdLineProcess;
 	}
 
 	public static boolean initDb(BLAST_DB_TYPE type, String fastaDb, Logger log) {
