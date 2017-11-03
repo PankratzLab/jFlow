@@ -118,8 +118,10 @@ public final class ResultsPackager2 {
 			if (trim) {
 				line = line.trim();
 			}
-			writer.println(ArrayUtils.toStr(resultLineParser.parseInputLine(line.split(inputDelim)),
-																			resultLineParser.getOutputDelim()));
+			String[] result = resultLineParser.parseInputLine(line.split(inputDelim));
+			if (result != null) {
+				writer.println(ArrayUtils.toStr(result, resultLineParser.getOutputDelim()));
+			}
 		}
 		writer.flush();
 		log.reportTimeElapsed("Parsed file in ", t1);
