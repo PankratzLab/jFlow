@@ -1,7 +1,25 @@
 package org.genvisis.bgen;
 
 
-final class BGENBitMath {
+public final class BGENBitMath {
+
+	/**
+	 * Turn an array of byte values into a float without using ByteBuffers
+	 * 
+	 * @param littleEndian Endian order of the given byte array
+	 * @param bytes array of four (4) bytes
+	 * @return float
+	 * @throws IllegalArgumentException if the given array is not of length 4
+	 */
+	public static float bytesToFloat(boolean littleEndian, byte[] bytes) {
+		if (bytes.length != 4) {
+			throw new IllegalArgumentException("Given array must contain 4 bytes total.");
+		}
+		return Float.intBitsToFloat(bytes[littleEndian ? 3 : 0] << 24
+																| (bytes[littleEndian ? 2 : 1] & 0xFF) << 16
+																| (bytes[littleEndian ? 1 : 2] & 0xFF) << 8
+																| (bytes[littleEndian ? 0 : 3] & 0xFF));
+	}
 
 	/**
 	 * Turn an array of byte values (expected to be bit value flags) into an integer by bitwise-OR-ing

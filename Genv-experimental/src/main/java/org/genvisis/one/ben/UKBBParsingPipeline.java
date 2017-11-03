@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -30,6 +28,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.iterators.ArrayIterator;
 import org.genvisis.CLI;
+import org.genvisis.bgen.BGENBitMath;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -742,7 +741,7 @@ public class UKBBParsingPipeline {
 		int markerBlockSize = nInd * bytesPerSamp;
 		byte[] mkrBuff;
 		String[] parts;
-		double log2 = Math.log(2);
+		// double log2 = Math.log(2);
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			markerLogger.logMarker(fs.chr, startBatchInd, mkrNames.length, i);
 
@@ -770,16 +769,24 @@ public class UKBBParsingPipeline {
 			frs.binIn.seek(((long) i) * ((long) binBlockSize));
 			frs.binIn.read(intensBytes);
 
-			float a, b, x, y;
+			float /* a, b, */x, y;
 			boolean oor;
+			byte[] intA = new byte[4];
+			byte[] intB = new byte[4];
 			for (int bitInd = 0, binInd = 0; bitInd < nInd; bitInd++) {
-				byte[] intA = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
-				byte[] intB = {intensBytes[binInd++], intensBytes[binInd++], intensBytes[binInd++],
-											 intensBytes[binInd++]};
+				intA[0] = intensBytes[binInd++];
+				intA[1] = intensBytes[binInd++];
+				intA[2] = intensBytes[binInd++];
+				intA[3] = intensBytes[binInd++];
+				intB[0] = intensBytes[binInd++];
+				intB[1] = intensBytes[binInd++];
+				intB[2] = intensBytes[binInd++];
+				intB[3] = intensBytes[binInd++];
 
-				x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-				y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				x = BGENBitMath.bytesToFloat(true, intA);
+				y = BGENBitMath.bytesToFloat(true, intB);
+				// x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+				// y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 
 				x = (float) (x / scaleFactor);
 				y = (float) (y / scaleFactor);
