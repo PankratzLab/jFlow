@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -534,6 +535,29 @@ public class FlowAnnotator {
 		mntmNavOptLbl.setEnabled(false);
 		mntmNavOptLbl.setText("Other Options:");
 		mnNav.add(mntmNavOptLbl);
+
+		JMenuItem mntmNavFind = new JMenuItem();
+		mntmNavFind.setAction(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PANEL p = FlowAnnotator.this.rdBtnPanel1.isSelected() ? PANEL.PANEL_1 : PANEL.PANEL_2;
+				List<String> fcs = annotator.getFCSKeys(p);
+				if (fcs.isEmpty()) {
+					JOptionPane.showMessageDialog(FlowAnnotator.this.frmFlowannotator,
+																				"No files to search in panel "
+																						+ (p == PANEL.PANEL_1 ? "1" : "2") + "!");
+					return;
+				}
+				String[] v = fcs.toArray(new String[fcs.size()]);
+				List<String> sel = FileFinder.showFileFinder(v, false);
+				if (!sel.isEmpty()) {
+					fcsCombo.setSelectedItem(sel.get(0));
+				}
+			}
+		});
+		mntmNavFind.setMnemonic('F');
+		mntmNavFind.setText("Find Sample");
+		mnNav.add(mntmNavFind);
 
 		JCheckBoxMenuItem mntmNavKeepGate = new JCheckBoxMenuItem();
 		mntmNavKeepGate.setAction(new AbstractAction() {
