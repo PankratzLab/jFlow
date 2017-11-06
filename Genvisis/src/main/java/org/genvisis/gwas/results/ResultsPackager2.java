@@ -83,6 +83,7 @@ public final class ResultsPackager2 {
 			}
 			inputDelim = ext.determineDelimiter(line);
 			header = line.split(inputDelim);
+			break;
 		}
 		resultLineParser.setInputHeader(header);
 	}
