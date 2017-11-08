@@ -2,13 +2,11 @@
 package org.genvisis.cnv.plots;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -33,7 +31,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		getContentPane().add(qqPlot.getQqPanel(), BorderLayout.CENTER);
 
-		UITools.setSize(this, new Dimension(1000, 720));
+		// UITools.setSize(this, new Dimension(1000, 720));
 		setVisible(true);
 	}
 
@@ -65,6 +63,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 		if (qqPlot == null) {
 			return;
 		}
+		log.report("P-values loaded!");
 		new QQPlotFrame(plotLabel, qqPlot);
 	}
 
@@ -85,14 +84,20 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 		String logfile = null;
 		String outFile = null;
 
-		String usage = "\n" + "plot.QQPlot requires 0-1 arguments\n"
+		String usage = "\n"
+									 + "plot.QQPlot requires 0-1 arguments\n"
 									 + "   (1) name of files with p-values (i.e. files="
-									 + ArrayUtils.toStr(filenames, ";") + " (default))\n"
+									 + ArrayUtils.toStr(filenames, ";")
+									 + " (default))\n"
 									 + "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
 									 + "   (3) make symmetric (i.e. -symmetric (not the default))\n"
-									 + "   (4) name of plot, for frame (i.e. plotLabel=" + plotLabel + " (default))\n"
+									 + "   (4) name of plot, for frame (i.e. plotLabel="
+									 + plotLabel
+									 + " (default))\n"
 									 + "   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"
-									 + "   (6) (optional) log file (i.e. log=" + logfile + " (default))\n"
+									 + "   (6) (optional) log file (i.e. log="
+									 + logfile
+									 + " (default))\n"
 									 + "   (7) (optional) file to export image to instead of displaying (i.e. outFile="
 									 + outFile + " (default))\n" + "";
 

@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
@@ -13,7 +11,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 
-public class QQPanel extends AbstractPanel implements ComponentListener {
+public class QQPanel extends AbstractPanel {
 	public static final long serialVersionUID = 1L;
 
 	protected static final Font DESCR_FONT = new Font("Arial", 0, 20);
@@ -126,6 +124,9 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 		int count;
 		int max;
 
+		if (lines != null && points != null) {
+			return;
+		}
 		lines = new GenericLine[1];
 		max = 0;
 		for (double[] pval : pvals) {
@@ -159,10 +160,10 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 																																 / pvals[i].length)),
 																				Math.min(maxValue,
 																								 (float) (-1 * Math.log10(pvals[i][j]))
-																													 - (float) (-1 * Math.log10(
-																																											((double) keys[j]
-																																											 + 1)
-																																											/ pvals[i].length))),
+																										 - (float) (-1 * Math.log10(
+																																				 ((double) keys[j]
+																																						 + 1)
+																																						 / pvals[i].length))),
 																				(byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
 				} else if (log10) {
 					points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
@@ -180,38 +181,6 @@ public class QQPanel extends AbstractPanel implements ComponentListener {
 			}
 		}
 	}
-
-	@Override
-	public void componentHidden(ComponentEvent e) {}
-
-	@Override
-	public void componentMoved(ComponentEvent e) {}
-
-	@Override
-	public void componentResized(ComponentEvent e) {
-		int w = (int) e.getComponent().getSize().getWidth();
-		int h = (int) e.getComponent().getSize().getHeight();
-		if (trackedW == -1 || trackedH == -1) {
-			setTrackedSize(w, h);
-			return;
-		}
-		if (w != trackedW || h != trackedH) {
-			setTrackedSize(w, h);
-			super.componentResized(e);
-		}
-	}
-
-	private volatile int trackedW = -1;
-	private volatile int trackedH = -1;
-
-	@Override
-	public void setTrackedSize(int w, int h) {
-		trackedW = w;
-		trackedH = h;
-	}
-
-	@Override
-	public void componentShown(ComponentEvent e) {}
 
 	public static void main(String[] args) {
 		QQPlot.main(new String[] {});
