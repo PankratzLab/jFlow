@@ -91,7 +91,7 @@ public class EmimPipeline {
 		for (String s : popData.idsIndexMap.keySet()) {
 			if (popData.inclArr[pop][popData.idsIndexMap.get(s)]) {
 				if (subPopData == null || (subPopData.idsIndexMap.containsKey(s)
-																	 && subPopData.inclArr[subPop][subPopData.idsIndexMap.get(s)])) {
+						&& subPopData.inclArr[subPop][subPopData.idsIndexMap.get(s)])) {
 					writer.println(s);
 				}
 			}
@@ -186,7 +186,8 @@ public class EmimPipeline {
 						|| !Files.exists(plinkRoot + ".fam")) {
 					log.reportTimeInfo("Exporting cnv files for root " + plinkRoot + " to PLINK files...");
 					ExportCNVsToPedFormat.export(cnvFile, pedFile, runDir + cnvRoot, "\r\n",
-																			 ExportCNVsToPedFormat.PLINK_BINARY_FORMAT, true, true, false,
+																			 ExportCNVsToPedFormat.PLINK_BINARY_FORMAT, true, true,
+																			 false,
 																			 false, false, false, Integer.MAX_VALUE, 0, log);
 				}
 				if (!Files.exists(plinkRoot + ".bim") || !Files.exists(plinkRoot + ".bed")
@@ -237,7 +238,8 @@ public class EmimPipeline {
 				String resultFile = plinkRoot;
 
 				log.reportTimeInfo("Generating EMIM files for PLINK root " + plinkRoot + "...");
-				String pbsFile = Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, "../" + plinkRoot, "GEN",
+				String pbsFile = Emim.scriptAllInDir(runDir + plinkDir, plinkRoot, "../" + plinkRoot,
+																						 "GEN",
 																						 null, riskAlleleFile, pThreshold, models,
 																						 phaseWithShapeit, resultFile, log);
 				if (pbsFile != null) {
@@ -451,10 +453,12 @@ public class EmimPipeline {
 												 subPopData.pops[sP], thresh, first, log);
 					}
 
-					generateQQPlots(subPopResultFiles, qqHeaders,
+					generateQQPlots(subPopResultFiles,
+													qqHeaders,
 													getResultsDirectory(finalDir, fileroot, popData.pops[p]),
-													fileroot + "_subpopulations_of_" + ext.replaceWithLinuxSafeCharacters(popData.pops[p],
-																																																true),
+													fileroot + "_subpopulations_of_"
+															+ ext.replaceWithLinuxSafeCharacters(popData.pops[p],
+																																	 true),
 													model, log);
 				}
 
@@ -493,7 +497,8 @@ public class EmimPipeline {
 				modelLabel = "";
 			}
 			String label = baseName + "_" + modelLabel + headers[i];
-			QQPlot qqPlot = QQPlot.loadPvals(resultFilesWithCols[i], label, false, true, false, -1, false,
+			QQPlot qqPlot = QQPlot.loadPvals(resultFilesWithCols[i], label, false, true, false, -1, -1,
+																			 false,
 																			 Float.MAX_VALUE, log);
 			qqPlot.screenCap(baseDir + label + "_QQPlot.png");
 		}
@@ -533,8 +538,10 @@ public class EmimPipeline {
 						continue;
 					}
 					String[][] resultFiles = new String[subPopData.pops.length + 1][];
-					resultFiles[subPopData.pops.length] = new String[] {".",
-																															getResultsFilename(finalDir, fileRoot,
+					resultFiles[subPopData.pops.length] = new String[] {
+																															".",
+																															getResultsFilename(finalDir,
+																																								 fileRoot,
 																																								 popData.pops[p],
 																																								 model)};
 					for (int sP = 0; sP < subPopData.pops.length; sP++) {
@@ -545,22 +552,32 @@ public class EmimPipeline {
 					String forestParameterFile = getResultsDirectory(finalDir, fileRoot, popData.pops[p])
 																			 + ext.replaceWithLinuxSafeCharacters(popData.pops[p], true)
 																			 + "_forestplot_" + model.toString() + ".xln";
-					ResultsPackager.getForestPlotParameterFile(resultFiles, forestMarkers, "MarkerName",
+					ResultsPackager.getForestPlotParameterFile(resultFiles,
+																										 forestMarkers,
+																										 "MarkerName",
 																										 new String[] {"TDT", "EMIM Child Effect",
 																																	 "EMIM Maternal Effect",
 																																	 "EMIM Maternal POO Effect",
 																																	 "EMIM Paternal POO Effect"},
-																										 new String[][] {{"tdt_OR", "tdt_U95", "tdt_P"},
-																																		 {"C_lnR1", "C_se_lnR1",
-																																			"pVal_C_df" + model.getDegreesOfFreedom()},
-																																		 {"M_lnS1", "M_se_lnS1",
-																																			"pVal_M_df" + model.getDegreesOfFreedom(),
-																																			"pVal_CM-C_df" + model.getDegreesOfFreedom()},
+																										 new String[][] {
+																																		 {"tdt_OR", "tdt_U95", "tdt_P"},
+																																		 {
+																																			"C_lnR1",
+																																			"C_se_lnR1",
+																																			"pVal_C_df"
+																																					+ model.getDegreesOfFreedom()},
+																																		 {
+																																			"M_lnS1",
+																																			"M_se_lnS1",
+																																			"pVal_M_df"
+																																					+ model.getDegreesOfFreedom(),
+																																			"pVal_CM-C_df"
+																																					+ model.getDegreesOfFreedom()},
 																																		 {"POO_lnIm", "POO_se_lnIm",
 																																			"pVal_Im_df1"},
 																																		 {"POO_lnIp", "POO_se_lnIp",
 																																			"pVal_Ip_df1"}},
-																										 new String[][] {{"", "", "p"}, {"", "", "p"},
+																										 new String[][] { {"", "", "p"}, {"", "", "p"},
 																																		 {"", "", "p",
 																																			"removing Child Effect p"},
 																																		 {"", "", "p"}, {"", "", "p"}},
@@ -642,19 +659,27 @@ public class EmimPipeline {
 		String forestMarkers = "./gwasHits.txt";
 
 		String usage = "\n" + "gwas.EmimPipeline requires 2-8 arguments\n"
-									 + "   (1) run directory (i.e. dir=" + runDir + " (default))\n"
+									 + "   (1) run directory (i.e. dir="
+									 + runDir
+									 + " (default))\n"
 									 + " AND\n"
 									 + "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n"
 									 + " AND/OR \n"
 									 + "   (2b) PLINK fileroots (i.e. plink=plink1,plink2 (not the default))\n"
 									 + " AND\n"
-									 + "   (3) population file (i.e. pop=" + popFile + " (default))\n"
-									 + " AND\n" +
-									 "   (4) subpopulation file (i.e. subPop=" + subPopFile + " (default))\n"
+									 + "   (3) population file (i.e. pop="
+									 + popFile
+									 + " (default))\n"
+									 + " AND\n"
+									 +
+									 "   (4) subpopulation file (i.e. subPop="
+									 + subPopFile
+									 + " (default))\n"
 									 + " AND\n"
 									 + "   (5) desired risk allele file (i.e. riskAlleles=forceRiskAllele.txt (not the default))\n"
 									 + " AND\n"
-									 + "   (6) p-value threshold to filter on (i.e. pThreshold=" + pThreshold
+									 + "   (6) p-value threshold to filter on (i.e. pThreshold="
+									 + pThreshold
 									 + " (default))\n"
 									 + " AND, if desired (though the script to run this will be created automatically)\n"
 									 + "   (7) -process flag to consolidate results after PBS files have completed (i.e. -process (not the default))\n"

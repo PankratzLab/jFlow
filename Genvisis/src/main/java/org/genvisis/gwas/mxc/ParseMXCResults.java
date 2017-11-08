@@ -288,7 +288,7 @@ public class ParseMXCResults {
 		String a2 = header[index[2]];
 		String effect = " --beta_column " + header[index[3]]
 										+ (index[5] == -1 ? " --se_column " + header[index[4]]
-																			: " --pvalue_column " + header[index[5]]);
+																		 : " --pvalue_column " + header[index[5]]);
 
 		// build mxc command
 		String command = "./" + py
@@ -321,6 +321,7 @@ public class ParseMXCResults {
 		try {
 			QQPlot qq = new QQPlot(new String[] {ext.rootOf(filename)},
 														 new double[][] {ArrayUtils.toDoubleArray(data)},
+														 new boolean[][] {ArrayUtils.booleanArray(data.length, true)},
 														 true, false, false, Float.MAX_VALUE, log);
 			qq.screenCap(ext.addToRoot(out, "_qq"));
 		} catch (Exception e) {

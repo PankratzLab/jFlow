@@ -90,12 +90,14 @@ public class QQPlot {
 	 * @param maxValue maximum -log10 pval to display
 	 * @param log
 	 */
-	public QQPlot(String[] labels, double[][] pvals, boolean log10, boolean rotated,
+	public QQPlot(String[] labels, double[][] pvals, boolean[][] pvalsToUseForLambdaCalc,
+								boolean log10, boolean rotated,
 								boolean symmetric, float maxValue, Logger log) {
 		this.log = log;
 		log.report("Loading data for " + ext.listWithCommas(labels));
 
-		qqPanel = new QQPanel(labels, pvals, log10, rotated, maxValue, COLOR_SCHEME, log);
+		qqPanel = new QQPanel(labels, pvals, pvalsToUseForLambdaCalc, log10, rotated, maxValue,
+													COLOR_SCHEME, log);
 		qqPanel.setSymmetricAxes(symmetric);
 		if (!log10) {
 			qqPanel.setForcePlotXmax(1);
@@ -138,14 +140,19 @@ public class QQPlot {
 	 */
 	public static QQPlot loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
 																 boolean displayStandardQQ, boolean displayRotatedQQ,
-																 double maxToPlot, boolean symmetric, float maxValue, Logger log) {
+																 double maxToPlot, double mafLwrBnd, boolean symmetric,
+																 float maxValue, Logger log) {
 		BufferedReader reader;
 		String[] labels;
 		double[][] pvals;
+		boolean[][] usePvalForLambda;
 		int count;
+		String fullLine;
+		String[] lineParts;
 		String trav;
 		boolean error, header;
 		int[] cols;
+		int[] mafCols;
 		double minPval;
 		String delimiter;
 		String temp;
@@ -166,7 +173,10 @@ public class QQPlot {
 		error = false;
 		labels = new String[filenames.length];
 		pvals = new double[filenames.length][];
+		usePvalForLambda = new boolean[filenames.length][];
 		cols = ArrayUtils.intArray(filenames.length, 0);
+		mafCols = ArrayUtils.intArray(filenames.length, -1);
+
 		for (int i = 0; i < filenames.length; i++) {
 			if (filenames[i].indexOf("=") > 0) {
 				labels[i] = filenames[i].substring(filenames[i].lastIndexOf("=") + 1);
@@ -176,9 +186,25 @@ public class QQPlot {
 			}
 			if (filenames[i].indexOf(",") > 0) {
 				try {
-					cols[i] = Integer.parseInt(filenames[i].substring(filenames[i].lastIndexOf(",") + 1));
-					filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
-					labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
+					String[] inds = filenames[i].substring(filenames[i].indexOf(',') + 1).split(",");
+					if (inds.length == 1) {
+						cols[i] = Integer.parseInt(inds[0]);
+						filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
+						labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
+						String[] v = Files.getHeaderOfFile(filenames[i], log);
+						int[] poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
+						for (int p : poss) {
+							if (p >= 0) {
+								mafCols[i] = p;
+								break;
+							}
+						}
+					} else if (inds.length == 2) {
+						cols[i] = Integer.parseInt(inds[0]);
+						mafCols[i] = Integer.parseInt(inds[1]);
+						filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
+						labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
+					}
 				} catch (Exception e) {
 				}
 			} else {
@@ -188,6 +214,13 @@ public class QQPlot {
 					if (p >= 0) {
 						cols[i] = p;
 						labels[i] += " '" + v[cols[i]] + "'";
+						break;
+					}
+				}
+				poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
+				for (int p : poss) {
+					if (p >= 0) {
+						mafCols[i] = p;
 						break;
 					}
 				}
@@ -269,16 +302,19 @@ public class QQPlot {
 
 				reader = Files.getReader(filenames[i], true, true);
 				pvals[i] = new double[count];
+				usePvalForLambda[i] = ArrayUtils.booleanArray(count, true);
 				count = 0;
 				if (header) {
 					reader.readLine();
 				}
 				while (reader.ready()) {
+					fullLine = reader.readLine();
 					if (delimiter.equals(",")) {
-						trav = ext.splitCommasIntelligently(reader.readLine(), true, log)[cols[i]];
+						lineParts = ext.splitCommasIntelligently(fullLine, true, log);
 					} else {
-						trav = reader.readLine().trim().split(delimiter, -1)[cols[i]];
+						lineParts = fullLine.trim().split(delimiter, -1);
 					}
+					trav = lineParts[cols[i]];
 					if (!ext.isMissingValue(trav)) {
 						try {
 							pvals[i][count] = Double.parseDouble(trav);
@@ -286,10 +322,20 @@ public class QQPlot {
 								if (pvals[i][count] < minPval) {
 									pvals[i][count] = minPval;
 								}
-								count++;
 							}
 						} catch (NumberFormatException nfe) {
 						}
+						if (mafCols[i] >= 0) {
+							trav = lineParts[mafCols[i]];
+							if (!ext.isMissingValue(trav)) {
+								try {
+									usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
+								} catch (NumberFormatException nfe) {
+									usePvalForLambda[i][count] = false;
+								}
+							}
+						}
+						count++;
 					}
 				}
 				reader.close();
@@ -314,13 +360,13 @@ public class QQPlot {
 		}
 
 		if (displayQuantiles) {
-			return new QQPlot(labels, pvals, false, false, false, maxValue, log);
+			return new QQPlot(labels, pvals, usePvalForLambda, false, false, false, maxValue, log);
 		}
 		if (displayStandardQQ) {
-			return new QQPlot(labels, pvals, true, false, symmetric, maxValue, log);
+			return new QQPlot(labels, pvals, usePvalForLambda, true, false, symmetric, maxValue, log);
 		}
 		if (displayRotatedQQ) {
-			return new QQPlot(labels, pvals, true, true, false, maxValue, log);
+			return new QQPlot(labels, pvals, usePvalForLambda, true, true, false, maxValue, log);
 		}
 		return null;
 	}

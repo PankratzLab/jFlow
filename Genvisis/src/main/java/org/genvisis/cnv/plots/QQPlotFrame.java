@@ -57,9 +57,11 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 	 */
 	public static void loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
 															 boolean displayStandardQQ, boolean displayRotatedQQ,
-															 double maxToPlot, boolean symmetric, float maxValue, Logger log) {
+															 double maxToPlot, double mafLwrBnd, boolean symmetric,
+															 float maxValue, Logger log) {
 		QQPlot qqPlot = QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
-																		 displayRotatedQQ, maxToPlot, symmetric, maxValue, log);
+																		 displayRotatedQQ, maxToPlot, mafLwrBnd, symmetric, maxValue,
+																		 log);
 		if (qqPlot == null) {
 			return;
 		}
@@ -78,6 +80,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 		boolean displayStandardQQ = true;
 		boolean displayRotatedQQ = false;
 		double maxToPlot = -1;
+		double mafLower = -1;
 		boolean symmetric = false;
 		String plotLabel = "Q-Q Plot";
 		float maxValue = Float.MAX_VALUE;
@@ -86,7 +89,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		String usage = "\n"
 									 + "plot.QQPlot requires 0-1 arguments\n"
-									 + "   (1) name of files with p-values - a semicolon-delimited list with p-value column index added after each file separated by a comma (will auto-detect p-value column if index isn't present). (i.e. files="
+									 + "   (1) name of files with p-values - a semicolon-delimited list with p-value column index (and optional MAF column index) added after each file separated by a comma (will auto-detect p-value column if index isn't present). (i.e. files="
 									 + ArrayUtils.toStr(filenames, ";")
 									 + " (default))\n"
 									 + "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
@@ -95,10 +98,13 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 									 + plotLabel
 									 + " (default))\n"
 									 + "   (5) maximum -log10 p-value to plot (i.e. maxValue=Infinity (default))\n"
-									 + "   (6) (optional) log file (i.e. log="
+									 + "   (6) (optional) MAF lower cutoff value for calculating lambda value (i.e. maf="
+									 + mafLower
+									 + " (default))\n"
+									 + "   (7) (optional) log file (i.e. log="
 									 + logfile
 									 + " (default))\n"
-									 + "   (7) (optional) file to export image to instead of displaying (i.e. outFile="
+									 + "   (8) (optional) file to export image to instead of displaying (i.e. outFile="
 									 + outFile + " (default))\n" + "";
 
 		for (String arg : args) {
@@ -116,6 +122,9 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 				numArgs--;
 			} else if (arg.startsWith("maxToPlot=")) {
 				maxToPlot = Double.parseDouble(arg.split("=")[1]);
+				numArgs--;
+			} else if (arg.startsWith("maf=")) {
+				mafLower = Double.parseDouble(arg.split("=")[1]);
 				numArgs--;
 			} else if (arg.startsWith("-quantiles")) {
 				displayQuantiles = true;
@@ -156,12 +165,13 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 				QQPlot.computeCI(computeDir, computePrefix, max, new Logger(logfile));
 			} else if (outFile != null) {
 				QQPlot qqPlot = QQPlot.loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ,
-																				 displayRotatedQQ, maxToPlot, symmetric, maxValue,
+																				 displayRotatedQQ, maxToPlot, mafLower, symmetric,
+																				 maxValue,
 																				 new Logger(logfile));
 				qqPlot.screenCap(outFile);
 			} else {
 				loadPvals(filenames, plotLabel, displayQuantiles, displayStandardQQ, displayRotatedQQ,
-									maxToPlot, symmetric, maxValue, new Logger(logfile));
+									maxToPlot, mafLower, symmetric, maxValue, new Logger(logfile));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

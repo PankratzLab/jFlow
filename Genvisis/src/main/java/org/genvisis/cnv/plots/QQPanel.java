@@ -23,7 +23,8 @@ public class QQPanel extends AbstractPanel {
 	private final float maxValue;
 	private final String[] descriptions;
 
-	public QQPanel(String[] labels, double[][] pvals, boolean log10, boolean rotated, float maxValue,
+	public QQPanel(String[] labels, double[][] pvals, boolean[][] useForLambda, boolean log10,
+								 boolean rotated, float maxValue,
 								 Color[] colorScheme, Logger log) {
 		super();
 
@@ -37,7 +38,10 @@ public class QQPanel extends AbstractPanel {
 
 		log.report("File\tTrait\tLambda");
 		for (int i = 0; i < pvals.length; i++) {
-			descriptions[i] = "lambda = " + ext.formDeci(ArrayUtils.lambda(pvals[i]), 4) + " ("
+			descriptions[i] = "lambda = "
+												+ ext.formDeci(ArrayUtils.lambda(ArrayUtils.subArray(pvals[i],
+																																						 useForLambda[i])),
+																			 4) + " ("
 												+ labels[i] + ")";
 			log.report(ArrayUtils.toStr(ext.replaceAllWith(labels[i], "'", "")
 																		 .split(PSF.Regex.GREEDY_WHITESPACE))

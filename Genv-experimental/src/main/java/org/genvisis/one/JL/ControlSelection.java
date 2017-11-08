@@ -23,6 +23,7 @@ import com.google.common.primitives.Doubles;
 
 public class ControlSelection {
 	private static int SAMPLE_SIZE = 550;
+
 	// private static int SAMPLE_SIZE = 200;
 
 	public static void main(String[] args) throws IOException {
@@ -54,7 +55,8 @@ public class ControlSelection {
 			// String phenoFile =
 			// "/Volumes/Beta/data/controlSelection/plink/centerPheno2.txt";
 
-			String[] phenoFiles = Files.listFullPaths("/Volumes/Beta/data/controlSelection/centerPhenos/", ".txt");
+			String[] phenoFiles = Files.listFullPaths("/Volumes/Beta/data/controlSelection/centerPhenos/",
+																								".txt");
 
 			for (String phenoFile : phenoFiles) {
 				String pheno = ext.rootOf(phenoFile);
@@ -68,13 +70,19 @@ public class ControlSelection {
 				String plinkQc = "/Volumes/Beta/data/controlSelection/plinkARIC/quality_control/further_analysis_QC/plink_QCd";
 
 				//
-				Hashtable<String, String> have = HashVec.loadFileToHashString(mds, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
-				Hashtable<String, String> keeps = HashVec.loadFileToHashString(keepSamples, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
+				Hashtable<String, String> have = HashVec.loadFileToHashString(mds, new int[] {0},
+																																			new int[] {0, 1, 2, 3, 4, 5,
+																																								 6, 7}, false,
+																																			"\t", false, true);
+				Hashtable<String, String> keeps = HashVec.loadFileToHashString(keepSamples, new int[] {0},
+																																			 new int[] {0, 1, 2, 3, 4, 5,
+																																									6, 7}, false,
+																																			 "\t", false, true);
 
-				Hashtable<String, String> hash = HashVec.loadFileToHashString(phenoFile, new int[] { 0 },
-						new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, false, "\t", false, true);
+				Hashtable<String, String> hash = HashVec.loadFileToHashString(phenoFile, new int[] {0},
+																																			new int[] {0, 1, 2, 3, 4, 5,
+																																								 6, 7}, false,
+																																			"\t", false, true);
 
 				HashMap<String, ArrayList<String>> centers = new HashMap<>();
 				for (String sample : hash.keySet()) {
@@ -109,7 +117,7 @@ public class ControlSelection {
 							}
 						}
 						runit(lambdaReport, i, rootOut, mds, plinkQc, hash, centers, min, qqFiles, cent1,
-								cent1 + "_v_ALL", vAllBarn, pheno);
+									cent1 + "_v_ALL", vAllBarn, pheno);
 						if (i < 1100) {
 							for (String cent2 : centers.keySet()) {
 								String centComp = cent1 + "_v_" + cent2;
@@ -121,7 +129,7 @@ public class ControlSelection {
 									ArrayList<String> barns = new ArrayList<>();
 									barns.addAll(centers.get(cent2));
 									runit(lambdaReport, i, rootOut, mds, plinkQc, hash, centers, min, qqFiles, cent1,
-											centComp, barns, pheno);
+												centComp, barns, pheno);
 								}
 
 							}
@@ -131,53 +139,65 @@ public class ControlSelection {
 				}
 
 				System.out.println(ArrayUtils.toStr(qqFiles));
-				QQPlot qqPlot = QQPlot.loadPvals(ArrayUtils.toStringArray(qqFiles), "Hi", false, true, false, -1, false,
-						Float.MAX_VALUE, new Logger());
+				QQPlot qqPlot = QQPlot.loadPvals(ArrayUtils.toStringArray(qqFiles), "Hi", false, true,
+																				 false, -1, -1, false,
+																				 Float.MAX_VALUE, new Logger());
 				qqPlot.screenCap(rootOut + "test_pheno" + pheno + "_" + i + "samples.png");
 				Files.copyFileUsingFileChannels(rootOut + "test_pheno" + pheno + "_" + i + "samples.png",
-						root + "test_pheno" + pheno + "_" + i + "samples.png", new Logger());
+																				root + "test_pheno" + pheno + "_" + i + "samples.png",
+																				new Logger());
 			}
 		}
 		Files.writeIterable(lambdaReport, root + "lambdaReport.txt");
 
 	}
 
-	private static void runit(ArrayList<String> lambdaReport, int i, String rootOut, String mds, String plinkQc,
-			Hashtable<String, String> hash, HashMap<String, ArrayList<String>> centers, int min,
-			ArrayList<String> qqFiles, String cent1, String centComp, ArrayList<String> barns, String pheno) {
+	private static void runit(ArrayList<String> lambdaReport, int i, String rootOut, String mds,
+														String plinkQc,
+														Hashtable<String, String> hash,
+														HashMap<String, ArrayList<String>> centers, int min,
+														ArrayList<String> qqFiles, String cent1, String centComp,
+														ArrayList<String> barns, String pheno) {
 		String matchDir = rootOut + "match/" + centComp + "/";
 
-		String[] run = new String[] { "C1", "C2" };
-		double[] w = new double[] { 1, 1 };
+		String[] run = new String[] {"C1", "C2"};
+		double[] w = new double[] {1, 1};
 		String antiOptimalDir = rootOut + "antimatch/" + centComp + "/";
 		new File(antiOptimalDir).mkdirs();
 		Files.copyFileUsingFileChannels(mds, antiOptimalDir + "mds20.mds", new Logger());
 
-		Files.writeIterable(centers.get(cent1).subList(0, min - 1), antiOptimalDir + centComp + ".anchors.txt");
+		Files.writeIterable(centers.get(cent1).subList(0, min - 1), antiOptimalDir + centComp
+																																+ ".anchors.txt");
 		Files.writeIterable(barns, antiOptimalDir + centComp + ".barns.txt");
 		System.out.println("RUNNING match1");
 		String matchFileanti = MatchSamples.matchMaker(antiOptimalDir, centComp + ".anchors.txt",
-				centComp + ".barns.txt", ext.removeDirectoryInfo("mds20.mds"), run, w, false);
+																									 centComp + ".barns.txt",
+																									 ext.removeDirectoryInfo("mds20.mds"), run, w,
+																									 false);
 		matchFileanti = MatchSamples.normalizeDistances(antiOptimalDir, matchFileanti, 0, 100);
 		System.out.println("RUNNING match3");
 
-		String pairsAnti = antiOptimalDir + MatchSamples.matchPairs(antiOptimalDir, matchFileanti, false, true);
+		String pairsAnti = antiOptimalDir
+											 + MatchSamples.matchPairs(antiOptimalDir, matchFileanti, false, true);
 		System.out.println("RUNNING match4");
 
-		String[] casesAnti = HashVec.loadFileToStringArray(pairsAnti, true, new int[] { 0 }, true);
-		String[] controlsAnti = HashVec.loadFileToStringArray(pairsAnti, true, new int[] { 1 }, true);
+		String[] casesAnti = HashVec.loadFileToStringArray(pairsAnti, true, new int[] {0}, true);
+		String[] controlsAnti = HashVec.loadFileToStringArray(pairsAnti, true, new int[] {1}, true);
 		Files.copyFileUsingFileChannels(mds, antiOptimalDir + "mds20.mds", new Logger());
-		run(plinkQc, mds, hash, qqFiles, centComp, antiOptimalDir, "antioptimal", casesAnti, controlsAnti, lambdaReport,
+		run(plinkQc, mds, hash, qqFiles, centComp, antiOptimalDir, "antioptimal", casesAnti,
+				controlsAnti, lambdaReport,
 				i, pheno);
 
 		new File(matchDir).mkdirs();
 		Files.copyFileUsingFileChannels(mds, matchDir + "mds20.mds", new Logger());
 
-		Files.writeIterable(centers.get(cent1).subList(0, min - 1), matchDir + centComp + ".anchors.txt");
+		Files.writeIterable(centers.get(cent1).subList(0, min - 1), matchDir + centComp
+																																+ ".anchors.txt");
 		Files.writeIterable(barns, matchDir + centComp + ".barns.txt");
 		System.out.println("RUNNING match1");
-		String matchFile = MatchSamples.matchMaker(matchDir, centComp + ".anchors.txt", centComp + ".barns.txt",
-				ext.removeDirectoryInfo("mds20.mds"), run, w, false);
+		String matchFile = MatchSamples.matchMaker(matchDir, centComp + ".anchors.txt", centComp
+																																										+ ".barns.txt",
+																							 ext.removeDirectoryInfo("mds20.mds"), run, w, false);
 		matchFile = MatchSamples.normalizeDistances(matchDir, matchFile, 0, 100);
 		System.out.println("RUNNING match3");
 
@@ -185,10 +205,11 @@ public class ControlSelection {
 		System.out.println("RUNNING match4");
 
 		System.out.println(matchFile);
-		String[] cases = HashVec.loadFileToStringArray(pairs, true, new int[] { 0 }, true);
-		String[] controls = HashVec.loadFileToStringArray(pairs, true, new int[] { 1 }, true);
+		String[] cases = HashVec.loadFileToStringArray(pairs, true, new int[] {0}, true);
+		String[] controls = HashVec.loadFileToStringArray(pairs, true, new int[] {1}, true);
 
-		run(plinkQc, mds, hash, qqFiles, centComp, matchDir, "optimal", cases, controls, lambdaReport, i, pheno);
+		run(plinkQc, mds, hash, qqFiles, centComp, matchDir, "optimal", cases, controls, lambdaReport,
+				i, pheno);
 
 		String matchDirRandom = rootOut + "randomMatch/" + centComp + "/";
 		new File(matchDirRandom).mkdirs();
@@ -196,13 +217,16 @@ public class ControlSelection {
 		Collections.shuffle(barns);
 		List<String> sub = barns.subList(0, Math.min(min, cases.length) - 1);
 		Collections.sort(sub);
-		run(plinkQc, mds, hash, qqFiles, centComp, matchDirRandom, "random", cases, ArrayUtils.toStringArray(sub),
+		run(plinkQc, mds, hash, qqFiles, centComp, matchDirRandom, "random", cases,
+				ArrayUtils.toStringArray(sub),
 				lambdaReport, i, pheno);
 	}
 
-	private static void run(String plinkQc, String mds, Hashtable<String, String> hash, ArrayList<String> qqFiles,
-			String cent, String matchDir, String tag, String[] cases, String[] controls, ArrayList<String> lambdaReport,
-			int i, String pheno) {
+	private static void run(String plinkQc, String mds, Hashtable<String, String> hash,
+													ArrayList<String> qqFiles,
+													String cent, String matchDir, String tag, String[] cases,
+													String[] controls, ArrayList<String> lambdaReport,
+													int i, String pheno) {
 
 		ArrayList<String> newFam = new ArrayList<>();
 		HashSet<String> cas = new HashSet<>();
@@ -314,14 +338,17 @@ public class ControlSelection {
 			// System.exit(1);
 
 		}
-		String t1 = "cat " + matchDir + "plink.assoc.logistic |grep \"ADD\\|SNP\"| tr -s ' ' '\t'|cut -f 2- > "
-				+ matchDir + "plink.assoc.logistic.tabs";
-		String t2 = "cut -f9 " + matchDir + "plink.assoc.logistic.tabs > " + matchDir + cent + tag + ".p.txt";
+		String t1 = "cat " + matchDir
+								+ "plink.assoc.logistic |grep \"ADD\\|SNP\"| tr -s ' ' '\t'|cut -f 2- > "
+								+ matchDir + "plink.assoc.logistic.tabs";
+		String t2 = "cut -f9 " + matchDir + "plink.assoc.logistic.tabs > " + matchDir + cent + tag
+								+ ".p.txt";
 		org.genvisis.common.Files.write(t1 + "\n" + t2, matchDir + "tab.sh");
 		org.genvisis.common.Files.chmod(matchDir + "tab.sh");
 		CmdLine.run(matchDir + "tab.sh", matchDir);
 		qqFiles.add(matchDir + cent + tag + ".p.txt");
-		String[] ps = HashVec.loadFileToStringArray(matchDir + cent + tag + ".p.txt", true, new int[] { 0 }, false);
+		String[] ps = HashVec.loadFileToStringArray(matchDir + cent + tag + ".p.txt", true,
+																								new int[] {0}, false);
 		ArrayList<Double> p = new ArrayList<>();
 		for (String a : ps) {
 			try {
@@ -330,7 +357,8 @@ public class ControlSelection {
 
 			}
 		}
-		lambdaReport.add(cent + "\t" + tag + "\t" + i + "\t" + ArrayUtils.lambda(Doubles.toArray(p)) + "\t" + pheno);
+		lambdaReport.add(cent + "\t" + tag + "\t" + i + "\t" + ArrayUtils.lambda(Doubles.toArray(p))
+										 + "\t" + pheno);
 		// ArrayUtils.lambda(pvals[i])
 	}
 

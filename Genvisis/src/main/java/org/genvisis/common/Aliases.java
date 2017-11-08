@@ -32,11 +32,12 @@ public class Aliases {
 	public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add", "ROBUST_SE_SNP"};
 
 	public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval",
-																					"minPval", "ROBUST_PVAL_SNP"};
+																					"minPval", "ROBUST_PVAL_SNP", "chi_P_2df"};
 	public static final String[] NS = {"N", "NMISS", "sampleN", "n_total", "ESampleSize"};
 
 	public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF",
-																							 "sampleMAF", "Effect_allele_frequency", "EAF",
+																							 "sampleMAF", "Effect_allele_frequency",
+																							 "effect_allele_freq", "EAF",
 																							 "FRQ",
 																							 "Coded.Af", "AF_coded_all"};
 
