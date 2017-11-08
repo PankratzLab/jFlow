@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import javax.swing.JOptionPane;
 
+import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -31,10 +32,10 @@ public class QQPlot {
 																								// "C:\\Documents and Settings\\npankrat\\My
 																								// Documents\\LOAD\\QQplots\\4PCs.txt",
 																								"C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
-			// "C:\\Documents and Settings\\npankrat\\My
-			// Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
-			// "C:\\Documents and Settings\\npankrat\\My
-			// Documents\\LOAD\\QQplots\\E4_binary.txt"
+																							 // "C:\\Documents and Settings\\npankrat\\My
+																							 // Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
+																							 // "C:\\Documents and Settings\\npankrat\\My
+																							 // Documents\\LOAD\\QQplots\\E4_binary.txt"
 	};
 
 	public static final Color[] COLOR_SCHEME = new Color[] {Color.BLACK, Color.GRAY,
@@ -179,6 +180,16 @@ public class QQPlot {
 					filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
 					labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
 				} catch (Exception e) {
+				}
+			} else {
+				String[] v = Files.getHeaderOfFile(filenames[i], log);
+				int[] poss = ext.indexFactors(Aliases.PVALUES, v, false);
+				for (int p : poss) {
+					if (p >= 0) {
+						cols[i] = p;
+						labels[i] += " '" + v[cols[i]] + "'";
+						break;
+					}
 				}
 			}
 			log.report("Loading " + labels[i]);

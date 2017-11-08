@@ -86,7 +86,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 
 		String usage = "\n"
 									 + "plot.QQPlot requires 0-1 arguments\n"
-									 + "   (1) name of files with p-values (i.e. files="
+									 + "   (1) name of files with p-values - a semicolon-delimited list with p-value column index added after each file separated by a comma (will auto-detect p-value column if index isn't present). (i.e. files="
 									 + ArrayUtils.toStr(filenames, ";")
 									 + " (default))\n"
 									 + "   (2) -log10(p) at which to start truncating (i.e. maxToPlot=10 (default: -1))\n"
