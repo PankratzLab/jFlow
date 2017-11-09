@@ -191,17 +191,21 @@ public class QQPlot {
 						cols[i] = Integer.parseInt(inds[0]);
 						filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
 						labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
-						String[] v = Files.getHeaderOfFile(filenames[i], log);
-						int[] poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
-						for (int p : poss) {
-							if (p >= 0) {
-								mafCols[i] = p;
-								break;
+						if (mafLwrBnd > 0) {
+							String[] v = Files.getHeaderOfFile(filenames[i], log);
+							int[] poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
+							for (int p : poss) {
+								if (p >= 0) {
+									mafCols[i] = p;
+									break;
+								}
 							}
 						}
 					} else if (inds.length == 2) {
 						cols[i] = Integer.parseInt(inds[0]);
-						mafCols[i] = Integer.parseInt(inds[1]);
+						if (mafLwrBnd > 0) {
+							mafCols[i] = Integer.parseInt(inds[1]);
+						}
 						filenames[i] = filenames[i].substring(0, filenames[i].lastIndexOf(","));
 						labels[i] += " '" + Files.getHeaderOfFile(filenames[i], log)[cols[i]] + "'";
 					}
@@ -217,11 +221,13 @@ public class QQPlot {
 						break;
 					}
 				}
-				poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
-				for (int p : poss) {
-					if (p >= 0) {
-						mafCols[i] = p;
-						break;
+				if (mafLwrBnd > 0) {
+					poss = ext.indexFactors(Aliases.ALLELE_FREQS, v, false);
+					for (int p : poss) {
+						if (p >= 0) {
+							mafCols[i] = p;
+							break;
+						}
 					}
 				}
 			}
@@ -325,13 +331,15 @@ public class QQPlot {
 							}
 						} catch (NumberFormatException nfe) {
 						}
-						if (mafCols[i] >= 0) {
-							trav = lineParts[mafCols[i]];
-							if (!ext.isMissingValue(trav)) {
-								try {
-									usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
-								} catch (NumberFormatException nfe) {
-									usePvalForLambda[i][count] = false;
+						if (mafLwrBnd > 0) {
+							if (mafCols[i] >= 0) {
+								trav = lineParts[mafCols[i]];
+								if (!ext.isMissingValue(trav)) {
+									try {
+										usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
+									} catch (NumberFormatException nfe) {
+										usePvalForLambda[i][count] = false;
+									}
 								}
 							}
 						}

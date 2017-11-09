@@ -139,7 +139,7 @@ public class QQPlotFrame extends JFrame implements ActionListener {
 				symmetric = true;
 				numArgs--;
 			} else if (arg.startsWith("plotLabel=")) {
-				plotLabel = arg.split("=")[1];
+				plotLabel = arg.split("=").length > 1 ? arg.split("=")[1] : "";
 				numArgs--;
 			} else if (arg.startsWith("maxValue=")) {
 				maxValue = ext.parseFloatArg(arg);

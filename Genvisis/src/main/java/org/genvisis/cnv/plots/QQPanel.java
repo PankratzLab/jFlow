@@ -38,15 +38,16 @@ public class QQPanel extends AbstractPanel {
 
 		log.report("File\tTrait\tLambda");
 		for (int i = 0; i < pvals.length; i++) {
+			String lamb = ext.formDeci(ArrayUtils.lambda(ArrayUtils.subArray(pvals[i],
+																																			 useForLambda[i])),
+																 4);
 			descriptions[i] = "lambda = "
-												+ ext.formDeci(ArrayUtils.lambda(ArrayUtils.subArray(pvals[i],
-																																						 useForLambda[i])),
-																			 4) + " ("
+												+ lamb + " ("
 												+ labels[i] + ")";
 			log.report(ArrayUtils.toStr(ext.replaceAllWith(labels[i], "'", "")
 																		 .split(PSF.Regex.GREEDY_WHITESPACE))
 								 + "\t"
-								 + ext.formDeci(ArrayUtils.lambda(pvals[i]), 4));
+								 + lamb);
 		}
 
 		createLookup(false);
