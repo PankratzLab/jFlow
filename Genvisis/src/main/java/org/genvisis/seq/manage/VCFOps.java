@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -50,6 +51,8 @@ import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
 import org.genvisis.stats.Histogram.DynamicHistogram;
+
+import com.google.common.collect.Sets;
 
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -1607,37 +1610,58 @@ public class VCFOps {
 
 	}
 
+	/**
+	 * Extract segments from VCF and/or bams
+	 * 
+	 * @param vcf vcf file to extract (null to skip vcf extraction)
+	 * @param segmentFile file of segments to extract
+	 * @param bpBuffer bp buffer to apply up and down stream of segments
+	 * @param bams directory or comma-delimited list of bams to extract from (null to skip bam
+	 *        extraction)
+	 * @param outputDir directory to output to (or null to use directory of VCF)
+	 * @param skipFiltered true to skip extraction of filtered samples in VCF
+	 * @param gzipOutput true to gzip the output VCF
+	 * @param createAnnotationFile true to create an annotation file in addition to extracted VCF
+	 * @param subToBam true to subset the VCF to the samples with bams
+	 * @param varSets varsets for sample matching in vcf
+	 * @param numThreads number of threads to use for bam extractions
+	 * @param removeNoCalls true to remove genotypes from the VCF with no calls
+	 * @param gq minimum GQ value for annotation file
+	 * @param excludeFile file of samples to exclude
+	 * @param rederiveGenos true to remove alleles for genotypes no longer present after sample subset
+	 * @param log
+	 * @return Extracted VCF filename or null when error or not extracting from VCF
+	 */
 	public static String extractSegments(String vcf, String segmentFile, int bpBuffer, String bams,
 																			 String outputDir, boolean skipFiltered, boolean gzipOutput,
 																			 boolean createAnnotationFile, boolean subToBam,
 																			 String[] varSets, int numThreads, boolean removeNoCalls,
 																			 int gq, String excludeFile, boolean rederiveGenos,
 																			 Logger log) {
+		if (vcf != null && !Files.exists(vcf)) {
+			log.reportFileNotFound(vcf);
+			return null;
+		}
+		String dir;
+		if (outputDir != null) {
+			dir = outputDir;
+		} else if (vcf != null) {
+			dir = ext.parseDirectoryOfFile(vcf);
+		} else {
+			throw new IllegalArgumentException("Cannot extract segments without an outputDir or VCF with directory to use");
+		}
+		new File(dir).mkdirs();
+
 		BamExtractor.BamSample bamSample = null;
 		HashSet<String> excludes = new HashSet<>();
 		if (excludeFile != null) {
 			excludes = HashVec.loadFileToHashSet(excludeFile, false);
 			log.reportTimeInfo(excludes.size() + " samples to exclude");
 		}
-
-		if (vcf == null || !Files.exists(vcf)) {
-			log.reportFileNotFound(vcf);
-			return null;
-		}
-		VCFOps.verifyIndex(vcf, log);
-		if (segmentFile != null && !Files.exists(segmentFile)) {
-			log.reportFileNotFound(segmentFile);
-			return null;
-		}
-		HashSet<String> bamSamples = new HashSet<>();
-
-		String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) : outputDir;
-		new File(dir).mkdirs();
-		String root = getAppropriateRoot(vcf, true);
-
-		VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".idx"));
+		Set<String> bamSamples;
 		if (bams == null) {
 			log.reportTimeInfo("A bam directory was not provided, skipping bam extraction");
+			bamSamples = null;
 		} else {
 			log.reportTimeInfo("A bam directory was provided, extracting bams to " + dir);
 			if (Files.isDirectory(bams)) {
@@ -1670,153 +1694,194 @@ public class VCFOps {
 			}
 			bamSample.generateMap();
 			bamSample.getBamSampleMap();
-			bamSample.verify(getSamplesInFile(reader), varSets);
-			String[] vcfSamples = getSamplesInFile(reader);
-			if (subToBam) {
+			Set<String> includes;
+			if (vcf != null) {
+				String[] vcfSamples = getSamplesInFile(vcf);
+				bamSample.verify(vcfSamples, varSets);
+				includes = Sets.newHashSet(vcfSamples);
+			} else {
+				log.reportTimeWarning("No VCF provided, extracting segments from all bams");
+				includes = null;
+			}
+			if (!subToBam) {
+				bamSamples = null;
+			} else {
+				bamSamples = new HashSet<>();
 				for (String abamSample : bamSample.getBamSampleMap().keySet()) {
 					if (varSets == null && !excludes.contains(abamSample)) {
 						bamSamples.add(abamSample);
 					} else {
 						for (String varSet : varSets) {
 							String tmp = abamSample + varSet;
-							if (ext.indexOfStr(tmp, vcfSamples) >= 0 && !excludes.contains(tmp)) {
+							if (!excludes.contains(tmp)
+									&& (includes != null && includes.contains(tmp))) {
 								bamSamples.add(tmp);
 							}
 						}
 					}
 				}
+				log.reportTimeInfo(bamSamples.size() + " samples will be extracted");
 			}
-			log.reportTimeInfo(bamSamples.size() + " samples will be extracted");
 		}
-		String output = dir + root + "." + ext.rootOf(segmentFile) + ".vcf" + (gzipOutput ? ".gz" : "");
-		String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
-		String annoGQFile = dir + root + "." + ext.rootOf(segmentFile) + "GQ_" + gq + ".anno.txt";
 
-		if (!Files.exists(output)) {
-			Segment[] segsToSearch = null;
-			if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
-				segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
-			} else if (segmentFile.endsWith(".bed")) {
-				BEDFileReader bfr = new BEDFileReader(segmentFile, false);
+		Segment[] segsToSearch;
+		if (segmentFile.endsWith(".in") || segmentFile.endsWith(".bim")) {
+			segsToSearch = Segment.loadRegions(segmentFile, 0, 3, 3, false);
+		} else if (segmentFile.endsWith(".bed")) {
+			try (BEDFileReader bfr = new BEDFileReader(segmentFile, false)) {
 				segsToSearch = bfr.loadAll(log).getBufferedSegmentSet(bpBuffer).getStrictSegments();
-			} else {
-				segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
-				log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
-			}
-			segsToSearch = Segment.unique(segsToSearch);
-			log.reportTimeInfo(segsToSearch.length + " were unique");
-			segsToSearch = Segment.mergeOverlapsAndSortAllChromosomes(segsToSearch, 1);
-			log.reportTimeInfo(segsToSearch.length + " after merging");
-
-			VariantContextWriter writer = initWriter(output, DEFUALT_WRITER_OPTIONS,
-																							 getSequenceDictionary(reader));
-			VCFHeader header = copyHeader(reader, writer, bamSamples,
-																		subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT
-																						 : HEADER_COPY_TYPE.FULL_COPY,
-																		log);
-			int progress = 0;
-			int found = 0;
-
-			PrintWriter annoWriter = null;
-			PrintWriter annoGQWriter = null;
-
-			String[][] annotations = getAnnotationKeys(vcf, log);
-			if (createAnnotationFile) {
-				annoWriter = writePrelim(annoFile, header, annotations);
-				annoGQWriter = writePrelim(annoGQFile, header, annotations);
-
-			}
-			List<String> samples = header.getGenotypeSamples();
-			CloseableIterator<VariantContext> iterator = reader.iterator();
-			if (segsToSearch.length == 1) {
-				try {
-					iterator = reader.query(segsToSearch[0].getChromosomeUCSC(), segsToSearch[0].getStart(),
-																	segsToSearch[0].getStop());
-					log.reportTimeInfo("Using iterating reader");
-				} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
-					log.reportTimeInfo("Failed using iterating reader, you may want to double check your sequence dictionary");
-
-				}
-			}
-			while (iterator.hasNext()) {
-				VariantContext vc = iterator.next();
-				progress++;
-				if (progress % 100000 == 0) {
-					log.reportTimeInfo(progress + " variants read...");
-					log.reportTimeInfo(found + " variants found...");
-
-				}
-				if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
-					if (subToBam) {
-						vc.getGenotypes();
-						vc = VCOps.getSubset(vc, bamSamples, VC_SUBSET_TYPE.SUBSET_STRICT, rederiveGenos);
-					}
-					int numCalled = vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount();
-					if (!removeNoCalls || numCalled > 0) {
-
-						writer.add(vc);
-
-						if (bamSample != null) {
-							bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()),
-																												vc.getStart(), vc.getEnd()));
-						}
-						if (createAnnotationFile) {
-							writeBase(annoWriter, annotations, vc);
-							writeBase(annoGQWriter, annotations, vc);
-
-							// vc.getGenotype(sample)
-							for (String sample : samples) {
-								Genotype g = vc.getGenotype(sample);
-								// if (!excludes.contains(g.getSampleName())) {
-
-								if (g.isCalled()) {
-									String rg = "NA";
-									if (!vc.isBiallelic()) {
-										log.reportTimeWarning("Non bialleic variant "
-																					+ vc.toStringWithoutGenotypes());
-									} else {
-										rg = Integer.toString(g.countAllele(vc.getAlternateAlleles().get(0)));
-									}
-									annoWriter.print("\t" + rg);
-									if (g.getGQ() >= gq) {
-										annoGQWriter.print("\t" + rg);
-									} else {
-										// GenotypeBuilder b = new GenotypeBuilder(g);
-										// b.alleles(GenotypeOps.getNoCall());
-										annoGQWriter.print("\t.");
-									}
-								} else {
-									annoWriter.print("\t.");
-									annoGQWriter.print("\t.");
-								}
-								// }
-
-							}
-							annoWriter.println();
-							annoGQWriter.println();
-						}
-						found++;
-					}
-				}
-			}
-			writer.close();
-
-			if (bamSample != null) {
-				BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
-				bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam"), log, true);
-				bamSample.generateMap();
-				bamSample.dumpToIGVMap(output, varSets);
-			}
-			if (createAnnotationFile) {
-				annoWriter.close();
-				annoGQWriter.close();
-
 			}
 		} else {
-			log.reportTimeWarning("The file " + output + " already exists, skipping extraction step");
+			segsToSearch = Segment.loadRegions(segmentFile, 0, 1, 2, 0, true, true, true, bpBuffer);
+			log.reportTimeInfo("Loaded " + segsToSearch.length + " segments to search");
 		}
-		reader.close();
-		return output;
+
+		String outputVCF;
+		if (vcf == null) {
+			log.reportTimeInfo("A VCF was not provided, skipping vcf extraction");
+			if (bamSample == null) {
+				log.reportError("No VCF or bam extraction to perform");
+				return null;
+			}
+			Arrays.stream(segsToSearch).forEach(bamSample::addSegmentToExtract);
+			outputVCF = null;
+		} else {
+			VCFOps.verifyIndex(vcf, log);
+			if (segmentFile != null && !Files.exists(segmentFile)) {
+				log.reportFileNotFound(segmentFile);
+				return null;
+			}
+
+			String root = getAppropriateRoot(vcf, true);
+
+
+			outputVCF = dir + root + "." + ext.rootOf(segmentFile) + ".vcf"
+									+ (gzipOutput ? ".gz" : "");
+			String annoFile = dir + root + "." + ext.rootOf(segmentFile) + ".anno.txt";
+			String annoGQFile = dir + root + "." + ext.rootOf(segmentFile) + "GQ_" + gq + ".anno.txt";
+
+			if (!Files.exists(outputVCF)) {
+				try (VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".idx"))) {
+
+					segsToSearch = Segment.unique(segsToSearch);
+					log.reportTimeInfo(segsToSearch.length + " were unique");
+					segsToSearch = Segment.mergeOverlapsAndSortAllChromosomes(segsToSearch, 1);
+					log.reportTimeInfo(segsToSearch.length + " after merging");
+
+					VariantContextWriter writer = initWriter(outputVCF, DEFUALT_WRITER_OPTIONS,
+																									 getSequenceDictionary(reader));
+					VCFHeader header = copyHeader(reader, writer, bamSamples,
+																				subToBam ? HEADER_COPY_TYPE.SUBSET_STRICT
+																								 : HEADER_COPY_TYPE.FULL_COPY,
+																				log);
+
+
+
+					int progress = 0;
+					int found = 0;
+
+					PrintWriter annoWriter = null;
+					PrintWriter annoGQWriter = null;
+
+					String[][] annotations = getAnnotationKeys(vcf, log);
+					if (createAnnotationFile) {
+						annoWriter = writePrelim(annoFile, header, annotations);
+						annoGQWriter = writePrelim(annoGQFile, header, annotations);
+
+					}
+					List<String> samples = header.getGenotypeSamples();
+					CloseableIterator<VariantContext> iterator = reader.iterator();
+					if (segsToSearch.length == 1) {
+						try {
+							iterator = reader.query(segsToSearch[0].getChromosomeUCSC(),
+																			segsToSearch[0].getStart(),
+																			segsToSearch[0].getStop());
+							log.reportTimeInfo("Using iterating reader");
+						} catch (ArrayIndexOutOfBoundsException arrayIndexOutOfBoundsException) {
+							log.reportTimeInfo("Failed using iterating reader, you may want to double check your sequence dictionary");
+
+						}
+					}
+					while (iterator.hasNext()) {
+						VariantContext vc = iterator.next();
+						progress++;
+						if (progress % 100000 == 0) {
+							log.reportTimeInfo(progress + " variants read...");
+							log.reportTimeInfo(found + " variants found...");
+
+						}
+						if ((!skipFiltered || !vc.isFiltered()) && VCOps.isInTheseSegments(vc, segsToSearch)) {
+							if (subToBam) {
+								vc.getGenotypes();
+								vc = VCOps.getSubset(vc, bamSamples, VC_SUBSET_TYPE.SUBSET_STRICT, rederiveGenos);
+							}
+							int numCalled = vc.getHomRefCount() + vc.getHetCount() + vc.getHomVarCount();
+							if (!removeNoCalls || numCalled > 0) {
+
+								writer.add(vc);
+
+								if (bamSample != null) {
+									bamSample.addSegmentToExtract(new Segment(Positions.chromosomeNumber(vc.getContig()),
+																														vc.getStart(), vc.getEnd()));
+								}
+								if (createAnnotationFile) {
+									writeBase(annoWriter, annotations, vc);
+									writeBase(annoGQWriter, annotations, vc);
+
+									// vc.getGenotype(sample)
+									for (String sample : samples) {
+										Genotype g = vc.getGenotype(sample);
+										// if (!excludes.contains(g.getSampleName())) {
+
+										if (g.isCalled()) {
+											String rg = "NA";
+											if (!vc.isBiallelic()) {
+												log.reportTimeWarning("Non bialleic variant "
+																							+ vc.toStringWithoutGenotypes());
+											} else {
+												rg = Integer.toString(g.countAllele(vc.getAlternateAlleles().get(0)));
+											}
+											annoWriter.print("\t" + rg);
+											if (g.getGQ() >= gq) {
+												annoGQWriter.print("\t" + rg);
+											} else {
+												// GenotypeBuilder b = new GenotypeBuilder(g);
+												// b.alleles(GenotypeOps.getNoCall());
+												annoGQWriter.print("\t.");
+											}
+										} else {
+											annoWriter.print("\t.");
+											annoGQWriter.print("\t.");
+										}
+										// }
+
+									}
+									annoWriter.println();
+									annoGQWriter.println();
+								}
+								found++;
+							}
+						}
+					}
+					writer.close();
+					if (createAnnotationFile) {
+						annoWriter.close();
+						annoGQWriter.close();
+
+					}
+				}
+			} else {
+				log.reportTimeWarning("The file " + outputVCF
+															+ " already exists, skipping VCF extraction step");
+			}
+		}
+		if (bamSample != null) {
+			BamExtractor.extractAll(bamSample, dir, bpBuffer, true, true, numThreads, log);
+			bamSample = new BamExtractor.BamSample(Files.listFullPaths(dir, ".bam"), log, true);
+			bamSample.generateMap();
+			bamSample.dumpToIGVMap(outputVCF, varSets);
+		}
+		return outputVCF;
 	}
 
 	private static void writeBase(PrintWriter annoWriter, String[][] annotations, VariantContext vc) {
