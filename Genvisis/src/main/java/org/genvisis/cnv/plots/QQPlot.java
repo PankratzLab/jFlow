@@ -327,23 +327,23 @@ public class QQPlot {
 							if (pvals[i][count] > 0) {
 								if (pvals[i][count] < minPval) {
 									pvals[i][count] = minPval;
+									if (mafLwrBnd > 0) {
+										if (mafCols[i] >= 0) {
+											trav = lineParts[mafCols[i]];
+											if (!ext.isMissingValue(trav)) {
+												try {
+													usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
+												} catch (NumberFormatException nfe) {
+													usePvalForLambda[i][count] = false;
+												}
+											}
+										}
+									}
+									count++;
 								}
 							}
 						} catch (NumberFormatException nfe) {
 						}
-						if (mafLwrBnd > 0) {
-							if (mafCols[i] >= 0) {
-								trav = lineParts[mafCols[i]];
-								if (!ext.isMissingValue(trav)) {
-									try {
-										usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
-									} catch (NumberFormatException nfe) {
-										usePvalForLambda[i][count] = false;
-									}
-								}
-							}
-						}
-						count++;
 					}
 				}
 				reader.close();
