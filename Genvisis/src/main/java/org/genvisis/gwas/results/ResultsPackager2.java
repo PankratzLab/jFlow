@@ -39,6 +39,10 @@ public final class ResultsPackager2 {
 	 * Call {@code String#trim()} on input lines after reading?
 	 */
 	private boolean trim;
+	/**
+	 * Prefix of lines to skip
+	 */
+	private String skipPrefix = null;
 
 	public ResultsPackager2(ResultFormatParser lineParser) {
 		this(lineParser, new Logger());
@@ -68,13 +72,14 @@ public final class ResultsPackager2 {
 												int initialLinesToSkip) throws IOException {
 		reader = Files.getAppropriateReader(input);
 		trim = trimInputLines;
+		skipPrefix = lineSkipPrefix;
 		String line = null;
 		int skip = initialLinesToSkip;
 		while ((line = reader.readLine()) != null) {
 			if (trim) {
 				line = line.trim();
 			}
-			if (lineSkipPrefix != null && line.startsWith(lineSkipPrefix)) {
+			if (skipPrefix != null && line.startsWith(skipPrefix)) {
 				continue;
 			}
 			if (skip > 0) {
@@ -118,6 +123,9 @@ public final class ResultsPackager2 {
 		while ((line = reader.readLine()) != null) {
 			if (trim) {
 				line = line.trim();
+			}
+			if (skipPrefix != null && line.startsWith(skipPrefix)) {
+				continue;
 			}
 			String[] result = resultLineParser.parseInputLine(line.split(inputDelim));
 			if (result != null) {
