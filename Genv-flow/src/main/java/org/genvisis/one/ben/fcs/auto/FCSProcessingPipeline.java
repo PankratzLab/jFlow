@@ -132,11 +132,15 @@ public class FCSProcessingPipeline {
 		// private static final String WSP = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
 		// private static final String OUT = "/scratch.global/cole0482/FCS/testConcordance/";
 
-		String fcs = "/home/pankrat2/shared/flow/fcs2/";
-		String wsp = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
-		String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
-		String out = "/scratch.global/cole0482/FCS/testConcordance/";
-		PIPELINE pipe = null;
+		// String fcs = "/home/pankrat2/shared/flow/fcs2/";
+		// String wsp = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
+		// String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
+		// String out = "/scratch.global/cole0482/FCS/testConcordance/";
+		String fcs = "F:/flow/viz/";
+		String wsp = fcs;
+		String auto = null;
+		String out = fcs;
+		PIPELINE pipe = PIPELINE.PCTS_CNTS;
 		// boolean test = true;
 		// if (test) {
 		// fcs = wsp = auto = out = "F:/Flow/test3/";
