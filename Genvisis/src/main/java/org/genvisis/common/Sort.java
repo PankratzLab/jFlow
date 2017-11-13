@@ -277,6 +277,21 @@ public class Sort {
 	 *
 	 * @return the ordered copy
 	 */
+	public static boolean[] getOrdered(boolean[] unordered, int[] indices) {
+		boolean[] ordered = new boolean[unordered.length];
+
+		for (int i = 0; i < indices.length; i++) {
+			ordered[i] = unordered[indices[i]];
+		}
+
+		return ordered;
+	}
+
+	/**
+	 * Copies the given array and orders it using the specified indices
+	 *
+	 * @return the ordered copy
+	 */
 	public static <T> T[] getOrdered(T[] unordered, int[] indices) {
 		T[] ordered = Arrays.copyOf(unordered, unordered.length);
 
