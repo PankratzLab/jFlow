@@ -275,7 +275,7 @@ public class BWA_Analysis {
 	public static final String INDEXED_REFERENCE_GENOME_EXT = ".sa";
 	public static final String SAM_EXT = ".sam";
 
-	public static final String[] FQ_EXTS = {".fq", ".fastq"};
+	public static final String[] FQ_EXTS = {".fq", ".fastq", ".fastq.gz"};
 	public static final String PAIRED_SUMMARY = "fqLaneReadPaired.txt";
 	public static final String SPACE = " ";
 	public static final String ROOT_INPUT_COMMAND = "rootInputDir=";
