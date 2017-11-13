@@ -723,7 +723,6 @@ public class ext {
 
 	public static String getTimeElapsed(long startTime) {
 		long timeElapsed;
-
 		timeElapsed = new Date().getTime() - startTime;
 
 		return formatMillisElapsed(timeElapsed);

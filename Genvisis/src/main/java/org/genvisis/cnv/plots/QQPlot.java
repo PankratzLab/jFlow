@@ -17,6 +17,7 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialFloatArray;
 
@@ -138,7 +139,8 @@ public class QQPlot {
 	 * @param maxValue maximum -log10 p-value to plot
 	 * @param log
 	 */
-	public static QQPlot loadPvals(String[] filenames, String plotLabel, boolean displayQuantiles,
+	public static QQPlot loadPvals(String[] filenames, String plotLabel,
+																 boolean displayQuantiles,
 																 boolean displayStandardQQ, boolean displayRotatedQQ,
 																 double maxToPlot, double mafLwrBnd, boolean symmetric,
 																 float maxValue, Logger log) {
@@ -155,7 +157,6 @@ public class QQPlot {
 		int[] mafCols;
 		double minPval;
 		String delimiter;
-		String temp;
 		int invalids;
 
 		if (filenames == null || filenames.length == 0) {
@@ -237,123 +238,112 @@ public class QQPlot {
 				return null;
 			}
 			delimiter = Files.determineDelimiter(filenames[i], log);
+
+			int lineCount = Files.countLines(filenames[i], 0);
+			String firstLine = Files.getFirstLineOfFile(filenames[i], log);
+
+			try {
+				if (delimiter.equals(",")) {
+					trav = ext.splitCommasIntelligently(firstLine, true, log)[cols[i]];
+				} else {
+					trav = firstLine.trim().split(delimiter, -1)[cols[i]];
+				}
+			} catch (Exception e) {
+				log.reportError("Error - could not parse " + filenames[i] + " completely:");
+				log.reportError(firstLine);
+				log.reportException(e);
+				return null;
+			}
+			try {
+				if (!ext.isMissingValue(trav)) {
+					Double.parseDouble(trav); // see if first value is a valid double
+					header = false;
+				} else {
+					header = false;
+				}
+			} catch (NumberFormatException nfe) {
+				header = true;
+				lineCount--;
+			}
+
+			invalids = 0;
+			double[] pv = new double[lineCount];
+			boolean[] use = ArrayUtils.booleanArray(lineCount, true);
+			boolean commaDelim = delimiter.equals(",");
+
 			try {
 				reader = Files.getReader(filenames[i], true, true);
+				if (header) {
+					reader.readLine();
+				}
+
 				count = 0;
-				temp = reader.readLine();
-				try {
-					if (delimiter.equals(",")) {
-						trav = ext.splitCommasIntelligently(temp, true, log)[cols[i]];
-					} else {
-						trav = temp.trim().split(delimiter, -1)[cols[i]];
-					}
-				} catch (Exception e) {
-					log.reportError("Error - could not parse " + filenames[i] + " completely:");
-					log.reportError(temp);
-					log.reportException(e);
-					return null;
-				}
-				invalids = 0;
-				try {
-					if (!ext.isMissingValue(trav)) {
-						if (Double.parseDouble(trav) <= 0) {
-							reportQQError("Error - one of the p-values in file " + filenames[i]
-														+ " is near zero (" + trav + ") for line:\n"
-														+ ext.replaceAllWith(temp, delimiter, "  "), log);
-							invalids++;
-						}
-						header = false;
-						count++;
-					} else {
-						header = false;
-					}
-				} catch (NumberFormatException nfe) {
-					header = true;
-				}
-				while (reader.ready()) {
-					temp = reader.readLine();
-					if (delimiter.equals(",")) {
-						trav = ext.splitCommasIntelligently(temp, true, log)[cols[i]];
-					} else {
-						trav = temp.trim().split(delimiter, -1)[cols[i]];
-					}
+				while ((fullLine = reader.readLine()) != null) {
+					lineParts = commaDelim ? ext.splitCommasIntelligently(fullLine, true, log)
+																: fullLine.trim().split(delimiter, -1);
+					trav = lineParts[cols[i]];
 					if (!ext.isMissingValue(trav)) {
 						try {
-							if (Double.parseDouble(trav) <= 0) {
+							pv[count] = Double.parseDouble(trav);
+							if (pv[count] > 0) {
+								if (minPval > 0 && pv[count] < minPval) {
+									pv[count] = minPval;
+								}
+								if (mafLwrBnd > 0) {
+									if (mafCols[i] >= 0) {
+										trav = lineParts[mafCols[i]];
+										if (!ext.isMissingValue(trav)) {
+											try {
+												use[count] = Double.parseDouble(trav) > mafLwrBnd;
+											} catch (NumberFormatException nfe) {
+												use[count] = false;
+											}
+										}
+									}
+								}
+								count++;
+							} else {
 								if (invalids < 3) {
 									reportQQError("Error - one of the p-values in file " + filenames[i]
 																+ " is near zero (" + trav + ") for line:\n"
-																+ ext.replaceAllWith(temp, delimiter, "  "), log);
+																+ ext.replaceAllWith(fullLine, delimiter, "  "), log);
 								}
 								invalids++;
-							} else {
-								count++;
 							}
 						} catch (NumberFormatException nfe) {
 							if (invalids < 3) {
 								reportQQError("Error - one of the p-values in file " + filenames[i]
 															+ " is not a number (" + trav + ") for line:\n"
-															+ ext.replaceAllWith(temp, delimiter, "  "), log);
+															+ ext.replaceAllWith(fullLine, delimiter, "  "), log);
 							}
 							invalids++;
 						}
 					}
 				}
 				reader.close();
+
 				if (invalids > 2) {
 					reportQQError("There were " + invalids
 												+ " total markers that had an invalid p-value for file " + filenames[i],
 												log);
 				}
+				log.report("Loaded " + count + " lines of data");
 
-				reader = Files.getReader(filenames[i], true, true);
-				pvals[i] = new double[count];
-				usePvalForLambda[i] = ArrayUtils.booleanArray(count, true);
-				count = 0;
-				if (header) {
-					reader.readLine();
-				}
-				while (reader.ready()) {
-					fullLine = reader.readLine();
-					if (delimiter.equals(",")) {
-						lineParts = ext.splitCommasIntelligently(fullLine, true, log);
-					} else {
-						lineParts = fullLine.trim().split(delimiter, -1);
-					}
-					trav = lineParts[cols[i]];
-					if (!ext.isMissingValue(trav)) {
-						try {
-							pvals[i][count] = Double.parseDouble(trav);
-							if (pvals[i][count] > 0) {
-								if (pvals[i][count] < minPval) {
-									pvals[i][count] = minPval;
-									if (mafLwrBnd > 0) {
-										if (mafCols[i] >= 0) {
-											trav = lineParts[mafCols[i]];
-											if (!ext.isMissingValue(trav)) {
-												try {
-													usePvalForLambda[i][count] = Double.parseDouble(trav) > mafLwrBnd;
-												} catch (NumberFormatException nfe) {
-													usePvalForLambda[i][count] = false;
-												}
-											}
-										}
-									}
-									count++;
-								}
-							}
-						} catch (NumberFormatException nfe) {
-						}
-					}
-				}
-				reader.close();
-				if (count != pvals[i].length) {
-					reportQQError("Error - mismatched number of values: " + count + " of " + pvals[i].length
-												+ " were valid", log);
-					return null;
+				if (count < lineCount) {
+					pvals[i] = new double[count];
+					usePvalForLambda[i] = new boolean[count];
+					System.arraycopy(pv, 0, pvals[i], 0, count);
+					System.arraycopy(use, 0, usePvalForLambda[i], 0, count);
+					pv = null;
+					use = null;
+				} else {
+					pvals[i] = pv;
+					usePvalForLambda[i] = use;
 				}
 
-				Arrays.sort(pvals[i]);
+				int[] inds = Sort.getSortedIndices(pvals[i]);
+				pvals[i] = Sort.getOrdered(pvals[i], inds);
+				usePvalForLambda[i] = Sort.getOrdered(usePvalForLambda[i], inds);
 			} catch (FileNotFoundException fnfe) {
 				log.reportError("Error - missing file: \"" + filenames[i] + "\"");
 				error = false;
