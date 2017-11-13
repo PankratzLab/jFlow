@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
@@ -60,7 +62,7 @@ public class UKBBParsingPipeline {
 	int maxChrThreads = 4;
 	int maxMarkersPerMDRAF = 1500;
 	int logEveryNMins = 5;
-	double scaleFactor = 100d;
+	float scaleFactor = 5000f;
 
 	Logger log = new Logger();
 
@@ -103,7 +105,7 @@ public class UKBBParsingPipeline {
 		annotFile = csv;
 	}
 
-	private void setScaleFactor(double scale) {
+	private void setScaleFactor(float scale) {
 		scaleFactor = scale;
 	}
 
@@ -148,7 +150,7 @@ public class UKBBParsingPipeline {
 			proj.PROJECT_NAME.setValue(projName);
 			proj.PROJECT_DIRECTORY.setValue(projDir);
 			proj.SOURCE_DIRECTORY.setValue(sourceDir);
-			proj.XY_SCALE_FACTOR.setValue(scaleFactor);
+			proj.XY_SCALE_FACTOR.setValue((double) scaleFactor);
 			proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
 			proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
 			proj.ID_HEADER.setValue("NULL");
@@ -286,12 +288,20 @@ public class UKBBParsingPipeline {
 
 	protected void parseMarkerData() {
 		long time = System.nanoTime();
-
-		ExecutorService executor = Executors.newFixedThreadPool(Math.min(fileSets.size(),
-																																		 maxChrThreads));
+		int numThreads = Math.min(fileSets.size(), maxChrThreads);
+		ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
 		final MarkerLogger mkrLog = new MarkerLogger(log, logEveryNMins);
-		CountDownLatch cdl = new CountDownLatch(fileSets.size());
+
+		CountDownLatch cdl = new CountDownLatch(fileSets.size()) {
+			int f = fileSets.size();
+
+			@Override
+			public void countDown() {
+				super.countDown();
+				log.reportTime("Marker Data Countdown: " + (--f) + " of " + fileSets.size());
+			}
+		};
 
 		for (Integer v : fileSets.keySet()) {
 			final FileSet fs = fileSets.get(v);
@@ -302,6 +312,7 @@ public class UKBBParsingPipeline {
 						fs.buildLookups(log);
 						createMDRAF(fs, mkrLog);
 						cdl.countDown();
+						log.reportTime("Completed parsing chr" + fs.chr);
 					} catch (IOException | Elision e) {
 						log.reportError("FAILED TO PARSE DATA FILE FOR CHROMOSOME: " + fs.chr);
 						e.printStackTrace();
@@ -315,7 +326,8 @@ public class UKBBParsingPipeline {
 			};
 			executor.submit(runn);
 		}
-		log.reportTime("Queued MarkerData parsing for " + fileSets.size() + " chrs.");
+		log.reportTime("Queued MarkerData parsing for " + fileSets.size() + " chrs with " + numThreads
+									 + " threads.");
 
 		executor.shutdown();
 		try {
@@ -638,51 +650,111 @@ public class UKBBParsingPipeline {
 		final int nInd = famData.length;
 
 		final byte nullStatus = getNullStatus();
+		int numThreads = maxMDRAFThreadsPerChr;
 
 		String[] mkrNames = Matrix.extractColumn(bimData, 1);
 		fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / maxMarkersPerMDRAF) + 1, log);
 		String[] existing = readWritten();
-		ArrayList<Runnable> runners = new ArrayList<Runnable>();
-
-		final CountDownLatch cdl = new CountDownLatch(fs.mkrBins.size());
+		Map<Integer, String[]> toAdd = new TreeMap<>();
 		int start = 0;
 		int end = 0;
 		for (int i = 0; i < fs.mkrBins.size(); i++) {
 			end = start + fs.mkrBins.get(i).length;
-			final int s = start;
-			final int ii = i;
 			String mdRAFName = getMDRAFName(fs.chr, start, end);
 			if (ext.indexOfStr(mdRAFName, existing) == -1) {
-				runners.add(new Runnable() {
-					@Override
-					public void run() {
-						String mdRAF;
-						try {
-							long t1 = System.nanoTime();
-							mdRAF = write(fs, s, fs.mkrBins.get(ii), nullStatus, nInd, bimData, mkrLog);
-							log.reportTime("Wrote " + mdRAF + " in " + ext.getTimeElapsedNanos(t1));
-							success(mdRAF);
-							cdl.countDown();
-						} catch (Elision e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				});
-			} else {
-				cdl.countDown();
+				toAdd.put(start, fs.mkrBins.get(i));
 			}
 			start = end;
 		}
 
+		Comparator<Entry<Integer, String[]>> entComp = new Comparator<Entry<Integer, String[]>>() {
+			@Override
+			public int compare(Entry<Integer, String[]> o1, Entry<Integer, String[]> o2) {
+				return o1.getKey().compareTo(o2.getKey());
+			}
+		};
+		List<List<Entry<Integer, String[]>>> binsOfBins = new ArrayList<>();
+		int numPerBin = (toAdd.size() / numThreads) + 1;
+		ArrayList<Entry<Integer, String[]>> binOfBins = new ArrayList<>();
+		binsOfBins.add(binOfBins);
+		int ind = 0;
+		for (Entry<Integer, String[]> bin : toAdd.entrySet()) {
+			binOfBins.add(bin);
+			ind++;
+			if (ind > numPerBin) {
+				ind = 0;
+				binOfBins = new ArrayList<>();
+				binsOfBins.add(binOfBins);
+			}
+		}
+		for (int i = binsOfBins.size() - 1; i >= 0; i--) {
+			if (binsOfBins.get(i).isEmpty()) {
+				binsOfBins.remove(i);
+			} else {
+				binsOfBins.get(i).sort(entComp);
+			}
+		}
+
+		ArrayList<Runnable> runners = new ArrayList<Runnable>();
+		final CountDownLatch cdl = new CountDownLatch(binsOfBins.size()) {
+			@Override
+			public void countDown() {
+				super.countDown();
+				log.reportTime("COUNTED DOWN " + getCount());
+			}
+		};
+
+		for (List<Entry<Integer, String[]>> ent : binsOfBins) {
+			runners.add(new Runnable() {
+				@Override
+				public void run() {
+
+					String mdRAF;
+					try {
+						FileReaderSet frs = new FileReaderSet();
+						frs.open(fs);
+
+						byte[] magicBytes = new byte[3];
+						frs.bedIn.read(magicBytes);
+						if (magicBytes[2] == 0) {
+							log.reportError("Error - .bed file is sample-dominant: " + fs.bedFile);
+							System.exit(1);
+						}
+
+						int prevBatchEnd = 0;
+						for (int i = 0; i < ent.size(); i++) {
+							long t1 = System.nanoTime();
+							Entry<Integer, String[]> ent2 = ent.get(i);
+							mdRAF = write(fs, frs, prevBatchEnd, ent2.getKey(), ent2.getValue(), nullStatus,
+														nInd, bimData, mkrLog);
+							success(mdRAF, t1);
+							prevBatchEnd = ent2.getKey() + ent2.getValue().length;
+						}
+
+						frs.close();
+						frs = null;
+					} catch (Elision e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					cdl.countDown();
+				}
+			});
+		}
+
 		if (runners.size() > 0) {
-			ExecutorService executor = Executors.newFixedThreadPool(Math.min(runners.size(),
-																																			 maxMDRAFThreadsPerChr));
-			for (Runnable r : runners) {
-				executor.submit(r);
+			numThreads = Math.min(runners.size(), numThreads);
+			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+			for (int i = 0; i < runners.size(); i++) {
+				executor.submit(runners.get(i));
+				System.out.println("Queued bin " + (i + 1) + " of " + runners.size() + " (with "
+													 + binsOfBins.get(i).size() + " bins) (found "
+													 + (fs.mkrBins.size() - toAdd.size())
+													 + " already parsed) for chr" + fs.chr + " with "
+													 + numThreads + " threads.");
 			}
 			executor.shutdown();
 			try {
@@ -700,9 +772,10 @@ public class UKBBParsingPipeline {
 														 : new String[0];
 	}
 
-	private synchronized void success(String mkrFile) {
+	private synchronized void success(String mkrFile, long t1) {
 		String temp = proj.PROJECT_DIRECTORY.getValue() + "markersWritten.txt";
 		Files.appendStringToFile(temp, mkrFile);
+		log.reportTime("Wrote marker data file " + mkrFile + " in " + ext.getTimeElapsedNanos(t1));
 	}
 
 	private String getMDRAFName(int chr, int start, int end) {
@@ -710,21 +783,17 @@ public class UKBBParsingPipeline {
 					 + end + MarkerData.MARKER_DATA_FILE_EXTENSION;
 	}
 
-	private String write(FileSet fs, int startBatchInd, String[] mkrNames, byte nullStatus, int nInd,
+	private String write(FileSet fs, FileReaderSet frs, int prevBatchEnd, int startBatchInd,
+											 String[] mkrNames, byte nullStatus, int nInd,
 											 String[][] bimData, MarkerLogger markerLogger) throws Elision, IOException {
 
-		FileReaderSet frs = new FileReaderSet();
-		frs.open(fs);
-
-		byte[] magicBytes = new byte[3];
-		frs.bedIn.read(magicBytes);
-		if (magicBytes[2] == 0) {
-			log.reportError("Error - .bed file is sample-dominant: " + fs.bedFile);
-			System.exit(1);
-		}
-
-		if (startBatchInd > 0) {
-			frs.readAhead(fs, 0, startBatchInd);
+		int lineSkips = startBatchInd - prevBatchEnd;
+		if (lineSkips > 0) {
+			long t1 = System.currentTimeMillis();
+			frs.readAhead(fs, prevBatchEnd, lineSkips);
+			log.reportTime("Chr" + fs.chr + " - skipped " + lineSkips + " lines from " + prevBatchEnd
+										 + " to " + startBatchInd + " in "
+										 + ext.getTimeElapsed(t1));
 		}
 
 		RandomAccessFile mdRAF;
@@ -742,6 +811,7 @@ public class UKBBParsingPipeline {
 		byte[] mkrBuff;
 		String[] parts;
 		// double log2 = Math.log(2);
+		log.reportTime("Chr" + fs.chr + "; start=" + startBatchInd + "; reading markers...");
 		for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
 			markerLogger.logMarker(fs.chr, startBatchInd, mkrNames.length, i);
 
@@ -769,7 +839,7 @@ public class UKBBParsingPipeline {
 			frs.binIn.seek(((long) i) * ((long) binBlockSize));
 			frs.binIn.read(intensBytes);
 
-			float /* a, b, */x, y;
+			float a, b, x, y;
 			boolean oor;
 			byte[] intA = new byte[4];
 			byte[] intB = new byte[4];
@@ -778,18 +848,18 @@ public class UKBBParsingPipeline {
 				intA[1] = intensBytes[binInd++];
 				intA[2] = intensBytes[binInd++];
 				intA[3] = intensBytes[binInd++];
+
 				intB[0] = intensBytes[binInd++];
 				intB[1] = intensBytes[binInd++];
 				intB[2] = intensBytes[binInd++];
 				intB[3] = intensBytes[binInd++];
 
-				x = BGENBitMath.bytesToFloat(true, intA);
-				y = BGENBitMath.bytesToFloat(true, intB);
+				a = BGENBitMath.bytesToFloat(true, intA);
+				b = BGENBitMath.bytesToFloat(true, intB);
 				// x = ByteBuffer.wrap(intA).order(ByteOrder.LITTLE_ENDIAN).getFloat();
 				// y = ByteBuffer.wrap(intB).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-
-				x = (float) (x / scaleFactor);
-				y = (float) (y / scaleFactor);
+				x = (float) (a / scaleFactor);
+				y = (float) (b / scaleFactor);
 
 				// x = (float) (Math.log(a / b) / log2);
 				// y = (float) ((Math.log(a * b) / log2) / 2);
@@ -798,7 +868,7 @@ public class UKBBParsingPipeline {
 				// x = (float) (Math.log(x) / Math.log(2));
 				// y = (float) (Math.log(y) / Math.log(2));
 
-				oor = !Compression.xyCompressPositiveOnly(x == -1
+				oor = !Compression.xyCompressPositiveOnly(a == -1
 																												 ? Float.NaN
 																												 : (float) (x),
 																									mkrBuff, buffInd);
@@ -806,7 +876,7 @@ public class UKBBParsingPipeline {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
-				oor = !Compression.xyCompressPositiveOnly(y == -1
+				oor = !Compression.xyCompressPositiveOnly(b == -1
 																												 ? Float.NaN
 																												 : (float) (y),
 																									mkrBuff,
@@ -893,16 +963,12 @@ public class UKBBParsingPipeline {
 			mkrBuff = null;
 		}
 
-		log.reportTime("Writing " + outOfRangeTable.size() + " outliers to " + mdRAFName);
 		byte[] oorBytes = Compression.objToBytes(outOfRangeTable);
 		mdRAF.write(Compression.intToBytes(oorBytes.length));
 		mdRAF.write(oorBytes);
-		log.reportTime("Finished writing outliers to " + mdRAFName);
+		log.reportTime("Wrote " + outOfRangeTable.size() + " outliers to " + mdRAFName);
 
 		mdRAF.close();
-
-		frs.close();
-		frs = null;
 
 		oorBytes = null;
 		outOfRangeTable = null;
@@ -1003,6 +1069,9 @@ public class UKBBParsingPipeline {
 			timer.cancel();
 		}
 
+		String prevReport = null;
+		int sameReportStreak = 0;
+		int streakReportAt = 3;
 		Timer timer;
 		TimerTask logging = new TimerTask() {
 			@Override
@@ -1031,15 +1100,12 @@ public class UKBBParsingPipeline {
 					int[] bin = keyMap.get(k);
 					int chr = bin[0];
 					double pct = (mkrMap.get(k) - bin[1]) / (double) bin[2];
-					// String pctStr = (mkrMap.get(k) - bin[1]) + "/" + bin[2];
 					int v = (int) (100 * pct);
 					if (!chrKeys.containsKey(chr)) {
 						chrKeys.put(chr, new ArrayList<>());
 						keys.add(chr);
 					}
-					// chrKeys.get(chr).add(pct < 0.993 ? v + "% (" + pctStr + ")" : "C");
-					chrKeys.get(chr).add(pct < 0.993 ? v + "%" : "C");
-					// chrKeys.get(chr).add((mkrMap.get(k) - bin[1]) + "/" + bin[2]);
+					chrKeys.get(chr).add(pct < 0.998 ? v + "%" : "C");
 				}
 				for (ArrayList<String> cK : chrKeys.values()) {
 					if (cK.size() > max) {
@@ -1051,7 +1117,8 @@ public class UKBBParsingPipeline {
 					header.append("\t").append(c);
 				}
 
-				log.reportTime(header.toString());
+				StringBuilder fullReport = new StringBuilder();
+				fullReport.append(ext.getTime()).append(" - ").append(header.toString()).append("\n");
 				for (int i = 0; i < max; i++) {
 					StringBuilder line = new StringBuilder("BIN_").append(i);
 					for (Integer c : keys) {
@@ -1062,11 +1129,22 @@ public class UKBBParsingPipeline {
 							line.append(chrKeys.get(c).get(i));
 						}
 					}
-					log.reportTime(line.toString());
+					fullReport.append(ext.getTime()).append(" - ").append(line.toString()).append("\n");
 				}
-				log.reportTime("(wrote to log in " + ext.getTimeElapsedNanos(t1));
-				log.reportTime("");
 
+				fullReport.append("(wrote to log in " + ext.getTimeElapsedNanos(t1) + ")\n\n");
+				if (fullReport.toString().equals(prevReport)) {
+					sameReportStreak++;
+				} else {
+					sameReportStreak = 0;
+				}
+				if (sameReportStreak > 0 && sameReportStreak % streakReportAt == 0) {
+					log.reportTimeWarning("Warning - log message has been the same " + sameReportStreak
+																+ " times in a row");
+					log.reportTimeWarning(ext.reportMemoryUsage());
+					System.gc();
+				}
+				log.report(prevReport = fullReport.toString());
 			}
 		};
 
@@ -1298,7 +1376,7 @@ public class UKBBParsingPipeline {
 		int chrThreads;
 		int threadsPerChr;
 		int mkrsPerFile;
-		double scale;
+		float scale;
 
 		CLI cli = new CLI(UKBBParsingPipeline.class);
 
@@ -1326,7 +1404,7 @@ public class UKBBParsingPipeline {
 		chrThreads = cli.has("chrThreads") ? cli.getI("chrThreads") : -1;
 		threadsPerChr = cli.has("threadsPerChr") ? cli.getI("threadsPerChr") : -1;
 		mkrsPerFile = cli.has("mkrsPerFile") ? cli.getI("mkrsPerFile") : -1;
-		scale = cli.has("scaleFactor") ? cli.getD("scaleFactor") : -1;
+		scale = (float) (cli.has("scaleFactor") ? cli.getD("scaleFactor") : -1);
 
 		UKBBParsingPipeline parser = new UKBBParsingPipeline();
 		parser.setSourceDir(sourceDir);
