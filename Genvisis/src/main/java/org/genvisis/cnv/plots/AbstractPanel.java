@@ -492,8 +492,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		minimumObservedRawY = Float.MAX_VALUE;
 		maximumObservedRawY = Float.MIN_VALUE;
 		for (int i = 0; i < points.length && flow; i++) {
-			// for (int i = 0; i<points.length; i++) {
-			if (points[i] != null) {
+			if (points[i] != null && Float.isFinite(points[i].getRawX())
+					&& Float.isFinite(points[i].getRawY())) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, points[i].getRawX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, points[i].getRawX());
 				minimumObservedRawY = Maths.min(minimumObservedRawY, points[i].getRawY());
@@ -502,7 +502,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 
 		for (int i = 0; lines != null && i < lines.length && flow; i++) {
-			if (lines[i] != null && lines[i].getLayer() == 0) {
+			if (lines[i] != null && lines[i].getLayer() == 0 && Float.isFinite(lines[i].getStartX())
+					&& Float.isFinite(lines[i].getStopX()) && Float.isFinite(lines[i].getStartY())
+					&& Float.isFinite(lines[i].getStopY())) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, lines[i].getStartX());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, lines[i].getStartX());
 				minimumObservedRawY = Maths.min(minimumObservedRawY, lines[i].getStartY());
@@ -515,7 +517,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 		for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
-			if (rectangles[i] != null && rectangles[i].getLayer() == 0) {
+			if (rectangles[i] != null && rectangles[i].getLayer() == 0
+					&& Float.isFinite(rectangles[i].getStartXValue())
+					&& Float.isFinite(rectangles[i].getStopXValue())
+					&& Float.isFinite(rectangles[i].getStartYValue())
+					&& Float.isFinite(rectangles[i].getStopYValue())) {
 				minimumObservedRawX = Maths.min(minimumObservedRawX, rectangles[i].getStartXValue());
 				maximumObservedRawX = Maths.max(maximumObservedRawX, rectangles[i].getStartXValue());
 				minimumObservedRawY = Maths.min(minimumObservedRawY, rectangles[i].getStartYValue());
