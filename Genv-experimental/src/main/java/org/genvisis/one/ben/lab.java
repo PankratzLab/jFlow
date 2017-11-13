@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -921,6 +923,10 @@ public class lab {
 		}
 	}
 
+	static float fromByteArrayBB(byte[] bytes) {
+		return ByteBuffer.wrap(bytes).getFloat();
+	}
+
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		int numArgs = args.length;
 		Project proj;
@@ -930,9 +936,37 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+			//
+			QQPlot.main(new String[] {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
 
-			proj = new Project(args[0]);
-			runXYHistogram(proj);
+			// String[] args1 = {
+			// "file=F:/CARDIA 2017/2nd round/results/plots/combined.results"};
+			// ManhattanPlot.main(args1);
+
+			// CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
+			// CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
+
+			// byte[] pt5 = ByteBuffer.allocate(4).putFloat(1.5f).array();
+			// byte[] pt35 = ByteBuffer.allocate(4).putFloat(65.35f).array();
+			// byte[] pt75 = ByteBuffer.allocate(4).putFloat(1578.75f).array();
+			// byte[] Opt75 = ByteBuffer.allocate(4).putFloat(-42.75f).array();
+			//
+			// System.out.println(BGENBitMath.bytesToFloat(true, pt5) + " - " + fromByteArrayBB(pt5));
+			// System.out.println(BGENBitMath.bytesToFloat(true, pt35) + " - " + fromByteArrayBB(pt35));
+			// System.out.println(BGENBitMath.bytesToFloat(true, pt75) + " - " + fromByteArrayBB(pt75));
+			// System.out.println(BGENBitMath.bytesToFloat(true, Opt75) + " - " + fromByteArrayBB(Opt75));
+
+			// String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+			// UKBBParsingPipeline pipe = new UKBBParsingPipeline();
+			// pipe.setSourceDir(dir + "00src/");
+			// pipe.setProjectDir(dir + "project/");
+			// pipe.setProjectPropertiesDir("D:/projects/");
+			// pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
+			// pipe.setProjectName("UKBB");
+			// pipe.runPipeline();
+
+			// proj = new Project(args[0]);
+			// runXYHistogram(proj);
 
 			// dumpSingleMDRAFOutliers();
 			// String dir = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/";

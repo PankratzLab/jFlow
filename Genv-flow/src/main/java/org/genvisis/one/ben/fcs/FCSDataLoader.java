@@ -368,8 +368,8 @@ public class FCSDataLoader {
 		long t1 = System.currentTimeMillis();
 		LOAD_STATE currState;
 		do {
-			currState = getLoadState();
 			Thread.yield();
+			currState = getLoadState();
 		} while (currState != LOAD_STATE.LOADED);
 		System.out.println("Waited " + ext.getTimeElapsed(t1));
 	}
@@ -430,28 +430,12 @@ public class FCSDataLoader {
 					loadedCount++;
 				}
 			}
-			if (Thread.currentThread().isInterrupted()) {
-				cleanup();
-				return;
-			}
 			compensatedData = compensateSmall(paramNamesInOrder,
 																				allData,
 																				compensatedNames.toArray(new String[compensatedNames.size()]),
 																				getInvertedSpilloverMatrix(spillObj.getSpilloverCoefficients()));
-			if (Thread.currentThread().isInterrupted()) {
-				cleanup();
-				return;
-			}
 			allData = Matrix.transpose(allData);
-			if (Thread.currentThread().isInterrupted()) {
-				cleanup();
-				return;
-			}
 			compensatedData = Matrix.transpose(compensatedData);
-			if (Thread.currentThread().isInterrupted()) {
-				cleanup();
-				return;
-			}
 			cleanup();
 		}
 
