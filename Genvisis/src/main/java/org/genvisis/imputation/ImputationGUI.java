@@ -199,8 +199,8 @@ public class ImputationGUI extends JDialog {
 			txtFldMkrDrop.setColumns(10);
 			JButton btnMkrDrop = new JButton(">");
 			btnMkrDrop.addActionListener(e -> {
-				String[] files = new FileChooser(ImputationGUI.this, "./", false, false,
-																				 "Select Marker Drops File", log).getFiles();
+				String[] files = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(),
+																				 false, false, "Select Marker Drops File", log).getFiles();
 				if (files == null) {
 					return;
 				} else {
@@ -216,8 +216,8 @@ public class ImputationGUI extends JDialog {
 			txtFldSampKeep.setColumns(10);
 			JButton btnSampKeep = new JButton(">");
 			btnSampKeep.addActionListener(e -> {
-				String[] files = new FileChooser(ImputationGUI.this, "./", false, false,
-																				 "Select Sample Keeps File", log).getFiles();
+				String[] files = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(),
+																				 false, false, "Select Sample Keeps File", log).getFiles();
 				if (files == null) {
 					return;
 				} else {
@@ -233,8 +233,8 @@ public class ImputationGUI extends JDialog {
 			txtFldMkrKeep.setColumns(10);
 			JButton btnMkrKeep = new JButton(">");
 			btnMkrKeep.addActionListener(e -> {
-				String[] files = new FileChooser(ImputationGUI.this, "./", false, false,
-																				 "Select Marker Keeps File", log).getFiles();
+				String[] files = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(),
+																				 false, false, "Select Marker Keeps File", log).getFiles();
 				if (files == null) {
 					return;
 				} else {
@@ -247,8 +247,8 @@ public class ImputationGUI extends JDialog {
 			txtFldSampDrop.setColumns(10);
 			JButton btnSampDrop = new JButton(">");
 			btnSampDrop.addActionListener(e -> {
-				String[] files = new FileChooser(ImputationGUI.this, "./", false, false,
-																				 "Select Sample Drops File", log).getFiles();
+				String[] files = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(),
+																				 false, false, "Select Sample Drops File", log).getFiles();
 				if (files == null) {
 					return;
 				} else {
@@ -316,8 +316,9 @@ public class ImputationGUI extends JDialog {
 
 			JButton btnRefFile = new JButton(">");
 			btnRefFile.addActionListener(e -> {
-				String[] files = new FileChooser(ImputationGUI.this, "./", false, false,
-																				 "Select Reference / Site Map File", log).getFiles();
+				String[] files = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(),
+																				 false, false, "Select Reference / Site Map File",
+																				 log).getFiles();
 				if (files == null) {
 					return;
 				} else {
@@ -345,8 +346,8 @@ public class ImputationGUI extends JDialog {
 
 			JButton btnOutDir = new JButton(">");
 			btnOutDir.addActionListener(e -> {
-				String dir = new FileChooser(ImputationGUI.this, "./", false, true,
-																		 "Select Output Directory", log).getNavDir();
+				String dir = new FileChooser(ImputationGUI.this, proj.PROJECT_DIRECTORY.getValue(), false,
+																		 true, "Select Output Directory", log).getNavDir();
 				if (dir == null || "".equals(dir)) {
 					return;
 				} else {
