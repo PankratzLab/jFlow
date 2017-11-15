@@ -40,6 +40,17 @@ import com.google.common.collect.Sets;
  */
 public class ImputationPipeline {
 
+	public static final String PROJ_ARG = "proj=";
+	public static final String REF_ARG = "ref=";
+	public static final String PLINK_DIR_ARG = "plinkDir=";
+	public static final String PLINK_PREFIX_ARG = "plinkPrefix=";
+	public static final String OUT_DIR_AND_ROOT_ARG = "outDirAndRoot=";
+	public static final String OUT_DIR_ARG = "outDir=";
+	public static final String HAPS_DIR_ARG = "hapsDir=";
+	public static final String CHRS_ARG = "chrs=";
+	public static final String RUN_TYPE_ARG = "type=";
+	public static final String USE_GRC_ARG = "useGRC=";
+
 	Project proj;
 	Set<String> dropMarkers = new HashSet<String>();
 	Set<String> dropSamples = new HashSet<String>();
@@ -328,33 +339,32 @@ public class ImputationPipeline {
 									 +
 									 "org.genvisis.imputation.ImputationPipeline requires 3+ arguments\n"
 									 +
-									 "   (1) Project properties filename (i.e. proj="
-									 + projFile
+									 "   (1) Project properties filename (i.e. " + PROJ_ARG + projFile
 									 + " (default))\n"
 									 +
-									 "   (2) A comma-separated list of chromosomes to export, or null for all (may be omitted) (i.e. chrs="
-									 + chrs
-									 + " (default))\n"
+									 "   (2) A comma-separated list of chromosomes to export, or null for all (may be omitted) (i.e. "
+									 + CHRS_ARG + chrs + " (default))\n"
 									 +
-									 "   (3) Imputation Pipeline path (i.e. one of "
-									 + ArrayUtils.toStr(IMPUTATION_PIPELINE_PATH.values(), ", ")
-									 + "))\n"
+									 "   (3) Imputation Pipeline path (i.e. " + RUN_TYPE_ARG + " one of "
+									 + ArrayUtils.toStr(IMPUTATION_PIPELINE_PATH.values(), ", ") + "))\n"
 									 +
 									 "   --------------------- \n"
 									 +
 									 "   The following arguments may be necessary depending on chosen pipeline:\n"
 									 +
-									 "   (a) Reference Panel / Site List file, with mkr, chr, pos, ref, and alt columns (i.e. ref="
-									 + refFile + " (default))\n" +
-									 "   (b) Subdirectory in which to create PLINK files (i.e. plinkDir="
+									 "   (a) Reference Panel / Site List file, with mkr, chr, pos, ref, and alt columns (i.e. "
+									 + REF_ARG + refFile + " (default))\n" +
+									 "   (b) Subdirectory in which to create PLINK files (i.e. " + PLINK_DIR_ARG
 									 + plinkSubdir + " (default))\n" +
-									 "   (c) PLINK output prefix (i.e. plinkPrefix=" + plinkPrefix + " (default))\n" +
-									 "   (d) Output directory and fileroot (i.e outDirAndRoot=" + outDirAndRoot
+									 "   (c) PLINK output prefix (i.e. " + PLINK_PREFIX_ARG + plinkPrefix
 									 + " (default))\n" +
-									 "   (e) Output directory (i.e outDir=" + outDir + " (default))\n" +
-									 "   (f) Export contigs as 'chr1' instead of '1' (i.e. useGRC=" + useGRC
+									 "   (d) Output directory and fileroot (i.e " + OUT_DIR_AND_ROOT_ARG
+									 + outDirAndRoot
 									 + " (default))\n" +
-									 "   (g) Directory with output from ShapeIt (i.e. hapsDir=" + hapsDir
+									 "   (e) Output directory (i.e " + OUT_DIR_ARG + outDir + " (default))\n" +
+									 "   (f) Export contigs as 'chr1' instead of '1' (i.e. " + USE_GRC_ARG + useGRC
+									 + " (default))\n" +
+									 "   (g) Directory with output from ShapeIt (i.e. " + HAPS_DIR_ARG + hapsDir
 									 + " (default))\n" +
 									 "   --------------------- \n" +
 									 "   Additional pipeline argument requirements are as follows:\n" +
@@ -377,34 +387,34 @@ public class ImputationPipeline {
 					|| args[i].equals("/help")) {
 				System.err.println(usage);
 				System.exit(1);
-			} else if (args[i].startsWith("proj=")) {
+			} else if (args[i].startsWith(PROJ_ARG)) {
 				projFile = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("ref=")) {
+			} else if (args[i].startsWith(REF_ARG)) {
 				refFile = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("plinkDir=")) {
+			} else if (args[i].startsWith(PLINK_DIR_ARG)) {
 				plinkSubdir = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("plinkPrefix=")) {
+			} else if (args[i].startsWith(PLINK_PREFIX_ARG)) {
 				plinkPrefix = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("outDirAndRoot=")) {
+			} else if (args[i].startsWith(OUT_DIR_AND_ROOT_ARG)) {
 				outDirAndRoot = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("outDir=")) {
+			} else if (args[i].startsWith(OUT_DIR_ARG)) {
 				outDir = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("hapsDir=")) {
+			} else if (args[i].startsWith(HAPS_DIR_ARG)) {
 				hapsDir = ext.parseStringArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("chrs=")) {
+			} else if (args[i].startsWith(CHRS_ARG)) {
 				chrs = ext.parseIntArrayArg(args[i]);
 				numArgs--;
-			} else if (args[i].startsWith("type=")) {
+			} else if (args[i].startsWith(RUN_TYPE_ARG)) {
 				path = IMPUTATION_PIPELINE_PATH.valueOf(ext.parseStringArg(args[i]));
 				numArgs--;
-			} else if (args[i].startsWith("useGRC=")) {
+			} else if (args[i].startsWith(USE_GRC_ARG)) {
 				useGRC = ext.parseBooleanArg(args[i]);
 				numArgs--;
 			} else {
