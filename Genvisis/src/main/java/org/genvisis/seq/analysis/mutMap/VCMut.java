@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Bundled;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -366,7 +367,7 @@ public class VCMut {
 	}
 
 	private static InputStream loadMutMap() {
-		return VCMut.class.getResourceAsStream("SNPEFF_MutMap.txt");
+		return Bundled.getStream("SNPEFF_MutMap.txt");
 		// return new File("/home/tsaim/lane0212/SNPEFF_MutMap.txt");
 	}
 

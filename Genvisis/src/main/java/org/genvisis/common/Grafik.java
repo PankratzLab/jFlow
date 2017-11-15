@@ -9,7 +9,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -197,7 +196,7 @@ public class Grafik {
 			if (!filename.startsWith("/")) {
 				filename = "/" + filename;
 			}
-			iicon = new ImageIcon(Grafik.class.getResource(filename));
+			iicon = new ImageIcon(Bundled.get(filename));
 		} catch (NullPointerException npe) {
 			iicon = null;
 		}
