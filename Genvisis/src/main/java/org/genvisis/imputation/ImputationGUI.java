@@ -99,7 +99,7 @@ public class ImputationGUI extends JDialog {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				cancel();
+				close();
 			}
 		});
 
@@ -385,7 +385,7 @@ public class ImputationGUI extends JDialog {
 			{
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(e -> {
-					cancel();
+					close();
 				});
 				buttonPane.add(cancelButton, "cell 2 2,growx,aligny top");
 				getRootPane().setDefaultButton(cancelButton);
@@ -496,9 +496,10 @@ public class ImputationGUI extends JDialog {
 			default:
 				break;
 		}
+		close();
 	}
 
-	private void cancel() {
+	private void close() {
 		this.setVisible(false);
 		this.dispose();
 	}
@@ -583,6 +584,7 @@ public class ImputationGUI extends JDialog {
 			Qsub.qsubDefaults(proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline."
 												+ ext.replaceWithLinuxSafeCharacters(ext.getDate()) + ".pbs",
 												getRunString());
+			close();
 		}
 	}
 
@@ -591,6 +593,7 @@ public class ImputationGUI extends JDialog {
 			Files.write(getRunString(),
 									proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline."
 																	+ ext.replaceWithLinuxSafeCharacters(ext.getDate()) + ".run");
+			close();
 		}
 	}
 
