@@ -4,11 +4,10 @@
 package org.genvisis.seq.manage.mtdna;
 
 import java.io.File;
-
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Bundled;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 
@@ -54,19 +53,17 @@ public class RCRS {
 	 */
 	public static void writeRef(String outputDir, Logger log) {
 		new File(outputDir).mkdirs();
-		File f = new File(RCRS.class.getClassLoader().getResource(RESOURCE).getFile());
-		Files.copyFileUsingFileChannels(f, new File(outputDir + RESOURCE), log);
-		File fr = new File(RCRS.class.getClassLoader().getResource(RESOURCE_INDEX).getFile());
-		Files.copyFileUsingFileChannels(fr, new File(outputDir + RESOURCE_INDEX), log);
-		new File(RCRS.class.getClassLoader().getResource(RESOURCE_DICT).getFile());
-		Files.copyFileUsingFileChannels(fr, new File(outputDir + RESOURCE_DICT), log);
+		for (String toWrite : new String[]{RESOURCE, RESOURCE_INDEX, RESOURCE_DICT}) {
+			File f = Bundled.getFile(toWrite);
+			Files.copyFileUsingFileChannels(f, new File(outputDir + toWrite), log);
+		}
 	}
 
 	/**
 	 * @return the {@link ReferenceSequence} for the rcrs mitochondriome, from within the jar
 	 */
 	private static ReferenceSequence loadRCRS() {
-		File f = new File(RCRS.class.getClassLoader().getResource("NC_012920.1.fasta").getFile());
+		File f = Bundled.getFile("NC_012920.1.fasta");
 		FastaSequenceFile rcrs = new FastaSequenceFile(f, true);
 		ReferenceSequence rcrsRef = rcrs.nextSequence();
 		rcrs.close();
