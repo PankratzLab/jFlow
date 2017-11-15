@@ -512,28 +512,28 @@ public class ImputationGUI extends JDialog {
 
 		StringJoiner imputeStr = new StringJoiner(" ");
 		imputeStr.add(Files.getRunString()).add(ImputationPipeline.class.getName());
-		imputeStr.add("proj=" + propFile);
-		imputeStr.add("path=" + path.name());
+		imputeStr.add(ImputationPipeline.PROJ_ARG + propFile);
+		imputeStr.add(ImputationPipeline.RUN_TYPE_ARG + path.name());
 		if (chrs.length > 0) {
-			imputeStr.add("chrs=" + ArrayUtils.toStr(chrs, ","));
+			imputeStr.add(ImputationPipeline.CHRS_ARG + ArrayUtils.toStr(chrs, ","));
 		}
-		imputeStr.add("ref=" + ref);
+		imputeStr.add(ImputationPipeline.REF_ARG + ref);
 
 		switch (path) {
 			case VCF_ONLY:
 				boolean useGRC = getUseGRC();
 				String vcfOutRoot = outputDir
-														+ "/vcf/"
+														+ "vcf/"
 														+ ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue());
-				imputeStr.add("outDirAndRoot=" + vcfOutRoot);
-				imputeStr.add("useGRC=" + useGRC);
+				imputeStr.add(ImputationPipeline.OUT_DIR_AND_ROOT_ARG + vcfOutRoot);
+				imputeStr.add(ImputationPipeline.USE_GRC_ARG + useGRC);
 				break;
 			case PLINK_ONLY:
-				imputeStr.add("outDirAndRoot=" + outputDir + "/plink/plink");
+				imputeStr.add(ImputationPipeline.OUT_DIR_AND_ROOT_ARG + outputDir + "/plink/plink");
 				break;
 			case PLINK_SHAPEIT:
 			case PLINK_SHAPEIT_MINIMAC:
-				imputeStr.add("outDir=" + outputDir);
+				imputeStr.add(ImputationPipeline.OUT_DIR_ARG + outputDir);
 				break;
 			default:
 				System.err.println("Error - unrecognized imputation path: " + path);
