@@ -39,7 +39,7 @@
 			<id>genv</id>
 			<activation>
 				<property>
-					<name>!genv</name>
+					<name>genv</name>
 				</property>
 			</activation>
 			<build>
