@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.StringJoiner;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
@@ -28,8 +29,6 @@ import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.gui.JAccordionPanel;
@@ -41,6 +40,8 @@ import org.genvisis.common.ext;
 import org.genvisis.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
 import org.genvisis.imputation.ImputationPipeline.ImputationPipeRunner;
 import org.genvisis.qsub.Qsub;
+
+import net.miginfocom.swing.MigLayout;
 
 public class ImputationGUI extends JDialog {
 
@@ -477,8 +478,8 @@ public class ImputationGUI extends JDialog {
 																		ref,
 																		plinkSubdir,
 																		outputDir
-																				+ "/vcf/"
-																				+ ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
+																								 + "/vcf/"
+																								 + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
 																		getUseGRC());
 				break;
 			case PLINK_ONLY:
@@ -509,14 +510,14 @@ public class ImputationGUI extends JDialog {
 		String outputDir = getOutputDirectory();
 		IMPUTATION_PIPELINE_PATH path = getImputationPipeline();
 
-		StringBuilder imputeStr = new StringBuilder();
-		imputeStr.append(Files.getRunString()).append(this.getClass().getName());
-		imputeStr.append(" proj=").append(propFile);
-		imputeStr.append(" path=").append(path.name());
+		StringJoiner imputeStr = new StringJoiner(" ");
+		imputeStr.add(Files.getRunString()).add(this.getClass().getName());
+		imputeStr.add("proj=" + propFile);
+		imputeStr.add("path=" + path.name());
 		if (chrs.length > 0) {
-			imputeStr.append(" chrs=").append(ArrayUtils.toStr(chrs, ","));
+			imputeStr.add("chrs=" + ArrayUtils.toStr(chrs, ","));
 		}
-		imputeStr.append(" ref=").append(ref);
+		imputeStr.add("ref=" + ref);
 
 		switch (path) {
 			case VCF_ONLY:
@@ -524,21 +525,20 @@ public class ImputationGUI extends JDialog {
 				String vcfOutRoot = outputDir
 														+ "/vcf/"
 														+ ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue());
-				imputeStr.append(" outDirAndRoot=").append(vcfOutRoot);
-				imputeStr.append(" useGRC=").append(useGRC);
+				imputeStr.add("outDirAndRoot=" + vcfOutRoot);
+				imputeStr.add("useGRC=" + useGRC);
 				break;
 			case PLINK_ONLY:
-				imputeStr.append(" outDirAndRoot=").append(outputDir).append("/plink/plink");
+				imputeStr.add("outDirAndRoot=" + outputDir + "/plink/plink");
 				break;
 			case PLINK_SHAPEIT:
 			case PLINK_SHAPEIT_MINIMAC:
-				imputeStr.append(" outDir=").append(outputDir);
+				imputeStr.add("outDir=" + outputDir);
 				break;
 			default:
 				System.err.println("Error - unrecognized imputation path: " + path);
 				break;
 		}
-
 		return imputeStr.toString();
 	}
 
@@ -565,7 +565,8 @@ public class ImputationGUI extends JDialog {
 		if (!Files.exists(outDir)) {
 			int opt = JOptionPane.showConfirmDialog(ImputationGUI.this,
 																							"Output directory not found - would you like to create it?",
-																							"Create Output Directory?", JOptionPane.YES_NO_OPTION);
+																							"Create Output Directory?",
+																							JOptionPane.YES_NO_OPTION);
 			if (opt == JOptionPane.YES_OPTION) {
 				if (!new File(outDir).mkdirs()) {
 					proj.message("Error - couldn't create the desired output directory!");
@@ -588,7 +589,7 @@ public class ImputationGUI extends JDialog {
 		if (checkRequirementsOrMessage()) {
 			Files.write(getRunString(),
 									proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline."
-											+ ext.replaceWithLinuxSafeCharacters(ext.getDate()) + ".run");
+																	+ ext.replaceWithLinuxSafeCharacters(ext.getDate()) + ".run");
 		}
 	}
 
