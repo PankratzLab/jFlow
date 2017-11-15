@@ -511,7 +511,7 @@ public class ImputationGUI extends JDialog {
 		IMPUTATION_PIPELINE_PATH path = getImputationPipeline();
 
 		StringJoiner imputeStr = new StringJoiner(" ");
-		imputeStr.add(Files.getRunString()).add(this.getClass().getName());
+		imputeStr.add(Files.getRunString()).add(ImputationPipeline.class.getName());
 		imputeStr.add("proj=" + propFile);
 		imputeStr.add("path=" + path.name());
 		if (chrs.length > 0) {
