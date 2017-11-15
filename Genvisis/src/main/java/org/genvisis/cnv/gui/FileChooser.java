@@ -6,6 +6,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 
 import org.genvisis.common.Logger;
+import org.genvisis.common.ext;
 
 public class FileChooser extends JFileChooser {
 
@@ -41,12 +42,12 @@ public class FileChooser extends JFileChooser {
 		if (result == JFileChooser.CANCEL_OPTION) {
 			cancelSelection();
 		} else if (directoryChooser) {
-			navDir = getSelectedFile().getAbsolutePath() + "\\";
+			navDir = ext.verifyDirFormat(getSelectedFile().getAbsolutePath());
 			selected = true;
 		} else {
 			File[] files = (multipleSelect ? getSelectedFiles() : new File[] {getSelectedFile()});
 			this.files = getPaths(files);
-			navDir = getCurrentDirectory().getAbsolutePath() + "\\";
+			navDir = ext.verifyDirFormat(getCurrentDirectory().getAbsolutePath());
 			selected = true;
 		}
 	}
