@@ -36,7 +36,7 @@
 			<id>flow</id>
 			<activation>
 				<property>
-					<name>!flow</name>
+					<name>flow</name>
 				</property>
 			</activation>
 			<build>
