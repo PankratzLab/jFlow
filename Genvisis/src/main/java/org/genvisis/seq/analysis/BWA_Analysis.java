@@ -187,7 +187,9 @@ public class BWA_Analysis {
 		public FileNameParser(String fileName, Logger log) {
 			super();
 			this.fileName = fileName;
-			split = ext.rootOf(fileName.trim()).split(SPLIT);
+			split = ext.rootOf(fileName.trim().endsWith(".gz") ? ext.rootOf(fileName.trim())
+																												 : fileName.trim())
+								 .split(SPLIT);
 			valid = true;
 			this.log = log;
 		}
