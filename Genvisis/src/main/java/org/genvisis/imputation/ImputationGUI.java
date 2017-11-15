@@ -479,7 +479,7 @@ public class ImputationGUI extends JDialog {
 																		ref,
 																		plinkSubdir,
 																		outputDir
-																								 + "/vcf/"
+																								 + "vcf/"
 																								 + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
 																		getUseGRC());
 				break;
