@@ -401,9 +401,11 @@ public class ImputationPipeline {
 				numArgs--;
 			} else if (args[i].startsWith(OUT_DIR_AND_ROOT_ARG)) {
 				outDirAndRoot = ext.parseStringArg(args[i]);
+				new File(ext.parseDirectoryOfFile(outDirAndRoot)).mkdirs();
 				numArgs--;
 			} else if (args[i].startsWith(OUT_DIR_ARG)) {
-				outDir = ext.parseStringArg(args[i]);
+				outDir = ext.verifyDirFormat(ext.parseStringArg(args[i]));
+				new File(outDir).mkdirs();
 				numArgs--;
 			} else if (args[i].startsWith(HAPS_DIR_ARG)) {
 				hapsDir = ext.parseStringArg(args[i]);
