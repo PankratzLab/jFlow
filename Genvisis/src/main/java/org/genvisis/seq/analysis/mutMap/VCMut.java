@@ -366,7 +366,7 @@ public class VCMut {
 	}
 
 	private static InputStream loadMutMap() {
-		return VCMut.class.getClassLoader().getResourceAsStream("SNPEFF_MutMap.txt");
+		return VCMut.class.getResourceAsStream("SNPEFF_MutMap.txt");
 		// return new File("/home/tsaim/lane0212/SNPEFF_MutMap.txt");
 	}
 

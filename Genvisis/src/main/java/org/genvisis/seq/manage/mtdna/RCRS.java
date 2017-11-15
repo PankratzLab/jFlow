@@ -54,11 +54,11 @@ public class RCRS {
 	 */
 	public static void writeRef(String outputDir, Logger log) {
 		new File(outputDir).mkdirs();
-		File f = new File(RCRS.class.getClassLoader().getResource(RESOURCE).getFile());
+		File f = new File(RCRS.class.getResource(RESOURCE).getFile());
 		Files.copyFileUsingFileChannels(f, new File(outputDir + RESOURCE), log);
-		File fr = new File(RCRS.class.getClassLoader().getResource(RESOURCE_INDEX).getFile());
+		File fr = new File(RCRS.class.getResource(RESOURCE_INDEX).getFile());
 		Files.copyFileUsingFileChannels(fr, new File(outputDir + RESOURCE_INDEX), log);
-		new File(RCRS.class.getClassLoader().getResource(RESOURCE_DICT).getFile());
+		new File(RCRS.class.getResource(RESOURCE_DICT).getFile());
 		Files.copyFileUsingFileChannels(fr, new File(outputDir + RESOURCE_DICT), log);
 	}
 
@@ -66,7 +66,7 @@ public class RCRS {
 	 * @return the {@link ReferenceSequence} for the rcrs mitochondriome, from within the jar
 	 */
 	private static ReferenceSequence loadRCRS() {
-		File f = new File(RCRS.class.getClassLoader().getResource("NC_012920.1.fasta").getFile());
+		File f = new File(RCRS.class.getResource("NC_012920.1.fasta").getFile());
 		FastaSequenceFile rcrs = new FastaSequenceFile(f, true);
 		ReferenceSequence rcrsRef = rcrs.nextSequence();
 		rcrs.close();

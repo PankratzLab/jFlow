@@ -197,7 +197,7 @@ public class Grafik {
 			if (!filename.startsWith("/")) {
 				filename = "/" + filename;
 			}
-			iicon = new ImageIcon(Grafik.class.getClassLoader().getResource(filename));
+			iicon = new ImageIcon(Grafik.class.getResource(filename));
 		} catch (NullPointerException npe) {
 			iicon = null;
 		}
