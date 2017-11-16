@@ -13,6 +13,7 @@
 
 	<artifactId>Genv-experimental</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>takari-jar</packaging>
 
 	<description>One-off, experimental, in-development projects</description>
 
