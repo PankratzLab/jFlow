@@ -9,6 +9,7 @@
 	<artifactId>Genv-flow</artifactId>
 	<name>Genv-flow</name>
 	<description>Genvisis Flow Cytometry Software</description>
+	<packaging>takari-jar</packaging>
 
 	<properties>
 		<assemblyName>genvflow</assemblyName>
