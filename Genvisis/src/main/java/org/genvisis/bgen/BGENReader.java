@@ -1,7 +1,9 @@
 package org.genvisis.bgen;
 
 import java.io.Closeable;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.zip.GZIPOutputStream;
 
 import org.genvisis.bgen.BGENReader.BGENRecord;
 
@@ -259,12 +262,51 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @throws IOException
 	 */
 	private void readMap() throws IOException {
-		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false);
+		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false,
+																																	true);
 		while (mapIter.hasNext()) {
 			mapIter.next();
 		}
 		reset();
 		setupLookup();
+	}
+
+	/**
+	 * Read and dump, without saving, record metadata
+	 * 
+	 * @param mapFileOut File to which to dump metadata values
+	 * 
+	 * @throws IOException
+	 */
+	public void dumpMap(String mapFileOut) throws IOException {
+		PrintWriter writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(mapFileOut,
+																																									 false)));
+		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false,
+																																	false);
+		StringBuilder sb;
+		while (mapIter.hasNext()) {
+			BGENRecordMetaData md = mapIter.next().metaData;
+			sb = new StringBuilder();
+			sb.append(md.id).append("\t");
+			sb.append(md.rsId).append("\t");
+			sb.append(md.chr).append("\t");
+			sb.append(md.pos).append("\t");
+
+			for (int i = 0; i < md.alleles.length; i++) {
+				sb.append(md.alleles[i]);
+				if (i < md.alleles.length - 1) {
+					sb.append(",");
+				}
+			}
+			sb.append("\t");
+
+			sb.append(md.N).append("\t");
+			sb.append(md.ptrByt).append("\t");
+			sb.append(md.lenByt).append("\t");
+			sb.append(md.blockLength);
+			writer.println(sb.toString());
+		}
+		writer.close();
 	}
 
 	/**
@@ -382,9 +424,9 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		return rec;
 	}
 
-	BGENRecord readNextRecord(RandomAccessFile raf, long location, boolean readFull)
-																																									throws IOException {
-		BGENRecordMetaData r = getMetaData(raf, location, true);
+	BGENRecord readNextRecord(RandomAccessFile raf, long location, boolean readFull, boolean save)
+																																																throws IOException {
+		BGENRecordMetaData r = getMetaData(raf, location, save);
 		return readRecord(raf, r);
 	}
 
