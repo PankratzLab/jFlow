@@ -469,7 +469,15 @@ public class FCSDataLoader {
 		if (columnName.startsWith(COMPENSATED_PREPEND)) {
 			if (currState == LOAD_STATE.LOADED) {
 				if (isTransposed) {
-					data = compensatedData[compensatedIndices.get(columnName.substring(COMP_LEN))];
+					String subnm = columnName.substring(COMP_LEN);
+					if (subnm.contains("BV ")) {
+						subnm = subnm.replace("BV ", "BV");
+					}
+					Integer ind = compensatedIndices.get(subnm);
+					if (ind == null) {
+						System.out.println("FAILED LOOKUP: " + columnName);
+					}
+					data = compensatedData[ind];
 				} else {
 					data = Matrix.extractColumn(compensatedData,
 																			compensatedIndices.get(columnName.substring(COMP_LEN)));
