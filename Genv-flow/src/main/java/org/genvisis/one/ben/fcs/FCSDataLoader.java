@@ -470,7 +470,7 @@ public class FCSDataLoader {
 			if (currState == LOAD_STATE.LOADED) {
 				if (isTransposed) {
 					String subnm = columnName.substring(COMP_LEN);
-					if (subnm.contains("BV ")) {
+					if (subnm.contains("BV ") && !compensatedIndices.containsKey(subnm)) {
 						subnm = subnm.replace("BV ", "BV");
 					}
 					Integer ind = compensatedIndices.get(subnm);
