@@ -81,10 +81,11 @@ public class SamplingPipeline {
 	final String fcsDir;
 	final String outliersFile;
 	final String outDir;
+	final int panelToRun;
 	final ProcessorFactory<? extends SampleProcessor> processorFactory;
 
 	public SamplingPipeline(double sampPct, String csvDir, String wspDir, String fcsDir,
-													String outliersFile, String outDir,
+													String outliersFile, String outDir, int panel,
 													ProcessorFactory<? extends SampleProcessor> processorFactory) {
 		this.samplingPct = sampPct;
 		this.csvDir = csvDir;
@@ -93,6 +94,7 @@ public class SamplingPipeline {
 		this.outliersFile = outliersFile;
 		this.outDir = outDir;
 		this.processorFactory = processorFactory;
+		this.panelToRun = panel;
 		p1d = new HashMap<>();
 		p2d = new HashMap<>();
 		fileToPathMap1 = new HashMap<>();
@@ -119,10 +121,14 @@ public class SamplingPipeline {
 	}
 
 	int checkPanel(String lwr) {
+		int panel = 0;
 		if (lwr.contains("panel 1") || lwr.contains("p1")) {
-			return 1;
+			panel = 1;
 		} else if (lwr.contains("panel 2") || lwr.contains("p2")) {
-			return 2;
+			panel = 2;
+		}
+		if (panel > 0 && (panelToRun == -1 || panelToRun == panel)) {
+			return panel;
 		}
 		return 0;
 	}

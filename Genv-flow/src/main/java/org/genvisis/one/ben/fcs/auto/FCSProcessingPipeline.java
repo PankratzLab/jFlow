@@ -27,7 +27,7 @@ public class FCSProcessingPipeline {
 
 	private String fcsDir, wspDir, autoDir, outDir;
 
-	private void run(PIPELINE pipeToRun) throws IOException {
+	private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
 		ProcessorFactory<? extends SampleProcessor> pf = null;
 
@@ -94,7 +94,7 @@ public class FCSProcessingPipeline {
 				return;
 		}
 
-		SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, pf);
+		SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, panel, pf);
 
 		sp.run();
 
@@ -140,6 +140,7 @@ public class FCSProcessingPipeline {
 		String wsp = fcs;
 		String auto = null;
 		String out = fcs;
+		int panel = -1;
 		PIPELINE pipe = PIPELINE.PCTS_CNTS;
 		// boolean test = true;
 		// if (test) {
@@ -163,12 +164,15 @@ public class FCSProcessingPipeline {
 			} else if (arg.startsWith("out=")) {
 				out = ext.parseStringArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("panel=")) {
+				panel = ext.parseIntArg(arg);
+				numArgs--;
 			} else if (arg.startsWith("pipe=")) {
 				pipe = PIPELINE.valueOf(arg.split("=")[1]);
 				numArgs--;
 			}
 		}
 
-		new FCSProcessingPipeline(fcs, wsp, auto, out).run(pipe);
+		new FCSProcessingPipeline(fcs, wsp, auto, out).run(pipe, panel);
 	}
 }
