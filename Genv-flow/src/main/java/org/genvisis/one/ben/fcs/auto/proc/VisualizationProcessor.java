@@ -68,39 +68,55 @@ public class VisualizationProcessor implements SampleProcessor {
 	static final Map<String, List<AddlImage>> addlImgs = new HashMap<>();
 
 	{
-		String key;
-		key = "effector helper Tcells (CCR7- CD45RA+)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"effector helper Tcells (CD95/CD28)"));
-		key = "naive helper Tcells (CCR7+ CD45RA+)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"naive helper Tcells (CD95/CD28)"));
-		key = "effector memory helper Tcells (CCR7- CD45RA-)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"effector memory helper Tcells (CD95/CD28)"));
-		key = "central memory helper Tcells (CCR7+ CD45RA-)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"central memory helper Tcells (CD95/CD28)"));
-		key = "effector cytotoxic Tcells  (CCR7-  CD45RA+)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"effector cytotoxic Tcells (CD95/CD28)"));
-		key = "naive cytotoxic Tcells (CCR7+ , CD45RA+)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"naive cytotoxic Tcells (CD95/CD28)"));
-		key = "effector memory cytotoxic Tcells (CCR7- , CD45RA-)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"effector memory cytotoxic Tcells (CD95/CD28)"));
-		key = "central memory cytotoxic Tcells (CCR7+ , CD45RA-)";
-		addlImgs.put(key, new ArrayList<AddlImage>());
-		addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
-																				"central memory cytotoxic Tcells (CD95/CD28)"));
+		for (String[] addlImg : hardcodedAddlImages) {
+			String parent;
+			parent = addlImg[1];
+			addlImgs.put(parent, new ArrayList<AddlImage>());
+			addlImgs.get(parent).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)",
+																						 parent, addlImg[0]));
+		}
+
+		//
+		// String key;
+		// key = "effector helper Tcells (CCR7- CD45RA+)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "effector helper Tcells (CD95/CD28)"));
+		//
+		// key = "naive helper Tcells (CCR7+ CD45RA+)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "naive helper Tcells (CD95/CD28)"));
+		//
+		// key = "effector memory helper Tcells (CCR7- CD45RA-)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "effector memory helper Tcells (CD95/CD28)"));
+		//
+		// key = "central memory helper Tcells (CCR7+ CD45RA-)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "central memory helper Tcells (CD95/CD28)"));
+		//
+		// key = "effector cytotoxic Tcells  (CCR7-  CD45RA+)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "effector cytotoxic Tcells (CD95/CD28)"));
+		//
+		// key = "naive cytotoxic Tcells (CCR7+ , CD45RA+)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "naive cytotoxic Tcells (CD95/CD28)"));
+		//
+		// key = "effector memory cytotoxic Tcells (CCR7- , CD45RA-)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "effector memory cytotoxic Tcells (CD95/CD28)"));
+		//
+		// key = "central memory cytotoxic Tcells (CCR7+ , CD45RA-)";
+		// addlImgs.put(key, new ArrayList<AddlImage>());
+		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
+		// "central memory cytotoxic Tcells (CD95/CD28)"));
 	}
 
 	@Override
@@ -261,6 +277,7 @@ public class VisualizationProcessor implements SampleProcessor {
 			gateTimes.add(times);
 
 			if (addlImgs.containsKey(g.getName())) {
+				fcp.gateSelected(g, false);
 				for (AddlImage addl : addlImgs.get(g.getName())) {
 					String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
 														+ ext.replaceWithLinuxSafeCharacters(addl.name);
