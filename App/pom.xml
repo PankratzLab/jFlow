@@ -13,6 +13,7 @@
 
 	<artifactId>App</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>takari-jar</packaging>
 
 	<description>Build platform-dependent applications with updating capabilities.</description>
 

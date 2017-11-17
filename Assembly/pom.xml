@@ -13,16 +13,13 @@
 
 	<artifactId>Assembly</artifactId>
 	<version>0.1.11-SNAPSHOT</version>
+	<packaging>takari-jar</packaging>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
 	<properties>
 		<assemblyName>genvisis</assemblyName>
 		<mainClass>org.genvisis.GenvisisMain</mainClass>
-		<!-- Default settings just cause assembly .jar to be copied in place -->
-		<genv.upload.exe>echo</genv.upload.exe>
-		<genv.upload.path>${project.build.directory}</genv.upload.path>
-		<genv.copy.path>${project.build.directory}</genv.copy.path>
 	</properties>
 
 	<dependencies>
@@ -39,7 +36,7 @@
 			<id>genv</id>
 			<activation>
 				<property>
-					<name>!genv</name>
+					<name>genv</name>
 				</property>
 			</activation>
 			<build>
@@ -64,6 +61,24 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
+						<dependencies>
+							<dependency>
+								<groupId>ant-contrib</groupId>
+								<artifactId>ant-contrib</artifactId>
+								<version>1.0b3</version>
+								<exclusions>
+									<exclusion>
+										<groupId>ant</groupId>
+										<artifactId>ant</artifactId>
+									</exclusion>
+								</exclusions>
+							</dependency>
+							<dependency>
+								<groupId>org.apache.ant</groupId>
+								<artifactId>ant-nodeps</artifactId>
+								<version>1.8.1</version>
+							</dependency>
+						</dependencies>
 						<executions>
 							<!-- make the jar executable -->
 							<execution>
@@ -84,10 +99,18 @@
 								<phase>install</phase>
 								<configuration>
 									<target>
-										<exec dir="${project.basedir}" executable="${genv.upload.exe}" failonerror="true">
-											<arg value="${project.build.directory}/${assemblyName}.jar"/>
-											<arg value="${genv.upload.path}"/>
-										</exec>
+										<ac:if xmlns:ac="antlib:net.sf.antcontrib">
+											<ac:and>
+												<ac:isset property="genv.upload.path"/>
+												<ac:isset property="genv.upload.exe"/>
+											</ac:and>
+											<ac:then>
+												<exec dir="${project.basedir}" executable="${genv.upload.exe}" failonerror="true">
+													<arg value="${project.build.directory}/${assemblyName}.jar"/>
+													<arg value="${genv.upload.path}"/>
+												</exec>
+											</ac:then>
+										</ac:if>
 									</target>
 								</configuration>
 								<goals>
@@ -100,7 +123,12 @@
 								<phase>install</phase>
 								<configuration>
 									<target>
-										<copy todir="${genv.copy.path}" file="${project.build.directory}/${assemblyName}.jar" />
+										<ac:if xmlns:ac="antlib:net.sf.antcontrib">
+											<ac:isset property="genv.copy.path"/>
+											<ac:then>
+												<copy todir="${genv.copy.path}" file="${project.build.directory}/${assemblyName}.jar" />
+											</ac:then>
+										</ac:if>
 									</target>
 								</configuration>
 								<goals>

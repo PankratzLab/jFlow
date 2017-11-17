@@ -82,6 +82,10 @@ Additionally, when creating a run configuration in Eclipse there is a section to
 
 A final option is to create a `pom.xml` that uses the `Assembly` pom as its parent and overrides these parameters. The advantage to this method is that it provides a tangible `pom.xml` that implicitly documents the parameters, and can be shared with the community
 
+#### Building a unified jar
+
+Performing application assembly (merging all classes into a single unified jar) is costly, therefore this behavior must be explicitly enabled by turning profiles on. For example, the `genv` profile turns on 
+
 #### Style templates
 
 This repository includes Eclipse style templates, located in `Genvisis.git/config`. Before committing changes to Genvisis, please import these templates to your [Clean Up](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) and [Formatter](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) code style preferences.
@@ -94,34 +98,11 @@ In the event that the style templates themselves require updating, such a commit
 
 ## Automatic upload and copy
 
-You can use Maven to automatically upload `genvisis.jar` to a remote location after each build, and/or copy the output file to a directory on your local filesystem. To enable this feature, create a `settings.xml` in your `${user.home}/.m2` directory with the following structure:
+The following properties are available when the `genv` profile is activated:
 
-```xml
-<settings>
-	<profiles>
-		<profile>
-			<id>genvisis-upload</id>
-			<properties>
-				<!-- Uncomment and edit this line to enable post-build copy
-				<genv.copy.path>path/to/output/dir/</genv.copy.path>
-				-->
-
-				<!-- Uncomment and edit these lines to enable post-build upload
-				<genv.upload.exe>[p]scp</genv.upload.exe>
-				<genv.upload.path>user[:pass]@host:/path/to/output/</genv.upload.path>
-				-->
-			</properties>
-		</profile>
-	</profiles>
-
-	<activeProfiles>
-		<activeProfile>genvisis-upload</activeProfile>
-	</activeProfiles>
-</settings>
-```
-This script needs to be modified for your particular setup (e.g., the upload application is typically `pscp` on Windows and `scp` on Linux)
-
-Once the `genv.upload.path` is set, every time the `Assembly` component builds the `Install` step, it will use this information to scp `genvisis.jar` to the specified remote path.
+* `genv.copy.path` - the output `genvisis.jar` will be copied to this location
+* `genv.upload.exe` - this application (e.g. `scp`, `pscp`) will be used to upload the output `genvisis.jar`
+* `genv.upload.path` - the remote location to send the `genvisis.jar`, e.g. `user@host:/path/`
 
 ### Note on passwords
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
 		http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -12,16 +13,17 @@
 
 	<artifactId>Genv-experimental</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>takari-jar</packaging>
 
 	<description>One-off, experimental, in-development projects</description>
 
 	<dependencies>
-
+		
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>Genvisis</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>Genv-flow</artifactId>
@@ -31,13 +33,13 @@
 			<groupId>org.flowcyt</groupId>
 			<artifactId>CFCS</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-
-		<dependency>
+    
+    <dependency>
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
