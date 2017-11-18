@@ -477,13 +477,18 @@ public class PCImputeRace {
 			String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
 			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --keep " + raceListFile
 													+ " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
-			header = Files.getHeaderOfFile(raceFrqFile, log);
-			key = ext.indexOfStr("SNP", header);
-			targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
-													 ext.indexOfStr("MAF", header)};
-			raceFreqs.put(race, HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true));
+			if (Files.exists(raceFrqFile)) {
+				header = Files.getHeaderOfFile(raceFrqFile, log);
+				key = ext.indexOfStr("SNP", header);
+				targets = new int[] {ext.indexOfStr("A1", header), ext.indexOfStr("A2", header),
+														 ext.indexOfStr("MAF", header)};
+				raceFreqs.put(race, HashVec.loadFileToHashString(raceFrqFile, key, targets, "\t", true));
 
-			writer.print("\t" + race + " A1F (n=" + countFounders(dir + plinkroot, raceListFile) + ")");
+				writer.print("\t" + race + " A1F (n=" + countFounders(dir + plinkroot, raceListFile) + ")");
+			} else {
+				log.reportTimeWarning("Could not calculate frequencies for " + race.getDescription()
+															+ ", this occurs when no project samples were found for this race.");
+			}
 		}
 		writer.println();
 
