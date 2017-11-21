@@ -18,14 +18,17 @@ public class FCSProcessingPipeline {
 																					{"CD3.", "Tcells (CD3+ CD19-)"},
 	};
 
-	public FCSProcessingPipeline(String fcs, String wsp, String auto, String out) {
+	public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
+															 String lowP) {
 		fcsDir = fcs;
 		wspDir = wsp;
 		autoDir = auto;
 		outDir = out;
+		highPrioFile = highP;
+		lowPrioFile = lowP;
 	}
 
-	private String fcsDir, wspDir, autoDir, outDir;
+	private String fcsDir, wspDir, autoDir, outDir, highPrioFile, lowPrioFile;
 
 	private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
@@ -94,7 +97,8 @@ public class FCSProcessingPipeline {
 				return;
 		}
 
-		SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, panel, pf);
+		SamplingPipeline sp = new SamplingPipeline(1, null, wspDir, fcsDir, null, outDir, panel,
+																							 new String[] {highPrioFile, lowPrioFile}, pf);
 
 		sp.run();
 
@@ -136,12 +140,14 @@ public class FCSProcessingPipeline {
 		// String wsp = "/panfs/roc/groups/15/thyagara/shared/HRS/UPLOAD WSP/";
 		// String auto = "/home/pankrat2/shared/flow/testAutoGate/test2/gates2/";
 		// String out = "/scratch.global/cole0482/FCS/testConcordance/";
-		String fcs = "F:/flow/viz/";
+		String fcs = "F:/Flow/boolGating/";
 		String wsp = fcs;
 		String auto = null;
 		String out = fcs;
+		String highPriorityFile = null;
+		String lowPriorityFile = null;
 		int panel = -1;
-		PIPELINE pipe = PIPELINE.PCTS_CNTS;
+		PIPELINE pipe = PIPELINE.VIZ;
 		// boolean test = true;
 		// if (test) {
 		// fcs = wsp = auto = out = "F:/Flow/test3/";
@@ -167,12 +173,19 @@ public class FCSProcessingPipeline {
 			} else if (arg.startsWith("panel=")) {
 				panel = ext.parseIntArg(arg);
 				numArgs--;
+			} else if (arg.startsWith("priority=")) {
+				highPriorityFile = ext.parseStringArg(arg);
+				numArgs--;
+			} else if (arg.startsWith("lowPriority=")) {
+				lowPriorityFile = ext.parseStringArg(arg);
+				numArgs--;
 			} else if (arg.startsWith("pipe=")) {
 				pipe = PIPELINE.valueOf(arg.split("=")[1]);
 				numArgs--;
 			}
 		}
 
-		new FCSProcessingPipeline(fcs, wsp, auto, out).run(pipe, panel);
+		new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile).run(pipe,
+																																													panel);
 	}
 }

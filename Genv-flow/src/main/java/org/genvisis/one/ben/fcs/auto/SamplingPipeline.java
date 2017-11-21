@@ -81,11 +81,13 @@ public class SamplingPipeline {
 	final String fcsDir;
 	final String outliersFile;
 	final String outDir;
+	final HashSet<String> highPriority;
+	final HashSet<String> lowPriority;
 	final int panelToRun;
 	final ProcessorFactory<? extends SampleProcessor> processorFactory;
 
 	public SamplingPipeline(double sampPct, String csvDir, String wspDir, String fcsDir,
-													String outliersFile, String outDir, int panel,
+													String outliersFile, String outDir, int panel, String[] priorityFiles,
 													ProcessorFactory<? extends SampleProcessor> processorFactory) {
 		this.samplingPct = sampPct;
 		this.csvDir = csvDir;
@@ -95,6 +97,12 @@ public class SamplingPipeline {
 		this.outDir = outDir;
 		this.processorFactory = processorFactory;
 		this.panelToRun = panel;
+		this.highPriority = priorityFiles != null ? HashVec.loadFileToHashSet(priorityFiles[0], false)
+																						 : null;
+		this.lowPriority = priorityFiles != null && priorityFiles.length > 1
+																																				? HashVec.loadFileToHashSet(priorityFiles[1],
+																																																		false)
+																																				: null;
 		p1d = new HashMap<>();
 		p2d = new HashMap<>();
 		fileToPathMap1 = new HashMap<>();
@@ -349,7 +357,35 @@ public class SamplingPipeline {
 		final ConcurrentLinkedQueue<SampleNode> p1Queue = new ConcurrentLinkedQueue<>();
 		final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
 
+		if (highPriority != null) {
+			for (String s : highPriority) {
+				if (p1Sampling.contains(s)) {
+					SampleNode sn = wspLoader.getPanel1Nodes().get(s);
+					if (sn != null) {
+						sn.fcsFile = fileToPathMap1.get(s);
+						p1Queue.add(sn);
+					} else {
+						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
+					}
+				} else if (p2Sampling.contains(s)) {
+					SampleNode sn = wspLoader.panel2Nodes.get(s);
+					if (sn != null) {
+						sn.fcsFile = fileToPathMap2.get(s);
+						p2Queue.add(sn);
+					} else {
+						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
+					}
+				}
+			}
+		}
+
 		for (String s : p1Sampling) {
+			if (highPriority != null && highPriority.contains(s)) {
+				continue;
+			}
+			if (lowPriority != null && lowPriority.contains(s)) {
+				continue;
+			}
 			SampleNode sn = wspLoader.getPanel1Nodes().get(s);
 			if (sn != null) {
 				sn.fcsFile = fileToPathMap1.get(s);
@@ -359,12 +395,40 @@ public class SamplingPipeline {
 			}
 		}
 		for (String s : p2Sampling) {
+			if (highPriority != null && highPriority.contains(s)) {
+				continue;
+			}
+			if (lowPriority != null && lowPriority.contains(s)) {
+				continue;
+			}
 			SampleNode sn = wspLoader.panel2Nodes.get(s);
 			if (sn != null) {
 				sn.fcsFile = fileToPathMap2.get(s);
 				p2Queue.add(sn);
 			} else {
 				log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
+			}
+		}
+
+		if (lowPriority != null) {
+			for (String s : lowPriority) {
+				if (p1Sampling.contains(s)) {
+					SampleNode sn = wspLoader.getPanel1Nodes().get(s);
+					if (sn != null) {
+						sn.fcsFile = fileToPathMap1.get(s);
+						p1Queue.add(sn);
+					} else {
+						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
+					}
+				} else if (p2Sampling.contains(s)) {
+					SampleNode sn = wspLoader.panel2Nodes.get(s);
+					if (sn != null) {
+						sn.fcsFile = fileToPathMap2.get(s);
+						p2Queue.add(sn);
+					} else {
+						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
+					}
+				}
 			}
 		}
 
