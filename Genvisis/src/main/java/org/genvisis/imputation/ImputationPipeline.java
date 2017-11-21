@@ -309,12 +309,25 @@ public class ImputationPipeline {
 	}
 
 	public enum IMPUTATION_PIPELINE_PATH {
-		VCF_ONLY,
-		PLINK_ONLY,
-		PLINK_SHAPEIT,
-		PLINK_SHAPEIT_MINIMAC,
-		SHAPEIT,
-		MINIMAC;
+		VCF_ONLY(REF_ARG, PLINK_DIR_ARG, OUT_DIR_AND_ROOT_ARG, USE_GRC_ARG),
+		PLINK_ONLY(REF_ARG, PLINK_DIR_ARG, OUT_DIR_AND_ROOT_ARG),
+		PLINK_SHAPEIT(REF_ARG, PLINK_DIR_ARG, OUT_DIR_ARG),
+		PLINK_SHAPEIT_MINIMAC(REF_ARG, PLINK_DIR_ARG),
+		SHAPEIT(PLINK_DIR_ARG, PLINK_PREFIX_ARG, OUT_DIR_ARG),
+		MINIMAC(HAPS_DIR_ARG, OUT_DIR_ARG);
+
+		private final Set<String> reqs;
+
+		IMPUTATION_PIPELINE_PATH(String... reqs) {
+			this.reqs = ImmutableSet.copyOf(reqs);
+		}
+
+		public Set<String> getReqs() {
+			return reqs;
+		}
+
+
+
 	}
 
 	public static void main(String[] args) {
@@ -362,20 +375,11 @@ public class ImputationPipeline {
 									 "   (g) Directory with output from ShapeIt (i.e. " + HAPS_DIR_ARG + hapsDir
 									 + " (default))\n" +
 									 "   --------------------- \n" +
-									 "   Additional pipeline argument requirements are as follows:\n" +
-									 "\tVCF_ONLY:\n" +
-									 "\t\trefFile, plinkSubdir, outDirAndRoot, useGRC\n" +
-									 "\tPLINK_ONLY:\n" +
-									 "\t\trefFile, plinkSubdir, outDirAndRoot\n" +
-									 "\tPLINK_SHAPEIT:\n" +
-									 "\t\trefFile, plinkSubdir, outDir\n" +
-									 "\tPLINK_SHAPEIT_MINIMAC:\n" +
-									 "\t\trefFile, plinkSubdir\n" +
-									 "\tMINIMAC:\n" +
-									 "\t\thapsDir, outDir\n" +
-									 "\tSHAPEIT:\n" +
-									 "\t\tplinkSubdir, plinkPrefix, outDir\n" +
-									 "";
+									 "   Additional pipeline argument requirements are as follows:\n";
+		for (IMPUTATION_PIPELINE_PATH pathOption : IMPUTATION_PIPELINE_PATH.values()) {
+			usage += "\t" + pathOption.toString() + ":\n";
+			usage += "\t" + Joiner.on(", ").join(pathOption.getReqs()) + "\n";
+		}
 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-h") || args[i].equals("-help") || args[i].equals("/h")
