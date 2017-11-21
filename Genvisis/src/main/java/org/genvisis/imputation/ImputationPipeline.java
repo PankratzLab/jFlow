@@ -64,14 +64,9 @@ public class ImputationPipeline {
 		this.proj = proj;
 		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
 		Set<Marker> markers = prep.getMatchingMarkers();
-		// PrintWriter writer =
-		// Files.getAppropriateWriter("/home/pankrat2/cole0482/imputationMarkers.txt");
 		for (Marker m : markers) {
 			prepMarkers.put(m.getName(), m);
-			// writer.println(m.getName());
 		}
-		// writer.flush();
-		// writer.close();
 	}
 
 	public void loadDefaultDropFiles(String plinkDir) {
