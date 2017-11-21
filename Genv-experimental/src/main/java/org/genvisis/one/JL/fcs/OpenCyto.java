@@ -71,7 +71,8 @@ public class OpenCyto {
 				List<String> notToUse = new ArrayList<>();
 
 				for (int j = 0; j < inputFiles.length; j++) {
-					if (!inputFiles[j].contains("Compensation Controls")) {
+					if (!inputFiles[j].contains("Compensation Controls") && !inputFiles[j].contains("PILOT")
+							&& !inputFiles[j].contains("ASMIC") && !inputFiles[j].contains("Compensation")) {
 						toUse.add(ext.removeDirectoryInfo(inputFiles[j]));
 					} else {
 						notToUse.add(inputFiles[j]);
