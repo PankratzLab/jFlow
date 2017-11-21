@@ -60,7 +60,8 @@ public class PhenoPrep {
 		} else {
 			for (int i = 0; i < phenos.length; i++) {
 				parse(dir, filename, idColName, phenos[i], transform, sdThreshold, winsorize, remove,
-							makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder,
+							makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile,
+							matchIdOrder,
 							plinkFormat,
 							pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile, extras,
 							outputs[i], finalHeader, addintercept, sort, zscore, signZ, timeVariable, histogram,
@@ -78,7 +79,8 @@ public class PhenoPrep {
 													 String covarsCommaDelimited, String idFile, boolean matchIdOrder,
 													 boolean plinkFormat, boolean pedFormat, boolean fastFormat,
 													 boolean excludeMissingValues, boolean variablesAllInOneFile,
-													 String extras, String outFile, boolean finalHeader, boolean addintercept,
+													 String extras, String outFile, boolean finalHeader,
+													 boolean addintercept,
 													 boolean sort, boolean zscore, boolean signZ, String timeVariable,
 													 boolean histogram, Logger log) {
 		PhenoPrep prep;
@@ -187,7 +189,7 @@ public class PhenoPrep {
 		}
 
 		if (extras != null) {
-			prep.addExtraColumns(idColName, extras);
+			prep.addExtraColumns(idColName, dir + extras);
 		}
 
 		if (matchIdOrder) {
@@ -214,7 +216,8 @@ public class PhenoPrep {
 			// int idIndex = ext.indexOfStr(idColName, parts);
 			int dataIndex = ext.indexOfStr(pheno, parts);
 
-			String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[] {dataIndex},
+			String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true,
+																												new int[] {dataIndex},
 																												false);
 			String[] valid = ArrayUtils.removeMissingValues(dataStrs);
 			int missing = dataStrs.length - valid.length;
@@ -231,6 +234,7 @@ public class PhenoPrep {
 			tdp.getPanel().overrideAxisLabels(ext.rootOf(outFile, true), "");
 			tdp.getPanel().setHistogramOverride(true);
 			tdp.getPanel().setHistogram(hist);
+			tdp.getPanel().setSize(1440, 2000);
 			tdp.getPanel().createImage();
 			tdp.getPanel().screenCapture(file);
 			tdp.windowClosing(null);
@@ -270,20 +274,23 @@ public class PhenoPrep {
 				ages = null;
 			}
 			writer.println((idFile == null ? "All" : ext.replaceAllWith(ext.rootOf(idFile), "_keeps", ""))
-										 + "\t" + finalHeader[0] + "\t" + ext.formDeci(ArrayUtils.mean(trait), 4, false)
+										 + "\t"
+										 + finalHeader[0]
+										 + "\t"
+										 + ext.formDeci(ArrayUtils.mean(trait), 4, false)
 										 + "\t" + ext.formDeci(ArrayUtils.median(trait), 4, false) + "\t"
 										 + ext.formDeci(ArrayUtils.stdev(trait), 4, false) + "\t"
 										 + ext.formDeci(ArrayUtils.min(trait), 4, false) + "\t"
 										 + ext.formDeci(ArrayUtils.max(trait), 4, false)
 										 + (males == null ? "\t.\t."
-																			: "\t" + (males.length - ArrayUtils.sum(males)) + "\t"
-																				+ ArrayUtils.sum(males))
+																		 : "\t" + (males.length - ArrayUtils.sum(males)) + "\t"
+																			 + ArrayUtils.sum(males))
 										 + (ages == null ? "\t.\t.\t.\t."
-																		 : "\t" + ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
-																			 + ext.formDeci(ArrayUtils.median(ages), 4, false) + "\t"
-																			 + ext.formDeci(ArrayUtils.stdev(ages), 4, false) + "\t"
-																			 + ext.formDeci(ArrayUtils.min(ages), 4, false) + "\t"
-																			 + ext.formDeci(ArrayUtils.max(ages), 4, false))
+																		: "\t" + ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
+																			+ ext.formDeci(ArrayUtils.median(ages), 4, false) + "\t"
+																			+ ext.formDeci(ArrayUtils.stdev(ages), 4, false) + "\t"
+																			+ ext.formDeci(ArrayUtils.min(ages), 4, false) + "\t"
+																			+ ext.formDeci(ArrayUtils.max(ages), 4, false))
 										 + "\t" + (numBelowLowerThreshold < 0 ? "NA" : numBelowLowerThreshold) + "\t"
 										 + (numAboveUpperThreshold < 0 ? "NA" : numAboveUpperThreshold));
 
@@ -388,8 +395,9 @@ public class PhenoPrep {
 
 		if (finalIDs.length == 0) {
 			log.reportError("Error - there are no indiviudals present in the final dataset"
-											+ (idFile != null ? "; check the ids file to make sure the same set of IDs were used in both input files"
-																				: ""));
+											+ (idFile != null
+																			 ? "; check the ids file to make sure the same set of IDs were used in both input files"
+																			 : ""));
 		}
 	}
 
@@ -420,7 +428,7 @@ public class PhenoPrep {
 		}
 		if (ArrayUtils.min(data) < 0
 				&& (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10")
-						|| transform.equalsIgnoreCase("sqrt"))) {
+				|| transform.equalsIgnoreCase("sqrt"))) {
 			log.reportError("Negative values will cause the " + transform
 											+ " transformation to fail; aborting");
 			return false;
@@ -502,7 +510,7 @@ public class PhenoPrep {
 	public void zscore(boolean signZ) {
 		Matrix.overwriteColumn(database, 0,
 													 signZ ? ArrayUtils.normalizeSigned(Matrix.extractColumn(database, 0))
-																 : ArrayUtils.normalize(Matrix.extractColumn(database, 0)),
+																: ArrayUtils.normalize(Matrix.extractColumn(database, 0)),
 													 log);
 	}
 
@@ -623,7 +631,8 @@ public class PhenoPrep {
 			}
 
 			if (pedFormat || fastFormat) {
-				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1, 2, 3, 4}, false,
+				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1, 2, 3, 4},
+																						false,
 																						delimiter, false, false);
 			} else {
 				hash = HashVec.loadFileToHashString(idFile, new int[] {1}, new int[] {0, 1}, false,
@@ -640,7 +649,7 @@ public class PhenoPrep {
 						} else {
 							writer.println("FID" + delimiter + "IID" + delimiter
 														 + (pedFormat ? "FA" + delimiter + "MO" + delimiter + "SEX" + delimiter
-																					: "")
+																				 : "")
 														 + ArrayUtils.toStr(finalHeader, delimiter));
 						}
 					}
@@ -668,7 +677,7 @@ public class PhenoPrep {
 					if (printFinalHeader) {
 						writer.println("FID" + delimiter + "IID" + delimiter
 													 + (pedFormat ? "FA" + delimiter + "MO" + delimiter + "SEX" + delimiter
-																				: "")
+																			 : "")
 													 + finalHeader[0]);
 					}
 					for (int j = 0; j < finalIDs.length; j++) {
@@ -771,19 +780,27 @@ public class PhenoPrep {
 	public static void fromParameters(String filename, Logger log) {
 		List<String> params;
 
-		params = Files.parseControlFile(filename, "PhenoPrep",
-																		new String[] {"dir=", "# name of input file", "file=input.txt",
+		params = Files.parseControlFile(filename,
+																		"PhenoPrep",
+																		new String[] {
+																									"dir=",
+																									"# name of input file",
+																									"file=input.txt",
 																									"# column name of the ID in the input file",
-																									"id=IID", "# phenotype column name",
+																									"id=IID",
+																									"# phenotype column name",
 																									"pheno=outcomeVariable",
 																									"# covariate column names separated by a comma",
 																									"covar=Age,Sex,Site1,Site2",
-																									"# name of output file", "out=output.dat",
+																									"# name of output file",
+																									"out=output.dat",
 																									"# transformation to apply to phenotype (current options are ln, log10, sqrt, or null for none)",
 																									"transform=none",
 																									"# name of file with IDs to use (e.g., that are in a genotype file); must be a plink .fam file if we are creating PLINK formatted files; otherwise, only the first column is used",
-																									"ids=plink.fam", "# winsorize phenotype (yes/no)",
-																									"winsorize=false", "# remove outliers (yes/no)",
+																									"ids=plink.fam",
+																									"# winsorize phenotype (yes/no)",
+																									"winsorize=false",
+																									"# remove outliers (yes/no)",
 																									"remove=false",
 																									"# threshold in standard deviation units at which to winsorize or remove outliers",
 																									"sdThreshold=3.0",
@@ -801,7 +818,8 @@ public class PhenoPrep {
 																									"# (use this to add things like PCs, when you want to include all data in the SD/outlier calculation but only retain those you'll analyze)",
 																									"# extras=PrincipalComponentsFile.txt",
 																									"# match the order of the IDs in the idFile and the final file, using NA for missing data",
-																									"match=false", "# sort the IDs in the final file",
+																									"match=false",
+																									"# sort the IDs in the final file",
 																									"sort=false",
 																									"# output using FID and IID; FID is obtained from the ID file, which must have a .fam extension",
 																									"plinkFormat=false",
@@ -836,16 +854,19 @@ public class PhenoPrep {
 			files[i] = files[i].substring(0, files[i].length() - 4);
 		}
 
-		params = Files.parseControlFile(filename, "bestTransformation",
-																		new String[] {"dir=",
+		params = Files.parseControlFile(filename,
+																		"bestTransformation",
+																		new String[] {
+																									"dir=",
 																									"# column name of the ID in the input file",
 																									"id=" + vars[0],
 																									"# phenotype names (requires a [phenoName].csv file as can be created by PhenoPrep)",
 																									"pheno=" + ArrayUtils.toStr(files, ","),
 																									"# covariate column names separated by a comma",
-																									"covar=" + ArrayUtils.toStr(ArrayUtils.subArray(vars,
-																																																	2),
-																																							","),
+																									"covar="
+																											+ ArrayUtils.toStr(ArrayUtils.subArray(vars,
+																																														 2),
+																																				 ","),
 																									"# normalization of the final phenotype (0=none; 1=also normalization; 2=also normalization using sign-specific standard deviations)",
 																									"normalization=1",
 																									"# creates a histogram for each trait file",
@@ -948,7 +969,8 @@ public class PhenoPrep {
 																	null, histogram, log);
 								}
 								if (Files.exists(dir + outFile)) {
-									rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1}, false,
+									rawData = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {1},
+																													false,
 																													false,
 																													Files.determineDelimiter(dir + outFile,
 																																									 log));
@@ -961,7 +983,8 @@ public class PhenoPrep {
 									writer.println(pheno + "\t" + ext.rootOf(outFile) + "\t" + transform + "\t"
 																 + winsorize + "\t" + remove + "\t" + makeResids + "\t"
 																 + afterResids + "\t" + (NORMALIZATION_METHODS[norm]) + "\t"
-																 + data.length + "\t" + mean + "\t" + stdev + "\t" + skewness + "\t"
+																 + data.length + "\t" + mean + "\t" + stdev + "\t" + skewness
+																 + "\t"
 																 + kurtosis + "\t" + (Math.abs(skewness) + Math.abs(kurtosis)));
 								} else {
 									writer.println(pheno + "\t" + ext.rootOf(outFile) + "\t" + transform + "\t"
@@ -1058,7 +1081,7 @@ public class PhenoPrep {
 		// covarsCommaDelimited = "Age,Male";
 
 		// dir = "D:/ExomeChip/APTT_and_ProteinC/";
-		//// filename = "coag_gwas_recoded2.txt"; // not relevant, data needs to be in separate files
+		// // filename = "coag_gwas_recoded2.txt"; // not relevant, data needs to be in separate files
 		// named [pheno].csv
 		// idColName = "ID";
 		// phenos = "ARIC_AA_APTT,ARIC_AA_ProteinC,ARIC_EA_APTT,ARIC_EA_ProteinC";
@@ -1076,53 +1099,87 @@ public class PhenoPrep {
 		// System.exit(1);
 
 		String usage = "\n" + "gwas.PhenoPrep requires 0-1 arguments\n"
-									 + "	 (0) name of directory (i.e. dir=" + dir + " (default))\n"
-									 + "	 (1) name of input file (i.e. file=" + filename + " (default))\n"
-									 + "	 (2) id column name in input file (i.e. id=" + idColName + " (default))\n"
-									 + "	 (3) phenotype column name(s) (i.e. pheno=" + phenos
+									 + "	 (0) name of directory (i.e. dir="
+									 + dir
+									 + " (default))\n"
+									 + "	 (1) name of input file (i.e. file="
+									 + filename
+									 + " (default))\n"
+									 + "	 (2) id column name in input file (i.e. id="
+									 + idColName
+									 + " (default))\n"
+									 + "	 (3) phenotype column name(s) (i.e. pheno="
+									 + phenos
 									 + " (default; comma to delimit multiple phenos))\n"
 									 + "	 (4) covariate column name(s) (i.e. covar=Age,Sex,Site1,Site2 (not the default))\n"
 									 + "	 (5) name of file with IDs to use (e.g., that are in a genotype file) (i.e. ids="
-									 + idFile + " (default; set to null to include all rows with complete data))\n"
-									 + "	 (6) name of output file (i.e. out=" + outFile + " (default))\n"
-									 + "	 (7) transformation to apply to phenotype (i.e. transform=" + transform
+									 + idFile
+									 + " (default; set to null to include all rows with complete data))\n"
+									 + "	 (6) name of output file (i.e. out="
+									 + outFile
+									 + " (default))\n"
+									 + "	 (7) transformation to apply to phenotype (i.e. transform="
+									 + transform
 									 + " (default; current options are ln, log10, sqrt, or null for none))\n"
-									 + "	 (8) winsorize phenotype (i.e. winsorize=" + winsorize + " (default))\n"
-									 + "	 (9) remove outliers (i.e. remove=" + remove + " (default))\n"
+									 + "	 (8) winsorize phenotype (i.e. winsorize="
+									 + winsorize
+									 + " (default))\n"
+									 + "	 (9) remove outliers (i.e. remove="
+									 + remove
+									 + " (default))\n"
 									 + "	(10) threshold in standard deviation units at which to winsorize or remove outliers (i.e. sdThreshold="
-									 + sdThreshold + " (default))\n"
+									 + sdThreshold
+									 + " (default))\n"
 									 + "	(11) generate residuals instead of including covariates (i.e. makeResids="
-									 + makeResids + " (default))\n"
+									 + makeResids
+									 + " (default))\n"
 									 + "	(12) winsorize/remove outliers after generating residuals (i.e. afterResids="
-									 + afterResids + " (default))\n"
+									 + afterResids
+									 + " (default))\n"
 									 + "	(13) inverse quantile normalize the final phenotype (i.e. inverseNormalize="
-									 + inverseNormalize + " (default))\n"
+									 + inverseNormalize
+									 + " (default))\n"
 									 + "	(14) name of file containing extra variables to include in final file but not in outlier calculations (i.e. extras="
-									 + extras + " (default))\n"
+									 + extras
+									 + " (default))\n"
 									 + "			 (use this to add things like PCs, when you want to include all data in the SD/outlier calculation but only retain those you'll analyze)\n"
 									 + "	(15) match the order of the IDs in the idFile and the final file, using NA for missing data (i.e. match="
-									 + matchIdOrder + " (default))\n"
+									 + matchIdOrder
+									 + " (default))\n"
 									 + "	(16) output using FID and IID; FID is obtained from the ID file, which must have a .fam extension (i.e. plinkFormat="
-									 + plinkFormat + " (default))\n"
+									 + plinkFormat
+									 + " (default))\n"
 									 + "	(17) use PLINK FID and IID from .fam file, but have all variables in one file (i.e. variablesAllInOneFile="
-									 + variablesAllInOneFile + " (default))\n"
+									 + variablesAllInOneFile
+									 + " (default))\n"
 									 + "	(18) use the .fam file to create .ped files instead (i.e. pedFormat="
-									 + pedFormat + " (default))\n"
+									 + pedFormat
+									 + " (default))\n"
 									 + "	(19) use the .fam file to create FAST format .trait files instead (i.e. fastFormat="
-									 + fastFormat + " (default))\n" + "	(20) remove NaN values (i.e. excludeMissing="
-									 + excludeMissingValues + " (default))\n"
+									 + fastFormat
+									 + " (default))\n"
+									 + "	(20) remove NaN values (i.e. excludeMissing="
+									 + excludeMissingValues
+									 + " (default))\n"
 									 + "	(21) include a header with the final file(s) (i.e. finalHeader="
-									 + finalHeader + " (default))\n"
+									 + finalHeader
+									 + " (default))\n"
 									 + "	(22) add an intercept variable (value equals 1 constantly) as the 3rd column (i.e. addintercept="
-									 + addintercept + " (default))\n"
-									 + "	(23) sort the output by the 1st column (i.e. sort=" + sort + " (default))\n"
+									 + addintercept
+									 + " (default))\n"
+									 + "	(23) sort the output by the 1st column (i.e. sort="
+									 + sort
+									 + " (default))\n"
 									 + "	(24) (optional) name of log file to write to (i.e. log=[pheno].log (default))\n"
-									 + "	(25) convert final phenotype into a z-score (i.e. zscore=" + zscore
+									 + "	(25) convert final phenotype into a z-score (i.e. zscore="
+									 + zscore
 									 + " (default))\n"
 									 + "	(26) z-score uses positive-only (mirrored) and negative-only (mirrored) distributions to compute the standard deviation for the z-scores (i.e. signZ="
-									 + signZ + " (default))\n"
+									 + signZ
+									 + " (default))\n"
 									 + "    (27) create a histogram of the phenotype data (i.e. histogram="
-									 + histogram + " (default))\n"
+									 + histogram
+									 + " (default))\n"
 									 + "  OR:\n"
 									 + "	 (6) run all possible combinations of transformations/outliers to assess normality (i.e. -summarizeAll (not the default))\n"
 									 + "	 (7) include normalization transformations (i.e. normalization="
@@ -1239,13 +1296,13 @@ public class PhenoPrep {
 		if (logfile == null) {
 			logfile = dir
 								+ ext.replaceWithLinuxSafeCharacters(outFile == null ? phenos + "_out"
-																																		 : ext.rootOf(outFile),
+																																		: ext.rootOf(outFile),
 																										 true)
 								+ ".log";
 		}
 		log = new Logger(logfile);
 
-		if (numArgs != 0) {
+		if (args.length == 0 || numArgs != 0) {
 			log.reportError(usage);
 			System.exit(1);
 		}
@@ -1262,7 +1319,8 @@ public class PhenoPrep {
 							signZ, timeVariable, histogram, log);
 			} else {
 				parse(dir, filename, idColName, phenos, transform, sdThreshold, winsorize, remove,
-							makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile, matchIdOrder,
+							makeResids, afterResids, inverseNormalize, covarsCommaDelimited, idFile,
+							matchIdOrder,
 							plinkFormat, pedFormat, fastFormat, excludeMissingValues, variablesAllInOneFile,
 							extras, outFile, finalHeader, addintercept, sort, zscore, signZ, timeVariable,
 							histogram, log);
@@ -1272,5 +1330,3 @@ public class PhenoPrep {
 		}
 	}
 }
-
-

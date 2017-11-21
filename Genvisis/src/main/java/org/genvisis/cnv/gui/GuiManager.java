@@ -18,7 +18,11 @@ public class GuiManager {
 				((JFrame) parent).dispose();
 				done = true;
 			}
-			parent = parent.getParent();
+			if (parent != null) {
+				parent = parent.getParent();
+			} else {
+				done = true;
+			}
 		}
 	}
 

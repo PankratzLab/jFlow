@@ -133,7 +133,7 @@ public final class ResultsPackager2 {
 			}
 		}
 		writer.flush();
-		log.reportTimeElapsed("Parsed file in ", t1);
+		log.reportTime("Parsed file in " + ext.getTimeElapsedNanos(t1));
 	}
 
 	/**
