@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.StringJoiner;
 
 import javax.swing.ButtonGroup;
@@ -39,7 +40,10 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
 import org.genvisis.imputation.ImputationPipeline.ImputationPipeRunner;
+import org.genvisis.imputation.ImputationPipeline.KeepDrops;
 import org.genvisis.qsub.Qsub;
+
+import com.google.common.collect.ImmutableSet;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -441,13 +445,22 @@ public class ImputationGUI extends JDialog {
 	 * @return A string array of file paths, or blank values, in the following order: MarkerKeeps,
 	 *         MarkerDrops, SampleKeeps, SampleDrops. Files are not guaranteed to exist or be valid.
 	 */
-	public String[] getKeepDropFiles() {
-		return new String[] {
-												 txtFldMkrKeep.getText(),
-												 txtFldMkrDrop.getText(),
-												 txtFldSampKeep.getText(),
-												 txtFldSampDrop.getText()
-		};
+	public KeepDrops getKeepDropFiles() {
+		String dropSamples = txtFldSampDrop.getText();
+		String keepSamples = txtFldSampKeep.getText();
+		String dropMarkers = txtFldMkrDrop.getText();
+		String keepMarkers = txtFldMkrKeep.getText();
+
+		if (dropSamples.isEmpty())
+			dropSamples = null;
+		if (keepSamples.isEmpty())
+			keepSamples = null;
+		if (dropMarkers.isEmpty())
+			dropMarkers = null;
+		if (keepMarkers.isEmpty())
+			keepMarkers = null;
+
+		return new KeepDrops(dropSamples, keepSamples, dropMarkers, keepMarkers);
 	}
 
 	public String getReferenceFile() {
@@ -469,29 +482,26 @@ public class ImputationGUI extends JDialog {
 		String propFile = proj.getPropertyFilename();
 		int[] chrs = getChromosomes();
 		String ref = getReferenceFile();
-		String plinkSubdir = null; // used for default keep/drop files; ignore here
 		String outputDir = getOutputDirectory();
 
 		switch (getImputationPipeline()) {
 			case VCF_ONLY:
-				ImputationPipeRunner.runVCF(propFile,
-																		chrs,
-																		ref,
-																		plinkSubdir,
-																		outputDir
-																								 + "vcf/"
-																								 + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
+				ImputationPipeRunner.runVCF(propFile, chrs, ref,
+																		getKeepDropFiles(),
+																		outputDir + "vcf/" + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
 																		getUseGRC());
 				break;
 			case PLINK_ONLY:
 				ImputationPipeRunner.runPlink(proj.getPropertyFilename(), getChromosomes(),
-																			getReferenceFile(), plinkSubdir, outputDir + "/plink/plink");
+																			getReferenceFile(), getKeepDropFiles(),
+																			outputDir + "/plink/plink");
 				break;
 			case PLINK_SHAPEIT:
-				ImputationPipeRunner.runPlinkAndShapeIt(propFile, chrs, ref, plinkSubdir, outputDir);
+				ImputationPipeRunner.runPlinkAndShapeIt(propFile, chrs, ref, getKeepDropFiles(), outputDir);
 				break;
 			case PLINK_SHAPEIT_MINIMAC:
-				ImputationPipeRunner.runPlinkShapeItAndMinimac(propFile, chrs, ref, plinkSubdir, outputDir);
+				ImputationPipeRunner.runPlinkShapeItAndMinimac(propFile, chrs, ref, getKeepDropFiles(),
+																											 outputDir);
 				break;
 			default:
 				break;
@@ -520,6 +530,9 @@ public class ImputationGUI extends JDialog {
 			imputeStr.add(ImputationPipeline.CHRS_ARG + ArrayUtils.toStr(chrs, ","));
 		}
 		imputeStr.add(ImputationPipeline.REF_ARG + ref);
+		for (String keepDropArg : generateKeepDropsArgs()) {
+			imputeStr.add(keepDropArg);
+		}
 
 		switch (path) {
 			case VCF_ONLY:
@@ -542,6 +555,20 @@ public class ImputationGUI extends JDialog {
 				break;
 		}
 		return imputeStr.toString();
+	}
+
+	private Collection<String> generateKeepDropsArgs() {
+		ImmutableSet.Builder<String> keepDropArgsBuilder = ImmutableSet.builder();
+		KeepDrops keepDrops = getKeepDropFiles();
+		if (keepDrops.getDropSamplesFile() != null)
+			keepDropArgsBuilder.add(ImputationPipeline.DROP_SAMPLES_ARG + keepDrops.getDropSamplesFile());
+		if (keepDrops.getKeepSamplesFile() != null)
+			keepDropArgsBuilder.add(ImputationPipeline.KEEP_SAMPLES_ARG + keepDrops.getKeepSamplesFile());
+		if (keepDrops.getDropMarkersFile() != null)
+			keepDropArgsBuilder.add(ImputationPipeline.DROP_MARKERS_ARG + keepDrops.getDropMarkersFile());
+		if (keepDrops.getKeepMarkersFile() != null)
+			keepDropArgsBuilder.add(ImputationPipeline.KEEP_MARKERS_ARG + keepDrops.getKeepMarkersFile());
+		return keepDropArgsBuilder.build();
 	}
 
 	private boolean checkRequirementsOrMessage() {

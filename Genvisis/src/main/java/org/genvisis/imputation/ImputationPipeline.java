@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
@@ -21,6 +23,7 @@ import org.genvisis.common.ext;
 import org.genvisis.gwas.FurtherAnalysisQc;
 import org.genvisis.gwas.Qc;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -42,6 +45,10 @@ public class ImputationPipeline {
 
 	public static final String PROJ_ARG = "proj=";
 	public static final String REF_ARG = "ref=";
+	public static final String DROP_SAMPLES_ARG = "dropSamples=";
+	public static final String KEEP_SAMPLES_ARG = "keepSamples=";
+	public static final String DROP_MARKERS_ARG = "dropMarkers=";
+	public static final String KEEP_MARKERS_ARG = "keepMarkers=";
 	public static final String PLINK_DIR_ARG = "plinkDir=";
 	public static final String PLINK_PREFIX_ARG = "plinkPrefix=";
 	public static final String OUT_DIR_AND_ROOT_ARG = "outDirAndRoot=";
@@ -51,33 +58,29 @@ public class ImputationPipeline {
 	public static final String RUN_TYPE_ARG = "type=";
 	public static final String USE_GRC_ARG = "useGRC=";
 
-	Project proj;
-	Set<String> dropMarkers = new HashSet<String>();
-	Set<String> dropSamples = new HashSet<String>();
-	Set<String> keepMarkers = new HashSet<String>();
-	Set<String> keepSamples = new HashSet<String>();
-	Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
+	private final Project proj;
+	private Set<String> dropMarkers;
+	private Set<String> dropSamples;
+	private Set<String> keepMarkers;
+	private Set<String> keepSamples;
+	private final Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
 
-	Set<String> markersToExport;
+	private Set<String> markersToExport;
 
-	public ImputationPipeline(Project proj, String referenceFile) {
+	public ImputationPipeline(Project proj, String referenceFile, KeepDrops keepDrops) {
 		this.proj = proj;
 		ImputationPrep prep = new ImputationPrep(proj, referenceFile);
 		Set<Marker> markers = prep.getMatchingMarkers();
 		for (Marker m : markers) {
 			prepMarkers.put(m.getName(), m);
 		}
+		setSamplesToDropFile(keepDrops.getDropSamplesFile());
+		setSamplesToKeepFile(keepDrops.getKeepSamplesFile());
+		setMarkersToDropFile(keepDrops.dropMarkersFile);
+		setMarkersToKeepFile(keepDrops.keepMarkersFile);
 	}
 
-	public void loadDefaultDropFiles(String plinkDir) {
-		String dir = plinkDir + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
-		String mark = dir + FurtherAnalysisQc.MARKER_QC_DROPS;
-		String samp = dir + FurtherAnalysisQc.SAMPLE_QC_DROPS;
-		setMarkersToDropFile(mark);
-		setSamplesToDropFile(samp);
-	}
-
-	public void setSamplesToDropFile(String samplesToDropFile) {
+	private void setSamplesToDropFile(String samplesToDropFile) {
 		if (!Files.exists(samplesToDropFile)) {
 			proj.getLog().reportTimeWarning("Sample drop file doesn't exist: " + samplesToDropFile);
 			return;
@@ -91,7 +94,7 @@ public class ImputationPipeline {
 		}
 	}
 
-	public void setSamplesToKeepFile(String samplesToKeepFile) {
+	private void setSamplesToKeepFile(String samplesToKeepFile) {
 		if (!Files.exists(samplesToKeepFile)) {
 			proj.getLog().reportTimeWarning("Sample keep file doesn't exist: " + samplesToKeepFile);
 			return;
@@ -105,7 +108,7 @@ public class ImputationPipeline {
 		}
 	}
 
-	public void setMarkersToDropFile(String markersToDropFile) {
+	private void setMarkersToDropFile(String markersToDropFile) {
 		if (!Files.exists(markersToDropFile)) {
 			proj.getLog().reportTimeWarning("Marker drop file doesn't exist: " + markersToDropFile);
 			return;
@@ -119,7 +122,7 @@ public class ImputationPipeline {
 		}
 	}
 
-	public void setMarkersToKeepFile(String markersToKeepFile) {
+	private void setMarkersToKeepFile(String markersToKeepFile) {
 		if (!Files.exists(markersToKeepFile)) {
 			proj.getLog().reportTimeWarning("Marker keep file doesn't exist: " + markersToKeepFile);
 			return;
@@ -261,15 +264,15 @@ public class ImputationPipeline {
 
 	protected static class ImputationPipeRunner {
 
-		public static void runVCF(String projPropFile, int[] chrs, String refFile, String plinkSubdir,
+		public static void runVCF(String projPropFile, int[] chrs, String refFile, KeepDrops keepDrops,
 															String vcfDirAndRoot, boolean useGRC) {
-			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
+			ImputationPipeline ip = setupPipe(projPropFile, refFile, keepDrops);
 			ip.exportToVCF(vcfDirAndRoot, chrs, useGRC);
 		}
 
 		public static void runPlink(String projPropFile, int[] chrs, String refFile,
-																String plinkSubdir, String outputDirAndRoot) {
-			ImputationPipeline ip = setupPipe(projPropFile, refFile, plinkSubdir);
+																KeepDrops keepDrops, String outputDirAndRoot) {
+			ImputationPipeline ip = setupPipe(projPropFile, refFile, keepDrops);
 			ip.exportToPlink(outputDirAndRoot, chrs);
 		}
 
@@ -285,33 +288,95 @@ public class ImputationPipeline {
 		}
 
 		public static void runPlinkAndShapeIt(String projPropFile, int[] chrs, String refFile,
-																					String plinkSubdir, String outputDir) {
-			runPlink(projPropFile, chrs, refFile, plinkSubdir, outputDir + "/plink/plink");
+																					KeepDrops keepDrops, String outputDir) {
+			runPlink(projPropFile, chrs, refFile, keepDrops, outputDir + "/plink/plink");
 			runShapeIt(projPropFile, chrs, outputDir + "/plink/", "plink_chr", outputDir + "/haps/");
 		}
 
 		public static void runPlinkShapeItAndMinimac(String projPropFile, int[] chrs, String refFile,
-																								 String plinkSubdir, String outputDir) {
-			runPlinkAndShapeIt(projPropFile, chrs, refFile, plinkSubdir, outputDir);
+																								 KeepDrops keepDrops, String outputDir) {
+			runPlinkAndShapeIt(projPropFile, chrs, refFile, keepDrops, outputDir);
 			runMinimac(projPropFile, chrs, outputDir + "/haps/", outputDir);
 		}
 
 		private static ImputationPipeline setupPipe(String projPropFile, String refFile,
-																								String plinkSubdir) {
+																								KeepDrops keepDrops) {
 			Project proj = new Project(projPropFile);
-			ImputationPipeline ip = new ImputationPipeline(proj, refFile);
-			if (Files.exists(plinkSubdir)) {
-				ip.loadDefaultDropFiles(proj.PROJECT_DIRECTORY.getValue() + plinkSubdir);
-			}
-			return ip;
+			return new ImputationPipeline(proj, refFile, keepDrops);
+		}
+
+	}
+
+	public static class KeepDrops {
+		private final String dropSamplesFile;
+		private final String keepSamplesFile;
+		private final String dropMarkersFile;
+		private final String keepMarkersFile;
+
+		/**
+		 * @param dropSamplesFile file of samples to drop
+		 * @param keepSamplesFile file of samples to keep
+		 * @param dropMarkersFile file of markers to drop
+		 * @param keepMarkersFile file of markers to keep
+		 */
+		public KeepDrops(@Nullable String dropSamplesFile, @Nullable String keepSamplesFile,
+										 @Nullable String dropMarkersFile, @Nullable String keepMarkersFile) {
+			super();
+			this.dropSamplesFile = dropSamplesFile;
+			this.keepSamplesFile = keepSamplesFile;
+			this.dropMarkersFile = dropMarkersFile;
+			this.keepMarkersFile = keepMarkersFile;
+		}
+
+		public KeepDrops(@Nullable String plinkDir, @Nullable String keepSamplesFile,
+										 @Nullable String keepMarkersFile) {
+			this(defaultDropSamples(plinkDir), keepSamplesFile, defaultDropMarkers(plinkDir),
+					 keepMarkersFile);
+		}
+
+		public KeepDrops(@Nullable String plinkDir) {
+			this(plinkDir, null, null);
+		}
+
+		private static String defaultDropMarkers(String plinkDir) {
+			if (plinkDir == null)
+				return null;
+			String dir = plinkDir + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
+			return dir + FurtherAnalysisQc.MARKER_QC_DROPS;
+		}
+
+		private static String defaultDropSamples(String plinkDir) {
+			if (plinkDir == null)
+				return null;
+			String dir = plinkDir + Qc.QC_SUBDIR + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
+			return dir + FurtherAnalysisQc.SAMPLE_QC_DROPS;
+		}
+
+		public String getDropSamplesFile() {
+			return dropSamplesFile;
+		}
+
+		public String getKeepSamplesFile() {
+			return keepSamplesFile;
+		}
+
+		public String getDropMarkersFile() {
+			return dropMarkersFile;
+		}
+
+		public String getKeepMarkersFile() {
+			return keepMarkersFile;
 		}
 
 	}
 
 	public enum IMPUTATION_PIPELINE_PATH {
-		VCF_ONLY(REF_ARG, PLINK_DIR_ARG, OUT_DIR_AND_ROOT_ARG, USE_GRC_ARG),
-		PLINK_ONLY(REF_ARG, PLINK_DIR_ARG, OUT_DIR_AND_ROOT_ARG),
-		PLINK_SHAPEIT(REF_ARG, PLINK_DIR_ARG, OUT_DIR_ARG),
+		VCF_ONLY(REF_ARG, DROP_SAMPLES_ARG, KEEP_SAMPLES_ARG, DROP_MARKERS_ARG, KEEP_MARKERS_ARG,
+						 OUT_DIR_AND_ROOT_ARG, USE_GRC_ARG),
+		PLINK_ONLY(REF_ARG, DROP_SAMPLES_ARG, KEEP_SAMPLES_ARG, DROP_MARKERS_ARG, KEEP_MARKERS_ARG,
+							 OUT_DIR_AND_ROOT_ARG),
+		PLINK_SHAPEIT(REF_ARG, DROP_SAMPLES_ARG, KEEP_SAMPLES_ARG, DROP_MARKERS_ARG, KEEP_MARKERS_ARG,
+									OUT_DIR_ARG),
 		PLINK_SHAPEIT_MINIMAC(REF_ARG, PLINK_DIR_ARG),
 		SHAPEIT(PLINK_DIR_ARG, PLINK_PREFIX_ARG, OUT_DIR_ARG),
 		MINIMAC(HAPS_DIR_ARG, OUT_DIR_ARG);
@@ -334,6 +399,10 @@ public class ImputationPipeline {
 		int numArgs = args.length;
 		String projFile = null;
 		String refFile = null;
+		String dropSamples = null;
+		String keepSamples = null;
+		String dropMarkers = null;
+		String keepMarkers = null;
 		String plinkSubdir = null;
 		String outDirAndRoot = null;
 		String hapsDir = null;
@@ -362,17 +431,25 @@ public class ImputationPipeline {
 									 +
 									 "   (a) Reference Panel / Site List file, with mkr, chr, pos, ref, and alt columns (i.e. "
 									 + REF_ARG + refFile + " (default))\n" +
-									 "   (b) Subdirectory in which to create PLINK files (i.e. " + PLINK_DIR_ARG
+									 "   (b) File of samples to drop (i.e. " + DROP_SAMPLES_ARG
+									 + "dropSamples.txt (no default))\n" +
+									 "   (c) File of samples to keep (i.e. " + KEEP_SAMPLES_ARG
+									 + "keepSamples.txt (no default))\n" +
+									 "   (d) File of markers to drop (i.e. " + DROP_MARKERS_ARG
+									 + "dropMarkers.txt (no default))\n" +
+									 "   (e) File of markers to keep (i.e. " + KEEP_MARKERS_ARG
+									 + "keepMarkers.txt (no default))\n" +
+									 "   (f) Subdirectory in which to create PLINK files (i.e. " + PLINK_DIR_ARG
 									 + plinkSubdir + " (default))\n" +
-									 "   (c) PLINK output prefix (i.e. " + PLINK_PREFIX_ARG + plinkPrefix
+									 "   (g) PLINK output prefix (i.e. " + PLINK_PREFIX_ARG + plinkPrefix
 									 + " (default))\n" +
-									 "   (d) Output directory and fileroot (i.e " + OUT_DIR_AND_ROOT_ARG
+									 "   (h) Output directory and fileroot (i.e " + OUT_DIR_AND_ROOT_ARG
 									 + outDirAndRoot
 									 + " (default))\n" +
-									 "   (e) Output directory (i.e " + OUT_DIR_ARG + outDir + " (default))\n" +
-									 "   (f) Export contigs as 'chr1' instead of '1' (i.e. " + USE_GRC_ARG + useGRC
+									 "   (i) Output directory (i.e " + OUT_DIR_ARG + outDir + " (default))\n" +
+									 "   (j) Export contigs as 'chr1' instead of '1' (i.e. " + USE_GRC_ARG + useGRC
 									 + " (default))\n" +
-									 "   (g) Directory with output from ShapeIt (i.e. " + HAPS_DIR_ARG + hapsDir
+									 "   (k) Directory with output from ShapeIt (i.e. " + HAPS_DIR_ARG + hapsDir
 									 + " (default))\n" +
 									 "   --------------------- \n" +
 									 "   Additional pipeline argument requirements are as follows:\n";
@@ -391,6 +468,18 @@ public class ImputationPipeline {
 				numArgs--;
 			} else if (args[i].startsWith(REF_ARG)) {
 				refFile = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(DROP_SAMPLES_ARG)) {
+				dropSamples = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(KEEP_SAMPLES_ARG)) {
+				keepSamples = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(DROP_MARKERS_ARG)) {
+				dropMarkers = ext.parseStringArg(args[i]);
+				numArgs--;
+			} else if (args[i].startsWith(KEEP_MARKERS_ARG)) {
+				keepMarkers = ext.parseStringArg(args[i]);
 				numArgs--;
 			} else if (args[i].startsWith(PLINK_DIR_ARG)) {
 				plinkSubdir = ext.parseStringArg(args[i]);
@@ -430,16 +519,27 @@ public class ImputationPipeline {
 		try {
 			switch (path) {
 				case VCF_ONLY:
-					ImputationPipeRunner.runVCF(projFile, chrs, refFile, plinkSubdir, outDirAndRoot, useGRC);
+					ImputationPipeRunner.runVCF(projFile,
+																			chrs, refFile, new KeepDrops(dropSamples, keepSamples,
+																																	 dropMarkers, keepMarkers),
+																			outDirAndRoot, useGRC);
 					break;
 				case PLINK_ONLY:
-					ImputationPipeRunner.runPlink(projFile, chrs, refFile, plinkSubdir, outDirAndRoot);
+					ImputationPipeRunner.runPlink(projFile, chrs,
+																				refFile, new KeepDrops(dropSamples, keepSamples,
+																															 dropMarkers, keepMarkers),
+																				outDirAndRoot);
 					break;
 				case PLINK_SHAPEIT:
-					ImputationPipeRunner.runPlinkAndShapeIt(projFile, chrs, refFile, plinkSubdir, outDir);
+					ImputationPipeRunner.runPlinkAndShapeIt(projFile, chrs,
+																									refFile, new KeepDrops(dropSamples, keepSamples,
+																																				 dropMarkers, keepMarkers),
+																									outDir);
 					break;
 				case PLINK_SHAPEIT_MINIMAC:
-					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile, plinkSubdir,
+					ImputationPipeRunner.runPlinkShapeItAndMinimac(projFile, chrs, refFile,
+																												 new KeepDrops(dropSamples, keepSamples,
+																																			 dropMarkers, keepMarkers),
 																												 outDir);
 					break;
 				case MINIMAC:
