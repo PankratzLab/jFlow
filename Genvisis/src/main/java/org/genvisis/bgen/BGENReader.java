@@ -1,9 +1,7 @@
 package org.genvisis.bgen;
 
 import java.io.Closeable;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.GZIPOutputStream;
 
 import org.genvisis.bgen.BGENReader.BGENRecord;
 
@@ -263,50 +260,12 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 */
 	private void readMap() throws IOException {
 		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false,
-																																	true);
+																																	false);
 		while (mapIter.hasNext()) {
 			mapIter.next();
 		}
 		reset();
 		setupLookup();
-	}
-
-	/**
-	 * Read and dump, without saving, record metadata
-	 * 
-	 * @param mapFileOut File to which to dump metadata values
-	 * 
-	 * @throws IOException
-	 */
-	public void dumpMap(String mapFileOut) throws IOException {
-		PrintWriter writer = new PrintWriter(new GZIPOutputStream(new FileOutputStream(mapFileOut,
-																																									 false)));
-		Iterator<BGENRecord> mapIter = new BGENIterators.BGENIterator(this, this.raf, false, false,
-																																	false);
-		StringBuilder sb;
-		while (mapIter.hasNext()) {
-			BGENRecordMetaData md = mapIter.next().metaData;
-			sb = new StringBuilder();
-			sb.append(md.id).append("\t");
-			sb.append(md.rsId).append("\t");
-			sb.append(md.chr).append("\t");
-			sb.append(md.pos).append("\t");
-
-			for (int i = 0; i < md.alleles.length; i++) {
-				sb.append(md.alleles[i]);
-				if (i < md.alleles.length - 1) {
-					sb.append(",");
-				}
-			}
-			sb.append("\t");
-
-			sb.append(md.N).append("\t");
-			sb.append(md.ptrByt).append("\t");
-			sb.append(md.lenByt).append("\t");
-			sb.append(md.blockLength);
-			writer.println(sb.toString());
-		}
-		writer.close();
 	}
 
 	/**
@@ -406,17 +365,18 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		return r;
 	}
 
-	BGENRecord readRecord(RandomAccessFile raf, BGENRecordMetaData mapData) throws IOException {
+	BGENRecord readRecord(RandomAccessFile raf, BGENRecordMetaData mapData, boolean skip)
+																																											 throws IOException {
 		BGENRecord rec = new BGENRecord(mapData);
 		if (raf.getFilePointer() != mapData.ptrByt + mapData.lenByt) {
 			raf.seek(mapData.ptrByt + mapData.lenByt);
 		}
 		switch (layout) {
 			case V2:
-				rec.data = BGENTools.readLayout2Record(false, raf, mapData, compress);
+				rec.data = BGENTools.readLayout2Record(skip, raf, mapData, compress);
 				break;
 			case V1:
-				rec.data = BGENTools.readLayout1Record(false, raf, mapData, compress);
+				rec.data = BGENTools.readLayout1Record(skip, raf, mapData, compress);
 				break;
 			default:
 				throw new UnsupportedOperationException("Layout version " + layout + " is not supported.");
@@ -427,7 +387,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	BGENRecord readNextRecord(RandomAccessFile raf, long location, boolean readFull, boolean save)
 																																																throws IOException {
 		BGENRecordMetaData r = getMetaData(raf, location, save);
-		return readRecord(raf, r);
+		return readRecord(raf, r, !readFull);
 	}
 
 	/**

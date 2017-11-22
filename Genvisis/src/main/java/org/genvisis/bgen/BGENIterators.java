@@ -78,7 +78,7 @@ public final class BGENIterators {
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
-				return reader.readRecord(this.raf, iterator.next());
+				return reader.readRecord(this.raf, iterator.next(), false);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -152,7 +152,7 @@ public final class BGENIterators {
 		@Override
 		public BGENReader.BGENRecord next() {
 			try {
-				BGENRecord rec = hasNext() ? reader.readRecord(this.raf, next) : null;
+				BGENRecord rec = hasNext() ? reader.readRecord(this.raf, next, false) : null;
 				next = null;
 				return rec;
 			} catch (IOException e) {
@@ -247,6 +247,7 @@ public final class BGENIterators {
 	 */
 	static final class BGENIterator extends BGENRAFIterator {
 		private final long N;
+		private long start = 0;
 		private long read = 0;
 
 		/**
@@ -269,13 +270,30 @@ public final class BGENIterators {
 		}
 
 		public BGENIterator(BGENReader reader, RandomAccessFile raf, boolean readInFull,
-												boolean saveMetaData,
-												boolean closeWhenDone) {
+												boolean saveMetaData, boolean closeWhenDone) {
+			this(reader, raf, readInFull, saveMetaData, closeWhenDone, 0);
+		}
+
+		public BGENIterator(BGENReader reader, RandomAccessFile raf, boolean readInFull,
+												boolean saveMetaData, boolean closeWhenDone, long start) {
 			super(reader, raf);
 			this.N = reader.getRecordCount();
 			this.readFully = readInFull;
 			this.saveMeta = saveMetaData;
 			this.closeWhenDone = closeWhenDone;
+			this.start = start;
+			skipAhead();
+		}
+
+		private void skipAhead() {
+			while (read < start) {
+				read++;
+				try {
+					reader.readNextRecord(this.raf, this.raf.getFilePointer(), false, false);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 
 		@Override
