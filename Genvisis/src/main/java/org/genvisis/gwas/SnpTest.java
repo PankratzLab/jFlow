@@ -66,6 +66,7 @@ public class SnpTest {
 			} else {
 				snpTestString.append(" -cov_all");
 			}
+			snpTestString.append(" lower_sample_limit");
 			snpTestString.append(" -o ").append(outputFile);
 
 			return snpTestString.toString();
@@ -101,33 +102,62 @@ public class SnpTest {
 	};
 
 	private static String[] processedHeader = {
-																						 "MarkerName",
-																						 "Chr",
-																						 "Pos",
-																						 "A1",
-																						 "A2",
-																						 "beta",
-																						 "se",
-																						 "Pvalue",
+																						 "SNP",
+																						 "CHR",
+																						 "POS",
+																						 "STRAND",
+																						 "EFFECT_ALLELE",
+																						 "OTHER_ALLELE",
+																						 "N",
+																						 "EAF",
+																						 "BETA",
+																						 "SE",
+																						 "PVAL"
 	};
 
-	static int[] inputCols = {1, 2, 3, 4, 5, 22, 23, 20};
-
-	static ResultFormatParser resultsParser = new ResultFormatParser("\t") {
-
-		@Override
-		public String[] parseInputLine(String[] inputLine) {
-			return ArrayUtils.subArray(inputLine, inputCols);
-		}
-
-		@Override
-		public String[] getOutputHeader() {
-			return processedHeader;
-		}
-	};
+	final static int[] inputCols = {1, 2, 3, -1, 4, 5, -2, 18, 22, 23, 20};
 
 	private static void processResults(String dir) throws IOException {
 		Logger log = new Logger();
+		String[] sampleFiles = Files.list(dir, ".sample");
+		final String sampleCount = sampleFiles.length > 1
+																										 ? "N"
+																										 : Integer.toString(Files.countLines(dir
+																																														 + sampleFiles[0],
+																																												 2));
+		if (sampleCount.equals("N")) {
+			log.reportTimeWarning("Could not determine sample file used.  Number of samples will be set to 'N' in results file.");
+		}
+
+		ResultFormatParser resultsParser = new ResultFormatParser("\t") {
+			@Override
+			public String[] parseInputLine(String[] inputLine) {
+				String[] returnLine = new String[processedHeader.length];
+				int index = 0;
+				for (int i : inputCols) {
+					if (i == -1) {
+						// strand
+						returnLine[index] = "FWD";
+					} else if (i == -2) {
+						// N
+						returnLine[index] = sampleCount;
+					} else if (i == 2) {
+						// chr code in snptest has a '0' if <10, e.g. "04"
+						returnLine[index] = Integer.toString(Integer.parseInt(inputLine[i]));
+					} else {
+						returnLine[index] = inputLine[i];
+					}
+					index++;
+				}
+				return returnLine;
+			}
+
+			@Override
+			public String[] getOutputHeader() {
+				return processedHeader;
+			}
+		};
+
 		String outputTempl = "output_chr#.out";
 		int fileInd = 0;
 		for (int i = 1; i < 28; i++) {
