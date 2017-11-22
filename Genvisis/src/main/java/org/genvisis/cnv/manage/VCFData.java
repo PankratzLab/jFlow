@@ -1,19 +1,5 @@
 package org.genvisis.cnv.manage;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.GenotypeBuilder;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.writer.Options;
-import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
-import htsjdk.variant.vcf.VCFFormatHeaderLine;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,10 +27,25 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.Positions;
 import org.genvisis.common.Sort;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
+
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.GenotypeBuilder;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
+import htsjdk.variant.vcf.VCFFormatHeaderLine;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 
 public final class VCFData {
 
@@ -88,7 +89,7 @@ public final class VCFData {
 
 	public static void exportGenvisisToVCF(Project proj, String[] samplesToExport,
 																				 String[] markersToExport,
-																				 boolean splitChrs, boolean exportChrContig,
+																				 boolean splitChrs, boolean useGRCContigs,
 																				 int[] chrsToExport,
 																				 String outputDirAndRoot) {
 		SampleData sd = proj.getSampleData(false);
@@ -122,19 +123,19 @@ public final class VCFData {
 		// proj.JAR_STATUS.getValue());
 		// }
 
-		ReferenceGenome refGen = !exportChrContig
-																							? new ReferenceGenome(
-																																		Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																										 proj.getLog())
-																																						 .getGRCFASTA()
-																																						 .getAbsolute(),
-																																		proj.getLog())
-																							: new ReferenceGenome(
-																																		Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
-																																										 proj.getLog())
-																																						 .getFASTA()
-																																						 .getAbsolute(),
-																																		proj.getLog());
+		ReferenceGenome refGen = useGRCContigs
+																					 ? new ReferenceGenome(
+																																 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																									proj.getLog())
+																																					.getGRCFASTA()
+																																					.getAbsolute(),
+																																 proj.getLog())
+																					 : new ReferenceGenome(
+																																 Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
+																																									proj.getLog())
+																																					.getFASTA()
+																																					.getAbsolute(),
+																																 proj.getLog());
 
 		if (refGen.getIndexedFastaSequenceFile().getSequenceDictionary() == null) {
 			proj.getLog()
@@ -172,13 +173,14 @@ public final class VCFData {
 		ArrayList<ActualExporter> runners = new ArrayList<>();
 		if (splitChrs) {
 			for (int chr : markersByChr.keySet()) {
+				String chrName = Positions.chromosomeNumberInverse(chr);
 				proj.getLog()
-						.report("Exporting " + markersByChr.get(chr).size() + " markers for chr" + chr);
+						.report("Exporting " + markersByChr.get(chr).size() + " markers for chr" + chrName);
 				List<String> mkrs = getMarkersSorted(markersByChr.get(chr), markerMap);
 
-				String fileOut = outputDirAndRoot + "_chr" + chr + ".vcf.gz";
+				String fileOut = outputDirAndRoot + "_chr" + chrName + ".vcf.gz";
 
-				ActualExporter runner = new ActualExporter(proj, refGen, exportChrContig, fileOut,
+				ActualExporter runner = new ActualExporter(proj, refGen, !useGRCContigs, fileOut,
 																									 idsToInclude, idIndexMap,
 																									 mkrs.toArray(new String[mkrs.size()]),
 																									 markerMap,
@@ -199,7 +201,7 @@ public final class VCFData {
 
 			String fileOut = outputDirAndRoot + ".vcf.gz";
 
-			ActualExporter runner = new ActualExporter(proj, refGen, exportChrContig, fileOut,
+			ActualExporter runner = new ActualExporter(proj, refGen, !useGRCContigs, fileOut,
 																								 idsToInclude,
 																								 idIndexMap,
 																								 allMarkers.toArray(new String[allMarkers.size()]),
@@ -418,7 +420,7 @@ public final class VCFData {
 				MarkerData markerData = mdl.next();
 
 				VariantContextBuilder builderVc = new VariantContextBuilder();
-				builderVc.chr((useChr ? "chr" : "") + String.valueOf((int) markerData.getChr()));
+				builderVc.chr((useChr ? "chr" : "") + String.valueOf(markerData.getChr()));
 				Marker mkr = markerMap.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
 				Allele aR = mkr.getRef();
