@@ -358,32 +358,39 @@ public class SamplingPipeline {
 		final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
 
 		if (highPriority != null) {
-			for (String s : highPriority) {
-				if (p1Sampling.contains(s)) {
-					SampleNode sn = wspLoader.getPanel1Nodes().get(s);
+			for (String s1 : p1Sampling) {
+				if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s1)))) {
+					SampleNode sn = wspLoader.getPanel1Nodes().get(s1);
 					if (sn != null) {
-						sn.fcsFile = fileToPathMap1.get(s);
+						sn.fcsFile = fileToPathMap1.get(s1);
 						p1Queue.add(sn);
 					} else {
-						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
+						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s1);
 					}
-				} else if (p2Sampling.contains(s)) {
-					SampleNode sn = wspLoader.panel2Nodes.get(s);
+					break;
+				}
+			}
+			for (String s1 : p2Sampling) {
+				if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s1)))) {
+					SampleNode sn = wspLoader.panel2Nodes.get(s1);
 					if (sn != null) {
-						sn.fcsFile = fileToPathMap2.get(s);
+						sn.fcsFile = fileToPathMap2.get(s1);
 						p2Queue.add(sn);
 					} else {
-						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
+						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s1);
 					}
+					break;
 				}
 			}
 		}
 
 		for (String s : p1Sampling) {
-			if (highPriority != null && highPriority.contains(s)) {
+			if (highPriority != null
+					&& highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 				continue;
 			}
-			if (lowPriority != null && lowPriority.contains(s)) {
+			if (lowPriority != null
+					&& lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 				continue;
 			}
 			SampleNode sn = wspLoader.getPanel1Nodes().get(s);
@@ -395,10 +402,12 @@ public class SamplingPipeline {
 			}
 		}
 		for (String s : p2Sampling) {
-			if (highPriority != null && highPriority.contains(s)) {
+			if (highPriority != null
+					&& highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 				continue;
 			}
-			if (lowPriority != null && lowPriority.contains(s)) {
+			if (lowPriority != null
+					&& lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 				continue;
 			}
 			SampleNode sn = wspLoader.panel2Nodes.get(s);
@@ -411,8 +420,8 @@ public class SamplingPipeline {
 		}
 
 		if (lowPriority != null) {
-			for (String s : lowPriority) {
-				if (p1Sampling.contains(s)) {
+			for (String s : p1Sampling) {
+				if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 					SampleNode sn = wspLoader.getPanel1Nodes().get(s);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap1.get(s);
@@ -420,7 +429,10 @@ public class SamplingPipeline {
 					} else {
 						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
 					}
-				} else if (p2Sampling.contains(s)) {
+				}
+			}
+			for (String s : p2Sampling) {
+				if (lowPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s)))) {
 					SampleNode sn = wspLoader.panel2Nodes.get(s);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap2.get(s);
