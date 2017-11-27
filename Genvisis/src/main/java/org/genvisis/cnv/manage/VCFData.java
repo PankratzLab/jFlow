@@ -420,7 +420,8 @@ public final class VCFData {
 				MarkerData markerData = mdl.next();
 
 				VariantContextBuilder builderVc = new VariantContextBuilder();
-				builderVc.chr((useChr ? "chr" : "") + String.valueOf(markerData.getChr()));
+				builderVc.chr((useChr ? "chr" : "")
+											+ Positions.chromosomeNumberInverse(markerData.getChr()));
 				Marker mkr = markerMap.get(markerData.getMarkerName());
 				ArrayList<Allele> a = new ArrayList<Allele>();
 				Allele aR = mkr.getRef();
