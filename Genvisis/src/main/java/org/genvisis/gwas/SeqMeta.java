@@ -4128,10 +4128,10 @@ public class SeqMeta {
                 line = ext.splitCommasIntelligently(reader.readLine(), true, log);
                 if (hash.containsKey(line[0])) {
                   writer.println(line[0] + "\t" + phenotype[0] + "/SingleSNP/" + phenotype[0]
-                                 + "_SingleSNP.csv\t" + phenotype[0] + " in " + line[3] + " (All p="
-                                 + ext.prettyP(line[9]) + "; EA p=" + ext.prettyP(line[16])
-                                 + "; AA p=" + ext.prettyP(line[23]) + "; HA p="
-                                 + ext.prettyP(line[30]) + ")");
+                                 + "_SingleSNP.csv.gz\t" + phenotype[0] + " in " + line[3]
+                                 + " (All p=" + ext.prettyP(line[9]) + "; EA p="
+                                 + ext.prettyP(line[16]) + "; AA p=" + ext.prettyP(line[23])
+                                 + "; HA p=" + ext.prettyP(line[30]) + ")");
                   hash.put(line[0], "present");
                 }
               }
