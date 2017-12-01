@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
+import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
@@ -218,6 +219,10 @@ public class SampleData {
 	public static final int DNA_INDEX_IN_LINKERS = 2;
 	private static final String NO_VALUE_FOUND = ".";
 
+	public static final int LOOKUP_DNA_INDEX = 0;
+	public static final int LOOKUP_FID_IID_INDEX = 1;
+	public static final int LOOKUP_IID_INDEX = 2;
+
 	// public static final String[] BASIC_FILTERS = {"GC"};
 
 	public static final String PLINK_CLASS_PREFIX = "PLINK: ";
@@ -270,7 +275,6 @@ public class SampleData {
 		// Hashtable<String,IndiPheno> sampleHash;
 		String filename;
 		CountVector sexCountHash;
-		String[] ids;
 
 		this.proj = proj;
 		final Logger log = proj.getLog();
@@ -423,7 +427,12 @@ public class SampleData {
 				line = reader.readLine().split("\t", -1);
 				indi = new IndiPheno();
 
-				ids = new String[] {line[dnaIndex], line[famIndex] + "\t" + line[indIndex], line[indIndex]};
+				String[] ids = new String[ArrayUtils.max(new int[] {LOOKUP_DNA_INDEX, LOOKUP_FID_IID_INDEX,
+																														LOOKUP_IID_INDEX})
+																	+ 1];
+				ids[LOOKUP_DNA_INDEX] = line[dnaIndex];
+				ids[LOOKUP_FID_IID_INDEX] = line[famIndex] + "\t" + line[indIndex];
+				ids[LOOKUP_IID_INDEX] = line[indIndex];
 				lookup.put(line[dnaIndex].toLowerCase(), ids);
 				lookup.put(line[famIndex].toLowerCase() + "\t" + line[indIndex].toLowerCase(), ids);
 				lookup.put(line[indIndex].toLowerCase(), ids);
@@ -574,7 +583,7 @@ public class SampleData {
 		if (indi == null) {
 			ids = lookup.get(id.toLowerCase());
 			if (ids != null) {
-				indi = sampleHash.get(ids[0].toLowerCase());
+				indi = sampleHash.get(ids[LOOKUP_DNA_INDEX].toLowerCase());
 			}
 		}
 
@@ -610,7 +619,7 @@ public class SampleData {
 		if (indi == null) {
 			ids = lookup.get(id.toLowerCase());
 			if (ids != null) {
-				indi = sampleHash.get(ids[0].toLowerCase());
+				indi = sampleHash.get(ids[LOOKUP_DNA_INDEX].toLowerCase());
 			}
 		}
 
@@ -660,7 +669,7 @@ public class SampleData {
 		inds = HashVec.getKeys(sampleHash);
 		for (String ind : inds) {
 			indi = sampleHash.get(ind);
-			trav = lookup.get(ind.toLowerCase())[1];
+			trav = lookup.get(ind.toLowerCase())[LOOKUP_FID_IID_INDEX];
 
 			finalHashes = new Vector<Hashtable<String, CNVariant[]>>();
 			for (int j = 0; j < files.length; j++) {
@@ -798,16 +807,77 @@ public class SampleData {
 	 *
 	 * @param str One identifying key (DNA, FID\tIID, or IID)
 	 * @return Array of all identifiers {DNA, FID\tIID, IID}
+	 * 
+	 * @deprecated use {@link #lookupDNA(String)}, {@link #lookupFIDIID(String)}, or
+	 *             {@link #lookupIID(String)} instead which do not require defensive copies of the
+	 *             underlying id array
 	 */
+	@Deprecated
 	public String[] lookup(String str) {
-		return lookup.get(str.toLowerCase());
+		String[] ids = lookupNoCopy(str);
+		if (ids == null)
+			return null;
+		return Arrays.copyOf(ids, ids.length);
+	}
+
+	private String[] lookupNoCopy(String id) {
+		return lookup.get(id.toLowerCase());
+	}
+
+	/**
+	 * Lookup DNA from any Sample ID
+	 * 
+	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
+	 * @return DNA or null if Sample ID not found
+	 */
+	public @Nullable String lookupDNA(String id) {
+		return lookup(id, LOOKUP_DNA_INDEX);
+	}
+
+	/**
+	 * Lookup FID\tIID from any Sample ID
+	 * 
+	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
+	 * @return DNA or null if Sample ID not found
+	 */
+	public @Nullable String lookupFIDIID(String id) {
+		return lookup(id, LOOKUP_FID_IID_INDEX);
+	}
+
+	/**
+	 * Lookup IID from any Sample ID
+	 * 
+	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
+	 * @return DNA or null if Sample ID not found
+	 */
+	public @Nullable String lookupIID(String id) {
+		return lookup(id, LOOKUP_IID_INDEX);
+	}
+
+	/**
+	 * 
+	 * @param id a potential sample identifier
+	 * @return true if the provided id is a valid Sample identifier contained in the lookup
+	 */
+	public boolean lookupContains(String id) {
+		return lookupNoCopy(id) != null;
+	}
+
+	private String lookup(String id, int idIndex) {
+		String[] ids = lookupNoCopy(id);
+		if (ids == null)
+			return null;
+		return ids[idIndex];
 	}
 
 	/**
 	 * 
 	 * @return an unmodifiable Map from any Sample identifier (DNA, FID\tIID, IID (not guaranteed
 	 *         unique)) to an array of {DNA, FID\tIID, IID}
+	 * 
+	 * @deprecated relies on caller to handle lowercasing of keys
 	 */
+	@Deprecated
 	public Map<String, String[]> getSampleIDLookup() {
 		return Collections.unmodifiableMap(lookup);
 	}
