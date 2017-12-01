@@ -76,8 +76,8 @@ public class ImputationPipeline {
 		}
 		setSamplesToDropFile(keepDrops.getDropSamplesFile());
 		setSamplesToKeepFile(keepDrops.getKeepSamplesFile());
-		setMarkersToDropFile(keepDrops.dropMarkersFile);
-		setMarkersToKeepFile(keepDrops.keepMarkersFile);
+		setMarkersToDropFile(keepDrops.getDropMarkersFile());
+		setMarkersToKeepFile(keepDrops.getKeepMarkersFile());
 	}
 
 	private void setSamplesToDropFile(String samplesToDropFile) {
