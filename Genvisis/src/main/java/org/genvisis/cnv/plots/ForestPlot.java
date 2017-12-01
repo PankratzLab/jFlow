@@ -578,8 +578,9 @@ public class ForestPlot {
         if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)
             || dataFileHeaders[i + 1].contains(SE_INFIX)) {
           int betaIndex = dataFileHeaders[i].startsWith("beta") ? 1 : 0;
-          String[] b = dataFileHeaders[i].split("beta");
-          String beta = b[betaIndex] + (b.length > 1 ? b[b.length - 1] : "");
+          String[] b = dataFileHeaders[i].split("beta.");
+          String beta = b[betaIndex]
+                        + (b.length > 1 && betaIndex != b.length - 1 ? b[b.length - 1] : "");
           if (data.studyToColIndexMap.containsKey(beta)) {
             throw new RuntimeException("Malformed data file: Duplicate study name found in file");
           } else {
