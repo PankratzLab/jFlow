@@ -893,6 +893,9 @@ public class DosageData implements Serializable {
 		} else if (dataOutType == VCF_FORMAT) {
 			throw new UnsupportedOperationException(
 																							"Writing to a .vcf file is not currently supported. Please choose a different output type and try again.");
+		} else if (dataOutType == BGEN_FORMAT) {
+			throw new UnsupportedOperationException(
+																							"Writing to a .bgen file is not currently supported. Please choose a different output type and try again.");
 		}
 
 		if (markersToKeep == null && regionsToKeep == null) {
