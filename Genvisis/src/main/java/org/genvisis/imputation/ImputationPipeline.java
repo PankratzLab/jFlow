@@ -3,7 +3,7 @@ package org.genvisis.imputation;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,6 +15,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.VCFData;
+import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -24,6 +25,7 @@ import org.genvisis.gwas.FurtherAnalysisQc;
 import org.genvisis.gwas.Qc;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -59,13 +61,11 @@ public class ImputationPipeline {
 	public static final String USE_GRC_ARG = "useGRC=";
 
 	private final Project proj;
-	private Set<String> dropMarkers;
-	private Set<String> dropSamples;
-	private Set<String> keepMarkers;
-	private Set<String> keepSamples;
+	private final Set<String> dropMarkers;
+	private final Set<String> dropSamples;
+	private final Set<String> keepMarkers;
+	private final Set<String> keepSamples;
 	private final Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
-
-	private Set<String> markersToExport;
 
 	public ImputationPipeline(Project proj, String referenceFile, KeepDrops keepDrops) {
 		this.proj = proj;
@@ -74,91 +74,75 @@ public class ImputationPipeline {
 		for (Marker m : markers) {
 			prepMarkers.put(m.getName(), m);
 		}
-		setSamplesToDropFile(keepDrops.getDropSamplesFile());
-		setSamplesToKeepFile(keepDrops.getKeepSamplesFile());
-		setMarkersToDropFile(keepDrops.getDropMarkersFile());
-		setMarkersToKeepFile(keepDrops.getKeepMarkersFile());
+		dropSamples = generateSampleSet(proj, keepDrops.getDropSamplesFile());
+		keepSamples = generateSampleSet(proj, keepDrops.getKeepSamplesFile());
+		dropMarkers = generateMarkerSet(proj, keepDrops.getDropMarkersFile());
+		keepMarkers = generateMarkerSet(proj, keepDrops.getKeepMarkersFile());
 	}
 
-	private void setSamplesToDropFile(String samplesToDropFile) {
-		if (!Files.exists(samplesToDropFile)) {
-			proj.getLog().reportTimeWarning("Sample drop file doesn't exist: " + samplesToDropFile);
-			return;
+	private static Set<String> generateSampleSet(Project proj, String fidiidFile) {
+		if (!Files.exists(fidiidFile)) {
+			if (fidiidFile != null) {
+				proj.getLog().reportTimeWarning("File of FID IIDs doesn't exist: " + fidiidFile);
+			}
+			return null;
 		}
-		dropSamples = HashVec.loadFileToHashSet(samplesToDropFile, new int[] {0, 1}, "\t", false);
-		Set<String> missingIDs = Sets.difference(dropSamples, proj.getSampleData(false)
-																															.getSampleIDLookup().keySet());
-		if (!missingIDs.isEmpty()) {
-			proj.getLog().reportError("Not all Samples to drop could be found in SampleData: "
-																+ ext.listWithCommas(missingIDs));
+		SampleData sampleData = proj.getSampleData(false);
+		Set<String> fidiids = HashVec.loadFileToHashSet(fidiidFile, new int[] {0, 1}, "\t", false);
+		Set<String> samples = fidiids.stream().map(sampleData::lookupDNA).filter(Predicates.notNull())
+																 .collect(ImmutableSet.toImmutableSet());
+		if (samples.size() != fidiids.size()) {
+			Set<String> missingIDs = fidiids.stream().filter(fidiid -> !sampleData.lookupContains(fidiid))
+																			.collect(ImmutableSet.toImmutableSet());
+			proj.getLog()
+					.reportError("Not all Samples in " + fidiidFile + " could be found in SampleData: "
+											 + ext.listWithCommas(missingIDs));
 		}
+		return samples;
 	}
 
-	private void setSamplesToKeepFile(String samplesToKeepFile) {
-		if (!Files.exists(samplesToKeepFile)) {
-			proj.getLog().reportTimeWarning("Sample keep file doesn't exist: " + samplesToKeepFile);
-			return;
+	private static Set<String> generateMarkerSet(Project proj, String markerFile) {
+		if (!Files.exists(markerFile)) {
+			if (markerFile != null) {
+				proj.getLog().reportTimeWarning("File of markers doesn't exist: " + markerFile);
+			}
+			return null;
 		}
-		keepSamples = HashVec.loadFileToHashSet(samplesToKeepFile, new int[] {0, 1}, "\t", false);
-		Set<String> missingIDs = Sets.difference(keepSamples, proj.getSampleData(false)
-																															.getSampleIDLookup().keySet());
-		if (!missingIDs.isEmpty()) {
-			proj.getLog().reportError("Not all Samples to keep could be found in SampleData: "
-																+ ext.listWithCommas(missingIDs));
-		}
-	}
-
-	private void setMarkersToDropFile(String markersToDropFile) {
-		if (!Files.exists(markersToDropFile)) {
-			proj.getLog().reportTimeWarning("Marker drop file doesn't exist: " + markersToDropFile);
-			return;
-		}
-		dropMarkers = HashVec.loadFileToHashSet(markersToDropFile, false);
-		Set<String> missingIDs = Sets.difference(dropMarkers,
+		Set<String> markers = HashVec.loadFileToHashSet(markerFile, false);
+		Set<String> missingIDs = Sets.difference(markers,
 																						 proj.getMarkerSet().getMarkerNameMap().keySet());
 		if (!missingIDs.isEmpty()) {
-			proj.getLog().reportError("Not all Markers to drop could be found in Project: "
+			proj.getLog().reportError("Not all Markers in " + markerFile + " could be found in Project: "
 																+ ext.listWithCommas(missingIDs));
+			markers.removeAll(missingIDs);
 		}
-	}
-
-	private void setMarkersToKeepFile(String markersToKeepFile) {
-		if (!Files.exists(markersToKeepFile)) {
-			proj.getLog().reportTimeWarning("Marker keep file doesn't exist: " + markersToKeepFile);
-			return;
-		}
-		keepMarkers = HashVec.loadFileToHashSet(markersToKeepFile, false);
-		Set<String> missingIDs = Sets.difference(keepMarkers,
-																						 proj.getMarkerSet().getMarkerNameMap().keySet());
-		if (!missingIDs.isEmpty()) {
-			proj.getLog().reportError("Not all Markers to keep could be found in Project: "
-																+ ext.listWithCommas(missingIDs));
-		}
+		return Collections.unmodifiableSet(markers);
 	}
 
 	private Set<String> getSamplesToExport() {
-		HashSet<String> samplesToExport = new HashSet<String>();
-		if (keepSamples == null) {
-			for (String s : proj.getSamples()) {
-				if (dropSamples == null || !dropSamples.contains(s)) {
-					samplesToExport.add(s);
-				}
-			}
+		Set<String> samplesToExport;
+		if (keepSamples != null) {
+			samplesToExport = Sets.newHashSet(keepSamples);
 		} else {
-			samplesToExport.addAll(keepSamples);
+			samplesToExport = Sets.newHashSet(proj.getSamples());
 		}
-		return samplesToExport;
+		if (dropSamples != null) {
+			samplesToExport.removeAll(dropSamples);
+		}
+		return Collections.unmodifiableSet(samplesToExport);
 	}
 
 	private Set<String> getMarkersToExport() {
-		if (markersToExport == null) {
-			markersToExport = new HashSet<String>(Arrays.asList(proj.getMarkerNames()));
-			if (keepMarkers != null && keepMarkers.size() > 0) {
-				markersToExport.retainAll(keepMarkers);
-			}
-			markersToExport.removeAll(dropMarkers);
-			markersToExport.retainAll(prepMarkers.keySet());
+		Set<String> markersToExport;
+		if (keepMarkers != null && keepMarkers.size() > 0) {
+			markersToExport = Sets.newHashSet(keepMarkers);
+		} else {
+			markersToExport = Sets.newHashSet(proj.getMarkerNames());
 		}
+		if (dropMarkers != null) {
+			markersToExport.removeAll(dropMarkers);
+		}
+		markersToExport.retainAll(prepMarkers.keySet());
 		return markersToExport;
 	}
 
