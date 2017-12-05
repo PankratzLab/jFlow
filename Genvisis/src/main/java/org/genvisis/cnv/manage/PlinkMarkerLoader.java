@@ -205,15 +205,9 @@ public class PlinkMarkerLoader implements Runnable {
 						byte[] genos = PlinkData.decodeBedByte(bedByte);
 
 						for (int g = 0; g < genos.length; g++) {
-							int idInd = (bitInd * 4
-													 + g) >= famIDList.length ? -1
-																										: famIDLookup.get(famIDList[bitInd * 4
-																																								+ g]) == null ? -1
-																																															: famIDLookup.get(famIDList[bitInd
-																																																													* 4
-																																																													+ g]);
-							if (idInd == -1 || idInd > sampGeno.length) {
-								continue;
+							int idInd = bitInd * 4 + g;
+							if (idInd >= famIDList.length) {
+								break;
 							}
 							sampGeno[idInd] = genos[g];
 						}
