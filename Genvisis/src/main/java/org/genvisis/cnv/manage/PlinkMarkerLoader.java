@@ -278,9 +278,20 @@ public class PlinkMarkerLoader implements Runnable {
 
 	}
 
-	public byte getGenotypeForIndi(String marker, String fidiid) {
-		int idIndex = famIDLookup.get(fidiid) == null ? -1 : famIDLookup.get(fidiid);
-		if (idIndex == -1) {
+	/**
+	 * 
+	 * @param proj Project to match Sample and Marker IDs from
+	 * @param marker Marker to get genotype for
+	 * @param sample DNA of sample to get genotype for
+	 * @return genotype
+	 */
+	public byte getGenotypeForIndi(Project proj, String marker, String sample) {
+		// Plink fam files could be DNA/DNA or FID/IID identified
+		Integer idIndex = famIDLookup.get(sample + "\t" + sample);
+		if (idIndex == null) {
+			idIndex = famIDLookup.get(proj.getSampleData(false).lookupFIDIID(sample));
+		}
+		if (idIndex == null) {
 			return (byte) -1;
 		} else {
 			int markerIndex = markerIndicesLookup.get(marker) == null ? -1
