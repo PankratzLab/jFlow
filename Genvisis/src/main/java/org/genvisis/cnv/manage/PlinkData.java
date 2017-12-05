@@ -30,6 +30,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
@@ -1381,9 +1382,10 @@ public class PlinkData {
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
-					log.reportError("Error - starting at line "
-													+ (count - 1)
-													+ (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")")
+					log.reportError("Error - starting at line " + (count - 1)
+													+ (line.length < 3 ? ""
+																						 : " (individual " + line[Pedigree.FID_INDEX] + "-"
+																							 + line[Pedigree.IID_INDEX] + ")")
 													+ " there are only " + line.length + " columns in pedigree file '"
 													+ proj.PEDIGREE_FILENAME.getValue() + "'.");
 					log.reportError("  Pedigree files require 7 or 8 columns with no header: FID IID FA MO SEX PHENO DNA (MZTWINID)");
@@ -1395,10 +1397,10 @@ public class PlinkData {
 					writer.flush();
 					writer.close();
 					return null;
-				} else if (ext.isMissingValue(line[6])) {
+				} else if (ext.isMissingValue(line[Pedigree.DNA_INDEX])) {
 					// dna.add(null);
-				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
-					log.reportError("Warning - sample '" + line[6] + "' from '"
+				} else if (ext.indexOfStr(line[Pedigree.DNA_INDEX], allSamples) == -1) {
+					log.reportError("Warning - sample '" + line[Pedigree.DNA_INDEX] + "' from '"
 													+ proj.PEDIGREE_FILENAME.getValue()
 													+ "' is not found in the project's list of samples, and is ignored.");
 					if (line.length != 7) {
@@ -1408,13 +1410,17 @@ public class PlinkData {
 					// dna.add(null);
 				} else {
 					if (dropSamples == null
-							|| !(dropSamples.contains(line[0] + "\t" + line[1])
-									 || dropSamples.contains(line[6]))) {
-						dna.add(line[6]);
-						writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t"
-													 + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t"
-													 + (concatFIDToIID ? line[0] + "_" : "") + line[3] + "\t" + line[4]
-													 + "\t" + line[5]);
+							|| !(dropSamples.contains(line[Pedigree.FID_INDEX] + "\t" + line[Pedigree.IID_INDEX])
+									 || dropSamples.contains(line[Pedigree.DNA_INDEX]))) {
+						dna.add(line[Pedigree.DNA_INDEX]);
+						writer.println(line[Pedigree.FID_INDEX] + "\t"
+													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
+													 + line[Pedigree.IID_INDEX] + "\t"
+													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
+													 + line[Pedigree.FA_INDEX] + "\t"
+													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
+													 + line[Pedigree.MO_INDEX] + "\t" + line[Pedigree.SEX_INDEX] + "\t"
+													 + line[Pedigree.AFF_INDEX]);
 					}
 				}
 			}
@@ -2048,8 +2054,8 @@ public class PlinkData {
 		BufferedReader reader;
 		String[] line;
 		int count;
-		String[] finalSampleIDs, allIDs;
-		String famIndID, sampleID;
+		String[] finalSampleIDs;
+		String famIndID;
 		SampleData sampleData;
 		int[] sampleIndices;
 
@@ -2062,13 +2068,19 @@ public class PlinkData {
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				famIndID = line[0] + "\t" + line[1];
-				allIDs = sampleData.lookup(famIndID);
-				if (allIDs == null) {
+				famIndID = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
+				String sampleID;
+				if (sampleData.lookupContains(famIndID)) {
+					// First try combined FID IID lookup
+					sampleID = sampleData.lookupDNA(famIndID);
+				} else {
+					// Then try looking up by just IID which may be DNA
+					sampleID = sampleData.lookupDNA(line[PSF.Plink.FAM_IID_INDEX]);
+				}
+				if (sampleID == null) {
 					proj.getLog().report("Warning - sample in PLINK file " + plinkFileRoot
 															 + ".fam that is not in the project's sampleData file: " + famIndID);
 				} else {
-					sampleID = allIDs[0];
 					sampleIndices[ext.indexOfStr(sampleID, finalSampleIDs)] = count;
 				}
 				count++;
