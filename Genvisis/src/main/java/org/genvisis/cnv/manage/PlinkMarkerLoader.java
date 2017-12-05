@@ -29,7 +29,6 @@ public class PlinkMarkerLoader implements Runnable {
 
 	String fileRoot;
 	String[] markerList;
-	String[] famIDList;
 	int[] markerPosInBim;
 	volatile byte[][] genotypes;
 	volatile boolean[] loaded;
@@ -137,15 +136,20 @@ public class PlinkMarkerLoader implements Runnable {
 		BufferedReader reader;
 		String[] line;
 
-		famIDList = new String[Files.countLines(fileRoot + ".fam", 0)];
+		String famFile = PSF.Plink.getFAM(fileRoot);
+
+		famIDLookup = new HashMap<String, Integer>();
 
 		try {
-			reader = Files.getAppropriateReader(fileRoot + ".fam");
+			reader = Files.getAppropriateReader(famFile);
 			String temp = null;
 			int cnt = 0;
 			while ((temp = reader.readLine()) != null) {
 				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				famIDList[cnt] = line[0] + "\t" + line[1];
+				String fidiid = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
+				if (famIDLookup.putIfAbsent(fidiid, cnt) != null) {
+					log.reportError("Duplicate sample ID in " + famFile + ": " + fidiid);
+				}
 				cnt++;
 			}
 			reader.close();
@@ -156,11 +160,6 @@ public class PlinkMarkerLoader implements Runnable {
 		} catch (IOException ioe) {
 			// TODO should KILL here
 			log.reportException(ioe);
-		}
-
-		famIDLookup = new HashMap<String, Integer>();
-		for (int i = 0; i < famIDList.length; i++) {
-			famIDLookup.put(famIDList[i], i);
 		}
 	}
 
@@ -191,14 +190,14 @@ public class PlinkMarkerLoader implements Runnable {
 				for (int i = 0; i < markerList.length; i++) {
 					if (markerPosInBim[i] == -1) {
 						// missing marker, not present in PLINK files
-						mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDList.length, (byte) -1));
+						mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDLookup.size(), (byte) -1));
 						cnt++;
 						continue;
 					}
 					in.seek(3 + (long) markerPosInBim[i] * blockSize);
 
 					byte[] markerBytes = new byte[blockSize];
-					byte[] sampGeno = new byte[famIDList.length];
+					byte[] sampGeno = new byte[famIDLookup.size()];
 					in.read(markerBytes);
 					for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
 						byte bedByte = markerBytes[bitInd];
@@ -206,7 +205,7 @@ public class PlinkMarkerLoader implements Runnable {
 
 						for (int g = 0; g < genos.length; g++) {
 							int idInd = bitInd * 4 + g;
-							if (idInd >= famIDList.length) {
+							if (idInd >= famIDLookup.size()) {
 								break;
 							}
 							sampGeno[idInd] = genos[g];
