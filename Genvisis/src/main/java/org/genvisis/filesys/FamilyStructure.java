@@ -27,7 +27,7 @@ public class FamilyStructure {
 	public static final int DNA_INDEX = 6;
 	public static final int MZ_TWIN_INDEX = 7;
 
-	public static final Object MISSING_ID_STR = "0";
+	public static final String MISSING_ID_STR = "0";
 
 	public ArrayList<String[]> cached_poPairsIDs = null;
 	public ArrayList<int[]> cached_poPairsCompleteOnly = null;
