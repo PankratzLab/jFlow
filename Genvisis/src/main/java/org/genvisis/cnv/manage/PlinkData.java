@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.ABLookup;
@@ -1355,14 +1356,14 @@ public class PlinkData {
 		int count;
 		String temp;
 		String[] line;
-		Vector<String> dna;
+		Vector<String> dnas;
 		String[] allSamples;
 		String filename;
 		Logger log;
 
 		log = proj.getLog();
 		allSamples = proj.getSamples();
-		dna = new Vector<String>();
+		dnas = new Vector<String>();
 
 		try {
 			filename = proj.PEDIGREE_FILENAME.getValue();
@@ -1409,18 +1410,20 @@ public class PlinkData {
 					}
 					// dna.add(null);
 				} else {
-					if (dropSamples == null
-							|| !(dropSamples.contains(line[Pedigree.FID_INDEX] + "\t" + line[Pedigree.IID_INDEX])
-									 || dropSamples.contains(line[Pedigree.DNA_INDEX]))) {
-						dna.add(line[Pedigree.DNA_INDEX]);
-						writer.println(line[Pedigree.FID_INDEX] + "\t"
-													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
-													 + line[Pedigree.IID_INDEX] + "\t"
-													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
-													 + line[Pedigree.FA_INDEX] + "\t"
-													 + (concatFIDToIID ? line[Pedigree.FID_INDEX] + "_" : "")
-													 + line[Pedigree.MO_INDEX] + "\t" + line[Pedigree.SEX_INDEX] + "\t"
-													 + line[Pedigree.AFF_INDEX]);
+					String fid = line[Pedigree.FID_INDEX];
+					String iid = line[Pedigree.IID_INDEX];
+					String fidiid = fid + "\t" + iid;
+					if (concatFIDToIID)
+						iid = fid + "_" + iid;
+					String fa = (concatFIDToIID ? fid + "_" : "") + line[Pedigree.FA_INDEX];
+					String mo = (concatFIDToIID ? fid + "_" : "") + line[Pedigree.MO_INDEX];
+					String sex = line[Pedigree.SEX_INDEX];
+					String aff = line[Pedigree.AFF_INDEX];
+					String dna = line[Pedigree.DNA_INDEX];
+					if (dropSamples == null || !(dropSamples.contains(fidiid) || dropSamples.contains(dna))) {
+						dnas.add(dna);
+						writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo).add(sex)
+																								 .add(aff));
 					}
 				}
 			}
@@ -1436,7 +1439,7 @@ public class PlinkData {
 			return null;
 		}
 
-		return ArrayUtils.toStringArray(dna);
+		return ArrayUtils.toStringArray(dnas);
 	}
 
 	/**
