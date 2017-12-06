@@ -898,7 +898,8 @@ public class GenvisisWorkflow {
 					proj.getLog().report("Running PLINK");
 
 					boolean create = PlinkData.saveGenvisisToPlinkBedSet(proj, PLINK_SUBDIR + PLINKROOT,
-																															 null, null);
+																															 null, null,
+																															 PlinkData.ExportIDScheme.DNA_DNA);
 					if (!create) {
 						throw new RuntimeException("Creation of initial PLINK files failed.");
 					}
@@ -928,11 +929,12 @@ public class GenvisisWorkflow {
 						cmd.append(Files.getRunString()).append(" cnv.filesys.Pedigree proj=")
 							 .append(projPropFile).append("\n");
 					}
-
-					cmd.append(Files.getRunString())
-						 .append(" cnv.manage.PlinkData -genvisisToBed plinkdata=" + PLINK_SUBDIR + PLINKROOT
-										 + " proj=")
-						 .append(proj.getPropertyFilename());
+					cmd.append(new StringJoiner(" ").add(Files.getRunString())
+																					.add(PlinkData.class.getName()).add("-genvisisToBed")
+																					.add("plinkdata=" + PLINK_SUBDIR + PLINKROOT)
+																					.add("proj=" + proj.getPropertyFilename())
+																					.add(PlinkData.ARG_EXPORT_ID_SCHEME
+																							 + PlinkData.ExportIDScheme.DNA_DNA));
 					return cmd.toString();
 				}
 
