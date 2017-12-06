@@ -192,7 +192,8 @@ public class ImputationPipeline {
 		} else {
 			toDrop.addAll(dropSamples);
 		}
-		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, toDrop, true);
+		String[] writtenDNAs = PlinkData.createFamFile(proj, plinkDirAndRoot, toDrop,
+																									 PlinkData.ExportIDScheme.CONCAT_FID_TO_IID);
 		if (writtenDNAs == null) {
 			// TODO error
 			return;

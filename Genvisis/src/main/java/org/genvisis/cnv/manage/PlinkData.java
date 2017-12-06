@@ -45,6 +45,8 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -53,6 +55,29 @@ public class PlinkData {
 	public static final String FAM_DELIMITER = " ";
 	public static final String BIM_DELIMITER = "\t";
 	public static final String MAP_DELIMITER = "\t";
+
+	public static final String ARG_EXPORT_ID_SCHEME = "exportIDScheme=";
+
+	/**
+	 * Choices for setting FID and IID when exporting
+	 *
+	 */
+	public static enum ExportIDScheme {
+		/**
+		 * Use FID and IID as defined in pedigree
+		 */
+		FID_IID,
+		/**
+		 * Use FID as defined in pedigree, concatenate FID to IID for IID
+		 */
+		CONCAT_FID_TO_IID,
+		/**
+		 * Use DNA for FID and IID (does not allow export of family structure from pedigree)
+		 */
+		DNA_DNA;
+
+		public static final ExportIDScheme DEFAULT = FID_IID;
+	}
 
 	/**
 	 * Convert a Plink .ped data set to Plink .bed data set.
@@ -959,6 +984,18 @@ public class PlinkData {
 	}
 
 	/**
+	 * Works as
+	 * {@link PlinkData#saveGenvisisToPlinkBedSet(Project, String, String, String, ExportIDScheme)}
+	 * with {@link ExportIDScheme#DEFAULT}
+	 */
+	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
+																									String clusterFilterFileName,
+																									String targetMarkersFileName) {
+		return saveGenvisisToPlinkBedSet(proj, plinkPrefix, clusterFilterFileName,
+																		 targetMarkersFileName, ExportIDScheme.DEFAULT);
+	}
+
+	/**
 	 * Convert Genvisis data into a PLINK .bed data set.
 	 *
 	 * @param proj
@@ -968,7 +1005,8 @@ public class PlinkData {
 	 */
 	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
 																									String clusterFilterFileName,
-																									String targetMarkersFileName) {
+																									String targetMarkersFileName,
+																									ExportIDScheme exportIDScheme) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
@@ -986,7 +1024,7 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		// samples and FAM file are in pedigree order, not project order
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null);
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null, exportIDScheme);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		PSF.checkInterrupted();
@@ -1337,20 +1375,15 @@ public class PlinkData {
 	/**
 	 * Convert Genvisis data to PLINK .fam format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-	 *
-	 * @param proj
-	 * @param famDirAndFilenameRoot
-	 * @param log
-	 * @return
+	 * 
+	 * @param proj project to create from
+	 * @param famDirAndFilenameRoot directory and fileroot of desired fam file output
+	 * @param dropSamples samples to exclude from export
+	 * @param exportIDScheme determines how FID/IID is generated from Genvisis IDs
+	 * @return array of samples exported in exported order or null on failure
 	 */
 	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
-																			 Set<String> dropSamples) {
-		return createFamFile(proj, famDirAndFilenameRoot, dropSamples, false);
-	}
-
-
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
-																			 Set<String> dropSamples, boolean concatFIDToIID) {
+																			 Set<String> dropSamples, ExportIDScheme exportIDScheme) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
@@ -1413,13 +1446,32 @@ public class PlinkData {
 					String fid = line[Pedigree.FID_INDEX];
 					String iid = line[Pedigree.IID_INDEX];
 					String fidiid = fid + "\t" + iid;
-					if (concatFIDToIID)
-						iid = fid + "_" + iid;
-					String fa = (concatFIDToIID ? fid + "_" : "") + line[Pedigree.FA_INDEX];
-					String mo = (concatFIDToIID ? fid + "_" : "") + line[Pedigree.MO_INDEX];
+					String fa = line[Pedigree.FA_INDEX];
+					String mo = line[Pedigree.MO_INDEX];
 					String sex = line[Pedigree.SEX_INDEX];
 					String aff = line[Pedigree.AFF_INDEX];
 					String dna = line[Pedigree.DNA_INDEX];
+					switch (exportIDScheme) {
+						case CONCAT_FID_TO_IID:
+							iid = fid + "_" + iid;
+							fa = fid + "_" + fa;
+							mo = fid + "_" + mo;
+							break;
+						case DNA_DNA:
+							iid = dna;
+							fid = dna;
+							fa = Pedigree.MISSING_ID_STR;
+							mo = Pedigree.MISSING_ID_STR;
+							break;
+						case FID_IID:
+							break;
+						default:
+							log.reportError("Unsuspected export ID scheme: " + exportIDScheme + ", using "
+															+ ExportIDScheme.FID_IID);
+							break;
+
+					}
+
 					if (dropSamples == null || !(dropSamples.contains(fidiid) || dropSamples.contains(dna))) {
 						dnas.add(dna);
 						writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo).add(sex)
@@ -2254,6 +2306,7 @@ public class PlinkData {
 		Project proj;
 		String plinkDataDirAndFilenameRoot = "plink";
 		boolean isSnpMajor = true;
+		ExportIDScheme exportIDScheme = ExportIDScheme.DEFAULT;
 		int startByte = 100;
 		int nBytes = -1;
 		int indexOfStartMarker = 0;
@@ -2289,6 +2342,9 @@ public class PlinkData {
 									 + "   (3) is the .bed file going to be SNP Major (i.e. issnpmajor="
 									 + isSnpMajor
 									 + " (default));\n"
+									 + "   (4) The ID Scheme to use for generating FID/IID (i.e. "
+									 + ARG_EXPORT_ID_SCHEME + exportIDScheme.toString() + " (default));\n"
+									 + "      Options are:" + Joiner.on(", ").join(ExportIDScheme.values()) + "\n"
 									 + "   (5) the directory and filename root for the final PLINK data set (i.e. plinkdata="
 									 + plinkDataDirAndFilenameRoot
 									 + " (default));\n"
@@ -2360,6 +2416,12 @@ public class PlinkData {
 				plinkDataDirAndFilenameRoot = arg.split("=")[1];
 			} else if (arg.startsWith("issnpmajor=")) {
 				isSnpMajor = Boolean.parseBoolean(arg.split("=")[1]);
+			} else if (arg.startsWith(ARG_EXPORT_ID_SCHEME)) {
+				exportIDScheme = Enums.getIfPresent(ExportIDScheme.class, arg.split("=")[1]).orNull();
+				if (exportIDScheme == null) {
+					System.err.println("Unrecognized exportIDScheme: " + arg.split("=")[1]);
+					return;
+				}
 			} else if (arg.startsWith("startbyte=")) {
 				startByte = Integer.parseInt(arg.split("=")[1]);
 			} else if (arg.startsWith("nbytes=")) {
@@ -2401,8 +2463,8 @@ public class PlinkData {
 			if (!Files.exists(clusterFile)) {
 				clusterFile = null;
 			}
-			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile,
-																null);
+			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile, null,
+																exportIDScheme);
 
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_"
