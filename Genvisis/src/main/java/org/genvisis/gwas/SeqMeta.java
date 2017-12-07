@@ -1532,7 +1532,7 @@ public class SeqMeta {
                                                                                                     : (new String[] {functionFlagName}),
                                                                     Aliases.CHRS};
 
-          indices = ext.indexFactors(needs, header, false, true, true, false, log);
+          indices = ext.indexFactors(needs, header, false, true, true, log);
           if (ArrayUtils.min(indices) == -1) {
             log.reportError("Improper header for file '" + filename + "', found: "
                             + ArrayUtils.toStr(header, "/") + "\nMissing one of these: "
@@ -1636,8 +1636,7 @@ public class SeqMeta {
                   // ext.checkHeader(header, HEADER_TYPES[Integer.parseInt(MODELS[0][4])],
                   // Array.intArray(expected.length), false, log, true);
 
-                  indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false,
-                                             log, true);
+                  indices = ext.indexFactors(new String[] {"Name", "maf", "ntotal"}, header, false);
 
                   while (reader.ready()) {
                     line = ext.splitCommasIntelligently(reader.readLine(), true, log);
@@ -2959,7 +2958,7 @@ public class SeqMeta {
     }
 
     String[] h = Files.getHeaderOfFile(list[0], ",!", log);
-    cols = ext.indexFactors(header, h, false, log, false, false, false);
+    cols = ext.indexFactors(header, h, false, log, false);
     skips = ArrayUtils.intArray(list.length, 1);
     skips[0] = 0;
     Files.cat(list, dir + fileout, skips, cols, false, log);
@@ -3087,8 +3086,7 @@ public class SeqMeta {
                 reader = Files.getAppropriateReader(localDir + filename);
                 temp = reader.readLine();
                 int[] cols = ext.indexFactors(headers,
-                                              ext.splitCommasIntelligently(temp, true, log), false,
-                                              log, false);
+                                              ext.splitCommasIntelligently(temp, true, log), false);
 
                 while (reader.ready()) {
                   temp = reader.readLine();
@@ -4205,7 +4203,7 @@ public class SeqMeta {
       header = Files.getHeaderOfFile(filename, log);
       cols = ext.indexFactors(new String[][] {Aliases.MARKER_NAMES, Aliases.CHRS, Aliases.POSITIONS,
                                               Aliases.PVALUES},
-                              header, false, true, false, false);
+                              header, false, true, false);
 
       results = HashVec.loadFileToStringMatrix(filename, true, cols);
       for (int i = 0; i < results.length; i++) {
