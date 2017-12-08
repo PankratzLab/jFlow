@@ -2,6 +2,7 @@ package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.stats.Maths;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -60,6 +62,21 @@ public class PlinkMendelianChecker {
 	}
 
 	static class GenomeLoader {
+
+		private static final int FID1_INDEX = 0;
+		private static final int IID1_INDEX = 1;
+		private static final int FID2_INDEX = 2;
+		private static final int IID2_INDEX = 3;
+		private static final int RT_INDEX = 4;
+		private static final int EZ_INDEX = 5;
+		private static final int Z0_INDEX = 6;
+		private static final int Z1_INDEX = 7;
+		private static final int Z2_INDEX = 8;
+		private static final int PI_HAT_INDEX = 9;
+		private static final int PHE_INDEX = 10;
+		private static final int DST_INDEX = 11;
+		private static final int PPC_INDEX = 12;
+		private static final int RATIO_INDEX = 13;
 
 		HashMap<String, HashMap<String, String>> pairData;
 		ArrayList<String> unrelLines;
@@ -290,9 +307,10 @@ public class PlinkMendelianChecker {
 		mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false)
 								 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
-		genomeDNA = false;
-		outDir = parseOutputDirectory(project);
 		log = project.getLog();
+		genomeDNA = checkGenomeDNA(project, genomeFile, log);
+		outDir = parseOutputDirectory(project);
+
 	}
 
 	public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
@@ -304,6 +322,41 @@ public class PlinkMendelianChecker {
 		this.genomeDNA = genomeDNA;
 		this.outDir = ext.verifyDirFormat(outDir);
 		this.log = log;
+	}
+
+	private static boolean checkGenomeDNA(Project proj, String genomeFile,
+																				Logger log) {
+		log.report("Attempting to determine if FID and IID of " + genomeFile
+							 + " are true FID and IID or both set to DNA");
+		SampleData sampleData = proj.getSampleData(false);
+		try (BufferedReader reader = Files.getAppropriateReader(genomeFile)) {
+			for (int i = 0; reader.ready(); i++) {
+				String[] line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
+				String fid = line[GenomeLoader.FID1_INDEX];
+				String iid = line[GenomeLoader.IID1_INDEX];
+
+				if (fid.equals(iid) && sampleData.lookupDNA(iid).equals(iid)) {
+					log.report("FID/IID in " + genomeFile
+										 + " appear to be DNA IDs, continuing with this assumption.");
+					return true;
+				} else if (sampleData.lookupContains(fid + "\t" + iid)) {
+					log.report("FID/IID in  " + genomeFile
+										 + " appear to be true FID and IID, continuing with this assumption.");
+					return false;
+				}
+				if (Maths.isPowerOf10(i)) {
+					log.reportTimeWarning(i
+																+ " lines have been checked without finding any matches to DNA or FID/IID from project");
+				}
+			}
+			throw new IllegalArgumentException("Genome File does not contain DNA or FID/IID ids");
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(genomeFile);
+		} catch (IOException e) {
+			log.reportIOException(genomeFile);
+		}
+		log.reportError("Treating FID/IID as FID/IID and not DNA since status could not be determined.");
+		return false;
 	}
 
 
