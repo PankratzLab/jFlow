@@ -1,6 +1,7 @@
 package org.genvisis.stats;
 
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import org.genvisis.common.ArrayUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.math.IntMath;
 
 public class Maths {
 
@@ -136,6 +138,20 @@ public class Maths {
 
 	public static double log2(double num) {
 		return Math.log(num) / Math.log(2);
+	}
+
+	/**
+	 * 
+	 * @param n
+	 * @return true of n is a power of 10
+	 */
+	public static boolean isPowerOf10(int n) {
+		try {
+			IntMath.log10(n, RoundingMode.UNNECESSARY);
+		} catch (IllegalArgumentException | ArithmeticException e) {
+			return false;
+		}
+		return true;
 	}
 
 	public static double min(double num1, double num2) {
