@@ -180,6 +180,10 @@ public class SampleData {
 
 	}
 
+	public enum SampleID {
+		FID_IID, DNA;
+	}
+
 	private static final String[][] VOID_CLASSES = {};
 	public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
@@ -1673,10 +1677,35 @@ public class SampleData {
 	 * @param columnHeaders names of data columns to add. Columns can be existing columns or new
 	 *        columns. New columns will be set to "." for all existing samples and all columns not
 	 *        included will be set to "." for new samples
-	 * @return true if succesful
+	 * @return true if successful
 	 */
 	public boolean addSamples(String[][] newSampleDataColumns, String[] columnHeaders) {
 		Logger log = proj.getLog();
+
+		int dnaIndex = ext.indexOfStr("DNA", columnHeaders);
+		int famIndex = ext.indexOfStr("FID", columnHeaders);
+		int indIndex = ext.indexOfStr("IID", columnHeaders);
+		if (dnaIndex < 0 && (famIndex < 0 || indIndex < 0)) {
+			log.reportError("Cannot add samples to SampleData without DNA or FID/IID");
+			return false;
+		}
+		if (dnaIndex >= 0) {
+			for (String[] newSample : newSampleDataColumns) {
+				if (lookup(newSample[dnaIndex]) != null) {
+					log.reportError("Sample DNA collision: " + newSample[dnaIndex]);
+					return false;
+				}
+			}
+		}
+		if (famIndex >= 0 && indIndex >= 0) {
+			for (String[] newSample : newSampleDataColumns) {
+				if (lookup(newSample[famIndex] + "\t" + newSample[indIndex]) != null) {
+					log.reportError("Sample DNA collision: " + newSample[dnaIndex]);
+					return false;
+				}
+			}
+		}
+
 		String bakFile = backupSampleData(proj, log);
 		if (bakFile == null) {
 			return false;
