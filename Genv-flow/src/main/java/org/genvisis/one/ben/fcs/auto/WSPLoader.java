@@ -27,7 +27,7 @@ import org.xml.sax.SAXException;
 
 public class WSPLoader {
 
-	private static final String[][] PANELS = { {"panel 1", "p1"}, {"panel 2", "p2"},};
+	private static final String[][] PANELS = {{"panel 1", "p1"}, {"panel 2", "p2"},};
 	private static final String WSP_EXT = ".wsp";
 	private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
 		@Override
@@ -42,25 +42,38 @@ public class WSPLoader {
 	final Logger log = new Logger();
 
 	public boolean loadWorkspaces(String wspDir) {
-		String[] wspFiles = (new File(wspDir)).list(WSP_FILTER);
+		File dir = new File(wspDir);
+		if (!dir.canRead()) {
+			log.reportError("Cannot read workspace files in directory " + wspDir);
+			return true;
+		}
+		String[] wspFiles = dir.list(WSP_FILTER);
 		boolean allLoaded = true;
 		for (String f : wspFiles) {
-			if (!new File(wspDir + f).canRead()) {
+			File sub = new File(wspDir + f);
+			if (!sub.canRead()) {
 				System.err.println("Error - cannot access workspace file: " + wspDir + f);
 				continue;
 			}
-			try {
-				loadSampleGating(wspDir + f);
-			} catch (ParserConfigurationException | SAXException | IOException e) {
-				log.reportException(e);
-				allLoaded = false;
+			if (sub.isDirectory()) {
+				boolean subLoaded = loadWorkspaces(wspDir + f);
+				if (!subLoaded) {
+					allLoaded = false;
+				}
+			} else {
+				try {
+					loadSampleGating(wspDir + f);
+				} catch (ParserConfigurationException | SAXException | IOException e) {
+					log.reportException(e);
+					allLoaded = false;
+				}
 			}
 		}
 		return allLoaded;
 	}
 
 	private void loadSampleGating(String file) throws ParserConfigurationException, SAXException,
-																						IOException {
+																						 IOException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		Document doc = builder.parse(new File(file));
