@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
+import org.genvisis.one.ben.fcs.auto.proc.InclusionProcessor;
 import org.genvisis.one.ben.fcs.auto.proc.PercentageAndCountWriterFactory;
 import org.genvisis.one.ben.fcs.auto.proc.ProcessorFactory;
 import org.genvisis.one.ben.fcs.auto.proc.SampleProcessor;
@@ -75,6 +76,18 @@ public class FCSProcessingPipeline {
 		//
 		// SamplingPipeline sp = new SamplingPipeline(1, null, WSP, FCS, null, OUT, pf);
 		switch (pipeToRun) {
+			case BOOL:
+				pf = new ProcessorFactory<SampleProcessor>() {
+
+					@Override
+					public void cleanup(Object owner) {}
+
+					@Override
+					public SampleProcessor createProcessor(Object owner, int index) {
+						return new InclusionProcessor(outDir);
+					}
+				};
+				break;
 			case VIZ:
 				pf = new ProcessorFactory<SampleProcessor>() {
 
@@ -122,6 +135,7 @@ public class FCSProcessingPipeline {
 
 
 	private static enum PIPELINE {
+		BOOL,
 		VIZ,
 		PCTS_CNTS;
 	}
@@ -148,11 +162,11 @@ public class FCSProcessingPipeline {
 		String lowPriorityFile = null;
 		int panel = -1;
 		PIPELINE pipe = PIPELINE.VIZ;
-		// boolean test = true;
+		boolean test = true;
 		// if (test) {
-		// fcs = wsp = auto = out = "F:/Flow/test3/";
+		// fcs = wsp = auto = out = "F:/Flow/Annotation/test1/";
 		// out += "out/";
-		// new FCSProcessingPipeline(fcs, wsp, auto, out).run(PIPELINE.PCTS_CNTS);
+		// new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.BOOL, -1);
 		// return;
 		// }
 
