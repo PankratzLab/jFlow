@@ -277,20 +277,29 @@ public class PhenoPrep {
 										 + "\t"
 										 + finalHeader[0]
 										 + "\t"
-										 + ext.formDeci(ArrayUtils.mean(trait), 4, false)
-										 + "\t" + ext.formDeci(ArrayUtils.median(trait), 4, false) + "\t"
-										 + ext.formDeci(ArrayUtils.stdev(trait), 4, false) + "\t"
-										 + ext.formDeci(ArrayUtils.min(trait), 4, false) + "\t"
-										 + ext.formDeci(ArrayUtils.max(trait), 4, false)
-										 + (males == null ? "\t.\t."
-																		 : "\t" + (males.length - ArrayUtils.sum(males)) + "\t"
-																			 + ArrayUtils.sum(males))
+										 + ext.formDeci(ArrayUtils.mean(trait, true), 4, false)
+										 + "\t"
+										 + ext.formDeci(ArrayUtils.median(trait, true), 4, false)
+										 + "\t"
+										 + ext.formDeci(ArrayUtils.stdev(trait), 4, false)
+										 + "\t"
+										 + ext.formDeci(ArrayUtils.minDropNaN(trait), 4, false)
+										 + "\t"
+										 + ext.formDeci(ArrayUtils.maxDropNaN(trait), 4, false)
+										 + (males == null
+																			? "\t.\t."
+																			: "\t"
+																				+ (males.length - ArrayUtils.sum(males))
+																				+ "\t"
+																				+ ArrayUtils.sum(males))
 										 + (ages == null ? "\t.\t.\t.\t."
-																		: "\t" + ext.formDeci(ArrayUtils.mean(ages), 4, false) + "\t"
-																			+ ext.formDeci(ArrayUtils.median(ages), 4, false) + "\t"
-																			+ ext.formDeci(ArrayUtils.stdev(ages), 4, false) + "\t"
-																			+ ext.formDeci(ArrayUtils.min(ages), 4, false) + "\t"
-																			+ ext.formDeci(ArrayUtils.max(ages), 4, false))
+																		 : "\t" + ext.formDeci(ArrayUtils.mean(ages, true), 4, false)
+																			 + "\t"
+																			 + ext.formDeci(ArrayUtils.median(ages, true), 4, false)
+																			 + "\t"
+																			 + ext.formDeci(ArrayUtils.stdev(ages, true), 4, false) + "\t"
+																			 + ext.formDeci(ArrayUtils.minDropNaN(ages), 4, false) + "\t"
+																			 + ext.formDeci(ArrayUtils.maxDropNaN(ages), 4, false))
 										 + "\t" + (numBelowLowerThreshold < 0 ? "NA" : numBelowLowerThreshold) + "\t"
 										 + (numAboveUpperThreshold < 0 ? "NA" : numAboveUpperThreshold));
 
@@ -396,8 +405,8 @@ public class PhenoPrep {
 		if (finalIDs.length == 0) {
 			log.reportError("Error - there are no indiviudals present in the final dataset"
 											+ (idFile != null
-																			 ? "; check the ids file to make sure the same set of IDs were used in both input files"
-																			 : ""));
+																				? "; check the ids file to make sure the same set of IDs were used in both input files"
+																				: ""));
 		}
 	}
 
@@ -428,7 +437,7 @@ public class PhenoPrep {
 		}
 		if (ArrayUtils.min(data) < 0
 				&& (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10")
-				|| transform.equalsIgnoreCase("sqrt"))) {
+						|| transform.equalsIgnoreCase("sqrt"))) {
 			log.reportError("Negative values will cause the " + transform
 											+ " transformation to fail; aborting");
 			return false;
@@ -510,7 +519,7 @@ public class PhenoPrep {
 	public void zscore(boolean signZ) {
 		Matrix.overwriteColumn(database, 0,
 													 signZ ? ArrayUtils.normalizeSigned(Matrix.extractColumn(database, 0))
-																: ArrayUtils.normalize(Matrix.extractColumn(database, 0)),
+																 : ArrayUtils.normalize(Matrix.extractColumn(database, 0)),
 													 log);
 	}
 
@@ -572,7 +581,8 @@ public class PhenoPrep {
 											+ idColName + ") as the main file; aborting all");
 			System.exit(1);
 		}
-		indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log, true);
+		indices = ext.indexFactors(ArrayUtils.removeFromArray(header, idIndex), header, true, log,
+															 true);
 		hash = HashVec.loadFileToHashString(extras, new int[] {idIndex}, indices, commaDelimitedFile,
 																				"\t", true, false);
 
@@ -649,7 +659,7 @@ public class PhenoPrep {
 						} else {
 							writer.println("FID" + delimiter + "IID" + delimiter
 														 + (pedFormat ? "FA" + delimiter + "MO" + delimiter + "SEX" + delimiter
-																				 : "")
+																					: "")
 														 + ArrayUtils.toStr(finalHeader, delimiter));
 						}
 					}
@@ -677,7 +687,7 @@ public class PhenoPrep {
 					if (printFinalHeader) {
 						writer.println("FID" + delimiter + "IID" + delimiter
 													 + (pedFormat ? "FA" + delimiter + "MO" + delimiter + "SEX" + delimiter
-																			 : "")
+																				: "")
 													 + finalHeader[0]);
 					}
 					for (int j = 0; j < finalIDs.length; j++) {
@@ -864,9 +874,9 @@ public class PhenoPrep {
 																									"pheno=" + ArrayUtils.toStr(files, ","),
 																									"# covariate column names separated by a comma",
 																									"covar="
-																											+ ArrayUtils.toStr(ArrayUtils.subArray(vars,
-																																														 2),
-																																				 ","),
+																																																	 + ArrayUtils.toStr(ArrayUtils.subArray(vars,
+																																																																					2),
+																																																											","),
 																									"# normalization of the final phenotype (0=none; 1=also normalization; 2=also normalization using sign-specific standard deviations)",
 																									"normalization=1",
 																									"# creates a histogram for each trait file",
@@ -1296,7 +1306,7 @@ public class PhenoPrep {
 		if (logfile == null) {
 			logfile = dir
 								+ ext.replaceWithLinuxSafeCharacters(outFile == null ? phenos + "_out"
-																																		: ext.rootOf(outFile),
+																																		 : ext.rootOf(outFile),
 																										 true)
 								+ ".log";
 		}

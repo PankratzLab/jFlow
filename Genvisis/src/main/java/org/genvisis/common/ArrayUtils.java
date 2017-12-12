@@ -260,6 +260,60 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Return the maximum in an array of numbers, dropping any NaNs
+	 *
+	 * @param array array of numbers
+	 * @return the maximum
+	 */
+	public static double maxDropNaN(double[] array) {
+		if (badLength(array.length)) {
+			return MIND;
+		}
+		double max = array[0];
+		int ind = 1;
+		while (Double.isNaN(max)) {
+			max = array[ind];
+			ind++;
+		}
+		if (ind == array.length && Double.isNaN(max)) {
+			return Double.NaN;
+		}
+		for (int i = ind; i < array.length; i++) {
+			if (!Double.isNaN(array[i])) {
+				max = Math.max(array[i], max);
+			}
+		}
+		return max;
+	}
+
+	/**
+	 * Return the maximum in an array of numbers, dropping any NaNs
+	 *
+	 * @param array array of numbers
+	 * @return the maximum
+	 */
+	public static double minDropNaN(double[] array) {
+		if (badLength(array.length)) {
+			return MIND;
+		}
+		double min = array[0];
+		int ind = 1;
+		while (Double.isNaN(min)) {
+			min = array[ind];
+			ind++;
+		}
+		if (ind == array.length && Double.isNaN(min)) {
+			return Double.NaN;
+		}
+		for (int i = ind; i < array.length; i++) {
+			if (!Double.isNaN(array[i])) {
+				min = Math.min(array[i], min);
+			}
+		}
+		return min;
+	}
+
+	/**
 	 * Return the maximum in an array of bytes
 	 *
 	 * @param array array of numbers
@@ -813,6 +867,15 @@ public class ArrayUtils {
 		return selections;
 	}
 
+	public static double sum(double[] array, boolean[] incl) {
+		double sum = 0;
+		for (int i = 0; i < array.length; i++) {
+			if (incl[i])
+				sum += array[i];
+		}
+		return sum;
+	}
+
 	/**
 	 * Calculates the sum of an array
 	 * <p>
@@ -1268,6 +1331,27 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Calculates the variance of an array, dropping the NaNs in the array.
+	 *
+	 * @param array an array of numbers
+	 * @return variance of the array
+	 */
+	public static double varianceDropNaN(double[] array) {
+		double avg = mean(array, true);
+		double sum = 0;
+		double cnt = 0;
+
+		for (double element : array) {
+			if (Double.isNaN(element))
+				continue;
+			sum += Math.pow(avg - element, 2);
+			cnt++;
+		}
+
+		return sum / (cnt - 1);
+	}
+
+	/**
 	 * Calculates the mean of an array if the sum is already known
 	 *
 	 * @param array an array of numbers
@@ -1342,7 +1426,7 @@ public class ArrayUtils {
 	 * @return standard deviation of the array
 	 */
 	public static double stdev(double[] array) {
-		return Math.sqrt(variance(array));
+		return Math.sqrt(varianceDropNaN(array));
 	}
 
 	/**
@@ -1858,7 +1942,7 @@ public class ArrayUtils {
 						quantiles[i] = array[keys[(int) index - 1]];
 					} else {
 						quantiles[i] = (float) (qs[i] * array[keys[(int) Math.floor(index) - 1]]
-																		+ (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+													 + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
 					}
 				}
 			} catch (Exception e) {
@@ -1999,7 +2083,18 @@ public class ArrayUtils {
 	 * @return median of the array
 	 */
 	public static double median(double[] array) {
-		return (quantExclusive(array, 0.50));
+		return median(array, false);
+	}
+
+	/**
+	 * Determines the median of an array of numbers
+	 *
+	 * @param array an array of numbers
+	 * @return median of the array
+	 */
+	public static double median(double[] array, boolean dropNaN) {
+		return dropNaN ? quantExclusive(subArray(array, getFinite(array)), 0.50)
+									: quantExclusive(array, 0.50);
 	}
 
 	/**
@@ -2365,7 +2460,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str.append((i == 0 ? "" : delimiter)
 								 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																		 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
+																		: ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
 		return str.toString();
@@ -2395,7 +2490,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
 						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
+																: ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -4716,8 +4811,8 @@ public class ArrayUtils {
 			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
 																														 Math.min(0.50,
 																																			proportionOfGlobalMaxRequiredForLocalMaxima
-																																						* proportionOfGlobalMaxRequiredForLocalMaxima
-																																						* 300 / array.length));
+																																					* proportionOfGlobalMaxRequiredForLocalMaxima
+																																					* 300 / array.length));
 			if (array.length < 50) {
 				// System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
 			}
@@ -5017,6 +5112,14 @@ public class ArrayUtils {
 		return Matrix.toMatrix(v);
 	}
 
+	public static boolean[] getFinite(double[] arr) {
+		boolean[] fin = new boolean[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			fin[i] = Double.isFinite(arr[i]);
+		}
+		return fin;
+	}
+
 	public static boolean getNext(int[] num, int n, int r) {
 		int target = r - 1;
 		num[target]++;
@@ -5167,5 +5270,20 @@ public class ArrayUtils {
 			}
 		});
 		return sorted;
+	}
+
+	public static int[] booleanArrayRunLengths(boolean[] samplesToLoadAfterIndex) {
+		ArrayList<Integer> runs = new ArrayList<>();
+		int run = 0;
+		for (boolean b : samplesToLoadAfterIndex) {
+			if (b) {
+				run++;
+			} else {
+				runs.add(run);
+				run = 0;
+			}
+		}
+		runs.add(run);
+		return Ints.toArray(runs);
 	}
 }
