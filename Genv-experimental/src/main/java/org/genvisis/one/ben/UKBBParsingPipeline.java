@@ -557,7 +557,7 @@ public class UKBBParsingPipeline {
 
 	protected void createSampRAFsFromMDRAFs() {
 		if (!checkIfSampRAFsExist()) {
-			TransposeData.reverseTranspose(proj);
+			TransposeData.reverseTransposeStreaming(proj);
 		}
 	}
 
@@ -565,7 +565,7 @@ public class UKBBParsingPipeline {
 		String[] listOfAllSamplesInProj = proj.getSamples();
 		boolean allExist = true;
 		for (String sample : listOfAllSamplesInProj) {
-			String file = proj.SAMPLE_DIRECTORY.getValue(false, true) + sample
+			String file = proj.SAMPLE_DIRECTORY.getValue(true, true) + sample
 										+ Sample.SAMPLE_FILE_EXTENSION;
 			if (!Files.exists(file)) {
 				allExist = false;
@@ -696,11 +696,12 @@ public class UKBBParsingPipeline {
 		}
 
 		ArrayList<Runnable> runners = new ArrayList<Runnable>();
+		int sz = binsOfBins.size();
 		final CountDownLatch cdl = new CountDownLatch(binsOfBins.size()) {
 			@Override
 			public void countDown() {
 				super.countDown();
-				log.reportTime("COUNTED DOWN " + getCount());
+				log.reportTime("COUNTED DOWN -- " + getCount() + " remaining of " + sz);
 			}
 		};
 
@@ -762,7 +763,6 @@ public class UKBBParsingPipeline {
 			} catch (InterruptedException e) {
 				/**/
 			}
-
 		}
 	}
 

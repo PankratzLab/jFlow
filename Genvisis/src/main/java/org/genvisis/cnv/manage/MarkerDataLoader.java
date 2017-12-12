@@ -2,6 +2,7 @@ package org.genvisis.cnv.manage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.Compression;
@@ -115,7 +117,7 @@ public class MarkerDataLoader implements Runnable {
 
 		if (amountToLoadAtOnceInMB <= 0) {
 			amountToLoadAtOnceInMB = (int) ((double) Runtime.getRuntime().maxMemory() / 1024 / 1024
-															 * 0.80);
+																			* 0.80);
 			log.report("80% of max memory available ("
 								 + ext.prettyUpSize(Runtime.getRuntime().maxMemory(), 1)
 								 + ") will be used by MarkerDataLoader: ");
@@ -146,7 +148,7 @@ public class MarkerDataLoader implements Runnable {
 																						* 1024
 																						/ determineNBytesPerMarker(proj.MARKER_DATA_DIRECTORY.getValue(false,
 																																																					 true)
-																																					 + line[0], log));
+																																			 + line[0], log));
 					if (readAheadLimit > markerNames.length) {
 						log.report("Read ahead limit was computed to be greater than the number of markers; all markers will be loaded into memory at once");
 					} else {
@@ -389,7 +391,8 @@ public class MarkerDataLoader implements Runnable {
 				markerIndicesInFile[i] = Integer.parseInt(line[1]);
 			}
 
-			// Get the indices of our markers in a) all project markers and b) the currently loaded markers
+			// Get the indices of our markers in a) all project markers and b) the currently loaded
+			// markers
 			markerIndicesInProj = ext.indexFactors(remainingMarkerNames, allMarkersInProj, true);
 			markerIndicesInSelection = ext.indexFactors(remainingMarkerNames, markerNames, true);
 
@@ -408,15 +411,15 @@ public class MarkerDataLoader implements Runnable {
 			// }
 
 			for (int k = 0; k < markerIndicesInProj.length && !killed; k++) {
-					markerData[markerIndicesInSelection[k]] = collection[k];
-					loaded[markerIndicesInSelection[k]] = true;
-					count++;
-					numberCurrentlyLoaded++;
-					if (markerData[markerIndicesInSelection[k]].getFingerprint() != fingerprint) {
-						log.reportError("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: "
-														+ markerData[markerIndicesInSelection[k]].getFingerprint()
-														+ ", while expecting: " + fingerprint);
-					}
+				markerData[markerIndicesInSelection[k]] = collection[k];
+				loaded[markerIndicesInSelection[k]] = true;
+				count++;
+				numberCurrentlyLoaded++;
+				if (markerData[markerIndicesInSelection[k]].getFingerprint() != fingerprint) {
+					log.reportError("Error - mismatched fingerprint after MarkerLookup. Actual in MarkerData: "
+													+ markerData[markerIndicesInSelection[k]].getFingerprint()
+													+ ", while expecting: " + fingerprint);
+				}
 			}
 
 			while (!killed && numberCurrentlyLoaded > readAheadLimit) {
@@ -603,12 +606,12 @@ public class MarkerDataLoader implements Runnable {
 							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							// xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
@@ -648,12 +651,12 @@ public class MarkerDataLoader implements Runnable {
 							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							// ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
@@ -745,10 +748,10 @@ public class MarkerDataLoader implements Runnable {
 			}
 			result[i] = new MarkerData(
 																 allMarkersInProj == null
-																												 ? null
-																												 : allMarkersInProj[markersIndicesInProj[i]],
+																													? null
+																													: allMarkersInProj[markersIndicesInProj[i]],
 																 allChrsInProj == null ? (byte) -1
-																											: allChrsInProj[markersIndicesInProj[i]],
+																											 : allChrsInProj[markersIndicesInProj[i]],
 																 allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
 																 fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs,
 																 abGenotypes, forwardGenotypes);
@@ -879,6 +882,83 @@ public class MarkerDataLoader implements Runnable {
 		return ranges.toArray(new int[ranges.size()][]);
 	}
 
+	public static void loadAndWriteFromMarkerDataRafWithoutDecompressRange(RandomAccessFile fileIn,
+																																					Map<Integer, String> indicesAndFilenames,
+																																					byte[] parameterReadBuffer,
+																																					int[] indicesOfMarkersInTheFileToLoad,
+																																					int maxNumMarkersPerIteration,
+																																					long fingerprintShouldBe,
+																																					Logger log) {
+		int numBytesPerMarker;
+		long seekLocation;
+		int numBytesMarkernamesSection;
+		int numSamplesProj;
+		byte numBytesPerSampleMarker;
+		int numMarkersCurrentFile;
+		int[] indicesOfSamplesToLoad = new int[indicesAndFilenames.size()];
+		int ind = 0;
+		for (Integer k : indicesAndFilenames.keySet()) {
+			indicesOfSamplesToLoad[ind] = k;
+			ind++;
+		}
+		Arrays.sort(indicesOfSamplesToLoad);
+
+		try {
+			numSamplesProj = Compression.bytesToInt(parameterReadBuffer,
+																							TransposeData.MARKERDATA_NUMSAMPLES_START);
+			numMarkersCurrentFile = Compression.bytesToInt(parameterReadBuffer,
+																										 TransposeData.MARKERDATA_NUMMARKERS_START);
+			numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
+			numBytesPerMarker = numBytesPerSampleMarker * numSamplesProj;
+			numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer,
+																													TransposeData.MARKERDATA_MARKERNAMELEN_START);
+
+			if (indicesOfMarkersInTheFileToLoad != null) {
+				Arrays.sort(indicesOfMarkersInTheFileToLoad);
+			} else {
+				indicesOfMarkersInTheFileToLoad = ArrayUtils.arrayOfIndices(numMarkersCurrentFile);
+			}
+
+			byte[][] results = new byte[indicesOfSamplesToLoad.length][maxNumMarkersPerIteration
+																																 * numBytesPerSampleMarker];
+
+			for (int r = 0; r < indicesOfMarkersInTheFileToLoad.length; r += maxNumMarkersPerIteration) {
+				for (int i = r; i < maxNumMarkersPerIteration; i++) {
+					for (int s = 0; s < indicesOfSamplesToLoad.length; s++) {
+						seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+													 + (long) numBytesMarkernamesSection
+													 + indicesOfMarkersInTheFileToLoad[i] * (long) numBytesPerMarker
+													 + (long) indicesOfSamplesToLoad[s] * numBytesPerSampleMarker;
+						if (fileIn.getFilePointer() != seekLocation) {
+							fileIn.seek(seekLocation);
+						}
+						fileIn.read(results[s], (i - r) * numBytesPerSampleMarker, numBytesPerSampleMarker);
+					}
+				}
+
+				for (int s = 0; s < indicesOfSamplesToLoad.length; s++) {
+					FileOutputStream fos = null;
+					while (fos == null) {
+						try {
+							fos = new FileOutputStream(indicesAndFilenames.get(indicesOfSamplesToLoad[s]),
+																				 true);
+						} catch (FileNotFoundException e) {
+							if (!e.getMessage().contains("Too many open files")) {
+								throw e;
+							}
+						}
+					}
+					fos.write(results[s]);
+					fos.flush();
+					fos.close();
+				}
+			}
+			results = null;
+		} catch (IOException e) {
+			log.reportException(e);
+		}
+	}
+
 	public static byte[][] loadFromMarkerDataRafWithoutDecompressRange(String markerDataRafFileName,
 																																		 int[] indicesOfMarkersInTheFileToLoad,
 																																		 int indexOfFirstSampleToLoad,
@@ -984,7 +1064,7 @@ public class MarkerDataLoader implements Runnable {
 			proj.getLog()
 					.reportTimeWarning(
 														 "This method is generally used for loading a small subset of markers in the same thread, currently loading "
-																 + markers.length + " markers");
+														 + markers.length + " markers");
 		}
 		MarkerData[] markerDatas = new MarkerData[markers.length];
 		MarkerDataLoader markerDataLoader = loadMarkerDataFromListInSeparateThread(proj,

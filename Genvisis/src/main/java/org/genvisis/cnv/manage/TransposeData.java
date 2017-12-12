@@ -15,8 +15,13 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 
@@ -190,7 +195,7 @@ public class TransposeData {
 									 + " markers\t" + numChunks_File + " chunks\t"
 									 + markerFileSizeSuggested / 1024 / 1024 / 1024 + "."
 									 + ((int) (markerFileSizeSuggested / 1024 / 1024 / 10.24)
-									 - (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
+											- (int) (markerFileSizeSuggested / 1024 / 1024 / 1024 * 102.4))
 									 + " gb\t" + numFiles + " files");
 
 
@@ -555,6 +560,201 @@ public class TransposeData {
 		}
 	}
 
+	public static void reverseTransposeStreaming(Project proj) {
+		long fingerprintForMarkers, fingerprintForSamples;
+
+		Hashtable<String, Float>[] sampRafFileOutliers;
+		Hashtable<String, Float> allOutliers;
+		SimpleDateFormat timeFormat;
+		String filename;
+		Logger log;
+		String successFile;
+		Set<String> successes;
+		// ---
+		String smp;
+
+		log = proj.getLog();
+		log.report("Reverse transposing data for the project in " + proj.PROJECT_DIRECTORY.getValue());
+
+		timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+		successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
+		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
+																					: new HashSet<>();
+		if (successes.size() > 0) {
+			log.reportTime("Skipping " + successes.size() + " already existing samples.");
+		}
+
+		final String[] listOfAllSamplesInProj = proj.getSamples();
+		final String[] listOfAllMarkersInProj = proj.getMarkerNames();
+
+		@SuppressWarnings("deprecation")
+		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(listOfAllSamplesInProj);
+		fingerprintForSamples = f;
+		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
+
+		// compute null status (see GenvisisTechDoc.docx for explanation)
+		final byte nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false,
+																																																	true)
+																															+ proj.getMarkerLookup()
+																																		.getFirstMarkerDataRafFilename(),
+																															false);
+		int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+		// numBytesPerSamp = listOfAllMarkersInProj.length * numBytesPerSampleMarker;
+
+		allOutliers = loadMarkerDataOutliers(proj);
+		sampRafFileOutliers = getOutlierHashForEachSampleRafFile(allOutliers,
+																														 listOfAllSamplesInProj);
+
+		final MarkerLookup mkrLookup = proj.getMarkerLookup();
+
+		// initialize all sample files:
+		boolean[] load = new boolean[listOfAllSamplesInProj.length];
+		for (int s = 0; s < listOfAllSamplesInProj.length; s++) {
+			smp = listOfAllSamplesInProj[s];
+			filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp + Sample.SAMPLE_FILE_EXTENSION;
+			load[s] = !successes.contains(filename);
+		}
+
+		// TODO tweak these parameters
+		int maxThreads = 20;
+		maxThreads = Math.min(Runtime.getRuntime().availableProcessors(), maxThreads);
+		int threadBuffer = (int) ((Runtime.getRuntime().maxMemory() * 0.75) / maxThreads);
+
+		int numSamplesPerThread = (listOfAllSamplesInProj.length / (2 * maxThreads));
+
+		log.reportTime("Reverse-transposing " + (listOfAllSamplesInProj.length - successes.size())
+									 + " samples (" + successes.size() + " already parsed) @ " + numSamplesPerThread
+									 + " samples per thread with "
+									 + maxThreads + " threads.");
+
+		ExecutorService transposeService = Executors.newFixedThreadPool(maxThreads);
+
+		PrintWriter successWriter = Files.getAppropriateWriter(successFile, Files.exists(successFile));
+		for (int s = 0; s < listOfAllSamplesInProj.length; s += numSamplesPerThread) {
+			final int s1 = s;
+			final int s2 = Math.min(listOfAllSamplesInProj.length, s1 + numSamplesPerThread);
+			Runnable runner = new Runnable() {
+				@Override
+				public void run() {
+					int numMarkersCurrentFile;
+					String smp;
+					String mkr;
+					String markerFile;
+					String filename;
+					String markerLookupEntry;
+					byte[] sampOutlrs;
+					RandomAccessFile markerRAF;
+					byte[] parameterReadBuffer;
+					long time;
+					long time2;
+					String openMarkerFile;
+					try {
+						Map<Integer, String> sampFiles = new HashMap<>();
+						time = System.nanoTime();
+						for (int i = s1; i < s2; i++) {
+							smp = listOfAllSamplesInProj[i];
+							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
+												 + Sample.SAMPLE_FILE_EXTENSION;
+							if (!load[i]) {
+								continue;
+							}
+							sampFiles.put(i, filename);
+
+							FileOutputStream fos = new FileOutputStream(filename, false);
+							// write header
+							if (sampRafFileOutliers == null || sampRafFileOutliers[i].size() == 0) {
+								sampOutlrs = new byte[0];
+							} else {
+								sampOutlrs = Compression.objToBytes(sampRafFileOutliers[i]);
+							}
+							fos.write(getParameterSectionForSampRaf(listOfAllMarkersInProj.length,
+																											nullStatus,
+																											sampOutlrs.length,
+																											fingerprintForMarkers));
+							fos.flush();
+							fos.close();
+							sampOutlrs = null;
+						}
+						log.reportTime("Wrote headers for samples " + s1 + " to " + s2 + " in "
+													 + ext.getTimeElapsedNanos(time));
+
+						// read markers
+						parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+						openMarkerFile = mkrLookup.get(listOfAllMarkersInProj[0])
+																			.split(PSF.Regex.GREEDY_WHITESPACE)[0];
+						// open first marker file
+						markerRAF = new RandomAccessFile(
+																						 proj.MARKER_DATA_DIRECTORY.getValue() + openMarkerFile,
+																						 "r");
+						markerRAF.read(parameterReadBuffer);
+
+						time2 = System.nanoTime();
+						// iterate through all markers
+						for (int m = 0; m < listOfAllMarkersInProj.length; m += 0) {
+							mkr = listOfAllMarkersInProj[m];
+							markerLookupEntry = mkrLookup.get(mkr);
+							markerFile = markerLookupEntry.split(PSF.Regex.GREEDY_WHITESPACE)[0];
+							if (!openMarkerFile.equals(markerFile)) {
+								// close current file and open next
+								markerRAF.close();
+								log.reportTime("Parsed " + openMarkerFile + " in "
+															 + ext.getTimeElapsedNanos(time2));
+								openMarkerFile = markerFile;
+								time2 = System.nanoTime();
+								markerRAF = new RandomAccessFile(
+																								 proj.MARKER_DATA_DIRECTORY.getValue()
+																								 + openMarkerFile,
+																								 "r");
+								markerRAF.read(parameterReadBuffer);
+							}
+							numMarkersCurrentFile = Compression.bytesToInt(parameterReadBuffer,
+																														 TransposeData.MARKERDATA_NUMMARKERS_START);
+							int numMkrsBuffer = Math.min(numMarkersCurrentFile,
+																					 threadBuffer / (sampFiles.size()
+																													 * numBytesPerSampleMarker));
+
+							MarkerDataLoader.loadAndWriteFromMarkerDataRafWithoutDecompressRange(markerRAF,
+																																										sampFiles,
+																																										parameterReadBuffer,
+																																										ArrayUtils.arrayOfIndices(numMarkersCurrentFile),
+																																										numMkrsBuffer,
+																																										fingerprintForSamples,
+																																										log);
+							m += numMarkersCurrentFile;
+						}
+						markerRAF.close();
+						for (Entry<Integer, String> sampFile : sampFiles.entrySet()) {
+							synchronized (successWriter) {
+								successWriter.println(sampFile.getValue());
+								successWriter.flush();
+							}
+
+							log.reportTime("Parsed markerData for sample " + sampFile.getKey().intValue()
+														 + " in "
+														 + ext.getTimeElapsedNanos(time));
+						}
+					} catch (FileNotFoundException e) {
+						log.reportException(e);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			};
+			transposeService.submit(runner);
+		}
+
+		transposeService.shutdown();
+		try {
+			transposeService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			/**/
+		}
+
+		successWriter.close();
+	}
+
 	public static void reverseTranspose(Project proj) {
 		boolean done;
 		byte nullStatus = 0;
@@ -612,7 +812,7 @@ public class TransposeData {
 
 		String successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
 		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
-																				 : new HashSet<>();
+																					: new HashSet<>();
 		PrintWriter writer = Files.getAppropriateWriter(successFile, true);
 
 		while (!done) { // used to recover from OutOfMemory ONLY
@@ -669,7 +869,8 @@ public class TransposeData {
 						timerTransposeMemory += (new Date().getTime() - timerTmp);
 						indexFirstMarkerCurrentIteration += readBuffer.length;
 					}
-					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t" + timeFormat.format(timerTransposeMemory));
+					logTemp += (i + "\t" + timeFormat.format(timerLoadFiles) + "\t"
+											+ timeFormat.format(timerTransposeMemory));
 
 					// --- Step 2 --- Dump write buffer to marker files
 					for (int j = 0; j < batch.length; j++) {
@@ -970,9 +1171,9 @@ public class TransposeData {
 			}
 			result[Integer.parseInt(line[0]) / numMarkersInEachFile].put(
 																																	 (Integer.parseInt(line[0])
-																																			 % numMarkersInEachFile)
-																																			 + "\t" + sampleIndex + "\t"
-																																			 + line[2],
+																																		% numMarkersInEachFile)
+																																	 + "\t" + sampleIndex + "\t"
+																																	 + line[2],
 																																	 allOutliers.get(key));
 		}
 
@@ -1270,7 +1471,7 @@ public class TransposeData {
 	}
 
 	public static String[] loadMarkerNamesFromRAF(String markerFilename) throws IOException,
-																																			ClassNotFoundException {
+																																			 ClassNotFoundException {
 		RandomAccessFile file;
 		byte[] parameters;
 		file = new RandomAccessFile(markerFilename, "r");
@@ -1390,12 +1591,12 @@ public class TransposeData {
 							xs[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							xs[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\tx");
@@ -1412,12 +1613,12 @@ public class TransposeData {
 							ys[j] = Compression.xyDecompressAllowNegative(new byte[] {
 																																				readBuffer[i][indexReadBuffer],
 																																				readBuffer[i][indexReadBuffer
-																																				+ 1]});
+																																											+ 1]});
 						} else {
 							ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {
 																																			 readBuffer[i][indexReadBuffer],
 																																			 readBuffer[i][indexReadBuffer
-																																			 + 1]});
+																																										 + 1]});
 						}
 						if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
 							ys[j] = outOfRangeValues.get(targertMarkIndicesInFile[i] + "\t" + j + "\ty");
