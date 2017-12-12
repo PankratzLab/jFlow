@@ -438,10 +438,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (g instanceof Graphics2D) {
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_ANTIALIAS_OFF);
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		}
 
 		// Set control variables; Generate data for the plot; set Lookup Resolution; Prepare AxisLabels.
@@ -451,7 +451,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				points[i] = new PlotPoint("", (byte) 1, (float) Math.random(), (float) Math.random(),
 																	(byte) 5, (byte) 0, (byte) 0);
 			}
-		} else/* if (pointsGeneratable) */{
+		} else/* if (pointsGeneratable) */ {
 			generatePoints();
 			// pointsGeneratable = false;
 		}
@@ -557,7 +557,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 		if (Float.isNaN(forcePlotXmax)) {
 			maximumObservedRawX = (maximumObservedRawX
-														+ (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
+														 + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
 		} else {
 			if (forcePlotXmax < maximumObservedRawX) {
 				if (DEBUGGING) {
@@ -582,7 +582,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 		if (Float.isNaN(forcePlotYmax)) {
 			maximumObservedRawY = (maximumObservedRawY
-														+ (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
+														 + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
 		} else {
 			if (forcePlotYmax < maximumObservedRawY) {
 				if (DEBUGGING) {
@@ -670,10 +670,10 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			if (errorMessage != null) {
 				g.drawString(errorMessage,
 										 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
-												 - fontMetrics.stringWidth(errorMessage) / 2
-												 + axisYWidth/* WIDTH_Y_AXIS */,
+																	 - fontMetrics.stringWidth(errorMessage) / 2
+																	 + axisYWidth/* WIDTH_Y_AXIS */,
 										 (getHeight() - HEAD_BUFFER
-												 - axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
+											- axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
 			}
 
 		}
@@ -712,7 +712,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		// Draw the rectangles for clusterFilters
 		for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
 			if ((base
-					&& (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0))
+					 && (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0))
 					|| (!base && Bytes.indexOf(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 				rectangleXPixel = Math.min(getXPixel(rectangles[i].getStartXValue()),
 																	 getXPixel(rectangles[i].getStopXValue()));
@@ -833,7 +833,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					trav = points[i].getLayer() + "";
 					if (points[i].isHighlighted()
 							|| (base && (layersInBase == null
-							|| Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0))
+													 || Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0))
 							|| (!base && Bytes.indexOf(extraLayersVisible, points[i].getLayer()) >= 0)) {
 						if (trav.equals("0")) {
 							if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
@@ -985,7 +985,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 				g.drawImage(Grafik.rotateImage(yLabel, true), 10,
 										(getHeight() + titleHeight - axisXHeight/* HEIGHT_X_AXIS */) / 2
-												- fontMetrics.stringWidth(yAxisLabel) / 2,
+																													- fontMetrics.stringWidth(yAxisLabel) / 2,
 										this);
 			}
 		}
@@ -1018,8 +1018,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (xAxisLabel != null && !"".equals(xAxisLabel) && displayXLabel) {
 			g.drawString(xAxisLabel,
 									 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
-											 - fontMetrics.stringWidth(xAxisLabel) / 2
-											 + axisYWidth/* WIDTH_Y_AXIS */,
+															 - fontMetrics.stringWidth(xAxisLabel) / 2
+															 + axisYWidth/* WIDTH_Y_AXIS */,
 									 getHeight() - 20);
 		}
 	}
@@ -1030,7 +1030,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			int PAD = 5;
 			int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
 			int titleWidth = (fontMetrics == null ? title.length() * PAD
-																					 : fontMetrics.stringWidth(title));
+																						: fontMetrics.stringWidth(title));
 
 			switch (titleLocation) {
 				default: // DEFAULT TO TOP
@@ -1663,11 +1663,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	public int getXPixel(double x) {
 		if (invertX) {
 			return (int) ((plotXmax - x) / (plotXmax - plotXmin)
-						 * (canvasSectionMaximumX - canvasSectionMinimumX))
+										* (canvasSectionMaximumX - canvasSectionMinimumX))
 						 + canvasSectionMinimumX;
 		} else {
 			return (int) ((x - plotXmin) / (plotXmax - plotXmin)
-						 * (canvasSectionMaximumX - canvasSectionMinimumX))
+										* (canvasSectionMaximumX - canvasSectionMinimumX))
 						 + canvasSectionMinimumX;
 		}
 	}
@@ -1791,9 +1791,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 				log.report("Drawing base image");
 			}
 			drawAll(image.createGraphics(), true);
-
-			// repaint();
-			// image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		}
 	}
 

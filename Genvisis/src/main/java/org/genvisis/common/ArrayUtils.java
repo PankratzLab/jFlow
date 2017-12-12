@@ -1942,7 +1942,7 @@ public class ArrayUtils {
 						quantiles[i] = array[keys[(int) index - 1]];
 					} else {
 						quantiles[i] = (float) (qs[i] * array[keys[(int) Math.floor(index) - 1]]
-													 + (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
+																		+ (1 - qs[i]) * array[keys[(int) Math.ceil(index) - 1]]);
 					}
 				}
 			} catch (Exception e) {
@@ -2094,7 +2094,7 @@ public class ArrayUtils {
 	 */
 	public static double median(double[] array, boolean dropNaN) {
 		return dropNaN ? quantExclusive(subArray(array, getFinite(array)), 0.50)
-									: quantExclusive(array, 0.50);
+									 : quantExclusive(array, 0.50);
 	}
 
 	/**
@@ -2460,7 +2460,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str.append((i == 0 ? "" : delimiter)
 								 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																		: ext.formDeci(array[i], minSigFigs, maxSigFigs)));
+																		 : ext.formDeci(array[i], minSigFigs, maxSigFigs)));
 		}
 
 		return str.toString();
@@ -2490,7 +2490,7 @@ public class ArrayUtils {
 		for (int i = 0; i < array.length; i++) {
 			str += (i == 0 ? "" : delimiter)
 						 + (maxSigFigs == -1 ? ext.formDeci(array[i], 10)
-																: ext.formDeci(array[i], minSigFigs, maxSigFigs));
+																 : ext.formDeci(array[i], minSigFigs, maxSigFigs));
 		}
 
 		return str;
@@ -4811,8 +4811,8 @@ public class ArrayUtils {
 			proportionOfGlobalMaxRequiredForLocalMaxima = Math.max(proportionOfGlobalMaxRequiredForLocalMaxima,
 																														 Math.min(0.50,
 																																			proportionOfGlobalMaxRequiredForLocalMaxima
-																																					* proportionOfGlobalMaxRequiredForLocalMaxima
-																																					* 300 / array.length));
+																																						* proportionOfGlobalMaxRequiredForLocalMaxima
+																																						* 300 / array.length));
 			if (array.length < 50) {
 				// System.out.println(array.length+"\t"+proportionOfGlobalMaxRequiredForLocalMaxima);
 			}
