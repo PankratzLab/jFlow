@@ -97,12 +97,15 @@ public class SamplingPipeline {
 		this.outDir = outDir;
 		this.processorFactory = processorFactory;
 		this.panelToRun = panel;
-		this.highPriority = priorityFiles != null ? HashVec.loadFileToHashSet(priorityFiles[0], false)
-																						 : null;
+		this.highPriority = priorityFiles != null && priorityFiles[0] != null
+																																					? HashVec.loadFileToHashSet(priorityFiles[0],
+																																																			false)
+																																					: null;
 		this.lowPriority = priorityFiles != null && priorityFiles.length > 1
-																																				? HashVec.loadFileToHashSet(priorityFiles[1],
-																																																		false)
-																																				: null;
+											 && priorityFiles[1] != null
+																									 ? HashVec.loadFileToHashSet(priorityFiles[1],
+																																							 false)
+																									 : null;
 		p1d = new HashMap<>();
 		p2d = new HashMap<>();
 		fileToPathMap1 = new HashMap<>();
