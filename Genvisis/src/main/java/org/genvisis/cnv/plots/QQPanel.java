@@ -28,6 +28,7 @@ public class QQPanel extends AbstractPanel {
 								 Color[] colorScheme, Logger log) {
 		super();
 
+		this.setLog(log);
 		this.pvals = pvals;
 		this.log10 = log10;
 		this.rotated = rotated;
@@ -52,8 +53,6 @@ public class QQPanel extends AbstractPanel {
 
 		createLookup(false);
 
-		// taken care of in AbstractPanel constructor
-		addComponentListener(this);
 		setZoomable(true, true);
 	}
 
@@ -129,9 +128,14 @@ public class QQPanel extends AbstractPanel {
 		int count;
 		int max;
 
-		if (lines != null && points != null) {
-			return;
+		count = 0;
+		for (double[] pval : pvals) {
+			count += pval.length;
 		}
+
+		// if (lines != null && points != null && points.length == count && count > 0) {
+		// return;
+		// }
 		lines = new GenericLine[1];
 		max = 0;
 		for (double[] pval : pvals) {
@@ -148,10 +152,6 @@ public class QQPanel extends AbstractPanel {
 			lines[0] = new GenericLine(0, 0, 1, 1, (byte) 2, (byte) 1, (byte) 0);
 		}
 
-		count = 0;
-		for (double[] pval : pvals) {
-			count += pval.length;
-		}
 		points = new PlotPoint[count];
 
 		count = 0;
@@ -165,10 +165,10 @@ public class QQPanel extends AbstractPanel {
 																																 / pvals[i].length)),
 																				Math.min(maxValue,
 																								 (float) (-1 * Math.log10(pvals[i][j]))
-																										 - (float) (-1 * Math.log10(
-																																				 ((double) keys[j]
-																																						 + 1)
-																																						 / pvals[i].length))),
+																													 - (float) (-1 * Math.log10(
+																																											((double) keys[j]
+																																											 + 1)
+																																											/ pvals[i].length))),
 																				(byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
 				} else if (log10) {
 					points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
@@ -185,6 +185,8 @@ public class QQPanel extends AbstractPanel {
 				count++;
 			}
 		}
+
+		System.out.println("Created " + count + " points in QQPanel!");
 	}
 
 	public static void main(String[] args) {
