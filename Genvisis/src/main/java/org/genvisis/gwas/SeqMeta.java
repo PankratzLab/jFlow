@@ -1025,6 +1025,34 @@ public class SeqMeta {
                   stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
                          root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(),
                          HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
+                  if (SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)]) {
+                    // read in root.csv.gz
+                    String[] header = Files.getHeaderOfFile(dir + phenotypes[i][0] + "/"
+                                                            + races[k][0] + "/" + methods[m][0]
+                                                            + "/" + root + ".csv.gz", log);
+                    int index = ext.indexFactors(new String[][] {Aliases.PVALUES}, header, false,
+                                                 false, false)[0];
+                    try {
+                      String[][] orig = HashVec.loadFileToStringMatrix(dir + phenotypes[i][0] + "/"
+                                                                       + races[k][0] + "/"
+                                                                       + methods[m][0] + "/" + root
+                                                                       + ".csv.gz", true, null);
+                      PrintWriter writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
+                                                                       + races[k][0] + "/"
+                                                                       + methods[m][0] + "/" + root
+                                                                       + ".csv.gz");
+                      writer.println(ArrayUtils.toStr(header, ","));
+                      for (String[] line : orig) {
+                        // check 'p' column for NA
+                        if (!line[index].equals("NA")) {
+                          writer.println(ArrayUtils.toStr(line, ","));
+                        }
+                      }
+                      writer.close();
+                    } catch (Exception e) {
+                      e.printStackTrace();
+                    }
+                  }
                 }
 
               }
@@ -1048,6 +1076,36 @@ public class SeqMeta {
               stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
                      root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(),
                      HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
+              if (SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)]) {
+                // read in root.csv.gz
+                String[] header = Files.getHeaderOfFile(dir + phenotypes[i][0] + "/" + races[k][0]
+                                                        + "/" + methods[m][0] + "/" + root
+                                                        + ".csv.gz", log);
+                int index = ext.indexFactors(new String[][] {Aliases.PVALUES}, header, false, false,
+                                             false)[0];
+
+                try {
+                  String[][] orig = HashVec.loadFileToStringMatrix(dir + phenotypes[i][0] + "/"
+                                                                   + races[k][0] + "/"
+                                                                   + methods[m][0] + "/" + root
+                                                                   + ".csv.gz", true, null);
+                  PrintWriter writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
+                                                                   + races[k][0] + "/"
+                                                                   + methods[m][0] + "/" + root
+                                                                   + ".csv.gz");
+
+                  writer.println(ArrayUtils.toStr(header, ","));
+                  for (String[] line : orig) {
+                    // check 'p' column for NA
+                    if (!line[index].equals("NA")) {
+                      writer.println(ArrayUtils.toStr(line, ","));
+                    }
+                  }
+                  writer.close();
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              }
             }
           }
         }
@@ -1067,6 +1125,32 @@ public class SeqMeta {
             stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv.gz",
                    root + ".csv.gz", maps.getSnpInfoChrsDir(),
                    HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
+            if (SINGLE_VARIANTS[ext.indexOfStr(methods[m][2], ALGORITHMS)]) {
+              // read in root.csv.gz
+              String[] header = Files.getHeaderOfFile(dir + phenotypes[i][0] + "/" + methods[m][0]
+                                                      + "/" + root + ".csv.gz", log);
+              int index = ext.indexFactors(new String[][] {Aliases.PVALUES}, header, false, false,
+                                           false)[0];
+
+              try {
+                String[][] orig = HashVec.loadFileToStringMatrix(dir + phenotypes[i][0] + "/"
+                                                                 + methods[m][0] + "/" + root
+                                                                 + ".csv.gz", true, null);
+                PrintWriter writer = Files.openAppropriateWriter(dir + phenotypes[i][0] + "/"
+                                                                 + methods[m][0] + "/" + root
+                                                                 + ".csv.gz");
+                writer.println(ArrayUtils.toStr(header, ","));
+                for (String[] line : orig) {
+                  // check 'p' column for NA
+                  if (!line[index].equals("NA")) {
+                    writer.println(ArrayUtils.toStr(line, ","));
+                  }
+                }
+                writer.close();
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+            }
           }
         }
       }
@@ -1760,7 +1844,8 @@ public class SeqMeta {
       while (reader.ready()) {
         line = ext.splitCommasIntelligently(reader.readLine(), true, log);
         if (snpGeneFunctionalHash.containsKey(line[indices[0]]) && !line[indices[1]].equals("NA")
-            && Double.parseDouble(line[indices[1]]) <= mafThresholdDouble) {
+            && Double.parseDouble(line[indices[1]]) <= mafThresholdDouble
+            && Double.parseDouble(line[indices[1]]) > 0.0) {
           snpGeneFunctionalHashFiltered.put(line[indices[0]],
                                             snpGeneFunctionalHash.get(line[indices[0]]));
         }
@@ -2265,6 +2350,9 @@ public class SeqMeta {
                   // } else {
                   // log.report(Integer.parseInt(macHash.get(line[geneIndex]).split("\t")[macIndex])
                   // +" < "+ macThreshold);
+                  // log.report("MAF: " + line[mafIndex] + ">" + mafThreshold + "\tMAC: "
+                  // + macHash.get(line[geneIndex]).split("\t")[macIndex]);
+
                 }
               }
               count++;
