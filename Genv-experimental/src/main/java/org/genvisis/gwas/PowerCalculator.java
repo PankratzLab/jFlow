@@ -267,7 +267,10 @@ public class PowerCalculator {
 
 			// rangeOfMaf(0.001, 0.01, 192, 406, 1000000, false); // Logan's Ewings grant
 			// rangeOfMaf(0.001, 0.01, 598, 598, 1000000, false); // Logan's Ewings grant
-			rangeOfMaf(0.001, 0.01, 338, 717, 1000000, false); // Logan's Ewings grant
+			// rangeOfMaf(0.001, 0.01, 338, 717, 1000000, false); // Logan's Ewings grant
+
+			// rangeOfMaf(0.001, 0.01, 148, 316, 1000000, false); // Logan's Ewings grant, ALSF, mets
+			// rangeOfMaf(0.001, 0.01, 464, 464, 1000000, false); // Logan's Ewings grant, ALSF, gwas
 
 
 			// rangeOfRelativeRisk(0.15, 200, false);
