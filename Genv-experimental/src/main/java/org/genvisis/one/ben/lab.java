@@ -25,7 +25,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -207,9 +206,9 @@ public class lab {
 		int[] number = new int[] {5, 3};
 		int score = 10;
 
-		String[][] files = new String[][] { {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
-																				 "23Mgen_merged.cnv", "23_M_filtered.cnv",
-																				 markerSetFilenameToBreakUpCentromeres_1},
+		String[][] files = new String[][] {{"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
+																				"23Mgen_merged.cnv", "23_M_filtered.cnv",
+																				markerSetFilenameToBreakUpCentromeres_1},
 																			 {"/scratch.global/cole0482/ny_choanal/shadow11combo/cnv/",
 																				"23Fgen_merged.cnv", "23_F_filtered.cnv",
 																				markerSetFilenameToBreakUpCentromeres_1},
@@ -387,14 +386,10 @@ public class lab {
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt_missingRS.txt";
 		// String mismatchFile =
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/compare/plinkDropFilt_mismatchAlleles.txt";
-		String bimFile =
-										 "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe.bim";
-		String newBimFile =
-												"/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_correctedRS.bim";
-		String missSnpFile =
-												 "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_missingRS.txt";
-		String mismatchFile =
-													"/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_mismatchAlleles.txt";
+		String bimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe.bim";
+		String newBimFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_correctedRS.bim";
+		String missSnpFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_missingRS.txt";
+		String mismatchFile = "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkDNA/final?/plinkNoRSDupe_mismatchAlleles.txt";
 		// String bimFile =
 		// "/home/pankrat2/shared/aric_gw6/ARICGenvisis_CEL_FULL/plinkApril2017/ancestryPipeline/plink.bim";
 		// String newBimFile =
@@ -858,7 +853,8 @@ public class lab {
 
 	private static void dumpXValues(Project proj) {
 		PrintWriter writer = Files.getAppropriateWriter("/home/pankrat2/cole0482/"
-																										+ proj.PROJECT_NAME.getValue() + "_Xvalues.txt");
+																										+ proj.PROJECT_NAME.getValue()
+																										+ "_Xvalues.txt");
 
 		MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
 		while (mdl.hasNext()) {
@@ -874,7 +870,8 @@ public class lab {
 		})) {
 			System.out.println(file);
 			for (Entry<String, Float> entry : TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
-																																							+ file).entrySet()) {
+																																					+ file)
+																										 .entrySet()) {
 				if (entry.getKey().endsWith("\tx")) {
 					writer.println(entry.getValue());
 				}
@@ -927,6 +924,52 @@ public class lab {
 		return ByteBuffer.wrap(bytes).getFloat();
 	}
 
+	static void runHRC() {
+		String fileDir = "F:/BCX2/sampleFiles/";
+		String idFile = "EA.ids_sorted.txt";
+		String idLookup = "ids_lookup.txt";
+		String[] files = new File(fileDir).list((d, f) -> {
+			return f.endsWith(".xln");
+		});
+		String[] samples = HashVec.loadFileToStringArray(fileDir + idFile, false, null, false);
+		Map<String, String> idMap = HashVec.loadFileColumnToMap(fileDir + idLookup, 0, 1, true, null);
+		for (String f : files) {
+			String out = fileDir + ext.rootOf(f) + ".sample";
+			PrintWriter writer = Files.getAppropriateWriter(out);
+			Hashtable<String, String> in = HashVec.loadFileToHashString(fileDir + f, 0,
+																																	new int[] {2, 3, 1},
+																																	" ", true);
+			writer.println("ID_1 ID_2 missing PC1 PC2 " + f.split("_")[0]);
+			writer.println("0 0 0 C C P");
+			for (String s : samples) {
+				String v = in.get(idMap.get(s));
+				if (v == null) {
+					v = "NaN NaN NaN";
+				}
+				writer.println(s + " " + s + " 0 " + v);
+			}
+			writer.close();
+		}
+	}
+
+	static void testWriters() {
+
+		String dir = "C:/mass/";
+		int numFiles = 0;
+		PrintWriter writer;
+		HashMap<String, PrintWriter> writerMap = new HashMap<>();
+		boolean temp = true;
+		while (temp) {
+			String f = dir + ("" + numFiles) + ".out";
+			writer = Files.getAppropriateWriter(f, true);
+			writerMap.put(f, writer);
+			numFiles++;
+		}
+		for (PrintWriter writer1 : writerMap.values()) {
+			writer1.close();
+		}
+	}
+
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		int numArgs = args.length;
 		Project proj;
@@ -936,8 +979,10 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-			//
-			QQPlot.main(new String[] {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
+
+			// runHRC();
+			// QQPlot.main(new String[]
+			// {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
 
 			// String[] args1 = {
 			// "file=F:/CARDIA 2017/2nd round/results/plots/combined.results"};
@@ -956,14 +1001,16 @@ public class lab {
 			// System.out.println(BGENBitMath.bytesToFloat(true, pt75) + " - " + fromByteArrayBB(pt75));
 			// System.out.println(BGENBitMath.bytesToFloat(true, Opt75) + " - " + fromByteArrayBB(Opt75));
 
-			// String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
-			// UKBBParsingPipeline pipe = new UKBBParsingPipeline();
-			// pipe.setSourceDir(dir + "00src/");
-			// pipe.setProjectDir(dir + "project/");
-			// pipe.setProjectPropertiesDir("D:/projects/");
-			// pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
-			// pipe.setProjectName("UKBB");
-			// pipe.runPipeline();
+			String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+			UKBBParsingPipeline pipe = new UKBBParsingPipeline();
+			pipe.setSourceDir(dir + "00src/");
+			pipe.setProjectDir(dir + "project/");
+			pipe.setProjectPropertiesDir("D:/projects/");
+			pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
+			pipe.setProjectName("UKBB");
+			pipe.runPipeline();
+
+			// testWriters();
 
 			// proj = new Project(args[0]);
 			// runXYHistogram(proj);
