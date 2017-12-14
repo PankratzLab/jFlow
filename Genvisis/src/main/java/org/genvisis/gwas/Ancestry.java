@@ -1,10 +1,15 @@
 package org.genvisis.gwas;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.Hashtable;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -23,7 +28,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 
 
 
@@ -33,7 +40,19 @@ public class Ancestry {
 	public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
 	public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
-	private static final String HAPMAP_COL_HEADER = "Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT";
+	private static final String HAPMAP_CLASS_NAME = "HapMap";
+	private static final String EIGENSTRAT_OUTPUT_NAME = "combo_fancy_postnormed_eigens.xln";
+	private static final String EIGENSTRAT_IID_LABEL = "IID";
+	private static final String EIGENSTRAT_FID_LABEL = "FID";
+	private static final String EIGENSTRAT_PC1_LABEL = "C1";
+	private static final String EIGENSTRAT_PC2_LABEL = "C2";
+
+	private static enum HapMapPopulation {
+		CEU,
+		YRI,
+		CHB,
+		JPT;
+	}
 
 	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
@@ -72,22 +91,21 @@ public class Ancestry {
 		return dummyProject;
 	}
 
-	public static void maybeAddHapMapToSampleData(Project proj,
-																								Map<String, ? extends Map<String, String>> hapmaps) {
-		if (!proj.getSampleData(false).hasClass(HAPMAP_COL_HEADER.split("=")[1])) {
-			String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA", HAPMAP_COL_HEADER};
-			String[][] hapMapColumnData = new String[hapmaps.entrySet().stream()
-																											.mapToInt(e -> e.getValue().size())
-																											.sum()][hapMapColumnHeaders.length];
+	private static void maybeAddHapMapToSampleData(Project proj,
+																								 SampleData.ClassHeader hapMapClassHeader,
+																								 Table<String, String, HapMapPopulation> hapmaps) {
+		if (!proj.getSampleData(false).hasClass(HAPMAP_CLASS_NAME)) {
+			String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA",
+																									 hapMapClassHeader.toString()};
+			Map<String, Integer> hapMapCodes = hapMapClassHeader.getCodeOptions().inverse();
+			String[][] hapMapColumnData = new String[hapmaps.size()][hapMapColumnHeaders.length];
 			int i = 0;
-			for (Map.Entry<String, ? extends Map<String, String>> hapmapFamEntry : hapmaps.entrySet()) {
-				String fid = hapmapFamEntry.getKey();
-				for (Map.Entry<String, String> hapmapEntry : hapmapFamEntry.getValue().entrySet()) {
-					String iid = hapmapEntry.getKey();
-					String hapmapID = hapmapEntry.getValue();
-					hapMapColumnData[i] = new String[] {fid, iid, iid, hapmapID};
-					i++;
-				}
+			for (Table.Cell<String, String, HapMapPopulation> hapMapCell : hapmaps.cellSet()) {
+				String fid = hapMapCell.getRowKey();
+				String iid = hapMapCell.getColumnKey();
+				HapMapPopulation pop = hapMapCell.getValue();
+				hapMapColumnData[i++] = new String[] {fid, iid, iid,
+																							hapMapCodes.get(pop.toString()).toString()};
 			}
 
 			proj.getSampleData(false).addSamples(hapMapColumnData, hapMapColumnHeaders);
@@ -258,7 +276,7 @@ public class Ancestry {
 			CmdLine.runDefaults("convertf -p convertf.par", dir, log);
 		}
 
-		if (!Files.exists(dir + "combo_fancy_postnormed_eigens.xln")) {
+		if (!Files.exists(dir + EIGENSTRAT_OUTPUT_NAME)) {
 			CmdLine.runDefaults("plink2 --bfile unrelateds/plink --freq --out unrelateds/plink --noweb",
 													dir, log);
 			CmdLine.runDefaults(Files.getRunString()
@@ -269,76 +287,67 @@ public class Ancestry {
 
 	public static void imputeRace(String dir, @Nullable Project proj, Logger log) {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
-			String[][] pcResults = HashVec.loadFileToStringMatrix(dir
-																														+ "combo_fancy_postnormed_eigens.xln",
-																														true, new int[] {0, 1, 2, 3});
+			Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
+																																													 log);
+			if (fidIidHapMapPopTable == null)
+				return;
 
-			String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
-			if (hapMapAncestries == null) {
-				log.reportError("Cannot impute race without the HapMap ancestries resource");
-				return;
-			}
-			String[] ancestriesHeader = Files.getHeaderOfFile(hapMapAncestries, log);
-			int fidIndex = ext.indexOfStr("FID", ancestriesHeader, false, true);
-			int iidIndex = ext.indexOfStr("IID", ancestriesHeader, false, true);
-			int hapIndex = ext.indexOfStr(HAPMAP_COL_HEADER, ancestriesHeader, false, true);
-			if (hapIndex < 0) {
-				log.reportError("Cannot impute: malformed HapMap ancestries resource: " + hapMapAncestries);
-				return;
-			}
-			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(hapMapAncestries,
-																																												fidIndex,
-																																												iidIndex,
-																																												hapIndex,
-																																												true);
-			maybeAddHapMapToSampleData(proj, hapmaps);
 			Set<PCImputeRace.Sample> samples = Sets.newHashSet();
 			Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
 			Set<PCImputeRace.Sample> africans = Sets.newHashSet();
 			Set<PCImputeRace.Sample> asians = Sets.newHashSet();
+			try (BufferedReader eigenReader = Files.getAppropriateReader(dir + EIGENSTRAT_OUTPUT_NAME)) {
+				String headerLine = eigenReader.readLine();
+				String delim = ext.determineDelimiter(headerLine);
+				String[] header = headerLine.split("\t");
+				Map<String, Integer> eigenstratIndices = ext.indexMap(new String[] {EIGENSTRAT_FID_LABEL,
+																																						EIGENSTRAT_IID_LABEL,
+																																						EIGENSTRAT_PC1_LABEL,
+																																						EIGENSTRAT_PC2_LABEL},
+																															header, true, false);
 
-			for (int i = 0; i < pcResults.length; i++) {
-
-
-				Map<String, String> iidTable = hapmaps.get(pcResults[i][0]);
-				String fid = pcResults[i][0];
-				String iid = pcResults[i][1];
-				double pc1;
-				double pc2;
-				try {
-					pc1 = Double.parseDouble(pcResults[i][2]);
-				} catch (NumberFormatException nfe) {
-					pc1 = Double.NaN;
-				}
-				try {
-					pc2 = Double.parseDouble(pcResults[i][3]);
-				} catch (NumberFormatException nfe) {
-					pc2 = Double.NaN;
-				}
-
-				PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
-				samples.add(sample);
-				if (iidTable != null && iidTable.containsKey(pcResults[i][1])) {
+				while (eigenReader.ready()) {
+					String[] line = eigenReader.readLine().split(delim);
+					String fid = line[eigenstratIndices.get(EIGENSTRAT_FID_LABEL)];
+					String iid = line[eigenstratIndices.get(EIGENSTRAT_IID_LABEL)];
+					double pc1;
+					double pc2;
 					try {
-						int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
-						switch (race) {
-							case 1:
+						pc1 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC1_LABEL)]);
+					} catch (NumberFormatException nfe) {
+						pc1 = Double.NaN;
+					}
+					try {
+						pc2 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC2_LABEL)]);
+					} catch (NumberFormatException nfe) {
+						pc2 = Double.NaN;
+					}
+
+					PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
+					samples.add(sample);
+					HapMapPopulation hapMapPop = fidIidHapMapPopTable.get(fid, iid);
+					if (hapMapPop != null) {
+						switch (hapMapPop) {
+							case CEU:
 								europeans.add(sample);
 								break;
-							case 2:
+							case YRI:
 								africans.add(sample);
 								break;
-							case 3:
-							case 4:
+							case CHB:
+							case JPT:
 								asians.add(sample);
 								break;
 							default:
+								log.reportError("Unexpected HapMap population ignored: " + hapMapPop);
 								break;
 						}
-					} catch (NumberFormatException nfe) {
-						// For non hap-map samples, don't add to a race set
 					}
 				}
+			} catch (FileNotFoundException e) {
+				log.reportFileNotFound(dir + EIGENSTRAT_OUTPUT_NAME);
+			} catch (IOException e) {
+				log.reportIOException(dir + EIGENSTRAT_OUTPUT_NAME);
 			}
 
 			PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians, log);
@@ -356,6 +365,66 @@ public class Ancestry {
 														+ (dir + RACE_FREQS_FILENAME));
 		}
 
+	}
+
+	private static Table<String, String, HapMapPopulation> parseHapMapAncestries(@Nullable Project proj,
+																																							 Logger log) {
+		String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
+		if (hapMapAncestries == null) {
+			log.reportError("Cannot impute race without the HapMap ancestries resource");
+			return null;
+		}
+		try (BufferedReader hapMapAncestryReader = Files.getAppropriateReader(hapMapAncestries)) {
+			String headerLine = hapMapAncestryReader.readLine();
+			String delimiter = ext.determineDelimiter(headerLine);
+			String[] ancestriesHeader = headerLine.split(delimiter);
+			int fidIndex = ext.indexOfStr("FID", ancestriesHeader, false, true);
+			int iidIndex = ext.indexOfStr("IID", ancestriesHeader, false, true);
+			int hapIndex = ext.indexOfStartsWith(SampleData.ClassHeader.generateClassHeaderLabel(HAPMAP_CLASS_NAME),
+																					 ancestriesHeader, false);
+			if (Collections.max(Arrays.asList(fidIndex, iidIndex, hapIndex)) < 0) {
+				log.reportError("Cannot impute: malformed HapMap ancestries resource: "
+												+ hapMapAncestries);
+				return null;
+			}
+			SampleData.ClassHeader hapMapClassHeader = new SampleData.ClassHeader(ancestriesHeader[hapIndex],
+																																						log);
+			Map<Integer, HapMapPopulation> hapMapCodeMap;
+			try {
+				hapMapCodeMap = hapMapClassHeader.getCodeOptions().entrySet().stream()
+																				 .collect(Collectors.toMap(Map.Entry::getKey,
+																																	 e -> HapMapPopulation.valueOf(e.getValue())));
+			} catch (IllegalArgumentException iae) {
+				log.reportError("Unexpected HapMap population");
+				log.reportException(iae);
+				return null;
+			}
+			ImmutableTable.Builder<String, String, HapMapPopulation> fidIidHapMapPopTableBuilder = ImmutableTable.builder();
+			while (hapMapAncestryReader.ready()) {
+				String[] line = hapMapAncestryReader.readLine().split(delimiter);
+				String fid = line[fidIndex];
+				String iid = line[iidIndex];
+				HapMapPopulation pop;
+				try {
+					pop = hapMapCodeMap.get(Integer.parseInt(line[hapIndex]));
+				} catch (NumberFormatException nfe) {
+					log.reportError("Non-numeric HapMap code: " + line[hapIndex]);
+					return null;
+				}
+				fidIidHapMapPopTableBuilder.put(fid, iid, pop);
+			}
+			Table<String, String, HapMapPopulation> fidIidHapMapPopTable = fidIidHapMapPopTableBuilder.build();
+			if (proj != null) {
+				maybeAddHapMapToSampleData(proj, hapMapClassHeader, fidIidHapMapPopTable);
+			}
+			return fidIidHapMapPopTable;
+		} catch (FileNotFoundException e) {
+			log.reportError("Cannot find " + hapMapAncestries + " to load HapMap ancestries");
+			return null;
+		} catch (IOException e) {
+			log.reportError("Error reading " + hapMapAncestries + " to load HapMap ancestries");
+			return null;
+		}
 	}
 
 
