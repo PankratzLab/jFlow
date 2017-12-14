@@ -15,8 +15,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -561,7 +559,7 @@ public class TransposeData {
 	}
 
 	public static void reverseTransposeStreaming(Project proj) {
-		long fingerprintForMarkers, fingerprintForSamples;
+		long fingerprintForMarkers;
 
 		Hashtable<String, Float>[] sampRafFileOutliers;
 		Hashtable<String, Float> allOutliers;
@@ -589,9 +587,6 @@ public class TransposeData {
 		final String[] listOfAllSamplesInProj = proj.getSamples();
 		final String[] listOfAllMarkersInProj = proj.getMarkerNames();
 
-		@SuppressWarnings("deprecation")
-		long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(listOfAllSamplesInProj);
-		fingerprintForSamples = f;
 		fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
 
 		// compute null status (see GenvisisTechDoc.docx for explanation)
@@ -622,12 +617,22 @@ public class TransposeData {
 		maxThreads = Math.min(Runtime.getRuntime().availableProcessors(), maxThreads);
 		int threadBuffer = (int) ((Runtime.getRuntime().maxMemory() * 0.75) / maxThreads);
 
-		int numSamplesPerThread = (listOfAllSamplesInProj.length / (2 * maxThreads));
+		// int numSamplesPerThread = listOfAllSamplesInProj.length / maxThreads;
+		// int maxMkrsBuffer = threadBuffer / (numSamplesPerThread * numBytesPerSampleMarker);
+
+		int maxMkrsBuffer = listOfAllMarkersInProj.length;
+		int maxMkrsStep = Math.max(1, listOfAllMarkersInProj.length / 10);
+		int numSamplesPerThread = threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer);
+		while (numSamplesPerThread == 0) {
+			maxMkrsBuffer -= maxMkrsStep;
+			numSamplesPerThread = threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer);
+		}
+		final int mkrsInBuffer = maxMkrsBuffer;
 
 		log.reportTime("Reverse-transposing " + (listOfAllSamplesInProj.length - successes.size())
 									 + " samples (" + successes.size() + " already parsed) @ " + numSamplesPerThread
 									 + " samples per thread with "
-									 + maxThreads + " threads.");
+									 + maxThreads + " threads and a buffer of " + mkrsInBuffer + " markers.");
 
 		ExecutorService transposeService = Executors.newFixedThreadPool(maxThreads);
 
@@ -638,21 +643,24 @@ public class TransposeData {
 			Runnable runner = new Runnable() {
 				@Override
 				public void run() {
-					int numMarkersCurrentFile;
 					String smp;
 					String mkr;
 					String markerFile;
 					String filename;
 					String markerLookupEntry;
 					byte[] sampOutlrs;
-					RandomAccessFile markerRAF;
+					RandomAccessFile markerRAF = null;
 					byte[] parameterReadBuffer;
 					long time;
-					long time2;
 					String openMarkerFile;
+					byte[][] buffer;
+					int numBytesMarkernamesSection = 0;
+					int numBytesPerSampMarker = numBytesPerSampleMarker;
+
 					try {
-						Map<Integer, String> sampFiles = new HashMap<>();
 						time = System.nanoTime();
+
+						// Write headers for sampRAF files:
 						for (int i = s1; i < s2; i++) {
 							smp = listOfAllSamplesInProj[i];
 							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
@@ -660,7 +668,6 @@ public class TransposeData {
 							if (!load[i]) {
 								continue;
 							}
-							sampFiles.put(i, filename);
 
 							FileOutputStream fos = new FileOutputStream(filename, false);
 							// write header
@@ -676,65 +683,118 @@ public class TransposeData {
 							fos.flush();
 							fos.close();
 							sampOutlrs = null;
+							fos = null;
 						}
 						log.reportTime("Wrote headers for samples " + s1 + " to " + s2 + " in "
 													 + ext.getTimeElapsedNanos(time));
 
-						// read markers
+						buffer = new byte[s2 - s1][mkrsInBuffer * numBytesPerSampleMarker];
 						parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
-						openMarkerFile = mkrLookup.get(listOfAllMarkersInProj[0])
-																			.split(PSF.Regex.GREEDY_WHITESPACE)[0];
-						// open first marker file
-						markerRAF = new RandomAccessFile(
-																						 proj.MARKER_DATA_DIRECTORY.getValue() + openMarkerFile,
-																						 "r");
-						markerRAF.read(parameterReadBuffer);
+						openMarkerFile = null;
+						int mkrInFile = 0;
+						long time2 = System.nanoTime();
+						long openTime = 0;
+						long seekTime = 0;
+						long readTime = 0;
+						long closeTime = 0;
+						for (int b = 0; b < listOfAllMarkersInProj.length; b += mkrsInBuffer) {
+							time = System.nanoTime();
+							for (int m = b; m < b + mkrsInBuffer; m++) {
+								mkr = listOfAllMarkersInProj[m];
+								markerLookupEntry = mkrLookup.get(mkr);
+								markerFile = markerLookupEntry.split(PSF.Regex.GREEDY_WHITESPACE)[0];
+								if (openMarkerFile == null || !markerFile.equals(openMarkerFile)) {
+									if (openMarkerFile != null) {
+										time2 = System.nanoTime();
+										markerRAF.close();
+										closeTime += (System.nanoTime() - time2);
+									}
+									openMarkerFile = markerFile;
+									time2 = System.nanoTime();
+									markerRAF = new RandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue()
+																									 + openMarkerFile, "r");
+									openTime += (System.nanoTime() - time2);
+									markerRAF.read(parameterReadBuffer);
+									numBytesPerSampMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
+									numBytesMarkernamesSection = Compression.bytesToInt(parameterReadBuffer,
+																																			TransposeData.MARKERDATA_MARKERNAMELEN_START);
+									mkrInFile = 0;
+								}
 
-						time2 = System.nanoTime();
-						// iterate through all markers
-						for (int m = 0; m < listOfAllMarkersInProj.length; m += 0) {
-							mkr = listOfAllMarkersInProj[m];
-							markerLookupEntry = mkrLookup.get(mkr);
-							markerFile = markerLookupEntry.split(PSF.Regex.GREEDY_WHITESPACE)[0];
-							if (!openMarkerFile.equals(markerFile)) {
-								// close current file and open next
-								markerRAF.close();
-								log.reportTime("Parsed " + openMarkerFile + " in "
-															 + ext.getTimeElapsedNanos(time2));
-								openMarkerFile = markerFile;
-								time2 = System.nanoTime();
-								markerRAF = new RandomAccessFile(
-																								 proj.MARKER_DATA_DIRECTORY.getValue()
-																								 + openMarkerFile,
-																								 "r");
-								markerRAF.read(parameterReadBuffer);
+								long seekLocation;
+								for (int s = s1; s < s2; s++) {
+									seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+																 + (long) numBytesMarkernamesSection
+																 + mkrInFile * (long) (numBytesPerSampMarker
+																											 * listOfAllSamplesInProj.length)
+																 + (long) s * numBytesPerSampleMarker;
+									if (markerRAF.getFilePointer() != seekLocation) {
+										time2 = System.nanoTime();
+										markerRAF.seek(seekLocation);
+										seekTime += (System.nanoTime() - time2);
+									}
+
+									time2 = System.nanoTime();
+									markerRAF.read(buffer[s - s1], (mkrInFile * numBytesPerSampleMarker),
+																 numBytesPerSampleMarker);
+									readTime += (System.nanoTime() - time2);
+								}
+
+								mkrInFile++;
 							}
-							numMarkersCurrentFile = Compression.bytesToInt(parameterReadBuffer,
-																														 TransposeData.MARKERDATA_NUMMARKERS_START);
-							int numMkrsBuffer = Math.min(numMarkersCurrentFile,
-																					 threadBuffer / (sampFiles.size()
-																													 * numBytesPerSampleMarker));
 
-							MarkerDataLoader.loadAndWriteFromMarkerDataRafWithoutDecompressRange(markerRAF,
-																																										sampFiles,
-																																										parameterReadBuffer,
-																																										ArrayUtils.arrayOfIndices(numMarkersCurrentFile),
-																																										numMkrsBuffer,
-																																										fingerprintForSamples,
-																																										log);
-							m += numMarkersCurrentFile;
+							log.reportTime(ext.formatTimeElapsed((openTime / mkrsInBuffer), TimeUnit.NANOSECONDS)
+														 + "ns average openTime");
+							log.reportTime(ext.formatTimeElapsed((closeTime / mkrsInBuffer), TimeUnit.NANOSECONDS)
+														 + "ns average closeTime");
+							log.reportTime(ext.formatTimeElapsed((seekTime / (mkrsInBuffer * (s2 - s1))),
+																									 TimeUnit.NANOSECONDS)
+														 + "ns average seekTime");
+							log.reportTime(ext.formatTimeElapsed((readTime / (mkrsInBuffer * (s2 - s1))),
+																									 TimeUnit.NANOSECONDS)
+														 + "ns average readTime");
+
+							log.reportTime("Read markers " + b + " to " + (b + mkrsInBuffer) + " for samples "
+														 + s1 + " to " + s2 + " in " + ext.getTimeElapsedNanos(time));
+							time = System.nanoTime();
+
+							FileOutputStream fos = null;
+							for (int s = s1; s < s2; s++) {
+								while (fos == null) {
+									smp = listOfAllSamplesInProj[s];
+									filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
+														 + Sample.SAMPLE_FILE_EXTENSION;
+									try {
+										fos = new FileOutputStream(filename, true);
+									} catch (FileNotFoundException e) {
+										if (!e.getMessage().contains("Too many open files")) {
+											throw e;
+										}
+									}
+								}
+								fos.write(buffer[s - s1]);
+								fos.flush();
+								fos.close();
+								fos = null;
+							}
+							log.reportTime("Wrote " + b + " to " + (b + mkrsInBuffer) + " for samples " + s1
+														 + " to " + s2 + " in " + ext.getTimeElapsedNanos(time));
 						}
 						markerRAF.close();
-						for (Entry<Integer, String> sampFile : sampFiles.entrySet()) {
+
+						for (int s = s1; s < s2; s++) {
+							buffer[s - s1] = null;
 							synchronized (successWriter) {
-								successWriter.println(sampFile.getValue());
+								smp = listOfAllSamplesInProj[s];
+								filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
+													 + Sample.SAMPLE_FILE_EXTENSION;
+								successWriter.println(filename);
 								successWriter.flush();
 							}
-
-							log.reportTime("Parsed markerData for sample " + sampFile.getKey().intValue()
-														 + " in "
-														 + ext.getTimeElapsedNanos(time));
 						}
+						buffer = null;
+						log.reportTime("Parsed markerData for " + (s2 - s1) + " samples in "
+													 + ext.getTimeElapsedNanos(time));
 					} catch (FileNotFoundException e) {
 						log.reportException(e);
 					} catch (IOException e) {
@@ -746,7 +806,9 @@ public class TransposeData {
 		}
 
 		transposeService.shutdown();
-		try {
+		try
+
+		{
 			transposeService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
 			/**/
