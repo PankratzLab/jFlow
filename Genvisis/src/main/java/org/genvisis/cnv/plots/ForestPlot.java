@@ -749,7 +749,6 @@ public class ForestPlot {
 		// FIXME this aliases the forestpanel and will overwrite its size
 		ForestPanel p = getForestPanel();
 		p.setSize(size);
-		p.createImage();
 		p.validate();
 		String marker, filename, dataFile;
 		int count = 1;

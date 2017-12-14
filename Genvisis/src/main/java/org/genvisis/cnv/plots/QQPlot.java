@@ -33,10 +33,10 @@ public class QQPlot {
 																								// "C:\\Documents and Settings\\npankrat\\My
 																								// Documents\\LOAD\\QQplots\\4PCs.txt",
 																								"C:\\Documents and Settings\\npankrat\\My Documents\\LOAD\\QQplots\\E2_E4.txt,0",
-																							 // "C:\\Documents and Settings\\npankrat\\My
-																							 // Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
-																							 // "C:\\Documents and Settings\\npankrat\\My
-																							 // Documents\\LOAD\\QQplots\\E4_binary.txt"
+			// "C:\\Documents and Settings\\npankrat\\My
+			// Documents\\LOAD\\QQplots\\4PCs_E2_E4.txt",
+			// "C:\\Documents and Settings\\npankrat\\My
+			// Documents\\LOAD\\QQplots\\E4_binary.txt"
 	};
 
 	public static final Color[] COLOR_SCHEME = new Color[] {Color.BLACK, Color.GRAY,
@@ -113,7 +113,6 @@ public class QQPlot {
 		int descrHeight = qqPanel.getPvals().length * 35;
 		qqPanel.setSize(new Dimension(2000, 1440 + descrHeight));
 		qqPanel.validate();
-		qqPanel.createImage();
 		qqPanel.screenCapture(outFile);
 
 	}
@@ -280,7 +279,7 @@ public class QQPlot {
 				count = 0;
 				while ((fullLine = reader.readLine()) != null) {
 					lineParts = commaDelim ? ext.splitCommasIntelligently(fullLine, true, log)
-																: fullLine.trim().split(delimiter, -1);
+																 : fullLine.trim().split(delimiter, -1);
 					trav = lineParts[cols[i]];
 					if (!ext.isMissingValue(trav)) {
 						try {

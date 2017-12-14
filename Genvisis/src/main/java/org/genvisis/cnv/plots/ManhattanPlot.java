@@ -186,7 +186,7 @@ public class ManhattanPlot {
 				}
 				double pVal = Double.isFinite(pvals[i]) ? -Math.log10(pvals[i]) : 0;
 				data.add(new ManhattanDataPoint(markerNames == null ? chrs[i] + ":" + pos[i]
-																													 : markerNames[i],
+																														: markerNames[i],
 																				chrs[i], pos[i],
 																				linLoc, pVal, pvals[i]));
 			}
@@ -282,7 +282,6 @@ public class ManhattanPlot {
 	}
 
 	public void screenshot(String file) {
-		this.manPan.createImage();
 		this.manPan.screenCapture(file);
 		log.reportTime("Screenshot to " + file);
 	}
@@ -363,7 +362,7 @@ public class ManhattanPlot {
 				double val = Double.parseDouble(transPVal);
 				double val2 = Double.parseDouble(pVal);
 				ManhattanDataPoint mdp = new ManhattanDataPoint(mkrInd == -1 ? chr + ":" + pos
-																																		: row[mkrInd],
+																																		 : row[mkrInd],
 																												chrI, posI,
 																												linLoc, val, val2);
 				for (String s : loadedRest) {

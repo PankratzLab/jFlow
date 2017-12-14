@@ -30,6 +30,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.genvisis.common.Files;
@@ -322,30 +323,31 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void screenCapture(String filename) {
 		boolean headless = GraphicsEnvironment.isHeadless();
-		try {
-			String imgDir = ext.parseDirectoryOfFile(filename);
-			boolean mkdirs = new File(imgDir).mkdirs();
-			File imgFile = new File(filename);
-			if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
-				BufferedImage img = image;
-				while (img == null || imageStatus != IMAGE_COMPLETE) {
-					createImage();
-					img = image;
-					Thread.yield();
+		String imgDir = ext.parseDirectoryOfFile(filename);
+		boolean mkdirs = new File(imgDir).mkdirs();
+		File imgFile = new File(filename);
+		if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
+			image = null;
+			do {
+				createImage();
+				Thread.yield();
+			} while (image == null || imageStatus != IMAGE_COMPLETE);
+			SwingUtilities.invokeLater(() -> {
+				try {
+					ImageIO.write(image, "png", imgFile);
+				} catch (IOException ie) {
+					if (headless) {
+						log.reportError("Error while trying to save the plot");
+					} else {
+						JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+					}
 				}
-				ImageIO.write(img, "png", imgFile);
-			} else {
-				if (headless) {
-					log.reportError("Error creating directory in which to save the plot");
-				} else {
-					JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
-				}
-			}
-		} catch (IOException ie) {
+			});
+		} else {
 			if (headless) {
-				log.reportError("Error while trying to save the plot");
+				log.reportError("Error creating directory in which to save the plot");
 			} else {
-				JOptionPane.showMessageDialog(null, "Error while trying to save the plot");
+				JOptionPane.showMessageDialog(null, "Error creating directory in which to save the plot");
 			}
 		}
 	}
