@@ -473,9 +473,8 @@ public class PCImputeRace {
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		writer.print("SNP\tA1\tA2\tOverall A1F (n=" + countFounders(dir + plinkroot, null) + ")");
 
-		for (Map.Entry<RACE, String> raceListFileEntry : raceListFiles.entrySet()) {
-			RACE race = raceListFileEntry.getKey();
-			String raceListFile = raceListFileEntry.getValue();
+		for (RACE race : RACE.values()) {
+			String raceListFile = raceListFiles.get(race);
 			String raceFrqFile = ext.rootOf(raceListFile, false) + ".frq";
 			CmdLine.runDefaults("plink2 --noweb --bfile " + plinkroot + " --keep " + raceListFile
 													+ " --freq" + " --out " + ext.rootOf(raceFrqFile, false), dir);
@@ -504,9 +503,8 @@ public class PCImputeRace {
 
 			writer.print(marker + "\t" + A1 + "\t" + A2 + "\t" + overallMAF);
 
-			for (Map.Entry<RACE, Map<String, String>> raceFreqEntry : raceFreqs.entrySet()) {
-				RACE race = raceFreqEntry.getKey();
-				Map<String, String> raceFreq = raceFreqEntry.getValue();
+			for (RACE race : RACE.values()) {
+				Map<String, String> raceFreq = raceFreqs.get(race);
 				String a1f;
 				if (marker == null) {
 					log.reportError("SNP '" + marker + "' not found for " + raceListFiles.get(race));
