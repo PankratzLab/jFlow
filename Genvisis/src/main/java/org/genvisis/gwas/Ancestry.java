@@ -58,8 +58,8 @@ public class Ancestry {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
 	}
 
-	public static Project createDummyProject(String dir, String dummyProjectPrefix,
-																					 String putativeWhitesFile, Logger log) {
+	private static Project createDummyProject(String dir, String dummyProjectPrefix,
+																						String putativeWhitesFile, Logger log) {
 		String projectName = dummyProjectPrefix + "_AncestryResults";
 		String projFilename = MitoPipeline.initGenvisisProject() + projectName
 													+ MitoPipeline.PROJECT_EXT;
@@ -128,8 +128,9 @@ public class Ancestry {
 		imputeRace(dir, proj, log);
 	}
 
-	public static void checkHomogeneity(String dir, String putativeWhitesFile,
-																			String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
+	private static void checkHomogeneity(String dir, String putativeWhitesFile,
+																			 String projectPlinkRoot, String hapMapPlinkRoot,
+																			 Logger log) {
 		String homoDir = dir + "homogeneity/";
 		String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
@@ -144,7 +145,7 @@ public class Ancestry {
 		MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
 	}
 
-	public static String parseHomogeneity(String dir, Logger log) {
+	private static String parseHomogeneity(String dir, Logger log) {
 		int rOuts = Files.list(dir + "homogeneity/", ".Rout").length;
 		if (rOuts == 0) {
 			log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
@@ -154,8 +155,8 @@ public class Ancestry {
 		return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
 	}
 
-	public static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
-																 String dropMarkersFile, Logger log) {
+	private static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
+																	String dropMarkersFile, Logger log) {
 		if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
 			log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
 											+ " with FID and IID pairs before we can proceed");
@@ -230,7 +231,7 @@ public class Ancestry {
 		}
 	}
 
-	public static void runEigenstrat(String dir) {
+	private static void runEigenstrat(String dir) {
 		Logger log;
 
 		dir = ext.verifyDirFormat(dir);
@@ -285,7 +286,7 @@ public class Ancestry {
 		}
 	}
 
-	public static void imputeRace(String dir, @Nullable Project proj, Logger log) {
+	private static void imputeRace(String dir, @Nullable Project proj, Logger log) {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
 			Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
 																																													 log);
