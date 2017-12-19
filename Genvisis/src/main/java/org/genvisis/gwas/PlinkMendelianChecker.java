@@ -293,7 +293,7 @@ public class PlinkMendelianChecker {
 	}
 
 	final Project project;
-	final String pedFile;
+	final Pedigree ped;
 	final String genomeFile; // from property - plink.genome
 	final boolean genomeDNA; // is the genome file FID/IID or DNA/DNA?
 	final String mendelFile; // from MarkerMetrics.fullQC - outputs a property file with an appended
@@ -303,7 +303,7 @@ public class PlinkMendelianChecker {
 
 	public PlinkMendelianChecker(Project project) {
 		this.project = project;
-		pedFile = project.PEDIGREE_FILENAME.getValue(false, false);
+		ped = new Pedigree(project, project.PEDIGREE_FILENAME.getValue(false, false));
 		mendelFile = ext.rootOf(project.MARKER_METRICS_FILENAME.getValue(true, false), false)
 								 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
@@ -316,7 +316,7 @@ public class PlinkMendelianChecker {
 	public PlinkMendelianChecker(String pedFile, String mendelFile, String genomeFile,
 															 boolean genomeDNA, String outDir, Logger log) {
 		project = null;
-		this.pedFile = pedFile;
+		this.ped = new Pedigree(project, pedFile);
 		this.mendelFile = mendelFile;
 		this.genomeFile = genomeFile;
 		this.genomeDNA = genomeDNA;
@@ -330,8 +330,10 @@ public class PlinkMendelianChecker {
 							 + " are true FID and IID or both set to DNA");
 		SampleData sampleData = proj.getSampleData(false);
 		try (BufferedReader reader = Files.getAppropriateReader(genomeFile)) {
+			// Skip header
+			reader.readLine();
 			for (int i = 0; reader.ready(); i++) {
-				String[] line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				String fid = line[GenomeLoader.FID1_INDEX];
 				String iid = line[GenomeLoader.IID1_INDEX];
 
@@ -361,7 +363,6 @@ public class PlinkMendelianChecker {
 
 
 	public void run() {
-		Pedigree ped;
 		SampleData sampleData = null;
 		SampleQC sampQC = null;
 		String[] samples = null;
@@ -373,8 +374,6 @@ public class PlinkMendelianChecker {
 		PrintWriter writer;
 		GenomeLoader gl = null;
 		MendelLoader ml = null;
-
-		ped = new Pedigree(project, pedFile);
 
 		if (project != null) {
 			System.out.println(ext.getTime() + "]\tLoading Project data...");
@@ -608,12 +607,12 @@ public class PlinkMendelianChecker {
 
 			if (gl != null) {
 
-				HashMap<String, String> genoLines = gl.pairData.get(ped.getFID(i) + "\t" + ped.getIID(i));
+				HashMap<String, String> genoLines = gl.pairData.get(getGenomeFIDIID(i));
 
-				String key = ped.getFID(i) + "\t" + ped.getFA(i);
+				String key = getGenomeFatherFIDIID(i);
 				if (genoLines == null || (!".".equals(faDNA) && !genoLines.containsKey(key))) {
 					genoLines = gl.pairData.get(key);
-					key = ped.getFID(i) + "\t" + ped.getIID(i);
+					key = getGenomeFIDIID(i);
 				}
 
 				if (genoLines == null || ".".equals(faDNA) || !genoLines.containsKey(key)) {
@@ -626,12 +625,12 @@ public class PlinkMendelianChecker {
 						.append("\t").append(tmpGL[9]).append("\t");
 				}
 
-				genoLines = gl.pairData.get(ped.getFID(i) + "\t" + ped.getIID(i));
+				genoLines = gl.pairData.get(getGenomeFIDIID(i));
 
-				key = ped.getFID(i) + "\t" + ped.getMO(i);
+				key = getGenomeMotherFIDIID(i);
 				if (genoLines == null || (!".".equals(moDNA) && !genoLines.containsKey(key))) {
 					genoLines = gl.pairData.get(key);
-					key = ped.getFID(i) + "\t" + ped.getIID(i);
+					key = getGenomeFIDIID(i);
 				}
 
 				if (genoLines == null || ".".equals(moDNA) || !genoLines.containsKey(key)) {
@@ -790,6 +789,60 @@ public class PlinkMendelianChecker {
 		writeFamily(gl, pedToFAMO, childrenMap, dnaLookup, idLookup);
 	}
 
+	private String getGenomeFID(int i) {
+		return genomeDNA ? ped.getiDNA(i) : ped.getFID(i);
+	}
+
+	private String getGenomeIID(int i) {
+		return genomeDNA ? ped.getiDNA(i) : ped.getIID(i);
+	}
+
+	private String getGenomeFIDIID(int i) {
+		return genomeDNA ? ped.getiDNA(i) + "\t" + ped.getiDNA(i)
+										 : ped.getFID(i) + "\t" + ped.getIID(i);
+	}
+
+	private String formGenomeFIDIID(String fidiid) {
+		if (genomeDNA) {
+			int i = ped.getIndIndex(fidiid);
+			if (i < 0)
+				throw new IllegalArgumentException("Invalid fidiid: " + fidiid);
+			String dna = ped.getiDNA(i);
+			return dna + "\t" + dna;
+		} else {
+			return fidiid;
+		}
+	}
+
+	private String getGenomeFatherFIDIID(int i) {
+		String fid;
+		String iid;
+		if (genomeDNA) {
+			int faIndex = ped.getIndexOfFaInIDs(i);
+			iid = faIndex < 0 ? "." : ped.getiDNA(faIndex);
+			fid = iid;
+		} else {
+			fid = ped.getFID(i);
+			iid = ped.getFA(i);
+		}
+		return fid + "\t" + iid;
+	}
+
+	private String getGenomeMotherFIDIID(int i) {
+		String fid;
+		String iid;
+		if (genomeDNA) {
+			int moIndex = ped.getIndexOfMoInIDs(i);
+			iid = moIndex < 0 ? "." : ped.getiDNA(moIndex);
+			fid = iid;
+		} else {
+			fid = ped.getFID(i);
+			iid = ped.getMO(i);
+		}
+		return fid + "\t" + iid;
+
+	}
+
 	private void writeFamily(GenomeLoader gl, HashMap<String, String[]> pedToFAMO,
 													 HashMap<String, ArrayList<String>> childrenMap,
 													 HashMap<String, String> dnaLookup, HashMap<String, String> idLookup) {
@@ -845,12 +898,12 @@ public class PlinkMendelianChecker {
 						if (parentDNA == null || childDNA == null) {
 							sb.append(".\t.\t.\t.\t.\t.\t");
 						} else {
-
-							HashMap<String, String> genoData = gl.pairData.get(fidiid);
-							String key = childFIDIID;
+							String genoFIDIID = formGenomeFIDIID(fidiid);
+							HashMap<String, String> genoData = gl.pairData.get(genoFIDIID);
+							String key = formGenomeFIDIID(childFIDIID);
 							if (genoData == null || !genoData.containsKey(key)) {
 								genoData = gl.pairData.get(key);
-								key = fidiid;
+								key = genoFIDIID;
 							}
 
 							if (genoData != null) {
@@ -917,12 +970,13 @@ public class PlinkMendelianChecker {
 						if (childDNA == null || otherChildDNA == null) {
 							sb.append(".\t.\t.\t.\t.\t.\t");
 						} else {
-							HashMap<String, String> genoData = gl.pairData.get(childFIDIID);
+							String genoChildFIDIID = formGenomeFIDIID(childFIDIID);
+							HashMap<String, String> genoData = gl.pairData.get(genoChildFIDIID);
 
-							String key = otherChild;
+							String key = formGenomeFIDIID(otherChild);
 							if (genoData == null || !genoData.containsKey(key)) {
 								genoData = gl.pairData.get(key);
-								key = childFIDIID;
+								key = genoChildFIDIID;
 							}
 
 							if (genoData != null) {
@@ -975,12 +1029,13 @@ public class PlinkMendelianChecker {
 						if (childDNA == null || halfSibDNA == null) {
 							sb.append(".\t.\t.\t.\t.\t.\t");
 						} else {
-							HashMap<String, String> genoData = gl.pairData.get(childFIDIID);
+							String genoChildFIDIID = formGenomeFIDIID(childFIDIID);
+							HashMap<String, String> genoData = gl.pairData.get(genoChildFIDIID);
 
-							String key = halfSib;
+							String key = formGenomeFIDIID(halfSib);
 							if (genoData == null || !genoData.containsKey(key)) {
 								genoData = gl.pairData.get(key);
-								key = childFIDIID;
+								key = genoChildFIDIID;
 							}
 
 							if (genoData != null) {
@@ -1016,21 +1071,23 @@ public class PlinkMendelianChecker {
 				sb = new StringBuilder();
 				String[] parts = unrelLine.split(PSF.Regex.GREEDY_WHITESPACE);
 
-				String fidiid1 = idLookup.get(parts[0]);
-				String fidiid2 = idLookup.get(parts[2]);
-
-				if (fidiid1 != null) {
-					sb.append(fidiid1).append("\t");
+				String fidiid1;
+				String dna1;
+				String fidiid2;
+				String dna2;
+				if (genomeDNA) {
+					dna1 = parts[0];
+					dna2 = parts[2];
+					fidiid1 = idLookup.get(dna1);
+					fidiid2 = idLookup.get(dna2);
 				} else {
-					sb.append(parts[0]).append("\t").append(parts[1]).append("\t");
+					fidiid1 = parts[0] + "\t" + parts[1];
+					fidiid2 = parts[2] + "\t" + parts[3];
+					dna1 = ped.getiDNA(ped.getIndIndex(fidiid1));
+					dna2 = ped.getiDNA(ped.getIndIndex(fidiid2));
 				}
-				sb.append(".\t");
-				if (fidiid2 != null) {
-					sb.append(fidiid2).append("\t");
-				} else {
-					sb.append(parts[2]).append("\t").append(parts[3]).append("\t");
-				}
-				sb.append(".\t");
+				sb.append(fidiid1).append("\t").append(dna1).append("\t");
+				sb.append(fidiid2).append("\t").append(dna2).append("\t");
 				sb.append("UN").append("\t").append(parts[6]).append("\t").append(parts[7]).append("\t")
 					.append(parts[8]).append("\t").append(parts[9]).append("\t");
 				String rel = deriveRelationship(parts[6], parts[7], parts[8], parts[9]);
