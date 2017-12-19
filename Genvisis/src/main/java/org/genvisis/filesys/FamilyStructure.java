@@ -121,9 +121,24 @@ public class FamilyStructure {
 		return ids;
 	}
 
-	public int getIndIndex(String fid, String iid) {
-		Integer index = getfidiidToIndexMap().get(fid + "\t" + iid);
+	/**
+	 * 
+	 * @param fidiid the FID and IID of the individual, separated by a tab
+	 * @return the index of the provided fidiid in the {@link FamilyStructure} or -1 for missing
+	 */
+	public int getIndIndex(String fidiid) {
+		Integer index = getfidiidToIndexMap().get(fidiid);
 		return index == null ? -1 : index;
+	}
+
+	/**
+	 * 
+	 * @param fid
+	 * @param iid
+	 * @return the index of the provided fidiid in the {@link FamilyStructure} or -1 for missing
+	 */
+	public int getIndIndex(String fid, String iid) {
+		return getIndIndex(fid + "\t" + iid);
 	}
 
 	public HashMap<String, Integer> getfidiidToIndexMap() {
