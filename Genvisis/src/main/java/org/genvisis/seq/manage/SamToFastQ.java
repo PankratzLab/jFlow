@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genvisis.seq.analysis.mtdna;
+package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,38 +10,46 @@ import java.util.concurrent.Callable;
 import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.common.ext;
-import org.genvisis.seq.manage.BamOps;
 
 /**
- * @author Kitty
+ *
  * 
- *         Prepares bam input for genotyping
+ * Prepares bam input for re-genotyping by handling bam-> fastq conversion.
  *
  */
-public class MtDNAGenotypePrep {
-	private MtDNAGenotypePrep() {
+public class SamToFastQ {
+	private SamToFastQ() {
 
 	}
 
+	/**
+	 * @param inputBam bam to convert
+	 * @param samToFastQLoc path to picard.jar, or path to SamToFastq.jar
+	 * @param r1 output fastq for
+	 * @param r2
+	 * @param log
+	 * @return
+	 */
 	private static boolean convertToFasta(String inputBam, String samToFastQLoc, String r1, String r2,
 																				Logger log) {
 		String[] inputs = new String[] {inputBam};
 		String[] outputs = new String[] {r1, r2};
-		ArrayList<String> command = new ArrayList<String>();
+		ArrayList<String> command = new ArrayList<>();
 		command.add("java");
 		command.add("-jar");
 		command.add(samToFastQLoc);
-		command.add("I=");
-		command.add(inputBam);
-		command.add("F=");
-		command.add(r1);
-		command.add("F2=");
-		command.add(r2);
+		if (samToFastQLoc.endsWith("picard.jar")) {
+			command.add("SamToFastq");
+		}
+		command.add("I=" + inputBam);
+		command.add("F=" + r1);
+		command.add("F2=" + r2);
 
 		return CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", inputs, outputs,
 																						true, false, false, log);
@@ -50,9 +58,12 @@ public class MtDNAGenotypePrep {
 	private static void prepBams(String bams, final String outDir, final String tag,
 															 final String samToFastQ, int numThreads) {
 		new File(outDir).mkdirs();
-		final Logger log = new Logger(outDir + "mtdnaPrep.log");
-		final String[] bamsFiles = HashVec.loadFileToStringArray(bams, false, new int[] {0}, true);
-		log.reportTimeInfo("Found " + bamsFiles.length + " bams");
+		final Logger log = new Logger(outDir + "samToFastq.log");
+		final String[] bamsFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams, ".bam")
+																											 : HashVec.loadFileToStringArray(bams, false,
+																																											 new int[] {0},
+																																											 true);
+		log.reportTimeInfo("Found " + bamsFiles.length + " bams from input " + bams);
 
 		Producer<Boolean> prepProducer = new Producer<Boolean>() {
 			private int index = 0;
@@ -73,11 +84,14 @@ public class MtDNAGenotypePrep {
 					public Boolean call() throws Exception {
 						String sampleName = null;
 						try {
+							if (BamOps.getHeader(bamFile, log).getReadGroups().size() != 1) {
+								throw new IllegalArgumentException("This method currently supports bam to .fastq conversion for 1 and only 1 PE readgroups");
+							}
 							sampleName = BamOps.getSampleName(bamFile, log);
 							String rootOut = outDir + (tag == null ? "" : tag + "-") + sampleName
 															 + "_UUUUU-UUUUU_L001_.fastq";
-							String r1 = ext.addToRoot(rootOut, "R1_001");
-							String r2 = ext.addToRoot(rootOut, "R2_001");
+							String r1 = ext.addToRoot(rootOut, "R1_001") + ".gz";
+							String r2 = ext.addToRoot(rootOut, "R2_001") + ".gz";
 							boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
 
 							if (!success) {
@@ -107,15 +121,19 @@ public class MtDNAGenotypePrep {
 				//
 			}
 		};
-		WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(prepProducer, numThreads, 10, log);
+		WorkerTrain<Boolean> train = new WorkerTrain<>(prepProducer, numThreads, 10, log);
 		while (train.hasNext()) {
 			train.next();
 		}
 	}
 
+
+
 	public static void main(String[] args) {
-		CLI c = new CLI(MtDNAGenotypePrep.class);
-		c.addArgWithDefault("bams", "file listing bam files to analyze, one per line", "bams.txt");
+		CLI c = new CLI(SamToFastQ.class);
+		c.addArgWithDefault("bams",
+												"file listing bam files to analyze, one per line - or a directory of bams",
+												"bams.txt");
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "out/");
 		c.addArgWithDefault("samToFastq", "full path to SamToFastq.jar", "SamToFastq.jar");
 		c.addArgWithDefault("tag", "custom ID tag to add to files", null);
