@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.swing.SwingUtilities;
@@ -47,6 +48,8 @@ import org.genvisis.filesys.Segment;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
@@ -180,6 +183,113 @@ public class SampleData {
 
 	}
 
+	public static class ClassHeader {
+
+		private static final String CLASS_HEADER_PREFIX = "Class=";
+		private static final String KEY_VALUE_DELIM = "=";
+		private static final String OPTIONS_DELIM = ";";
+
+		private final String name;
+		private final ImmutableBiMap<Integer, String> codeOptions;
+
+		/**
+		 * Construct a ClassHeader from a column header
+		 * 
+		 * @param header the header of the class column (in format Class=#=Key;#=Key...)
+		 * @param log for error reporting
+		 */
+		public ClassHeader(String header, Logger log) {
+			String[] line = header.split(OPTIONS_DELIM);
+			name = line[0].split(KEY_VALUE_DELIM)[1];
+			ImmutableBiMap.Builder<Integer, String> codeOptionsBuilder = ImmutableBiMap.builder();
+			for (int i = 1; i < line.length; i++) {
+				String[] optionLine = line[i].split(KEY_VALUE_DELIM);
+				if (optionLine.length != 2) {
+					log.reportError("Invalid key for class '" + name + "'; must use format #=Key (not '"
+													+ line[i] + "'), separated by semicolons");
+				}
+				try {
+					int code = Integer.parseInt(optionLine[0]);
+					String option = optionLine[1];
+					codeOptionsBuilder.put(code, option);
+				} catch (NumberFormatException nfe) {
+					log.reportError("Invalid numeric code for class '" + name
+													+ "'; must use format #=Key (not '" + line[i]
+													+ "'), separated by semicolons");
+				}
+			}
+			codeOptions = codeOptionsBuilder.build();
+		}
+
+		/**
+		 * @param name the name of the class
+		 * @param codeOptions a BiMap from the code for each option to the name of the option
+		 */
+		protected ClassHeader(String name, BiMap<Integer, String> codeOptions) {
+			super();
+			this.name = name;
+			this.codeOptions = ImmutableBiMap.copyOf(codeOptions);
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public BiMap<Integer, String> getCodeOptions() {
+			return codeOptions;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((codeOptions == null) ? 0 : codeOptions.hashCode());
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			ClassHeader other = (ClassHeader) obj;
+			if (codeOptions == null) {
+				if (other.codeOptions != null)
+					return false;
+			} else if (!codeOptions.equals(other.codeOptions))
+				return false;
+			if (name == null) {
+				if (other.name != null)
+					return false;
+			} else if (!name.equals(other.name))
+				return false;
+			return true;
+		}
+
+		/**
+		 * returns the header String for the ClassHeader
+		 */
+		@Override
+		public String toString() {
+			return generateClassHeaderLabel(name) + OPTIONS_DELIM
+						 + codeOptions.entrySet().stream().map(e -> e.getKey() + KEY_VALUE_DELIM + e.getValue())
+													.collect(Collectors.joining(OPTIONS_DELIM));
+		}
+
+		public static String generateClassHeaderLabel(String name) {
+			return CLASS_HEADER_PREFIX + name;
+		}
+
+	}
+
+	public enum SampleID {
+		FID_IID, DNA;
+	}
+
 	private static final String[][] VOID_CLASSES = {};
 	public static final String HEATMAP = "Heat map";
 	public static final String GENOTYPE = "Genotype";
@@ -230,9 +340,8 @@ public class SampleData {
 	private final String[] basicClasses;
 	private final String[] filters;
 	private final String[] covars;
-	private String[] classes;
+	private ClassHeader[] classes;
 	private final Map<String, Integer> metaIndices;
-	private final String[][][] classColorKeys;
 	private String[] cnvClasses;
 	private String[] plinkClasses;
 	// private Hashtable<String,String> sampleLookup;
@@ -393,31 +502,23 @@ public class SampleData {
 			for (int i = 0; i < covars.length; i++) {
 				covars[i] = header[covarIs.elementAt(i)].split("=")[1];
 			}
-			classes = new String[classIs.size()];
-			classColorKeys = new String[classIs.size()][][];
+			classes = new ClassHeader[classIs.size()];
 			for (int i = 0; i < classes.length; i++) {
-				line = header[classIs.elementAt(i)].split(";");
-				classes[i] = line[0].split("=")[1];
-				classColorKeys[i] = new String[line.length - 1][];
-				for (int j = 1; j < line.length; j++) {
-					classColorKeys[i][j - 1] = line[j].split("=");
-					if (classColorKeys[i][j - 1].length != 2) {
-						log.reportError("Error - invalid key for class '" + classes[i]
-														+ "'; must use format #=Key (not '" + line[j]
-														+ "'), separated by semicolons");
-						classColorKeys[i][j - 1] = new String[0];
-					}
-				}
+				classes[i] = new ClassHeader(header[classIs.elementAt(i)], log);
 			}
 
-			sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classes, true, false, true,
+			String[] classNames = Arrays.stream(classes).map(ClassHeader::getName).toArray(String[]::new);
+
+			sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classNames, true, false, true,
 																			 log.getLevel() >= 1 ? true : false, log)[0];
 
-			classColorKeys[sexClassIndex] = new String[][] {{"1", "Male"}, {"2", "Female"}};
+			classes[sexClassIndex] = new ClassHeader(classes[sexClassIndex].getName(),
+																							 ImmutableBiMap.of(1, "Male", 2, "Female"));
 
-			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classes, false, false,
+			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classNames, false,
+																					 false,
 																					 true, log.getLevel() >= 1 ? true : false, log)[0];
-			log.report("Class list: " + ArrayUtils.toStr(classes), true, true, 1);
+			log.report("Class list: " + ArrayUtils.toStr(classNames), true, true, 1);
 
 			sexCountHash = new CountVector();
 			sampleHash = new Hashtable<String, IndiPheno>();
@@ -773,7 +874,7 @@ public class SampleData {
 		if (!includeBasicClasses && classes == null) {
 			result = new String[0];
 		} else if (!includeBasicClasses && classes != null) {
-			result = classes;
+			result = Arrays.stream(classes).map(ClassHeader::getName).toArray(String[]::new);
 		} else if (includeBasicClasses && classes == null) {
 			result = basicClasses;
 		} else {
@@ -782,7 +883,7 @@ public class SampleData {
 				result[i] = basicClasses[i];
 			}
 			for (int i = 0; i < classes.length; i++) {
-				result[i + basicClasses.length] = classes[i];
+				result[i + basicClasses.length] = classes[i].getName();
 			}
 		}
 
@@ -960,7 +1061,7 @@ public class SampleData {
 			case 0:
 				return basicClasses[indices[1]];
 			case 1:
-				return classes[indices[1]];
+				return classes[indices[1]].getName();
 			case 2:
 				return cnvClasses[indices[1]];
 			case 3:
@@ -971,18 +1072,35 @@ public class SampleData {
 	}
 
 	public String getActualClassName(int index) {
-		return classes[index];
+		return classes[index].getName();
 	}
 
 	/**
+	 * @deprecated requires generating array, use {@link #getActualClassHeader(int)} instead
+	 * 
 	 * @return The names/values for the given CLASS= index, or an empty array if the index is not
 	 *         valid.
 	 */
+	@Deprecated
 	public String[][] getActualClassColorKey(int index) {
-		if (index < 0 || index >= classColorKeys.length) {
+		ClassHeader classHeader = getActualClassHeader(index);
+		if (classHeader == null)
 			return VOID_CLASSES;
+		return classHeader.getCodeOptions().entrySet().stream()
+											.map(entry -> new String[] {String.valueOf(entry.getKey()), entry.getValue()})
+											.toArray(String[][]::new);
+	}
+
+	/**
+	 * 
+	 * @param index
+	 * @return the ClassHeader for the specified index or null if out of range
+	 */
+	public ClassHeader getActualClassHeader(int index) {
+		if (index < 0 || index >= classes.length) {
+			return null;
 		}
-		return classColorKeys[index];
+		return classes[index];
 	}
 
 	public byte determineCodeFromClass(int currentClass, byte alleleCount, IndiPheno indi, byte chr,
@@ -1479,7 +1597,7 @@ public class SampleData {
 						// TODO check for new classes/filters/etc
 						for (String header : columnHeaders) {
 							if (header.toUpperCase().startsWith("CLASS=")) {
-								classes = ArrayUtils.addStrToArray(header.split("=")[1], classes);
+								classes = ArrayUtils.appendToArray(classes, new ClassHeader(header, log));
 							}
 						}
 
@@ -1667,6 +1785,79 @@ public class SampleData {
 		return replace;
 	}
 
+	/**
+	 * 
+	 * @param newSampleDataColumns columns of data to add for new samples
+	 * @param columnHeaders names of data columns to add. Columns can be existing columns or new
+	 *        columns. New columns will be set to "." for all existing samples and all columns not
+	 *        included will be set to "." for new samples
+	 * @return true if successful
+	 */
+	public boolean addSamples(String[][] newSampleDataColumns, String[] columnHeaders) {
+		Logger log = proj.getLog();
+
+		int dnaIndex = ext.indexOfStr("DNA", columnHeaders);
+		int famIndex = ext.indexOfStr("FID", columnHeaders);
+		int indIndex = ext.indexOfStr("IID", columnHeaders);
+		if (dnaIndex < 0 && (famIndex < 0 || indIndex < 0)) {
+			log.reportError("Cannot add samples to SampleData without DNA or FID/IID");
+			return false;
+		}
+		if (dnaIndex >= 0) {
+			for (String[] newSample : newSampleDataColumns) {
+				if (lookup(newSample[dnaIndex]) != null) {
+					log.reportError("Sample DNA collision: " + newSample[dnaIndex]);
+					return false;
+				}
+			}
+		}
+		if (famIndex >= 0 && indIndex >= 0) {
+			for (String[] newSample : newSampleDataColumns) {
+				if (lookup(newSample[famIndex] + "\t" + newSample[indIndex]) != null) {
+					log.reportError("Sample DNA collision: " + newSample[dnaIndex]);
+					return false;
+				}
+			}
+		}
+
+		String bakFile = backupSampleData(proj, log);
+		if (bakFile == null) {
+			return false;
+		}
+
+		String[] existingHeader = Files.getHeaderOfFile(proj.SAMPLE_DATA_FILENAME.getValue(), log);
+		int[] insertColumns = ext.indexFactors(columnHeaders, existingHeader, true, log, false);
+		String[] newHeader = Arrays.copyOf(existingHeader, existingHeader.length
+																											 + ArrayUtils.countIf(insertColumns, -1));
+		int nextIndex = existingHeader.length;
+		for (int i = 0; i < insertColumns.length; i++) {
+			if (insertColumns[i] == -1) {
+				insertColumns[i] = nextIndex;
+				newHeader[nextIndex] = columnHeaders[i];
+				nextIndex++;
+			}
+		}
+
+		String[][] oldSampleData = HashVec.loadFileToStringMatrix(proj.SAMPLE_DATA_FILENAME.getValue(),
+																															true, null);
+		String[][] newSampleData = new String[oldSampleData.length + newSampleDataColumns.length][];
+		for (int i = 0; i < oldSampleData.length; i++) {
+			newSampleData[i] = Arrays.copyOf(oldSampleData[i], newHeader.length);
+			Arrays.fill(newSampleData[i], oldSampleData[i].length, newSampleData[i].length, ".");
+		}
+		for (int i = oldSampleData.length; i < newSampleData.length; i++) {
+			newSampleData[i] = ArrayUtils.stringArray(newHeader.length, ".");
+			for (int j = 0; j < insertColumns.length; j++) {
+				newSampleData[i][insertColumns[j]] = newSampleDataColumns[i - oldSampleData.length][j];
+			}
+		}
+		Files.writeMatrix(newHeader, newSampleData, proj.SAMPLE_DATA_FILENAME.getValue(), "\t");
+
+		proj.resetSampleData();
+
+		return true;
+	}
+
 	private static String backupSampleData(Project proj, Logger log) {
 		String sampleDatafilename = proj.SAMPLE_DATA_FILENAME.getValue();
 		String bakDir = proj.BACKUP_DIRECTORY.getValue(true, true);
@@ -1809,8 +2000,8 @@ public class SampleData {
 															line[indices[3]], line[indices[4]], line[indices[5]],
 															line[indices[6]]);
 				al.add(indi);
-				if (!sampSet.remove(indi.iid)) {
-					foundMissing.add(indi.iid);
+				if (!sampSet.remove(indi.dna)) {
+					foundMissing.add(indi.dna);
 				}
 			}
 			temp = null;
@@ -1820,8 +2011,8 @@ public class SampleData {
 															line[indices[3]], line[indices[4]], line[indices[5]],
 															line[indices[6]]);
 				al.add(indi);
-				if (!sampSet.remove(indi.iid)) {
-					foundMissing.add(indi.iid);
+				if (!sampSet.remove(indi.dna)) {
+					foundMissing.add(indi.dna);
 				}
 			}
 			reader.close();
@@ -1834,13 +2025,13 @@ public class SampleData {
 		}
 		if (foundMissing.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + foundMissing.size()
-											+ " IIDs in Pedigree file that do not have data files.");
-			log.reportError("\tMissing IIDs: " + foundMissing.toString());
+											+ " DNAs in Pedigree file that do not have data files.");
+			log.reportError("\tMissing DNAs: " + foundMissing.toString());
 		}
 		if (sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + sampSet.size()
-											+ " IIDs with data files not listed in Pedigree file.");
-			log.reportError("\tMissing IIDs: " + sampSet.toString());
+											+ " DNAs with data files not listed in Pedigree file.");
+			log.reportError("\tMissing DNAs: " + sampSet.toString());
 		}
 		if (foundMissing.size() > 0 || sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - please fix your Pedigree file to represent all individuals with data files.");
@@ -1892,13 +2083,13 @@ public class SampleData {
 		}
 		if (foundMissing.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + foundMissing.size()
-											+ " IIDs in Sample_Map file that do not have data files.");
-			log.reportError("\tMissing IIDs: " + foundMissing.toString());
+											+ " DNAs in Sample_Map file that do not have data files.");
+			log.reportError("\tMissing DNAs: " + foundMissing.toString());
 		}
 		if (sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - found " + sampSet.size()
-											+ " IIDs with data files not listed in Sample_Map file.");
-			log.reportError("\tMissing IIDs: " + sampSet.toString());
+											+ " DNAs with data files not listed in Sample_Map file.");
+			log.reportError("\tMissing DNAs: " + sampSet.toString());
 		}
 		if (foundMissing.size() > 0 || sampSet.size() > 0) {
 			log.reportError("MAJOR ERROR - please fix your Sample_Map file to represent all individuals with data files.");

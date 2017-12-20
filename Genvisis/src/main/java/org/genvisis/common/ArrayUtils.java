@@ -4382,6 +4382,36 @@ public class ArrayUtils {
 	}
 
 	/**
+	 * Add entries to the end of an array
+	 * 
+	 * @param array
+	 * @param additions
+	 * @return a new array consisting of the entries in array with the entries in additions appended
+	 *         to the end
+	 */
+	@SafeVarargs
+	public static <T> T[] appendToArray(T[] array, T... additions) {
+		T[] newArray = Arrays.copyOf(array, array.length + additions.length);
+		for (int i = 0; i < additions.length; i++) {
+			newArray[i + array.length] = additions[i];
+		}
+		return newArray;
+	}
+
+	/**
+	 * add a single entry to the end of an array
+	 * 
+	 * @param array
+	 * @param addition
+	 * @return a new array consisting of the entries in array with addition appended to the end
+	 */
+	public static <T> T[] appendToArray(T[] array, T addition) {
+		T[] newArray = Arrays.copyOf(array, array.length + 1);
+		newArray[array.length] = addition;
+		return newArray;
+	}
+
+	/**
 	 * Adds specified String to the end of an array
 	 *
 	 * @param array an array of Strings

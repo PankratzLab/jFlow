@@ -1,21 +1,36 @@
 package org.genvisis.gwas;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.Hashtable;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 
 
 
@@ -25,8 +40,76 @@ public class Ancestry {
 	public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
 	public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
+	private static final String HAPMAP_CLASS_NAME = "HapMap";
+	private static final String EIGENSTRAT_OUTPUT_NAME = "combo_fancy_postnormed_eigens.xln";
+	private static final String EIGENSTRAT_IID_LABEL = "IID";
+	private static final String EIGENSTRAT_FID_LABEL = "FID";
+	private static final String EIGENSTRAT_PC1_LABEL = "C1";
+	private static final String EIGENSTRAT_PC2_LABEL = "C2";
+
+	private static enum HapMapPopulation {
+		CEU,
+		YRI,
+		CHB,
+		JPT;
+	}
+
 	public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
 		runPipeline(dir, putativeWhitesFile, null, proj, log);
+	}
+
+	private static Project createDummyProject(String dir, String dummyProjectPrefix,
+																						String putativeWhitesFile, Logger log) {
+		String projectName = dummyProjectPrefix + "_AncestryResults";
+		String projFilename = MitoPipeline.initGenvisisProject() + projectName
+													+ MitoPipeline.PROJECT_EXT;
+		Files.write((new Project()).PROJECT_NAME.getName() + "=" + projectName, projFilename);
+		Project dummyProject = new Project(projFilename, null, false);
+		dummyProject.PROJECT_NAME.setValue(projectName);
+		dummyProject.PROJECT_DIRECTORY.setValue(dir);
+		dummyProject.saveProperties();
+
+		String plinkFamFile = dir + "plink.fam";
+		String[][] plinkFam = HashVec.loadFileToStringMatrix(plinkFamFile, false, null);
+		String[] dummySampleList = new String[plinkFam.length];
+		String[][] dummyPedigree = new String[plinkFam.length][];
+		for (int i = 0; i < plinkFam.length; i++) {
+			String dummyDNA = plinkFam[i][0] + "_" + plinkFam[i][1];
+			dummySampleList[i] = dummyDNA;
+			dummyPedigree[i] = ArrayUtils.addStrToArray(dummyDNA, plinkFam[i]);
+		}
+		new SampleList(dummySampleList).serialize(dummyProject.SAMPLELIST_FILENAME.getValue());
+		Files.writeMatrix(dummyPedigree, dummyProject.PEDIGREE_FILENAME.getValue(), "\t");
+		try {
+			SampleData.createSampleData(dummyProject.PEDIGREE_FILENAME.getValue(), null, dummyProject);
+		} catch (Elision e) {
+			log.reportError("Could not generate Sample Data for dummy project "
+											+ dummyProject.getPropertyFilename()
+											+ ", ancestry results cannot be visualized");
+			return null;
+		}
+		return dummyProject;
+	}
+
+	private static void maybeAddHapMapToSampleData(Project proj,
+																								 SampleData.ClassHeader hapMapClassHeader,
+																								 Table<String, String, HapMapPopulation> hapmaps) {
+		if (!proj.getSampleData(false).hasClass(HAPMAP_CLASS_NAME)) {
+			String[] hapMapColumnHeaders = new String[] {"FID", "IID", "DNA",
+																									 hapMapClassHeader.toString()};
+			Map<String, Integer> hapMapCodes = hapMapClassHeader.getCodeOptions().inverse();
+			String[][] hapMapColumnData = new String[hapmaps.size()][hapMapColumnHeaders.length];
+			int i = 0;
+			for (Table.Cell<String, String, HapMapPopulation> hapMapCell : hapmaps.cellSet()) {
+				String fid = hapMapCell.getRowKey();
+				String iid = hapMapCell.getColumnKey();
+				HapMapPopulation pop = hapMapCell.getValue();
+				hapMapColumnData[i++] = new String[] {fid, iid, iid,
+																							hapMapCodes.get(pop.toString()).toString()};
+			}
+
+			proj.getSampleData(false).addSamples(hapMapColumnData, hapMapColumnHeaders);
+		}
 	}
 
 	public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
@@ -42,11 +125,12 @@ public class Ancestry {
 		String homogeneityDrops = parseHomogeneity(dir, log);
 		mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 		runEigenstrat(dir);
-		imputeRace(dir, proj);
+		imputeRace(dir, proj, log);
 	}
 
-	public static void checkHomogeneity(String dir, String putativeWhitesFile,
-																			String projectPlinkRoot, String hapMapPlinkRoot, Logger log) {
+	private static void checkHomogeneity(String dir, String putativeWhitesFile,
+																			 String projectPlinkRoot, String hapMapPlinkRoot,
+																			 Logger log) {
 		String homoDir = dir + "homogeneity/";
 		String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
@@ -61,7 +145,7 @@ public class Ancestry {
 		MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
 	}
 
-	public static String parseHomogeneity(String dir, Logger log) {
+	private static String parseHomogeneity(String dir, Logger log) {
 		int rOuts = Files.list(dir + "homogeneity/", ".Rout").length;
 		if (rOuts == 0) {
 			log.report("No Fisher's Exact results found, using Chi Square to choose homogeneous markers");
@@ -71,8 +155,8 @@ public class Ancestry {
 		return dir + "homogeneity/" + MergeDatasets.FISHER_OR_CHI_SQUARE_DROPS_FILENAME;
 	}
 
-	public static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
-																 String dropMarkersFile, Logger log) {
+	private static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
+																	String dropMarkersFile, Logger log) {
 		if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
 			log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
 											+ " with FID and IID pairs before we can proceed");
@@ -147,7 +231,7 @@ public class Ancestry {
 		}
 	}
 
-	public static void runEigenstrat(String dir) {
+	private static void runEigenstrat(String dir) {
 		Logger log;
 
 		dir = ext.verifyDirFormat(dir);
@@ -193,7 +277,7 @@ public class Ancestry {
 			CmdLine.runDefaults("convertf -p convertf.par", dir, log);
 		}
 
-		if (!Files.exists(dir + "combo_fancy_postnormed_eigens.xln")) {
+		if (!Files.exists(dir + EIGENSTRAT_OUTPUT_NAME)) {
 			CmdLine.runDefaults("plink2 --bfile unrelateds/plink --freq --out unrelateds/plink --noweb",
 													dir, log);
 			CmdLine.runDefaults(Files.getRunString()
@@ -202,96 +286,146 @@ public class Ancestry {
 		}
 	}
 
-	public static void imputeRace(String dir, Project proj) {
+	private static void imputeRace(String dir, @Nullable Project proj, Logger log) {
 		if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
-			String[][] pcResults = HashVec.loadFileToStringMatrix(dir
-																														+ "combo_fancy_postnormed_eigens.xln",
-																														true, new int[] {0, 1, 2, 3});
-
-			String sd = proj.SAMPLE_DATA_FILENAME.getValue();
-			String[] sdHeader = Files.getHeaderOfFile(sd, proj.getLog());
-			int fidIndex = ext.indexOfStr("FID", sdHeader, false, true);
-			int iidIndex = ext.indexOfStr("IID", sdHeader, false, true);
-			int hapIndex = ext.indexOfStr("Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT", sdHeader, false, true);
-			if (hapIndex < 0) {
-				proj.getLog().reportError("Cannot impute: no HapMap column in sample data.");
-				proj.getLog()
-						.reportError("Please create a column with header: \"Class=HapMap;1=CEU;2=YRI;3=CHB;4=JPT\"");
+			Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
+																																													 log);
+			if (fidIidHapMapPopTable == null)
 				return;
-			}
-			Hashtable<String, Hashtable<String, String>> hapmaps = HashVec.loadFileToHashHash(sd,
-																																												fidIndex,
-																																												iidIndex,
-																																												hapIndex,
-																																												true);
 
 			Set<PCImputeRace.Sample> samples = Sets.newHashSet();
 			Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
 			Set<PCImputeRace.Sample> africans = Sets.newHashSet();
 			Set<PCImputeRace.Sample> asians = Sets.newHashSet();
+			try (BufferedReader eigenReader = Files.getAppropriateReader(dir + EIGENSTRAT_OUTPUT_NAME)) {
+				String headerLine = eigenReader.readLine();
+				String delim = ext.determineDelimiter(headerLine);
+				String[] header = headerLine.split("\t");
+				Map<String, Integer> eigenstratIndices = ext.indexMap(new String[] {EIGENSTRAT_FID_LABEL,
+																																						EIGENSTRAT_IID_LABEL,
+																																						EIGENSTRAT_PC1_LABEL,
+																																						EIGENSTRAT_PC2_LABEL},
+																															header, true, false);
 
-			for (int i = 0; i < pcResults.length; i++) {
-
-
-				Map<String, String> iidTable = hapmaps.get(pcResults[i][0]);
-				if (iidTable == null || !iidTable.containsKey(pcResults[i][1])) {
-					continue;
-				}
-				String fid = pcResults[i][0];
-				String iid = pcResults[i][1];
-				double pc1;
-				double pc2;
-				try {
-					pc1 = Double.parseDouble(pcResults[i][2]);
-				} catch (NumberFormatException nfe) {
-					pc1 = Double.NaN;
-				}
-				try {
-					pc2 = Double.parseDouble(pcResults[i][3]);
-				} catch (NumberFormatException nfe) {
-					pc2 = Double.NaN;
-				}
-
-				PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
-				samples.add(sample);
-				try {
-					int race = Integer.parseInt(iidTable.get(pcResults[i][1]));
-					switch (race) {
-						case 1:
-							europeans.add(sample);
-							break;
-						case 2:
-							africans.add(sample);
-							break;
-						case 3:
-						case 4:
-							asians.add(sample);
-							break;
-						default:
-							break;
+				while (eigenReader.ready()) {
+					String[] line = eigenReader.readLine().split(delim);
+					String fid = line[eigenstratIndices.get(EIGENSTRAT_FID_LABEL)];
+					String iid = line[eigenstratIndices.get(EIGENSTRAT_IID_LABEL)];
+					double pc1;
+					double pc2;
+					try {
+						pc1 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC1_LABEL)]);
+					} catch (NumberFormatException nfe) {
+						pc1 = Double.NaN;
 					}
-				} catch (NumberFormatException nfe) {
-					// For non hap-map samples, don't add to a race set
+					try {
+						pc2 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC2_LABEL)]);
+					} catch (NumberFormatException nfe) {
+						pc2 = Double.NaN;
+					}
+
+					PCImputeRace.Sample sample = new PCImputeRace.Sample(fid, iid, pc1, pc2);
+					samples.add(sample);
+					HapMapPopulation hapMapPop = fidIidHapMapPopTable.get(fid, iid);
+					if (hapMapPop != null) {
+						switch (hapMapPop) {
+							case CEU:
+								europeans.add(sample);
+								break;
+							case YRI:
+								africans.add(sample);
+								break;
+							case CHB:
+							case JPT:
+								asians.add(sample);
+								break;
+							default:
+								log.reportError("Unexpected HapMap population ignored: " + hapMapPop);
+								break;
+						}
+					}
 				}
+			} catch (FileNotFoundException e) {
+				log.reportFileNotFound(dir + EIGENSTRAT_OUTPUT_NAME);
+			} catch (IOException e) {
+				log.reportIOException(dir + EIGENSTRAT_OUTPUT_NAME);
 			}
 
-			PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians,
-																					 proj.getLog());
+			PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians, log);
 			pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
 		} else {
-			proj.getLog().reportTimeWarning("Skipping imputation - output already exists: "
-																			+ (dir + RACE_IMPUTATIONAS_FILENAME));
+			log.reportTimeWarning("Skipping imputation - output already exists: "
+														+ (dir + RACE_IMPUTATIONAS_FILENAME));
 		}
 
 		if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
 			PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
-															 dir + RACE_FREQS_FILENAME, proj.getLog());
-		}
-		{
-			proj.getLog().reportTimeWarning("Skipping race freq calculation - output already exists: "
-																			+ (dir + RACE_FREQS_FILENAME));
+															 dir + RACE_FREQS_FILENAME, log);
+		} else {
+			log.reportTimeWarning("Skipping race freq calculation - output already exists: "
+														+ (dir + RACE_FREQS_FILENAME));
 		}
 
+	}
+
+	private static Table<String, String, HapMapPopulation> parseHapMapAncestries(@Nullable Project proj,
+																																							 Logger log) {
+		String hapMapAncestries = Resources.hapMap(log).getHapMapAncestries().get();
+		if (hapMapAncestries == null) {
+			log.reportError("Cannot impute race without the HapMap ancestries resource");
+			return null;
+		}
+		try (BufferedReader hapMapAncestryReader = Files.getAppropriateReader(hapMapAncestries)) {
+			String headerLine = hapMapAncestryReader.readLine();
+			String delimiter = ext.determineDelimiter(headerLine);
+			String[] ancestriesHeader = headerLine.split(delimiter);
+			int fidIndex = ext.indexOfStr("FID", ancestriesHeader, false, true);
+			int iidIndex = ext.indexOfStr("IID", ancestriesHeader, false, true);
+			int hapIndex = ext.indexOfStartsWith(SampleData.ClassHeader.generateClassHeaderLabel(HAPMAP_CLASS_NAME),
+																					 ancestriesHeader, false);
+			if (Collections.max(Arrays.asList(fidIndex, iidIndex, hapIndex)) < 0) {
+				log.reportError("Cannot impute: malformed HapMap ancestries resource: "
+												+ hapMapAncestries);
+				return null;
+			}
+			SampleData.ClassHeader hapMapClassHeader = new SampleData.ClassHeader(ancestriesHeader[hapIndex],
+																																						log);
+			Map<Integer, HapMapPopulation> hapMapCodeMap;
+			try {
+				hapMapCodeMap = hapMapClassHeader.getCodeOptions().entrySet().stream()
+																				 .collect(Collectors.toMap(Map.Entry::getKey,
+																																	 e -> HapMapPopulation.valueOf(e.getValue())));
+			} catch (IllegalArgumentException iae) {
+				log.reportError("Unexpected HapMap population");
+				log.reportException(iae);
+				return null;
+			}
+			ImmutableTable.Builder<String, String, HapMapPopulation> fidIidHapMapPopTableBuilder = ImmutableTable.builder();
+			while (hapMapAncestryReader.ready()) {
+				String[] line = hapMapAncestryReader.readLine().split(delimiter);
+				String fid = line[fidIndex];
+				String iid = line[iidIndex];
+				HapMapPopulation pop;
+				try {
+					pop = hapMapCodeMap.get(Integer.parseInt(line[hapIndex]));
+				} catch (NumberFormatException nfe) {
+					log.reportError("Non-numeric HapMap code: " + line[hapIndex]);
+					return null;
+				}
+				fidIidHapMapPopTableBuilder.put(fid, iid, pop);
+			}
+			Table<String, String, HapMapPopulation> fidIidHapMapPopTable = fidIidHapMapPopTableBuilder.build();
+			if (proj != null) {
+				maybeAddHapMapToSampleData(proj, hapMapClassHeader, fidIidHapMapPopTable);
+			}
+			return fidIidHapMapPopTable;
+		} catch (FileNotFoundException e) {
+			log.reportError("Cannot find " + hapMapAncestries + " to load HapMap ancestries");
+			return null;
+		} catch (IOException e) {
+			log.reportError("Error reading " + hapMapAncestries + " to load HapMap ancestries");
+			return null;
+		}
 	}
 
 
@@ -306,24 +440,28 @@ public class Ancestry {
 		boolean runPipeline = false;
 		boolean imputeRace = false;
 		Project proj = null;
+		String dummyProjectPrefix = null;
 		String logfile = null;
 		Logger log;
 
 		String usage = "\n" + "gwas.Ancestry requires 3+ arguments\n"
 									 + "   (1) Run directory with plink.* files and "
-									 + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir
-									 + " (default))\n"
+									 + RelationAncestryQc.UNRELATEDS_FILENAME + " (i.e. dir=" + dir + " (default))\n"
 									 + "   (2) PLINK root of Unambiguous HapMap Founders (i.e. hapMapPlinkRoot="
-									 + hapMapPlinkRoot + " (default))\n" + "   (3) Logfile (i.e. log="
-									 + "ancestry.log" + " (default))\n" + "  AND\n"
+									 + hapMapPlinkRoot + " (default))\n"
+									 + "   (3) Logfile (i.e. log=" + "ancestry.log" + " (default))\n"
+									 + "  AND\n"
 									 + "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))\n"
 									 + "  OR\n"
 									 + "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))\n"
 									 + "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n"
 									 + "  OR\n"
 									 + "   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))\n"
-									 + "  OR\n" + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
+									 + "  OR\n"
+									 + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
 									 + "   (9) Project properties file (i.e. proj=example.properties (not the default))\n"
+									 + "  OR\n"
+									 + "   (10) Prefix for dummy project to allow viewing of results when run without a project (i.e. dummyProject=example (not the default))\n"
 									 + "";
 
 		for (String arg : args) {
@@ -357,6 +495,9 @@ public class Ancestry {
 			} else if (arg.startsWith("proj")) {
 				proj = new Project(ext.parseStringArg(arg, "./"));
 				numArgs--;
+			} else if (arg.startsWith("dummyProject")) {
+				dummyProjectPrefix = ext.parseStringArg(arg, null);
+				numArgs--;
 			} else {
 				System.err.println("Error - invalid argument: " + arg);
 			}
@@ -374,6 +515,10 @@ public class Ancestry {
 		} else {
 			log = new Logger(logfile);
 		}
+		if (proj == null && dummyProjectPrefix != null) {
+			proj = createDummyProject(ext.verifyDirFormat(new File(dir).getAbsolutePath()),
+																dummyProjectPrefix, putativeWhites, log);
+		}
 		try {
 			if (runPipeline) {
 				runPipeline(dir, putativeWhites, hapMapPlinkRoot, proj, log);
@@ -384,12 +529,7 @@ public class Ancestry {
 				mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
 				runEigenstrat(dir);
 			} else if (imputeRace) {
-				if (proj == null) {
-					System.err.println("Project required for race imputation");
-					System.err.println(usage);
-					System.exit(1);
-				}
-				imputeRace(dir, proj);
+				imputeRace(dir, proj, log);
 			} else {
 				System.err.println(usage);
 				System.exit(1);

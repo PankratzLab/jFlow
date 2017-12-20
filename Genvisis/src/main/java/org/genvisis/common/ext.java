@@ -338,20 +338,39 @@ public class ext {
 	}
 
 	public static int indexOfStartsWith(String target, String[] array, boolean reverseNotForward) {
+		return indexOfStartsWith(target, array, reverseNotForward, true);
+	}
+
+	/**
+	 * 
+	 * @param target
+	 * @param array
+	 * @param reverseNotForward true to match on target starting with array entry, false to match on
+	 *        array entry starting with target
+	 * @param caseSensitive true for case sensitive match, false to ignore case
+	 * @return first index in array that matches criteria or -1 for no match
+	 */
+	public static int indexOfStartsWith(String target, String[] array, boolean reverseNotForward,
+																			boolean caseSensitive) {
+		String cleanTarget = maybeLowercase(target, !caseSensitive);
 		if (reverseNotForward) {
 			for (int i = 0; i < array.length; i++) {
-				if (target.startsWith(array[i])) {
+				if (cleanTarget.startsWith(maybeLowercase(array[i], !caseSensitive))) {
 					return i;
 				}
 			}
 		} else {
 			for (int i = 0; i < array.length; i++) {
-				if (array[i].startsWith(target)) {
+				if (maybeLowercase(array[i], !caseSensitive).startsWith(cleanTarget)) {
 					return i;
 				}
 			}
 		}
 		return -1;
+	}
+
+	private static String maybeLowercase(String source, boolean lowercase) {
+		return lowercase ? source.toLowerCase() : source;
 	}
 
 	public static int indexOfEndsWith(String target, String[] array, boolean reverseNotForward) {
