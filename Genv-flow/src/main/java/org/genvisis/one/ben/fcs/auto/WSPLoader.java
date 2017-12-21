@@ -41,7 +41,8 @@ public class WSPLoader {
 	final ArrayList<SampleNode> allSamples = new ArrayList<>();
 	final Logger log = new Logger();
 
-	public boolean loadWorkspaces(String wspDir) {
+	public boolean loadWorkspaces(String wspD) {
+		String wspDir = ext.verifyDirFormat(wspD);
 		File dir = new File(wspDir);
 		if (!dir.canRead()) {
 			log.reportError("Cannot read workspace files in directory " + wspDir);

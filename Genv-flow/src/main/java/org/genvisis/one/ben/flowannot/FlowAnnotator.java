@@ -59,13 +59,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.flowannot.AnnotatedImage.Annotation;
 import org.genvisis.one.ben.flowannot.IAnnotator.PANEL;
+
+import net.miginfocom.swing.MigLayout;
 
 public class FlowAnnotator {
 
@@ -185,7 +185,8 @@ public class FlowAnnotator {
 				&& Files.exists(lastOpenedAnnFileDir)) {
 			p.setProperty(KEY_LAST_DIR_ANN, lastOpenedAnnFileDir);
 		}
-		if (lastSavedAnnFile != null && !"".equals(lastSavedAnnFile) && Files.exists(lastSavedAnnFile)) {
+		if (lastSavedAnnFile != null && !"".equals(lastSavedAnnFile)
+				&& Files.exists(lastSavedAnnFile)) {
 			p.setProperty(KEY_LAST_FILE_ANN, lastSavedAnnFile);
 		}
 		if (lastSelectedGate != null && !"".equals(lastSelectedGate)) {
@@ -492,6 +493,12 @@ public class FlowAnnotator {
 		mnSaveAnn = new JMenu("Save Annotation Set To File");
 		mnFile.add(mnSaveAnn);
 
+		JMenuItem mntmExport = new JMenuItem();
+		mntmExport.setAction(exportAction);
+		mntmExport.setText("Export Annotated Samples List");
+		mntmExport.setMnemonic('E');
+		mnFile.add(mntmExport);
+
 		JMenuItem mntmExit = new JMenuItem();
 		mntmExit.setAction(new AbstractAction() {
 			@Override
@@ -545,7 +552,9 @@ public class FlowAnnotator {
 				if (fcs.isEmpty()) {
 					JOptionPane.showMessageDialog(FlowAnnotator.this.frmFlowannotator,
 																				"No files to search in panel "
-																						+ (p == PANEL.PANEL_1 ? "1" : "2") + "!");
+																																						 + (p == PANEL.PANEL_1 ? "1"
+																																																	 : "2")
+																																						 + "!");
 					return;
 				}
 				String[] v = fcs.toArray(new String[fcs.size()]);
@@ -1071,7 +1080,8 @@ public class FlowAnnotator {
 
 	private boolean saveAnnotations(boolean prompt) {
 		boolean ask = prompt
-									|| (null == lastSavedAnnFile || "".equals(lastSavedAnnFile) || !Files.exists(lastSavedAnnFile));
+									|| (null == lastSavedAnnFile || "".equals(lastSavedAnnFile)
+											|| !Files.exists(lastSavedAnnFile));
 		String file = ask ? null : lastSavedAnnFile;
 		if (file == null) {
 			JFileChooser jfc = new JFileChooser(getLastUsedAnnotationDir());
@@ -1100,12 +1110,14 @@ public class FlowAnnotator {
 	}
 
 	private boolean promptToSaveAnnotations() {
-		boolean showSave = !(null == lastSavedAnnFile || "".equals(lastSavedAnnFile) || !Files.exists(lastSavedAnnFile));
+		boolean showSave = !(null == lastSavedAnnFile || "".equals(lastSavedAnnFile)
+												 || !Files.exists(lastSavedAnnFile));
 		final String[] options = showSave ? new String[] {"Save As...", "Save", "Don't Save", "Cancel"}
-																		 : new String[] {"Save As...", "Don't Save", "Cancel"};
+																			: new String[] {"Save As...", "Don't Save", "Cancel"};
 		int result = JOptionPane.showOptionDialog(this.frmFlowannotator, "Save Existing Annotations?",
 																							"Save?", JOptionPane.YES_NO_CANCEL_OPTION,
-																							JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
+																							JOptionPane.QUESTION_MESSAGE, null, options,
+																							"Cancel");
 		if (showSave) {
 			switch (result) {
 				case 0:
@@ -1202,6 +1214,15 @@ public class FlowAnnotator {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			loadAnnotations();
+		}
+	};
+
+	private final Action exportAction = new AbstractAction() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			new AnnotationExportDialog(annotator).setVisible(true);
+			// export specific images with specific annotations
+			// export sample names with specific annotations
 		}
 	};
 
