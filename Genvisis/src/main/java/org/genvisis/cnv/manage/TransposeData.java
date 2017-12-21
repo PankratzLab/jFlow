@@ -605,34 +605,53 @@ public class TransposeData {
 		final MarkerLookup mkrLookup = proj.getMarkerLookup();
 
 		// initialize all sample files:
+		String lockFile = proj.SAMPLE_DIRECTORY.getValue() + ".lock";
+		File lock = new File(lockFile);
+		try {
+			while (!lock.createNewFile()) {
+				Thread.yield();
+			}
+		} catch (IOException e2) {
+			throw new RuntimeException(e2);
+		}
 		boolean[] load = new boolean[listOfAllSamplesInProj.length];
 		for (int s = 0; s < listOfAllSamplesInProj.length; s++) {
 			smp = listOfAllSamplesInProj[s];
 			filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp + Sample.SAMPLE_FILE_EXTENSION;
 			load[s] = !successes.contains(filename);
 		}
+		lock.delete();
 
 		// TODO tweak these parameters
-		int maxThreads = 20;
+		int maxThreads = 32;
 		maxThreads = Math.min(Runtime.getRuntime().availableProcessors(), maxThreads);
-		int threadBuffer = (int) ((Runtime.getRuntime().maxMemory() * 0.75) / maxThreads);
+		long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
+		long threadBuffer = mem / maxThreads;
 
-		// int numSamplesPerThread = listOfAllSamplesInProj.length / maxThreads;
-		// int maxMkrsBuffer = threadBuffer / (numSamplesPerThread * numBytesPerSampleMarker);
+		log.reportTime("    Mem: " + mem + "b == " + (mem / 1024) + "kb == " + ((mem / 1024) / 1024)
+									 + "mb == " + (((mem / 1024) / 1024) / 1024) + "gb");
+		log.reportTime("Threads: " + maxThreads);
+		log.reportTime(" Buffer: " + threadBuffer);
 
 		int maxMkrsBuffer = listOfAllMarkersInProj.length;
 		int maxMkrsStep = Math.max(1, listOfAllMarkersInProj.length / 10);
-		int numSamplesPerThread = threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer);
+		int numSamplesPerThread = (int) (threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer));
 		while (numSamplesPerThread == 0) {
 			maxMkrsBuffer -= maxMkrsStep;
-			numSamplesPerThread = threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer);
+			numSamplesPerThread = (int) (threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer));
 		}
 		final int mkrsInBuffer = maxMkrsBuffer;
+
+		log.reportTime("Markers: " + maxMkrsBuffer);
+		log.reportTime("   BPSM: " + numBytesPerSampleMarker);
+		log.reportTime("    BPS: " + (numBytesPerSampleMarker * maxMkrsBuffer));
+		log.reportTime("Samples: " + numSamplesPerThread);
 
 		log.reportTime("Reverse-transposing " + (listOfAllSamplesInProj.length - successes.size())
 									 + " samples (" + successes.size() + " already parsed) @ " + numSamplesPerThread
 									 + " samples per thread with "
-									 + maxThreads + " threads and a buffer of " + mkrsInBuffer + " markers.");
+									 + maxThreads + " threads and a buffer of " + mkrsInBuffer + " markers ("
+									 + (threadBuffer / 1024 / 1024) + "Mb allocated per thread).");
 
 		ExecutorService transposeService = Executors.newFixedThreadPool(maxThreads);
 
@@ -652,20 +671,28 @@ public class TransposeData {
 					RandomAccessFile markerRAF = null;
 					byte[] parameterReadBuffer;
 					long time;
+					long time1;
 					String openMarkerFile;
 					byte[][] buffer;
 					int numBytesMarkernamesSection = 0;
 					int numBytesPerSampMarker = numBytesPerSampleMarker;
+					File tempFile;
+					boolean[] myLoad;
 
 					try {
 						time = System.nanoTime();
+						time1 = System.nanoTime();
 
+						myLoad = new boolean[s2 - s1];
 						// Write headers for sampRAF files:
 						for (int i = s1; i < s2; i++) {
 							smp = listOfAllSamplesInProj[i];
 							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 												 + Sample.SAMPLE_FILE_EXTENSION;
-							if (!load[i]) {
+							tempFile = new File(filename + ".tmp");
+							myLoad[i - s1] = load[i] && tempFile.createNewFile();
+							tempFile = null;
+							if (!myLoad[i - s1]) {
 								continue;
 							}
 
@@ -685,10 +712,16 @@ public class TransposeData {
 							sampOutlrs = null;
 							fos = null;
 						}
-						log.reportTime("Wrote headers for samples " + s1 + " to " + s2 + " in "
+						int[] sampInds = ArrayUtils.booleanArrayToIndices(myLoad);
+						if (sampInds.length == 0) {
+							log.reportTime("Skipping samples " + s1 + " to " + s2 + "; all files already found.");
+							return;
+						}
+						log.reportTime("Wrote headers for " + sampInds.length + " samples in batch " + s1 + "-"
+													 + s2 + " in "
 													 + ext.getTimeElapsedNanos(time));
 
-						buffer = new byte[s2 - s1][mkrsInBuffer * numBytesPerSampleMarker];
+						buffer = new byte[sampInds.length][mkrsInBuffer * numBytesPerSampleMarker];
 						parameterReadBuffer = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
 						openMarkerFile = null;
 						int mkrInFile = 0;
@@ -722,12 +755,12 @@ public class TransposeData {
 								}
 
 								long seekLocation;
-								for (int s = s1; s < s2; s++) {
+								for (int s = 0; s < sampInds.length; s++) {
 									seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
 																 + (long) numBytesMarkernamesSection
 																 + mkrInFile * (long) (numBytesPerSampMarker
 																											 * listOfAllSamplesInProj.length)
-																 + (long) s * numBytesPerSampleMarker;
+																 + (long) sampInds[s] * numBytesPerSampleMarker;
 									if (markerRAF.getFilePointer() != seekLocation) {
 										time2 = System.nanoTime();
 										markerRAF.seek(seekLocation);
@@ -735,7 +768,7 @@ public class TransposeData {
 									}
 
 									time2 = System.nanoTime();
-									markerRAF.read(buffer[s - s1], (mkrInFile * numBytesPerSampleMarker),
+									markerRAF.read(buffer[s], (mkrInFile * numBytesPerSampleMarker),
 																 numBytesPerSampleMarker);
 									readTime += (System.nanoTime() - time2);
 								}
@@ -744,24 +777,24 @@ public class TransposeData {
 							}
 
 							log.reportTime(ext.formatTimeElapsed((openTime / mkrsInBuffer), TimeUnit.NANOSECONDS)
-														 + "ns average openTime");
+														 + " average openTime");
 							log.reportTime(ext.formatTimeElapsed((closeTime / mkrsInBuffer), TimeUnit.NANOSECONDS)
-														 + "ns average closeTime");
+														 + " average closeTime");
 							log.reportTime(ext.formatTimeElapsed((seekTime / (mkrsInBuffer * (s2 - s1))),
 																									 TimeUnit.NANOSECONDS)
-														 + "ns average seekTime");
+														 + " average seekTime");
 							log.reportTime(ext.formatTimeElapsed((readTime / (mkrsInBuffer * (s2 - s1))),
 																									 TimeUnit.NANOSECONDS)
-														 + "ns average readTime");
+														 + " average readTime");
 
 							log.reportTime("Read markers " + b + " to " + (b + mkrsInBuffer) + " for samples "
 														 + s1 + " to " + s2 + " in " + ext.getTimeElapsedNanos(time));
 							time = System.nanoTime();
 
 							FileOutputStream fos = null;
-							for (int s = s1; s < s2; s++) {
+							for (int s = 0; s < sampInds.length; s++) {
 								while (fos == null) {
-									smp = listOfAllSamplesInProj[s];
+									smp = listOfAllSamplesInProj[sampInds[s]];
 									filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 														 + Sample.SAMPLE_FILE_EXTENSION;
 									try {
@@ -772,29 +805,41 @@ public class TransposeData {
 										}
 									}
 								}
-								fos.write(buffer[s - s1]);
+								fos.write(buffer[s]);
 								fos.flush();
 								fos.close();
 								fos = null;
 							}
-							log.reportTime("Wrote " + b + " to " + (b + mkrsInBuffer) + " for samples " + s1
-														 + " to " + s2 + " in " + ext.getTimeElapsedNanos(time));
+							log.reportTime("Wrote " + b + " to " + (b + mkrsInBuffer) + " for " + sampInds.length
+														 + " samples in batch " + s1
+														 + "-" + s2 + " in " + ext.getTimeElapsedNanos(time));
 						}
 						markerRAF.close();
 
-						for (int s = s1; s < s2; s++) {
-							buffer[s - s1] = null;
+						String lockFile = proj.SAMPLE_DIRECTORY.getValue() + ".lock";
+						File lock = new File(lockFile);
+						while (!lock.createNewFile()) {
+							Thread.yield();
+						}
+						for (int s = 0; s < sampInds.length; s++) {
+							buffer[s] = null;
 							synchronized (successWriter) {
 								smp = listOfAllSamplesInProj[s];
 								filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 													 + Sample.SAMPLE_FILE_EXTENSION;
 								successWriter.println(filename);
 								successWriter.flush();
+								tempFile = new File(filename + ".tmp");
+								tempFile.delete();
+								tempFile = null;
 							}
 						}
+						lock.delete();
+						lock = null;
 						buffer = null;
-						log.reportTime("Parsed markerData for " + (s2 - s1) + " samples in "
-													 + ext.getTimeElapsedNanos(time));
+						log.reportTime("Parsed markerData for " + (sampInds.length) + " samples in batch " + s1
+													 + "-" + s2 + " "
+													 + ext.getTimeElapsedNanos(time1));
 					} catch (FileNotFoundException e) {
 						log.reportException(e);
 					} catch (IOException e) {
