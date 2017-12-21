@@ -205,6 +205,10 @@ public class AnnotatedImage {
 		this.imageFile = image;
 	}
 
+	public String getImageFile() {
+		return this.imageFile;
+	}
+
 	public ArrayList<AnnotatedImage.Annotation> getAnnotations() {
 		return this.annots;
 	}
