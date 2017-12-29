@@ -9,12 +9,16 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
@@ -558,6 +562,53 @@ public class TransposeData {
 		}
 	}
 
+	private static class FileLockWrapper {
+		RandomAccessFile raf;
+		FileLock lock;
+
+		private FileLockWrapper(RandomAccessFile raf1, FileLock lock1) {
+			this.raf = raf1;
+			this.lock = lock1;
+		}
+
+		private void release() throws IOException {
+			lock.release();
+			raf.close();
+		}
+
+		private final static FileLockWrapper waitForLock(String file) {
+			File lock = new File(file);
+			FileLock lock1 = null;
+			RandomAccessFile raf;
+			FileChannel channel;
+			try {
+				raf = new RandomAccessFile(lock, "rw");
+				channel = raf.getChannel();
+			} catch (IOException e2) {
+				throw new RuntimeException(e2);
+			}
+			try {
+				do {
+					try {
+						lock1 = channel.tryLock();
+					} catch (OverlappingFileLockException e) {
+						lock1 = null;
+						Thread.yield();
+					}
+				} while (lock1 == null);
+			} catch (IOException e2) {
+				try {
+					raf.close();
+				} catch (IOException e) {
+				}
+				throw new RuntimeException(e2);
+			}
+			return new FileLockWrapper(raf, lock1);
+		}
+
+	}
+
+
 	public static void reverseTransposeStreaming(Project proj) {
 		long fingerprintForMarkers;
 
@@ -576,13 +627,6 @@ public class TransposeData {
 
 		timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-		successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
-		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
-																					: new HashSet<>();
-		if (successes.size() > 0) {
-			log.reportTime("Skipping " + successes.size() + " already existing samples.");
-		}
 
 		final String[] listOfAllSamplesInProj = proj.getSamples();
 		final String[] listOfAllMarkersInProj = proj.getMarkerNames();
@@ -606,21 +650,27 @@ public class TransposeData {
 
 		// initialize all sample files:
 		String lockFile = proj.SAMPLE_DIRECTORY.getValue() + ".lock";
-		File lock = new File(lockFile);
-		try {
-			while (!lock.createNewFile()) {
-				Thread.yield();
-			}
-		} catch (IOException e2) {
-			throw new RuntimeException(e2);
+		FileLockWrapper fileLock = FileLockWrapper.waitForLock(lockFile);
+
+		successFile = proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SUCCESS_FILE;
+		successes = Files.exists(successFile) ? HashVec.loadFileToHashSet(successFile, false)
+																					: new HashSet<>();
+		if (successes.size() > 0) {
+			log.reportTime("Skipping " + successes.size() + " already existing samples.");
 		}
+
 		boolean[] load = new boolean[listOfAllSamplesInProj.length];
 		for (int s = 0; s < listOfAllSamplesInProj.length; s++) {
 			smp = listOfAllSamplesInProj[s];
 			filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp + Sample.SAMPLE_FILE_EXTENSION;
 			load[s] = !successes.contains(filename);
 		}
-		lock.delete();
+
+		try {
+			fileLock.release();
+		} catch (IOException e1) {
+			throw new RuntimeException(e1);
+		}
 
 		// TODO tweak these parameters
 		int maxThreads = 32;
@@ -655,7 +705,6 @@ public class TransposeData {
 
 		ExecutorService transposeService = Executors.newFixedThreadPool(maxThreads);
 
-		PrintWriter successWriter = Files.getAppropriateWriter(successFile, Files.exists(successFile));
 		for (int s = 0; s < listOfAllSamplesInProj.length; s += numSamplesPerThread) {
 			final int s1 = s;
 			final int s2 = Math.min(listOfAllSamplesInProj.length, s1 + numSamplesPerThread);
@@ -678,6 +727,11 @@ public class TransposeData {
 					int numBytesPerSampMarker = numBytesPerSampleMarker;
 					File tempFile;
 					boolean[] myLoad;
+					FileLockWrapper wrapper;
+					int prepend = new Random(System.nanoTime()).nextInt(Integer.MAX_VALUE - 1);
+
+					log.reportTime("Thread " + Thread.currentThread().getName() + " temporary file ID: "
+												 + prepend);
 
 					try {
 						time = System.nanoTime();
@@ -685,13 +739,13 @@ public class TransposeData {
 
 						myLoad = new boolean[s2 - s1];
 						// Write headers for sampRAF files:
+						wrapper = FileLockWrapper.waitForLock(lockFile);
 						for (int i = s1; i < s2; i++) {
 							smp = listOfAllSamplesInProj[i];
 							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 												 + Sample.SAMPLE_FILE_EXTENSION;
 							tempFile = new File(filename + ".tmp");
 							myLoad[i - s1] = load[i] && tempFile.createNewFile();
-							tempFile = null;
 							if (!myLoad[i - s1]) {
 								continue;
 							}
@@ -712,6 +766,8 @@ public class TransposeData {
 							sampOutlrs = null;
 							fos = null;
 						}
+						wrapper.release();
+
 						int[] sampInds = ArrayUtils.booleanArrayToIndices(myLoad);
 						if (sampInds.length == 0) {
 							log.reportTime("Skipping samples " + s1 + " to " + s2 + "; all files already found.");
@@ -760,7 +816,7 @@ public class TransposeData {
 																 + (long) numBytesMarkernamesSection
 																 + mkrInFile * (long) (numBytesPerSampMarker
 																											 * listOfAllSamplesInProj.length)
-																 + (long) sampInds[s] * numBytesPerSampleMarker;
+																 + (long) (s1 + sampInds[s]) * numBytesPerSampleMarker;
 									if (markerRAF.getFilePointer() != seekLocation) {
 										time2 = System.nanoTime();
 										markerRAF.seek(seekLocation);
@@ -794,7 +850,7 @@ public class TransposeData {
 							FileOutputStream fos = null;
 							for (int s = 0; s < sampInds.length; s++) {
 								while (fos == null) {
-									smp = listOfAllSamplesInProj[sampInds[s]];
+									smp = listOfAllSamplesInProj[s1 + sampInds[s]];
 									filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 														 + Sample.SAMPLE_FILE_EXTENSION;
 									try {
@@ -816,26 +872,25 @@ public class TransposeData {
 						}
 						markerRAF.close();
 
-						String lockFile = proj.SAMPLE_DIRECTORY.getValue() + ".lock";
-						File lock = new File(lockFile);
-						while (!lock.createNewFile()) {
-							Thread.yield();
-						}
+						wrapper = FileLockWrapper.waitForLock(lockFile);
+						PrintWriter successWriter = Files.getAppropriateWriter(successFile,
+																																	 Files.exists(successFile));
+
 						for (int s = 0; s < sampInds.length; s++) {
 							buffer[s] = null;
-							synchronized (successWriter) {
-								smp = listOfAllSamplesInProj[s];
-								filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
-													 + Sample.SAMPLE_FILE_EXTENSION;
-								successWriter.println(filename);
-								successWriter.flush();
-								tempFile = new File(filename + ".tmp");
-								tempFile.delete();
-								tempFile = null;
-							}
+							smp = listOfAllSamplesInProj[s1 + s];
+							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
+												 + Sample.SAMPLE_FILE_EXTENSION;
+							successWriter.println(filename);
+							successWriter.flush();
+							tempFile = new File(filename + ".tmp");
+							tempFile.delete();
+							tempFile = null;
 						}
-						lock.delete();
-						lock = null;
+						successWriter.close();
+
+						wrapper.release();
+
 						buffer = null;
 						log.reportTime("Parsed markerData for " + (sampInds.length) + " samples in batch " + s1
 													 + "-" + s2 + " "
@@ -859,7 +914,6 @@ public class TransposeData {
 			/**/
 		}
 
-		successWriter.close();
 	}
 
 	public static void reverseTranspose(Project proj) {
