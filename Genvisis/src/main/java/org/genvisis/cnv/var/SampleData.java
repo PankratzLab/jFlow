@@ -939,7 +939,7 @@ public class SampleData {
 	 * Lookup FID\tIID from any Sample ID
 	 * 
 	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
-	 * @return DNA or null if Sample ID not found
+	 * @return FID\tIID or null if Sample ID not found
 	 */
 	public @Nullable String lookupFIDIID(String id) {
 		return lookup(id, LOOKUP_FID_IID_INDEX);
@@ -949,10 +949,23 @@ public class SampleData {
 	 * Lookup IID from any Sample ID
 	 * 
 	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
-	 * @return DNA or null if Sample ID not found
+	 * @return IID or null if Sample ID not found
 	 */
 	public @Nullable String lookupIID(String id) {
 		return lookup(id, LOOKUP_IID_INDEX);
+	}
+
+	/**
+	 * Lookup FID from any Sample ID
+	 * 
+	 * @param id Any Sample ID to lookup by (DNA, FID\tIID, IID)
+	 * @return FID or null if Sample ID not found
+	 */
+	public @Nullable String lookupFID(String id) {
+		String fidiid = lookupFIDIID(id);
+		if (fidiid == null)
+			return null;
+		return fidiid.split("\t")[0];
 	}
 
 	/**
