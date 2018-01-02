@@ -17,6 +17,7 @@ import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MitoPipeline;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
@@ -25,6 +26,7 @@ import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SnpMarkerSet;
 
@@ -120,7 +122,7 @@ public class Ancestry {
 		if (!Files.exists(dir + "homogeneity/" + MergeDatasets.CHI_SQUARE_DROPS_FILENAME)
 				&& Files.list(dir + "homogeneity/", ".Rout").length == 0) {
 			log.report("Running homogeneity checks...");
-			checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, log);
+			checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, proj, log);
 		}
 		String homogeneityDrops = parseHomogeneity(dir, log);
 		mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
@@ -130,19 +132,42 @@ public class Ancestry {
 
 	private static void checkHomogeneity(String dir, String putativeWhitesFile,
 																			 String projectPlinkRoot, String hapMapPlinkRoot,
-																			 Logger log) {
+																			 @Nullable Project proj, Logger log) {
 		String homoDir = dir + "homogeneity/";
 		String homoProjDir = homoDir + ext.removeDirectoryInfo(projectPlinkRoot) + "/";
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
 		new File(homoProjDir).mkdirs();
 		new File(homoHapMapDir).mkdirs();
-		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + putativeWhitesFile
+		String cleanPutativeWhitesFile = validatePutativeWhites(proj,
+																														homoProjDir + projectPlinkRoot
+																																	+ PSF.Plink.FAM,
+																														putativeWhitesFile, log);
+		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
 												+ " --hardy", homoProjDir, log);
 		CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --keep "
 												+ ext.parseDirectoryOfFile(hapMapPlinkRoot) + "CEUFounders.txt --hardy",
 												homoHapMapDir, log);
 
 		MergeDatasets.checkForHomogeneity(homoDir, null, null, "UNAFF", log);
+	}
+
+	private static String validatePutativeWhites(@Nullable Project proj, String projFamFile,
+																							 String putativeWhitesFile, Logger log) {
+		if (proj == null)
+			return putativeWhitesFile;
+		PlinkData.ExportIDScheme projIDScheme = PlinkData.detectExportIDScheme(proj, projFamFile);
+		if (projIDScheme == null) {
+			log.reportTimeWarning("Could not validate project fam file to project IDs, assuming FID/IID matches plink");
+			return putativeWhitesFile;
+		}
+		String cleanPutativeWhitesFile = PlinkData.convertIDScheme(proj, putativeWhitesFile,
+																															 projIDScheme);
+		if (cleanPutativeWhitesFile == null) {
+			log.reportTimeWarning("Could not convert " + putativeWhitesFile
+														+ " to match ID scheme, leaving as-is");
+			return putativeWhitesFile;
+		}
+		return cleanPutativeWhitesFile;
 	}
 
 	private static String parseHomogeneity(String dir, Logger log) {
@@ -523,7 +548,7 @@ public class Ancestry {
 			if (runPipeline) {
 				runPipeline(dir, putativeWhites, hapMapPlinkRoot, proj, log);
 			} else if (checkHomo) {
-				checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, log);
+				checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
 			} else if (run) {
 				String homogeneityDrops = parseHomogeneity(dir, log);
 				mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
