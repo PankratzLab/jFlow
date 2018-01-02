@@ -66,17 +66,175 @@ public class PlinkData {
 		/**
 		 * Use FID and IID as defined in pedigree
 		 */
-		FID_IID,
+		FID_IID {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID;
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				return plinkIID;
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + plinkIID);
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projFID;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				return projIID;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return projParentIID;
+			}
+		},
 		/**
 		 * Use FID as defined in pedigree, concatenate FID to IID for IID
 		 */
-		CONCAT_FID_TO_IID,
+		CONCAT_FID_TO_IID {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID;
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				String iidSplit[] = plinkIID.split(CONCAT_FID_TO_IID_DELIMETER);
+				if (iidSplit.length == 2 && iidSplit[0].equals(plinkFID)) {
+					return iidSplit[1];
+				}
+				return null;
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				String iid = getProjIID(proj, plinkFID, plinkIID);
+				if (iid == null)
+					return null;
+				return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + iid);
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projFID;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				// TODO Auto-generated method stub
+				return projFID + CONCAT_FID_TO_IID_DELIMETER + projIID;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return projFID + CONCAT_FID_TO_IID_DELIMETER + projParentIID;
+			}
+		},
 		/**
 		 * Use DNA for FID and IID (does not allow export of family structure from pedigree)
 		 */
-		DNA_DNA;
+		DNA_DNA {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupFID(dna);
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupIID(dna);
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID.equals(plinkIID) ? plinkIID : null;
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return Pedigree.MISSING_ID_STR;
+			}
+		};
 
 		public static final ExportIDScheme DEFAULT = FID_IID;
+		public static final String CONCAT_FID_TO_IID_DELIMETER = "_";
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project FID or null if could not be identified
+		 */
+		public abstract String getProjFID(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project IID or null if could not be identified
+		 */
+		public abstract String getProjIID(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project DNA or null if could not be identified
+		 */
+		public abstract String getProjDNA(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projIID the IID from the project
+		 * @param projDNA the DNA from the project
+		 * @return the plink FID in this scheme
+		 */
+		public abstract String formPlinkFID(String projFID, String projIID, String projDNA);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projIID the IID from the project
+		 * @param projDNA the DNA from the project
+		 * @return the plink IID in this scheme
+		 */
+		public abstract String formPlinkIID(String projFID, String projIID, String projDNA);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projParentIID the IID of the parent from the project
+		 * @return the IID for the parent field in a plink .fam file
+		 */
+		public abstract String formPlinkParent(String projFID, String projParentIID);
 	}
 
 	/**
@@ -1443,36 +1601,19 @@ public class PlinkData {
 					}
 					// dna.add(null);
 				} else {
-					String fid = line[Pedigree.FID_INDEX];
-					String iid = line[Pedigree.IID_INDEX];
-					String fidiid = fid + "\t" + iid;
-					String fa = line[Pedigree.FA_INDEX];
-					String mo = line[Pedigree.MO_INDEX];
+					String projFID = line[Pedigree.FID_INDEX];
+					String projIID = line[Pedigree.IID_INDEX];
+					String projFA = line[Pedigree.FA_INDEX];
+					String projMO = line[Pedigree.MO_INDEX];
+					String dna = line[Pedigree.DNA_INDEX];
+					String fid = exportIDScheme.formPlinkFID(projFID, projIID, dna);
+					String iid = exportIDScheme.formPlinkIID(projFID, projIID, dna);
+					String fa = exportIDScheme.formPlinkParent(projFID, projFA);
+					String mo = exportIDScheme.formPlinkParent(projFID, projMO);
 					String sex = line[Pedigree.SEX_INDEX];
 					String aff = line[Pedigree.AFF_INDEX];
-					String dna = line[Pedigree.DNA_INDEX];
-					switch (exportIDScheme) {
-						case CONCAT_FID_TO_IID:
-							iid = fid + "_" + iid;
-							fa = fid + "_" + fa;
-							mo = fid + "_" + mo;
-							break;
-						case DNA_DNA:
-							iid = dna;
-							fid = dna;
-							fa = Pedigree.MISSING_ID_STR;
-							mo = Pedigree.MISSING_ID_STR;
-							break;
-						case FID_IID:
-							break;
-						default:
-							log.reportError("Unsuspected export ID scheme: " + exportIDScheme + ", using "
-															+ ExportIDScheme.FID_IID);
-							break;
-
-					}
-
-					if (dropSamples == null || !(dropSamples.contains(fidiid) || dropSamples.contains(dna))) {
+					if (dropSamples == null
+							|| !(dropSamples.contains(projFID + "\t" + projIID) || dropSamples.contains(dna))) {
 						dnas.add(dna);
 						writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo).add(sex)
 																								 .add(aff));
