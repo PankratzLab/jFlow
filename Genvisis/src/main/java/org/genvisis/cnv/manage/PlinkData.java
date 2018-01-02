@@ -44,6 +44,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import org.genvisis.stats.Maths;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
@@ -57,6 +58,9 @@ public class PlinkData {
 	public static final String MAP_DELIMITER = "\t";
 
 	public static final String ARG_EXPORT_ID_SCHEME = "exportIDScheme=";
+
+	private static final int FID_INDEX = 0;
+	private static final int IID_INDEX = 1;
 
 	/**
 	 * Choices for setting FID and IID when exporting
@@ -1633,6 +1637,108 @@ public class PlinkData {
 		}
 
 		return ArrayUtils.toStringArray(dnas);
+	}
+
+
+	/**
+	 * Detect the {@link ExportIDScheme} of a plink file by comparing to IDs from a Project
+	 * 
+	 * @param proj
+	 * @param plinkFile a sample-dominant plink-like file (FID IID in first two columns)
+	 * @return the detected {@link ExportIDScheme} of plinkFile or null if it could not be determined
+	 */
+	public static ExportIDScheme detectExportIDScheme(Project proj, String plinkFile) {
+		Logger log = proj.getLog();
+		log.report("Attempting to determine ID scheme of " + plinkFile);
+		SampleData sampleData = proj.getSampleData(false);
+		try (BufferedReader reader = Files.getAppropriateReader(plinkFile)) {
+			for (int i = 0; reader.ready(); i++) {
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				String fid = line[FID_INDEX];
+				String iid = line[IID_INDEX];
+
+				if (fid.equals(iid) && sampleData.lookupDNA(iid).equals(iid)) {
+					log.report("FID/IID in " + plinkFile
+										 + " appear to be DNA IDs, continuing with this assumption.");
+					return ExportIDScheme.DNA_DNA;
+				}
+				if (sampleData.lookupContains(fid + "\t" + iid)) {
+					log.report("FID/IID in  " + plinkFile
+										 + " appear to be true FID and IID, continuing with this assumption.");
+					return ExportIDScheme.FID_IID;
+				}
+				String iidExtract = ExportIDScheme.CONCAT_FID_TO_IID.getProjIID(proj, fid, iid);
+				if (iidExtract != null && sampleData.lookupContains(fid + "\t" + iidExtract))
+					return ExportIDScheme.CONCAT_FID_TO_IID;
+				if (Maths.isPowerOf10(i)) {
+					log.reportTimeWarning(i
+																+ " lines have been checked without finding any matches to project ID");
+				}
+			}
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(plinkFile);
+		} catch (IOException e) {
+			log.reportIOException(plinkFile);
+		}
+		log.reportError("Could not determine ID Scheme of " + plinkFile);
+		return null;
+	}
+
+	/**
+	 * Convert a given plink file to a (possibly) new {@link ExportIDScheme}
+	 * 
+	 * @param proj
+	 * @param plinkFile a sample-dominant plink-like file (FID IID in first two columns)
+	 * @param desiredScheme the ExportIDScheme to convert to
+	 * 
+	 * @return the name of the converted file, null on failure (returns plinkFile if conversion was
+	 *         not necessary)
+	 */
+	public static String convertIDScheme(Project proj, String plinkFile,
+																			 ExportIDScheme desiredScheme) {
+		ExportIDScheme currentScheme = detectExportIDScheme(proj, plinkFile);
+		if (currentScheme == null)
+			return null;
+		if (currentScheme.equals(desiredScheme))
+			return plinkFile;
+
+		Logger log = proj.getLog();
+		log.report("ID scheme of " + plinkFile + " is " + currentScheme + ", converting to "
+							 + desiredScheme);
+		String convertedPlinkFile = ext.addToRoot(plinkFile, "_convertedIDs_"
+																												 + ext.replaceWithLinuxSafeCharacters(desiredScheme.toString()));
+		try (BufferedReader reader = Files.getAppropriateReader(plinkFile);
+				 PrintWriter writer = Files.getAppropriateWriter(convertedPlinkFile)) {
+			for (int i = 0; reader.ready(); i++) {
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				String plinkFID = line[FID_INDEX];
+				String plinkIID = line[IID_INDEX];
+				String projFID = currentScheme.getProjFID(proj, plinkFID, plinkIID);
+				String projIID = currentScheme.getProjIID(proj, plinkFID, plinkIID);
+				String projDNA = currentScheme.getProjDNA(proj, plinkFID, plinkIID);
+				if (projFID == null || projIID == null || projDNA == null) {
+					if (i > 0)
+						// First line may be header, skip warning about no conversion
+						log.reportTimeWarning(plinkFID + " " + plinkIID
+																	+ " could not be resolved from project in " + currentScheme
+																	+ ", will be left in place and not converted to "
+																	+ desiredScheme);
+				} else {
+					line[FID_INDEX] = desiredScheme.formPlinkFID(projFID, projIID, projDNA);
+					line[IID_INDEX] = desiredScheme.formPlinkIID(projFID, projIID, projDNA);
+				}
+				writer.println(Joiner.on("\t").join(line));
+
+			}
+			return convertedPlinkFile;
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(plinkFile);
+		} catch (IOException e) {
+			log.reportIOException(plinkFile);
+		}
+		return null;
+
+
 	}
 
 	/**
