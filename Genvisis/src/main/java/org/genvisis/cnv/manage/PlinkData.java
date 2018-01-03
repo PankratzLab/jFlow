@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.genvisis.stats.Maths;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -1650,29 +1652,33 @@ public class PlinkData {
 	public static ExportIDScheme detectExportIDScheme(Project proj, String plinkFile) {
 		Logger log = proj.getLog();
 		log.report("Attempting to determine ID scheme of " + plinkFile);
-		SampleData sampleData = proj.getSampleData(false);
+		Set<ExportIDScheme> possibleSchemes = EnumSet.allOf(ExportIDScheme.class);
 		try (BufferedReader reader = Files.getAppropriateReader(plinkFile)) {
 			for (int i = 0; reader.ready(); i++) {
 				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
 				String fid = line[FID_INDEX];
 				String iid = line[IID_INDEX];
-
-				if (fid.equals(iid) && sampleData.lookupDNA(iid).equals(iid)) {
-					log.report("FID/IID in " + plinkFile
-										 + " appear to be DNA IDs, continuing with this assumption.");
-					return ExportIDScheme.DNA_DNA;
+				Set<ExportIDScheme> sampleSchemes = detectPossibleSampleIDSchemes(proj, fid, iid);
+				if (!sampleSchemes.isEmpty()) {
+					// Ignore FID/IID pairs that do not match project under any scheme
+					// Keep only schemes possible for this FID/IID
+					possibleSchemes.retainAll(sampleSchemes);
+					if (possibleSchemes.size() == 1) {
+						// Single possible scheme remains
+						ExportIDScheme identifiedScheme = Iterables.getOnlyElement(possibleSchemes);
+						log.report("FID/IID in " + plinkFile + " appear to be exported with " + identifiedScheme
+											 + ", continuing with this assumption.");
+						return identifiedScheme;
+					} else if (possibleSchemes.isEmpty()) {
+						// No possible matches to all checked FID/IID pairs
+						log.reportError("Conflicting ID schemes in " + plinkFile
+														+ ", could not determine ID scheme");
+						return null;
+					}
 				}
-				if (sampleData.lookupContains(fid + "\t" + iid)) {
-					log.report("FID/IID in  " + plinkFile
-										 + " appear to be true FID and IID, continuing with this assumption.");
-					return ExportIDScheme.FID_IID;
-				}
-				String iidExtract = ExportIDScheme.CONCAT_FID_TO_IID.getProjIID(proj, fid, iid);
-				if (iidExtract != null && sampleData.lookupContains(fid + "\t" + iidExtract))
-					return ExportIDScheme.CONCAT_FID_TO_IID;
-				if (Maths.isPowerOf10(i)) {
+				if (Maths.isPowerOf10(i + 1) && i > 1) {
 					log.reportTimeWarning(i
-																+ " lines have been checked without finding any matches to project ID");
+																+ " lines have been checked without finding a conclusive match to project ID");
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -1680,8 +1686,49 @@ public class PlinkData {
 		} catch (IOException e) {
 			log.reportIOException(plinkFile);
 		}
-		log.reportError("Could not determine ID Scheme of " + plinkFile);
-		return null;
+		if (possibleSchemes.containsAll(EnumSet.allOf(ExportIDScheme.class))) {
+			log.reportError("Could not determine ID Scheme of " + plinkFile
+											+ ", no FID/IID pairs matched project IDs");
+			return null;
+		} else {
+			ExportIDScheme firstScheme = possibleSchemes.iterator().next();
+			log.reportTimeWarning("Multiple possible ID Schemes exist for " + plinkFile + " ("
+														+ Joiner.on(", ").join(possibleSchemes)
+														+ "). This may occur when FID/IID/DNA identifiers match. Arbitrarily continuing with assumption of "
+														+ firstScheme);
+			return firstScheme;
+		}
+	}
+
+	/**
+	 * Detect the possible {@link ExportIDScheme}s of an FID/IID pair
+	 * 
+	 * @param proj Project to check sample against
+	 * @param fid FID to check
+	 * @param iid IID to check
+	 * @return All possible ExportIDSchemes of the provided FID/IID pair, empty Set when none match
+	 */
+	public static Set<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
+																																	String iid) {
+		SampleData sampleData = proj.getSampleData(false);
+		Set<ExportIDScheme> possibleSchemes = EnumSet.noneOf(ExportIDScheme.class);
+		for (ExportIDScheme scheme : ExportIDScheme.values()) {
+			String projDNA = scheme.getProjDNA(proj, fid, iid);
+			if (projDNA == null)
+				continue;
+			String projFID = scheme.getProjFID(proj, fid, iid);
+			if (projFID == null)
+				continue;
+			String projIID = scheme.getProjIID(proj, fid, iid);
+			if (projIID == null)
+				continue;
+			if (sampleData.lookupContains(projDNA)
+					&& sampleData.lookupContains(projFID + "\t" + projIID)) {
+				possibleSchemes.add(scheme);
+			}
+		}
+
+		return possibleSchemes;
 	}
 
 	/**
