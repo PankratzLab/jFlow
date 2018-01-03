@@ -98,7 +98,7 @@ public class VisualizationProcessor implements SampleProcessor {
 		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
 		// "central memory helper Tcells (CD95/CD28)"));
 		//
-		// key = "effector cytotoxic Tcells  (CCR7-  CD45RA+)";
+		// key = "effector cytotoxic Tcells (CCR7- CD45RA+)";
 		// addlImgs.put(key, new ArrayList<AddlImage>());
 		// addlImgs.get(key).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", key,
 		// "effector cytotoxic Tcells (CD95/CD28)"));
@@ -179,7 +179,6 @@ public class VisualizationProcessor implements SampleProcessor {
 		long time2 = System.nanoTime();
 		fcp.loadFile(sn.fcsFile, true);
 		FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
-		loader.waitForData();
 		int rowCnt = loader.getCount();
 
 		long time3 = System.nanoTime();

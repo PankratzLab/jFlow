@@ -12,7 +12,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.genvisis.bgen.BGENBitMath;
 import org.genvisis.common.ext;
-import org.genvisis.one.ben.fcs.FCSDataLoader;
 
 public class FCSReader {
 
@@ -129,21 +128,6 @@ public class FCSReader {
 		spill = null;
 		data.dispose();
 		data = null;
-	}
-
-	public static void main(String[] args) throws IOException {
-		String filename = "F:\\Flow\\counts data\\nullsTest\\2016-05-19_PANEL 1_HB_panel one_F1631976_010.fcs";
-
-		int times = 10;
-		for (int i = 0; i < times; i++) {
-			open(filename);
-		}
-		System.out.println("=--------=");
-		for (int i = 0; i < times; i++) {
-			FCSDataLoader loader = new FCSDataLoader();
-			loader.loadData(filename);
-			loader.waitForData();
-		}
 	}
 
 	public FCSKeywords getKeywords() {
