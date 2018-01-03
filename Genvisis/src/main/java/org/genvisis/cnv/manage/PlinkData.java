@@ -70,6 +70,46 @@ public class PlinkData {
 	 */
 	public static enum ExportIDScheme {
 		/**
+		 * Use DNA for FID and IID (does not allow export of family structure from pedigree)
+		 */
+		DNA_DNA {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupFID(dna);
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupIID(dna);
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID.equals(plinkIID) ? plinkIID : null;
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return Pedigree.MISSING_ID_STR;
+			}
+		},
+		/**
 		 * Use FID and IID as defined in pedigree
 		 */
 		FID_IID {
@@ -143,46 +183,6 @@ public class PlinkData {
 			@Override
 			public String formPlinkParent(String projFID, String projParentIID) {
 				return projFID + CONCAT_FID_TO_IID_DELIMETER + projParentIID;
-			}
-		},
-		/**
-		 * Use DNA for FID and IID (does not allow export of family structure from pedigree)
-		 */
-		DNA_DNA {
-			@Override
-			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
-				String dna = getProjDNA(proj, plinkFID, plinkIID);
-				if (dna == null)
-					return null;
-				return proj.getSampleData(false).lookupFID(dna);
-			}
-
-			@Override
-			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
-				String dna = getProjDNA(proj, plinkFID, plinkIID);
-				if (dna == null)
-					return null;
-				return proj.getSampleData(false).lookupIID(dna);
-			}
-
-			@Override
-			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
-				return plinkFID.equals(plinkIID) ? plinkIID : null;
-			}
-
-			@Override
-			public String formPlinkFID(String projFID, String projIID, String projDNA) {
-				return projDNA;
-			}
-
-			@Override
-			public String formPlinkIID(String projFID, String projIID, String projDNA) {
-				return projDNA;
-			}
-
-			@Override
-			public String formPlinkParent(String projFID, String projParentIID) {
-				return Pedigree.MISSING_ID_STR;
 			}
 		};
 
