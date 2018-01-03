@@ -34,7 +34,6 @@ public abstract class AbstractSampleProcessor implements SampleProcessor {
 		long t1 = System.currentTimeMillis();
 		d = new FCSDataLoader();
 		d.loadData(sn.fcsFile);
-		d.waitForData();
 		(new Logger()).reportTimeElapsed("Loaded FCS ... ", t1);
 		d.setTransformMap(sn.savedTransforms);
 		GateFileUtils.updateGateParams(d, sn.gating.gateRoots);

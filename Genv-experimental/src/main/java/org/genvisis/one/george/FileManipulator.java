@@ -56,7 +56,6 @@ public class FileManipulator {
 					loader.loadData(pathListExt[i]);
 				} catch (IOException e) {
 				} ;
-				loader.waitForData();
 
 				String filename = fileListExt[i];
 				int extIndex = filename.indexOf(".fcs");
