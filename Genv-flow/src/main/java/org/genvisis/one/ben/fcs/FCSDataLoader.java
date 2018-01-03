@@ -56,6 +56,7 @@ public class FCSDataLoader {
 	double[][] allData;
 	double[][] compensatedData;
 	String[] presetGating;
+	private long startLoadTime;
 	private String loadedFile = null;
 	CFCSSystem syst = null;
 	CFCSData dataObj = null;
@@ -210,6 +211,7 @@ public class FCSDataLoader {
 		// }
 		loadedFile = fcsFilename;
 
+		startLoadTime = System.nanoTime();
 		syst = new CFCSSystem();
 		File sysFile = new File(fcsFilename);
 		URL fileURL = (sysFile).toURI().toURL();
@@ -251,9 +253,6 @@ public class FCSDataLoader {
 		spillObj = keys.getSpillover();
 		lastModified = keys.getLastModified();
 		if (lastModified == null) {
-			System.err.println("Warning - FCS file "
-												 + fcsFilename
-												 + " does NOT contain a last modified date - using the last-modified system file date.");
 			lastModified = new Date(sysFile.lastModified());
 		}
 
@@ -261,7 +260,7 @@ public class FCSDataLoader {
 		try {
 			gating = keys.getKeyword(FCSDataLoader.GATING_KEY).getKeywordValue();
 		} catch (Exception e) {
-			System.err.println("Info - no precreated gating info available.");
+			// System.err.println("Info - no precreated gating info available.");
 		}
 		if (gating != null) {
 			String[] sp = gating.split(",");
@@ -304,9 +303,10 @@ public class FCSDataLoader {
 			try {
 				scale = AXIS_SCALE.valueOf(keys.getKeyword(axisKeywork).getKeywordValue());
 			} catch (Exception e) {
-				System.err.println("Warning - no axis scale set for parameter " + paramNamesInOrder.get(i)
-													 + "; assuming a linear scale.");
-			};
+				// System.err.println("Warning - no axis scale set for parameter " +
+				// paramNamesInOrder.get(i)
+				// + "; assuming a linear scale.");
+			} ;
 			if (scale == AXIS_SCALE.LOG) {
 				scale = AXIS_SCALE.BIEX;
 			}
@@ -365,13 +365,13 @@ public class FCSDataLoader {
 	}
 
 	public void waitForData() {
-		long t1 = System.currentTimeMillis();
+		// long t1 = System.currentTimeMillis();
 		LOAD_STATE currState;
 		do {
 			Thread.yield();
 			currState = getLoadState();
 		} while (currState != LOAD_STATE.LOADED);
-		System.out.println("Waited " + ext.getTimeElapsed(t1));
+		// System.out.println("Waited " + ext.getTimeElapsed(t1));
 	}
 
 	private AxisTransform getDefaultTransform(AXIS_SCALE scale) {
@@ -437,6 +437,8 @@ public class FCSDataLoader {
 			allData = Matrix.transpose(allData);
 			compensatedData = Matrix.transpose(compensatedData);
 			cleanup();
+			System.out.println("Read " + eventCount + " events for " + paramsCount + " params in "
+												 + ext.getTimeElapsedNanos(startLoadTime));
 		}
 
 		private void cleanup() {
@@ -461,9 +463,9 @@ public class FCSDataLoader {
 
 	public double[] getData(String colName, boolean waitIfNecessary) {
 		String columnName = colName.startsWith(COMPENSATED_PREPEND)
-																															 ? COMPENSATED_PREPEND
-																																 + getInternalParamName(colName.substring(COMP_LEN))
-																															 : getInternalParamName(colName);
+																																? COMPENSATED_PREPEND
+																																	+ getInternalParamName(colName.substring(COMP_LEN))
+																																: getInternalParamName(colName);
 		LOAD_STATE currState = getLoadState();
 		double[] data;
 		if (columnName.startsWith(COMPENSATED_PREPEND)) {
@@ -540,10 +542,10 @@ public class FCSDataLoader {
 			return prepend ? COMPENSATED_PREPEND + nm : nm;
 		} else if ((ind = paramShortNamesInOrder.indexOf(nm)) != -1) {
 			return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-										: paramNamesInOrder.get(ind);
+										 : paramNamesInOrder.get(ind);
 		} else if ((ind = paramLongNamesInOrder.indexOf(nm)) != -1) {
 			return prepend ? COMPENSATED_PREPEND + paramNamesInOrder.get(ind)
-										: paramNamesInOrder.get(ind);
+										 : paramNamesInOrder.get(ind);
 		}
 		return prepend ? COMPENSATED_PREPEND + nm : nm;
 	}

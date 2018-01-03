@@ -970,6 +970,140 @@ public class lab {
 		}
 	}
 
+	private static void processAnnotationFiles() throws IOException {
+		String dir = "F:/Flow/Annotation/final_1/panel 1 branch/";
+		String all = dir + "allAnnots_good.txt";
+		HashSet<String> allFiles = new HashSet<>();
+		BufferedReader r = Files.getAppropriateReader("F:/Flow/Annotation/final_1/fcsFiles.txt");
+		String ln = null;
+		while ((ln = r.readLine()) != null) {
+			allFiles.add(ln);
+		}
+		r.close();
+		String[] files = new File(dir).list();
+		PrintWriter writerAll = Files.getAppropriateWriter(all);
+		for (String f : files) {
+			PrintWriter writer = Files.getAppropriateWriter(dir + f + ".sh");
+			BufferedReader reader = Files.getAppropriateReader(dir + f);
+			String line = null;
+			HashMap<String, String> datesAndIdentsAndPanels = new HashMap<>();
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("@ANNOT") || "".equals(line.trim())) {
+					continue;
+				}
+				String[] pts = line.split("\\|");
+
+				int p1 = 0;
+				if (pts.length == 3 && pts[2].toLowerCase().contains("good")) {
+					p1 = pts[1].toLowerCase().contains("p1")
+							 || pts[1].toLowerCase().contains("panel_1")
+							 || pts[1].toLowerCase().contains("panel 1") ? 1 : 2;
+
+					pts = pts[1].split("/");
+					String gate = pts[pts.length - 1].substring(pts[pts.length - 2].length() + 1);
+					gate = gate.substring(0, gate.length() - 4);
+					String samp = pts[pts.length - 1].substring(0, pts[pts.length - 1].indexOf(".fcs") + 4);
+					// writerAll.println(samp);
+					pts = samp.split("_");
+					String date = pts[0];
+					String ident = "";
+					for (int i = 0; i < pts.length; i++) {
+						if ((pts[i].startsWith("F") && !pts[i].startsWith("FORTESSA"))
+								|| pts[i].startsWith("Ctl")
+								|| pts[i].startsWith("PBMC")
+								|| pts[i].startsWith("RR-")
+								|| pts[i].startsWith("ZF-")
+								|| pts[i].startsWith("BC-")
+								|| pts[i].startsWith("HRS") || pts[i].startsWith("P2-")
+								|| pts[i].startsWith("24HR") || pts[i].equals("G") || pts[i].equals("H")) {
+							ident = pts[i];
+							for (int i1 = i + 1; i1 < pts.length; i1++) {
+								ident += "_"
+												 + pts[i1].substring(0,
+																						 pts[i1].length() - (pts[i1].endsWith(".fcs") ? 4 : 0));
+								if (pts[i1].endsWith(".fcs"))
+									break;
+							}
+							break;
+						}
+					}
+					if (ident.equals("")) {
+						// System.out.println(samp);
+					} else {
+						String key = date + "\t" + ident + "\t" + p1 + "\t" + gate;
+						datesAndIdentsAndPanels.put(key, samp);
+					}
+				} else if (pts.length == 3) {
+					// System.out.println(pts[2]);
+				}
+			}
+			for (Entry<String, String> d : datesAndIdentsAndPanels.entrySet()) {
+				String[] dI = d.getKey().split("\t");
+				String fil = "";
+				for (String s : allFiles) {
+					if (s.contains(dI[0]) && s.contains(dI[1])) {
+						if (dI[2].equals("1")) {
+							if (s.toLowerCase().contains("p1")
+									|| s.toLowerCase().contains("panel_1")
+									|| s.toLowerCase().contains("panel 1")) {
+								fil = s;
+								break;
+							}
+						} else {
+							if (s.toLowerCase().contains("p2")
+									|| s.toLowerCase().contains("panel_2")
+									|| s.toLowerCase().contains("panel 2")) {
+								fil = s;
+								break;
+							}
+						}
+					}
+				}
+				writer.println("cp \"" + fil + "\" ./");
+				if (fil.equals("")) {
+					System.err.println(d.getKey());
+				} else {
+					writerAll.println(fil + "\t" + dI[3]);
+				}
+			}
+			writer.close();
+			reader.close();
+		}
+		writerAll.close();
+	}
+
+	public static void transposeFile() throws IOException {
+		String file = "C:\\Users\\cole0482\\Desktop\\transpose.txt";
+		String[][] data = HashVec.loadFileToStringMatrix(file, false, null, "\t", 0, true);
+		String[][] data2 = new String[data[0].length][];
+		for (int i = 0; i < data[0].length; i++) {
+			data2[i] = new String[data.length];
+		}
+
+		for (int i = 0; i < data.length; i++) {
+			for (int j = 0; j < data[i].length; j++) {
+				data2[j][i] = data[i][j];
+			}
+		}
+
+		for (int i = 0; i < data2.length; i++) {
+			System.out.println(ArrayUtils.toStr(data2[i]));
+		}
+	}
+
+	public static void writeFCSLookup() throws IOException {
+		String file1 = "F:/Flow/Annotation/final_1/fcsFiles.txt";
+		String file2 = "F:/Flow/Annotation/final_1/fcsLookup.txt";
+		BufferedReader reader = Files.getAppropriateReader(file1);
+		PrintWriter writer = Files.getAppropriateWriter(file2);
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			writer.println(line + "\t" + ext.removeDirectoryInfo(line) + "\t"
+										 + ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(line)));
+		}
+		writer.close();
+	}
+
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		int numArgs = args.length;
 		Project proj;
@@ -979,6 +1113,8 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
+
+			double[] test2 = (double[]) null;
 
 			// runHRC();
 			// QQPlot.main(new String[]
@@ -1001,16 +1137,20 @@ public class lab {
 			// System.out.println(BGENBitMath.bytesToFloat(true, pt75) + " - " + fromByteArrayBB(pt75));
 			// System.out.println(BGENBitMath.bytesToFloat(true, Opt75) + " - " + fromByteArrayBB(Opt75));
 
-			String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
-			UKBBParsingPipeline pipe = new UKBBParsingPipeline();
-			pipe.setSourceDir(dir + "00src/");
-			pipe.setProjectDir(dir + "project/");
-			pipe.setProjectPropertiesDir("D:/projects/");
-			pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
-			pipe.setProjectName("UKBB");
-			pipe.runPipeline();
+			// String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+			// UKBBParsingPipeline pipe = new UKBBParsingPipeline();
+			// pipe.setSourceDir(dir + "00src/");
+			// pipe.setProjectDir(dir + "project/");
+			// pipe.setProjectPropertiesDir("D:/projects/");
+			// pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
+			// pipe.setProjectName("UKBB");
+			// pipe.runPipeline();
 
 			// testWriters();
+			// processAnnotationFiles();
+			// writeFCSLookup();
+
+			// transposeFile();
 
 			// proj = new Project(args[0]);
 			// runXYHistogram(proj);
