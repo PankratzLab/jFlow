@@ -511,9 +511,10 @@ public class SampleData {
 
 			sexClassIndex = ext.indexFactors(new String[][] {EUPHEMISMS}, classNames, true, false, true,
 																			 log.getLevel() >= 1 ? true : false, log)[0];
-
-			classes[sexClassIndex] = new ClassHeader(classes[sexClassIndex].getName(),
-																							 ImmutableBiMap.of(1, "Male", 2, "Female"));
+			if (sexClassIndex != -1) {
+				classes[sexClassIndex] = new ClassHeader(classes[sexClassIndex].getName(),
+																								 ImmutableBiMap.of(1, "Male", 2, "Female"));
+			}
 
 			excludeClassIndex = ext.indexFactors(new String[][] {EXCLUDE_ALIASES}, classNames, false,
 																					 false,

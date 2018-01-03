@@ -76,8 +76,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import net.miginfocom.swing.MigLayout;
-
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.annotation.markers.AnalysisParams;
@@ -128,6 +126,8 @@ import org.genvisis.stats.Histogram;
 import org.genvisis.stats.ProbDist;
 
 import com.google.common.collect.Lists;
+
+import net.miginfocom.swing.MigLayout;
 
 public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, WindowListener {
 	public static final long serialVersionUID = 1L;
@@ -705,7 +705,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		Container contentPane = getContentPane();
 		contentPane.removeAll();
 		if (contentPane instanceof JPanel) {
-			((JPanel)getContentPane()).getActionMap().clear();
+			((JPanel) getContentPane()).getActionMap().clear();
 		}
 		removeAll();
 	}
@@ -2403,38 +2403,42 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		qcPanel.add(qcPanelLabel, "cell 1 3");
 
 		ToolTipManager.sharedInstance().setDismissDelay(100000);
-		String[][] rowLabels = new String[][] {{"-1", "Genotype missing"},
-																					 {"1", "Genotype NOT missing"}};
-		String[][] colLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
-		classCount = new CTable(rowLabels, colLabels, called, sex);
-		int[][] table = classCount.getContingencyTable();
-		double pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
+		String[][] rowLabels;
+		String[][] colLabels;
+		if (sampleData.getSexClassIndex() >= 0) {
+			rowLabels = new String[][] {{"-1", "Genotype missing"},
+																	{"1", "Genotype NOT missing"}};
+			colLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
+			classCount = new CTable(rowLabels, colLabels, called, sex);
+			int[][] table = classCount.getContingencyTable();
+			double pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
 
 
-		qcPanelLabel = new JLabel("Callrate by sex:", JLabel.LEFT);
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-		qcPanelLabel.setFont(new Font("Arial", 0, 14));
-		qcPanel.add(qcPanelLabel, "cell 0 4");
-		qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-		qcPanelLabel.setFont(new Font("Arial", 0, 14));
-		qcPanel.add(qcPanelLabel, "cell 1 4");
+			qcPanelLabel = new JLabel("Callrate by sex:", JLabel.LEFT);
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+			qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel, "cell 0 4");
+			qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+			qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel, "cell 1 4");
 
-		rowLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
-		colLabels = new String[][] {{"A", "Allele A"}, {"B", "Allele B"}};
+			rowLabels = sampleData.getActualClassColorKey(sampleData.getSexClassIndex());
+			colLabels = new String[][] {{"A", "Allele A"}, {"B", "Allele B"}};
 
-		classCount = CTable.extrapolateCounts(rowLabels, colLabels, sex, genotype);
-		table = classCount.getContingencyTable();
-		pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
+			classCount = CTable.extrapolateCounts(rowLabels, colLabels, sex, genotype);
+			table = classCount.getContingencyTable();
+			pval = ProbDist.ChiDist(ContingencyTable.ChiSquare(table, false), 1);
 
-		qcPanelLabel = new JLabel("Allele Freq by sex: ", JLabel.LEFT);
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-		qcPanelLabel.setFont(new Font("Arial", 0, 14));
-		qcPanel.add(qcPanelLabel, "cell 0 5");
-		qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
-		qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
-		qcPanelLabel.setFont(new Font("Arial", 0, 14));
-		qcPanel.add(qcPanelLabel, "cell 1 5");
+			qcPanelLabel = new JLabel("Allele Freq by sex: ", JLabel.LEFT);
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+			qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel, "cell 0 5");
+			qcPanelLabel = new JLabel("p= " + ext.prettyP(pval), JLabel.LEFT);
+			qcPanelLabel.setToolTipText(classCount.getCTableInHtml());
+			qcPanelLabel.setFont(new Font("Arial", 0, 14));
+			qcPanel.add(qcPanelLabel, "cell 1 5");
+		}
 
 		currentClass = getCurrentClass(index);
 		// currentClass = getCurrentClass();
