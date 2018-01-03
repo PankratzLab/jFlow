@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +48,12 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
 
 		Map<String, Double> pcts = pctMap.get(sn.fcsFile);
 		if (pcts == null) {
-			pcts = new HashMap<>();
+			pcts = new ConcurrentHashMap<>();
 			pctMap.put(sn.fcsFile, pcts);
 		}
 		Map<String, Integer> cnts = cntMap.get(sn.fcsFile);
 		if (cnts == null) {
-			cnts = new HashMap<>();
+			cnts = new ConcurrentHashMap<>();
 			cntMap.put(sn.fcsFile, cnts);
 		}
 		HashSet<Gate> allGates = new HashSet<>(sn.gating.gateMap.values());

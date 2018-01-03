@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -451,16 +453,15 @@ public class SamplingPipeline {
 																																	p1Queue, log);
 		AbstractPipelineRunnable p2Run = new AbstractPipelineRunnable(threadPool2, processorFactory,
 																																	p2Queue, log);
-		Thread p1T = new Thread(p1Run);
-		Thread p2T = new Thread(p2Run);
-		p1T.start();
-		p2T.start();
 
-		while (p1T.isAlive() || p2T.isAlive()) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				/**/}
+		ExecutorService serve = Executors.newFixedThreadPool(2);
+		serve.submit(p1Run);
+		serve.submit(p2Run);
+
+		serve.shutdown();
+		try {
+			serve.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
 		}
 
 		processorFactory.cleanup(p1Run);
