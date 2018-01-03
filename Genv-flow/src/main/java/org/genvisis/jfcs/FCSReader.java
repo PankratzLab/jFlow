@@ -66,10 +66,12 @@ public class FCSReader {
 		getHeader().fileFormat = pts[0];
 		getHeader().textStart = Integer.parseInt(pts[1]);
 		getHeader().textStop = Integer.parseInt(pts[2]);
-		getHeader().dataStart = Integer.parseInt(pts[3]);
-		getHeader().dataStop = Integer.parseInt(pts[4]);
-		getHeader().analysisStart = Integer.parseInt(pts[5]);
-		getHeader().analysisStop = Integer.parseInt(pts[6]);
+		if (pts.length >= 7) {
+			getHeader().dataStart = Integer.parseInt(pts[3]);
+			getHeader().dataStop = Integer.parseInt(pts[4]);
+			getHeader().analysisStart = Integer.parseInt(pts[5]);
+			getHeader().analysisStop = Integer.parseInt(pts[6]);
+		}
 	}
 
 
@@ -163,7 +165,10 @@ public class FCSReader {
 	}
 
 	public double[] getParamAsDoubles(String paramName, boolean compensated) {
-		return data.getParamData(ext.indexOfStr(paramName, keys.getParameterNames()), compensated,
+		return data.getParamData(ext.indexOfStr(paramName,
+																						compensated ? spill.getParameterNames()
+																												: keys.getParameterNames()),
+														 compensated,
 														 (double[]) null);
 	}
 
@@ -215,9 +220,9 @@ class FCSDoubleData implements FCSData {
 																					 + emptyData.length
 																					 + "; expected: "
 																					 + (compensated ? compData : data)[paramIndex].length);
-			} else {
-				emptyData = new double[(compensated ? compData : data)[paramIndex].length];
 			}
+		} else {
+			emptyData = new double[(compensated ? compData : data)[paramIndex].length];
 		}
 		System.arraycopy((compensated ? compData : data)[paramIndex], 0, emptyData, 0,
 										 emptyData.length);
@@ -326,7 +331,7 @@ class FCSDoubleData implements FCSData {
 																																								 Integer.toString(i
 																																																	+ 1)));
 			p /= 8; // require discrete bytes
-			paramByteInd[p] = byteSum;
+			paramByteInd[i] = byteSum;
 			byteSum += p;
 			paramBytes[i] = p;
 		}
@@ -373,7 +378,7 @@ class FCSDoubleData implements FCSData {
 																																		 parse[paramByteInd[p] + 3]))
 										 / paramScaling[p];
 			}
-			for (int p = 0; p > params; p++) {
+			for (int p = 0; p < params; p++) {
 				if (compInds[p] == -1) {
 					continue;
 				}
@@ -523,7 +528,7 @@ class FCSFloatData implements FCSData {
 																																								 Integer.toString(i
 																																																	+ 1)));
 			p /= 8; // require discrete bytes
-			paramByteInd[p] = byteSum;
+			paramByteInd[i] = byteSum;
 			byteSum += p;
 			paramBytes[i] = p;
 		}
@@ -560,7 +565,7 @@ class FCSFloatData implements FCSData {
 																											 parse[paramByteInd[p] + 3])
 															/ paramScaling[p]);
 			}
-			for (int p = 0; p > params; p++) {
+			for (int p = 0; p < params; p++) {
 				if (compInds[p] == -1) {
 					continue;
 				}
