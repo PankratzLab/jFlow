@@ -11,7 +11,7 @@ public final class BGENBitMath {
 	 * @return float
 	 * @throws IllegalArgumentException if the given array is not of length 4
 	 */
-	public static float bytesToFloat(boolean littleEndian, byte[] bytes) {
+	public static float bytesToFloat(boolean littleEndian, byte... bytes) {
 		if (bytes.length != 4) {
 			throw new IllegalArgumentException("Given array must contain 4 bytes total.");
 		}
@@ -19,6 +19,28 @@ public final class BGENBitMath {
 																| (bytes[littleEndian ? 2 : 1] & 0xFF) << 16
 																| (bytes[littleEndian ? 1 : 2] & 0xFF) << 8
 																| (bytes[littleEndian ? 0 : 3] & 0xFF));
+	}
+
+	/**
+	 * Turn an array of byte values into a double without using ByteBuffers
+	 * 
+	 * @param littleEndian Endian order of the given byte array
+	 * @param bytes array of eight (8) bytes
+	 * @return double
+	 * @throws IllegalArgumentException if the given array is not of length 4
+	 */
+	public static double bytesToDouble(boolean littleEndian, byte... bytes) {
+		if (bytes.length != 8) {
+			throw new IllegalArgumentException("Given array must contain 8 bytes total.");
+		}
+		return Double.longBitsToDouble((bytes[littleEndian ? 7 : 0] & 0xFF) << 56
+																	 | (bytes[littleEndian ? 6 : 1] & 0xFF) << 48
+																	 | (bytes[littleEndian ? 5 : 2] & 0xFF) << 40
+																	 | (bytes[littleEndian ? 4 : 3] & 0xFF) << 32
+																	 | (bytes[littleEndian ? 3 : 4] & 0xFF) << 24
+																	 | (bytes[littleEndian ? 2 : 5] & 0xFF) << 16
+																	 | (bytes[littleEndian ? 1 : 6] & 0xFF) << 8
+																	 | (bytes[littleEndian ? 0 : 7] & 0xFF));
 	}
 
 	/**
