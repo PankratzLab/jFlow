@@ -5,6 +5,7 @@ package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.genvisis.CLI;
@@ -13,9 +14,11 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.Producer;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 
 /**
  *
@@ -24,6 +27,9 @@ import org.genvisis.common.ext;
  *
  */
 public class SamToFastQ {
+
+
+
 	private SamToFastQ() {
 
 	}
@@ -59,11 +65,8 @@ public class SamToFastQ {
 															 final String samToFastQ, int numThreads) {
 		new File(outDir).mkdirs();
 		final Logger log = new Logger(outDir + "samToFastq.log");
-		final String[] bamsFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams, ".bam")
-																											 : HashVec.loadFileToStringArray(bams, false,
-																																											 new int[] {0},
-																																											 true);
-		log.reportTimeInfo("Found " + bamsFiles.length + " bams from input " + bams);
+		final String[] bamFiles = getBams(bams);
+		log.reportTimeInfo("Found " + bamFiles.length + " bams from input " + bams);
 
 		Producer<Boolean> prepProducer = new Producer<Boolean>() {
 			private int index = 0;
@@ -71,12 +74,12 @@ public class SamToFastQ {
 			@Override
 			public boolean hasNext() {
 
-				return index < bamsFiles.length;
+				return index < bamFiles.length;
 			}
 
 			@Override
 			public Callable<Boolean> next() {
-				final String bamFile = bamsFiles[index];
+				final String bamFile = bamFiles[index];
 
 				Callable<Boolean> callable = new Callable<Boolean>() {
 
@@ -127,22 +130,93 @@ public class SamToFastQ {
 		}
 	}
 
+	private static String[] getBams(String bams) {
+		return Files.isDirectory(bams) ? Files.listFullPaths(bams, ".bam")
+																	 : HashVec.loadFileToStringArray(bams, false,
+																																	 new int[] {0},
+																																	 true);
+	}
+
+	/**
+	 * 
+	 */
+	private static final String GENVISIS = "genvisis";
+	/**
+	 * 
+	 */
+	private static final String BATCH = "batch";
+	/**
+	 * 
+	 */
+	private static final String TAG = "tag";
+	/**
+	 * 
+	 */
+	private static final String SAM_TO_FASTQ = "samToFastq";
+	/**
+	 * 
+	 */
+	private static final String BAMS = "bams";
+
+	private static void batch(CLI c) {
+		new File(c.get(CLI.ARG_OUTDIR)).mkdirs();
+		final String[] bamFiles = getBams(c.get(BAMS));
+		Logger log = new Logger(c.get(CLI.ARG_OUTDIR) + "batch.log");
+		log.reportTimeInfo("Found " + bamFiles.length + " bams from input " + c.get(BAMS));
+		String[][] batches = ArrayUtils.splitUpStringArray(bamFiles, c.getI(BATCH), log);
+		List<String> cmd = new ArrayList<>();
+		cmd.add("java");
+		cmd.add("-jar");
+		cmd.add(c.get(GENVISIS));
+		cmd.add("seq.manage.SamToFastQ");
+		cmd.add(SAM_TO_FASTQ + "=" + c.get(SAM_TO_FASTQ));
+		cmd.add(TAG + "=" + c.get(TAG));
+		cmd.add(BATCH + "=-1");
+		cmd.add(CLI.ARG_THREADS + "=" + c.getI(CLI.ARG_THREADS));
+
+		for (int i = 0; i < batches.length; i++) {
+			String batchFile = c.get(CLI.ARG_OUTDIR) + "samToFastQ" + i + ".txt";
+			String pbs = c.get(CLI.ARG_OUTDIR) + "samToFastQ" + i + ".pbs";
+			Files.writeArray(batches[i], batchFile);
+			List<String> currentCmd = new ArrayList<>();
+			currentCmd.addAll(cmd);
+			currentCmd.add(BAMS + "=" + batchFile);
+
+			Qsub.qsub(pbs,
+								ArrayUtils.toStr(currentCmd, " "),
+								c.getI(PSF.Ext.MEMORY_MB), c.getI(PSF.Ext.WALLTIME_HRS), c.getI(CLI.ARG_THREADS));
+
+		}
+
+	}
 
 
 	public static void main(String[] args) {
 		CLI c = new CLI(SamToFastQ.class);
-		c.addArgWithDefault("bams",
+		c.addArgWithDefault(BAMS,
 												"file listing bam files to analyze, one per line - or a directory of bams",
 												"bams.txt");
 		c.addArgWithDefault(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR, "out/");
-		c.addArgWithDefault("samToFastq", "full path to SamToFastq.jar", "SamToFastq.jar");
-		c.addArgWithDefault("tag", "custom ID tag to add to files", null);
+		c.addArgWithDefault(SAM_TO_FASTQ, "full path to SamToFastq.jar", "SamToFastq.jar");
+		c.addArgWithDefault(TAG, "custom ID tag to add to files", null);
+		c.addArgWithDefault(BATCH,
+												"if batching is desired (set to >0 for no batching), number of batches",
+												-1);
+		c.addArgWithDefault(GENVISIS,
+												"location of genvisis.jar",
+												"~/genvisis.jar");
+		c.addArgWithDefault(PSF.Ext.MEMORY_MB, "memory in mb if batching", PSF.Ext.DEFAULT_MEMORY_MB);
+		c.addArgWithDefault(PSF.Ext.WALLTIME_HRS, "walltime in hours, if batching", 48);
 
-		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, CLI.EXAMPLE_THREADS);
+		c.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS, 1);
 		c.parseWithExit(args);
 
-		prepBams(c.get("bams"), c.get(CLI.ARG_OUTDIR), c.get("tag"), c.get("samToFastq"),
-						 c.getI(CLI.ARG_THREADS));
+		if (c.getI(BATCH) > 0) {
+			batch(c);
+		} else {
+			prepBams(c.get(BAMS), c.get(CLI.ARG_OUTDIR), c.get(TAG), c.get(SAM_TO_FASTQ),
+							 c.getI(CLI.ARG_THREADS));
+		}
 
 	}
 
