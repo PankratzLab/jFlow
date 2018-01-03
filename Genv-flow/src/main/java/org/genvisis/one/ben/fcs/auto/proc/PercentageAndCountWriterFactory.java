@@ -15,9 +15,11 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
 	ConcurrentHashMap<Object, Map<String, Map<String, Double>>> resultMapPcts = new ConcurrentHashMap<>();
 	ConcurrentHashMap<Object, Map<String, Map<String, Integer>>> resultMapCnts = new ConcurrentHashMap<>();
 	String outputDir;
+	int panel;
 
-	public PercentageAndCountWriterFactory(String outDir) {
+	public PercentageAndCountWriterFactory(String outDir, int panel) {
 		this.outputDir = outDir;
+		this.panel = panel;
 	}
 
 	@Override
@@ -77,10 +79,10 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
 		Map<String, Map<String, Double>> pctMap = resultMapPcts.get(owner);
 		Map<String, Map<String, Integer>> cntMap = resultMapCnts.get(owner);
 		if (pctMap != null) {
-			writeMap(pctMap, "p1.pcts.xln");
+			writeMap(pctMap, "p" + panel + ".pcts.xln");
 		}
 		if (cntMap != null) {
-			writeMap(cntMap, "p1.cnts.xln");
+			writeMap(cntMap, "p" + panel + ".cnts.xln");
 		}
 	}
 }
