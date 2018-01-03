@@ -117,7 +117,7 @@ public abstract class Gate {
 			} else {
 				parentGating = parentGate.gate(dataLoader);
 				if (parentGating != null) {
-					parentGating = Arrays.copyOf(parentGate.gate(dataLoader), dataLoader.getCount());
+					parentGating = Arrays.copyOf(parentGating, dataLoader.getCount());
 				}
 			}
 		}
@@ -306,12 +306,12 @@ public abstract class Gate {
 				return gating;
 			}
 			boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-																						 : getParentGating(dataLoader);
+																							: getParentGating(dataLoader);
 			if (includes == null) {
 				return includes;
 			}
 			boolean[][] paramIncludes = new boolean[getYDimension() == null ? 1
-																																		 : 2][dataLoader.getCount()];
+																																			: 2][dataLoader.getCount()];
 
 			RectangleGateDimension rgd = (RectangleGateDimension) getXDimension();
 			if (!dataLoader.containsParam(rgd.paramName)) {
@@ -564,7 +564,7 @@ public abstract class Gate {
 				return gating;
 			}
 			boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
-																						 : getParentGating(dataLoader);
+																							: getParentGating(dataLoader);
 			if (includes == null) {
 				return includes;
 			}
@@ -634,7 +634,8 @@ public abstract class Gate {
 					// xInd = Math.max(0, xInd);
 					// yInd = Math.min(rectsArray[xInd].length, yInd);
 					// yInd = Math.max(0, yInd);
-					if (xInd < 0 || xInd >= rectsArray.length || yInd < 0 || yInd >= rectsArray[xInd].length) {
+					if (xInd < 0 || xInd >= rectsArray.length || yInd < 0
+							|| yInd >= rectsArray[xInd].length) {
 						continue;
 					}
 					Rectangle rect = rectsArray[xInd][yInd];
@@ -701,11 +702,12 @@ public abstract class Gate {
 				int type = pi.currentSegment(coords);
 				if (type != PathIterator.SEG_CLOSE) {
 					xInd = (int) (xT ? ((coords[0]) * (gateResolution * 2))
-													: ((coords[0] / binStep) + gateResolution));
+													 : ((coords[0] / binStep) + gateResolution));
 					yInd = (int) (yT ? ((coords[1]) * (gateResolution * 2))
-													: ((coords[1] / binStep) + gateResolution));
+													 : ((coords[1] / binStep) + gateResolution));
 					Rectangle vRect;
-					if (xInd < rectsArray.length && xInd >= 0 && yInd < rectsArray[xInd].length && yInd >= 0) {
+					if (xInd < rectsArray.length && xInd >= 0 && yInd < rectsArray[xInd].length
+							&& yInd >= 0) {
 						vRect = rectsArray[xInd][yInd];
 					} else {
 						vRect = new Rectangle(xInd * binStep + binStep / 2, yInd * binStep + binStep / 2,
