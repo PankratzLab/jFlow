@@ -3,6 +3,7 @@ package org.genvisis.one.ben.fcs.auto;
 import java.io.IOException;
 
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.auto.proc.InclusionProcessor;
 import org.genvisis.one.ben.fcs.auto.proc.PercentageAndCountWriterFactory;
@@ -101,7 +102,7 @@ public class FCSProcessingPipeline {
 				};
 				break;
 			case PCTS_CNTS:
-				pf = new PercentageAndCountWriterFactory(outDir);
+				pf = new PercentageAndCountWriterFactory(outDir, panel);
 				break;
 			default:
 				System.err.println("Error - pipeline option " + pipeToRun
@@ -162,13 +163,13 @@ public class FCSProcessingPipeline {
 		String lowPriorityFile = null;
 		int panel = -1;
 		PIPELINE pipe = PIPELINE.VIZ;
-		boolean test = true;
-		// if (test) {
-		// fcs = wsp = auto = out = "F:/Flow/Annotation/test1/";
-		// out += "out/";
-		// new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.BOOL, -1);
-		// return;
-		// }
+		boolean test = Files.isWindows();
+		if (test) {
+			fcs = wsp = auto = out = "F:\\Flow\\counts data\\nullsTest\\";
+			out += "out/";
+			new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.PCTS_CNTS, -1);
+			return;
+		}
 
 
 		for (String arg : args) {
