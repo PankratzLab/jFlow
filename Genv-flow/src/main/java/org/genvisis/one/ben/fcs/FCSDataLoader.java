@@ -324,7 +324,9 @@ public class FCSDataLoader {
 		LOAD_STATE currState = getLoadState();
 		double[] data;
 		if (currState == LOAD_STATE.LOADED) {
-			data = reader.getParamAsDoubles(columnName, compensated);
+			data = reader.getParamAsDoubles(paramShortNamesInOrder.get(paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN)
+																																																			 : columnName)),
+																			compensated);
 		} else {
 			if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
 				while ((currState = getLoadState()) != LOAD_STATE.LOADED) {
