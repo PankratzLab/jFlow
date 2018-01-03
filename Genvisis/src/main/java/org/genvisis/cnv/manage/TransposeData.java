@@ -878,7 +878,7 @@ public class TransposeData {
 
 						for (int s = 0; s < sampInds.length; s++) {
 							buffer[s] = null;
-							smp = listOfAllSamplesInProj[s1 + s];
+							smp = listOfAllSamplesInProj[s1 + sampInds[s]];
 							filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
 												 + Sample.SAMPLE_FILE_EXTENSION;
 							successWriter.println(filename);
