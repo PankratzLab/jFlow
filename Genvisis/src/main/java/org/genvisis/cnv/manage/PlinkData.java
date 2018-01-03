@@ -1703,15 +1703,17 @@ public class PlinkData {
 	/**
 	 * Detect the possible {@link ExportIDScheme}s of an FID/IID pair
 	 * 
+	 * For a single scheme, see {@link #detectBestSampleIDScheme(Project, String, String)}
+	 * 
 	 * @param proj Project to check sample against
 	 * @param fid FID to check
 	 * @param iid IID to check
 	 * @return All possible ExportIDSchemes of the provided FID/IID pair, empty Set when none match
 	 */
-	public static Set<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
-																																	String iid) {
+	public static EnumSet<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
+																																			String iid) {
 		SampleData sampleData = proj.getSampleData(false);
-		Set<ExportIDScheme> possibleSchemes = EnumSet.noneOf(ExportIDScheme.class);
+		EnumSet<ExportIDScheme> possibleSchemes = EnumSet.noneOf(ExportIDScheme.class);
 		for (ExportIDScheme scheme : ExportIDScheme.values()) {
 			String projDNA = scheme.getProjDNA(proj, fid, iid);
 			if (projDNA == null)
@@ -1729,6 +1731,19 @@ public class PlinkData {
 		}
 
 		return possibleSchemes;
+	}
+
+	/**
+	 * Detect the best {@link ExportIDScheme} for an FID/IID pair
+	 * 
+	 * @param proj Project to check sample against
+	 * @param fid FID to check
+	 * @param iid IID to check
+	 * @return the highest order ExportIDScheme that matches the sample or null if none match
+	 */
+	public static ExportIDScheme detectBestSampleIDScheme(Project proj, String fid,
+																												String iid) {
+		return Iterables.getFirst(detectPossibleSampleIDSchemes(proj, fid, iid), null);
 	}
 
 	/**
