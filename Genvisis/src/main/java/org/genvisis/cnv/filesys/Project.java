@@ -1849,17 +1849,30 @@ public class Project implements PropertyChangeListener {
 	}
 
 	/**
+	 * 
+	 * @return true if the pedigree file exists and is non-empty
+	 */
+	public boolean pedigreeExists() {
+		String ped = PEDIGREE_FILENAME.getValue();
+		if (!Files.exists(ped)) {
+			log.reportTimeWarning("Did not find pedigree file " + ped);
+			return false;
+		}
+		if ((new File(ped)).length() == 0) {
+			log.reportTimeWarning("Pedigree file " + ped + " was empty.");
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * @return the {@link Pedigree} if the {@link Project#PEDIGREE_FILENAME} exists, null otherwise
 	 */
 	public Pedigree loadPedigree() {
-		String ped = PEDIGREE_FILENAME.getValue();
-		Pedigree pedigree = null;
-		if (!Files.exists(ped)) {
-			log.reportTimeWarning("Did not find pedigree file " + ped);
-		} else if ((new File(ped)).length() == 0) {
-			log.reportTimeWarning("Pedigree file " + ped + " was empty.");
+		if (!pedigreeExists()) {
+			return null;
 		} else {
-			pedigree = new Pedigree(this); // will load from project
+			Pedigree pedigree = new Pedigree(this); // will load from project
 
 			String samples = SAMPLE_DATA_FILENAME.getValue();
 			String[] sampleHeader = Files.getHeaderOfFile(samples, log);
@@ -1873,8 +1886,9 @@ public class Project implements PropertyChangeListener {
 																																				new int[] {sexCol}, "\t",
 																																				true);
 				// Load pedigree file
-				Hashtable<String, String> pedigreeMap = HashVec.loadFileToHashString(ped, 6, new int[] {4},
-																																						 "\t", false);
+				Hashtable<String, String> pedigreeMap = HashVec.loadFileToHashString(PEDIGREE_FILENAME.getValue(),
+																																						 6, new int[] {4}, "\t",
+																																						 false);
 
 				Map<String, String> misMatches = new HashMap<String, String>();
 				int zeroPeds = 0;
@@ -1902,11 +1916,8 @@ public class Project implements PropertyChangeListener {
 					}
 				}
 			}
-
-
-
+			return pedigree;
 		}
-		return pedigree;
 	}
 
 	/**
