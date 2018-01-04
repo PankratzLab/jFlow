@@ -2,7 +2,6 @@ package org.genvisis.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.qc.SampleQC;
@@ -21,7 +21,6 @@ import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.stats.Maths;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -308,7 +307,19 @@ public class PlinkMendelianChecker {
 								 + MarkerMetrics.DEFAULT_MENDEL_FILE_SUFFIX;
 		genomeFile = project.GENOME_CLUSTER_FILENAME.getValue();
 		log = project.getLog();
-		genomeDNA = checkGenomeDNA(project, genomeFile, log);
+		PlinkData.ExportIDScheme idScheme = PlinkData.detectExportIDScheme(project, genomeFile);
+		switch (idScheme) {
+			case DNA_DNA:
+				genomeDNA = true;
+				break;
+			case FID_IID:
+				genomeDNA = false;
+				break;
+			default:
+				log.reportError(this.getClass().getSimpleName() + " does not support "
+												+ PlinkData.ExportIDScheme.class.getSimpleName() + idScheme.toString());
+				throw new IllegalArgumentException("Invalid " + PlinkData.ExportIDScheme.class.getName());
+		}
 		outDir = parseOutputDirectory(project);
 
 	}
@@ -323,44 +334,6 @@ public class PlinkMendelianChecker {
 		this.outDir = ext.verifyDirFormat(outDir);
 		this.log = log;
 	}
-
-	private static boolean checkGenomeDNA(Project proj, String genomeFile,
-																				Logger log) {
-		log.report("Attempting to determine if FID and IID of " + genomeFile
-							 + " are true FID and IID or both set to DNA");
-		SampleData sampleData = proj.getSampleData(false);
-		try (BufferedReader reader = Files.getAppropriateReader(genomeFile)) {
-			// Skip header
-			reader.readLine();
-			for (int i = 0; reader.ready(); i++) {
-				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				String fid = line[GenomeLoader.FID1_INDEX];
-				String iid = line[GenomeLoader.IID1_INDEX];
-
-				if (fid.equals(iid) && sampleData.lookupDNA(iid).equals(iid)) {
-					log.report("FID/IID in " + genomeFile
-										 + " appear to be DNA IDs, continuing with this assumption.");
-					return true;
-				} else if (sampleData.lookupContains(fid + "\t" + iid)) {
-					log.report("FID/IID in  " + genomeFile
-										 + " appear to be true FID and IID, continuing with this assumption.");
-					return false;
-				}
-				if (Maths.isPowerOf10(i)) {
-					log.reportTimeWarning(i
-																+ " lines have been checked without finding any matches to DNA or FID/IID from project");
-				}
-			}
-			throw new IllegalArgumentException("Genome File does not contain DNA or FID/IID ids");
-		} catch (FileNotFoundException e) {
-			log.reportFileNotFound(genomeFile);
-		} catch (IOException e) {
-			log.reportIOException(genomeFile);
-		}
-		log.reportError("Treating FID/IID as FID/IID and not DNA since status could not be determined.");
-		return false;
-	}
-
 
 	public void run() {
 		SampleData sampleData = null;
