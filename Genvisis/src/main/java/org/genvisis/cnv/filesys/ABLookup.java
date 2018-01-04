@@ -956,7 +956,8 @@ public class ABLookup {
 		c.parseWithExit(args);
 
 		proj = new Project(c.get(CLI.ARG_PROJ));
-		outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(CLI.ARG_OUTFILE);
+		if (!new File(outfile).isAbsolute())
+			outfile = proj.PROJECT_DIRECTORY.getValue() + c.get(CLI.ARG_OUTFILE);
 		if (c.has(FLAGS_APPLYAB)) {
 			applyABLookupToFullSampleFiles(proj);
 		} else if (c.has(FLAGS_VCF)) {
