@@ -44,17 +44,17 @@ public class GateFileUtils {
 	public static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
 		HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
 		for (Gate g : gateMap.values()) {
-			ArrayList<Gate> gates = paramGates.get(g.getXDimension().paramName);
+			ArrayList<Gate> gates = paramGates.get(g.getXDimension().getParam());
 			if (gates == null) {
 				gates = new ArrayList<Gate>();
-				paramGates.put(g.getXDimension().paramName, gates);
+				paramGates.put(g.getXDimension().getParam(), gates);
 			}
 			gates.add(g);
 			if (g.getYDimension() != null) {
-				gates = paramGates.get(g.getYDimension().paramName);
+				gates = paramGates.get(g.getYDimension().getParam());
 				if (gates == null) {
 					gates = new ArrayList<Gate>();
-					paramGates.put(g.getYDimension().paramName, gates);
+					paramGates.put(g.getYDimension().getParam(), gates);
 				}
 				gates.add(g);
 			}
@@ -172,7 +172,7 @@ public class GateFileUtils {
 				String min = ((Element) dimNode).getAttribute("gating:min");
 				String max = ((Element) dimNode).getAttribute("gating:max");
 				// ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
-				gd.paramName = param;
+				gd.setParam(param);
 				gd.setMin("".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min));
 				gd.setMax("".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max));
 				if (i == 0) {
@@ -231,7 +231,7 @@ public class GateFileUtils {
 				String param = ((Element) getFirstChild(dimNode,
 																								"data-type:fcs-dimension")).getAttribute("data-type:name");
 				GateDimension gd = new GateDimension(gate, param);
-				gd.paramName = param;
+				gd.setParam(param);
 				if (i == 0) {
 					gate.setXDimension(gd);
 				} else if (i == 1) {

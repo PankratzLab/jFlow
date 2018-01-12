@@ -234,7 +234,7 @@ public class FCSDataLoader {
 			// name = "P" + i;
 			// }
 			String actName = shortName;
-			if (name != null) {
+			if (name != null && !name.equals(shortName)) {
 				actName = shortName + " (" + name + ")";
 			}
 			paramNamesInOrder.add(actName);

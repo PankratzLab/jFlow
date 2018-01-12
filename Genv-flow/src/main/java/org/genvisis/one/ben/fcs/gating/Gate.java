@@ -112,14 +112,8 @@ public abstract class Gate {
 
 	public boolean[] getParentGating(FCSDataLoader dataLoader) {
 		if (parentGating == null || (parentGate != null && parentGate.hasChanged())) {
-			if (parentGate == null) {
-				parentGating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
-			} else {
-				parentGating = parentGate.gate(dataLoader);
-				if (parentGating != null) {
-					parentGating = Arrays.copyOf(parentGating, dataLoader.getCount());
-				}
-			}
+			parentGating = parentGate == null ? ArrayUtils.booleanArray(dataLoader.getCount(), true)
+																				: parentGate.gate(dataLoader);
 		}
 		if (parentGating == null) {
 			System.err.println("Error - parent gating is null!  Gate " + getName() + " // parent: "
@@ -166,9 +160,9 @@ public abstract class Gate {
 		}
 
 		full.append(" (");
-		full.append(getXDimension().paramName);
+		full.append(getXDimension().getParam());
 		if (getYDimension() != null) {
-			full.append(" v ").append(getYDimension().paramName);
+			full.append(" v ").append(getYDimension().getParam());
 		}
 		full.append(")");
 
@@ -256,13 +250,13 @@ public abstract class Gate {
 			RectangleGate rg = new RectangleGate(parentGate, this.popName);
 			rg.setXDimension(new RectangleGateDimension(
 																									rg,
-																									this.getXDimension().paramName,
+																									this.getXDimension().getParam(),
 																									((RectangleGateDimension) this.getXDimension()).getMin(),
 																									((RectangleGateDimension) this.getXDimension()).getMax()));
 			if (this.getYDimension() != null) {
 				rg.setYDimension(new RectangleGateDimension(
 																										rg,
-																										this.getYDimension().paramName,
+																										this.getYDimension().getParam(),
 																										((RectangleGateDimension) this.getYDimension()).getMin(),
 																										((RectangleGateDimension) this.getYDimension()).getMax()));
 			}
@@ -314,10 +308,10 @@ public abstract class Gate {
 																																			: 2][dataLoader.getCount()];
 
 			RectangleGateDimension rgd = (RectangleGateDimension) getXDimension();
-			if (!dataLoader.containsParam(rgd.paramName)) {
+			if (!dataLoader.containsParam(rgd.getParam())) {
 				return null;
 			}
-			double[] paramData = dataLoader.getData(rgd.paramName, true);
+			double[] paramData = dataLoader.getData(rgd.getParam(), true);
 			float min = Math.min(rgd.getMin(), rgd.getMax());
 			float max = Math.max(rgd.getMin(), rgd.getMax());
 			for (int i = 0; i < dataLoader.getCount(); i++) {
@@ -327,12 +321,12 @@ public abstract class Gate {
 			}
 
 			if ((rgd = (RectangleGateDimension) getYDimension()) != null) {
-				if (!dataLoader.containsParam(rgd.paramName)) {
+				if (!dataLoader.containsParam(rgd.getParam())) {
 					return null;
 				}
 				min = Math.min(rgd.getMin(), rgd.getMax());
 				max = Math.max(rgd.getMin(), rgd.getMax());
-				paramData = dataLoader.getData(rgd.paramName, true);
+				paramData = dataLoader.getData(rgd.getParam(), true);
 				for (int i = 0; i < dataLoader.getCount(); i++) {
 					// inclusive min, exclusive max - see gating-ml spec
 					paramIncludes[1][i] = (!Float.isFinite(min) || min <= paramData[i])
@@ -344,7 +338,6 @@ public abstract class Gate {
 			for (int i = 0; i < dataLoader.getCount(); i++) {
 				boolean include = true;
 				if (parentGate != null && !includes[i]) {
-					includes[i] = false;
 					continue;
 				}
 				for (int p = 0, pCount = paramIncludes.length; p < pCount; p++) {
@@ -529,8 +522,8 @@ public abstract class Gate {
 			Path2D path = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 			AxisTransform xTr;
 			AxisTransform yTr;
-			xTr = dataLoader.getParamTransform(getXDimension().paramName);
-			yTr = dataLoader.getParamTransform(getYDimension().paramName);
+			xTr = dataLoader.getParamTransform(getXDimension().getParam());
+			yTr = dataLoader.getParamTransform(getYDimension().getParam());
 			if (verticesX.isEmpty() || verticesY.isEmpty()) {
 				resetVertices();
 			}
@@ -546,8 +539,8 @@ public abstract class Gate {
 		@Override
 		public Gate copy(Gate parentGate) {
 			PolygonGate pg = new PolygonGate(parentGate, this.popName, this.mimicFlowJo);
-			pg.setXDimension(new GateDimension(pg, getXDimension().paramName));
-			pg.setYDimension(new GateDimension(pg, getYDimension().paramName));
+			pg.setXDimension(new GateDimension(pg, getXDimension().getParam()));
+			pg.setYDimension(new GateDimension(pg, getYDimension().getParam()));
 			pg.setLevel(this.getLevel());
 			pg.setPath((Path2D) this.myPath.clone());
 			for (Gate c : children) {
@@ -578,19 +571,19 @@ public abstract class Gate {
 				transformedPath = transformPath(dataLoader);
 				prepGating(dataLoader);
 			}
-			if (!dataLoader.containsParam(getXDimension().paramName)
-					|| !dataLoader.containsParam(getYDimension().paramName)) {
+			if (!dataLoader.containsParam(getXDimension().getParam())
+					|| !dataLoader.containsParam(getYDimension().getParam())) {
 				return null;
 			}
-			double[][] paramData = {dataLoader.getData(getXDimension().paramName, true),
-															dataLoader.getData(getYDimension().paramName, true)};
+			double[][] paramData = {dataLoader.getData(getXDimension().getParam(), true),
+															dataLoader.getData(getYDimension().getParam(), true)};
 
 			AxisTransform xTr, yTr;
-			xTr = dataLoader.getParamTransform(getXDimension().paramName);
-			yTr = dataLoader.getParamTransform(getYDimension().paramName);
+			xTr = dataLoader.getParamTransform(getXDimension().getParam());
+			yTr = dataLoader.getParamTransform(getYDimension().getParam());
 			boolean xT, yT;
-			xT = dataLoader.getScaleForParam(getXDimension().paramName) == AXIS_SCALE.BIEX;
-			yT = dataLoader.getScaleForParam(getYDimension().paramName) == AXIS_SCALE.BIEX;
+			xT = dataLoader.getScaleForParam(getXDimension().getParam()) == AXIS_SCALE.BIEX;
+			yT = dataLoader.getScaleForParam(getYDimension().getParam()) == AXIS_SCALE.BIEX;
 			Rectangle[][] rectsArray = null;
 			if (xT && yT) {
 				rectsArray = rectsXtYt_arr;
@@ -670,11 +663,11 @@ public abstract class Gate {
 
 		void prepGating(FCSDataLoader dataLoader) {
 			boolean xT, yT;
-			xT = dataLoader.getScaleForParam(getXDimension().paramName) == AXIS_SCALE.BIEX;
-			yT = dataLoader.getScaleForParam(getYDimension().paramName) == AXIS_SCALE.BIEX;
+			xT = dataLoader.getScaleForParam(getXDimension().getParam()) == AXIS_SCALE.BIEX;
+			yT = dataLoader.getScaleForParam(getYDimension().getParam()) == AXIS_SCALE.BIEX;
 			AxisTransform xTr, yTr;
-			xTr = dataLoader.getParamTransform(getXDimension().paramName);
-			yTr = dataLoader.getParamTransform(getYDimension().paramName);
+			xTr = dataLoader.getParamTransform(getXDimension().getParam());
+			yTr = dataLoader.getParamTransform(getYDimension().getParam());
 
 			ArrayList<Rectangle> vertexRects = new ArrayList<>();
 			ArrayList<Rectangle> rects = null;

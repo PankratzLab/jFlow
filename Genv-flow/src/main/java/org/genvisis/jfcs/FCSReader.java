@@ -346,7 +346,6 @@ class FCSDoubleData implements FCSData {
 		DenseMatrix64F spillMatrix = new DenseMatrix64F(spill.getCoefficients());
 		CommonOps.invert(spillMatrix);
 
-		long t = System.nanoTime();
 		data = new double[params][events];
 		compData = new double[spill.getParameterNames().length][events];
 		int[] compInds = new int[reader.getKeywords().getParameterNames().length];
@@ -393,10 +392,6 @@ class FCSDoubleData implements FCSData {
 			}
 		}
 		parse = null;
-		System.out.println("Read " + events + " events for " + params + " params and " + compData.length
-											 + " comped params in "
-											 + ext.getTimeElapsedNanos(t));
-
 	}
 
 }

@@ -21,17 +21,17 @@ public class Gating {
 		if (g2.getName() != null && !g2.getName().equals("")) {
 			gateMap.put(g2.getName(), g2);
 		}
-		ArrayList<Gate> gates = paramGateMap.get(g2.getXDimension().paramName);
+		ArrayList<Gate> gates = paramGateMap.get(g2.getXDimension().getParam());
 		if (gates == null) {
 			gates = new ArrayList<Gate>();
-			paramGateMap.put(g2.getXDimension().paramName, gates);
+			paramGateMap.put(g2.getXDimension().getParam(), gates);
 		}
 		gates.add(g2);
 		if (g2.getYDimension() != null) {
-			gates = paramGateMap.get(g2.getYDimension().paramName);
+			gates = paramGateMap.get(g2.getYDimension().getParam());
 			if (gates == null) {
 				gates = new ArrayList<Gate>();
-				paramGateMap.put(g2.getYDimension().paramName, gates);
+				paramGateMap.put(g2.getYDimension().getParam(), gates);
 			}
 			gates.add(g2);
 		}
@@ -91,17 +91,17 @@ public class Gating {
 		if (gateRoots.contains(g))
 			return;
 		gateRoots.add(g);
-		ArrayList<Gate> gates = paramGateMap.get(g.getXDimension().paramName);
+		ArrayList<Gate> gates = paramGateMap.get(g.getXDimension().getParam());
 		if (gates == null) {
 			gates = new ArrayList<Gate>();
-			paramGateMap.put(g.getXDimension().paramName, gates);
+			paramGateMap.put(g.getXDimension().getParam(), gates);
 		}
 		gates.add(g);
 		if (g.getYDimension() != null) {
-			gates = paramGateMap.get(g.getYDimension().paramName);
+			gates = paramGateMap.get(g.getYDimension().getParam());
 			if (gates == null) {
 				gates = new ArrayList<Gate>();
-				paramGateMap.put(g.getYDimension().paramName, gates);
+				paramGateMap.put(g.getYDimension().getParam(), gates);
 			}
 			gates.add(g);
 		}
@@ -135,9 +135,9 @@ public class Gating {
 			for (Gate c : g.children) {
 				deleteGate(c);
 			}
-			paramGateMap.get(g.getXDimension().paramName).remove(g);
+			paramGateMap.get(g.getXDimension().getParam()).remove(g);
 			if (g.getYDimension() != null) {
-				paramGateMap.get(g.getYDimension().paramName).remove(g);
+				paramGateMap.get(g.getYDimension().getParam()).remove(g);
 			}
 			return true;
 		} else {
