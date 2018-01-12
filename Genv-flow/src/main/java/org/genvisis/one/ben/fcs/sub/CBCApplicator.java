@@ -220,7 +220,8 @@ public class CBCApplicator implements Runnable {
 
 		try {
 			line = reader.readLine();
-			delim = file.endsWith("csv") ? "," : ext.determineDelimiter(line);
+			delim = file.endsWith("csv") ? ","
+																	 : file.endsWith("xln") ? "\t" : ext.determineDelimiter(line);
 			header = delim.equals(",") ? ext.splitCommasIntelligently(line, true, log)
 																 : line.replaceAll("\"", "").split(delim, -1);
 			outLine = new StringBuilder();
