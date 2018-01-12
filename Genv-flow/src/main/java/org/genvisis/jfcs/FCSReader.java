@@ -387,7 +387,7 @@ class FCSDoubleData implements FCSData {
 					if (compInds[p1] == -1) {
 						continue;
 					}
-					sum += data[p1][e] * spillMatrix.get(compInds[p], compInds[p1]);
+					sum += data[p1][e] * spillMatrix.get(compInds[p1], compInds[p]);
 				}
 				compData[compInds[p]][e] = sum;
 			}
