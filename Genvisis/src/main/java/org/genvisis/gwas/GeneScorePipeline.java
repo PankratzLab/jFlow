@@ -1319,8 +1319,8 @@ public class GeneScorePipeline {
 					BufferedReader scoreReader = Files.getAppropriateReader(scoreFile);
 					String line = scoreReader.readLine();
 					while ((line = scoreReader.readLine()) != null) {
-						String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
-						String score = parts[5];
+						String[] parts = line.split("\t");
+						String score = parts[parts.length - 1];
 						scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
 					}
 					scoreReader.close();
@@ -1346,6 +1346,7 @@ public class GeneScorePipeline {
 						ArrayList<Double> depData = new ArrayList<Double>();
 						ArrayList<double[]> baselineIndeps = new ArrayList<double[]>();
 						ArrayList<double[]> indepData = new ArrayList<double[]>();
+
 						for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
 							if (scoreData.containsKey(indiv.getKey())) {
 								PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
@@ -1398,8 +1399,6 @@ public class GeneScorePipeline {
 							rr.logistic = model.isLogistic();
 						} else {
 							int ind = -1;
-							System.out.println(pd.phenoName + " -- model Names: "
-																 + ArrayUtils.toStr(model.getVarNames(), ", "));
 							for (int l = 0; l < model.getVarNames().length; l++) {
 								if ("Indep 1".equals(model.getVarNames()[l])) {
 									ind = l;

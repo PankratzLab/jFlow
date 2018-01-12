@@ -2334,8 +2334,22 @@ public class DosageData implements Serializable {
 
 		DosageData dd = new DosageData();
 		dd.ids = new String[(int) reader.getSampleCount()][];
+		int count = 0;
+		String id;
 		for (int i = 0; i < reader.getSampleCount(); i++) {
-			dd.ids[i] = new String[] {reader.getSamples()[i], reader.getSamples()[i]};
+			id = reader.getSamples()[i];
+			String[] ids = id.split(PSF.Regex.GREEDY_WHITESPACE);
+			if (ids.length == 2) {
+				dd.ids[i] = ids;
+			} else if (ids.length == 1) {
+				dd.ids[i] = new String[] {id, id};
+			} else {
+				count++;
+				dd.ids[i] = ids;
+			}
+		}
+		if (count > 0) {
+			log.reportTimeWarning(count + " IDs contained more than two parts!");
 		}
 		List<String> markersList = new ArrayList<>();
 		List<Integer> chrs = new ArrayList<>();
