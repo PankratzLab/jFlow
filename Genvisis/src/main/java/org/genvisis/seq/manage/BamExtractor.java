@@ -3,9 +3,12 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -15,6 +18,8 @@ import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 
+import com.google.common.collect.Sets;
+
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -22,6 +27,8 @@ import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
@@ -178,8 +185,9 @@ public class BamExtractor {
 																								 int bpBuffer, Logger log) {
 		QueryInterval[] qIntervals = new QueryInterval[segs.length];
 		segs = ArrayUtils.sortedCopy(segs);
+		boolean addChr = sequenceNamesContainChr(sFileHeader.getSequenceDictionary());
 		for (int i = 0; i < qIntervals.length; i++) {
-			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), true);
+			String sequenceName = Positions.getChromosomeUCSC(segs[i].getChr(), addChr);
 			int referenceIndex = sFileHeader.getSequenceIndex(sequenceName);
 			if (referenceIndex < 0) {
 				log.reportError("Error - could not find " + sequenceName
@@ -190,6 +198,36 @@ public class BamExtractor {
 																				segs[i].getStop() + bpBuffer);
 		}
 		return qIntervals;
+	}
+
+	private static boolean sequenceNamesContainChr(SAMSequenceDictionary seqDict) {
+		Set<String> chrNames = new HashSet<>();
+		Set<String> noChrNames = new HashSet<>();
+		for (String chr : Positions.CHR_CODES) {
+			chrNames.add("chr" + chr);
+			noChrNames.add(chr);
+		}
+		Set<String> seqNames = seqDict.getSequences().stream().map(SAMSequenceRecord::getSequenceName)
+																	.collect(Collectors.toSet());
+		int chrCount = Sets.intersection(chrNames, seqNames).size();
+		int noChrCount = Sets.intersection(noChrNames, seqNames).size();
+
+		if (chrCount > noChrCount)
+			return true;
+		if (noChrCount > chrCount)
+			return false;
+
+		// If tied, check other names for chr prefix
+		for (String name : Sets.difference(Sets.difference(seqNames, chrNames), noChrNames)) {
+			if (name.startsWith("chr"))
+				chrCount++;
+			else
+				noChrCount++;
+		}
+		if (noChrCount > chrCount)
+			return false;
+		// If still tied, return true
+		return true;
 	}
 
 	public static void test(String bamFile) {
