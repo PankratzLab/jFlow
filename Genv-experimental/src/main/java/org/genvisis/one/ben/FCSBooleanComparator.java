@@ -137,8 +137,7 @@ public class FCSBooleanComparator {
 			for (int c = 0; c < compDirs.size(); c++) {
 				N = 0;
 				v = new long[] {0, 0, 0, 0};
-				String revD = compLbls.get(c);
-				Map<String, Map<String, int[]>> sampGateMtrs = sampConfMap.get(revD);
+				Map<String, Map<String, int[]>> sampGateMtrs = sampConfMap.get(compDirs.get(c));
 				for (Map<String, int[]> gateConfs : sampGateMtrs.values()) {
 					if (gateConfs.containsKey(gate)) {
 						N++;
