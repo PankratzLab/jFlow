@@ -107,13 +107,13 @@ public class Project implements PropertyChangeListener {
 	 * How to copy a property to a new project. For non-File/Dir properties, VALUE and REFERENCE
 	 * function the same.
 	 */
-	public enum COPY {
+	public static enum COPY {
 		NO_COPY,
 		VALUE,
 		REFERENCE;
 	}
 
-	public enum GROUP {
+	public static enum GROUP {
 
 		PROJECT_NAME_LOCS("Project Name and Locations"),
 		IMPORT("Import"),
@@ -709,8 +709,8 @@ public class Project implements PropertyChangeListener {
 																																													this,
 																																													PropertyKeys.KEY_GENOME_BUILD_VERSION,
 																																													"The build version of the genome, options are "
-																																															+ Arrays.asList(GENOME_BUILD.values())
-																																																			.toString(),
+																																																																 + Arrays.asList(GENOME_BUILD.values())
+																																																																				 .toString(),
 																																													GROUP.IMPORT,
 																																													false,
 																																													COPY.VALUE,
@@ -933,10 +933,10 @@ public class Project implements PropertyChangeListener {
 			} else {
 				// error reading headers; let's delete
 				getLog().reportError(ext.getTime()
-																 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
+														 + "]\tError reading source file header metadata.  Deleting file and reparsing.");
 				getLog().reportError(ext.getTime()
-																 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
-																 + Sample.SAMPLE_FILE_EXTENSION + " files.");
+														 + "]\tThis is only relevant if desired data columns are non-default AND source files are not yet parsed into "
+														 + Sample.SAMPLE_FILE_EXTENSION + " files.");
 				getLog().reportError(ext.getTime()
 														 + "]\tA quick check (which may be incorrect) suggest this "
 														 + (reasonableCheckForParsedSource() ? "IS LIKELY NOT " : "IS LIKELY")
@@ -1337,13 +1337,12 @@ public class Project implements PropertyChangeListener {
 		}
 	}
 
-	public <T extends Property<?>> List<T> getProperties(GROUP g) {
-		ArrayList<T> propList = new ArrayList<T>();
+	public List<Property<?>> getProperties(GROUP g) {
+		ArrayList<Property<?>> propList = new ArrayList<>();
 		for (Field f : Project.class.getFields()) {
 			try {
 				if (f.get(this) instanceof Property<?>) {
-					@SuppressWarnings("unchecked")
-					T prop = (T) f.get(this);
+					Property<?> prop = (Property<?>) f.get(this);
 					if (g == null || prop.getGroup() == g) {
 						propList.add(prop);
 					}
@@ -1357,7 +1356,7 @@ public class Project implements PropertyChangeListener {
 		return propList;
 	}
 
-	public <T extends Property<?>> List<T> getProperties() {
+	public List<Property<?>> getProperties() {
 		return getProperties(null);
 	}
 
@@ -2271,7 +2270,7 @@ public class Project implements PropertyChangeListener {
 
 	public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
 		return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-																		: sourceFileHeaders;
+																		 : sourceFileHeaders;
 	}
 
 	public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
