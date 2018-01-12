@@ -3,7 +3,7 @@ package org.genvisis.one.ben.fcs.gating;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 
 public class GateDimension {
-	String paramName;
+	private String paramName;
 	Gate owner;
 
 	@Override

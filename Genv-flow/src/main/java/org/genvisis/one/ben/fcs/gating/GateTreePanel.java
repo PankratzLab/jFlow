@@ -179,10 +179,10 @@ public class GateTreePanel extends JPanel {
 		ident.append(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
 
 		ident.append(" (");
-		ident.append(g.getXDimension().paramName);
+		ident.append(g.getXDimension().getParam());
 		if (g.getYDimension() != null) {
 			ident.append(" v ");
-			ident.append(g.getYDimension().paramName);
+			ident.append(g.getYDimension().getParam());
 		}
 		ident.append(")");
 		DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);

@@ -220,7 +220,7 @@ public class GateFileReader {
 				String min = ((Element) dimNode).getAttribute("gating:min");
 				String max = ((Element) dimNode).getAttribute("gating:max");
 				// ((Element) dimNode).getAttribute("yRatio"); // TODO dunno what yRatio is used for yet
-				gd.paramName = param;
+				gd.setParam(param);
 				gd.setMin("".equals(min) ? Float.NEGATIVE_INFINITY : Float.parseFloat(min));
 				gd.setMax("".equals(max) ? Float.POSITIVE_INFINITY : Float.parseFloat(max));
 				if (i == 0) {
@@ -278,7 +278,7 @@ public class GateFileReader {
 				String param = ((Element) getFirstChild(dimNode,
 																								"data-type:fcs-dimension")).getAttribute("data-type:name");
 				GateDimension gd = new GateDimension(gate, param);
-				gd.paramName = param;
+				gd.setParam(param);
 				if (i == 0) {
 					gate.setXDimension(gd);
 				} else if (i == 1) {

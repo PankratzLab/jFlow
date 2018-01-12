@@ -27,7 +27,8 @@ import org.xml.sax.SAXException;
 
 public class WSPLoader {
 
-	private static final String[][] PANELS = {{"panel 1", "p1"}, {"panel 2", "p2"},};
+	private static final String[][] PANELS = {{"panel 1", "p1", "panel one"},
+																						{"panel 2", "p2", "panel two"},};
 	private static final String WSP_EXT = ".wsp";
 	private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
 		@Override
@@ -56,16 +57,19 @@ public class WSPLoader {
 				System.err.println("Error - cannot access workspace file: " + wspDir + f);
 				continue;
 			}
-			if (sub.isDirectory()) {
-				boolean subLoaded = loadWorkspaces(wspDir + f);
-				if (!subLoaded) {
-					allLoaded = false;
-				}
-			} else {
+			if (!sub.isDirectory()) {
 				try {
 					loadSampleGating(wspDir + f);
 				} catch (ParserConfigurationException | SAXException | IOException e) {
 					log.reportException(e);
+					allLoaded = false;
+				}
+			}
+		}
+		for (File f : dir.listFiles()) {
+			if (f.isDirectory()) {
+				boolean subLoaded = loadWorkspaces(f.getAbsolutePath());
+				if (!subLoaded) {
 					allLoaded = false;
 				}
 			}

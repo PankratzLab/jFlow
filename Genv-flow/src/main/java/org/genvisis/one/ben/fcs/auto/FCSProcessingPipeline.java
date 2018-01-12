@@ -122,19 +122,6 @@ public class FCSProcessingPipeline {
 
 	}
 
-	public static String getFNum(String file) {
-		String[] pts = ext.removeDirectoryInfo(file).split("_");
-		String fNum = null;
-		for (String p : pts) {
-			if (p.startsWith("F")) {
-				fNum = p;
-				break;
-			}
-		}
-		return fNum;
-	}
-
-
 	private static enum PIPELINE {
 		BOOL,
 		VIZ,
@@ -167,7 +154,7 @@ public class FCSProcessingPipeline {
 		if (test) {
 			fcs = wsp = auto = out = "F:\\Flow\\counts data\\nullsTest\\";
 			out += "out/";
-			new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.PCTS_CNTS, -1);
+			new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.BOOL, -1);
 			return;
 		}
 

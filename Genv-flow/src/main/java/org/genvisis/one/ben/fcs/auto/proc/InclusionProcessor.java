@@ -3,6 +3,7 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -29,10 +30,15 @@ public class InclusionProcessor extends AbstractSampleProcessor {
 		loadData(sn);
 
 		long t1 = System.nanoTime();
-		HashSet<Gate> allGates = new HashSet<>(sn.gating.gateMap.values());
+		HashSet<Gate> allGates1 = new HashSet<>(sn.gating.gateMap.values());
+		ArrayList<Gate> gateList = new ArrayList<>();
+		for (Gate g : allGates1) {
+			gateList.add(g);
+		}
 		HashMap<String, boolean[]> incl = new HashMap<>();
 
-		for (Gate g : allGates) {
+		for (int i = 0; i < gateList.size(); i++) {
+			Gate g = gateList.get(i);
 			boolean[] gating = g.gate(d);
 			incl.put(g.getName(), gating);
 		}
@@ -43,14 +49,16 @@ public class InclusionProcessor extends AbstractSampleProcessor {
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
 		writer.print("Index");
-		for (Gate g : allGates) {
+		for (int i = 0; i < gateList.size(); i++) {
+			Gate g = gateList.get(i);
 			writer.print("\t" + g.getName());
 		}
 		writer.println();
 
 		for (int i = 0; i < d.getCount(); i++) {
-			writer.print(Integer.toString(i));
-			for (Gate g : allGates) {
+			 writer.print(Integer.toString(i));
+			for (int gi = 0; gi < gateList.size(); gi++) {
+				Gate g = gateList.get(gi);
 				writer.print("\t" + Boolean.toString(incl.get(g.getName())[i]));
 			}
 			writer.println();

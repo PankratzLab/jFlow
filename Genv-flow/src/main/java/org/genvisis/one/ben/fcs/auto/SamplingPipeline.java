@@ -135,9 +135,9 @@ public class SamplingPipeline {
 
 	int checkPanel(String lwr) {
 		int panel = 0;
-		if (lwr.contains("panel 1") || lwr.contains("p1")) {
+		if (lwr.contains("panel 1") || lwr.contains("p1") || lwr.contains("panel one")) {
 			panel = 1;
-		} else if (lwr.contains("panel 2") || lwr.contains("p2")) {
+		} else if (lwr.contains("panel 2") || lwr.contains("p2") || lwr.contains("panel two")) {
 			panel = 2;
 		}
 		if (panel > 0 && (panelToRun == -1 || panelToRun == panel)) {
@@ -326,18 +326,23 @@ public class SamplingPipeline {
 		}
 
 		new File(outDir).mkdirs();
-		PrintWriter writer = Files.getAppropriateWriter(outDir + "p1.files.txt");
-		for (String s : p1Sampling) {
-			writer.println(s);
+		PrintWriter writer;
+		if (p1Sampling.size() > 0) {
+			writer = Files.getAppropriateWriter(outDir + "p1.files.txt");
+			for (String s : p1Sampling) {
+				writer.println(s);
+			}
+			writer.flush();
+			writer.close();
 		}
-		writer.flush();
-		writer.close();
-		writer = Files.getAppropriateWriter(outDir + "p2.files.txt");
-		for (String s : p2Sampling) {
-			writer.println(s);
+		if (p2Sampling.size() > 0) {
+			writer = Files.getAppropriateWriter(outDir + "p2.files.txt");
+			for (String s : p2Sampling) {
+				writer.println(s);
+			}
+			writer.flush();
+			writer.close();
 		}
-		writer.flush();
-		writer.close();
 
 		filesSampled = true;
 	}
@@ -362,12 +367,16 @@ public class SamplingPipeline {
 		final ConcurrentLinkedQueue<SampleNode> p1Queue = new ConcurrentLinkedQueue<>();
 		final ConcurrentLinkedQueue<SampleNode> p2Queue = new ConcurrentLinkedQueue<>();
 
+		PrintWriter sampWspMatch1 = Files.getAppropriateWriter(outDir + "/matchFile_p1.xln");
+		PrintWriter sampWspMatch2 = Files.getAppropriateWriter(outDir + "/matchFile_p2.xln");
+
 		if (highPriority != null) {
 			for (String s1 : p1Sampling) {
 				if (highPriority.contains(ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(s1)))) {
 					SampleNode sn = wspLoader.getPanel1Nodes().get(s1);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap1.get(s1);
+						sampWspMatch1.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 						p1Queue.add(sn);
 					} else {
 						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s1);
@@ -380,6 +389,7 @@ public class SamplingPipeline {
 					SampleNode sn = wspLoader.panel2Nodes.get(s1);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap2.get(s1);
+						sampWspMatch2.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 						p2Queue.add(sn);
 					} else {
 						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s1);
@@ -401,6 +411,7 @@ public class SamplingPipeline {
 			SampleNode sn = wspLoader.getPanel1Nodes().get(s);
 			if (sn != null) {
 				sn.fcsFile = fileToPathMap1.get(s);
+				sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 				p1Queue.add(sn);
 			} else {
 				log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
@@ -418,6 +429,7 @@ public class SamplingPipeline {
 			SampleNode sn = wspLoader.panel2Nodes.get(s);
 			if (sn != null) {
 				sn.fcsFile = fileToPathMap2.get(s);
+				sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 				p2Queue.add(sn);
 			} else {
 				log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
@@ -430,6 +442,7 @@ public class SamplingPipeline {
 					SampleNode sn = wspLoader.getPanel1Nodes().get(s);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap1.get(s);
+						sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 						p1Queue.add(sn);
 					} else {
 						log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
@@ -441,6 +454,7 @@ public class SamplingPipeline {
 					SampleNode sn = wspLoader.panel2Nodes.get(s);
 					if (sn != null) {
 						sn.fcsFile = fileToPathMap2.get(s);
+						sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
 						p2Queue.add(sn);
 					} else {
 						log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
@@ -448,6 +462,11 @@ public class SamplingPipeline {
 				}
 			}
 		}
+
+		sampWspMatch1.close();
+		sampWspMatch2.close();
+
+		log.reportTime("Finished matching sample files to workspace files.");
 
 		AbstractPipelineRunnable p1Run = new AbstractPipelineRunnable(threadPool1, processorFactory,
 																																	p1Queue, log);
