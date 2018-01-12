@@ -1114,8 +1114,6 @@ public class lab {
 		boolean test = true;
 		if (test) {
 
-			double[] test2 = (double[]) null;
-
 			// runHRC();
 			// QQPlot.main(new String[]
 			// {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
@@ -1126,16 +1124,6 @@ public class lab {
 
 			// CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
 			// CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
-
-			// byte[] pt5 = ByteBuffer.allocate(4).putFloat(1.5f).array();
-			// byte[] pt35 = ByteBuffer.allocate(4).putFloat(65.35f).array();
-			// byte[] pt75 = ByteBuffer.allocate(4).putFloat(1578.75f).array();
-			// byte[] Opt75 = ByteBuffer.allocate(4).putFloat(-42.75f).array();
-			//
-			// System.out.println(BGENBitMath.bytesToFloat(true, pt5) + " - " + fromByteArrayBB(pt5));
-			// System.out.println(BGENBitMath.bytesToFloat(true, pt35) + " - " + fromByteArrayBB(pt35));
-			// System.out.println(BGENBitMath.bytesToFloat(true, pt75) + " - " + fromByteArrayBB(pt75));
-			// System.out.println(BGENBitMath.bytesToFloat(true, Opt75) + " - " + fromByteArrayBB(Opt75));
 
 			// String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
 			// UKBBParsingPipeline pipe = new UKBBParsingPipeline();
