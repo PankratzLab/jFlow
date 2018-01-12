@@ -170,8 +170,12 @@ public class SamToFastQ {
 		cmd.add(c.get(GENVISIS));
 		cmd.add("seq.manage.SamToFastQ");
 		cmd.add(SAM_TO_FASTQ + "=" + c.get(SAM_TO_FASTQ));
-		cmd.add(TAG + "=" + c.get(TAG));
+		if (c.get(TAG) != null) {
+			cmd.add(TAG + "=" + c.get(TAG));
+		}
 		cmd.add(BATCH + "=-1");
+		cmd.add(CLI.ARG_OUTDIR + "=" + c.get(CLI.ARG_OUTDIR));
+
 		cmd.add(CLI.ARG_THREADS + "=" + c.getI(CLI.ARG_THREADS));
 
 		for (int i = 0; i < batches.length; i++) {
