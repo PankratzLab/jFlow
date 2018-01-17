@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -202,12 +203,25 @@ public class PCImputeRace {
 			SampleData sampleData = proj.getSampleData(false);
 			Map<String, String> dataToAdd = Maps.newHashMap();
 			for (Sample sample : samples) {
-				dataToAdd.put(sampleData.lookup(sample.getFidIid())[0],
-											Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
-																					 pctsAfrican.get(sample), pctsAsian.get(sample),
-																					 pctsEuropean.get(sample)));
+				PlinkData.ExportIDScheme idScheme = PlinkData.detectBestSampleIDScheme(proj,
+																																							 sample.getFid(),
+																																							 sample.getIid());
+				if (idScheme != null) {
+					String dna = idScheme.getProjDNA(proj, sample.getFid(), sample.getIid());
+					dataToAdd.put(dna,
+												Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
+																						 pctsAfrican.get(sample), pctsAsian.get(sample),
+																						 pctsEuropean.get(sample)));
+				} else {
+					log.reportError("Sample with FID/IID " + sample.getFid() + " " + sample.getIid()
+													+ " could not be found in project and cannot be added to SampleData");
+				}
 			}
-			sampleData.addData(dataToAdd, "DNA", IMPUTED_RACE_SAMPLE_DATA_HEADERS, ".", "\t", log);
+			if (!dataToAdd.isEmpty()) {
+				sampleData.addData(dataToAdd, "DNA", IMPUTED_RACE_SAMPLE_DATA_HEADERS, ".", "\t", log);
+			} else {
+				log.reportError("No samples could be matched to Sample Data, nothing will be added");
+			}
 		}
 
 		writer = Files.getAppropriateWriter(outFile);

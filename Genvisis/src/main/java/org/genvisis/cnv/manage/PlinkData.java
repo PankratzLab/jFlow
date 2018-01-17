@@ -15,12 +15,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.Vector;
 
 import org.genvisis.cnv.filesys.ABLookup;
@@ -30,6 +32,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.SDL.LOAD_TYPE;
@@ -42,8 +45,12 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import org.genvisis.stats.Maths;
 
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -51,6 +58,190 @@ public class PlinkData {
 	public static final String FAM_DELIMITER = " ";
 	public static final String BIM_DELIMITER = "\t";
 	public static final String MAP_DELIMITER = "\t";
+
+	public static final String ARG_EXPORT_ID_SCHEME = "exportIDScheme=";
+
+	private static final int FID_INDEX = 0;
+	private static final int IID_INDEX = 1;
+
+	/**
+	 * Choices for setting FID and IID when exporting
+	 *
+	 */
+	public static enum ExportIDScheme {
+		/**
+		 * Use DNA for FID and IID (does not allow export of family structure from pedigree)
+		 */
+		DNA_DNA {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupFID(dna);
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				String dna = getProjDNA(proj, plinkFID, plinkIID);
+				if (dna == null)
+					return null;
+				return proj.getSampleData(false).lookupIID(dna);
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID.equals(plinkIID) ? plinkIID : null;
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				return projDNA;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return Pedigree.MISSING_ID_STR;
+			}
+		},
+		/**
+		 * Use FID and IID as defined in pedigree
+		 */
+		FID_IID {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID;
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				return plinkIID;
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + plinkIID);
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projFID;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				return projIID;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return projParentIID;
+			}
+		},
+		/**
+		 * Use FID as defined in pedigree, concatenate FID to IID for IID
+		 */
+		CONCAT_FID_TO_IID {
+			@Override
+			public String getProjFID(Project proj, String plinkFID, String plinkIID) {
+				return plinkFID;
+			}
+
+			@Override
+			public String getProjIID(Project proj, String plinkFID, String plinkIID) {
+				String iidSplit[] = plinkIID.split(CONCAT_FID_TO_IID_DELIMETER);
+				if (iidSplit.length == 2 && iidSplit[0].equals(plinkFID)) {
+					return iidSplit[1];
+				}
+				return null;
+			}
+
+			@Override
+			public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
+				String iid = getProjIID(proj, plinkFID, plinkIID);
+				if (iid == null)
+					return null;
+				return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + iid);
+			}
+
+			@Override
+			public String formPlinkFID(String projFID, String projIID, String projDNA) {
+				return projFID;
+			}
+
+			@Override
+			public String formPlinkIID(String projFID, String projIID, String projDNA) {
+				// TODO Auto-generated method stub
+				return projFID + CONCAT_FID_TO_IID_DELIMETER + projIID;
+			}
+
+			@Override
+			public String formPlinkParent(String projFID, String projParentIID) {
+				return projFID + CONCAT_FID_TO_IID_DELIMETER + projParentIID;
+			}
+		};
+
+		public static final ExportIDScheme DEFAULT = FID_IID;
+		public static final String CONCAT_FID_TO_IID_DELIMETER = "_";
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project FID or null if could not be identified
+		 */
+		public abstract String getProjFID(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project IID or null if could not be identified
+		 */
+		public abstract String getProjIID(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param proj Project to lookup from
+		 * @param plinkFID FID from plink file
+		 * @param plinkIID IID from plink file
+		 * @return the project DNA or null if could not be identified
+		 */
+		public abstract String getProjDNA(Project proj, String plinkFID, String plinkIID);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projIID the IID from the project
+		 * @param projDNA the DNA from the project
+		 * @return the plink FID in this scheme
+		 */
+		public abstract String formPlinkFID(String projFID, String projIID, String projDNA);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projIID the IID from the project
+		 * @param projDNA the DNA from the project
+		 * @return the plink IID in this scheme
+		 */
+		public abstract String formPlinkIID(String projFID, String projIID, String projDNA);
+
+		/**
+		 * 
+		 * @param projFID the FID from the project
+		 * @param projParentIID the IID of the parent from the project
+		 * @return the IID for the parent field in a plink .fam file
+		 */
+		public abstract String formPlinkParent(String projFID, String projParentIID);
+	}
 
 	/**
 	 * Convert a Plink .ped data set to Plink .bed data set.
@@ -957,6 +1148,18 @@ public class PlinkData {
 	}
 
 	/**
+	 * Works as
+	 * {@link PlinkData#saveGenvisisToPlinkBedSet(Project, String, String, String, ExportIDScheme)}
+	 * with {@link ExportIDScheme#DEFAULT}
+	 */
+	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
+																									String clusterFilterFileName,
+																									String targetMarkersFileName) {
+		return saveGenvisisToPlinkBedSet(proj, plinkPrefix, clusterFilterFileName,
+																		 targetMarkersFileName, ExportIDScheme.DEFAULT);
+	}
+
+	/**
 	 * Convert Genvisis data into a PLINK .bed data set.
 	 *
 	 * @param proj
@@ -966,7 +1169,8 @@ public class PlinkData {
 	 */
 	public static boolean saveGenvisisToPlinkBedSet(Project proj, String plinkPrefix,
 																									String clusterFilterFileName,
-																									String targetMarkersFileName) {
+																									String targetMarkersFileName,
+																									ExportIDScheme exportIDScheme) {
 		String[] targetMarkers;
 		int[] indicesOfTargetSamplesInProj;
 		int[] indicesOfTargetMarkersInProj;
@@ -984,7 +1188,7 @@ public class PlinkData {
 		proj.getProgressMonitor().beginIndeterminateTask(PROG_KEY, "Creating .fam file",
 																										 ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 		// samples and FAM file are in pedigree order, not project order
-		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null);
+		targetSamples = createFamFile(proj, outFileDirAndFilenameRoot, null, exportIDScheme);
 		proj.getProgressMonitor().endTask(PROG_KEY);
 
 		PSF.checkInterrupted();
@@ -1335,33 +1539,28 @@ public class PlinkData {
 	/**
 	 * Convert Genvisis data to PLINK .fam format (SNP Major, or in our term - organized by markers)
 	 * This is normally used as part of PlinkData.createBinaryFileSetFromGenvisisData()
-	 *
-	 * @param proj
-	 * @param famDirAndFilenameRoot
-	 * @param log
-	 * @return
+	 * 
+	 * @param proj project to create from
+	 * @param famDirAndFilenameRoot directory and fileroot of desired fam file output
+	 * @param dropSamples samples to exclude from export
+	 * @param exportIDScheme determines how FID/IID is generated from Genvisis IDs
+	 * @return array of samples exported in exported order or null on failure
 	 */
 	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
-																			 Set<String> dropSamples) {
-		return createFamFile(proj, famDirAndFilenameRoot, dropSamples, false);
-	}
-
-
-	public static String[] createFamFile(Project proj, String famDirAndFilenameRoot,
-																			 Set<String> dropSamples, boolean concatFIDToIID) {
+																			 Set<String> dropSamples, ExportIDScheme exportIDScheme) {
 		BufferedReader reader;
 		PrintWriter writer;
 		int count;
 		String temp;
 		String[] line;
-		Vector<String> dna;
+		Vector<String> dnas;
 		String[] allSamples;
 		String filename;
 		Logger log;
 
 		log = proj.getLog();
 		allSamples = proj.getSamples();
-		dna = new Vector<String>();
+		dnas = new Vector<String>();
 
 		try {
 			filename = proj.PEDIGREE_FILENAME.getValue();
@@ -1381,9 +1580,10 @@ public class PlinkData {
 				if (temp.equals("")) {
 					// then do nothing
 				} else if (line.length < 7) {
-					log.reportError("Error - starting at line "
-													+ (count - 1)
-													+ (line.length < 3 ? "" : " (individual " + line[0] + "-" + line[1] + ")")
+					log.reportError("Error - starting at line " + (count - 1)
+													+ (line.length < 3 ? ""
+																						 : " (individual " + line[Pedigree.FID_INDEX] + "-"
+																							 + line[Pedigree.IID_INDEX] + ")")
 													+ " there are only " + line.length + " columns in pedigree file '"
 													+ proj.PEDIGREE_FILENAME.getValue() + "'.");
 					log.reportError("  Pedigree files require 7 or 8 columns with no header: FID IID FA MO SEX PHENO DNA (MZTWINID)");
@@ -1395,10 +1595,10 @@ public class PlinkData {
 					writer.flush();
 					writer.close();
 					return null;
-				} else if (ext.isMissingValue(line[6])) {
+				} else if (ext.isMissingValue(line[Pedigree.DNA_INDEX])) {
 					// dna.add(null);
-				} else if (ext.indexOfStr(line[6], allSamples) == -1) {
-					log.reportError("Warning - sample '" + line[6] + "' from '"
+				} else if (ext.indexOfStr(line[Pedigree.DNA_INDEX], allSamples) == -1) {
+					log.reportError("Warning - sample '" + line[Pedigree.DNA_INDEX] + "' from '"
 													+ proj.PEDIGREE_FILENAME.getValue()
 													+ "' is not found in the project's list of samples, and is ignored.");
 					if (line.length != 7) {
@@ -1407,14 +1607,22 @@ public class PlinkData {
 					}
 					// dna.add(null);
 				} else {
+					String projFID = line[Pedigree.FID_INDEX];
+					String projIID = line[Pedigree.IID_INDEX];
+					String projFA = line[Pedigree.FA_INDEX];
+					String projMO = line[Pedigree.MO_INDEX];
+					String dna = line[Pedigree.DNA_INDEX];
+					String fid = exportIDScheme.formPlinkFID(projFID, projIID, dna);
+					String iid = exportIDScheme.formPlinkIID(projFID, projIID, dna);
+					String fa = exportIDScheme.formPlinkParent(projFID, projFA);
+					String mo = exportIDScheme.formPlinkParent(projFID, projMO);
+					String sex = line[Pedigree.SEX_INDEX];
+					String aff = line[Pedigree.AFF_INDEX];
 					if (dropSamples == null
-							|| !(dropSamples.contains(line[0] + "\t" + line[1])
-									 || dropSamples.contains(line[6]))) {
-						dna.add(line[6]);
-						writer.println(line[0] + "\t" + (concatFIDToIID ? line[0] + "_" : "") + line[1] + "\t"
-													 + (concatFIDToIID ? line[0] + "_" : "") + line[2] + "\t"
-													 + (concatFIDToIID ? line[0] + "_" : "") + line[3] + "\t" + line[4]
-													 + "\t" + line[5]);
+							|| !(dropSamples.contains(projFID + "\t" + projIID) || dropSamples.contains(dna))) {
+						dnas.add(dna);
+						writer.println(new StringJoiner("\t").add(fid).add(iid).add(fa).add(mo).add(sex)
+																								 .add(aff));
 					}
 				}
 			}
@@ -1430,7 +1638,169 @@ public class PlinkData {
 			return null;
 		}
 
-		return ArrayUtils.toStringArray(dna);
+		return ArrayUtils.toStringArray(dnas);
+	}
+
+
+	/**
+	 * Detect the {@link ExportIDScheme} of a plink file by comparing to IDs from a Project
+	 * 
+	 * @param proj
+	 * @param plinkFile a sample-dominant plink-like file (FID IID in first two columns)
+	 * @return the detected {@link ExportIDScheme} of plinkFile or null if it could not be determined
+	 */
+	public static ExportIDScheme detectExportIDScheme(Project proj, String plinkFile) {
+		Logger log = proj.getLog();
+		log.report("Attempting to determine ID scheme of " + plinkFile);
+		Set<ExportIDScheme> possibleSchemes = EnumSet.allOf(ExportIDScheme.class);
+		try (BufferedReader reader = Files.getAppropriateReader(plinkFile)) {
+			for (int i = 0; reader.ready(); i++) {
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				String fid = line[FID_INDEX];
+				String iid = line[IID_INDEX];
+				Set<ExportIDScheme> sampleSchemes = detectPossibleSampleIDSchemes(proj, fid, iid);
+				if (!sampleSchemes.isEmpty()) {
+					// Ignore FID/IID pairs that do not match project under any scheme
+					// Keep only schemes possible for this FID/IID
+					possibleSchemes.retainAll(sampleSchemes);
+					if (possibleSchemes.size() == 1) {
+						// Single possible scheme remains
+						ExportIDScheme identifiedScheme = Iterables.getOnlyElement(possibleSchemes);
+						log.report("FID/IID in " + plinkFile + " appear to be exported with " + identifiedScheme
+											 + ", continuing with this assumption.");
+						return identifiedScheme;
+					} else if (possibleSchemes.isEmpty()) {
+						// No possible matches to all checked FID/IID pairs
+						log.reportError("Conflicting ID schemes in " + plinkFile
+														+ ", could not determine ID scheme");
+						return null;
+					}
+				}
+				if (Maths.isPowerOf10(i + 1) && i > 1) {
+					log.reportTimeWarning(i
+																+ " lines have been checked without finding a conclusive match to project ID");
+				}
+			}
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(plinkFile);
+		} catch (IOException e) {
+			log.reportIOException(plinkFile);
+		}
+		if (possibleSchemes.containsAll(EnumSet.allOf(ExportIDScheme.class))) {
+			log.reportError("Could not determine ID Scheme of " + plinkFile
+											+ ", no FID/IID pairs matched project IDs");
+			return null;
+		} else {
+			ExportIDScheme firstScheme = possibleSchemes.iterator().next();
+			log.reportTimeWarning("Multiple possible ID Schemes exist for " + plinkFile + " ("
+														+ Joiner.on(", ").join(possibleSchemes)
+														+ "). This may occur when FID/IID/DNA identifiers match. Arbitrarily continuing with assumption of "
+														+ firstScheme);
+			return firstScheme;
+		}
+	}
+
+	/**
+	 * Detect the possible {@link ExportIDScheme}s of an FID/IID pair
+	 * 
+	 * For a single scheme, see {@link #detectBestSampleIDScheme(Project, String, String)}
+	 * 
+	 * @param proj Project to check sample against
+	 * @param fid FID to check
+	 * @param iid IID to check
+	 * @return All possible ExportIDSchemes of the provided FID/IID pair, empty Set when none match
+	 */
+	public static EnumSet<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
+																																			String iid) {
+		SampleData sampleData = proj.getSampleData(false);
+		EnumSet<ExportIDScheme> possibleSchemes = EnumSet.noneOf(ExportIDScheme.class);
+		for (ExportIDScheme scheme : ExportIDScheme.values()) {
+			String projDNA = scheme.getProjDNA(proj, fid, iid);
+			if (projDNA == null)
+				continue;
+			String projFID = scheme.getProjFID(proj, fid, iid);
+			if (projFID == null)
+				continue;
+			String projIID = scheme.getProjIID(proj, fid, iid);
+			if (projIID == null)
+				continue;
+			if (sampleData.lookupContains(projDNA)
+					&& sampleData.lookupContains(projFID + "\t" + projIID)) {
+				possibleSchemes.add(scheme);
+			}
+		}
+
+		return possibleSchemes;
+	}
+
+	/**
+	 * Detect the best {@link ExportIDScheme} for an FID/IID pair
+	 * 
+	 * @param proj Project to check sample against
+	 * @param fid FID to check
+	 * @param iid IID to check
+	 * @return the highest order ExportIDScheme that matches the sample or null if none match
+	 */
+	public static ExportIDScheme detectBestSampleIDScheme(Project proj, String fid,
+																												String iid) {
+		return Iterables.getFirst(detectPossibleSampleIDSchemes(proj, fid, iid), null);
+	}
+
+	/**
+	 * Convert a given plink file to a (possibly) new {@link ExportIDScheme}
+	 * 
+	 * @param proj
+	 * @param plinkFile a sample-dominant plink-like file (FID IID in first two columns)
+	 * @param desiredScheme the ExportIDScheme to convert to
+	 * 
+	 * @return the name of the converted file, null on failure (returns plinkFile if conversion was
+	 *         not necessary)
+	 */
+	public static String convertIDScheme(Project proj, String plinkFile,
+																			 ExportIDScheme desiredScheme) {
+		ExportIDScheme currentScheme = detectExportIDScheme(proj, plinkFile);
+		if (currentScheme == null)
+			return null;
+		if (currentScheme.equals(desiredScheme))
+			return plinkFile;
+
+		Logger log = proj.getLog();
+		log.report("ID scheme of " + plinkFile + " is " + currentScheme + ", converting to "
+							 + desiredScheme);
+		String convertedPlinkFile = ext.addToRoot(plinkFile, "_convertedIDs_"
+																												 + ext.replaceWithLinuxSafeCharacters(desiredScheme.toString()));
+		try (BufferedReader reader = Files.getAppropriateReader(plinkFile);
+				 PrintWriter writer = Files.getAppropriateWriter(convertedPlinkFile)) {
+			for (int i = 0; reader.ready(); i++) {
+				String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+				String plinkFID = line[FID_INDEX];
+				String plinkIID = line[IID_INDEX];
+				String projFID = currentScheme.getProjFID(proj, plinkFID, plinkIID);
+				String projIID = currentScheme.getProjIID(proj, plinkFID, plinkIID);
+				String projDNA = currentScheme.getProjDNA(proj, plinkFID, plinkIID);
+				if (projFID == null || projIID == null || projDNA == null) {
+					if (i > 0)
+						// First line may be header, skip warning about no conversion
+						log.reportTimeWarning(plinkFID + " " + plinkIID
+																	+ " could not be resolved from project in " + currentScheme
+																	+ ", will be left in place and not converted to "
+																	+ desiredScheme);
+				} else {
+					line[FID_INDEX] = desiredScheme.formPlinkFID(projFID, projIID, projDNA);
+					line[IID_INDEX] = desiredScheme.formPlinkIID(projFID, projIID, projDNA);
+				}
+				writer.println(Joiner.on("\t").join(line));
+
+			}
+			return convertedPlinkFile;
+		} catch (FileNotFoundException e) {
+			log.reportFileNotFound(plinkFile);
+		} catch (IOException e) {
+			log.reportIOException(plinkFile);
+		}
+		return null;
+
+
 	}
 
 	/**
@@ -2048,8 +2418,8 @@ public class PlinkData {
 		BufferedReader reader;
 		String[] line;
 		int count;
-		String[] finalSampleIDs, allIDs;
-		String famIndID, sampleID;
+		String[] finalSampleIDs;
+		String famIndID;
 		SampleData sampleData;
 		int[] sampleIndices;
 
@@ -2062,13 +2432,19 @@ public class PlinkData {
 			count = 0;
 			while (reader.ready()) {
 				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				famIndID = line[0] + "\t" + line[1];
-				allIDs = sampleData.lookup(famIndID);
-				if (allIDs == null) {
+				famIndID = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
+				String sampleID;
+				if (sampleData.lookupContains(famIndID)) {
+					// First try combined FID IID lookup
+					sampleID = sampleData.lookupDNA(famIndID);
+				} else {
+					// Then try looking up by just IID which may be DNA
+					sampleID = sampleData.lookupDNA(line[PSF.Plink.FAM_IID_INDEX]);
+				}
+				if (sampleID == null) {
 					proj.getLog().report("Warning - sample in PLINK file " + plinkFileRoot
 															 + ".fam that is not in the project's sampleData file: " + famIndID);
 				} else {
-					sampleID = allIDs[0];
 					sampleIndices[ext.indexOfStr(sampleID, finalSampleIDs)] = count;
 				}
 				count++;
@@ -2239,6 +2615,7 @@ public class PlinkData {
 		Project proj;
 		String plinkDataDirAndFilenameRoot = "plink";
 		boolean isSnpMajor = true;
+		ExportIDScheme exportIDScheme = ExportIDScheme.DEFAULT;
 		int startByte = 100;
 		int nBytes = -1;
 		int indexOfStartMarker = 0;
@@ -2274,6 +2651,9 @@ public class PlinkData {
 									 + "   (3) is the .bed file going to be SNP Major (i.e. issnpmajor="
 									 + isSnpMajor
 									 + " (default));\n"
+									 + "   (4) The ID Scheme to use for generating FID/IID (i.e. "
+									 + ARG_EXPORT_ID_SCHEME + exportIDScheme.toString() + " (default));\n"
+									 + "      Options are:" + Joiner.on(", ").join(ExportIDScheme.values()) + "\n"
 									 + "   (5) the directory and filename root for the final PLINK data set (i.e. plinkdata="
 									 + plinkDataDirAndFilenameRoot
 									 + " (default));\n"
@@ -2345,6 +2725,12 @@ public class PlinkData {
 				plinkDataDirAndFilenameRoot = arg.split("=")[1];
 			} else if (arg.startsWith("issnpmajor=")) {
 				isSnpMajor = Boolean.parseBoolean(arg.split("=")[1]);
+			} else if (arg.startsWith(ARG_EXPORT_ID_SCHEME)) {
+				exportIDScheme = Enums.getIfPresent(ExportIDScheme.class, arg.split("=")[1]).orNull();
+				if (exportIDScheme == null) {
+					System.err.println("Unrecognized exportIDScheme: " + arg.split("=")[1]);
+					return;
+				}
 			} else if (arg.startsWith("startbyte=")) {
 				startByte = Integer.parseInt(arg.split("=")[1]);
 			} else if (arg.startsWith("nbytes=")) {
@@ -2386,8 +2772,8 @@ public class PlinkData {
 			if (!Files.exists(clusterFile)) {
 				clusterFile = null;
 			}
-			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile,
-																null);
+			saveGenvisisToPlinkBedSet(proj, plinkDataDirAndFilenameRoot, clusterFile, null,
+																exportIDScheme);
 
 		} else if (conversionToRun.equals("-pedToBed")) {
 			log = new Logger(ext.parseDirectoryOfFile(plinkDataDirAndFilenameRoot) + "PlinkData_"

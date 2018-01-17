@@ -202,6 +202,15 @@ public class PSF {
 		public static final String PED = ".ped";
 		public static final String MAP = ".map";
 
+		public static final int FAM_FID_INDEX = 0;
+		public static final int FAM_IID_INDEX = 1;
+		public static final int FAM_FA_INDEX = 2;
+		public static final int FAM_MO_INDEX = 3;
+		public static final int FAM_SEX_INDEX = 4;
+		public static final int FAM_AFF_INDEX = 5;
+
+
+
 		public static boolean bedBimFamExist(String plinkDirAndRoot) {
 			return allFilesExist(plinkDirAndRoot, true);
 		}

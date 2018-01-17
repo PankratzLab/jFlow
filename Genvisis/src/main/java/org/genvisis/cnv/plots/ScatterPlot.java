@@ -1659,10 +1659,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 		int plinkIndex = currentClass - sampleData.getBasicClasses().length
 										 - sampleData.getNumActualClasses() - sampleData.getNumCNVClasses();
 		String plinkRoot = proj.PLINK_DIR_FILEROOTS.getValue()[plinkIndex];
-		String[] lookup = sampleData.lookup(sampleID);
-		String fidiid = lookup[1];
 		String marker = markerList[markerIndex];
-		return plinkMarkerLoaders.get(plinkRoot).getGenotypeForIndi(marker, fidiid);
+		return plinkMarkerLoaders.get(plinkRoot).getGenotypeForIndi(proj, marker, sampleID);
 	}
 
 	public PLOT_TYPE getPlotType(int index) {

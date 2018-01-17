@@ -22,8 +22,12 @@ public class FamilyStructure {
 	public static final int IID_INDEX = 1;
 	public static final int FA_INDEX = 2;
 	public static final int MO_INDEX = 3;
+	public static final int SEX_INDEX = 4;
+	public static final int AFF_INDEX = 5;
+	public static final int DNA_INDEX = 6;
+	public static final int MZ_TWIN_INDEX = 7;
 
-	public static final Object MISSING_ID_STR = "0";
+	public static final String MISSING_ID_STR = "0";
 
 	public ArrayList<String[]> cached_poPairsIDs = null;
 	public ArrayList<int[]> cached_poPairsCompleteOnly = null;
@@ -91,23 +95,24 @@ public class FamilyStructure {
 		int count = pedCols[0].length;
 
 		ids = new String[count][];
-		fids = pedCols[0];
-		iids = pedCols[1];
-		fas = pedCols[2];
-		mos = pedCols[3];
+		fids = pedCols[FID_INDEX];
+		iids = pedCols[IID_INDEX];
+		fas = pedCols[FA_INDEX];
+		mos = pedCols[MO_INDEX];
 		genders = new byte[count];
 		affections = new byte[count];
-		dnas = loadDNAs ? pedCols[6] : null;
+		dnas = loadDNAs ? pedCols[DNA_INDEX] : null;
 		mzTwinIds = new String[count];
 		for (int i = 0; i < count; i++) {
 			ids[i] = new String[] {fids[i], iids[i], fas[i], mos[i]};
-			genders[i] = ext.isMissingValue(pedCols[4][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-																										: Byte.parseByte(pedCols[4][i]);
-			affections[i] = ext.isMissingValue(pedCols[5][i]) ? FamilyStructure.MISSING_VALUE_BYTE
-																											 : Byte.parseByte(pedCols[5][i]);
+			genders[i] = ext.isMissingValue(pedCols[SEX_INDEX][i]) ? FamilyStructure.MISSING_VALUE_BYTE
+																														 : Byte.parseByte(pedCols[SEX_INDEX][i]);
+			affections[i] = ext.isMissingValue(pedCols[AFF_INDEX][i]) ? FamilyStructure.MISSING_VALUE_BYTE
+																																: Byte.parseByte(pedCols[AFF_INDEX][i]);
 
-			if (pedCols.length > 7) {
-				mzTwinIds[i] = ext.isMissingValue(pedCols[7][i]) ? null : pedCols[7][i];
+			if (pedCols.length > MZ_TWIN_INDEX) {
+				mzTwinIds[i] = ext.isMissingValue(pedCols[MZ_TWIN_INDEX][i]) ? null
+																																		 : pedCols[MZ_TWIN_INDEX][i];
 			}
 		}
 	}
@@ -116,9 +121,24 @@ public class FamilyStructure {
 		return ids;
 	}
 
-	public int getIndIndex(String fid, String iid) {
-		Integer index = getfidiidToIndexMap().get(fid + "\t" + iid);
+	/**
+	 * 
+	 * @param fidiid the FID and IID of the individual, separated by a tab
+	 * @return the index of the provided fidiid in the {@link FamilyStructure} or -1 for missing
+	 */
+	public int getIndIndex(String fidiid) {
+		Integer index = getfidiidToIndexMap().get(fidiid);
 		return index == null ? -1 : index;
+	}
+
+	/**
+	 * 
+	 * @param fid
+	 * @param iid
+	 * @return the index of the provided fidiid in the {@link FamilyStructure} or -1 for missing
+	 */
+	public int getIndIndex(String fid, String iid) {
+		return getIndIndex(fid + "\t" + iid);
 	}
 
 	public HashMap<String, Integer> getfidiidToIndexMap() {
