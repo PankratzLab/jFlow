@@ -203,24 +203,18 @@ public class PCImputeRace {
 			SampleData sampleData = proj.getSampleData(false);
 			Map<String, String> dataToAdd = Maps.newHashMap();
 			for (Sample sample : samples) {
-				Set<PlinkData.ExportIDScheme> possibleIDSchemes = PlinkData.detectPossibleSampleIDSchemes(proj,
-																																																	sample.getFid(),
-																																																	sample.getIid());
-				if (possibleIDSchemes.isEmpty()) {
+				PlinkData.ExportIDScheme idScheme = PlinkData.detectBestSampleIDScheme(proj,
+																																							 sample.getFid(),
+																																							 sample.getIid());
+				if (idScheme != null) {
+					String dna = idScheme.getProjDNA(proj, sample.getFid(), sample.getIid());
+					dataToAdd.put(dna,
+												Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
+																						 pctsAfrican.get(sample), pctsAsian.get(sample),
+																						 pctsEuropean.get(sample)));
 				} else {
-					PlinkData.ExportIDScheme idScheme = PlinkData.detectBestSampleIDScheme(proj,
-																																								 sample.getFid(),
-																																								 sample.getIid());
-					if (idScheme != null) {
-						String dna = idScheme.getProjDNA(proj, sample.getFid(), sample.getIid());
-						dataToAdd.put(dna,
-													Joiner.on('\t').join(imputedRaces.get(sample).getSampleDataClassNum(),
-																							 pctsAfrican.get(sample), pctsAsian.get(sample),
-																							 pctsEuropean.get(sample)));
-					} else {
-						log.reportError("Sample with FID/IID " + sample.getFid() + " " + sample.getIid()
-														+ " could not be found in project and cannot be added to SampleData");
-					}
+					log.reportError("Sample with FID/IID " + sample.getFid() + " " + sample.getIid()
+													+ " could not be found in project and cannot be added to SampleData");
 				}
 			}
 			if (!dataToAdd.isEmpty()) {
