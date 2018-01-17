@@ -42,15 +42,16 @@ public class WSPLoader {
 	final ArrayList<SampleNode> allSamples = new ArrayList<>();
 	final Logger log = new Logger();
 
-	public boolean loadWorkspaces(String wspD) {
+	public int loadWorkspaces(String wspD) {
 		String wspDir = ext.verifyDirFormat(wspD);
 		File dir = new File(wspDir);
 		if (!dir.canRead()) {
 			log.reportError("Cannot read workspace files in directory " + wspDir);
-			return true;
+			return 0;
 		}
 		String[] wspFiles = dir.list(WSP_FILTER);
-		boolean allLoaded = true;
+		log.reportTime("Processing " + wspFiles.length + " wsp files");
+		int numLoaded = 0;
 		for (String f : wspFiles) {
 			File sub = new File(wspDir + f);
 			if (!sub.canRead()) {
@@ -60,21 +61,24 @@ public class WSPLoader {
 			if (!sub.isDirectory()) {
 				try {
 					loadSampleGating(wspDir + f);
+					numLoaded++;
 				} catch (ParserConfigurationException | SAXException | IOException e) {
 					log.reportException(e);
-					allLoaded = false;
+					numLoaded = -1;
 				}
 			}
 		}
 		for (File f : dir.listFiles()) {
 			if (f.isDirectory()) {
-				boolean subLoaded = loadWorkspaces(f.getAbsolutePath());
-				if (!subLoaded) {
-					allLoaded = false;
+				int subLoaded = loadWorkspaces(f.getAbsolutePath());
+				if (subLoaded == -1) {
+					numLoaded = -1;
+				} else {
+					numLoaded += subLoaded;
 				}
 			}
 		}
-		return allLoaded;
+		return numLoaded;
 	}
 
 	private void loadSampleGating(String file) throws ParserConfigurationException, SAXException,
@@ -212,6 +216,9 @@ public class WSPLoader {
 				double W = Math.log10(Math.abs(Double.parseDouble(wid)));
 				double M = Double.parseDouble(pos);
 				double A = Double.parseDouble(neg);
+				if (2 * W > M) {
+					M = Math.ceil(2 * W);
+				}
 				at = AxisTransform.createBiexTransform(T, W, M, A);
 			} else if (n.getNodeName().endsWith("log")) {
 				((Element) n).getAttribute("transforms:offset");
