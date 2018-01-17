@@ -241,8 +241,9 @@ public class SamplingPipeline {
 
 	public void loadWSPInfo() {
 		wspLoader = new WSPLoader();
-		boolean success = wspLoader.loadWorkspaces(wspDir);
-		if (success) {
+		int success = wspLoader.loadWorkspaces(wspDir);
+		if (success > 0) {
+			log.reportTime("Loaded WSP data from " + success + " files.");
 			wspLoaded = true;
 		} else {
 			log.reportError("Loading WSP data failed - please check log and try again.");
