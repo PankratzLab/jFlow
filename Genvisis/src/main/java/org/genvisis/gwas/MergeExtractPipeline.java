@@ -217,8 +217,8 @@ public class MergeExtractPipeline {
 			} else {
 				throw new IllegalArgumentException(
 																					 "Error - specified run directory \""
-																							 + runDir
-																							 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
+																					 + runDir
+																					 + "\" doesn't exist, and create flag wasn't set.  Please fix or create directory and try again.");
 			}
 		}
 		return this;
@@ -382,7 +382,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputDataFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileD) ? (runDir == null ? "./" : runDir)
-																															: "")
+																															 : "")
 															 + subDir)
 					 + outFileD;
 	}
@@ -393,7 +393,7 @@ public class MergeExtractPipeline {
 
 	private String getOutputMapFile(String subDir) {
 		return ext.verifyDirFormat((Files.isRelativePath(outFileM) ? (runDir == null ? "./" : runDir)
-																															: "")
+																															 : "")
 															 + subDir)
 					 + outFileM;
 	}
@@ -771,7 +771,7 @@ public class MergeExtractPipeline {
 		}
 
 		file = Files.isRelativePath(data) ? (Files.exists(runDir + data) ? runDir + data : "./" + data)
-																		 : data;
+																			: data;
 		if (!Files.exists(file)) {
 			throw new IllegalArgumentException("Error - provided data file \"" + file
 																				 + "\" doesn't exist.");
@@ -803,8 +803,8 @@ public class MergeExtractPipeline {
 						sources.add(new DataSource(lbl, dir, fileToAdd,
 																			 fileToAdd.substring(0,
 																													 fileToAdd.length()
-																															 - dataFileExt.length())
-																					 + mapFileExt,
+																															- dataFileExt.length())
+																														+ mapFileExt,
 																			 idFile));
 						log.report("Added data source: " + fileToAdd);
 					}
@@ -949,12 +949,12 @@ public class MergeExtractPipeline {
 
 		MergeExtractPipeline mep = new MergeExtractPipeline();
 		mep.setLogger(logFile == null
-																 ? new Logger(ext.rootOf(data, false)
-																							+ ext.replaceWithLinuxSafeCharacters(ext.getDate()
-																																									 + "_"
-																																									 + ext.getTime())
-																							+ ".log")
-																 : new Logger(logFile));
+																	? new Logger(ext.rootOf(data, false)
+																							 + ext.replaceWithLinuxSafeCharacters(ext.getDate()
+																																										+ "_"
+																																										+ ext.getTime())
+																							 + ".log")
+																	: new Logger(logFile));
 		if (rundir != null) {
 			mep.setRunDirectory(rundir, true);
 		}
