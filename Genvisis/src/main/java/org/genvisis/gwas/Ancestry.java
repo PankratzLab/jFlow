@@ -138,9 +138,7 @@ public class Ancestry {
 		String homoHapMapDir = homoDir + ext.removeDirectoryInfo(hapMapPlinkRoot) + "/";
 		new File(homoProjDir).mkdirs();
 		new File(homoHapMapDir).mkdirs();
-		String cleanPutativeWhitesFile = validatePutativeWhites(proj,
-																														homoProjDir + projectPlinkRoot
-																																	+ PSF.Plink.FAM,
+		String cleanPutativeWhitesFile = validatePutativeWhites(proj, projectPlinkRoot + PSF.Plink.FAM,
 																														putativeWhitesFile, log);
 		CmdLine.runDefaults("plink2 --bfile " + projectPlinkRoot + " --keep " + cleanPutativeWhitesFile
 												+ " --hardy", homoProjDir, log);
