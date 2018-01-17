@@ -9,9 +9,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -635,7 +632,6 @@ public class TransposeData {
 		ExecutorService transposeService = Executors.newFixedThreadPool(maxThreads);
 
 		for (int t = 0; t < maxThreads; t++) {
-
 			Runnable runner = new Runnable() {
 				String[] mySamples;
 				int[] sampInds;
@@ -658,12 +654,14 @@ public class TransposeData {
 					mySamples = null;
 					int written = 0;
 					try {
-						while ((mySamples = fillSamples(samplesToRun, numSampsInThread)) != null) {
+						while ((mySamples = fillSamples(samplesToRun, numSampsInThread, log)) != null) {
+							time1 = System.nanoTime();
 							sampInds = new int[mySamples.length];
 							// fill index list
 							for (int s = 0; s < sampInds.length; s++) {
 								sampInds[s] = sampleIndices.get(mySamples[s]);
 							}
+							// write headers
 							for (int s = 0; s < mySamples.length; s++) {
 								smp = listOfAllSamplesInProj[sampInds[s]];
 								filename = proj.SAMPLE_DIRECTORY.getValue(true, true) + smp
@@ -819,11 +817,11 @@ public class TransposeData {
 																	 String sampFile) throws IOException {
 		long t = System.nanoTime();
 		Path fP = FileSystems.getDefault().getPath(sampFile);
-		String nF = ext.verifyDirFormat(ext.rootOf(sampFile, false)) + t + ".temp";
+		String nF = ext.rootOf(sampFile, false) + "." + t + ".temp";
 		Path nFP = FileSystems.getDefault().getPath(nF);
 		IOException e = null;
 		int minsSlept = 0;
-		int maxMinsSlept = 10;
+		int maxMinsSlept = 20;
 		do {
 			try {
 				java.nio.file.Files.move(fP, nFP, StandardCopyOption.ATOMIC_MOVE);
@@ -831,12 +829,11 @@ public class TransposeData {
 				int remain = samples.length - start;
 				String[] list = HashVec.loadFileToStringArray(nF, false, null, false);
 				String[] total = new String[list.length + remain];
-				System.arraycopy(samples, 0, total, start, remain);
+				System.arraycopy(samples, start, total, 0, remain);
 				System.arraycopy(list, 0, total, remain, list.length);
 				Files.writeArray(total, nF);
 
 				java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
-
 			} catch (NoSuchFileException e1) {
 				e = e1;
 				try {
@@ -847,21 +844,25 @@ public class TransposeData {
 				minsSlept++;
 			}
 		} while (e != null && minsSlept < maxMinsSlept);
+
 	}
 
-	private static String[] fillSamples(String sampFile, int pull) throws IOException {
+	private static String[] fillSamples(String sampFile, int pull, Logger log) throws IOException {
 		long t = System.nanoTime();
 		Path fP = FileSystems.getDefault().getPath(sampFile);
-		String nF = ext.verifyDirFormat(ext.rootOf(sampFile, false)) + t + ".temp";
+		String nF = ext.rootOf(sampFile, false) + "." + t + ".temp";
 		Path nFP = FileSystems.getDefault().getPath(nF);
 		IOException e = null;
 		int minsSlept = 0;
-		int maxMinsSlept = 10;
+		int maxMinsSlept = 20;
 		do {
 			try {
 				java.nio.file.Files.move(fP, nFP, StandardCopyOption.ATOMIC_MOVE);
 
 				String[] list = HashVec.loadFileToStringArray(nF, false, null, false);
+				if (list.length == 0) {
+					return null;
+				}
 				String[] values = new String[pull];
 				String[] remain = new String[list.length - pull];
 				System.arraycopy(list, 0, values, 0, pull);
@@ -869,7 +870,6 @@ public class TransposeData {
 				Files.writeArray(remain, nF);
 
 				java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
-
 				return values;
 			} catch (NoSuchFileException e1) {
 				e = e1;
@@ -881,6 +881,9 @@ public class TransposeData {
 				minsSlept += 1;
 			}
 		} while (e != null && minsSlept < maxMinsSlept);
+
+		log.reportTimeWarning("Waited for " + minsSlept + " minutes, couldn't find " + sampFile);
+
 		return null;
 	}
 
