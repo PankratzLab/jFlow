@@ -39,7 +39,7 @@ public abstract class IndexFactorsParser extends ResultFormatParser {
 			// throw an exception if any are missing
 			for (int i = 0; i < indices.length; i++) {
 				if (indices[i] == -1) {
-					throw new IllegalStateException("Couldn't find header column " + i + ", alises: {"
+					throw new IllegalStateException("Couldn't find header column " + i + ", aliases: {"
 																					+ ArrayUtils.toStr(queries[i], ",") + "}.");
 				}
 			}

@@ -26,7 +26,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.stats.Maths.OPERATOR;
+import org.genvisis.stats.Maths.COMPARISON;
 
 public class ManhattanPlot {
 
@@ -226,7 +226,7 @@ public class ManhattanPlot {
 		if (numChrs != chrsToLoad.length) {
 			if (numChrs == 1) {
 				int chr = ArrayUtils.booleanArrayToIndices(chrsToLoad)[0];
-				chrPipe.addPipe(new FilterPipe<Integer>(OPERATOR.EQUAL, chr, Integer.class));
+				chrPipe.addPipe(new FilterPipe<Integer>(COMPARISON.EQ, chr, Integer.class));
 			} else {
 				String[] dropIfMatch = ArrayUtils.toStringArray(ArrayUtils.booleanArrayToIndices(ArrayUtils.booleanNegative(chrsToLoad)));
 				chrPipe.addPipe(new DropIfMatchAnyPipe(dropIfMatch, true));
@@ -241,7 +241,7 @@ public class ManhattanPlot {
 		DataPipe pValPipe = new DataPipe();
 		pValPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
 		if (!Double.isNaN(pvalThresh)) {
-			pValPipe.addPipe(new FilterPipe<Double>(OPERATOR.LESS_THAN_OR_EQUAL, pvalThresh,
+			pValPipe.addPipe(new FilterPipe<Double>(COMPARISON.LTE, pvalThresh,
 																							Double.class));
 		}
 		selTrans.put(data.getLinkedColumnName(PVAL_LINKER), pValPipe);

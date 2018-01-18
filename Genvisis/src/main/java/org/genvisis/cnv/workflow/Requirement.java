@@ -273,7 +273,7 @@ public abstract class Requirement {
 		@Override
 		public boolean checkRequirement(String arg, Set<Step> stepSelections,
 																		Map<Step, Map<Requirement, String>> variables) {
-			Maths.OPERATOR op = MarkerQC.findOperator(arg);
+			Maths.COMPARISON op = MarkerQC.findOperator(arg);
 			if (op == null)
 				return false;
 			try {

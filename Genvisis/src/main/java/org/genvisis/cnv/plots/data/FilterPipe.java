@@ -1,16 +1,16 @@
 package org.genvisis.cnv.plots.data;
 
-import org.genvisis.stats.Maths.OPERATOR;
+import org.genvisis.stats.Maths.COMPARISON;
 
 public class FilterPipe<T extends Number> extends AbstractPipe {
 
-	public FilterPipe(OPERATOR op, T compVal, Class<T> clazz) {
+	public FilterPipe(COMPARISON op, T compVal, Class<T> clazz) {
 		this.op = op;
 		this.compValue = compVal;
 		this.clazz = clazz;
 	}
 
-	OPERATOR op;
+	COMPARISON op;
 	T compValue;
 	Class<T> clazz;
 

@@ -17,7 +17,7 @@ public class Maths {
 
 	static {
 		ImmutableList.Builder<String> builder = ImmutableList.builder();
-		for (OPERATOR operator : OPERATOR.values()) {
+		for (COMPARISON operator : COMPARISON.values()) {
 			builder.add(operator.getSymbol());
 		}
 		OPERATORS = builder.build();
@@ -28,19 +28,36 @@ public class Maths {
 	}
 
 
-	public enum OPERATOR {
-		// Valid operators that will be searched for in the following order:
-		LESS_THAN_OR_EQUAL("<="),
-		LESS_THAN("<"),
-		GREATER_THAN_OR_EQUAL(">="),
-		GREATER_THAN(">"),
-		EQUAL("="),
+	public enum COMPARISON {
+		/**
+		 * Less-than or equal to
+		 */
+		LTE("<="),
+		/**
+		 * Less-than
+		 */
+		LT("<"),
+		/**
+		 * Greater-than or equal to
+		 */
+		GTE(">="),
+		/**
+		 * Greater-than
+		 */
+		GT(">"),
+		/**
+		 * Equals
+		 */
+		EQ("="),
+		/**
+		 * Not
+		 */
 		NOT("!");
 
-		private static final Map<String, OPERATOR> SYMBOL_MAP;
+		private static final Map<String, COMPARISON> SYMBOL_MAP;
 		static {
-			ImmutableMap.Builder<String, OPERATOR> builder = ImmutableMap.builder();
-			for (OPERATOR operator : OPERATOR.values()) {
+			ImmutableMap.Builder<String, COMPARISON> builder = ImmutableMap.builder();
+			for (COMPARISON operator : COMPARISON.values()) {
 				builder.put(operator.getSymbol(), operator);
 			}
 			SYMBOL_MAP = builder.build();
@@ -48,7 +65,7 @@ public class Maths {
 
 		private final String symbol;
 
-		OPERATOR(String symbol) {
+		COMPARISON(String symbol) {
 			this.symbol = symbol;
 		}
 
@@ -56,21 +73,21 @@ public class Maths {
 			return symbol;
 		}
 
-		public static OPERATOR forSymbol(String symbol) {
+		public static COMPARISON forSymbol(String symbol) {
 			return SYMBOL_MAP.get(symbol);
 		}
 
 		public boolean check(double num1, double num2) {
 			switch (this) {
-				case LESS_THAN_OR_EQUAL:
+				case LTE:
 					return num1 <= num2;
-				case LESS_THAN:
+				case LT:
 					return num1 < num2;
-				case GREATER_THAN_OR_EQUAL:
+				case GTE:
 					return num1 >= num2;
-				case GREATER_THAN:
+				case GT:
 					return num1 > num2;
-				case EQUAL:
+				case EQ:
 					return num1 == num2;
 				case NOT:
 					return num1 != num2;
@@ -228,9 +245,9 @@ public class Maths {
 	}
 
 	public static boolean op(double num1, double num2, String operatorSymbol) {
-		OPERATOR operator = OPERATOR.forSymbol(operatorSymbol);
+		COMPARISON operator = COMPARISON.forSymbol(operatorSymbol);
 		if (operator == null) {
-			System.err.println("Cannot perform operation, " + OPERATOR.class.getName() + " for symbol "
+			System.err.println("Cannot perform operation, " + COMPARISON.class.getName() + " for symbol "
 												 + operatorSymbol + " does not exist");
 			return false;
 		}

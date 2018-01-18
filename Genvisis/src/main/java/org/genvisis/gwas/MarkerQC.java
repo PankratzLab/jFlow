@@ -350,7 +350,7 @@ public class MarkerQC {
 			thresholds = new double[params.length - 3];
 			for (int i = 0; i < params.length - 3; i++) {
 				if (!params[i + 3][0].equals("dir")) {
-					Maths.OPERATOR op = findOperator(params[i + 3][2]);
+					Maths.COMPARISON op = findOperator(params[i + 3][2]);
 					if (op == null) {
 						log.reportError("Error - invalid operator for " + params[i + 3][0] + " ('"
 														+ params[i + 3][2] + "')");
@@ -493,8 +493,8 @@ public class MarkerQC {
 		return 0;
 	}
 
-	public static Maths.OPERATOR findOperator(String thresholdString) {
-		for (Maths.OPERATOR op : Maths.OPERATOR.values()) {
+	public static Maths.COMPARISON findOperator(String thresholdString) {
+		for (Maths.COMPARISON op : Maths.COMPARISON.values()) {
 			if (thresholdString.startsWith(op.getSymbol()))
 				return op;
 		}
