@@ -419,7 +419,7 @@ public class SeqMetaPrimary {
                    + "\", header=T, as.is=T, row.names=1, check.names=FALSE)\n"
                    + "xphen <- na.omit(pheno)\n" + "b <- nrow(unique(pheno[1])) \n"
                    + "if (b > 2) { \n" + "  family <- \"gaussian\" \n" + "} else {\n"
-                   + "  family <= \"binomial\"\n" + "}\n"
+                   + "  family <- \"binomial\"\n" + "}\n"
                    + "merged <- merge(xphen, Z, by=\"row.names\")\n"
                    + "mPheno <- merged[,1:ncol(pheno)+1]\n" + "offset <- 1+ncol(pheno)\n"
                    + "mGeno <- merged[,1:ncol(Z)+offset]\n" + "\n" + "\n"
