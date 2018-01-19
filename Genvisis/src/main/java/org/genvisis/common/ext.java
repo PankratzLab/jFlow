@@ -23,6 +23,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -1149,14 +1150,17 @@ public class ext {
 		// Make the map. NB: this method takes care of reporting duplicate strings in the superset
 		Map<String, Integer> indexMap = makeIndexMap(superset, caseSensitive, verbose, log);
 
+		List<ImmutableSet<String>> targetsWithAltsList = Arrays.stream(targetsWithAlts)
+																													 .map(Arrays::stream)
+																													 .map(s -> s.map(s1 -> caseSensitive ? s1
+																																															 : s1.toLowerCase())
+																																			.collect(ImmutableSet.toImmutableSet()))
+																													 .collect(Collectors.toList());
 		// For each target, we'll check the superset map for each alt
-		for (int i = 0; i < targetsWithAlts.length; i++) {
+		for (int i = 0; i < targetsWithAltsList.size(); i++) {
 			int index = -1;
-			for (int j = 0; j < targetsWithAlts[i].length; j++) {
-				String alt = targetsWithAlts[i][j];
-				if (!caseSensitive) {
-					alt = alt.toLowerCase();
-				}
+			ImmutableSet<String> alts = targetsWithAltsList.get(i);
+			for (String alt : alts) {
 				if (indexMap.containsKey(alt)) {
 					// If the alt is found, we check the index
 					int altIndex = indexMap.get(alt);
