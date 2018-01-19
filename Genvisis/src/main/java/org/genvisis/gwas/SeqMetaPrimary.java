@@ -20,10 +20,9 @@ public class SeqMetaPrimary {
 
   public static void batch(String cohort, String genos, String phenoFilename, String snpInfo,
                            int qsubMem, double qsubWalltime, String queue, boolean usePrep2,
-                           String saveName, String conditionals) {
+                           String saveName, String conditionals, String resultDir) {
     String phenoDir;
     String phenoRoot;
-    String resultDir;
     String currentGeno;
     String currentSnpInfo;
     String rCode;
@@ -53,7 +52,11 @@ public class SeqMetaPrimary {
       new File(phenoDir + phenoRoot + "/").mkdirs();
     }
 
-    resultDir = phenoDir + phenoRoot + "/results/";
+    if (resultDir == null) {
+      resultDir = phenoDir + phenoRoot + "/results/";
+    } else {
+      resultDir = new File(resultDir).getAbsolutePath();
+    }
     if (!new File(resultDir).exists() || !new File(resultDir).isDirectory()) {
       new File(resultDir).mkdirs();
     }
@@ -284,7 +287,7 @@ public class SeqMetaPrimary {
   public static void batchMany(String cohort, String genos, String phenosCommaDelimited,
                                String racesCommaDelimited, String snpInfo, int qsubMem,
                                double qsubWalltime, String queue, boolean usePrep2, String saveName,
-                               String conditionals) {
+                               String conditionals, String resultDir) {
     String[] phenos, races;
     Vector<String> v;
 
@@ -292,10 +295,15 @@ public class SeqMetaPrimary {
     races = racesCommaDelimited.split(",");
 
     v = new Vector<>();
+    Vector<String> bash = new Vector<String>();
+    bash.add("#!/bin/bash");
+    boolean firstID = true;
+
     for (String pheno : phenos) {
       for (String race : races) {
         try {
           String sn = saveName;
+          String r = resultDir;
           if (saveName != null) {
             SimpleDateFormat s = new SimpleDateFormat("ddMMMyyyy");
             Date now = new Date();
@@ -303,9 +311,14 @@ public class SeqMetaPrimary {
             sn = ext.replaceAllWith(saveName, "[%race]", (race.equals("AA") ? "AFA" : "EUR"));
             sn = ext.replaceAllWith(sn, "[%date]", d);
           }
+          if (resultDir != null) {
+            r = ext.replaceAllWith(r, "[%cohort]", cohort);
+            r = ext.replaceAllWith(r, "[%pheno]", pheno);
+            r = ext.replaceAllWith(r, "[%race]", race);
+          }
           batch(cohort + "_" + race + "_" + pheno, ext.replaceAllWith(genos, "[%race]", race),
                 ext.pwd() + cohort + "_" + race + "_" + pheno + ".csv", snpInfo, qsubMem,
-                qsubWalltime, queue, usePrep2, sn, conditionals);
+                qsubWalltime, queue, usePrep2, sn, conditionals, r);
         } catch (Exception e) {
           System.err.println("Error - failed to script up " + pheno + "/" + race);
         }
@@ -313,10 +326,23 @@ public class SeqMetaPrimary {
         v.add("qsub batchChrs.pbs");
         v.add("cd ../../");
         v.add("");
+
+        if (firstID) {
+          bash.add("IDS=\"\"");
+          firstID = false;
+        } else {
+          bash.add("IDS += \":\"");
+        }
+        bash.add("IDS += `qsub " + cohort + "_" + race + "_" + pheno + "/batchFiles/`");
       }
     }
+    bash.add("echo $IDS");
+
     Files.writeArray(ArrayUtils.toStringArray(v), "scriptAll");
     Files.chmod("scriptAll");
+
+    Files.writeArray(ArrayUtils.toStringArray(bash), "bashScriptAll");
+    Files.chmod("bashScriptAll");
 
     // v = new Vector<String>();
     // for (String pheno : phenos) {
@@ -646,11 +672,11 @@ public class SeqMetaPrimary {
         additionalModels(cohort, phenos, snpInfo, qsubMem, qsubWalltime);
       } else {
         batchMany(cohort, genos, phenos, races, snpInfo, qsubMem, qsubWalltime, queue, usePrep2,
-                  saveName, conditionals);
+                  saveName, conditionals, null);
       }
     } else {
       batch(cohort, genos, pheno, snpInfo, qsubMem, qsubWalltime, queue, usePrep2, saveName,
-            conditionals);
+            conditionals, null);
     }
   }
 
