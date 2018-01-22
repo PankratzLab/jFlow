@@ -1,12 +1,9 @@
 package org.genvisis.widgets;
 
-import java.awt.Container;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-
-import javax.swing.JFrame;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
@@ -96,19 +93,15 @@ public class ClipSwap {
 		while (Files.exists(file)) {
 			file = "./histograms/clipboard_histogram_" + cnt++ + ".png";
 		}
+		System.out.println("Creating plot...");
 		TwoDPlot tdp = TwoDPlot.createGUI(new Project(), false, false);
 		tdp.setHistogram(true);
 		tdp.getPanel().overrideAxisLabels("Bins", "");
 		tdp.getPanel().setHistogramOverride(true);
 		tdp.getPanel().setHistogram(histo);
+		tdp.getPanel().setSize(800, 600);
 		tdp.getPanel().createImage();
 		tdp.getPanel().screenCapture(file);
-
-		Container p = tdp.getParent();
-		while (!(p instanceof JFrame)) {
-			p = p.getParent();
-		}
-		p.setVisible(true);
 
 		System.out.println("Wrote to " + new File(file).getAbsolutePath());
 		// TODO set to histogram image location? set to histogram image?
@@ -504,7 +497,7 @@ public class ClipSwap {
 			}
 			if (histogram) {
 				histogram();
-				ext.waitForResponse("done!");
+				System.out.println("done!");
 			}
 			if (inverseVariance) {
 				inverseVarianceMeta();
