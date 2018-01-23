@@ -135,9 +135,9 @@ public class SamplingPipeline {
 
 	int checkPanel(String lwr) {
 		int panel = 0;
-		if (lwr.contains("panel 1") || lwr.contains("p1") || lwr.contains("panel one")) {
+		if (lwr.contains("panel 1") || lwr.contains("panel one")) {
 			panel = 1;
-		} else if (lwr.contains("panel 2") || lwr.contains("p2") || lwr.contains("panel two")) {
+		} else if (lwr.contains("panel 2") || lwr.contains("panel two")) {
 			panel = 2;
 		}
 		if (panel > 0 && (panelToRun == -1 || panelToRun == panel)) {
@@ -156,6 +156,11 @@ public class SamplingPipeline {
 			log.reportError("No FCS files found in directory: " + dir.getAbsolutePath());
 		} else {
 			for (String s : fcsFiles) {
+				if (!new File(ext.verifyDirFormat(dir.getAbsolutePath())
+											+ s).canRead()) {
+					log.reportError("Can't read file: " + ext.verifyDirFormat(dir.getAbsolutePath()) + s);
+					continue;
+				}
 				int pnl = checkPanel(s.toLowerCase());
 				if (pnl == 1) {
 					fileToPathMap1.put(s, new File(ext.verifyDirFormat(dir.getAbsolutePath())
