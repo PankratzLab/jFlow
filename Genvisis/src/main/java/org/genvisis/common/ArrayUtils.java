@@ -2343,6 +2343,16 @@ public class ArrayUtils {
   }
 
   /**
+   * @param array an array of objects
+   * @param delimiter String delimiter
+   * @param nullValue String to use in place of null
+   * @return String of printed objects
+   */
+  public static String toStr(Object[] array, String delimiter, String nullValue) {
+    return toStr(array, null, delimiter, nullValue);
+  }
+
+  /**
    * Prints an array of objects separated by the specified delimiter
    *
    * @param array an array of objects
