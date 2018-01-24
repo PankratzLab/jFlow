@@ -84,9 +84,9 @@ public class CmdLine {
 		public boolean runCommand(boolean verbose, boolean overWriteExistingOutput,
 															boolean skipReporting, boolean treatEmptyAsMissing, Logger log) {
 			boolean success = false;
-			if (expectedOutputFiles == null
-					|| !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)
-					|| overWriteExistingOutput) {
+			if (overWriteExistingOutput
+					|| expectedOutputFiles == null
+					|| !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
 				if (necessaryInputFiles == null
 						|| Files.exists(dir, necessaryInputFiles, treatEmptyAsMissing)) {
 					if (verbose) {
