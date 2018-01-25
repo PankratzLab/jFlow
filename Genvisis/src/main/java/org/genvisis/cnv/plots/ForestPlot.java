@@ -573,12 +573,10 @@ public class ForestPlot {
           }
         }
       }
-      if (dataFileHeaders[i].toLowerCase().startsWith(BETA_PREFIX)
-          || dataFileHeaders[i].contains(BETA_INFIX)) {
-        if (dataFileHeaders[i + 1].toLowerCase().startsWith(SE_PREFIX)
-            || dataFileHeaders[i + 1].contains(SE_INFIX)) {
-          int betaIndex = dataFileHeaders[i].startsWith("beta") ? 1 : 0;
-          String[] b = dataFileHeaders[i].split("beta.");
+      if (dataFileHeaders[i].contains(BETA_META_HEADERS[0])) {
+        if (dataFileHeaders[i + 1].contains(SE_META_HEADERS[0])) {
+          int betaIndex = dataFileHeaders[i].indexOf("beta") == 0 ? 1 : 0;
+          String[] b = dataFileHeaders[i].split(betaIndex == 0 ? BETA_INFIX : BETA_PREFIX);
           String beta = b[betaIndex]
                         + (b.length > 1 && betaIndex != b.length - 1 ? b[b.length - 1] : "");
           if (data.studyToColIndexMap.containsKey(beta)) {
