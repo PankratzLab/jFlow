@@ -1,0 +1,23 @@
+package org.genvisis.gwas.results.files;
+
+public abstract class CachedFileColumn<T> extends AbstractFileColumn<T> {
+
+	public CachedFileColumn(String nm) {
+		super(nm);
+	}
+
+	private String[] currentLine;
+	private T currentValue;
+
+	@Override
+	public T getValue(String[] line) throws ParseFailureException {
+		if (line == currentLine) {
+			return currentValue;
+		}
+		currentLine = line;
+		return currentValue = calculateValue(line);
+	}
+
+	public abstract T calculateValue(String[] line) throws ParseFailureException;
+
+}
