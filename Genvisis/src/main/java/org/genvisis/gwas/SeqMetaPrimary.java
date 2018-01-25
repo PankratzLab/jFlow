@@ -134,20 +134,6 @@ public class SeqMetaPrimary {
 
       iterations = Matrix.toMatrix(ArrayUtils.toStringArray(v));
       System.out.println(iterations.length + "\tremaining to run for " + cohort);
-      // if (Files.isWindows()) {
-      // commands = "Rscript --no-save [%0]";
-      // Files.batchIt(batchDir + "run", "", 5, commands, iterations);
-      // } else {
-      // // commands = "/soft/R/3.0.1/bin/Rscript --no-save [%0]";
-      // commands = Rscript.getRscriptExecutable(new Logger()) + " --no-save [%0]";
-      // // Files.qsub("checkObject", dir, -1, commands, iterations, qsubMem, qsubWalltime);
-      // Qsub.qsub(batchDir + "run_" + cohort, batchDir, -1, commands, iterations, qsubMem,
-      // qsubWalltime, queue);
-      // if (iterations.length == 0) {
-      // new File(batchDir + "master.run_" + cohort).renameTo(new File(batchDir + "master.run_"
-      // + cohort + ".bak"));
-      // }
-      // }
 
       jobNamesWithAbsolutePaths = new Vector<String>();
       jobSizes = new IntVector();

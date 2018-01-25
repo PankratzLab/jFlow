@@ -2717,15 +2717,6 @@ public class SeqMeta {
       Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
                 dir + hitsDirectory + groups[g] + "_regions.xln", new int[0], log);
     }
-
-    // if (inputsToCat.size() > 0) {
-    // Files.cat(ArrayUtils.toStringArray(inputsToCat), dir + hitsDirectory +
-    // "allForestPlots.input",
-    // new int[0], log);
-    // batchesToCat.addElement(Files.getRunString() + " cnv.plots.ForestPlot markerList="
-    // + hitsDirectory + "allForestPlots.input");
-    // Files.writeArray(ArrayUtils.toStringArray(batchesToCat), dir + "allForestPlots.bat");
-    // }
   }
 
   public static void makeTables(String dir, String hitsDirectory, MetaAnalysisParams maps,
