@@ -2789,65 +2789,7 @@ public class Files {
   // rest should be skipped
   public static void cat(String[] originalFiles, String finalFile, int[] skips, boolean addFilename,
                          Logger log) {
-    BufferedReader reader;
-    PrintWriter writer;
-    String trav;
-    boolean problem;
-    String delimiter;
-
-    delimiter = finalFile.endsWith(".csv") || finalFile.endsWith(".csv.gz") ? "," : "\t";
-
-    if (skips != null) {
-      if (skips.length == 0) {
-        skips = ArrayUtils.addIntToArray(0, ArrayUtils.intArray(originalFiles.length - 1, 1), 0);
-      }
-      if (skips.length != originalFiles.length) {
-        log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
-                        + finalFile + "; aborting...");
-        return;
-      }
-    }
-
-    problem = false;
-    for (int i = 0; i < originalFiles.length; i++) {
-      if (originalFiles[i] == null) {
-        log.reportError("Error - can't cat if the filename is null");
-        problem = true;
-      } else if (!new File(originalFiles[i]).exists()) {
-        log.reportError("Error - missing file '" + originalFiles[i] + "'");
-        problem = true;
-      }
-    }
-    if (problem) {
-      return;
-    }
-
-    try {
-      writer = getAppropriateWriter(finalFile);
-      for (int i = 0; i < originalFiles.length; i++) {
-        try {
-
-          reader = new BufferedReader(new FileReader(originalFiles[i]));
-          for (int j = 0; skips != null && j < skips[i]; j++) {
-            reader.readLine();
-          }
-          while (reader.ready()) {
-            trav = reader.readLine();
-            writer.println((addFilename ? originalFiles[i] + delimiter : "") + trav);
-          }
-          reader.close();
-        } catch (FileNotFoundException fnfe) {
-          log.reportError("Error: file \"" + originalFiles[i]
-                          + "\" not found in current directory");
-        } catch (IOException ioe) {
-          log.reportError("Error reading file \"" + originalFiles[i] + "\"");
-        }
-      }
-      writer.close();
-    } catch (Exception e) {
-      log.reportError("Error writing to " + finalFile);
-      e.printStackTrace();
-    }
+    cat(originalFiles, finalFile, skips, null, addFilename, log);
   }
 
   /**
