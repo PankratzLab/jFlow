@@ -563,7 +563,7 @@ public class TransposeData {
 		}
 	}
 
-	public static void reverseTransposeStreaming(Project proj) {
+	public static void reverseTransposeStreaming(Project proj, String label) {
 		long fingerprintForMarkers;
 
 		Hashtable<String, Float>[] sampRafFileOutliers;
@@ -654,7 +654,7 @@ public class TransposeData {
 					mySamples = null;
 					int written = 0;
 					try {
-						while ((mySamples = fillSamples(samplesToRun, numSampsInThread, log)) != null) {
+						while ((mySamples = fillSamples(samplesToRun, numSampsInThread, label, log)) != null) {
 							time1 = System.nanoTime();
 							sampInds = new int[mySamples.length];
 							// fill index list
@@ -783,13 +783,13 @@ public class TransposeData {
 					} catch (FileNotFoundException e) {
 						log.reportException(e);
 						try {
-							reAddSamples(mySamples, written, samplesToRun);
+							reAddSamples(mySamples, written, label, samplesToRun);
 						} catch (IOException e1) {
 							log.reportException(e1);
 						}
 					} catch (IOException e) {
 						try {
-							reAddSamples(mySamples, written, samplesToRun);
+							reAddSamples(mySamples, written, label, samplesToRun);
 						} catch (IOException e1) {
 							log.reportException(e1);
 						}
@@ -799,8 +799,13 @@ public class TransposeData {
 			};
 
 			transposeService.submit(runner);
-		}
 
+			try {
+				// sleep for 10 seconds to stagger threads
+				Thread.sleep(1000 * 10);
+			} catch (InterruptedException e) {
+			}
+		}
 
 		transposeService.shutdown();
 		try
@@ -813,11 +818,11 @@ public class TransposeData {
 
 	}
 
-	private static void reAddSamples(String[] samples, int start,
+	private static void reAddSamples(String[] samples, int start, String label,
 																	 String sampFile) throws IOException {
-		long t = System.nanoTime();
 		Path fP = FileSystems.getDefault().getPath(sampFile);
-		String nF = ext.rootOf(sampFile, false) + "." + t + ".temp";
+		String nF = ext.rootOf(sampFile, false) + "." + label + "." + Thread.currentThread().getName()
+								+ ".temp";
 		Path nFP = FileSystems.getDefault().getPath(nF);
 		IOException e = null;
 		int minsSlept = 0;
@@ -847,10 +852,11 @@ public class TransposeData {
 
 	}
 
-	private static String[] fillSamples(String sampFile, int pull, Logger log) throws IOException {
-		long t = System.nanoTime();
+	private static String[] fillSamples(String sampFile, int pull, String label,
+																			Logger log) throws IOException {
 		Path fP = FileSystems.getDefault().getPath(sampFile);
-		String nF = ext.rootOf(sampFile, false) + "." + t + ".temp";
+		String nF = ext.rootOf(sampFile, false) + "." + label + "." + Thread.currentThread().getName()
+								+ ".temp";
 		Path nFP = FileSystems.getDefault().getPath(nF);
 		IOException e = null;
 		int minsSlept = 0;
@@ -870,6 +876,8 @@ public class TransposeData {
 				Files.writeArray(remain, nF);
 
 				java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
+
+				Files.writeArray(values, nF);
 				return values;
 			} catch (NoSuchFileException e1) {
 				e = e1;

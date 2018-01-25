@@ -1,7 +1,5 @@
 package org.genvisis.one.ben;
 
-import htsjdk.variant.variantcontext.Allele;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -56,6 +54,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
+import htsjdk.variant.variantcontext.Allele;
+
 public class UKBBParsingPipeline {
 
 	int maxMDRAFThreadsPerChr = 8;
@@ -80,6 +80,7 @@ public class UKBBParsingPipeline {
 	String famFile;
 	String annotFile;
 	String[][] famData;
+	String jobID;
 
 	public void setProjectName(String projName2) {
 		projName = projName2;
@@ -99,6 +100,10 @@ public class UKBBParsingPipeline {
 
 	public void setFamFile(String famFile2) {
 		famFile = famFile2;
+	}
+
+	public void setJobID(String jobID2) {
+		jobID = jobID2;
 	}
 
 	public void setAnnotationCSV(String csv) {
@@ -487,20 +492,20 @@ public class UKBBParsingPipeline {
 																												 mkrName,
 																												 new GenomicPosition(
 																																						 !isMissing(parts[hdrInds[2]])
-																																																					? Positions.chromosomeNumber(parts[hdrInds[2]],
-																																																																			 log)
-																																																					: (byte) 0,
+																																																					 ? Positions.chromosomeNumber(parts[hdrInds[2]],
+																																																																				log)
+																																																					 : (byte) 0,
 																																						 !isMissing(parts[hdrInds[3]])
-																																																					? Integer.parseInt(parts[hdrInds[3]])
-																																																					: 0),
+																																																					 ? Integer.parseInt(parts[hdrInds[3]])
+																																																					 : 0),
 																												 !isMissing(parts[hdrInds[4]])
-																																											? Allele.create(parts[hdrInds[4]],
-																																																			parts[hdrInds[4]] == parts[hdrInds[6]])
-																																											: Allele.NO_CALL,
+																																											 ? Allele.create(parts[hdrInds[4]],
+																																																			 parts[hdrInds[4]] == parts[hdrInds[6]])
+																																											 : Allele.NO_CALL,
 																												 !isMissing(parts[hdrInds[5]])
-																																											? Allele.create(parts[hdrInds[5]],
-																																																			parts[hdrInds[5]] == parts[hdrInds[6]])
-																																											: Allele.NO_CALL);
+																																											 ? Allele.create(parts[hdrInds[5]],
+																																																			 parts[hdrInds[5]] == parts[hdrInds[6]])
+																																											 : Allele.NO_CALL);
 			}
 		}
 		if (inAnnotNotProj > 0) {
@@ -557,7 +562,7 @@ public class UKBBParsingPipeline {
 
 	protected void createSampRAFsFromMDRAFs() {
 		if (!checkIfSampRAFsExist()) {
-			TransposeData.reverseTransposeStreaming(proj);
+			TransposeData.reverseTransposeStreaming(proj, jobID);
 		}
 	}
 
@@ -769,7 +774,7 @@ public class UKBBParsingPipeline {
 	private synchronized String[] readWritten() {
 		String temp = proj.PROJECT_DIRECTORY.getValue() + "markersWritten.txt";
 		return Files.exists(temp) ? HashVec.loadFileToStringArray(temp, false, null, false)
-														 : new String[0];
+															: new String[0];
 	}
 
 	private synchronized void success(String mkrFile, long t1) {
@@ -869,19 +874,20 @@ public class UKBBParsingPipeline {
 				// y = (float) (Math.log(y) / Math.log(2));
 
 				oor = !Compression.xyCompressPositiveOnly(a == -1
-																												 ? Float.NaN
-																												 : (float) (x),
+																													? Float.NaN
+																													: (float) (x),
 																									mkrBuff, buffInd);
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\tx", x);
 				}
 
 				oor = !Compression.xyCompressPositiveOnly(b == -1
-																												 ? Float.NaN
-																												 : (float) (y),
+																													? Float.NaN
+																													: (float) (y),
 																									mkrBuff,
 																									buffInd
-																											+ (nInd * Compression.REDUCED_PRECISION_XY_NUM_BYTES));
+																													 + (nInd
+																															* Compression.REDUCED_PRECISION_XY_NUM_BYTES));
 				if (oor) {
 					outOfRangeTable.put((i - startBatchInd) + "\t" + bitInd + "\ty", y);
 				}
@@ -1377,6 +1383,7 @@ public class UKBBParsingPipeline {
 		int threadsPerChr;
 		int mkrsPerFile;
 		float scale;
+		String jobID;
 
 		CLI cli = new CLI(UKBBParsingPipeline.class);
 
@@ -1390,6 +1397,7 @@ public class UKBBParsingPipeline {
 		cli.addArg("threadsPerChr", "Number of threads PER chromosome", false);
 		cli.addArg("markersPerFile", "Number of markers per mdRAF file", false);
 		cli.addArg("scaleFactor", "Scaling factor for X/Y", false);
+		cli.addArg("jobID", "Job Identifier");
 
 		cli.parseWithExit(args);
 
@@ -1405,6 +1413,7 @@ public class UKBBParsingPipeline {
 		threadsPerChr = cli.has("threadsPerChr") ? cli.getI("threadsPerChr") : -1;
 		mkrsPerFile = cli.has("mkrsPerFile") ? cli.getI("mkrsPerFile") : -1;
 		scale = (float) (cli.has("scaleFactor") ? cli.getD("scaleFactor") : -1);
+		jobID = cli.has("jobID") ? cli.get("jobID") : null;
 
 		UKBBParsingPipeline parser = new UKBBParsingPipeline();
 		parser.setSourceDir(sourceDir);
@@ -1412,6 +1421,7 @@ public class UKBBParsingPipeline {
 		parser.setProjectPropertiesDir(propFileDir);
 		parser.setProjectName(projName);
 		parser.setFamFile(famFile);
+		parser.setJobID(jobID);
 		if (!"".equals(annotFile)) {
 			parser.setAnnotationCSV(annotFile);
 		}
