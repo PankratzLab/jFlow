@@ -20,8 +20,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.results.ResultsPackager2;
-import org.genvisis.gwas.results.SimpleResultsParser;
+import org.genvisis.gwas.results.impl.EasyQCParser;
 import org.genvisis.stats.ProbDist;
 
 public class ResultsPackager {
@@ -154,31 +153,7 @@ public class ResultsPackager {
 	};
 
 	public static void parseEasyQC(String inputFile, String outputFile) {
-		String outFile = outputFile;
-		if (outputFile == null) {
-			outFile = ext.rootOf(inputFile, false) + "_out.txt";
-		}
-
-		SimpleResultsParser easyQCParser = new SimpleResultsParser(" ", EASY_QC_ALIASES_IN_ORDER,
-																															 EASY_QC_OUTPUT_HEADER);
-		Logger log = new Logger();
-		ResultsPackager2 packager = new ResultsPackager2(easyQCParser);
-		try {
-			packager.openInput(inputFile, true, null, 0);
-		} catch (IOException e) {
-			log.reportError("Couldn't open input file for reading: " + inputFile);
-			log.reportIOException(inputFile);
-			return;
-		}
-
-		packager.openOutput(outFile, false, true);
-
-		try {
-			packager.parse();
-			packager.close();
-		} catch (IOException e) {
-			log.reportException(e);
-		}
+		new EasyQCParser().run(inputFile, outputFile);
 	}
 
 	public static void parseEasyQCOld(String inputFile, String outputFile) {
@@ -311,7 +286,7 @@ public class ResultsPackager {
 				trav = line[0];
 				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("")
 						&& (filter >= 1
-						|| (!ext.isMissingValue(line[3]) && Double.parseDouble(line[3]) <= filter))) {
+								|| (!ext.isMissingValue(line[3]) && Double.parseDouble(line[3]) <= filter))) {
 					if (mapHash.containsKey(trav)) {
 						writer.print(mapHash.get(trav));
 					} else if (mapHash.containsKey(ext.replaceAllWith(trav, ".", "-"))) {
@@ -441,7 +416,7 @@ public class ResultsPackager {
 				if ((markerHash == null || markerHash.contains(trav)) && !line[3].equals("")
 						&& line[indices[2]].equalsIgnoreCase(test)
 						&& (filter >= 1 || (!ext.isMissingValue(line[indices[7]])
-						&& Double.parseDouble(line[indices[7]]) <= filter))) {
+																&& Double.parseDouble(line[indices[7]]) <= filter))) {
 					writer.print(trav); // MarkerName
 					if (mapHash.containsKey(trav)) {
 						writer.print("\t" + mapHash.get(trav)); // chr, pos
@@ -606,7 +581,7 @@ public class ResultsPackager {
 
 				if ((markerHash == null || markerHash.contains(trav)) && (callrate > callRateThreshold)
 						&& (filter >= 1 || (!ext.isMissingValue(line[indices[3]])
-						&& Double.parseDouble(line[indices[3]]) <= filter))) {
+																&& Double.parseDouble(line[indices[3]]) <= filter))) {
 					writer.print(trav); // MarkerName
 					if (mapHash.containsKey(trav)) {
 						writer.print("\t" + mapHash.get(trav)); // chr, pos, A1, A2
@@ -815,12 +790,12 @@ public class ResultsPackager {
 
 			writer.println(ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_SNPS)
 										 + (mendelErrorFile == null
-																							 ? ""
-																							 : ("\t"
-																							 + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
+																								? ""
+																								: ("\t"
+																									 + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_MENDEL_ERRORS)))
 										 + (hweFile == null ? "" : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_HWE)))
 										 + (tdtResultsFile == null ? ""
-																							: ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_TDT)))
+																							 : ("\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_TDT)))
 										 + "\t" + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_RESULTS) + "\t"
 										 + ArrayUtils.toStr(EMIM_OUTPUT_FORMAT_EMIM_PVALS));
 			while (readerC.ready()) {
@@ -895,9 +870,9 @@ public class ResultsPackager {
 				// }
 				if (pValueThreshold >= 1
 						|| ((!temp.equals("NA")
-						&& pvalsPass(ArrayUtils.addDoubleToArray(Double.parseDouble(temp), pvals),
-												 pValueThreshold))
-						&& Double.parseDouble(freq) >= .01)) {
+								 && pvalsPass(ArrayUtils.addDoubleToArray(Double.parseDouble(temp), pvals),
+															pValueThreshold))
+								&& Double.parseDouble(freq) >= .01)) {
 					String[] pvalEquations = getPvalEquations(lineC[indicesC.get("lnliknull")],
 																										lineC[indicesC.get("lnlikfull")],
 																										lineM[indicesM.get("lnliknull")],
@@ -1001,33 +976,39 @@ public class ResultsPackager {
 		// Lines up with odd entries in EMIM_OUTPUT_FORMAT_EMIM_PVALS
 		return new String[] {
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-"
-														 + logLikilihood_null_C + "),2,TRUE)",
+												 + logLikilihood_null_C + "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_C + "-" + logLikilihood_null_C
-														 + "),1,TRUE)",
+																															 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M
-														 + "),2,TRUE)",
+																																							+ "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_M + "-" + logLikilihood_null_M
-														 + "),1,TRUE)",
+																																														 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C
-														 + "),2,TRUE)",
+																																																						+ "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_C
-														 + "),1,TRUE)",
+																																																													 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M
-														 + "),2,TRUE)",
+																																																																					+ "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CM + "-" + logLikilihood_full_M
-														 + "),1,TRUE)",
+																																																																												 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-"
-														 + logLikilihood_full_C + "),2,TRUE)",
+																																																																																				+ logLikilihood_full_C
+																																																																																				+ "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIm + "-"
-														 + logLikilihood_full_C + "),1,TRUE)",
+																																																																																											 + logLikilihood_full_C
+																																																																																											 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-"
-														 + logLikilihood_full_C + "),2,TRUE)",
+																																																																																																			+ logLikilihood_full_C
+																																																																																																			+ "),2,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_CIp + "-"
-														 + logLikilihood_full_C + "),1,TRUE)",
+																																																																																																										 + logLikilihood_full_C
+																																																																																																										 + "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_Im + "-"
-														 + logLikilihood_null_Im + "),1,TRUE)",
+																																																																																																																		+ logLikilihood_null_Im
+																																																																																																																		+ "),1,TRUE)",
 												 "=1-CHISQ.DIST(2 * (" + logLikilihood_full_Ip + "-"
-														 + logLikilihood_null_Ip + "),1,TRUE)"};
+																																																																																																																									 + logLikilihood_null_Ip
+																																																																																																																									 + "),1,TRUE)"};
 	}
 
 	private static String getOutputString(Hashtable<Long, String> snpList,
@@ -1079,11 +1060,11 @@ public class ResultsPackager {
 					try {
 						se = ((Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("L95", TDT_REQS)]))
 														- beta)
-														+ Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("U95",
-																																											 TDT_REQS)]))
-																			 - beta))
-																			 / 2)
-																			 / 1.96;
+									 + Math.abs(Math.log(Double.parseDouble(tmp2[ext.indexOfStr("U95",
+																																							TDT_REQS)]))
+															- beta))
+									/ 2)
+								 / 1.96;
 					} catch (NumberFormatException nfe) {
 						se = Double.NaN;
 					}
@@ -1272,7 +1253,7 @@ public class ResultsPackager {
 							int seInd = ext.indexOfStr(columnNamesOfAnalyses[i][1], columnNamesToLoad);
 							beta = Math.log(Double.parseDouble(statResults[k][markerIndex][betaInd]));
 							se = ((Math.log(Double.parseDouble(statResults[k][markerIndex][seInd])) - beta)
-									 / 1.96);
+										/ 1.96);
 							out1[j] += "\t" + beta + "\t" + se + "\t" + Math.exp(beta) + "\t"
 												 + Math.exp(beta - 1.96 * se) + "\t" + Math.exp(beta + 1.96 * se);
 						} else {
@@ -1704,7 +1685,7 @@ public class ResultsPackager {
 				String mkrFile = "/home/pankrat2/shared/Poynter_emim/gwasHits.txt";
 				String mkrColNm = "markerName";
 				String[] analyses = {"tdt", "emim_child", "emim_maternal"};
-				String[][] analysisNms = { {"tdt_OR", "tdt_U95", "tdt_P"},
+				String[][] analysisNms = {{"tdt_OR", "tdt_U95", "tdt_P"},
 																	{"C_lnR1", "C_se_lnR1", "pVal_C_df1"},
 																	{"CM_lnS1", "CM_se_lnS1", "pVal_CM-C_df1"}};
 
@@ -1731,7 +1712,7 @@ public class ResultsPackager {
 					org.genvisis.cnv.plots.ForestPlot fp = new org.genvisis.cnv.plots.ForestPlot(
 																																											 ext.rootOf(fileSet[1],
 																																																	false)
-																																													 + ".input",
+																																											 + ".input",
 																																											 null);
 					fp.setOddsRatioDisplay(oddsRatio);
 					fp.loadOrderFile(sortFileName, true);
