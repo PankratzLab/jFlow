@@ -1,4 +1,4 @@
-package org.genvisis.gwas.results.files;
+package org.genvisis.gwas.parsing;
 
 /**
  * Factory for creating {@link FileParser} objects.

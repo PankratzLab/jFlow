@@ -1,4 +1,4 @@
-package org.genvisis.gwas.results.files;
+package org.genvisis.gwas.parsing;
 
 import java.util.List;
 import java.util.Map;

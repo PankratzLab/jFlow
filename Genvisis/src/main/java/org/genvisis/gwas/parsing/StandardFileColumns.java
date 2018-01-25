@@ -1,4 +1,4 @@
-package org.genvisis.gwas.results.files;
+package org.genvisis.gwas.parsing;
 
 import java.util.ArrayList;
 import java.util.Collections;

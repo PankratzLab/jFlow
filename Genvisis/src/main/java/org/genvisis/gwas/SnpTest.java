@@ -15,12 +15,12 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.results.files.AliasedFileColumn;
-import org.genvisis.gwas.results.files.DoubleWrapperColumn;
-import org.genvisis.gwas.results.files.FileColumn;
-import org.genvisis.gwas.results.files.FileParserFactory;
-import org.genvisis.gwas.results.files.FixedValueColumn;
-import org.genvisis.gwas.results.files.StandardFileColumns;
+import org.genvisis.gwas.parsing.AliasedFileColumn;
+import org.genvisis.gwas.parsing.DoubleWrapperColumn;
+import org.genvisis.gwas.parsing.FileColumn;
+import org.genvisis.gwas.parsing.FileParserFactory;
+import org.genvisis.gwas.parsing.FixedValueColumn;
+import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.qsub.Qsub;
 
 

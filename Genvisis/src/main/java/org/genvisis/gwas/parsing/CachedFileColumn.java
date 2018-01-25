@@ -1,4 +1,4 @@
-package org.genvisis.gwas.results.files;
+package org.genvisis.gwas.parsing;
 
 public abstract class CachedFileColumn<T> extends AbstractFileColumn<T> {
 

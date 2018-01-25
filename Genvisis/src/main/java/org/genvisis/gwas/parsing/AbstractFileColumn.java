@@ -1,4 +1,4 @@
-package org.genvisis.gwas.results.files;
+package org.genvisis.gwas.parsing;
 
 public abstract class AbstractFileColumn<T> implements FileColumn<T> {
 	private final String name;

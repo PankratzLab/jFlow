@@ -20,7 +20,7 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.results.impl.EasyQCParser;
+import org.genvisis.gwas.parsing.impl.EasyQCParser;
 import org.genvisis.stats.ProbDist;
 
 public class ResultsPackager {
