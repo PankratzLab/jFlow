@@ -151,7 +151,7 @@ public class ManhattanPlot {
 		chrs[0] = false;
 		double filt = 1;
 
-		readyData(chrs, filt, cols);
+		readyData(chrs, filt, cols, false);
 		return true;
 	}
 
@@ -214,10 +214,11 @@ public class ManhattanPlot {
 		boolean[] chrs = mlg.getSelectedChrs();
 		this.data = mlg.getDataFile();
 
-		readyData(chrs, filt, cols);
+		readyData(chrs, filt, cols, false);
 	}
 
-	private void readyData(boolean[] chrsToLoad, double pvalThresh, String[] extraColsToLoad) {
+	private void readyData(boolean[] chrsToLoad, double pvalThresh, String[] extraColsToLoad,
+												 boolean wait) {
 		HashMap<String, DataPipe> selTrans = new HashMap<>();
 
 		DataPipe chrPipe = new DataPipe();
@@ -273,12 +274,21 @@ public class ManhattanPlot {
 			}
 		};
 		data.pingWhenReady(pinger);
-		data.loadData(selTrans, false);
+		data.loadData(selTrans, wait);
 		this.manPan.paintAgain();
 	}
 
 	public boolean isDataLoaded() {
 		return (data != null && data.isLoaded()) || cachedData != null;
+	}
+
+	public void waitForData() {
+		while (!isDataLoaded()) {
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 
 	public void screenshot(String file) {
@@ -464,9 +474,7 @@ public class ManhattanPlot {
 						// error!
 						return;
 					}
-					while (!mp.isDataLoaded()) {
-						Thread.sleep(200);
-					}
+					mp.waitForData();
 				}
 			}
 			if (screen != null) {
