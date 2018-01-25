@@ -274,6 +274,7 @@ public class BoxPlot extends JFrame {
 			bp.setInsideScrollpaneAndNoZoom();
 			bp.setData(lbl, ArrayUtils.toStringArray(dataSources), Doubles.toArray(panelData));
 			bp.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
+			bp.setSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
 			bp.setXAxisLabel("");// pts[0].trim().replaceAll("/", " /\n");
 			bp.setYAxisLabel(lbl.split("\\|")[1].trim());
 			panels.add(bp);
@@ -361,6 +362,7 @@ public class BoxPlot extends JFrame {
 			}
 			String key = ArrayUtils.toStr(paths.get(i), "\t");
 			OneDPanel bp = panelMap.get(key);
+			bp.paintAgain();
 			selected.add(bp.plotLabel);
 			scrollContent.add(bp, "cell " + (i % cols) + " " + row);
 			String pts = bp.plotLabel.split("\\|")[0].trim().replaceAll("/", "  /<br />");
@@ -376,7 +378,7 @@ public class BoxPlot extends JFrame {
 	public static void main(String[] args) {
 		BoxPlot bp = new BoxPlot();
 		bp.setVisible(true);
-		// bp.loadFile(bp.testFile);
+		bp.loadFile(bp.testFile);
 	}
 
 }
