@@ -83,4 +83,35 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
 		return matchedIndex;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((aliases == null) ? 0 : aliases.hashCode());
+		// can't use mutable properties in hashCode, otherwise the hash could change during use
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AliasedFileColumn other = (AliasedFileColumn) obj;
+		if (aliases == null) {
+			if (other.aliases != null)
+				return false;
+		} else if (!aliases.equals(other.aliases))
+			return false;
+		if (!getName().equals(other.getName()))
+			return false;
+		// can't use mutable properties in equals, otherwise equality could change during use
+		return true;
+	}
+
+
+
 }

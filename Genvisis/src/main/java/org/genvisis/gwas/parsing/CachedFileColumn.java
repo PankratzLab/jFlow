@@ -20,4 +20,5 @@ public abstract class CachedFileColumn<T> extends AbstractFileColumn<T> {
 
 	public abstract T calculateValue(String[] line) throws ParseFailureException;
 
+
 }

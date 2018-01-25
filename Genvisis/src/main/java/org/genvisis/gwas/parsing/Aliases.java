@@ -1,5 +1,6 @@
 package org.genvisis.gwas.parsing;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -118,5 +119,35 @@ public class Aliases {
 	public boolean isCaseSensitive() {
 		return caseSensitive;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(aliases);
+		result = prime * result + (caseSensitive ? 1231 : 1237);
+		result = prime * result + ((strategy == null) ? 0 : strategy.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Aliases other = (Aliases) obj;
+		if (!Arrays.equals(aliases, other.aliases))
+			return false;
+		if (caseSensitive != other.caseSensitive)
+			return false;
+		if (strategy != other.strategy)
+			return false;
+		return true;
+	}
+
+
 
 }

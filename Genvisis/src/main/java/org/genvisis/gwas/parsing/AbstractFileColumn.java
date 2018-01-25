@@ -12,10 +12,12 @@ public abstract class AbstractFileColumn<T> implements FileColumn<T> {
 		return this.name;
 	}
 
-	// @Override
-	// public abstract int hashCode();
-	//
-	// @Override
-	// public abstract boolean equals(Object o);
+	@Override
+	// overridden to force subclasses to define their own hashCode method
+	public abstract int hashCode();
+
+	@Override
+	// overridden to force subclasses to define their own equals method
+	public abstract boolean equals(Object o);
 
 }

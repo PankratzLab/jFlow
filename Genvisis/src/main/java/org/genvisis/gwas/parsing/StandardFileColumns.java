@@ -88,6 +88,39 @@ public final class StandardFileColumns {
 			public Double calculateValue(String[] line) throws ParseFailureException {
 				return Math.log10(val.getValue(line));
 			}
+
+			@Override
+			public int hashCode() {
+				final int prime = 31;
+				int result = 1;
+				result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
+				result = prime * result + val.hashCode();
+				return result;
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				FileColumn<?> other;
+				if (obj instanceof FileColumn<?>) {
+					other = (FileColumn<?>) obj;
+				} else {
+					return false;
+				}
+				if (!val.equals(other))
+					return false;
+				if (getName() == null) {
+					if (other.getName() != null)
+						return false;
+				} else if (!getName().equals(other.getName()))
+					return false;
+				return true;
+			}
 		};
 	}
 
