@@ -2850,6 +2850,14 @@ public class Files {
     }
   }
 
+  /**
+   * @param originalFiles tab or comma-delimited files to concatenate
+   * @param finalFile filename to write out to
+   * @param skips rows at the start of the file to skip
+   * @param cols columns to include in output
+   * @param addFilename add the name of the originating file to the start of each line
+   * @param log
+   */
   public static void cat(String[] originalFiles, String finalFile, int[] skips, int[] cols,
                          boolean addFilename, Logger log) {
     BufferedReader reader;
