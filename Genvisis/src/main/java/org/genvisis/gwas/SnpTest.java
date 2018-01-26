@@ -15,8 +15,12 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.results.ResultFormatParser;
-import org.genvisis.gwas.results.ResultsPackager2;
+import org.genvisis.gwas.parsing.AliasedFileColumn;
+import org.genvisis.gwas.parsing.DoubleWrapperColumn;
+import org.genvisis.gwas.parsing.FileColumn;
+import org.genvisis.gwas.parsing.FileParserFactory;
+import org.genvisis.gwas.parsing.FixedValueColumn;
+import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.qsub.Qsub;
 
 
@@ -73,102 +77,46 @@ public class SnpTest {
 		}
 	}
 
-	private String[] resultsHeader = {
-																		"alternate_ids", // always equals rsid in test output
-																		"rsid",
-																		"chromosome",
-																		"position",
-																		"alleleA",
-																		"alleleB",
-																		"index",
-																		"average_maximum_posterior_call",
-																		"info",
-																		"cohort_1_AA",
-																		"cohort_1_AB",
-																		"cohort_1_BB",
-																		"cohort_1_NULL",
-																		"all_AA",
-																		"all_AB",
-																		"all_BB",
-																		"all_NULL",
-																		"all_total",
-																		"all_maf",
-																		"missing_data_proportion",
-																		"frequentist_add_pvalue", // 20
-																		"frequentist_add_info",
-																		"frequentist_add_beta_1", // 22
-																		"frequentist_add_se_1", // 23
-																		"comment",
-	};
-
-	private static String[] processedHeader = {
-																						 "SNP",
-																						 "CHR",
-																						 "POS",
-																						 "STRAND",
-																						 "EFFECT_ALLELE",
-																						 "OTHER_ALLELE",
-																						 "N",
-																						 "EAF",
-																						 "BETA",
-																						 "SE",
-																						 "PVAL"
-	};
-
-	final static int[] inputCols = {1, 2, 3, -1, 4, 5, -2, 18, 22, 23, 20};
+	private static FileColumn<?>[] getFileColumns(String sampleCount) {
+		return new FileColumn<?>[] {
+																StandardFileColumns.snp("SNP"),
+																StandardFileColumns.chr("CHR"),
+																StandardFileColumns.pos("POS"),
+																new FixedValueColumn("STRAND", "FWD"),
+																StandardFileColumns.a1("EFFECT_ALLELE"),
+																StandardFileColumns.a2("OTHER_ALLELE"),
+																new FixedValueColumn("N", sampleCount),
+																new DoubleWrapperColumn(new AliasedFileColumn("EAF",
+																																							new String[] {"all_maf"})),
+																new DoubleWrapperColumn(new AliasedFileColumn("BETA",
+																																							new String[] {"frequentist_add_beta_1"})),
+																new DoubleWrapperColumn(new AliasedFileColumn("SE",
+																																							new String[] {"frequentist_add_se_1"})),
+																new DoubleWrapperColumn(new AliasedFileColumn("PVAL",
+																																							new String[] {"frequentist_add_pvalue"}))
+		};
+	}
 
 	private static void processResults(String dir) throws IOException {
 		Logger log = new Logger();
 		String[] sampleFiles = Files.list(dir, ".sample");
 		final String sampleCount = sampleFiles.length > 1
-																										 ? "N"
-																										 : Integer.toString(Files.countLines(dir
-																																														 + sampleFiles[0],
-																																												 2));
+																											? "N"
+																											: Integer.toString(Files.countLines(dir
+																																													+ sampleFiles[0],
+																																													2));
 		if (sampleCount.equals("N")) {
 			log.reportTimeWarning("Could not determine sample file used.  Number of samples will be set to 'N' in results file.");
 		}
-
-		ResultFormatParser resultsParser = new ResultFormatParser("\t") {
-			@Override
-			public String[] parseInputLine(String[] inputLine) {
-				String[] returnLine = new String[processedHeader.length];
-				int index = 0;
-				for (int i : inputCols) {
-					if (i == -1) {
-						// strand
-						returnLine[index] = "FWD";
-					} else if (i == -2) {
-						// N
-						returnLine[index] = sampleCount;
-					} else if (i == 2) {
-						// chr code in snptest has a '0' if <10, e.g. "04"
-						returnLine[index] = Integer.toString(Integer.parseInt(inputLine[i]));
-					} else {
-						returnLine[index] = inputLine[i];
-					}
-					index++;
-				}
-				return returnLine;
-			}
-
-			@Override
-			public String[] getOutputHeader() {
-				return processedHeader;
-			}
-		};
 
 		String outputTempl = "output_chr#.out";
 		int fileInd = 0;
 		for (int i = 1; i < 28; i++) {
 			String outFile = outputTempl.replace("#", Integer.toString(i));
 			if (Files.exists(dir + outFile)) {
-				ResultsPackager2 packager = new ResultsPackager2(resultsParser, log);
-				// write header if chr1, append to file if not chr1:
-				packager.openOutput(dir + "combined.results", fileInd != 0, fileInd == 0);
-				packager.openInput(dir + outFile, true, "#", 0);
-				packager.parse();
-				packager.close();
+				FileParserFactory.setup(dir + outFile, getFileColumns(sampleCount))
+												 .skipPrefix("#").build()
+												 .parseToFile(dir + "combined.results", "\t", fileInd == 0, fileInd != 0);
 				fileInd++;
 			}
 		}
@@ -236,8 +184,8 @@ public class SnpTest {
 		if (dataFileTemplate != null && !dataFileTemplate.contains(repl)) {
 			throw new IllegalStateException(
 																			"Data file template \""
-																					+ dataFileTemplate
-																					+ "\" does not contain the specified special character \" + repl + \".");
+																			+ dataFileTemplate
+																			+ "\" does not contain the specified special character \" + repl + \".");
 		}
 		if (dataFileExtension != null) {
 			if (new File(dataDirectory).list((d, f) -> {
@@ -316,8 +264,8 @@ public class SnpTest {
 																													.append("\n")
 																													.append(Files.getRunString())
 																													.append(" org.genvisis.one.ScriptExecutor token=finito threads="
-																																			+ Runtime.getRuntime()
-																																							 .availableProcessors());
+																																	+ Runtime.getRuntime()
+																																					 .availableProcessors());
 
 		Qsub.qsubDefaults("./runSnpTest.qsub", scriptExecCmd.toString());
 
