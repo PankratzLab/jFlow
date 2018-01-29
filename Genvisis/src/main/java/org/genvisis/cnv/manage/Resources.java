@@ -353,11 +353,21 @@ public final class Resources {
 		}
 
 		/**
+		 * @return The G1K allele frequency file for the requested {@link CHROMOSOME}
+		 */
+		public Resource getG1Kphase3v5AlleleFreq() {
+			return getResource(getPath("", c.getLabel(), ".p3v5.dat.gz"));
+		}
+
+		/**
 		 * Helper method to format the resource path
 		 */
 		private String getPath(String prefix, String chromosome, String suffix) {
 			return prefix + build + "_chr" + chromosome + suffix;
 		}
+
+
+
 	}
 
 	/**
