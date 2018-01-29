@@ -17,6 +17,7 @@ import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -175,10 +176,10 @@ class MetaStudy {
 class StudyBreak extends StudyData {
 	// placeholder class for visual breaks
 	public StudyBreak() {
-		this("", 0f, 0f, 0, (byte) 0);
+		this("", 0f, 0f, 0, PointType.FILLED_CIRCLE);
 	}
 
-	private StudyBreak(String label, float beta, float stderr, int color, byte shape) {
+	private StudyBreak(String label, float beta, float stderr, int color, PointType shape) {
 		super(label, beta, stderr, color, shape);
 	}
 }
@@ -190,11 +191,11 @@ class StudyData {
 	private final float beta;
 	private final float stderr;
 	private final int color;
-	private final byte shape;
+	private final PointType shape;
 	private final float[] confInterval;
 	private final float zScore;
 
-	public StudyData(String label, float beta, float stderr, int color, byte shape) {
+	public StudyData(String label, float beta, float stderr, int color, PointType shape) {
 		this.label = label;
 		this.beta = beta;
 		this.stderr = stderr;
@@ -233,7 +234,7 @@ class StudyData {
 		return color;
 	}
 
-	public byte getShape() {
+	public PointType getShape() {
 		return shape;
 	}
 
@@ -657,7 +658,7 @@ public class ForestPlot {
 			float beta = ext.isValidDouble(betaVal) ? Float.parseFloat(betaVal) : 0.0f;
 			float stderr = ext.isValidDouble(seVal) ? Float.parseFloat(seVal) : 0.0f;
 			studies.add(new StudyData(ext.replaceAllWith(studyName, REPLACEMENTS_FOOLISHLY_HARD_CODED),
-																beta, stderr, 0, PlotPoint.FILLED_CIRCLE));
+																beta, stderr, 0, PointType.FILLED_CIRCLE));
 		}
 		return studies;
 	}

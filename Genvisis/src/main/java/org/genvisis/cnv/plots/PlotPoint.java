@@ -6,20 +6,23 @@ import java.io.Serializable;
 public class PlotPoint implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public static final byte FILLED_CIRCLE = 1;
-	public static final byte OPEN_CIRCLE = 2;
-	public static final byte MISSING = 3;
-	public static final byte NOT_A_NUMBER = 4;
-	public static final byte FILLED_SQUARE = 5;
-	public static final byte FILLED_TRIANGLE = 6;
-	public static final byte OPEN_SQUARE = 7;
+	public enum PointType {
+		FILLED_CIRCLE,
+		OPEN_CIRCLE,
+		MISSING,
+		NOT_A_NUMBER,
+		FILLED_SQUARE,
+		FILLED_TRIANGLE,
+		OPEN_SQUARE;
+	}
+
 	public static final String MISSING_STR = "X";
 	public static final String NAN_STR = "NaN";
 
 	private final String id;
 	private final float rawX;
 	private final float rawY;
-	private byte type;
+	private PointType type;
 	private byte size;
 	private Color tempColor;
 	private byte color;
@@ -27,7 +30,7 @@ public class PlotPoint implements Serializable {
 	private boolean highlight;
 	private boolean visible;
 
-	public PlotPoint(String id, byte type, float rawX, float rawY, byte size, byte color,
+	public PlotPoint(String id, PointType type, float rawX, float rawY, byte size, byte color,
 									 byte layer) {
 		this.id = id;
 		this.type = type;
@@ -61,7 +64,7 @@ public class PlotPoint implements Serializable {
 		return id;
 	}
 
-	public byte getType() {
+	public PointType getType() {
 		return type;
 	}
 
@@ -93,7 +96,7 @@ public class PlotPoint implements Serializable {
 		return layer;
 	}
 
-	public void setType(byte type) {
+	public void setType(PointType type) {
 		this.type = type;
 	}
 

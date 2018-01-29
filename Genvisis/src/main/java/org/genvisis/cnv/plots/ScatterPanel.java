@@ -27,6 +27,7 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.manage.SexOps;
 import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.plots.ScatterPlot.PLOT_TYPE;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
@@ -157,7 +158,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	public void generatePoints() {
 		int position, markerIndex;
 		PLOT_TYPE plotType;
-		byte chr, genotypeCode, classCode, type;
+		byte chr, genotypeCode, classCode;
+		PointType type;
 		float[][] datapoints;
 		byte layer;
 		IndiPheno indi;
@@ -314,10 +316,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 							y = cents[i][markerIndex][j][1];
 						}
 						if (x > 0 || y > 0) {
-							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.FILLED_CIRCLE, x, y,
+							points[count * 3 + j] = new PlotPoint("Centroids", PointType.FILLED_CIRCLE, x, y,
 																										centSize, (byte) (5 + i), (byte) 10);
 						} else {
-							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.MISSING, x, y, centSize,
+							points[count * 3 + j] = new PlotPoint("Centroids", PointType.MISSING, x, y, centSize,
 																										(byte) (5 + i), (byte) 10);
 							points[count * 3 + j].setVisible(false);
 						}
@@ -379,19 +381,19 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					classCode = 0;
 				}
 				if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 					// } else if (currentClass==1 && alleleCounts[i]==-1) {
 				} else if (sp.getGCthreshold() > 0 && alleleCounts[i] == -1) {
-					type = PlotPoint.MISSING;
+					type = PointType.MISSING;
 				} else if (isNewGenotypingDifferent != null && isNewGenotypingDifferent[i]) {
-					type = PlotPoint.OPEN_SQUARE;
+					type = PointType.OPEN_SQUARE;
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 				}
 				if (classCode == 100) {
 					classCode = genotypeCode;
 					if (classCode == 0) {
-						type = PlotPoint.FILLED_TRIANGLE;
+						type = PointType.FILLED_TRIANGLE;
 						classCode = (byte) (colorScheme.length - 1);
 					}
 				}
@@ -400,7 +402,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 												 && classCode > 0) ? 1 : 0);
 				layer = classCode; // TODO temporary fix, since was always zero otherwise
 
-				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
+				if (type == PointType.NOT_A_NUMBER || type == PointType.MISSING) {
 					uniqueValueCounts.add(-1 + "");
 					genotype[i] = 0;
 				} else {
@@ -417,9 +419,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														type,
 														datapoints[0][i],
 														datapoints[1][i],
-														type == PlotPoint.FILLED_CIRCLE
+														type == PointType.FILLED_CIRCLE
 																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
+																														: (type == PointType.FILLED_TRIANGLE
 																																																 ? (byte) (size
 																																																					 + 5)
 																																																 : xFontSize),
@@ -431,9 +433,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														type,
 														datapoints[0][i],
 														datapoints[1][i],
-														type == PlotPoint.FILLED_CIRCLE
+														type == PointType.FILLED_CIRCLE
 																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
+																														: (type == PointType.FILLED_TRIANGLE
 																																																 ? (byte) (size
 																																																					 + 5)
 																																																 : xFontSize),
@@ -460,7 +462,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				countMissing++;
 				sex[i] = "missing";
-				p = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i],
+				p = new PlotPoint(samples[i], PointType.MISSING, datapoints[0][i],
 													datapoints[1][i], (byte) (xFontSize * 2),
 													(byte) 0,
 													(byte) 99);

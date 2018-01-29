@@ -20,6 +20,7 @@ import javax.swing.JPopupMenu;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -319,7 +320,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 																														 // for
 																														 // Color.GRAY
 			}
-			points[i] = new PlotPoint("", (byte) 1, (float) data[i][0], (float) data[i][1], (byte) SIZE,
+			points[i] = new PlotPoint("", PointType.FILLED_CIRCLE, (float) data[i][0], (float) data[i][1],
+																(byte) SIZE,
 																color, (byte) 0);
 		}
 		setSwapable(false);

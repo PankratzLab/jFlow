@@ -18,6 +18,7 @@ import javax.swing.JPopupMenu;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -339,7 +340,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 			 * code for Color.GRAY }
 			 */
 			if (showExcluded || !excluded[i]) {
-				points[i] = new PlotPoint("", (byte) 1, (float) data[i][0], (float) data[i][1], (byte) SIZE,
+				points[i] = new PlotPoint("", PointType.FILLED_CIRCLE, (float) data[i][0],
+																	(float) data[i][1], (byte) SIZE,
 																	estimatedSexes[i], // sexes[i],
 																	(byte) (estimatedSexes[i] == sexes[i] ? 0 : 2));
 			}

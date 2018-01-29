@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -160,7 +161,7 @@ public class QQPanel extends AbstractPanel {
 
 			for (int j = 0; j < pvals[i].length; j++) {
 				if (rotated) {
-					points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+					points[count] = new PlotPoint(keys[j] + "", PointType.FILLED_CIRCLE,
 																				(float) (-1 * Math.log10(((double) keys[j] + 1)
 																																 / pvals[i].length)),
 																				Math.min(maxValue,
@@ -171,13 +172,13 @@ public class QQPanel extends AbstractPanel {
 																																											/ pvals[i].length))),
 																				(byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
 				} else if (log10) {
-					points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+					points[count] = new PlotPoint(keys[j] + "", PointType.FILLED_CIRCLE,
 																				(float) (-1 * Math.log10(((double) keys[j] + 1)
 																																 / pvals[i].length)),
 																				Math.min(maxValue, (float) (-1 * Math.log10(pvals[i][j]))),
 																				(byte) 6, (byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);
 				} else {
-					points[count] = new PlotPoint(keys[j] + "", PlotPoint.FILLED_CIRCLE,
+					points[count] = new PlotPoint(keys[j] + "", PointType.FILLED_CIRCLE,
 																				(float) (((double) keys[j] + 1) / pvals[i].length),
 																				(float) pvals[i][j], (byte) 6,
 																				(byte) (pvals.length == 1 ? 0 : i + 2), (byte) 0);

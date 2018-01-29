@@ -16,6 +16,7 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountVector;
@@ -195,7 +196,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 
 		CountVector uniqueValueCounts;
 		boolean includeColorKeyValue;
-		byte type;
+		PointType type;
 		String[] line;
 		float xAxisValue, yAxisValue;
 		byte index;
@@ -223,13 +224,13 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
 				xAxisValue = Float.parseFloat(line[1]);
 				yAxisValue = Float.parseFloat(line[2]);
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 					uniqueValueCounts.add("0");
 					// } else if (alleleCounts[i]==-1) {
 					// type = PlotPoint.MISSING;
 					// uniqueValueCounts.add("0");
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 					uniqueValueCounts.add(line[3]);
 				}
 

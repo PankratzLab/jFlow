@@ -29,6 +29,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.FCSPlot.Classification;
@@ -215,7 +216,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
 	@Override
 	public void generatePointsRectanglesAndLines() {
-		byte type;
+		PointType type;
 		float xAxisValue;
 		float yAxisValue;
 		byte size = POINT_SIZE;
@@ -431,9 +432,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 				xAxisValue = (float) xData[i];
 				yAxisValue = (float) yData[i];
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 				}
 
 				color = (byte) 0;

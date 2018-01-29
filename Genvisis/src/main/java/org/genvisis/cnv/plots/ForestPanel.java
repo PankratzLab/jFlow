@@ -10,6 +10,7 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
@@ -121,17 +122,20 @@ public class ForestPanel extends AbstractPanel {
 			// if(currentData.get(i).getBeta() != 0.0 && currentData.get(i).getStderr() != 0.0){
 			if (currStudy instanceof StudyBreak) {
 				yAxisValue = (float) i + 1;
-				PlotPoint leftEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5,
+				PlotPoint leftEnd = new PlotPoint("", PointType.FILLED_CIRCLE, oddsDisplay ? 1 : 0,
+																					yAxisValue, (byte) 5,
 																					(byte) 0, (byte) 0);
 				yAxisValue = (float) i + 1;
-				PlotPoint rightEnd = new PlotPoint("", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 5,
+				PlotPoint rightEnd = new PlotPoint("", PointType.FILLED_CIRCLE, oddsDisplay ? 1 : 0,
+																					 yAxisValue, (byte) 5,
 																					 (byte) 0, (byte) 0);
 
 				linesData.add(new GenericLine(leftEnd, rightEnd, (byte) 1, (byte) 0, (byte) 0, false));
 
 				yAxisValue = (float) i + 1;
 
-				tempPoints.add(new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3,
+				tempPoints.add(new PlotPoint(" | ", PointType.FILLED_CIRCLE, oddsDisplay ? 1 : 0,
+																		 yAxisValue, (byte) 3,
 																		 (byte) 0, (byte) 0));
 				tempPoints.get(tempPoints.size() - 1).setVisible(false);
 				// tempPoints[i] = new PlotPoint(" | ", (byte) 0, oddsDisplay ? 1 : 0, yAxisValue, (byte) 3,

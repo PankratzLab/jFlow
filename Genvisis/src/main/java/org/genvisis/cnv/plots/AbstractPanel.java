@@ -33,6 +33,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
@@ -450,7 +451,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		if (randomTest) {
 			points = new PlotPoint[1000000];
 			for (int i = 0; i < points.length; i++) {
-				points[i] = new PlotPoint("", (byte) 1, (float) Math.random(), (float) Math.random(),
+				points[i] = new PlotPoint("", PointType.FILLED_CIRCLE, (float) Math.random(),
+																	(float) Math.random(),
 																	(byte) 5, (byte) 0, (byte) 0);
 			}
 		} else/* if (pointsGeneratable) */ {
@@ -838,7 +840,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 													 || Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0))
 							|| (!base && Bytes.indexOf(extraLayersVisible, points[i].getLayer()) >= 0)) {
 						if (trav.equals("0")) {
-							if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
+							if (points[i].getType() != PointType.NOT_A_NUMBER) {
 								drawPoint(g, points[i]);
 							} else if (base) {
 								numberOfNaNSamples++;
@@ -878,7 +880,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			for (int i = 0; i < keys.length && flow; i++) {
 				layer = layers.get(keys[i]);
 				for (int j = 0; j < layer.size(); j++) {
-					if (layer.elementAt(j).getType() != PlotPoint.NOT_A_NUMBER) {
+					if (layer.elementAt(j).getType() != PointType.NOT_A_NUMBER) {
 						drawPoint(g, layer.elementAt(j));
 					} else {
 						numberOfNaNSamples++;
@@ -1501,27 +1503,27 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		}
 
 		switch (point.getType()) {
-			case PlotPoint.FILLED_CIRCLE:
+			case FILLED_CIRCLE:
 				g.fillOval(x - size / 2, y - size / 2, size, size);
 				break;
-			case PlotPoint.OPEN_CIRCLE:
+			case OPEN_CIRCLE:
 				g.drawOval(x - size / 2, y - size / 2, size, size);
 				break;
-			case PlotPoint.FILLED_SQUARE:
+			case FILLED_SQUARE:
 				g.fillPolygon(new int[] {x - size / 2, x - size / 2, x + size / 2, x + size / 2},
 											new int[] {y - size / 2, y + size / 2, y + size / 2, y - size / 2}, 4);
 				break;
-			case PlotPoint.OPEN_SQUARE:
+			case OPEN_SQUARE:
 				g.drawPolygon(new int[] {x - size / 2, x - size / 2, x + size / 2, x + size / 2},
 											new int[] {y - size / 2, y + size / 2, y + size / 2, y - size / 2}, 4);
 				break;
-			case PlotPoint.FILLED_TRIANGLE:
+			case FILLED_TRIANGLE:
 				Grafik.drawTriangle(g, x, y, size, true);
 				// g.drawPolygon(new int[] {x-size/2, x, +size/2},
 				// new int[] {y+size/2, y-size/2, y+size/2},
 				// 3);
 				break;
-			case PlotPoint.MISSING:
+			case MISSING:
 				// g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2,
 				// getY(point.getRawY())+size/2);
 				if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")) {
@@ -1533,7 +1535,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 					g.setFont(new Font("Arial", 0, axisFontSize));
 				}
 				break;
-			case PlotPoint.NOT_A_NUMBER:
+			case NOT_A_NUMBER:
 				// g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2,
 				// getY(point.getRawY())-30+size/2);
 				break;

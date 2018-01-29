@@ -11,6 +11,7 @@ import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
 
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Grafik;
@@ -251,7 +252,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 						}
 					}
 
-					points[i] = new PlotPoint(sampleList[i], PlotPoint.FILLED_CIRCLE,
+					points[i] = new PlotPoint(sampleList[i], PointType.FILLED_CIRCLE,
 																		data[currentPair[0][0]][currentPair[0][1]],
 																		data[currentPair[1][0]][currentPair[1][1]],
 																		tagalong ? SIZE_TAGALONGS : SIZE, colorCode,

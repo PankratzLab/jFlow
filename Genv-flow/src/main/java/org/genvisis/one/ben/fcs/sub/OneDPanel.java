@@ -15,6 +15,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
@@ -189,7 +190,7 @@ public class OneDPanel extends AbstractPanel2 {
 	}
 
 	private void generateDotLinePlot() {
-		byte type;
+		PointType type;
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
 
@@ -210,18 +211,18 @@ public class OneDPanel extends AbstractPanel2 {
 				xAxisValue = ind;
 				yAxisValue = (float) data[d][i];
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 				} else {
 					if (showRegressionLine) {
 						if (locallyDroppedPoints.get(plotLabel).contains(dataLabels[d][i])) {
-							type = PlotPoint.MISSING;
+							type = PointType.MISSING;
 							size = (byte) (POINT_SIZE * MISSING_SIZE_MULT);
 						} else {
-							type = PlotPoint.FILLED_CIRCLE;
+							type = PointType.FILLED_CIRCLE;
 							size = POINT_SIZE;
 						}
 					} else {
-						type = PlotPoint.FILLED_CIRCLE;
+						type = PointType.FILLED_CIRCLE;
 						size = POINT_SIZE;
 					}
 				}
@@ -405,7 +406,7 @@ public class OneDPanel extends AbstractPanel2 {
 
 				for (int j = 0; j < data[i].length; j++) {
 					if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
-						pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed,
+						pts.add(new PlotPoint(dataLabels[i][j], PointType.FILLED_CIRCLE, xMed,
 																	(float) data[i][j], POINT_SIZE, col, (byte) 0));
 					}
 				}
@@ -629,7 +630,7 @@ public class OneDPanel extends AbstractPanel2 {
 
 		defaultSize = POINT_SIZE;
 		for (PlotPoint point : points) {
-			point.setSize((byte) ((point.getType() == PlotPoint.MISSING ? defaultSize * MISSING_SIZE_MULT
+			point.setSize((byte) ((point.getType() == PointType.MISSING ? defaultSize * MISSING_SIZE_MULT
 																																	: defaultSize)
 														* (point.isHighlighted() ? 1.5 : 1)));
 		}

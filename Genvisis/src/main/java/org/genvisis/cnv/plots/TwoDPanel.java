@@ -18,6 +18,7 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
@@ -212,7 +213,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		ArrayList<String[]> currentData;
 		CountVector uniqueValueCounts;
 		boolean includeColorKeyValue;
-		byte type;
+		PointType type;
 		String[] line;
 		float xAxisValue, yAxisValue;
 		byte index;
@@ -227,7 +228,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			points = new PlotPoint[0];// currentData.size()];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]),
-																	PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]),
+																	PointType.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]),
 																	Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0,
 																	(byte) 0);
 			}
@@ -258,19 +259,19 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (missing) {
 				xAxisValue = Float.NaN;
 				yAxisValue = Float.NaN;
-				type = PlotPoint.MISSING;
+				type = PointType.MISSING;
 				uniqueValueCounts.add("0");
 			} else {
 				xAxisValue = Float.parseFloat(line[1]);
 				yAxisValue = Float.parseFloat(line[2]);
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 					uniqueValueCounts.add("0");
 					// } else if (alleleCounts[i]==-1) {
 					// type = PlotPoint.MISSING;
 					// uniqueValueCounts.add("0");
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 					uniqueValueCounts.add(line[3]);
 				}
 			}
