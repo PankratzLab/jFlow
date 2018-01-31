@@ -320,6 +320,17 @@ public class ext {
 		return -1;
 	}
 
+	/**
+	 * Test if source starts with prefix, ignoring case.
+	 * 
+	 * @param source
+	 * @param prefix
+	 * @return true if prefix is a prefix of source, ignoring case; false otherwise
+	 */
+	public static boolean startsWithIgnoreCase(String source, String prefix) {
+		return source.toLowerCase().startsWith(prefix.toLowerCase());
+	}
+
 	public static boolean startsWithOneOf(String source, String... prefixes) {
 		for (String prefix : prefixes) {
 			if (source.startsWith(prefix)) {
