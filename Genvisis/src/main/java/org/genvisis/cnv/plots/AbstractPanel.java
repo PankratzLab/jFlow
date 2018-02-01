@@ -415,8 +415,8 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
-		double[] plotMinMaxStep = null; // needs to be double, else x <= plotXmax can be inexact and
-																		// leave off
+		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and
+														 // leave off
 		// the last tick mark
 		String pos;
 		int xLook, yLook;
@@ -636,7 +636,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			missingWidth = fontMetrics.stringWidth("X");
 
 			// Calculate the plot area's range (X-axis, Y-axis)
-			plotMinMaxStep = null;
 			canvasSectionMinimumX = axisYWidth;// WIDTH_Y_AXIS;
 			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
 			canvasSectionMinimumY = titleHeight;
