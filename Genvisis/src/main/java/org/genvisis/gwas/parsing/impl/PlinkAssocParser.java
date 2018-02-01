@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.genvisis.CLI;
+import org.genvisis.cnv.plots.AFPlot;
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.common.Files;
@@ -14,13 +15,13 @@ import org.genvisis.gwas.parsing.AbstractColumnFilter;
 import org.genvisis.gwas.parsing.AbstractFileParserFactory;
 import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.Aliases;
+import org.genvisis.gwas.parsing.Aliases.MultipleAliasStrategy;
 import org.genvisis.gwas.parsing.ColumnFilter;
 import org.genvisis.gwas.parsing.FileColumn;
 import org.genvisis.gwas.parsing.FileLink;
 import org.genvisis.gwas.parsing.FileParser;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.StandardFileColumns;
-import org.genvisis.gwas.parsing.Aliases.MultipleAliasStrategy;
 
 /**
  * Parse Plink association test results, either linear or logistic. <br />
@@ -33,7 +34,7 @@ import org.genvisis.gwas.parsing.Aliases.MultipleAliasStrategy;
 public class PlinkAssocParser {
 
 	public void run(String resultsFile, String freqFile, String outFile, boolean hits, boolean man,
-									boolean qq) {
+									boolean qq, boolean af) {
 		FileColumn<Integer> chr = StandardFileColumns.chr("CHR");
 		FileColumn<String> snp = StandardFileColumns.snp("SNP");
 		FileColumn<Integer> pos = StandardFileColumns.pos("BP");
@@ -95,6 +96,13 @@ public class PlinkAssocParser {
 				qqPlot.screenCap(ext.rootOf(outFile, false) + "_qqPlot.png");
 			}
 
+			if (af) {
+				AFPlot afPlot = new AFPlot(null);
+				afPlot.loadFromFile(outFile, null);
+				afPlot.waitForData();
+				afPlot.screenshot(ext.rootOf(outFile, false) + "_afPlot.png");
+			}
+
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -113,6 +121,8 @@ public class PlinkAssocParser {
 		String manDesc = "Create a ManhattanPlot";
 		String qqArg = "qq";
 		String qqDesc = "Create a QQPlot";
+		String afArg = "af";
+		String afDesc = "Create an AFPlot";
 
 		CLI cli = new CLI(PlinkAssocParser.class);
 		cli.addArg(fileArg, fileDesc, true);
@@ -121,6 +131,7 @@ public class PlinkAssocParser {
 		cli.addArg(hitsArg, hitsDesc, false);
 		cli.addArg(manArg, manDesc, false);
 		cli.addArg(qqArg, qqDesc, false);
+		cli.addArg(afArg, afDesc, false);
 
 		cli.parseWithExit(args);
 
@@ -131,7 +142,8 @@ public class PlinkAssocParser {
 		boolean hits = cli.has(hitsArg) ? Boolean.parseBoolean(cli.get(hitsArg)) : true;
 		boolean man = cli.has(manArg) ? Boolean.parseBoolean(cli.get(manArg)) : true;
 		boolean qq = cli.has(qqArg) ? Boolean.parseBoolean(cli.get(qqArg)) : true;
+		boolean af = cli.has(afArg) ? Boolean.parseBoolean(cli.get(afArg)) : true;
 
-		new PlinkAssocParser().run(file, freq, out, hits, man, qq);
+		new PlinkAssocParser().run(file, freq, out, hits, man, qq, af);
 	}
 }
