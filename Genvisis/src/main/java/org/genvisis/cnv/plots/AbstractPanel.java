@@ -415,8 +415,9 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 	public void drawAll(Graphics g, boolean base) {
 		float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
-		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
-														 // the last tick mark
+		double[] plotMinMaxStep = null; // needs to be double, else x <= plotXmax can be inexact and
+																		// leave off
+		// the last tick mark
 		String pos;
 		int xLook, yLook;
 		FontMetrics fontMetrics = null;
@@ -463,7 +464,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
 		// log.report("#points= "+points.length+" flow="+flow+"; base="+base);
 
-		if (points.length == 0 && (rectangles == null || rectangles.length == 0)) {
+		if ((points == null || points.length == 0) && (rectangles == null || rectangles.length == 0)) {
 			locLookup.clear();
 			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -615,12 +616,15 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 		// log.report("MaxY: " + maximumObservedRawY);
 
 		numberOfNaNSamples = 0;
+
 		if (base) {
 			if (DEBUGGING) {
 				log.report("Drawing base image.");
 			}
 
 			titleHeight = calcTitleHeight(g, base, fontMetrics);
+
+			drawTitle(g, base, fontMetrics);
 
 			// g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
@@ -650,7 +654,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
 			plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
-			drawXAxis(g, plotMinMaxStep, fontMetrics);
 
 			canvasSectionMinimumX = 0;
 			canvasSectionMaximumX = axisYWidth;// WIDTH_Y_AXIS;
@@ -669,16 +672,6 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 			plotYmin = plotMinMaxStep[0];
 			plotYmax = plotMinMaxStep[1];
-			drawYAxis(g, plotMinMaxStep);
-
-			if (errorMessage != null) {
-				g.drawString(errorMessage,
-										 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
-																	 - fontMetrics.stringWidth(errorMessage) / 2
-																	 + axisYWidth/* WIDTH_Y_AXIS */,
-										 (getHeight() - HEAD_BUFFER
-											- axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
-			}
 
 		}
 
@@ -906,7 +899,30 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 			}
 		}
 
-		drawTitle(g, base, fontMetrics);
+		if (base) {
+			canvasSectionMinimumX = axisYWidth;// WIDTH_Y_AXIS;
+			canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+			canvasSectionMinimumY = titleHeight;
+			canvasSectionMaximumY = axisXHeight;// HEIGHT_X_AXIS;
+			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
+			drawXAxis(g, plotMinMaxStep, fontMetrics);
+
+			canvasSectionMinimumX = 0;
+			canvasSectionMaximumX = axisYWidth;// WIDTH_Y_AXIS;
+			canvasSectionMinimumY = axisXHeight;// HEIGHT_X_AXIS;
+			canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+			plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
+			drawYAxis(g, plotMinMaxStep);
+			if (errorMessage != null) {
+				g.drawString(errorMessage,
+										 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
+																	 - fontMetrics.stringWidth(errorMessage) / 2
+																	 + axisYWidth/* WIDTH_Y_AXIS */,
+										 (getHeight() - HEAD_BUFFER
+											- axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
+			}
+
+		}
 
 		setImageStatus(IMAGE_COMPLETE);
 
