@@ -19,11 +19,22 @@ public abstract class AbstractFileParserFactory {
 	}
 
 	/**
+	 * Add FileColumns to load, iff they exist in the file.
+	 * 
+	 * @param columns FileColumn<?> columns to load
+	 * @return this
+	 */
+	public AbstractFileParserFactory optionalColumns(FileColumn<?>... columns) {
+		this.parser.addOptionalColumns(columns);
+		return this;
+	}
+
+	/**
 	 * Add a filter to drop lines, specifying whether or not to throw an exception if a value fails.
 	 * 
 	 * @param filter {@link ColumnFilter}
 	 * @param dieIfFail
-	 * @return
+	 * @return this
 	 */
 	public AbstractFileParserFactory filter(ColumnFilter filter, boolean dieIfFail) {
 		this.parser.addFilter(filter, dieIfFail);

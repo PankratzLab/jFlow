@@ -37,8 +37,9 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 	private List<FileLink> linkedParsers;
 	private Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
 	protected List<FileColumn<?>> dataInOrder;
-
 	protected List<FileColumn<?>> addlDataToLoad;
+	protected List<FileColumn<?>> optlDataToLoad;
+	protected List<FileColumn<?>> optlDataFound;
 
 	private BufferedReader reader;
 	private boolean opened = false;
@@ -62,6 +63,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		linkedParsers = new ArrayList<>();
 		dataInOrder = new ArrayList<>();
 		addlDataToLoad = new ArrayList<>();
+		optlDataToLoad = new ArrayList<>();
 		linkedFileColumns = new HashMap<>();
 	}
 
@@ -153,6 +155,17 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		}
 	}
 
+	/**
+	 * See {@link AbstractFileParserFactory#optionalColumns(FileColumn...)}
+	 * 
+	 * @param columns {link {@link FileColumn}...
+	 */
+	void addOptionalColumns(FileColumn<?>... columns) {
+		for (FileColumn<?> fc : columns) {
+			this.optlDataToLoad.add(fc);
+		}
+	}
+
 	private List<FileColumn<?>> getOutputColumnsInOrder() {
 		List<FileColumn<?>> cols = new ArrayList<>(dataInOrder);
 		for (FileLink fl : linkedParsers) {
@@ -207,6 +220,15 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			for (FileColumn<?> fc : addlDataToLoad) {
 				fc.initialize(hdrMap);
 			}
+			optlDataFound = new ArrayList<>();
+			for (FileColumn<?> fc : optlDataToLoad) {
+				try {
+					fc.initialize(hdrMap);
+					optlDataFound.add(fc);
+				} catch (IllegalStateException e) {
+					// not in file
+				}
+			}
 			break;
 		}
 
@@ -248,7 +270,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 				continue;
 			}
 			lineData = new HashMap<>();
-			parts = line.split(inputFileDelim);
+			parts = line.split(inputFileDelim, -1);
 			if (failCount && parts.length != header.length) {
 				throw new IllegalStateException("Line "
 																				+ lineCount + " was the wrong length; expected "
@@ -262,6 +284,13 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 				}
 			}
 			for (FileColumn<?> fc : addlDataToLoad) {
+				try {
+					lineData.put(fc, fc.getValue(parts).toString());
+				} catch (ParseFailureException e) {
+					lineData.put(fc, parseFailValue);
+				}
+			}
+			for (FileColumn<?> fc : optlDataFound) {
 				try {
 					lineData.put(fc, fc.getValue(parts).toString());
 				} catch (ParseFailureException e) {
@@ -409,6 +438,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		while (iter.hasNext()) {
 			data.add(iter.next());
 		}
+		close();
 		return data;
 	}
 
@@ -423,17 +453,25 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			}
 			data.put(keyVal, line);
 		}
+		close();
 		return data;
 	}
 
 	public List<Map<FileColumn<?>, String>> parseToFileAndLoad(String outputFile,
 																														 String outDelim) throws IOException {
+		return parseToFileAndLoad(outputFile, outDelim, null);
+	}
+
+	public List<Map<FileColumn<?>, String>> parseToFileAndLoad(String outputFile,
+																														 String outDelim,
+																														 List<FileColumn<?>> outputOrder) throws IOException {
 		List<Map<FileColumn<?>, String>> data = new ArrayList<>();
 		Iterator<Map<FileColumn<?>, String>> iter = iterator();
 
 		PrintWriter writer = Files.getAppropriateWriter(outputFile);
 		StringBuilder lineOut = new StringBuilder();
-		List<FileColumn<?>> outputColumns = getOutputColumnsInOrder();
+		List<FileColumn<?>> outputColumns = outputOrder != null ? outputOrder
+																														: getOutputColumnsInOrder();
 		for (int i = 0, count = outputColumns.size(); i < count; i++) {
 			lineOut.append(outputColumns.get(i).getName());
 			if (i < count - 1) {
@@ -455,12 +493,12 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			writer.println(lineOut.toString());
 		}
 		writer.close();
-
+		close();
 		return data;
 	}
 
 	public void parseToFile(String outputFile, String outDelim) throws IOException {
-		this.parseToFile(outputFile, outDelim, true, false, null);
+		this.parseToFile(outputFile, outDelim, null);
 	}
 
 	public void parseToFile(String outputFile, String outDelim,
@@ -514,6 +552,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			writer.println(lineOut.toString());
 		}
 		writer.close();
+		close();
 	}
 
 
