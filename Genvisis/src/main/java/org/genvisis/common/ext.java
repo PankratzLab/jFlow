@@ -594,6 +594,19 @@ public class ext {
 		return f.format(num);
 	}
 
+	public static String ordinal(int i) {
+		String[] suffixes = new String[] {"th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"};
+		switch (i % 100) {
+			case 11:
+			case 12:
+			case 13:
+				return i + "th";
+			default:
+				return i + suffixes[i % 10];
+
+		}
+	}
+
 	public static String prettyP(double d) {
 		return prettyP(d + "", 2, 5, 1, false);
 	}
