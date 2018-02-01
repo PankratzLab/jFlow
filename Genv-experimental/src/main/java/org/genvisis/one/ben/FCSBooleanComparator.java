@@ -68,6 +68,8 @@ public class FCSBooleanComparator {
 
 		log.reportTime("Found " + sharedDirs.size() + " shared samples across " + (compDirs.size() + 1)
 									 + " revisions.");
+		if (sharedDirs.size() == 0)
+			return;
 
 		String outFile = out + "out_" + srcLbl;
 		for (String s : compLbls) {
@@ -154,13 +156,13 @@ public class FCSBooleanComparator {
 				}
 
 				ln.append("\t")
-					.append(aveForm.format(v[0] / N))
-					.append(aveForm.format(v[1] / N))
-					.append(aveForm.format(v[2] / N))
-					.append(aveForm.format(v[3] / N))
-					.append(aveForm.format(prf[0] / N))
-					.append(aveForm.format(prf[1] / N))
-					.append(aveForm.format(prf[2] / N))
+					.append(aveForm.format(v[0] / N)).append("\t")
+					.append(aveForm.format(v[1] / N)).append("\t")
+					.append(aveForm.format(v[2] / N)).append("\t")
+					.append(aveForm.format(v[3] / N)).append("\t")
+					.append(aveForm.format(prf[0] / N)).append("\t")
+					.append(aveForm.format(prf[1] / N)).append("\t")
+					.append(aveForm.format(prf[2] / N)).append("\t")
 					.append(aveForm.format((v[0] + v[2]) / (v[0] + v[1] + v[2] + v[3])));
 			}
 			ln.replace(0, gate.length(), gate + "_" + N);
