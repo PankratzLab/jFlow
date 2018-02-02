@@ -64,7 +64,7 @@ public class AFPanel extends AbstractPanel {
 																new Color(106, 90, 205),
 																new Color(123, 104, 238),
 		});
-		points = null;
+		points = new PlotPoint[0];
 		setNullMessage("No Data to Display.");
 
 		setForcePlotXmin(0f);
