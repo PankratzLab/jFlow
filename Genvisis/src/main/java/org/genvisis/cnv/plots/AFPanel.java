@@ -20,6 +20,8 @@ import org.genvisis.seq.manage.StrandOps.CONFIG;
  */
 public class AFPanel extends AbstractPanel {
 
+	public static final long serialVersionUID = 1L;
+
 	/**
 	 * Point size
 	 */
