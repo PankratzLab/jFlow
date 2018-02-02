@@ -24,7 +24,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
 	 * @param aliases String... Aliases to search for.
 	 */
 	public AliasedFileColumn(String name, String... aliases) {
-		super(name);
+		super(name, false);
 		this.aliases = new Aliases(aliases);
 	}
 
@@ -37,7 +37,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
 	 * @param aliases {@link Aliases}
 	 */
 	public AliasedFileColumn(String name, Aliases aliases) {
-		super(name);
+		super(name, false);
 		this.aliases = aliases;
 	}
 

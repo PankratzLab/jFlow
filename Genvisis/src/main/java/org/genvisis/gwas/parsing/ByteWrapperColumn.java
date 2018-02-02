@@ -5,8 +5,8 @@ import java.util.Map;
 public class ByteWrapperColumn extends CachedFileColumn<Byte> {
 	private FileColumn<?> base;
 
-	public ByteWrapperColumn(FileColumn<?> base) {
-		super(base.getName());
+	public ByteWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
+		super(base.getName(), dieOnParseFailure);
 		this.base = base;
 	}
 

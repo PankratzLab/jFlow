@@ -66,6 +66,12 @@ public final class StandardFileColumns {
 			public String getName() {
 				return outHeader;
 			}
+
+			@Override
+			public boolean dieOnParseFailure() {
+				return false;
+			}
+
 		};
 	}
 
@@ -78,7 +84,7 @@ public final class StandardFileColumns {
 	 */
 	public static final FileColumn<Double> log10(final String name,
 																							 final FileColumn<Double> val) {
-		return new CachedFileColumn<Double>(name) {
+		return new CachedFileColumn<Double>(name, val.dieOnParseFailure()) {
 			@Override
 			public void initialize(Map<String, Integer> headerMap) {
 				val.initialize(headerMap);
@@ -144,8 +150,22 @@ public final class StandardFileColumns {
 	 * @return IntegerWrapperColumn
 	 */
 	public static FileColumn<Byte> chr(String colName) {
+		return chr(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
+	 * {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#CHRS} that will fail if
+	 * multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return IntegerWrapperColumn
+	 */
+	public static FileColumn<Byte> chr(String colName, boolean dieOnMissing) {
 		return new ByteWrapperColumn(new AliasedFileColumn(colName,
-																											 new Aliases(org.genvisis.common.Aliases.CHRS)));
+																											 new Aliases(org.genvisis.common.Aliases.CHRS)),
+																 dieOnMissing);
 	}
 
 	/**
@@ -157,8 +177,22 @@ public final class StandardFileColumns {
 	 * @return IntegerWrapperColumn
 	 */
 	public static FileColumn<Integer> pos(String colName) {
+		return pos(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
+	 * {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#POSITIONS} that will fail
+	 * if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return IntegerWrapperColumn
+	 */
+	public static FileColumn<Integer> pos(String colName, boolean dieOnMissing) {
 		return new IntegerWrapperColumn(new AliasedFileColumn(colName,
-																													new Aliases(org.genvisis.common.Aliases.POSITIONS)));
+																													new Aliases(org.genvisis.common.Aliases.POSITIONS)),
+																		dieOnMissing);
 	}
 
 	/**
@@ -170,8 +204,22 @@ public final class StandardFileColumns {
 	 * @return DoubleWrapperColumn
 	 */
 	public static FileColumn<Double> pVal(String colName) {
+		return pVal(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link DoubleWrapperColumn} wrapped around an
+	 * {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#PVALUES} that will fail
+	 * if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return DoubleWrapperColumn
+	 */
+	public static FileColumn<Double> pVal(String colName, boolean dieOnMissing) {
 		return new DoubleWrapperColumn(new AliasedFileColumn(colName,
-																												 new Aliases(org.genvisis.common.Aliases.PVALUES)));
+																												 new Aliases(org.genvisis.common.Aliases.PVALUES)),
+																	 dieOnMissing);
 	}
 
 	/**
@@ -194,8 +242,21 @@ public final class StandardFileColumns {
 	 * @return AliasedFileColumn
 	 */
 	public static FileColumn<Integer> n(String colName) {
+		return n(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link AliasedFileColumn} around
+	 * {@link org.genvisis.common.Aliases#NS} that will fail if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return AliasedFileColumn
+	 */
+	public static FileColumn<Integer> n(String colName, boolean dieOnMissing) {
 		return new IntegerWrapperColumn(new AliasedFileColumn(colName,
-																													new Aliases(org.genvisis.common.Aliases.NS)));
+																													new Aliases(org.genvisis.common.Aliases.NS)),
+																		dieOnMissing);
 	}
 
 	/**
@@ -218,8 +279,21 @@ public final class StandardFileColumns {
 	 * @return AliasedFileColumn
 	 */
 	public static FileColumn<Double> alleleFreq(String colName) {
+		return alleleFreq(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link AliasedFileColumn} around
+	 * {@link org.genvisis.common.Aliases#ALLELE_FREQS} that will fail if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return AliasedFileColumn
+	 */
+	public static FileColumn<Double> alleleFreq(String colName, boolean dieOnMissing) {
 		return new DoubleWrapperColumn(new AliasedFileColumn(colName,
-																												 new Aliases(org.genvisis.common.Aliases.ALLELE_FREQS)));
+																												 new Aliases(org.genvisis.common.Aliases.ALLELE_FREQS)),
+																	 dieOnMissing);
 	}
 
 	/**
@@ -230,8 +304,21 @@ public final class StandardFileColumns {
 	 * @return FileColumn<Double>
 	 */
 	public static FileColumn<Double> beta(String colName) {
+		return beta(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link AliasedFileColumn} around
+	 * {@link org.genvisis.common.Aliases#EFFECTS} that will fail if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @param dieOnMissing
+	 * @return FileColumn<Double>
+	 */
+	public static FileColumn<Double> beta(String colName, boolean dieOnMissing) {
 		return new DoubleWrapperColumn(new AliasedFileColumn(colName,
-																												 new Aliases(org.genvisis.common.Aliases.EFFECTS)));
+																												 new Aliases(org.genvisis.common.Aliases.EFFECTS)),
+																	 dieOnMissing);
 	}
 
 	/**
@@ -242,8 +329,20 @@ public final class StandardFileColumns {
 	 * @return FileColumn<Double>
 	 */
 	public static FileColumn<Double> stdErr(String colName) {
+		return stdErr(colName, false);
+	}
+
+	/**
+	 * Creates a non-case-sensitive {@link AliasedFileColumn} around
+	 * {@link org.genvisis.common.Aliases#STD_ERRS} that will fail if multiple aliases are found.
+	 * 
+	 * @param colName Desired name of column
+	 * @return FileColumn<Double>
+	 */
+	public static FileColumn<Double> stdErr(String colName, boolean dieOnMissing) {
 		return new DoubleWrapperColumn(new AliasedFileColumn(colName,
-																												 new Aliases(org.genvisis.common.Aliases.STD_ERRS)));
+																												 new Aliases(org.genvisis.common.Aliases.STD_ERRS)),
+																	 dieOnMissing);
 	}
 
 }

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
@@ -39,6 +40,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.common.gui.JProgressBarListener;
 import org.genvisis.common.gui.SimpleIndeterminateTask;
+import org.genvisis.common.gui.SimpleTask;
 import org.genvisis.common.gui.Task;
 import org.genvisis.gwas.parsing.AbstractColumnFilter;
 import org.genvisis.gwas.parsing.AliasedFileColumn;
@@ -79,6 +81,7 @@ public class AFPlot {
 	 * the data file.
 	 */
 	private Map<String, Marker> mkrMap;
+	private Set<String> dataSnps;
 
 	private Map<String, Marker> g1KMarkers;
 	private Map<String, String> g1KChrPosLookup;
@@ -120,7 +123,7 @@ public class AFPlot {
 		SAS
 	};
 
-	private void loadReferencePanel(Set<String> dataSnps) {
+	private void loadReferencePanel(Task t) {
 		setG1KMarkers(new HashMap<>());
 		setG1KData(new HashMap<>());
 		setG1KChrPosLookup(new HashMap<>());
@@ -204,6 +207,7 @@ public class AFPlot {
 				parser.close();
 			} catch (IOException e) {
 			}
+			t.doStep();
 		}
 		dataMap = null;
 	}
@@ -227,7 +231,7 @@ public class AFPlot {
 		mkrMap = map == null ? null : Collections.unmodifiableMap(map);
 	}
 
-	private Set<String> loadDataSnps() throws IOException {
+	private void loadDataSnps() throws IOException {
 		FileColumn<String> snpCol = StandardFileColumns.snp("SNP");
 		FileColumn<Byte> chrCol = StandardFileColumns.chr("CHR");
 
@@ -273,7 +277,8 @@ public class AFPlot {
 			}
 		}
 
-		Set<String> dataSnps = factory.build().load(true, snpCol).keySet();
+		dataSnps = factory.build().load(true, snpCol).keySet().stream()
+											.map(s -> s.get(0).toString()).collect(Collectors.toSet());
 		long rsCount = countRSIds(dataSnps);
 		if (rsCount == 0) {
 			log.report("No RS-IDs found in data - switching to CHR:POS mode.");
@@ -289,7 +294,6 @@ public class AFPlot {
 									 + lines);
 			}
 		}
-		return dataSnps;
 	}
 
 	private void loadDataFreqs() throws IOException {
@@ -354,20 +358,7 @@ public class AFPlot {
 		parser.close();
 	}
 
-	/**
-	 * Load data from a file. Assumes the file has a header.<br />
-	 * If this {@link AFPlot} was constructed without a Project, assumes the file has chr/pos info.
-	 * <br />
-	 * Loads allele info if present in file.
-	 * 
-	 * @param file Path to file
-	 * @param chrsToLoad Set of chromosome numbers to load
-	 */
-	public void loadFromFile(String file, Set<Byte> chrsToLoad) {
-		setLoading(true);
-		setFile(file);
-		setChrs(chrsToLoad);
-
+	private void runTaskLoadDataSnps() {
 		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
 		setProgressBar(listener.getBar());
 
@@ -382,29 +373,10 @@ public class AFPlot {
 				afPanel.paintAgain();
 
 				try {
-					Set<String> dataSnps = loadDataSnps();
-
-					msg = "Loading reference panel allele freq data...";
-					afPanel.setNullMessage(msg);
-					afPanel.paintAgain();
-					log.reportTime(msg);
-
-					loadReferencePanel(dataSnps);
-
-					msg = ("Loading data snp allele freqs...");
-					afPanel.setNullMessage(msg);
-					afPanel.paintAgain();
-					log.reportTime(msg);
-
-					loadDataFreqs();
-
-					msg = "Drawing plot - "
-								+ (isChrPosLookup() ? getObservedDataChrPos().size() : getObservedData().size())
-								+ " matched...";
-					afPanel.setNullMessage(msg);
-					log.reportTime(msg);
+					loadDataSnps();
 				} catch (IOException e) {
 					setError(e);
+					setLoading(false);
 				}
 				return null;
 			}
@@ -413,12 +385,111 @@ public class AFPlot {
 		loadTask.execute();
 		try {
 			loadTask.get();
-			setLoading(false);
 		} catch (InterruptedException | ExecutionException e) {
 			setError(e);
+			setLoading(false);
 		}
 
 		removeProgressBar(listener.getBar());
+	}
+
+	private void runTaskLoadRefPanel() {
+		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
+		setProgressBar(listener.getBar());
+
+		Task<String, String> loadTask = new SimpleTask(TASK_CHANNEL, chrs.size()) {
+			@Override
+			protected String doInBackground() throws Exception {
+				String msg;
+
+				msg = "Loading reference panel allele freq data...";
+				afPanel.setNullMessage(msg);
+				afPanel.paintAgain();
+				log.reportTime(msg);
+
+				loadReferencePanel(this);
+				return null;
+			}
+		};
+
+		loadTask.execute();
+		try {
+			loadTask.get();
+		} catch (InterruptedException | ExecutionException e) {
+			setError(e);
+			setLoading(false);
+		}
+
+		removeProgressBar(listener.getBar());
+	}
+
+	private void runTaskLoadDataFull() {
+		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
+		setProgressBar(listener.getBar());
+
+		Task<String, String> loadTask = new SimpleIndeterminateTask(TASK_CHANNEL) {
+
+			@Override
+			protected String doInBackground() throws Exception {
+				String msg;
+				try {
+					msg = ("Loading data snp allele freqs...");
+					afPanel.setNullMessage(msg);
+					afPanel.paintAgain();
+					log.reportTime(msg);
+
+					loadDataFreqs();
+
+					msg = "Drawing plot - "
+								+ (isChrPosLookup() ? getObservedDataChrPos().size()
+																		: getObservedData().size())
+								+ " matched...";
+					afPanel.setNullMessage(msg);
+					log.reportTime(msg);
+				} catch (IOException e) {
+					setError(e);
+					setLoading(false);
+				}
+				return null;
+			}
+		};
+
+		loadTask.execute();
+		try {
+			loadTask.get();
+		} catch (InterruptedException | ExecutionException e) {
+			setError(e);
+			setLoading(false);
+		}
+
+		removeProgressBar(listener.getBar());
+	}
+
+	/**
+	 * Load data from a file. Assumes the file has a header.<br />
+	 * If this {@link AFPlot} was constructed without a Project, assumes the file has chr/pos info.
+	 * <br />
+	 * Loads allele info if present in file.
+	 * 
+	 * @param file Path to file
+	 * @param chrsToLoad Set of chromosome numbers to load
+	 */
+	public void loadFromFile(String file, Set<Byte> chrsToLoad) {
+		setLoading(true);
+		setFile(file);
+		setChrs(chrsToLoad);
+
+		runTaskLoadDataSnps();
+		if (loading) {
+			// may have failed
+			runTaskLoadRefPanel();
+		}
+		if (loading) {
+			// may have failed
+			runTaskLoadDataFull();
+		}
+
+		setLoading(false);
 		afPanel.paintAgain();
 		// iterate through 1000G markers, pull existing out of markerNmMap and MAF data
 		// - check alleles (if present) and respond appropriately to differences
@@ -431,15 +502,19 @@ public class AFPlot {
 	}
 
 	private void setProgressBar(JProgressBar bar) {
-		frame.add(bar, "cell 0 1, growx");
-		frame.revalidate();
-		frame.repaint();
+		if (frame != null) {
+			frame.add(bar, "cell 0 1, growx");
+			frame.revalidate();
+			frame.repaint();
+		}
 	}
 
 	private void removeProgressBar(JProgressBar bar) {
-		frame.remove(bar);
-		frame.revalidate();
-		frame.repaint();
+		if (frame != null) {
+			frame.remove(bar);
+			frame.revalidate();
+			frame.repaint();
+		}
 	}
 
 	private long countRSIds(Set<String> dataSnps) {

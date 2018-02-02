@@ -156,7 +156,7 @@ public class CARDIA2Processor {
 
 		FileColumn<String> chrC = new FixedValueColumn("chr", Integer.toString(chr));
 		FileColumn<String> snp = new AliasedFileColumn("marker_name", "name");
-		FileColumn<Integer> pos = new AbstractFileColumn<Integer>("pos") {
+		FileColumn<Integer> pos = new AbstractFileColumn<Integer>("pos", false) {
 			@Override
 			public Integer getValue(String[] line) throws ParseFailureException {
 				String snpV = snp.getValue(line);

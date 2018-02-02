@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -18,7 +19,7 @@ public class FileLink extends AbstractFileParserFactory {
 	private List<FileColumn<?>> valueColumns;
 	private boolean dieOnMissing = false;
 	private boolean dieOnInvalidKey = true;
-	Map<String, DataLine> data;
+	Map<ImmutableList<Object>, DataLine> data;
 
 	private FileLink(String inputFile, String inputDelim) {
 		super(inputFile, inputDelim);
@@ -137,7 +138,7 @@ public class FileLink extends AbstractFileParserFactory {
 		return new FileLink(inputFile, null);
 	}
 
-	public DataLine get(String keyVal) {
+	public DataLine get(List<Object> keyVal) {
 		if (data == null) {
 			throw new IllegalStateException("FileLink for file " + parser.getInputFile()
 																			+ " needs to be built with the build() method.");

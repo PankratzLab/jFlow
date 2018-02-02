@@ -5,8 +5,8 @@ import java.util.Map;
 public class IntegerWrapperColumn extends CachedFileColumn<Integer> {
 	private FileColumn<?> base;
 
-	public IntegerWrapperColumn(FileColumn<?> base) {
-		super(base.getName());
+	public IntegerWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
+		super(base.getName(), dieOnParseFailure);
 		this.base = base;
 	}
 

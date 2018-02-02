@@ -15,6 +15,8 @@ import java.util.Set;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
+import com.google.common.collect.ImmutableList;
+
 public class FileParser implements Iterable<DataLine> {
 
 	private String inputFile;
@@ -235,7 +237,6 @@ public class FileParser implements Iterable<DataLine> {
 		opened = true;
 	}
 
-	@SuppressWarnings("unchecked")
 	private DataLine readLine() throws IOException {
 		if (reader == null)
 			return null;
@@ -278,32 +279,14 @@ public class FileParser implements Iterable<DataLine> {
 																				+ lineCount + " was the wrong length; expected "
 																				+ header.length + ", found " + parts.length);
 			}
-			for (@SuppressWarnings("rawtypes")
-			FileColumn fc : dataInOrder) {
-				try {
-					// unchecked
-					lineData.put(fc, fc.getValue(parts));
-				} catch (ParseFailureException e) {
-					lineData.fail(fc);
-				}
+			for (FileColumn<?> fc : dataInOrder) {
+				lineData.parseOrFail(fc, parts);
 			}
-			for (@SuppressWarnings("rawtypes")
-			FileColumn fc : addlDataToLoad) {
-				try {
-					// unchecked
-					lineData.put(fc, fc.getValue(parts));
-				} catch (ParseFailureException e) {
-					lineData.fail(fc);
-				}
+			for (FileColumn<?> fc : addlDataToLoad) {
+				lineData.parseOrFail(fc, parts);
 			}
-			for (@SuppressWarnings("rawtypes")
-			FileColumn fc : optlDataFound) {
-				try {
-					// unchecked
-					lineData.put(fc, fc.getValue(parts));
-				} catch (ParseFailureException e) {
-					lineData.fail(fc);
-				}
+			for (FileColumn<?> fc : optlDataFound) {
+				lineData.parseOrFail(fc, parts);
 			}
 			for (ColumnFilter fc : filters) {
 				if (!fc.filter(lineData)) {
@@ -327,11 +310,12 @@ public class FileParser implements Iterable<DataLine> {
 
 		if (lineData != null) {
 			for (FileLink fl : linkedParsers) {
-				String keyVal = "";
+				ImmutableList.Builder<Object> builder = ImmutableList.builder();
 				for (FileColumn<?> fc : fl.getKeys()) {
-					keyVal += lineData.getString(linkedFileColumns.get(fl).get(fc));
+					builder.add(lineData.getString(linkedFileColumns.get(fl).get(fc)));
 				}
-				DataLine linkedLine = fl.get(keyVal);
+				ImmutableList<Object> key = builder.build();
+				DataLine linkedLine = fl.get(key);
 				if (linkedLine == null) {
 					// missing data
 					for (FileColumn<?> valueCol : fl.getValues()) {
@@ -341,21 +325,21 @@ public class FileParser implements Iterable<DataLine> {
 						}
 					}
 				} else {
-					for (@SuppressWarnings("rawtypes")
-					FileColumn valueCol : fl.getValues()) {
-						// check if data already exists or was a failure
-						if (!lineData.hasValid(valueCol)) {
-							// unchecked
-							lineData.put(valueCol, linkedLine.getUnsafe(valueCol));
+					for (FileColumn<?> valueCol : fl.getValues()) {
+						// check if data doesn't already exist or was a failure
+						if (!lineData.hasValid(valueCol) && linkedLine.hasValid(valueCol)) {
+							lineData.copyUnsafe(valueCol, linkedLine);
 						} else if (lineData.hasValid(valueCol)
 											 && linkedLine.hasValid(valueCol)
-											 // unchecked
 											 && !linkedLine.getUnsafe(valueCol).equals(lineData.getUnsafe(valueCol))) {
 							// if a value already exists and isn't the same nor a parse failure
 							throw new IllegalStateException("Different value found for column "
 																							+ valueCol.getName() + " with linked key; key="
-																							+ keyVal + ", value1=" + lineData.getString(valueCol)
+																							+ key.toString() + ", value1="
+																							+ lineData.getString(valueCol)
 																							+ ", value2=" + linkedLine.getString(valueCol));
+						} else {
+							lineData.fail(valueCol);
 						}
 					}
 				}
@@ -463,18 +447,18 @@ public class FileParser implements Iterable<DataLine> {
 	 * @return
 	 * @throws IOException
 	 */
-	public Map<String, DataLine> load(boolean dropIfKeyFail,
-																		FileColumn<?>... keyCols) throws IOException {
-		Map<String, DataLine> data = new HashMap<>();
+	public Map<ImmutableList<Object>, DataLine> load(boolean dropIfKeyFail,
+																									 FileColumn<?>... keyCols) throws IOException {
+		Map<ImmutableList<Object>, DataLine> data = new HashMap<>();
 		Iterator<DataLine> iter = iterator();
 		while (iter.hasNext()) {
 			DataLine line = iter.next();
 			try {
-				String keyVal = "";
+				ImmutableList.Builder<Object> builder = ImmutableList.builder();
 				for (FileColumn<?> fc : keyCols) {
-					keyVal += line.get(fc);
+					builder.add(line.get(fc));
 				}
-				data.put(keyVal, line);
+				data.put(builder.build(), line);
 			} catch (ParseFailureException e) {
 				if (!dropIfKeyFail) {
 					throw new RuntimeException(e);

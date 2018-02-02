@@ -20,20 +20,36 @@ public class DataLine {
 	 * 
 	 * @param defaultFailValue
 	 */
-	public DataLine(Object defaultFailValue) {
+	protected DataLine(Object defaultFailValue) {
 		lineValues = new HashMap<>();
 		failValues = new HashMap<>();
 		this.defaultFailValue = defaultFailValue;
 	}
 
 	/**
-	 * Set value
+	 * Set value if valid, or set as a parse failure, or, if (@link
+	 * {@link FileColumn#dieOnParseFailure()} is true, throw a RuntimeException.
 	 * 
 	 * @param fc FileColumn
-	 * @param value value in line for given column
+	 * @param String[] line of data directly from file
 	 */
-	public <T> void put(FileColumn<T> fc, T value) {
-		lineValues.put(fc, value);
+	protected <T> void parseOrFail(FileColumn<T> fc, String[] parts) {
+		try {
+			lineValues.put(fc, fc.getValue(parts));
+		} catch (ParseFailureException e) {
+			if (fc.dieOnParseFailure()) {
+				throw new RuntimeException(e);
+			}
+			fail(fc);
+		}
+	}
+
+	protected <T> void copy(FileColumn<T> fc, DataLine linkedLine) throws ParseFailureException {
+		lineValues.put(fc, linkedLine.get(fc));
+	}
+
+	protected <T> void copyUnsafe(FileColumn<T> fc, DataLine linkedLine) {
+		lineValues.put(fc, linkedLine.getUnsafe(fc));
 	}
 
 	/**
@@ -41,7 +57,7 @@ public class DataLine {
 	 * 
 	 * @param fc FileColumn
 	 */
-	public void fail(FileColumn<?> fc) {
+	protected void fail(FileColumn<?> fc) {
 		lineValues.put(fc, defaultFailValue);
 	}
 
@@ -52,7 +68,7 @@ public class DataLine {
 	 * @param fc
 	 * @param failValue
 	 */
-	public void fail(FileColumn<?> fc, Object failValue) {
+	protected void fail(FileColumn<?> fc, Object failValue) {
 		lineValues.put(fc, failValue);
 		failValues.put(fc, failValue);
 	}
@@ -75,11 +91,9 @@ public class DataLine {
 	 * @return
 	 */
 	public boolean hasValid(FileColumn<?> fc) {
-		boolean hasAtAll = lineValues.containsKey(fc);
-		boolean defaultFail = lineValues.get(fc).equals(defaultFailValue);
-		boolean nondefaultFail = failValues.containsKey(fc)
-														 && failValues.get(fc).equals(lineValues.get(fc));
-		return hasAtAll && !defaultFail && !nondefaultFail;
+		return lineValues.containsKey(fc) && !lineValues.get(fc).equals(defaultFailValue)
+					 && !(failValues.containsKey(fc)
+								&& failValues.get(fc).equals(lineValues.get(fc)));
 	}
 
 	/**
