@@ -1,7 +1,5 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
-
 import org.genvisis.stats.Maths.COMPARISON;
 
 /**
@@ -22,13 +20,15 @@ public class IntegerSetFilter extends AbstractColumnFilter {
 	}
 
 	@Override
-	public boolean filter(Map<FileColumn<?>, String> values) {
-		String valStr = values.get(valueColumn);
-		int valI = Integer.parseInt(valStr);
-		for (int v : comparisonValues) {
-			if (!comparison.check(valI, v))
-				return false;
+	public boolean filter(DataLine values) {
+		if (values.hasValid(valueColumn)) {
+			Integer valI = values.getUnsafe(valueColumn);
+			for (int v : comparisonValues) {
+				if (!comparison.check(valI, v))
+					return false;
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 }

@@ -1,7 +1,6 @@
 package org.genvisis.gwas.parsing.impl;
 
 import java.io.IOException;
-import java.util.Map;
 
 import org.genvisis.CLI;
 import org.genvisis.cnv.plots.AFPlot;
@@ -17,6 +16,7 @@ import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.Aliases;
 import org.genvisis.gwas.parsing.Aliases.MultipleAliasStrategy;
 import org.genvisis.gwas.parsing.ColumnFilter;
+import org.genvisis.gwas.parsing.DataLine;
 import org.genvisis.gwas.parsing.FileColumn;
 import org.genvisis.gwas.parsing.FileLink;
 import org.genvisis.gwas.parsing.FileParser;
@@ -35,7 +35,7 @@ public class PlinkAssocParser {
 
 	public void run(String resultsFile, String freqFile, String outFile, boolean hits, boolean man,
 									boolean qq, boolean af) {
-		FileColumn<Integer> chr = StandardFileColumns.chr("CHR");
+		FileColumn<Byte> chr = StandardFileColumns.chr("CHR");
 		FileColumn<String> snp = StandardFileColumns.snp("SNP");
 		FileColumn<Integer> pos = StandardFileColumns.pos("BP");
 		FileColumn<Double> beta = StandardFileColumns.beta("BETA");
@@ -49,8 +49,8 @@ public class PlinkAssocParser {
 
 		ColumnFilter addFilter = new AbstractColumnFilter(test) {
 			@Override
-			public boolean filter(Map<FileColumn<?>, String> values) {
-				return values.get(test).equals("ADD");
+			public boolean filter(DataLine values) {
+				return values.hasValid(test) && values.getString(test).equals("ADD");
 			}
 		};
 

@@ -1,7 +1,5 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
-
 import org.genvisis.stats.Maths.COMPARISON;
 
 /**
@@ -22,9 +20,11 @@ public class DoubleFilter extends AbstractColumnFilter {
 	}
 
 	@Override
-	public boolean filter(Map<FileColumn<?>, String> values) {
-		String valStr = values.get(valueColumn);
-		double valD = Double.parseDouble(valStr);
-		return comparison.check(valD, comparisonValue);
+	public boolean filter(DataLine values) {
+		if (values.hasValid(valueColumn)) {
+			Double valD = values.getUnsafe(valueColumn);
+			return comparison.check(valD, comparisonValue);
+		}
+		return false;
 	}
 }

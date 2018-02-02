@@ -17,7 +17,8 @@ public class FileLink extends AbstractFileParserFactory {
 	private ImmutableSet<FileColumn<?>> keyColumns;
 	private List<FileColumn<?>> valueColumns;
 	private boolean dieOnMissing = false;
-	Map<String, Map<FileColumn<?>, String>> data;
+	private boolean dieOnInvalidKey = true;
+	Map<String, DataLine> data;
 
 	private FileLink(String inputFile, String inputDelim) {
 		super(inputFile, inputDelim);
@@ -85,6 +86,16 @@ public class FileLink extends AbstractFileParserFactory {
 		return this;
 	}
 
+	/**
+	 * Tell this FileLink to NOT throw an exception if it encounters an invalid key when loading data.
+	 * 
+	 * @return this
+	 */
+	public FileLink dropInvalidKeys() {
+		dieOnInvalidKey = false;
+		return this;
+	}
+
 	@Override
 	/**
 	 * Builds parser internally with {@code super.build()}, loads the data in the linked file into
@@ -94,7 +105,8 @@ public class FileLink extends AbstractFileParserFactory {
 		if (data == null) {
 			FileParser parser = super.build();
 			try {
-				data = parser.load(getKeys().toArray(new FileColumn<?>[getKeys().size()]));
+				data = parser.load(!dieOnInvalidKey,
+													 getKeys().toArray(new FileColumn<?>[getKeys().size()]));
 				parser.close();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
@@ -125,7 +137,7 @@ public class FileLink extends AbstractFileParserFactory {
 		return new FileLink(inputFile, null);
 	}
 
-	public Map<FileColumn<?>, String> get(String keyVal) {
+	public DataLine get(String keyVal) {
 		if (data == null) {
 			throw new IllegalStateException("FileLink for file " + parser.getInputFile()
 																			+ " needs to be built with the build() method.");

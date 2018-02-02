@@ -143,9 +143,9 @@ public final class StandardFileColumns {
 	 * @param colName Desired name of column
 	 * @return IntegerWrapperColumn
 	 */
-	public static FileColumn<Integer> chr(String colName) {
-		return new IntegerWrapperColumn(new AliasedFileColumn(colName,
-																													new Aliases(org.genvisis.common.Aliases.CHRS)));
+	public static FileColumn<Byte> chr(String colName) {
+		return new ByteWrapperColumn(new AliasedFileColumn(colName,
+																											 new Aliases(org.genvisis.common.Aliases.CHRS)));
 	}
 
 	/**

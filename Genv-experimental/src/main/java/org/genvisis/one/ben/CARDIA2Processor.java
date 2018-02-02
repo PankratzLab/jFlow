@@ -15,6 +15,7 @@ import org.genvisis.gwas.parsing.AbstractColumnFilter;
 import org.genvisis.gwas.parsing.AbstractFileColumn;
 import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.ColumnFilter;
+import org.genvisis.gwas.parsing.DataLine;
 import org.genvisis.gwas.parsing.FileColumn;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.FixedValueColumn;
@@ -236,8 +237,8 @@ public class CARDIA2Processor {
 
 		ColumnFilter dropFilter = new AbstractColumnFilter(snp) {
 			@Override
-			public boolean filter(Map<FileColumn<?>, String> values) {
-				return !drops.contains(values.get(snp));
+			public boolean filter(DataLine values) {
+				return !drops.contains(values.getString(snp));
 			}
 		};
 

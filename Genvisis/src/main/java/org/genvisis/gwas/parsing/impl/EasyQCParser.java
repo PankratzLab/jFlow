@@ -19,7 +19,7 @@ public class EasyQCParser {
 		}
 
 		FileColumn<String> snp = StandardFileColumns.snp("SNP");
-		FileColumn<Integer> chr = StandardFileColumns.chr("CHR");
+		FileColumn<Byte> chr = StandardFileColumns.chr("CHR");
 		FileColumn<Integer> pos = StandardFileColumns.pos("POS");
 		FileColumn<String> strand = new AliasedFileColumn("STRAND", "strand");
 		FileColumn<String> eff = StandardFileColumns.a1("EFFECT_ALLELE");
