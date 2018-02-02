@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +40,7 @@ import org.genvisis.common.ext;
 import org.genvisis.common.gui.JProgressBarListener;
 import org.genvisis.common.gui.SimpleIndeterminateTask;
 import org.genvisis.common.gui.Task;
+import org.genvisis.gwas.parsing.AbstractColumnFilter;
 import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.ColumnFilter;
 import org.genvisis.gwas.parsing.DoubleWrapperColumn;
@@ -50,7 +50,9 @@ import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
 
 import htsjdk.variant.variantcontext.Allele;
 import net.miginfocom.swing.MigLayout;
@@ -70,7 +72,7 @@ public class AFPlot {
 	/**
 	 * Set of chrs to load
 	 */
-	private Set<Integer> chrs;
+	private Set<Byte> chrs;
 	/**
 	 * Map of Marker name to marker objects. If null, attempts will be made to load location info from
 	 * the data file.
@@ -85,7 +87,7 @@ public class AFPlot {
 	private Map<String, String[]> obsChrPosAlleles;
 	private Map<String, Double> observeds;
 	private Map<String, Double> observedsChrPos;
-	private Map<CONFIG, Integer> alleleInfo;
+	private Multiset<CONFIG> alleleInfo;
 
 	private volatile boolean forceRedraw = false;
 	private volatile POPULATION selectedPop = POPULATION.ALL;
@@ -99,6 +101,7 @@ public class AFPlot {
 	 * Number of chromosomes constituting "all". Doesn't currently include X/Y/XY/MY.
 	 */
 	private static final int ALL_CHRS_COUNT = 22;
+	private static final int TOO_MANY_SNPS = 1000000;
 	private static final boolean DEFAULT_SHOW_ALLELE_INFO = false;
 	private static final String TASK_CHANNEL = "LOAD_ALLELE_FREQS";
 
@@ -121,32 +124,28 @@ public class AFPlot {
 		setG1KData(new HashMap<>());
 		setG1KChrPosLookup(new HashMap<>());
 		Map<POPULATION, Double> dataMap;
-		for (Integer chr : chrs) {
+		for (Byte chr : chrs) {
 			FileColumn<String> snpCol = new AliasedFileColumn("SNP", "ID");
 			FileColumn<Integer> chrCol = StandardFileColumns.chr("CHROM");
 			FileColumn<Integer> posCol = StandardFileColumns.pos("POS");
 			FileColumn<String> refCol = StandardFileColumns.a2("REF");
 			FileColumn<String> altCol = StandardFileColumns.a1("ALT");
-			FileColumn<Double> afAll = new DoubleWrapperColumn(new AliasedFileColumn("AF", "AF"));
-			FileColumn<Double> afEas = new DoubleWrapperColumn(new AliasedFileColumn("EAS", "EAS_AF"));
-			FileColumn<Double> afEur = new DoubleWrapperColumn(new AliasedFileColumn("EUR", "EUR_AF"));
-			FileColumn<Double> afAfr = new DoubleWrapperColumn(new AliasedFileColumn("AFR", "AFR_AF"));
-			FileColumn<Double> afAmr = new DoubleWrapperColumn(new AliasedFileColumn("AMR", "AMR_AF"));
-			FileColumn<Double> afSas = new DoubleWrapperColumn(new AliasedFileColumn("SAS", "SAS_AF"));
+			FileColumn<String> afAll = new AliasedFileColumn("AF", "AF");
+			FileColumn<String> afEas = new AliasedFileColumn("EAS", "EAS_AF");
+			FileColumn<String> afEur = new AliasedFileColumn("EUR", "EUR_AF");
+			FileColumn<String> afAfr = new AliasedFileColumn("AFR", "AFR_AF");
+			FileColumn<String> afAmr = new AliasedFileColumn("AMR", "AMR_AF");
+			FileColumn<String> afSas = new AliasedFileColumn("SAS", "SAS_AF");
 
 			String G1KFile = Resources.genome(proj == null ? GENOME_BUILD.HG19
 																										 : proj.GENOME_BUILD_VERSION.getValue(),
 																				log)
-																.chr(CHROMOSOME.valueOf("C" + Integer.toString(chr)))
+																.chr(CHROMOSOME.valueOf("C" + Byte.toString(chr)))
 																.getG1Kphase3v5AlleleFreq().get();
 			FileParser parser = FileParserFactory.setup(G1KFile, snpCol, chrCol, posCol, refCol, altCol,
 																									afAll, afEas, afEur, afAfr, afAmr, afSas)
-																					 .filter(new ColumnFilter() {
-																						 @Override
-																						 public List<FileColumn<?>> getFilterColumns() {
-																							 return Lists.newArrayList(snpCol);
-																						 }
-
+																					 .filter(new AbstractColumnFilter(snpCol, chrCol, posCol,
+																																						refCol, altCol) {
 																						 @Override
 																						 public boolean filter(Map<FileColumn<?>, String> values) {
 																							 String snpV = values.get(snpCol);
@@ -175,24 +174,18 @@ public class AFPlot {
 																										Integer.parseInt(line.get(posCol))),
 																Allele.create(line.get(refCol), true),
 																Allele.create(line.get(altCol), false));
-					double[] afs = {
-													Double.parseDouble(line.get(afAll)),
-													Double.parseDouble(line.get(afEas)),
-													Double.parseDouble(line.get(afEur)),
-													Double.parseDouble(line.get(afAfr)),
-													Double.parseDouble(line.get(afAmr)),
-													Double.parseDouble(line.get(afSas))
-					};
+					dataMap = new HashMap<>();
+					dataMap.put(POPULATION.ALL, Double.parseDouble(line.get(afAll)));
+					dataMap.put(POPULATION.EAS, Double.parseDouble(line.get(afEas)));
+					dataMap.put(POPULATION.EUR, Double.parseDouble(line.get(afEur)));
+					dataMap.put(POPULATION.AFR, Double.parseDouble(line.get(afAfr)));
+					dataMap.put(POPULATION.AMR, Double.parseDouble(line.get(afAmr)));
+					dataMap.put(POPULATION.SAS, Double.parseDouble(line.get(afSas)));
 					getG1KMarkers().put(line.get(snpCol), m);
 					getG1KChrPosLookup().put(line.get(chrCol) + ":" + line.get(posCol), line.get(snpCol));
-					getG1KData().put(line.get(snpCol), dataMap = new HashMap<>());
-					dataMap.put(POPULATION.ALL, afs[0]);
-					dataMap.put(POPULATION.EAS, afs[1]);
-					dataMap.put(POPULATION.EUR, afs[2]);
-					dataMap.put(POPULATION.AFR, afs[3]);
-					dataMap.put(POPULATION.AMR, afs[4]);
-					dataMap.put(POPULATION.SAS, afs[5]);
-				} catch (Exception e) {
+					getG1KData().put(line.get(snpCol), dataMap);
+				} catch (IllegalArgumentException e) {
+					// skip marker
 				}
 			}
 			try {
@@ -207,11 +200,11 @@ public class AFPlot {
 		this.file = f;
 	}
 
-	private void setChrs(Set<Integer> chrsToLoad) {
-		chrs = new HashSet<Integer>();
+	private void setChrs(Set<Byte> chrsToLoad) {
+		chrs = new HashSet<Byte>();
 		if (chrsToLoad == null) {
 			for (int i = 1; i <= ALL_CHRS_COUNT; i++) {
-				chrs.add(i);
+				chrs.add((byte) i);
 			}
 		} else {
 			chrs.addAll(chrsToLoad);
@@ -236,16 +229,16 @@ public class AFPlot {
 			factory.filter(new ColumnFilter() {
 				@Override
 				public List<FileColumn<?>> getFilterColumns() {
-					return mkrMap == null ? Lists.newArrayList(chrCol) : new ArrayList<>();
+					return mkrMap == null ? Lists.newArrayList(snpCol, chrCol) : Lists.newArrayList(snpCol);
 				}
 
 				@Override
 				public boolean filter(Map<FileColumn<?>, String> values) {
 					boolean chr = false;
 					if (mkrMap != null && mkrMap.containsKey(values.get(snpCol))) {
-						chr = chrs.contains((int) mkrMap.get(values.get(snpCol)).getChr());
+						chr = chrs.contains(mkrMap.get(values.get(snpCol)).getChr());
 					} else if (values.containsKey(chrCol)) {
-						chr = chrs.contains(Integer.parseInt(values.get(chrCol)));
+						chr = chrs.contains(Byte.parseByte(values.get(chrCol)));
 					}
 					return chr;
 				}
@@ -254,16 +247,10 @@ public class AFPlot {
 		long lines = -1;
 		if (trim) {
 			lines = Files.countLines(file, 1);
-			if (lines > 1000000) {
+			if (lines > TOO_MANY_SNPS) {
 				// if a huge file, trim
-				int lineMod = (int) (lines / 1000000);
-				factory.filter(new ColumnFilter() {
-
-					@Override
-					public List<FileColumn<?>> getFilterColumns() {
-						return new ArrayList<>();
-					}
-
+				int lineMod = (int) (lines / TOO_MANY_SNPS);
+				factory.filter(new AbstractColumnFilter() {
 					long count = 0;
 
 					@Override
@@ -305,12 +292,7 @@ public class AFPlot {
 		if (mkrMap == null) {
 			factory.optionalColumns(chr, pos, a1, a2);
 		}
-		factory.filter(new ColumnFilter() {
-			@Override
-			public List<FileColumn<?>> getFilterColumns() {
-				return Lists.newArrayList(snpCol);
-			}
-
+		factory.filter(new AbstractColumnFilter(snpCol, mafCol) {
 			@Override
 			public boolean filter(Map<FileColumn<?>, String> values) {
 				boolean key = getG1KMarkers().containsKey(values.get(snpCol));
@@ -366,7 +348,7 @@ public class AFPlot {
 	 * @param file Path to file
 	 * @param chrsToLoad Set of chromosome numbers to load
 	 */
-	public void loadFromFile(String file, Set<Integer> chrsToLoad) {
+	public void loadFromFile(String file, Set<Byte> chrsToLoad) {
 		setLoading(true);
 		setFile(file);
 		setChrs(chrsToLoad);
@@ -624,7 +606,7 @@ public class AFPlot {
 
 		for (CONFIG c : CONFIG.values()) {
 			sb.append("<tr><td>").append(c.getDescription()).append("</td><td>")
-				.append(getAlleleInfo().get(c) == null ? 0 : getAlleleInfo().get(c))
+				.append(getAlleleInfo().count(c))
 				.append("</td></tr>");
 		}
 
@@ -674,7 +656,7 @@ public class AFPlot {
 		setObsAlleles(new HashMap<>());
 		setObservedDataChrPos(new HashMap<>());
 		setObsChrPosAlleles(new HashMap<>());
-		setAlleleInfo(new HashMap<>());
+		setAlleleInfo(HashMultiset.create());
 	}
 
 	public void setVisible(boolean vis) {
@@ -750,7 +732,7 @@ public class AFPlot {
 		g1KMarkers = g1kMarkers;
 	}
 
-	private void setAlleleInfo(Map<CONFIG, Integer> alleleInfo) {
+	private void setAlleleInfo(Multiset<CONFIG> alleleInfo) {
 		this.alleleInfo = alleleInfo;
 	}
 
@@ -766,6 +748,10 @@ public class AFPlot {
 	 */
 	public Map<String, String[]> getObservedAlleles() {
 		return obsAlleles;
+	}
+
+	public Map<String, String[]> getAlleleMap() {
+		return isChrPosLookup() ? getObservedChrPosAlleles() : getObservedAlleles();
 	}
 
 	/**
@@ -843,9 +829,9 @@ public class AFPlot {
 	}
 
 	/**
-	 * @return Map of allele configuration info
+	 * @return Multiset of allele configuration info
 	 */
-	public Map<CONFIG, Integer> getAlleleInfo() {
+	public Multiset<CONFIG> getAlleleInfo() {
 		return alleleInfo;
 	}
 

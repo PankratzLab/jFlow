@@ -3,7 +3,6 @@ package org.genvisis.cnv.plots;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -13,9 +12,6 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
-
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 
 /**
  * {@link AbstractPanel} subtype that creates {@link PlotPoint}s from the data loaded by
@@ -40,8 +36,16 @@ public class AFPanel extends AbstractPanel {
 	AFPlot plot;
 	Map<CONFIG, Integer> configColorMap;
 
+	private static final GenericLine[] CENTER_LINES = {
+																										 new GenericLine(0f, 0.2f, 0.8f, 1f, (byte) 2,
+																																		 (byte) 2, LAYER),
+																										 new GenericLine(0.2f, 0f, 1f, 0.8f, (byte) 2,
+																																		 (byte) 2, LAYER),
+																										 new GenericLine(0f, 0f, 1f, 1f, (byte) 2,
+																																		 (byte) 3, LAYER)
+	};
+
 	public AFPanel(AFPlot plot) {
-		// setChartType(HEAT_MAP_TYPE);
 		this.plot = plot;
 		setColorScheme(new Color[] {
 																Color.BLACK,
@@ -55,8 +59,10 @@ public class AFPanel extends AbstractPanel {
 																new Color(189, 243, 61), // light green
 																new Color(217, 109, 194), // pink
 																new Color(0, 0, 128), // ALL KINDS OF BLUES
-																new Color(100, 149, 237), new Color(72, 61, 139),
-																new Color(106, 90, 205), new Color(123, 104, 238),
+																new Color(100, 149, 237),
+																new Color(72, 61, 139),
+																new Color(106, 90, 205),
+																new Color(123, 104, 238),
 		});
 		points = null;
 		setNullMessage("No Data to Display.");
@@ -86,35 +92,26 @@ public class AFPanel extends AbstractPanel {
 			return;
 		plot.setForceRedraw(false);
 
-		lines = plot.isMaskCenter() ? new GenericLine[3] : null;
-		if (plot.isMaskCenter()) {
-			lines[0] = new GenericLine(0f, 0.2f, 0.8f, 1f, (byte) 2, (byte) 2, LAYER);
-			lines[1] = new GenericLine(0.2f, 0f, 1f, 0.8f, (byte) 2, (byte) 2, LAYER);
-			lines[2] = new GenericLine(0f, 0f, 1f, 1f, (byte) 2, (byte) 3, LAYER);
-		}
+		lines = plot.isMaskCenter() ? CENTER_LINES : null;
 
-		Multiset<CONFIG> countSet = HashMultiset.create();
 		List<PlotPoint> pointList = new ArrayList<>();
-		float dO, dE;
+		float afObs, afExp;
 		boolean add;
 		String g1MkrNm;
 		Marker g1Marker;
 		CONFIG config;
 		byte color = COLOR;
-		Map<String, String[]> alleles = plot.isChrPosLookup() ? plot.getObservedChrPosAlleles()
-																													: plot.getObservedAlleles();
+		Map<String, String[]> alleles = plot.getAlleleMap();
 		Set<Entry<String, Double>> dataSet;
-		dataSet = new HashSet<>((plot.isChrPosLookup() ? plot.getObservedDataChrPos()
-																									 : plot.getObservedData()).entrySet());
+		plot.getAlleleInfo().clear();
+		dataSet = plot.getObservedData().entrySet();
 		for (Entry<String, Double> obs : dataSet) {
 			g1MkrNm = plot.isChrPosLookup() ? plot.getG1KChrPosLookup().get(obs.getKey()) : obs.getKey();
-			dO = obs.getValue().floatValue();
-			dE = plot.getG1KData().get(g1MkrNm).get(plot.getSelectedPop()).floatValue();
-			add = !plot.isMaskCenter() ? true : Math.abs(dO - dE) > 0.2;
+			afObs = obs.getValue().floatValue();
+			afExp = plot.getG1KData().get(g1MkrNm).get(plot.getSelectedPop()).floatValue();
+			add = !plot.isMaskCenter() ? true : Math.abs(afObs - afExp) > 0.2;
 			if (add) {
-				g1Marker = plot.getG1KMarkers()
-											 .get(plot.isChrPosLookup() ? plot.getG1KChrPosLookup().get(obs.getKey())
-																									: obs.getKey());
+				g1Marker = plot.getG1KMarkers().get(g1MkrNm);
 				color = COLOR;
 				if (alleles.containsKey(obs.getKey()) && plot.isColorByConfig()) {
 					config = StrandOps.determineStrandConfig(alleles.get(obs.getKey()),
@@ -122,19 +119,15 @@ public class AFPanel extends AbstractPanel {
 																																				 .getBaseString(),
 																																 g1Marker.getAlt()
 																																				 .getBaseString()});
-					countSet.add(config);
+					plot.getAlleleInfo().add(config);
 					color = (byte) configColorMap.get(config).intValue();
 				}
-				pointList.add(new PlotPoint(obs.getKey() + " | " + g1MkrNm, PointType.FILLED_CIRCLE, dE,
-																		dO, PTSIZE, color,
+				pointList.add(new PlotPoint(obs.getKey() + " | " + g1MkrNm, PointType.FILLED_CIRCLE, afExp,
+																		afObs, PTSIZE, color,
 																		LAYER));
 			}
 		}
 		points = pointList.toArray(new PlotPoint[pointList.size()]);
-		plot.getAlleleInfo().clear();
-		for (CONFIG c : countSet) {
-			plot.getAlleleInfo().put(c, countSet.count(c));
-		}
 		plot.updateAlleleInfoPanel();
 	}
 
