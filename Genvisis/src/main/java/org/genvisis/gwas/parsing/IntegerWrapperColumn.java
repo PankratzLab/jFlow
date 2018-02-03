@@ -5,6 +5,10 @@ import java.util.Map;
 public class IntegerWrapperColumn extends CachedFileColumn<Integer> {
 	private FileColumn<?> base;
 
+	public IntegerWrapperColumn(FileColumn<?> base) {
+		this(base, base.dieOnParseFailure());
+	}
+
 	public IntegerWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
 		super(base.getName(), dieOnParseFailure);
 		this.base = base;

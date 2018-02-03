@@ -6,8 +6,7 @@ public class DoubleWrapperColumn extends CachedFileColumn<Double> {
 	private FileColumn<?> base;
 
 	public DoubleWrapperColumn(FileColumn<?> base) {
-		super(base.getName(), base.dieOnParseFailure());
-		this.base = base;
+		this(base, base.dieOnParseFailure());
 	}
 
 	public DoubleWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
