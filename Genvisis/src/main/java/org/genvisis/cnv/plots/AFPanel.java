@@ -67,7 +67,7 @@ public class AFPanel extends AbstractPanel {
 																new Color(123, 104, 238),
 		});
 		points = new PlotPoint[0];
-		setNullMessage("No Data to Display.");
+		resetMessage();
 
 		setForcePlotXmin(0f);
 		setForcePlotXmax(1f);
@@ -83,6 +83,10 @@ public class AFPanel extends AbstractPanel {
 		}
 	}
 
+	public void resetMessage() {
+		setNullMessage("No Data to Display.");
+	}
+
 	@Override
 	public void highlightPoints() {
 
@@ -90,9 +94,11 @@ public class AFPanel extends AbstractPanel {
 
 	@Override
 	public void generatePoints() {
-		if (!plot.isForceRedraw() && (plot.getObservedData() == null || plot.isLoading()))
+		if (!plot.isForceRedraw() && (plot.getData().isEmpty() || plot.isLoading())) {
+			resetMessage();
+			points = new PlotPoint[0];
 			return;
-		plot.setForceRedraw(false);
+		}
 
 		lines = plot.isMaskCenter() ? CENTER_LINES : null;
 
@@ -106,7 +112,7 @@ public class AFPanel extends AbstractPanel {
 		Map<String, String[]> alleles = plot.getAlleleMap();
 		Set<Entry<String, Double>> dataSet;
 		plot.getAlleleInfo().clear();
-		dataSet = plot.getObservedData().entrySet();
+		dataSet = plot.getData().entrySet();
 		for (Entry<String, Double> obs : dataSet) {
 			g1MkrNm = plot.isChrPosLookup() ? plot.getG1KChrPosLookup().get(obs.getKey()) : obs.getKey();
 			afObs = obs.getValue().floatValue();

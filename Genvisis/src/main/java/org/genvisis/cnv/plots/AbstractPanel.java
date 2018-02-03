@@ -1734,15 +1734,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 	}
 
 	public void createImage() {
-		if (getWidth() > 350 && getHeight() > 0) {
-			setImageStatus(IMAGE_STARTED);
-			image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
-			flow = true;
-			if (DEBUGGING) {
-				log.report("Drawing base image");
-			}
-			drawAll(image.createGraphics(), true);
+		setImageStatus(IMAGE_STARTED);
+		image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
+		flow = true;
+		if (DEBUGGING) {
+			log.report("Drawing base image");
 		}
+		drawAll(image.createGraphics(), true);
 	}
 
 	public void setLookupResolution(int lookupResolution) {

@@ -10,11 +10,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -81,25 +83,27 @@ public class AFPlot {
 	 * the data file.
 	 */
 	private Map<String, Marker> mkrMap;
-	private Set<String> dataSnps;
+	private long fileLines;
+	private final Set<String> dataSnps;
 
-	private Map<String, Marker> g1KMarkers;
-	private Map<String, String> g1KChrPosLookup;
-	private Map<String, Map<POPULATION, Double>> g1KData;
+	private final Map<String, Marker> g1KMarkers;
+	private final Map<String, String> g1KChrPosLookup;
+	private final Map<String, Map<POPULATION, Double>> g1KData;
 
-	private Map<String, String[]> obsAlleles;
-	private Map<String, String[]> obsChrPosAlleles;
-	private Map<String, Double> observeds;
-	private Map<String, Double> observedsChrPos;
-	private Multiset<CONFIG> alleleInfo;
+	private final Map<String, String[]> obsAlleles;
+	private final Map<String, String[]> obsChrPosAlleles;
+	private final Map<String, Double> observeds;
+	private final Map<String, Double> observedsChrPos;
+	private final Multiset<CONFIG> alleleInfo;
 
 	private volatile boolean forceRedraw = false;
 	private volatile POPULATION selectedPop = POPULATION.ALL;
-	private volatile boolean maskCenter = false;
+	private volatile boolean maskCenter = true;
 	private volatile boolean chrPosLookup = false;
 	private volatile boolean loading = false;
 	private volatile boolean trim = true;
 	private volatile boolean colorByConfig = true;
+	private volatile Task<String, String> activeTask = null;
 
 	/**
 	 * Number of chromosomes constituting "all". Doesn't currently include X/Y/XY/MY.
@@ -108,6 +112,11 @@ public class AFPlot {
 	private static final int TOO_MANY_SNPS = 1000000;
 	private static final boolean DEFAULT_SHOW_ALLELE_INFO = false;
 	private static final String TASK_CHANNEL = "LOAD_ALLELE_FREQS";
+
+	private static final int TOO_SMALL_WIDTH = 400;
+	private static final int TOO_SMALL_HEIGHT = 400;
+	private static final int DEFAULT_WIDTH = 800;
+	private static final int DEFAULT_HEIGHT = 800;
 
 	private JCheckBoxMenuItem chrPosItem;
 
@@ -123,12 +132,16 @@ public class AFPlot {
 		SAS
 	};
 
-	private void loadReferencePanel(Task t) {
-		setG1KMarkers(new HashMap<>());
-		setG1KData(new HashMap<>());
-		setG1KChrPosLookup(new HashMap<>());
+	private void loadReferencePanel(Task<String, String> t) {
+		g1KMarkers.clear();
+		g1KData.clear();
+		g1KChrPosLookup.clear();
 		Map<POPULATION, Double> dataMap;
 		for (Byte chr : chrs) {
+			if (Thread.currentThread().isInterrupted()) {
+				reset();
+				return;
+			}
 			FileColumn<String> snpCol = new AliasedFileColumn("SNP", "ID");
 			FileColumn<Byte> chrCol = StandardFileColumns.chr("CHROM");
 			FileColumn<Integer> posCol = StandardFileColumns.pos("POS");
@@ -181,6 +194,10 @@ public class AFPlot {
 																					 })
 																					 .build();
 			for (DataLine line : parser) {
+				if (Thread.currentThread().isInterrupted()) {
+					reset();
+					return;
+				}
 				try {
 					Marker m = new Marker(line.getString(snpCol),
 																new GenomicPosition(line.getUnsafe(chrCol), line.getUnsafe(posCol)),
@@ -198,8 +215,8 @@ public class AFPlot {
 																	 line.getString(snpCol));
 					getG1KData().put(line.getString(snpCol), dataMap);
 				} catch (IllegalArgumentException e) {
-					// skip marker
 					// thrown by Allele.create() if bases are invalid values
+					// just skip marker
 					// maybe TODO create AlleleWrapperColumn
 				}
 			}
@@ -260,12 +277,16 @@ public class AFPlot {
 				}
 			});
 		}
-		long lines = -1;
+		if (Thread.currentThread().isInterrupted()) {
+			reset();
+			return;
+		}
+		fileLines = -1;
 		if (trim) {
-			lines = Files.countLines(file, 1);
-			if (lines > TOO_MANY_SNPS) {
+			fileLines = Files.countLines(file, 1);
+			if (fileLines > TOO_MANY_SNPS) {
 				// if a huge file, trim
-				int lineMod = (int) (lines / TOO_MANY_SNPS);
+				int lineMod = (int) (fileLines / TOO_MANY_SNPS);
 				factory.filter(new AbstractColumnFilter() {
 					long count = 0;
 
@@ -276,27 +297,33 @@ public class AFPlot {
 				});
 			}
 		}
-
-		dataSnps = factory.build().load(true, snpCol).keySet().stream()
-											.map(s -> s.get(0).toString()).collect(Collectors.toSet());
-		long rsCount = countRSIds(dataSnps);
-		if (rsCount == 0) {
+		if (Thread.currentThread().isInterrupted()) {
+			reset();
+			return;
+		}
+		dataSnps.clear();
+		dataSnps.addAll(factory.build().load(true, snpCol).keySet().stream()
+													 .map(s -> s.get(0).toString()).collect(Collectors.toSet()));
+		if (Thread.currentThread().isInterrupted()) {
+			reset();
+			return;
+		}
+		if (countRSIds(dataSnps) == 0) {
 			log.report("No RS-IDs found in data - switching to CHR:POS mode.");
 			setChrPosLookup(true);
 			if (chrPosItem != null) {
 				chrPosItem.setSelected(true);
 			}
-			rsCount = dataSnps.size();
 		}
 		if (trim) {
-			if (lines != dataSnps.size()) {
+			if (fileLines != dataSnps.size()) {
 				log.report("Trimmed data snps to " + dataSnps.size() + " of "
-									 + lines);
+									 + fileLines);
 			}
 		}
 	}
 
-	private void loadDataFreqs() throws IOException {
+	private void loadDataFreqs(Task<String, String> task) throws IOException {
 		FileColumn<String> snpCol = StandardFileColumns.snp("SNP");
 		FileColumn<Double> mafCol = new DoubleWrapperColumn(new AliasedFileColumn("MAF",
 																																							Aliases.ALLELE_FREQS));
@@ -326,11 +353,15 @@ public class AFPlot {
 		FileParser parser = factory.build();
 
 		for (DataLine line : parser) {
+			if (Thread.currentThread().isInterrupted()) {
+				reset();
+				return;
+			}
 			String key = line.getString(snpCol);
 			// we've dropped all invalid values using the ColumnFilter above
 			// so we know all freqs are valid doubles
 			double af = line.getUnsafe(mafCol);
-			getObservedData().put(key, af);
+			observeds.put(key, af);
 			if (line.hasValid(a1) && line.hasValid(a2)) {
 				getObservedAlleles().put(key, new String[] {line.getString(a1), line.getString(a2)});
 			}
@@ -342,18 +373,19 @@ public class AFPlot {
 					getObservedAlleles().put(key, alleles);
 					key = mkr.getGenomicPosition().getChr() + ":"
 								+ mkr.getGenomicPosition().getPosition();
-					getObservedDataChrPos().put(key, af);
+					observedsChrPos.put(key, af);
 					getObservedChrPosAlleles().put(key, alleles);
 				}
 			}
 			if (line.hasValid(chr) && line.hasValid(pos)) {
 				key = line.getUnsafe(chr) + ":" + line.getUnsafe(pos);
-				getObservedDataChrPos().put(key, af);
+				observedsChrPos.put(key, af);
 				if (line.hasValid(a1) && line.hasValid(a2)) {
 					getObservedChrPosAlleles().put(key,
 																				 new String[] {line.getString(a1), line.getString(a2)});
 				}
 			}
+			task.doStep();
 		}
 		parser.close();
 	}
@@ -362,7 +394,7 @@ public class AFPlot {
 		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
 		setProgressBar(listener.getBar());
 
-		Task<String, String> loadTask = new SimpleIndeterminateTask(TASK_CHANNEL) {
+		activeTask = new SimpleIndeterminateTask(TASK_CHANNEL) {
 
 			@Override
 			protected String doInBackground() throws Exception {
@@ -382,10 +414,12 @@ public class AFPlot {
 			}
 		};
 
-		loadTask.execute();
+		activeTask.execute();
 		try {
-			loadTask.get();
-		} catch (InterruptedException | ExecutionException e) {
+			activeTask.get();
+		} catch (CancellationException | InterruptedException e) {
+			setLoading(false);
+		} catch (ExecutionException e) {
 			setError(e);
 			setLoading(false);
 		}
@@ -397,7 +431,7 @@ public class AFPlot {
 		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
 		setProgressBar(listener.getBar());
 
-		Task<String, String> loadTask = new SimpleTask(TASK_CHANNEL, chrs.size()) {
+		activeTask = new SimpleTask(TASK_CHANNEL, chrs.size()) {
 			@Override
 			protected String doInBackground() throws Exception {
 				String msg;
@@ -412,10 +446,12 @@ public class AFPlot {
 			}
 		};
 
-		loadTask.execute();
+		activeTask.execute();
 		try {
-			loadTask.get();
-		} catch (InterruptedException | ExecutionException e) {
+			activeTask.get();
+		} catch (CancellationException | InterruptedException e) {
+			setLoading(false);
+		} catch (ExecutionException e) {
 			setError(e);
 			setLoading(false);
 		}
@@ -427,22 +463,22 @@ public class AFPlot {
 		JProgressBarListener listener = new JProgressBarListener(TASK_CHANNEL);
 		setProgressBar(listener.getBar());
 
-		Task<String, String> loadTask = new SimpleIndeterminateTask(TASK_CHANNEL) {
+		activeTask = new SimpleTask(TASK_CHANNEL, dataSnps.size()) {
 
 			@Override
 			protected String doInBackground() throws Exception {
 				String msg;
 				try {
-					msg = ("Loading data snp allele freqs...");
+					msg = ("Loading " + (trim && fileLines != dataSnps.size() ? "trimmed" : "untrimmed")
+								 + " data snp allele freqs...");
 					afPanel.setNullMessage(msg);
 					afPanel.paintAgain();
 					log.reportTime(msg);
 
-					loadDataFreqs();
+					loadDataFreqs(this);
 
 					msg = "Drawing plot - "
-								+ (isChrPosLookup() ? getObservedDataChrPos().size()
-																		: getObservedData().size())
+								+ getData().size()
 								+ " matched...";
 					afPanel.setNullMessage(msg);
 					log.reportTime(msg);
@@ -454,15 +490,41 @@ public class AFPlot {
 			}
 		};
 
-		loadTask.execute();
+		activeTask.execute();
 		try {
-			loadTask.get();
-		} catch (InterruptedException | ExecutionException e) {
+			activeTask.get();
+			activeTask = null;
+		} catch (CancellationException | InterruptedException e) {
+			setLoading(false);
+		} catch (ExecutionException e) {
 			setError(e);
 			setLoading(false);
 		}
 
 		removeProgressBar(listener.getBar());
+	}
+
+	private void cancel() {
+		if (activeTask != null) {
+			if (activeTask.cancel(true)) {
+				reset();
+				activeTask = null;
+			}
+		}
+	}
+
+	private void reset() {
+		fileLines = -1;
+		dataSnps.clear();
+		g1KMarkers.clear();
+		g1KChrPosLookup.clear();
+		g1KData.clear();
+		obsAlleles.clear();
+		obsChrPosAlleles.clear();
+		observeds.clear();
+		observedsChrPos.clear();
+		alleleInfo.clear();
+		afPanel.resetMessage();
 	}
 
 	/**
@@ -491,8 +553,6 @@ public class AFPlot {
 
 		setLoading(false);
 		afPanel.paintAgain();
-		// iterate through 1000G markers, pull existing out of markerNmMap and MAF data
-		// - check alleles (if present) and respond appropriately to differences
 	}
 
 	private void setError(Exception e) {
@@ -501,9 +561,12 @@ public class AFPlot {
 		log.reportException(e);
 	}
 
+	final JButton cancelBtn;
+
 	private void setProgressBar(JProgressBar bar) {
 		if (frame != null) {
-			frame.add(bar, "cell 0 1, growx");
+			frame.add(bar, "cell 0 1, growx, split 2, gapx 0 0");
+			frame.add(cancelBtn, "cell 0 1, width 20, pad 0 0 0 0");
 			frame.revalidate();
 			frame.repaint();
 		}
@@ -512,6 +575,7 @@ public class AFPlot {
 	private void removeProgressBar(JProgressBar bar) {
 		if (frame != null) {
 			frame.remove(bar);
+			frame.remove(cancelBtn);
 			frame.revalidate();
 			frame.repaint();
 		}
@@ -522,11 +586,15 @@ public class AFPlot {
 	}
 
 	public void screenshot(String file) {
-		if (this.afPanel.getSize().getWidth() <= 350 || this.afPanel.getSize().getHeight() <= 100) {
-			this.afPanel.setSize(800, 800);
+		double d = this.afPanel.getSize().getWidth();
+		double h = this.afPanel.getSize().getHeight();
+		if (d <= TOO_SMALL_WIDTH
+				|| h <= TOO_SMALL_HEIGHT) {
+			this.afPanel.setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 		}
 		this.afPanel.screenCapture(file);
 		log.reportTime("Screenshot to " + file);
+		this.afPanel.setSize((int) d, (int) h);
 	}
 
 	private void createMenuBar() {
@@ -585,13 +653,13 @@ public class AFPlot {
 		maskCenterItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AFPlot.this.setMaskCenter(!AFPlot.this.isMaskCenter());
+				setMaskCenter(maskCenterItem.isSelected());
 				setForceRedraw(true);
 				afPanel.paintAgain();
 			}
 		});
 		maskCenterItem.setText("Mask Center");
-		maskCenterItem.setSelected(AFPlot.this.isMaskCenter());
+		maskCenterItem.setSelected(isMaskCenter());
 		maskCenterItem.setMnemonic('M');
 		options.add(maskCenterItem);
 
@@ -603,13 +671,13 @@ public class AFPlot {
 		chrPosItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AFPlot.this.setChrPosLookup(!AFPlot.this.isChrPosLookup());
+				setChrPosLookup(chrPosItem.isSelected());
 				setForceRedraw(true);
 				afPanel.paintAgain();
 			}
 		});
 		chrPosItem.setText("Match Chr/Pos for Snps");
-		chrPosItem.setSelected(AFPlot.this.isChrPosLookup());
+		chrPosItem.setSelected(isChrPosLookup());
 		chrPosItem.setMnemonic('C');
 		options.add(chrPosItem);
 
@@ -620,7 +688,7 @@ public class AFPlot {
 		showAlleleItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AFPlot.this.showHideAlleleInfo();
+				showHideAlleleInfo();
 				afPanel.paintAgain();
 			}
 		});
@@ -636,7 +704,7 @@ public class AFPlot {
 		dontTrimItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AFPlot.this.trim = !AFPlot.this.trim;
+				trim = !dontTrimItem.isSelected();
 				afPanel.paintAgain();
 			}
 		});
@@ -652,7 +720,7 @@ public class AFPlot {
 		colorConfigItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				AFPlot.this.setColorByConfig(!AFPlot.this.isColorByConfig());
+				setColorByConfig(colorConfigItem.isSelected());
 				afPanel.paintAgain();
 			}
 		});
@@ -726,6 +794,7 @@ public class AFPlot {
 			frame = new JFrame();
 			frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			frame.setSize(800, 700);
+			frame.setBackground(Color.WHITE);
 			frame.setLayout(new MigLayout("hidemode 3", "0px[grow]0px", "0px[grow, fill]0px[]0px"));
 			frame.add(afPanel, "cell 0 0, grow");
 			frame.setTitle("Genvisis - AFPlot"
@@ -734,19 +803,32 @@ public class AFPlot {
 
 			alleleInfoPanel = new JPanel(new MigLayout("debug", "[center, grow]", "[center, grow]"));
 			alleleInfoPanel.setBackground(Color.WHITE);
-			alleleInfoPanel.setVisible(false);
+			alleleInfoPanel.setVisible(DEFAULT_SHOW_ALLELE_INFO);
 			frame.add(alleleInfoPanel, "west, center");
 			frame.revalidate();
 		}
+		cancelBtn = new JButton(new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cancel();
+			}
+		});
+		cancelBtn.setText("X");
+		cancelBtn.setBorder(null);
+		cancelBtn.setForeground(Color.RED);
 
 		log = proj == null ? new Logger() : proj.getLog();
 		setMarkerMap(proj == null ? null : proj.getMarkerSet().getMarkerNameMap());
 
-		setObservedData(new HashMap<>());
-		setObsAlleles(new HashMap<>());
-		setObservedDataChrPos(new HashMap<>());
-		setObsChrPosAlleles(new HashMap<>());
-		setAlleleInfo(HashMultiset.create());
+		dataSnps = new HashSet<>();
+		observeds = new HashMap<>();
+		observedsChrPos = new HashMap<>();
+		obsAlleles = new HashMap<>();
+		obsChrPosAlleles = new HashMap<>();
+		alleleInfo = HashMultiset.create();
+		g1KMarkers = new HashMap<>();
+		g1KData = new HashMap<>();
+		g1KChrPosLookup = new HashMap<>();
 	}
 
 	public void setVisible(boolean vis) {
@@ -769,33 +851,9 @@ public class AFPlot {
 		AFPlot plot = new AFPlot(null);
 		plot.setVisible(true);
 
-		// Set<Integer> chrs = null;// Sets.newHashSet(4);
-		// plot.loadFromFile("F:\\BCX2\\results\\fixed\\CARDIA_BAS_EA_141217_BC.txt.gz", chrs);
-		// plot.waitForData();
-	}
-
-	private void setObsChrPosAlleles(Map<String, String[]> obsChrPosAlleles) {
-		this.obsChrPosAlleles = obsChrPosAlleles;
-	}
-
-	private void setObsAlleles(Map<String, String[]> obsAlleles) {
-		this.obsAlleles = obsAlleles;
-	}
-
-	private void setObservedDataChrPos(Map<String, Double> observedsChrPos) {
-		this.observedsChrPos = observedsChrPos;
-	}
-
-	private void setObservedData(Map<String, Double> observeds) {
-		this.observeds = observeds;
-	}
-
-	private void setG1KChrPosLookup(Map<String, String> g1kChrPosLookup) {
-		g1KChrPosLookup = g1kChrPosLookup;
-	}
-
-	private void setG1KData(Map<String, Map<POPULATION, Double>> g1kData) {
-		g1KData = g1kData;
+		Set<Byte> chrs = null;// Sets.newHashSet(4);
+		plot.loadFromFile("F:\\BCX2\\results\\fixed\\CARDIA_BAS_EA_141217_BC.txt.gz", chrs);
+		plot.waitForData();
 	}
 
 	private void setLoading(boolean loading) {
@@ -818,14 +876,6 @@ public class AFPlot {
 		this.colorByConfig = colorByConfig;
 	}
 
-	private void setG1KMarkers(Map<String, Marker> g1kMarkers) {
-		g1KMarkers = g1kMarkers;
-	}
-
-	private void setAlleleInfo(Multiset<CONFIG> alleleInfo) {
-		this.alleleInfo = alleleInfo;
-	}
-
 	/**
 	 * @return Map of Chr:Pos to String[2] alleles
 	 */
@@ -844,18 +894,8 @@ public class AFPlot {
 		return isChrPosLookup() ? getObservedChrPosAlleles() : getObservedAlleles();
 	}
 
-	/**
-	 * @return Map of Chr:Pos to AF value
-	 */
-	public Map<String, Double> getObservedDataChrPos() {
-		return observedsChrPos;
-	}
-
-	/**
-	 * @return Map of marker name to AF value
-	 */
-	public Map<String, Double> getObservedData() {
-		return observeds;
+	public Map<String, Double> getData() {
+		return isChrPosLookup() ? observedsChrPos : observeds;
 	}
 
 	/**
