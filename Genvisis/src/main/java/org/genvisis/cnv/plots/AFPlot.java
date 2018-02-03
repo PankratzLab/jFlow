@@ -850,10 +850,6 @@ public class AFPlot {
 	public static void main(String[] args) {
 		AFPlot plot = new AFPlot(null);
 		plot.setVisible(true);
-
-		Set<Byte> chrs = null;// Sets.newHashSet(4);
-		plot.loadFromFile("F:\\BCX2\\results\\fixed\\CARDIA_BAS_EA_141217_BC.txt.gz", chrs);
-		plot.waitForData();
 	}
 
 	private void setLoading(boolean loading) {
