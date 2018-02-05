@@ -44,7 +44,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
 		}
 
 		String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-		String outFile = outDir + cleanedName + "/" + cleanedName + ".incl.xln";
+		String outFile = outDir + cleanedName + "/" + cleanedName + ".incl.xln.gz";
 		new File(outDir + cleanedName + "/").mkdirs();
 
 		PrintWriter writer = Files.getAppropriateWriter(outFile);
@@ -56,7 +56,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
 		writer.println();
 
 		for (int i = 0; i < d.getCount(); i++) {
-			 writer.print(Integer.toString(i));
+			writer.print(Integer.toString(i));
 			for (int gi = 0; gi < gateList.size(); gi++) {
 				Gate g = gateList.get(gi);
 				writer.print("\t" + Boolean.toString(incl.get(g.getName())[i]));
