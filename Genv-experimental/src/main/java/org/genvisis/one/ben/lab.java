@@ -1729,6 +1729,124 @@ public class lab {
 
 	}
 
+	// private static void fixBCXResultsAlleleFreq() {
+	// String dir = "F:\\BCX2\\results\\";
+	// String out = "F:\\BCX2\\results\\fixed\\";
+	// String map = "F:\\BCX2\\results\\rsq\\";
+	//
+	// if (!Files.isWindows()) {
+	// dir = "/scratch.global/cole0482/CARDIA/HRC/results_fixed/";
+	// out = "/scratch.global/cole0482/CARDIA/HRC/results_fixed/freqs/";
+	// map = "/scratch.global/cardia/HRC/";
+	// }
+	//
+	// List<FileLink> rsqFiles = new ArrayList<>();
+	// AliasedFileColumn snpCol = StandardFileColumns.snp("SNP");
+	// FileColumn<String> freqCol = new AliasedFileColumn("EAF", "ALT_frq");
+	// for (String f : new File(map).list(new FilenameFilter() {
+	// @Override
+	// public boolean accept(File dir, String name) {
+	// return name.endsWith(".alleleFreqs");
+	// }
+	// })) {
+	// rsqFiles.add(FileLink.setup(map + f).keys(snpCol)
+	// .values(freqCol));
+	// }
+	// for (FileLink fl : rsqFiles) {
+	// fl.build();
+	// }
+	//
+	// String[] files = {
+	// "CARDIA_BAS_EA_141217_BC.txt.gz",
+	// "CARDIA_LYM_EA_141217_BC.txt.gz",
+	// "CARDIA_MON_EA_141217_BC.txt.gz",
+	// "CARDIA_WBC_EA_141217_BC.txt.gz",
+	// "CARDIA_EOS_EA_141217_BC.txt.gz",
+	// "CARDIA_MCHC_EA_141217_BC.txt.gz",
+	// "CARDIA_NEU_EA_141217_BC.txt.gz",
+	// "CARDIA_HCT_EA_141217_BC.txt.gz",
+	// "CARDIA_MCH_EA_141217_BC.txt.gz",
+	// "CARDIA_PLT_EA_141217_BC.txt.gz",
+	// "CARDIA_HGB_EA_141217_BC.txt.gz",
+	// "CARDIA_MCV_EA_141217_BC.txt.gz",
+	// "CARDIA_RBC_EA_141217_BC.txt.gz"
+	// };
+	//
+	// for (String f : files) {
+	// AliasedFileColumn snpCol1 = StandardFileColumns.snp("SNP");
+	// FileColumn<String> chr = new AliasedFileColumn("CHR", "CHR");
+	// FileColumn<String> POS = new AliasedFileColumn("POS", "POS");
+	// FileColumn<String> STRAND = new AliasedFileColumn("STRAND", "STRAND");
+	// FileColumn<String> EFFECT_ALLELE = new AliasedFileColumn("EFFECT_ALLELE", "EFFECT_ALLELE");
+	// FileColumn<String> OTHER_ALLELE = new AliasedFileColumn("OTHER_ALLELE", "OTHER_ALLELE");
+	// FileColumn<String> N = new AliasedFileColumn("N", "N");
+	// FileColumn<String> BETA = new AliasedFileColumn("BETA", "BETA");
+	// FileColumn<String> SE = new AliasedFileColumn("SE", "SE");
+	// FileColumn<String> PVAL = new AliasedFileColumn("PVAL", "PVAL");
+	// FileColumn<String> Rsq = new AliasedFileColumn("Rsq", "Rsq");
+	// List<FileColumn<?>> order = Lists.newArrayList(snpCol1, chr, POS, STRAND, EFFECT_ALLELE,
+	// OTHER_ALLELE, N, freqCol, BETA, SE, PVAL, Rsq);
+	// FileParserFactory factory = FileParserFactory.setup(dir + f, snpCol1, chr, POS, STRAND,
+	// EFFECT_ALLELE, OTHER_ALLELE, N, BETA, SE,
+	// PVAL, Rsq);
+	// for (FileLink fl : rsqFiles) {
+	// factory.link(fl);
+	// }
+	// try {
+	// factory.build().parseToFile(out + f, "\t", order);
+	// } catch (IOException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	//
+	// }
+	//
+	// public static void createBCXPlots() {
+	// String[] files = {
+	// // "CARDIA_BAS_EA_141217_BC.txt.gz",
+	// // "CARDIA_LYM_EA_141217_BC.txt.gz",
+	// // "CARDIA_MON_EA_141217_BC.txt.gz",
+	// "CARDIA_WBC_EA_141217_BC.txt.gz",
+	// "CARDIA_EOS_EA_141217_BC.txt.gz",
+	// "CARDIA_MCHC_EA_141217_BC.txt.gz",
+	// "CARDIA_NEU_EA_141217_BC.txt.gz",
+	// "CARDIA_HCT_EA_141217_BC.txt.gz",
+	// "CARDIA_MCH_EA_141217_BC.txt.gz",
+	// "CARDIA_PLT_EA_141217_BC.txt.gz",
+	// "CARDIA_HGB_EA_141217_BC.txt.gz",
+	// "CARDIA_MCV_EA_141217_BC.txt.gz",
+	// "CARDIA_RBC_EA_141217_BC.txt.gz"
+	// };
+	// String dir1 = "F:\\BCX2\\results\\";
+	// String dir2 = "F:\\BCX2\\results\\fixed\\";
+	// String out = "F:\\BCX2\\results\\fixed\\plots\\";
+	//
+	// for (String f : files) {
+	// String f1 = dir1 + f;
+	// String o1 = out + f + ".png";
+	// String f2 = dir2 + f;
+	// String o2 = out + f + ".fixed.png";
+	// new Thread(() -> {
+	// AFPlot p;
+	// p = new AFPlot(null);
+	// p.loadFromFile(f1, null);
+	// p.waitForData();
+	// p.screenshot(o1);
+	// p = null;
+	// }).start();
+	//
+	// new Thread(() -> {
+	// AFPlot p;
+	// p = new AFPlot(null);
+	// p.loadFromFile(f2, null);
+	// p.waitForData();
+	// p.screenshot(o2);
+	// p = null;
+	// }).start();
+	// }
+	//
+	// }
+
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		int numArgs = args.length;
 		Project proj;
@@ -1738,19 +1856,19 @@ public class lab {
 
 		boolean test = true;
 		if (test) {
-
+			// createBCXPlots();
 			// processAnnotationFilesAll();
 
 			// processP2Counts_Step1();
 			// processP2Counts_Step2();
 			// processFreqs();
 
-
 			// removeParens();
 			// processP1Man_1(); // combine data within files
 			// processP1Man_2(); // combine files together
 			// combine(); // add meta data to file
-			fixBCXResults();
+			// fixBCXResults();
+			// fixBCXResultsAlleleFreq();
 
 			// runHRC();
 			// QQPlot.main(new String[]
