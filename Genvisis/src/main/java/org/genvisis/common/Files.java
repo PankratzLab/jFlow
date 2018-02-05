@@ -359,34 +359,35 @@ public class Files {
 	}
 
 
-	// causes trouble with Serialized data
 	public static boolean copyFile(String from, String to) {
-		FileReader in;
-		FileWriter out;
-		int c;
-
+		InputStream is = null;
+		OutputStream os = null;
 		try {
-			in = new FileReader(from);
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error - Cannot find " + from + " in current directory");
-			return false;
-		}
-
-		try {
-			out = new FileWriter(to);
-
-			while ((c = in.read()) != -1) {
-				out.write(c);
+			is = new FileInputStream(new File(from));
+			os = new FileOutputStream(new File(to));
+			byte[] buffer = new byte[1024];
+			int length;
+			while ((length = is.read(buffer)) > 0) {
+				os.write(buffer, 0, length);
 			}
-
-			in.close();
-			out.close();
-
 			new File(to).setLastModified(new File(from).lastModified());
 
 			return true;
-		} catch (Exception e) {
+		} catch (FileNotFoundException e) {
+			System.err.println("Error - Cannot find " + from + " in current directory");
 			return false;
+		} catch (IOException e) {
+			return false;
+		} finally {
+			try {
+				is.close();
+				os.close();
+			} catch (IOException e) {
+				if (new File(from).length() == new File(to).length()) {
+					return true;
+				}
+				return false;
+			}
 		}
 	}
 
