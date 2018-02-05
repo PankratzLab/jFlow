@@ -109,8 +109,9 @@ public class DataLine {
 	}
 
 	/**
-	 * Get the typed value from this DataLine for a given FileColumn. If the value was a parse failure
-	 * value, a {@link ParseFailureException} will be thrown.
+	 * 
+	 * Get the (known-to-be-properly-)typed value from this DataLine for a given FileColumn. If the
+	 * value was a parse failure value, a {@link ParseFailureException} will be thrown.
 	 * 
 	 * @param fc
 	 * @return

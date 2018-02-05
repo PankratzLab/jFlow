@@ -29,6 +29,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
@@ -287,12 +288,11 @@ public class AFPlot {
 			if (fileLines > TOO_MANY_SNPS) {
 				// if a huge file, trim
 				int lineMod = (int) (fileLines / TOO_MANY_SNPS);
+				double modThresh = 1d / lineMod;
 				factory.filter(new AbstractColumnFilter() {
-					long count = 0;
-
 					@Override
 					public boolean filter(DataLine values) {
-						return count++ % lineMod == 0;
+						return Math.random() < modThresh;
 					}
 				});
 			}
@@ -847,11 +847,6 @@ public class AFPlot {
 		}
 	}
 
-	public static void main(String[] args) {
-		AFPlot plot = new AFPlot(null);
-		plot.setVisible(true);
-	}
-
 	private void setLoading(boolean loading) {
 		this.loading = loading;
 	}
@@ -966,6 +961,63 @@ public class AFPlot {
 	 */
 	public boolean isColorByConfig() {
 		return colorByConfig;
+	}
+
+	public static void main(String[] args) {
+		String projArg = "proj";
+		String projDesc = "Genvisis project properties file";
+
+		String fileArg = "file";
+		String fileDesc = "File with SNP/AlleleFreq data to load";
+
+		String screenArg = "screen";
+		String screenDesc = "Create a screenshot file";
+
+		String sizeArg = "size";
+		String sizeDesc = "Screenshot size (e.g. 800,600)";
+
+		CLI cli = new CLI(AFPlot.class);
+		cli.addArg(projArg, projDesc, false);
+		cli.addArg(fileArg, fileDesc, false);
+		cli.addFlag(screenArg, screenDesc);
+		cli.addArg(sizeArg, sizeDesc, false);
+
+		Project proj = null;
+		String file = null;
+		String screen = null;
+		int[] sz = null;
+
+		if (cli.has(projArg)) {
+			proj = new Project(cli.get(projArg));
+		}
+		if (cli.has(fileArg)) {
+			file = cli.get(fileArg);
+		}
+		if (cli.has(screenArg)) {
+			screen = cli.get(screenArg);
+		}
+		if (cli.has(sizeArg)) {
+			String[] v = cli.get(sizeArg).split(",");
+			sz = new int[] {Integer.parseInt(v[0]), Integer.parseInt(v[1])};
+		}
+
+		AFPlot plot = new AFPlot(proj);
+		if (file != null) {
+			plot.loadFromFile(file, null);
+		}
+		if (screen != null) {
+			plot.waitForData();
+			if (sz != null) {
+				plot.afPanel.setSize(sz[0], sz[1]);
+			}
+			if ("".equals(screen)) {
+				plot.screenshot(ext.rootOf(file, false) + ".png");
+			} else {
+				plot.screenshot(screen);
+			}
+		} else {
+			plot.setVisible(true);
+		}
 	}
 
 }
