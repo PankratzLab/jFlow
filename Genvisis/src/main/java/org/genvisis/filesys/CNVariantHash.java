@@ -1,6 +1,7 @@
 package org.genvisis.filesys;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
@@ -134,12 +135,13 @@ public class CNVariantHash implements Serializable {
 	}
 
 	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
+		SerializedFiles.writeSerial(this, filename, filename.endsWith(".gz"));
 	}
 
 	public static CNVariantHash load(String filename, int structureType, Logger log) {
 		CNVariantHash hashes = null;
 		String suffix;
+		String suffixGz;
 
 		if (structureType == CONSTRUCT_BY_IND) {
 			suffix = ".ind.ser";
@@ -149,18 +151,31 @@ public class CNVariantHash implements Serializable {
 			System.err.println("Error - invalid CONSTRUCT type");
 			suffix = null;
 		}
+		suffixGz = suffix + ".gz";
 
 		boolean parse = Files.exists(filename + suffix);
+		boolean parseGz = Files.exists(filename + suffixGz);
 
-		if (parse) {
+		if (parseGz && !parse) {
+			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffixGz, log, false);
+		} else if (parse && !parseGz) {
+			log.report("Found unzipped CNVariantHash file, converting to zipped file.");
 			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffix, log, false);
-		}
-		if (!parse || hashes == null) {
+			if (hashes == null) {
+				log.report("Couldn't read CNVariantHash file " + filename + suffix + " - recreating...");
+				hashes = new CNVariantHash(filename, structureType, log);
+			}
+			hashes.serialize(filename + suffixGz);
+			new File(filename + suffix).delete();
+		} else if (parse && parseGz) {
+			log.report("Found both zipped and unzipped CNVariantHash file.  Loading zipped file...");
+			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffixGz, log, false);
+		} else if ((!parse && !parseGz) || hashes == null) {
 			if (hashes == null) {
 				log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
 			}
 			hashes = new CNVariantHash(filename, structureType, log);
-			hashes.serialize(filename + suffix);
+			hashes.serialize(filename + suffixGz);
 		}
 
 		hashes.setFilename(filename);
