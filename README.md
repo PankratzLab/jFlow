@@ -88,9 +88,9 @@ Performing application assembly (merging all classes into a single unified jar) 
 
 #### Style templates
 
-This repository includes Eclipse style templates, located in `Genvisis.git/config`. Before committing changes to Genvisis, please import these templates to your [Clean Up](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) and [Formatter](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) code style preferences.
+This repository includes Eclipse style templates, located in `Genvisis.git/config`. Before committing changes to Genvisis, please import these templates to your [Clean Up](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-cleanup.htm) and [Formatter](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) code style preferences.
 
-To avoid the burden of remembering to manually format code, you can also tell Eclipse to [automatically apply these formatters](https://stackoverflow.com/a/15655278/1027800) when saving files.
+To avoid the burden of remembering to manually format code, after setting the Clean Up and Formatter templates, you can also tell Eclipse to [automatically apply these formatters](https://stackoverflow.com/a/15655278/1027800) when saving files.
 
 Synchronizing code styles across all developers makes reviewing code changes much easier, as the reader is not forced to try and separate formatting vs semantic changes.
 
