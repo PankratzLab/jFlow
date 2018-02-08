@@ -1990,7 +1990,7 @@ public class SampleData {
 			String temp = reader.readLine().trim();
 			String delim = ext.determineDelimiter(temp);
 			line = temp.split(delim);
-			int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true);
+			int[] indices = ext.indexFactors(MitoPipeline.PED_INPUT, line, true, log, false);
 			boolean allElementsMissing = true;
 			for (int ind : indices) {
 				if (ind >= 0) {
