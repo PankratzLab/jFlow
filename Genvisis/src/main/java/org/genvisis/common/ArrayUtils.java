@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -5315,5 +5316,13 @@ public class ArrayUtils {
 		}
 		runs.add(run);
 		return Ints.toArray(runs);
+	}
+
+	public static <T> Map<T, Integer> indexMap(T[] values) {
+		Map<T, Integer> map = new HashMap<>();
+		for (int i = 0; i < values.length; i++) {
+			map.put(values[i], i);
+		}
+		return map;
 	}
 }
