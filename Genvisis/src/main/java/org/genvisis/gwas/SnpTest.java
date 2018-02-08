@@ -18,6 +18,7 @@ import org.genvisis.common.ext;
 import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.DoubleWrapperColumn;
 import org.genvisis.gwas.parsing.FileColumn;
+import org.genvisis.gwas.parsing.FileLink;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.FixedValueColumn;
 import org.genvisis.gwas.parsing.StandardFileColumns;
@@ -83,21 +84,39 @@ public class SnpTest {
 																StandardFileColumns.chr("CHR"),
 																StandardFileColumns.pos("POS"),
 																new FixedValueColumn("STRAND", "FWD"),
-																StandardFileColumns.a1("EFFECT_ALLELE"),
-																StandardFileColumns.a2("OTHER_ALLELE"),
+																new AliasedFileColumn("EFFECT_ALLELE", "alleleB"),
+																new AliasedFileColumn("OTHER_ALLELE", "alleleA"),
 																new FixedValueColumn("N", sampleCount),
-																new DoubleWrapperColumn(new AliasedFileColumn("EAF",
-																																							new String[] {"all_maf"})),
 																new DoubleWrapperColumn(new AliasedFileColumn("BETA",
 																																							new String[] {"frequentist_add_beta_1"})),
 																new DoubleWrapperColumn(new AliasedFileColumn("SE",
 																																							new String[] {"frequentist_add_se_1"})),
 																new DoubleWrapperColumn(new AliasedFileColumn("PVAL",
-																																							new String[] {"frequentist_add_pvalue"}))
+																																							new String[] {"frequentist_add_pvalue"})),
 		};
 	}
 
-	private static void processResults(String dir) throws IOException {
+
+	private static List<FileColumn<?>> getOutputOrder(FileColumn<?>[] resultsColumns,
+																										FileColumn<String> freqCol,
+																										FileColumn<String> rsqCol) {
+		List<FileColumn<?>> order = new ArrayList<>();
+		order.add(resultsColumns[0]);
+		order.add(resultsColumns[1]);
+		order.add(resultsColumns[2]);
+		order.add(resultsColumns[3]);
+		order.add(resultsColumns[4]);
+		order.add(resultsColumns[5]);
+		order.add(resultsColumns[6]);
+		order.add(freqCol);
+		order.add(resultsColumns[7]);
+		order.add(resultsColumns[8]);
+		order.add(resultsColumns[9]);
+		order.add(rsqCol);
+		return order;
+	}
+
+	private static void processResults(String dir, String infoDirAndTempl) throws IOException {
 		Logger log = new Logger();
 		String[] sampleFiles = Files.list(dir, ".sample");
 		final String sampleCount = sampleFiles.length > 1
@@ -114,20 +133,32 @@ public class SnpTest {
 		for (int i = 1; i < 28; i++) {
 			String outFile = outputTempl.replace("#", Integer.toString(i));
 			if (Files.exists(dir + outFile)) {
-				FileParserFactory.setup(dir + outFile, getFileColumns(sampleCount))
-												 .skipPrefix("#").build()
-												 .parseToFile(dir + "combined.results", "\t", fileInd == 0, fileInd != 0);
+				FileColumn<?>[] resultsColumns = getFileColumns(sampleCount);
+				AliasedFileColumn snpCol = StandardFileColumns.snp("SNP");
+				FileColumn<String> freqCol = new AliasedFileColumn("EAF", "ALT_frq");
+				FileColumn<String> rsqCol = new AliasedFileColumn("Rsq", "Rsq");
+
+				List<FileColumn<?>> outputOrder = getOutputOrder(resultsColumns, freqCol, rsqCol);
+
+				FileParserFactory.setup(dir + outFile, resultsColumns)
+												 .skipPrefix("#")
+												 .link(FileLink.setup(infoDirAndTempl.replace("#", Integer.toString(i)))
+																			 .keys(snpCol)
+																			 .values(freqCol, rsqCol))
+												 .build()
+												 .parseToFile(dir + "combined.results", "\t", fileInd == 0, fileInd != 0,
+																			outputOrder);
 				fileInd++;
 			}
 		}
 	}
-
 
 	Logger log = new Logger();
 
 	String snpTestExec;
 	String dataDirectory;
 	String dataFileTemplate;
+	String infoFileTemplate;
 	String dataFileExtension;
 	String repl = "#";
 	String sampleFile;
@@ -270,7 +301,8 @@ public class SnpTest {
 		Qsub.qsubDefaults("./runSnpTest.qsub", scriptExecCmd.toString());
 
 		String parseScr = "./parseSnpTest.sh";
-		Files.write(Files.getRunString() + " org.genvisis.gwas.SnpTest dir=" + ext.pwd() + " -parse",
+		Files.write(Files.getRunString() + " org.genvisis.gwas.SnpTest dir=" + ext.pwd()
+								+ " info=" + dataDirectory + infoFileTemplate + " -parse",
 								parseScr);
 		Files.chmod(parseScr);
 	}
@@ -278,6 +310,7 @@ public class SnpTest {
 	private static final String ARG_SNPTEST = "snpTest";
 	private static final String ARG_DATADIR = "dataDir";
 	private static final String ARG_DATA = "data";
+	private static final String ARG_INFOTEMP = "infoTemplate";
 	private static final String ARG_DATAEXT = "dataExt";
 	private static final String ARG_SAMPLE = "sample";
 	private static final String ARG_PHENO = "pheno";
@@ -289,6 +322,7 @@ public class SnpTest {
 	private static final String DESC_SNPTEST = "SnpTest executable (full path included unless on path)";
 	private static final String DESC_DATADIR = "Data file directory";
 	private static final String DESC_DATA = "Data filename template (e.g. chr#.vcf.gz) - assumes chromosomally-separated data files.";
+	private static final String DESC_INFOTEMP = "Info filename template (e.g. chr#.info.gz) - assumes chromosomally-separated data files.";
 	private static final String DESC_DATAEXT = "Extension of data files in data directory.";
 	private static final String DESC_SAMPLE = "Sample file (SnpTest-format)";
 	private static final String DESC_PHENO = "Name of phenotype to test";
@@ -302,6 +336,7 @@ public class SnpTest {
 
 		boolean parse = false;
 		String parseDir = null;
+		String infoDirAndTemp = null;
 		for (String arg : args) {
 			if (arg.startsWith("-parse")) {
 				parse = true;
@@ -309,18 +344,32 @@ public class SnpTest {
 			if (arg.startsWith("dir=")) {
 				parseDir = arg.split("=")[1];
 			}
+			if (arg.startsWith("info=")) {
+				infoDirAndTemp = arg.split("=")[1];
+			}
 		}
-		if ((parse && parseDir == null) || (!parse && parseDir != null)) {
+		boolean invalidParse = false;
+		if (parse) {
+			if (parseDir == null || infoDirAndTemp == null) {
+				invalidParse = true;
+			}
+		} else {
+			if (parseDir != null || infoDirAndTemp != null) {
+				invalidParse = true;
+			}
+		}
+		if (invalidParse) {
 			throw new RuntimeException(
-																 "Invalid parsing options; both -parse flag and dir= argument must be set!");
-		} else if (parse && parseDir != null) {
-			processResults(parseDir);
+																 "Invalid parsing options; -parse flag, dir=, and info= arguments must be set!");
+		} else if (parse && parseDir != null && infoDirAndTemp != null) {
+			processResults(parseDir, infoDirAndTemp);
 			return;
 		}
 
 		cli.addArg(ARG_SNPTEST, DESC_SNPTEST);
 		cli.addArg(ARG_DATADIR, DESC_DATADIR);
 		cli.addArg(ARG_DATA, DESC_DATA);
+		cli.addArg(ARG_INFOTEMP, DESC_INFOTEMP);
 		cli.addArg(ARG_DATAEXT, DESC_DATAEXT);
 		cli.addArg(ARG_SAMPLE, DESC_SAMPLE);
 		cli.addArg(ARG_PHENO, DESC_PHENO);
