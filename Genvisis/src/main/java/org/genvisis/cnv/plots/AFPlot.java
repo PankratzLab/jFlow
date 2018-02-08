@@ -142,8 +142,8 @@ public class AFPlot {
 			FileColumn<String> snpCol = new AliasedFileColumn("SNP", "ID");
 			FileColumn<Byte> chrCol = StandardFileColumns.chr("CHROM");
 			FileColumn<Integer> posCol = StandardFileColumns.pos("POS");
-			FileColumn<String> refCol = StandardFileColumns.a2("REF");
-			FileColumn<String> altCol = StandardFileColumns.a1("ALT");
+			FileColumn<String> refCol = new AliasedFileColumn("REF", "REF");
+			FileColumn<String> altCol = new AliasedFileColumn("ALT", "ALT");
 			FileColumn<Double> afAll = new DoubleWrapperColumn(new AliasedFileColumn("AF", "AF"));
 			FileColumn<Double> afEas = new DoubleWrapperColumn(new AliasedFileColumn("EAS", "EAS_AF"));
 			FileColumn<Double> afEur = new DoubleWrapperColumn(new AliasedFileColumn("EUR", "EUR_AF"));
@@ -308,6 +308,7 @@ public class AFPlot {
 			setChrPosLookup(true);
 			if (chrPosItem != null) {
 				chrPosItem.setSelected(true);
+				setForceRedraw(false);
 			}
 		}
 		if (trim) {
@@ -322,13 +323,13 @@ public class AFPlot {
 		FileColumn<String> snpCol = StandardFileColumns.snp("SNP");
 		FileColumn<Double> mafCol = new DoubleWrapperColumn(new AliasedFileColumn("MAF",
 																																							Aliases.ALLELE_FREQS));
-		FileColumn<String> a1 = StandardFileColumns.a1("REF");
-		FileColumn<String> a2 = StandardFileColumns.a2("ALT");
+		FileColumn<String> ref = new AliasedFileColumn("REF", Aliases.ALLELES[1]);
+		FileColumn<String> alt = new AliasedFileColumn("ALT", Aliases.ALLELES[0]);
 		FileColumn<Byte> chr = StandardFileColumns.chr("CHR");
 		FileColumn<Integer> pos = StandardFileColumns.pos("POS");
 		FileParserFactory factory = FileParserFactory.setup(file, snpCol, mafCol);
 		if (mkrMap == null) {
-			factory.optionalColumns(chr, pos, a1, a2);
+			factory.optionalColumns(chr, pos, ref, alt);
 		}
 		factory.filter(new AbstractColumnFilter(snpCol, mafCol) {
 			@Override
@@ -336,9 +337,8 @@ public class AFPlot {
 				boolean key = getG1KMarkers().containsKey(values.getString(snpCol));
 				if (!key) {
 					if (values.hasValid(chr) && values.hasValid(pos)) {
-						key = getG1KMarkers().containsKey(values.getUnsafe(chr)
-																							+ ":"
-																							+ values.getUnsafe(pos));
+						key = getG1KMarkers().containsKey(new GenomicPosition(values.getUnsafe(chr),
+																																	values.getUnsafe(pos)));
 					}
 				}
 				boolean nonMiss = values.hasValid(mafCol);
@@ -369,8 +369,8 @@ public class AFPlot {
 				String[] alleles = new String[] {mkr.getRef().getBaseString(),
 																				 mkr.getAlt().getBaseString()};
 				getObservedAlleles().put(key, alleles);
-			} else if (line.hasValid(a1) && line.hasValid(a2)) {
-				getObservedAlleles().put(key, new String[] {line.getString(a1), line.getString(a2)});
+			} else if (line.hasValid(ref) && line.hasValid(alt)) {
+				getObservedAlleles().put(key, new String[] {line.getString(ref), line.getString(alt)});
 			}
 			task.doStep();
 		}

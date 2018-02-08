@@ -10,7 +10,11 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.VIOLETS;
+import org.genvisis.common.PSF.Colors.YELLOWS;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 
@@ -55,19 +59,19 @@ public class AFPanel extends AbstractPanel {
 																Color.GRAY,
 																Color.YELLOW,
 																Color.RED,
-																PSF.Colors.BLUE_VIOLET,
-																PSF.Colors.GREEN,
-																PSF.Colors.DODGER_BLUE,
-																PSF.Colors.SLATE_BLUE,
-																PSF.Colors.GREEN_YELLOW,
-																PSF.Colors.ORCHID,
-																PSF.Colors.AMBER,
-																PSF.Colors.MANGO_TANGO,
-																PSF.Colors.NAVY,
-																PSF.Colors.CORNFLOWER_BLUE,
-																PSF.Colors.DARK_SLATE_BLUE,
-																PSF.Colors.SLATE_BLUE,
-																PSF.Colors.MEDIUM_SLATE_BLUE
+																VIOLETS.BLUE_VIOLET,
+																GREENS.GREEN,
+																BLUES.DODGER_BLUE,
+																BLUES.SLATE_BLUE,
+																GREENS.GREEN_YELLOW,
+																VIOLETS.ORCHID,
+																YELLOWS.AMBER,
+																ORANGES.MANGO_TANGO,
+																BLUES.NAVY,
+																BLUES.CORNFLOWER_BLUE,
+																BLUES.DARK_SLATE_BLUE,
+																BLUES.SLATE_BLUE,
+																BLUES.MEDIUM_SLATE_BLUE
 		});
 		points = new PlotPoint[0];
 		resetMessage();
@@ -102,6 +106,12 @@ public class AFPanel extends AbstractPanel {
 			points = new PlotPoint[0];
 			return;
 		}
+		if (plot.isLoading()) {
+			setNullMessage("Loading data, please wait...");
+			points = new PlotPoint[0];
+			return;
+		}
+		plot.setForceRedraw(false);
 
 		lines = plot.isMaskCenter() ? CENTER_LINES : null;
 
@@ -122,14 +132,16 @@ public class AFPanel extends AbstractPanel {
 			if (add) {
 				g1Marker = plot.getG1KMarkers().get(obs.getKey());
 				color = COLOR;
-				if (alleles.containsKey(obs.getKey()) && plot.isColorByConfig()) {
+				if (alleles.containsKey(obs.getKey())) {
 					config = StrandOps.determineStrandConfig(alleles.get(obs.getKey()),
 																									 new String[] {g1Marker.getRef()
 																																				 .getBaseString(),
 																																 g1Marker.getAlt()
 																																				 .getBaseString()});
 					plot.getAlleleInfo().add(config);
-					color = (byte) configColorMap.get(config).intValue();
+					if (plot.isColorByConfig()) {
+						color = (byte) configColorMap.get(config).intValue();
+					}
 				}
 				pointList.add(new PlotPoint(obs.getKey().toString(), PointType.FILLED_CIRCLE, afExp,
 																		afObs, PTSIZE, color,
