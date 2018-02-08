@@ -460,15 +460,36 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 	}
 
 	public void parseToFile(String outputFile, String outDelim) throws IOException {
-		this.parseToFile(outputFile, outDelim, true, false);
+		this.parseToFile(outputFile, outDelim, true, false, null);
+	}
+
+	public void parseToFile(String outputFile, String outDelim,
+													List<FileColumn<?>> outputOrder) throws IOException {
+		this.parseToFile(outputFile, outDelim, true, false, outputOrder);
 	}
 
 	public void parseToFile(String outputFile, String outDelim, boolean writeHeader,
 													boolean append) throws IOException {
+		parseToFile(outputFile, outDelim, writeHeader, append, null);
+	}
+
+	public void parseToFile(String outputFile, String outDelim, boolean writeHeader,
+													boolean append, List<FileColumn<?>> outputOrder) throws IOException {
 		Iterator<Map<FileColumn<?>, String>> iter = iterator();
 
 		PrintWriter writer = Files.getAppropriateWriter(outputFile, append);
-		List<FileColumn<?>> outputColumns = getOutputColumnsInOrder();
+		List<FileColumn<?>> outputColumns = outputOrder == null ? getOutputColumnsInOrder()
+																														: outputOrder;
+		if (outputOrder != null) {
+			List<FileColumn<?>> allOutput = getOutputColumnsInOrder();
+			if (!outputColumns.containsAll(allOutput)) {
+				for (FileColumn<?> fc : allOutput) {
+					if (!outputColumns.contains(fc)) {
+						outputColumns.add(fc);
+					}
+				}
+			}
+		}
 
 		StringBuilder lineOut = new StringBuilder();
 		if (writeHeader) {
