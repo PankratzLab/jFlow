@@ -192,11 +192,17 @@ public class FCSBooleanComparator {
 		String[] hdr1 = Files.getHeaderOfFile(f1, log);
 		String[] hdr2 = Files.getHeaderOfFile(f2, log);
 
+		int ind;
+		String h1, h2;
 		HashMap<String, int[]> columnInds = new HashMap<>();
 		for (int i1 = 0; i1 < hdr1.length; i1++) {
+			h1 = (ind = hdr1[i1].indexOf('(')) > 0 ? hdr1[i1].substring(0, ind).trim() : hdr1[i1].trim();
 			for (int i2 = 0; i2 < hdr2.length; i2++) {
-				if (hdr1[i1].equals(hdr2[i2])) {
-					columnInds.put(hdr1[i1], new int[] {i1, i2});
+				h2 = (ind = hdr2[i2].indexOf('(')) > 0 ? hdr2[i2].substring(0, ind).trim()
+																							 : hdr2[i2].trim();
+
+				if (h1.equals(h2)) {
+					columnInds.put(h2, new int[] {i1, i2});
 					break;
 				}
 			}
