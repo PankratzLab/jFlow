@@ -1,5 +1,6 @@
 package org.genvisis.common;
 
+import java.awt.Color;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -32,6 +33,56 @@ public class PSF {
 		if (Thread.currentThread().isInterrupted()) {
 			throw new RuntimeException(new InterruptedException());
 		}
+	}
+
+	/**
+	 * Stores colors rather than recreating them for each use.<br />
+	 * Names are from http://www.color-blindness.com/color-name-hue/
+	 */
+	public static class Colors {
+
+		public static final Color MIDNIGHT_EXPRESS = new Color(33, 31, 53);
+		public static final Color PERSIAN_BLUE = new Color(23, 58, 172);
+		public static final Color VENETIAN_RED = new Color(201, 30, 10);
+		public static final Color MAROON = new Color(100, 50, 0);
+		public static final Color BLUE_VIOLET = new Color(140, 20, 180);
+		public static final Color SAFETY_ORANGE = new Color(255, 100, 0);
+		public static final Color GREEN = new Color(33, 87, 0);
+		public static final Color DODGER_BLUE = new Color(55, 129, 252);
+		public static final Color SLATE_BLUE = new Color(94, 88, 214);
+		public static final Color GREEN_YELLOW = new Color(189, 243, 61);
+		public static final Color ORCHID = new Color(217, 109, 194);
+		public static final Color NAVY = new Color(0, 0, 128);
+		public static final Color INDOCHINE = new Color(153, 102, 51);
+		public static final Color WINDSOR = new Color(62, 46, 133);
+		public static final Color FREE_SPEECH_AQUAMARINE = new Color(0, 157, 126);
+		public static final Color CINNABAR = new Color(230, 73, 39);
+		public static final Color SUNSHADE = new Color(247, 150, 70);
+		public static final Color LOLA = new Color(189, 174, 198);
+		public static final Color CHRISTALLE = new Color(66, 28, 82);
+		public static final Color FIREBRICK = new Color(178, 34, 34);
+		public static final Color DARK_CYAN = new Color(0, 150, 150);
+		public static final Color CORNFLOWER_BLUE = new Color(100, 149, 237);
+		public static final Color DARK_SLATE_BLUE = new Color(72, 61, 139);
+		public static final Color MEDIUM_SLATE_BLUE = new Color(123, 104, 238);
+		public static final Color LIGHT_SLATE_BLUE = new Color(132, 112, 255);
+		public static final Color MEDIUM_BLUE = new Color(0, 0, 205);
+		public static final Color NEON_BLUE = new Color(65, 105, 225);
+		public static final Color DEEP_SKY_BLUE = new Color(0, 191, 255);
+		public static final Color LIGHT_SKY_BLUE = new Color(135, 206, 250);
+		public static final Color STEEL_BLUE = new Color(70, 130, 180);
+		public static final Color LIGHT_STEEL_BLUE = new Color(176, 196, 222);
+		public static final Color LIGHT_BLUE = new Color(173, 216, 230);
+		public static final Color POWDER_BLUE = new Color(176, 224, 230);
+		public static final Color PALE_TURQUOISE = new Color(175, 238, 238);
+		public static final Color DARK_TURQUOISE = new Color(0, 206, 209);
+		public static final Color MEDIUM_TURQUOISE = new Color(72, 209, 204);
+		public static final Color TURQUOISE = new Color(64, 224, 208);
+		public static final Color AQUA = Color.CYAN;
+		public static final Color LIGHT_CYAN = new Color(224, 255, 255);
+		public static final Color AMBER = new Color(255, 192, 0);
+		public static final Color MANGO_TANGO = new Color(227, 108, 9);
+
 	}
 
 	/**
