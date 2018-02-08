@@ -11,6 +11,7 @@ import org.genvisis.cnv.qc.MendelErrors;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -298,6 +299,7 @@ public class Pedigree extends FamilyStructure {
 			}
 		}
 
+		Map<String, Integer> sampleIndices = samples == null ? null : ArrayUtils.indexMap(samples);
 		this.pedigreeFile = pedigreeFile;
 		for (int i = 0; i < ids.length; i++) {
 			int iDNAIndex = MISSING_DNA_INDEX;
@@ -305,16 +307,16 @@ public class Pedigree extends FamilyStructure {
 			int moDNAIndex = MISSING_DNA_INDEX;
 
 			if (proj != null) {
-				iDNAIndex = getSampleIndex(dnas[i], sampleData, samples);
+				iDNAIndex = getSampleIndex(dnas[i], sampleData, sampleIndices);
 
 				int faIDIndex = getIndexOfFaInIDs(i);
 				if (faIDIndex != -1) {
-					faDNAIndex = getSampleIndex(dnas[faIDIndex], sampleData, samples);
+					faDNAIndex = getSampleIndex(dnas[faIDIndex], sampleData, sampleIndices);
 				}
 
 				int moIDIndex = getIndexOfMoInIDs(i);
 				if (moIDIndex != -1) {
-					moDNAIndex = getSampleIndex(dnas[moIDIndex], sampleData, samples);
+					moDNAIndex = getSampleIndex(dnas[moIDIndex], sampleData, sampleIndices);
 				}
 			}
 
@@ -322,11 +324,12 @@ public class Pedigree extends FamilyStructure {
 		}
 	}
 
-	private static int getSampleIndex(String sample, SampleData sampleData, String[] projectSamples) {
+	private static int getSampleIndex(String sample, SampleData sampleData,
+																		Map<String, Integer> projectSamples) {
 		int sampleIndex = MISSING_DNA_INDEX;
 		if (sample != null && !sample.equals(FamilyStructure.MISSING_ID_STR) && sampleData != null
 				&& projectSamples != null && sampleData.lookup(sample) != null) {
-			sampleIndex = ext.indexOfStr(sampleData.lookup(sample)[0], projectSamples);
+			sampleIndex = projectSamples.get(sampleData.lookup(sample)[0]);
 		}
 		return sampleIndex;
 	}
