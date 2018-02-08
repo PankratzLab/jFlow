@@ -18,6 +18,7 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF;
 import org.genvisis.mining.Distance;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
@@ -54,35 +55,22 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 	// new Color(71, 0, 113), // blue purple
 	// new Color(174, 0, 68)}; // red purple
 
-	// public static final Color[] DEFAULT_COLORS = {Color.BLACK,
-	// new Color(203, 30, 44), // red
-	// new Color(0, 89, 168), // blue
-	// new Color(52, 168, 63), // green
-	// new Color(94, 42, 132), // purple
-	// new Color(237, 112, 35), // orange
-	// new Color(255, 241, 0), // yellow
-	// new Color(230, 73, 39), // orange red
-	// new Color(249, 171, 22), // yellow orange
-	// new Color(182, 209, 36), // yellow green
-	// new Color(0, 157, 126), // blue green
-	// new Color(62, 46, 133), // blue purple
-	// new Color(126, 37, 131)}; // red purple
 
-	public static final Color[] DEFAULT_COLORS = {Color.BLACK, new Color(201, 30, 10), // red
-																								new Color(55, 129, 252), // light blue
-																								new Color(140, 20, 180), // deep purple
-																								new Color(33, 87, 0), // dark green
-																								new Color(247, 150, 70), // orange
-																								new Color(94, 88, 214), // light purple
-																								new Color(217, 109, 194), // deep red/pink
-																								new Color(189, 243, 61), // light green
-																								new Color(230, 73, 39), // orange red
-																								new Color(255, 241, 0), // yellow
-																								new Color(0, 157, 126), // blue green
-																								new Color(62, 46, 133), // blue purple
-																								new Color(0, 0, 128), // blue
-																								new Color(102, 51, 0), // brown
-																								new Color(153, 102, 51), // light brown
+	public static final Color[] DEFAULT_COLORS = {Color.BLACK, PSF.Colors.VENETIAN_RED, // red
+																								PSF.Colors.DODGER_BLUE, // light blue
+																								PSF.Colors.BLUE_VIOLET, // deep purple
+																								PSF.Colors.GREEN, // dark green
+																								PSF.Colors.SUNSHADE, // orange
+																								PSF.Colors.SLATE_BLUE, // light purple
+																								PSF.Colors.ORCHID, // deep red/pink
+																								PSF.Colors.GREEN_YELLOW, // light green
+																								PSF.Colors.CINNABAR, // orange red
+																								Color.YELLOW, // yellow
+																								PSF.Colors.FREE_SPEECH_AQUAMARINE, // blue green
+																								PSF.Colors.WINDSOR, // blue purple
+																								PSF.Colors.NAVY, // blue
+																								PSF.Colors.MAROON, // brown
+																								PSF.Colors.INDOCHINE, // light brown
 	};
 
 	public static final Color[] BLUES = {new Color(25, 25, 112), new Color(0, 0, 128),

@@ -45,22 +45,22 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
 	public static final double NUM_SD_FOR_OUTLIERS = 3.0;
 
-	public static Color[] COLOR_SCHEME = {new Color(0, 0, 0), // black. for 0 - missing
-																				new Color(0, 0, 255), // blue. for 1 - normal male
-																				new Color(255, 175, 175), // pink. for 2 - normal female
-																				new Color(0, 255, 0), // Green. for 3 - full Klinefelter's
-																															// XXY
-																				new Color(0, 150, 150), // blue-green. for 4 - UPD
-																																// Klinefelter's XXY
-																				new Color(51, 153, 255), // light blue. for 5 - mosaic
-																																 // Klinefelter's
-																				new Color(255, 0, 0), // red. for 6 - Triple X
-																				new Color(178, 34, 34), // firebrick. for 7 - mosaic Triple
-																																// X
-																				new Color(66, 28, 82), // dark purple. for 8 - Turner's XO
+	public static Color[] COLOR_SCHEME = {Color.BLACK, // black. for 0 - missing
+																				Color.BLUE, // blue. for 1 - normal male
+																				Color.PINK, // pink. for 2 - normal female
+																				Color.GREEN, // Green. for 3 - full Klinefelter's
+																										 // XXY
+																				PSF.Colors.DARK_CYAN, // blue-green. for 4 - UPD
+																															// Klinefelter's XXY
+																				PSF.Colors.DODGER_BLUE, // light blue. for 5 - mosaic
+																																// Klinefelter's
+																				Color.RED, // red. for 6 - Triple X
+																				PSF.Colors.FIREBRICK, // firebrick. for 7 - mosaic Triple
+																															// X
+																				PSF.Colors.CHRISTALLE, // dark purple. for 8 - Turner's XO
 																															 // without mosaicism
-																				new Color(189, 174, 198) // light purple.for 9 - mosaic
-																																 // Turner's
+																				PSF.Colors.LOLA // light purple.for 9 - mosaic
+																												// Turner's
 	};
 
 	public static String[] COLOR_SCHEME_MEANING = {"Missing", "Normal Male", "Normal Female",

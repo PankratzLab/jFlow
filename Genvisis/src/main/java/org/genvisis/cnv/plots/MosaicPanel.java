@@ -48,18 +48,19 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 	public static final double HIGHLIGHT_DISTANCE = SIZE * 0.8; // used to be Math.sqrt(SIZE*SIZE/2);
 	public static final int DOUBLE_CLICK_INTERVAL = 500;
 
-	private final Color[] mosaicColorScheme = {Color.BLACK, Color.GRAY, new Color(55, 129, 252), // dark/light
-																																															 // blue
-																						 new Color(140, 20, 180), // deep purple
-																						 new Color(0, 100, 0), // green
-																						 new Color(200, 30, 10), // red
-																						 new Color(100, 50, 0), // brown
-																						 new Color(255, 100, 0), // orange
-																						 new Color(217, 109, 194), // pink
-																						 new Color(94, 88, 214), // light purple
-																						 new Color(189, 243, 61), // neon green
-																						 new Color(33, 31, 53), // nearly black
-																						 new Color(255, 255, 255), // white
+	private final Color[] mosaicColorScheme = {Color.BLACK,
+																						 Color.GRAY,
+																						 PSF.Colors.DODGER_BLUE,
+																						 PSF.Colors.BLUE_VIOLET,
+																						 PSF.Colors.GREEN,
+																						 PSF.Colors.VENETIAN_RED,
+																						 PSF.Colors.MAROON,
+																						 PSF.Colors.SAFETY_ORANGE,
+																						 PSF.Colors.ORCHID,
+																						 PSF.Colors.SLATE_BLUE,
+																						 PSF.Colors.GREEN_YELLOW,
+																						 PSF.Colors.MIDNIGHT_EXPRESS,
+																						 Color.WHITE,
 	};
 
 	private Project proj;

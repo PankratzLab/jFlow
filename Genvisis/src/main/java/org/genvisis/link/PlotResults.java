@@ -100,35 +100,35 @@ public class PlotResults extends JFrame implements ActionListener {
 	private static final String UNCHECK_ALL = "Uncheck all";
 
 
-	private static final Color[] DEFAULT_COLOR_SCHEME = {new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+	private static final Color[] DEFAULT_COLOR_SCHEME = {PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
+																											 PSF.Colors.PERSIAN_BLUE, // dark blue
+																											 PSF.Colors.VENETIAN_RED, // deep red
+																											 PSF.Colors.BLUE_VIOLET, // deep purple
+																											 PSF.Colors.GREEN, // dark green
+																											 PSF.Colors.DODGER_BLUE, // light blue
+																											 PSF.Colors.ORCHID, // pink
+																											 PSF.Colors.SLATE_BLUE, // light purple
+																											 PSF.Colors.GREEN_YELLOW, // light green
 
-																											 new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+																											 PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
+																											 PSF.Colors.PERSIAN_BLUE, // dark blue
+																											 PSF.Colors.VENETIAN_RED, // deep red
+																											 PSF.Colors.BLUE_VIOLET, // deep purple
+																											 PSF.Colors.GREEN, // dark green
+																											 PSF.Colors.DODGER_BLUE, // light blue
+																											 PSF.Colors.ORCHID, // pink
+																											 PSF.Colors.SLATE_BLUE, // light purple
+																											 PSF.Colors.GREEN_YELLOW, // light green
 
-																											 new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+																											 PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
+																											 PSF.Colors.PERSIAN_BLUE, // dark blue
+																											 PSF.Colors.VENETIAN_RED, // deep red
+																											 PSF.Colors.BLUE_VIOLET, // deep purple
+																											 PSF.Colors.GREEN, // dark green
+																											 PSF.Colors.DODGER_BLUE, // light blue
+																											 PSF.Colors.ORCHID, // pink
+																											 PSF.Colors.SLATE_BLUE, // light purple
+																											 PSF.Colors.GREEN_YELLOW, // light green
 	};
 
 

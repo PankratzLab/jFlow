@@ -502,24 +502,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		}
 	};
 
-	// private Color[] colorScheme = {new Color(33, 31, 53), // dark dark
-	// new Color(23, 58, 172), // dark blue
-	// new Color(201, 30, 10), // deep red
-	// new Color(140, 20, 180), // deep purple
-	// new Color(33, 87, 0), // dark green
-	// new Color(55, 129, 252), // light blue
-	// new Color(217, 109, 194), // pink
-	// new Color(94, 88, 214), // light purple
-	// new Color(189, 243, 61), // light green
-	// };
-
 	static ArrayList<Color[]> getColor() {
 		ArrayList<Color[]> colors = new ArrayList<Color[]>();
-		colors.add(new Color[] {new Color(23, 58, 172), new Color(55, 129, 252)});
-		colors.add(new Color[] {new Color(140, 20, 180), new Color(94, 88, 214)}); // deep/light purple
-		colors.add(new Color[] {new Color(33, 87, 0), new Color(189, 243, 61)}); // dark green
-		colors.add(new Color[] {new Color(201, 30, 10), new Color(217, 109, 194)}); // deep red/pink
-		colors.add(new Color[] {new Color(33, 31, 53), new Color(255, 255, 255)});
+		colors.add(new Color[] {PSF.Colors.PERSIAN_BLUE, PSF.Colors.DODGER_BLUE});
+		colors.add(new Color[] {PSF.Colors.BLUE_VIOLET, PSF.Colors.SLATE_BLUE}); // deep/light purple
+		colors.add(new Color[] {PSF.Colors.GREEN, PSF.Colors.GREEN_YELLOW}); // dark green
+		colors.add(new Color[] {PSF.Colors.VENETIAN_RED, PSF.Colors.ORCHID}); // deep red/pink
+		colors.add(new Color[] {PSF.Colors.MIDNIGHT_EXPRESS, Color.WHITE});
 		return colors;
 	}
 
