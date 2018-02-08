@@ -31,7 +31,10 @@ import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.FCSPlot.Classification;
 import org.genvisis.one.ben.fcs.gating.Gate;
@@ -111,16 +114,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
 	private Color[] createColorArray() {
 		Color[] colors = new Color[50];
-		colors[0] = PSF.Colors.MIDNIGHT_EXPRESS; // dark dark
-		colors[1] = PSF.Colors.VENETIAN_RED; // deep red
-		colors[2] = PSF.Colors.SLATE_BLUE; // light purple
+		colors[0] = BLUES.MIDNIGHT_EXPRESS; // dark dark
+		colors[1] = REDS.VENETIAN_RED; // deep red
+		colors[2] = BLUES.SLATE_BLUE; // light purple
 		colors[3] = new Color(189, 243, 61); // light green
 		colors[4] = new Color(217, 109, 194); // pink
-		colors[5] = PSF.Colors.GREEN; // dark green
-		colors[6] = PSF.Colors.PERSIAN_BLUE; // dark blue
-		colors[7] = PSF.Colors.BLUE_VIOLET; // deep purple
+		colors[5] = GREENS.GREEN; // dark green
+		colors[6] = BLUES.PERSIAN_BLUE; // dark blue
+		colors[7] = VIOLETS.BLUE_VIOLET; // deep purple
 		colors[8] = new Color(0, 0, 128); // ALL KINDS OF BLUES
-		colors[9] = PSF.Colors.DODGER_BLUE; // light blue
+		colors[9] = BLUES.DODGER_BLUE; // light blue
 		int[][] cols = ParulaColorMap.getParulaMap(40);
 		for (int i = 10; i < colors.length; i++) {
 			colors[i] = new Color(cols[i - 10][0], cols[i - 10][1], cols[i - 10][2]);
