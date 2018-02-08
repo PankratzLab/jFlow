@@ -130,6 +130,10 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.Positions;
 import org.genvisis.common.TransferableImage;
 import org.genvisis.common.ext;
@@ -504,11 +508,11 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
 	static ArrayList<Color[]> getColor() {
 		ArrayList<Color[]> colors = new ArrayList<Color[]>();
-		colors.add(new Color[] {PSF.Colors.PERSIAN_BLUE, PSF.Colors.DODGER_BLUE});
-		colors.add(new Color[] {PSF.Colors.BLUE_VIOLET, PSF.Colors.SLATE_BLUE}); // deep/light purple
-		colors.add(new Color[] {PSF.Colors.GREEN, PSF.Colors.GREEN_YELLOW}); // dark green
-		colors.add(new Color[] {PSF.Colors.VENETIAN_RED, PSF.Colors.ORCHID}); // deep red/pink
-		colors.add(new Color[] {PSF.Colors.MIDNIGHT_EXPRESS, Color.WHITE});
+		colors.add(new Color[] {BLUES.PERSIAN_BLUE, BLUES.DODGER_BLUE});
+		colors.add(new Color[] {VIOLETS.BLUE_VIOLET, BLUES.SLATE_BLUE}); // deep/light purple
+		colors.add(new Color[] {GREENS.GREEN, GREENS.GREEN_YELLOW}); // dark green
+		colors.add(new Color[] {REDS.VENETIAN_RED, VIOLETS.ORCHID}); // deep red/pink
+		colors.add(new Color[] {BLUES.MIDNIGHT_EXPRESS, Color.WHITE});
 		return colors;
 	}
 
@@ -3262,6 +3266,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 		if (chr == -1) {
 			chr = oldChr;
 			return;
+		}
+		if (!markerChrMap.containsKey(chr)) {
+			if (markerChrMap.containsKey(oldChr)) {
+				chr = oldChr;
+				return;
+			}
+			chr = markerChrMap.keys().stream().min(Byte::compareTo).get();
 		}
 		if (chr != oldChr) {
 			start = stop = -1;

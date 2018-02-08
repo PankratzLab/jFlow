@@ -24,7 +24,10 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Numbers;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Histogram;
@@ -32,38 +35,38 @@ import org.genvisis.stats.Histogram;
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																								PSF.Colors.VENETIAN_RED, // deep red
-																								PSF.Colors.SLATE_BLUE, // light purple
+	public static final Color[] DEFAULT_COLORS = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																								REDS.VENETIAN_RED, // deep red
+																								BLUES.SLATE_BLUE, // light purple
 																								new Color(189, 243, 61), // light green
 																								new Color(217, 109, 194), // pink
-																								PSF.Colors.GREEN, // dark green
-																								PSF.Colors.PERSIAN_BLUE, // dark blue
-																								PSF.Colors.BLUE_VIOLET, // deep purple
-																								PSF.Colors.NAVY, // ALL KINDS OF BLUES
-																								PSF.Colors.DODGER_BLUE, // light blue
-																								PSF.Colors.CORNFLOWER_BLUE,
-																								PSF.Colors.DARK_SLATE_BLUE,
-																								PSF.Colors.SLATE_BLUE,
-																								PSF.Colors.MEDIUM_SLATE_BLUE,
-																								PSF.Colors.LIGHT_SLATE_BLUE,
-																								PSF.Colors.MEDIUM_BLUE,
-																								PSF.Colors.NEON_BLUE,
+																								GREENS.GREEN, // dark green
+																								BLUES.PERSIAN_BLUE, // dark blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
+																								BLUES.NAVY, // ALL KINDS OF BLUES
+																								BLUES.DODGER_BLUE, // light blue
+																								BLUES.CORNFLOWER_BLUE,
+																								BLUES.DARK_SLATE_BLUE,
+																								BLUES.SLATE_BLUE,
+																								BLUES.MEDIUM_SLATE_BLUE,
+																								BLUES.LIGHT_SLATE_BLUE,
+																								BLUES.MEDIUM_BLUE,
+																								BLUES.ROYAL_BLUE,
 																								Color.BLUE,
-																								PSF.Colors.DODGER_BLUE,
-																								PSF.Colors.DEEP_SKY_BLUE,
-																								PSF.Colors.LIGHT_SKY_BLUE,
-																								PSF.Colors.LIGHT_SKY_BLUE,
-																								PSF.Colors.STEEL_BLUE,
-																								PSF.Colors.LIGHT_STEEL_BLUE,
-																								PSF.Colors.LIGHT_BLUE,
-																								PSF.Colors.POWDER_BLUE,
-																								PSF.Colors.PALE_TURQUOISE,
-																								PSF.Colors.DARK_TURQUOISE,
-																								PSF.Colors.MEDIUM_TURQUOISE,
-																								PSF.Colors.TURQUOISE,
-																								PSF.Colors.AQUA,
-																								PSF.Colors.LIGHT_CYAN,
+																								BLUES.DODGER_BLUE,
+																								BLUES.DEEP_SKY_BLUE,
+																								BLUES.LIGHT_SKY_BLUE,
+																								BLUES.LIGHT_SKY_BLUE,
+																								BLUES.STEEL_BLUE,
+																								BLUES.LIGHT_STEEL_BLUE,
+																								BLUES.LIGHT_BLUE,
+																								BLUES.POWDER_BLUE,
+																								BLUES.PALE_TURQUOISE,
+																								BLUES.DARK_TURQUOISE,
+																								BLUES.MEDIUM_TURQUOISE,
+																								BLUES.TURQUOISE,
+																								BLUES.AQUA,
+																								BLUES.LIGHT_CYAN,
 
 	};
 	private static final double DEFAULT_HALF_BIN_SIZE = 0.001;

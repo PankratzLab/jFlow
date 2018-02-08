@@ -38,46 +38,51 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
+import org.genvisis.common.PSF.Colors.YELLOWS;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static Color[] DEFAULT_COLORS = new Color[] {
-																											PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																											PSF.Colors.PERSIAN_BLUE, // dark blue
-																											PSF.Colors.VENETIAN_RED, // deep red
-																											PSF.Colors.BLUE_VIOLET, // deep purple
-																											PSF.Colors.GREEN, // dark green
-																											PSF.Colors.DODGER_BLUE, // light blue
-																											PSF.Colors.SLATE_BLUE, // light purple
-																											PSF.Colors.GREEN_YELLOW, // light green
-																											PSF.Colors.ORCHID, // pink
-																											PSF.Colors.NAVY,
-																											PSF.Colors.CORNFLOWER_BLUE,
-																											PSF.Colors.DARK_SLATE_BLUE,
-																											PSF.Colors.SLATE_BLUE,
-																											PSF.Colors.MEDIUM_SLATE_BLUE,
-																											PSF.Colors.LIGHT_SLATE_BLUE,
-																											PSF.Colors.MEDIUM_BLUE,
-																											PSF.Colors.NEON_BLUE,
+																											BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											BLUES.PERSIAN_BLUE, // dark blue
+																											REDS.VENETIAN_RED, // deep red
+																											VIOLETS.BLUE_VIOLET, // deep purple
+																											GREENS.GREEN, // dark green
+																											BLUES.DODGER_BLUE, // light blue
+																											BLUES.SLATE_BLUE, // light purple
+																											GREENS.GREEN_YELLOW, // light green
+																											VIOLETS.ORCHID, // pink
+																											BLUES.NAVY,
+																											BLUES.CORNFLOWER_BLUE,
+																											BLUES.DARK_SLATE_BLUE,
+																											BLUES.SLATE_BLUE,
+																											BLUES.MEDIUM_SLATE_BLUE,
+																											BLUES.LIGHT_SLATE_BLUE,
+																											BLUES.MEDIUM_BLUE,
+																											BLUES.ROYAL_BLUE,
 																											Color.BLUE,
-																											PSF.Colors.DODGER_BLUE,
-																											PSF.Colors.DEEP_SKY_BLUE,
-																											PSF.Colors.LIGHT_SKY_BLUE,
-																											PSF.Colors.LIGHT_SKY_BLUE,
-																											PSF.Colors.STEEL_BLUE,
-																											PSF.Colors.LIGHT_STEEL_BLUE,
-																											PSF.Colors.LIGHT_BLUE,
-																											PSF.Colors.POWDER_BLUE,
-																											PSF.Colors.PALE_TURQUOISE,
-																											PSF.Colors.DARK_TURQUOISE,
-																											PSF.Colors.MEDIUM_TURQUOISE,
-																											PSF.Colors.TURQUOISE,
-																											PSF.Colors.AQUA,
-																											PSF.Colors.LIGHT_CYAN,
-																											PSF.Colors.AMBER, // yellowy orange
-																											PSF.Colors.MANGO_TANGO, // halloween
+																											BLUES.DODGER_BLUE,
+																											BLUES.DEEP_SKY_BLUE,
+																											BLUES.LIGHT_SKY_BLUE,
+																											BLUES.LIGHT_SKY_BLUE,
+																											BLUES.STEEL_BLUE,
+																											BLUES.LIGHT_STEEL_BLUE,
+																											BLUES.LIGHT_BLUE,
+																											BLUES.POWDER_BLUE,
+																											BLUES.PALE_TURQUOISE,
+																											BLUES.DARK_TURQUOISE,
+																											BLUES.MEDIUM_TURQUOISE,
+																											BLUES.TURQUOISE,
+																											BLUES.AQUA,
+																											BLUES.LIGHT_CYAN,
+																											YELLOWS.AMBER, // yellowy orange
+																											ORANGES.MANGO_TANGO, // halloween
 																																							// orange
 	};
 

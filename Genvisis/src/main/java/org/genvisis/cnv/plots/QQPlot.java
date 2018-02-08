@@ -17,7 +17,12 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
+import org.genvisis.common.PSF.Colors.YELLOWS;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialFloatArray;
@@ -41,40 +46,40 @@ public class QQPlot {
 	};
 
 	public static final Color[] COLOR_SCHEME = new Color[] {Color.BLACK, Color.GRAY,
-																													PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																													PSF.Colors.PERSIAN_BLUE, // dark blue
-																													PSF.Colors.VENETIAN_RED, // deep red
-																													PSF.Colors.BLUE_VIOLET, // deep purple
-																													PSF.Colors.GREEN, // dark green
-																													PSF.Colors.DODGER_BLUE, // light blue
-																													PSF.Colors.SLATE_BLUE, // light purple
-																													PSF.Colors.GREEN_YELLOW, // light green
-																													PSF.Colors.ORCHID, // pink
-																													PSF.Colors.NAVY,
-																													PSF.Colors.CORNFLOWER_BLUE,
-																													PSF.Colors.DARK_SLATE_BLUE,
-																													PSF.Colors.SLATE_BLUE,
-																													PSF.Colors.MEDIUM_SLATE_BLUE,
-																													PSF.Colors.LIGHT_SLATE_BLUE,
-																													PSF.Colors.MEDIUM_BLUE,
-																													PSF.Colors.NEON_BLUE,
+																													BLUES.MIDNIGHT_EXPRESS, // dark dark
+																													BLUES.PERSIAN_BLUE, // dark blue
+																													REDS.VENETIAN_RED, // deep red
+																													VIOLETS.BLUE_VIOLET, // deep purple
+																													GREENS.GREEN, // dark green
+																													BLUES.DODGER_BLUE, // light blue
+																													BLUES.SLATE_BLUE, // light purple
+																													GREENS.GREEN_YELLOW, // light green
+																													VIOLETS.ORCHID, // pink
+																													BLUES.NAVY,
+																													BLUES.CORNFLOWER_BLUE,
+																													BLUES.DARK_SLATE_BLUE,
+																													BLUES.SLATE_BLUE,
+																													BLUES.MEDIUM_SLATE_BLUE,
+																													BLUES.LIGHT_SLATE_BLUE,
+																													BLUES.MEDIUM_BLUE,
+																													BLUES.ROYAL_BLUE,
 																													Color.BLUE,
-																													PSF.Colors.DODGER_BLUE,
-																													PSF.Colors.DEEP_SKY_BLUE,
-																													PSF.Colors.LIGHT_SKY_BLUE,
-																													PSF.Colors.LIGHT_SKY_BLUE,
-																													PSF.Colors.STEEL_BLUE,
-																													PSF.Colors.LIGHT_STEEL_BLUE,
-																													PSF.Colors.LIGHT_BLUE,
-																													PSF.Colors.POWDER_BLUE,
-																													PSF.Colors.PALE_TURQUOISE,
-																													PSF.Colors.DARK_TURQUOISE,
-																													PSF.Colors.MEDIUM_TURQUOISE,
-																													PSF.Colors.TURQUOISE,
-																													PSF.Colors.AQUA,
-																													PSF.Colors.LIGHT_CYAN,
-																													PSF.Colors.AMBER,
-																													PSF.Colors.MANGO_TANGO,
+																													BLUES.DODGER_BLUE,
+																													BLUES.DEEP_SKY_BLUE,
+																													BLUES.LIGHT_SKY_BLUE,
+																													BLUES.LIGHT_SKY_BLUE,
+																													BLUES.STEEL_BLUE,
+																													BLUES.LIGHT_STEEL_BLUE,
+																													BLUES.LIGHT_BLUE,
+																													BLUES.POWDER_BLUE,
+																													BLUES.PALE_TURQUOISE,
+																													BLUES.DARK_TURQUOISE,
+																													BLUES.MEDIUM_TURQUOISE,
+																													BLUES.TURQUOISE,
+																													BLUES.AQUA,
+																													BLUES.LIGHT_CYAN,
+																													YELLOWS.AMBER,
+																													ORANGES.MANGO_TANGO,
 	};
 
 	private final QQPanel qqPanel;

@@ -18,7 +18,11 @@ import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BROWNS;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.mining.Distance;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
@@ -56,21 +60,21 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 	// new Color(174, 0, 68)}; // red purple
 
 
-	public static final Color[] DEFAULT_COLORS = {Color.BLACK, PSF.Colors.VENETIAN_RED, // red
-																								PSF.Colors.DODGER_BLUE, // light blue
-																								PSF.Colors.BLUE_VIOLET, // deep purple
-																								PSF.Colors.GREEN, // dark green
-																								PSF.Colors.SUNSHADE, // orange
-																								PSF.Colors.SLATE_BLUE, // light purple
-																								PSF.Colors.ORCHID, // deep red/pink
-																								PSF.Colors.GREEN_YELLOW, // light green
-																								PSF.Colors.CINNABAR, // orange red
+	public static final Color[] DEFAULT_COLORS = {Color.BLACK, REDS.VENETIAN_RED, // red
+																								org.genvisis.common.PSF.Colors.BLUES.DODGER_BLUE, // light blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
+																								GREENS.GREEN, // dark green
+																								ORANGES.SUNSHADE, // orange
+																								org.genvisis.common.PSF.Colors.BLUES.SLATE_BLUE, // light purple
+																								VIOLETS.ORCHID, // deep red/pink
+																								GREENS.GREEN_YELLOW, // light green
+																								REDS.CINNABAR, // orange red
 																								Color.YELLOW, // yellow
-																								PSF.Colors.FREE_SPEECH_AQUAMARINE, // blue green
-																								PSF.Colors.WINDSOR, // blue purple
-																								PSF.Colors.NAVY, // blue
-																								PSF.Colors.MAROON, // brown
-																								PSF.Colors.INDOCHINE, // light brown
+																								GREENS.FREE_SPEECH_AQUAMARINE, // blue green
+																								VIOLETS.WINDSOR, // blue purple
+																								org.genvisis.common.PSF.Colors.BLUES.NAVY, // blue
+																								BROWNS.MAROON, // brown
+																								ORANGES.INDOCHINE, // light brown
 	};
 
 	public static final Color[] BLUES = {new Color(25, 25, 112), new Color(0, 0, 128),

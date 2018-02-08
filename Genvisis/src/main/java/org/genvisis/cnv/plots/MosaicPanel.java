@@ -26,6 +26,12 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.BROWNS;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.mining.Distance;
@@ -50,16 +56,16 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 
 	private final Color[] mosaicColorScheme = {Color.BLACK,
 																						 Color.GRAY,
-																						 PSF.Colors.DODGER_BLUE,
-																						 PSF.Colors.BLUE_VIOLET,
-																						 PSF.Colors.GREEN,
-																						 PSF.Colors.VENETIAN_RED,
-																						 PSF.Colors.MAROON,
-																						 PSF.Colors.SAFETY_ORANGE,
-																						 PSF.Colors.ORCHID,
-																						 PSF.Colors.SLATE_BLUE,
-																						 PSF.Colors.GREEN_YELLOW,
-																						 PSF.Colors.MIDNIGHT_EXPRESS,
+																						 BLUES.DODGER_BLUE,
+																						 VIOLETS.BLUE_VIOLET,
+																						 GREENS.GREEN,
+																						 REDS.VENETIAN_RED,
+																						 BROWNS.MAROON,
+																						 ORANGES.SAFETY_ORANGE,
+																						 VIOLETS.ORCHID,
+																						 BLUES.SLATE_BLUE,
+																						 GREENS.GREEN_YELLOW,
+																						 BLUES.MIDNIGHT_EXPRESS,
 																						 Color.WHITE,
 	};
 

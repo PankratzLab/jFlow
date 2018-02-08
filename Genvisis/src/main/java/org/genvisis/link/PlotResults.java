@@ -44,6 +44,10 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.ProgressBarDialog;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -100,35 +104,35 @@ public class PlotResults extends JFrame implements ActionListener {
 	private static final String UNCHECK_ALL = "Uncheck all";
 
 
-	private static final Color[] DEFAULT_COLOR_SCHEME = {PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																											 PSF.Colors.PERSIAN_BLUE, // dark blue
-																											 PSF.Colors.VENETIAN_RED, // deep red
-																											 PSF.Colors.BLUE_VIOLET, // deep purple
-																											 PSF.Colors.GREEN, // dark green
-																											 PSF.Colors.DODGER_BLUE, // light blue
-																											 PSF.Colors.ORCHID, // pink
-																											 PSF.Colors.SLATE_BLUE, // light purple
-																											 PSF.Colors.GREEN_YELLOW, // light green
+	private static final Color[] DEFAULT_COLOR_SCHEME = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 
-																											 PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																											 PSF.Colors.PERSIAN_BLUE, // dark blue
-																											 PSF.Colors.VENETIAN_RED, // deep red
-																											 PSF.Colors.BLUE_VIOLET, // deep purple
-																											 PSF.Colors.GREEN, // dark green
-																											 PSF.Colors.DODGER_BLUE, // light blue
-																											 PSF.Colors.ORCHID, // pink
-																											 PSF.Colors.SLATE_BLUE, // light purple
-																											 PSF.Colors.GREEN_YELLOW, // light green
+																											 BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 
-																											 PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																											 PSF.Colors.PERSIAN_BLUE, // dark blue
-																											 PSF.Colors.VENETIAN_RED, // deep red
-																											 PSF.Colors.BLUE_VIOLET, // deep purple
-																											 PSF.Colors.GREEN, // dark green
-																											 PSF.Colors.DODGER_BLUE, // light blue
-																											 PSF.Colors.ORCHID, // pink
-																											 PSF.Colors.SLATE_BLUE, // light purple
-																											 PSF.Colors.GREEN_YELLOW, // light green
+																											 BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 	};
 
 

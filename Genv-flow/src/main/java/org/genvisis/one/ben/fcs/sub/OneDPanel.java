@@ -17,7 +17,10 @@ import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.stats.LeastSquares;
@@ -25,19 +28,19 @@ import org.genvisis.stats.LeastSquares;
 public class OneDPanel extends AbstractPanel2 {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
-																								PSF.Colors.VENETIAN_RED, // deep red
+	public static final Color[] DEFAULT_COLORS = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																								REDS.VENETIAN_RED, // deep red
 																								new Color(182, 182, 182), // light grey
-																								PSF.Colors.SLATE_BLUE, // light purple
+																								BLUES.SLATE_BLUE, // light purple
 																								new Color(182, 182, 182, 180),
 																								new Color(189, 243, 61), // light green
 																								new Color(217, 109, 194), // pink
-																								PSF.Colors.GREEN, // dark green
-																								PSF.Colors.PERSIAN_BLUE, // dark blue
-																								PSF.Colors.BLUE_VIOLET, // deep purple
+																								GREENS.GREEN, // dark green
+																								BLUES.PERSIAN_BLUE, // dark blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
 																								new Color(220, 220, 220), // very light grey
 																								new Color(0, 0, 128), // ALL KINDS OF BLUES
-																								PSF.Colors.DODGER_BLUE, // light blue
+																								BLUES.DODGER_BLUE, // light blue
 																								new Color(100, 149, 237), new Color(72, 61, 139),
 																								new Color(106, 90, 205), new Color(123, 104, 238),
 																								new Color(132, 112, 255), new Color(0, 0, 205),

@@ -24,6 +24,10 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.mining.Distance;
 
 public class SexPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -50,16 +54,16 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 																				Color.PINK, // pink. for 2 - normal female
 																				Color.GREEN, // Green. for 3 - full Klinefelter's
 																										 // XXY
-																				PSF.Colors.DARK_CYAN, // blue-green. for 4 - UPD
+																				GREENS.DARK_CYAN, // blue-green. for 4 - UPD
 																															// Klinefelter's XXY
-																				PSF.Colors.DODGER_BLUE, // light blue. for 5 - mosaic
+																				BLUES.DODGER_BLUE, // light blue. for 5 - mosaic
 																																// Klinefelter's
 																				Color.RED, // red. for 6 - Triple X
-																				PSF.Colors.FIREBRICK, // firebrick. for 7 - mosaic Triple
+																				REDS.FIREBRICK, // firebrick. for 7 - mosaic Triple
 																															// X
-																				PSF.Colors.CHRISTALLE, // dark purple. for 8 - Turner's XO
+																				VIOLETS.CHRISTALLE, // dark purple. for 8 - Turner's XO
 																															 // without mosaicism
-																				PSF.Colors.LOLA // light purple.for 9 - mosaic
+																				VIOLETS.LOLA // light purple.for 9 - mosaic
 																												// Turner's
 	};
 
