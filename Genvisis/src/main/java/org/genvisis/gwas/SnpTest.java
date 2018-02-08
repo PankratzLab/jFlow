@@ -70,7 +70,7 @@ public class SnpTest {
 			} else {
 				snpTestString.append(" -cov_all");
 			}
-			snpTestString.append(" lower_sample_limit");
+			snpTestString.append(" -lower_sample_limit 10");
 			snpTestString.append(" -o ").append(outputFile);
 
 			return snpTestString.toString();
