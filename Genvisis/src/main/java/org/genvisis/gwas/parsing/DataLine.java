@@ -111,9 +111,14 @@ public class DataLine {
 	/**
 	 * 
 	 * Get the (known-to-be-properly-)typed value from this DataLine for a given FileColumn. If the
-	 * value was a parse failure value, a {@link ParseFailureException} will be thrown.
+	 * value was a parse failure value, a {@link ParseFailureException} will be thrown. <br />
+	 * <br />
+	 * The unchecked cast warning is being suppressed because the only situation in which the value is
+	 * not of type {@code T} is if it was a parse failure, in which case an exception will be thrown.
+	 * In all other cases, the value is known to be of type {@code T}.
 	 * 
 	 * @param fc
+	 * 
 	 * @return
 	 * @throws ParseFailureException
 	 */
