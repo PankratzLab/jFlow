@@ -10,7 +10,8 @@ import org.junit.Test;
 public class TestFishersExact {
 
 	/**
-	 * Test basic expected values from <a href="https://en.wikipedia.org/wiki/Fisher%27s_exact_test">the wikipedia article</a>.
+	 * Test basic expected values from
+	 * <a href="https://en.wikipedia.org/wiki/Fisher%27s_exact_test">the wikipedia article</a>.
 	 */
 	@Test
 	public void testExpected() {

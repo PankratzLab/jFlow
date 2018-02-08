@@ -275,7 +275,7 @@ public class ImputationPrep {
 	}
 
 	public static void validateRefFile(String referenceFile, Logger log) throws IOException,
-																																			IllegalArgumentException {
+																																			 IllegalArgumentException {
 		BufferedReader reader;
 		reader = Files.getAppropriateReader(referenceFile);
 		String header = reader.readLine();

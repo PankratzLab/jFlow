@@ -126,7 +126,8 @@ public abstract class Step implements Comparable<Step> {
 
 	/**
 	 * @return A {@link Collection} of the complete network of {@link Step)s related to this {@code
-	 *         Step) - including this {@code Step), direct and transitive dependencies.
+	 *         Step) - including this {@code Step), direct and transitive dependencies.
+	 * 
 	 */
 	public Collection<Step> getRelatedSteps() {
 		return relatedSteps;

@@ -229,8 +229,8 @@ public class TestWBS {
 		int[][] randomIntervals = WBSUtilities.randomIntervals(TEST_DATA.length, WBS.DEFAULT_M,
 																													 WBS.DEFAULT_SEED);
 		List<ChangePoint> wList = WBS.wbsIntegratedRecursiveWrapper(TEST_DATA,
-																															 randomIntervals,
-																															 new Logger());
+																																randomIntervals,
+																																new Logger());
 		Assert.assertEquals(299, wList.size());
 		Assert.assertEquals(1, wList.get(0).getStart());
 		Assert.assertEquals(8, wList.get(0).getEnd());

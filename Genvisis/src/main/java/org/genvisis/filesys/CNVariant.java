@@ -746,7 +746,7 @@ public class CNVariant extends Segment {
 	 * @return
 	 */
 	public static <T extends CNVariant> Map<String, LocusSet<T>> breakIntoInds(LocusSet<T> set,
-																																		 Logger log) {
+																																						 Logger log) {
 		HashMap<String, ArrayList<T>> cnvSplits = new HashMap<>();
 		for (int i = 0; i < set.getLoci().length; i++) {
 			T tmp = set.getLoci()[i];

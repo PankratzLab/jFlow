@@ -323,10 +323,10 @@ public class Launch extends JFrame implements ActionListener {
 		if (!Files.exists(proj.PROJECT_DIRECTORY.getValue())) {
 			JOptionPane.showMessageDialog(null,
 																		"Error - the directory ('"
-																				+ proj.PROJECT_DIRECTORY.getValue()
-																				+ "') for project '"
-																				+ proj.PROJECT_NAME.getValue()
-																				+ "' did not exist; creating now. If this was in error, please edit the property file.",
+																					+ proj.PROJECT_DIRECTORY.getValue()
+																					+ "') for project '"
+																					+ proj.PROJECT_NAME.getValue()
+																					+ "' did not exist; creating now. If this was in error, please edit the property file.",
 																		"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -1109,7 +1109,7 @@ public class Launch extends JFrame implements ActionListener {
 																																									"gc5Base.txt",
 																																									true, false, log),
 																									proj.PROJECT_DIRECTORY.getValue()
-																											+ "data/custom.gcModel",
+																																																		 + "data/custom.gcModel",
 																									100);
 			} else if (command.equals(MARKER_METRICS)) {
 				org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
@@ -1253,8 +1253,8 @@ public class Launch extends JFrame implements ActionListener {
 
 			int delete = JOptionPane.showConfirmDialog(null,
 																								 "<html>Would you like to delete this project properties: "
-																										 + toDelete
-																										 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
+																											 + toDelete
+																											 + " ?<br /><br />Project source directory will <b>NOT</b> be deleted.</html>",
 																								 "Delete Project", JOptionPane.WARNING_MESSAGE);
 			if (delete != JOptionPane.YES_OPTION) {
 				return;
@@ -1298,7 +1298,7 @@ public class Launch extends JFrame implements ActionListener {
 			// FIXME this should be unified with the drop down combobox selector
 			for (
 
-			int i = 0; i < projects.size(); i++) {
+					 int i = 0; i < projects.size(); i++) {
 				if (command.equals(ext.rootOf(projects.get(i)) + " ")) {
 					projectsBox.setSelectedIndex(i);
 					log.report("Selecting: " + projects.get(i));
@@ -1485,8 +1485,8 @@ public class Launch extends JFrame implements ActionListener {
 			Files.writeArray(new String[] {
 																		 "PROJECT_NAME=Example",
 																		 "PROJECT_DIRECTORY="
-																				 + LaunchProperties.directoryOfLaunchProperties()
-																				 + "example/",
+																														 + LaunchProperties.directoryOfLaunchProperties()
+																														 + "example/",
 																		 "SOURCE_DIRECTORY=sourceFiles/"},
 											 exampleProperties);
 		}

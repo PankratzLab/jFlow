@@ -98,8 +98,8 @@ public class BlastLabel extends JLabel {
 
 	private static final long serialVersionUID = 1L;
 	private static final Font BASE_FONT = (Fonts.SOURCE_CODE_PRO_REGULAR == null
-																																							? Font.decode(Font.MONOSPACED)
-																																							: Fonts.SOURCE_CODE_PRO_REGULAR);
+																																							 ? Font.decode(Font.MONOSPACED)
+																																							 : Fonts.SOURCE_CODE_PRO_REGULAR);
 
 	public static void setFontSize(int size) {
 		LBL_FONT = BASE_FONT.deriveFont((float) size);
@@ -253,10 +253,10 @@ public class BlastLabel extends JLabel {
 		int mySpacesCnt = 0;
 		int addedSpaces = 0;
 		for (int i = reverseSequence ? seqParts.size() - 1
-																: 0; reverseSequence ? i >= 0
-																										: i < seqParts.size(); i += reverseSequence
-																																															 ? -1
-																																															 : 1) {
+																 : 0; reverseSequence ? i >= 0
+																											: i < seqParts.size(); i += reverseSequence
+																																																	? -1
+																																																	: 1) {
 			CigarSeq cs = seqParts.get(i);
 			boolean diff = cs.elem.getOperator() != CigarOperator.EQ;
 			boolean read = cs.elem.getOperator().consumesReadBases();
@@ -283,10 +283,10 @@ public class BlastLabel extends JLabel {
 				boolean strike = diff && read && !ref;
 				int tempX = baseX;
 				for (int c = reverseSequence ? cs.elemSeq.length() - 1
-																		: 0; reverseSequence ? c >= 0
-																												: c < cs.elemSeq.length(); c += reverseSequence
-																																																			 ? -1
-																																																			 : 1) {
+																		 : 0; reverseSequence ? c >= 0
+																													: c < cs.elemSeq.length(); c += reverseSequence
+																																																					? -1
+																																																					: 1) {
 					// if (expanded) {
 					// if (mySpaces.contains(charInd - addedSpaces)) {
 					// mySpacesCnt++;
@@ -325,7 +325,7 @@ public class BlastLabel extends JLabel {
 
 					if (expanded && !mySpaces.contains(charInd - addedSpaces)
 							&& (spaces.contains(charInd - mySpacesCnt)
-							&& !mySpaces.contains(charInd - mySpacesCnt))) {
+									&& !mySpaces.contains(charInd - mySpacesCnt))) {
 						Color col = g.getColor();
 						g.setColor(Color.BLACK);
 

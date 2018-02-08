@@ -481,7 +481,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			reqInputFields.put(req, checkBox);
 			panel.add(checkBox,
 								"alignx right, aligny center, growx, gapleft 20, cell 1 "
-										+ rowIndex);
+													+ rowIndex);
 		} else if (req.getType() == Requirement.RequirementInputType.ENUM) {
 			Object o = req.getDefaultValue();
 			Enum<?>[] vals = ((Enum<?>) o).getClass().getEnumConstants();
@@ -502,7 +502,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			reqInputFields.put(req, jList);
 			panel.add(new JScrollPane(jList),
 								"alignx right, aligny center, growx, gapleft 20, cell 1 "
-										+ rowIndex);
+																				+ rowIndex);
 		} else if (req.getType() != Requirement.RequirementInputType.NONE) {
 			JTextField textField = new JTextField();
 			textField.getDocument().addDocumentListener(new TextChangedListener() {
@@ -515,7 +515,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 			reqInputFields.put(req, textField);
 			panel.add(textField,
 								"alignx right, aligny center, growx, gapleft 20, split 1, cell 1 "
-										+ rowIndex);
+													 + rowIndex);
 			if (req.getType() == Requirement.RequirementInputType.FILE
 					|| req.getType() == Requirement.RequirementInputType.DIR) {
 				JButton fileBtn = new JButton();
@@ -529,7 +529,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 						String current = fileField.getText();
 
 						String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
-																					 : ext.parseDirectoryOfFile(current);
+																						: ext.parseDirectoryOfFile(current);
 						JFileChooser chooser = new JFileChooser(dir);
 						chooser.setMultiSelectionEnabled(false);
 						Requirement.RequirementInputType type = req.getType();

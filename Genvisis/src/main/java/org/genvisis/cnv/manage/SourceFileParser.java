@@ -762,7 +762,8 @@ public class SourceFileParser implements Runnable {
 				if (count < 20) {
 					log.report(ArrayUtils.toStr(line), true, true, 11);
 				}
-				if (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false)[0] != -1) {
+				if (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true,
+														 false)[0] != -1) {
 					foundSNPon = count;
 				}
 				if (idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)

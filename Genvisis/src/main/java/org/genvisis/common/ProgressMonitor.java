@@ -337,7 +337,7 @@ public class ProgressMonitor {
 	private synchronized void updateDisplay(final Task task) {
 		taskUpdateStack.push(task.getName());
 		if (internalProgBar != null && (task.getDisplayMode() == DISPLAY_MODE.GUI_AND_CONSOLE
-				|| task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
+																		|| task.getDisplayMode() == DISPLAY_MODE.GUI_ONLY)) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {

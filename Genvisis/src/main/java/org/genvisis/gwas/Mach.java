@@ -552,7 +552,7 @@ public class Mach {
 						}
 					}
 					for (int j = 0; j < (inc + step > markerNames.length ? markerNames.length - inc
-																															: step); j++) {
+																															 : step); j++) {
 						trav = "";
 						while (ext.indexOfChar((char) (c = in.read()), DELIMITERS) == -1 && (char) c != '\n') {
 							trav += (char) c;
@@ -576,7 +576,7 @@ public class Mach {
 				}
 
 				for (int i = 0; i < (inc + step > markerNames.length ? markerNames.length - inc
-																														: step); i++) {
+																														 : step); i++) {
 					if (allMarkers
 							|| ext.indexOfStr(markerNames[inc + i].split(PSF.Regex.GREEDY_WHITESPACE)[0],
 																subset) >= 0) {
@@ -660,12 +660,12 @@ public class Mach {
 		System.out.println("Beginning extraction at " + ext.getTime());
 
 		trav = dosageFormat.endsWith(".gz") ? dosageFormat.substring(0, dosageFormat.lastIndexOf("."))
-																			 : dosageFormat;
+																				: dosageFormat;
 		machFormat = trav.endsWith(".mldose");
 		trav = markerInfoFormat.endsWith(".gz")
-																					 ? markerInfoFormat.substring(0,
-																																				markerInfoFormat.lastIndexOf("."))
-																					 : markerInfoFormat;
+																						? markerInfoFormat.substring(0,
+																																				 markerInfoFormat.lastIndexOf("."))
+																						: markerInfoFormat;
 		if (machFormat && !trav.endsWith(".mlinfo")) {
 			System.err.println("Error - mismatched format patterns, assuming these are output from minimac");
 		}
@@ -1622,9 +1622,9 @@ public class Mach {
 		for (int i = 0; i < ids.length; i++) {
 			HashVec.addToHashVec(hashV,
 													 genders[i] + "_"
-															 + affections[i],
+																	+ affections[i],
 													 ids[i][0] + "\t" + ids[i][1] + "\t"
-															 + hash.get(ids[i][0] + "\t" + ids[i][1]),
+																									 + hash.get(ids[i][0] + "\t" + ids[i][1]),
 													 false);
 		}
 

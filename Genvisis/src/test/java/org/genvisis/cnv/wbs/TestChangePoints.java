@@ -336,8 +336,8 @@ public class TestChangePoints {
 		int[][] randomIntervals = WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length, WBS.DEFAULT_M,
 																													 WBS.DEFAULT_SEED);
 		List<ChangePoint> wList = WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																											randomIntervals,
-																											new Logger());
+																																randomIntervals,
+																																new Logger());
 		double sigma = ChangePoints.computeSigma(TestWBS.TEST_DATA);
 		double th = ChangePoints.computTh(ChangePoints.DEFAULT_TH_CONST, sigma,
 																			TestWBS.TEST_DATA.length, -1, wList);
@@ -360,8 +360,8 @@ public class TestChangePoints {
 		int[][] randomIntervals = WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length, WBS.DEFAULT_M,
 																													 WBS.DEFAULT_SEED);
 		List<ChangePoint> wList = WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																											randomIntervals,
-																											new Logger());
+																																randomIntervals,
+																																new Logger());
 		// res.tmp From R
 		// [,1] [,2]
 		// [1,] 150 6.817241
@@ -384,10 +384,10 @@ public class TestChangePoints {
 	@Test
 	public void testComputeMeansBetweenChangepoints() {
 		ChangePoints sbsChangePoints = ChangePoints.changepointsSbs(WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																																												WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
-																																																										 WBS.DEFAULT_M,
-																																																										 WBS.DEFAULT_SEED),
-																																												new Logger()),
+																																																	WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
+																																																															 WBS.DEFAULT_M,
+																																																															 WBS.DEFAULT_SEED),
+																																																	new Logger()),
 																																TestWBS.TEST_DATA,
 
 																																ChangePoints.DEFAULT_TH_CONST, -1);
@@ -407,10 +407,10 @@ public class TestChangePoints {
 	@Test
 	public void TestComputeMinLogLik() {
 		ChangePoints sbsChangePoints = ChangePoints.changepointsSbs(WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																																												WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
-																																																										 WBS.DEFAULT_M,
-																																																										 WBS.DEFAULT_SEED),
-																																												new Logger()),
+																																																	WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
+																																																															 WBS.DEFAULT_M,
+																																																															 WBS.DEFAULT_SEED),
+																																																	new Logger()),
 																																TestWBS.TEST_DATA,
 
 																																ChangePoints.DEFAULT_TH_CONST, -1);

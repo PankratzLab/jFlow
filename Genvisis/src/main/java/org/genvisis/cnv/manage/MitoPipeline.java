@@ -342,8 +342,8 @@ public class MitoPipeline {
 			log.report("Detected that "
 								 + (sampleList.getSamples().length > 1 ? sampleList.getSamples().length
 																												 + " samples have"
-																											: sampleList.getSamples().length
-																												+ " sample has")
+																											 : sampleList.getSamples().length
+																												 + " sample has")
 								 + " already been parsed");
 			// log.report("Skipping sample import step for the analysis. If this is an incorrect number of
 			// samples, please remove (or change the name of) " +
@@ -561,12 +561,12 @@ public class MitoPipeline {
 				if (mitoResourceAvailable) {
 					BetaOptimizer.optimize(proj,
 																 proj.PROJECT_DIRECTORY.getValue()
-																		 + pcApply.getExtrapolatedPCsFile(),
+																			 + pcApply.getExtrapolatedPCsFile(),
 																 proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
 																 requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log)
 																																								 .getTotalWBC()
 																																								 .get())
-																						: betaFile,
+																						 : betaFile,
 																 betaOptFile,
 																 proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
 																 pvalOpt, numComponents, markerCallRateFilter, 2, 0.0000000001,
@@ -583,7 +583,7 @@ public class MitoPipeline {
 		boolean dbSnpA = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getDBSNP()
 															.isAvailable(true);
 		if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
-				|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
+										|| proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
 			log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue()
 														+ " , performing liftover and using rsIDs from " + GENOME_BUILD.HG19);
 			dbSnpA = Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().isAvailable(true);

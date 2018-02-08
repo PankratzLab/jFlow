@@ -190,8 +190,8 @@ public class AlleleFreq {
 			return null;
 		}
 		double[][] vals = values.length == 3 ? getObsExp(values[0], values[1], values[2])
-																				: getObsExp(values[0], values[1], values[2], values[3],
-																										values[4], values[5]);
+																				 : getObsExp(values[0], values[1], values[2], values[3],
+																										 values[4], values[5]);
 		StringBuilder output = new StringBuilder("<html><table border=\"1\"><tr><td></td>");
 		String[] colLabels = values.length == 3 ? new String[] {"PP", "PQ", "QQ"} : new String[] {"PP",
 																																															"PQ",

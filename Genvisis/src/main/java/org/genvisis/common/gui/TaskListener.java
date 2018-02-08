@@ -63,7 +63,8 @@ public interface TaskListener extends PropertyChangeListener {
 	String channels();
 
 	/**
-	 * @return Combined string of {@link Task#channel()}s for all registered tasks that are currently running (not finished/cancelled)
+	 * @return Combined string of {@link Task#channel()}s for all registered tasks that are currently
+	 *         running (not finished/cancelled)
 	 */
 	String activeChannels();
 
@@ -73,7 +74,8 @@ public interface TaskListener extends PropertyChangeListener {
 	String ids();
 
 	/**
-	 * @return Combined string of {@link Task#id()}s for all registered tasks that are currently running (not finished/cancelled)
+	 * @return Combined string of {@link Task#id()}s for all registered tasks that are currently
+	 *         running (not finished/cancelled)
 	 */
 	String activeIDs();
 }

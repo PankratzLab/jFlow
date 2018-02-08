@@ -33,7 +33,7 @@ public class FilterPipe<T extends Number> extends AbstractPipe {
 		if (val == null) {
 			throw new RejectedValueException(
 																			 "Invalid value, not a one of Double, Float, Long, or Int: "
-																					 + value, this);
+																			 + value, this);
 		}
 		boolean pass = op.check(val.doubleValue(), compValue.doubleValue());
 		if (!pass) {

@@ -138,7 +138,7 @@ public class DBGAPMerge {
 	}
 
 	public ArrayList<DataColumn> readDataDict(FileSet fs) throws ParserConfigurationException,
-																											 SAXException, IOException {
+																												SAXException, IOException {
 		ArrayList<DataColumn> dict = new ArrayList<DBGAPMerge.DataColumn>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

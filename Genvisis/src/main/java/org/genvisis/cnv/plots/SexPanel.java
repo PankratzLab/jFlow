@@ -55,16 +55,16 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
 																				Color.GREEN, // Green. for 3 - full Klinefelter's
 																										 // XXY
 																				GREENS.DARK_CYAN, // blue-green. for 4 - UPD
-																															// Klinefelter's XXY
+																													// Klinefelter's XXY
 																				BLUES.DODGER_BLUE, // light blue. for 5 - mosaic
-																																// Klinefelter's
+																													 // Klinefelter's
 																				Color.RED, // red. for 6 - Triple X
 																				REDS.FIREBRICK, // firebrick. for 7 - mosaic Triple
-																															// X
+																												// X
 																				VIOLETS.CHRISTALLE, // dark purple. for 8 - Turner's XO
-																															 // without mosaicism
+																														// without mosaicism
 																				VIOLETS.LOLA // light purple.for 9 - mosaic
-																												// Turner's
+																										 // Turner's
 	};
 
 	public static String[] COLOR_SCHEME_MEANING = {"Missing", "Normal Male", "Normal Female",

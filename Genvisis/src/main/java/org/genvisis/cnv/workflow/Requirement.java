@@ -311,7 +311,8 @@ public abstract class Requirement {
 	 * @param type
 	 * @param defaultValue
 	 */
-	public Requirement(String description, Requirement.RequirementInputType type, Object defaultValue) {
+	public Requirement(String description, Requirement.RequirementInputType type,
+										 Object defaultValue) {
 		super();
 		this.description = description;
 		this.type = type;

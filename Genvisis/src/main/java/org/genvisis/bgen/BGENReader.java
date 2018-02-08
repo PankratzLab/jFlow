@@ -36,7 +36,8 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * along with their associated locations in file. This makes later reading of the file extremely
 	 * fast, but carries a significant initial time cost. Intended usage should therefore be
 	 * thoughtfully considered and if a streaming model is the best-fit, the {@code buildMap}
-	 * parameter should be set to {@code FALSE} and the various {@code query()} methods used instead.<br />
+	 * parameter should be set to {@code FALSE} and the various {@code query()} methods used
+	 * instead.<br />
 	 * <br />
 	 * If a serialized file of the map data exists (built with
 	 * {@link BGENTools#serializeMapInfo(BGENReader, String)}), {@code buildMap} should be set to
@@ -153,11 +154,11 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			raf.close();
 			throw new IOException(
 														"Magic bytes were incorrect, expected {'b','g','e','n'} or {'0','0','0','0'}, found {"
-																+
-																((char) magicBytes[0]) + "," +
-																((char) magicBytes[1]) + "," +
-																((char) magicBytes[2]) + "," +
-																((char) magicBytes[3]) + "}.");
+														+
+														((char) magicBytes[0]) + "," +
+														((char) magicBytes[1]) + "," +
+														((char) magicBytes[2]) + "," +
+														((char) magicBytes[3]) + "}.");
 		}
 
 		if (headerLength - 20 > 0) {
@@ -184,8 +185,8 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 				raf.close();
 				throw new IOException(
 															"Sample count in header block must equal sample count in sample block, found "
-																	+ sampleCount + " in header and " + sampleCount2
-																	+ " in sample block.");
+															+ sampleCount + " in header and " + sampleCount2
+															+ " in sample block.");
 			}
 
 			byte[] lenByt = new byte[2];
@@ -204,7 +205,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 			if (readB != numBytesSampIDBlock) {
 				throw new IOException(
 															"Number of bytes recorded for sample ID header does not match the number of bytes read.  Expected "
-																	+ numBytesSampIDBlock + " | Read " + readB);
+															+ numBytesSampIDBlock + " | Read " + readB);
 			}
 		} else {
 			initSamples();
@@ -283,7 +284,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	private BGENRecordMetaData initRecord(long filePointer, RandomAccessFile in, LAYOUT layout)
-																																														 throws IOException {
+																																															throws IOException {
 		if (in.getFilePointer() != filePointer) {
 			in.seek(filePointer);
 		}
@@ -366,7 +367,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	BGENRecord readRecord(RandomAccessFile raf, BGENRecordMetaData mapData, boolean skip)
-																																											 throws IOException {
+																																												throws IOException {
 		BGENRecord rec = new BGENRecord(mapData);
 		if (raf.getFilePointer() != mapData.ptrByt + mapData.lenByt) {
 			raf.seek(mapData.ptrByt + mapData.lenByt);
@@ -385,7 +386,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	}
 
 	BGENRecord readNextRecord(RandomAccessFile raf, long location, boolean readFull, boolean save)
-																																																throws IOException {
+																																																 throws IOException {
 		BGENRecordMetaData r = getMetaData(raf, location, save);
 		return readRecord(raf, r, !readFull);
 	}
@@ -399,7 +400,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 	 * @throws IOException
 	 */
 	BGENRecordMetaData getMetaData(RandomAccessFile raf, long filePointer, boolean save)
-																																											throws IOException {
+																																											 throws IOException {
 		BGENRecordMetaData brmd = ptrMap.get(filePointer);
 		if (brmd == null) {
 			if (raf.getFilePointer() != filePointer) {
@@ -718,7 +719,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
 		if (samples.length != (int) sampleCount) {
 			throw new IllegalArgumentException(
 																				 "Provided list of samples must have the same number of values as the recorded sample count.  Expected "
-																						 + sampleCount + "; Given: " + samples.length);
+																				 + sampleCount + "; Given: " + samples.length);
 		}
 		this.samples = Arrays.copyOf(samples, samples.length);
 	}

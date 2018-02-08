@@ -61,11 +61,13 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 
 
 	public static final Color[] DEFAULT_COLORS = {Color.BLACK, REDS.VENETIAN_RED, // red
-																								org.genvisis.common.PSF.Colors.BLUES.DODGER_BLUE, // light blue
+																								org.genvisis.common.PSF.Colors.BLUES.DODGER_BLUE, // light
+																																																	// blue
 																								VIOLETS.BLUE_VIOLET, // deep purple
 																								GREENS.GREEN, // dark green
 																								ORANGES.SUNSHADE, // orange
-																								org.genvisis.common.PSF.Colors.BLUES.SLATE_BLUE, // light purple
+																								org.genvisis.common.PSF.Colors.BLUES.SLATE_BLUE, // light
+																																																 // purple
 																								VIOLETS.ORCHID, // deep red/pink
 																								GREENS.GREEN_YELLOW, // light green
 																								REDS.CINNABAR, // orange red

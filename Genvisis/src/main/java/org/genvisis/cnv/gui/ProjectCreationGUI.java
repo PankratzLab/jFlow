@@ -336,7 +336,7 @@ public class ProjectCreationGUI extends JDialog {
 		updateSourceFileNotice();
 		pack();
 		// Grow slightly to look less crowded
-		UITools.setSize(this, (int) (getWidth() * 1.10), (int)(getHeight() * 1.15));
+		UITools.setSize(this, (int) (getWidth() * 1.10), (int) (getHeight() * 1.15));
 		// ensure minimum size
 		setMinimumSize(getPreferredSize());
 		// center

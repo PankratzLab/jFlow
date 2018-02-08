@@ -20,10 +20,10 @@ public class Images {
 																												false);
 		System.out.println("Complete!");
 		stitchImages(dir, imageFiles, outFile, bgColor,
-									drawInnerBorder,
-									drawOuterBorder);
+								 drawInnerBorder,
+								 drawOuterBorder);
 	}
-	
+
 	public static void stitchImages(String dir, String[] imageFiles, String outFile, Color bgColor,
 																	boolean drawInnerBorder,
 																	boolean drawOuterBorder/* , boolean pack */) {

@@ -83,7 +83,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 																											BLUES.LIGHT_CYAN,
 																											YELLOWS.AMBER, // yellowy orange
 																											ORANGES.MANGO_TANGO, // halloween
-																																							// orange
+																																					 // orange
 	};
 
 

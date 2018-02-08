@@ -112,7 +112,7 @@ public class LrrSd extends Parallelizable {
 				proj.getLog()
 						.reportError(
 												 "Error - was not able to detect any autosomal markers for sample QC in "
-														 + proj.MARKERSET_FILENAME.getValue());
+												 + proj.MARKERSET_FILENAME.getValue());
 				return;
 			}
 			if (chrs[subIndex] != 23) {
@@ -128,10 +128,10 @@ public class LrrSd extends Parallelizable {
 			}
 
 			int numAb = (markersForCallrate == null ? chrs.length
-																						 : ArrayUtils.booleanArraySum(markersForCallrate));
+																							: ArrayUtils.booleanArraySum(markersForCallrate));
 			int numAllElse = (markersForEverythingElse == null
-																												? subIndex
-																												: ArrayUtils.booleanArraySum(markersForEverythingElse));
+																												 ? subIndex
+																												 : ArrayUtils.booleanArraySum(markersForEverythingElse));
 			if (threadNumber == 1) {// we can just show this once
 				proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
 				proj.getLog().report("Info - using " + numAllElse
@@ -149,16 +149,16 @@ public class LrrSd extends Parallelizable {
 			if (numAb < 1000) {
 				proj.getLog()
 						.report("Warning - using "
-												+ numAb
-												+ (numAb == 1 ? " marker" : " markers")
-												+ " for sample call rate may result in inaccurate sample qc, please consider using more");
+										+ numAb
+										+ (numAb == 1 ? " marker" : " markers")
+										+ " for sample call rate may result in inaccurate sample qc, please consider using more");
 			}
 			if (numAllElse < 1000) {
 				proj.getLog()
 						.report("Warning - using "
-												+ numAllElse
-												+ (numAllElse == 1 ? " marker" : " markers")
-												+ " for other qc metrics may result in inaccurate sample qc, please consider using more");
+										+ numAllElse
+										+ (numAllElse == 1 ? " marker" : " markers")
+										+ " for other qc metrics may result in inaccurate sample qc, please consider using more");
 			}
 
 			// writer = new PrintWriter(new
@@ -239,7 +239,8 @@ public class LrrSd extends Parallelizable {
 																				GC_CORRECTION_METHOD correctionMethod, Logger log) {
 		byte[] abGenotypes, forwardGenotypes;
 		float[] lrrs, bafs, bafsWide;
-		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost, gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
+		double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost,
+				gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
 		int[] bafBinCounts;
 		boolean multimodal;
 
@@ -248,12 +249,12 @@ public class LrrSd extends Parallelizable {
 
 		bafsWide = bafs;
 		markersForEverythingElse = markersForEverythingElse == null ? proj.getAutosomalMarkerBoolean()
-																															 : markersForEverythingElse;
+																																: markersForEverythingElse;
 		if (markersForEverythingElse == null || markersForEverythingElse.length == 0) {
 			proj.getLog()
 					.reportTimeWarning("Could not determine appropriate marker subset, lrr_sd.xln data for sample "
-																 + fsamp.getSampleName()
-																 + " will be based on all markers, not just autosomal markers");
+														 + fsamp.getSampleName()
+														 + " will be based on all markers, not just autosomal markers");
 			markersForEverythingElse = null;
 		} else {
 			lrrs = ArrayUtils.subArray(lrrs, markersForEverythingElse);
@@ -265,10 +266,10 @@ public class LrrSd extends Parallelizable {
 		// TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
 		if (markersForCallrate != null) {// we do not need autosomal only markers here...
 			abGenotypes = (abGenotypes == null ? abGenotypes
-																				: ArrayUtils.subArray(abGenotypes, markersForCallrate));
+																				 : ArrayUtils.subArray(abGenotypes, markersForCallrate));
 			forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes
-																									: ArrayUtils.subArray(forwardGenotypes,
-																																				markersForCallrate));
+																									 : ArrayUtils.subArray(forwardGenotypes,
+																																				 markersForCallrate));
 		}
 
 		bafBinCounts = new int[101];
@@ -321,7 +322,7 @@ public class LrrSd extends Parallelizable {
 		if (gcModel != null) {
 			GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
 																														 cents == null ? fsamp.getLRRs()
-																																					: fsamp.getLRRs(cents),
+																																					 : fsamp.getLRRs(cents),
 																														 gcModel, correctionMethod, true, true,
 																														 false);
 			if (!gcAdjustor.isFail()) {
@@ -389,7 +390,7 @@ public class LrrSd extends Parallelizable {
 		// proj.getLog());
 		files = ArrayUtils.stringArraySequence(numThreads,
 																					 ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
-																							 + ".");
+																											 + ".");
 		Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), ArrayUtils.intArray(files.length, 0),
 							proj.getLog());
 		for (String file : files) {

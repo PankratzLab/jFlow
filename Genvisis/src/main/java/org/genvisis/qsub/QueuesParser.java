@@ -34,7 +34,7 @@ public class QueuesParser {
 		boolean win = Files.isWindows();
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = win ? new String[] {"cmd", "/c", "echo", "%USERNAME%"}
-													 : new String[] {"id"};
+														: new String[] {"id"};
 		Process proc = rt.exec(commands);
 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));

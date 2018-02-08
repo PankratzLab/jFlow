@@ -34,7 +34,7 @@ public class GenotypeMatrix implements Serializable {
 	public static final int MARKER_DOMINANT_FORMAT = 1;
 
 	// public static final String[][] HEADS = {{}, {"id"}};
-	public static final String[][] HEADS = { {}, {"CHROM", "POS"}};
+	public static final String[][] HEADS = {{}, {"CHROM", "POS"}};
 	public static final String[] DELIMITERS = {"\t", ",", " "};
 	public static final String[] MISSING_VALUES = {".", "NA"};
 
@@ -45,10 +45,10 @@ public class GenotypeMatrix implements Serializable {
 	 */
 
 	/** 0 1 2 3 4 5 6 */
-	public static final int[][] PARAMETERS = { {MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1, 0}, // .csv
-																																												 // (ChargeS
-																																												 // Houston
-																																												 // format)
+	public static final int[][] PARAMETERS = {{MARKER_DOMINANT_FORMAT, 1, 1, 0, 0, 1, 0}, // .csv
+																																												// (ChargeS
+																																												// Houston
+																																												// format)
 																						{MARKER_DOMINANT_FORMAT, 0, 1, 1, 0, 2, 1}, // .txt
 																																												// (ChargeS
 																																												// Boston
@@ -346,7 +346,7 @@ public class GenotypeMatrix implements Serializable {
 					}
 					names[0] = "SNP";
 					model = logistic ? new LogisticRegression(deps, indeps, names, false, false)
-													: new LeastSquares(deps, indeps, names, false, false);
+													 : new LeastSquares(deps, indeps, names, false, false);
 					betas = model.getBetas();
 					stderrs = model.getSEofBs();
 					pvals = model.getSigs();

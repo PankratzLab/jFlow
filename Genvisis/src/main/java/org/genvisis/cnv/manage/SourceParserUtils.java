@@ -70,7 +70,7 @@ public class SourceParserUtils {
 							writer.println(file + "\t" + line[sampIndex]
 														 + (line[sampIndex].indexOf("@") >= 0 ? "\t"
 																																		+ line[sampIndex].split("@")[0]
-																																 : ""));
+																																	: ""));
 						}
 						if (!longFormat || !reader.ready()) {
 							done = true;
@@ -131,10 +131,11 @@ public class SourceParserUtils {
 				} while (reader.ready()
 								 && (ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true,
 																			false)[0] == -1
-								 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
-								 && ext.indexOfStr(idHeader, line) == -1)));
+										 || (!idHeader.equals(SourceFileParser.FILENAME_AS_ID_OPTION)
+												 && ext.indexOfStr(idHeader, line) == -1)));
 
-				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true, false)[0];
+				snpIndex = ext.indexFactors(SourceFileParser.SNP_HEADER_OPTIONS, line, false, true,
+																		false)[0];
 				indices = ext.indexFactors(Sample.ALL_STANDARD_GENOTYPE_FIELDS, line, false, proj.getLog(),
 																	 false);
 

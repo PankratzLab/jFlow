@@ -37,7 +37,7 @@ public final class BGENTools {
 
 	public static double[][] readLayout1Record(boolean skip, RandomAccessFile in,
 																						 BGENRecordMetaData r, COMPRESSION c)
-																																								 throws IOException {
+																																									throws IOException {
 		byte[] read = new byte[4];
 
 		if (skip) {
@@ -89,7 +89,7 @@ public final class BGENTools {
 
 	public static double[][] readLayout2Record(boolean skip, RandomAccessFile in,
 																						 BGENRecordMetaData r, COMPRESSION c)
-																																								 throws IOException {
+																																									throws IOException {
 		byte[] read = new byte[4];
 		long uncompLength;
 
@@ -217,7 +217,8 @@ public final class BGENTools {
 				nProbsMin1 = Z * (K - 1);
 			} else {
 				nProbsMin1 = (int) ((CombinatoricsUtils.factorial(Z + K - 1))
-										 / ((CombinatoricsUtils.factorial(K - 1)) * (CombinatoricsUtils.factorial(Z))));
+														/ ((CombinatoricsUtils.factorial(K - 1))
+															 * (CombinatoricsUtils.factorial(Z))));
 				nProbsMin1 -= 1;
 			}
 			// last prob (or last prob per haplotype for phased data) is recorded as 1 - sum(probs)
@@ -275,7 +276,7 @@ public final class BGENTools {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void loadMapInfo(BGENReader reader, String mapFile) throws ClassNotFoundException,
-																																	 IOException {
+																																		IOException {
 		InputStream in;
 		ObjectInputStream ois = null;
 

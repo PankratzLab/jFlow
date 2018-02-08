@@ -288,7 +288,7 @@ public class ParseMXCResults {
 		String a2 = header[index[2]];
 		String effect = " --beta_column " + header[index[3]]
 										+ (index[5] == -1 ? " --se_column " + header[index[4]]
-																		 : " --pvalue_column " + header[index[5]]);
+																			: " --pvalue_column " + header[index[5]]);
 
 		// build mxc command
 		String command = "./" + py

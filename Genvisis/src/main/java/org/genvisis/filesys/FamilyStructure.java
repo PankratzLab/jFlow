@@ -12,7 +12,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
 public class FamilyStructure {
-	public static final String[][] TYPICAL_HEADERS = { {"FID", "famid"}, {"IID", "id"}, {"fa"},
+	public static final String[][] TYPICAL_HEADERS = {{"FID", "famid"}, {"IID", "id"}, {"fa"},
 																										{"mo"},
 																										{"sex"}};
 
@@ -178,12 +178,12 @@ public class FamilyStructure {
 
 	public int getIndexOfFaInIDs(int indivIndex) {
 		return MISSING_ID_STR.equals(fas[indivIndex]) ? -1
-																								 : getIndIndex(fids[indivIndex], fas[indivIndex]);
+																									: getIndIndex(fids[indivIndex], fas[indivIndex]);
 	}
 
 	public int getIndexOfMoInIDs(int indivIndex) {
 		return MISSING_ID_STR.equals(mos[indivIndex]) ? -1
-																								 : getIndIndex(fids[indivIndex], mos[indivIndex]);
+																									: getIndIndex(fids[indivIndex], mos[indivIndex]);
 	}
 
 	public String getMO(int index) {

@@ -95,8 +95,7 @@ public final class BGENIterators {
 	 * <ul>
 	 * <li>(a) as BGEN files are not ordered, {@code hasNext()} will only return false when the end of
 	 * the file is reached,</li>
-	 * <li>
-	 * (b) {@code hasNext()} may block for a indeterminate amount of time as it scans for the next
+	 * <li>(b) {@code hasNext()} may block for a indeterminate amount of time as it scans for the next
 	 * valid variant record,</li>
 	 * <li>and (c) the {@code next()} method itself is fast, as it already has the next variant record
 	 * ready.</li>

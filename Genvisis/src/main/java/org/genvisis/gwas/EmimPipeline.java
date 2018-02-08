@@ -91,7 +91,7 @@ public class EmimPipeline {
 		for (String s : popData.idsIndexMap.keySet()) {
 			if (popData.inclArr[pop][popData.idsIndexMap.get(s)]) {
 				if (subPopData == null || (subPopData.idsIndexMap.containsKey(s)
-						&& subPopData.inclArr[subPop][subPopData.idsIndexMap.get(s)])) {
+																	 && subPopData.inclArr[subPop][subPopData.idsIndexMap.get(s)])) {
 					writer.println(s);
 				}
 			}
@@ -457,8 +457,8 @@ public class EmimPipeline {
 													qqHeaders,
 													getResultsDirectory(finalDir, fileroot, popData.pops[p]),
 													fileroot + "_subpopulations_of_"
-															+ ext.replaceWithLinuxSafeCharacters(popData.pops[p],
-																																	 true),
+																																										+ ext.replaceWithLinuxSafeCharacters(popData.pops[p],
+																																																												 true),
 													model, log);
 				}
 
@@ -565,19 +565,19 @@ public class EmimPipeline {
 																																			"C_lnR1",
 																																			"C_se_lnR1",
 																																			"pVal_C_df"
-																																					+ model.getDegreesOfFreedom()},
+																																									 + model.getDegreesOfFreedom()},
 																																		 {
 																																			"M_lnS1",
 																																			"M_se_lnS1",
 																																			"pVal_M_df"
-																																					+ model.getDegreesOfFreedom(),
+																																									 + model.getDegreesOfFreedom(),
 																																			"pVal_CM-C_df"
-																																					+ model.getDegreesOfFreedom()},
+																																																									+ model.getDegreesOfFreedom()},
 																																		 {"POO_lnIm", "POO_se_lnIm",
 																																			"pVal_Im_df1"},
 																																		 {"POO_lnIp", "POO_se_lnIp",
 																																			"pVal_Ip_df1"}},
-																										 new String[][] { {"", "", "p"}, {"", "", "p"},
+																										 new String[][] {{"", "", "p"}, {"", "", "p"},
 																																		 {"", "", "p",
 																																			"removing Child Effect p"},
 																																		 {"", "", "p"}, {"", "", "p"}},

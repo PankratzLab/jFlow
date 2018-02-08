@@ -72,8 +72,8 @@ public class TestIndex {
 	}
 
 	/**
-	 * Benchmark the {@link ext#indexFactors(String[], String[], boolean, Logger, boolean)}
-	 * method (with a 1D input array)
+	 * Benchmark the {@link ext#indexFactors(String[], String[], boolean, Logger, boolean)} method
+	 * (with a 1D input array)
 	 */
 	public void indexFactors1D() {
 		final int expectedHash = -828889133;
@@ -118,9 +118,11 @@ public class TestIndex {
 		reportIndex(iStr + " - exact", 2, ext.indexOfStr(query, superset, true, true));
 		reportIndex(iStr + " - fuzzy", 1, ext.indexOfStr(query, superset, true, false));
 		reportIndex(i2d + " - exact", 2,
-								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true, false)[0]);
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true,
+																 false)[0]);
 		reportIndex(i2d + " - fuzzy", 1,
-								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, false, false)[0]);
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, false,
+																 false)[0]);
 	}
 
 	/**
@@ -139,9 +141,11 @@ public class TestIndex {
 		reportIndex(i1d + ins, 0,
 								ext.indexFactors(new String[] {query}, superset, false, new Logger(), false)[0]);
 		reportIndex(i2d + sen, 3,
-								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true, false)[1]);
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, true, true,
+																 false)[1]);
 		reportIndex(i2d + ins, 0,
-								ext.indexFactors(new String[][] {{query}, {query}}, superset, false, true, false)[1]);
+								ext.indexFactors(new String[][] {{query}, {query}}, superset, false, true,
+																 false)[1]);
 	}
 
 	/**

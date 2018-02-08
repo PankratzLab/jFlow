@@ -62,10 +62,10 @@ public class TestPenalties {
 	@Test
 	public void TestIcCurves() {
 		ChangePoints wbsChangePoints = ChangePoints.changepointsWbs(WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																																												WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
-																																																										 WBS.DEFAULT_M,
-																																																										 WBS.DEFAULT_SEED),
-																																												new Logger()),
+																																																	WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
+																																																															 WBS.DEFAULT_M,
+																																																															 WBS.DEFAULT_SEED),
+																																																	new Logger()),
 																																TestWBS.TEST_DATA,
 
 																																ChangePoints.DEFAULT_TH_CONST,
@@ -115,10 +115,10 @@ public class TestPenalties {
 	@Test
 	public void TestComputeMinLogLik() {
 		ChangePoints sbsChangePoints = ChangePoints.changepointsSbs(WBS.wbsIntegratedRecursiveWrapper(TestWBS.TEST_DATA,
-																																												WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
-																																																										 WBS.DEFAULT_M,
-																																																										 WBS.DEFAULT_SEED),
-																																												new Logger()),
+																																																	WBSUtilities.randomIntervals(TestWBS.TEST_DATA.length,
+																																																															 WBS.DEFAULT_M,
+																																																															 WBS.DEFAULT_SEED),
+																																																	new Logger()),
 																																TestWBS.TEST_DATA,
 
 																																ChangePoints.DEFAULT_TH_CONST, -1);

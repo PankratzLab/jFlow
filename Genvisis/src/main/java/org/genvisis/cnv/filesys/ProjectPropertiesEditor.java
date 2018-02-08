@@ -124,7 +124,7 @@ public class ProjectPropertiesEditor extends JFrame {
 			}
 			if (newValue instanceof String[] || newValue instanceof String) {
 				String[] vals = newValue instanceof String[] ? (String[]) newValue
-																										: new String[] {(String) newValue};
+																										 : new String[] {(String) newValue};
 				if (vals.length == 1 && "".equals(vals[0])) {
 					return true;
 				}
@@ -841,16 +841,16 @@ public class ProjectPropertiesEditor extends JFrame {
 					value = set[0].getPath();
 					if (!set[0].exists()) {
 						value = ((StringListProperty) proj.getProperty(key)).isDirectory()
-																																							? ext.verifyDirFormat(value)
-																																							: ext.replaceAllWith(value,
-																																																	 "\\",
-																																																	 "/");
+																																							 ? ext.verifyDirFormat(value)
+																																							 : ext.replaceAllWith(value,
+																																																		"\\",
+																																																		"/");
 					} else {
 						value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																				: ext.replaceAllWith(value, "\\", "/");
+																				 : ext.replaceAllWith(value, "\\", "/");
 					}
 					value = set[0].isDirectory() ? ext.verifyDirFormat(value)
-																			: ext.replaceAllWith(value, "\\", "/");
+																			 : ext.replaceAllWith(value, "\\", "/");
 					if (value.startsWith(projectsDir)) {
 						value = value.substring(projectsDir.length());
 					} else if (value.startsWith(currProjDir)) {
@@ -860,13 +860,13 @@ public class ProjectPropertiesEditor extends JFrame {
 						String fNm = set[k].getPath();
 						if (!set[k].exists()) {
 							fNm = ((StringListProperty) proj.getProperty(key)).isDirectory()
-																																							? ext.verifyDirFormat(fNm)
-																																							: ext.replaceAllWith(fNm,
-																																																	 "\\",
-																																																	 "/");
+																																							 ? ext.verifyDirFormat(fNm)
+																																							 : ext.replaceAllWith(fNm,
+																																																		"\\",
+																																																		"/");
 						} else {
 							fNm = set[k].isDirectory() ? ext.verifyDirFormat(fNm)
-																				: ext.replaceAllWith(fNm, "\\", "/");
+																				 : ext.replaceAllWith(fNm, "\\", "/");
 						}
 						if (fNm.startsWith(projectsDir)) {
 							fNm = fNm.substring(projectsDir.length());
@@ -881,12 +881,12 @@ public class ProjectPropertiesEditor extends JFrame {
 				value = set.getPath();
 				if (!set.exists()) {
 					value = ((FileProperty) proj.getProperty(key)).isDirectory() ? ext.verifyDirFormat(value)
-																																			: ext.replaceAllWith(value,
-																																													 "\\",
-																																													 "/");
+																																			 : ext.replaceAllWith(value,
+																																														"\\",
+																																														"/");
 				} else {
 					value = set.isDirectory() ? ext.verifyDirFormat(value)
-																	 : ext.replaceAllWith(value, "\\", "/");
+																		: ext.replaceAllWith(value, "\\", "/");
 				}
 				if (!key.equals(proj.SOURCE_DIRECTORY.getName())
 						&& !key.equals(proj.PROJECT_DIRECTORY.getName())) {

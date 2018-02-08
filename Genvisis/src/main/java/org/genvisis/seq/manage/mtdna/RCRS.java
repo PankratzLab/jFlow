@@ -53,7 +53,7 @@ public class RCRS {
 	 */
 	public static void writeRef(String outputDir, Logger log) {
 		new File(outputDir).mkdirs();
-		for (String toWrite : new String[]{RESOURCE, RESOURCE_INDEX, RESOURCE_DICT}) {
+		for (String toWrite : new String[] {RESOURCE, RESOURCE_INDEX, RESOURCE_DICT}) {
 			File f = Bundled.getFile(toWrite);
 			Files.copyFileUsingFileChannels(f, new File(outputDir + toWrite), log);
 		}

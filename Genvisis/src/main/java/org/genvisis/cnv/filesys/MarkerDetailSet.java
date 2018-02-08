@@ -343,7 +343,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public MarkerDetailSet(MarkerSetInfo markerSet, char[][] abAlleles) {
 		this(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet
-																																	 .getPositions(), abAlleles,
+																																	 .getPositions(),
+				 abAlleles,
 				 markerSet.getFingerprint());
 	}
 
@@ -371,7 +372,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 				|| (abAlleles != null && numMarkers != abAlleles.length)) {
 			throw new IllegalArgumentException(
 																				 this.getClass().getName()
-																						 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
+																				 + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
 		}
 		ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
 		for (int i = 0; i < markerNames.length; i++) {
@@ -718,9 +719,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public Map<String, Marker> getMarkerNameMap() {
 		Map<String, Marker> markerNameMap = markerNameMapRef == null
-																																? null
-																																: markerNameMapRef
-																																									.get();
+																																 ? null
+																																 : markerNameMapRef
+																																									 .get();
 		if (markerNameMap == null) {
 			markerNameMap = generateMarkerNameMap();
 			markerNameMapRef = new SoftReference<Map<String, Marker>>(markerNameMap);
@@ -735,7 +736,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 */
 	public SortedSetMultimap<Byte, Marker> getChrMap() {
 		SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null
-																															: chrMapRef.get();
+																															 : chrMapRef.get();
 		if (chrMap == null) {
 			chrMap = generateChrMap();
 			chrMapRef = new SoftReference<SortedSetMultimap<Byte, Marker>>(chrMap);
@@ -750,9 +751,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 	 */
 	public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
 		SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null
-																																													 ? null
-																																													 : genomicPositionMapRef
-																																																									.get();
+																																														? null
+																																														: genomicPositionMapRef
+																																																									 .get();
 		if (genomicPositionMap == null) {
 			genomicPositionMap = generateGenomicPositionMap();
 			genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(
@@ -768,9 +769,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
 	public Map<Marker, Integer> getMarkerIndexMap() {
 		Map<Marker, Integer> markerIndexMap = markerIndexMapRef == null
-																																	 ? null
-																																	 : markerIndexMapRef
-																																											.get();
+																																		? null
+																																		: markerIndexMapRef
+																																											 .get();
 		if (markerIndexMap == null) {
 			markerIndexMap = generateMarkerIndexMap();
 			markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(
@@ -893,7 +894,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 		// relying on this method not building a fresh array every time it is called and
 		// remove/reimplement
 		String[] markerNames = markerNameArrayRef == null ? null
-																										 : markerNameArrayRef.get();
+																											: markerNameArrayRef.get();
 		if (markerNames == null) {
 			markerNames = generateMarkerNameArray();
 			markerNameArrayRef = new SoftReference<String[]>(markerNames);
