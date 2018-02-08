@@ -22,7 +22,7 @@ public class PlotPoint implements Serializable {
 	private final String id;
 	private final float rawX;
 	private final float rawY;
-	private PointType type;
+	private byte type;
 	private byte size;
 	private Color tempColor;
 	private byte color;
@@ -33,7 +33,7 @@ public class PlotPoint implements Serializable {
 	public PlotPoint(String id, PointType type, float rawX, float rawY, byte size, byte color,
 									 byte layer) {
 		this.id = id;
-		this.type = type;
+		this.type = (byte) type.ordinal();
 		this.rawX = rawX;
 		this.rawY = rawY;
 		this.size = size;
@@ -65,7 +65,7 @@ public class PlotPoint implements Serializable {
 	}
 
 	public PointType getType() {
-		return type;
+		return PointType.values()[type];
 	}
 
 	public float getRawX() {
@@ -97,7 +97,7 @@ public class PlotPoint implements Serializable {
 	}
 
 	public void setType(PointType type) {
-		this.type = type;
+		this.type = (byte) type.ordinal();
 	}
 
 	public void setLayer(byte layer) {
