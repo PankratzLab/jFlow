@@ -87,14 +87,11 @@ public class AFPlot {
 	private long fileLines;
 	private final Set<String> dataSnps;
 
-	private final Map<String, Marker> g1KMarkers;
-	private final Map<String, String> g1KChrPosLookup;
-	private final Map<String, Map<POPULATION, Double>> g1KData;
+	private final Map<Object, Marker> g1KMarkers;
+	private final Map<Object, Map<POPULATION, Double>> g1KData;
 
-	private final Map<String, String[]> obsAlleles;
-	private final Map<String, String[]> obsChrPosAlleles;
-	private final Map<String, Double> observeds;
-	private final Map<String, Double> observedsChrPos;
+	private final Map<Object, String[]> obsAlleles;
+	private final Map<Object, Double> observeds;
 	private final Multiset<CONFIG> alleleInfo;
 
 	private volatile boolean forceRedraw = false;
@@ -136,7 +133,6 @@ public class AFPlot {
 	private void loadReferencePanel(Task<String, String> t) {
 		g1KMarkers.clear();
 		g1KData.clear();
-		g1KChrPosLookup.clear();
 		Map<POPULATION, Double> dataMap;
 		for (Byte chr : chrs) {
 			if (Thread.currentThread().isInterrupted()) {
@@ -211,10 +207,9 @@ public class AFPlot {
 					dataMap.put(POPULATION.AFR, line.getUnsafe(afAfr));
 					dataMap.put(POPULATION.AMR, line.getUnsafe(afAmr));
 					dataMap.put(POPULATION.SAS, line.getUnsafe(afSas));
-					getG1KMarkers().put(line.getString(snpCol), m);
-					getG1KChrPosLookup().put(line.getString(chrCol) + ":" + line.getString(posCol),
-																	 line.getString(snpCol));
-					getG1KData().put(line.getString(snpCol), dataMap);
+					Object key = isChrPosLookup() ? m.getGenomicPosition() : line.getString(snpCol);
+					getG1KMarkers().put(key, m);
+					getG1KData().put(key, dataMap);
 				} catch (IllegalArgumentException e) {
 					// thrown by Allele.create() if bases are invalid values
 					// just skip marker
@@ -341,9 +336,9 @@ public class AFPlot {
 				boolean key = getG1KMarkers().containsKey(values.getString(snpCol));
 				if (!key) {
 					if (values.hasValid(chr) && values.hasValid(pos)) {
-						key = getG1KChrPosLookup().containsKey(values.getUnsafe(chr)
-																									 + ":"
-																									 + values.getUnsafe(pos));
+						key = getG1KMarkers().containsKey(values.getUnsafe(chr)
+																							+ ":"
+																							+ values.getUnsafe(pos));
 					}
 				}
 				boolean nonMiss = values.hasValid(mafCol);
@@ -357,33 +352,25 @@ public class AFPlot {
 				reset();
 				return;
 			}
-			String key = line.getString(snpCol);
+			Marker mkr = mkrMap != null ? mkrMap.get(line.getString(snpCol)) : null;
+			Object key = line.getString(snpCol);
+			if (isChrPosLookup()) {
+				if (mkr != null) {
+					key = mkr.getGenomicPosition();
+				} else if (line.hasValid(chr) && line.hasValid(pos)) {
+					key = new GenomicPosition(line.getUnsafe(chr), line.getUnsafe(pos));
+				}
+			}
 			// we've dropped all invalid values using the ColumnFilter above
 			// so we know all freqs are valid doubles
 			double af = line.getUnsafe(mafCol);
 			observeds.put(key, af);
-			if (line.hasValid(a1) && line.hasValid(a2)) {
+			if (mkr != null) {
+				String[] alleles = new String[] {mkr.getRef().getBaseString(),
+																				 mkr.getAlt().getBaseString()};
+				getObservedAlleles().put(key, alleles);
+			} else if (line.hasValid(a1) && line.hasValid(a2)) {
 				getObservedAlleles().put(key, new String[] {line.getString(a1), line.getString(a2)});
-			}
-			if (mkrMap != null) {
-				Marker mkr = mkrMap.get(key);
-				if (mkr != null) {
-					String[] alleles = new String[] {mkr.getRef().getBaseString(),
-																					 mkr.getAlt().getBaseString()};
-					getObservedAlleles().put(key, alleles);
-					key = mkr.getGenomicPosition().getChr() + ":"
-								+ mkr.getGenomicPosition().getPosition();
-					observedsChrPos.put(key, af);
-					getObservedChrPosAlleles().put(key, alleles);
-				}
-			}
-			if (line.hasValid(chr) && line.hasValid(pos)) {
-				key = line.getUnsafe(chr) + ":" + line.getUnsafe(pos);
-				observedsChrPos.put(key, af);
-				if (line.hasValid(a1) && line.hasValid(a2)) {
-					getObservedChrPosAlleles().put(key,
-																				 new String[] {line.getString(a1), line.getString(a2)});
-				}
 			}
 			task.doStep();
 		}
@@ -517,12 +504,9 @@ public class AFPlot {
 		fileLines = -1;
 		dataSnps.clear();
 		g1KMarkers.clear();
-		g1KChrPosLookup.clear();
 		g1KData.clear();
 		obsAlleles.clear();
-		obsChrPosAlleles.clear();
 		observeds.clear();
-		observedsChrPos.clear();
 		alleleInfo.clear();
 		afPanel.resetMessage();
 	}
@@ -562,6 +546,7 @@ public class AFPlot {
 	}
 
 	final JButton cancelBtn;
+	private JCheckBoxMenuItem showAlleleItem;
 
 	private void setProgressBar(JProgressBar bar) {
 		if (frame != null) {
@@ -681,10 +666,7 @@ public class AFPlot {
 		chrPosItem.setMnemonic('C');
 		options.add(chrPosItem);
 
-		/**
-		 * Show panel with allele config info
-		 */
-		JCheckBoxMenuItem showAlleleItem = new JCheckBoxMenuItem();
+		showAlleleItem = new JCheckBoxMenuItem();
 		showAlleleItem.setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -780,7 +762,7 @@ public class AFPlot {
 		if (alleleInfoPanel == null)
 			return;
 		updateAlleleInfoPanel();
-		alleleInfoPanel.setVisible(!alleleInfoPanel.isVisible());
+		alleleInfoPanel.setVisible(showAlleleItem.isSelected());
 	}
 
 	/**
@@ -822,13 +804,10 @@ public class AFPlot {
 
 		dataSnps = new HashSet<>();
 		observeds = new HashMap<>();
-		observedsChrPos = new HashMap<>();
 		obsAlleles = new HashMap<>();
-		obsChrPosAlleles = new HashMap<>();
 		alleleInfo = HashMultiset.create();
 		g1KMarkers = new HashMap<>();
 		g1KData = new HashMap<>();
-		g1KChrPosLookup = new HashMap<>();
 	}
 
 	public void setVisible(boolean vis) {
@@ -867,39 +846,21 @@ public class AFPlot {
 		this.colorByConfig = colorByConfig;
 	}
 
-	/**
-	 * @return Map of Chr:Pos to String[2] alleles
-	 */
-	public Map<String, String[]> getObservedChrPosAlleles() {
-		return obsChrPosAlleles;
+	public Map<Object, Double> getData() {
+		return observeds;
 	}
 
 	/**
-	 * @return Map of marker name to String[2] alleles
+	 * @return Map of marker name or GenomicPosition to String[2] alleles
 	 */
-	public Map<String, String[]> getObservedAlleles() {
+	public Map<Object, String[]> getObservedAlleles() {
 		return obsAlleles;
-	}
-
-	public Map<String, String[]> getAlleleMap() {
-		return isChrPosLookup() ? getObservedChrPosAlleles() : getObservedAlleles();
-	}
-
-	public Map<String, Double> getData() {
-		return isChrPosLookup() ? observedsChrPos : observeds;
-	}
-
-	/**
-	 * @return Map of 1KG Chr:Pos to Markername
-	 */
-	public Map<String, String> getG1KChrPosLookup() {
-		return g1KChrPosLookup;
 	}
 
 	/**
 	 * @return Map of 1KG Markername to map of population to population allele frequency
 	 */
-	public Map<String, Map<POPULATION, Double>> getG1KData() {
+	public Map<Object, Map<POPULATION, Double>> getG1KData() {
 		return g1KData;
 	}
 
@@ -945,7 +906,7 @@ public class AFPlot {
 	/**
 	 * @return Map of 1KG String to {@link Marker}
 	 */
-	public Map<String, Marker> getG1KMarkers() {
+	public Map<Object, Marker> getG1KMarkers() {
 		return g1KMarkers;
 	}
 
@@ -981,6 +942,8 @@ public class AFPlot {
 		cli.addArg(fileArg, fileDesc, false);
 		cli.addFlag(screenArg, screenDesc);
 		cli.addArg(sizeArg, sizeDesc, false);
+
+		cli.parseWithExit(args);
 
 		Project proj = null;
 		String file = null;

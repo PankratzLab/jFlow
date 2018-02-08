@@ -61,6 +61,10 @@ public class GenomicPosition implements Serializable, Comparable<GenomicPosition
 		return cmp;
 	}
 
+	@Override
+	public String toString() {
+		return chr + ":" + position;
+	}
 
 
 }

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
+import org.genvisis.common.PSF;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 
@@ -54,17 +55,19 @@ public class AFPanel extends AbstractPanel {
 																Color.GRAY,
 																Color.YELLOW,
 																Color.RED,
-																new Color(140, 20, 180), // deep purple
-																new Color(33, 87, 0), // dark green
-																new Color(55, 129, 252), // light blue
-																new Color(94, 88, 214), // light purple
-																new Color(189, 243, 61), // light green
-																new Color(217, 109, 194), // pink
-																new Color(0, 0, 128), // ALL KINDS OF BLUES
-																new Color(100, 149, 237),
-																new Color(72, 61, 139),
-																new Color(106, 90, 205),
-																new Color(123, 104, 238),
+																PSF.Colors.BLUE_VIOLET,
+																PSF.Colors.GREEN,
+																PSF.Colors.DODGER_BLUE,
+																PSF.Colors.SLATE_BLUE,
+																PSF.Colors.GREEN_YELLOW,
+																PSF.Colors.ORCHID,
+																PSF.Colors.AMBER,
+																PSF.Colors.MANGO_TANGO,
+																PSF.Colors.NAVY,
+																PSF.Colors.CORNFLOWER_BLUE,
+																PSF.Colors.DARK_SLATE_BLUE,
+																PSF.Colors.SLATE_BLUE,
+																PSF.Colors.MEDIUM_SLATE_BLUE
 		});
 		points = new PlotPoint[0];
 		resetMessage();
@@ -105,21 +108,19 @@ public class AFPanel extends AbstractPanel {
 		List<PlotPoint> pointList = new ArrayList<>();
 		float afObs, afExp;
 		boolean add;
-		String g1MkrNm;
 		Marker g1Marker;
 		CONFIG config;
 		byte color = COLOR;
-		Map<String, String[]> alleles = plot.getAlleleMap();
-		Set<Entry<String, Double>> dataSet;
+		Map<Object, String[]> alleles = plot.getObservedAlleles();
+		Set<Entry<Object, Double>> dataSet;
 		plot.getAlleleInfo().clear();
 		dataSet = plot.getData().entrySet();
-		for (Entry<String, Double> obs : dataSet) {
-			g1MkrNm = plot.isChrPosLookup() ? plot.getG1KChrPosLookup().get(obs.getKey()) : obs.getKey();
+		for (Entry<Object, Double> obs : dataSet) {
 			afObs = obs.getValue().floatValue();
-			afExp = plot.getG1KData().get(g1MkrNm).get(plot.getSelectedPop()).floatValue();
+			afExp = plot.getG1KData().get(obs.getKey()).get(plot.getSelectedPop()).floatValue();
 			add = !plot.isMaskCenter() ? true : Math.abs(afObs - afExp) > 0.2;
 			if (add) {
-				g1Marker = plot.getG1KMarkers().get(g1MkrNm);
+				g1Marker = plot.getG1KMarkers().get(obs.getKey());
 				color = COLOR;
 				if (alleles.containsKey(obs.getKey()) && plot.isColorByConfig()) {
 					config = StrandOps.determineStrandConfig(alleles.get(obs.getKey()),
@@ -130,7 +131,7 @@ public class AFPanel extends AbstractPanel {
 					plot.getAlleleInfo().add(config);
 					color = (byte) configColorMap.get(config).intValue();
 				}
-				pointList.add(new PlotPoint(obs.getKey() + " | " + g1MkrNm, PointType.FILLED_CIRCLE, afExp,
+				pointList.add(new PlotPoint(obs.getKey().toString(), PointType.FILLED_CIRCLE, afExp,
 																		afObs, PTSIZE, color,
 																		LAYER));
 			}
