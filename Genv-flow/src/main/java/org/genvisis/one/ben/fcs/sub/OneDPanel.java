@@ -17,6 +17,7 @@ import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.stats.LeastSquares;
@@ -24,19 +25,19 @@ import org.genvisis.stats.LeastSquares;
 public class OneDPanel extends AbstractPanel2 {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-																								new Color(201, 30, 10), // deep red
+	public static final Color[] DEFAULT_COLORS = {PSF.Colors.MIDNIGHT_EXPRESS, // dark dark
+																								PSF.Colors.VENETIAN_RED, // deep red
 																								new Color(182, 182, 182), // light grey
-																								new Color(94, 88, 214), // light purple
+																								PSF.Colors.SLATE_BLUE, // light purple
 																								new Color(182, 182, 182, 180),
 																								new Color(189, 243, 61), // light green
 																								new Color(217, 109, 194), // pink
-																								new Color(33, 87, 0), // dark green
-																								new Color(23, 58, 172), // dark blue
-																								new Color(140, 20, 180), // deep purple
+																								PSF.Colors.GREEN, // dark green
+																								PSF.Colors.PERSIAN_BLUE, // dark blue
+																								PSF.Colors.BLUE_VIOLET, // deep purple
 																								new Color(220, 220, 220), // very light grey
 																								new Color(0, 0, 128), // ALL KINDS OF BLUES
-																								new Color(55, 129, 252), // light blue
+																								PSF.Colors.DODGER_BLUE, // light blue
 																								new Color(100, 149, 237), new Color(72, 61, 139),
 																								new Color(106, 90, 205), new Color(123, 104, 238),
 																								new Color(132, 112, 255), new Color(0, 0, 205),
