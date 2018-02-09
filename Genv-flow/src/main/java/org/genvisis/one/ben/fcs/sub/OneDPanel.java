@@ -15,7 +15,12 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
 import org.genvisis.stats.LeastSquares;
@@ -23,19 +28,19 @@ import org.genvisis.stats.LeastSquares;
 public class OneDPanel extends AbstractPanel2 {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-																								new Color(201, 30, 10), // deep red
+	public static final Color[] DEFAULT_COLORS = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																								REDS.VENETIAN_RED, // deep red
 																								new Color(182, 182, 182), // light grey
-																								new Color(94, 88, 214), // light purple
+																								BLUES.SLATE_BLUE, // light purple
 																								new Color(182, 182, 182, 180),
 																								new Color(189, 243, 61), // light green
 																								new Color(217, 109, 194), // pink
-																								new Color(33, 87, 0), // dark green
-																								new Color(23, 58, 172), // dark blue
-																								new Color(140, 20, 180), // deep purple
+																								GREENS.GREEN, // dark green
+																								BLUES.PERSIAN_BLUE, // dark blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
 																								new Color(220, 220, 220), // very light grey
 																								new Color(0, 0, 128), // ALL KINDS OF BLUES
-																								new Color(55, 129, 252), // light blue
+																								BLUES.DODGER_BLUE, // light blue
 																								new Color(100, 149, 237), new Color(72, 61, 139),
 																								new Color(106, 90, 205), new Color(123, 104, 238),
 																								new Color(132, 112, 255), new Color(0, 0, 205),
@@ -189,7 +194,7 @@ public class OneDPanel extends AbstractPanel2 {
 	}
 
 	private void generateDotLinePlot() {
-		byte type;
+		PointType type;
 		float xAxisValue, yAxisValue;
 		byte size = POINT_SIZE;
 
@@ -210,18 +215,18 @@ public class OneDPanel extends AbstractPanel2 {
 				xAxisValue = ind;
 				yAxisValue = (float) data[d][i];
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 				} else {
 					if (showRegressionLine) {
 						if (locallyDroppedPoints.get(plotLabel).contains(dataLabels[d][i])) {
-							type = PlotPoint.MISSING;
+							type = PointType.MISSING;
 							size = (byte) (POINT_SIZE * MISSING_SIZE_MULT);
 						} else {
-							type = PlotPoint.FILLED_CIRCLE;
+							type = PointType.FILLED_CIRCLE;
 							size = POINT_SIZE;
 						}
 					} else {
-						type = PlotPoint.FILLED_CIRCLE;
+						type = PointType.FILLED_CIRCLE;
 						size = POINT_SIZE;
 					}
 				}
@@ -405,7 +410,7 @@ public class OneDPanel extends AbstractPanel2 {
 
 				for (int j = 0; j < data[i].length; j++) {
 					if (data[i][j] < wiskLow || data[i][j] > wiskHigh) {
-						pts.add(new PlotPoint(dataLabels[i][j], PlotPoint.FILLED_CIRCLE, xMed,
+						pts.add(new PlotPoint(dataLabels[i][j], PointType.FILLED_CIRCLE, xMed,
 																	(float) data[i][j], POINT_SIZE, col, (byte) 0));
 					}
 				}
@@ -629,7 +634,7 @@ public class OneDPanel extends AbstractPanel2 {
 
 		defaultSize = POINT_SIZE;
 		for (PlotPoint point : points) {
-			point.setSize((byte) ((point.getType() == PlotPoint.MISSING ? defaultSize * MISSING_SIZE_MULT
+			point.setSize((byte) ((point.getType() == PointType.MISSING ? defaultSize * MISSING_SIZE_MULT
 																																	: defaultSize)
 														* (point.isHighlighted() ? 1.5 : 1)));
 		}
