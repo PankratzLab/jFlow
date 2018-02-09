@@ -29,4 +29,6 @@ public interface FileColumn<T> {
 	 */
 	T getValue(String[] line) throws ParseFailureException;
 
+	public boolean dieOnParseFailure();
+
 }

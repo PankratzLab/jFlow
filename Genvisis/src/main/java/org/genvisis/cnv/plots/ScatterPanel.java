@@ -27,6 +27,7 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.manage.SexOps;
 import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.plots.ScatterPlot.PLOT_TYPE;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
@@ -37,45 +38,52 @@ import org.genvisis.common.CountVector;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Logger;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
+import org.genvisis.common.PSF.Colors.YELLOWS;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static Color[] DEFAULT_COLORS = new Color[] {
-																											new Color(33, 31, 53), // dark dark
-																											new Color(23, 58, 172), // dark blue
-																											new Color(201, 30, 10), // deep red
-																											new Color(140, 20, 180), // deep purple
-																											new Color(33, 87, 0), // dark green
-																											new Color(55, 129, 252), // light blue
-																											new Color(94, 88, 214), // light purple
-																											new Color(189, 243, 61), // light green
-																											new Color(217, 109, 194), // pink
-																											new Color(0, 0, 128), // ALL KINDS OF BLUES
-																											new Color(100, 149, 237),
-																											new Color(72, 61, 139),
-																											new Color(106, 90, 205),
-																											new Color(123, 104, 238),
-																											new Color(132, 112, 255),
-																											new Color(0, 0, 205),
-																											new Color(65, 105, 225),
-																											new Color(0, 0, 255),
-																											new Color(30, 144, 255),
-																											new Color(0, 191, 255),
-																											new Color(135, 206, 250),
-																											new Color(135, 206, 250),
-																											new Color(70, 130, 180),
-																											new Color(176, 196, 222),
-																											new Color(173, 216, 230),
-																											new Color(176, 224, 230),
-																											new Color(175, 238, 238),
-																											new Color(0, 206, 209),
-																											new Color(72, 209, 204),
-																											new Color(64, 224, 208),
-																											new Color(0, 255, 255),
-																											new Color(224, 255, 255),
-																											new Color(255, 192, 0), // yellowy orange
-																											new Color(227, 108, 9), // halloween orange
+																											BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											BLUES.PERSIAN_BLUE, // dark blue
+																											REDS.VENETIAN_RED, // deep red
+																											VIOLETS.BLUE_VIOLET, // deep purple
+																											GREENS.GREEN, // dark green
+																											BLUES.DODGER_BLUE, // light blue
+																											BLUES.SLATE_BLUE, // light purple
+																											GREENS.GREEN_YELLOW, // light green
+																											VIOLETS.ORCHID, // pink
+																											BLUES.NAVY,
+																											BLUES.CORNFLOWER_BLUE,
+																											BLUES.DARK_SLATE_BLUE,
+																											BLUES.SLATE_BLUE,
+																											BLUES.MEDIUM_SLATE_BLUE,
+																											BLUES.LIGHT_SLATE_BLUE,
+																											BLUES.MEDIUM_BLUE,
+																											BLUES.ROYAL_BLUE,
+																											Color.BLUE,
+																											BLUES.DODGER_BLUE,
+																											BLUES.DEEP_SKY_BLUE,
+																											BLUES.LIGHT_SKY_BLUE,
+																											BLUES.LIGHT_SKY_BLUE,
+																											BLUES.STEEL_BLUE,
+																											BLUES.LIGHT_STEEL_BLUE,
+																											BLUES.LIGHT_BLUE,
+																											BLUES.POWDER_BLUE,
+																											BLUES.PALE_TURQUOISE,
+																											BLUES.DARK_TURQUOISE,
+																											BLUES.MEDIUM_TURQUOISE,
+																											BLUES.TURQUOISE,
+																											BLUES.AQUA,
+																											BLUES.LIGHT_CYAN,
+																											YELLOWS.AMBER, // yellowy orange
+																											ORANGES.MANGO_TANGO, // halloween
+																																							// orange
 	};
 
 
@@ -157,7 +165,8 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 	public void generatePoints() {
 		int position, markerIndex;
 		PLOT_TYPE plotType;
-		byte chr, genotypeCode, classCode, type;
+		byte chr, genotypeCode, classCode;
+		PointType type;
 		float[][] datapoints;
 		byte layer;
 		IndiPheno indi;
@@ -314,10 +323,10 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 							y = cents[i][markerIndex][j][1];
 						}
 						if (x > 0 || y > 0) {
-							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.FILLED_CIRCLE, x, y,
+							points[count * 3 + j] = new PlotPoint("Centroids", PointType.FILLED_CIRCLE, x, y,
 																										centSize, (byte) (5 + i), (byte) 10);
 						} else {
-							points[count * 3 + j] = new PlotPoint("Centroids", PlotPoint.MISSING, x, y, centSize,
+							points[count * 3 + j] = new PlotPoint("Centroids", PointType.MISSING, x, y, centSize,
 																										(byte) (5 + i), (byte) 10);
 							points[count * 3 + j].setVisible(false);
 						}
@@ -379,19 +388,19 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 					classCode = 0;
 				}
 				if (Float.isNaN(datapoints[0][i]) || Float.isNaN(datapoints[1][i])) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 					// } else if (currentClass==1 && alleleCounts[i]==-1) {
 				} else if (sp.getGCthreshold() > 0 && alleleCounts[i] == -1) {
-					type = PlotPoint.MISSING;
+					type = PointType.MISSING;
 				} else if (isNewGenotypingDifferent != null && isNewGenotypingDifferent[i]) {
-					type = PlotPoint.OPEN_SQUARE;
+					type = PointType.OPEN_SQUARE;
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 				}
 				if (classCode == 100) {
 					classCode = genotypeCode;
 					if (classCode == 0) {
-						type = PlotPoint.FILLED_TRIANGLE;
+						type = PointType.FILLED_TRIANGLE;
 						classCode = (byte) (colorScheme.length - 1);
 					}
 				}
@@ -400,7 +409,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 												 && classCode > 0) ? 1 : 0);
 				layer = classCode; // TODO temporary fix, since was always zero otherwise
 
-				if (type == PlotPoint.NOT_A_NUMBER || type == PlotPoint.MISSING) {
+				if (type == PointType.NOT_A_NUMBER || type == PointType.MISSING) {
 					uniqueValueCounts.add(-1 + "");
 					genotype[i] = 0;
 				} else {
@@ -417,9 +426,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														type,
 														datapoints[0][i],
 														datapoints[1][i],
-														type == PlotPoint.FILLED_CIRCLE
+														type == PointType.FILLED_CIRCLE
 																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
+																														: (type == PointType.FILLED_TRIANGLE
 																																																 ? (byte) (size
 																																																					 + 5)
 																																																 : xFontSize),
@@ -431,9 +440,9 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 														type,
 														datapoints[0][i],
 														datapoints[1][i],
-														type == PlotPoint.FILLED_CIRCLE
+														type == PointType.FILLED_CIRCLE
 																														? size
-																														: (type == PlotPoint.FILLED_TRIANGLE
+																														: (type == PointType.FILLED_TRIANGLE
 																																																 ? (byte) (size
 																																																					 + 5)
 																																																 : xFontSize),
@@ -460,7 +469,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
 				}
 				countMissing++;
 				sex[i] = "missing";
-				p = new PlotPoint(samples[i], PlotPoint.MISSING, datapoints[0][i],
+				p = new PlotPoint(samples[i], PointType.MISSING, datapoints[0][i],
 													datapoints[1][i], (byte) (xFontSize * 2),
 													(byte) 0,
 													(byte) 99);

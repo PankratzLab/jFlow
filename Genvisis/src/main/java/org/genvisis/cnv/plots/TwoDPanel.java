@@ -18,11 +18,16 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Files;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Numbers;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.stats.Histogram;
@@ -30,27 +35,38 @@ import org.genvisis.stats.Histogram;
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 	public static final long serialVersionUID = 3L;
 	public static final int LOOKUP_RESOLUTION = 20;
-	public static final Color[] DEFAULT_COLORS = {new Color(33, 31, 53), // dark dark
-																								new Color(201, 30, 10), // deep red
-																								new Color(94, 88, 214), // light purple
+	public static final Color[] DEFAULT_COLORS = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																								REDS.VENETIAN_RED, // deep red
+																								BLUES.SLATE_BLUE, // light purple
 																								new Color(189, 243, 61), // light green
 																								new Color(217, 109, 194), // pink
-																								new Color(33, 87, 0), // dark green
-																								new Color(23, 58, 172), // dark blue
-																								new Color(140, 20, 180), // deep purple
-																								new Color(0, 0, 128), // ALL KINDS OF BLUES
-																								new Color(55, 129, 252), // light blue
-																								new Color(100, 149, 237), new Color(72, 61, 139),
-																								new Color(106, 90, 205), new Color(123, 104, 238),
-																								new Color(132, 112, 255), new Color(0, 0, 205),
-																								new Color(65, 105, 225), new Color(0, 0, 255),
-																								new Color(30, 144, 255), new Color(0, 191, 255),
-																								new Color(135, 206, 250), new Color(135, 206, 250),
-																								new Color(70, 130, 180), new Color(176, 196, 222),
-																								new Color(173, 216, 230), new Color(176, 224, 230),
-																								new Color(175, 238, 238), new Color(0, 206, 209),
-																								new Color(72, 209, 204), new Color(64, 224, 208),
-																								new Color(0, 255, 255), new Color(224, 255, 255),
+																								GREENS.GREEN, // dark green
+																								BLUES.PERSIAN_BLUE, // dark blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
+																								BLUES.NAVY, // ALL KINDS OF BLUES
+																								BLUES.DODGER_BLUE, // light blue
+																								BLUES.CORNFLOWER_BLUE,
+																								BLUES.DARK_SLATE_BLUE,
+																								BLUES.SLATE_BLUE,
+																								BLUES.MEDIUM_SLATE_BLUE,
+																								BLUES.LIGHT_SLATE_BLUE,
+																								BLUES.MEDIUM_BLUE,
+																								BLUES.ROYAL_BLUE,
+																								Color.BLUE,
+																								BLUES.DODGER_BLUE,
+																								BLUES.DEEP_SKY_BLUE,
+																								BLUES.LIGHT_SKY_BLUE,
+																								BLUES.LIGHT_SKY_BLUE,
+																								BLUES.STEEL_BLUE,
+																								BLUES.LIGHT_STEEL_BLUE,
+																								BLUES.LIGHT_BLUE,
+																								BLUES.POWDER_BLUE,
+																								BLUES.PALE_TURQUOISE,
+																								BLUES.DARK_TURQUOISE,
+																								BLUES.MEDIUM_TURQUOISE,
+																								BLUES.TURQUOISE,
+																								BLUES.AQUA,
+																								BLUES.LIGHT_CYAN,
 
 	};
 	private static final double DEFAULT_HALF_BIN_SIZE = 0.001;
@@ -212,7 +228,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 		ArrayList<String[]> currentData;
 		CountVector uniqueValueCounts;
 		boolean includeColorKeyValue;
-		byte type;
+		PointType type;
 		String[] line;
 		float xAxisValue, yAxisValue;
 		byte index;
@@ -227,7 +243,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			points = new PlotPoint[0];// currentData.size()];
 			for (int i = 0; i < points.length; i++) {
 				points[i] = new PlotPoint("" + Float.parseFloat(currentData.get(i)[1]),
-																	PlotPoint.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]),
+																	PointType.FILLED_SQUARE, Float.parseFloat(currentData.get(i)[1]),
 																	Float.parseFloat(currentData.get(i)[2]), (byte) 0, (byte) 0,
 																	(byte) 0);
 			}
@@ -258,19 +274,19 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
 			if (missing) {
 				xAxisValue = Float.NaN;
 				yAxisValue = Float.NaN;
-				type = PlotPoint.MISSING;
+				type = PointType.MISSING;
 				uniqueValueCounts.add("0");
 			} else {
 				xAxisValue = Float.parseFloat(line[1]);
 				yAxisValue = Float.parseFloat(line[2]);
 				if (Float.isNaN(xAxisValue) || Float.isNaN(yAxisValue)) {
-					type = PlotPoint.NOT_A_NUMBER;
+					type = PointType.NOT_A_NUMBER;
 					uniqueValueCounts.add("0");
 					// } else if (alleleCounts[i]==-1) {
 					// type = PlotPoint.MISSING;
 					// uniqueValueCounts.add("0");
 				} else {
-					type = PlotPoint.FILLED_CIRCLE;
+					type = PointType.FILLED_CIRCLE;
 					uniqueValueCounts.add(line[3]);
 				}
 			}

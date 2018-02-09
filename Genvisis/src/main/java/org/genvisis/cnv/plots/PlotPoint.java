@@ -6,13 +6,16 @@ import java.io.Serializable;
 public class PlotPoint implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public static final byte FILLED_CIRCLE = 1;
-	public static final byte OPEN_CIRCLE = 2;
-	public static final byte MISSING = 3;
-	public static final byte NOT_A_NUMBER = 4;
-	public static final byte FILLED_SQUARE = 5;
-	public static final byte FILLED_TRIANGLE = 6;
-	public static final byte OPEN_SQUARE = 7;
+	public enum PointType {
+		FILLED_CIRCLE,
+		OPEN_CIRCLE,
+		MISSING,
+		NOT_A_NUMBER,
+		FILLED_SQUARE,
+		FILLED_TRIANGLE,
+		OPEN_SQUARE;
+	}
+
 	public static final String MISSING_STR = "X";
 	public static final String NAN_STR = "NaN";
 
@@ -27,10 +30,10 @@ public class PlotPoint implements Serializable {
 	private boolean highlight;
 	private boolean visible;
 
-	public PlotPoint(String id, byte type, float rawX, float rawY, byte size, byte color,
+	public PlotPoint(String id, PointType type, float rawX, float rawY, byte size, byte color,
 									 byte layer) {
 		this.id = id;
-		this.type = type;
+		this.type = (byte) type.ordinal();
 		this.rawX = rawX;
 		this.rawY = rawY;
 		this.size = size;
@@ -61,8 +64,8 @@ public class PlotPoint implements Serializable {
 		return id;
 	}
 
-	public byte getType() {
-		return type;
+	public PointType getType() {
+		return PointType.values()[type];
 	}
 
 	public float getRawX() {
@@ -93,8 +96,8 @@ public class PlotPoint implements Serializable {
 		return layer;
 	}
 
-	public void setType(byte type) {
-		this.type = type;
+	public void setType(PointType type) {
+		this.type = (byte) type.ordinal();
 	}
 
 	public void setLayer(byte layer) {

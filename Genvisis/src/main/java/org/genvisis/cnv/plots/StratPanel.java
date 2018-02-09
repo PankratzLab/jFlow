@@ -11,12 +11,18 @@ import java.util.Hashtable;
 
 import javax.swing.JPopupMenu;
 
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.CountVector;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
+import org.genvisis.common.PSF.Colors.BROWNS;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.ORANGES;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.mining.Distance;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
@@ -53,35 +59,22 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 	// new Color(71, 0, 113), // blue purple
 	// new Color(174, 0, 68)}; // red purple
 
-	// public static final Color[] DEFAULT_COLORS = {Color.BLACK,
-	// new Color(203, 30, 44), // red
-	// new Color(0, 89, 168), // blue
-	// new Color(52, 168, 63), // green
-	// new Color(94, 42, 132), // purple
-	// new Color(237, 112, 35), // orange
-	// new Color(255, 241, 0), // yellow
-	// new Color(230, 73, 39), // orange red
-	// new Color(249, 171, 22), // yellow orange
-	// new Color(182, 209, 36), // yellow green
-	// new Color(0, 157, 126), // blue green
-	// new Color(62, 46, 133), // blue purple
-	// new Color(126, 37, 131)}; // red purple
 
-	public static final Color[] DEFAULT_COLORS = {Color.BLACK, new Color(201, 30, 10), // red
-																								new Color(55, 129, 252), // light blue
-																								new Color(140, 20, 180), // deep purple
-																								new Color(33, 87, 0), // dark green
-																								new Color(247, 150, 70), // orange
-																								new Color(94, 88, 214), // light purple
-																								new Color(217, 109, 194), // deep red/pink
-																								new Color(189, 243, 61), // light green
-																								new Color(230, 73, 39), // orange red
-																								new Color(255, 241, 0), // yellow
-																								new Color(0, 157, 126), // blue green
-																								new Color(62, 46, 133), // blue purple
-																								new Color(0, 0, 128), // blue
-																								new Color(102, 51, 0), // brown
-																								new Color(153, 102, 51), // light brown
+	public static final Color[] DEFAULT_COLORS = {Color.BLACK, REDS.VENETIAN_RED, // red
+																								org.genvisis.common.PSF.Colors.BLUES.DODGER_BLUE, // light blue
+																								VIOLETS.BLUE_VIOLET, // deep purple
+																								GREENS.GREEN, // dark green
+																								ORANGES.SUNSHADE, // orange
+																								org.genvisis.common.PSF.Colors.BLUES.SLATE_BLUE, // light purple
+																								VIOLETS.ORCHID, // deep red/pink
+																								GREENS.GREEN_YELLOW, // light green
+																								REDS.CINNABAR, // orange red
+																								Color.YELLOW, // yellow
+																								GREENS.FREE_SPEECH_AQUAMARINE, // blue green
+																								VIOLETS.WINDSOR, // blue purple
+																								org.genvisis.common.PSF.Colors.BLUES.NAVY, // blue
+																								BROWNS.MAROON, // brown
+																								ORANGES.INDOCHINE, // light brown
 	};
 
 	public static final Color[] BLUES = {new Color(25, 25, 112), new Color(0, 0, 128),
@@ -251,7 +244,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
 						}
 					}
 
-					points[i] = new PlotPoint(sampleList[i], PlotPoint.FILLED_CIRCLE,
+					points[i] = new PlotPoint(sampleList[i], PointType.FILLED_CIRCLE,
 																		data[currentPair[0][0]][currentPair[0][1]],
 																		data[currentPair[1][0]][currentPair[1][1]],
 																		tagalong ? SIZE_TAGALONGS : SIZE, colorCode,

@@ -48,6 +48,8 @@ import org.genvisis.gwas.parsing.FileLink;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.StandardFileColumns;
 
+import com.google.common.collect.Lists;
+
 public class lab {
 
 
@@ -1862,6 +1864,7 @@ public class lab {
 			// processP2Counts_Step1();
 			// processP2Counts_Step2();
 			// processFreqs();
+
 
 			// removeParens();
 			// processP1Man_1(); // combine data within files

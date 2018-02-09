@@ -39,6 +39,7 @@ import org.genvisis.cnv.plots.GenericLine;
 import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.HashVec;
@@ -597,7 +598,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
 														 // the last tick mark
 		// int sigFigs;
-		String /* str, */pos;
+		String /* str, */ pos;
 		int xLook, yLook;
 		// BufferedImage yLabel;
 		FontMetrics fontMetrics = null;
@@ -621,10 +622,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		if (g instanceof Graphics2D) {
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_ANTIALIAS_OFF);
 			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 																				antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-																								 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+																									: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 		}
 
 		generatePointsRectanglesAndLines();
@@ -713,7 +714,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 		if (Float.isNaN(forcePlotXmax)) {
 			maximumObservedRawX = (maximumObservedRawX
-														+ (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
+														 + (maximumObservedRawX - minimumObservedRawX) * (float) 0.01);
 		} else {
 			if (forcePlotXmax < maximumObservedRawX) {
 				if (DEBUGGING) {
@@ -738,7 +739,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		}
 		if (Float.isNaN(forcePlotYmax)) {
 			maximumObservedRawY = (maximumObservedRawY
-														+ (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
+														 + (maximumObservedRawY - minimumObservedRawY) * (float) 0.01);
 		} else {
 			if (forcePlotYmax < maximumObservedRawY) {
 				if (DEBUGGING) {
@@ -838,10 +839,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			if (errorMessage != null) {
 				g.drawString(errorMessage,
 										 (getWidth() - axisYWidth/* WIDTH_Y_AXIS */) / 2
-												 - fontMetrics.stringWidth(errorMessage) / 2
-												 + axisYWidth/* WIDTH_Y_AXIS */,
+																	 - fontMetrics.stringWidth(errorMessage) / 2
+																	 + axisYWidth/* WIDTH_Y_AXIS */,
 										 (getHeight() - HEAD_BUFFER
-												 - axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
+											- axisXHeight/* HEIGHT_X_AXIS */) / 2 - 20 + HEAD_BUFFER);
 			}
 
 			g.setFont(prevFont);
@@ -907,10 +908,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 					if (points[i].isHighlighted()
 							|| (base && (layersInBase == null
-							|| Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0))
+													 || Bytes.indexOf(layersInBase, points[i].getLayer()) >= 0))
 							|| (!base && Bytes.indexOf(extraLayersVisible, points[i].getLayer()) >= 0)) {
 						if (points[i].getLayer() == 0) {
-							if (points[i].getType() != PlotPoint.NOT_A_NUMBER) {
+							if (points[i].getType() != PointType.NOT_A_NUMBER) {
 								drawPoint(g, points[i]);
 							} else if (base) {
 								numberOfNaNSamples++;
@@ -948,7 +949,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			for (int i = 0; i < keys.length && flow; i++) {
 				layer = layers.get(keys[order[i]]);
 				for (int j = 0; j < layer.size(); j++) {
-					if (layer.elementAt(j).getType() != PlotPoint.NOT_A_NUMBER) {
+					if (layer.elementAt(j).getType() != PointType.NOT_A_NUMBER) {
 						drawPoint(g, layer.elementAt(j));
 					} else {
 						numberOfNaNSamples++;
@@ -994,7 +995,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 		for (int i = 0; rectangles != null && i < rectangles.length && flow; i++) {
 			if ((base
-					&& (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0))
+					 && (layersInBase == null || Bytes.indexOf(layersInBase, rectangles[i].getLayer()) >= 0))
 					|| (!base && Bytes.indexOf(extraLayersVisible, rectangles[i].getLayer()) >= 0)) {
 				xPixel = Math.min(getXPixel(rectangles[i].getStartXValue()),
 													getXPixel(rectangles[i].getStopXValue()));
@@ -1188,7 +1189,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			int PAD = 5;
 			int fontHeight = (fontMetrics == null ? 25 : fontMetrics.getHeight());
 			int titleWidth = (fontMetrics == null ? title.length() * PAD
-																					 : fontMetrics.stringWidth(title));
+																						: fontMetrics.stringWidth(title));
 
 			switch (titleLocation) {
 				default: // DEFAULT TO TOP
@@ -1232,7 +1233,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 												 getHeight() - canvasSectionMaximumY, AXIS_THICKNESS, Color.BLACK);
 		g.drawString(xAxisLabel,
 								 (getWidth() - axisYWidth) / 2 - fontMetrics.stringWidth(xAxisLabel) / 2
-										 + 2 * (axisYWidth / 3),
+														 + 2 * (axisYWidth / 3),
 								 getHeight() - axisXHeight / 3 + fontMetrics.getHeight() / 2);
 	}
 
@@ -1361,7 +1362,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 								if (getYPixel(yPow) <= pixMax && getYPixel(yPow) > canvasSectionMinimumY) {
 									Grafik.drawThickLine(g,
 																			 canvasSectionMaximumX
-																					 - (yPow == -Math.pow(10, e) ? TICK_LENGTH
+																					- (yPow == -Math.pow(10, e) ? TICK_LENGTH
 																																			: (TICK_LENGTH / 3 * 2)),
 																			 getYPixel(yPow), canvasSectionMaximumX, getYPixel(yPow),
 																			 TICK_THICKNESS, Color.BLACK);
@@ -1385,7 +1386,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 								if (pix < pixMax && pix >= canvasSectionMinimumY) {
 									Grafik.drawThickLine(g,
 																			 canvasSectionMaximumX
-																					 - (yPow == inc ? TICK_LENGTH : (TICK_LENGTH / 3 * 2)),
+																					- (yPow == inc ? TICK_LENGTH : (TICK_LENGTH / 3 * 2)),
 																			 (int) pix, canvasSectionMaximumX, (int) pix, TICK_THICKNESS,
 																			 Color.BLACK);
 								}
@@ -1402,7 +1403,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 								if (pix < pixMax) {
 									Grafik.drawThickLine(g,
 																			 canvasSectionMaximumX
-																					 - (yPow == inc ? TICK_LENGTH : (TICK_LENGTH / 3 * 2)),
+																					- (yPow == inc ? TICK_LENGTH : (TICK_LENGTH / 3 * 2)),
 																			 (int) pix, canvasSectionMaximumX, (int) pix, TICK_THICKNESS,
 																			 Color.BLACK);
 								}
@@ -1473,7 +1474,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
 			g.drawImage(Grafik.rotateImage(yLabel, true), 0,
 									(getHeight() - axisXHeight/* HEIGHT_X_AXIS */) / 2
-											- fontMetrics.stringWidth(yAxisLabel) / 2,
+																											 - fontMetrics.stringWidth(yAxisLabel) / 2,
 									this);
 		}
 	}
@@ -1612,7 +1613,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 									Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY,
 																			 (int) pix,
 																			 getHeight()
-																					 - (canvasSectionMaximumY - (TICK_LENGTH / 3 * 2)),
+																									- (canvasSectionMaximumY - (TICK_LENGTH / 3 * 2)),
 																			 TICK_THICKNESS, Color.BLACK);
 								}
 							}
@@ -1635,8 +1636,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 									Grafik.drawThickLine(g, (int) pix, getHeight() - canvasSectionMaximumY,
 																			 (int) pix,
 																			 getHeight() - (canvasSectionMaximumY
-																					 - (xPow == inc ? TICK_LENGTH
-																												 : (TICK_LENGTH / 3 * 2))),
+																											- (xPow == inc ? TICK_LENGTH
+																																		 : (TICK_LENGTH / 3 * 2))),
 																			 TICK_THICKNESS, Color.BLACK);
 								}
 							}
@@ -1659,8 +1660,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 									Grafik.drawThickLine(g, getXPixel(xPow), getHeight() - canvasSectionMaximumY,
 																			 getXPixel(xPow),
 																			 getHeight() - (canvasSectionMaximumY
-																					 - (xPow == inc ? TICK_LENGTH
-																												 : (TICK_LENGTH / 3 * 2))),
+																											- (xPow == inc ? TICK_LENGTH
+																																		 : (TICK_LENGTH / 3 * 2))),
 																			 TICK_THICKNESS, Color.BLACK);
 								}
 							}
@@ -2308,27 +2309,27 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 		g.setColor(point.getTempColor() == null ? colorScheme[color] : point.getTempColor());
 
 		switch (point.getType()) {
-			case PlotPoint.FILLED_CIRCLE:
+			case FILLED_CIRCLE:
 				g.fillOval(x - size / 2, y - size / 2, size, size);
 				break;
-			case PlotPoint.OPEN_CIRCLE:
+			case OPEN_CIRCLE:
 				g.drawOval(x - size / 2, y - size / 2, size, size);
 				break;
-			case PlotPoint.FILLED_SQUARE:
+			case FILLED_SQUARE:
 				g.fillPolygon(new int[] {x - size / 2, x - size / 2, x + size / 2, x + size / 2},
 											new int[] {y - size / 2, y + size / 2, y + size / 2, y - size / 2}, 4);
 				break;
-			case PlotPoint.OPEN_SQUARE:
+			case OPEN_SQUARE:
 				g.drawPolygon(new int[] {x - size / 2, x - size / 2, x + size / 2, x + size / 2},
 											new int[] {y - size / 2, y + size / 2, y + size / 2, y - size / 2}, 4);
 				break;
-			case PlotPoint.FILLED_TRIANGLE:
+			case FILLED_TRIANGLE:
 				Grafik.drawTriangle(g, x, y, size, true);
 				// g.drawPolygon(new int[] {x-size/2, x, +size/2},
 				// new int[] {y+size/2, y-size/2, y+size/2},
 				// 3);
 				break;
-			case PlotPoint.MISSING:
+			case MISSING:
 				// g.drawString(PlotPoint.MISSING_STR, getX(point.getRawX())-missingWidth/2,
 				// getY(point.getRawY())+size/2);
 				if (PlotPoint.MISSING_STR.equals("X") || PlotPoint.MISSING_STR.equals("x")) {
@@ -2340,7 +2341,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 					g.setFont(new Font("Arial", 0, axisFontSize));
 				}
 				break;
-			case PlotPoint.NOT_A_NUMBER:
+			case NOT_A_NUMBER:
 				// g.drawString(PlotPoint.NAN_STR, getX(point.getRawX())-nanWidth/2,
 				// getY(point.getRawY())-30+size/2);
 				break;
@@ -2727,10 +2728,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			plotMinMax = xAxis ? getPlotX() : getPlotY();
 
 			float log_low = plotMinMax[0] == 0 ? 0 : (plotMinMax[0] < 0 ? -1 * flog10(plotMinMax[0] * -1)
-																																 : flog10(plotMinMax[0]));
+																																	: flog10(plotMinMax[0]));
 			float log_high = plotMinMax[1] == 0 ? 0 : (plotMinMax[1] < 0 ? -1
 																																		 * flog10(plotMinMax[1] * -1)
-																																	: flog10(plotMinMax[1]));
+																																	 : flog10(plotMinMax[1]));
 			float log_val = val == 0 ? 0 : (val < 0 ? -1 * flog10(val * -1) : flog10(val));
 			float pixels_per_log_unit = (screenMinMax[1] - screenMinMax[0]) / (log_high - log_low);
 			int retVal = (int) ((log_val - log_low) * pixels_per_log_unit) + screenMinMax[0];
@@ -2759,10 +2760,10 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			plotMinMax = xAxis ? getPlotX() : getPlotY();
 
 			float log_low = plotMinMax[0] == 0 ? 0 : (plotMinMax[0] < 0 ? -1 * flog10(plotMinMax[0] * -1)
-																																 : flog10(plotMinMax[0]));
+																																	: flog10(plotMinMax[0]));
 			float log_high = plotMinMax[1] == 0 ? 0 : (plotMinMax[1] < 0 ? -1
 																																		 * flog10(plotMinMax[1] * -1)
-																																	: flog10(plotMinMax[1]));
+																																	 : flog10(plotMinMax[1]));
 
 			double ret = xAxis ? (val - screenMinMax[0]) : (panel.getHeight() - val - screenMinMax[0]);
 			ret = log_low + (ret * (log_high - log_low)) / (screenMinMax[1] - screenMinMax[0]);
@@ -2785,11 +2786,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			double[] plotMinMax = getPlotX();
 			if (invertX) {
 				return (int) ((plotMinMax[1] - val) / (plotMinMax[1] - plotMinMax[0])
-							 * (screenMinMax[1] - screenMinMax[0]))
+											* (screenMinMax[1] - screenMinMax[0]))
 							 + screenMinMax[0];
 			} else {
 				return (int) ((val - plotMinMax[0]) / (plotMinMax[1] - plotMinMax[0])
-							 * (screenMinMax[1] - screenMinMax[0]))
+											* (screenMinMax[1] - screenMinMax[0]))
 							 + screenMinMax[0];
 			}
 		}
@@ -2814,11 +2815,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 			if (invertX) {
 				return plotMinMax[1]
 							 - ((double) (val - screenMinMax[0]) / (double) (screenMinMax[1] - screenMinMax[0])
-							 * (plotMinMax[1] - plotMinMax[0]));
+									* (plotMinMax[1] - plotMinMax[0]));
 			} else {
 				return plotMinMax[0]
 							 + ((double) (val - screenMinMax[0]) / (double) (screenMinMax[1] - screenMinMax[0])
-							 * (plotMinMax[1] - plotMinMax[0]));
+									* (plotMinMax[1] - plotMinMax[0]));
 			}
 		}
 

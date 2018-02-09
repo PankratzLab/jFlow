@@ -2,14 +2,10 @@ package org.genvisis.gwas.parsing;
 
 import java.util.Map;
 
-public class DoubleWrapperColumn extends CachedFileColumn<Double> {
+public class ByteWrapperColumn extends CachedFileColumn<Byte> {
 	private FileColumn<?> base;
 
-	public DoubleWrapperColumn(FileColumn<?> base) {
-		this(base, base.dieOnParseFailure());
-	}
-
-	public DoubleWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
+	public ByteWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
 		super(base.getName(), dieOnParseFailure);
 		this.base = base;
 	}
@@ -24,9 +20,9 @@ public class DoubleWrapperColumn extends CachedFileColumn<Double> {
 	}
 
 	@Override
-	public Double calculateValue(String[] line) throws ParseFailureException {
+	public Byte calculateValue(String[] line) throws ParseFailureException {
 		try {
-			return Double.parseDouble(getBaseValue(line));
+			return Byte.parseByte(getBaseValue(line));
 		} catch (NumberFormatException e) {
 			throw new ParseFailureException(e);
 		}
@@ -49,7 +45,7 @@ public class DoubleWrapperColumn extends CachedFileColumn<Double> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		DoubleWrapperColumn other = (DoubleWrapperColumn) obj;
+		ByteWrapperColumn other = (ByteWrapperColumn) obj;
 		if (!base.equals(other.base))
 			return false;
 		if (getName() == null) {
@@ -59,5 +55,6 @@ public class DoubleWrapperColumn extends CachedFileColumn<Double> {
 			return false;
 		return true;
 	}
+
 
 }

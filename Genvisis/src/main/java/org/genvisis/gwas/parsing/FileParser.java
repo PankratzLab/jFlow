@@ -15,7 +15,9 @@ import java.util.Set;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
-public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
+import com.google.common.collect.ImmutableList;
+
+public class FileParser implements Iterable<DataLine> {
 
 	private String inputFile;
 	private String inputFileDelim;
@@ -37,8 +39,9 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 	private List<FileLink> linkedParsers;
 	private Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
 	protected List<FileColumn<?>> dataInOrder;
-
 	protected List<FileColumn<?>> addlDataToLoad;
+	protected List<FileColumn<?>> optlDataToLoad;
+	protected List<FileColumn<?>> optlDataFound;
 
 	private BufferedReader reader;
 	private boolean opened = false;
@@ -62,6 +65,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		linkedParsers = new ArrayList<>();
 		dataInOrder = new ArrayList<>();
 		addlDataToLoad = new ArrayList<>();
+		optlDataToLoad = new ArrayList<>();
 		linkedFileColumns = new HashMap<>();
 	}
 
@@ -153,6 +157,17 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		}
 	}
 
+	/**
+	 * See {@link AbstractFileParserFactory#optionalColumns(FileColumn...)}
+	 * 
+	 * @param columns {link {@link FileColumn}...
+	 */
+	void addOptionalColumns(FileColumn<?>... columns) {
+		for (FileColumn<?> fc : columns) {
+			this.optlDataToLoad.add(fc);
+		}
+	}
+
 	private List<FileColumn<?>> getOutputColumnsInOrder() {
 		List<FileColumn<?>> cols = new ArrayList<>(dataInOrder);
 		for (FileLink fl : linkedParsers) {
@@ -207,16 +222,26 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			for (FileColumn<?> fc : addlDataToLoad) {
 				fc.initialize(hdrMap);
 			}
+			optlDataFound = new ArrayList<>();
+			for (FileColumn<?> fc : optlDataToLoad) {
+				try {
+					fc.initialize(hdrMap);
+					optlDataFound.add(fc);
+				} catch (IllegalStateException e) {
+					// not in file
+				}
+			}
 			break;
 		}
 
 		opened = true;
 	}
 
-	private Map<FileColumn<?>, String> readLine() throws IOException {
+	private DataLine readLine() throws IOException {
 		if (reader == null)
 			return null;
-		Map<FileColumn<?>, String> lineData;
+
+		DataLine lineData;
 		String[] parts;
 
 		boolean skip = false;
@@ -247,26 +272,21 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			if (skip) {
 				continue;
 			}
-			lineData = new HashMap<>();
-			parts = line.split(inputFileDelim);
+			lineData = new DataLine(parseFailValue);
+			parts = line.split(inputFileDelim, -1);
 			if (failCount && parts.length != header.length) {
 				throw new IllegalStateException("Line "
 																				+ lineCount + " was the wrong length; expected "
 																				+ header.length + ", found " + parts.length);
 			}
 			for (FileColumn<?> fc : dataInOrder) {
-				try {
-					lineData.put(fc, fc.getValue(parts).toString());
-				} catch (ParseFailureException e) {
-					lineData.put(fc, parseFailValue);
-				}
+				lineData.parseOrFail(fc, parts);
 			}
 			for (FileColumn<?> fc : addlDataToLoad) {
-				try {
-					lineData.put(fc, fc.getValue(parts).toString());
-				} catch (ParseFailureException e) {
-					lineData.put(fc, parseFailValue);
-				}
+				lineData.parseOrFail(fc, parts);
+			}
+			for (FileColumn<?> fc : optlDataFound) {
+				lineData.parseOrFail(fc, parts);
 			}
 			for (ColumnFilter fc : filters) {
 				if (!fc.filter(lineData)) {
@@ -290,32 +310,36 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 
 		if (lineData != null) {
 			for (FileLink fl : linkedParsers) {
-				String keyVal = "";
+				ImmutableList.Builder<Object> builder = ImmutableList.builder();
 				for (FileColumn<?> fc : fl.getKeys()) {
-					keyVal += lineData.get(linkedFileColumns.get(fl).get(fc));
+					builder.add(lineData.getString(linkedFileColumns.get(fl).get(fc)));
 				}
-				Map<FileColumn<?>, String> linkedLine = fl.get(keyVal);
+				ImmutableList<Object> key = builder.build();
+				DataLine linkedLine = fl.get(key);
 				if (linkedLine == null) {
 					// missing data
 					for (FileColumn<?> valueCol : fl.getValues()) {
 						// check if data already exists
-						if (!lineData.containsKey(valueCol)) {
-							lineData.put(valueCol, parseFailValue);
+						if (!lineData.has(valueCol)) {
+							lineData.fail(valueCol);
 						}
 					}
 				} else {
 					for (FileColumn<?> valueCol : fl.getValues()) {
-						// check if data already exists or was a failure
-						if (!lineData.containsKey(valueCol) || parseFailValue.equals(lineData.get(valueCol))) {
-							lineData.put(valueCol, linkedLine.get(valueCol));
-						} else if (lineData.containsKey(valueCol)
-											 && !parseFailValue.equals(lineData.get(valueCol))
-											 && !linkedLine.get(valueCol).equals(lineData.get(valueCol))) {
+						// check if data doesn't already exist or was a failure
+						if (!lineData.hasValid(valueCol) && linkedLine.hasValid(valueCol)) {
+							lineData.copyUnsafe(valueCol, linkedLine);
+						} else if (lineData.hasValid(valueCol)
+											 && linkedLine.hasValid(valueCol)
+											 && !linkedLine.getUnsafe(valueCol).equals(lineData.getUnsafe(valueCol))) {
 							// if a value already exists and isn't the same nor a parse failure
 							throw new IllegalStateException("Different value found for column "
 																							+ valueCol.getName() + " with linked key; key="
-																							+ keyVal + ", value1=" + lineData.get(valueCol)
-																							+ ", value2=" + linkedLine.get(valueCol));
+																							+ key.toString() + ", value1="
+																							+ lineData.getString(valueCol)
+																							+ ", value2=" + linkedLine.getString(valueCol));
+						} else {
+							lineData.fail(valueCol);
 						}
 					}
 				}
@@ -356,19 +380,19 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		reader.close();
 	}
 
-	public Iterator<Map<FileColumn<?>, String>> iterator() {
+	public Iterator<DataLine> iterator() {
 		try {
 			open();
 		} catch (IOException e1) {
 			throw new RuntimeException(e1);
 		}
-		return new Iterator<Map<FileColumn<?>, String>>() {
+		return new Iterator<DataLine>() {
 			boolean started = false;
-			Map<FileColumn<?>, String> currentLine = null;
+			DataLine currentLine = null;
 
 			@Override
-			public Map<FileColumn<?>, String> next() {
-				Map<FileColumn<?>, String> line = null;
+			public DataLine next() {
+				DataLine line = null;
 				try {
 					if (!started) {
 						// if we're calling next() without having called hasNext() first
@@ -403,37 +427,61 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		};
 	}
 
-	public List<Map<FileColumn<?>, String>> load() throws IOException {
-		List<Map<FileColumn<?>, String>> data = new ArrayList<>();
-		Iterator<Map<FileColumn<?>, String>> iter = iterator();
+	public List<DataLine> load() throws IOException {
+		List<DataLine> data = new ArrayList<>();
+		Iterator<DataLine> iter = iterator();
 		while (iter.hasNext()) {
 			data.add(iter.next());
 		}
+		close();
 		return data;
 	}
 
-	public Map<String, Map<FileColumn<?>, String>> load(FileColumn<?>... keyCols) throws IOException {
-		Map<String, Map<FileColumn<?>, String>> data = new HashMap<>();
-		Iterator<Map<FileColumn<?>, String>> iter = iterator();
+	/**
+	 * 
+	 * @param dropIfKeyFail Set to true to drop any lines where the key value(s) throw a
+	 *        ParseFailureException; set to false to throw a RuntimeException if invalid keys are
+	 *        found.
+	 * @param keyCols Vararg of FileColumns whose String values are to be concatenated together and
+	 *        used as the key
+	 * @return
+	 * @throws IOException
+	 */
+	public Map<ImmutableList<Object>, DataLine> load(boolean dropIfKeyFail,
+																									 FileColumn<?>... keyCols) throws IOException {
+		Map<ImmutableList<Object>, DataLine> data = new HashMap<>();
+		Iterator<DataLine> iter = iterator();
 		while (iter.hasNext()) {
-			Map<FileColumn<?>, String> line = iter.next();
-			String keyVal = "";
-			for (FileColumn<?> fc : keyCols) {
-				keyVal += line.get(fc);
+			DataLine line = iter.next();
+			try {
+				ImmutableList.Builder<Object> builder = ImmutableList.builder();
+				for (FileColumn<?> fc : keyCols) {
+					builder.add(line.get(fc));
+				}
+				data.put(builder.build(), line);
+			} catch (ParseFailureException e) {
+				if (!dropIfKeyFail) {
+					throw new RuntimeException(e);
+				}
 			}
-			data.put(keyVal, line);
 		}
+		close();
 		return data;
 	}
 
-	public List<Map<FileColumn<?>, String>> parseToFileAndLoad(String outputFile,
-																														 String outDelim) throws IOException {
-		List<Map<FileColumn<?>, String>> data = new ArrayList<>();
-		Iterator<Map<FileColumn<?>, String>> iter = iterator();
+	public List<DataLine> parseToFileAndLoad(String outputFile, String outDelim) throws IOException {
+		return parseToFileAndLoad(outputFile, outDelim, null);
+	}
+
+	public List<DataLine> parseToFileAndLoad(String outputFile, String outDelim,
+																					 List<FileColumn<?>> outputOrder) throws IOException {
+		List<DataLine> data = new ArrayList<>();
+		Iterator<DataLine> iter = iterator();
 
 		PrintWriter writer = Files.getAppropriateWriter(outputFile);
 		StringBuilder lineOut = new StringBuilder();
-		List<FileColumn<?>> outputColumns = getOutputColumnsInOrder();
+		List<FileColumn<?>> outputColumns = outputOrder != null ? outputOrder
+																														: getOutputColumnsInOrder();
 		for (int i = 0, count = outputColumns.size(); i < count; i++) {
 			lineOut.append(outputColumns.get(i).getName());
 			if (i < count - 1) {
@@ -443,11 +491,11 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		writer.println(lineOut.toString());
 
 		while (iter.hasNext()) {
-			Map<FileColumn<?>, String> line = iter.next();
+			DataLine line = iter.next();
 			data.add(line);
 			lineOut = new StringBuilder();
 			for (int i = 0, count = outputColumns.size(); i < count; i++) {
-				lineOut.append(line.get(outputColumns.get(i)));
+				lineOut.append(line.getString(outputColumns.get(i)));
 				if (i < count - 1) {
 					lineOut.append(outDelim);
 				}
@@ -455,12 +503,12 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			writer.println(lineOut.toString());
 		}
 		writer.close();
-
+		close();
 		return data;
 	}
 
 	public void parseToFile(String outputFile, String outDelim) throws IOException {
-		this.parseToFile(outputFile, outDelim, true, false, null);
+		this.parseToFile(outputFile, outDelim, null);
 	}
 
 	public void parseToFile(String outputFile, String outDelim,
@@ -475,7 +523,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 
 	public void parseToFile(String outputFile, String outDelim, boolean writeHeader,
 													boolean append, List<FileColumn<?>> outputOrder) throws IOException {
-		Iterator<Map<FileColumn<?>, String>> iter = iterator();
+		Iterator<DataLine> iter = iterator();
 
 		PrintWriter writer = Files.getAppropriateWriter(outputFile, append);
 		List<FileColumn<?>> outputColumns = outputOrder == null ? getOutputColumnsInOrder()
@@ -503,10 +551,10 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 		}
 
 		while (iter.hasNext()) {
-			Map<FileColumn<?>, String> line = iter.next();
+			DataLine line = iter.next();
 			lineOut = new StringBuilder();
 			for (int i = 0, count = outputColumns.size(); i < count; i++) {
-				lineOut.append(line.get(outputColumns.get(i)));
+				lineOut.append(line.getString(outputColumns.get(i)));
 				if (i < count - 1) {
 					lineOut.append(outDelim);
 				}
@@ -514,6 +562,7 @@ public class FileParser implements Iterable<Map<FileColumn<?>, String>> {
 			writer.println(lineOut.toString());
 		}
 		writer.close();
+		close();
 	}
 
 

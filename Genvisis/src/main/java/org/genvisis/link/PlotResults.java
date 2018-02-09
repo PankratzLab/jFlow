@@ -44,6 +44,10 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.IntVector;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Colors.BLUES;
+import org.genvisis.common.PSF.Colors.GREENS;
+import org.genvisis.common.PSF.Colors.REDS;
+import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.ProgressBarDialog;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
@@ -100,35 +104,35 @@ public class PlotResults extends JFrame implements ActionListener {
 	private static final String UNCHECK_ALL = "Uncheck all";
 
 
-	private static final Color[] DEFAULT_COLOR_SCHEME = {new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+	private static final Color[] DEFAULT_COLOR_SCHEME = {BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 
-																											 new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+																											 BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 
-																											 new Color(33, 31, 53), // dark dark
-																											 new Color(23, 58, 172), // dark blue
-																											 new Color(201, 30, 10), // deep red
-																											 new Color(140, 20, 180), // deep purple
-																											 new Color(33, 87, 0), // dark green
-																											 new Color(55, 129, 252), // light blue
-																											 new Color(217, 109, 194), // pink
-																											 new Color(94, 88, 214), // light purple
-																											 new Color(189, 243, 61), // light green
+																											 BLUES.MIDNIGHT_EXPRESS, // dark dark
+																											 BLUES.PERSIAN_BLUE, // dark blue
+																											 REDS.VENETIAN_RED, // deep red
+																											 VIOLETS.BLUE_VIOLET, // deep purple
+																											 GREENS.GREEN, // dark green
+																											 BLUES.DODGER_BLUE, // light blue
+																											 VIOLETS.ORCHID, // pink
+																											 BLUES.SLATE_BLUE, // light purple
+																											 GREENS.GREEN_YELLOW, // light green
 	};
 
 

@@ -2,8 +2,8 @@ package org.genvisis.gwas.parsing;
 
 public abstract class CachedFileColumn<T> extends AbstractFileColumn<T> {
 
-	public CachedFileColumn(String nm) {
-		super(nm);
+	public CachedFileColumn(String nm, boolean dieOnParseFailure) {
+		super(nm, dieOnParseFailure);
 	}
 
 	private String[] currentLine;

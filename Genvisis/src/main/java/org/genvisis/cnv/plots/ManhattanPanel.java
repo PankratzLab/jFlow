@@ -19,6 +19,7 @@ import javax.swing.ToolTipManager;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.ManhattanPlot.ManhattanDataPoint;
+import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -136,7 +137,7 @@ public class ManhattanPanel extends AbstractPanel {
 			}
 			points[i] = new PlotPoint(
 																mdp.mkr == null ? mdp.chr + ":" + mdp.pos : mdp.mkr,
-																PlotPoint.FILLED_CIRCLE,
+																PointType.FILLED_CIRCLE,
 																(float) mdp.linearLoc,
 																(float) mdp.transformedPVal,
 																getSize(mdp.transformedPVal),

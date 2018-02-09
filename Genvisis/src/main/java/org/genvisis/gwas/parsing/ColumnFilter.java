@@ -1,7 +1,6 @@
 package org.genvisis.gwas.parsing;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Interface for filtering lines of data. Subclasses should extend {@link AbstractColumnFilter}
@@ -18,5 +17,5 @@ public interface ColumnFilter {
 	 * @param values Line of data.
 	 * @return Whether the given line of data passes this filter.
 	 */
-	public boolean filter(Map<FileColumn<?>, String> values);
+	public boolean filter(DataLine values);
 }

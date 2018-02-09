@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Ints;
 
 public class ext {
+	private static final String[] SUFFIXES = new String[] {"th", "st", "nd", "rd", "th", "th", "th",
+																												 "th", "th", "th"};
 	public static final Set<Character> UNSAFE_CHARS = ImmutableSet.of(' ', '?', '\'', '/', '\\', '<',
 																																		'>',
 																																		'|', ':', '*', '\'');
@@ -592,6 +594,18 @@ public class ext {
 		f = new DecimalFormat(theFormat + "E0");
 
 		return f.format(num);
+	}
+
+	public static String ordinal(int i) {
+		switch (i % 100) {
+			case 11:
+			case 12:
+			case 13:
+				return i + "th";
+			default:
+				return i + SUFFIXES[i % 10];
+
+		}
 	}
 
 	public static String prettyP(double d) {
