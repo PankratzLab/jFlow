@@ -428,19 +428,24 @@ public class PhenoPrep {
 
 		data = Matrix.extractColumn(database, 0);
 
-		count = ArrayUtils.countIf(ArrayUtils.toStringArray(data), "0.0");
-		if (count > 0 && (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10"))) {
-			log.reportError("There " + (count == 1 ? "is one zero value" : " are zero values")
-											+ ", which will cause the " + transform
-											+ " transformation to fail; aborting");
-			return false;
-		}
 		if (ArrayUtils.min(data) < 0
 				&& (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10")
 						|| transform.equalsIgnoreCase("sqrt"))) {
-			log.reportError("Negative values will cause the " + transform
-											+ " transformation to fail; aborting");
-			return false;
+			double min = ArrayUtils.min(data);
+			log.report("Negative values detected. Shifting values by " + (Math.abs(min) + 1));
+
+			for (int i = 0; i < data.length; i++)
+				data[i] = data[i] - min + 1.0;
+
+		}
+
+		count = ArrayUtils.countIf(ArrayUtils.toStringArray(data), "0.0");
+		if (count > 0 && (transform.equalsIgnoreCase("ln") || transform.equalsIgnoreCase("log10"))) {
+			log.report("There " + (count == 1 ? "is one zero value" : " are zero values")
+								 + ", which will cause the " + transform
+								 + " transformation to fail; adjusting values by 1");
+			for (int i = 0; i < data.length; i++)
+				data[i] = data[i] + 1.0;
 		}
 
 		if (transform == null) {
