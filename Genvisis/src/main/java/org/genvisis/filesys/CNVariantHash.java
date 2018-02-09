@@ -159,20 +159,26 @@ public class CNVariantHash implements Serializable {
 		if (parseGz && !parse) {
 			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffixGz, log, false);
 		} else if (parse && !parseGz) {
-			log.report("Found unzipped CNVariantHash file, converting to zipped file.");
+			log.reportTime("Found unzipped CNVariantHash file, converting to zipped file.");
 			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffix, log, false);
 			if (hashes == null) {
-				log.report("Couldn't read CNVariantHash file " + filename + suffix + " - recreating...");
+				log.reportTime("Couldn't read CNVariantHash file " + filename + suffix
+											 + " - recreating...");
 				hashes = new CNVariantHash(filename, structureType, log);
 			}
 			hashes.serialize(filename + suffixGz);
-			new File(filename + suffix).delete();
-		} else if (parse && parseGz) {
-			log.report("Found both zipped and unzipped CNVariantHash file.  Loading zipped file...");
+			// check that we've serialized successfully:
 			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffixGz, log, false);
-		} else if ((!parse && !parseGz) || hashes == null) {
+			if (hashes != null) {
+				new File(filename + suffix).delete();
+			}
+		} else if (parse && parseGz) {
+			log.reportTime("Found both zipped and unzipped CNVariantHash file.  Loading zipped file...");
+			hashes = (CNVariantHash) SerializedFiles.readSerial(filename + suffixGz, log, false);
+		}
+		if ((!parse && !parseGz) || hashes == null) {
 			if (hashes == null) {
-				log.report("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
+				log.reportTime("Detected that CNVariantHash needs to be updated from cnv.var.CNVariantHash to filesys.CNVariantHash; reparsing...");
 			}
 			hashes = new CNVariantHash(filename, structureType, log);
 			hashes.serialize(filename + suffixGz);
