@@ -3,56 +3,57 @@ package org.genvisis.common;
 import java.io.PrintWriter;
 
 public class RealTextFormatWriter {
-	private final PrintWriter writer;
-	private final boolean rtfOutput;
 
-	static final String NEW_LINE = "{\\line }";
-	static final String NEW_PARAGRAPH = "{\\par }";
+  private final PrintWriter writer;
+  private final boolean rtfOutput;
 
-	public RealTextFormatWriter(String filename, boolean useRtfOutput) {
-		writer = Files.getWriter(filename);
-		rtfOutput = useRtfOutput;
+  static final String NEW_LINE = "{\\line }";
+  static final String NEW_PARAGRAPH = "{\\par }";
 
-		if (rtfOutput) {
-			writer.println("{\\rtf1 ");
-		}
-	}
+  public RealTextFormatWriter(String filename, boolean useRtfOutput) {
+    writer = Files.getWriter(filename);
+    rtfOutput = useRtfOutput;
 
-	public void print(String str) {
-		str = str.replaceAll("<super>", rtfOutput ? "}{\\\\super " : "");
-		str = str.replaceAll("<i>", rtfOutput ? "}{\\\\i " : "");
-		str = str.replaceAll("<b>", rtfOutput ? "}{\\\\b " : "");
-		str = str.replaceAll("<u>", rtfOutput ? "}{\\\\ul " : "");
-		str = str.replaceAll("</>", rtfOutput ? "}{" : "");
+    if (rtfOutput) {
+      writer.println("{\\rtf1 ");
+    }
+  }
 
-		writer.print(str);
-	}
+  public void print(String str) {
+    str = str.replaceAll("<super>", rtfOutput ? "}{\\\\super " : "");
+    str = str.replaceAll("<i>", rtfOutput ? "}{\\\\i " : "");
+    str = str.replaceAll("<b>", rtfOutput ? "}{\\\\b " : "");
+    str = str.replaceAll("<u>", rtfOutput ? "}{\\\\ul " : "");
+    str = str.replaceAll("</>", rtfOutput ? "}{" : "");
 
-	public void println(String str) {
-		if (rtfOutput) {
-			print("{");
-		}
-		print(str);
-		if (rtfOutput) {
-			print("}");
-		}
-		print("\n");
-		if (rtfOutput) {
-			writer.println(NEW_LINE);
-		}
-	}
+    writer.print(str);
+  }
 
-	public void close() {
-		if (rtfOutput) {
-			writer.println("}");
-		}
-		writer.close();
-	}
+  public void println(String str) {
+    if (rtfOutput) {
+      print("{");
+    }
+    print(str);
+    if (rtfOutput) {
+      print("}");
+    }
+    print("\n");
+    if (rtfOutput) {
+      writer.println(NEW_LINE);
+    }
+  }
 
-	public void newParagraph() {
-		if (rtfOutput) {
-			writer.println("\\par");
-		}
-	}
+  public void close() {
+    if (rtfOutput) {
+      writer.println("}");
+    }
+    writer.close();
+  }
+
+  public void newParagraph() {
+    if (rtfOutput) {
+      writer.println("\\par");
+    }
+  }
 
 }

@@ -8,22 +8,22 @@ package org.genvisis.common.gui;
  */
 public abstract class IndeterminateTask<T, V> extends Task<T, V> {
 
-	/**
-	 * Create a task with no steps.
-	 *
-	 * @see {@link Task#Task(String, int)}
-	 */
-	public IndeterminateTask(String channel) {
-		super(channel, 0);
-	}
+  /**
+   * Create a task with no steps.
+   *
+   * @see {@link Task#Task(String, int)}
+   */
+  public IndeterminateTask(String channel) {
+    super(channel, 0);
+  }
 
-	@Override
-	public void doStep() {
-		// No-op
-	}
+  @Override
+  public void doStep() {
+    // No-op
+  }
 
-	@Override
-	public void addSteps(int numSteps) {
-		// No-op
-	}
+  @Override
+  public void addSteps(int numSteps) {
+    // No-op
+  }
 }

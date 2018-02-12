@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -18,366 +17,356 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
-
 import com.google.common.primitives.Ints;
 
 /**
- * 
  * @deprecated Use {@link MarkerDetailSet} for BLASTed chromosome, position, and alleles This class
  *             is maintained for backwards compatibility
- *
  */
 @Deprecated
 public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
-	public static final long serialVersionUID = 1L;
-	public static final int CHR_INDICES = 27;
 
-	private final long fingerprint;
-	private final String[] markerNames;
-	private final byte[] chrs;
-	private final int[] positions;
-	// private char[][] abAlleles;
+  public static final long serialVersionUID = 1L;
+  public static final int CHR_INDICES = 27;
 
-	public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
-		if (markerNames.length != chrs.length || markerNames.length != positions.length) {
-			System.err.println("Error - mismatched number of markers and positions");
-			System.exit(1);
-		}
+  private final long fingerprint;
+  private final String[] markerNames;
+  private final byte[] chrs;
+  private final int[] positions;
+  // private char[][] abAlleles;
 
-		this.markerNames = markerNames;
-		this.chrs = chrs;
-		this.positions = positions;
-		fingerprint = fingerprint(markerNames);
-	}
+  public MarkerSet(String[] markerNames, byte[] chrs, int[] positions) {
+    if (markerNames.length != chrs.length || markerNames.length != positions.length) {
+      System.err.println("Error - mismatched number of markers and positions");
+      System.exit(1);
+    }
 
-	public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
-		if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
-				|| rawMarkerNames.length != keys.length) {
-			System.err.println("Error - mismatched number of markers and positions/keys");
-			System.exit(1);
-		}
+    this.markerNames = markerNames;
+    this.chrs = chrs;
+    this.positions = positions;
+    fingerprint = fingerprint(markerNames);
+  }
 
-		markerNames = new String[rawMarkerNames.length];
-		chrs = new byte[rawChrs.length];
-		positions = new int[rawPositions.length];
+  public MarkerSet(String[] rawMarkerNames, byte[] rawChrs, int[] rawPositions, int[] keys) {
+    if (rawMarkerNames.length != rawChrs.length || rawMarkerNames.length != rawPositions.length
+        || rawMarkerNames.length != keys.length) {
+      System.err.println("Error - mismatched number of markers and positions/keys");
+      System.exit(1);
+    }
 
-		for (int i = 0; i < keys.length; i++) {
-			markerNames[i] = rawMarkerNames[keys[i]];
-			chrs[i] = rawChrs[keys[i]];
-			positions[i] = rawPositions[keys[i]];
-		}
+    markerNames = new String[rawMarkerNames.length];
+    chrs = new byte[rawChrs.length];
+    positions = new int[rawPositions.length];
 
-		fingerprint = fingerprint(markerNames);
-	}
+    for (int i = 0; i < keys.length; i++) {
+      markerNames[i] = rawMarkerNames[keys[i]];
+      chrs[i] = rawChrs[keys[i]];
+      positions[i] = rawPositions[keys[i]];
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkerNames()
-	 */
-	@Override
-	public String[] getMarkerNames() {
-		return markerNames;
-	}
+    fingerprint = fingerprint(markerNames);
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getChrs()
-	 */
-	@Override
-	public byte[] getChrs() {
-		return chrs;
-	}
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkerNames()
+   */
+  @Override
+  public String[] getMarkerNames() {
+    return markerNames;
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositions()
-	 */
-	@Override
-	public int[] getPositions() {
-		return positions;
-	}
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getChrs()
+   */
+  @Override
+  public byte[] getChrs() {
+    return chrs;
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositionsByChr()
-	 */
-	@Override
-	public int[][] getPositionsByChr() {
-		IntVector iv;
-		byte chr;
-		int[][] positionsByChr;
-		boolean done;
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositions()
+   */
+  @Override
+  public int[] getPositions() {
+    return positions;
+  }
 
-		positionsByChr = new int[CHR_INDICES][0];
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getPositionsByChr()
+   */
+  @Override
+  public int[][] getPositionsByChr() {
+    IntVector iv;
+    byte chr;
+    int[][] positionsByChr;
+    boolean done;
 
-		chr = 0;
-		iv = new IntVector(20000);
-		done = false;
-		for (int i = 0; !done; i++) {
-			if (i == chrs.length || chrs[i] != chr) {
-				positionsByChr[chr] = Ints.toArray(iv);
-				chr = i == chrs.length ? 0 : chrs[i];
-				iv = new IntVector(20000);
-			}
-			if (i == chrs.length) {
-				done = true;
-			} else {
-				iv.add(positions[i]);
-			}
-		}
+    positionsByChr = new int[CHR_INDICES][0];
 
-		return positionsByChr;
-	}
+    chr = 0;
+    iv = new IntVector(20000);
+    done = false;
+    for (int i = 0; !done; i++) {
+      if (i == chrs.length || chrs[i] != chr) {
+        positionsByChr[chr] = Ints.toArray(iv);
+        chr = i == chrs.length ? 0 : chrs[i];
+        iv = new IntVector(20000);
+      }
+      if (i == chrs.length) {
+        done = true;
+      } else {
+        iv.add(positions[i]);
+      }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesByChr()
-	 */
-	@Override
-	public int[][] getIndicesByChr() {
-		IntVector iv;
-		byte chr;
-		int[][] indicesByChr;
-		boolean done;
+    return positionsByChr;
+  }
 
-		indicesByChr = new int[CHR_INDICES][0];
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesByChr()
+   */
+  @Override
+  public int[][] getIndicesByChr() {
+    IntVector iv;
+    byte chr;
+    int[][] indicesByChr;
+    boolean done;
 
-		chr = 0;
-		iv = new IntVector(20000);
-		done = false;
-		for (int i = 0; !done; i++) {
-			if (i == chrs.length || chrs[i] != chr) {
-				indicesByChr[chr] = Ints.toArray(iv);
-				chr = i == chrs.length ? 0 : chrs[i];
-				iv = new IntVector(20000);
-			}
-			if (i == chrs.length) {
-				done = true;
-			} else {
-				iv.add(i);
-			}
-		}
+    indicesByChr = new int[CHR_INDICES][0];
 
-		return indicesByChr;
-	}
+    chr = 0;
+    iv = new IntVector(20000);
+    done = false;
+    for (int i = 0; !done; i++) {
+      if (i == chrs.length || chrs[i] != chr) {
+        indicesByChr[chr] = Ints.toArray(iv);
+        chr = i == chrs.length ? 0 : chrs[i];
+        iv = new IntVector(20000);
+      }
+      if (i == chrs.length) {
+        done = true;
+      } else {
+        iv.add(i);
+      }
+    }
 
-	@Override
-	public long getFingerprint() {
-		return fingerprint;
-	}
+    return indicesByChr;
+  }
 
-	@Override
-	public void exportToText(Project proj, String filename) {
-		PrintWriter writer;
+  @Override
+  public long getFingerprint() {
+    return fingerprint;
+  }
 
-		try {
-			writer = Files.openAppropriateWriter(filename);
-			for (int i = 0; i < markerNames.length; i++) {
-				writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing " + filename);
-			e.printStackTrace();
-		}
-	}
+  @Override
+  public void exportToText(Project proj, String filename) {
+    PrintWriter writer;
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+    try {
+      writer = Files.openAppropriateWriter(filename);
+      for (int i = 0; i < markerNames.length; i++) {
+        writer.println(markerNames[i] + "\t" + chrs[i] + "\t" + positions[i]);
+      }
+      writer.close();
+    } catch (Exception e) {
+      System.err.println("Error writing " + filename);
+      e.printStackTrace();
+    }
+  }
 
-	public static MarkerSet load(String filename) {
-		return (MarkerSet) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
-	public static long fingerprint(String[] names) {
-		long sum, trav;
+  public static MarkerSet load(String filename) {
+    return (MarkerSet) SerializedFiles.readSerial(filename, true);
+  }
 
-		sum = 0;
-		for (int i = 0; i < names.length; i++) {
-			trav = 0;
-			for (int j = 0; j < names[i].length(); j++) {
-				trav += names[i].charAt(j);
-			}
-			sum += trav * (i + 1);
-		}
+  public static long fingerprint(String[] names) {
+    long sum, trav;
 
-		return sum;
-	}
+    sum = 0;
+    for (int i = 0; i < names.length; i++) {
+      trav = 0;
+      for (int j = 0; j < names[i].length(); j++) {
+        trav += names[i].charAt(j);
+      }
+      sum += trav * (i + 1);
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesOfMarkersIn(org.genvisis.filesys.Segment,
-	 * int[][], org.genvisis.common.Logger)
-	 */
-	@Override
-	public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-		return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true);
-	}
+    return sum;
+  }
 
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getIndicesOfMarkersIn(org.genvisis.filesys.Segment,
+   * int[][], org.genvisis.common.Logger)
+   */
+  @Override
+  public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
+    return ext.indexLargeFactors(getMarkersIn(seg, indicesByChr), markerNames, true, log, true);
+  }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkersIn(org.genvisis.filesys.Segment, int[][])
-	 */
-	@Override
-	public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
-		int index = seg.getChr();
-		ArrayList<String> markersIn = new ArrayList<String>();
-		int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
-		for (int indice : indices) {
-			int bp = positions[indice];
+  /*
+   * (non-Javadoc)
+   * @see org.genvisis.cnv.filesys.MarkerInfoSet#getMarkersIn(org.genvisis.filesys.Segment, int[][])
+   */
+  @Override
+  public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
+    int index = seg.getChr();
+    ArrayList<String> markersIn = new ArrayList<String>();
+    int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
+    for (int indice : indices) {
+      int bp = positions[indice];
 
-			if (bp >= seg.getStart() && bp <= seg.getStop()) {
-				markersIn.add(markerNames[indice]);
-			}
-			if (bp > seg.getStop()) {
-				break;
-			}
-		}
-		return ArrayUtils.toStringArray(markersIn);
-	}
+      if (bp >= seg.getStart() && bp <= seg.getStop()) {
+        markersIn.add(markerNames[indice]);
+      }
+      if (bp > seg.getStop()) {
+        break;
+      }
+    }
+    return ArrayUtils.toStringArray(markersIn);
+  }
 
-	@Override
-	public boolean checkFingerprint(Sample samp) {
-		return checkFingerprints(this, samp);
-	}
+  @Override
+  public boolean checkFingerprint(Sample samp) {
+    return checkFingerprints(this, samp);
+  }
 
-	public static boolean checkFingerprints(MarkerSetInfo markerSet, Sample samp) {
-		if (samp.getFingerprint() != markerSet.getFingerprint()) {
-			System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
-												 + ") than the Marker Set (" + markerSet.getFingerprint() + ")");
-			return false;
-		}
-		return true;
-	}
+  public static boolean checkFingerprints(MarkerSetInfo markerSet, Sample samp) {
+    if (samp.getFingerprint() != markerSet.getFingerprint()) {
+      System.err.println("Error - Sample has a different fingerprint (" + samp.getFingerprint()
+                         + ") than the Marker Set (" + markerSet.getFingerprint() + ")");
+      return false;
+    }
+    return true;
+  }
 
-	public static void convert(String filename) {
-		BufferedReader reader;
-		String[] line;
-		int count;
-		String[] markerNames;
-		byte[] chrs;
-		int[] positions;
+  public static void convert(String filename) {
+    BufferedReader reader;
+    String[] line;
+    int count;
+    String[] markerNames;
+    byte[] chrs;
+    int[] positions;
 
-		try {
-			reader = new BufferedReader(new FileReader(filename));
-			count = 0;
-			while (reader.ready()) {
-				reader.readLine();
-				count++;
-			}
-			reader.close();
+    try {
+      reader = new BufferedReader(new FileReader(filename));
+      count = 0;
+      while (reader.ready()) {
+        reader.readLine();
+        count++;
+      }
+      reader.close();
 
-			markerNames = new String[count];
-			chrs = new byte[count];
-			positions = new int[count];
+      markerNames = new String[count];
+      chrs = new byte[count];
+      positions = new int[count];
 
-			reader = new BufferedReader(new FileReader(filename));
-			for (int i = 0; i < count; i++) {
-				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				markerNames[i] = line[0];
-				chrs[i] = Positions.chromosomeNumber(line[1]);
-				positions[i] = Integer.parseInt(line[2]);
-			}
-			reader.close();
+      reader = new BufferedReader(new FileReader(filename));
+      for (int i = 0; i < count; i++) {
+        line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        markerNames[i] = line[0];
+        chrs[i] = Positions.chromosomeNumber(line[1]);
+        positions[i] = Integer.parseInt(line[2]);
+      }
+      reader.close();
 
-			new MarkerSet(markerNames, chrs, positions).serialize(filename + ".ser");
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-			System.exit(2);
-		}
-	}
+      new MarkerSet(markerNames, chrs, positions).serialize(filename + ".ser");
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error: file \"" + filename + "\" not found in current directory");
+      System.exit(1);
+    } catch (IOException ioe) {
+      System.err.println("Error reading file \"" + filename + "\"");
+      System.exit(2);
+    }
+  }
 
-	public static MarkerData[] loadFromList(Project proj, String[] markerNames) {
-		// TODO remove completely
-		return null;
-	}
+  public static MarkerData[] loadFromList(Project proj, String[] markerNames) {
+    // TODO remove completely
+    return null;
+  }
 
-	public static byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
-		byte[] result;
-		String geno;
+  public static byte[] translateABtoForwardGenotypes(byte[] abGenotypes, char[][] abLookup) {
+    byte[] result;
+    String geno;
 
-		result = ArrayUtils.byteArray(abGenotypes.length, (byte) -3);
-		for (int i = 0; i < abGenotypes.length; i++) {
-			switch (abGenotypes[i]) {
-				case 0:
-					geno = abLookup[i][0] + "" + abLookup[i][0];
-					break;
-				case 1:
-					geno = abLookup[i][0] + "" + abLookup[i][1];
-					break;
-				case 2:
-					geno = abLookup[i][1] + "" + abLookup[i][1];
-					break;
-				case -1:
-					geno = Sample.ALLELE_PAIRS[0];
-					break;
-				default:
-					System.err.println("Error - invalid AB genotype: " + abGenotypes[i]);
-					geno = null;
-			}
-			// System.out.println(geno);
-			for (byte j = 0; j < Sample.ALLELE_PAIRS.length; j++) {
-				if (geno.equals(Sample.ALLELE_PAIRS[j])) {
-					result[i] = j;
-				}
-			}
-		}
+    result = ArrayUtils.byteArray(abGenotypes.length, (byte) -3);
+    for (int i = 0; i < abGenotypes.length; i++) {
+      switch (abGenotypes[i]) {
+        case 0:
+          geno = abLookup[i][0] + "" + abLookup[i][0];
+          break;
+        case 1:
+          geno = abLookup[i][0] + "" + abLookup[i][1];
+          break;
+        case 2:
+          geno = abLookup[i][1] + "" + abLookup[i][1];
+          break;
+        case -1:
+          geno = Sample.ALLELE_PAIRS[0];
+          break;
+        default:
+          System.err.println("Error - invalid AB genotype: " + abGenotypes[i]);
+          geno = null;
+      }
+      // System.out.println(geno);
+      for (byte j = 0; j < Sample.ALLELE_PAIRS.length; j++) {
+        if (geno.equals(Sample.ALLELE_PAIRS[j])) {
+          result[i] = j;
+        }
+      }
+    }
 
-		return result;
-	}
+    return result;
+  }
 
-	/**
-	 * Same functionality as a {@link MarkerSet} but indicesByChr are explicitly computed and stored
-	 * since that can be expensive<br>
-	 * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
-	 */
-	public static class PreparedMarkerSet extends MarkerSet {
+  /**
+   * Same functionality as a {@link MarkerSet} but indicesByChr are explicitly computed and stored
+   * since that can be expensive<br>
+   * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
+   */
+  public static class PreparedMarkerSet extends MarkerSet {
 
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-		private final int[][] indicesByChr;
-		private final int[][] positionsByChr;
+    private final int[][] indicesByChr;
+    private final int[][] positionsByChr;
 
-		@Deprecated
-		public static PreparedMarkerSet getPreparedMarkerSet(MarkerSetInfo markerSet) {
-			if (markerSet == null) {
-				return null;
-			} else {
-				return new PreparedMarkerSet(markerSet);
-			}
-		}
+    @Deprecated
+    public static PreparedMarkerSet getPreparedMarkerSet(MarkerSetInfo markerSet) {
+      if (markerSet == null) {
+        return null;
+      } else {
+        return new PreparedMarkerSet(markerSet);
+      }
+    }
 
-		private PreparedMarkerSet(MarkerSetInfo markerSet) {
-			super(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
-			indicesByChr = super.getIndicesByChr();
-			positionsByChr = super.getPositionsByChr();
+    private PreparedMarkerSet(MarkerSetInfo markerSet) {
+      super(markerSet.getMarkerNames(), markerSet.getChrs(), markerSet.getPositions());
+      indicesByChr = super.getIndicesByChr();
+      positionsByChr = super.getPositionsByChr();
 
-		}
+    }
 
-		@Override
-		public int[][] getIndicesByChr() {
-			return indicesByChr;
-		}
+    @Override
+    public int[][] getIndicesByChr() {
+      return indicesByChr;
+    }
 
-		@Override
-		public int[][] getPositionsByChr() {
-			return positionsByChr;
-		}
+    @Override
+    public int[][] getPositionsByChr() {
+      return positionsByChr;
+    }
 
-	}
+  }
 }

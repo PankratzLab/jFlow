@@ -5,60 +5,61 @@ package org.genvisis.gwas.windows;
  * window size (in base pairs, one-sided)
  */
 public class WindowThreshold {
-	public static final double DEFAULT_INDEX_PVAL = 0.0000001;
-	public static final double DEFAULT_SUGGESTIVE_PVAL = 0.00001;
-	public static final int DEFAULT_WINDOW = 250000;
 
-	private double iPval;
-	private double sPval;
-	private int window;
+  public static final double DEFAULT_INDEX_PVAL = 0.0000001;
+  public static final double DEFAULT_SUGGESTIVE_PVAL = 0.00001;
+  public static final int DEFAULT_WINDOW = 250000;
 
-	/**
-	 * Constructs a WindowThreshold with {@link DEFAULT_INDEX_PVAL}, {@link #DEFAULT_SUGGESTIVE_PVAL},
-	 * and {@link #DEFAULT_WINDOW}
-	 */
-	public WindowThreshold() {
-		iPval = DEFAULT_INDEX_PVAL;
-		sPval = DEFAULT_SUGGESTIVE_PVAL;
-		window = DEFAULT_WINDOW;
-	}
+  private double iPval;
+  private double sPval;
+  private int window;
 
-	/**
-	 * @param indexPval New index p-value
-	 * @return This WindowThreshold, for method chaining
-	 */
-	public WindowThreshold index(double indexPval) {
-		iPval = indexPval;
-		return this;
-	}
+  /**
+   * Constructs a WindowThreshold with {@link DEFAULT_INDEX_PVAL}, {@link #DEFAULT_SUGGESTIVE_PVAL},
+   * and {@link #DEFAULT_WINDOW}
+   */
+  public WindowThreshold() {
+    iPval = DEFAULT_INDEX_PVAL;
+    sPval = DEFAULT_SUGGESTIVE_PVAL;
+    window = DEFAULT_WINDOW;
+  }
 
-	/**
-	 * @param suggestivePval New suggestive p-value
-	 * @return This WindowThreshold, for method chaining
-	 */
-	public WindowThreshold suggestive(double suggestivePval) {
-		sPval = suggestivePval;
-		return this;
-	}
+  /**
+   * @param indexPval New index p-value
+   * @return This WindowThreshold, for method chaining
+   */
+  public WindowThreshold index(double indexPval) {
+    iPval = indexPval;
+    return this;
+  }
 
-	/**
-	 * @param window New window size
-	 * @return This WindowThreshold, for method chaining
-	 */
-	public WindowThreshold window(int window) {
-		this.window = window;
-		return this;
-	}
+  /**
+   * @param suggestivePval New suggestive p-value
+   * @return This WindowThreshold, for method chaining
+   */
+  public WindowThreshold suggestive(double suggestivePval) {
+    sPval = suggestivePval;
+    return this;
+  }
 
-	public double getIndexPval() {
-		return iPval;
-	}
+  /**
+   * @param window New window size
+   * @return This WindowThreshold, for method chaining
+   */
+  public WindowThreshold window(int window) {
+    this.window = window;
+    return this;
+  }
 
-	public double getSugPval() {
-		return sPval;
-	}
+  public double getIndexPval() {
+    return iPval;
+  }
 
-	public int getWindow() {
-		return window;
-	}
+  public double getSugPval() {
+    return sPval;
+  }
+
+  public int getWindow() {
+    return window;
+  }
 }

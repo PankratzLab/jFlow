@@ -5,113 +5,113 @@ package org.genvisis.common;
 
 import java.util.Hashtable;
 import java.util.Vector;
-
 import com.google.common.primitives.Ints;
 
 public class CountVector {
-	private final Vector<String> v;
-	private final IntVector iv;
-	private int[] order;
 
-	public CountVector() {
-		v = new Vector<String>();
-		iv = new IntVector();
-		order = null;
-	}
+  private final Vector<String> v;
+  private final IntVector iv;
+  private int[] order;
 
-	public CountVector(Hashtable<String, String> hash) {
-		this();
+  public CountVector() {
+    v = new Vector<String>();
+    iv = new IntVector();
+    order = null;
+  }
 
-		String[] keys;
+  public CountVector(Hashtable<String, String> hash) {
+    this();
 
-		keys = HashVec.getKeys(hash);
-		for (String key : keys) {
-			add(hash.get(key));
-		}
-	}
+    String[] keys;
 
-	public void add(String str) {
-		int index = v.indexOf(str);
+    keys = HashVec.getKeys(hash);
+    for (String key : keys) {
+      add(hash.get(key));
+    }
+  }
 
-		if (index == -1) {
-			v.add(str);
-			iv.add(1);
-		} else {
-			iv.set(index, iv.get(index) + 1);
-		}
-		order = null;
-	}
+  public void add(String str) {
+    int index = v.indexOf(str);
 
-	public void clear() {
-		v.clear();
-		iv.clear();
-		order = null;
-	}
+    if (index == -1) {
+      v.add(str);
+      iv.add(1);
+    } else {
+      iv.set(index, iv.get(index) + 1);
+    }
+    order = null;
+  }
 
-	public String[] getValues() {
-		if (order == null) {
-			return ArrayUtils.toStringArray(v);
-		} else {
-			return ArrayUtils.toStringArray(v, order);
-		}
-	}
+  public void clear() {
+    v.clear();
+    iv.clear();
+    order = null;
+  }
 
-	public int[] getCounts() {
-		if (order == null) {
-			return Ints.toArray(iv);
-		} else {
-			return Vectors.orderedArray(iv, order);
-		}
-	}
+  public String[] getValues() {
+    if (order == null) {
+      return ArrayUtils.toStringArray(v);
+    } else {
+      return ArrayUtils.toStringArray(v, order);
+    }
+  }
 
-	public int getSize() {
-		return v.size();
-	}
+  public int[] getCounts() {
+    if (order == null) {
+      return Ints.toArray(iv);
+    } else {
+      return Vectors.orderedArray(iv, order);
+    }
+  }
 
-	public String[] list() {
-		String[] results = new String[v.size()];
+  public int getSize() {
+    return v.size();
+  }
 
-		for (int i = 0; i < v.size(); i++) {
-			results[i] = v.elementAt(i) + " (n=" + iv.elementAt(i) + ")";
-		}
+  public String[] list() {
+    String[] results = new String[v.size()];
 
-		return results;
-	}
+    for (int i = 0; i < v.size(); i++) {
+      results[i] = v.elementAt(i) + " (n=" + iv.elementAt(i) + ")";
+    }
 
-	public Hashtable<String, String> convertToHash() {
-		Hashtable<String, String> hash;
+    return results;
+  }
 
-		hash = new Hashtable<String, String>();
-		for (int i = 0; i < v.size(); i++) {
-			hash.put(v.elementAt(i), iv.elementAt(i) + "");
-		}
+  public Hashtable<String, String> convertToHash() {
+    Hashtable<String, String> hash;
 
-		return hash;
-	}
+    hash = new Hashtable<String, String>();
+    for (int i = 0; i < v.size(); i++) {
+      hash.put(v.elementAt(i), iv.elementAt(i) + "");
+    }
 
-	public void sort(boolean ascending) {
-		int[] array = Ints.toArray(iv);
-		order = ascending ? Sort.getSortedIndices(array) : Sort.getReverseIndices(array);
-	}
+    return hash;
+  }
 
-	public static CountVector[] initArray(int size) {
-		CountVector[] array = new CountVector[size];
+  public void sort(boolean ascending) {
+    int[] array = Ints.toArray(iv);
+    order = ascending ? Sort.getSortedIndices(array) : Sort.getReverseIndices(array);
+  }
 
-		for (int i = 0; i < array.length; i++) {
-			array[i] = new CountVector();
-		}
+  public static CountVector[] initArray(int size) {
+    CountVector[] array = new CountVector[size];
 
-		return array;
-	}
+    for (int i = 0; i < array.length; i++) {
+      array[i] = new CountVector();
+    }
 
-	public int getCount(String value) {
-		for (int i = 0; i < v.size(); i++) {
-			if (value.equals(v.elementAt(i))) {
-				return iv.elementAt(i);
-			}
-		}
+    return array;
+  }
 
-		return 0;
-	}
+  public int getCount(String value) {
+    for (int i = 0; i < v.size(); i++) {
+      if (value.equals(v.elementAt(i))) {
+        return iv.elementAt(i);
+      }
+    }
+
+    return 0;
+  }
 
 }

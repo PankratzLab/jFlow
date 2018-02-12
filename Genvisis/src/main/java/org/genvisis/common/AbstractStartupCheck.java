@@ -9,28 +9,28 @@ import java.util.List;
  */
 public abstract class AbstractStartupCheck implements StartupCheck {
 
-	private List<String> messages = new ArrayList<String>();
+  private List<String> messages = new ArrayList<String>();
 
-	@Override
-	public List<String> check() {
-		doCheck();
-		return messages;
-	}
+  @Override
+  public List<String> check() {
+    doCheck();
+    return messages;
+  }
 
-	/**
-	 * Build the warning messages for this startup check. Ensures {@link #warningHeader()} is the
-	 * first message, and all subsequent items are indented.
-	 *
-	 * @param msg String to append to this {@code StartupCheck}'s warning message.
-	 */
-	protected void addMessage(String msg) {
-		if (messages.isEmpty()) {
-			messages.add(warningHeader());
-		}
-		messages.add("\t" + msg);
-	}
+  /**
+   * Build the warning messages for this startup check. Ensures {@link #warningHeader()} is the
+   * first message, and all subsequent items are indented.
+   *
+   * @param msg String to append to this {@code StartupCheck}'s warning message.
+   */
+  protected void addMessage(String msg) {
+    if (messages.isEmpty()) {
+      messages.add(warningHeader());
+    }
+    messages.add("\t" + msg);
+  }
 
-	protected abstract String warningHeader();
+  protected abstract String warningHeader();
 
-	protected abstract void doCheck();
+  protected abstract void doCheck();
 }

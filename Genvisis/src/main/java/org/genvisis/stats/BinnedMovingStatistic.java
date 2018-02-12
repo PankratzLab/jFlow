@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.TreeMap;
-
 import org.apache.commons.collections4.list.TreeList;
 import org.genvisis.common.ArrayUtils;
 
@@ -32,416 +31,415 @@ import org.genvisis.common.ArrayUtils;
  */
 public class BinnedMovingStatistic<T extends Number> {
 
-	/**
-	 * Available moving statistics to compute
-	 */
-	public enum MovingStat {
-		MEAN, MAD
-	}
+  /**
+   * Available moving statistics to compute
+   */
+  public enum MovingStat {
+    MEAN, MAD
+  }
 
-	private BinManager<T> binManager;
-	private List<Integer> binVals;
-	private int currentBinVal = -1;
-	private List<T> currentBin;
+  private BinManager<T> binManager;
+  private List<Integer> binVals;
+  private int currentBinVal = -1;
+  private List<T> currentBin;
 
-	/**
-	 * Create a moving statistic which retains the specified number of bins in scope at any given
-	 * time.
-	 */
-	public BinnedMovingStatistic(int window, MovingStat movingType) {
-		switch (movingType) {
-			case MEAN:
-				binManager = new MeanBinManager<T>(window);
-				break;
-			case MAD:
-				binManager = new MADBinManager<T>(window);
-				break;
-		}
-		binVals = new TreeList<Integer>();
-		currentBin = new ArrayList<T>();
-	}
+  /**
+   * Create a moving statistic which retains the specified number of bins in scope at any given
+   * time.
+   */
+  public BinnedMovingStatistic(int window, MovingStat movingType) {
+    switch (movingType) {
+      case MEAN:
+        binManager = new MeanBinManager<T>(window);
+        break;
+      case MAD:
+        binManager = new MADBinManager<T>(window);
+        break;
+    }
+    binVals = new TreeList<Integer>();
+    currentBin = new ArrayList<T>();
+  }
 
-	/**
-	 * Add a bin to this statistics collection, and return the current stat value.
-	 */
-	public double add(T val, int bin) {
-		double rVal = -1;
-		if (currentBinVal == -1) {
-			// First bin value, so start tracking
-			currentBinVal = bin;
-		} else if (bin != currentBinVal) {
-			// Current bin is done. Add it to our running stats
+  /**
+   * Add a bin to this statistics collection, and return the current stat value.
+   */
+  public double add(T val, int bin) {
+    double rVal = -1;
+    if (currentBinVal == -1) {
+      // First bin value, so start tracking
+      currentBinVal = bin;
+    } else if (bin != currentBinVal) {
+      // Current bin is done. Add it to our running stats
 
-			// If we've passed the window size, pop off the oldest bin
-			addCurrentBin();
-			rVal = getValue();
-			// Start building the next bin
-			binVals.add(currentBinVal);
-			currentBinVal = bin;
-			currentBin = new ArrayList<T>();
-		}
-		currentBin.add(val);
+      // If we've passed the window size, pop off the oldest bin
+      addCurrentBin();
+      rVal = getValue();
+      // Start building the next bin
+      binVals.add(currentBinVal);
+      currentBinVal = bin;
+      currentBin = new ArrayList<T>();
+    }
+    currentBin.add(val);
 
-		return rVal;
-	}
+    return rVal;
+  }
 
-	/**
-	 * Returns the current moving statistic, not including the bin currently under construction. To
-	 * get that value, first explicitly call {@link #forceBinBreak()}.
-	 *
-	 * @return The mean of all values in all lists in scope, or -1 if insufficient values have been
-	 *         added to this moving average.
-	 */
-	public double getValue() {
-		return binManager.hasStat() ? binManager.getStat() : -1.0;
-	}
+  /**
+   * Returns the current moving statistic, not including the bin currently under construction. To
+   * get that value, first explicitly call {@link #forceBinBreak()}.
+   *
+   * @return The mean of all values in all lists in scope, or -1 if insufficient values have been
+   *         added to this moving average.
+   */
+  public double getValue() {
+    return binManager.hasStat() ? binManager.getStat() : -1.0;
+  }
 
-	/**
-	 * Forcibly stops construction of the current bin, adding its contents to the running total. This
-	 * method does not need to be called under normal circumstances, but may be useful to end current
-	 * iteration.
-	 *
-	 * @return true the current statistic has a valid value
-	 */
-	public boolean forceBinBreak() {
-		if (!currentBin.isEmpty()) {
-			binVals.add(currentBinVal);
-			addCurrentBin();
-			currentBin = new ArrayList<T>();
-			currentBinVal = -1;
-		}
-		binManager.filledWindow();
-		return binManager.hasStat();
-	}
+  /**
+   * Forcibly stops construction of the current bin, adding its contents to the running total. This
+   * method does not need to be called under normal circumstances, but may be useful to end current
+   * iteration.
+   *
+   * @return true the current statistic has a valid value
+   */
+  public boolean forceBinBreak() {
+    if (!currentBin.isEmpty()) {
+      binVals.add(currentBinVal);
+      addCurrentBin();
+      currentBin = new ArrayList<T>();
+      currentBinVal = -1;
+    }
+    binManager.filledWindow();
+    return binManager.hasStat();
+  }
 
-	/**
-	 * Forcibly removes the oldest bin. This method does not need to be called under normal
-	 * circumstances, but may be useful to end current iteration.
-	 *
-	 * @return true the current statistic has a valid value
-	 */
-	public boolean forceBinPop() {
-		if (!binVals.isEmpty()) {
-			binManager.evict();
-			binVals.remove(0);
-		}
-		binManager.filledWindow();
-		return binManager.hasStat();
-	}
+  /**
+   * Forcibly removes the oldest bin. This method does not need to be called under normal
+   * circumstances, but may be useful to end current iteration.
+   *
+   * @return true the current statistic has a valid value
+   */
+  public boolean forceBinPop() {
+    if (!binVals.isEmpty()) {
+      binManager.evict();
+      binVals.remove(0);
+    }
+    binManager.filledWindow();
+    return binManager.hasStat();
+  }
 
-	/**
-	 * Remove all values from this moving statistic collection
-	 */
-	public void clear() {
-		binVals.clear();
-		currentBin.clear();
-		binManager.clear();
-		currentBinVal = -1;
-	}
+  /**
+   * Remove all values from this moving statistic collection
+   */
+  public void clear() {
+    binVals.clear();
+    currentBin.clear();
+    binManager.clear();
+    currentBinVal = -1;
+  }
 
-	/**
-	 * @return True if a) the given bin value matches the most recent bin, or b) there are currently
-	 *         no bins. In either case, there is nothing interesting about the current statistics.
-	 */
-	public boolean inBin(int bin) {
-		return binVals.isEmpty() || currentBinVal == bin;
-	}
+  /**
+   * @return True if a) the given bin value matches the most recent bin, or b) there are currently
+   *         no bins. In either case, there is nothing interesting about the current statistics.
+   */
+  public boolean inBin(int bin) {
+    return binVals.isEmpty() || currentBinVal == bin;
+  }
 
-	/**
-	 * @return bin value corresponding to current stat
-	 */
-	public int mid() {
-		return binManager.hasStat() ? binVals.get(binManager.fillOffset()) : -1;
-	}
+  /**
+   * @return bin value corresponding to current stat
+   */
+  public int mid() {
+    return binManager.hasStat() ? binVals.get(binManager.fillOffset()) : -1;
+  }
 
-	private void addCurrentBin() {
-		if (binManager.add(currentBin)) {
-			binVals.remove(0);
-		}
-	}
+  private void addCurrentBin() {
+    if (binManager.add(currentBin)) {
+      binVals.remove(0);
+    }
+  }
 
-	/**
-	 * Marker interface for moving statistic types
-	 */
-	private static interface BinManager<T extends Number> {
+  /**
+   * Marker interface for moving statistic types
+   */
+  private static interface BinManager<T extends Number> {
 
-		/**
-		 * Add the given bin to the current statistics
-		 *
-		 * @return true if the number of bins has exceeded the window
-		 */
-		boolean add(List<T> bin);
+    /**
+     * Add the given bin to the current statistics
+     *
+     * @return true if the number of bins has exceeded the window
+     */
+    boolean add(List<T> bin);
 
-		/**
-		 * Remove the earliest bin
-		 */
-		void evict();
+    /**
+     * Remove the earliest bin
+     */
+    void evict();
 
+    /**
+     * @return true if we have as many bins as our window size. False otherwise.
+     */
+    boolean hasStat();
 
-		/**
-		 * @return true if we have as many bins as our window size. False otherwise.
-		 */
-		boolean hasStat();
+    /**
+     * @return The appropriate statistic covering all values in all bins
+     */
+    double getStat();
 
-		/**
-		 * @return The appropriate statistic covering all values in all bins
-		 */
-		double getStat();
+    /**
+     * Drop all values from this statistic
+     */
+    void clear();
 
-		/**
-		 * Drop all values from this statistic
-		 */
-		void clear();
+    /**
+     * @return Offset from the current bin to the bin position that corresponds to the value of
+     *         {@link #getStat()}. Reasonable expected values: 0 - use only preceding bins,
+     *         window_size - use only following bins, window_size/2 - use half the window on both
+     *         side..
+     */
+    int fillOffset();
 
-		/**
-		 * @return Offset from the current bin to the bin position that corresponds to the value of
-		 *         {@link #getStat()}. Reasonable expected values: 0 - use only preceding bins,
-		 *         window_size - use only following bins, window_size/2 - use half the window on both
-		 *         side..
-		 */
-		int fillOffset();
+    /**
+     * Manually indicate that the current statistic has hit the end of new values. Use this method
+     * if using a number of values less than the minimum window size.
+     */
+    void filledWindow();
+  }
 
-		/**
-		 * Manually indicate that the current statistic has hit the end of new values. Use this method
-		 * if using a number of values less than the minimum window size.
-		 */
-		void filledWindow();
-	}
+  /**
+   * Abstract superclass for {@link BinManager} implementations. Covers some boilerplate. Subclasses
+   * should calling {@code super.add} so they do not need to manually determine if {@link #evict()}
+   * is necessary. All subclasses should call {@code super.clear} and {@code super.evict}.
+   * <p>
+   * NB: this class implements {@link #hasStat()} and {@link #fillOffset()} in a way to facilitate
+   * two-sided moving statistics that are "valid" when either window margin is satisfied.
+   * </p>
+   * <p>
+   * This superclass assumes moving bins over a continuous data range. If is designed to handle a
+   * single turning point in window size (e.g. effective window size grows at the beginning as you
+   * are adding more data, and shrinks at the tail end). {@link #clear()} will reset the statistic.
+   * </p>
+   */
+  private abstract static class AbstractBinManager<T extends Number> implements BinManager<T> {
 
-	/**
-	 * Abstract superclass for {@link BinManager} implementations. Covers some boilerplate. Subclasses
-	 * should calling {@code super.add} so they do not need to manually determine if {@link #evict()}
-	 * is necessary. All subclasses should call {@code super.clear} and {@code super.evict}.
-	 * <p>
-	 * NB: this class implements {@link #hasStat()} and {@link #fillOffset()} in a way to facilitate
-	 * two-sided moving statistics that are "valid" when either window margin is satisfied.
-	 * </p>
-	 * <p>
-	 * This superclass assumes moving bins over a continuous data range. If is designed to handle a
-	 * single turning point in window size (e.g. effective window size grows at the beginning as you
-	 * are adding more data, and shrinks at the tail end). {@link #clear()} will reset the statistic.
-	 * </p>
-	 */
-	private abstract static class AbstractBinManager<T extends Number> implements BinManager<T> {
+    private int window;
+    private int minFill;
+    private int bins;
+    // Flag for whether or not we have ever reached the full window size
+    private boolean filledWindow = false;
+    // For even windows we make the trailing window half larger.
+    private int evenOffset;
 
-		private int window;
-		private int minFill;
-		private int bins;
-		// Flag for whether or not we have ever reached the full window size
-		private boolean filledWindow = false;
-		// For even windows we make the trailing window half larger.
-		private int evenOffset;
+    public AbstractBinManager(int window) {
+      setWindow(window);
+      bins = 0;
+    }
 
-		public AbstractBinManager(int window) {
-			setWindow(window);
-			bins = 0;
-		}
+    @Override
+    public boolean add(List<T> bin) {
+      bins++;
+      if (bins > window) {
+        evict();
+        filledWindow();
+        return true;
+      }
+      return false;
+    }
 
-		@Override
-		public boolean add(List<T> bin) {
-			bins++;
-			if (bins > window) {
-				evict();
-				filledWindow();
-				return true;
-			}
-			return false;
-		}
+    @Override
+    public void evict() {
+      bins--;
+    }
 
-		@Override
-		public void evict() {
-			bins--;
-		}
+    @Override
+    public void clear() {
+      filledWindow = false;
+      bins = 0;
+    }
 
-		@Override
-		public void clear() {
-			filledWindow = false;
-			bins = 0;
-		}
+    @Override
+    public boolean hasStat() {
+      int min = minFill + evenOffset;
+      return bins >= min;
+    }
 
-		@Override
-		public boolean hasStat() {
-			int min = minFill + evenOffset;
-			return bins >= min;
-		}
+    @Override
+    public int fillOffset() {
+      // This behavior has to depend on whether or not the moving stat is
+      // growing or shrinking. As you start to build the stat, you must use points ahead of you. As
+      // your stat moves into terminal boundaries, it must use points behind it.
+      return filledWindow ? minFill : bins - minFill;
+    }
 
-		@Override
-		public int fillOffset() {
-			// This behavior has to depend on whether or not the moving stat is
-			// growing or shrinking. As you start to build the stat, you must use points ahead of you. As
-			// your stat moves into terminal boundaries, it must use points behind it.
-			return filledWindow ? minFill : bins - minFill;
-		}
+    @Override
+    public void filledWindow() {
+      if (!filledWindow) {
+        filledWindow = true;
+        // In case we did not fill the full window and this method was called explicitly
+        setWindow(bins);
+      }
+    }
 
-		@Override
-		public void filledWindow() {
-			if (!filledWindow) {
-				filledWindow = true;
-				// In case we did not fill the full window and this method was called explicitly
-				setWindow(bins);
-			}
-		}
+    private void setWindow(int window) {
+      this.window = window;
+      minFill = (int) (filledWindow ? Math.floor(window / 2.0) : Math.ceil(window / 2.0));
+      evenOffset = filledWindow ? 1 : 0;
+    }
+  }
 
-		private void setWindow(int window) {
-			this.window = window;
-			minFill = (int) (filledWindow ? Math.floor(window / 2.0) : Math.ceil(window / 2.0));
-			evenOffset = filledWindow ? 1 : 0;
-		}
-	}
+  /**
+   * {@link BinManager} implementations that returns the mean value in its {@link #getStat()}
+   * method.
+   */
+  private static class MeanBinManager<T extends Number> extends AbstractBinManager<T> {
 
-	/**
-	 * {@link BinManager} implementations that returns the mean value in its {@link #getStat()}
-	 * method.
-	 */
-	private static class MeanBinManager<T extends Number> extends AbstractBinManager<T> {
+    private Queue<Double> sums;
+    private Queue<Integer> counts;
+    private int movingCount;
+    private double movingSum;
 
-		private Queue<Double> sums;
-		private Queue<Integer> counts;
-		private int movingCount;
-		private double movingSum;
+    public MeanBinManager(int window) {
+      super(window);
+      sums = new ArrayDeque<Double>();
+      counts = new ArrayDeque<Integer>();
+    }
 
-		public MeanBinManager(int window) {
-			super(window);
-			sums = new ArrayDeque<Double>();
-			counts = new ArrayDeque<Integer>();
-		}
+    @Override
+    public boolean add(List<T> bin) {
+      double sum = ArrayUtils.sum(bin);
+      sums.add(sum);
+      counts.add(bin.size());
+      movingSum += sum;
+      movingCount += bin.size();
+      return super.add(bin);
+    }
 
-		@Override
-		public boolean add(List<T> bin) {
-			double sum = ArrayUtils.sum(bin);
-			sums.add(sum);
-			counts.add(bin.size());
-			movingSum += sum;
-			movingCount += bin.size();
-			return super.add(bin);
-		}
+    @Override
+    public double getStat() {
+      return movingSum / movingCount;
+    }
 
-		@Override
-		public double getStat() {
-			return movingSum / movingCount;
-		}
+    @Override
+    public void evict() {
+      Double removedSum = sums.remove();
+      Integer removedCount = counts.remove();
+      movingSum -= removedSum;
+      movingCount -= removedCount;
+      super.evict();
+    }
 
-		@Override
-		public void evict() {
-			Double removedSum = sums.remove();
-			Integer removedCount = counts.remove();
-			movingSum -= removedSum;
-			movingCount -= removedCount;
-			super.evict();
-		}
+    @Override
+    public void clear() {
+      super.clear();
+      sums.clear();
+      counts.clear();
+      movingCount = 0;
+      movingSum = 0;
+    }
+  }
 
-		@Override
-		public void clear() {
-			super.clear();
-			sums.clear();
-			counts.clear();
-			movingCount = 0;
-			movingSum = 0;
-		}
-	}
+  /**
+   * {@link BinManager} implementations that returns the median absolute difference value in its
+   * {@link #getStat()} method.
+   */
+  private static class MADBinManager<T extends Number> extends AbstractBinManager<T> {
 
-	/**
-	 * {@link BinManager} implementations that returns the median absolute difference value in its
-	 * {@link #getStat()} method.
-	 */
-	private static class MADBinManager<T extends Number> extends AbstractBinManager<T> {
+    private Map<T, int[]> values;
+    // A list of all the bins covered in this window
+    private List<List<T>> bins;
+    private int valueCount = 0;
 
-		private Map<T, int[]> values;
-		// A list of all the bins covered in this window
-		private List<List<T>> bins;
-		private int valueCount = 0;
+    public MADBinManager(int window) {
+      super(window);
+      // Need to store the raw bin unfortunately, as it is necessary on eviction
+      bins = new TreeList<List<T>>();
+      values = new TreeMap<T, int[]>();
+    }
 
-		public MADBinManager(int window) {
-			super(window);
-			// Need to store the raw bin unfortunately, as it is necessary on eviction
-			bins = new TreeList<List<T>>();
-			values = new TreeMap<T, int[]>();
-		}
+    @Override
+    public boolean add(List<T> bin) {
+      // Convert the bin to a map of value > counts. Using a map reduces how frequently we have to
+      // sort data, as normally the MAD would require two sorts.
+      for (T v : bin) {
+        add(v, values);
+        valueCount++;
+      }
+      bins.add(bin);
+      return super.add(bin);
+    }
 
-		@Override
-		public boolean add(List<T> bin) {
-			// Convert the bin to a map of value > counts. Using a map reduces how frequently we have to
-			// sort data, as normally the MAD would require two sorts.
-			for (T v : bin) {
-				add(v, values);
-				valueCount++;
-			}
-			bins.add(bin);
-			return super.add(bin);
-		}
+    @Override
+    public double getStat() {
+      double median = median(values);
 
-		@Override
-		public double getStat() {
-			double median = median(values);
+      Map<Double, int[]> absDiffs = new TreeMap<Double, int[]>();
+      for (Entry<T, int[]> entry : values.entrySet()) {
+        Double diffKey = Math.abs(entry.getKey().doubleValue() - median);
+        if (absDiffs.containsKey(diffKey)) {
+          absDiffs.get(diffKey)[0] += entry.getValue()[0];
+        } else {
+          absDiffs.put(diffKey, new int[] {entry.getValue()[0]});
+        }
+      }
 
-			Map<Double, int[]> absDiffs = new TreeMap<Double, int[]>();
-			for (Entry<T, int[]> entry : values.entrySet()) {
-				Double diffKey = Math.abs(entry.getKey().doubleValue() - median);
-				if (absDiffs.containsKey(diffKey)) {
-					absDiffs.get(diffKey)[0] += entry.getValue()[0];
-				} else {
-					absDiffs.put(diffKey, new int[] {entry.getValue()[0]});
-				}
-			}
+      return median(absDiffs);
+    }
 
-			return median(absDiffs);
-		}
+    @Override
+    public void evict() {
+      List<T> removed = bins.remove(0);
+      // Have to update counts for each value in the removed bin
+      for (T val : removed) {
+        remove(val, values);
+      }
+      super.evict();
+    }
 
-		@Override
-		public void evict() {
-			List<T> removed = bins.remove(0);
-			// Have to update counts for each value in the removed bin
-			for (T val : removed) {
-				remove(val, values);
-			}
-			super.evict();
-		}
+    @Override
+    public void clear() {
+      super.clear();
+      bins.clear();
+      values.clear();
+      valueCount = 0;
+    }
 
-		@Override
-		public void clear() {
-			super.clear();
-			bins.clear();
-			values.clear();
-			valueCount = 0;
-		}
+    private void add(T value, Map<T, int[]> valueMap) {
+      int[] counts = valueMap.get(value);
+      if (counts == null) {
+        counts = new int[1];
+        valueMap.put(value, counts);
+      }
+      counts[0]++;
+    }
 
-		private void add(T value, Map<T, int[]> valueMap) {
-			int[] counts = valueMap.get(value);
-			if (counts == null) {
-				counts = new int[1];
-				valueMap.put(value, counts);
-			}
-			counts[0]++;
-		}
+    private void remove(T value, Map<T, int[]> valueMap) {
+      int[] counts = valueMap.get(value);
+      counts[0]--;
+      if (counts[0] == 0) {
+        valueMap.remove(value);
+      }
+      valueCount--;
+    }
 
-		private void remove(T value, Map<T, int[]> valueMap) {
-			int[] counts = valueMap.get(value);
-			counts[0]--;
-			if (counts[0] == 0) {
-				valueMap.remove(value);
-			}
-			valueCount--;
-		}
-
-		private <N extends Number> double median(Map<N, int[]> valueMap) {
-			N p1 = null;
-			N p2 = null;
-			final int idx1 = valueCount / 2;
-			final int idx2 = valueCount % 2 == 0 ? (valueCount / 2) - 1 : idx1;
-			int pos = 0;
-			for (Entry<N, int[]> entry : valueMap.entrySet()) {
-				pos += entry.getValue()[0];
-				if (p1 == null && idx1 < pos) {
-					p1 = entry.getKey();
-				}
-				if (p2 == null && idx2 < pos) {
-					p2 = entry.getKey();
-				}
-				if (p1 != null && p2 != null) {
-					break;
-				}
-			}
-			return (p1.doubleValue() + p2.doubleValue()) / 2;
-		}
-	}
+    private <N extends Number> double median(Map<N, int[]> valueMap) {
+      N p1 = null;
+      N p2 = null;
+      final int idx1 = valueCount / 2;
+      final int idx2 = valueCount % 2 == 0 ? (valueCount / 2) - 1 : idx1;
+      int pos = 0;
+      for (Entry<N, int[]> entry : valueMap.entrySet()) {
+        pos += entry.getValue()[0];
+        if (p1 == null && idx1 < pos) {
+          p1 = entry.getKey();
+        }
+        if (p2 == null && idx2 < pos) {
+          p2 = entry.getKey();
+        }
+        if (p1 != null && p2 != null) {
+          break;
+        }
+      }
+      return (p1.doubleValue() + p2.doubleValue()) / 2;
+    }
+  }
 }

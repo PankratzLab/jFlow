@@ -9,10 +9,10 @@ package org.genvisis.common.gui;
  */
 public abstract class SimpleIndeterminateTask extends IndeterminateTask<String, String> {
 
-	/**
-	 * @see {@link IndeterminateTask#IndeterminateTask(String)}
-	 */
-	public SimpleIndeterminateTask(String channel) {
-		super(channel);
-	}
+  /**
+   * @see {@link IndeterminateTask#IndeterminateTask(String)}
+   */
+  public SimpleIndeterminateTask(String channel) {
+    super(channel);
+  }
 }

@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Vector;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
@@ -14,247 +13,248 @@ import org.genvisis.common.ext;
 import org.genvisis.stats.Maths;
 
 public class GelBands {
-	public static final String LADDER_HEADER = "Ladder header";
-	public static final String LADDER_TAG = "100 bp ladder";
-	public static final String[] SUFFIXES = {"X", "Y"};
 
-	public static final int REFERENCE_FRAGMENT_SIZE = 1329;
-	public static final int REFERENCE_REPEATS_SIZE = 896;
-	public static final int SIZE_OF_UNIT = 32;
+  public static final String LADDER_HEADER = "Ladder header";
+  public static final String LADDER_TAG = "100 bp ladder";
+  public static final String[] SUFFIXES = {"X", "Y"};
 
-	public static void call(String filename) {
-		BufferedReader reader;
-		PrintWriter writer;
-		String[] line, cell, values;
-		Vector<String[]> v = new Vector<String[]>();
-		// int count;
-		boolean betweenLadders;
-		int[] ladder;
-		int[][][] ladderCoordinates;
+  public static final int REFERENCE_FRAGMENT_SIZE = 1329;
+  public static final int REFERENCE_REPEATS_SIZE = 896;
+  public static final int SIZE_OF_UNIT = 32;
 
-		try {
-			reader = new BufferedReader(new FileReader(filename));
-			writer = Files.openAppropriateWriter(filename + "_calls.xln");
-			betweenLadders = false;
-			// count = 0;
-			ladder = null;
-			ladderCoordinates = new int[2][][];
-			while (reader.ready()) {
-				line = reader.readLine().trim().split("\\t", -1);
-				if (line[0].equalsIgnoreCase(LADDER_TAG)) {
-					if (betweenLadders) {
-						ladderCoordinates[1] = parseLadderCoordinates(ladder, line);
-						for (int i = 0; i < v.size(); i++) {
-							writer.print(ArrayUtils.toStr(v.elementAt(i)));
-							values = translateIntoAlleles(ladder, ladderCoordinates, v.elementAt(i));
-							writer.print("\t" + ArrayUtils.toStr(values));
-							values = translateAllelesIntoRepeats(values);
-							writer.print("\t" + ArrayUtils.toStr(values));
-							writer.println();
-						}
-						v.removeAllElements();
-						betweenLadders = false;
-					} else {
-						ladderCoordinates[0] = parseLadderCoordinates(ladder, line);
-						betweenLadders = true;
-						// count++;
-					}
-					writer.println(ArrayUtils.toStr(line));
-				} else if (betweenLadders) {
-					v.add(line);
-				} else if (line[0].equalsIgnoreCase(LADDER_HEADER)) {
-					ladder = ArrayUtils.intArray((line.length - 1) / 2, -1);
-					for (int i = 0; i < ladder.length; i++) {
-						for (int j = 0; j < 2; j++) {
-							cell = line[i * 2 + 1 + j].split(PSF.Regex.GREEDY_WHITESPACE);
-							try {
-								if (ladder[i] == -1) {
-									ladder[i] = Integer.parseInt(cell[0]);
-								} else if (ladder[i] != Integer.parseInt(cell[0])) {
-									System.err.println("Error - mismatched ladder sizes ('" + line[i * 2 + 1 + 0]
-																		 + "' and '" + line[i * 2 + 1 + 1]
-																		 + "'); expecting the same size with X and Y suffixes");
-								}
-								if (!cell[1].equals(SUFFIXES[j])) {
-									System.err.println("Error - mismatched ladder format; expecting the same size with X and Y suffixes");
-								}
-							} catch (Exception e) {
-								System.err.println("Error parsing ladder size: " + ArrayUtils.toStr(cell));
-								e.printStackTrace();
-							}
-						}
-					}
-					writer.println(ArrayUtils.toStr(line));
-				} else {
-					System.out.println("ignoring line: " + ArrayUtils.toStr(line));
-					writer.println(ArrayUtils.toStr(line));
-				}
+  public static void call(String filename) {
+    BufferedReader reader;
+    PrintWriter writer;
+    String[] line, cell, values;
+    Vector<String[]> v = new Vector<String[]>();
+    // int count;
+    boolean betweenLadders;
+    int[] ladder;
+    int[][][] ladderCoordinates;
 
-			}
-			reader.close();
-			writer.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-			System.exit(2);
-		}
-	}
+    try {
+      reader = new BufferedReader(new FileReader(filename));
+      writer = Files.openAppropriateWriter(filename + "_calls.xln");
+      betweenLadders = false;
+      // count = 0;
+      ladder = null;
+      ladderCoordinates = new int[2][][];
+      while (reader.ready()) {
+        line = reader.readLine().trim().split("\\t", -1);
+        if (line[0].equalsIgnoreCase(LADDER_TAG)) {
+          if (betweenLadders) {
+            ladderCoordinates[1] = parseLadderCoordinates(ladder, line);
+            for (int i = 0; i < v.size(); i++) {
+              writer.print(ArrayUtils.toStr(v.elementAt(i)));
+              values = translateIntoAlleles(ladder, ladderCoordinates, v.elementAt(i));
+              writer.print("\t" + ArrayUtils.toStr(values));
+              values = translateAllelesIntoRepeats(values);
+              writer.print("\t" + ArrayUtils.toStr(values));
+              writer.println();
+            }
+            v.removeAllElements();
+            betweenLadders = false;
+          } else {
+            ladderCoordinates[0] = parseLadderCoordinates(ladder, line);
+            betweenLadders = true;
+            // count++;
+          }
+          writer.println(ArrayUtils.toStr(line));
+        } else if (betweenLadders) {
+          v.add(line);
+        } else if (line[0].equalsIgnoreCase(LADDER_HEADER)) {
+          ladder = ArrayUtils.intArray((line.length - 1) / 2, -1);
+          for (int i = 0; i < ladder.length; i++) {
+            for (int j = 0; j < 2; j++) {
+              cell = line[i * 2 + 1 + j].split(PSF.Regex.GREEDY_WHITESPACE);
+              try {
+                if (ladder[i] == -1) {
+                  ladder[i] = Integer.parseInt(cell[0]);
+                } else if (ladder[i] != Integer.parseInt(cell[0])) {
+                  System.err.println("Error - mismatched ladder sizes ('" + line[i * 2 + 1 + 0]
+                                     + "' and '" + line[i * 2 + 1 + 1]
+                                     + "'); expecting the same size with X and Y suffixes");
+                }
+                if (!cell[1].equals(SUFFIXES[j])) {
+                  System.err.println("Error - mismatched ladder format; expecting the same size with X and Y suffixes");
+                }
+              } catch (Exception e) {
+                System.err.println("Error parsing ladder size: " + ArrayUtils.toStr(cell));
+                e.printStackTrace();
+              }
+            }
+          }
+          writer.println(ArrayUtils.toStr(line));
+        } else {
+          System.out.println("ignoring line: " + ArrayUtils.toStr(line));
+          writer.println(ArrayUtils.toStr(line));
+        }
 
-	public static int[][] parseLadderCoordinates(int[] ladder, String[] values) {
-		int[][] ladderCoordinates;
+      }
+      reader.close();
+      writer.close();
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error: file \"" + filename + "\" not found in current directory");
+      System.exit(1);
+    } catch (IOException ioe) {
+      System.err.println("Error reading file \"" + filename + "\"");
+      System.exit(2);
+    }
+  }
 
-		if (!values[0].equalsIgnoreCase(LADDER_TAG)) {
-			System.err.println("Error - invalid ladder tag: '" + values[0] + "'");
-			System.exit(1);
-		}
-		if (values.length != ladder.length * 2 + 1) {
-			System.err.println("Error - invalid number of ladder coordinates (need X and Y for each rung defined in the ladder header)");
-			System.exit(1);
-		}
+  public static int[][] parseLadderCoordinates(int[] ladder, String[] values) {
+    int[][] ladderCoordinates;
 
-		ladderCoordinates = new int[ladder.length][2];
-		for (int i = 0; i < ladder.length; i++) {
-			for (int j = 0; j < 2; j++) {
-				try {
-					ladderCoordinates[i][j] = Integer.parseInt(values[1 + i * 2 + j]);
-				} catch (Exception e) {
-					System.err.println("Error parsing " + SUFFIXES[j] + " coordinate for " + ladder[i]
-														 + " bp ladder rung : " + values[1 + i * 2 + j]);
-					e.printStackTrace();
-				}
-			}
-		}
+    if (!values[0].equalsIgnoreCase(LADDER_TAG)) {
+      System.err.println("Error - invalid ladder tag: '" + values[0] + "'");
+      System.exit(1);
+    }
+    if (values.length != ladder.length * 2 + 1) {
+      System.err.println("Error - invalid number of ladder coordinates (need X and Y for each rung defined in the ladder header)");
+      System.exit(1);
+    }
 
-		return ladderCoordinates;
-	}
+    ladderCoordinates = new int[ladder.length][2];
+    for (int i = 0; i < ladder.length; i++) {
+      for (int j = 0; j < 2; j++) {
+        try {
+          ladderCoordinates[i][j] = Integer.parseInt(values[1 + i * 2 + j]);
+        } catch (Exception e) {
+          System.err.println("Error parsing " + SUFFIXES[j] + " coordinate for " + ladder[i]
+                             + " bp ladder rung : " + values[1 + i * 2 + j]);
+          e.printStackTrace();
+        }
+      }
+    }
 
-	public static String[] translateAllelesIntoRepeats(String[] alleles) {
-		String[] repeats;
+    return ladderCoordinates;
+  }
 
-		repeats = new String[alleles.length];
-		for (int i = 0; i < alleles.length; i++) {
-			if (alleles[i].equals(".")) {
-				repeats[i] = ".";
-			} else {
-				repeats[i] = ext.formDeci((double) (Integer.parseInt(alleles[i])
-																						- (REFERENCE_FRAGMENT_SIZE - REFERENCE_REPEATS_SIZE))
-																	/ (double) SIZE_OF_UNIT, 2);
-			}
-		}
+  public static String[] translateAllelesIntoRepeats(String[] alleles) {
+    String[] repeats;
 
-		return repeats;
-	}
+    repeats = new String[alleles.length];
+    for (int i = 0; i < alleles.length; i++) {
+      if (alleles[i].equals(".")) {
+        repeats[i] = ".";
+      } else {
+        repeats[i] = ext.formDeci((double) (Integer.parseInt(alleles[i])
+                                            - (REFERENCE_FRAGMENT_SIZE - REFERENCE_REPEATS_SIZE))
+                                  / (double) SIZE_OF_UNIT, 2);
+      }
+    }
 
-	public static String[] translateIntoAlleles(int[] ladder, int[][][] ladderCoordinates,
-																							String[] values) {
-		String[] alleles;
-		int[] ys;
-		int[] customLadderCoordinates;
-		double[] slopeAndIntercept;
-		int numPoints;
-		double meanX, count, d;
+    return repeats;
+  }
 
-		d = (values.length - 1.0) / 2.0;
-		if (d - Math.floor(d) > 0.0001) {
-			System.err.println("Error - odd number of coordinates after identifier '" + values[0]
-												 + "'; translation requires pairs of coordinates");
-		}
+  public static String[] translateIntoAlleles(int[] ladder, int[][][] ladderCoordinates,
+                                              String[] values) {
+    String[] alleles;
+    int[] ys;
+    int[] customLadderCoordinates;
+    double[] slopeAndIntercept;
+    int numPoints;
+    double meanX, count, d;
 
-		numPoints = (int) Math.floor(d);
-		ys = new int[numPoints];
-		meanX = 0;
-		count = 0;
-		for (int i = 0; i < numPoints; i++) {
-			try {
-				if (values[i * 2 + 1 + 0].equals(".") || values[i * 2 + 1 + 1].equals(".")) {
-					ys[i] = Integer.MIN_VALUE;
-				} else {
-					ys[i] = Integer.parseInt(values[i * 2 + 1 + 1]);
+    d = (values.length - 1.0) / 2.0;
+    if (d - Math.floor(d) > 0.0001) {
+      System.err.println("Error - odd number of coordinates after identifier '" + values[0]
+                         + "'; translation requires pairs of coordinates");
+    }
 
-					meanX += Integer.parseInt(values[i * 2 + 1 + 0]);
-					count++;
-				}
-			} catch (Exception e) {
-				System.err.println("Error parsing point " + (i + 1) + " for sample " + values[0] + ": "
-													 + values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
-			}
-		}
-		meanX /= count;
+    numPoints = (int) Math.floor(d);
+    ys = new int[numPoints];
+    meanX = 0;
+    count = 0;
+    for (int i = 0; i < numPoints; i++) {
+      try {
+        if (values[i * 2 + 1 + 0].equals(".") || values[i * 2 + 1 + 1].equals(".")) {
+          ys[i] = Integer.MIN_VALUE;
+        } else {
+          ys[i] = Integer.parseInt(values[i * 2 + 1 + 1]);
 
-		customLadderCoordinates = new int[ladder.length];
-		for (int i = 0; i < ladder.length; i++) {
-			slopeAndIntercept = Maths.slopeAndIntercept(ladderCoordinates[0][i][0],
-																									ladderCoordinates[0][i][1],
-																									ladderCoordinates[1][i][0],
-																									ladderCoordinates[1][i][1]);
-			customLadderCoordinates[i] = (int) (slopeAndIntercept[0] * meanX + slopeAndIntercept[1]);
-		}
+          meanX += Integer.parseInt(values[i * 2 + 1 + 0]);
+          count++;
+        }
+      } catch (Exception e) {
+        System.err.println("Error parsing point " + (i + 1) + " for sample " + values[0] + ": "
+                           + values[i * 2 + 1 + 0] + "," + values[i * 2 + 1 + 1]);
+      }
+    }
+    meanX /= count;
 
-		alleles = new String[numPoints];
-		for (int i = 0; i < numPoints; i++) {
-			if (ys[i] == Integer.MIN_VALUE) {
-				alleles[i] = ".";
-			} else {
-				alleles[i] = linearTranslation(ladder, customLadderCoordinates, ys[i]) + "";
-			}
-		}
-		//
-		// try {
-		// writer = Files.openAppropriateWriter("ladders.xln", true);
-		// for (int i = 0; i<ladder.length; i++) {
-		// writer.println(customLadderCoordinates[i]+"\t"+ladder[i]);
-		// }
-		// writer.println();
-		// writer.close();
-		// } catch (Exception e) {
-		// System.err.println("Error writing to "+"ladders.xln");
-		// e.printStackTrace();
-		// }
+    customLadderCoordinates = new int[ladder.length];
+    for (int i = 0; i < ladder.length; i++) {
+      slopeAndIntercept = Maths.slopeAndIntercept(ladderCoordinates[0][i][0],
+                                                  ladderCoordinates[0][i][1],
+                                                  ladderCoordinates[1][i][0],
+                                                  ladderCoordinates[1][i][1]);
+      customLadderCoordinates[i] = (int) (slopeAndIntercept[0] * meanX + slopeAndIntercept[1]);
+    }
 
-		return alleles;
-	}
+    alleles = new String[numPoints];
+    for (int i = 0; i < numPoints; i++) {
+      if (ys[i] == Integer.MIN_VALUE) {
+        alleles[i] = ".";
+      } else {
+        alleles[i] = linearTranslation(ladder, customLadderCoordinates, ys[i]) + "";
+      }
+    }
+    //
+    // try {
+    // writer = Files.openAppropriateWriter("ladders.xln", true);
+    // for (int i = 0; i<ladder.length; i++) {
+    // writer.println(customLadderCoordinates[i]+"\t"+ladder[i]);
+    // }
+    // writer.println();
+    // writer.close();
+    // } catch (Exception e) {
+    // System.err.println("Error writing to "+"ladders.xln");
+    // e.printStackTrace();
+    // }
 
-	public static int linearTranslation(int[] ladder, int[] customLadderCoordinates, double x) {
-		int rung;
-		double[] slopeAndIntercept;
-		boolean inverse;
+    return alleles;
+  }
 
-		inverse = customLadderCoordinates[0] - customLadderCoordinates[ladder.length - 1] > 0;
+  public static int linearTranslation(int[] ladder, int[] customLadderCoordinates, double x) {
+    int rung;
+    double[] slopeAndIntercept;
+    boolean inverse;
 
-		rung = 1;
-		if (inverse) {
-			while (rung < customLadderCoordinates.length - 1 && x < customLadderCoordinates[rung]) {
-				rung++;
-			}
-		} else {
-			while (rung < customLadderCoordinates.length - 1 && x > customLadderCoordinates[rung]) {
-				rung++;
-			}
-		}
+    inverse = customLadderCoordinates[0] - customLadderCoordinates[ladder.length - 1] > 0;
 
-		slopeAndIntercept = Maths.slopeAndIntercept(customLadderCoordinates[rung - 1], ladder[rung - 1],
-																								customLadderCoordinates[rung], ladder[rung]);
+    rung = 1;
+    if (inverse) {
+      while (rung < customLadderCoordinates.length - 1 && x < customLadderCoordinates[rung]) {
+        rung++;
+      }
+    } else {
+      while (rung < customLadderCoordinates.length - 1 && x > customLadderCoordinates[rung]) {
+        rung++;
+      }
+    }
 
-		return (int) (slopeAndIntercept[0] * x + slopeAndIntercept[1]);
-	}
+    slopeAndIntercept = Maths.slopeAndIntercept(customLadderCoordinates[rung - 1], ladder[rung - 1],
+                                                customLadderCoordinates[rung], ladder[rung]);
 
-	public static void main(String[] args) {
-		// int[] ladder = new int[] {900, 1000, 1200, 1517};
-		// int[] ladderCoor = new int[] {188, 154, 88, 14};
-		// double y = 88;
-		//
-		// System.out.println(linearTranslation(ladder, ladderCoor, y));
-		//
-		// System.exit(1);
+    return (int) (slopeAndIntercept[0] * x + slopeAndIntercept[1]);
+  }
 
-		String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\DOCK5\\Bill's replication\\points.txt";
+  public static void main(String[] args) {
+    // int[] ladder = new int[] {900, 1000, 1200, 1517};
+    // int[] ladderCoor = new int[] {188, 154, 88, 14};
+    // double y = 88;
+    //
+    // System.out.println(linearTranslation(ladder, ladderCoor, y));
+    //
+    // System.exit(1);
 
-		try {
-			call(filename);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    String filename = "C:\\Documents and Settings\\npankrat\\My Documents\\CNV_PD\\DOCK5\\Bill's replication\\points.txt";
+
+    try {
+      call(filename);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

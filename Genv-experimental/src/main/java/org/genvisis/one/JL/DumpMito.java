@@ -9,21 +9,21 @@ import org.genvisis.common.ext;
 
 public class DumpMito {
 
-	public static void main(String[] args) {
-		MarkerSetInfo markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser");
-		// int[][] indices = markerSet.getIndicesByChr();
-		String[] mitoCurrent = HashVec.loadFileToStringArray("/Users/Kitty/git/affySnp6/MT.119.txt",
-																												 false, new int[] {0}, true);
-		int[] indicesM = ext.indexLargeFactors(mitoCurrent, markerSet.getMarkerNames(), true,
-																					 new Logger(), true);
-		String[] mitos = new String[indicesM.length];
-		System.out.print(mitos.length);
-		for (int i = 0; i < indicesM.length; i++) {
-			mitos[i] = markerSet.getMarkerNames()[indicesM[i]] + "\t" + markerSet.getChrs()[indicesM[i]]
-								 + "\t" + markerSet.getPositions()[indicesM[i]];
+  public static void main(String[] args) {
+    MarkerSetInfo markerSet = MarkerSet.load("/Users/Kitty/git/affySnp6/markers.ser");
+    // int[][] indices = markerSet.getIndicesByChr();
+    String[] mitoCurrent = HashVec.loadFileToStringArray("/Users/Kitty/git/affySnp6/MT.119.txt",
+                                                         false, new int[] {0}, true);
+    int[] indicesM = ext.indexLargeFactors(mitoCurrent, markerSet.getMarkerNames(), true,
+                                           new Logger(), true);
+    String[] mitos = new String[indicesM.length];
+    System.out.print(mitos.length);
+    for (int i = 0; i < indicesM.length; i++) {
+      mitos[i] = markerSet.getMarkerNames()[indicesM[i]] + "\t" + markerSet.getChrs()[indicesM[i]]
+                 + "\t" + markerSet.getPositions()[indicesM[i]];
 
-		}
-		Files.writeArray(mitos, "/Users/Kitty/git/affySnp6/MT.119.txt");// 110 anno, 9 set to 0
-	}
+    }
+    Files.writeArray(mitos, "/Users/Kitty/git/affySnp6/MT.119.txt");// 110 anno, 9 set to 0
+  }
 
 }

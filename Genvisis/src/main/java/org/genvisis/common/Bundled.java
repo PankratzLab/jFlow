@@ -19,7 +19,6 @@ public final class Bundled {
    *
    * @param path Path to the local resource
    * @return URL to the requested resource, or null if not found.
-   *
    * @see #get(Class, String)
    */
   public static URL get(String path) {
@@ -42,7 +41,6 @@ public final class Bundled {
    *
    * @param path Path to the local resource
    * @return A File reference to the loaded resource, or null if not found.
-   *
    * @see #getFile(Class, String)
    */
   public static File getFile(String path) {
@@ -65,7 +63,7 @@ public final class Bundled {
     // From https://community.oracle.com/blogs/kohsuke/2007/04/25/how-convert-javaneturl-javaiofile
     try {
       f = new File(url.toURI());
-    } catch(URISyntaxException e) {
+    } catch (URISyntaxException e) {
       f = new File(url.getPath());
     }
     return f;
@@ -76,7 +74,6 @@ public final class Bundled {
    *
    * @param path Path to the local resource
    * @return InputStream to the requested resource, or null if not found.
-   *
    * @see #getStream(Class, String)
    */
   public static InputStream getStream(String path) {

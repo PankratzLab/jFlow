@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -14,7 +13,6 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
-
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
@@ -24,310 +22,310 @@ import htsjdk.samtools.SamReaderFactory;
 
 /**
  * Class to check determine the sex of an individual based on read counts from X and Y chromosomes.
- *
  */
 public class SexCheck {
-	private static final String[] SEX_CHECK_HEADER = {"DNA", "Bam_File", "CountX", "CountY", "PropX",
-																										"PropY"};
-	private static final byte X = 23;
-	private static final byte Y = 24;
-	private static final int MAPQ_FILTER = 60;
 
-	private final Logger log;
-	private final WorkerTrain<SexCheckResults> train;
-	private final SexCheckProducer producer;
+  private static final String[] SEX_CHECK_HEADER = {"DNA", "Bam_File", "CountX", "CountY", "PropX",
+                                                    "PropY"};
+  private static final byte X = 23;
+  private static final byte Y = 24;
+  private static final int MAPQ_FILTER = 60;
 
-	/**
-	 * @param bamFiles files to check
-	 * @param numThreads number of threads for da checking
-	 * @param log
-	 */
-	public SexCheck(String[] bamFiles, int numThreads, Logger log) {
-		super();
-		producer = new SexCheckProducer(bamFiles, log);
-		train = new WorkerTrain<SexCheckResults>(producer, numThreads, 1, log);
-		this.log = log;
-	}
+  private final Logger log;
+  private final WorkerTrain<SexCheckResults> train;
+  private final SexCheckProducer producer;
 
-	public void checkSex(String fullPathTooutput) {
-		try {
-			PrintWriter writer = Files.openAppropriateWriter(fullPathTooutput);
-			writer.println(ArrayUtils.toStr(SEX_CHECK_HEADER));
-			while (train.hasNext()) {
-				SexCheckResults sexCheckResults = train.next();
-				writer.println(sexCheckResults.getSample() + "\t" + sexCheckResults.getBamFile() + "\t"
-											 + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
-											 + "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
-				writer.flush();
-			}
+  /**
+   * @param bamFiles files to check
+   * @param numThreads number of threads for da checking
+   * @param log
+   */
+  public SexCheck(String[] bamFiles, int numThreads, Logger log) {
+    super();
+    producer = new SexCheckProducer(bamFiles, log);
+    train = new WorkerTrain<SexCheckResults>(producer, numThreads, 1, log);
+    this.log = log;
+  }
 
-			writer.close();
-		} catch (Exception e) {
-			log.reportError("Error writing to " + fullPathTooutput);
-			log.reportException(e);
-		}
-	}
+  public void checkSex(String fullPathTooutput) {
+    try {
+      PrintWriter writer = Files.openAppropriateWriter(fullPathTooutput);
+      writer.println(ArrayUtils.toStr(SEX_CHECK_HEADER));
+      while (train.hasNext()) {
+        SexCheckResults sexCheckResults = train.next();
+        writer.println(sexCheckResults.getSample() + "\t" + sexCheckResults.getBamFile() + "\t"
+                       + sexCheckResults.getNumXReads() + "\t" + sexCheckResults.getNumYReads()
+                       + "\t" + sexCheckResults.getPropX() + "\t" + sexCheckResults.getPropY());
+        writer.flush();
+      }
 
-	/**
-	 * Dishes up callables of {@link SexCheckResults}
-	 *
-	 */
-	private static class SexCheckProducer extends AbstractProducer<SexCheckResults> {
-		private final String[] bamFiles;
-		private final Logger log;
-		private int index;
+      writer.close();
+    } catch (Exception e) {
+      log.reportError("Error writing to " + fullPathTooutput);
+      log.reportException(e);
+    }
+  }
 
-		public SexCheckProducer(String[] bamFiles, Logger log) {
-			super();
-			this.bamFiles = bamFiles;
-			this.log = log;
-			index = 0;
-		}
+  /**
+   * Dishes up callables of {@link SexCheckResults}
+   */
+  private static class SexCheckProducer extends AbstractProducer<SexCheckResults> {
 
-		@Override
-		public boolean hasNext() {
-			return index < bamFiles.length;
-		}
+    private final String[] bamFiles;
+    private final Logger log;
+    private int index;
 
-		@Override
-		public Callable<SexCheckResults> next() {
-			SexCheckWorker sexCheckWorker = new SexCheckWorker(bamFiles[index], log);
-			index++;
-			return sexCheckWorker;
-		}
-	}
+    public SexCheckProducer(String[] bamFiles, Logger log) {
+      super();
+      this.bamFiles = bamFiles;
+      this.log = log;
+      index = 0;
+    }
 
-	/**
-	 * Computes the counts for sex chromosomes
-	 *
-	 */
-	private static class SexCheckWorker implements Callable<SexCheckResults> {
-		private final String bamFile;
-		private final Logger log;
+    @Override
+    public boolean hasNext() {
+      return index < bamFiles.length;
+    }
 
-		public SexCheckWorker(String bamFile, Logger log) {
-			super();
-			this.bamFile = bamFile;
-			this.log = log;
-		}
+    @Override
+    public Callable<SexCheckResults> next() {
+      SexCheckWorker sexCheckWorker = new SexCheckWorker(bamFiles[index], log);
+      index++;
+      return sexCheckWorker;
+    }
+  }
 
-		@Override
-		public SexCheckResults call() throws Exception {
-			SexCheckResults sexCheckResults = getSexCheckResults(bamFile, log);
-			return sexCheckResults;
-		}
+  /**
+   * Computes the counts for sex chromosomes
+   */
+  private static class SexCheckWorker implements Callable<SexCheckResults> {
 
-	}
+    private final String bamFile;
+    private final Logger log;
 
-	private static SexCheckResults getSexCheckResults(String bamFile, Logger log) {
-		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
-		SamReader reader = samReaderFactory.open(new File(bamFile));
-		reader.indexing();
-		SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
-		if (!reader.hasIndex()) {
-			log.reportError("Error - the bam file " + bamFile
-											+ " must have a \".bai\" index file associated with it, halting");
-			try {
-				reader.close();
-			} catch (IOException e) {
-				log.reportIOException(bamFile);
-				e.printStackTrace();
-			}
-		} else {
-			String seqX = Positions.getChromosomeUCSC(X, true);
-			String seqY = Positions.getChromosomeUCSC(Y, true);
-			SAMFileHeader header = reader.getFileHeader();
-			String sample = header.getReadGroups().get(0).getSample();
-			log.reportTimeInfo("Computing sex checks for sample " + sample + " in file " + bamFile);
-			int refX = header.getSequenceIndex(seqX);
-			int refY = header.getSequenceIndex(seqY);
+    public SexCheckWorker(String bamFile, Logger log) {
+      super();
+      this.bamFile = bamFile;
+      this.log = log;
+    }
 
-			QueryInterval qX = new QueryInterval(refX, 0, -1);
-			QueryInterval qY = new QueryInterval(refY, 0, -1);
-			sexCheckResults = getCountsForSexChr(new QueryInterval[] {qX, qY}, reader, bamFile, sample,
-																					 log);
-			try {
-				reader.close();
-			} catch (IOException e) {
-				log.reportIOException(bamFile);
-				e.printStackTrace();
-			}
-		}
+    @Override
+    public SexCheckResults call() throws Exception {
+      SexCheckResults sexCheckResults = getSexCheckResults(bamFile, log);
+      return sexCheckResults;
+    }
 
-		return sexCheckResults;
-	}
+  }
 
-	private static SexCheckResults getCountsForSexChr(QueryInterval[] qInterval, SamReader reader,
-																										String bamFile, String sample, Logger log) {
-		SAMRecordIterator sIterator = reader.query(qInterval, false);
-		int numXReads = 0;
-		int numYReads = 0;
-		int totalReads = 0;
-		int goodReads = 0;
-		while (sIterator.hasNext()) {
-			totalReads++;
-			SAMRecord samRecord = sIterator.next();
-			if (goodRead(samRecord)) {
-				goodReads++;
-				byte chr = Positions.chromosomeNumber(samRecord.getReferenceName(), log);
-				if (chr == X) {
-					numXReads++;
-				} else if (chr == Y) {
-					numYReads++;
-				} else {
-					log.reportError("Invalid chromosome found in " + bamFile + ", halting");
-					return new SexCheckResults(0, 0, bamFile, sample);
-				}
-			}
-			if (totalReads % 1000000 == 0) {
-				log.reportTimeInfo("Sample: " + sample + " Read " + totalReads + " from chrs " + X + " and "
-													 + Y + ", " + goodReads + " passed standard filter, " + numXReads
-													 + " chr " + X + ", " + numYReads + " chr " + Y);
-			}
-		}
-		log.reportTimeInfo("Sample: " + sample + " Finished with " + totalReads + " from chrs " + X
-											 + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
-											 + " chr " + X + ", " + numYReads + " chr " + Y);
+  private static SexCheckResults getSexCheckResults(String bamFile, Logger log) {
+    SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
+    SamReader reader = samReaderFactory.open(new File(bamFile));
+    reader.indexing();
+    SexCheckResults sexCheckResults = new SexCheckResults(0, 0, bamFile, bamFile);
+    if (!reader.hasIndex()) {
+      log.reportError("Error - the bam file " + bamFile
+                      + " must have a \".bai\" index file associated with it, halting");
+      try {
+        reader.close();
+      } catch (IOException e) {
+        log.reportIOException(bamFile);
+        e.printStackTrace();
+      }
+    } else {
+      String seqX = Positions.getChromosomeUCSC(X, true);
+      String seqY = Positions.getChromosomeUCSC(Y, true);
+      SAMFileHeader header = reader.getFileHeader();
+      String sample = header.getReadGroups().get(0).getSample();
+      log.reportTimeInfo("Computing sex checks for sample " + sample + " in file " + bamFile);
+      int refX = header.getSequenceIndex(seqX);
+      int refY = header.getSequenceIndex(seqY);
 
-		return new SexCheckResults(numXReads, numYReads, bamFile, sample);
-	}
+      QueryInterval qX = new QueryInterval(refX, 0, -1);
+      QueryInterval qY = new QueryInterval(refY, 0, -1);
+      sexCheckResults = getCountsForSexChr(new QueryInterval[] {qX, qY}, reader, bamFile, sample,
+                                           log);
+      try {
+        reader.close();
+      } catch (IOException e) {
+        log.reportIOException(bamFile);
+        e.printStackTrace();
+      }
+    }
 
-	/**
-	 *
-	 * @return true if the read is valid, not a duplicate, is primary, has a proper pair, and passes
-	 *         the MAPQ (trying to avoid pseudoautosomal)
-	 */
-	private static boolean goodRead(SAMRecord samRecord) {
-		if (samRecord.isValid() != null) {
-			return false;
-		}
-		if (samRecord.getDuplicateReadFlag()) {
-			return false;
-		}
-		if (samRecord.isSecondaryOrSupplementary()) {
-			return false;
-		}
-		if (!samRecord.getProperPairFlag()) {
-			return false;
-		}
-		if (samRecord.getMappingQuality() == 255 || samRecord.getMappingQuality() < MAPQ_FILTER) {
-			return false;
-		}
+    return sexCheckResults;
+  }
 
-		return true;
-	}
+  private static SexCheckResults getCountsForSexChr(QueryInterval[] qInterval, SamReader reader,
+                                                    String bamFile, String sample, Logger log) {
+    SAMRecordIterator sIterator = reader.query(qInterval, false);
+    int numXReads = 0;
+    int numYReads = 0;
+    int totalReads = 0;
+    int goodReads = 0;
+    while (sIterator.hasNext()) {
+      totalReads++;
+      SAMRecord samRecord = sIterator.next();
+      if (goodRead(samRecord)) {
+        goodReads++;
+        byte chr = Positions.chromosomeNumber(samRecord.getReferenceName(), log);
+        if (chr == X) {
+          numXReads++;
+        } else if (chr == Y) {
+          numYReads++;
+        } else {
+          log.reportError("Invalid chromosome found in " + bamFile + ", halting");
+          return new SexCheckResults(0, 0, bamFile, sample);
+        }
+      }
+      if (totalReads % 1000000 == 0) {
+        log.reportTimeInfo("Sample: " + sample + " Read " + totalReads + " from chrs " + X + " and "
+                           + Y + ", " + goodReads + " passed standard filter, " + numXReads
+                           + " chr " + X + ", " + numYReads + " chr " + Y);
+      }
+    }
+    log.reportTimeInfo("Sample: " + sample + " Finished with " + totalReads + " from chrs " + X
+                       + " and " + Y + ", " + goodReads + " passed standard filter, " + numXReads
+                       + " chr " + X + ", " + numYReads + " chr " + Y);
 
-	private static class SexCheckResults {
-		private final int numXReads;
-		private final int numYReads;
-		private final String bamFile;
-		private final String sample;
+    return new SexCheckResults(numXReads, numYReads, bamFile, sample);
+  }
 
-		private SexCheckResults(int numXReads, int numYReads, String bamFile, String sample) {
-			super();
-			this.numXReads = numXReads;
-			this.numYReads = numYReads;
-			this.bamFile = bamFile;
-			this.sample = sample;
-		}
+  /**
+   * @return true if the read is valid, not a duplicate, is primary, has a proper pair, and passes
+   *         the MAPQ (trying to avoid pseudoautosomal)
+   */
+  private static boolean goodRead(SAMRecord samRecord) {
+    if (samRecord.isValid() != null) {
+      return false;
+    }
+    if (samRecord.getDuplicateReadFlag()) {
+      return false;
+    }
+    if (samRecord.isSecondaryOrSupplementary()) {
+      return false;
+    }
+    if (!samRecord.getProperPairFlag()) {
+      return false;
+    }
+    if (samRecord.getMappingQuality() == 255 || samRecord.getMappingQuality() < MAPQ_FILTER) {
+      return false;
+    }
 
-		private String getSample() {
-			return sample;
-		}
+    return true;
+  }
 
-		private int getNumXReads() {
-			return numXReads;
-		}
+  private static class SexCheckResults {
 
-		private int getNumYReads() {
-			return numYReads;
-		}
+    private final int numXReads;
+    private final int numYReads;
+    private final String bamFile;
+    private final String sample;
 
-		private String getBamFile() {
-			return bamFile;
-		}
+    private SexCheckResults(int numXReads, int numYReads, String bamFile, String sample) {
+      super();
+      this.numXReads = numXReads;
+      this.numYReads = numYReads;
+      this.bamFile = bamFile;
+      this.sample = sample;
+    }
 
-		private double getPropX() {
-			double total = (double) numXReads + numYReads;
-			if (total > 0) {
-				return numXReads / total;
-			} else {
-				return 0;
-			}
-		}
+    private String getSample() {
+      return sample;
+    }
 
-		private double getPropY() {
-			double total = (double) numXReads + numYReads;
-			if (total > 0) {
-				return numYReads / total;
-			} else {
-				return 0;
-			}
-		}
+    private int getNumXReads() {
+      return numXReads;
+    }
 
-	}
+    private int getNumYReads() {
+      return numYReads;
+    }
 
-	/**
-	 * @param dir containing bam files
-	 * @param fullPathTooutput where the checks will be reported
-	 * @param numThreads
-	 * @param log
-	 */
-	public static void checkSex(String dir, String fullPathTooutput, int numThreads, Logger log) {
-		String[] bamFiles;
-		if (Files.isDirectory(dir)) {
+    private String getBamFile() {
+      return bamFile;
+    }
 
-			bamFiles = Files.listFullPaths(dir, ".bam");
-		} else {
-			bamFiles = HashVec.loadFileToStringArray(dir, false, new int[] {0}, true);
-		}
-		if (bamFiles.length < 1) {
-			log.reportError("Did not find any bam files in directory " + dir);
-		} else {
-			SexCheck sexCheck = new SexCheck(bamFiles, numThreads, log);
-			sexCheck.checkSex(fullPathTooutput);
-		}
-	}
+    private double getPropX() {
+      double total = (double) numXReads + numYReads;
+      if (total > 0) {
+        return numXReads / total;
+      } else {
+        return 0;
+      }
+    }
 
-	public static void main(String[] args) {
-		int numArgs = args.length;
-		String directory = "bams/";
-		String output = "bams/sexCheck.txt";
-		int numThreads = 4;
-		Logger log;
+    private double getPropY() {
+      double total = (double) numXReads + numYReads;
+      if (total > 0) {
+        return numYReads / total;
+      } else {
+        return 0;
+      }
+    }
 
-		String usage = "\n" + "seq.qc.SexCheck requires 0-1 arguments\n";
-		usage += "   (1) directory of bam files to check (i.e. dir=" + directory + " (default))\n" + "";
-		usage += "   (2) full path to output file(i.e. out=" + output + " (default))\n" + "";
-		usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
+  }
 
-		for (String arg : args) {
-			if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
-				System.err.println(usage);
-				System.exit(1);
-			} else if (arg.startsWith("dir=")) {
-				directory = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith("out=")) {
-				output = arg.split("=")[1];
-				numArgs--;
-			} else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
-				numThreads = ext.parseIntArg(arg);
-				numArgs--;
-			} else {
-				System.err.println("Error - invalid argument: " + arg);
-			}
-		}
-		if (numArgs != 0) {
-			System.err.println(usage);
-			System.exit(1);
-		}
-		try {
-			new File(ext.parseDirectoryOfFile(output)).mkdirs();
-			log = new Logger(ext.rootOf(output, false) + ".log");
-			checkSex(directory, output, numThreads, log);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+  /**
+   * @param dir containing bam files
+   * @param fullPathTooutput where the checks will be reported
+   * @param numThreads
+   * @param log
+   */
+  public static void checkSex(String dir, String fullPathTooutput, int numThreads, Logger log) {
+    String[] bamFiles;
+    if (Files.isDirectory(dir)) {
+
+      bamFiles = Files.listFullPaths(dir, ".bam");
+    } else {
+      bamFiles = HashVec.loadFileToStringArray(dir, false, new int[] {0}, true);
+    }
+    if (bamFiles.length < 1) {
+      log.reportError("Did not find any bam files in directory " + dir);
+    } else {
+      SexCheck sexCheck = new SexCheck(bamFiles, numThreads, log);
+      sexCheck.checkSex(fullPathTooutput);
+    }
+  }
+
+  public static void main(String[] args) {
+    int numArgs = args.length;
+    String directory = "bams/";
+    String output = "bams/sexCheck.txt";
+    int numThreads = 4;
+    Logger log;
+
+    String usage = "\n" + "seq.qc.SexCheck requires 0-1 arguments\n";
+    usage += "   (1) directory of bam files to check (i.e. dir=" + directory + " (default))\n" + "";
+    usage += "   (2) full path to output file(i.e. out=" + output + " (default))\n" + "";
+    usage += PSF.Ext.getNumThreadsCommand(3, numThreads);
+
+    for (String arg : args) {
+      if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
+        System.err.println(usage);
+        System.exit(1);
+      } else if (arg.startsWith("dir=")) {
+        directory = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("out=")) {
+        output = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
+        numThreads = ext.parseIntArg(arg);
+        numArgs--;
+      } else {
+        System.err.println("Error - invalid argument: " + arg);
+      }
+    }
+    if (numArgs != 0) {
+      System.err.println(usage);
+      System.exit(1);
+    }
+    try {
+      new File(ext.parseDirectoryOfFile(output)).mkdirs();
+      log = new Logger(ext.rootOf(output, false) + ".log");
+      checkSex(directory, output, numThreads, log);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

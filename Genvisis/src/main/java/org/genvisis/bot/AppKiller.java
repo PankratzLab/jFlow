@@ -2,34 +2,32 @@ package org.genvisis.bot;
 
 import java.io.File;
 import java.util.Date;
-
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
 public class AppKiller implements Runnable {
-	private final String plugFile;
 
-	public AppKiller(String plugFile) {
-		this.plugFile = plugFile;
+  private final String plugFile;
 
-		try {
-			Files.openAppropriateWriter(plugFile).close();
-		} catch (Exception e) {
-		}
-	}
+  public AppKiller(String plugFile) {
+    this.plugFile = plugFile;
 
-	@Override
-	public void run() {
-		long time;
+    try {
+      Files.openAppropriateWriter(plugFile).close();
+    } catch (Exception e) {}
+  }
 
-		time = new Date().getTime();
-		while (new File(plugFile).exists()) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException ie) {
-			}
-		}
-		System.err.println("Plug was pulled after " + ext.getTimeElapsed(time));
-		System.exit(1);
-	}
+  @Override
+  public void run() {
+    long time;
+
+    time = new Date().getTime();
+    while (new File(plugFile).exists()) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException ie) {}
+    }
+    System.err.println("Plug was pulled after " + ext.getTimeElapsed(time));
+    System.exit(1);
+  }
 }

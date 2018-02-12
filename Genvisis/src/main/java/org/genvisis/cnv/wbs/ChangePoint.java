@@ -7,97 +7,91 @@ import java.util.Comparator;
 
 class ChangePoint implements Comparable<ChangePoint> {
 
+  private int start;
+  private int end;
+  private int changePoint;
+  private double cusum;
+  private double minth;
+  private int scale;
 
+  ChangePoint(int start, int end, int changePoint, double cusum, double minth, int scale) {
+    super();
+    this.start = start;
+    this.end = end;
+    this.changePoint = changePoint;
+    this.cusum = cusum;
+    this.minth = minth;
+    this.scale = scale;
+  }
 
-	private int start;
-	private int end;
-	private int changePoint;
-	private double cusum;
-	private double minth;
-	private int scale;
+  static double[] extract() {
+    return null;
+  }
 
-	ChangePoint(int start, int end, int changePoint, double cusum, double minth,
-							int scale) {
-		super();
-		this.start = start;
-		this.end = end;
-		this.changePoint = changePoint;
-		this.cusum = cusum;
-		this.minth = minth;
-		this.scale = scale;
-	}
+  int getStart() {
+    return start;
+  }
 
-	static double[] extract() {
-		return null;
-	}
+  int getEnd() {
+    return end;
+  }
 
-	int getStart() {
-		return start;
-	}
+  int getChangePoint() {
+    return changePoint;
+  }
 
-	int getEnd() {
-		return end;
-	}
+  double getCusum() {
+    return cusum;
+  }
 
-	int getChangePoint() {
-		return changePoint;
-	}
+  double getMinth() {
+    return minth;
+  }
 
-	double getCusum() {
-		return cusum;
-	}
+  int getScale() {
+    return scale;
+  }
 
-	double getMinth() {
-		return minth;
-	}
+  @Override
+  public String toString() {
+    return "WBSChangePoint [start=" + start + ", end=" + end + ", changePoint=" + changePoint
+           + ", cusum=" + cusum + ", minth=" + minth + ", scale=" + scale + "]";
+  }
 
-	int getScale() {
-		return scale;
-	}
+  /*
+   * (non-Javadoc)
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
+  @Override
+  public int compareTo(ChangePoint o) {
+    return -1 * Double.compare(Math.abs(getCusum()), Math.abs(o.getCusum()));
+  }
 
-	@Override
-	public String toString() {
-		return "WBSChangePoint [start=" + start + ", end=" + end + ", changePoint=" + changePoint
-					 + ", cusum=" + cusum + ", minth=" + minth + ", scale=" + scale + "]";
-	}
+  static class ChangePointComparable implements Comparator<ChangePoint> {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(ChangePoint o) {
-		return -1 * Double.compare(Math.abs(getCusum()), Math.abs(o.getCusum()));
-	}
+    /*
+     * (non-Javadoc)
+     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public int compare(ChangePoint o1, ChangePoint o2) {
+      // increasing
+      return Double.compare(o1.getChangePoint(), o2.getChangePoint());
+    }
 
-	static class ChangePointComparable implements Comparator<ChangePoint> {
+  }
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-		 */
-		@Override
-		public int compare(ChangePoint o1, ChangePoint o2) {
-			// increasing
-			return Double.compare(o1.getChangePoint(), o2.getChangePoint());
-		}
+  static class MinthComparable implements Comparator<ChangePoint> {
 
-	}
+    /*
+     * (non-Javadoc)
+     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public int compare(ChangePoint o1, ChangePoint o2) {
+      return -1 * Double.compare(o1.getMinth(), o2.getMinth());
+    }
 
-	static class MinthComparable implements Comparator<ChangePoint> {
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-		 */
-		@Override
-		public int compare(ChangePoint o1, ChangePoint o2) {
-			return -1 * Double.compare(o1.getMinth(), o2.getMinth());
-		}
-
-	}
+  }
 
 }

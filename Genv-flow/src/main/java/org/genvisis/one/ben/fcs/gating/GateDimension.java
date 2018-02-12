@@ -3,58 +3,59 @@ package org.genvisis.one.ben.fcs.gating;
 import org.genvisis.one.ben.fcs.gating.Gate.RectangleGate;
 
 public class GateDimension {
-	private String paramName;
-	Gate owner;
 
-	@Override
-	public String toString() {
-		return super.toString() + "--" + paramName;
-	}
+  private String paramName;
+  Gate owner;
 
-	public GateDimension(Gate gate, String param) {
-		this.paramName = param;
-		this.owner = gate;
-	}
+  @Override
+  public String toString() {
+    return super.toString() + "--" + paramName;
+  }
 
-	public static class RectangleGateDimension extends GateDimension {
-		public RectangleGateDimension(RectangleGate gate, String param) {
-			super(gate, param);
-		}
+  public GateDimension(Gate gate, String param) {
+    this.paramName = param;
+    this.owner = gate;
+  }
 
-		public RectangleGateDimension(RectangleGate gate, String param, float min, float max) {
-			super(gate, param);
-			this.min = Math.min(min, max);
-			this.max = Math.max(min, max);
-		}
+  public static class RectangleGateDimension extends GateDimension {
 
-		private float min, max;
+    public RectangleGateDimension(RectangleGate gate, String param) {
+      super(gate, param);
+    }
 
-		public float getMin() {
-			return min;
-		}
+    public RectangleGateDimension(RectangleGate gate, String param, float min, float max) {
+      super(gate, param);
+      this.min = Math.min(min, max);
+      this.max = Math.max(min, max);
+    }
 
-		public float getMax() {
-			return max;
-		}
+    private float min, max;
 
-		public void setMin(float min2) {
-			min = min2;
-			owner.setChanged();
-		}
+    public float getMin() {
+      return min;
+    }
 
-		public void setMax(float max2) {
-			max = max2;
-			owner.setChanged();
-		}
-	}
+    public float getMax() {
+      return max;
+    }
 
-	public String getParam() {
-		return paramName;
-	}
+    public void setMin(float min2) {
+      min = min2;
+      owner.setChanged();
+    }
 
-	public void setParam(String d) {
-		this.paramName = d;
-	}
+    public void setMax(float max2) {
+      max = max2;
+      owner.setChanged();
+    }
+  }
 
+  public String getParam() {
+    return paramName;
+  }
+
+  public void setParam(String d) {
+    this.paramName = d;
+  }
 
 }

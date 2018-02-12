@@ -4,61 +4,61 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
 
 public class MarkerLookup implements Serializable {
-	public static final long serialVersionUID = 1L;
 
-	private final Hashtable<String, String> hash;
+  public static final long serialVersionUID = 1L;
 
-	public MarkerLookup(Hashtable<String, String> hash) {
-		this.hash = hash;
-	}
+  private final Hashtable<String, String> hash;
 
-	public boolean contains(String markerName) {
-		return hash.containsKey(markerName);
-	}
+  public MarkerLookup(Hashtable<String, String> hash) {
+    this.hash = hash;
+  }
 
-	public String get(String markerName) {
-		return hash.get(markerName);
-	}
+  public boolean contains(String markerName) {
+    return hash.containsKey(markerName);
+  }
 
-	public int getSize() {
-		return hash.size();
-	}
+  public String get(String markerName) {
+    return hash.get(markerName);
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public int getSize() {
+    return hash.size();
+  }
 
-	public static MarkerLookup load(String filename) {
-		return (MarkerLookup) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
-	public String[] getMarkerList() {
-		return hash.keySet().toArray(new String[hash.size()]);
-	}
+  public static MarkerLookup load(String filename) {
+    return (MarkerLookup) SerializedFiles.readSerial(filename, true);
+  }
 
-	public String getFirstMarkerDataRafFilename() {
-		return hash.elements().nextElement().split("\t")[0];
-	}
+  public String[] getMarkerList() {
+    return hash.keySet().toArray(new String[hash.size()]);
+  }
 
-	public String[] getMarkerDataRafFilenames() {
-		Set<String> filenames;
-		String[] line;
-		String[] listOfMarkersInMarkerLookup;
+  public String getFirstMarkerDataRafFilename() {
+    return hash.elements().nextElement().split("\t")[0];
+  }
 
-		filenames = new HashSet<String>();
+  public String[] getMarkerDataRafFilenames() {
+    Set<String> filenames;
+    String[] line;
+    String[] listOfMarkersInMarkerLookup;
 
-		listOfMarkersInMarkerLookup = getMarkerList();
-		for (String element : listOfMarkersInMarkerLookup) {
-			line = get(element).split(PSF.Regex.GREEDY_WHITESPACE);
-			filenames.add(line[0]);
-		}
+    filenames = new HashSet<String>();
 
-		return filenames.toArray(new String[filenames.size()]);
-	}
+    listOfMarkersInMarkerLookup = getMarkerList();
+    for (String element : listOfMarkersInMarkerLookup) {
+      line = get(element).split(PSF.Regex.GREEDY_WHITESPACE);
+      filenames.add(line[0]);
+    }
+
+    return filenames.toArray(new String[filenames.size()]);
+  }
 
 }

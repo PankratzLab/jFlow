@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -19,312 +18,309 @@ import org.genvisis.common.ext;
 
 public class PlinkMarkerLoader implements Runnable {
 
-	public static void main(String[] args) {
-		String[] markerNames = HashVec.loadFileToStringArray("D:/PlinkGeno/mkrs10000.txt", false, null,
-																												 false);
-		String plinkFileRoot = "D:/PlinkGeno/plink";
-		(new PlinkMarkerLoader(null, plinkFileRoot, markerNames)).run();
-		System.out.println(ext.getTime() + "]\tFinished");
-	}
+  public static void main(String[] args) {
+    String[] markerNames = HashVec.loadFileToStringArray("D:/PlinkGeno/mkrs10000.txt", false, null,
+                                                         false);
+    String plinkFileRoot = "D:/PlinkGeno/plink";
+    (new PlinkMarkerLoader(null, plinkFileRoot, markerNames)).run();
+    System.out.println(ext.getTime() + "]\tFinished");
+  }
 
-	String fileRoot;
-	String[] markerList;
-	int[] markerPosInBim;
-	volatile byte[][] genotypes;
-	volatile boolean[] loaded;
-	Logger log;
-	HashMap<String, Integer> markerIndicesLookup;
-	HashMap<String, Integer> famIDLookup;
+  String fileRoot;
+  String[] markerList;
+  int[] markerPosInBim;
+  volatile byte[][] genotypes;
+  volatile boolean[] loaded;
+  Logger log;
+  HashMap<String, Integer> markerIndicesLookup;
+  HashMap<String, Integer> famIDLookup;
 
-	boolean idListsDiffer;
-	boolean initialized;
-	boolean killed;
-	boolean killComplete;
-	Thread thread;
+  boolean idListsDiffer;
+  boolean initialized;
+  boolean killed;
+  boolean killComplete;
+  Thread thread;
 
-	public PlinkMarkerLoader(Project proj, String plinkFileRoot, String[] markers) {
-		fileRoot = plinkFileRoot;
-		markerList = markers;
-		log = proj == null ? new Logger() : proj.getLog();
+  public PlinkMarkerLoader(Project proj, String plinkFileRoot, String[] markers) {
+    fileRoot = plinkFileRoot;
+    markerList = markers;
+    log = proj == null ? new Logger() : proj.getLog();
 
-		if (markers == null) {
-			log.reportError("The list of markers for MarkerDataLoader to load was null");
-			killed = true;
-			return;
-		}
+    if (markers == null) {
+      log.reportError("The list of markers for MarkerDataLoader to load was null");
+      killed = true;
+      return;
+    }
 
-		if (markers.length == 0) {
-			log.reportError("The list of markers for MarkerDataLoader to load was empty (n=0)");
-			killed = true;
-			return;
-		}
+    if (markers.length == 0) {
+      log.reportError("The list of markers for MarkerDataLoader to load was empty (n=0)");
+      killed = true;
+      return;
+    }
 
-		markerPosInBim = new int[markerList.length];
-		genotypes = new byte[markerList.length][];
-		loaded = ArrayUtils.booleanArray(markerList.length, false);
+    markerPosInBim = new int[markerList.length];
+    genotypes = new byte[markerList.length][];
+    loaded = ArrayUtils.booleanArray(markerList.length, false);
 
-		lookupMarkerPositions();
-		lookupIDs();
-	}
+    lookupMarkerPositions();
+    lookupIDs();
+  }
 
-	private void initiate() {
-		initialized = true;
-	}
+  private void initiate() {
+    initialized = true;
+  }
 
-	public boolean isKilled() {
-		return killed;
-	}
+  public boolean isKilled() {
+    return killed;
+  }
 
-	private void registerThread(Thread thread) {
-		this.thread = thread;
-	}
+  private void registerThread(Thread thread) {
+    this.thread = thread;
+  }
 
-	public void kill() {
-		killed = true;
-		if (!thread.isAlive()) {
-			killComplete = true;
-		}
-	}
+  public void kill() {
+    killed = true;
+    if (!thread.isAlive()) {
+      killComplete = true;
+    }
+  }
 
-	public boolean killComplete() {
-		return killComplete;
-	}
+  public boolean killComplete() {
+    return killComplete;
+  }
 
-	public Thread getThread() {
-		return thread;
-	}
+  public Thread getThread() {
+    return thread;
+  }
 
-	private void lookupMarkerPositions() {
-		BufferedReader reader;
-		String[] line;
-		HashSet<String> lookFor = new HashSet<String>();
-		for (String s : markerList) {
-			lookFor.add(s);
-		}
-		markerIndicesLookup = new HashMap<String, Integer>();
-		HashMap<String, Integer> markerIndicesLookupTemp = new HashMap<String, Integer>();
-		int cnt = 0;
-		try {
-			reader = Files.getAppropriateReader(fileRoot + ".bim");
-			String temp;
-			while ((temp = reader.readLine()) != null) {
-				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				String mkr = line[1];
-				if (lookFor.contains(mkr)) {
-					markerIndicesLookupTemp.put(mkr, cnt);
-				}
-				cnt++;
-			}
-			reader.close();
+  private void lookupMarkerPositions() {
+    BufferedReader reader;
+    String[] line;
+    HashSet<String> lookFor = new HashSet<String>();
+    for (String s : markerList) {
+      lookFor.add(s);
+    }
+    markerIndicesLookup = new HashMap<String, Integer>();
+    HashMap<String, Integer> markerIndicesLookupTemp = new HashMap<String, Integer>();
+    int cnt = 0;
+    try {
+      reader = Files.getAppropriateReader(fileRoot + ".bim");
+      String temp;
+      while ((temp = reader.readLine()) != null) {
+        line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        String mkr = line[1];
+        if (lookFor.contains(mkr)) {
+          markerIndicesLookupTemp.put(mkr, cnt);
+        }
+        cnt++;
+      }
+      reader.close();
 
-			for (int i = 0; i < markerList.length; i++) {
-				markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
-																																							 : markerIndicesLookupTemp.get(markerList[i])
-																																																				.intValue();
-				markerIndicesLookup.put(markerList[i], i);
-			}
-		} catch (FileNotFoundException fnfe) {
-			// TODO should KILL here
-			log.reportException(fnfe);
-		} catch (IOException ioe) {
-			// TODO should KILL here
-			log.reportException(ioe);
-		}
-	}
+      for (int i = 0; i < markerList.length; i++) {
+        markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
+                                                                               : markerIndicesLookupTemp.get(markerList[i])
+                                                                                                        .intValue();
+        markerIndicesLookup.put(markerList[i], i);
+      }
+    } catch (FileNotFoundException fnfe) {
+      // TODO should KILL here
+      log.reportException(fnfe);
+    } catch (IOException ioe) {
+      // TODO should KILL here
+      log.reportException(ioe);
+    }
+  }
 
-	private void lookupIDs() {
-		BufferedReader reader;
-		String[] line;
+  private void lookupIDs() {
+    BufferedReader reader;
+    String[] line;
 
-		String famFile = PSF.Plink.getFAM(fileRoot);
+    String famFile = PSF.Plink.getFAM(fileRoot);
 
-		famIDLookup = new HashMap<String, Integer>();
+    famIDLookup = new HashMap<String, Integer>();
 
-		try {
-			reader = Files.getAppropriateReader(famFile);
-			String temp = null;
-			int cnt = 0;
-			while ((temp = reader.readLine()) != null) {
-				line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				String fidiid = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
-				if (famIDLookup.putIfAbsent(fidiid, cnt) != null) {
-					log.reportError("Duplicate sample ID in " + famFile + ": " + fidiid);
-				}
-				cnt++;
-			}
-			reader.close();
-			reader = null;
-		} catch (FileNotFoundException fnfe) {
-			// TODO should KILL here
-			log.reportException(fnfe);
-		} catch (IOException ioe) {
-			// TODO should KILL here
-			log.reportException(ioe);
-		}
-	}
+    try {
+      reader = Files.getAppropriateReader(famFile);
+      String temp = null;
+      int cnt = 0;
+      while ((temp = reader.readLine()) != null) {
+        line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        String fidiid = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
+        if (famIDLookup.putIfAbsent(fidiid, cnt) != null) {
+          log.reportError("Duplicate sample ID in " + famFile + ": " + fidiid);
+        }
+        cnt++;
+      }
+      reader.close();
+      reader = null;
+    } catch (FileNotFoundException fnfe) {
+      // TODO should KILL here
+      log.reportException(fnfe);
+    } catch (IOException ioe) {
+      // TODO should KILL here
+      log.reportException(ioe);
+    }
+  }
 
-	@Override
-	public void run() {
-		RandomAccessFile in = null;
+  @Override
+  public void run() {
+    RandomAccessFile in = null;
 
-		HashMap<String, byte[]> mkrGenotypes = new HashMap<String, byte[]>();
+    HashMap<String, byte[]> mkrGenotypes = new HashMap<String, byte[]>();
 
-		if (killed) {
-			return;
-		}
+    if (killed) {
+      return;
+    }
 
-		initiate();
-		int cnt = 0;
-		long time = new Date().getTime();
+    initiate();
+    int cnt = 0;
+    long time = new Date().getTime();
 
-		try {
-			in = new RandomAccessFile(fileRoot + ".bed", "r");
+    try {
+      in = new RandomAccessFile(fileRoot + ".bed", "r");
 
-			byte[] magicBytes = new byte[3];
-			in.read(magicBytes);
-			if (magicBytes[2] == 0) {
-				log.reportError("Error - .bed file is sample-dominant.");
-			} else {
-				int famCnt = Files.countLines(fileRoot + ".fam", 0);
-				int blockSize = (int) Math.ceil(famCnt / 4.0d);
-				for (int i = 0; i < markerList.length; i++) {
-					if (markerPosInBim[i] == -1) {
-						// missing marker, not present in PLINK files
-						mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDLookup.size(), (byte) -1));
-						cnt++;
-						continue;
-					}
-					in.seek(3 + (long) markerPosInBim[i] * blockSize);
+      byte[] magicBytes = new byte[3];
+      in.read(magicBytes);
+      if (magicBytes[2] == 0) {
+        log.reportError("Error - .bed file is sample-dominant.");
+      } else {
+        int famCnt = Files.countLines(fileRoot + ".fam", 0);
+        int blockSize = (int) Math.ceil(famCnt / 4.0d);
+        for (int i = 0; i < markerList.length; i++) {
+          if (markerPosInBim[i] == -1) {
+            // missing marker, not present in PLINK files
+            mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDLookup.size(), (byte) -1));
+            cnt++;
+            continue;
+          }
+          in.seek(3 + (long) markerPosInBim[i] * blockSize);
 
-					byte[] markerBytes = new byte[blockSize];
-					byte[] sampGeno = new byte[famIDLookup.size()];
-					in.read(markerBytes);
-					for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
-						byte bedByte = markerBytes[bitInd];
-						byte[] genos = PlinkData.decodeBedByte(bedByte);
+          byte[] markerBytes = new byte[blockSize];
+          byte[] sampGeno = new byte[famIDLookup.size()];
+          in.read(markerBytes);
+          for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
+            byte bedByte = markerBytes[bitInd];
+            byte[] genos = PlinkData.decodeBedByte(bedByte);
 
-						for (int g = 0; g < genos.length; g++) {
-							int idInd = bitInd * 4 + g;
-							if (idInd >= famIDLookup.size()) {
-								break;
-							}
-							sampGeno[idInd] = genos[g];
-						}
-					}
+            for (int g = 0; g < genos.length; g++) {
+              int idInd = bitInd * 4 + g;
+              if (idInd >= famIDLookup.size()) {
+                break;
+              }
+              sampGeno[idInd] = genos[g];
+            }
+          }
 
-					mkrGenotypes.put(markerList[i], sampGeno);
-					cnt++;
-				}
-			}
+          mkrGenotypes.put(markerList[i], sampGeno);
+          cnt++;
+        }
+      }
 
-			in.close();
+      in.close();
 
-			for (int i = 0; i < markerList.length; i++) {
-				genotypes[i] = mkrGenotypes.get(markerList[i]);
-				loaded[i] = true;
-			}
+      for (int i = 0; i < markerList.length; i++) {
+        genotypes[i] = mkrGenotypes.get(markerList[i]);
+        loaded[i] = true;
+      }
 
-		} catch (FileNotFoundException e) {
-			log.reportException(e);
-			// TODO should KILL here
-		} catch (IOException e) {
-			log.reportException(e);
-			// TODO should KILL here
-		} catch (Elision e) {
-			log.reportException(e);
-			// TODO should KILL here
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
+    } catch (FileNotFoundException e) {
+      log.reportException(e);
+      // TODO should KILL here
+    } catch (IOException e) {
+      log.reportException(e);
+      // TODO should KILL here
+    } catch (Elision e) {
+      log.reportException(e);
+      // TODO should KILL here
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
 
-		int aa, ab, bb, m;
-		aa = 0;
-		ab = 0;
-		bb = 0;
-		m = 0;
-		for (int i = 0; i < genotypes[0].length; i++) {
-			byte g = genotypes[0][i];
-			if (g == 0) {
-				aa++;
-			} else if (g == 1) {
-				ab++;
-			} else if (g == 2) {
-				bb++;
-			} else if (g == -1) {
-				m++;
-			}
-		}
-		System.out.println("PLINK GENOTYPES  --->  AA: " + aa + " AB: " + ab + " BB: " + bb + " Miss: "
-											 + m);
+    int aa, ab, bb, m;
+    aa = 0;
+    ab = 0;
+    bb = 0;
+    m = 0;
+    for (int i = 0; i < genotypes[0].length; i++) {
+      byte g = genotypes[0][i];
+      if (g == 0) {
+        aa++;
+      } else if (g == 1) {
+        ab++;
+      } else if (g == 2) {
+        bb++;
+      } else if (g == -1) {
+        m++;
+      }
+    }
+    System.out.println("PLINK GENOTYPES  --->  AA: " + aa + " AB: " + ab + " BB: " + bb + " Miss: "
+                       + m);
 
-		if (killed) {
-			log.report("PlinkMarkerLoader killed");
-			markerList = null;
-			markerPosInBim = null;
-			loaded = null;
-			genotypes = null;
-			System.gc();
-			killComplete = true;
-		} else {
-			log.report("Independent thread has finished loading " + cnt + " markers in "
-								 + ext.getTimeElapsed(time));
-		}
+    if (killed) {
+      log.report("PlinkMarkerLoader killed");
+      markerList = null;
+      markerPosInBim = null;
+      loaded = null;
+      genotypes = null;
+      System.gc();
+      killComplete = true;
+    } else {
+      log.report("Independent thread has finished loading " + cnt + " markers in "
+                 + ext.getTimeElapsed(time));
+    }
 
-	}
+  }
 
-	/**
-	 * 
-	 * @param proj Project to match Sample and Marker IDs from
-	 * @param marker Marker to get genotype for
-	 * @param sample DNA of sample to get genotype for
-	 * @return genotype
-	 */
-	public byte getGenotypeForIndi(Project proj, String marker, String sample) {
-		// Plink fam files could be DNA/DNA or FID/IID identified
-		Integer idIndex = famIDLookup.get(sample + "\t" + sample);
-		if (idIndex == null) {
-			idIndex = famIDLookup.get(proj.getSampleData(false).lookupFIDIID(sample));
-		}
-		if (idIndex == null) {
-			return (byte) -1;
-		} else {
-			int markerIndex = markerIndicesLookup.get(marker) == null ? -1
-																																: markerIndicesLookup.get(marker);
-			if (markerIndex == -1) {
-				return (byte) -1;
-			}
-			while (!loaded[markerIndex]) {
-				Thread.yield();
-			}
-			return genotypes[markerIndex][idIndex];
-		}
-	}
+  /**
+   * @param proj Project to match Sample and Marker IDs from
+   * @param marker Marker to get genotype for
+   * @param sample DNA of sample to get genotype for
+   * @return genotype
+   */
+  public byte getGenotypeForIndi(Project proj, String marker, String sample) {
+    // Plink fam files could be DNA/DNA or FID/IID identified
+    Integer idIndex = famIDLookup.get(sample + "\t" + sample);
+    if (idIndex == null) {
+      idIndex = famIDLookup.get(proj.getSampleData(false).lookupFIDIID(sample));
+    }
+    if (idIndex == null) {
+      return (byte) -1;
+    } else {
+      int markerIndex = markerIndicesLookup.get(marker) == null ? -1
+                                                                : markerIndicesLookup.get(marker);
+      if (markerIndex == -1) {
+        return (byte) -1;
+      }
+      while (!loaded[markerIndex]) {
+        Thread.yield();
+      }
+      return genotypes[markerIndex][idIndex];
+    }
+  }
 
-	public static PlinkMarkerLoader loadPlinkDataFromListInSeparateThread(Project proj,
-																																				String plinkDirFileRoot,
-																																				String[] markerList) {
-		PlinkMarkerLoader plinkMarkerLoader;
-		Thread thread;
+  public static PlinkMarkerLoader loadPlinkDataFromListInSeparateThread(Project proj,
+                                                                        String plinkDirFileRoot,
+                                                                        String[] markerList) {
+    PlinkMarkerLoader plinkMarkerLoader;
+    Thread thread;
 
-		proj.getLog().report("PLINK marker data is loading in an independent thread.");
-		plinkMarkerLoader = new PlinkMarkerLoader(proj, plinkDirFileRoot, markerList);
-		if (plinkMarkerLoader.isKilled()) {
-			return null;
-		}
-		plinkMarkerLoader.initiate();
-		thread = new Thread(plinkMarkerLoader);
-		thread.start();
-		plinkMarkerLoader.registerThread(thread);
+    proj.getLog().report("PLINK marker data is loading in an independent thread.");
+    plinkMarkerLoader = new PlinkMarkerLoader(proj, plinkDirFileRoot, markerList);
+    if (plinkMarkerLoader.isKilled()) {
+      return null;
+    }
+    plinkMarkerLoader.initiate();
+    thread = new Thread(plinkMarkerLoader);
+    thread.start();
+    plinkMarkerLoader.registerThread(thread);
 
-		return plinkMarkerLoader;
-	}
-
-
+    return plinkMarkerLoader;
+  }
 
 }

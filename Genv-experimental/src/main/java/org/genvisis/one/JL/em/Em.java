@@ -2,7 +2,6 @@ package org.genvisis.one.JL.em;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
@@ -13,83 +12,81 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
-
 import com.google.common.primitives.Doubles;
-
 import edu.stanford.facs.logicle.Logicle;
 
 /**
  * Explore em for flow
- *
  */
 public class Em {
-	private Em() {
 
-	}
+  private Em() {
 
-	private static Logicle getBiexScale(double max) {
-		double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
-		// converge"
-		double a = 0; // negative decades
-		double decCnt = count(max);
+  }
 
-		return new Logicle(max, Math.min(w, decCnt / 2), decCnt, a);
-	}
+  private static Logicle getBiexScale(double max) {
+    double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
+    // converge"
+    double a = 0; // negative decades
+    double decCnt = count(max);
 
-	private static double count(double max) {
-		double dec = max;
-		double decCnt = 0;
-		while (dec > 1) {
-			dec = dec / 10d;
-			decCnt++;
-		}
-		return decCnt;
-	}
+    return new Logicle(max, Math.min(w, decCnt / 2), decCnt, a);
+  }
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		String export = "/Users/Kitty/temp/emflow/export.xln";
-		String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] {1, 2});
-		Logger log = new Logger();
-		log.reportTimeInfo(data.length + " by " + data[0].length);
+  private static double count(double max) {
+    double dec = max;
+    double decCnt = 0;
+    while (dec > 1) {
+      dec = dec / 10d;
+      decCnt++;
+    }
+    return decCnt;
+  }
 
-		ArrayList<String> out = new ArrayList<String>();
-		ArrayList<Double> xt = new ArrayList<Double>();
-		ArrayList<Double> yt = new ArrayList<Double>();
+  /**
+   * @param args
+   */
+  public static void main(String[] args) {
+    String export = "/Users/Kitty/temp/emflow/export.xln";
+    String[][] data = HashVec.loadFileToStringMatrix(export, false, new int[] {1, 2});
+    Logger log = new Logger();
+    log.reportTimeInfo(data.length + " by " + data[0].length);
 
-		for (String[] element : data) {
-			xt.add(Double.parseDouble(element[0]));
-			yt.add(Double.parseDouble(element[1]));
-		}
+    ArrayList<String> out = new ArrayList<String>();
+    ArrayList<Double> xt = new ArrayList<Double>();
+    ArrayList<Double> yt = new ArrayList<Double>();
 
-		double[] x = Doubles.toArray(xt);
-		double[] y = Doubles.toArray(yt);
+    for (String[] element : data) {
+      xt.add(Double.parseDouble(element[0]));
+      yt.add(Double.parseDouble(element[1]));
+    }
 
-		Logicle mehx = getBiexScale(ArrayUtils.max(x));
-		Logicle mehy = getBiexScale(ArrayUtils.max(y));
+    double[] x = Doubles.toArray(xt);
+    double[] y = Doubles.toArray(yt);
 
-		for (int i = 0; i < y.length; i++) {
-			x[i] = mehx.scale(x[i]);
-			y[i] = mehy.scale(y[i]);
-			out.add(x[i] + "\t" + y[i]);
+    Logicle mehx = getBiexScale(ArrayUtils.max(x));
+    Logicle mehy = getBiexScale(ArrayUtils.max(y));
 
-		}
+    for (int i = 0; i < y.length; i++) {
+      x[i] = mehx.scale(x[i]);
+      y[i] = mehy.scale(y[i]);
+      out.add(x[i] + "\t" + y[i]);
 
-		double[][] m = new double[][] {x, y};
-		MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(Matrix.transpose(m));
-		MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(Matrix.transpose(m),
-																																																								 3);
-		mle.fit(initialMix, 500, 1E-5);
-		MixtureMultivariateNormalDistribution finalMix = mle.getFittedModel();
-		List<Pair<Double, MultivariateNormalDistribution>> dists = finalMix.getComponents();
-		for (Pair<Double, MultivariateNormalDistribution> pair : dists) {
-			log.reportTimeInfo("Means: " + ArrayUtils.toStr(pair.getValue().getMeans()));
-			log.reportTimeInfo("SDs: " + ArrayUtils.toStr(pair.getValue().getStandardDeviations()));
-		}
+    }
 
-		Files.writeIterable(out, ext.parseDirectoryOfFile(export) + "export.biexp.txt");
+    double[][] m = new double[][] {x, y};
+    MultivariateNormalMixtureExpectationMaximization mle = new MultivariateNormalMixtureExpectationMaximization(Matrix.transpose(m));
+    MixtureMultivariateNormalDistribution initialMix = MultivariateNormalMixtureExpectationMaximization.estimate(Matrix.transpose(m),
+                                                                                                                 3);
+    mle.fit(initialMix, 500, 1E-5);
+    MixtureMultivariateNormalDistribution finalMix = mle.getFittedModel();
+    List<Pair<Double, MultivariateNormalDistribution>> dists = finalMix.getComponents();
+    for (Pair<Double, MultivariateNormalDistribution> pair : dists) {
+      log.reportTimeInfo("Means: " + ArrayUtils.toStr(pair.getValue().getMeans()));
+      log.reportTimeInfo("SDs: " + ArrayUtils.toStr(pair.getValue().getStandardDeviations()));
+    }
 
-	}
+    Files.writeIterable(out, ext.parseDirectoryOfFile(export) + "export.biexp.txt");
+
+  }
 }

@@ -15,9 +15,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.swing.JPanel;
-
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.var.CNVRectangle;
 import org.genvisis.cnv.var.CNVRectangles;
@@ -26,348 +24,347 @@ import org.genvisis.filesys.CNVariant;
 
 /**
  * @author Michael Vieths
- *
  */
 public class CompPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener {
-	public static final long serialVersionUID = 1L;
 
-	CompPlot plot;
-	float scalingFactor;
-	int startBase, endBase;
-	List<CNVariant> selectedCNVs;
-	int rectangleHeight = 10;
-	int oldMaxY = 0;
-	String displayMode;
-	ChromosomeViewer chrViewer;
+  public static final long serialVersionUID = 1L;
 
-	private CNVRectangles cnvRectangles;
-	List<CNVRectangle> rectangles;
+  CompPlot plot;
+  float scalingFactor;
+  int startBase, endBase;
+  List<CNVariant> selectedCNVs;
+  int rectangleHeight = 10;
+  int oldMaxY = 0;
+  String displayMode;
+  ChromosomeViewer chrViewer;
 
-	public CompPanel(CompPlot cp) {
-		plot = cp;
-		cnvRectangles = new CNVRectangles();
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		addMouseWheelListener(this);
-	}
+  private CNVRectangles cnvRectangles;
+  List<CNVRectangle> rectangles;
 
-	@Override
-	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
+  public CompPanel(CompPlot cp) {
+    plot = cp;
+    cnvRectangles = new CNVRectangles();
+    addMouseListener(this);
+    addMouseMotionListener(this);
+    addMouseWheelListener(this);
+  }
 
-		// Find the maximum Y so we can properly set the dimensions
-		int maxY = 0;
-		for (CNVRectangle cnvRect : rectangles) {
-			Rectangle rect = cnvRect.getRect();
-			int y = (int) rect.getY();
-			if (y > maxY) {
-				maxY = y;
-			}
-		}
+  @Override
+  public void paintComponent(Graphics g) {
+    super.paintComponent(g);
 
-		// Only revalidate/change dimensions if they've changed
-		if (maxY != oldMaxY) {
-			oldMaxY = maxY;
-			Dimension d = getPreferredSize();
-			d.height = maxY;
-			d.width = chrViewer.getWidth();
+    // Find the maximum Y so we can properly set the dimensions
+    int maxY = 0;
+    for (CNVRectangle cnvRect : rectangles) {
+      Rectangle rect = cnvRect.getRect();
+      int y = (int) rect.getY();
+      if (y > maxY) {
+        maxY = y;
+      }
+    }
 
-			// Set the maximum Y so we see all of the rectangles
-			setPreferredSize(d);
-			// Revalidate so the scroll bar will be updated properly
-			revalidate();
-		}
+    // Only revalidate/change dimensions if they've changed
+    if (maxY != oldMaxY) {
+      oldMaxY = maxY;
+      Dimension d = getPreferredSize();
+      d.height = maxY;
+      d.width = chrViewer.getWidth();
 
-		// Render all of the rectangles
-		for (CNVRectangle cnvRect : rectangles) {
-			Rectangle rect = cnvRect.getRect();
-			int x = (int) rect.getX();
-			int y = (int) rect.getY();
-			int width = (int) rect.getWidth();
-			int height = (int) rect.getHeight();
+      // Set the maximum Y so we see all of the rectangles
+      setPreferredSize(d);
+      // Revalidate so the scroll bar will be updated properly
+      revalidate();
+    }
 
-			g.setColor(cnvRect.getCNVColor());
+    // Render all of the rectangles
+    for (CNVRectangle cnvRect : rectangles) {
+      Rectangle rect = cnvRect.getRect();
+      int x = (int) rect.getX();
+      int y = (int) rect.getY();
+      int width = (int) rect.getWidth();
+      int height = (int) rect.getHeight();
 
-			if (cnvRect.isSelected()) {
-				g.fillRect(x, y, width, height);
-				// Draw a black border around the selected CNV
-				g.setColor(Color.BLACK);
-				g.setPaintMode();
-				g.drawRect(x, y, width, height);
-			} else {
-				g.fillRect(x, y, width, height);
-			}
+      g.setColor(cnvRect.getCNVColor());
 
-			// In Collapsed mode, draw a 'xN' to indicate that there are N CNVs associated with this
-			// rectangle
-			if (displayMode.equals("Collapsed") && cnvRect.getCNVs().size() > 1) {
-				String numCNVs = "x" + cnvRect.getCNVs().size();
-				// If there are 0 copies it may end up black, so don't draw black-on-black
-				if (cnvRect.getCNV().getCN() == 0) {
-					g.setColor(Color.WHITE);
-				} else {
-					g.setColor(Color.BLACK);
-				}
-				g.setPaintMode();
-				Font font = getFont().deriveFont((float) rectangleHeight);
-				g.setFont(font);
-				g.drawString(numCNVs, x, y + rectangleHeight);
-			}
-		}
-	}
+      if (cnvRect.isSelected()) {
+        g.fillRect(x, y, width, height);
+        // Draw a black border around the selected CNV
+        g.setColor(Color.BLACK);
+        g.setPaintMode();
+        g.drawRect(x, y, width, height);
+      } else {
+        g.fillRect(x, y, width, height);
+      }
 
-	/**
-	 * Use the appropriately arranged array of rectangles for our current display mode
-	 *
-	 * @param cnvRects
-	 */
-	void setCNVRectangles(CNVRectangles cnvRects) {
-		cnvRectangles = cnvRects;
-		if (displayMode.equals("Pack")) {
-			setRectangles(cnvRectangles.getPackedRectangles());
-		} else if (displayMode.equals("Collapsed")) {
-			setRectangles(cnvRectangles.getCollapsedRectangles());
-		} else {
-			setRectangles(cnvRectangles.getFullRectangles());
-		}
-	}
+      // In Collapsed mode, draw a 'xN' to indicate that there are N CNVs associated with this
+      // rectangle
+      if (displayMode.equals("Collapsed") && cnvRect.getCNVs().size() > 1) {
+        String numCNVs = "x" + cnvRect.getCNVs().size();
+        // If there are 0 copies it may end up black, so don't draw black-on-black
+        if (cnvRect.getCNV().getCN() == 0) {
+          g.setColor(Color.WHITE);
+        } else {
+          g.setColor(Color.BLACK);
+        }
+        g.setPaintMode();
+        Font font = getFont().deriveFont((float) rectangleHeight);
+        g.setFont(font);
+        g.drawString(numCNVs, x, y + rectangleHeight);
+      }
+    }
+  }
 
-	/**
-	 * Set the current rectangles and repaint the window
-	 *
-	 * @param rects
-	 */
-	void setRectangles(List<CNVRectangle> rects) {
-		rectangles = rects;
-		repaint();
-	}
+  /**
+   * Use the appropriately arranged array of rectangles for our current display mode
+   *
+   * @param cnvRects
+   */
+  void setCNVRectangles(CNVRectangles cnvRects) {
+    cnvRectangles = cnvRects;
+    if (displayMode.equals("Pack")) {
+      setRectangles(cnvRectangles.getPackedRectangles());
+    } else if (displayMode.equals("Collapsed")) {
+      setRectangles(cnvRectangles.getCollapsedRectangles());
+    } else {
+      setRectangles(cnvRectangles.getFullRectangles());
+    }
+  }
 
-	/**
-	 * Need to know how big the visible window is in bases so we can scale it down to the panel width
-	 *
-	 * @param window
-	 */
-	void setWindow(int start, int end) {
-		startBase = start;
-		endBase = end;
-		int window = endBase - startBase;
-		scalingFactor = (float) getWidth() / window;
-		// scalingFactor = 1;
-		cnvRectangles.setScalingFactor(scalingFactor);
-	}
+  /**
+   * Set the current rectangles and repaint the window
+   *
+   * @param rects
+   */
+  void setRectangles(List<CNVRectangle> rects) {
+    rectangles = rects;
+    repaint();
+  }
 
-	/**
-	 * Return the current scaling factor
-	 *
-	 * @return
-	 */
-	public float getScalingFactor() {
-		return scalingFactor;
-	}
+  /**
+   * Need to know how big the visible window is in bases so we can scale it down to the panel width
+   *
+   * @param window
+   */
+  void setWindow(int start, int end) {
+    startBase = start;
+    endBase = end;
+    int window = endBase - startBase;
+    scalingFactor = (float) getWidth() / window;
+    // scalingFactor = 1;
+    cnvRectangles.setScalingFactor(scalingFactor);
+  }
 
-	/**
-	 * Set the height of the rectangles (Configured in CompConfig)
-	 *
-	 * @param height
-	 */
-	void setRectangleHeight(int height) {
-		rectangleHeight = height;
-		cnvRectangles.setRectangleHeight(rectangleHeight);
-	}
+  /**
+   * Return the current scaling factor
+   *
+   * @return
+   */
+  public float getScalingFactor() {
+    return scalingFactor;
+  }
 
-	public void setChromosomeViewer(ChromosomeViewer viewer) {
-		chrViewer = viewer;
-	}
+  /**
+   * Set the height of the rectangles (Configured in CompConfig)
+   *
+   * @param height
+   */
+  void setRectangleHeight(int height) {
+    rectangleHeight = height;
+    cnvRectangles.setRectangleHeight(rectangleHeight);
+  }
 
-	/**
-	 * Set the display mode (Configured in CompConfig)
-	 *
-	 * Also retrieves the correct arrangement of rectangles
-	 *
-	 * @param dm
-	 */
-	public void setDisplayMode(String dm) {
-		displayMode = dm;
-		if (displayMode.equals("Pack")) {
-			setRectangles(cnvRectangles.getPackedRectangles());
-		} else if (displayMode.equals("Collapsed")) {
-			setRectangles(cnvRectangles.getCollapsedRectangles());
-		} else {
-			setRectangles(cnvRectangles.getFullRectangles());
-		}
-		selectedCNVs = null;
-	}
+  public void setChromosomeViewer(ChromosomeViewer viewer) {
+    chrViewer = viewer;
+  }
 
-	/**
-	 * When clicking on the panel, mark any rectangles under the mouse as selected
-	 */
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		for (CNVRectangle cnvRect : rectangles) {
-			Rectangle rect = cnvRect.getRect();
-			if (rect.contains(e.getPoint())) {
-				List<CNVariant> currentCNVs = cnvRect.getCNVs();
-				firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
-				selectedCNVs = currentCNVs;
-				cnvRect.setSelected(true);
-			} else {
-				cnvRect.setSelected(false);
-			}
+  /**
+   * Set the display mode (Configured in CompConfig) Also retrieves the correct arrangement of
+   * rectangles
+   *
+   * @param dm
+   */
+  public void setDisplayMode(String dm) {
+    displayMode = dm;
+    if (displayMode.equals("Pack")) {
+      setRectangles(cnvRectangles.getPackedRectangles());
+    } else if (displayMode.equals("Collapsed")) {
+      setRectangles(cnvRectangles.getCollapsedRectangles());
+    } else {
+      setRectangles(cnvRectangles.getFullRectangles());
+    }
+    selectedCNVs = null;
+  }
 
-		}
-		repaint();
-	}
+  /**
+   * When clicking on the panel, mark any rectangles under the mouse as selected
+   */
+  @Override
+  public void mouseClicked(MouseEvent e) {
+    for (CNVRectangle cnvRect : rectangles) {
+      Rectangle rect = cnvRect.getRect();
+      if (rect.contains(e.getPoint())) {
+        List<CNVariant> currentCNVs = cnvRect.getCNVs();
+        firePropertyChange("selectedCNV", selectedCNVs, currentCNVs);
+        selectedCNVs = currentCNVs;
+        cnvRect.setSelected(true);
+      } else {
+        cnvRect.setSelected(false);
+      }
 
-	/**
-	 * Check to see if the mouse cursor is over a rectangle and display an informational popup
-	 */
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		setToolTipText(null);
+    }
+    repaint();
+  }
 
-		for (CNVRectangle cnvRect : rectangles) {
-			Rectangle rect = cnvRect.getRect();
-			if (rect.contains(e.getPoint())) {
-				List<CNVariant> currentCNVs = cnvRect.getCNVs();
-				CNVariant cnv = cnvRect.getCNV();
-				String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: "
-														 + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: "
-														 + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: "
-														 + cnv.getScore();
-				// Add an indication of how many other CNVs are in this collapsed view
-				if (currentCNVs.size() > 1) {
-					toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";
-				} else {
-					toolTipText += "</html>";
-				}
-				setToolTipText(toolTipText);
-				break;
-			}
-		}
-	}
+  /**
+   * Check to see if the mouse cursor is over a rectangle and display an informational popup
+   */
+  @Override
+  public void mouseMoved(MouseEvent e) {
+    setToolTipText(null);
 
-	double clickStart;
+    for (CNVRectangle cnvRect : rectangles) {
+      Rectangle rect = cnvRect.getRect();
+      if (rect.contains(e.getPoint())) {
+        List<CNVariant> currentCNVs = cnvRect.getCNVs();
+        CNVariant cnv = cnvRect.getCNV();
+        String toolTipText = "<html>IID: " + cnv.getIndividualID() + "<br/>FID: "
+                             + cnv.getFamilyID() + "<br/>Length: " + cnv.getSize() + "<br/>Copies: "
+                             + cnv.getCN() + "<br/>Probes: " + cnv.getNumMarkers() + "<br/>Score: "
+                             + cnv.getScore();
+        // Add an indication of how many other CNVs are in this collapsed view
+        if (currentCNVs.size() > 1) {
+          toolTipText += "<br/>Plus " + (currentCNVs.size() - 1) + " others</html>";
+        } else {
+          toolTipText += "</html>";
+        }
+        setToolTipText(toolTipText);
+        break;
+      }
+    }
+  }
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// Not doing anything on mouse press
-		clickStart = e.getPoint().getX();
-	}
+  double clickStart;
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// Not doing anything on mouse release
-	}
+  @Override
+  public void mousePressed(MouseEvent e) {
+    // Not doing anything on mouse press
+    clickStart = e.getPoint().getX();
+  }
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// Not doing anything on mouse enter
-	}
+  @Override
+  public void mouseReleased(MouseEvent e) {
+    // Not doing anything on mouse release
+  }
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// Not doing anything on mouse exit
-	}
+  @Override
+  public void mouseEntered(MouseEvent e) {
+    // Not doing anything on mouse enter
+  }
 
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		int[] newLocation = plot.getCPLocation();
-		int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]];
-		int x = e.getPoint().x;
-		double diff = (int) (clickStart - x);
+  @Override
+  public void mouseExited(MouseEvent e) {
+    // Not doing anything on mouse exit
+  }
 
-		double moveRatio = (diff / getWidth());
-		double window = (endBase - startBase);
-		double offset = window * moveRatio;
+  @Override
+  public void mouseDragged(MouseEvent e) {
+    int[] newLocation = plot.getCPLocation();
+    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]];
+    int x = e.getPoint().x;
+    double diff = (int) (clickStart - x);
 
-		clickStart = x;
+    double moveRatio = (diff / getWidth());
+    double window = (endBase - startBase);
+    double offset = window * moveRatio;
 
-		int loc1 = (int) (newLocation[1] + offset);
-		int loc2 = (int) (newLocation[2] + offset);
+    clickStart = x;
 
-		// Only change the window if we're still in a valid range
-		if (offset < 0) {
-			if (loc1 >= 0) {
-				newLocation[1] = loc1;
-				newLocation[2] = loc2;
-			}
-		} else {
-			if (loc2 <= chromosomeLength) {
-				newLocation[1] = loc1;
-				newLocation[2] = loc2;
-			}
-		}
-		plot.setCPLocation(newLocation);
-	}
+    int loc1 = (int) (newLocation[1] + offset);
+    int loc2 = (int) (newLocation[2] + offset);
 
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent e) {
-		int[] newLocation = plot.getCPLocation();
-		int[] oldLocation = Arrays.copyOf(newLocation, newLocation.length);
-		// int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]]; // TODO make
-		// this build specific
-		int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B37_HG19[newLocation[0]];
+    // Only change the window if we're still in a valid range
+    if (offset < 0) {
+      if (loc1 >= 0) {
+        newLocation[1] = loc1;
+        newLocation[2] = loc2;
+      }
+    } else {
+      if (loc2 <= chromosomeLength) {
+        newLocation[1] = loc1;
+        newLocation[2] = loc2;
+      }
+    }
+    plot.setCPLocation(newLocation);
+  }
 
-		int rotation = e.getWheelRotation();
-		double width = endBase - startBase;
+  @Override
+  public void mouseWheelMoved(MouseWheelEvent e) {
+    int[] newLocation = plot.getCPLocation();
+    int[] oldLocation = Arrays.copyOf(newLocation, newLocation.length);
+    // int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]]; // TODO make
+    // this build specific
+    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B37_HG19[newLocation[0]];
 
-		// Get the X position of the mouse
-		int mouseX = e.getX();
+    int rotation = e.getWheelRotation();
+    double width = endBase - startBase;
 
-		// Figure out the relative position
-		double percentage = (double) mouseX / (double) getWidth();
+    // Get the X position of the mouse
+    int mouseX = e.getX();
 
-		// Figure out which base we're moused over
-		int mouseBase = startBase + (int) ((double) mouseX / scalingFactor);
+    // Figure out the relative position
+    double percentage = (double) mouseX / (double) getWidth();
 
-		if (rotation > 0) {
-			// Zoom out 10%
-			double newWidth = width / 0.9;
-			// Figure out how much of this width comes before mouseX
-			double leftBases = (newWidth - 1) * percentage;
-			// Figure out how much of this width comes after mouseX
-			double rightBases = newWidth - leftBases - 1;
+    // Figure out which base we're moused over
+    int mouseBase = startBase + (int) ((double) mouseX / scalingFactor);
 
-			int loc1 = (int) (mouseBase - leftBases);
-			int loc2 = (int) (mouseBase + rightBases);
+    if (rotation > 0) {
+      // Zoom out 10%
+      double newWidth = width / 0.9;
+      // Figure out how much of this width comes before mouseX
+      double leftBases = (newWidth - 1) * percentage;
+      // Figure out how much of this width comes after mouseX
+      double rightBases = newWidth - leftBases - 1;
 
-			// Zoom out
-			if (loc1 < 0) {
-				newLocation[1] = 0;
-			} else {
-				newLocation[1] = loc1;
-			}
+      int loc1 = (int) (mouseBase - leftBases);
+      int loc2 = (int) (mouseBase + rightBases);
 
-			if (loc2 > chromosomeLength) {
-				newLocation[2] = chromosomeLength;
-			} else {
-				newLocation[2] = loc2;
-			}
-		} else if (rotation < 0) {
-			// Zoom in 10%
-			double newWidth = width * 0.9;
-			// Figure out how much of this width comes before mouseX
-			double leftBases = (newWidth - 1) * percentage;
-			// Figure out how much of this width comes after mouseX
-			double rightBases = newWidth - leftBases - 1;
+      // Zoom out
+      if (loc1 < 0) {
+        newLocation[1] = 0;
+      } else {
+        newLocation[1] = loc1;
+      }
 
-			int loc1 = (int) (mouseBase - leftBases);
-			int loc2 = (int) (mouseBase + rightBases);
+      if (loc2 > chromosomeLength) {
+        newLocation[2] = chromosomeLength;
+      } else {
+        newLocation[2] = loc2;
+      }
+    } else if (rotation < 0) {
+      // Zoom in 10%
+      double newWidth = width * 0.9;
+      // Figure out how much of this width comes before mouseX
+      double leftBases = (newWidth - 1) * percentage;
+      // Figure out how much of this width comes after mouseX
+      double rightBases = newWidth - leftBases - 1;
 
-			// Zoom in
-			if ((loc2 - loc1) < 100) {
-				// Don't zoom in further than a 100bp window.
-				// Otherwise we can get caught in a position where the width never changes and we can't zoom
-				// back out again.
-			} else {
-				newLocation[1] = loc1;
-				newLocation[2] = loc2;
-			}
-		}
+      int loc1 = (int) (mouseBase - leftBases);
+      int loc2 = (int) (mouseBase + rightBases);
 
-		// Don't reset the location if it hasn't changed
-		if (!Arrays.equals(oldLocation, newLocation)) {
-			plot.setCPLocation(newLocation);
-		}
-	}
+      // Zoom in
+      if ((loc2 - loc1) < 100) {
+        // Don't zoom in further than a 100bp window.
+        // Otherwise we can get caught in a position where the width never changes and we can't zoom
+        // back out again.
+      } else {
+        newLocation[1] = loc1;
+        newLocation[2] = loc2;
+      }
+    }
+
+    // Don't reset the location if it hasn't changed
+    if (!Arrays.equals(oldLocation, newLocation)) {
+      plot.setCPLocation(newLocation);
+    }
+  }
 }

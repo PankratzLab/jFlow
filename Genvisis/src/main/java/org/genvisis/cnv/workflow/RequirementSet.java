@@ -6,185 +6,179 @@ import java.util.Set;
 
 public abstract class RequirementSet {
 
-	static class RequirementSetBuilder {
-		private RequirementSetBuilder() {}
+  static class RequirementSetBuilder {
 
-		public static RequirementSet or() {
-			return new OrRequirementSet();
-		}
+    private RequirementSetBuilder() {}
 
-		public static RequirementSet and() {
-			return new AndRequirementSet();
-		}
+    public static RequirementSet or() {
+      return new OrRequirementSet();
+    }
 
-	}
+    public static RequirementSet and() {
+      return new AndRequirementSet();
+    }
 
-	protected List<Requirement> reqs = new java.util.ArrayList<>();
-	protected List<RequirementSet> reqSets = new java.util.ArrayList<>();
+  }
 
-	RequirementSet add(Requirement r) {
-		// UnitaryRequirementSet is used to preserve the order of added requirements
-		reqSets.add(new UnitaryRequirementSet().add(r));
-		return this;
-	}
+  protected List<Requirement> reqs = new java.util.ArrayList<>();
+  protected List<RequirementSet> reqSets = new java.util.ArrayList<>();
 
-	RequirementSet add(RequirementSet rs) {
-		reqSets.add(rs);
-		return this;
-	}
+  RequirementSet add(Requirement r) {
+    // UnitaryRequirementSet is used to preserve the order of added requirements
+    reqSets.add(new UnitaryRequirementSet().add(r));
+    return this;
+  }
 
-	public List<Requirement> getFlatRequirementsList() {
-		List<Requirement> reqList = new java.util.ArrayList<>();
-		for (Requirement r : reqs) {
-			reqList.add(r);
-		}
-		for (RequirementSet rs : reqSets) {
-			reqList.addAll(rs.getFlatRequirementsList());
-		}
-		return reqList;
-	}
+  RequirementSet add(RequirementSet rs) {
+    reqSets.add(rs);
+    return this;
+  }
 
-	public int size() {
-		return getFlatRequirementsList().size();
-	}
+  public List<Requirement> getFlatRequirementsList() {
+    List<Requirement> reqList = new java.util.ArrayList<>();
+    for (Requirement r : reqs) {
+      reqList.add(r);
+    }
+    for (RequirementSet rs : reqSets) {
+      reqList.addAll(rs.getFlatRequirementsList());
+    }
+    return reqList;
+  }
 
-	abstract boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
-																				 Map<Step, Map<Requirement, String>> variables);
+  public int size() {
+    return getFlatRequirementsList().size();
+  }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((reqSets == null) ? 0 : reqSets.hashCode());
-		result = prime * result + ((reqs == null) ? 0 : reqs.hashCode());
-		return result;
-	}
+  abstract boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+                                         Map<Step, Map<Requirement, String>> variables);
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RequirementSet other = (RequirementSet) obj;
-		if (reqSets == null) {
-			if (other.reqSets != null)
-				return false;
-		} else if (!reqSets.equals(other.reqSets))
-			return false;
-		if (reqs == null) {
-			if (other.reqs != null)
-				return false;
-		} else if (!reqs.equals(other.reqs))
-			return false;
-		return true;
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((reqSets == null) ? 0 : reqSets.hashCode());
+    result = prime * result + ((reqs == null) ? 0 : reqs.hashCode());
+    return result;
+  }
 
-	private static final class UnitaryRequirementSet extends RequirementSet {
-		private UnitaryRequirementSet() {}
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    RequirementSet other = (RequirementSet) obj;
+    if (reqSets == null) {
+      if (other.reqSets != null) return false;
+    } else if (!reqSets.equals(other.reqSets)) return false;
+    if (reqs == null) {
+      if (other.reqs != null) return false;
+    } else if (!reqs.equals(other.reqs)) return false;
+    return true;
+  }
 
-		@Override
-		RequirementSet add(Requirement r) {
-			if (this.reqs.size() > 0) {
-				throw new RuntimeException("UnitaryRequirementSet can only take one Requirement object.");
-			}
-			this.reqs.add(r);
-			return this;
-		}
+  private static final class UnitaryRequirementSet extends RequirementSet {
 
-		@Override
-		public String getJoinString() {
-			return "";
-		}
+    private UnitaryRequirementSet() {}
 
-		@Override
-		boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
-																	Map<Step, Map<Requirement, String>> variables) {
-			return this.reqs.get(0).checkRequirement(variables.get(step).get(this.reqs.get(0)),
-																							 stepSelections,
-																							 variables);
-		}
+    @Override
+    RequirementSet add(Requirement r) {
+      if (this.reqs.size() > 0) {
+        throw new RuntimeException("UnitaryRequirementSet can only take one Requirement object.");
+      }
+      this.reqs.add(r);
+      return this;
+    }
 
-		@Override
-		public List<RequirementSet> getRequirementSets() {
-			return new java.util.ArrayList<>();
-		}
+    @Override
+    public String getJoinString() {
+      return "";
+    }
 
-	}
+    @Override
+    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+                                  Map<Step, Map<Requirement, String>> variables) {
+      return this.reqs.get(0).checkRequirement(variables.get(step).get(this.reqs.get(0)),
+                                               stepSelections, variables);
+    }
 
-	public static final class OrRequirementSet extends RequirementSet {
+    @Override
+    public List<RequirementSet> getRequirementSets() {
+      return new java.util.ArrayList<>();
+    }
 
-		private OrRequirementSet() {}
+  }
 
-		@Override
-		boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
-																	Map<Step, Map<Requirement, String>> variables) {
-			for (Requirement r : reqs) {
-				if (r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
-					return true;
-				}
-			}
-			for (RequirementSet rs : reqSets) {
-				if (rs.satisfiesRequirements(step, stepSelections, variables)) {
-					return true;
-				}
-			}
-			return false;
-		}
+  public static final class OrRequirementSet extends RequirementSet {
 
-		@Override
-		public String getJoinString() {
-			return "OR";
-		}
+    private OrRequirementSet() {}
 
-		@Override
-		public List<Requirement> getRequirements() {
-			return new java.util.ArrayList<>();
-		}
+    @Override
+    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+                                  Map<Step, Map<Requirement, String>> variables) {
+      for (Requirement r : reqs) {
+        if (r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
+          return true;
+        }
+      }
+      for (RequirementSet rs : reqSets) {
+        if (rs.satisfiesRequirements(step, stepSelections, variables)) {
+          return true;
+        }
+      }
+      return false;
+    }
 
-	}
+    @Override
+    public String getJoinString() {
+      return "OR";
+    }
 
-	public static final class AndRequirementSet extends RequirementSet {
+    @Override
+    public List<Requirement> getRequirements() {
+      return new java.util.ArrayList<>();
+    }
 
-		private AndRequirementSet() {}
+  }
 
-		@Override
-		boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
-																	Map<Step, Map<Requirement, String>> variables) {
-			for (Requirement r : reqs) {
-				if (!r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
-					return false;
-				}
-			}
-			for (RequirementSet rs : reqSets) {
-				if (!rs.satisfiesRequirements(step, stepSelections, variables)) {
-					return false;
-				}
-			}
-			return true;
-		}
+  public static final class AndRequirementSet extends RequirementSet {
 
-		@Override
-		public String getJoinString() {
-			return "AND";
-		}
+    private AndRequirementSet() {}
 
-		@Override
-		public List<Requirement> getRequirements() {
-			return new java.util.ArrayList<>();
-		}
-	}
+    @Override
+    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+                                  Map<Step, Map<Requirement, String>> variables) {
+      for (Requirement r : reqs) {
+        if (!r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
+          return false;
+        }
+      }
+      for (RequirementSet rs : reqSets) {
+        if (!rs.satisfiesRequirements(step, stepSelections, variables)) {
+          return false;
+        }
+      }
+      return true;
+    }
 
-	public List<Requirement> getRequirements() {
-		return reqs;
-	}
+    @Override
+    public String getJoinString() {
+      return "AND";
+    }
 
-	public List<RequirementSet> getRequirementSets() {
-		return reqSets;
-	}
+    @Override
+    public List<Requirement> getRequirements() {
+      return new java.util.ArrayList<>();
+    }
+  }
 
-	public abstract String getJoinString();
+  public List<Requirement> getRequirements() {
+    return reqs;
+  }
+
+  public List<RequirementSet> getRequirementSets() {
+    return reqSets;
+  }
+
+  public abstract String getJoinString();
 
 }

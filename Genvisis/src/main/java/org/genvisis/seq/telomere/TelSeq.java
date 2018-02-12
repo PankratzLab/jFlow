@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -25,233 +24,235 @@ import org.genvisis.seq.manage.BamOps;
  */
 public class TelSeq {
 
-	private static final String[] TELSEQ_REPORT = new String[] {"ReadGroup", "Library", "Sample",
-																															"Total", "Mapped", "Duplicates",
-																															"LENGTH_ESTIMATE"};
+  private static final String[] TELSEQ_REPORT = new String[] {"ReadGroup", "Library", "Sample",
+                                                              "Total", "Mapped", "Duplicates",
+                                                              "LENGTH_ESTIMATE"};
 
-	private enum TYPE {
-		BASE, BED, BUFFERED_BED;
-	}
+  private enum TYPE {
+    BASE, BED, BUFFERED_BED;
+  }
 
-	private static class TelSeqResult {
-		private final String output;
-		private final String sample;
-		private final int readSizeUsed;
-		private final TYPE type;
+  private static class TelSeqResult {
 
-		public TelSeqResult(String output, Ran ran, String sample, TYPE type, int readSizeUsed) {
-			super();
-			this.output = output;
-			this.sample = sample;
-			this.type = type;
-			this.readSizeUsed = readSizeUsed;
-		}
+    private final String output;
+    private final String sample;
+    private final int readSizeUsed;
+    private final TYPE type;
 
-	}
+    public TelSeqResult(String output, Ran ran, String sample, TYPE type, int readSizeUsed) {
+      super();
+      this.output = output;
+      this.sample = sample;
+      this.type = type;
+      this.readSizeUsed = readSizeUsed;
+    }
 
-	private static class TelSeqWorker implements Callable<TelSeqResult> {
-		private final String inputBam;
-		private final List<String> additionalArgs;
-		private final String outputDir;
-		private final TYPE type;
+  }
 
-		private final Logger log;
+  private static class TelSeqWorker implements Callable<TelSeqResult> {
 
-		public TelSeqWorker(String inputBam, List<String> additionalArgs, String outputDir, TYPE type,
-												Logger log) {
-			super();
-			this.inputBam = inputBam;
-			this.additionalArgs = additionalArgs;
-			this.outputDir = outputDir;
-			this.type = type;
-			this.log = log;
-		}
+    private final String inputBam;
+    private final List<String> additionalArgs;
+    private final String outputDir;
+    private final TYPE type;
 
-		@Override
-		public TelSeqResult call() throws Exception {
-			String out = outputDir + ext.rootOf(inputBam) + ".telseq";
-			int readSize = BamOps.estimateReadSize(inputBam, log);
-			log.reportTimeInfo("Estimated readsize for " + inputBam + " to be " + readSize);
-			Ran ran = telSeqIt(inputBam, out, readSize, additionalArgs, log);
-			String sampleName = "NA";
-			try {
-				sampleName = BamOps.getSampleName(inputBam, log);
-			} catch (Exception e) {
-				log.reportError("Could not get sample name from " + inputBam);
-				log.reportException(e);
-			}
+    private final Logger log;
 
-			return new TelSeqResult(out, ran, sampleName, type, readSize);
-		}
+    public TelSeqWorker(String inputBam, List<String> additionalArgs, String outputDir, TYPE type,
+                        Logger log) {
+      super();
+      this.inputBam = inputBam;
+      this.additionalArgs = additionalArgs;
+      this.outputDir = outputDir;
+      this.type = type;
+      this.log = log;
+    }
 
+    @Override
+    public TelSeqResult call() throws Exception {
+      String out = outputDir + ext.rootOf(inputBam) + ".telseq";
+      int readSize = BamOps.estimateReadSize(inputBam, log);
+      log.reportTimeInfo("Estimated readsize for " + inputBam + " to be " + readSize);
+      Ran ran = telSeqIt(inputBam, out, readSize, additionalArgs, log);
+      String sampleName = "NA";
+      try {
+        sampleName = BamOps.getSampleName(inputBam, log);
+      } catch (Exception e) {
+        log.reportError("Could not get sample name from " + inputBam);
+        log.reportException(e);
+      }
 
-	}
+      return new TelSeqResult(out, ran, sampleName, type, readSize);
+    }
 
-	/**
-	 * @param inputBam
-	 * @param output output file name
-	 * @param readSize read size, can estimate w/ {@link BamOps#estimateReadSize}
-	 * @param additionalArgs any additional args to be passed to TelSeq
-	 * @param log
-	 * @return {@link Ran}
-	 */
-	public static Ran telSeqIt(String inputBam, String output, int readSize,
-														 List<String> additionalArgs, Logger log) {
-		String[] outputs = new String[] {output};
-		String[] input = new String[] {inputBam};
-		ArrayList<String> command = new ArrayList<String>();
-		command.add("telseq");
-		command.add("-o");
-		command.add(output);
-		command.add("-r");
-		command.add(Integer.toString(readSize));
+  }
 
-		command.addAll(additionalArgs);
+  /**
+   * @param inputBam
+   * @param output output file name
+   * @param readSize read size, can estimate w/ {@link BamOps#estimateReadSize}
+   * @param additionalArgs any additional args to be passed to TelSeq
+   * @param log
+   * @return {@link Ran}
+   */
+  public static Ran telSeqIt(String inputBam, String output, int readSize,
+                             List<String> additionalArgs, Logger log) {
+    String[] outputs = new String[] {output};
+    String[] input = new String[] {inputBam};
+    ArrayList<String> command = new ArrayList<String>();
+    command.add("telseq");
+    command.add("-o");
+    command.add(output);
+    command.add("-r");
+    command.add(Integer.toString(readSize));
 
-		command.add(inputBam);
+    command.addAll(additionalArgs);
 
-		boolean valid = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
-																										 outputs, true, false, false, log);
-		return new Ran(valid, command);
-	}
+    command.add(inputBam);
 
-	private static class TelSeqProducer extends AbstractProducer<TelSeqResult> {
-		private final String[] inputBams;
-		private final List<String> additionalArgs;
-		private final String outputDir;
-		private final TYPE type;
-		private final Logger log;
-		private int index;
+    boolean valid = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(command), "", input,
+                                                     outputs, true, false, false, log);
+    return new Ran(valid, command);
+  }
 
-		public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir,
-													TYPE type, Logger log) {
-			super();
-			this.inputBams = inputBams;
-			this.additionalArgs = additionalArgs;
-			this.outputDir = outputDir;
-			this.type = type;
-			this.log = log;
-			index = 0;
-		}
+  private static class TelSeqProducer extends AbstractProducer<TelSeqResult> {
 
-		@Override
-		public boolean hasNext() {
-			return index < inputBams.length;
-		}
+    private final String[] inputBams;
+    private final List<String> additionalArgs;
+    private final String outputDir;
+    private final TYPE type;
+    private final Logger log;
+    private int index;
 
-		@Override
-		public Callable<TelSeqResult> next() {
-			TelSeqWorker worker = new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type,
-																						 log);
-			index++;
-			return worker;
-		}
+    public TelSeqProducer(String[] inputBams, List<String> additionalArgs, String outputDir,
+                          TYPE type, Logger log) {
+      super();
+      this.inputBams = inputBams;
+      this.additionalArgs = additionalArgs;
+      this.outputDir = outputDir;
+      this.type = type;
+      this.log = log;
+      index = 0;
+    }
 
-	}
+    @Override
+    public boolean hasNext() {
+      return index < inputBams.length;
+    }
 
-	private static class Ran {
-		public Ran(boolean valid, List<String> command) {
-			super();
-		}
+    @Override
+    public Callable<TelSeqResult> next() {
+      TelSeqWorker worker = new TelSeqWorker(inputBams[index], additionalArgs, outputDir, type,
+                                             log);
+      index++;
+      return worker;
+    }
 
-	}
+  }
 
-	/**
-	 * @param bams bams to run
-	 * @param outDir where to put things
-	 * @param captureBed for {@link ASSAY_TYPE#WXS}
-	 * @param threads number of threads
-	 * @param aType see {@link ASSAY_TYPE}
-	 * @param aName {@link ASSEMBLY_NAME}
-	 * @param captureBufferSize number of base pairs to buffer the caputure bed file
-	 */
-	public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads,
-																 ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize,
-																 Logger log) {
+  private static class Ran {
 
-		log.reportTimeInfo("Assuming telseq is on system path");
-		ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
-		ArrayList<String> argPopulator = new ArrayList<String>();
-		argPopulator.add("-m");// doesn't look like telseq handles RGs properly
+    public Ran(boolean valid, List<String> command) {
+      super();
+    }
 
-		switch (aType) {
-			case WGS:
-				runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
-				break;
-			case WXS:
-				processWXS(bams, outDir, captureBed, threads, aName, captureBufferSize, log, results,
-									 argPopulator);
-				break;
-			default:
-				break;
+  }
 
-		}
+  /**
+   * @param bams bams to run
+   * @param outDir where to put things
+   * @param captureBed for {@link ASSAY_TYPE#WXS}
+   * @param threads number of threads
+   * @param aType see {@link ASSAY_TYPE}
+   * @param aName {@link ASSEMBLY_NAME}
+   * @param captureBufferSize number of base pairs to buffer the caputure bed file
+   */
+  public static String runTelSeq(String[] bams, String outDir, String captureBed, int threads,
+                                 ASSAY_TYPE aType, ASSEMBLY_NAME aName, int captureBufferSize,
+                                 Logger log) {
 
-		// summarize
-		String finalOut = outDir + "telseq.summary.txt";
+    log.reportTimeInfo("Assuming telseq is on system path");
+    ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
+    ArrayList<String> argPopulator = new ArrayList<String>();
+    argPopulator.add("-m");// doesn't look like telseq handles RGs properly
 
-		String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
+    switch (aType) {
+      case WGS:
+        runType(threads, log, bams, results, argPopulator, outDir, TYPE.BASE);
+        break;
+      case WXS:
+        processWXS(bams, outDir, captureBed, threads, aName, captureBufferSize, log, results,
+                   argPopulator);
+        break;
+      default:
+        break;
 
-		// Only interested in these columns currently, do not know what to do
-		// with TEL* and GC*
-		int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true);
-		if (ArrayUtils.countIf(indices, -1) > 0) {
-			throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
-		}
+    }
 
-		ArrayList<String> result = new ArrayList<String>();
-		result.add("BAM\t" + ArrayUtils.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
-		for (TelSeqResult telSeqResult : results) {
-			if (Files.exists(telSeqResult.output)) {
-				String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null);
-				for (String[] element : data) {
-					result.add(ext.rootOf(telSeqResult.output) + "\t"
-										 + ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t"
-										 + telSeqResult.type + "\t" + telSeqResult.sample + "\t"
-										 + telSeqResult.readSizeUsed);
-				}
-			}
-		}
-		Files.writeIterable(result, finalOut);
-		return finalOut;
-	}
+    // summarize
+    String finalOut = outDir + "telseq.summary.txt";
 
-	private static void processWXS(String[] bams, String outDir, String captureBed, int threads,
-																 ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
-																 List<TelSeqResult> results, List<String> argPopulator) {
-		if (Files.exists(captureBed)) {
+    String[] telHeader = Files.getHeaderOfFile(results.get(0).output, log);
 
-			BEDFileReader reader = new BEDFileReader(captureBed, false);
+    // Only interested in these columns currently, do not know what to do
+    // with TEL* and GC*
+    int[] indices = ext.indexFactors(TELSEQ_REPORT, telHeader, true);
+    if (ArrayUtils.countIf(indices, -1) > 0) {
+      throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
+    }
 
-			LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
-			reader.close();
+    ArrayList<String> result = new ArrayList<String>();
+    result.add("BAM\t" + ArrayUtils.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
+    for (TelSeqResult telSeqResult : results) {
+      if (Files.exists(telSeqResult.output)) {
+        String[][] data = HashVec.loadFileToStringMatrix(telSeqResult.output, true, null);
+        for (String[] element : data) {
+          result.add(ext.rootOf(telSeqResult.output) + "\t"
+                     + ArrayUtils.toStr(ArrayUtils.subArray(element, indices)) + "\t"
+                     + telSeqResult.type + "\t" + telSeqResult.sample + "\t"
+                     + telSeqResult.readSizeUsed);
+        }
+      }
+    }
+    Files.writeIterable(result, finalOut);
+    return finalOut;
+  }
 
-			String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
-			new File(buffDir).mkdirs();
-			String buffBed = buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed)
-											 + ".bed";
-			log.reportTimeInfo("writing bed to " + buffBed);
-			segs.getBufferedSegmentSet(captureBufferSize)
-					.writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
+  private static void processWXS(String[] bams, String outDir, String captureBed, int threads,
+                                 ASSEMBLY_NAME aName, int captureBufferSize, Logger log,
+                                 List<TelSeqResult> results, List<String> argPopulator) {
+    if (Files.exists(captureBed)) {
 
-			ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
-			argPopulatorBuffBed.addAll(argPopulator);
-			argPopulatorBuffBed.add("-e");
-			argPopulatorBuffBed.add(buffBed);
-			runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
-		} else {
-			log.reportFileNotFound(captureBed);
-		}
-	}
+      BEDFileReader reader = new BEDFileReader(captureBed, false);
 
-	private static void runType(int threads, Logger log, String[] bams,
-															List<TelSeqResult> results, List<String> argPopulator,
-															String baseDir, TYPE type) {
-		TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
-		WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,
-																																					 log);
-		while (train.hasNext()) {
-			results.add(train.next());
-		}
-	}
+      LocusSet<BEDFeatureSeg> segs = reader.loadAll(log);
+      reader.close();
+
+      String buffDir = outDir + "buff_" + captureBufferSize + "_" + ext.rootOf(captureBed) + "/";
+      new File(buffDir).mkdirs();
+      String buffBed = buffDir + "buff_" + captureBufferSize + "bp_" + ext.rootOf(captureBed)
+                       + ".bed";
+      log.reportTimeInfo("writing bed to " + buffBed);
+      segs.getBufferedSegmentSet(captureBufferSize)
+          .writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
+
+      ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+      argPopulatorBuffBed.addAll(argPopulator);
+      argPopulatorBuffBed.add("-e");
+      argPopulatorBuffBed.add(buffBed);
+      runType(threads, log, bams, results, argPopulatorBuffBed, buffDir, TYPE.BUFFERED_BED);
+    } else {
+      log.reportFileNotFound(captureBed);
+    }
+  }
+
+  private static void runType(int threads, Logger log, String[] bams, List<TelSeqResult> results,
+                              List<String> argPopulator, String baseDir, TYPE type) {
+    TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
+    WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,
+                                                                           log);
+    while (train.hasNext()) {
+      results.add(train.next());
+    }
+  }
 }

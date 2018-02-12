@@ -5,23 +5,23 @@ package org.genvisis.cnv.analysis;
  */
 public final class MemUtils {
 
-	private MemUtils() {
-		// prevent instantiation of utility class
-	}
+  private MemUtils() {
+    // prevent instantiation of utility class
+  }
 
-	/**
-	 * @return How much memory is actually in use right now
-	 */
-	public static long allocatedMem() {
-		Runtime r = Runtime.getRuntime();
-		return r.totalMemory() - r.freeMemory();
-	}
+  /**
+   * @return How much memory is actually in use right now
+   */
+  public static long allocatedMem() {
+    Runtime r = Runtime.getRuntime();
+    return r.totalMemory() - r.freeMemory();
+  }
 
-	/**
-	 * @return An estimate of how much memory can be allocated before hitting
-	 *         {@link OutOfMemoryError}.
-	 */
-	public static long availableMem() {
-		return Runtime.getRuntime().maxMemory() - allocatedMem();
-	}
+  /**
+   * @return An estimate of how much memory can be allocated before hitting
+   *         {@link OutOfMemoryError}.
+   */
+  public static long availableMem() {
+    return Runtime.getRuntime().maxMemory() - allocatedMem();
+  }
 }

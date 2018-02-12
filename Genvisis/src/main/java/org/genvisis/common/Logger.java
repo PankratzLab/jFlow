@@ -3,313 +3,312 @@ package org.genvisis.common;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
-
 import javax.swing.JTextArea;
 
 public class Logger implements Serializable {
-	private static final long serialVersionUID = 1L;
-	public static final int LEVEL_ONE = 1;
 
-	private final String filename;
-	private final boolean logging;
-	private int level;
-	private JTextArea textArea;
+  private static final long serialVersionUID = 1L;
+  public static final int LEVEL_ONE = 1;
 
-	public Logger() {
-		this(null, false);
-	}
+  private final String filename;
+  private final boolean logging;
+  private int level;
+  private JTextArea textArea;
 
-	public Logger(String filename) {
-		this(filename, false);
-	}
+  public Logger() {
+    this(null, false);
+  }
 
-	public Logger(String filename, boolean append) {
-		this(filename, append, 10);
-	}
+  public Logger(String filename) {
+    this(filename, false);
+  }
 
-	public Logger(String filename, boolean append, int level) {
-		this.filename = filename;
-		logging = filename != null;
-		if (logging && !append) {
-			new File(filename).delete();
-		}
-		this.level = level;
-		textArea = null;
-	}
+  public Logger(String filename, boolean append) {
+    this(filename, append, 10);
+  }
 
-	public void linkTextArea(JTextArea text) {
-		textArea = text;
-	}
+  public Logger(String filename, boolean append, int level) {
+    this.filename = filename;
+    logging = filename != null;
+    if (logging && !append) {
+      new File(filename).delete();
+    }
+    this.level = level;
+    textArea = null;
+  }
 
-	public String getFilename() {
-		return filename;
-	}
+  public void linkTextArea(JTextArea text) {
+    textArea = text;
+  }
 
-	public int getLevel() {
-		return level;
-	}
+  public String getFilename() {
+    return filename;
+  }
 
-	public void setLevel(int level) {
-		this.level = level;
-	}
+  public int getLevel() {
+    return level;
+  }
 
-	public void reportTime(String str) {
-		report(ext.getTime() + " - " + str, true, true);
-	}
+  public void setLevel(int level) {
+    this.level = level;
+  }
 
-	/**
-	 * @param str report this string with a time stamp and info message
-	 */
-	public void reportTimeInfo(String str) {
-		report(ext.getTime() + " Info - " + str, true, true);
-	}
+  public void reportTime(String str) {
+    report(ext.getTime() + " - " + str, true, true);
+  }
 
-	/**
-	 * @param str report this string with a time stamp and info message
-	 */
-	public void reportTimeElapsed(long time) {
-		reportTimeInfo("Time elapsed: " + ext.getTimeElapsed(time));
-	}
+  /**
+   * @param str report this string with a time stamp and info message
+   */
+  public void reportTimeInfo(String str) {
+    report(ext.getTime() + " Info - " + str, true, true);
+  }
 
-	/**
-	 * @param str report this string with a time stamp and info message
-	 */
-	public void reportTimeElapsed(String prepend, long time) {
-		reportTimeInfo(prepend + ext.getTimeElapsed(time));
-	}
+  /**
+   * @param str report this string with a time stamp and info message
+   */
+  public void reportTimeElapsed(long time) {
+    reportTimeInfo("Time elapsed: " + ext.getTimeElapsed(time));
+  }
 
-	/**
-	 * @param file report this file already exists with a time stamp and info message
-	 */
-	public void reportFileExists(String file) {
-		reportTimeInfo("File " + file + " already exists...");
-	}
+  /**
+   * @param str report this string with a time stamp and info message
+   */
+  public void reportTimeElapsed(String prepend, long time) {
+    reportTimeInfo(prepend + ext.getTimeElapsed(time));
+  }
 
-	/**
-	 * @param str report this string with a time stamp and warning message
-	 */
-	public void reportTimeWarning(String str) {
-		report(ext.getTime() + " Warning - " + str, true, true);
-	}
+  /**
+   * @param file report this file already exists with a time stamp and info message
+   */
+  public void reportFileExists(String file) {
+    reportTimeInfo("File " + file + " already exists...");
+  }
 
-	private static String getVersion() {
-		String v = "[Genvisis - version unknown] ";
-		try {
-			v = "[Genvisis " + LauncherManifest.loadGenvisisManifest().getVersion() + "] ";
-		} catch (Exception e) {
+  /**
+   * @param str report this string with a time stamp and warning message
+   */
+  public void reportTimeWarning(String str) {
+    report(ext.getTime() + " Warning - " + str, true, true);
+  }
 
-		}
-		return v;
-	}
+  private static String getVersion() {
+    String v = "[Genvisis - version unknown] ";
+    try {
+      v = "[Genvisis " + LauncherManifest.loadGenvisisManifest().getVersion() + "] ";
+    } catch (Exception e) {
 
-	/**
-	 * @param filename report that this file was not found with a time stamp and error message
-	 */
-	public void reportFileNotFound(String filename) {
-		String str = "file \"" + filename + "\" not found in current directory";
-		reportError(str);
-	}
+    }
+    return v;
+  }
 
-	/**
-	 * @param filenames report the files that do not exist in this string array
-	 *
-	 */
-	public void reportFilesNotFound(String[] filenames) {
-		if (filenames == null) {
-			reportError("No file handles provided");
-		} else {
-			boolean haveMissing = false;
-			for (int i = 0; i < filenames.length; i++) {
-				if (!Files.exists(filenames[i])) {
-					reportFileNotFound(filenames[i]);
-					haveMissing = true;
-				}
-			}
-			if (!haveMissing) {
-				reportTimeInfo("All " + filenames.length + " files exist");
-			}
-		}
-	}
+  /**
+   * @param filename report that this file was not found with a time stamp and error message
+   */
+  public void reportFileNotFound(String filename) {
+    String str = "file \"" + filename + "\" not found in current directory";
+    reportError(str);
+  }
 
-	/**
-	 * @param filename report that this file had an IO err with time stamp and error message
-	 */
-	public void reportIOException(String filename) {
-		String str = "could not read file \"" + filename + "\"";
-		reportError(str);
-	}
+  /**
+   * @param filenames report the files that do not exist in this string array
+   */
+  public void reportFilesNotFound(String[] filenames) {
+    if (filenames == null) {
+      reportError("No file handles provided");
+    } else {
+      boolean haveMissing = false;
+      for (int i = 0; i < filenames.length; i++) {
+        if (!Files.exists(filenames[i])) {
+          reportFileNotFound(filenames[i]);
+          haveMissing = true;
+        }
+      }
+      if (!haveMissing) {
+        reportTimeInfo("All " + filenames.length + " files exist");
+      }
+    }
+  }
 
-	public void report(String str) {
-		report(str, true, true);
-	}
+  /**
+   * @param filename report that this file had an IO err with time stamp and error message
+   */
+  public void reportIOException(String filename) {
+    String str = "could not read file \"" + filename + "\"";
+    reportError(str);
+  }
 
-	public void report(String str, boolean line, boolean reportToScreen) {
-		report(str, line, reportToScreen, 0);
-	}
+  public void report(String str) {
+    report(str, true, true);
+  }
 
-	public void report(String str, boolean line, boolean reportToScreen, int levelRequiredToReport) {
-		PrintWriter writer;
+  public void report(String str, boolean line, boolean reportToScreen) {
+    report(str, line, reportToScreen, 0);
+  }
 
-		if (level >= levelRequiredToReport && reportToScreen) {
-			if (line) {
-				System.out.println(str);
-			} else {
-				System.out.print(str);
-			}
-		}
+  public void report(String str, boolean line, boolean reportToScreen, int levelRequiredToReport) {
+    PrintWriter writer;
 
-		if (level >= levelRequiredToReport && textArea != null) {
-			textArea.setText(textArea.getText() + str + (line ? "\r\n" : ""));
-			textArea.setCaretPosition(textArea.getDocument().getLength());
-		}
+    if (level >= levelRequiredToReport && reportToScreen) {
+      if (line) {
+        System.out.println(str);
+      } else {
+        System.out.print(str);
+      }
+    }
 
-		if (level >= levelRequiredToReport && logging) {
-			try {
-				writer = Files.openAppropriateWriter(filename, true);
-				if (line) {
-					writer.println(str);
-				} else {
-					writer.print(str);
-				}
-				writer.close();
-			} catch (Exception e) {
-				System.err.println("Error writing to " + filename);
-				e.printStackTrace();
-			}
-		}
-	}
+    if (level >= levelRequiredToReport && textArea != null) {
+      textArea.setText(textArea.getText() + str + (line ? "\r\n" : ""));
+      textArea.setCaretPosition(textArea.getDocument().getLength());
+    }
 
-	public void reportError(String err) {
-		reportError(err, true, true);
-	}
+    if (level >= levelRequiredToReport && logging) {
+      try {
+        writer = Files.openAppropriateWriter(filename, true);
+        if (line) {
+          writer.println(str);
+        } else {
+          writer.print(str);
+        }
+        writer.close();
+      } catch (Exception e) {
+        System.err.println("Error writing to " + filename);
+        e.printStackTrace();
+      }
+    }
+  }
 
-	public void reportError(String err, boolean line, boolean reportToScreen) {
-		reportError(err, line, reportToScreen, 0);
-	}
+  public void reportError(String err) {
+    reportError(err, true, true);
+  }
 
-	public void reportError(String err, boolean line, boolean reportToScreen,
-													int levelRequiredToReport) {
-		PrintWriter writer;
+  public void reportError(String err, boolean line, boolean reportToScreen) {
+    reportError(err, line, reportToScreen, 0);
+  }
 
-		String msg = getVersion() + ext.getTime() + " Error -\t" + err;
+  public void reportError(String err, boolean line, boolean reportToScreen,
+                          int levelRequiredToReport) {
+    PrintWriter writer;
 
-		if (level >= levelRequiredToReport && reportToScreen) {
-			if (line) {
-				System.err.println(msg);
-			} else {
-				System.err.print(msg);
-			}
-		}
+    String msg = getVersion() + ext.getTime() + " Error -\t" + err;
 
-		if (level >= levelRequiredToReport && textArea != null) {
-			textArea.setText(textArea.getText() + err + (line ? "\r\n" : ""));
-			textArea.setCaretPosition(textArea.getDocument().getLength());
-		}
+    if (level >= levelRequiredToReport && reportToScreen) {
+      if (line) {
+        System.err.println(msg);
+      } else {
+        System.err.print(msg);
+      }
+    }
 
-		if (level >= levelRequiredToReport && logging) {
-			try {
-				writer = Files.openAppropriateWriter(filename, true);
-				if (line) {
-					writer.println(err);
-				} else {
-					writer.print(err);
-				}
-				writer.close();
-			} catch (Exception e) {
-				System.err.println("Error writing to " + filename);
-				e.printStackTrace();
-			}
-		}
-	}
+    if (level >= levelRequiredToReport && textArea != null) {
+      textArea.setText(textArea.getText() + err + (line ? "\r\n" : ""));
+      textArea.setCaretPosition(textArea.getDocument().getLength());
+    }
 
-	public void reportException(Throwable e) {
-		reportException(e, 0);
-	}
+    if (level >= levelRequiredToReport && logging) {
+      try {
+        writer = Files.openAppropriateWriter(filename, true);
+        if (line) {
+          writer.println(err);
+        } else {
+          writer.print(err);
+        }
+        writer.close();
+      } catch (Exception e) {
+        System.err.println("Error writing to " + filename);
+        e.printStackTrace();
+      }
+    }
+  }
 
-	public void reportException(Throwable e, int levelRequiredToReport) {
-		PrintWriter writer;
-		String msg = getVersion() + ext.getTime() + "\t" + e.getMessage();
+  public void reportException(Throwable e) {
+    reportException(e, 0);
+  }
 
-		System.err.println(msg);
-		e.printStackTrace();
-		if (level >= levelRequiredToReport && logging) {
-			e.printStackTrace();
-			try {
-				writer = Files.openAppropriateWriter(filename, true);
-				writer.println(msg);
-				e.printStackTrace(writer);
-				writer.close();
-			} catch (Exception e2) {
-				System.err.println("Error writing to " + filename);
-				e2.printStackTrace();
-			}
-		}
+  public void reportException(Throwable e, int levelRequiredToReport) {
+    PrintWriter writer;
+    String msg = getVersion() + ext.getTime() + "\t" + e.getMessage();
 
-		if (level >= 11) {
-			System.exit(1);
-		}
-	}
+    System.err.println(msg);
+    e.printStackTrace();
+    if (level >= levelRequiredToReport && logging) {
+      e.printStackTrace();
+      try {
+        writer = Files.openAppropriateWriter(filename, true);
+        writer.println(msg);
+        e.printStackTrace(writer);
+        writer.close();
+      } catch (Exception e2) {
+        System.err.println("Error writing to " + filename);
+        e2.printStackTrace();
+      }
+    }
 
-	public void timestamp() {
-		report(ext.getDate() + "\t" + ext.getTime());
-	}
+    if (level >= 11) {
+      System.exit(1);
+    }
+  }
 
-	public long memoryTotal() {
-		long memory;
+  public void timestamp() {
+    report(ext.getDate() + "\t" + ext.getTime());
+  }
 
-		report("Total heap size is: "
-					 + ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
+  public long memoryTotal() {
+    long memory;
 
-		return memory;
-	}
+    report("Total heap size is: "
+           + ext.prettyUpSize(memory = Runtime.getRuntime().totalMemory(), 1));
 
-	public long memoryFree() {
-		long memory;
+    return memory;
+  }
 
-		report("Free heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().freeMemory(), 1));
+  public long memoryFree() {
+    long memory;
 
-		return memory;
-	}
+    report("Free heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().freeMemory(), 1));
 
-	/**
-	 * @return percent free memory of the maximum available
-	 */
-	public double memoryPercentTotalFree() {
-		double used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-		double percentTotalFree = 100 - (100 * used / Runtime.getRuntime().maxMemory());
-		report("Percent free total heap size is: " + ext.formDeci(percentTotalFree, 1) + "%");
+    return memory;
+  }
 
-		return percentTotalFree;
-	}
+  /**
+   * @return percent free memory of the maximum available
+   */
+  public double memoryPercentTotalFree() {
+    double used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    double percentTotalFree = 100 - (100 * used / Runtime.getRuntime().maxMemory());
+    report("Percent free total heap size is: " + ext.formDeci(percentTotalFree, 1) + "%");
 
-	public double memoryPercentFree() {
-		double percentFree;
+    return percentTotalFree;
+  }
 
-		percentFree = ((float) 100 * Runtime.getRuntime().freeMemory()
-									 / Runtime.getRuntime().totalMemory());
+  public double memoryPercentFree() {
+    double percentFree;
 
-		report("Percent free heap size is: " + ext.formDeci(percentFree, 1) + "%");
+    percentFree = ((float) 100 * Runtime.getRuntime().freeMemory()
+                   / Runtime.getRuntime().totalMemory());
 
-		return percentFree;
-	}
+    report("Percent free heap size is: " + ext.formDeci(percentFree, 1) + "%");
 
-	public long memoryUsed() {
-		long memory;
+    return percentFree;
+  }
 
-		report("Used heap size is: " + ext.prettyUpSize(
-																										memory = (Runtime.getRuntime().totalMemory()
-																															- Runtime.getRuntime().freeMemory()),
-																										1));
+  public long memoryUsed() {
+    long memory;
 
-		return memory;
-	}
+    report("Used heap size is: " + ext.prettyUpSize(
+                                                    memory = (Runtime.getRuntime().totalMemory()
+                                                              - Runtime.getRuntime().freeMemory()),
+                                                    1));
 
-	public long memoryMax() {
-		long memory;
+    return memory;
+  }
 
-		report("Used heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().maxMemory(), 1));
+  public long memoryMax() {
+    long memory;
 
-		return memory;
-	}
+    report("Used heap size is: " + ext.prettyUpSize(memory = Runtime.getRuntime().maxMemory(), 1));
+
+    return memory;
+  }
 
 }

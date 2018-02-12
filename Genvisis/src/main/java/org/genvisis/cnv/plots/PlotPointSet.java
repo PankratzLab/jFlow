@@ -1,26 +1,26 @@
 package org.genvisis.cnv.plots;
 
 import java.io.Serializable;
-
 import org.genvisis.common.SerializedFiles;
 
 public class PlotPointSet implements Serializable {
-	public static final long serialVersionUID = 1L;
-	private final PlotPoint[] points;
 
-	public PlotPointSet(PlotPoint[] points) {
-		this.points = points;
-	}
+  public static final long serialVersionUID = 1L;
+  private final PlotPoint[] points;
 
-	public PlotPoint[] getPlotPoints() {
-		return points;
-	}
+  public PlotPointSet(PlotPoint[] points) {
+    this.points = points;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public PlotPoint[] getPlotPoints() {
+    return points;
+  }
 
-	public static PlotPointSet load(String filename) {
-		return (PlotPointSet) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
+
+  public static PlotPointSet load(String filename) {
+    return (PlotPointSet) SerializedFiles.readSerial(filename, true);
+  }
 }

@@ -8,6 +8,7 @@ import org.junit.Test;
  * Tests for the {@link Bundled} class
  */
 public class TestBundled {
+
   private static final String VALID_RSRC = "testPed.dat";
   private static final String INVALID_RSRC = "this_file_does_not_exist.txt";
 

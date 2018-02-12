@@ -2,7 +2,6 @@ package org.genvisis.cnv.manage;
 
 import java.util.Iterator;
 import java.util.concurrent.Callable;
-
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.WorkerTrain;
@@ -10,116 +9,118 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 
 /**
  * similar to {@link MDL} but for sample data
- *
  */
 public class SDL implements Iterator<Sample> {
-	private final Project proj;
-	private final String[] samples;
-	private final LOAD_TYPE lType;
 
-	private SDLProducer producer;
-	private WorkerTrain<Sample> train;
-	private final int numThreads;
+  private final Project proj;
+  private final String[] samples;
+  private final LOAD_TYPE lType;
 
-	public SDL(Project proj, String[] samples, LOAD_TYPE lType, int numThreads) {
-		super();
-		this.proj = proj;
-		this.samples = samples;
-		this.lType = lType;
-		this.numThreads = numThreads;
-		init();
-	}
+  private SDLProducer producer;
+  private WorkerTrain<Sample> train;
+  private final int numThreads;
 
-	private void init() {
-		producer = new SDLProducer(proj, samples, lType);
-		train = new WorkerTrain<Sample>(producer, numThreads, 2, proj.getLog());
-	}
+  public SDL(Project proj, String[] samples, LOAD_TYPE lType, int numThreads) {
+    super();
+    this.proj = proj;
+    this.samples = samples;
+    this.lType = lType;
+    this.numThreads = numThreads;
+    init();
+  }
 
-	public enum LOAD_TYPE {
-		/**
-		 * Loads everything
-		 */
-		FULL_SAMPLE,
-		/**
-		 * Load genos and gc only
-		 */
-		PARTIAL_GENO_ONLY;
-	}
+  private void init() {
+    producer = new SDLProducer(proj, samples, lType);
+    train = new WorkerTrain<Sample>(producer, numThreads, 2, proj.getLog());
+  }
 
-	@Override
-	public boolean hasNext() {
-		boolean hasNext = train.hasNext();
-		if (!hasNext) {
-			train.shutdown();
-		}
-		return hasNext;
-	}
+  public enum LOAD_TYPE {
+    /**
+     * Loads everything
+     */
+    FULL_SAMPLE,
+    /**
+     * Load genos and gc only
+     */
+    PARTIAL_GENO_ONLY;
+  }
 
-	@Override
-	public Sample next() {
-		return train.next();
-	}
+  @Override
+  public boolean hasNext() {
+    boolean hasNext = train.hasNext();
+    if (!hasNext) {
+      train.shutdown();
+    }
+    return hasNext;
+  }
 
-	private static class SDLProducer extends AbstractProducer<Sample> {
-		private final Project proj;
-		private final String[] samples;
-		private int index;
-		private final LOAD_TYPE lType;
+  @Override
+  public Sample next() {
+    return train.next();
+  }
 
-		public SDLProducer(Project proj, String[] samples, LOAD_TYPE lType) {
-			super();
-			this.proj = proj;
-			this.samples = samples;
-			this.lType = lType;
-			index = 0;
-		}
+  private static class SDLProducer extends AbstractProducer<Sample> {
 
-		@Override
-		public boolean hasNext() {
-			return index < samples.length;
-		}
+    private final Project proj;
+    private final String[] samples;
+    private int index;
+    private final LOAD_TYPE lType;
 
-		@Override
-		public Callable<Sample> next() {
-			SDLWorker worker = new SDLWorker(proj, samples[index], lType);
-			index++;
-			return worker;
-		}
-	}
+    public SDLProducer(Project proj, String[] samples, LOAD_TYPE lType) {
+      super();
+      this.proj = proj;
+      this.samples = samples;
+      this.lType = lType;
+      index = 0;
+    }
 
-	private static class SDLWorker implements Callable<Sample> {
-		private final Project proj;
-		private final String sample;
-		private final LOAD_TYPE lType;
+    @Override
+    public boolean hasNext() {
+      return index < samples.length;
+    }
 
-		public SDLWorker(Project proj, String sample, LOAD_TYPE lType) {
-			super();
-			this.proj = proj;
-			this.sample = sample;
-			this.lType = lType;
-		}
+    @Override
+    public Callable<Sample> next() {
+      SDLWorker worker = new SDLWorker(proj, samples[index], lType);
+      index++;
+      return worker;
+    }
+  }
 
-		@Override
-		public Sample call() throws Exception {
-			if (sample != null) {
-				switch (lType) {
-					case FULL_SAMPLE:
-						return proj.getFullSampleFromRandomAccessFile(sample);
-					case PARTIAL_GENO_ONLY:
-						return proj.getPartialSampleFromRandomAccessFile(sample, true, false, false, false,
-																														 true);
-					default:
-						throw new IllegalArgumentException("Invalid load type " + lType);
-				}
-			} else {
-				proj.getLog().reportTimeWarning("null sample requested, returning null");
-				return null;
-			}
-		}
-	}
+  private static class SDLWorker implements Callable<Sample> {
 
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException();
-	}
+    private final Project proj;
+    private final String sample;
+    private final LOAD_TYPE lType;
+
+    public SDLWorker(Project proj, String sample, LOAD_TYPE lType) {
+      super();
+      this.proj = proj;
+      this.sample = sample;
+      this.lType = lType;
+    }
+
+    @Override
+    public Sample call() throws Exception {
+      if (sample != null) {
+        switch (lType) {
+          case FULL_SAMPLE:
+            return proj.getFullSampleFromRandomAccessFile(sample);
+          case PARTIAL_GENO_ONLY:
+            return proj.getPartialSampleFromRandomAccessFile(sample, true, false, false, false,
+                                                             true);
+          default:
+            throw new IllegalArgumentException("Invalid load type " + lType);
+        }
+      } else {
+        proj.getLog().reportTimeWarning("null sample requested, returning null");
+        return null;
+      }
+    }
+  }
+
+  @Override
+  public void remove() {
+    throw new UnsupportedOperationException();
+  }
 }

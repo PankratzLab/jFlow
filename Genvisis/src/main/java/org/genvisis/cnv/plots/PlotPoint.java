@@ -4,127 +4,122 @@ import java.awt.Color;
 import java.io.Serializable;
 
 public class PlotPoint implements Serializable {
-	private static final long serialVersionUID = 1L;
 
-	public enum PointType {
-		FILLED_CIRCLE,
-		OPEN_CIRCLE,
-		MISSING,
-		NOT_A_NUMBER,
-		FILLED_SQUARE,
-		FILLED_TRIANGLE,
-		OPEN_SQUARE;
-	}
+  private static final long serialVersionUID = 1L;
 
-	public static final String MISSING_STR = "X";
-	public static final String NAN_STR = "NaN";
+  public enum PointType {
+    FILLED_CIRCLE, OPEN_CIRCLE, MISSING, NOT_A_NUMBER, FILLED_SQUARE, FILLED_TRIANGLE, OPEN_SQUARE;
+  }
 
-	private final String id;
-	private final float rawX;
-	private final float rawY;
-	private byte type;
-	private byte size;
-	private Color tempColor;
-	private byte color;
-	private byte layer;
-	private boolean highlight;
-	private boolean visible;
+  public static final String MISSING_STR = "X";
+  public static final String NAN_STR = "NaN";
 
-	public PlotPoint(String id, PointType type, float rawX, float rawY, byte size, byte color,
-									 byte layer) {
-		this.id = id;
-		this.type = (byte) type.ordinal();
-		this.rawX = rawX;
-		this.rawY = rawY;
-		this.size = size;
-		this.color = color;
-		this.layer = layer;
-		highlight = false;
-		visible = true;
-	}
+  private final String id;
+  private final float rawX;
+  private final float rawY;
+  private byte type;
+  private byte size;
+  private Color tempColor;
+  private byte color;
+  private byte layer;
+  private boolean highlight;
+  private boolean visible;
 
-	/**
-	 * Copy constructor. Don't depend on clone() to copy objects. Its messy!!!
-	 *
-	 * @param point a {@link PlotPoint} which is the source of copy
-	 */
-	public PlotPoint(PlotPoint point) {
-		id = point.id;
-		type = point.type;
-		rawX = point.rawX;
-		rawY = point.rawY;
-		size = point.size;
-		color = point.color;
-		layer = point.layer;
-		highlight = point.highlight;
-		visible = point.visible;
-	}
+  public PlotPoint(String id, PointType type, float rawX, float rawY, byte size, byte color,
+                   byte layer) {
+    this.id = id;
+    this.type = (byte) type.ordinal();
+    this.rawX = rawX;
+    this.rawY = rawY;
+    this.size = size;
+    this.color = color;
+    this.layer = layer;
+    highlight = false;
+    visible = true;
+  }
 
-	public String getId() {
-		return id;
-	}
+  /**
+   * Copy constructor. Don't depend on clone() to copy objects. Its messy!!!
+   *
+   * @param point a {@link PlotPoint} which is the source of copy
+   */
+  public PlotPoint(PlotPoint point) {
+    id = point.id;
+    type = point.type;
+    rawX = point.rawX;
+    rawY = point.rawY;
+    size = point.size;
+    color = point.color;
+    layer = point.layer;
+    highlight = point.highlight;
+    visible = point.visible;
+  }
 
-	public PointType getType() {
-		return PointType.values()[type];
-	}
+  public String getId() {
+    return id;
+  }
 
-	public float getRawX() {
-		return rawX;
-	}
+  public PointType getType() {
+    return PointType.values()[type];
+  }
 
-	public float getRawY() {
-		return rawY;
-	}
+  public float getRawX() {
+    return rawX;
+  }
 
-	public void setSize(byte size) {
-		this.size = size;
-	}
+  public float getRawY() {
+    return rawY;
+  }
 
-	public byte getSize() {
-		return size;
-	}
+  public void setSize(byte size) {
+    this.size = size;
+  }
 
-	public byte getColor() {
-		return color;
-	}
+  public byte getSize() {
+    return size;
+  }
 
-	public Color getTempColor() {
-		return tempColor;
-	}
+  public byte getColor() {
+    return color;
+  }
 
-	public byte getLayer() {
-		return layer;
-	}
+  public Color getTempColor() {
+    return tempColor;
+  }
 
-	public void setType(PointType type) {
-		this.type = (byte) type.ordinal();
-	}
+  public byte getLayer() {
+    return layer;
+  }
 
-	public void setLayer(byte layer) {
-		this.layer = layer;
-	}
+  public void setType(PointType type) {
+    this.type = (byte) type.ordinal();
+  }
 
-	public void setHighlighted(boolean status) {
-		highlight = status;
-	}
+  public void setLayer(byte layer) {
+    this.layer = layer;
+  }
 
-	public void setVisible(boolean status) {
-		visible = status;
-	}
+  public void setHighlighted(boolean status) {
+    highlight = status;
+  }
 
-	public boolean isHighlighted() {
-		return highlight;
-	}
+  public void setVisible(boolean status) {
+    visible = status;
+  }
 
-	public boolean isVisible() {
-		return visible;
-	}
+  public boolean isHighlighted() {
+    return highlight;
+  }
 
-	public void setTempColor(Color tempColor2) {
-		tempColor = tempColor2;
-	}
+  public boolean isVisible() {
+    return visible;
+  }
 
-	public void setColor(byte color2) {
-		color = color2;
-	}
+  public void setTempColor(Color tempColor2) {
+    tempColor = tempColor2;
+  }
+
+  public void setColor(byte color2) {
+    color = color2;
+  }
 }
