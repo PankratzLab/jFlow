@@ -7,439 +7,439 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-
 import com.google.common.collect.Lists;
 
 public class Picard {
-	public static final String PICARD_JAR = "picard.jar";
-	public static final String SORT_SAM = "SortSam";
-	public static final String MARK_DUPLICATES = "MarkDuplicates";
-	public static final String BUILD_BAM_INDEX = "BuildBamIndex";
-	public static final String BAM_INDEX_EXT = ".bai";
-	public static final String JAR = "-jar";
-	public static final String DEFAULT_JAVA = "java";
-	public static final String INPUT = "INPUT=";
-	public static final String OUTPUT = "OUTPUT=";
-	public static final String SORT_ORDER = "SORT_ORDER=";
-	public static final String SORTING_COLLECTION_SIZE_RATIO = "SORTING_COLLECTION_SIZE_RATIO=";
-	public static final double DEFAULT_SORTING_COLLECTION_SIZE_RATIO = 0.25;
 
-	public static final String DEFAULT_SORT_ORDER = "coordinate";
-	public static final String PICARD_LOCATION_COMMAND = "picard=";
-	public static final String METRICS_FILE = "METRICS_FILE=";
-	public static final String TMP_DIR = "TMP_DIR=";// necessary since it puts tmp files in strange
-																									// places that run out of space
+  public static final String PICARD_JAR = "picard.jar";
+  public static final String SORT_SAM = "SortSam";
+  public static final String MARK_DUPLICATES = "MarkDuplicates";
+  public static final String BUILD_BAM_INDEX = "BuildBamIndex";
+  public static final String BAM_INDEX_EXT = ".bai";
+  public static final String JAR = "-jar";
+  public static final String DEFAULT_JAVA = "java";
+  public static final String INPUT = "INPUT=";
+  public static final String OUTPUT = "OUTPUT=";
+  public static final String SORT_ORDER = "SORT_ORDER=";
+  public static final String SORTING_COLLECTION_SIZE_RATIO = "SORTING_COLLECTION_SIZE_RATIO=";
+  public static final double DEFAULT_SORTING_COLLECTION_SIZE_RATIO = 0.25;
 
-	public static final String BAM = ".bam";
-	public static final String DE_DUPPED = ".dedup";
-	public static final String INDEXED = ".bai";
-	public static final String METRICS = ".metrics.txt";
+  public static final String DEFAULT_SORT_ORDER = "coordinate";
+  public static final String PICARD_LOCATION_COMMAND = "picard=";
+  public static final String METRICS_FILE = "METRICS_FILE=";
+  public static final String TMP_DIR = "TMP_DIR=";// necessary since it puts tmp files in strange
+                                                  // places that run out of space
 
-	private final String picardLocation;
-	private final String javaLocation;
-	boolean fail, verbose, overwriteExisting;
-	private final Logger log;
+  public static final String BAM = ".bam";
+  public static final String DE_DUPPED = ".dedup";
+  public static final String INDEXED = ".bai";
+  public static final String METRICS = ".metrics.txt";
 
-	public Picard(String picardLocation, String javaLocation, boolean overwriteExisting,
-								boolean verbose, Logger log) {
-		super();
-		this.picardLocation = picardLocation;
-		this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
-		fail = verifyPicardLocation(picardLocation);
-		this.overwriteExisting = overwriteExisting;
-		this.verbose = verbose;
-		this.log = log;
-	}
+  private final String picardLocation;
+  private final String javaLocation;
+  boolean fail, verbose, overwriteExisting;
+  private final Logger log;
 
-	public String getPicardLocation() {
-		return picardLocation;
-	}
+  public Picard(String picardLocation, String javaLocation, boolean overwriteExisting,
+                boolean verbose, Logger log) {
+    super();
+    this.picardLocation = picardLocation;
+    this.javaLocation = (javaLocation == null ? DEFAULT_JAVA : javaLocation);
+    fail = verifyPicardLocation(picardLocation);
+    this.overwriteExisting = overwriteExisting;
+    this.verbose = verbose;
+    this.log = log;
+  }
 
-	public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
-		String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR, SORT_SAM,
-																		 INPUT + inputFile, OUTPUT + outputFile,
-																		 SORT_ORDER + DEFAULT_SORT_ORDER,
-																		 getTMPdirectory(inputFile, outputFile)};
-		return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
-																						new String[] {outputFile}, verbose, overwriteExisting,
-																						true, (altLog == null ? log : altLog));
-	}
+  public String getPicardLocation() {
+    return picardLocation;
+  }
 
-	public boolean markDuplicates(String inputFile, String outputFile, String metricsFile,
-																double memoryRatio, Logger altLog) {
-		return markDuplicates(new String[] {inputFile}, outputFile, metricsFile, memoryRatio, altLog);
-	}
+  public boolean sortSam(String inputFile, String outputFile, Logger altLog) {
+    String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR, SORT_SAM,
+                                     INPUT + inputFile, OUTPUT + outputFile,
+                                     SORT_ORDER + DEFAULT_SORT_ORDER,
+                                     getTMPdirectory(inputFile, outputFile)};
+    return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
+                                            new String[] {outputFile}, verbose, overwriteExisting,
+                                            true, (altLog == null ? log : altLog));
+  }
 
-	public boolean markDuplicates(String[] inputFiles, String outputFile, String metricsFile,
-																double memoryRatio, Logger altLog) {
-		ArrayList<String> commands = Lists.newArrayList(javaLocation, JAR, picardLocation + PICARD_JAR,
-																										MARK_DUPLICATES, OUTPUT + outputFile,
-																										METRICS_FILE + metricsFile,
-																										getTMPdirectory(inputFiles[0], inputFiles[0]),
-																										SORTING_COLLECTION_SIZE_RATIO + memoryRatio);
-		for (int i = 0; i < inputFiles.length; i++) {
-			commands.add(INPUT + inputFiles[i]);
-		}
-		return CmdLine.runCommandWithFileChecks(commands.toArray(new String[commands.size()]), "",
-																						inputFiles, new String[] {outputFile, metricsFile},
-																						verbose, overwriteExisting, true,
-																						altLog == null ? log : altLog);
-	}
+  public boolean markDuplicates(String inputFile, String outputFile, String metricsFile,
+                                double memoryRatio, Logger altLog) {
+    return markDuplicates(new String[] {inputFile}, outputFile, metricsFile, memoryRatio, altLog);
+  }
 
-	public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
-		String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR,
-																		 BUILD_BAM_INDEX, INPUT + inputFile,
-																		 getTMPdirectory(inputFile, expectedOutput)};
-		return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
-																						new String[] {expectedOutput}, verbose,
-																						overwriteExisting, true,
-																						(altLog == null ? log : altLog));
-	}
+  public boolean markDuplicates(String[] inputFiles, String outputFile, String metricsFile,
+                                double memoryRatio, Logger altLog) {
+    ArrayList<String> commands = Lists.newArrayList(javaLocation, JAR, picardLocation + PICARD_JAR,
+                                                    MARK_DUPLICATES, OUTPUT + outputFile,
+                                                    METRICS_FILE + metricsFile,
+                                                    getTMPdirectory(inputFiles[0], inputFiles[0]),
+                                                    SORTING_COLLECTION_SIZE_RATIO + memoryRatio);
+    for (int i = 0; i < inputFiles.length; i++) {
+      commands.add(INPUT + inputFiles[i]);
+    }
+    return CmdLine.runCommandWithFileChecks(commands.toArray(new String[commands.size()]), "",
+                                            inputFiles, new String[] {outputFile, metricsFile},
+                                            verbose, overwriteExisting, true,
+                                            altLog == null ? log : altLog);
+  }
 
-	private static boolean verifyPicardLocation(String picardLocation) {
-		return new File(picardLocation).exists();
-	}
+  public boolean indexBAM(String inputFile, String expectedOutput, Logger altLog) {
+    String[] command = new String[] {javaLocation, JAR, picardLocation + PICARD_JAR,
+                                     BUILD_BAM_INDEX, INPUT + inputFile,
+                                     getTMPdirectory(inputFile, expectedOutput)};
+    return CmdLine.runCommandWithFileChecks(command, "", new String[] {inputFile},
+                                            new String[] {expectedOutput}, verbose,
+                                            overwriteExisting, true,
+                                            (altLog == null ? log : altLog));
+  }
 
-	private static String getTMPdirectory(String inputFile, String expectedOutput) {
+  private static boolean verifyPicardLocation(String picardLocation) {
+    return new File(picardLocation).exists();
+  }
 
-		return TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile)
-					 + "picard_tmp/";
-	}
+  private static String getTMPdirectory(String inputFile, String expectedOutput) {
 
-	public PicardAnalysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio,
-																	 Logger altLog) {
-		boolean progress = false;
-		PicardAnalysis picard_Analysis = new PicardAnalysis(baseId, fullPathToSamFile,
-																												(altLog == null ? log : altLog));
-		picard_Analysis.parseInput();
-		progress = sortSam(picard_Analysis.getFullPathToSamFile(),
-											 picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
-		if (progress) {
-			progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(),
-																picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
-																picard_Analysis.getFullPathToMetricsTxt(), memoryRatio,
-																picard_Analysis.getLog());
-			if (progress) {
-				progress = indexBAM(picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
-														picard_Analysis.getFullPathToSortedDeDuppedBamFileIndex(),
-														picard_Analysis.getLog());
-				if (progress) {
-					picard_Analysis.setAllThere(progress);
-				}
-			}
-		}
-		picard_Analysis.setFail(!progress);
-		return picard_Analysis;
-	}
+    return TMP_DIR + ext.parseDirectoryOfFile(expectedOutput) + ext.rootOf(inputFile)
+           + "picard_tmp/";
+  }
 
-	public PicardMergeDedupe mergeDedupeBams(String baseID, String[] fullPathsToBamFiles,
-																					 String[] fullPathsToBamFileIndices, String outputDir,
-																					 double memoryRatio, Logger altLog) {
-		boolean progress = true;
-		PicardMergeDedupe picardMergeDedupe = new PicardMergeDedupe(fullPathsToBamFiles,
-																																fullPathsToBamFileIndices,
-																																outputDir, baseID,
-																																altLog == null ? log : altLog);
-		picardMergeDedupe.parseInput();
-		if (picardMergeDedupe.shouldMerge()) {
-			progress = markDuplicates(fullPathsToBamFiles,
-																picardMergeDedupe.getFullPathToMergedDedupedBam(),
-																picardMergeDedupe.getFullPathToMetricsTxt(), memoryRatio, altLog);
-			if (progress) {
-				progress = indexBAM(picardMergeDedupe.getFullPathToMergedDedupedBam(),
-														picardMergeDedupe.getFullPathToMergedDedupedBamFileIndex(),
-														picardMergeDedupe.getLog());
-			}
-		}
-		picardMergeDedupe.setFail(!progress);
-		return picardMergeDedupe;
-	}
+  public PicardAnalysis picardASam(String baseId, String fullPathToSamFile, double memoryRatio,
+                                   Logger altLog) {
+    boolean progress = false;
+    PicardAnalysis picard_Analysis = new PicardAnalysis(baseId, fullPathToSamFile,
+                                                        (altLog == null ? log : altLog));
+    picard_Analysis.parseInput();
+    progress = sortSam(picard_Analysis.getFullPathToSamFile(),
+                       picard_Analysis.getFullPathToSortedBamFile(), picard_Analysis.getLog());
+    if (progress) {
+      progress = markDuplicates(picard_Analysis.getFullPathToSortedBamFile(),
+                                picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
+                                picard_Analysis.getFullPathToMetricsTxt(), memoryRatio,
+                                picard_Analysis.getLog());
+      if (progress) {
+        progress = indexBAM(picard_Analysis.getFullPathToSortedDeDuppedBamFile(),
+                            picard_Analysis.getFullPathToSortedDeDuppedBamFileIndex(),
+                            picard_Analysis.getLog());
+        if (progress) {
+          picard_Analysis.setAllThere(progress);
+        }
+      }
+    }
+    picard_Analysis.setFail(!progress);
+    return picard_Analysis;
+  }
 
-	public static class PicardMergeDedupe {
-		public static final String MERGED = ".merged";
+  public PicardMergeDedupe mergeDedupeBams(String baseID, String[] fullPathsToBamFiles,
+                                           String[] fullPathsToBamFileIndices, String outputDir,
+                                           double memoryRatio, Logger altLog) {
+    boolean progress = true;
+    PicardMergeDedupe picardMergeDedupe = new PicardMergeDedupe(fullPathsToBamFiles,
+                                                                fullPathsToBamFileIndices,
+                                                                outputDir, baseID,
+                                                                altLog == null ? log : altLog);
+    picardMergeDedupe.parseInput();
+    if (picardMergeDedupe.shouldMerge()) {
+      progress = markDuplicates(fullPathsToBamFiles,
+                                picardMergeDedupe.getFullPathToMergedDedupedBam(),
+                                picardMergeDedupe.getFullPathToMetricsTxt(), memoryRatio, altLog);
+      if (progress) {
+        progress = indexBAM(picardMergeDedupe.getFullPathToMergedDedupedBam(),
+                            picardMergeDedupe.getFullPathToMergedDedupedBamFileIndex(),
+                            picardMergeDedupe.getLog());
+      }
+    }
+    picardMergeDedupe.setFail(!progress);
+    return picardMergeDedupe;
+  }
 
-		private final String[] fullPathsToInputBams;
-		private final String[] fullPathsToInputBamIndices;
-		private final String outputDir;
-		private String fullPathToMergedDedupedBam;
-		private String fullPathToMergedDedupedBamFileIndex;
-		private String fullPathToMetricsTxt;
-		private final String baseID;
-		private final boolean shouldMerge;
-		private boolean fail;
-		private final Logger log;
+  public static class PicardMergeDedupe {
 
-		/**
-		 * @param fullPathsToInputBams Paths to sorted BAM files to merge and dedupe
-		 * @param fullPathsToInputBamIndices Paths to indices associated with BAMs in
-		 *        fullPathsToInputBams
-		 * @param outputDir Directory to output merged, deduped BAM to
-		 * @param baseID
-		 * @param log
-		 */
-		public PicardMergeDedupe(String[] fullPathsToInputBams, String[] fullPathsToInputBamIndices,
-														 String outputDir, String baseID, Logger log) {
-			super();
-			if (fullPathsToInputBams == null || fullPathsToInputBamIndices == null
-					|| fullPathsToInputBamIndices.length != fullPathsToInputBams.length) {
-				throw new IllegalArgumentException(this.getClass().getName()
-																					 + " requires fullPathsToInputBams and fullPathsToInputBamIndices of equal length");
-			}
-			this.fullPathsToInputBams = fullPathsToInputBams;
-			this.fullPathsToInputBamIndices = fullPathsToInputBamIndices;
-			this.shouldMerge = fullPathsToInputBams != null && fullPathsToInputBams.length > 1;
-			this.outputDir = outputDir;
-			this.baseID = baseID;
-			this.log = log;
-		}
+    public static final String MERGED = ".merged";
 
-		public void parseInput() {
-			if (shouldMerge) {
-				fullPathToMergedDedupedBam = outputDir + baseID + MERGED + BAM;
-				fullPathToMergedDedupedBamFileIndex = ext.rootOf(fullPathToMergedDedupedBam, false)
-																							+ INDEXED;
-				fullPathToMetricsTxt = ext.rootOf(fullPathToMergedDedupedBam, false) + METRICS;
-			} else {
-				fullPathToMergedDedupedBam = fullPathsToInputBams[0];
-				fullPathToMergedDedupedBamFileIndex = fullPathsToInputBamIndices[0];
-				fullPathToMetricsTxt = null;
-			}
-		}
+    private final String[] fullPathsToInputBams;
+    private final String[] fullPathsToInputBamIndices;
+    private final String outputDir;
+    private String fullPathToMergedDedupedBam;
+    private String fullPathToMergedDedupedBamFileIndex;
+    private String fullPathToMetricsTxt;
+    private final String baseID;
+    private final boolean shouldMerge;
+    private boolean fail;
+    private final Logger log;
 
-		public boolean shouldMerge() {
-			return shouldMerge;
-		}
+    /**
+     * @param fullPathsToInputBams Paths to sorted BAM files to merge and dedupe
+     * @param fullPathsToInputBamIndices Paths to indices associated with BAMs in
+     *          fullPathsToInputBams
+     * @param outputDir Directory to output merged, deduped BAM to
+     * @param baseID
+     * @param log
+     */
+    public PicardMergeDedupe(String[] fullPathsToInputBams, String[] fullPathsToInputBamIndices,
+                             String outputDir, String baseID, Logger log) {
+      super();
+      if (fullPathsToInputBams == null || fullPathsToInputBamIndices == null
+          || fullPathsToInputBamIndices.length != fullPathsToInputBams.length) {
+        throw new IllegalArgumentException(this.getClass().getName()
+                                           + " requires fullPathsToInputBams and fullPathsToInputBamIndices of equal length");
+      }
+      this.fullPathsToInputBams = fullPathsToInputBams;
+      this.fullPathsToInputBamIndices = fullPathsToInputBamIndices;
+      this.shouldMerge = fullPathsToInputBams != null && fullPathsToInputBams.length > 1;
+      this.outputDir = outputDir;
+      this.baseID = baseID;
+      this.log = log;
+    }
 
-		public boolean isFail() {
-			return fail;
-		}
+    public void parseInput() {
+      if (shouldMerge) {
+        fullPathToMergedDedupedBam = outputDir + baseID + MERGED + BAM;
+        fullPathToMergedDedupedBamFileIndex = ext.rootOf(fullPathToMergedDedupedBam, false)
+                                              + INDEXED;
+        fullPathToMetricsTxt = ext.rootOf(fullPathToMergedDedupedBam, false) + METRICS;
+      } else {
+        fullPathToMergedDedupedBam = fullPathsToInputBams[0];
+        fullPathToMergedDedupedBamFileIndex = fullPathsToInputBamIndices[0];
+        fullPathToMetricsTxt = null;
+      }
+    }
 
-		public void setFail(boolean fail) {
-			this.fail = fail;
-		}
+    public boolean shouldMerge() {
+      return shouldMerge;
+    }
 
-		public String[] getFullPathsToInputBams() {
-			return fullPathsToInputBams;
-		}
+    public boolean isFail() {
+      return fail;
+    }
 
-		public String getOutputDir() {
-			return outputDir;
-		}
+    public void setFail(boolean fail) {
+      this.fail = fail;
+    }
 
-		public String getFullPathToMergedDedupedBam() {
-			return fullPathToMergedDedupedBam;
-		}
+    public String[] getFullPathsToInputBams() {
+      return fullPathsToInputBams;
+    }
 
-		public String getFullPathToMergedDedupedBamFileIndex() {
-			return fullPathToMergedDedupedBamFileIndex;
-		}
+    public String getOutputDir() {
+      return outputDir;
+    }
 
-		public String getFullPathToMetricsTxt() {
-			return fullPathToMetricsTxt;
-		}
+    public String getFullPathToMergedDedupedBam() {
+      return fullPathToMergedDedupedBam;
+    }
 
-		public String getBaseID() {
-			return baseID;
-		}
+    public String getFullPathToMergedDedupedBamFileIndex() {
+      return fullPathToMergedDedupedBamFileIndex;
+    }
 
-		public Logger getLog() {
-			return log;
-		}
+    public String getFullPathToMetricsTxt() {
+      return fullPathToMetricsTxt;
+    }
 
+    public String getBaseID() {
+      return baseID;
+    }
 
-	}
+    public Logger getLog() {
+      return log;
+    }
 
+  }
 
-	public static class PicardAnalysis {
-		public static final String SORTED = ".sorted";
+  public static class PicardAnalysis {
 
-		private final String fullPathToSamFile;
-		private String fullPathToSortedBamFile;
-		private String fullPathToSortedDeDuppedBamFile;
-		private String fullPathToSortedDeDuppedBamFileIndex;
-		private String fullPathToMetricsTxt;
-		private final String baseID;
-		private String newBaseID;
-		private boolean allThere, fail;
-		private final Logger log;
-		private String barcode;
+    public static final String SORTED = ".sorted";
 
-		public PicardAnalysis(String baseId, String fullPathToSamFile, Logger log) {
-			super();
-			baseID = baseId;
-			this.fullPathToSamFile = fullPathToSamFile;
-			fail = false;
-			this.log = log;
-		}
+    private final String fullPathToSamFile;
+    private String fullPathToSortedBamFile;
+    private String fullPathToSortedDeDuppedBamFile;
+    private String fullPathToSortedDeDuppedBamFileIndex;
+    private String fullPathToMetricsTxt;
+    private final String baseID;
+    private String newBaseID;
+    private boolean allThere, fail;
+    private final Logger log;
+    private String barcode;
 
-		public Logger getLog() {
-			return log;
-		}
+    public PicardAnalysis(String baseId, String fullPathToSamFile, Logger log) {
+      super();
+      baseID = baseId;
+      this.fullPathToSamFile = fullPathToSamFile;
+      fail = false;
+      this.log = log;
+    }
 
-		public String getBaseID() {
-			return baseID;
-		}
+    public Logger getLog() {
+      return log;
+    }
 
-		public String getNewBaseID() {
-			return newBaseID;
-		}
+    public String getBaseID() {
+      return baseID;
+    }
 
-		public void setNewBaseID(String newBaseId) {
-			this.newBaseID = newBaseId;
-		}
+    public String getNewBaseID() {
+      return newBaseID;
+    }
 
-		public void parseInput() {
-			fullPathToSortedBamFile = ext.rootOf(fullPathToSamFile, false) + SORTED + BAM;
-			fullPathToSortedDeDuppedBamFile = ext.addToRoot(fullPathToSortedBamFile, DE_DUPPED);
-			fullPathToMetricsTxt = ext.rootOf(fullPathToSortedDeDuppedBamFile, false) + METRICS;
-			fullPathToSortedDeDuppedBamFileIndex = ext.rootOf(fullPathToSortedDeDuppedBamFile, false)
-																						 + INDEXED;
-			if (baseID.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
-				barcode = "";
-				log.reportTimeWarning("The current baseId " + baseID + " did not have 3 "
-															+ BWA_Analysis.FileNameParser.SPLIT
-															+ " - delimited fields, assuming no barcodes are present in the ids");
-			} else {
-				barcode = baseID.split(BWA_Analysis.FileNameParser.SPLIT)[2];
-			}
-		}
+    public void setNewBaseID(String newBaseId) {
+      this.newBaseID = newBaseId;
+    }
 
-		public String getFullPathToMetricsTxt() {
-			return fullPathToMetricsTxt;
-		}
+    public void parseInput() {
+      fullPathToSortedBamFile = ext.rootOf(fullPathToSamFile, false) + SORTED + BAM;
+      fullPathToSortedDeDuppedBamFile = ext.addToRoot(fullPathToSortedBamFile, DE_DUPPED);
+      fullPathToMetricsTxt = ext.rootOf(fullPathToSortedDeDuppedBamFile, false) + METRICS;
+      fullPathToSortedDeDuppedBamFileIndex = ext.rootOf(fullPathToSortedDeDuppedBamFile, false)
+                                             + INDEXED;
+      if (baseID.split(BWA_Analysis.FileNameParser.SPLIT).length != 3) {
+        barcode = "";
+        log.reportTimeWarning("The current baseId " + baseID + " did not have 3 "
+                              + BWA_Analysis.FileNameParser.SPLIT
+                              + " - delimited fields, assuming no barcodes are present in the ids");
+      } else {
+        barcode = baseID.split(BWA_Analysis.FileNameParser.SPLIT)[2];
+      }
+    }
 
-		public String getFullPathToSamFile() {
-			return fullPathToSamFile;
-		}
+    public String getFullPathToMetricsTxt() {
+      return fullPathToMetricsTxt;
+    }
 
-		public String getFullPathToSortedBamFile() {
-			return fullPathToSortedBamFile;
-		}
+    public String getFullPathToSamFile() {
+      return fullPathToSamFile;
+    }
 
-		public String getFullPathToSortedDeDuppedBamFile() {
-			return fullPathToSortedDeDuppedBamFile;
-		}
+    public String getFullPathToSortedBamFile() {
+      return fullPathToSortedBamFile;
+    }
 
-		public String getFullPathToSortedDeDuppedBamFileIndex() {
-			return fullPathToSortedDeDuppedBamFileIndex;
-		}
+    public String getFullPathToSortedDeDuppedBamFile() {
+      return fullPathToSortedDeDuppedBamFile;
+    }
 
-		public boolean isAllThere() {
-			return allThere;
-		}
+    public String getFullPathToSortedDeDuppedBamFileIndex() {
+      return fullPathToSortedDeDuppedBamFileIndex;
+    }
 
-		public void setAllThere(boolean allThere) {
-			this.allThere = allThere;
-		}
+    public boolean isAllThere() {
+      return allThere;
+    }
 
-		public boolean isFail() {
-			return fail;
-		}
+    public void setAllThere(boolean allThere) {
+      this.allThere = allThere;
+    }
 
-		public void setFail(boolean fail) {
-			this.fail = fail;
-		}
+    public boolean isFail() {
+      return fail;
+    }
 
-		public String getBarcode() {
-			return barcode;
-		}
+    public void setFail(boolean fail) {
+      this.fail = fail;
+    }
 
-		public void setBarcode(String barcode) {
-			this.barcode = barcode;
-		}
+    public String getBarcode() {
+      return barcode;
+    }
 
-	}
+    public void setBarcode(String barcode) {
+      this.barcode = barcode;
+    }
 
-	public static class PicardMetricsParser {
-		public static final String[] PICARD_METRICS = {"LIBRARY", "UNPAIRED_READS_EXAMINED",
-																									 "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
-																									 "UNPAIRED_READ_DUPLICATES",
-																									 "READ_PAIR_DUPLICATES",
-																									 "READ_PAIR_OPTICAL_DUPLICATES",
-																									 "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
-		private final String[] picardMetricsFiles;
-		private final double[][] consolidatedMetrics;
-		private final boolean fail;
+  }
 
-		private final Logger log;
+  public static class PicardMetricsParser {
 
-		public PicardMetricsParser(String[] picardMetricsFiles, Logger log) {
-			super();
-			this.picardMetricsFiles = picardMetricsFiles;
-			consolidatedMetrics = new double[picardMetricsFiles.length][PICARD_METRICS.length];
-			fail = false;
-			this.log = log;
-		}
+    public static final String[] PICARD_METRICS = {"LIBRARY", "UNPAIRED_READS_EXAMINED",
+                                                   "READ_PAIRS_EXAMINED", "UNMAPPED_READS",
+                                                   "UNPAIRED_READ_DUPLICATES",
+                                                   "READ_PAIR_DUPLICATES",
+                                                   "READ_PAIR_OPTICAL_DUPLICATES",
+                                                   "PERCENT_DUPLICATION", "ESTIMATED_LIBRARY_SIZE"};
+    private final String[] picardMetricsFiles;
+    private final double[][] consolidatedMetrics;
+    private final boolean fail;
 
-		public void parse(String outputSummaryFile) {
-			parseMetricsFiles();
-			try {
-				PrintWriter writer = Files.openAppropriateWriter(outputSummaryFile);
-				writer.println("SAMPLE\t" + ArrayUtils.toStr(PICARD_METRICS));
-				for (int i = 0; i < consolidatedMetrics.length; i++) {
-					writer.println(ext.rootOf(picardMetricsFiles[i]) + "\t"
-												 + ArrayUtils.toStr(consolidatedMetrics[i]));
-				}
-				writer.close();
-			} catch (Exception e) {
-				log.reportError("Error writing to " + outputSummaryFile);
-				log.reportException(e);
-			}
-		}
+    private final Logger log;
 
-		private void parseMetricsFiles() {
-			for (int i = 0; i < picardMetricsFiles.length; i++) {
-				consolidatedMetrics[i] = getMetricsFromFile(picardMetricsFiles[i], log);
-			}
-		}
+    public PicardMetricsParser(String[] picardMetricsFiles, Logger log) {
+      super();
+      this.picardMetricsFiles = picardMetricsFiles;
+      consolidatedMetrics = new double[picardMetricsFiles.length][PICARD_METRICS.length];
+      fail = false;
+      this.log = log;
+    }
 
-		public boolean isFail() {
-			return fail;
-		}
+    public void parse(String outputSummaryFile) {
+      parseMetricsFiles();
+      try {
+        PrintWriter writer = Files.openAppropriateWriter(outputSummaryFile);
+        writer.println("SAMPLE\t" + ArrayUtils.toStr(PICARD_METRICS));
+        for (int i = 0; i < consolidatedMetrics.length; i++) {
+          writer.println(ext.rootOf(picardMetricsFiles[i]) + "\t"
+                         + ArrayUtils.toStr(consolidatedMetrics[i]));
+        }
+        writer.close();
+      } catch (Exception e) {
+        log.reportError("Error writing to " + outputSummaryFile);
+        log.reportException(e);
+      }
+    }
 
-		private static double[] getMetricsFromFile(String picardMetricsFile, Logger log) {
-			double[] curMetrics = new double[PICARD_METRICS.length];
-			Arrays.fill(curMetrics, Double.NaN);
-			try {
-				BufferedReader reader = Files.getAppropriateReader(picardMetricsFile);
-				String[] line;
-				do {
-					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				} while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
-																										 true, false)[0] == -1));
-				if (!reader.ready()) {
-					log.reportError("Error - could not find neccesary header "
-													+ ArrayUtils.toStr(PICARD_METRICS) + " in file " + picardMetricsFile);
-				} else {
-					int[] indices = ext.indexFactors(PICARD_METRICS, line, true);
-					line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-					for (int i = 0; i < indices.length; i++) {
-						try {
-							curMetrics[i] = Double.parseDouble(line[indices[i]]);
-						} catch (NumberFormatException numberFormatException) {
-							log.reportError("Error - invalid number on line " + ArrayUtils.toStr(line)
-															+ " in file " + picardMetricsFile);
-						}
-					}
-				}
-				reader.close();
-			} catch (FileNotFoundException fnfe) {
-				log.reportError("Error: file \"" + picardMetricsFile + "\" not found in current directory");
+    private void parseMetricsFiles() {
+      for (int i = 0; i < picardMetricsFiles.length; i++) {
+        consolidatedMetrics[i] = getMetricsFromFile(picardMetricsFiles[i], log);
+      }
+    }
 
-			} catch (IOException ioe) {
-				log.reportError("Error reading file \"" + picardMetricsFile + "\"");
+    public boolean isFail() {
+      return fail;
+    }
 
-			}
-			return curMetrics;
+    private static double[] getMetricsFromFile(String picardMetricsFile, Logger log) {
+      double[] curMetrics = new double[PICARD_METRICS.length];
+      Arrays.fill(curMetrics, Double.NaN);
+      try {
+        BufferedReader reader = Files.getAppropriateReader(picardMetricsFile);
+        String[] line;
+        do {
+          line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        } while (reader.ready() && (ext.indexFactors(new String[][] {PICARD_METRICS}, line, false,
+                                                     true, false)[0] == -1));
+        if (!reader.ready()) {
+          log.reportError("Error - could not find neccesary header "
+                          + ArrayUtils.toStr(PICARD_METRICS) + " in file " + picardMetricsFile);
+        } else {
+          int[] indices = ext.indexFactors(PICARD_METRICS, line, true);
+          line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+          for (int i = 0; i < indices.length; i++) {
+            try {
+              curMetrics[i] = Double.parseDouble(line[indices[i]]);
+            } catch (NumberFormatException numberFormatException) {
+              log.reportError("Error - invalid number on line " + ArrayUtils.toStr(line)
+                              + " in file " + picardMetricsFile);
+            }
+          }
+        }
+        reader.close();
+      } catch (FileNotFoundException fnfe) {
+        log.reportError("Error: file \"" + picardMetricsFile + "\" not found in current directory");
 
-		}
-	}
+      } catch (IOException ioe) {
+        log.reportError("Error reading file \"" + picardMetricsFile + "\"");
+
+      }
+      return curMetrics;
+
+    }
+  }
 
 }

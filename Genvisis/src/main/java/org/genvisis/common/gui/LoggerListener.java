@@ -12,73 +12,72 @@ import org.genvisis.common.Logger;
  */
 public class LoggerListener extends AbstractTaskListener {
 
-	private final Logger log;
-	private final boolean logText;
+  private final Logger log;
+  private final boolean logText;
 
-	/**
-	 * @see {@link #LoggerListener(Logger, boolean, String...)}
-	 */
-	public LoggerListener(Logger log, String... ids) {
-		this(log, false, ids);
-	}
+  /**
+   * @see {@link #LoggerListener(Logger, boolean, String...)}
+   */
+  public LoggerListener(Logger log, String... ids) {
+    this(log, false, ids);
+  }
 
-	/**
-	 * @param log {@link Logger} instance to report to
-	 * @param logText If true, attached {@code Logger} will also report to console. Default:
-	 *        {@code false}
-	 * @param channels See {@link AbstractTaskListener#AbstractTaskListener(String...)}
-	 */
-	public LoggerListener(Logger log, boolean logText, String... channels) {
-		super(channels);
-		this.log = log;
-		this.logText = logText;
-	}
+  /**
+   * @param log {@link Logger} instance to report to
+   * @param logText If true, attached {@code Logger} will also report to console. Default:
+   *          {@code false}
+   * @param channels See {@link AbstractTaskListener#AbstractTaskListener(String...)}
+   */
+  public LoggerListener(Logger log, boolean logText, String... channels) {
+    super(channels);
+    this.log = log;
+    this.logText = logText;
+  }
 
-	@Override
-	public void listen(Task<?, ?> task) {
-		super.listen(task);
-	}
+  @Override
+  public void listen(Task<?, ?> task) {
+    super.listen(task);
+  }
 
-	@Override
-	public void showProgress(int progress) {
-		report("Progress: " + progress);
-	}
+  @Override
+  public void showProgress(int progress) {
+    report("Progress: " + progress);
+  }
 
-	@Override
-	public void cancelled() {
-		report("Task cancelled.");
-	}
+  @Override
+  public void cancelled() {
+    report("Task cancelled.");
+  }
 
-	@Override
-	public void start() {
-		report("Task started.");
-	}
+  @Override
+  public void start() {
+    report("Task started.");
+  }
 
-	@Override
-	public void done() {
-		report("Complete.", false);
-	}
+  @Override
+  public void done() {
+    report("Complete.", false);
+  }
 
-	/**
-	 * Report a message for active tasks.
-	 *
-	 * @see {@link #report(String, boolean)}
-	 */
-	private void report(String msg) {
-		report(msg, true);
-	}
+  /**
+   * Report a message for active tasks.
+   *
+   * @see {@link #report(String, boolean)}
+   */
+  private void report(String msg) {
+    report(msg, true);
+  }
 
-	/**
-	 * Helper method to report the {@link Task#id()}s and {@link Task#channel()}s, with a status
-	 * message
-	 *
-	 * @param msg Message to append
-	 * @param active If true, only report active tasks.
-	 */
-	private void report(String msg, boolean active) {
-		String ids = active ? activeIDs() : ids();
-		String channels = active ? activeChannels() : channels();
-		log.report("ID(s): " + ids + "; CH(s): " + channels + "; " + msg,
-							 true, logText);
-	}
+  /**
+   * Helper method to report the {@link Task#id()}s and {@link Task#channel()}s, with a status
+   * message
+   *
+   * @param msg Message to append
+   * @param active If true, only report active tasks.
+   */
+  private void report(String msg, boolean active) {
+    String ids = active ? activeIDs() : ids();
+    String channels = active ? activeChannels() : channels();
+    log.report("ID(s): " + ids + "; CH(s): " + channels + "; " + msg, true, logText);
+  }
 }

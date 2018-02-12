@@ -13,15 +13,15 @@ import java.util.List;
  */
 public interface StartupCheck {
 
-	/**
-	 * Perform any necessary validation.
-	 *
-	 * @return A list of messages to report based on the check results.
-	 */
-	List<String> check();
+  /**
+   * Perform any necessary validation.
+   *
+   * @return A list of messages to report based on the check results.
+   */
+  List<String> check();
 
-	/**
-	 * @return True if this startup check requires an internet connection
-	 */
-	boolean requiresRemote();
+  /**
+   * @return True if this startup check requires an internet connection
+   */
+  boolean requiresRemote();
 }

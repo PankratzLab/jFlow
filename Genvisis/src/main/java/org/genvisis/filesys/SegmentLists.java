@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Vector;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -12,107 +11,108 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 
 public class SegmentLists implements Serializable, PlainTextExport {
-	public static final long serialVersionUID = 1L;
 
-	private final Segment[][] lists;
+  public static final long serialVersionUID = 1L;
 
-	public SegmentLists(Segment[][] lists) {
-		this.lists = lists;
-	}
+  private final Segment[][] lists;
 
-	public Segment[][] getLists() {
-		return lists;
-	}
+  public SegmentLists(Segment[][] lists) {
+    this.lists = lists;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public Segment[][] getLists() {
+    return lists;
+  }
 
-	@Override
-	public void exportToText(String outputFile, Logger log) {
-		PrintWriter writer;
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
-		writer = Files.getAppropriateWriter(outputFile);
-		writer.println("Chr\tStart\tStop");
-		for (Segment[] segList : lists) {
-			for (Segment seg : segList) {
-				writer.println(seg.toAnalysisString());
-			}
-		}
-		writer.flush();
-		writer.close();
-	}
+  @Override
+  public void exportToText(String outputFile, Logger log) {
+    PrintWriter writer;
 
-	public static SegmentLists parseUCSCSegmentList(String filename, boolean ignoreFirstLine) {
-		Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
-		Vector<Segment> vSegs;
-		Segment[][] lists;
-		int[] chrs;
-		Segment[] segs = null;
+    writer = Files.getAppropriateWriter(outputFile);
+    writer.println("Chr\tStart\tStop");
+    for (Segment[] segList : lists) {
+      for (Segment seg : segList) {
+        writer.println(seg.toAnalysisString());
+      }
+    }
+    writer.flush();
+    writer.close();
+  }
 
-		segs = Segment.loadUCSCregions(filename, ignoreFirstLine);
+  public static SegmentLists parseUCSCSegmentList(String filename, boolean ignoreFirstLine) {
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Vector<Segment> vSegs;
+    Segment[][] lists;
+    int[] chrs;
+    Segment[] segs = null;
 
-		for (Segment seg : segs) {
-			if (hash.containsKey(seg.getChr() + "")) {
-				vSegs = hash.get(seg.getChr() + "");
-			} else {
-				hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
-			}
-			vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
-		}
-		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
-		// lists = new Segment[Array.max(chrs)+1][];
-		lists = new Segment[27][];
-		for (int i = 0; i < chrs.length; i++) {
-			vSegs = hash.get(chrs[i] + "");
-			Segment.mergeOverlapsAndSort(vSegs);
-			lists[chrs[i]] = Segment.toArray(vSegs);
-		}
+    segs = Segment.loadUCSCregions(filename, ignoreFirstLine);
 
-		return new SegmentLists(lists);
-	}
+    for (Segment seg : segs) {
+      if (hash.containsKey(seg.getChr() + "")) {
+        vSegs = hash.get(seg.getChr() + "");
+      } else {
+        hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
+      }
+      vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
+    }
+    chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
+    // lists = new Segment[Array.max(chrs)+1][];
+    lists = new Segment[27][];
+    for (int i = 0; i < chrs.length; i++) {
+      vSegs = hash.get(chrs[i] + "");
+      Segment.mergeOverlapsAndSort(vSegs);
+      lists[chrs[i]] = Segment.toArray(vSegs);
+    }
 
-	/**
-	 * Overloaded function to make a {@link SegmentList} of {@link Segment} sorted by arranged by chr
-	 * Use getLists() function to get the list of segments as Segment[][]
-	 *
-	 * @param filename: name of the file containing segments
-	 * @param chrCol: column number of chr
-	 * @param startCol: column number of starting position
-	 * @param stopCol: column number of stopping position
-	 * @param ignoreFirstLine: boolean to decide whether to ignore first line or not
-	 * @return a {@link SegmentList} of {@link Segment} sorted by arranged by chr
-	 */
-	public static SegmentLists parseSegmentList(String filename, int chrCol, int startCol,
-																							int stopCol, boolean ignoreFirstLine) {
-		Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
-		Vector<Segment> vSegs;
-		Segment[][] lists;
-		int[] chrs;
-		Segment[] segs = null;
+    return new SegmentLists(lists);
+  }
 
-		segs = Segment.loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine);
+  /**
+   * Overloaded function to make a {@link SegmentList} of {@link Segment} sorted by arranged by chr
+   * Use getLists() function to get the list of segments as Segment[][]
+   *
+   * @param filename: name of the file containing segments
+   * @param chrCol: column number of chr
+   * @param startCol: column number of starting position
+   * @param stopCol: column number of stopping position
+   * @param ignoreFirstLine: boolean to decide whether to ignore first line or not
+   * @return a {@link SegmentList} of {@link Segment} sorted by arranged by chr
+   */
+  public static SegmentLists parseSegmentList(String filename, int chrCol, int startCol,
+                                              int stopCol, boolean ignoreFirstLine) {
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Vector<Segment> vSegs;
+    Segment[][] lists;
+    int[] chrs;
+    Segment[] segs = null;
 
-		for (Segment seg : segs) {
-			if (hash.containsKey(seg.getChr() + "")) {
-				vSegs = hash.get(seg.getChr() + "");
-			} else {
-				hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
-			}
-			vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
-		}
-		chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
-		lists = new Segment[27][];
-		for (int i = 0; i < chrs.length; i++) {
-			vSegs = hash.get(chrs[i] + "");
-			Segment.mergeOverlapsAndSort(vSegs);
-			lists[chrs[i]] = Segment.toArray(vSegs);
-		}
+    segs = Segment.loadRegions(filename, chrCol, startCol, stopCol, ignoreFirstLine);
 
-		return new SegmentLists(lists);
-	}
+    for (Segment seg : segs) {
+      if (hash.containsKey(seg.getChr() + "")) {
+        vSegs = hash.get(seg.getChr() + "");
+      } else {
+        hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
+      }
+      vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
+    }
+    chrs = ArrayUtils.toIntArray(HashVec.getKeys(hash));
+    lists = new Segment[27][];
+    for (int i = 0; i < chrs.length; i++) {
+      vSegs = hash.get(chrs[i] + "");
+      Segment.mergeOverlapsAndSort(vSegs);
+      lists[chrs[i]] = Segment.toArray(vSegs);
+    }
 
-	public static SegmentLists load(String filename) {
-		return (SegmentLists) SerializedFiles.readSerial(filename, true);
-	}
+    return new SegmentLists(lists);
+  }
+
+  public static SegmentLists load(String filename) {
+    return (SegmentLists) SerializedFiles.readSerial(filename, true);
+  }
 }

@@ -5,11 +5,9 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -25,121 +23,124 @@ import org.genvisis.common.ext;
  * </p>
  */
 public class RegionNavigator extends JPanel {
-	private static final long serialVersionUID = 1L;
 
-	public static final String FIRST_CHR = "First chr";
-	public static final String PREVIOUS_CHR = "Previous chr";
-	public static final String NEXT_CHR = "Next chr";
-	public static final String LAST_CHR = "Last chr";
-	public static final String NAV_CHR = "Chr navigation field";
-	private static final Font FONT = new Font("Arial", 0, 14);
-	private static final int LINE_HEIGHT = 20;
-	private static final String[] PREV_BTN = {"images/firstLast/Left.gif",
-																						"images/firstLast/dLeft.gif"};
-	private static final String[] NEXT_BTN = {"images/firstLast/Right.gif",
-																						"images/firstLast/dRight.gif"};
-	private static final String[] FIRST_BTN = {"images/firstLast/First.gif",
-																						 "images/firstLast/dFirst.gif"};
-	private static final String[] LAST_BTN = {"images/firstLast/Last.gif",
-																						"images/firstLast/dLast.gif"};
+  private static final long serialVersionUID = 1L;
 
-	private final JTextField chrNavField = new JTextField("", LINE_HEIGHT);
+  public static final String FIRST_CHR = "First chr";
+  public static final String PREVIOUS_CHR = "Previous chr";
+  public static final String NEXT_CHR = "Next chr";
+  public static final String LAST_CHR = "Last chr";
+  public static final String NAV_CHR = "Chr navigation field";
+  private static final Font FONT = new Font("Arial", 0, 14);
+  private static final int LINE_HEIGHT = 20;
+  private static final String[] PREV_BTN = {"images/firstLast/Left.gif",
+                                            "images/firstLast/dLeft.gif"};
+  private static final String[] NEXT_BTN = {"images/firstLast/Right.gif",
+                                            "images/firstLast/dRight.gif"};
+  private static final String[] FIRST_BTN = {"images/firstLast/First.gif",
+                                             "images/firstLast/dFirst.gif"};
+  private static final String[] LAST_BTN = {"images/firstLast/Last.gif",
+                                            "images/firstLast/dLast.gif"};
 
-	private final ChrNavigator chrNav;
+  private final JTextField chrNavField = new JTextField("", LINE_HEIGHT);
 
-	public static final String DEFAULT_LOCATION = "chr1";
+  private final ChrNavigator chrNav;
 
-	// public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
+  public static final String DEFAULT_LOCATION = "chr1";
 
-	/**
-	 * Create the panel.
-	 */
-	public RegionNavigator(ChrNavigator cNav) {
-		((FlowLayout) getLayout()).setVgap(0);
-		chrNav = cNav;
+  // public static final String DEFAULT_LOCATION = "chr6:161,624,000-163,776,000"; // PARK2 region
 
-		ActionListener al = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
-				final String command = ae.getActionCommand();
+  /**
+   * Create the panel.
+   */
+  public RegionNavigator(ChrNavigator cNav) {
+    ((FlowLayout) getLayout()).setVgap(0);
+    chrNav = cNav;
 
-				if (command.equals(RegionNavigator.FIRST_CHR)) {
-					chrNav.setPosition("chr" + cNav.getFirstAvailableChr());
-				} else if (command.equals(RegionNavigator.PREVIOUS_CHR)) {
-					chrNav.setPosition("chr" + Math.max(getChr() - 1, 1));
-				} else if (command.equals(RegionNavigator.NEXT_CHR)) {
-					chrNav.setPosition("chr" + Math.min(getChr() + 1, 26));
-				} else if (command.equals(RegionNavigator.LAST_CHR)) {
-					chrNav.setPosition("chr" + cNav.getLastAvailableChr());
-				} else if (command.equals(RegionNavigator.NAV_CHR)) {
-					chrNav.setPosition(getChrText());
-				}
-			}
-		};
+    ActionListener al = new ActionListener() {
 
-		// Chromosome navigation
-		addButton(al, FIRST_CHR, "Go to first chromosome", FIRST_BTN);
-		addButton(al, PREVIOUS_CHR, "Go to previous chromosome", PREV_BTN);
-		addTextField(chrNavField, al, NAV_CHR);
-		addButton(al, NEXT_CHR, "Go to next chromosome", NEXT_BTN);
-		addButton(al, LAST_CHR, "Go to last chromosome", LAST_BTN);
-	}
+      @Override
+      public void actionPerformed(ActionEvent ae) {
+        final String command = ae.getActionCommand();
 
-	public void setChrFieldText(byte chr, int start, int stop) {
-		chrNavField.setText(chr == 0 ? "all" : "chr" + chr + ":" + ext.addCommas(start) + "-"
-																					 + ext.addCommas(stop));
-	}
+        if (command.equals(RegionNavigator.FIRST_CHR)) {
+          chrNav.setPosition("chr" + cNav.getFirstAvailableChr());
+        } else if (command.equals(RegionNavigator.PREVIOUS_CHR)) {
+          chrNav.setPosition("chr" + Math.max(getChr() - 1, 1));
+        } else if (command.equals(RegionNavigator.NEXT_CHR)) {
+          chrNav.setPosition("chr" + Math.min(getChr() + 1, 26));
+        } else if (command.equals(RegionNavigator.LAST_CHR)) {
+          chrNav.setPosition("chr" + cNav.getLastAvailableChr());
+        } else if (command.equals(RegionNavigator.NAV_CHR)) {
+          chrNav.setPosition(getChrText());
+        }
+      }
+    };
 
-	/**
-	 * Get current contents of the chromosome navfield
-	 */
-	public String getChrText() {
-		return chrNavField.getText().trim();
-	}
+    // Chromosome navigation
+    addButton(al, FIRST_CHR, "Go to first chromosome", FIRST_BTN);
+    addButton(al, PREVIOUS_CHR, "Go to previous chromosome", PREV_BTN);
+    addTextField(chrNavField, al, NAV_CHR);
+    addButton(al, NEXT_CHR, "Go to next chromosome", NEXT_BTN);
+    addButton(al, LAST_CHR, "Go to last chromosome", LAST_BTN);
+  }
 
-	public int getChr() {
-		return Positions.parseUCSClocation(chrNavField.getText().trim())[0];
-	}
+  public void setChrFieldText(byte chr, int start, int stop) {
+    chrNavField.setText(chr == 0 ? "all" : "chr" + chr + ":" + ext.addCommas(start) + "-"
+                                           + ext.addCommas(stop));
+  }
 
-	private void addButton(ActionListener al, String command, String toolTip, String[] icons) {
-		JButton btn = new JButton(Grafik.getImageIcon(icons[0]));
-		btn.setDisabledIcon(Grafik.getImageIcon(icons[1]));
-		btn.addActionListener(al);
-		btn.setActionCommand(command);
-		btn.setPreferredSize(new Dimension(LINE_HEIGHT, LINE_HEIGHT));
-		btn.setToolTipText(toolTip);
-		add(btn);
-	}
+  /**
+   * Get current contents of the chromosome navfield
+   */
+  public String getChrText() {
+    return chrNavField.getText().trim();
+  }
 
-	private void addTextField(JTextField navField, ActionListener al, String command) {
-		navField.setHorizontalAlignment(JTextField.CENTER);
-		navField.setActionCommand(command);
-		navField.setFont(FONT);
-		navField.addActionListener(al);
-		add(navField);
-	}
+  public int getChr() {
+    return Positions.parseUCSClocation(chrNavField.getText().trim())[0];
+  }
 
-	/**
-	 * Marker interface for plots that allow direct navigation between chromosomal positions.
-	 */
-	public static interface ChrNavigator {
-		/**
-		 * Update the position of this plot to the specified location.
-		 *
-		 * @param chr A string representation of chromosome location, according to
-		 *        {@link Positions#parseUCSClocation(String)}.
-		 */
-		void setPosition(String chr);
+  private void addButton(ActionListener al, String command, String toolTip, String[] icons) {
+    JButton btn = new JButton(Grafik.getImageIcon(icons[0]));
+    btn.setDisabledIcon(Grafik.getImageIcon(icons[1]));
+    btn.addActionListener(al);
+    btn.setActionCommand(command);
+    btn.setPreferredSize(new Dimension(LINE_HEIGHT, LINE_HEIGHT));
+    btn.setToolTipText(toolTip);
+    add(btn);
+  }
 
-		/**
-		 * @return the lowest available chromosome number
-		 */
-		byte getFirstAvailableChr();
+  private void addTextField(JTextField navField, ActionListener al, String command) {
+    navField.setHorizontalAlignment(JTextField.CENTER);
+    navField.setActionCommand(command);
+    navField.setFont(FONT);
+    navField.addActionListener(al);
+    add(navField);
+  }
 
-		/**
-		 * @return the highest available chromosome number
-		 */
-		byte getLastAvailableChr();
+  /**
+   * Marker interface for plots that allow direct navigation between chromosomal positions.
+   */
+  public static interface ChrNavigator {
 
-	}
+    /**
+     * Update the position of this plot to the specified location.
+     *
+     * @param chr A string representation of chromosome location, according to
+     *          {@link Positions#parseUCSClocation(String)}.
+     */
+    void setPosition(String chr);
+
+    /**
+     * @return the lowest available chromosome number
+     */
+    byte getFirstAvailableChr();
+
+    /**
+     * @return the highest available chromosome number
+     */
+    byte getLastAvailableChr();
+
+  }
 }

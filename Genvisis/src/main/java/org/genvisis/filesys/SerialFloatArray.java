@@ -2,42 +2,42 @@ package org.genvisis.filesys;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-
 import org.genvisis.common.Files;
 import org.genvisis.common.SerializedFiles;
 
 public class SerialFloatArray implements Serializable {
-	public static final long serialVersionUID = 1L;
-	private final float[] array;
 
-	public SerialFloatArray(float[] array) {
-		this.array = array;
-	}
+  public static final long serialVersionUID = 1L;
+  private final float[] array;
 
-	public float[] getArray() {
-		return array;
-	}
+  public SerialFloatArray(float[] array) {
+    this.array = array;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public float[] getArray() {
+    return array;
+  }
 
-	public static SerialFloatArray load(String filename) {
-		return (SerialFloatArray) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
-	public static void dump(String filename) {
-		float[] all = load(filename).getArray();
+  public static SerialFloatArray load(String filename) {
+    return (SerialFloatArray) SerializedFiles.readSerial(filename, true);
+  }
 
-		try {
-			PrintWriter writer = Files.openAppropriateWriter(filename + ".xln");
-			for (float element : all) {
-				writer.println(element);
-			}
-			writer.close();
-		} catch (Exception e) {
-			System.err.println("Error writing to " + filename + ".xln");
-			e.printStackTrace();
-		}
-	}
+  public static void dump(String filename) {
+    float[] all = load(filename).getArray();
+
+    try {
+      PrintWriter writer = Files.openAppropriateWriter(filename + ".xln");
+      for (float element : all) {
+        writer.println(element);
+      }
+      writer.close();
+    } catch (Exception e) {
+      System.err.println("Error writing to " + filename + ".xln");
+      e.printStackTrace();
+    }
+  }
 }

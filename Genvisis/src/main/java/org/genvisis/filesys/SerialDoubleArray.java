@@ -1,26 +1,26 @@
 package org.genvisis.filesys;
 
 import java.io.Serializable;
-
 import org.genvisis.common.SerializedFiles;
 
 public class SerialDoubleArray implements Serializable {
-	public static final long serialVersionUID = 1L;
-	private final double[] array;
 
-	public SerialDoubleArray(double[] array) {
-		this.array = array;
-	}
+  public static final long serialVersionUID = 1L;
+  private final double[] array;
 
-	public double[] getArray() {
-		return array;
-	}
+  public SerialDoubleArray(double[] array) {
+    this.array = array;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public double[] getArray() {
+    return array;
+  }
 
-	public static SerialDoubleArray load(String filename) {
-		return (SerialDoubleArray) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
+
+  public static SerialDoubleArray load(String filename) {
+    return (SerialDoubleArray) SerializedFiles.readSerial(filename, true);
+  }
 }

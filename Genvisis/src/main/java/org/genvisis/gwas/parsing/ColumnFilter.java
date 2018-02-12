@@ -7,15 +7,15 @@ import java.util.List;
  * rather than implementing this interface.
  */
 public interface ColumnFilter {
-	/**
-	 * @return a list of {@link FileColumn} objects that this filter uses for filtering.
-	 */
-	public List<FileColumn<?>> getFilterColumns();
 
-	/**
-	 * 
-	 * @param values Line of data.
-	 * @return Whether the given line of data passes this filter.
-	 */
-	public boolean filter(DataLine values);
+  /**
+   * @return a list of {@link FileColumn} objects that this filter uses for filtering.
+   */
+  public List<FileColumn<?>> getFilterColumns();
+
+  /**
+   * @param values Line of data.
+   * @return Whether the given line of data passes this filter.
+   */
+  public boolean filter(DataLine values);
 }

@@ -8,10 +8,10 @@ import javax.swing.SwingWorker;
  */
 public abstract class SimpleTask extends Task<String, String> {
 
-	/**
-	 * @see {@link Task#Task(String, int)}
-	 */
-	public SimpleTask(String channel, int numSteps) {
-		super(channel, numSteps);
-	}
+  /**
+   * @see {@link Task#Task(String, int)}
+   */
+  public SimpleTask(String channel, int numSteps) {
+    super(channel, numSteps);
+  }
 }

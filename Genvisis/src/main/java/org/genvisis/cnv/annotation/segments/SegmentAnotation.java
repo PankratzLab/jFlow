@@ -10,35 +10,28 @@ import java.util.Map;
 
 /**
  * @author Kitty
- *
  */
 public class SegmentAnotation implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private Map<String, List<String>> attributes;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private Map<String, List<String>> attributes;
 
+  /**
+   * Currently designed to store keys associated with {@link SegmentAnnotationKeys}
+   */
+  public SegmentAnotation() {
+    super();
+    this.attributes = new HashMap<String, List<String>>();
+  }
 
-
-	/**
-	 * Currently designed to store keys associated with {@link SegmentAnnotationKeys}
-	 */
-	public SegmentAnotation() {
-		super();
-		this.attributes = new HashMap<String, List<String>>();
-	}
-
-
-
-	/**
-	 * @return the attribute map
-	 */
-	public Map<String, List<String>> getAttributes() {
-		return attributes;
-	}
-
-
+  /**
+   * @return the attribute map
+   */
+  public Map<String, List<String>> getAttributes() {
+    return attributes;
+  }
 
 }

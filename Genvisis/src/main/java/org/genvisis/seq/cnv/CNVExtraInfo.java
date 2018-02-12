@@ -3,42 +3,43 @@ package org.genvisis.seq.cnv;
 import java.io.Serializable;
 
 public abstract class CNVExtraInfo implements Serializable {
-	public enum EXTRA_INFO_TYPE {
-		EXOME_DEPTH;
-	}
 
-	private static final long serialVersionUID = 1L;
-	protected String dExtra;
-	protected String sExtra;
-	protected boolean boolExtra;
-	protected EXTRA_INFO_TYPE type;
+  public enum EXTRA_INFO_TYPE {
+    EXOME_DEPTH;
+  }
 
-	public CNVExtraInfo(EXTRA_INFO_TYPE type) {
-		this.type = type;
-	}
+  private static final long serialVersionUID = 1L;
+  protected String dExtra;
+  protected String sExtra;
+  protected boolean boolExtra;
+  protected EXTRA_INFO_TYPE type;
 
-	public String getdExtra() {
-		return dExtra;
-	}
+  public CNVExtraInfo(EXTRA_INFO_TYPE type) {
+    this.type = type;
+  }
 
-	public void setdExtra(String dExtra) {
-		this.dExtra = dExtra;
-	}
+  public String getdExtra() {
+    return dExtra;
+  }
 
-	public String getsExtra() {
-		return sExtra;
-	}
+  public void setdExtra(String dExtra) {
+    this.dExtra = dExtra;
+  }
 
-	public void setsExtra(String sExtra) {
-		this.sExtra = sExtra;
-	}
+  public String getsExtra() {
+    return sExtra;
+  }
 
-	public boolean isBoolExtra() {
-		return boolExtra;
-	}
+  public void setsExtra(String sExtra) {
+    this.sExtra = sExtra;
+  }
 
-	public void setBoolExtra(boolean boolExtra) {
-		this.boolExtra = boolExtra;
-	}
+  public boolean isBoolExtra() {
+    return boolExtra;
+  }
+
+  public void setBoolExtra(boolean boolExtra) {
+    this.boolExtra = boolExtra;
+  }
 
 }

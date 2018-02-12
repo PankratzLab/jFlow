@@ -8,63 +8,62 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
-
 import org.genvisis.common.Files;
 import org.genvisis.common.Internat;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 
 public class temp {
-	public temp(String[] args) throws IOException {
-		BufferedReader reader = null;
-		PrintWriter writer = null;
-		String[] line;
-		String temp, trav, filename, dir;
-		Hashtable<String, String> hash;
-		// Vector<String> v = new Vector<String>();
-		int count;
-		long time;
 
+  public temp(String[] args) throws IOException {
+    BufferedReader reader = null;
+    PrintWriter writer = null;
+    String[] line;
+    String temp, trav, filename, dir;
+    Hashtable<String, String> hash;
+    // Vector<String> v = new Vector<String>();
+    int count;
+    long time;
 
-		for (int i = 219; i <= 219; i++) {
-			Internat.downloadFile("http://www.eperc.mcw.edu/FileLibrary/User/jrehm/fastfactpdfs/Concept"
-														+ ext.formNum(i, 3) + "2.pdf", "Concept" + ext.formNum(i, 3) + ".pdf");
-		}
+    for (int i = 219; i <= 219; i++) {
+      Internat.downloadFile("http://www.eperc.mcw.edu/FileLibrary/User/jrehm/fastfactpdfs/Concept"
+                            + ext.formNum(i, 3) + "2.pdf", "Concept" + ext.formNum(i, 3) + ".pdf");
+    }
 
-		System.exit(1);
+    System.exit(1);
 
-		dir = filename = trav = "";
-		time = new Date().getTime();
-		hash = new Hashtable<String, String>();
-		count = hash.size();
-		System.out.println(count);
-		try {
-			reader = new BufferedReader(new FileReader(dir + filename));
-			writer = Files.openAppropriateWriter(trav);
-			while (reader.ready()) {
-				line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-				temp = line[0];
-				count = temp.length();
-			}
-			writer.close();
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + dir + filename + "\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + dir + filename + "\"");
-			System.exit(2);
-		}
-		System.out.println(" in " + ext.getTimeElapsed(time));
-	}
+    dir = filename = trav = "";
+    time = new Date().getTime();
+    hash = new Hashtable<String, String>();
+    count = hash.size();
+    System.out.println(count);
+    try {
+      reader = new BufferedReader(new FileReader(dir + filename));
+      writer = Files.openAppropriateWriter(trav);
+      while (reader.ready()) {
+        line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        temp = line[0];
+        count = temp.length();
+      }
+      writer.close();
+      reader.close();
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error: file \"" + dir + filename + "\" not found in current directory");
+      System.exit(1);
+    } catch (IOException ioe) {
+      System.err.println("Error reading file \"" + dir + filename + "\"");
+      System.exit(2);
+    }
+    System.out.println(" in " + ext.getTimeElapsed(time));
+  }
 
-	public static void main(String[] args) throws IOException {
-		try {
-			new temp(args);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+  public static void main(String[] args) throws IOException {
+    try {
+      new temp(args);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }
 
 // for moving MACH files between systems...
@@ -108,8 +107,6 @@ public class temp {
 // }
 //
 // System.exit(1);
-
-
 
 // prove the same birthday in a room thing
 // int num = 23, reps = 10000000, count = 0;

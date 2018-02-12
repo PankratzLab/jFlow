@@ -1,9 +1,10 @@
 package org.genvisis.cnv.filesys;
 
 public interface ReadingFilePrep {
-	public void init();
 
-	public boolean validate();
+  public void init();
 
-	public void close();
+  public boolean validate();
+
+  public void close();
 }

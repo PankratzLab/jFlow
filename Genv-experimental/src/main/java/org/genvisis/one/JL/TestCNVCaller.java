@@ -6,18 +6,15 @@ import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 
 /**
  * Testing to correct https://github.com/PankratzLab/Genvisis/issues/88
- *
  */
 public class TestCNVCaller {
 
-	public static void main(String[] args) {
-		Project proj = new Project(
-															 "/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/gedi_gwas.properties");
+  public static void main(String[] args) {
+    Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/gedi_gwas.properties");
 
-		CNVCaller.callAutosomalCNVs(proj, "test.cnvs", new String[] {"4874928039_R01C01"}, null, null,
-																null,
-																CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
-																PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, 2, 4);
-	}
+    CNVCaller.callAutosomalCNVs(proj, "test.cnvs", new String[] {"4874928039_R01C01"}, null, null,
+                                null, CNVCaller.DEFAULT_MIN_SITES, CNVCaller.DEFAULT_MIN_CONF,
+                                PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, 2, 4);
+  }
 
 }

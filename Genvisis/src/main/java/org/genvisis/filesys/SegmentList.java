@@ -2,43 +2,43 @@ package org.genvisis.filesys;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 
 public class SegmentList implements Serializable, PlainTextExport {
-	public static final long serialVersionUID = 1L;
 
-	private final Segment[] list;
+  public static final long serialVersionUID = 1L;
 
-	public SegmentList(Segment[] list) {
-		this.list = list;
-	}
+  private final Segment[] list;
 
-	public Segment[] getList() {
-		return list;
-	}
+  public SegmentList(Segment[] list) {
+    this.list = list;
+  }
 
-	public void serialize(String filename) {
-		SerializedFiles.writeSerial(this, filename);
-	}
+  public Segment[] getList() {
+    return list;
+  }
 
-	public static SegmentList load(String filename) {
-		return (SegmentList) SerializedFiles.readSerial(filename, true);
-	}
+  public void serialize(String filename) {
+    SerializedFiles.writeSerial(this, filename);
+  }
 
-	@Override
-	public void exportToText(String outputFile, Logger log) {
-		PrintWriter writer;
+  public static SegmentList load(String filename) {
+    return (SegmentList) SerializedFiles.readSerial(filename, true);
+  }
 
-		writer = Files.getAppropriateWriter(outputFile);
-		writer.println("Chr\tStart\tStop");
-		for (Segment seg : list) {
-			writer.println(seg.toAnalysisString());
-		}
-		writer.flush();
-		writer.close();
-	}
+  @Override
+  public void exportToText(String outputFile, Logger log) {
+    PrintWriter writer;
+
+    writer = Files.getAppropriateWriter(outputFile);
+    writer.println("Chr\tStart\tStop");
+    for (Segment seg : list) {
+      writer.println(seg.toAnalysisString());
+    }
+    writer.flush();
+    writer.close();
+  }
 
 }

@@ -4,83 +4,83 @@ package org.genvisis.dead;
 // Decompiler options: packimports(3)
 // Source File Name: XYConstraints.java
 
-
 import java.io.Serializable;
 
 public class XYConstraints implements Cloneable, Serializable {
-	static final long serialVersionUID = 1L;
 
-	public XYConstraints() {
-		this(0, 0, 0, 0);
-	}
+  static final long serialVersionUID = 1L;
 
-	public XYConstraints(int i, int j, int k, int l) {
-		x = i;
-		y = j;
-		width = k;
-		height = l;
-	}
+  public XYConstraints() {
+    this(0, 0, 0, 0);
+  }
 
-	public int getX() {
-		return x;
-	}
+  public XYConstraints(int i, int j, int k, int l) {
+    x = i;
+    y = j;
+    width = k;
+    height = l;
+  }
 
-	public void setX(int i) {
-		x = i;
-	}
+  public int getX() {
+    return x;
+  }
 
-	public int getY() {
-		return y;
-	}
+  public void setX(int i) {
+    x = i;
+  }
 
-	public void setY(int i) {
-		y = i;
-	}
+  public int getY() {
+    return y;
+  }
 
-	public int getWidth() {
-		return width;
-	}
+  public void setY(int i) {
+    y = i;
+  }
 
-	public void setWidth(int i) {
-		width = i;
-	}
+  public int getWidth() {
+    return width;
+  }
 
-	public int getHeight() {
-		return height;
-	}
+  public void setWidth(int i) {
+    width = i;
+  }
 
-	public void setHeight(int i) {
-		height = i;
-	}
+  public int getHeight() {
+    return height;
+  }
 
-	@Override
-	public int hashCode() {
-		return x ^ y * 37 ^ width * 43 ^ height * 47;
-	}
+  public void setHeight(int i) {
+    height = i;
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof XYConstraints) {
-			XYConstraints xyconstraints = (XYConstraints) obj;
-			return xyconstraints.x == x && xyconstraints.y == y && xyconstraints.width == width
-						 && xyconstraints.height == height;
-		} else {
-			return false;
-		}
-	}
+  @Override
+  public int hashCode() {
+    return x ^ y * 37 ^ width * 43 ^ height * 47;
+  }
 
-	@Override
-	public Object clone() {
-		return new XYConstraints(x, y, width, height);
-	}
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof XYConstraints) {
+      XYConstraints xyconstraints = (XYConstraints) obj;
+      return xyconstraints.x == x && xyconstraints.y == y && xyconstraints.width == width
+             && xyconstraints.height == height;
+    } else {
+      return false;
+    }
+  }
 
-	@Override
-	public String toString() {
-		return "XYConstraints[" + x + "," + y + "," + width + "," + height + "]";
-	}
+  @Override
+  public Object clone() {
+    return new XYConstraints(x, y, width, height);
+  }
 
-	int x;
-	int y;
-	int width;
-	int height;
+  @Override
+  public String toString() {
+    return "XYConstraints[" + x + "," + y + "," + width + "," + height + "]";
+  }
+
+  int x;
+  int y;
+  int width;
+  int height;
 }

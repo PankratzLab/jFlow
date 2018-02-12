@@ -1,116 +1,117 @@
 package org.genvisis.common;
 
 import java.util.ArrayList;
-
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
-
 import htsjdk.samtools.Cigar;
 
 public class ArraySpecialList {
-	public static class ArrayStringList extends ArrayList<String> {
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
 
-		public ArrayStringList(int capacity) {
-			super(capacity);
-		}
+  public static class ArrayStringList extends ArrayList<String> {
 
-	}
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
+    public ArrayStringList(int capacity) {
+      super(capacity);
+    }
 
+  }
 
-	public static class ArrayIntList extends ArrayList<Integer> {
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
+  public static class ArrayIntList extends ArrayList<Integer> {
 
-		public ArrayIntList(int capacity) {
-			super(capacity);
-		}
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	}
+    public ArrayIntList(int capacity) {
+      super(capacity);
+    }
 
-	public static class ArrayCigarList extends ArrayList<Cigar> {
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
+  }
 
-		public ArrayCigarList(int capacity) {
-			super(capacity);
-		}
+  public static class ArrayCigarList extends ArrayList<Cigar> {
 
-	}
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public static class ArrayBlastAnnotationList extends ArrayList<BlastAnnotation> {
-		private double maxEval;
-		private double minEval;
-		private int maxEvalIndex;
-		/**
-		 *
-		 */
-		private static final long serialVersionUID = 1L;
+    public ArrayCigarList(int capacity) {
+      super(capacity);
+    }
 
-		public ArrayBlastAnnotationList() {
-			this(10);
-		}
+  }
 
-		public ArrayBlastAnnotationList(int capacity) {
-			super(capacity);
-			maxEval = -1;
-			minEval = Double.MAX_VALUE;
-			maxEvalIndex = -1;
-		}
+  public static class ArrayBlastAnnotationList extends ArrayList<BlastAnnotation> {
 
-		public void update() {
-			maxEvalIndex = -1;
-			minEval = Double.MAX_VALUE;
-			maxEval = -1;
-			for (int i = 0; i < size(); i++) {
-				BlastAnnotation tmpBa = get(i);
-				double tmp = tmpBa.geteValue();
-				if (tmp > maxEval) {
-					maxEval = tmp;
-					maxEvalIndex = i;
-				}
-				if (tmp < minEval) {
-					minEval = tmp;
-				}
-			}
-		}
+    private double maxEval;
+    private double minEval;
+    private int maxEvalIndex;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-		@Override
-		public boolean add(BlastAnnotation blastAnnotation) {
-			boolean add = super.add(blastAnnotation);
-			if (add) {
-				double tmp = blastAnnotation.geteValue();
-				if (tmp > maxEval) {
-					maxEval = tmp;
-					maxEvalIndex = size() - 1;
+    public ArrayBlastAnnotationList() {
+      this(10);
+    }
 
-				}
-				if (tmp < minEval) {
-					minEval = tmp;
-				}
-			}
-			return true;
-		}
+    public ArrayBlastAnnotationList(int capacity) {
+      super(capacity);
+      maxEval = -1;
+      minEval = Double.MAX_VALUE;
+      maxEvalIndex = -1;
+    }
 
-		public double getMaxEval() {
-			return maxEval;
-		}
+    public void update() {
+      maxEvalIndex = -1;
+      minEval = Double.MAX_VALUE;
+      maxEval = -1;
+      for (int i = 0; i < size(); i++) {
+        BlastAnnotation tmpBa = get(i);
+        double tmp = tmpBa.geteValue();
+        if (tmp > maxEval) {
+          maxEval = tmp;
+          maxEvalIndex = i;
+        }
+        if (tmp < minEval) {
+          minEval = tmp;
+        }
+      }
+    }
 
-		public double getMinEval() {
-			return minEval;
-		}
+    @Override
+    public boolean add(BlastAnnotation blastAnnotation) {
+      boolean add = super.add(blastAnnotation);
+      if (add) {
+        double tmp = blastAnnotation.geteValue();
+        if (tmp > maxEval) {
+          maxEval = tmp;
+          maxEvalIndex = size() - 1;
 
-		public int getMaxEvalIndex() {
-			return maxEvalIndex;
-		}
+        }
+        if (tmp < minEval) {
+          minEval = tmp;
+        }
+      }
+      return true;
+    }
 
-	}
+    public double getMaxEval() {
+      return maxEval;
+    }
+
+    public double getMinEval() {
+      return minEval;
+    }
+
+    public int getMaxEvalIndex() {
+      return maxEvalIndex;
+    }
+
+  }
 
 }

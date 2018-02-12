@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -37,282 +36,285 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-
 import org.genvisis.one.ben.fcs.FCSPlot;
-
 import net.miginfocom.swing.MigLayout;
 
 public class GateTreePanel extends JPanel {
 
-	/**
-	* 
-	*/
-	private static final long serialVersionUID = 1L;
-	Gating gating;
-	private final JTree tree;
-	private final JPanel topPanel;
-	private final JScrollPane scrollPane;
-	private final FCSPlot plot;
-	private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
-	private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<Gate, DefaultMutableTreeNode>();
-	private volatile boolean showing = false;
+  /**
+  * 
+  */
+  private static final long serialVersionUID = 1L;
+  Gating gating;
+  private final JTree tree;
+  private final JPanel topPanel;
+  private final JScrollPane scrollPane;
+  private final FCSPlot plot;
+  private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
+  private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<Gate, DefaultMutableTreeNode>();
+  private volatile boolean showing = false;
 
-	/**
-	 * Create the panel.
-	 */
-	public GateTreePanel(FCSPlot plot) {
-		setLayout(new BorderLayout(0, 0));
+  /**
+   * Create the panel.
+   */
+  public GateTreePanel(FCSPlot plot) {
+    setLayout(new BorderLayout(0, 0));
 
-		this.plot = plot;
+    this.plot = plot;
 
-		topPanel = new JPanel();
-		topPanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-		topPanel.setBackground(Color.WHITE);
-		add(topPanel, BorderLayout.NORTH);
-		topPanel.setLayout(new MigLayout("ins 0, hidemode 3", "[grow]", "[grow,center]"));
+    topPanel = new JPanel();
+    topPanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+    topPanel.setBackground(Color.WHITE);
+    add(topPanel, BorderLayout.NORTH);
+    topPanel.setLayout(new MigLayout("ins 0, hidemode 3", "[grow]", "[grow,center]"));
 
-		treePopup = new JPopupMenu();
-		treePopup.setLightWeightPopupEnabled(true);
-		treePopup.setOpaque(true);
-		final JButton button = new JButton("\\/");
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (showing) {
-					treePopup.setVisible(false);
-					showing = false;
-				} else {
-					treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
-					Point p = topPanel.getLocationOnScreen();
-					treePopup.show(button, 0, 0);
-					treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
-					showing = true;
-				}
-			}
-		});
-		topPanel.add(button, "east");
+    treePopup = new JPopupMenu();
+    treePopup.setLightWeightPopupEnabled(true);
+    treePopup.setOpaque(true);
+    final JButton button = new JButton("\\/");
+    button.addActionListener(new ActionListener() {
 
-		scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBorder(null);
-		scrollPane_1.setViewportBorder(null);
-		scrollPane_1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-		scrollPane_1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		topPanel.add(scrollPane_1, "cell 0 0,grow");
+      @Override
+      public void actionPerformed(ActionEvent arg0) {
+        if (showing) {
+          treePopup.setVisible(false);
+          showing = false;
+        } else {
+          treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
+          Point p = topPanel.getLocationOnScreen();
+          treePopup.show(button, 0, 0);
+          treePopup.setLocation((int) p.getX(), (int) p.getY() + topPanel.getHeight());
+          showing = true;
+        }
+      }
+    });
+    topPanel.add(button, "east");
 
-		breadcrumbPanel = new JPanel();
-		scrollPane_1.setViewportView(breadcrumbPanel);
-		breadcrumbPanel.setBorder(null);
-		breadcrumbPanel.setBackground(Color.WHITE);
-		breadcrumbPanel.setLayout(new MigLayout("ins 0", "[]", "[grow]"));
-		addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				super.componentResized(e);
-				Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
-																			 breadcrumbPanel.getWidth(), 10);
-				((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
-				breadcrumbPanel.repaint();
+    scrollPane_1 = new JScrollPane();
+    scrollPane_1.setBorder(null);
+    scrollPane_1.setViewportBorder(null);
+    scrollPane_1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+    scrollPane_1.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    topPanel.add(scrollPane_1, "cell 0 0,grow");
 
-				if (treePopup.isVisible()) {
-					treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
-				}
-			}
-		});
+    breadcrumbPanel = new JPanel();
+    scrollPane_1.setViewportView(breadcrumbPanel);
+    breadcrumbPanel.setBorder(null);
+    breadcrumbPanel.setBackground(Color.WHITE);
+    breadcrumbPanel.setLayout(new MigLayout("ins 0", "[]", "[grow]"));
+    addComponentListener(new ComponentAdapter() {
 
-		scrollPane = new JScrollPane();
+      @Override
+      public void componentResized(ComponentEvent e) {
+        super.componentResized(e);
+        Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
+                                       breadcrumbPanel.getWidth(), 10);
+        ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
+        breadcrumbPanel.repaint();
 
-		treePopup.add(scrollPane, BorderLayout.CENTER);
-		tree = new JTree(new DefaultTreeModel(null));
-		scrollPane.setViewportView(tree);
-		tree.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		tree.setRootVisible(true);
-		tree.setShowsRootHandles(true);
-		tree.addTreeSelectionListener(treeListener);
-	}
+        if (treePopup.isVisible()) {
+          treePopup.setPopupSize(topPanel.getWidth(), topPanel.getHeight() * 8);
+        }
+      }
+    });
 
-	volatile boolean selecting = false;
+    scrollPane = new JScrollPane();
 
-	public void selectGate(Gate selected) {
-		if (selected != null) {
-			selecting = true;
-			expandAllNodes();
-			DefaultMutableTreeNode selNode = nodeMap.get(selected);
-			TreeNode[] path = ((DefaultTreeModel) tree.getModel()).getPathToRoot(selNode);
-			tree.setSelectionPath(new TreePath(path));
-			selecting = false;
-		}
-	}
+    treePopup.add(scrollPane, BorderLayout.CENTER);
+    tree = new JTree(new DefaultTreeModel(null));
+    scrollPane.setViewportView(tree);
+    tree.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+    tree.setRootVisible(true);
+    tree.setShowsRootHandles(true);
+    tree.addTreeSelectionListener(treeListener);
+  }
 
-	public void resetGating(Gating gating, Gate selectedGate) {
-		this.gating = gating;
-		ArrayList<Gate> roots = gating.getRootGates();
+  volatile boolean selecting = false;
 
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-		for (Gate g : roots) {
-			addGatesToTree(rootNode, g);
-		}
+  public void selectGate(Gate selected) {
+    if (selected != null) {
+      selecting = true;
+      expandAllNodes();
+      DefaultMutableTreeNode selNode = nodeMap.get(selected);
+      TreeNode[] path = ((DefaultTreeModel) tree.getModel()).getPathToRoot(selNode);
+      tree.setSelectionPath(new TreePath(path));
+      selecting = false;
+    }
+  }
 
-		breadcrumbPanel.removeAll();
-		DefaultTreeModel newModel = new DefaultTreeModel(rootNode, true);
-		tree.setModel(newModel);
-		expandAllNodes();
+  public void resetGating(Gating gating, Gate selectedGate) {
+    this.gating = gating;
+    ArrayList<Gate> roots = gating.getRootGates();
 
-		if (selectedGate != null) {
-			selectGate(selectedGate);
-		}
+    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+    for (Gate g : roots) {
+      addGatesToTree(rootNode, g);
+    }
 
-		repaint();
-	}
+    breadcrumbPanel.removeAll();
+    DefaultTreeModel newModel = new DefaultTreeModel(rootNode, true);
+    tree.setModel(newModel);
+    expandAllNodes();
 
-	private void expandAllNodes() {
-		int j = tree.getRowCount();
-		int i = 0;
-		while (i < j) {
-			tree.expandRow(i);
-			i += 1;
-			j = tree.getRowCount();
-		}
-	}
+    if (selectedGate != null) {
+      selectGate(selectedGate);
+    }
 
-	private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
-		StringBuilder ident = new StringBuilder();
-		ident.append(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
+    repaint();
+  }
 
-		ident.append(" (");
-		ident.append(g.getXDimension().getParam());
-		if (g.getYDimension() != null) {
-			ident.append(" v ");
-			ident.append(g.getYDimension().getParam());
-		}
-		ident.append(")");
-		DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);
-		gateMap.put(child, g);
-		nodeMap.put(g, child);
-		root.add(child);
-		for (Gate childGate : g.getChildGates()) {
-			addGatesToTree(child, childGate);
-		}
-	}
+  private void expandAllNodes() {
+    int j = tree.getRowCount();
+    int i = 0;
+    while (i < j) {
+      tree.expandRow(i);
+      i += 1;
+      j = tree.getRowCount();
+    }
+  }
 
-	Font breadcrumbFont = new Font("Arial", 0, 10);
+  private void addGatesToTree(DefaultMutableTreeNode root, Gate g) {
+    StringBuilder ident = new StringBuilder();
+    ident.append(g.getName() == null || "".equals(g.getName()) ? g.getID() : g.getName());
 
-	TreeSelectionListener treeListener = new TreeSelectionListener() {
-		@Override
-		public void valueChanged(TreeSelectionEvent e) {
-			if (treePopup.isVisible()) {
-				treePopup.setVisible(false);
-				showing = false;
-			}
-			if (!e.isAddedPath()) {
-				return;
-			}
+    ident.append(" (");
+    ident.append(g.getXDimension().getParam());
+    if (g.getYDimension() != null) {
+      ident.append(" v ");
+      ident.append(g.getYDimension().getParam());
+    }
+    ident.append(")");
+    DefaultMutableTreeNode child = new DefaultMutableTreeNode(ident.toString(), true);
+    gateMap.put(child, g);
+    nodeMap.put(g, child);
+    root.add(child);
+    for (Gate childGate : g.getChildGates()) {
+      addGatesToTree(child, childGate);
+    }
+  }
 
-			TreePath newPath = e.getNewLeadSelectionPath();
-			DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
+  Font breadcrumbFont = new Font("Arial", 0, 10);
 
-			Object[] path = newPath.getPath();
+  TreeSelectionListener treeListener = new TreeSelectionListener() {
 
-			breadcrumbPanel.removeAll();
-			int index = 0;
-			for (int i = 0; i < path.length; i++) {
-				DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
-				String nm = (String) obj.getUserObject();
-				String chNm = (String) (i == path.length
-																		 - 1 ? ""
-																				 : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
-				final JLabel lbl = new JLabel(nm);
-				lbl.setBorder(breadcrumbBorder);
-				lbl.setFont(breadcrumbFont);
-				lbl.setVerticalAlignment(SwingConstants.CENTER);
-				breadcrumbPanel.add(lbl, "cell " + index + " 0");
-				index++;
+    @Override
+    public void valueChanged(TreeSelectionEvent e) {
+      if (treePopup.isVisible()) {
+        treePopup.setVisible(false);
+        showing = false;
+      }
+      if (!e.isAddedPath()) {
+        return;
+      }
 
-				ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<DefaultMutableTreeNode>();
-				int cnt = tm.getChildCount(obj);
-				for (int c = 0; c < cnt; c++) {
-					sibs.add(((DefaultMutableTreeNode) tm.getChild(obj, c)));
-				}
+      TreePath newPath = e.getNewLeadSelectionPath();
+      DefaultTreeModel tm = (DefaultTreeModel) tree.getModel();
 
-				breadcrumbPanel.add(getBreadcrumbLabel(">", chNm, sibs, lbl), "cell " + index + " 0");
-				index++;
+      Object[] path = newPath.getPath();
 
-			}
-			breadcrumbPanel.revalidate();
-			breadcrumbPanel.repaint();
-			Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
-																		 breadcrumbPanel.getWidth(), 10);
-			((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
-			if (!selecting) {
-				plot.gateSelected(gateMap.get(path[path.length - 1]), false);
-			}
-		}
-	};
-	private final JPanel breadcrumbPanel;
-	private final Border mouseoverBorder = BorderFactory.createLineBorder(Color.black, 1);
-	private final Border breadcrumbBorder = BorderFactory.createEmptyBorder(0, 1, 0, 1);
+      breadcrumbPanel.removeAll();
+      int index = 0;
+      for (int i = 0; i < path.length; i++) {
+        DefaultMutableTreeNode obj = (DefaultMutableTreeNode) path[i];
+        String nm = (String) obj.getUserObject();
+        String chNm = (String) (i == path.length
+                                     - 1 ? ""
+                                         : ((DefaultMutableTreeNode) path[i + 1]).getUserObject());
+        final JLabel lbl = new JLabel(nm);
+        lbl.setBorder(breadcrumbBorder);
+        lbl.setFont(breadcrumbFont);
+        lbl.setVerticalAlignment(SwingConstants.CENTER);
+        breadcrumbPanel.add(lbl, "cell " + index + " 0");
+        index++;
 
-	private JLabel getBreadcrumbLabel(String txt, String me,
-																		final List<DefaultMutableTreeNode> sibs, JLabel prevLbl) {
-		final JLabel lbl = new JLabel(txt);
-		lbl.setBorder(breadcrumbBorder);
-		lbl.setFont(breadcrumbFont);
-		lbl.setVerticalAlignment(SwingConstants.CENTER);
+        ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<DefaultMutableTreeNode>();
+        int cnt = tm.getChildCount(obj);
+        for (int c = 0; c < cnt; c++) {
+          sibs.add(((DefaultMutableTreeNode) tm.getChild(obj, c)));
+        }
 
-		JPopupMenu popup = new JPopupMenu();
-		StringBuilder sb = new StringBuilder("<html>");
-		sb.append("<b>").append(me).append("</b><br />");
-		for (int c = 0; c < sibs.size(); c++) {
-			final int ind = c;
-			sb.append("--").append((String) sibs.get(c).getUserObject());
-			Action act = new AbstractAction((String) sibs.get(c).getUserObject()) {
-				/**
-				* 
-				*/
-				private static final long serialVersionUID = 1L;
+        breadcrumbPanel.add(getBreadcrumbLabel(">", chNm, sibs, lbl), "cell " + index + " 0");
+        index++;
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					tree.setSelectionPath(new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
-				}
-			};
-			JMenuItem jmi = new JMenuItem(act);
-			popup.add(jmi);
-			if (c < sibs.size() - 1) {
-				sb.append("<br />");
-			}
-		}
-		sb.append("</html>");
+      }
+      breadcrumbPanel.revalidate();
+      breadcrumbPanel.repaint();
+      Rectangle rect = new Rectangle(breadcrumbPanel.getWidth() - 10, 10,
+                                     breadcrumbPanel.getWidth(), 10);
+      ((JComponent) breadcrumbPanel.getParent()).scrollRectToVisible(rect);
+      if (!selecting) {
+        plot.gateSelected(gateMap.get(path[path.length - 1]), false);
+      }
+    }
+  };
+  private final JPanel breadcrumbPanel;
+  private final Border mouseoverBorder = BorderFactory.createLineBorder(Color.black, 1);
+  private final Border breadcrumbBorder = BorderFactory.createEmptyBorder(0, 1, 0, 1);
 
-		lbl.setToolTipText(sb.toString());
+  private JLabel getBreadcrumbLabel(String txt, String me, final List<DefaultMutableTreeNode> sibs,
+                                    JLabel prevLbl) {
+    final JLabel lbl = new JLabel(txt);
+    lbl.setBorder(breadcrumbBorder);
+    lbl.setFont(breadcrumbFont);
+    lbl.setVerticalAlignment(SwingConstants.CENTER);
 
-		lbl.setComponentPopupMenu(popup);
-		prevLbl.setComponentPopupMenu(popup);
-		lbl.addMouseListener(mouseOver);
-		prevLbl.addMouseListener(mouseOver);
-		return lbl;
-	}
+    JPopupMenu popup = new JPopupMenu();
+    StringBuilder sb = new StringBuilder("<html>");
+    sb.append("<b>").append(me).append("</b><br />");
+    for (int c = 0; c < sibs.size(); c++) {
+      final int ind = c;
+      sb.append("--").append((String) sibs.get(c).getUserObject());
+      Action act = new AbstractAction((String) sibs.get(c).getUserObject()) {
 
-	MouseAdapter mouseOver = new MouseAdapter() {
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			super.mouseEntered(e);
-			((JComponent) e.getSource()).setBorder(mouseoverBorder);
-		}
+        /**
+        * 
+        */
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public void mouseExited(MouseEvent e) {
-			super.mouseExited(e);
-			((JComponent) e.getSource()).setBorder(breadcrumbBorder);
-		}
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          tree.setSelectionPath(new TreePath(((DefaultTreeModel) tree.getModel()).getPathToRoot(sibs.get(ind))));
+        }
+      };
+      JMenuItem jmi = new JMenuItem(act);
+      popup.add(jmi);
+      if (c < sibs.size() - 1) {
+        sb.append("<br />");
+      }
+    }
+    sb.append("</html>");
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			super.mouseClicked(e);
-			((JComponent) e.getSource()).getComponentPopupMenu().show(((JComponent) e.getSource()),
-																																e.getX(), e.getY());
-		};
-	};
-	private final JScrollPane scrollPane_1;
-	private final JPopupMenu treePopup;
+    lbl.setToolTipText(sb.toString());
+
+    lbl.setComponentPopupMenu(popup);
+    prevLbl.setComponentPopupMenu(popup);
+    lbl.addMouseListener(mouseOver);
+    prevLbl.addMouseListener(mouseOver);
+    return lbl;
+  }
+
+  MouseAdapter mouseOver = new MouseAdapter() {
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+      super.mouseEntered(e);
+      ((JComponent) e.getSource()).setBorder(mouseoverBorder);
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+      super.mouseExited(e);
+      ((JComponent) e.getSource()).setBorder(breadcrumbBorder);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      super.mouseClicked(e);
+      ((JComponent) e.getSource()).getComponentPopupMenu().show(((JComponent) e.getSource()),
+                                                                e.getX(), e.getY());
+    };
+  };
+  private final JScrollPane scrollPane_1;
+  private final JPopupMenu treePopup;
 
 }

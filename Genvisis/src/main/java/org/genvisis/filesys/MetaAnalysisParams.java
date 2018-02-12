@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
-
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -16,286 +15,286 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 
 public class MetaAnalysisParams {
-	public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
-	public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS",
-																								 "GROUP_ANNOTATION_PARAMS"};
-	public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
-																								 "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
-																								 "RUN_BY_CHR="};
 
-	private String[] studies;
-	private String[] studyGroupings;
-	private String[][] phenotypesWithFilenameAliases;
-	private String[][] racesWithFilenameAliases;
-	private final int[][] sampleSizes;
-	private String snpInfoFilename;
-	private String variantName;
-	private String chromName;
-	private String geneName;
-	private String functionFlagName;
-	private String rExec;
-	private String[][] methods;
-	private String[][] groupAnnotationParams;
-	private boolean runByChr;
+  public static final String DEFAULT_PARAMETERS = "filesys/default_meta_anlaysis.params";
+  public static final String[] KEY_PARAMETERS = {"STUDIES", "PHENOTYPES", "RACES", "METHODS",
+                                                 "GROUP_ANNOTATION_PARAMS"};
+  public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
+                                                 "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
+                                                 "RUN_BY_CHR="};
 
-	private BufferedReader reader;
-	private String trav;
+  private String[] studies;
+  private String[] studyGroupings;
+  private String[][] phenotypesWithFilenameAliases;
+  private String[][] racesWithFilenameAliases;
+  private final int[][] sampleSizes;
+  private String snpInfoFilename;
+  private String variantName;
+  private String chromName;
+  private String geneName;
+  private String functionFlagName;
+  private String rExec;
+  private String[][] methods;
+  private String[][] groupAnnotationParams;
+  private boolean runByChr;
 
-	public MetaAnalysisParams(String filename, Logger log) {
-		String[] line;
-		List<String> v = new Vector<String>();
-		boolean problem;
+  private BufferedReader reader;
+  private String trav;
 
-		problem = false;
-		runByChr = true;
+  public MetaAnalysisParams(String filename, Logger log) {
+    String[] line;
+    List<String> v = new Vector<String>();
+    boolean problem;
 
-		if (!Files.exists(filename, false)) {
-			log.report("File '" + filename
-								 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
-			System.exit(1);
-		}
+    problem = false;
+    runByChr = true;
 
-		if (new File(filename).length() == 0) {
-			log.report("File '" + filename
-								 + "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
-			Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
-			System.exit(1);
-		}
+    if (!Files.exists(filename, false)) {
+      log.report("File '" + filename
+                 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
+      System.exit(1);
+    }
 
-		try {
-			reader = new BufferedReader(new FileReader(filename));
-			nextIsParam();
-			while (reader.ready()) {
-				if (ext.indexOfStr(trav, KEY_PARAMETERS) >= 0) {
-					if (trav.equals("STUDIES")) {
-						v = populateParam();
-						studies = new String[v.size()];
-						studyGroupings = new String[v.size()];
-						for (int i = 0; i < studies.length; i++) {
-							line = v.get(i).split("\t");
-							if (line.length > 2) {
-								log.reportError("Error - more than one tab for study " + line[0] + ", please fix");
-								log.reportError("Found: " + v.get(i));
-								problem = true;
-							}
-							studies[i] = line[0];
-							if (line.length > 1) {
-								studyGroupings[i] = line[1];
-							} else {
-								studyGroupings[i] = "Final";
-							}
-						}
-					} else if (trav.equals("PHENOTYPES")) {
-						phenotypesWithFilenameAliases = populateParams();
-					} else if (trav.equals("RACES")) {
-						racesWithFilenameAliases = populateParams();
-					} else if (trav.equals("METHODS")) {
-						methods = populateParams();
-						for (int i = 0; i < methods.length; i++) {
-							if (methods[i].length < 3) {
-								log.reportError("Error - a method must have at least 3 parameters: name, grouping, algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
-								log.reportError("Found: " + v.get(i));
-								problem = true;
-							} else if (methods[i].length == 3) {
-								log.reportError("Warning - no 4th token for method " + methods[i][0]
-																+ "; all markers will be included in the analysis");
-							} else if (!ext.isValidDouble(methods[i][3])
-												 && !methods[i][2].equals("singlesnpMeta")) {
-								log.reportError("Warning - no discernable MAF threshold token for method "
-																+ methods[i][0] + " since '" + methods[i][3]
-																+ "' is referring to something else; all markers will be included in the analysis");
-							} else if (ext.isValidDouble(methods[i][3])
-												 && methods[i][2].equals("singlesnpMeta")) {
-								log.reportError("Error - MAF threshold token cannot be used for singlesnpMeta (as was done for '"
-																+ methods[i][0] + "')");
-								problem = true;
-							}
-						}
-					} else if (trav.equals("GROUP_ANNOTATION_PARAMS")) {
-						groupAnnotationParams = populateParams();
-						for (String[] groupAnnotationParam : groupAnnotationParams) {
-							if (groupAnnotationParam.length != 2) {
-								log.reportError("Error - additional group annotation params must have exactly 2 tokens: a method grouping and a space separated GenParser parameter set");
-								log.reportError("Found: " + ArrayUtils.toStr(groupAnnotationParam));
-								problem = true;
-							}
-						}
-					}
-				} else if (ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) >= 0) {
-					if (trav.startsWith("SNP_INFO_FILE=")) {
-						snpInfoFilename = ext.parseStringArg(trav,
-																								 "default_snp_info_file_that_probably_does_not_exist.RData");
-					} else if (trav.startsWith("VARIANT_NAME=")) {
-						variantName = ext.parseStringArg(trav, "Name");
-					} else if (trav.startsWith("CHROM_NAME=")) {
-						chromName = ext.parseStringArg(trav, "CHROM");
-					} else if (trav.startsWith("GENE_NAME=")) {
-						geneName = ext.parseStringArg(trav, "SKATgene");
-					} else if (trav.startsWith("FUNCTIONAL=")) {
-						functionFlagName = ext.parseStringArg(trav, null);
-					} else if (trav.startsWith("R_EXEC=")) {
-						rExec = ext.parseStringArg(trav, null);
-					} else if (trav.startsWith("RUN_BY_CHR=")) {
-						runByChr = ext.parseBooleanArg(trav);
-					} else {
-						log.reportError("Error - property '" + trav
-														+ "' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
-						problem = true;
-					}
-					nextIsParam();
-				} else {
-					log.reportError("Error - '" + trav + "' is an unknown parameter or property");
-					problem = true;
-				}
+    if (new File(filename).length() == 0) {
+      log.report("File '" + filename
+                 + "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
+      Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
+      System.exit(1);
+    }
 
-			}
-			reader.close();
-		} catch (FileNotFoundException fnfe) {
-			System.err.println("Error: file \"" + filename + "\" not found in current directory");
-			System.exit(1);
-		} catch (IOException ioe) {
-			System.err.println("Error reading file \"" + filename + "\"");
-			System.exit(2);
-		}
+    try {
+      reader = new BufferedReader(new FileReader(filename));
+      nextIsParam();
+      while (reader.ready()) {
+        if (ext.indexOfStr(trav, KEY_PARAMETERS) >= 0) {
+          if (trav.equals("STUDIES")) {
+            v = populateParam();
+            studies = new String[v.size()];
+            studyGroupings = new String[v.size()];
+            for (int i = 0; i < studies.length; i++) {
+              line = v.get(i).split("\t");
+              if (line.length > 2) {
+                log.reportError("Error - more than one tab for study " + line[0] + ", please fix");
+                log.reportError("Found: " + v.get(i));
+                problem = true;
+              }
+              studies[i] = line[0];
+              if (line.length > 1) {
+                studyGroupings[i] = line[1];
+              } else {
+                studyGroupings[i] = "Final";
+              }
+            }
+          } else if (trav.equals("PHENOTYPES")) {
+            phenotypesWithFilenameAliases = populateParams();
+          } else if (trav.equals("RACES")) {
+            racesWithFilenameAliases = populateParams();
+          } else if (trav.equals("METHODS")) {
+            methods = populateParams();
+            for (int i = 0; i < methods.length; i++) {
+              if (methods[i].length < 3) {
+                log.reportError("Error - a method must have at least 3 parameters: name, grouping, algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
+                log.reportError("Found: " + v.get(i));
+                problem = true;
+              } else if (methods[i].length == 3) {
+                log.reportError("Warning - no 4th token for method " + methods[i][0]
+                                + "; all markers will be included in the analysis");
+              } else if (!ext.isValidDouble(methods[i][3])
+                         && !methods[i][2].equals("singlesnpMeta")) {
+                log.reportError("Warning - no discernable MAF threshold token for method "
+                                + methods[i][0] + " since '" + methods[i][3]
+                                + "' is referring to something else; all markers will be included in the analysis");
+              } else if (ext.isValidDouble(methods[i][3])
+                         && methods[i][2].equals("singlesnpMeta")) {
+                log.reportError("Error - MAF threshold token cannot be used for singlesnpMeta (as was done for '"
+                                + methods[i][0] + "')");
+                problem = true;
+              }
+            }
+          } else if (trav.equals("GROUP_ANNOTATION_PARAMS")) {
+            groupAnnotationParams = populateParams();
+            for (String[] groupAnnotationParam : groupAnnotationParams) {
+              if (groupAnnotationParam.length != 2) {
+                log.reportError("Error - additional group annotation params must have exactly 2 tokens: a method grouping and a space separated GenParser parameter set");
+                log.reportError("Found: " + ArrayUtils.toStr(groupAnnotationParam));
+                problem = true;
+              }
+            }
+          }
+        } else if (ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) >= 0) {
+          if (trav.startsWith("SNP_INFO_FILE=")) {
+            snpInfoFilename = ext.parseStringArg(trav,
+                                                 "default_snp_info_file_that_probably_does_not_exist.RData");
+          } else if (trav.startsWith("VARIANT_NAME=")) {
+            variantName = ext.parseStringArg(trav, "Name");
+          } else if (trav.startsWith("CHROM_NAME=")) {
+            chromName = ext.parseStringArg(trav, "CHROM");
+          } else if (trav.startsWith("GENE_NAME=")) {
+            geneName = ext.parseStringArg(trav, "SKATgene");
+          } else if (trav.startsWith("FUNCTIONAL=")) {
+            functionFlagName = ext.parseStringArg(trav, null);
+          } else if (trav.startsWith("R_EXEC=")) {
+            rExec = ext.parseStringArg(trav, null);
+          } else if (trav.startsWith("RUN_BY_CHR=")) {
+            runByChr = ext.parseBooleanArg(trav);
+          } else {
+            log.reportError("Error - property '" + trav
+                            + "' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
+            problem = true;
+          }
+          nextIsParam();
+        } else {
+          log.reportError("Error - '" + trav + "' is an unknown parameter or property");
+          problem = true;
+        }
 
-		sampleSizes = null;
+      }
+      reader.close();
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error: file \"" + filename + "\" not found in current directory");
+      System.exit(1);
+    } catch (IOException ioe) {
+      System.err.println("Error reading file \"" + filename + "\"");
+      System.exit(2);
+    }
 
-		if (problem) {
-			System.exit(1);
-		}
-	}
+    sampleSizes = null;
 
-	public List<String> populateParam() {
-		List<String> v;
+    if (problem) {
+      System.exit(1);
+    }
+  }
 
-		v = new ArrayList<String>();
-		while (nextIsParam()) {
-			v.add(trav);
-		}
+  public List<String> populateParam() {
+    List<String> v;
 
-		return v;
-	}
+    v = new ArrayList<String>();
+    while (nextIsParam()) {
+      v.add(trav);
+    }
 
-	public String[][] populateParams() {
-		List<String> v;
-		String[][] params;
+    return v;
+  }
 
-		v = populateParam();
-		params = new String[v.size()][];
-		for (int i = 0; i < params.length; i++) {
-			params[i] = v.get(i).split("\t");
-		}
+  public String[][] populateParams() {
+    List<String> v;
+    String[][] params;
 
-		return params;
-	}
+    v = populateParam();
+    params = new String[v.size()][];
+    for (int i = 0; i < params.length; i++) {
+      params[i] = v.get(i).split("\t");
+    }
 
-	public boolean nextIsParam() {
-		try {
-			if (reader.ready()) {
-				do {
-					if (!reader.ready()) {
-						trav = null;
-						return false;
-					}
-					trav = reader.readLine().trim();
-				} while (trav.equals("") || trav.startsWith("#"));
+    return params;
+  }
 
-				return ext.indexOfStr(trav, KEY_PARAMETERS) == -1
-							 && ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) == -1;
-			} else {
-				return false;
-			}
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			return false;
-		}
+  public boolean nextIsParam() {
+    try {
+      if (reader.ready()) {
+        do {
+          if (!reader.ready()) {
+            trav = null;
+            return false;
+          }
+          trav = reader.readLine().trim();
+        } while (trav.equals("") || trav.startsWith("#"));
 
+        return ext.indexOfStr(trav, KEY_PARAMETERS) == -1
+               && ext.indexOfStartsWith(trav, KEY_PROPERTIES, true) == -1;
+      } else {
+        return false;
+      }
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+      return false;
+    }
 
-	}
+  }
 
-	public String[] getStudies() {
-		return studies;
-	}
+  public String[] getStudies() {
+    return studies;
+  }
 
-	public boolean runningByChr() {
-		return runByChr;
-	}
+  public boolean runningByChr() {
+    return runByChr;
+  }
 
-	public String[] getStudyGroupings() {
-		return studyGroupings;
-	}
+  public String[] getStudyGroupings() {
+    return studyGroupings;
+  }
 
-	public String[][] getPhenotypesWithFilenameAliases() {
-		return getPhenotypesWithFilenameAliases(true);
-	}
+  public String[][] getPhenotypesWithFilenameAliases() {
+    return getPhenotypesWithFilenameAliases(true);
+  }
 
-	public String[][] getPhenotypesWithFilenameAliases(boolean pruneExclamations) {
-		String[][] phenotypes;
+  public String[][] getPhenotypesWithFilenameAliases(boolean pruneExclamations) {
+    String[][] phenotypes;
 
-		phenotypes = Matrix.clone(phenotypesWithFilenameAliases);
-		for (int i = 0; i < phenotypes.length; i++) {
-			if (pruneExclamations && phenotypes[i][0].startsWith("!")) {
-				phenotypes[i][0] = phenotypes[i][0].substring(1);
-			}
-		}
+    phenotypes = Matrix.clone(phenotypesWithFilenameAliases);
+    for (int i = 0; i < phenotypes.length; i++) {
+      if (pruneExclamations && phenotypes[i][0].startsWith("!")) {
+        phenotypes[i][0] = phenotypes[i][0].substring(1);
+      }
+    }
 
-		return phenotypes;
-	}
+    return phenotypes;
+  }
 
-	public String[][] getRacesWithFilenameAliases() {
-		return racesWithFilenameAliases;
-	}
+  public String[][] getRacesWithFilenameAliases() {
+    return racesWithFilenameAliases;
+  }
 
-	public int[][] getSampleSizes() {
-		System.err.println("Error - sample sizes are not being imported as of yet");
-		return sampleSizes;
-	}
+  public int[][] getSampleSizes() {
+    System.err.println("Error - sample sizes are not being imported as of yet");
+    return sampleSizes;
+  }
 
-	public String getSnpInfoFilename() {
-		return snpInfoFilename;
-	}
+  public String getSnpInfoFilename() {
+    return snpInfoFilename;
+  }
 
-	public String getVariantName() {
-		return variantName;
-	}
+  public String getVariantName() {
+    return variantName;
+  }
 
-	public String getChromName() {
-		return chromName;
-	}
+  public String getChromName() {
+    return chromName;
+  }
 
-	public String getGeneName() {
-		return geneName;
-	}
+  public String getGeneName() {
+    return geneName;
+  }
 
-	public String getFunctionFlagName() {
-		return functionFlagName;
-	}
+  public String getFunctionFlagName() {
+    return functionFlagName;
+  }
 
-	public String getRExec() {
-		return rExec;
-	}
+  public String getRExec() {
+    return rExec;
+  }
 
-	public String[][] getMethods() {
-		return methods;
-	}
+  public String[][] getMethods() {
+    return methods;
+  }
 
-	public String[] getGroups() {
-		String[][] methods;
-		String[] groups;
+  public String[] getGroups() {
+    String[][] methods;
+    String[] groups;
 
-		methods = getMethods();
+    methods = getMethods();
 
-		groups = new String[] {};
-		for (String[] method : methods) {
-			if (ext.indexOfStr(method[1], groups) == -1) {
-				groups = ArrayUtils.addStrToArray(method[1], groups);
-			}
-		}
+    groups = new String[] {};
+    for (String[] method : methods) {
+      if (ext.indexOfStr(method[1], groups) == -1) {
+        groups = ArrayUtils.addStrToArray(method[1], groups);
+      }
+    }
 
-		return groups;
-	}
+    return groups;
+  }
 
-	public String[][] getGroupAnnotationParams() {
-		return groupAnnotationParams;
-	}
+  public String[][] getGroupAnnotationParams() {
+    return groupAnnotationParams;
+  }
 }
