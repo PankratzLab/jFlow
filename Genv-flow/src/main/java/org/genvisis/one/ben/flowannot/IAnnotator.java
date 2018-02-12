@@ -6,47 +6,47 @@ import java.util.HashMap;
 
 public interface IAnnotator {
 
-	public static enum PANEL {
-		PANEL_1() {
-			@Override
-			public boolean isPanel(String p) {
-				return p.toLowerCase().contains("panel 1")
-							 || p.toLowerCase().contains("panel_1");
-			}
-		},
-		PANEL_2() {
-			@Override
-			public boolean isPanel(String p) {
-				return p.toLowerCase().contains("panel 2")
-							 || p.toLowerCase().contains("panel_2");
-			}
-		};
+  public static enum PANEL {
+    PANEL_1() {
 
-		public abstract boolean isPanel(String p);
-	}
+      @Override
+      public boolean isPanel(String p) {
+        return p.toLowerCase().contains("panel 1") || p.toLowerCase().contains("panel_1");
+      }
+    },
+    PANEL_2() {
 
-	void loadImgDir(String dir);
+      @Override
+      public boolean isPanel(String p) {
+        return p.toLowerCase().contains("panel 2") || p.toLowerCase().contains("panel_2");
+      }
+    };
 
-	void loadAnnotations(String annotFile) throws IOException;
+    public abstract boolean isPanel(String p);
+  }
 
-	void saveAnnotations(String annotFile);
+  void loadImgDir(String dir);
 
-	void saveAnnotation(AnnotatedImage.Annotation annotation, String annotFile);
+  void loadAnnotations(String annotFile) throws IOException;
 
-	void addNewAnnotation(AnnotatedImage.Annotation newAnnotation);
+  void saveAnnotations(String annotFile);
 
-	void replaceAnnotation(AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot);
+  void saveAnnotation(AnnotatedImage.Annotation annotation, String annotFile);
 
-	void deleteAnnotation(AnnotatedImage.Annotation annotation);
+  void addNewAnnotation(AnnotatedImage.Annotation newAnnotation);
 
-	HashMap<String, HashMap<String, AnnotatedImage>> getAnnotationMap();
+  void replaceAnnotation(AnnotatedImage.Annotation prevAnnot, AnnotatedImage.Annotation newAnnot);
 
-	ArrayList<String> getFCSKeys();
+  void deleteAnnotation(AnnotatedImage.Annotation annotation);
 
-	ArrayList<String> getFCSKeys(PANEL panel);
+  HashMap<String, HashMap<String, AnnotatedImage>> getAnnotationMap();
 
-	ArrayList<AnnotatedImage.Annotation> getAnnotations();
+  ArrayList<String> getFCSKeys();
 
-	void backupExistingFile(String file);
+  ArrayList<String> getFCSKeys(PANEL panel);
+
+  ArrayList<AnnotatedImage.Annotation> getAnnotations();
+
+  void backupExistingFile(String file);
 
 }
