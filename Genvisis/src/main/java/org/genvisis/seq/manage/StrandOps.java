@@ -98,26 +98,55 @@ public class StrandOps {
     return ambiguous;
   }
 
-  public enum CONFIG {
-    STRAND_CONFIG_SAME_ORDER_SAME_STRAND("Match"),
-    STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND("Flipped Strand"),
-    STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND("Opposite Order"),
-    STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND("Opposite Order / Flipped Strand"),
-    STRAND_CONFIG_DIFFERENT_ALLELES("Different Alleles"),
-    STRAND_CONFIG_BOTH_NULL("Both NULL"),
-    STRAND_CONFIG_SPECIAL_CASE("Special Case"),
-    STRAND_CONFIG_AMBIGUOUS("Ambiguous"),
-    STRAND_CONFIG_UNKNOWN("Unknown");
+  public enum AlleleOrder {
+    SAME, OPPOSITE, UNKNOWN;
+  }
 
-    CONFIG(String desc) {
+  public enum AlleleStrand {
+    SAME, FLIPPED, UNKNOWN;
+  }
+
+  public enum CONFIG {
+    STRAND_CONFIG_SAME_ORDER_SAME_STRAND("Match", AlleleOrder.SAME, AlleleStrand.SAME),
+    STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND("Flipped Strand", AlleleOrder.SAME,
+                                            AlleleStrand.FLIPPED),
+    STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND("Opposite Order", AlleleOrder.OPPOSITE,
+                                             AlleleStrand.SAME),
+    STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND("Opposite Order / Flipped Strand",
+                                                AlleleOrder.OPPOSITE, AlleleStrand.FLIPPED),
+    STRAND_CONFIG_DIFFERENT_ALLELES("Different Alleles", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
+    STRAND_CONFIG_BOTH_NULL("Both NULL", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
+    STRAND_CONFIG_SPECIAL_CASE("Special Case", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
+    STRAND_CONFIG_AMBIGUOUS("Ambiguous", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
+    STRAND_CONFIG_UNKNOWN("Unknown", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN);
+
+    private final String desc;
+    private final AlleleOrder alleleOrder;
+    private final AlleleStrand alleleStrand;
+
+    /**
+     * @param desc
+     * @param alleleOrder
+     * @param alleleStrand
+     */
+    private CONFIG(String desc, AlleleOrder alleleOrder, AlleleStrand alleleStrand) {
       this.desc = desc;
+      this.alleleOrder = alleleOrder;
+      this.alleleStrand = alleleStrand;
     }
 
     public String getDescription() {
       return desc;
     }
 
-    String desc;
+    public AlleleOrder getAlleleOrder() {
+      return alleleOrder;
+    }
+
+    public AlleleStrand getAlleleStrand() {
+      return alleleStrand;
+    }
+
   }
 
   public static boolean isAmbiguous(String[] alleles) {
