@@ -51,7 +51,8 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
                                               aliases.isCaseSensitive());
 
     if (matched == -1) {
-      throw new IllegalStateException("Couldn't identify column header for " + getName());
+      throw new IllegalStateException("Couldn't identify column header for " + getName()
+                                      + "; header map: " + headerMap.toString());
     }
     for (Entry<String, Integer> header : headerMap.entrySet()) {
       if (header.getValue() == matched) {
