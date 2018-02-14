@@ -38,6 +38,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -75,7 +76,7 @@ public class UKBBParsingPipeline {
 
   Project proj;
   HashMap<Integer, FileSet> fileSets;
-  long fingerprint = 0L;
+  long fingerprintForMarkerFiles = 0L;
   AtomicLong numberOfMarkersInProj = new AtomicLong(0);
   String famFile;
   String annotFile;
@@ -138,7 +139,7 @@ public class UKBBParsingPipeline {
     writeLookup();
     writeMarkerSet();
     try {
-      writeOutliers();
+      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
     } catch (ClassNotFoundException | IOException e) {
       log.reportError("Problem occurred while loading outliers from marker files. Attempting to continue...");
       log.reportException(e);
@@ -179,7 +180,7 @@ public class UKBBParsingPipeline {
     String[] allSamples = Matrix.extractColumn(famData, 1);
     @SuppressWarnings("deprecation")
     long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
-    fingerprint = f;
+    fingerprintForMarkerFiles = f;
     if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
       SampleList sl = new SampleList(allSamples);
       sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
@@ -551,32 +552,6 @@ public class UKBBParsingPipeline {
            || value.equals("\"-\"");
   }
 
-  protected void writeOutliers() throws ClassNotFoundException, IOException {
-    Hashtable<String, Float> allOutliers = new Hashtable<>();
-
-    String[] mdRAFs = new File(proj.MARKER_DATA_DIRECTORY.getValue()).list((File f, String n) -> {
-      return n.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
-    });
-
-    Map<String, Integer> mkrInds = proj.getMarkerIndices();
-    String[] samples = proj.getSamples();
-    for (String mdRAF : mdRAFs) {
-      String[] fileMkrs = TransposeData.loadMarkerNamesFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
-                                                               + mdRAF);
-      Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
-                                                                            + mdRAF);
-      for (Entry<String, Float> outlier : outliers.entrySet()) {
-        String[] pts = outlier.getKey().split("\t");
-        int mkrInd = mkrInds.get(fileMkrs[Integer.parseInt(pts[0])]);
-        int sampInd = Integer.parseInt(pts[1]);
-        allOutliers.put(mkrInd + "\t" + samples[sampInd] + "\t" + pts[2], outlier.getValue());
-      }
-    }
-
-    SerializedFiles.writeSerial(allOutliers,
-                                proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser");
-  }
-
   protected void createSampRAFsFromMDRAFs() {
     int toRun = createSamplesToRunFile();
     if (toRun > 0) {
@@ -829,7 +804,7 @@ public class UKBBParsingPipeline {
     Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
     String mdRAFName = getMDRAFName(fs.chr, startBatchInd, (startBatchInd + mkrNames.length));
 
-    mdRAF = openMDRAF(mdRAFName, famData.length, nullStatus, fingerprint, mkrNames);
+    mdRAF = openMDRAF(mdRAFName, famData.length, nullStatus, fingerprintForMarkerFiles, mkrNames);
 
     int bedBlockSize = (int) Math.ceil(nInd / 4.0);
     int binBlockSize = nInd * 8;
