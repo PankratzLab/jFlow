@@ -15,7 +15,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
-import org.genvisis.seq.manage.StrandOps.CONFIG;
+import org.genvisis.seq.manage.StrandOps.Config;
 
 public class AlleleVerification {
 
@@ -115,10 +115,10 @@ public class AlleleVerification {
         }
 
         // write a method to consider freq that returns the same thing basically
-        CONFIG config = StrandOps.determineStrandConfig(alleles, ref_alleles);
+        Config config = StrandOps.determineStrandConfig(alleles, ref_alleles);
 
         switch (config) {
-          case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+          case OPPOSITE_ORDER_FLIPPED_STRAND:
             opflip++;
             if (reorder) {
               data[i][indices[1]] = Sequence.flip(alleles[1]);
@@ -126,14 +126,14 @@ public class AlleleVerification {
               rowsToKeep[i] = true;
               break;
             }
-          case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+          case SAME_ORDER_FLIPPED_STRAND:
             flip++;
             // flip strand, keep allele order
             data[i][indices[1]] = Sequence.flip(alleles[0]);
             data[i][indices[2]] = Sequence.flip(alleles[1]);
             rowsToKeep[i] = true;
             break;
-          case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+          case OPPOSITE_ORDER_SAME_STRAND:
             opp++;
             if (reorder) {
               data[i][indices[1]] = alleles[1];
@@ -141,12 +141,12 @@ public class AlleleVerification {
               rowsToKeep[i] = true;
               break;
             }
-          case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+          case SAME_ORDER_SAME_STRAND:
             same++;
             // keep alleles as is
             rowsToKeep[i] = true;
             break;
-          case STRAND_CONFIG_AMBIGUOUS:
+          case AMBIGUOUS:
             ambg++;
             if (freq < 0.3 || (freq > 0.5 && freq - 0.5 < 0.3)) {
               rowsToKeep[i] = true;
@@ -158,9 +158,9 @@ public class AlleleVerification {
               log.report("MAF is too high for marker " + line[0]);
             }
             break;
-          case STRAND_CONFIG_DIFFERENT_ALLELES:
-          case STRAND_CONFIG_BOTH_NULL:
-          case STRAND_CONFIG_SPECIAL_CASE:
+          case DIFFERENT_ALLELES:
+          case BOTH_NULL:
+          case SPECIAL_CASE:
           default:
             err++;
             // drop this allele pair bc something's wrong

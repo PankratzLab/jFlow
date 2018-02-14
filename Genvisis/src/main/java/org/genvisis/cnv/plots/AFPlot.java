@@ -52,7 +52,7 @@ import org.genvisis.gwas.parsing.FileColumn;
 import org.genvisis.gwas.parsing.FileParser;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.StandardFileColumns;
-import org.genvisis.seq.manage.StrandOps.CONFIG;
+import org.genvisis.seq.manage.StrandOps.Config;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -88,7 +88,7 @@ public class AFPlot {
 
   private final Map<Object, String[]> obsAlleles;
   private final Map<Object, Double> observeds;
-  private final Multiset<CONFIG> alleleInfo;
+  private final Multiset<Config> alleleInfo;
 
   private volatile boolean forceRedraw = false;
   private volatile POPULATION selectedPop = POPULATION.ALL;
@@ -735,7 +735,7 @@ public class AFPlot {
     StringBuilder sb = new StringBuilder();
     sb.append("<html><body><table border=1>");
 
-    for (CONFIG c : CONFIG.values()) {
+    for (Config c : Config.values()) {
       sb.append("<tr><td>").append(c.getDescription()).append("</td><td>")
         .append(getAlleleInfo().count(c)).append("</td></tr>");
     }
@@ -902,12 +902,12 @@ public class AFPlot {
   /**
    * @return Multiset of allele configuration info
    */
-  public Multiset<CONFIG> getAlleleInfo() {
+  public Multiset<Config> getAlleleInfo() {
     return alleleInfo;
   }
 
   /**
-   * @return should color points by allele {@link CONFIG}?
+   * @return should color points by allele {@link Config}?
    */
   public boolean isColorByConfig() {
     return colorByConfig;

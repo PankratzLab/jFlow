@@ -69,8 +69,8 @@ public class Metal {
 
   public static final String[] TEXT = {"NADA", "STRAND_CONFIG_SAME", "STRAND_CONFIG_SAME_FLIPPED",
                                        "STRAND_CONFIG_OPPOSITE", "STRAND_CONFIG_OPPOSITE_FLIPPED",
-                                       "STRAND_CONFIG_DIFFERENT_ALLELES", "STRAND_CONFIG_BOTH_NULL",
-                                       "STRAND_CONFIG_SPECIAL_CASE"};
+                                       "DIFFERENT_ALLELES", "BOTH_NULL",
+                                       "SPECIAL_CASE"};
 
   public static void convertPlinkResults(String dir, String results, String test, String method,
                                          String freq, boolean useSE, boolean useMetalNomenclature,
