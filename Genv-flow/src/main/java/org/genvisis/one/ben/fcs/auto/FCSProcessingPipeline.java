@@ -18,16 +18,20 @@ public class FCSProcessingPipeline {
                                           {"CD3.", "Tcells (CD3+ CD19-)"},};
 
   public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
-                               String lowP) {
+                               String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch) {
     fcsDir = fcs;
     wspDir = wsp;
     autoDir = auto;
     outDir = out;
     highPrioFile = highP;
     lowPrioFile = lowP;
+    this.ovvrDir = ovvrDir;
+    this.ovvrSuff = ovvrSuff;
+    this.ovvrMatch = ovvrMatch;
   }
 
   private String fcsDir, wspDir, autoDir, outDir, highPrioFile, lowPrioFile;
+  private String ovvrDir, ovvrSuff, ovvrMatch;
 
   private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
@@ -94,7 +98,7 @@ public class FCSProcessingPipeline {
 
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
-            return new VisualizationProcessor(autoDir, outDir);
+            return new VisualizationProcessor(autoDir, outDir, ovvrDir, ovvrSuff, ovvrMatch);
           }
         };
         break;
@@ -143,13 +147,19 @@ public class FCSProcessingPipeline {
     String out = fcs;
     String highPriorityFile = null;
     String lowPriorityFile = null;
+    String gateOverrideDir = null;
+    String gateOverrideMatchFile = null;
+    String gateOverrideFileSuffix = "results.RData.boolMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
     boolean test = Files.isWindows();
     if (test) {
       fcs = wsp = auto = out = "F:\\Flow\\counts data\\nullsTest\\";
       out += "out/";
-      new FCSProcessingPipeline(fcs, wsp, auto, out, null, null).run(PIPELINE.BOOL, -1);
+      new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
+                                gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
+                                                                                                    PIPELINE.BOOL,
+                                                                                                    -1);
       return;
     }
 
@@ -178,10 +188,18 @@ public class FCSProcessingPipeline {
       } else if (arg.startsWith("pipe=")) {
         pipe = PIPELINE.valueOf(arg.split("=")[1]);
         numArgs--;
+      } else if (arg.startsWith("gateOverride=")) {
+        gateOverrideDir = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("gateOverrideMatchup=")) {
+        gateOverrideMatchFile = arg.split("=")[1];
+        numArgs--;
       }
     }
 
-    new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile).run(pipe,
-                                                                                          panel);
+    new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
+                              gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
+                                                                                                  pipe,
+                                                                                                  panel);
   }
 }

@@ -1,15 +1,20 @@
 package org.genvisis.one.ben.fcs;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
@@ -430,6 +435,57 @@ public class FCSDataLoader {
   public void setScaleForParam(String dataName, AXIS_SCALE scale) {
     paramScales.put(getInternalParamName(dataName), scale);
     paramTransforms.put(getInternalParamName(dataName), getDefaultTransform(scale));
+  }
+
+  // tacked on functionality:
+
+  private Map<String, boolean[]> gateOverride = null;
+  private Map<String, List<String>> gateOverrideMatch = null;
+
+  public void loadGateOverrides(String file, String match) {
+    String[][] strData = HashVec.loadFileToStringMatrix(file, false, null);
+    String[] hdr = strData[0];
+
+    gateOverride = new HashMap<>();
+    int count = strData.length - 1;
+    for (int i = 0; i < hdr.length; i++) {
+      gateOverride.put(hdr[i], new boolean[count]);
+    }
+    for (int i = 0; i < count; i++) {
+      for (int h = 0; h < hdr.length; h++) {
+        gateOverride.get(hdr[h])[i] = Boolean.parseBoolean(strData[i + 1][h]);
+      }
+    }
+
+    gateOverrideMatch = new HashMap<>();
+    try {
+      BufferedReader reader = Files.getAppropriateReader(match);
+      String l = null;
+      while ((l = reader.readLine()) != null) {
+        if (l.trim().equals("")) continue;
+        String[] pts = l.split("\t");
+        gateOverrideMatch.put(pts[0], new ArrayList<>());
+        for (int i = 1; i < pts.length; i++) {
+          gateOverrideMatch.get(pts[0]).add(pts[i]);
+        }
+      }
+      reader.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public boolean[] getOverrideGating(String gateName) {
+    if (gateOverrideMatch.containsKey(gateName)) {
+      List<String> ovvr = gateOverrideMatch.get(gateName);
+      boolean[] start = Arrays.copyOf(gateOverride.get(ovvr.get(0)), getCount());
+      for (int i = 1; i < ovvr.size(); i++) {
+        start = ArrayUtils.booleanArrayAnd(start, gateOverride.get(ovvr.get(i)));
+      }
+      return start;
+    } else if (gateOverride.containsKey(gateName)) {
+      return gateOverride.get(gateName);
+    } else return null;
   }
 
 }
