@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.genvisis.bgen.BGENReader;
@@ -43,6 +44,8 @@ import org.genvisis.gwas.Plink;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -2308,40 +2311,13 @@ public class DosageData implements Serializable {
         rgns.add(rgn);
       }
     }
-
-    List<VariantContext> keepList = new ArrayList<>();
-    VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"));
-    VCFHeader header = reader.getFileHeader(); // need?
-    for (VariantContext e : reader) {
-      int chr = Positions.chromosomeNumber(e.getContig());
-      if (rgnsToKeep != null && !rgnsToKeep.isEmpty()
-          && !rgnsToKeep.containsKey(Integer.valueOf(chr))) {
-        continue;
-      }
-      int pos = e.getStart();
-      boolean keep = false;
-      if ((rgnsToKeep == null || rgnsToKeep.isEmpty()) && markerSet == null) {
-        keep = true;
-      } else {
-        if (rgnsToKeep != null && !rgnsToKeep.isEmpty()) {
-          for (int[] rgn : rgnsToKeep.get(chr)) {
-            if ((rgn.length == 2 && rgn[1] == pos)
-                || (rgn.length == 3 && rgn[1] <= pos && rgn[2] >= pos)) {
-              keep = true;
-              break;
-            }
-          }
-        }
-        if (!keep && markerSet != null && markerSet.contains(e.getID())) {
-          keep = true;
-        }
-      }
-      if (!keep) {
-        continue;
-      }
-      keepList.add(e);
+    VCFHeader header;
+    List<VariantContext> keepList;
+    try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
+      header = reader.getFileHeader(); // need?
+      keepList = ImmutableList.copyOf(Iterables.filter(reader,
+                                                       e -> keepVariant(e, rgnsToKeep, markerSet)));
     }
-    reader.close();
 
     DosageData dd = new DosageData();
 
@@ -2395,6 +2371,26 @@ public class DosageData implements Serializable {
     dd.empty = markerNames.length == 0;
 
     return dd;
+  }
+
+  private static boolean keepVariant(VariantContext e, Map<Integer, List<int[]>> rgnsToKeep,
+                                     Set<String> markerSet) {
+    if ((rgnsToKeep == null || rgnsToKeep.isEmpty()) && markerSet == null) return true;
+    if (rgnsToKeep != null && !rgnsToKeep.isEmpty()) {
+      int chr = Positions.chromosomeNumber(e.getContig());
+      int pos = e.getStart();
+      for (int[] rgn : rgnsToKeep.get(chr)) {
+        if ((rgn.length == 2 && rgn[1] == pos)
+            || (rgn.length == 3 && rgn[1] <= pos && rgn[2] >= pos)) {
+          return true;
+        }
+      }
+    }
+    if (markerSet != null && markerSet.contains(e.getID())) {
+      return true;
+    }
+
+    return false;
   }
 
   public static DosageData loadPlinkBinary(String dir, int[][] regionsToKeep,
