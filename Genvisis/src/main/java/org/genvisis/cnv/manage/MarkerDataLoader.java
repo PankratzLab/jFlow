@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -454,8 +456,41 @@ public class MarkerDataLoader implements Runnable {
                                                                                                        true)
                                                                    + "outliers.ser");
     } else {
-      return new Hashtable<String, Float>();
+      try {
+        return buildOutliersFromMDRAFs(proj);
+      } catch (ClassNotFoundException | IOException e) {
+        proj.getLog().reportException(e);
+        return new Hashtable<String, Float>();
+      }
     }
+  }
+
+  public static Hashtable<String, Float> buildOutliersFromMDRAFs(Project proj) throws ClassNotFoundException,
+                                                                               IOException {
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
+
+    String[] mdRAFs = new File(proj.MARKER_DATA_DIRECTORY.getValue()).list((File f, String n) -> {
+      return n.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
+    });
+
+    Map<String, Integer> mkrInds = proj.getMarkerIndices();
+    String[] samples = proj.getSamples();
+    for (String mdRAF : mdRAFs) {
+      String[] fileMkrs = TransposeData.loadMarkerNamesFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+                                                               + mdRAF);
+      Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
+                                                                            + mdRAF);
+      for (Entry<String, Float> outlier : outliers.entrySet()) {
+        String[] pts = outlier.getKey().split("\t");
+        int mkrInd = mkrInds.get(fileMkrs[Integer.parseInt(pts[0])]);
+        int sampInd = Integer.parseInt(pts[1]);
+        allOutliers.put(mkrInd + "\t" + samples[sampInd] + "\t" + pts[2], outlier.getValue());
+      }
+    }
+
+    SerializedFiles.writeSerial(allOutliers,
+                                proj.MARKER_DATA_DIRECTORY.getValue(true, true) + "outliers.ser");
+    return allOutliers;
   }
 
   public static MarkerData[] loadFromRAF(String[] allMarkersInProj, byte[] allChrsProj,
