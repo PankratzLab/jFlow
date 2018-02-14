@@ -447,12 +447,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     polys.clear();
 
     List<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
-    // fcp.dataLoader.paramTransforms.put(fcp.getXDataName(), AXIS_SCALE.BIEX.getTransform());
 
     for (Gate g : gatesForPlot) {
-      long t2 = System.currentTimeMillis();
-      boolean[] gt = g.gate(fcp.dataLoader);
-      // System.out.println("gating " + g.getName() + ": " + ext.getTimeElapsed(t2));
+      boolean[] gt = fcp.getGating(g);
       if (gt == null) {
         continue;
       }
@@ -493,7 +490,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     rectangles = rects.toArray(new GenericRectangle[rects.size()]);
     polygons = polys.toArray(new GenericPath[polys.size()]);
-    // System.out.println("Gate update time: " + ext.getTimeElapsed(t1));
   }
 
   private void assignClusterColors() {

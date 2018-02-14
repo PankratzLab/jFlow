@@ -287,6 +287,9 @@ public abstract class Gate {
       if (gating != null && !hasChanged()) {
         return gating;
       }
+      if ((gating = dataLoader.getOverrideGating(this.getName())) != null) {
+        return gating;
+      }
       boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]
                                               : getParentGating(dataLoader);
       if (includes == null) {
@@ -540,6 +543,9 @@ public abstract class Gate {
     @Override
     public boolean[] gate(FCSDataLoader dataLoader) {
       if (gating != null && !hasChanged()) {
+        return gating;
+      }
+      if ((gating = dataLoader.getOverrideGating(this.getName())) != null) {
         return gating;
       }
       boolean[] includes = parentGate == null ? new boolean[dataLoader.getCount()]

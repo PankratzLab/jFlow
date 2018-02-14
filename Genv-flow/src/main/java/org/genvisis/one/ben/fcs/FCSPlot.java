@@ -616,6 +616,10 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     return gating;
   }
 
+  public boolean[] getGating(Gate g) {
+    return g.gate(dataLoader);
+  }
+
   public double[] getAxisData(boolean wait, boolean xAxis) {
     double[] data;
     if (dataLoader == null) {
@@ -623,7 +627,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     } else {
       data = dataLoader.getData(xAxis ? getXDataName() : getYDataName(), wait);
       if (!backgating && !leafgating && parentGate != null) {
-        boolean[] gating = parentGate.gate(dataLoader);
+        boolean[] gating = getParentGating();
         data = ArrayUtils.subArray(data, gating);
         if (fullClusterAssigns != null) {
           clusterAssigns = ArrayUtils.subArray(fullClusterAssigns, gating);
@@ -931,7 +935,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
       return cnt;
     }
     if (!backgating && !leafgating && parentGate != null) {
-      cnt = ArrayUtils.booleanArraySum(parentGate.gate(dataLoader));
+      cnt = ArrayUtils.booleanArraySum(getParentGating());
     } else {
       cnt = dataLoader.getCount();
     }
@@ -1052,7 +1056,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
                                  : classifierResultsPerGate).get(selectedVis);
     boolean[] gating = ArrayUtils.booleanArray(dataLoader.getCount(), true);
     if (parentGate != null) {
-      gating = parentGate.gate(dataLoader);
+      gating = getParentGating();
       res = ArrayUtils.subArray(res, gating);
     }
     return res;
