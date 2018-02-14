@@ -1091,9 +1091,10 @@ public class GeneScorePipeline {
         if (results == null) {
           log.reportError("Error - HitWindows result from " + crossFilterFile + " was null");
         } else {
-          log.report(ext.getTime() + "]\tFound " + results.length + " hit windows");
+          int hits = results.length - 1; // Don't count header
+          log.report(ext.getTime() + "]\tFound " + hits + " hit windows");
           Files.writeMatrix(results, hitsFile, "\t");
-          study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, results.length);
+          study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, hits);
         }
       }
     }

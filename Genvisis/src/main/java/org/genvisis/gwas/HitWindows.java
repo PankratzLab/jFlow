@@ -22,6 +22,15 @@ import org.genvisis.filesys.SnpMarkerSet;
 
 public class HitWindows {
 
+  /**
+   * @param filename
+   * @param indexThreshold
+   * @param windowMinSizePerSide
+   * @param windowExtensionThreshold
+   * @param additionalAnnotationVariableNames
+   * @param log
+   * @return String[][] of hits table, ready for output including header
+   */
   public static String[][] determine(String filename, float indexThreshold,
                                      int windowMinSizePerSide, float windowExtensionThreshold,
                                      String[] additionalAnnotationVariableNames, Logger log) {
