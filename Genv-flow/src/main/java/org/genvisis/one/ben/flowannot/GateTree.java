@@ -189,22 +189,22 @@ public final class GateTree {
                                                     {"IgD+ memory Bcells (CD27+)",
                                                      "B cells (CD3- CD19+)"},};
 
-  static final Map<String, List<String>> GATE_TREE_PANEL_1_STITCH = new HashMap<>();
+  public static final Map<String, List<String>> GATE_TREE_PANEL_1_STITCH = new HashMap<>();
 
-  static final String HELPER_SUBSETS_KEY = "Helper T Subsets";
-  static final String CYTOTOXIC_SUBSETS_KEY = "Cytotoxic T Subsets";
-  static final String[] HELPER_SUB_IMGS = {"effector memory helper Tcells (CCR7- CD45RA-)",
-                                           "effector memory helper Tcells (CD95- CD28-)",
-                                           "naive helper Tcells (CD95/CD28)",
-                                           "effector helper Tcells (CD95/CD28)",
-                                           "central memory helper Tcells (CD95/CD28)",
-                                           "effector memory helper Tcells (CD95/CD28)"};
-  static final String[] CYTOTOXIC_SUB_IMGS = {"effector memory cytotoxic Tcells (CCR7- , CD45RA-)", // images to include
-                                              "effector memory cytotoxic Tcells (CD95- , CD28-)",
-                                              "naive cytotoxic Tcells (CD95/CD28)",
-                                              "effector cytotoxic Tcells (CD95/CD28)",
-                                              "central memory cytotoxic Tcells (CD95/CD28)",
-                                              "effector memory cytotoxic Tcells (CD95/CD28)"};
+  public static final String HELPER_SUBSETS_KEY = "Helper T Subsets";
+  public static final String CYTOTOXIC_SUBSETS_KEY = "Cytotoxic T Subsets";
+  public static final String[] HELPER_SUB_PARENTS = {"effector memory helper Tcells (CCR7- CD45RA-)",
+                                                     "effector memory helper Tcells (CD95- CD28-)",};
+  public static final String[] HELPER_SUB_IMGS = {"naive helper Tcells (CD95/CD28)",
+                                                  "effector helper Tcells (CD95/CD28)",
+                                                  "central memory helper Tcells (CD95/CD28)",
+                                                  "effector memory helper Tcells (CD95/CD28)"};
+  public static final String[] CYTOTOXIC_SUB_PARENTS = {"effector memory cytotoxic Tcells (CCR7- , CD45RA-)",
+                                                        "effector memory cytotoxic Tcells (CD95- , CD28-)"};
+  public static final String[] CYTOTOXIC_SUB_IMGS = {"naive cytotoxic Tcells (CD95/CD28)",
+                                                     "effector cytotoxic Tcells (CD95/CD28)",
+                                                     "central memory cytotoxic Tcells (CD95/CD28)",
+                                                     "effector memory cytotoxic Tcells (CD95/CD28)"};
 
   static final String[][] GATE_TREE_PANEL_1 = { // mapping[i][0] = child, mapping[i][1] = parent,
                                                // if length == 1, @ root
@@ -236,10 +236,16 @@ public final class GateTree {
   static {
     {
       GATE_TREE_PANEL_1_STITCH.put(HELPER_SUBSETS_KEY, new ArrayList<>());
+      for (String i : HELPER_SUB_PARENTS) {
+        GATE_TREE_PANEL_1_STITCH.get(HELPER_SUBSETS_KEY).add(i);
+      }
       for (String i : HELPER_SUB_IMGS) {
         GATE_TREE_PANEL_1_STITCH.get(HELPER_SUBSETS_KEY).add(i);
       }
       GATE_TREE_PANEL_1_STITCH.put(CYTOTOXIC_SUBSETS_KEY, new ArrayList<>());
+      for (String i : CYTOTOXIC_SUB_PARENTS) {
+        GATE_TREE_PANEL_1_STITCH.get(CYTOTOXIC_SUBSETS_KEY).add(i);
+      }
       for (String i : CYTOTOXIC_SUB_IMGS) {
         GATE_TREE_PANEL_1_STITCH.get(CYTOTOXIC_SUBSETS_KEY).add(i);
       }

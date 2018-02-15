@@ -328,6 +328,10 @@ public class FCSDataLoader {
     if (currState == LOAD_STATE.LOADED) {
       int index = paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN)
                                                         : columnName);
+      if (index < 0) {
+        System.err.println("Error - gate index was " + index + " for " + colName + " | "
+                           + columnName + " -- gates: " + getAllDisplayableNames(DATA_SET.ALL));
+      }
       data = reader.getParamAsDoubles(paramShortNamesInOrder.get(index), compensated);
     } else {
       if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {

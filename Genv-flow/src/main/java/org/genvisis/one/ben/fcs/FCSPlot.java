@@ -1346,4 +1346,22 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     });
   }
 
+  public void loadOverridesAsClusterColors(FCSDataLoader loader, String[] clusterGateNames) {
+    int cS = 3;
+    fullClusterAssigns = new int[loader.getCount()];
+    for (int g = 0; g < clusterGateNames.length; g++) {
+      boolean[] b = loader.getOverrideGating(clusterGateNames[g]);
+      for (int bI = 0; bI < b.length; bI++) {
+        if (b[bI]) {
+          fullClusterAssigns[bI] = cS + g;
+        }
+      }
+    }
+  }
+
+  public void clearClusterAssigns() {
+    fullClusterAssigns = null;
+    clusterAssigns = null;
+  }
+
 }

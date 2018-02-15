@@ -149,7 +149,7 @@ public class FCSProcessingPipeline {
     String lowPriorityFile = null;
     String gateOverrideDir = null;
     String gateOverrideMatchFile = null;
-    String gateOverrideFileSuffix = "results.RData.boolMatrix.txt.gz";
+    String gateOverrideFileSuffix = ".boolMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
     boolean test = Files.isWindows();
