@@ -53,7 +53,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   int dataCount = -1;
   volatile String xCol = null;
-  volatile String yCol = null;
   AXIS_SCALE prevXScale;
   AXIS_SCALE prevYScale;
   double xMed = Double.NaN;
@@ -79,6 +78,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   volatile boolean lackingData = true;
 
   public boolean allowSkip = true;
+  public boolean forceSkip = false;
 
   private volatile GATING_TOOL currentTool = GATING_TOOL.RECT_GATE;
 
@@ -98,14 +98,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     super();
     setDoubleBuffered(false);
     createLookup(false);
+    setColorScheme(createColorArray());
 
     fcp = fcsPlot;
     setAxisFontSize(24);
     setSymmetricAxes(false);
     setZoomable(true, true);
     setLayersInBase(new byte[] {0});
-
-    setColorScheme(createColorArray());
 
     setNullMessage("Select two variables to plot");
 
@@ -116,7 +115,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     colors[0] = BLUES.MIDNIGHT_EXPRESS; // dark dark
     colors[1] = REDS.VENETIAN_RED; // deep red
     colors[2] = BLUES.SLATE_BLUE; // light purple
-    colors[3] = new Color(189, 243, 61); // light green
+    colors[3] = GREENS.FREE_SPEECH_AQUAMARINE;
     colors[4] = new Color(217, 109, 194); // pink
     colors[5] = GREENS.GREEN; // dark green
     colors[6] = BLUES.PERSIAN_BLUE; // dark blue
@@ -163,7 +162,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   }
 
   private boolean isHistogram() {
-    return yCol != null && yCol.equals(FCSPlot.HISTOGRAM_COL);
+    return fcp.getYDataName() != null && fcp.getYDataName().equals(FCSPlot.HISTOGRAM_COL);
   }
 
   private boolean isHeatmap() {
@@ -223,7 +222,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     float xAxisValue;
     float yAxisValue;
     byte size = POINT_SIZE;
-    if (drawing) return;
+    if (drawing || forceSkip) return;
     drawing = true;
 
     if (fcp.dataLoader == null) {
@@ -249,16 +248,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean optionsChanged = false;
     boolean gatesChanged = false;
 
-    String newX = fcp.getXDataName();
-    String newY = fcp.getYDataName();
-    if (xCol == null || !newX.equals(xCol)) {
-      columnsChangedX = true;
-    }
-    if (yCol == null || !newY.equals(yCol)) {
-      columnsChangedY = true;
-    }
-    xCol = newX;
-    yCol = newY;
+    //    String newX = fcp.getXDataName();
+    //    String newY = fcp.getYDataName();
+    //    if (xCol == null || !newX.equals(xCol)) {
+    //      columnsChangedX = true;
+    //    }
+    //    if (yCol == null || !newY.equals(yCol)) {
+    //      columnsChangedY = true;
+    //    }
+    //    xCol = newX;
+    //    yCol = newY;
 
     if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
       scaleChanged = true;
@@ -510,7 +509,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
   private void updateGateColor() {
     byte color = 0;
-
+    if (points == null || points.length == 0) return;
     boolean[] parentGating = fcp.getParentGating();
     java.util.HashMap<Gate, boolean[]> leafGating = null;
 
@@ -809,7 +808,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                                                                             (float) getXValueFromXPixel(startX),
                                                                             (float) getXValueFromXPixel(mouseEndX)));
                   if (!isHistogram()) {
-                    rg.setYDimension(new GateDimension.RectangleGateDimension(rg, yCol,
+                    rg.setYDimension(new GateDimension.RectangleGateDimension(rg,
+                                                                              fcp.getYDataName(),
                                                                               (float) getYValueFromYPixel(startY),
                                                                               (float) getYValueFromYPixel(mouseEndY)));
                   }
@@ -856,7 +856,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
                 path.closePath();
                 PolygonGate pg = new PolygonGate(fcp.getParentGate(), name);
                 pg.setXDimension(new GateDimension(pg, xCol));
-                pg.setYDimension(new GateDimension(pg, yCol));
+                pg.setYDimension(new GateDimension(pg, fcp.getYDataName()));
                 pg.setPath(path);
                 pg.setShouldMimicFlowJoGating(fcp.isDrawPolysAsFlowJo());
                 pg.setColor(3);

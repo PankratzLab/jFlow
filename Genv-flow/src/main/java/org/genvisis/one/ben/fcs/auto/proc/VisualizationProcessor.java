@@ -14,10 +14,12 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
+import org.genvisis.one.ben.flowannot.GateTree;
 
 public class VisualizationProcessor implements SampleProcessor {
 
@@ -68,7 +70,7 @@ public class VisualizationProcessor implements SampleProcessor {
   }
 
   static final Map<String, List<AddlImage>> addlImgs = new HashMap<>();
-
+  static final Map<String, String> dimSwitch = new HashMap<>();
   {
     for (String[] addlImg : hardcodedAddlImages) {
       String parent;
@@ -77,6 +79,8 @@ public class VisualizationProcessor implements SampleProcessor {
       addlImgs.get(parent).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", parent,
                                              addlImg[0]));
     }
+    dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
+    dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
 
   }
 
@@ -84,8 +88,7 @@ public class VisualizationProcessor implements SampleProcessor {
   public void processSample(SampleNode sn, Logger log) throws IOException {
     System.gc();
     final FCSPlot fcp = new FCSPlot();
-    fcp.getPanel()
-       .setColorScheme(new Color[] {Color.BLACK, Color.RED, new Color(128, 128, 128, 64)});
+    fcp.getPanel().getColorScheme()[2] = new Color(128, 128, 128, 64);
     fcp.getPanel().allowSkip = false;
 
     long time1 = System.nanoTime();
@@ -168,6 +171,7 @@ public class VisualizationProcessor implements SampleProcessor {
     ArrayList<long[]> gateTimes = new ArrayList<>();
 
     for (String s : fcp.getGatingStrategy().getAllGateNames()) {
+      fcp.getPanel().forceSkip = true;
       long[] times = new long[4];
 
       Gate g = fcp.getGatingStrategy().gateMap.get(s);
@@ -200,32 +204,55 @@ public class VisualizationProcessor implements SampleProcessor {
       fcp.gateSelected(g.getParentGate(), false);
       times[0] = System.nanoTime();
 
+      g.setColor(1);
+      g.setDisplayName(false);
       if (g.getXDimension() == null && g.getYDimension() != null) {
         // correct for swapped histogram
         g.setXDimension(g.getYDimension());
         g.setYDimension(null);
       }
+      fcp.clearClusterAssigns();
       fcp.setXDataName(g.getXDimension().getParam());
       if (g.getYDimension() != null) {
         fcp.setYDataName(g.getYDimension().getParam());
-        fcp.setPlotType(PLOT_TYPE.HEATMAP);
+        if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+        } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+        } else if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+        } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+        } else {
+          fcp.setPlotType(PLOT_TYPE.HEATMAP);
+          g.setFillGate(true);
+        }
       } else {
         fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
       }
-      g.setColor(1);
-      g.setFillGate(true);
-      g.setDisplayName(false);
       fcp.getPanel().setTitle(g.getName());
       fcp.getPanel().setTitleLocation(SwingConstants.NORTH);
       fcp.getPanel().setDisplayTitle(true);
       fcp.getPanel().setTitleFontSize(20f);
 
-      // fcp.setClassifierGate(g.getName());
+      //       fcp.setClassifierGate(g.getName());
 
       fcp.getPanel().classifierPrev = false;
       fcp.getPanel().setForceGatesChanged();
       times[1] = System.nanoTime();
 
+      fcp.getPanel().forceSkip = false;
       fcp.getPanel().createImage();
       times[2] = System.nanoTime();
 
@@ -249,10 +276,46 @@ public class VisualizationProcessor implements SampleProcessor {
           if (Files.exists(outFile2 + ".png")) {
             continue;
           }
-          fcp.setXDataName(addl.xDim);
-          fcp.setYDataName(addl.yDim);
+          fcp.getPanel().forceSkip = true;
+          String x = addl.xDim;
+          if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.xDim)) {
+            x = dimSwitch.get(x);
+          }
+          fcp.setXDataName(x);
+
+          String y = addl.yDim;
+          if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.yDim)) {
+            y = dimSwitch.get(y);
+          }
+          fcp.setYDataName(y);
           fcp.getPanel().setTitle(addl.name);
           fcp.getPanel().setForceGatesChanged();
+
+          if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_PARENTS) >= 0) {
+            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+            g.setFillGate(false);
+            fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+          } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
+            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+            g.setFillGate(false);
+            fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+          } else if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_IMGS) >= 0) {
+            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+            g.setFillGate(false);
+            fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+          } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
+            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+            g.setFillGate(false);
+            fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+          } else {
+            fcp.setPlotType(PLOT_TYPE.HEATMAP);
+            g.setFillGate(true);
+          }
+
+          fcp.getPanel().forceSkip = false;
           fcp.getPanel().createImage();
           fcp.screencap(outFile2 + ".png");
         }
