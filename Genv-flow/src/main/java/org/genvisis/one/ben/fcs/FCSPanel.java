@@ -52,8 +52,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   protected FCSPlot fcp;
 
   int dataCount = -1;
-  String xCol = null;
-  String yCol = null;
+  volatile String xCol = null;
+  volatile String yCol = null;
   AXIS_SCALE prevXScale;
   AXIS_SCALE prevYScale;
   double xMed = Double.NaN;
@@ -223,18 +223,21 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     float xAxisValue;
     float yAxisValue;
     byte size = POINT_SIZE;
-    long t1 = System.currentTimeMillis();
+    if (drawing) return;
+    drawing = true;
 
     if (fcp.dataLoader == null) {
       lackingData = true;
       setNullMessage("Please load an FCS file..");
       resetAllForLackingData();
+      drawing = false;
       return;
     }
     if (!fcp.isCurrentDataDisplayable()) {
       lackingData = true;
       setNullMessage("Please wait, data is loading...");
       resetAllForLackingData();
+      drawing = false;
       return;
     }
     lackingData = false;
@@ -248,10 +251,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     String newX = fcp.getXDataName();
     String newY = fcp.getYDataName();
-    if (xCol == null || !fcp.getXDataName().equals(xCol)) {
+    if (xCol == null || !newX.equals(xCol)) {
       columnsChangedX = true;
     }
-    if (yCol == null || !fcp.getYDataName().equals(yCol)) {
+    if (yCol == null || !newY.equals(yCol)) {
       columnsChangedY = true;
     }
     xCol = newX;
@@ -308,20 +311,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
      * && ! typeChanged / * don 't need to regen if only type has changed , for now
      */;
     if (skip && allowSkip) {
+      drawing = false;
       return;
     }
 
     if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
       updateGating();
     }
-
-    // xData = columnsChangedX || dataChanged || xData == null ? fcp.getAxisData(false, true) :
-    // xData;
-    // yData = columnsChangedY || dataChanged || yData == null
-    // ? isHistogram() ? null
-    // : fcp.getAxisData(false,
-    // false)
-    // : yData;
 
     xData = fcp.getAxisData(true, true);
     yData = isHistogram() ? null : fcp.getAxisData(true, false);
@@ -350,6 +346,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       }
       setLines();
 
+      drawing = false;
       return;
     }
 
@@ -420,12 +417,13 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         points[i] = new PlotPoint(i + "", type, xAxisValue, yAxisValue, size, color, (byte) 0);
       }
     }
-    // if (gatesChanged) {
     if (!isHeatmap()) {
       updateGateColor();
     }
-    // }
+    drawing = false;
   }
+
+  volatile boolean drawing = false;
 
   private void refreshNonBaseLayers(boolean fullRedraw) {
     updateGating();
@@ -449,7 +447,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     List<Gate> gatesForPlot = fcp.getGatingForCurrentPlot();
 
     for (Gate g : gatesForPlot) {
-      boolean[] gt = fcp.getGating(g);
+      boolean[] gt = g.gate(fcp.dataLoader);
       if (gt == null) {
         continue;
       }

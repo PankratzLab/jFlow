@@ -86,6 +86,9 @@ public class FCSDataLoader {
     runDate = null;
     beginTime = null;
     endTime = null;
+    if (reader == null) {
+      System.out.println("Reader was already null here!");
+    }
     reader.dispose();
     reader = null;
     System.gc();
@@ -323,9 +326,9 @@ public class FCSDataLoader {
     LOAD_STATE currState = getLoadState();
     double[] data;
     if (currState == LOAD_STATE.LOADED) {
-      data = reader.getParamAsDoubles(paramShortNamesInOrder.get(paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN)
-                                                                                                       : columnName)),
-                                      compensated);
+      int index = paramNamesInOrder.indexOf(compensated ? columnName.substring(COMP_LEN)
+                                                        : columnName);
+      data = reader.getParamAsDoubles(paramShortNamesInOrder.get(index), compensated);
     } else {
       if (currState != LOAD_STATE.UNLOADED && waitIfNecessary) {
         while ((currState = getLoadState()) != LOAD_STATE.LOADED) {
@@ -439,8 +442,8 @@ public class FCSDataLoader {
 
   // tacked on functionality:
 
-  private Map<String, boolean[]> gateOverride = null;
-  private Map<String, List<String>> gateOverrideMatch = null;
+  private Map<String, boolean[]> gateOverride = new HashMap<>();
+  private Map<String, List<String>> gateOverrideMatch = new HashMap<>();
 
   public void loadGateOverrides(String file, String match) {
     String[][] strData = HashVec.loadFileToStringMatrix(file, false, null);
@@ -463,10 +466,14 @@ public class FCSDataLoader {
       String l = null;
       while ((l = reader.readLine()) != null) {
         if (l.trim().equals("")) continue;
-        String[] pts = l.split("\t");
-        gateOverrideMatch.put(pts[0], new ArrayList<>());
+        String[] pts = l.trim().split("\t");
+        String key = pts[0].trim();
+        if (key.contains("(")) {
+          key = key.substring(0, key.indexOf('(')).trim();
+        }
+        gateOverrideMatch.put(key, new ArrayList<>());
         for (int i = 1; i < pts.length; i++) {
-          gateOverrideMatch.get(pts[0]).add(pts[i]);
+          gateOverrideMatch.get(key).add(pts[i]);
         }
       }
       reader.close();
@@ -476,15 +483,17 @@ public class FCSDataLoader {
   }
 
   public boolean[] getOverrideGating(String gateName) {
-    if (gateOverrideMatch.containsKey(gateName)) {
-      List<String> ovvr = gateOverrideMatch.get(gateName);
+    String key = gateName.contains("(") ? gateName.substring(0, gateName.indexOf('(')).trim()
+                                        : gateName;
+    if (gateOverrideMatch.containsKey(key)) {
+      List<String> ovvr = gateOverrideMatch.get(key);
       boolean[] start = Arrays.copyOf(gateOverride.get(ovvr.get(0)), getCount());
       for (int i = 1; i < ovvr.size(); i++) {
         start = ArrayUtils.booleanArrayAnd(start, gateOverride.get(ovvr.get(i)));
       }
       return start;
-    } else if (gateOverride.containsKey(gateName)) {
-      return gateOverride.get(gateName);
+    } else if (gateOverride.containsKey(key)) {
+      return gateOverride.get(key);
     } else return null;
   }
 
