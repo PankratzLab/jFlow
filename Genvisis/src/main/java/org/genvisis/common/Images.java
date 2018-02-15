@@ -20,19 +20,18 @@ public class Images {
     stitchImages(dir, imageFiles, outFile, bgColor, drawInnerBorder, drawOuterBorder);
   }
 
-  public static void stitchImages(String dir, String[] imageFiles, String outFile, Color bgColor,
-                                  boolean drawInnerBorder,
-                                  boolean drawOuterBorder/* , boolean pack */) {
+  public static BufferedImage stitchImages(String[] imageFilesWithPaths, Color bgColor,
+                                           boolean drawInnerBorder, boolean drawOuterBorder) {
     int maxWid = 0;
     int maxHgt = 0;
 
     final HashMap<String, BufferedImage> images = new HashMap<String, BufferedImage>();
 
     System.out.print("Reading image files: <");
-    for (String imageFile : imageFiles) {
+    for (String imageFile : imageFilesWithPaths) {
       System.out.print("-");
       try {
-        BufferedImage img = ImageIO.read(new File(dir + imageFile));
+        BufferedImage img = ImageIO.read(new File(imageFile));
         maxHgt = Math.max(maxHgt, img.getHeight());
         maxWid = Math.max(maxWid, img.getWidth());
         images.put(imageFile, img);
@@ -45,11 +44,9 @@ public class Images {
 
     BufferedImage finalImage;
 
-    // if (pack) {
-    // finalImage = packedImage(imageFiles, images, bgColor, drawBorder);
-    // } else {
-    int arrSzCols = (int) Math.ceil(Math.sqrt(imageFiles.length));
-    int arrSzRows = (int) Math.ceil(imageFiles.length / Math.ceil(Math.sqrt(imageFiles.length)));
+    int arrSzCols = (int) Math.ceil(Math.sqrt(imageFilesWithPaths.length));
+    int arrSzRows = (int) Math.ceil(imageFilesWithPaths.length
+                                    / Math.ceil(Math.sqrt(imageFilesWithPaths.length)));
     int BUFFER_SZ = 3;
     int bufferCols = (arrSzCols + 1) * BUFFER_SZ;
     int bufferRows = (arrSzRows + 1) * BUFFER_SZ;
@@ -61,12 +58,12 @@ public class Images {
       finalImage.createGraphics().fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
     }
     System.out.print("Drawing image files: <");
-    for (int i = 0; i < imageFiles.length; i++) {
+    for (int i = 0; i < imageFilesWithPaths.length; i++) {
       System.out.print("-");
       int y = (i / arrSzCols) * maxHgt;
       int x = (i % arrSzCols) * maxWid;
       Graphics2D graphics = finalImage.createGraphics();
-      BufferedImage image = images.get(imageFiles[i]);
+      BufferedImage image = images.get(imageFilesWithPaths[i]);
       if (drawInnerBorder) {
         graphics.setColor(Color.GRAY);
         graphics.drawRect(x, y, image.getWidth(), image.getHeight());
@@ -77,8 +74,18 @@ public class Images {
       }
       graphics.drawImage(image, x, y, null);
     }
-    // }
+    return finalImage;
+  }
 
+  public static void stitchImages(String dir, String[] imageFiles, String outFile, Color bgColor,
+                                  boolean drawInnerBorder,
+                                  boolean drawOuterBorder/* , boolean pack */) {
+    String[] imageFilesWithPaths = new String[imageFiles.length];
+    for (int i = 0; i < imageFiles.length; i++) {
+      imageFilesWithPaths[i] = dir + imageFiles[i];
+    }
+    BufferedImage finalImage = stitchImages(imageFilesWithPaths, bgColor, drawInnerBorder,
+                                            drawOuterBorder);
     System.out.print(">\nWriting final file...");
     File outputFile = new File(dir + outFile);
     // TODO check file is writeable
@@ -91,78 +98,6 @@ public class Images {
 
     System.out.println("Complete!");
   }
-  //
-  // private static BufferedImage packedImage(final String[] imageFiles, final HashMap<String,
-  // BufferedImage> images, Color bgColor, boolean[] drawBorder) {
-  // String[] sorted = Array.clone(imageFiles);
-  // String[] sortedW = Array.clone(imageFiles);
-  // String[] sortedH = Array.clone(imageFiles);
-  // Arrays.sort(sorted, new Comparator<String>() {
-  // @Override
-  // public int compare(String o1, String o2) {
-  // // TODO include boilerplate for comparison?
-  // BufferedImage i1 = images.get(o1);
-  // BufferedImage i2 = images.get(o2);
-  // return new Integer(i1.getHeight() + i1.getWidth()).compareTo(i2.getHeight() + i2.getWidth());
-  // }
-  // });
-  // Arrays.sort(sortedW, new Comparator<String>() {
-  // @Override
-  // public int compare(String o1, String o2) {
-  // // TODO include boilerplate for comparison?
-  // BufferedImage i1 = images.get(o1);
-  // BufferedImage i2 = images.get(o2);
-  // return new Integer(i1.getWidth()).compareTo(i2.getWidth());
-  // }
-  // });
-  // Arrays.sort(sortedH, new Comparator<String>() {
-  // @Override
-  // public int compare(String o1, String o2) {
-  // // TODO include boilerplate for comparison?
-  // BufferedImage i1 = images.get(o1);
-  // BufferedImage i2 = images.get(o2);
-  // return new Integer(i1.getHeight()).compareTo(i2.getHeight());
-  // }
-  // });
-  //
-  //
-  // int BUFFER_SZ = 3;
-  //
-  // int cols = (int) Math.ceil(Math.sqrt(imageFiles.length));
-  // int bufferX = (cols + 1) * BUFFER_SZ;
-  // int rows = (int) Math.ceil(imageFiles.length / Math.ceil(Math.sqrt(imageFiles.length)));
-  // int bufferY = (rows + 1) * BUFFER_SZ;
-  // int maxWdt = images.get(sortedW[0]).getWidth();
-  // int maxHgt = images.get(sortedH[0]).getHeight();
-  //
-  // BufferedImage finalImage = new BufferedImage((maxWdt * cols) + bufferX, (maxHgt * rows) +
-  // bufferY, BufferedImage.TYPE_INT_ARGB);
-  //
-  //
-  // if (bgColor != null) {
-  // finalImage.createGraphics().setColor(bgColor);
-  // finalImage.createGraphics().fillRect(0, 0, finalImage.getWidth(), finalImage.getHeight());
-  // }
-  // System.out.print("Drawing image files <");
-  // for (int i = 0; i < imageFiles.length; i++) {
-  // System.out.print("-");
-  // int x = (i / rows) * maxWdt;
-  // int y = (i % cols) * maxHgt;
-  // Graphics2D graphics = finalImage.createGraphics();
-  // BufferedImage image = images.get(imageFiles[i]);
-  // if (drawBorder != null && drawBorder.length > 1 && drawBorder[1]) {
-  // graphics.setColor(Color.GRAY);
-  // graphics.drawRect(x, y, image.getWidth(), image.getHeight());
-  // }
-  // if (drawBorder != null && drawBorder.length > 0 && drawBorder[0]) {
-  // graphics.setColor(Color.BLACK);
-  // graphics.drawRect(x, y, maxWdt, maxHgt);
-  // }
-  // graphics.drawImage(image, x, y, null);
-  // }
-  //
-  // return finalImage;
-  // }
 
   public static void main(String[] args) {
     int numArgs = args.length;
