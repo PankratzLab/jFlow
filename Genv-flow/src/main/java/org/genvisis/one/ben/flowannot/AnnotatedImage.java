@@ -12,6 +12,7 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 import org.genvisis.common.Files;
+import org.genvisis.common.Images;
 
 public class AnnotatedImage {
 
@@ -132,11 +133,17 @@ public class AnnotatedImage {
   private void createImage() {
     if (image == null) {
       if (imageFile != null) {
-        try {
-          image = new SoftReference<BufferedImage>(ImageIO.read(new File(imageFile)));
-        } catch (IOException e) {
-          e.printStackTrace();
-          image = new SoftReference<BufferedImage>(createIOExceptionImage(e));
+        if (!imageFile.contains(";")) {
+          try {
+            image = new SoftReference<BufferedImage>(ImageIO.read(new File(imageFile)));
+          } catch (IOException e) {
+            e.printStackTrace();
+            image = new SoftReference<BufferedImage>(createIOExceptionImage(e));
+          }
+        } else {
+          String[] images = imageFile.split(";");
+          image = new SoftReference<BufferedImage>(Images.stitchImages(images, Color.WHITE, true,
+                                                                       false));
         }
       } else {
         if (imageFile == null) {

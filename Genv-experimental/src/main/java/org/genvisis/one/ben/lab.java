@@ -1814,19 +1814,27 @@ public class lab {
       // CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
       // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
 
-      String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
-      UKBBParsingPipeline pipe = new UKBBParsingPipeline();
-      pipe.setSourceDir(dir + "00src/");
-      pipe.setProjectDir(dir + "project_21/");
-      pipe.setProjectPropertiesDir("D:/projects/");
-      pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
-      pipe.setAnnotationCSV(dir + "Axiom_UKB_WCSG.na34.annot.csv");
-      pipe.setProjectName("UKBB_21");
-      pipe.runPipeline();
+      //      String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+      //      UKBBParsingPipeline pipe = new UKBBParsingPipeline();
+      //      pipe.setSourceDir(dir + "00src/");
+      //      pipe.setProjectDir(dir + "project_21/");
+      //      pipe.setProjectPropertiesDir("D:/projects/");
+      //      pipe.setFamFile(dir + "ukb1773_l2r_chrY_v2_s488374.fam");
+      //      pipe.setAnnotationCSV(dir + "Axiom_UKB_WCSG.na34.annot.csv");
+      //      pipe.setProjectName("UKBB_21");
+      //      pipe.runPipeline();
 
       // testWriters();
       // processAnnotationFiles();1
       // writeFCSLookup();
+      proj = new Project("D:/projects/gedi_gwas.properties");
+      //      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
+
+      proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
+
+      TempFileTranspose tft = new TempFileTranspose(proj, "G:\\transposeTesting\\");
+      tft.runFirst();
+      tft.runSecond();
 
       // transposeFile();
 

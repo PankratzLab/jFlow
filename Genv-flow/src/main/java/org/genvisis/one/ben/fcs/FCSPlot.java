@@ -335,6 +335,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   public void screencap(String file) {
+    updateGUI();
     fcsPanel.screenCapture(file);
   }
 
@@ -616,10 +617,6 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     return gating;
   }
 
-  public boolean[] getGating(Gate g) {
-    return g.gate(dataLoader);
-  }
-
   public double[] getAxisData(boolean wait, boolean xAxis) {
     double[] data;
     if (dataLoader == null) {
@@ -638,71 +635,65 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   private void resetForNewData(final FCSDataLoader newDataLoader) {
-    if (newDataLoader.getLoadState() != LOAD_STATE.UNLOADED
-        && newDataLoader.getLoadState() != LOAD_STATE.LOADING) {
-      final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-      final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-      colNamesY.add(0, HISTOGRAM_COL);
-
-      if (colNames.size() < 2) {
-        // TODO error, not enough data!!
-      }
-      fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
-      fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-      fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-      fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
-      fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
-
-      setYDataName(colNames.get(0));
-      setXDataName(colNames.get(1));
-      setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
-      setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
-
-      // fcsControls.setPlotType(PLOT_TYPE.DOT_PLOT);
-      // fcsControls.setScale(AXIS_SCALE.BIEX, false);
-      // fcsControls.setScale(AXIS_SCALE.BIEX, true);
-      // setYDataName("Comp-APC-A (CD3)");
-      // setXDataName("Comp-PE-Cy7-A (CD19)");
-      // setYScale(AXIS_SCALE.BIEX);
-      // setXScale(AXIS_SCALE.BIEX);
-    } else {
-      new Thread(new Runnable() {
-
-        @Override
-        public void run() {
-          while (newDataLoader.getLoadState() == LOAD_STATE.UNLOADED
-                 || newDataLoader.getLoadState() == LOAD_STATE.LOADING) {
-            Thread.yield();
-          }
-          final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-          final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-          colNamesY.add(0, HISTOGRAM_COL);
-
-          if (colNames.size() < 2) {
-            // TODO error, not enough data!!
-          }
-          // TODO reset GUI elements
-          // if (resetCols) {
-          SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-              fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
-              fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-              fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
-              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
-            }
-          });
-
-          setYDataName(colNames.get(0));
-          setXDataName(colNames.get(1));
-          setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
-          setXScale(newDataLoader.getScaleForParam(colNames.get(0)));
-
-        }
-      }).start();
+    while (newDataLoader.getLoadState() != LOAD_STATE.LOADED) {
+      Thread.yield();
     }
+    //    if (newDataLoader.getLoadState() == LOAD_STATE.LOADED) {
+    final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    colNamesY.add(0, HISTOGRAM_COL);
+
+    if (colNames.size() < 2) {
+      // TODO error, not enough data!!
+    }
+    fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+    fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+    fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
+    fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
+    fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
+
+    setYDataName(colNames.get(0));
+    setXDataName(colNames.get(1));
+    setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
+    setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
+
+    //    } else {
+    //      new Thread(new Runnable() {
+    //
+    //        @Override
+    //        public void run() {
+    //          while (newDataLoader.getLoadState() != LOAD_STATE.LOADED) {
+    //            Thread.yield();
+    //          }
+    //          final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    //          final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    //          colNamesY.add(0, HISTOGRAM_COL);
+    //
+    //          if (colNames.size() < 2) {
+    //            // TODO error, not enough data!!
+    //          }
+    //          // TODO reset GUI elements
+    //          // if (resetCols) {
+    //          SwingUtilities.invokeLater(new Runnable() {
+    //
+    //            @Override
+    //            public void run() {
+    //              fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+    //              fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+    //              fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
+    //              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
+    //              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
+    //            }
+    //          });
+    //
+    //          setYDataName(colNames.get(0));
+    //          setXDataName(colNames.get(1));
+    //          setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
+    //          setXScale(newDataLoader.getScaleForParam(colNames.get(0)));
+    //
+    //        }
+    //      }).start();
+    //    }
     dataLoader = newDataLoader;
     System.gc();
   }
@@ -752,19 +743,20 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     } else {
       final FCSDataLoader newDataLoader = new FCSDataLoader();
       loadedData.put(filename, newDataLoader);
-      Thread dataLoaderThread = new Thread(() -> {
-        fcsControls.startFileLoading(newDataLoader);
-        try {
-          newDataLoader.loadData(filename);
-        } catch (IOException e) {
-          log.reportException(e);
-          return;
-        }
+      //      Thread dataLoaderThread = new Thread(() -> {
+      fcsControls.startFileLoading(newDataLoader);
+      try {
+        newDataLoader.loadData(filename);
+
         if (display) {
           setData(newDataLoader);
         }
-      });
-      dataLoaderThread.start();
+      } catch (IOException e) {
+        log.reportException(e);
+        return;
+      }
+      //      });
+      //      dataLoaderThread.start();
     }
   }
 
@@ -963,8 +955,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     if (dataLoader == null) {
       return false;
     }
-    LOAD_STATE currState = dataLoader.getLoadState();
-    return currState != LOAD_STATE.UNLOADED && currState != LOAD_STATE.LOADING;
+    return dataLoader.getLoadState() == LOAD_STATE.LOADED;
   }
 
   public boolean isFileLoaded(String file) {

@@ -154,11 +154,15 @@ public class FCSProcessingPipeline {
     PIPELINE pipe = PIPELINE.VIZ;
     boolean test = Files.isWindows();
     if (test) {
-      fcs = wsp = auto = out = "F:\\Flow\\counts data\\nullsTest\\";
-      out += "out/";
+      String dir = "F:\\Flow\\boolGating\\";
+      fcs = dir + "fcs\\";
+      wsp = dir + "wsp\\";
+      out = dir + "out2\\";
+      gateOverrideDir = dir + "ovvr\\";
+      gateOverrideMatchFile = dir + "ovvrMatch.txt";
       new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
                                 gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
-                                                                                                    PIPELINE.BOOL,
+                                                                                                    PIPELINE.VIZ,
                                                                                                     -1);
       return;
     }

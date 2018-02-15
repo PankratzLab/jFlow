@@ -14,6 +14,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
+import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
 import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
@@ -138,7 +139,12 @@ public class VisualizationProcessor implements SampleProcessor {
     long time2 = System.nanoTime();
     fcp.loadFile(sn.fcsFile, true);
     FCSDataLoader loader = fcp.getDataLoader(sn.fcsFile);
-    loader.loadGateOverrides(ovvrDir + sn.fcsFile + ovvrSfx, ovvrMatch);
+    while (loader == null || loader.getLoadState() != LOAD_STATE.LOADED) {
+      Thread.yield();
+    }
+    if (ovvrDir != null) {
+      loader.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
+    }
     int rowCnt = loader.getCount();
 
     long time3 = System.nanoTime();

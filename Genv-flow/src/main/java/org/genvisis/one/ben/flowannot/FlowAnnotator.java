@@ -730,7 +730,9 @@ public class FlowAnnotator {
     }
     for (int i = 0; i < allAnnots.size(); i++) {
       JCheckBox annBox = new JCheckBox();
-      if (ai != null && ai.getAnnotations().contains(allAnnots.get(i))) {
+      Annotation ann = allAnnots.get(i);
+      List<Annotation> aiAnns = ai.getAnnotations();
+      if (ai != null && aiAnns.contains(ann)) {
         annBox.setSelected(true);
       } else {
         annBox.setSelected(false);
