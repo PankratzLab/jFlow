@@ -130,6 +130,28 @@ public class DataLine {
   }
 
   /**
+   * Get the (known-to-be-properly-)typed value from this DataLine for a given FileColumn. If the
+   * value was a parse failure value, defaultValue will be returned. <br />
+   * <br />
+   * The unchecked cast warning is being suppressed because the only situation in which the value is
+   * not of type {@code T} is if it was a parse failure, in which case defaultValue will be
+   * returned. In all other cases, the value is known to be of type {@code T}.
+   * 
+   * @param fc
+   * @param defaultValue
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public <T> T get(FileColumn<T> fc, T defaultValue) {
+    if (defaultFailValue.equals(lineValues.get(fc))
+        || (failValues.containsKey(fc) && failValues.get(fc).equals(lineValues.get(fc)))) {
+      return defaultValue;
+    }
+
+    return (T) lineValues.get(fc);
+  }
+
+  /**
    * <b>WARNING: UNSAFE.</b><br />
    * Should only be used inside an {@code if (hasValid(fc))} block, otherwise may cause
    * {@link ClassCastException}s. <br />
