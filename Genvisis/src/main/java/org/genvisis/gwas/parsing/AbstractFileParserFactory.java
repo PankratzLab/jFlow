@@ -168,6 +168,7 @@ public abstract class AbstractFileParserFactory {
   }
 
   public FileParser build() {
+    parser.loadLinkedData();
     return parser;
   }
 

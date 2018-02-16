@@ -166,6 +166,15 @@ public class FileParser implements Iterable<DataLine> {
     }
   }
 
+  /**
+   * Calls {@link FileLink#build()} on each of the linked files.
+   */
+  void loadLinkedData() {
+    for (FileLink fl : linkedParsers) {
+      fl.build();
+    }
+  }
+
   private List<FileColumn<?>> getOutputColumnsInOrder() {
     List<FileColumn<?>> cols = new ArrayList<>(dataInOrder);
     for (FileLink fl : linkedParsers) {

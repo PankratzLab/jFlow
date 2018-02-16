@@ -1633,9 +1633,6 @@ public class lab {
     })) {
       rsqFiles.add(FileLink.setup(map + f).keys(snpCol).values(rsqCol));
     }
-    for (FileLink fl : rsqFiles) {
-      fl.build();
-    }
 
     String[] files = {"CARDIA_BAS_EA_141217_BC.txt.gz", "CARDIA_LYM_EA_141217_BC.txt.gz",
                       "CARDIA_MON_EA_141217_BC.txt.gz", "CARDIA_WBC_EA_141217_BC.txt.gz",

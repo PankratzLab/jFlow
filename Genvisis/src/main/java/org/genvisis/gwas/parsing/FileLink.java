@@ -96,11 +96,11 @@ public class FileLink extends AbstractFileParserFactory {
     return this;
   }
 
-  @Override
   /**
    * Builds parser internally with {@code super.build()}, loads the data in the linked file into
    * memory, and then closes the internal parser object. Always returns null;
    */
+  @Override
   public FileParser build() {
     if (data == null) {
       FileParser parser = super.build();
