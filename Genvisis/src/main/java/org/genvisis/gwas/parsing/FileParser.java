@@ -436,6 +436,10 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     };
   }
 
+  /**
+   * @return {@link List} of {@link DataLine}s for each line in the input
+   * @throws IOException when thrown by {@link #close()}
+   */
   public List<DataLine> load() throws IOException {
     List<DataLine> data = new ArrayList<>();
     Iterator<DataLine> iter = iterator();
@@ -452,8 +456,8 @@ public class FileParser implements Iterable<DataLine>, Closeable {
    *          found.
    * @param keyCols Vararg of FileColumns whose String values are to be concatenated together and
    *          used as the key
-   * @return
-   * @throws IOException
+   * @return {@link Map} from {@link ImmutableList} of keyCols values to {@link DataLine}
+   * @throws IOException when thrown by {@link #close()}
    */
   public Map<ImmutableList<Object>, DataLine> load(boolean dropIfKeyFail,
                                                    FileColumn<?>... keyCols) throws IOException {
@@ -462,11 +466,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     while (iter.hasNext()) {
       DataLine line = iter.next();
       try {
-        ImmutableList.Builder<Object> builder = ImmutableList.builder();
-        for (FileColumn<?> fc : keyCols) {
-          builder.add(line.get(fc));
-        }
-        data.put(builder.build(), line);
+        data.put(buildParsedKey(line, keyCols), line);
       } catch (ParseFailureException e) {
         if (!dropIfKeyFail) {
           throw new RuntimeException(e);
@@ -477,63 +477,196 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return data;
   }
 
+  /**
+   * @param dropIfKeyFail Set to true to drop any lines where the key value throws a
+   *          ParseFailureException; set to false to throw a RuntimeException if invalid keys are
+   *          found.
+   * @param keyCol FileColumn whose String values are to be used as the key
+   * @return {@link Map} from value of keyCol to {@link DataLine}
+   * @throws IOException when thrown by {@link #close()}
+   */
+  public <T> Map<T, DataLine> load(boolean dropIfKeyFail, FileColumn<T> keyCol) throws IOException {
+    Map<T, DataLine> data = new HashMap<>();
+    Iterator<DataLine> iter = iterator();
+    while (iter.hasNext()) {
+      DataLine line = iter.next();
+      try {
+        data.put(line.get(keyCol), line);
+      } catch (ParseFailureException e) {
+        if (!dropIfKeyFail) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+    close();
+    return data;
+  }
+
+  /**
+   * Simultaneously parse to file as in {@link #parseToFile(String, String)} and load as in
+   * {@link #load()}
+   */
   public List<DataLine> parseToFileAndLoad(String outputFile, String outDelim) throws IOException {
     return parseToFileAndLoad(outputFile, outDelim, null);
   }
 
   public List<DataLine> parseToFileAndLoad(String outputFile, String outDelim,
                                            List<FileColumn<?>> outputOrder) throws IOException {
-    List<DataLine> data = new ArrayList<>();
-    Iterator<DataLine> iter = iterator();
+    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+      List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
+      writer.println(buildHeaderLineOut(outputColumns, outDelim));
 
-    PrintWriter writer = Files.getAppropriateWriter(outputFile);
-    StringBuilder lineOut = new StringBuilder();
-    List<FileColumn<?>> outputColumns = outputOrder != null ? outputOrder
-                                                            : getOutputColumnsInOrder();
-    for (int i = 0, count = outputColumns.size(); i < count; i++) {
-      lineOut.append(outputColumns.get(i).getName());
-      if (i < count - 1) {
-        lineOut.append(outDelim);
+      List<DataLine> data = new ArrayList<>();
+      Iterator<DataLine> iter = iterator();
+      while (iter.hasNext()) {
+        DataLine line = iter.next();
+        data.add(line);
+        writer.println(buildLineOut(line, outputColumns, outDelim));
       }
+      close();
+      return data;
     }
-    writer.println(lineOut.toString());
-
-    while (iter.hasNext()) {
-      DataLine line = iter.next();
-      data.add(line);
-      lineOut = new StringBuilder();
-      for (int i = 0, count = outputColumns.size(); i < count; i++) {
-        lineOut.append(line.getString(outputColumns.get(i)));
-        if (i < count - 1) {
-          lineOut.append(outDelim);
-        }
-      }
-      writer.println(lineOut.toString());
-    }
-    writer.close();
-    close();
-    return data;
   }
 
+  /**
+   * {@link #parseToFileAndLoad(String, String, List, boolean, FileColumn)} with default output
+   * order
+   */
+  public <T> Map<T, DataLine> parseToFileAndLoad(String outputFile, String outDelim,
+                                                 boolean dropIfKeyFail,
+                                                 FileColumn<T> keyCol) throws IOException {
+    return parseToFileAndLoad(outputFile, outDelim, null, dropIfKeyFail, keyCol);
+  }
+
+  /**
+   * Simultaneously parse to file as in {@link #parseToFile(String, String, List)} and load as in
+   * {@link #load(boolean, FileColumn)}
+   */
+  public <T> Map<T, DataLine> parseToFileAndLoad(String outputFile, String outDelim,
+                                                 List<FileColumn<?>> outputOrder,
+                                                 boolean dropIfKeyFail,
+                                                 FileColumn<T> keyCol) throws IOException {
+    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+      List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
+      writer.println(buildHeaderLineOut(outputColumns, outDelim));
+
+      Map<T, DataLine> data = new HashMap<>();
+      Iterator<DataLine> iter = iterator();
+      while (iter.hasNext()) {
+        DataLine line = iter.next();
+        try {
+          data.put(line.get(keyCol), line);
+          writer.println(buildLineOut(line, outputColumns, outDelim));
+        } catch (ParseFailureException e) {
+          if (!dropIfKeyFail) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+      close();
+      return data;
+    }
+  }
+
+  /**
+   * {@link #parseToFileAndLoad(String, String, List, boolean, FileColumn...)} with default output
+   * order
+   */
+  public Map<ImmutableList<Object>, DataLine> parseToFileAndLoad(String outputFile, String outDelim,
+                                                                 boolean dropIfKeyFail,
+                                                                 FileColumn<?>... keyCols) throws IOException {
+    return parseToFileAndLoad(outputFile, outDelim, null, dropIfKeyFail, keyCols);
+  }
+
+  /**
+   * Simultaneously parse to file as in {@link #parseToFile(String, String, List)} and load as in
+   * {@link #load(boolean, FileColumn...)}
+   */
+  public Map<ImmutableList<Object>, DataLine> parseToFileAndLoad(String outputFile, String outDelim,
+                                                                 List<FileColumn<?>> outputOrder,
+                                                                 boolean dropIfKeyFail,
+                                                                 FileColumn<?>... keyCols) throws IOException {
+    try (PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
+      List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
+      writer.println(buildHeaderLineOut(outputColumns, outDelim));
+
+      Map<ImmutableList<Object>, DataLine> data = new HashMap<>();
+      Iterator<DataLine> iter = iterator();
+      while (iter.hasNext()) {
+        DataLine line = iter.next();
+        try {
+          data.put(buildParsedKey(line, keyCols), line);
+          writer.println(buildLineOut(line, outputColumns, outDelim));
+        } catch (ParseFailureException e) {
+          if (!dropIfKeyFail) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+      close();
+      return data;
+    }
+  }
+
+  /**
+   * {@link #parseToFile(String, String, List)} using default output orser
+   */
   public void parseToFile(String outputFile, String outDelim) throws IOException {
     this.parseToFile(outputFile, outDelim, null);
   }
 
+  /**
+   * {@link #parseToFile(String, String, boolean, boolean, List)} writing header and not appending
+   */
   public void parseToFile(String outputFile, String outDelim,
                           List<FileColumn<?>> outputOrder) throws IOException {
     this.parseToFile(outputFile, outDelim, true, false, outputOrder);
   }
 
+  /**
+   * {@link #parseToFile(String, String, boolean, boolean, List)} with default outputOrder
+   */
   public void parseToFile(String outputFile, String outDelim, boolean writeHeader,
                           boolean append) throws IOException {
     parseToFile(outputFile, outDelim, writeHeader, append, null);
   }
 
+  /**
+   * @param outputFile file to write to
+   * @param outDelim delimiter to use in output file
+   * @param writeHeader true to include header
+   * @param append true to append to outputFile
+   * @param outputOrder order to output columns in, any additional output columns will be included
+   *          after listed columns
+   * @throws IOException when thrown by {@link #close()}
+   */
   public void parseToFile(String outputFile, String outDelim, boolean writeHeader, boolean append,
                           List<FileColumn<?>> outputOrder) throws IOException {
-    Iterator<DataLine> iter = iterator();
+    try (PrintWriter writer = Files.getAppropriateWriter(outputFile, append)) {
+      List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
+      if (writeHeader) {
+        writer.println(buildHeaderLineOut(outputColumns, outDelim));
+      }
 
-    PrintWriter writer = Files.getAppropriateWriter(outputFile, append);
+      Iterator<DataLine> iter = iterator();
+      while (iter.hasNext()) {
+        DataLine line = iter.next();
+        writer.println(buildLineOut(line, outputColumns, outDelim));
+      }
+      close();
+    }
+  }
+
+  private ImmutableList<Object> buildParsedKey(DataLine line,
+                                               FileColumn<?>... keyCols) throws ParseFailureException {
+    ImmutableList.Builder<Object> builder = ImmutableList.builder();
+    for (FileColumn<?> fc : keyCols) {
+      builder.add(line.get(fc));
+    }
+    return builder.build();
+  }
+
+  private List<FileColumn<?>> buildOutputColumns(List<FileColumn<?>> outputOrder) {
     List<FileColumn<?>> outputColumns = outputOrder == null ? getOutputColumnsInOrder()
                                                             : outputOrder;
     if (outputOrder != null) {
@@ -546,31 +679,29 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         }
       }
     }
+    return outputColumns;
+  }
 
+  private String buildHeaderLineOut(List<FileColumn<?>> outputColumns, String outDelim) {
     StringBuilder lineOut = new StringBuilder();
-    if (writeHeader) {
-      for (int i = 0, count = outputColumns.size(); i < count; i++) {
-        lineOut.append(outputColumns.get(i).getName());
-        if (i < count - 1) {
-          lineOut.append(outDelim);
-        }
+    for (int i = 0, count = outputColumns.size(); i < count; i++) {
+      lineOut.append(outputColumns.get(i).getName());
+      if (i < count - 1) {
+        lineOut.append(outDelim);
       }
-      writer.println(lineOut.toString());
     }
+    return lineOut.toString();
+  }
 
-    while (iter.hasNext()) {
-      DataLine line = iter.next();
-      lineOut = new StringBuilder();
-      for (int i = 0, count = outputColumns.size(); i < count; i++) {
-        lineOut.append(line.getString(outputColumns.get(i)));
-        if (i < count - 1) {
-          lineOut.append(outDelim);
-        }
+  private String buildLineOut(DataLine line, List<FileColumn<?>> outputColumns, String outDelim) {
+    StringBuilder lineOut = new StringBuilder();
+    for (int i = 0, count = outputColumns.size(); i < count; i++) {
+      lineOut.append(line.getString(outputColumns.get(i)));
+      if (i < count - 1) {
+        lineOut.append(outDelim);
       }
-      writer.println(lineOut.toString());
     }
-    writer.close();
-    close();
+    return lineOut.toString();
   }
 
 }

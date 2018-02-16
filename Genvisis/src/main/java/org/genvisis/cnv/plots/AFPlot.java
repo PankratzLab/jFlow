@@ -286,7 +286,7 @@ public class AFPlot {
     }
     dataSnps.clear();
     dataSnps.addAll(factory.build().load(true, snpCol).keySet().stream()
-                           .map(s -> s.get(0).toString()).collect(Collectors.toSet()));
+                           .collect(Collectors.toSet()));
     if (Thread.currentThread().isInterrupted()) {
       reset();
       return;
