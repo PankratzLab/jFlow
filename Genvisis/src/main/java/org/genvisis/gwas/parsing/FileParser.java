@@ -193,13 +193,16 @@ public class FileParser implements Iterable<DataLine> {
       if (trimInput) {
         line = line.trim();
       }
+      boolean skipIt = false;
       if (skipPrefices.size() > 0) {
         for (String skp : skipPrefices) {
           if (line.startsWith(skp)) {
-            continue;
+            skipIt = true;
+            break;
           }
         }
       }
+      if (skipIt) continue;
       if (skip > 0) {
         skip--;
         continue;
