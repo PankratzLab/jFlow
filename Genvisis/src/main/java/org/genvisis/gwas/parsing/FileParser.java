@@ -1,6 +1,7 @@
 package org.genvisis.gwas.parsing;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableList;
 
-public class FileParser implements Iterable<DataLine> {
+public class FileParser implements Iterable<DataLine>, Closeable {
 
   private String inputFile;
   private String inputFileDelim;
@@ -381,10 +382,12 @@ public class FileParser implements Iterable<DataLine> {
    * 
    * @throws IOException
    */
+  @Override
   public void close() throws IOException {
     reader.close();
   }
 
+  @Override
   public Iterator<DataLine> iterator() {
     try {
       open();
