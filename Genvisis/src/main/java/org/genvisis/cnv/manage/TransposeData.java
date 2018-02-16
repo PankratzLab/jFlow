@@ -476,7 +476,6 @@ public class TransposeData {
     long time;
 
     time = new Date().getTime();
-    System.out.println("Creating MarkerLookup file");
     files = new File(proj.MARKER_DATA_DIRECTORY.getValue(false, true)).list(new FilenameFilter() {
 
       @Override
@@ -505,6 +504,7 @@ public class TransposeData {
           for (int j = 0; j < markerNames.length; j++) {
             hash.put(markerNames[j], files[i] + "\t" + j);
           }
+          currentFile.close();
         } catch (FileNotFoundException e) {
           e.printStackTrace();
         } catch (Exception e) {
@@ -1590,6 +1590,7 @@ public class TransposeData {
                                                           MARKERDATA_MARKERNAMELEN_START);
 
     parameters = new byte[markernamesSectionLength];
+    file.seek(MARKERDATA_MARKERNAME_START);
     file.read(parameters);
     String[] markerNames = (String[]) Compression.bytesToObj(parameters);
     file.close();

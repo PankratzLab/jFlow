@@ -4,12 +4,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -20,12 +25,108 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
+import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import com.google.common.collect.ImmutableMap;
 
 public class TempFileTranspose {
 
+  static class ListFileCheckoutSystem {
+
+    static final int MAX_MINS_SLEPT = 20;
+
+    public static void initFile(String file, String[] values) {
+      if (!Files.exists(file)) {
+        Files.writeArray(values, file);
+      }
+    }
+
+    public static String[] checkout(String listFile, int pull, String label,
+                                    Logger log) throws IOException {
+      Path fP = FileSystems.getDefault().getPath(listFile);
+      String nF = ext.rootOf(listFile, false) + "." + label + "." + Thread.currentThread().getName()
+                  + ".temp";
+      Path nFP = FileSystems.getDefault().getPath(nF);
+      IOException e = null;
+      double minsSlept = 0;
+      do {
+        try {
+          java.nio.file.Files.move(fP, nFP, StandardCopyOption.ATOMIC_MOVE);
+
+          String[] list = HashVec.loadFileToStringArray(nF, false, null, false);
+          if (list.length == 0) {
+            return null;
+          }
+          String[] values = new String[pull];
+          String[] remain = new String[list.length - pull];
+          System.arraycopy(list, 0, values, 0, pull);
+          System.arraycopy(list, pull, remain, 0, remain.length);
+          Files.writeArray(remain, nF);
+
+          java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
+
+          Files.writeArray(values, nF);
+          return values;
+        } catch (NoSuchFileException e1) {
+          e = e1;
+          try {
+            // 30 seconds
+            Thread.sleep(1000 * 30);
+          } catch (InterruptedException e2) {}
+          minsSlept += .5;
+        }
+      } while (e != null && minsSlept < MAX_MINS_SLEPT);
+
+      log.reportTimeWarning("Waited for " + minsSlept + " minutes, trying to checkout " + pull
+                            + " values for " + label + ", + couldn't find " + listFile);
+
+      return null;
+    }
+
+    public static void checkin(String listFile, String[] values, int start, String label,
+                               Logger log) throws IOException {
+      Path fP = FileSystems.getDefault().getPath(listFile);
+      String nF = ext.rootOf(listFile, false) + "." + label + "." + Thread.currentThread().getName()
+                  + ".temp";
+      Path nFP = FileSystems.getDefault().getPath(nF);
+      IOException e = null;
+      double minsSlept = 0;
+      int maxMinsSlept = 20;
+      do {
+        try {
+          java.nio.file.Files.move(fP, nFP, StandardCopyOption.ATOMIC_MOVE);
+
+          int remain = values.length - start;
+          String[] list = HashVec.loadFileToStringArray(nF, false, null, false);
+          String[] total = new String[list.length + remain];
+          System.arraycopy(values, start, total, 0, remain);
+          System.arraycopy(list, 0, total, remain, list.length);
+          Files.writeArray(total, nF);
+
+          java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
+          return;
+        } catch (NoSuchFileException e1) {
+          e = e1;
+          try {
+            // 30 seconds
+            Thread.sleep(1000 * 30);
+          } catch (InterruptedException e2) {}
+          minsSlept += .5;
+        }
+      } while (e != null && minsSlept < maxMinsSlept);
+
+      log.reportTimeWarning("Waited for " + minsSlept + " minutes, trying to readd "
+                            + (values.length - start) + " values for " + label + ", couldn't find "
+                            + listFile);
+
+    }
+
+  }
+
   Project proj;
   String tempDir;
+  String label;
   private byte nullStatus = -1;
 
   private String[] discover() {
@@ -47,42 +148,79 @@ public class TempFileTranspose {
     return Compression.bytesToInt(p, TransposeData.MARKERDATA_NUMMARKERS_START);
   }
 
+  public String getTempFile(String markerFile) {
+    return tempDir + ext.removeDirectoryInfo(markerFile) + ".tpd";
+  }
+
+  public void setupMarkerListFile() {
+    String[] files = discover();
+    List<String> toDo = new ArrayList<>();
+    for (String file : files) {
+      boolean add = true;
+      String temp = getTempFile(file);
+      if (Files.exists(temp)) {
+        try {
+          long size = Sample.getNBytesPerSampleMarker(TransposeData.getNullstatusFromRandomAccessFile(file,
+                                                                                                      false))
+                      * (long) Compression.bytesToInt(readParameter(file),
+                                                      TransposeData.MARKERDATA_NUMMARKERS_START);
+          if (Files.getSize(getTempFile(file)) == size) {
+            add = false;
+          }
+        } catch (IOException e) {
+          // just recreate
+        }
+      }
+      if (add) {
+        toDo.add(temp);
+      }
+    }
+    ListFileCheckoutSystem.initFile(tempDir + "temp.list", files);
+  }
+
   public void runFirst() throws IOException {
     nullStatus = getNullStatus();
     final long f = MarkerSet.fingerprint(proj.getSamples());
-    String[] files = discover();
+
     ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime()
                                                                    .availableProcessors());
-    for (String file : files) {
-      String out = tempDir + ext.removeDirectoryInfo(file) + ".tpd";
-      if (Files.exists(out)) continue;
+    byte numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+
+    final String listFile = tempDir + "temp.list";
+    for (int i = 0, c1 = Runtime.getRuntime().availableProcessors(); i < c1; i++) {
       Runnable run = () -> {
         byte[] parameter;
         byte[][] readBuffer;
-        byte numBytesPerSampleMarker;
         try {
-          parameter = readParameter(file);
-          if (nullStatus != parameter[TransposeData.MARKERDATA_NULLSTATUS_START]) {
-            throw new IllegalStateException("Error - null status was inconsistent between mdRAF files.  Found "
-                                            + nullStatus + " and "
-                                            + parameter[TransposeData.MARKERDATA_NULLSTATUS_START]);
-          }
-          numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
-          // read entire mdRAF file into memory:
-          readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(file, parameter,
-                                                                                    null, 0, -1, f,
-                                                                                    proj.getLog());
-          OutputStream os = new FileOutputStream(out);
-
-          for (int s = 0, c = proj.getSamples().length; s < c; s++) {
-            for (int m = 0; m < readBuffer.length; m++) { // should be all markers
-              os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
+          String file = null;
+          while ((file = ListFileCheckoutSystem.checkout(listFile, 1, label,
+                                                         new Logger())[0]) != null) {
+            String out = getTempFile(file);
+            parameter = readParameter(file);
+            if (nullStatus != parameter[TransposeData.MARKERDATA_NULLSTATUS_START]) {
+              throw new IllegalStateException("Error - null status was inconsistent between mdRAF files.  Found "
+                                              + nullStatus + " and "
+                                              + parameter[TransposeData.MARKERDATA_NULLSTATUS_START]);
             }
-          }
-          os.flush();
-          os.close();
+            // read entire mdRAF file into memory:
+            readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(file,
+                                                                                      parameter,
+                                                                                      null, 0, -1,
+                                                                                      f,
+                                                                                      proj.getLog());
+            OutputStream os = new FileOutputStream(out);
 
-          readBuffer = null;
+            for (int s = 0, c = proj.getSamples().length; s < c; s++) {
+              for (int m = 0; m < readBuffer.length; m++) { // should be all markers
+                os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
+              }
+            }
+            os.flush();
+            os.close();
+
+            os = null;
+            readBuffer = null;
+          }
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -166,6 +304,10 @@ public class TempFileTranspose {
 
   }
 
+  public void setupSampleListFile() {
+    ListFileCheckoutSystem.initFile(tempDir + "samp.list", proj.getSamples());
+  }
+
   public void runSecond() throws IOException {
     nullStatus = getNullStatus();
     Outliers outliers = Outliers.construct(proj, MarkerDataLoader.loadOutliers(proj));
@@ -183,12 +325,8 @@ public class TempFileTranspose {
     int numBytesPerSample = numBytesPerSampleMarker * proj.getMarkerNames().length;
     byte[] mkrCntBytes = Compression.intToBytes(proj.getMarkerNames().length);
     long fingerPrint = MarkerSet.fingerprint(proj.getMarkerNames());
+    final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
-    ConcurrentLinkedQueue<String> sampleQueue = new ConcurrentLinkedQueue<>();
-    Map<String, Integer> sampleIndexMap = proj.getSampleIndices();
-    for (String s : proj.getSamples()) {
-      sampleQueue.add(s);
-    }
     int threads = Runtime.getRuntime().availableProcessors();
     ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime()
                                                                    .availableProcessors());
@@ -198,9 +336,10 @@ public class TempFileTranspose {
         byte[] buffer;
         String samp;
         RandomAccessFile sampFile;
-        while ((samp = sampleQueue.poll()) != null) {
-          int sInd = sampleIndexMap.get(samp);
-          try {
+        try {
+          while ((samp = ListFileCheckoutSystem.checkout(tempDir + "samp.temp", 1, label,
+                                                         new Logger())[0]) != null) {
+            int sInd = sampleIndices.get(samp);
             sampFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue() + samp
                                             + Sample.SAMPLE_FILE_EXTENSION, "rw");
 
@@ -238,10 +377,10 @@ public class TempFileTranspose {
               sampFile.write(outBytes);
             }
             sampFile.close();
-          } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
           }
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
       };
       executor.submit(run);
@@ -266,9 +405,10 @@ public class TempFileTranspose {
     return parameterReadBuffer;
   }
 
-  public TempFileTranspose(Project p, String d) {
+  public TempFileTranspose(Project p, String d, String l) {
     this.proj = p;
     this.tempDir = d;
+    this.label = l;
   }
 
 }

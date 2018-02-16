@@ -482,9 +482,22 @@ public class MarkerDataLoader implements Runnable {
                                                                             + mdRAF);
       for (Entry<String, Float> outlier : outliers.entrySet()) {
         String[] pts = outlier.getKey().split("\t");
-        int mkrInd = mkrInds.get(fileMkrs[Integer.parseInt(pts[0])]);
+        String mkrIndInFile = pts[0];
+        String mkr = fileMkrs[Integer.parseInt(mkrIndInFile)];
+        Integer mkrInd = mkrInds.get(mkr);
+        if (mkrInd == null) {
+          proj.getLog()
+              .reportError("No marker index found for " + mkr + " -- looking up slowly...");
+          int temp = ext.indexOfStr(mkr, proj.getMarkerNames());
+          if (temp == -1) {
+            proj.getLog().reportError("MAJOR PROBLEM -- Marker " + mkr
+                                      + " wasn't found in list of project markers!");
+          }
+          mkrInd = Integer.valueOf(temp);
+        }
         int sampInd = Integer.parseInt(pts[1]);
-        allOutliers.put(mkrInd + "\t" + samples[sampInd] + "\t" + pts[2], outlier.getValue());
+        allOutliers.put(mkrInd.intValue() + "\t" + samples[sampInd] + "\t" + pts[2],
+                        outlier.getValue());
       }
     }
 

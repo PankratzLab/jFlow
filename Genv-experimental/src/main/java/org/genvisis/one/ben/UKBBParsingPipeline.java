@@ -382,6 +382,7 @@ public class UKBBParsingPipeline {
 
   protected void writeLookup() {
     if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
+      //      TransposeData.recreateMarkerLookup(proj);
       Hashtable<String, String> lookup = new Hashtable<>();
       for (FileSet fs : fileSets.values()) {
         String mdRAF;
@@ -434,7 +435,17 @@ public class UKBBParsingPipeline {
     } else {
       allMarkers = HashVec.loadFileToStringArray(file, true, new int[] {0}, false);
       numberOfMarkersInProj.set(allMarkers.length);
-      log.reportTime("Project markerPositions file already exists; skipping creation.");
+
+      for (int i = 0; i < 27; i++) {
+        if (!fileSets.containsKey(i)) {
+          continue;
+        }
+        FileSet fs = fileSets.get(i);
+        fs.loadBIMData();
+      }
+
+      log.reportTime("Project markerPositions file already exists; skipping creation (first marker found: "
+                     + allMarkers[0] + ").");
     }
   }
 
@@ -553,10 +564,15 @@ public class UKBBParsingPipeline {
   }
 
   protected void createSampRAFsFromMDRAFs() {
-    int toRun = createSamplesToRunFile();
-    if (toRun > 0) {
-      log.reportTime("Found " + toRun + " remaining sample files to create.");
-      TransposeData.reverseTransposeStreaming(proj, jobID);
+    TempFileTranspose tft = new TempFileTranspose(proj, proj.PROJECT_DIRECTORY.getValue() + "temp/",
+                                                  jobID);
+    tft.setupMarkerListFile();
+    try {
+      tft.runFirst();
+      tft.setupSampleListFile();
+      tft.runSecond();
+    } catch (IOException e) {
+      log.reportException(e);
     }
   }
 
@@ -648,14 +664,9 @@ public class UKBBParsingPipeline {
     int numThreads = maxMDRAFThreadsPerChr;
 
     fs.loadBIMData(); // no-op if already loaded
-    String[] mkrNames = Matrix.extractColumn(fs.bimData, 0);
+    String[] mkrNames = Matrix.extractColumn(fs.bimData, 1);
     fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / maxMarkersPerMDRAF) + 1, log);
     mkrNames = null;
-
-    // boolean test = true;
-    // if (test) {
-    // return;
-    // }
 
     String[] existing = readWritten();
     Map<Integer, String[]> toAdd = new TreeMap<>();
@@ -813,6 +824,7 @@ public class UKBBParsingPipeline {
     int markerBlockSize = nInd * bytesPerSamp;
     byte[] mkrBuff;
     String[] parts;
+    int flipped = 0;
     // double log2 = Math.log(2);
     log.reportTime("Chr" + fs.chr + "; start=" + startBatchInd + "; reading markers...");
     for (int i = startBatchInd; i < startBatchInd + mkrNames.length; i++) {
@@ -820,6 +832,10 @@ public class UKBBParsingPipeline {
       boolean flipGenos = false;
       if (markerMap.containsKey(mkrNames[i - startBatchInd])) {
         flipGenos = markerMap.get(mkrNames[i - startBatchInd]).getAlleleA().isNonReference();
+        if (flipGenos) flipped++;
+      } else {
+        throw new IllegalStateException("Marker name " + mkrNames[i - startBatchInd]
+                                        + " wasn't present in the MarkerDetailSet.");
       }
 
       mkrBuff = new byte[markerBlockSize];
@@ -956,7 +972,7 @@ public class UKBBParsingPipeline {
             continue;
           }
           if (flipGenos && genotypes[g] != -1) {
-            genotypes[g] = (byte) Math.abs(genotypes[g] - 2);
+            genotypes[g] = (byte) (2 - genotypes[g]);
           }
           mkrBuff[tempInd] = Compression.genotypeCompress(importGenoAsAB ? genotypes[g] : (byte) -1,
                                                           importGenoAsAB ? (byte) 0 : genotypes[g]);
@@ -976,6 +992,7 @@ public class UKBBParsingPipeline {
     mdRAF.write(Compression.intToBytes(oorBytes.length));
     mdRAF.write(oorBytes);
     log.reportTime("Wrote " + outOfRangeTable.size() + " outliers to " + mdRAFName);
+    log.reportTime(flipped + " markers out of " + mkrNames.length + " had flipped genotypes.");
 
     mdRAF.close();
 

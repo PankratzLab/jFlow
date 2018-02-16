@@ -1814,7 +1814,7 @@ public class lab {
       // CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
       // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
 
-      //      String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
+      //            String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
       //      UKBBParsingPipeline pipe = new UKBBParsingPipeline();
       //      pipe.setSourceDir(dir + "00src/");
       //      pipe.setProjectDir(dir + "project_21/");
@@ -1827,14 +1827,18 @@ public class lab {
       // testWriters();
       // processAnnotationFiles();1
       // writeFCSLookup();
-      proj = new Project("D:/projects/gedi_gwas.properties");
+      //      proj = new Project("D:/projects/gedi_gwas.properties");
       //      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
 
-      proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
-
-      TempFileTranspose tft = new TempFileTranspose(proj, "G:\\transposeTesting\\");
+      //      proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
+      proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+      TempFileTranspose tft = new TempFileTranspose(proj,
+                                                    proj.PROJECT_DIRECTORY.getValue() + "temp/",
+                                                    "");
+      if (args.length == 1 && args[0].equals("-setup")) {
+        tft.setupMarkerListFile();
+      }
       tft.runFirst();
-      tft.runSecond();
 
       // transposeFile();
 
