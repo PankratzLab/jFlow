@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -125,7 +126,7 @@ public class TransposeData {
     timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     allSampleNamesInProj = proj.getSamples();
     allMarkerNamesInProj = proj.getMarkerNames();
-    fingerPrint = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSampleNamesInProj);
+    fingerPrint = MarkerSet.fingerprintForMarkers(proj);
     if (!Files.exists(proj.SAMPLE_DIRECTORY.getValue(true, true) + allSampleNamesInProj[0]
                       + Sample.SAMPLE_FILE_EXTENSION)) {
       log.reportError("Could not locate file: " + proj.SAMPLE_DIRECTORY.getValue(true, true)
@@ -909,10 +910,8 @@ public class TransposeData {
     timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     listOfAllSamplesInProj = proj.getSamples();
     listOfAllMarkersInProj = proj.getMarkerNames();
-    @SuppressWarnings("deprecation")
-    long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(listOfAllSamplesInProj);
-    fingerprintForSamples = f;
-    fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
+    fingerprintForSamples = MarkerSet.fingerprintForSamples(proj);
+    fingerprintForMarkers = MarkerSet.fingerprintForMarkers(proj);
     nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false, true)
                                                    + proj.getMarkerLookup()
                                                          .getFirstMarkerDataRafFilename(),

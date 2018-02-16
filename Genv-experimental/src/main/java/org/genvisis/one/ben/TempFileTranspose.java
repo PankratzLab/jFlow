@@ -180,7 +180,7 @@ public class TempFileTranspose {
 
   public void runFirst() throws IOException {
     nullStatus = getNullStatus();
-    final long f = MarkerSet.fingerprint(proj.getSamples());
+    final long f = MarkerSet.fingerprintForMarkers(proj);
 
     ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime()
                                                                    .availableProcessors());
@@ -324,7 +324,7 @@ public class TempFileTranspose {
     int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
     int numBytesPerSample = numBytesPerSampleMarker * proj.getMarkerNames().length;
     byte[] mkrCntBytes = Compression.intToBytes(proj.getMarkerNames().length);
-    long fingerPrint = MarkerSet.fingerprint(proj.getMarkerNames());
+    long fingerPrint = MarkerSet.fingerprintForSamples(proj);
     final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
     int threads = Runtime.getRuntime().availableProcessors();

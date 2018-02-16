@@ -17,6 +17,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.TransposeData;
@@ -62,9 +63,7 @@ public class ShadowRework {
       samples = proj.getSamples();
       mkrInds = proj.getMarkerIndices();
       numInd = proj.getSamples().length;
-      @SuppressWarnings("deprecation")
-      long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(proj.getSamples());
-      fingerprint = f;
+      fingerprint = MarkerSet.fingerprintForMarkers(proj);
       SortedSetMultimap<Byte, Marker> chrMap = proj.getMarkerSet().getChrMap();
       int numMarkers = 2500;
       for (Byte b : chrMap.keySet()) {

@@ -34,6 +34,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -178,9 +179,7 @@ public class UKBBParsingPipeline {
   protected void createSampleList() {
     famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
     String[] allSamples = Matrix.extractColumn(famData, 1);
-    @SuppressWarnings("deprecation")
-    long f = org.genvisis.cnv.filesys.MarkerSet.fingerprint(allSamples);
-    fingerprintForMarkerFiles = f;
+    fingerprintForMarkerFiles = MarkerSet.fingerprintForMarkers(proj);
     if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
       SampleList sl = new SampleList(allSamples);
       sl.serialize(proj.SAMPLELIST_FILENAME.getValue());

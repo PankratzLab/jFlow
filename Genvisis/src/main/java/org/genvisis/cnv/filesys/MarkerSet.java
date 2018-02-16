@@ -187,6 +187,14 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
     return (MarkerSet) SerializedFiles.readSerial(filename, true);
   }
 
+  public static long fingerprintForMarkers(Project proj) {
+    return fingerprint(proj.getSamples());
+  }
+
+  public static long fingerprintForSamples(Project proj) {
+    return fingerprint(proj.getMarkerNames());
+  }
+
   public static long fingerprint(String[] names) {
     long sum, trav;
 
