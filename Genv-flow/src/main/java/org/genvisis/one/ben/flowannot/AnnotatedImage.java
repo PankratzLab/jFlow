@@ -142,7 +142,7 @@ public class AnnotatedImage {
           }
         } else {
           String[] images = imageFile.split(";");
-          image = new SoftReference<BufferedImage>(Images.stitchImages(images, Color.WHITE, true,
+          image = new SoftReference<BufferedImage>(Images.stitchImages(images, Color.WHITE, false,
                                                                        false));
         }
       } else {

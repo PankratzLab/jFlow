@@ -191,6 +191,9 @@ public final class GateTree {
 
   public static final Map<String, List<String>> GATE_TREE_PANEL_1_STITCH = new HashMap<>();
 
+  public static final String EFFECTOR_SUBSETS_KEY = "Cytotoxic Effector Subsets";
+  public static final String EFFECTOR_MEM_SUBSETS_KEY = "Cytotoxic Effector Memory Subsets";
+
   public static final String HELPER_SUBSETS_KEY = "Helper T Subsets";
   public static final String CYTOTOXIC_SUBSETS_KEY = "Cytotoxic T Subsets";
   public static final String[] HELPER_SUB_PARENTS = {"effector memory helper Tcells (CCR7- CD45RA-)",
@@ -206,6 +209,17 @@ public final class GateTree {
                                                      "central memory cytotoxic Tcells (CD95/CD28)",
                                                      "effector memory cytotoxic Tcells (CD95/CD28)"};
 
+  public static final String[] EFFECTOR_SUB_PARENTS = {"Effector_Cytotoxic Tcells (CD28/CD27)"};
+  public static final String[] EFFECTOR_SUB_IMGS = {"pE cytotoxic Tcells (CD95-CD28-,CD27-  CD28-)",
+                                                    "pE1 cytotoxic Tcells (CD95-CD28-,CD27+  CD28+)",
+                                                    "pE2 cytotoxic Tcells (CD95-CD28-,CD27+ , CD28-)",};
+
+  public static final String[] EFFECTOR_MEM_SUB_PARENTS = {"Effector_Memory_Cytotoxic Tcells (CD28/CD27)"};
+  public static final String[] EFFECTOR_MEM_SUB_IMGS = {"EM1 cytotoxic Tcells (CD27+  CD28+)",
+                                                        "EM2 cytotoxic Tcells (CD27+  CD28-)",
+                                                        "EM3 cytotoxic Tcells (CD27-  CD28-)",
+                                                        "EM4 cytotoxic Tcells (CD27-  CD28+)",};
+
   static final String[][] GATE_TREE_PANEL_1 = { // mapping[i][0] = child, mapping[i][1] = parent,
                                                // if length == 1, @ root
                                                {"boundary"}, {"nonDebris", "boundary"},
@@ -217,9 +231,11 @@ public final class GateTree {
                                                {"Live cells (PE-)", "Single Cells (FSC-H v FSC-W)"},
                                                {"Tcells (CD3+ CD19-)", "Live cells (PE-)"},
                                                {"Helper Tcells-CD4+", "Tcells (CD3+ CD19-)"},
-                                               {"Helper T Subsets", "Helper Tcells-CD4+"},
+                                               {HELPER_SUBSETS_KEY, "Helper Tcells-CD4+"},
                                                {"cytotoxic Tcells-CD8+", "Tcells (CD3+ CD19-)"},
-                                               {"Cytotoxic T Subsets", "cytotoxic Tcells-CD8+"},
+                                               {CYTOTOXIC_SUBSETS_KEY, "cytotoxic Tcells-CD8+"},
+                                               {EFFECTOR_SUBSETS_KEY, CYTOTOXIC_SUBSETS_KEY},
+                                               {EFFECTOR_MEM_SUBSETS_KEY, CYTOTOXIC_SUBSETS_KEY},
                                                {"CD3-", "Live cells (PE-)"},
                                                {"B cells (CD3- CD19+)", "CD3-"},
                                                {"IgDgate", "B cells (CD3- CD19+)"},
@@ -242,6 +258,7 @@ public final class GateTree {
       for (String i : HELPER_SUB_IMGS) {
         GATE_TREE_PANEL_1_STITCH.get(HELPER_SUBSETS_KEY).add(i);
       }
+
       GATE_TREE_PANEL_1_STITCH.put(CYTOTOXIC_SUBSETS_KEY, new ArrayList<>());
       for (String i : CYTOTOXIC_SUB_PARENTS) {
         GATE_TREE_PANEL_1_STITCH.get(CYTOTOXIC_SUBSETS_KEY).add(i);
@@ -249,6 +266,23 @@ public final class GateTree {
       for (String i : CYTOTOXIC_SUB_IMGS) {
         GATE_TREE_PANEL_1_STITCH.get(CYTOTOXIC_SUBSETS_KEY).add(i);
       }
+
+      GATE_TREE_PANEL_1_STITCH.put(EFFECTOR_SUBSETS_KEY, new ArrayList<>());
+      for (String i : EFFECTOR_SUB_PARENTS) {
+        GATE_TREE_PANEL_1_STITCH.get(EFFECTOR_SUBSETS_KEY).add(i);
+      }
+      for (String i : EFFECTOR_SUB_IMGS) {
+        GATE_TREE_PANEL_1_STITCH.get(EFFECTOR_SUBSETS_KEY).add(i);
+      }
+
+      GATE_TREE_PANEL_1_STITCH.put(EFFECTOR_MEM_SUBSETS_KEY, new ArrayList<>());
+      for (String i : EFFECTOR_MEM_SUB_PARENTS) {
+        GATE_TREE_PANEL_1_STITCH.get(EFFECTOR_MEM_SUBSETS_KEY).add(i);
+      }
+      for (String i : EFFECTOR_MEM_SUB_IMGS) {
+        GATE_TREE_PANEL_1_STITCH.get(EFFECTOR_MEM_SUBSETS_KEY).add(i);
+      }
+
     }
   }
 }

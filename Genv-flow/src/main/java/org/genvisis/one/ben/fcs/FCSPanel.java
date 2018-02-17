@@ -401,7 +401,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     // AxisTransform yTr = fcp.dataLoader.getParamTransform(yCol);
 
     byte color = 0;
-    if (columnsChangedX || columnsChangedY || dataChanged) {
+    if (columnsChangedX || columnsChangedY || dataChanged || gatesChanged) {
       points = new PlotPoint[dataCount];
       for (int i = 0; i < points.length; i++) {
         xAxisValue = (float) xData[i];
@@ -418,6 +418,9 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     }
     if (!isHeatmap()) {
       updateGateColor();
+    }
+    if (points.length == 0) {
+      setNullMessage("No data in selected plot.");
     }
     drawing = false;
   }
