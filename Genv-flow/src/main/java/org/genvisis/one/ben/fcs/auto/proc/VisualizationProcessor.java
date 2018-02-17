@@ -38,21 +38,36 @@ public class VisualizationProcessor implements SampleProcessor {
   }
 
   private static String[][] hardcodedAddlImages = {{"effector helper Tcells (CD95/CD28)",
-                                                    "effector helper Tcells (CCR7- CD45RA+)"},
+                                                    "effector helper Tcells (CCR7- CD45RA+)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"naive helper Tcells (CD95/CD28)",
-                                                    "naive helper Tcells (CCR7+ CD45RA+)"},
+                                                    "naive helper Tcells (CCR7+ CD45RA+)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"effector memory helper Tcells (CD95/CD28)",
-                                                    "effector memory helper Tcells (CCR7- CD45RA-)"},
+                                                    "effector memory helper Tcells (CCR7- CD45RA-)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"central memory helper Tcells (CD95/CD28)",
-                                                    "central memory helper Tcells (CCR7+ CD45RA-)"},
+                                                    "central memory helper Tcells (CCR7+ CD45RA-)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"effector cytotoxic Tcells (CD95/CD28)",
-                                                    "effector cytotoxic Tcells  (CCR7-  CD45RA+)"},
+                                                    "effector cytotoxic Tcells  (CCR7-  CD45RA+)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"naive cytotoxic Tcells (CD95/CD28)",
-                                                    "naive cytotoxic Tcells (CCR7+ , CD45RA+)"},
+                                                    "naive cytotoxic Tcells (CCR7+ , CD45RA+)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"effector memory cytotoxic Tcells (CD95/CD28)",
-                                                    "effector memory cytotoxic Tcells (CCR7- , CD45RA-)"},
+                                                    "effector memory cytotoxic Tcells (CCR7- , CD45RA-)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
                                                    {"central memory cytotoxic Tcells (CD95/CD28)",
-                                                    "central memory cytotoxic Tcells (CCR7+ , CD45RA-)"},};
+                                                    "central memory cytotoxic Tcells (CCR7+ , CD45RA-)",
+                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
+                                                   {"Effector_Cytotoxic Tcells (CD28/CD27)",
+                                                    "effector cytotoxic Tcells (CD95/CD28)",
+                                                    "Comp-BV 510-A (CD28)", "Comp-BB 515-A (CD27)"},
+                                                   {"Effector_Memory_Cytotoxic Tcells (CD28/CD27)",
+                                                    "effector memory cytotoxic Tcells (CD95/CD28)",
+                                                    "Comp-BV 510-A (CD28)",
+                                                    "Comp-BB 515-A (CD27)"},};
 
   static class AddlImage {
 
@@ -76,11 +91,11 @@ public class VisualizationProcessor implements SampleProcessor {
       String parent;
       parent = addlImg[1];
       addlImgs.put(parent, new ArrayList<AddlImage>());
-      addlImgs.get(parent).add(new AddlImage("Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)", parent,
-                                             addlImg[0]));
+      addlImgs.get(parent).add(new AddlImage(addlImg[2], addlImg[3], parent, addlImg[0]));
     }
     dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
     dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
+    dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
 
   }
 
@@ -201,8 +216,56 @@ public class VisualizationProcessor implements SampleProcessor {
 
       gateNames.add(s);
 
+      fcp.clearClusterAssigns();
       fcp.gateSelected(g.getParentGate(), false);
       times[0] = System.nanoTime();
+
+      if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_PARENTS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_IMGS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_SUB_PARENTS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_MEM_SUB_PARENTS) >= 0) {
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_SUB_IMGS) >= 0) {
+        fcp.gateSelected(g, false);
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
+
+      } else if (ext.indexOfStr(g.getName(), GateTree.EFFECTOR_MEM_SUB_IMGS) >= 0) {
+        fcp.gateSelected(g, false);
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
+        fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
+
+      } else {
+        fcp.setPlotType(PLOT_TYPE.HEATMAP);
+        g.setFillGate(true);
+      }
 
       g.setColor(1);
       g.setDisplayName(false);
@@ -211,33 +274,9 @@ public class VisualizationProcessor implements SampleProcessor {
         g.setXDimension(g.getYDimension());
         g.setYDimension(null);
       }
-      fcp.clearClusterAssigns();
       fcp.setXDataName(g.getXDimension().getParam());
       if (g.getYDimension() != null) {
         fcp.setYDataName(g.getYDimension().getParam());
-        if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_PARENTS) >= 0) {
-          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-          g.setFillGate(false);
-          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-        } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
-          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-          g.setFillGate(false);
-          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-        } else if (ext.indexOfStr(g.getName(), GateTree.HELPER_SUB_IMGS) >= 0) {
-          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-          g.setFillGate(false);
-          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-        } else if (ext.indexOfStr(g.getName(), GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
-          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-          g.setFillGate(false);
-          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-        } else {
-          fcp.setPlotType(PLOT_TYPE.HEATMAP);
-          g.setFillGate(true);
-        }
       } else {
         fcp.setPlotType(PLOT_TYPE.HISTOGRAM);
       }
@@ -249,78 +288,24 @@ public class VisualizationProcessor implements SampleProcessor {
       //       fcp.setClassifierGate(g.getName());
 
       fcp.getPanel().classifierPrev = false;
-      fcp.getPanel().setForceGatesChanged();
       times[1] = System.nanoTime();
 
       fcp.getPanel().forceSkip = false;
+      fcp.getPanel().setForceGatesChanged();
       fcp.getPanel().createImage();
+      Thread.yield();
       times[2] = System.nanoTime();
 
       fcp.screencap(outFile + ".png");
+      fcp.clearClusterAssigns();
 
       times[3] = System.nanoTime();
 
       g.setFillGate(false);
 
-      // fcp.getPanel().classifierPrev = true;
-      // fcp.getPanel().setForceGatesChanged();
-      // fcp.getPanel().createImage();
-      // fcp.screencap(outFile + "_prev.png");
       gateTimes.add(times);
 
-      if (addlImgs.containsKey(g.getName())) {
-        fcp.gateSelected(g, false);
-        for (AddlImage addl : addlImgs.get(g.getName())) {
-          String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
-                            + ext.replaceWithLinuxSafeCharacters(addl.name);
-          if (Files.exists(outFile2 + ".png")) {
-            continue;
-          }
-          fcp.getPanel().forceSkip = true;
-          String x = addl.xDim;
-          if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.xDim)) {
-            x = dimSwitch.get(x);
-          }
-          fcp.setXDataName(x);
-
-          String y = addl.yDim;
-          if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.yDim)) {
-            y = dimSwitch.get(y);
-          }
-          fcp.setYDataName(y);
-          fcp.getPanel().setTitle(addl.name);
-          fcp.getPanel().setForceGatesChanged();
-
-          if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_PARENTS) >= 0) {
-            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-            g.setFillGate(false);
-            fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-          } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
-            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-            g.setFillGate(false);
-            fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-          } else if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_IMGS) >= 0) {
-            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-            g.setFillGate(false);
-            fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
-
-          } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
-            fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
-            g.setFillGate(false);
-            fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
-
-          } else {
-            fcp.setPlotType(PLOT_TYPE.HEATMAP);
-            g.setFillGate(true);
-          }
-
-          fcp.getPanel().forceSkip = false;
-          fcp.getPanel().createImage();
-          fcp.screencap(outFile2 + ".png");
-        }
-      }
-
+      createAddlImgs(fcp, loader, g, g.getName(), cleanedName);
     }
 
     loader.emptyAndReset();
@@ -360,5 +345,90 @@ public class VisualizationProcessor implements SampleProcessor {
 
     System.out.println(sb1.toString());
     System.out.println(sb.toString());
+  }
+
+  private void createAddlImgs(final FCSPlot fcp, FCSDataLoader loader, Gate g, String gateName,
+                              String cleanedName) {
+    if (addlImgs.containsKey(gateName)) {
+      fcp.getPanel().forceSkip = true;
+      fcp.gateSelected(g, false);
+
+      for (AddlImage addl : addlImgs.get(gateName)) {
+        String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+                          + ext.replaceWithLinuxSafeCharacters(addl.name);
+        if (Files.exists(outFile2 + ".png")) {
+          fcp.getPanel().forceSkip = false;
+          continue;
+        }
+        fcp.getPanel().setTitle(addl.name);
+
+        if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.HELPER_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.HELPER_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.CYTOTOXIC_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.CYTOTOXIC_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_MEM_SUB_PARENTS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_SUB_IMGS);
+
+        } else if (ext.indexOfStr(addl.name, GateTree.EFFECTOR_MEM_SUB_IMGS) >= 0) {
+          fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+          g.setFillGate(false);
+          fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
+
+        } else {
+          fcp.setPlotType(PLOT_TYPE.HEATMAP);
+          g.setFillGate(true);
+        }
+
+        String x = addl.xDim;
+        if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.xDim)) {
+          x = dimSwitch.get(x);
+        }
+        fcp.setXDataName(x);
+
+        String y = addl.yDim;
+        if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.yDim)) {
+          y = dimSwitch.get(y);
+        }
+        fcp.setYDataName(y);
+
+        fcp.getPanel().forceSkip = false;
+        fcp.getPanel().setForceGatesChanged();
+        fcp.getPanel().createImage();
+        Thread.yield();
+        fcp.screencap(outFile2 + ".png");
+
+        if (addlImgs.containsKey(addl.name)) {
+          createAddlImgs(fcp, loader, g, addl.name, cleanedName);
+        }
+      }
+    }
   }
 }
