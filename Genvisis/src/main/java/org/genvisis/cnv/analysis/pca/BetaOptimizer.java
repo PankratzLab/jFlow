@@ -1031,8 +1031,7 @@ public class BetaOptimizer {
         MarkerRsFormat markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(),
                                                            indices[i], "NA",
                                                            new String[] {"N", "N"}, allelesMarker,
-                                                           Config.UNKNOWN,
-                                                           SITE_TYPE.UNKNOWN);
+                                                           Config.UNKNOWN, SITE_TYPE.UNKNOWN);
 
         if (ArrayUtils.countIf(allelesMarker, "N") == 0) {
           CloseableIterator<VariantContext> vcIter = reader.query(Positions.getChromosomeUCSC(current.getChr(),

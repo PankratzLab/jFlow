@@ -108,12 +108,10 @@ public class StrandOps {
 
   public enum Config {
     SAME_ORDER_SAME_STRAND("Match", AlleleOrder.SAME, AlleleStrand.SAME),
-    SAME_ORDER_FLIPPED_STRAND("Flipped Strand", AlleleOrder.SAME,
-                                            AlleleStrand.FLIPPED),
-    OPPOSITE_ORDER_SAME_STRAND("Opposite Order", AlleleOrder.OPPOSITE,
-                                             AlleleStrand.SAME),
-    OPPOSITE_ORDER_FLIPPED_STRAND("Opposite Order / Flipped Strand",
-                                                AlleleOrder.OPPOSITE, AlleleStrand.FLIPPED),
+    SAME_ORDER_FLIPPED_STRAND("Flipped Strand", AlleleOrder.SAME, AlleleStrand.FLIPPED),
+    OPPOSITE_ORDER_SAME_STRAND("Opposite Order", AlleleOrder.OPPOSITE, AlleleStrand.SAME),
+    OPPOSITE_ORDER_FLIPPED_STRAND("Opposite Order / Flipped Strand", AlleleOrder.OPPOSITE,
+                                  AlleleStrand.FLIPPED),
     DIFFERENT_ALLELES("Different Alleles", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
     BOTH_NULL("Both NULL", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
     SPECIAL_CASE("Special Case", AlleleOrder.UNKNOWN, AlleleStrand.UNKNOWN),
@@ -237,12 +235,10 @@ public class StrandOps {
         index = nullChecks[0] ? 1 : 0;
         if (referenceAlleles[0] == null) {
           referenceAlleles[0] = alleles[index];
-          return index == 0 ? Config.SAME_ORDER_SAME_STRAND
-                            : Config.OPPOSITE_ORDER_SAME_STRAND;
+          return index == 0 ? Config.SAME_ORDER_SAME_STRAND : Config.OPPOSITE_ORDER_SAME_STRAND;
         } else if (referenceAlleles[1] == null) {
           if (alleles[index].equals(referenceAlleles[0])) {
-            return index == 0 ? Config.SAME_ORDER_SAME_STRAND
-                              : Config.OPPOSITE_ORDER_SAME_STRAND;
+            return index == 0 ? Config.SAME_ORDER_SAME_STRAND : Config.OPPOSITE_ORDER_SAME_STRAND;
           } else {
             flipped = new String[] {Sequence.flip(alleles[index])};
             if (flipped[0].equals(referenceAlleles[0])) {
@@ -254,11 +250,9 @@ public class StrandOps {
           }
         } else {
           if (alleles[index].equals(referenceAlleles[0])) {
-            return index == 0 ? Config.SAME_ORDER_SAME_STRAND
-                              : Config.OPPOSITE_ORDER_SAME_STRAND;
+            return index == 0 ? Config.SAME_ORDER_SAME_STRAND : Config.OPPOSITE_ORDER_SAME_STRAND;
           } else if (alleles[index].equals(referenceAlleles[1])) {
-            return index == 1 ? Config.SAME_ORDER_SAME_STRAND
-                              : Config.OPPOSITE_ORDER_SAME_STRAND;
+            return index == 1 ? Config.SAME_ORDER_SAME_STRAND : Config.OPPOSITE_ORDER_SAME_STRAND;
           } else {
             flipped = new String[] {Sequence.flip(alleles[index])};
             if (flipped[0].equals(referenceAlleles[0])) {
