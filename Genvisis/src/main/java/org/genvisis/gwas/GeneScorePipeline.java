@@ -1243,16 +1243,14 @@ public class GeneScorePipeline {
         }
         String[] markers = data.getMarkerSet().getMarkerNames();
         String[][] alleles = data.getMarkerSet().getAlleles();
-        ArrayList<String> mkrs = new ArrayList<>();
-        ArrayList<String[]> mkrAlleles = new ArrayList<>();
-        HashMap<String, Float> freqs = new HashMap<>();
+        Map<String, Integer> matchedMarkerIndices = new HashMap<>();
+        Map<String, Float> matchedMarkerFreqs = new HashMap<>();
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
           if (!hitMarkerData.containsKey(mkr)/* || Float.isNaN(dose[m][i]) */) {
             continue;
           }
-          mkrs.add(mkr);
-          mkrAlleles.add(alleles[m]);
+          matchedMarkerIndices.put(mkr, m);
           int cnt = 0;
           float tot = 0;
           for (int i = 0; i < ids.length; i++) {
@@ -1261,29 +1259,22 @@ public class GeneScorePipeline {
               cnt++;
             }
           }
-          freqs.put(mkr, tot / cnt);
+          matchedMarkerFreqs.put(mkr, tot / cnt);
         }
         for (int i = 0; i < ids.length; i++) {
           float scoreSum = 0;
           float cnt2 = 0;
           int cnt = 0;
-          ArrayList<Float> indivDosages = new ArrayList<Float>();
-          for (int m = 0; m < markers.length; m++) {
-            String mkr = markers[m];
-            if (!hitMarkerData.containsKey(mkr)) {
-              continue;
-            }
-            indivDosages.add(dose[m][i]);
-          }
 
-          for (int mk = 0; mk < mkrs.size(); mk++) {
-            String mkr = mkrs.get(mk);
-            float dosage = indivDosages.get(mk);
+          for (Map.Entry<String, Integer> mkrIndexEntry : matchedMarkerIndices.entrySet()) {
+            String mkr = mkrIndexEntry.getKey();
+            int mkrIndex = mkrIndexEntry.getValue();
+            float dosage = dose[mkrIndex][i];
             boolean isNaN = Float.isNaN(dosage);
             HitMarker hitMarker = hitMarkerData.get(mkr);
             float beta = hitMarker.getEffect().floatValue();
 
-            StrandOps.AlleleOrder alleleOrder = StrandOps.determineStrandConfig(mkrAlleles.get(mk),
+            StrandOps.AlleleOrder alleleOrder = StrandOps.determineStrandConfig(alleles[mkrIndex],
                                                                                 new String[] {hitMarker.getEffectAllele(),
                                                                                               hitMarker.getNonEffectAllele()})
                                                          .getAlleleOrder();
@@ -1291,18 +1282,18 @@ public class GeneScorePipeline {
             if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : (2.0 - dosage);
-              scoreSum += (2.0 - (isNaN ? freqs.get(mkr) : dosage)) * beta;
+              scoreSum += (2.0 - (isNaN ? matchedMarkerFreqs.get(mkr) : dosage)) * beta;
             } else if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : dosage;
-              scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
+              scoreSum += (isNaN ? matchedMarkerFreqs.get(mkr) : dosage) * beta;
             } else {
               Joiner alleleJoiner = Joiner.on('/');
-              log.reportError("Alleles in study (" + alleleJoiner.join(mkrAlleles.get(mk))
+              log.reportError("Alleles in study (" + alleleJoiner.join(alleles[mkrIndex])
                               + ") do not match source alleles ("
                               + alleleJoiner.join(hitMarker.getEffectAllele(),
                                                   hitMarker.getNonEffectAllele())
-                              + ") for " + mkrs.get(mk));
+                              + ") for " + mkr);
             }
             // int code = Metal.determineStrandConfig(new String[]{}, new String[]{});
             // if (code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || code ==
