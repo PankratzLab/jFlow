@@ -10,7 +10,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.stream.Collectors;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.Aliases;
@@ -24,8 +26,17 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.gwas.MergeExtractPipeline.DataSource;
+import org.genvisis.gwas.parsing.AbstractColumnFilter;
+import org.genvisis.gwas.parsing.ColumnFilter;
+import org.genvisis.gwas.parsing.DataLine;
+import org.genvisis.gwas.parsing.FileColumn;
+import org.genvisis.gwas.parsing.FileParser;
+import org.genvisis.gwas.parsing.FileParserFactory;
+import org.genvisis.gwas.parsing.StandardFileColumns;
+import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
+import com.google.common.base.Joiner;
 import com.google.common.primitives.Doubles;
 
 public class GeneScorePipeline {
@@ -51,6 +62,11 @@ public class GeneScorePipeline {
   private static final String PLINK_FRQ_FILE_PATTERN = "chr" + TAG + "_eu_unrel.frq.xln";
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
   private static final String DATA_SOURCE_FILENAME = "data.txt";
+
+  private static final FileColumn<String> MARKER_COL = StandardFileColumns.snp("Marker");
+  private static final FileColumn<String> EFFECT_ALLELE_COL = StandardFileColumns.a1("EffectAllele");
+  private static final FileColumn<String> NON_EFFECT_ALLELE_COL = StandardFileColumns.a2("NonEffectAllele");
+  private static final FileColumn<Double> BETA_COL = StandardFileColumns.beta("beta");
 
   private static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
                                              Aliases.EFFECTS};
@@ -83,6 +99,38 @@ public class GeneScorePipeline {
 
   private final Logger log;
 
+  private static class HitMarker {
+
+    private final String effectAllele;
+    private final String nonEffectAllele;
+    private final Double effect;
+
+    /**
+     * @param effectAllele
+     * @param nonEffectAllele
+     * @param effect
+     */
+    private HitMarker(String effectAllele, String nonEffectAllele, Double effect) {
+      super();
+      this.effectAllele = effectAllele;
+      this.nonEffectAllele = nonEffectAllele;
+      this.effect = effect;
+    }
+
+    public String getEffectAllele() {
+      return effectAllele;
+    }
+
+    public String getNonEffectAllele() {
+      return nonEffectAllele;
+    }
+
+    public Double getEffect() {
+      return effect;
+    }
+
+  }
+
   private class Study {
 
     String studyDir;
@@ -106,7 +154,7 @@ public class GeneScorePipeline {
     HashMap<String, HashMap<String, Integer>> hitWindowCnts = new HashMap<String, HashMap<String, Integer>>();
     // constraint -> datafile
     HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<String, HashMap<String, Integer>>();
-    public HashMap<String, HashMap<String, String[]>> markerData = new HashMap<String, HashMap<String, String[]>>();
+    Map<String, Map<String, HitMarker>> markerData = new HashMap<>();
 
     /**
      * Returns a hashSet containing all markers present in the data files that are present in
@@ -1120,33 +1168,38 @@ public class GeneScorePipeline {
           hitMrkSet.add(mkr);
         }
 
-        String[] header = Files.getHeaderOfFile(crossFilterFile, null);
-        int[] cols = ext.indexFactors(LINKERS, header, false, true, false, null);
-        int[] finalCols = new int[cols.length - ArrayUtils.countIf(cols, -1)];
-        int finalInd = 0;
-        for (int col : cols) {
-          if (col != -1) {
-            finalCols[finalInd++] = col;
-          }
-        }
-        String[][] bimData = HashVec.loadFileToStringMatrix(crossFilterFile, true, finalCols);
+        ColumnFilter hitMarkerFilter = new AbstractColumnFilter(MARKER_COL) {
 
-        PrintWriter writer = Files.getAppropriateWriter(prefDir + "/subsetData_"
-                                                        + filePrefix.getKey() + ".xln");
-        HashMap<String, String[]> dataList = new HashMap<String, String[]>();
-        for (String[] markerData : bimData) {
-          if (hitMrkSet.contains(markerData[0])) {
-            dataList.put(markerData[0], ArrayUtils.subArray(markerData, 1));
-            writer.println(markerData[0] + "\t"
-                           + ArrayUtils.toStr(ArrayUtils.subArray(markerData, 1), "\t"));
+          @Override
+          public boolean filter(DataLine values) {
+            return hitMrkSet.contains(values.get(MARKER_COL, null));
           }
-        }
-        writer.flush();
-        writer.close();
+        };
+        FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, MARKER_COL)
+                                                        .optionalColumns(EFFECT_ALLELE_COL,
+                                                                         NON_EFFECT_ALLELE_COL,
+                                                                         BETA_COL)
+                                                        .filter(hitMarkerFilter).build();
 
-        study.markerData.put(dFile + "\t" + filePrefix.getKey(), dataList);
+        try {
+          String subsetFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
+          Map<String, HitMarker> dataList = crossFilterParser.parseToFileAndLoad(subsetFile, "\t",
+                                                                                 true, MARKER_COL)
+                                                             .entrySet().stream()
+                                                             .collect(Collectors.toMap(Map.Entry::getKey,
+                                                                                       e -> formHitMarker(e.getValue())));
+          study.markerData.put(dFile + "\t" + filePrefix.getKey(), dataList);
+        } catch (IOException e) {
+          log.reportIOException(crossFilterFile);
+        }
       }
     }
+  }
+
+  private static final HitMarker formHitMarker(DataLine hitMarkerDataLine) {
+    return new HitMarker(hitMarkerDataLine.get(EFFECT_ALLELE_COL, null),
+                         hitMarkerDataLine.get(NON_EFFECT_ALLELE_COL, null),
+                         hitMarkerDataLine.get(BETA_COL, null));
   }
 
   private static final String SCORE_FILE = "score.profile";
@@ -1171,9 +1224,8 @@ public class GeneScorePipeline {
           continue;
         }
 
-        // marker, allele1, beta
-        HashMap<String, String[]> markerAlleleBeta = study.markerData.get(dFile + "\t"
-                                                                          + filePrefix.getKey());
+        Map<String, HitMarker> hitMarkerData = study.markerData.get(dFile + "\t"
+                                                                    + filePrefix.getKey());
         PrintWriter scoreWriter;
         scoreWriter = Files.getAppropriateWriter(prefDir + "/" + SCORE_FILE);
 
@@ -1196,7 +1248,7 @@ public class GeneScorePipeline {
         HashMap<String, Float> freqs = new HashMap<>();
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
-          if (!markerAlleleBeta.containsKey(mkr)/* || Float.isNaN(dose[m][i]) */) {
+          if (!hitMarkerData.containsKey(mkr)/* || Float.isNaN(dose[m][i]) */) {
             continue;
           }
           mkrs.add(mkr);
@@ -1218,7 +1270,7 @@ public class GeneScorePipeline {
           ArrayList<Float> indivDosages = new ArrayList<Float>();
           for (int m = 0; m < markers.length; m++) {
             String mkr = markers[m];
-            if (!markerAlleleBeta.containsKey(mkr)) {
+            if (!hitMarkerData.containsKey(mkr)) {
               continue;
             }
             indivDosages.add(dose[m][i]);
@@ -1226,23 +1278,31 @@ public class GeneScorePipeline {
 
           for (int mk = 0; mk < mkrs.size(); mk++) {
             String mkr = mkrs.get(mk);
-            String mkrAllele1 = mkrAlleles.get(mk)[0];
-            String mkrAllele2 = mkrAlleles.get(mk)[1];
             float dosage = indivDosages.get(mk);
             boolean isNaN = Float.isNaN(dosage);
-            String[] alleleBeta = markerAlleleBeta.get(mkr);
-            float beta = Float.parseFloat(alleleBeta[1]);
-            String scoringAllele = markerAlleleBeta.get(mkr)[0].toUpperCase();
-            if (scoringAllele.equals(mkrAllele1)
-                || scoringAllele.equals(Sequence.flip(mkrAllele1))) {
+            HitMarker hitMarker = hitMarkerData.get(mkr);
+            float beta = hitMarker.getEffect().floatValue();
+
+            StrandOps.AlleleOrder alleleOrder = StrandOps.determineStrandConfig(mkrAlleles.get(mk),
+                                                                                new String[] {hitMarker.getEffectAllele(),
+                                                                                              hitMarker.getNonEffectAllele()})
+                                                         .getAlleleOrder();
+
+            if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : (2.0 - dosage);
               scoreSum += (2.0 - (isNaN ? freqs.get(mkr) : dosage)) * beta;
-            } else if (scoringAllele.equals(mkrAllele2)
-                       || scoringAllele.equalsIgnoreCase(Sequence.flip(mkrAllele2))) {
+            } else if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : dosage;
               scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
+            } else {
+              Joiner alleleJoiner = Joiner.on('/');
+              log.reportError("Alleles in study (" + alleleJoiner.join(mkrAlleles.get(mk))
+                              + ") do not match source alleles ("
+                              + alleleJoiner.join(hitMarker.getEffectAllele(),
+                                                  hitMarker.getNonEffectAllele())
+                              + ") for " + mkrs.get(mk));
             }
             // int code = Metal.determineStrandConfig(new String[]{}, new String[]{});
             // if (code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || code ==
