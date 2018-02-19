@@ -9,7 +9,7 @@ public class FileParserFactory extends AbstractFileParserFactory {
                               FileColumn<?>... dataToLoadInOrder) {
     super(inputFile, inputDelim);
     for (FileColumn<?> fc : dataToLoadInOrder) {
-      this.parser.dataInOrder.add(fc);
+      this.dataInOrder.add(fc);
     }
   }
 

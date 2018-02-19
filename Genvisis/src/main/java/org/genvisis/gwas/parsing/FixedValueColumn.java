@@ -1,7 +1,5 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
-
 public class FixedValueColumn extends AbstractFileColumn<String> {
 
   private String value;
@@ -17,7 +15,7 @@ public class FixedValueColumn extends AbstractFileColumn<String> {
   }
 
   @Override
-  public void initialize(Map<String, Integer> headerMap) {
+  public void initialize(FileParser parser) {
     // no-op
   }
 

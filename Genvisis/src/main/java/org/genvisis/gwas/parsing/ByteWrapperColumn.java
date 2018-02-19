@@ -1,7 +1,5 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
-
 public class ByteWrapperColumn extends CachedFileColumn<Byte> {
 
   private FileColumn<?> base;
@@ -12,8 +10,8 @@ public class ByteWrapperColumn extends CachedFileColumn<Byte> {
   }
 
   @Override
-  public void initialize(Map<String, Integer> headerMap) {
-    base.initialize(headerMap);
+  public void initialize(FileParser parser) {
+    base.initialize(parser);
   }
 
   public String getBaseValue(String[] line) throws ParseFailureException {

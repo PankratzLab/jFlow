@@ -16,6 +16,7 @@ import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.ColumnFilter;
 import org.genvisis.gwas.parsing.DataLine;
 import org.genvisis.gwas.parsing.FileColumn;
+import org.genvisis.gwas.parsing.FileParser;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.FixedValueColumn;
 import org.genvisis.gwas.parsing.ParseFailureException;
@@ -178,7 +179,7 @@ public class CARDIA2Processor {
       }
 
       @Override
-      public void initialize(Map<String, Integer> headerMap) {
+      public void initialize(FileParser parser) {
         // no-op
       }
 

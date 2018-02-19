@@ -12,7 +12,8 @@ public class IndexedFileColumn extends AbstractFileColumn<String> {
   }
 
   @Override
-  public void initialize(Map<String, Integer> headerMap) {
+  public void initialize(FileParser parser) {
+    Map<String, Integer> headerMap = parser.getHeaderMap();
     if (!headerMap.values().contains(this.index)) {
       throw new IllegalStateException("Index " + this.index + " is not valid for header.");
     }

@@ -41,10 +41,13 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
   }
 
   @Override
-  public void initialize(Map<String, Integer> headerMap) {
+  public void initialize(FileParser parser) {
+    super.initialize(parser);
     if (matchedAlias != null) return;
+    Map<String, Integer> headerMap = parser.getHeaderMap();
     if (headerMap == null) {
-      throw new IllegalStateException("Column " + getName() + " expected a header!");
+      throw new IllegalStateException("Column " + getName() + " expected a header for file "
+                                      + parser.getInputFile());
     }
 
     int matched = aliases.getStrategy().match(headerMap, aliases.getAliases(),
@@ -52,7 +55,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
 
     if (matched == -1) {
       throw new IllegalStateException("Couldn't identify column header for " + getName()
-                                      + "; header map: " + headerMap.toString());
+                                      + " in file " + parser.getInputFile());
     }
     for (Entry<String, Integer> header : headerMap.entrySet()) {
       if (header.getValue() == matched) {
@@ -86,6 +89,7 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
     result = prime * result + ((aliases == null) ? 0 : aliases.hashCode());
     // can't use mutable properties in hashCode, otherwise the hash could change during use
     return result;

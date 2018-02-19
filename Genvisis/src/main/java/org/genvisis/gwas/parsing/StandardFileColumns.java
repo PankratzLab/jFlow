@@ -30,8 +30,9 @@ public final class StandardFileColumns {
       List<Integer> outIndices;
 
       @Override
-      public void initialize(Map<String, Integer> headerMap) {
-        key.initialize(headerMap);
+      public void initialize(FileParser parser) {
+        key.initialize(parser);
+        Map<String, Integer> headerMap = parser.getHeaderMap();
         String[] heads = new String[headerMap.size() - 1];
         outIndices = new ArrayList<>();
         int keyInd = key.getMatchedIndex();
@@ -86,8 +87,8 @@ public final class StandardFileColumns {
     return new CachedFileColumn<Double>(name, val.dieOnParseFailure()) {
 
       @Override
-      public void initialize(Map<String, Integer> headerMap) {
-        val.initialize(headerMap);
+      public void initialize(FileParser parser) {
+        val.initialize(parser);
       }
 
       @Override

@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
@@ -5291,6 +5292,20 @@ public class ArrayUtils {
     }
     runs.add(run);
     return Ints.toArray(runs);
+  }
+
+  /**
+   * Preserves input array iteration order
+   * 
+   * @param values
+   * @return
+   */
+  public static <T> ImmutableMap<T, Integer> immutableIndexMap(T[] values) {
+    ImmutableMap.Builder<T, Integer> builder = new ImmutableMap.Builder<>();
+    for (int i = 0; i < values.length; i++) {
+      builder.put(values[i], i);
+    }
+    return builder.build();
   }
 
   public static <T> Map<T, Integer> indexMap(T[] values) {

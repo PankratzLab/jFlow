@@ -1,6 +1,13 @@
 package org.genvisis.gwas.parsing;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.genvisis.common.Files;
 
 /**
@@ -8,13 +15,44 @@ import org.genvisis.common.Files;
  */
 public abstract class AbstractFileParserFactory {
 
-  protected FileParser parser;
+  final String inputFile;
+  final String inputFileDelim;
+
+  int skippedLines = 0;
+  Set<String> skipPrefices;
+
+  boolean failBlank = false;
+  boolean failCount = true;
+
+  List<ColumnFilter> filters;
+  Map<ColumnFilter, Boolean> filterDeath;
+
+  boolean noHeader = false;
+  boolean trimInput = true;
+
+  String parseFailValue = ".";
+
+  final List<FileLink> linkedParsers;
+  final Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
+  final List<FileColumn<?>> dataInOrder;
+  final List<FileColumn<?>> addlDataToLoad;
+  final List<FileColumn<?>> optlDataToLoad;
 
   protected AbstractFileParserFactory(String inputFile, String inputDelim) {
     if (!Files.exists(inputFile)) {
       throw new IllegalArgumentException(new FileNotFoundException("File missing: " + inputFile));
     }
-    this.parser = new FileParser(inputFile, inputDelim);
+    this.inputFile = inputFile;
+    this.inputFileDelim = inputDelim;
+
+    skipPrefices = new HashSet<>();
+    filters = new ArrayList<>();
+    filterDeath = new HashMap<>();
+    linkedParsers = new ArrayList<>();
+    dataInOrder = new ArrayList<>();
+    addlDataToLoad = new ArrayList<>();
+    optlDataToLoad = new ArrayList<>();
+    linkedFileColumns = new HashMap<>();
   }
 
   /**
@@ -24,7 +62,9 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory optionalColumns(FileColumn<?>... columns) {
-    this.parser.addOptionalColumns(columns);
+    for (FileColumn<?> fc : columns) {
+      this.optlDataToLoad.add(fc);
+    }
     return this;
   }
 
@@ -36,7 +76,15 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory filter(ColumnFilter filter, boolean dieIfFail) {
-    this.parser.addFilter(filter, dieIfFail);
+    if (!this.filters.contains(filter)) {
+      this.filters.add(filter);
+      this.filterDeath.put(filter, dieIfFail);
+      for (FileColumn<?> filterCol : filter.getFilterColumns()) {
+        if (!dataInOrder.contains(filterCol)) {
+          addlDataToLoad.add(filterCol);
+        }
+      }
+    }
     return this;
   }
 
@@ -58,7 +106,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory skipLines(int num) {
-    this.parser.setSkippedLines(num);
+    this.skippedLines = num;
     return this;
   }
 
@@ -70,7 +118,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory skipPrefix(String prefix) {
-    this.parser.addSkippedPrefix(prefix);
+    this.skipPrefices.add(prefix);
     return this;
   }
 
@@ -80,7 +128,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory skipLinesWithIncorrectNumberOfColumns() {
-    this.parser.skipLineWithIncorrectNumberOfColumns();
+    this.failCount = false;
     return this;
   }
 
@@ -91,7 +139,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory failOnBlankLines() {
-    this.parser.failOnBlankLines();
+    this.failBlank = true;
     return this;
   }
 
@@ -101,7 +149,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory noHeader() {
-    this.parser.setNoHeader();
+    this.noHeader = true;
     return this;
   }
 
@@ -111,7 +159,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory noTrim() {
-    this.parser.setNoTrim();
+    this.trimInput = false;
     return this;
   }
 
@@ -122,7 +170,7 @@ public abstract class AbstractFileParserFactory {
    * @return this
    */
   public AbstractFileParserFactory parseFailValue(String value) {
-    this.parser.setParseFailValue(value);
+    this.parseFailValue = value;
     return this;
   }
 
@@ -135,13 +183,13 @@ public abstract class AbstractFileParserFactory {
   private void checkLink(FileLink link) {
     for (FileColumn<?> fc : link.getKeys()) {
       boolean found = false;
-      for (FileColumn<?> fc1 : parser.getDataColumnsInOrder()) {
+      for (FileColumn<?> fc1 : dataInOrder) {
         if (fc1.getName().equals(fc.getName())) {
           found = true;
           break;
         }
       }
-      for (FileColumn<?> fc1 : parser.getAddlDataColumns()) {
+      for (FileColumn<?> fc1 : addlDataToLoad) {
         if (fc1.getName().equals(fc.getName())) {
           found = true;
           break;
@@ -163,11 +211,25 @@ public abstract class AbstractFileParserFactory {
    */
   public AbstractFileParserFactory link(FileLink link) {
     checkLink(link);
-    this.parser.addLink(link);
+
+    linkedParsers.add(link);
+    linkedFileColumns.put(link, new HashMap<>());
+    Set<FileColumn<?>> all = new HashSet<>();
+    all.addAll(Collections.unmodifiableList(dataInOrder));
+    all.addAll(Collections.unmodifiableList(addlDataToLoad));
+    for (FileColumn<?> fc : link.getKeys()) {
+      for (FileColumn<?> fc1 : all) {
+        if (fc.getName().equals(fc1.getName())) {
+          linkedFileColumns.get(link).put(fc, fc1);
+          break;
+        }
+      }
+    }
     return this;
   }
 
   public FileParser build() {
+    FileParser parser = new FileParser(this);
     parser.loadLinkedData();
     return parser;
   }

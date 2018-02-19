@@ -1,7 +1,5 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
-
 public interface FileColumn<T> {
 
   /**
@@ -15,11 +13,9 @@ public interface FileColumn<T> {
   /**
    * Initialize this FileColumn. Repeated calls to this method should be no-ops.
    * 
-   * @param headerMap Header of the file mapped from String value to index. May be {@code null} if
-   *          the file does not have a header - if this {@link FileColumn} is expecting a header and
-   *          {@code null} is given, an exception is expected to occur.
+   * @param FileParser
    */
-  void initialize(Map<String, Integer> headerMap);
+  void initialize(FileParser parser);
 
   /**
    * Get this FileColumn's value from a line of data.

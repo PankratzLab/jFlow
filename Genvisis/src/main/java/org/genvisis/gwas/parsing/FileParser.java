@@ -5,20 +5,21 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public class FileParser implements Iterable<DataLine>, Closeable {
 
-  private String inputFile;
+  private final String inputFile;
   private String inputFileDelim;
 
   private int skippedLines = 0;
@@ -40,12 +41,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   protected List<FileColumn<?>> dataInOrder;
   protected List<FileColumn<?>> addlDataToLoad;
   protected List<FileColumn<?>> optlDataToLoad;
-  protected List<FileColumn<?>> optlDataFound;
+  private List<FileColumn<?>> optlDataFound;
 
   private BufferedReader reader;
   private boolean opened = false;
   private long lineCount = 0;
-  private String[] header;
+  private ImmutableMap<String, Integer> header;
 
   /**
    * Don't use - create FileParsers with {@link FileParserFactory#setup(String, FileColumn...)}
@@ -55,116 +56,21 @@ public class FileParser implements Iterable<DataLine>, Closeable {
    * @param inputDelim Input delimiter, or null if the delimiter should be determined from the
    *          header line
    */
-  FileParser(String inputFile, String inputDelim) {
-    this.inputFile = inputFile;
-    this.inputFileDelim = inputDelim;
-    skipPrefices = new HashSet<>();
-    filters = new ArrayList<>();
-    filterDeath = new HashMap<>();
-    linkedParsers = new ArrayList<>();
-    dataInOrder = new ArrayList<>();
-    addlDataToLoad = new ArrayList<>();
-    optlDataToLoad = new ArrayList<>();
-    linkedFileColumns = new HashMap<>();
-  }
-
-  /**
-   * Add a filter, specifying whether to die or not if a line fails to pass the filter.
-   * 
-   * @param filter {@link ColumnFilter}
-   * @param dieIfFail boolean
-   */
-  void addFilter(ColumnFilter filter, boolean dieIfFail) {
-    if (!this.filters.contains(filter)) {
-      this.filters.add(filter);
-      this.filterDeath.put(filter, dieIfFail);
-      for (FileColumn<?> filterCol : filter.getFilterColumns()) {
-        if (!dataInOrder.contains(filterCol)) {
-          addlDataToLoad.add(filterCol);
-        }
-      }
-    }
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#skipLines(int)}
-   */
-  void setSkippedLines(int num) {
-    this.skippedLines = num;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#skipPrefix(String)}
-   */
-  void addSkippedPrefix(String prefix) {
-    this.skipPrefices.add(prefix);
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#parseFailValue(String)}
-   */
-  void setParseFailValue(String pfv) {
-    this.parseFailValue = pfv;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#skipLinesWithIncorrectNumberOfColumns()}
-   */
-  void skipLineWithIncorrectNumberOfColumns() {
-    this.failCount = false;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#failOnBlankLines()}
-   */
-  void failOnBlankLines() {
-    this.failBlank = true;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#noHeader()}
-   */
-  void setNoHeader() {
-    this.noHeader = true;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#noTrim()}
-   */
-  void setNoTrim() {
-    this.trimInput = false;
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#link(FileLink)}
-   * 
-   * @param link {@link FileLink}
-   */
-  void addLink(FileLink link) {
-    linkedParsers.add(link);
-    linkedFileColumns.put(link, new HashMap<>());
-    Set<FileColumn<?>> all = new HashSet<>();
-    all.addAll(getDataColumnsInOrder());
-    all.addAll(getAddlDataColumns());
-    for (FileColumn<?> fc : link.getKeys()) {
-      for (FileColumn<?> fc1 : all) {
-        if (fc.getName().equals(fc1.getName())) {
-          linkedFileColumns.get(link).put(fc, fc1);
-          break;
-        }
-      }
-    }
-  }
-
-  /**
-   * See {@link AbstractFileParserFactory#optionalColumns(FileColumn...)}
-   * 
-   * @param columns {link {@link FileColumn}...
-   */
-  void addOptionalColumns(FileColumn<?>... columns) {
-    for (FileColumn<?> fc : columns) {
-      this.optlDataToLoad.add(fc);
-    }
+  FileParser(AbstractFileParserFactory factory) {
+    this.inputFile = factory.inputFile;
+    this.inputFileDelim = factory.inputFileDelim;
+    skipPrefices = new ImmutableSet.Builder<String>().addAll(factory.skipPrefices).build();
+    filters = new ImmutableList.Builder<ColumnFilter>().addAll(factory.filters).build();
+    filterDeath = new ImmutableMap.Builder<ColumnFilter, Boolean>().putAll(factory.filterDeath)
+                                                                   .build();
+    linkedParsers = new ImmutableList.Builder<FileLink>().addAll(factory.linkedParsers).build();
+    dataInOrder = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.dataInOrder).build();
+    addlDataToLoad = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.addlDataToLoad)
+                                                               .build();
+    optlDataToLoad = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.optlDataToLoad)
+                                                               .build();
+    linkedFileColumns = new ImmutableMap.Builder<FileLink, Map<FileColumn<?>, FileColumn<?>>>().putAll(factory.linkedFileColumns)
+                                                                                               .build();
   }
 
   /**
@@ -197,7 +103,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     int skip = skippedLines;
     header = null;
     lineCount = 0;
-    Map<String, Integer> hdrMap = null;
     while ((line = reader.readLine()) != null) {
       lineCount++;
       if (trimInput) {
@@ -221,22 +126,18 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         inputFileDelim = ext.determineDelimiter(line);
       }
       if (!noHeader) {
-        header = line.split(inputFileDelim);
-        hdrMap = new HashMap<String, Integer>();
-        for (int i = 0; i < header.length; i++) {
-          hdrMap.put(header[i], i);
-        }
+        header = ArrayUtils.immutableIndexMap(line.split(inputFileDelim));
       }
       for (FileColumn<?> fc : dataInOrder) {
-        fc.initialize(hdrMap);
+        fc.initialize(this);
       }
       for (FileColumn<?> fc : addlDataToLoad) {
-        fc.initialize(hdrMap);
+        fc.initialize(this);
       }
       optlDataFound = new ArrayList<>();
       for (FileColumn<?> fc : optlDataToLoad) {
         try {
-          fc.initialize(hdrMap);
+          fc.initialize(this);
           optlDataFound.add(fc);
         } catch (IllegalStateException e) {
           // not in file
@@ -246,6 +147,10 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     }
 
     opened = true;
+  }
+
+  public ImmutableMap<String, Integer> getHeaderMap() {
+    return header;
   }
 
   private DataLine readLine() throws IOException {
@@ -282,9 +187,9 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       }
       lineData = new DataLine(parseFailValue);
       parts = line.split(inputFileDelim, -1);
-      if (failCount && parts.length != header.length) {
+      if (failCount && parts.length != header.size()) {
         throw new IllegalStateException("Line " + lineCount + " was the wrong length; expected "
-                                        + header.length + ", found " + parts.length);
+                                        + header.size() + ", found " + parts.length);
       }
       for (FileColumn<?> fc : dataInOrder) {
         lineData.parseOrFail(fc, parts);
@@ -353,21 +258,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     }
 
     return lineData;
-  }
-
-  /**
-   * @return An unmodifiable view of the data columns that will be present in the loaded data.
-   */
-  public List<FileColumn<?>> getDataColumnsInOrder() {
-    return Collections.unmodifiableList(dataInOrder);
-  }
-
-  /**
-   * @return An unmodifiable view of the additional columns of data that will be loaded (e.g. for
-   *         {@link ColumnFilter} operations.
-   */
-  public List<FileColumn<?>> getAddlDataColumns() {
-    return Collections.unmodifiableList(addlDataToLoad);
   }
 
   /**

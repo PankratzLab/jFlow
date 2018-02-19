@@ -42,11 +42,11 @@ public class FileLink extends AbstractFileParserFactory {
   public FileLink keys(FileColumn<?>... keyColumns) {
     if (this.keyColumns != null) {
       throw new IllegalStateException("Keys have already been defined for linked file "
-                                      + this.parser.getInputFile());
+                                      + this.inputFile);
     }
     this.keyColumns = ImmutableSet.copyOf(keyColumns);
     for (FileColumn<?> fc : keyColumns) {
-      this.parser.dataInOrder.add(fc);
+      this.dataInOrder.add(fc);
     }
     return this;
   }
@@ -67,11 +67,11 @@ public class FileLink extends AbstractFileParserFactory {
   public FileLink values(FileColumn<?>... valueColumns) {
     if (this.valueColumns != null) {
       throw new IllegalStateException("Values have already been defined for linked file "
-                                      + this.parser.getInputFile());
+                                      + this.inputFile);
     }
     this.valueColumns = Arrays.asList(valueColumns);
     for (FileColumn<?> fc : valueColumns) {
-      this.parser.dataInOrder.add(fc);
+      this.dataInOrder.add(fc);
     }
     return this;
   }
@@ -138,18 +138,14 @@ public class FileLink extends AbstractFileParserFactory {
 
   public DataLine get(List<Object> keyVal) {
     if (data == null) {
-      throw new IllegalStateException("FileLink for file " + parser.getInputFile()
+      throw new IllegalStateException("FileLink for file " + this.inputFile
                                       + " needs to be built with the build() method.");
     }
     if (!data.containsKey(keyVal) && dieOnMissing) {
-      throw new IllegalStateException("Failed to find linked data in file " + parser.getInputFile()
+      throw new IllegalStateException("Failed to find linked data in file " + this.inputFile
                                       + " for key " + keyVal);
     }
     return data.get(keyVal);
-  }
-
-  public String getInputFile() {
-    return parser.getInputFile();
   }
 
 }
