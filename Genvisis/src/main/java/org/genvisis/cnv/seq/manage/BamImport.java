@@ -361,6 +361,7 @@ public class BamImport {
       AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
                                                      captureBuffer, atType, createSubsetVCF, log,
                                                      referenceGenome);
+
       FilterNGS filterNGS = new FilterNGS(20, 20, null);
       PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir,
                                                        referenceGenome.getReferenceFasta(),
@@ -394,6 +395,36 @@ public class BamImport {
   }
 
   /**
+   * @param proj
+   * @param atype
+   * @param bLocusSet
+   * @param captureSet
+   * @param captureBuffer
+   * @param referenceGenome
+   * @param log
+   * @return
+   */
+  private static LocusSet<Segment> loadGenomeBins(Project proj, ASSAY_TYPE atype,
+                                                  LocusSet<BEDFeatureSeg> bLocusSet,
+                                                  LocusSet<BEDFeatureSeg> captureSet,
+                                                  int captureBuffer,
+                                                  ReferenceGenome referenceGenome, Logger log) {
+    switch (atype) {
+      case WGS:
+        return referenceGenome.getBins(BIN_SIZE.get(atype));
+      case WXS:
+        return referenceGenome.getBins(BIN_SIZE.get(atype))
+                              .removeThese(LocusSet.combine(bLocusSet, captureSet, true, log)
+                                                   .mergeOverlapping(true),
+                                           captureBuffer);
+      default:
+        throw new IllegalArgumentException("Only supported ASSAY_TYPEs are " + ASSAY_TYPE.WGS
+                                           + " and " + ASSAY_TYPE.WXS);
+    }
+
+  }
+
+  /**
    * @param proj determining where everything will live
    * @param binBed the bins of interest
    * @param captureBed capture library
@@ -405,46 +436,40 @@ public class BamImport {
   public static AnalysisSets generateAnalysisSet(Project proj, String binBed, String captureBed,
                                                  String optionalVCF, int captureBuffer,
                                                  ASSAY_TYPE atype, boolean createSubsetVCF,
-                                                 Logger log,
-
-                                                 ReferenceGenome referenceGenome) {
+                                                 Logger log, ReferenceGenome referenceGenome) {
     LocusSet<Segment> analysisSet;
     LocusSet<BEDFeatureSeg> bLocusSet = null;
     LocusSet<Segment> genomeBinsMinusBinsCaputure = null;
-    if (!BIN_SIZE.containsKey(atype)) {
-      throw new IllegalArgumentException("Invalid assay type " + atype);
-    }
-    if (binBed == null && atype.equals(ASSAY_TYPE.WGS)) {
-      binBed = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
-      Files.write("0\t1\t100000", binBed);
-    }
-    if (captureBed == null && atype.equals(ASSAY_TYPE.WGS)) {
-      captureBed = proj.PROJECT_DIRECTORY.getValue() + "tmp.bed";
-      Files.write("0\t1\t100000", captureBed);
-    }
-    if (binBed == null || BedOps.verifyBedIndex(binBed, log)) {
-      BEDFileReader readerBin = new BEDFileReader(binBed, false);
-      bLocusSet = readerBin.loadAll(log);
-      readerBin.close();
-      BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
-      readerCapture.close();
-      if (bLocusSet.hasNoOverlap()) {
-
-        log.memoryFree();
-        genomeBinsMinusBinsCaputure = referenceGenome.getBins(BIN_SIZE.get(atype))
-                                                     .removeThese(LocusSet.combine(bLocusSet,
-                                                                                   readerCapture.loadAll(log),
-                                                                                   true, log)
-                                                                          .mergeOverlapping(true),
-                                                                  captureBuffer);//
-      } else {
-        log.reportError("The bed file " + binBed
-                        + " had overlapping segments, currently non -overlapping segments are required");
-        throw new IllegalArgumentException();
-      }
+    switch (atype) {	
+      case WXS:
+        if (binBed == null || BedOps.verifyBedIndex(binBed, log)) {
+          BEDFileReader readerBin = new BEDFileReader(binBed, false);
+          bLocusSet = readerBin.loadAll(log);
+          readerBin.close();
+          BEDFileReader readerCapture = new BEDFileReader(captureBed, false);
+          LocusSet<BEDFeatureSeg> captureSet = readerCapture.loadAll(log);
+          readerCapture.close();
+          if (!bLocusSet.hasNoOverlap()) {
+            log.memoryFree();
+            genomeBinsMinusBinsCaputure = loadGenomeBins(proj, atype, bLocusSet, captureSet,
+                                                         captureBuffer, referenceGenome, log);
+          } else {
+            log.reportError("The bed file " + binBed
+                            + " had overlapping segments, currently non -overlapping segments are required");
+            throw new IllegalArgumentException();
+          }
+        }
+        break;
+      case WGS:
+        bLocusSet = new LocusSet<>(new BEDFeatureSeg[0], false, log);
+        genomeBinsMinusBinsCaputure = loadGenomeBins(proj, atype, null, null, -1, referenceGenome,
+                                                     log);
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid assay type " + atype);
     }
     log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered() + " bp covered by " + atype
-                       + " analysis  set");
+                       + " analysis set");
     log.memoryFree();
 
     String vcfToCount = optionalVCF;
@@ -978,7 +1003,7 @@ public class BamImport {
         BEDFeatureSeg bFeatureSeg = bLocusSet.getLoci()[i];
         String markerName = bFeatureSeg.getUCSClocation();
         String name = bFeatureSeg.getBedFeature().getName();
-        if (name != null) {
+        if (name != null && !"".equals(name)) {
           markerName += "|" + name;
         }
         markerName += "|" + NGS_MARKER_TYPE.ON_TARGET.getFlag();
@@ -1015,7 +1040,7 @@ public class BamImport {
         VariantSeg variantFeatureSeg = varFeatures.getLoci()[i];
         String markerName = variantFeatureSeg.getUCSClocation();
         String name = variantFeatureSeg.getTag();
-        if (name != null) {
+        if (name != null && !"".equals(name)) {
           markerName += "|" + name;
         }
         markerName = markerName + "|" + NGS_MARKER_TYPE.VARIANT_SITE.getFlag();

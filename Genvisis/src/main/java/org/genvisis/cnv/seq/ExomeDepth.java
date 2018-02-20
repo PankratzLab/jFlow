@@ -201,9 +201,12 @@ public class ExomeDepth {
     allReferenceBAIFiles = new String[allReferenceBAMFiles.length];
     for (int i = 0; i < allReferenceBAMFiles.length; i++) {
       String bai = ext.rootOf(allReferenceBAMFiles[i], false) + BamOps.BAI_EXT;
+      if (!Files.exists(bai)) {
+        bai = allReferenceBAMFiles[i] + BamOps.BAI_EXT;
+      }
       if (!Files.exists(allReferenceBAMFiles[i]) || !Files.exists(bai)) {
         log.reportError("Could not find " + allReferenceBAMFiles[i]
-                        + " with corresponding .bai file" + bai);
+                        + " with corresponding .bai file " + bai);
       } else {
         allReferenceBAIFiles[i] = bai;
         sampleSpecificExclude.put(allSampleNames[i], new HashSet<String>());
