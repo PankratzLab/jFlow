@@ -96,6 +96,7 @@ public class VisualizationProcessor implements SampleProcessor {
     dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
     dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
     dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
+    dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
 
   }
 
@@ -408,13 +409,13 @@ public class VisualizationProcessor implements SampleProcessor {
         }
 
         String x = addl.xDim;
-        if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.xDim)) {
+        while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(x)) {
           x = dimSwitch.get(x);
         }
         fcp.setXDataName(x);
 
         String y = addl.yDim;
-        if (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(addl.yDim)) {
+        while (!loader.getAllDisplayableNames(DATA_SET.ALL).contains(y)) {
           y = dimSwitch.get(y);
         }
         fcp.setYDataName(y);
