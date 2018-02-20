@@ -58,7 +58,12 @@ public class LocusSet<T extends Segment> implements Serializable {
   }
 
   public void sort() {
-    Arrays.sort(loci);
+    if (loci.length < 2500) {
+      //      https://stackoverflow.com/questions/17328077/difference-between-arrays-sort-and-arrays-parallelsort
+      Arrays.sort(loci);
+    } else {
+      Arrays.parallelSort(loci);
+    }
     sorted = true;
   }
 
