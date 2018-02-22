@@ -365,7 +365,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public AbstractRangeMultimap<K, V, C> subRangeMap(Range<K> range) {
+  public RangeMultimap<K, V, C> subRangeMap(Range<K> range) {
     return newRangeMultiMap(rangeMap.subRangeMap(range));
   }
 
@@ -425,7 +425,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * @return a new {@link AbstractRangeMultimap} of the correct type with the specified
    *         underlyingRangeMap as its source
    */
-  protected abstract AbstractRangeMultimap<K, V, C> newRangeMultiMap(RangeMap<K, C> underlyingRangeMap);
+  protected abstract RangeMultimap<K, V, C> newRangeMultiMap(RangeMap<K, C> underlyingRangeMap);
 
   /**
    * @param currentValues
