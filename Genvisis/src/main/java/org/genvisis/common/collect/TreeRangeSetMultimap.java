@@ -7,12 +7,13 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeMap;
 
 /**
- * An implementation of {@link RangeMultimap} using a {@link TreeRangeMap} and {@link ImmutableSet}
+ * An implementation of {@link AbstractRangeMultimap} using a {@link TreeRangeMap} and
+ * {@link ImmutableSet}
  *
  * @param <K>
  * @param <V>
  */
-public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends RangeMultimap<K, V, ImmutableSet<V>> {
+public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRangeMultimap<K, V, ImmutableSet<V>> {
 
   private TreeRangeSetMultimap() {
     this(TreeRangeMap.create());
@@ -56,7 +57,7 @@ public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends RangeMulti
   }
 
   @Override
-  protected RangeMultimap<K, V, ImmutableSet<V>> newRangeMultiMap(RangeMap<K, ImmutableSet<V>> underlyingRangeMap) {
+  protected AbstractRangeMultimap<K, V, ImmutableSet<V>> newRangeMultiMap(RangeMap<K, ImmutableSet<V>> underlyingRangeMap) {
     return new TreeRangeSetMultimap<>(underlyingRangeMap);
   }
 
