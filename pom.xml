@@ -126,7 +126,7 @@
 		<xmlbeans.version>2.6.0</xmlbeans.version>
 
 		<!-- Guava -->
-		<guava.version>21.0</guava.version>
+		<guava.version>24.0-jre</guava.version>
 
 		<!-- Commons-cli -->
 		<commons-cli.version>1.4</commons-cli.version>
