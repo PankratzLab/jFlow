@@ -39,11 +39,21 @@ public abstract class AbstractFileColumn<T> implements FileColumn<T> {
   }
 
   @Override
-  // overridden to force subclasses to define their own hashCode method
-  public abstract int hashCode();
+  public int hashCode() {
+    final int prime = 31;
+    return prime + ((getName() == null) ? 0 : getName().hashCode());
+  }
 
   @Override
-  // overridden to force subclasses to define their own equals method
-  public abstract boolean equals(Object o);
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (!(obj instanceof FileColumn)) return false;
+    FileColumn<?> other = (FileColumn<?>) obj;
+    if (getName() == null) {
+      if (other.getName() != null) return false;
+    } else if (!getName().equals(other.getName())) return false;
+    return true;
+  }
 
 }

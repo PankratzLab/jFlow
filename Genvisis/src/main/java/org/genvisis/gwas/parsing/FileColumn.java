@@ -28,4 +28,36 @@ public interface FileColumn<T> {
 
   public boolean dieOnParseFailure();
 
+  /**
+   * Compares the specified object with this {@link FileColumn} for equality. Returns {@code true}
+   * if and only if the specified object is also a {@link FileColumn} and both return the same value
+   * for {@link #getName()} This definition ensures that the equals method works predictably across
+   * different implementations of the {@link FileColumn} interface.
+   *
+   * @param obj the object to be compared for equality with this {@link FileColumn}
+   * @return {@code true} if the specified object is equal to this {@link FileColumn}
+   */
+  @Override
+  boolean equals(Object obj);
+
+  /**
+   * Returns the hash code value for this {@link FileColumn}. The hash code of a {@link FileColumn}
+   * is defined to be the result of the following calculation:
+   * 
+   * <pre>{@code 
+   *   int hashCode = 31 + ((getName() == null) ? 0 : getName().hashCode());
+   * }</pre>
+   * 
+   * This ensures that <tt>fileColumn1.equals(fileColumn2)</tt> implies that
+   * <tt>fileColumn1.hashCode()==fileColumn1.hashCode()</tt> for any two {@link FileColumn}s,
+   * <tt>fileColumn1</tt> and <tt>fileColumn2</tt>, as required by the general contract of
+   * {@link Object#hashCode}.
+   *
+   * @return the hash code value for this {@link FileColumn}
+   * @see Object#equals(Object)
+   * @see #equals(Object)
+   */
+  @Override
+  int hashCode();
+
 }
