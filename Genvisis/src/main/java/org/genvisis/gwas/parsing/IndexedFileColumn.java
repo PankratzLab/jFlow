@@ -1,27 +1,14 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.Map;
+/**
+ * An interface to define a common API for {@link FileColumn}s that point to a single index
+ *
+ * @param <T>
+ */
+public interface IndexedFileColumn<T> extends FileColumn<T> {
 
-public class IndexedFileColumn extends AbstractFileColumn<String> {
-
-  final int index;
-
-  public IndexedFileColumn(String name, int inputIndex) {
-    super(name);
-    this.index = inputIndex;
-  }
-
-  @Override
-  public void initialize(FileParser parser) {
-    Map<String, Integer> headerMap = parser.getHeaderMap();
-    if (!headerMap.values().contains(this.index)) {
-      throw new IllegalStateException("Index " + this.index + " is not valid for header.");
-    }
-  }
-
-  @Override
-  public String getValue(String[] line) {
-    return line[index];
-  }
-
+  /**
+   * @return the index this {@link FileColumn} is pointing to
+   */
+  public int getIndex();
 }

@@ -35,7 +35,7 @@ public final class StandardFileColumns {
         Map<String, Integer> headerMap = parser.getHeaderMap();
         String[] heads = new String[headerMap.size() - 1];
         outIndices = new ArrayList<>();
-        int keyInd = key.getMatchedIndex();
+        int keyInd = key.getIndex();
         for (Entry<String, Integer> ent : headerMap.entrySet()) {
           if (ent.getValue() == keyInd) {
             continue;

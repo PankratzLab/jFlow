@@ -6,9 +6,10 @@ import java.util.Map.Entry;
 /**
  * A {@link FileColumn<String>} subclass that searches the file header for a column name that
  * matches an array of specified aliases. Expects that the file will have a header, and will throw
- * an exception if it doesn't (in which case, {@link IndexedFileColumn} should probably be used).
+ * an exception if it doesn't (in which case, {@link ExplicitIndexedFileColumn} should probably be
+ * used).
  */
-public class AliasedFileColumn extends AbstractFileColumn<String> {
+public class AliasedFileColumn extends AbstractFileColumn<String> implements IndexedFileColumn<String> {
 
   private final Aliases aliases;
 
@@ -81,7 +82,8 @@ public class AliasedFileColumn extends AbstractFileColumn<String> {
   /**
    * @return Index of column in data based on matched header
    */
-  public int getMatchedIndex() {
+  @Override
+  public int getIndex() {
     return matchedIndex;
   }
 
