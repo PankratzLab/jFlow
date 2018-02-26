@@ -23,7 +23,7 @@ public final class StandardFileColumns {
    * @param outDelim Delimiter with which to join the values
    * @return {@link FileColumn&lt;String&gt;}
    */
-  public static final FileColumn<String> allButKey(AliasedFileColumn key, String outDelim) {
+  public static final FileColumn<String> allButKey(IndexedFileColumn<?> key, String outDelim) {
     return new FileColumn<String>() {
 
       String outHeader;
