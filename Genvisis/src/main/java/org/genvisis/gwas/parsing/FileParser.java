@@ -149,6 +149,10 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     opened = true;
   }
 
+  /**
+   * @return an {@link ImmutableMap} from header Strings to their index in the header with fixed
+   *         iteration order by index
+   */
   public ImmutableMap<String, Integer> getHeaderMap() {
     return header;
   }
