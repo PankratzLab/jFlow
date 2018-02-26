@@ -4,12 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Pattern;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.genvisis.bgen.BGENBitMath;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.ext;
 
 public class FCSReader {
@@ -17,27 +15,113 @@ public class FCSReader {
   String filePath;
   private RandomAccessFile fileObj;
 
-  private FCSHeader header;
+  private String fcsVersion;
   private FCSKeywords keys;
   private FCSSpillover spill;
   FCSData data;
 
   private FCSReader() {}
 
+  public static FCSKeywords readKeywords(String file) throws IOException {
+    FCSReader reader = new FCSReader();
+    reader.setFile(file);
+    reader.openFile();
+    FCSHeader header = reader.readHeader();
+    reader.setVersion(header.getFileFormat());
+    reader.checkHeader(header);
+    reader.readText(header);
+    FCSKeywords keys = reader.getKeywords();
+    reader.closeInternal();
+    reader.dispose();
+    return keys;
+  }
+
   public static FCSReader open(String file) throws IOException {
     // check if file exists / can be read?
     FCSReader reader = new FCSReader();
     reader.setFile(file);
     reader.openFile();
-    reader.readHeader();
-    reader.checkHeader();
-    reader.readText();
+    FCSHeader header = reader.readHeader();
+    reader.setVersion(header.getFileFormat());
+    reader.checkHeader(header);
+    reader.readText(header);
     reader.setSpill();
     reader.initData();
-    reader.data.readData(reader);
+    reader.data.readData(reader, header);
     reader.closeInternal();
     // reader.readAnalysis();
     return reader;
+  }
+
+  public static void write(FCSReader reader, String newFile) throws IOException {
+    RandomAccessFile fO = new RandomAccessFile(newFile, "rw");
+
+    long dataLength = reader.data.getDataByteCount();
+    byte[] textBytes;
+
+    int dB = 5000;
+
+    // placeholders
+    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, "5000");
+    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(5000 + dataLength - 1));
+    textBytes = reader.getKeywords().constructRaw();
+
+    while ((textBytes.length + 256 - 1 + 5) >= dB) {
+      dB += 1000;
+      if (dB > 9999) {
+        reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, Integer.toString(dB));
+        reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(dB + dataLength - 1));
+        textBytes = reader.getKeywords().constructRaw();
+      }
+    }
+
+    long dE = dB + dataLength - 1;
+    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, Integer.toString(dB));
+    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(dE));
+    textBytes = reader.getKeywords().constructRaw();
+
+    FCSHeader newHeader = new FCSHeader();
+    newHeader.fileFormat = reader.getVersion();
+
+    newHeader.textStart = 256; // apparent default?
+    newHeader.textStop = newHeader.textStart + textBytes.length - 1;
+
+    if (newHeader.textStop + 5 + dataLength - 1 > 99999999) {
+      newHeader.dataStart = 0;
+      newHeader.dataStop = 0;
+    } else {
+      newHeader.dataStart = newHeader.textStop + 5;
+      newHeader.dataStop = (int) (newHeader.dataStart + dataLength - 1);
+    }
+
+    // analysis data not supported
+    // TODO probably should enforce keywords == 0 also
+    newHeader.analysisStart = 0;
+    newHeader.analysisStop = 0;
+
+    // write header
+    fO.write(newHeader.getBytes());
+    // write spaces in between
+    byte[] filler = ArrayUtils.byteArray(198, (byte) 32); // 256 - 58 = 198
+    fO.write(filler);
+    // write text
+    fO.write(textBytes);
+    // write spaces in between
+    filler = ArrayUtils.byteArray(newHeader.dataStart - (newHeader.textStop + 1), (byte) 32);
+    fO.write(filler);
+    // write data
+    reader.data.writeData(reader, fO);
+    // write spaces in between
+    // write analysis
+    fO.close();
+  }
+
+  private String getVersion() {
+    return fcsVersion;
+  }
+
+  private void setVersion(String v) {
+    this.fcsVersion = v;
   }
 
   private void setFile(String file) {
@@ -48,10 +132,13 @@ public class FCSReader {
     setSystemFile(new RandomAccessFile(filePath, "r"));
   }
 
-  private void readHeader() throws IOException {
-    if (getHeader() != null) return;
+  private FCSHeader readHeader() throws IOException {
+    FCSHeader header = new FCSHeader();
 
-    byte[] headBytes = new byte[58];
+    byte[] headBytes = new byte[FCSHeader.HEADER_NUM_BYTES];
+    // TODO check if system file is open / closed
+    // TODO check position
+
     int read = getSystemFile().read(headBytes);
     if (read != headBytes.length) {
       throw new IOException("");
@@ -60,20 +147,22 @@ public class FCSReader {
     String hdrStr = new String(headBytes, "US-ASCII");
     String[] pts = hdrStr.split("\\s+");
 
-    setHeader(new FCSHeader());
-    getHeader().fileFormat = pts[0];
-    getHeader().textStart = Integer.parseInt(pts[1]);
-    getHeader().textStop = Integer.parseInt(pts[2]);
-    if (pts.length >= 7) {
-      getHeader().dataStart = Integer.parseInt(pts[3]);
-      getHeader().dataStop = Integer.parseInt(pts[4]);
-      getHeader().analysisStart = Integer.parseInt(pts[5]);
-      getHeader().analysisStop = Integer.parseInt(pts[6]);
+    header.fileFormat = pts[0];
+    header.textStart = Integer.parseInt(pts[1]);
+    header.textStop = Integer.parseInt(pts[2]);
+    if (pts.length >= 5) {
+      header.dataStart = Integer.parseInt(pts[3]);
+      header.dataStop = Integer.parseInt(pts[4]);
     }
+    if (pts.length >= 7) {
+      header.analysisStart = Integer.parseInt(pts[5]);
+      header.analysisStop = Integer.parseInt(pts[6]);
+    }
+    return header;
   }
 
-  private void checkHeader() throws IOException {
-    switch (getHeader().fileFormat) {
+  private void checkHeader(FCSHeader header) throws IOException {
+    switch (header.getFileFormat()) {
       case "FCS3.1":
         break;
       case "FCS3.0":
@@ -81,15 +170,15 @@ public class FCSReader {
       case "FCS2.0":
       case "FCS1.0":
       default:
-        throw new IOException("Unsupported FCS File format: " + getHeader().fileFormat);
+        throw new IOException("Unsupported FCS File format: " + header.getFileFormat());
     }
   }
 
-  private void readText() throws IOException {
-    if (getSystemFile().getFilePointer() != getHeader().textStart) {
-      getSystemFile().seek(getHeader().textStart);
+  private void readText(FCSHeader header) throws IOException {
+    if (getSystemFile().getFilePointer() != header.getTextStart()) {
+      getSystemFile().seek(header.getTextStart());
     }
-    byte[] textBytes = new byte[(getHeader().textStop + 1) - getHeader().textStart];
+    byte[] textBytes = new byte[(header.getTextStop() + 1) - header.getTextStart()];
     getSystemFile().read(textBytes);
     this.setKeywords(new FCSKeywords(textBytes));
   }
@@ -122,7 +211,6 @@ public class FCSReader {
   }
 
   public void dispose() {
-    header = null;
     keys = null;
     spill = null;
     data.dispose();
@@ -143,14 +231,6 @@ public class FCSReader {
 
   protected void setSystemFile(RandomAccessFile fileObj) {
     this.fileObj = fileObj;
-  }
-
-  public FCSHeader getHeader() {
-    return header;
-  }
-
-  private void setHeader(FCSHeader header) {
-    this.header = header;
   }
 
   public FCSSpillover getSpillover() {
@@ -176,7 +256,9 @@ public class FCSReader {
 
 interface FCSData {
 
-  void readData(FCSReader reader) throws IOException;
+  void readData(FCSReader reader, FCSHeader header) throws IOException;
+
+  long getDataByteCount();
 
   void dispose();
 
@@ -198,10 +280,13 @@ interface FCSData {
     throw new UnsupportedOperationException();
   }
 
+  void writeData(FCSReader reader, RandomAccessFile file) throws IOException;
+
 }
 
 class FCSDoubleData implements FCSData {
 
+  int[] paramBytes;
   double[][] data;
   double[][] compData;
 
@@ -297,13 +382,18 @@ class FCSDoubleData implements FCSData {
     this.compData = null;
   }
 
-  public void readData(FCSReader reader) throws IOException {
+  @Override
+  public long getDataByteCount() {
+    return data[0].length * (long) ArrayUtils.sum(paramBytes);
+  }
+
+  public void readData(FCSReader reader, FCSHeader header) throws IOException {
     if (this.data != null) return;
-    long dataStart = reader.getHeader().dataStart;
+    long dataStart = header.getDataStart();
     if (dataStart <= 0) {
       dataStart = reader.getKeywords().getKeywordLong(FCS_KEYWORD.BEGINDATA.keyword);
     }
-    long dataEnd = reader.getHeader().dataStop;
+    long dataEnd = header.getDataStop();
     if (dataEnd <= 0) {
       dataEnd = reader.getKeywords().getKeywordLong(FCS_KEYWORD.ENDDATA.keyword);
     }
@@ -314,7 +404,7 @@ class FCSDoubleData implements FCSData {
     int params = reader.getKeywords().getParameterCount();
     ByteOrder end = reader.getKeywords().getEndianness();
 
-    int[] paramBytes = new int[params];
+    paramBytes = new int[params];
     int[] paramByteInd = new int[params];
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
@@ -350,21 +440,21 @@ class FCSDoubleData implements FCSData {
     for (int e = 0; e < events; e++) {
       reader.getSystemFile().read(parse);
       for (int p = 0; p < params; p++) {
-        data[p][e] = (paramBytes[p] == 64 ? BGENBitMath.bytesToDouble(end == ByteOrder.LITTLE_ENDIAN,
-                                                                      parse[paramByteInd[p]],
-                                                                      parse[paramByteInd[p] + 1],
-                                                                      parse[paramByteInd[p] + 2],
-                                                                      parse[paramByteInd[p] + 3],
-                                                                      parse[paramByteInd[p] + 4],
-                                                                      parse[paramByteInd[p] + 5],
-                                                                      parse[paramByteInd[p] + 6],
-                                                                      parse[paramByteInd[p] + 7])
-                                          // double types /should/ be 64 bits, but not always true
-                                          : BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
+        data[p][e] = (paramBytes[p] == 8 ? BGENBitMath.bytesToDouble(end == ByteOrder.LITTLE_ENDIAN,
                                                                      parse[paramByteInd[p]],
                                                                      parse[paramByteInd[p] + 1],
                                                                      parse[paramByteInd[p] + 2],
-                                                                     parse[paramByteInd[p] + 3]))
+                                                                     parse[paramByteInd[p] + 3],
+                                                                     parse[paramByteInd[p] + 4],
+                                                                     parse[paramByteInd[p] + 5],
+                                                                     parse[paramByteInd[p] + 6],
+                                                                     parse[paramByteInd[p] + 7])
+                                         // double types /should/ be 64 bits, but not always true
+                                         : BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
+                                                                    parse[paramByteInd[p]],
+                                                                    parse[paramByteInd[p] + 1],
+                                                                    parse[paramByteInd[p] + 2],
+                                                                    parse[paramByteInd[p] + 3]))
                      / paramScaling[p];
       }
       for (int p = 0; p < params; p++) {
@@ -384,10 +474,46 @@ class FCSDoubleData implements FCSData {
     parse = null;
   }
 
+  public void writeData(FCSReader reader, RandomAccessFile newFile) throws IOException {
+    int params = data.length;
+    int[] paramBytes = new int[params];
+    int[] paramByteInd = new int[params];
+    double[] paramScaling = reader.getKeywords().getParamScaling();
+    ByteOrder end = reader.getKeywords().getEndianness();
+    int byteSum = 0;
+    for (int i = 0; i < params; i++) {
+      int p = reader.getKeywords()
+                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      p /= 8; // require discrete bytes
+      paramByteInd[i] = byteSum;
+      byteSum += p;
+      paramBytes[i] = p;
+    }
+
+    byte[] rawLine;
+    for (int e = 0; e < data[0].length; e++) {
+      rawLine = new byte[byteSum];
+      for (int p = 0; p < params; p++) {
+        if (paramBytes[p] == 8) {
+          System.arraycopy(BGENBitMath.doubleToBytes(end == ByteOrder.LITTLE_ENDIAN,
+                                                     data[p][e] * paramScaling[p]),
+                           0, rawLine, paramByteInd[p], 8);
+        } else {
+          System.arraycopy(BGENBitMath.floatToBytes(end == ByteOrder.LITTLE_ENDIAN,
+                                                    (float) (data[p][e] * paramScaling[p])),
+                           0, rawLine, paramByteInd[p], 4);
+        }
+      }
+      newFile.write(rawLine);
+    }
+
+  }
+
 }
 
 class FCSFloatData implements FCSData {
 
+  int[] paramBytes;
   float[][] data;
   float[][] compData;
 
@@ -483,13 +609,18 @@ class FCSFloatData implements FCSData {
     this.compData = null;
   }
 
-  public void readData(FCSReader reader) throws IOException {
+  @Override
+  public long getDataByteCount() {
+    return data[0].length * (long) ArrayUtils.sum(paramBytes);
+  }
+
+  public void readData(FCSReader reader, FCSHeader header) throws IOException {
     if (this.data != null) return;
-    long dataStart = reader.getHeader().dataStart;
+    long dataStart = header.getDataStart();
     if (dataStart <= 0) {
       dataStart = reader.getKeywords().getKeywordLong(FCS_KEYWORD.BEGINDATA.keyword);
     }
-    long dataEnd = reader.getHeader().dataStop;
+    long dataEnd = header.getDataStop();
     if (dataEnd <= 0) {
       dataEnd = reader.getKeywords().getKeywordLong(FCS_KEYWORD.ENDDATA.keyword);
     }
@@ -500,7 +631,7 @@ class FCSFloatData implements FCSData {
     int params = reader.getKeywords().getParameterCount();
     ByteOrder end = reader.getKeywords().getEndianness();
 
-    int[] paramBytes = new int[params];
+    paramBytes = new int[params];
     int[] paramByteInd = new int[params];
     int byteSum = 0;
     for (int i = 0; i < params; i++) {
@@ -537,7 +668,7 @@ class FCSFloatData implements FCSData {
     for (int e = 0; e < events; e++) {
       reader.getSystemFile().read(parse);
       for (int p = 0; p < params; p++) {
-        data[e][p] = (float) (BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
+        data[p][e] = (float) (BGENBitMath.bytesToFloat(end == ByteOrder.LITTLE_ENDIAN,
                                                        parse[paramByteInd[p]],
                                                        parse[paramByteInd[p] + 1],
                                                        parse[paramByteInd[p] + 2],
@@ -564,146 +695,31 @@ class FCSFloatData implements FCSData {
 
   }
 
-}
-
-enum FCS_KEYWORD {
-  // required by spec:
-  BEGINANALYSIS("$BEGINANALYSIS", Pattern.quote("$BEGINANALYSIS"), true),
-  BEGINDATA("$BEGINDATA", Pattern.quote("$BEGINDATA"), true),
-  BEGINSTEXT("$BEGINSTEXT", Pattern.quote("$BEGINSTEXT"), true),
-  BYTEORD("$BYTEORD", Pattern.quote("$BYTEORD"), true),
-  DATATYPE("$DATATYPE", Pattern.quote("$DATATYPE"), true),
-  ENDANALYSIS("$ENDANALYSIS", Pattern.quote("$ENDANALYSIS"), true),
-  ENDDATA("$ENDDATA", Pattern.quote("$ENDDATA"), true),
-  ENDSTEXT("$ENDSTEXT", Pattern.quote("$ENDSTEXT"), true),
-  MODE("$MODE", Pattern.quote("$MODE"), true),
-  NEXTDATA("$NEXTDATA", Pattern.quote("$NEXTDATA"), true),
-  PAR("$PAR", Pattern.quote("$PAR"), true),
-  PnB("$PnB", "\\$P\\d+B", true),
-  PnE("$PnE", "\\$P\\d+E", true),
-  PnN("$PnN", "\\$P\\d+N", true),
-  PnR("$PnR", "\\$P\\d+R", true),
-  TOT("$TOT", "\\$TOT", true),
-
-  ABRT("$ABRT", "\\$ABRT", false),
-  BTIM("$BTIM", "\\$BTIM", false),
-  CELLS("$CELLS", "\\$CELLS", false),
-  COM("$COM", "\\$COM", false),
-  CSMODE("$CSMODE", "\\$CSMODE", false),
-  CSVBITS("$CSVBITS", "\\$CSVBITS", false),
-  CSVnFLAG("$CSVnFLAG", "\\$CSV\\d+FLAG", false),
-  CYT("$CYT", "\\$CYT", false),
-  CYTSN("$CYTSN", "\\$CYTSN", false),
-  DATE("$DATE", "\\$DATE", false),
-  ETIM("$ETIM", "\\$ETIM", false),
-  EXP("$EXP", "\\$EXP", false),
-  FIL("$FIL", "\\$FIL", false),
-  GATE("$GATE", "\\$GATE", false),
-  GATING("$GATING", "\\$GATING", false),
-  GnE("$GnE", "\\$G\\d+E", false),
-  GnF("$GnF", "\\$G\\d+F", false),
-  GnN("$GnN", "\\$G\\d+N", false),
-  GnP("$GnP", "\\$G\\d+P", false),
-  GnR("$GnR", "\\$G\\d+R", false),
-  GnS("$GnS", "\\$G\\d+S", false),
-  GnT("$GnT", "\\$G\\d+T", false),
-  GnV("$GnV", "\\$G\\d+V", false),
-  INST("$INST", "\\$INST", false),
-  LAST_MODIFIED("$LAST_MODIFIED", "\\$LAST_MODIFIED", false),
-  LAST_MODIFIER("$LAST_MODIFIER", "\\$LAST_MODIFIER", false),
-  LOST("$LOST", "\\$LOST", false),
-  OP("$OP", "\\$OP", false),
-  ORIGINALITY("$ORIGINALITY", "\\$ORIGINALITY", false),
-  PKn("$PKn", "\\$PK\\d+", false),
-  PKNn("$PKNn", "\\$PKN\\d+", false),
-  PLATEID("$PLATEID", "\\$PLATEID", false),
-  PLATENAME("$PLATENAME", "\\$PLATENAME", false),
-  PnCALIBRATION("$PnCALIBRATION", "\\$P\\d+CALIBRATION", false),
-  PnD("$PnD", "\\$P\\d+D", false),
-  PnF("$PnF", "\\$P\\d+F", false),
-  PnG("$PnG", "\\$P\\d+G", false),
-  PnL("$PnL", "\\$P\\d+L", false),
-  PnO("$PnO", "\\$P\\d+O", false),
-  PnP("$PnP", "\\$P\\d+P", false),
-  PnS("$PnS", "\\$P\\d+S", false),
-  PnT("$PnT", "\\$P\\d+T", false),
-  PnV("$PnV", "\\$P\\d+V", false),
-  PROJ("$PROJ", "\\$PROJ", false),
-  RnI("$RnI", "\\$R\\d+I", false),
-  RnW("$RnW", "\\$R\\d+W", false),
-  SMNO("$SMNO", "\\$SMNO", false),
-  SPILLOVER("$SPILLOVER", "\\$SPILLOVER", false),
-  SRC("$SRC", "\\$SRC", false),
-  SYS("$SYS", "\\$SYS", false),
-  TIMESTEP("$TIMESTEP", "\\$TIMESTEP", false),
-  TR("$TR", "\\$TR", false),
-  VOL("$VOL", "\\$VOL", false),
-  WELLID("$WELLID", "\\$WELLID", false),
-  // custom
-  SPILL("SPILL", "\\SPILL", false);
-
-  FCS_KEYWORD(String key, String pattern, boolean required) {
-    this.required = required;
-    this.keyword = key;
-    this.patternStr = pattern;
-    this.pattern = Pattern.compile(patternStr);
-    this.isInd = key.contains("n");
-  }
-
-  static Set<FCS_KEYWORD> getRequiredKeywords() {
-    HashSet<FCS_KEYWORD> keys = new HashSet<>();
-    for (FCS_KEYWORD k : values()) {
-      if (k.required) {
-        keys.add(k);
-      }
+  public void writeData(FCSReader reader, RandomAccessFile newFile) throws IOException {
+    int params = data.length;
+    int[] paramByteInd = new int[params];
+    double[] paramScaling = reader.getKeywords().getParamScaling();
+    ByteOrder end = reader.getKeywords().getEndianness();
+    int byteSum = 0;
+    for (int i = 0; i < params; i++) {
+      int p = reader.getKeywords()
+                    .getKeywordInt(FCS_KEYWORD.PnB.keyword.replace("n", Integer.toString(i + 1)));
+      p /= 8; // require discrete bytes
+      paramByteInd[i] = byteSum;
+      byteSum += p;
     }
-    return keys;
-  }
 
-  boolean required;
-  String keyword;
-  String patternStr;
-  boolean isInd;
-  Pattern pattern;
-
-  String getKey() {
-    return keyword;
-  }
-
-  String getKey(int index) {
-    return isInd ? keyword.replace("n", Integer.toString(index)) : keyword;
-  }
-
-  static FCS_KEYWORD findKey(String poss) {
-    try {
-      // check if valid
-      FCS_KEYWORD word = FCS_KEYWORD.valueOf(poss.startsWith("$") ? poss.substring(1) : poss);
-      return word;
-    } catch (IllegalArgumentException e) {
-      for (FCS_KEYWORD word : values()) {
-        if (!word.isInd) {
-          continue;
-        } else if (word.pattern.matcher(poss).matches()) {
-          return word;
-        }
+    byte[] rawLine;
+    for (int e = 0; e < data[0].length; e++) {
+      rawLine = new byte[byteSum];
+      for (int p = 0; p < params; p++) {
+        System.arraycopy(BGENBitMath.floatToBytes(end == ByteOrder.LITTLE_ENDIAN,
+                                                  (float) (data[p][e] * paramScaling[p])),
+                         0, rawLine, paramByteInd[p], 4);
       }
-      return null;
+      newFile.write(rawLine);
     }
+
   }
 
-  public static boolean isKey(String poss) {
-    return findKey(poss) != null;
-  }
-
-}
-
-class FCSHeader {
-
-  String fileFormat;
-  int textStart;
-  int textStop;
-  int dataStart;
-  int dataStop;
-  int analysisStart;
-  int analysisStop;
 }
