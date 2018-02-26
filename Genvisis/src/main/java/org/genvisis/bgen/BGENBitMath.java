@@ -20,26 +20,50 @@ public final class BGENBitMath {
                                 | (bytes[littleEndian ? 0 : 3] & 0xFF));
   }
 
+  public static byte[] floatToBytes(boolean littleEndian, float value) {
+    byte[] byts = new byte[4];
+    int bits = Float.floatToIntBits(value);
+    byts[littleEndian ? 0 : 3] = (byte) (bits & 0xFF);
+    byts[littleEndian ? 1 : 2] = (byte) ((bits >> 8) & 0xFF);
+    byts[littleEndian ? 2 : 1] = (byte) ((bits >> 16) & 0xFF);
+    byts[littleEndian ? 3 : 0] = (byte) ((bits >> 24) & 0xFF);
+    return byts;
+  }
+
   /**
    * Turn an array of byte values into a double without using ByteBuffers
    * 
    * @param littleEndian Endian order of the given byte array
    * @param bytes array of eight (8) bytes
    * @return double
-   * @throws IllegalArgumentException if the given array is not of length 4
+   * @throws IllegalArgumentException if the given array is not of length 8
    */
   public static double bytesToDouble(boolean littleEndian, byte... bytes) {
     if (bytes.length != 8) {
       throw new IllegalArgumentException("Given array must contain 8 bytes total.");
     }
-    return Double.longBitsToDouble((bytes[littleEndian ? 7 : 0] & 0xFF) << 56
-                                   | (bytes[littleEndian ? 6 : 1] & 0xFF) << 48
-                                   | (bytes[littleEndian ? 5 : 2] & 0xFF) << 40
-                                   | (bytes[littleEndian ? 4 : 3] & 0xFF) << 32
-                                   | (bytes[littleEndian ? 3 : 4] & 0xFF) << 24
-                                   | (bytes[littleEndian ? 2 : 5] & 0xFF) << 16
-                                   | (bytes[littleEndian ? 1 : 6] & 0xFF) << 8
-                                   | (bytes[littleEndian ? 0 : 7] & 0xFF));
+    return Double.longBitsToDouble((long) bytes[littleEndian ? 7 : 0] << 56
+                                   | (long) (bytes[littleEndian ? 6 : 1] & 0xFF) << 48
+                                   | (long) (bytes[littleEndian ? 5 : 2] & 0xFF) << 40
+                                   | (long) (bytes[littleEndian ? 4 : 3] & 0xFF) << 32
+                                   | (long) (bytes[littleEndian ? 3 : 4] & 0xFF) << 24
+                                   | (long) (bytes[littleEndian ? 2 : 5] & 0xFF) << 16
+                                   | (long) (bytes[littleEndian ? 1 : 6] & 0xFF) << 8
+                                   | (long) (bytes[littleEndian ? 0 : 7] & 0xFF));
+  }
+
+  public static byte[] doubleToBytes(boolean littleEndian, double value) {
+    byte[] byts = new byte[8];
+    long bits = Double.doubleToLongBits(value);
+    byts[littleEndian ? 0 : 7] = (byte) (bits & 0xFF);
+    byts[littleEndian ? 1 : 6] = (byte) ((bits >> 8) & 0xFF);
+    byts[littleEndian ? 2 : 5] = (byte) ((bits >> 16) & 0xFF);
+    byts[littleEndian ? 3 : 4] = (byte) ((bits >> 24) & 0xFF);
+    byts[littleEndian ? 4 : 3] = (byte) ((bits >> 32) & 0xFF);
+    byts[littleEndian ? 5 : 2] = (byte) ((bits >> 40) & 0xFF);
+    byts[littleEndian ? 6 : 1] = (byte) ((bits >> 48) & 0xFF);
+    byts[littleEndian ? 7 : 0] = (byte) ((bits >> 56) & 0xFF);
+    return byts;
   }
 
   /**
