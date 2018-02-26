@@ -34,6 +34,7 @@ import org.genvisis.gwas.parsing.FileParser;
 import org.genvisis.gwas.parsing.FileParserFactory;
 import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.seq.manage.StrandOps;
+import org.genvisis.seq.manage.StrandOps.AlleleOrder;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 import com.google.common.base.Joiner;
@@ -1245,11 +1246,22 @@ public class GeneScorePipeline {
         String[][] alleles = data.getMarkerSet().getAlleles();
         Map<String, Integer> matchedMarkerIndices = new HashMap<>();
         Map<String, Float> matchedMarkerFreqs = new HashMap<>();
+        Map<String, AlleleOrder> matchedMarkerAlleleOrders = new HashMap<>();
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
-          if (!hitMarkerData.containsKey(mkr)/* || Float.isNaN(dose[m][i]) */) {
+          HitMarker hitMarker = hitMarkerData.get(mkr);
+          if (hitMarker == null) continue;
+          AlleleOrder alleleOrder = determineAlleleOrder(alleles[m], hitMarker);
+          if (!(alleleOrder.equals(AlleleOrder.SAME) || alleleOrder.equals(AlleleOrder.OPPOSITE))) {
+            Joiner alleleJoiner = Joiner.on('/');
+            log.reportError("Alleles in study (" + alleleJoiner.join(alleles[m])
+                            + ") do not match source alleles ("
+                            + alleleJoiner.join(hitMarker.getEffectAllele(),
+                                                hitMarker.getNonEffectAllele())
+                            + ") for " + mkr);
             continue;
           }
+          matchedMarkerAlleleOrders.put(mkr, alleleOrder);
           matchedMarkerIndices.put(mkr, m);
           int cnt = 0;
           float tot = 0;
@@ -1273,12 +1285,7 @@ public class GeneScorePipeline {
             boolean isNaN = Float.isNaN(dosage);
             HitMarker hitMarker = hitMarkerData.get(mkr);
             float beta = hitMarker.getEffect().floatValue();
-
-            StrandOps.AlleleOrder alleleOrder = StrandOps.determineStrandConfig(alleles[mkrIndex],
-                                                                                new String[] {hitMarker.getEffectAllele(),
-                                                                                              hitMarker.getNonEffectAllele()})
-                                                         .getAlleleOrder();
-
+            AlleleOrder alleleOrder = matchedMarkerAlleleOrders.get(mkr);
             if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : (2.0 - dosage);
@@ -1288,12 +1295,7 @@ public class GeneScorePipeline {
               cnt2 += isNaN ? 0 : dosage;
               scoreSum += (isNaN ? matchedMarkerFreqs.get(mkr) : dosage) * beta;
             } else {
-              Joiner alleleJoiner = Joiner.on('/');
-              log.reportError("Alleles in study (" + alleleJoiner.join(alleles[mkrIndex])
-                              + ") do not match source alleles ("
-                              + alleleJoiner.join(hitMarker.getEffectAllele(),
-                                                  hitMarker.getNonEffectAllele())
-                              + ") for " + mkr);
+              throw new IllegalStateException("Mismatched alleles were not caught when mapping");
             }
             // int code = Metal.determineStrandConfig(new String[]{}, new String[]{});
             // if (code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || code ==
@@ -1324,6 +1326,13 @@ public class GeneScorePipeline {
         scoreWriter.close();
       }
     }
+  }
+
+  private static StrandOps.AlleleOrder determineAlleleOrder(String[] alleles, HitMarker hitMarker) {
+    return StrandOps.determineStrandConfig(alleles,
+                                           new String[] {hitMarker.getEffectAllele(),
+                                                         hitMarker.getNonEffectAllele()})
+                    .getAlleleOrder();
   }
 
   // private void runPlink(Study study) {
