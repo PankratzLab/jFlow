@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -25,12 +26,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filtering.CNVFilter;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
@@ -950,6 +953,28 @@ public class lab {
     }
   }
 
+  private static void createBAMProject(String srcDir, String projFile) {
+    new File(ext.parseDirectoryOfFile(projFile)).mkdirs();
+    Files.write((new Project()).PROJECT_NAME.getName() + "=" + ext.rootOf(projFile, true),
+                projFile);
+    Project actualProj = new Project(projFile);
+    actualProj.PROJECT_NAME.setValue(ext.rootOf(projFile, true));
+    actualProj.PROJECT_DIRECTORY.setValue(ext.parseDirectoryOfFile(projFile));
+    actualProj.SOURCE_DIRECTORY.setValue(srcDir);
+    actualProj.SOURCE_FILENAME_EXTENSION.setValue(".bam");
+    actualProj.ARRAY_TYPE.setValue(ARRAY.NGS);
+    actualProj.saveProperties();
+  }
+
+  static void runBAMImport() {
+    String dir = "G:\\bamTesting\\EwingWGS\\";
+    String projDir = dir + "project\\";
+    String srcDir = dir + "00src\\";
+    String projFile = projDir + "EwingWGS_1.properties";
+    createBAMProject(srcDir, projFile);
+    BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",});
+  }
+
   private static void processAnnotationFilesAll() throws IOException {
     String dir = "F:/Flow/Annotation/allMinusManuals/";
 
@@ -1217,6 +1242,390 @@ public class lab {
 
   }
 
+  private static void processP1Counts() throws IOException {
+    String header = "F:\\Flow\\CBC_processing\\final counts\\headerLookup.xln";
+    String headerList = "F:\\Flow\\CBC_processing\\final counts\\headerShortList.txt";
+    String[] hdrsShrt = HashVec.loadFileToStringArray(headerList, false, null, false);
+    ArrayList<String> hdrsShrtList = new ArrayList<>();
+    for (String h : hdrsShrt) {
+      hdrsShrtList.add(h);
+    }
+
+    String[][] headerInfo = HashVec.loadFileToStringMatrix(header, true, new int[] {0, 1, 2, 3, 4},
+                                                           "\t", 0, false);
+    HashMap<String, List<Integer>> headerIndexMap = new HashMap<>();
+    for (String h : hdrsShrt) {
+      headerIndexMap.put(h, new ArrayList<Integer>());
+    }
+    for (String[] line : headerInfo) {
+      headerIndexMap.get(line[2]).add(Integer.parseInt(line[3]));
+    }
+
+    String file = "F:\\Flow\\CBC_processing\\final counts\\all.p1.cnts.xln";
+    String out = "F:\\Flow\\CBC_processing\\final counts\\all.p1.cnts_fixed.xln";
+
+    BufferedReader reader = Files.getAppropriateReader(file);
+    PrintWriter writer = Files.getAppropriateWriter(out);
+
+    reader.readLine();
+
+    String h = "Sample";
+    for (String hdr : hdrsShrtList) {
+      h += "\t" + hdr;
+    }
+    writer.println(h);
+
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      String[] pts = line.split("\t");
+      StringBuilder outStr = new StringBuilder(pts[0]);
+      for (String hdr : hdrsShrtList) {
+        List<Integer> inds = headerIndexMap.get(hdr);
+        if (inds.size() == 1) {
+          outStr.append("\t").append(pts[inds.get(0)]);
+        } else {
+          String s1 = pts[inds.get(0)];
+          String s2 = pts[inds.get(1)];
+          if (s1.equals("null")) {
+            outStr.append("\t").append(s2);
+          } else {
+            outStr.append("\t").append(s1);
+          }
+        }
+      }
+      writer.println(outStr);
+    }
+    reader.close();
+    writer.close();
+
+  }
+
+  private static void processP2Counts_Step2() throws IOException {
+    String dir = "F:\\Flow\\CBC_processing\\final counts\\man\\p1\\";
+
+    HashMap<String, HashMap<String, Integer>> hdrFileInd = new HashMap<>();
+
+    for (int i = 1; i < 3; i++) {
+      String fixF = dir + "all.p1.g" + i + ".cnts.xln";
+      String[] hdr = Files.getHeaderOfFile(fixF, null);
+      for (int h = 1; h < hdr.length; h++) {
+        String hd = hdr[h].trim().replace("\"", "");
+        if (!hdrFileInd.containsKey(hd)) {
+          hdrFileInd.put(hd, new HashMap<>());
+        }
+        hdrFileInd.get(hd).put(fixF, h);
+      }
+    }
+
+    PrintWriter all = Files.getAppropriateWriter(dir + "all.p1.fixed.cnts.xln");
+    String h = "Sample";
+    ArrayList<String> hdrList = new ArrayList<>();
+    for (String hd : hdrFileInd.keySet()) {
+      hdrList.add(hd);
+    }
+    hdrList.sort(new Comparator<String>() {
+
+      @Override
+      public int compare(String o1, String o2) {
+        return Integer.compare(o1.length(), o2.length());
+      }
+    });
+    for (String hd : hdrList) {
+      h += "\t" + hd;
+    }
+    all.println(h);
+
+    for (int i = 1; i < 3; i++) {
+      String fixF = dir + "all.p1.g" + i + ".cnts.xln";
+
+      BufferedReader reader = Files.getAppropriateReader(fixF);
+      reader.readLine();
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+        String[] pts = line.split("\t");
+        StringBuilder outStr = new StringBuilder(pts[0]);
+        for (String hd : hdrList) {
+          if (hdrFileInd.get(hd).containsKey(fixF)) {
+            outStr.append("\t").append(pts[hdrFileInd.get(hd).get(fixF)]);
+          } else {
+            outStr.append("\tnull");
+          }
+        }
+        all.println(outStr.toString());
+      }
+    }
+    all.close();
+
+  }
+
+  private static void processP2Counts_Step1() throws IOException {
+    String dir = "F:\\Flow\\CBC_processing\\final counts\\p2\\";
+
+    for (int i = 0; i < 32; i++) {
+      String hdrF = dir + "hdr." + i + ".txt";
+      String cntF = dir + "p2." + i + ".cnts.xln";
+      String fixF = dir + "fixed.p2." + i + ".cnts.xln";
+
+      String[] hdr = HashVec.loadFileToStringArray(hdrF, false, new int[] {1}, false, false, "\t");
+      HashSet<String> hdrSet = new HashSet<>();
+      for (int h = 1; h < hdr.length; h++) {
+        int p = -1;
+        String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
+        hdrSet.add(hS);
+      }
+      HashMap<String, ArrayList<Integer>> hdrInds = new HashMap<>();
+      for (String h : hdrSet) {
+        hdrInds.put(h, new ArrayList<>());
+      }
+      for (int h = 1; h < hdr.length; h++) {
+        int p = -1;
+        String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
+        hdrInds.get(hS).add(h);
+      }
+
+      BufferedReader reader = Files.getAppropriateReader(cntF);
+      PrintWriter writer = Files.getAppropriateWriter(fixF);
+
+      reader.readLine();
+
+      String h1 = "Sample";
+      for (String h : hdrSet) {
+        h1 += "\t" + h;
+      }
+      writer.println(h1);
+
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+        String[] pts = line.split("\t");
+        StringBuilder outStr = new StringBuilder(pts[0]);
+        for (String h : hdrSet) {
+          List<Integer> inds = hdrInds.get(h);
+          if (inds.size() == 1) {
+            outStr.append("\t").append(pts[inds.get(0)]);
+          } else {
+            boolean added = false;
+            for (int in : inds) {
+              String s = pts[in];
+              if (!s.equals("null")) {
+                outStr.append("\t").append(s);
+                added = true;
+              }
+            }
+            if (!added) {
+              outStr.append("\tnull");
+            }
+          }
+        }
+        writer.println(outStr);
+      }
+      reader.close();
+      writer.close();
+    }
+  }
+
+  private static void processP1Man_2() throws IOException {
+    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
+
+    HashMap<String, HashMap<String, Integer>> hdrFileInd = new HashMap<>();
+
+    for (String d : new File(dir).list()) {
+      for (String f : new File(dir + d).list()) {
+        String[] hdr = Files.getHeaderOfFile(dir + d + "\\" + f, null);
+        for (int h = 1; h < hdr.length; h++) {
+          if (!hdrFileInd.containsKey(hdr[h])) {
+            hdrFileInd.put(hdr[h], new HashMap<>());
+          }
+          hdrFileInd.get(hdr[h]).put(f, h);
+        }
+      }
+    }
+
+    PrintWriter all = Files.getAppropriateWriter(dir + "p2.cnts.xln");
+    String h = "Sample\tSource";
+    for (String hd : hdrFileInd.keySet()) {
+      h += "\t" + hd;
+    }
+    all.println(h);
+
+    for (String d : new File(dir).list()) {
+      if (!new File(dir + d).isDirectory()) {
+        continue;
+      }
+      for (String f : new File(dir + d).list()) {
+
+        BufferedReader reader = Files.getAppropriateReader(dir + d + "\\" + f);
+        reader.readLine();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+          String[] pts = line.split("\t");
+          StringBuilder outStr = new StringBuilder(pts[0]).append("\t").append(d);
+          for (String hd : hdrFileInd.keySet()) {
+            if (hdrFileInd.get(hd).containsKey(f)) {
+              outStr.append("\t").append(pts[hdrFileInd.get(hd).get(f)]);
+            } else {
+              if (!hd.equals("defaultRectangleGate")) {
+                System.out.println();
+              }
+              outStr.append("\tnull");
+            }
+          }
+          all.println(outStr.toString());
+        }
+      }
+    }
+    all.close();
+
+  }
+
+  private static void processP1Man_1() throws IOException {
+    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
+
+    for (String d : new File(dir).list()) {
+      for (String f : new File(dir + d).list()) {
+        String path = dir + d + "\\" + f;
+
+        String[] hdr = Files.getHeaderOfFile(path, null);
+        for (int h = 0; h < hdr.length; h++) {
+          String[] pts = hdr[h].split(" / ");
+          hdr[h] = pts[pts.length - 1];
+        }
+
+        HashSet<String> hdrSet = new HashSet<>();
+        for (int h = 0; h < hdr.length; h++) {
+          int p = -1;
+          String h1 = hdr[h];
+          p = h1.indexOf(" (");
+          String hS = h1.substring(0, p == -1 ? h1.length() : p);
+          hdrSet.add(hS);
+        }
+        HashMap<String, ArrayList<Integer>> hdrInds = new HashMap<>();
+        for (String h : hdrSet) {
+          hdrInds.put(h, new ArrayList<>());
+        }
+        for (int h = 0; h < hdr.length; h++) {
+          int p = -1;
+          String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
+          hdrInds.get(hS).add(h + 1);
+        }
+
+        String[] data = HashVec.loadFileToStringArray(path, true, null, false);
+        PrintWriter writer = Files.getAppropriateWriter(path);
+
+        String h1 = "Sample";
+        for (String h : hdrSet) {
+          h1 += "\t" + h;
+        }
+        writer.println(h1);
+
+        for (String line : data) {
+          String[] pts = line.split("\t");
+          StringBuilder outStr = new StringBuilder(pts[0]);
+          for (String h : hdrSet) {
+            List<Integer> inds = hdrInds.get(h);
+            Set<String> vals = new HashSet<>();
+            for (Integer ind : inds) {
+              vals.add(pts[ind]);
+            }
+            outStr.append("\t");
+            vals.remove("null");
+            if (vals.size() == 1) {
+              outStr.append(vals.toArray(new String[1])[0]);
+            } else if (vals.size() == 0) {
+              outStr.append("null");
+            } else {
+              System.out.println(vals);
+              outStr.append("NA");
+              System.err.println("Error - " + h);
+            }
+          }
+          writer.println(outStr);
+        }
+        writer.close();
+
+      }
+    }
+  }
+
+  private static void combine() throws IOException {
+    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\sources\\redo\\";
+    String[][] metaData = null;
+    metaData = HashVec.loadFileToStringMatrix("F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\metaData.xln",
+                                              false, null, "\t", 0, false);
+
+    HashMap<String, String[]> metaInfo = new HashMap<>();
+    for (int i = 1; i < metaData.length; i++) {
+      metaInfo.put(metaData[i][0], metaData[i]);
+    }
+
+    String f;
+    String m = null;
+    String o;
+
+    f = dir + "p2.cnts.xln";
+    // m = dir + "man.p2.fixed.cnts.xln";
+    o = dir + "p2.xln";
+
+    String[][] manual;
+    String[] manHdr = null;
+    HashMap<String, String[]> manInfo = null;
+    if (m != null) {
+      manual = HashVec.loadFileToStringMatrix(m, false, null, "\t", 0, false);
+
+      manHdr = manual[0];
+      manInfo = new HashMap<>();
+      for (int i = 1; i < manual.length; i++) {
+        manInfo.put(ext.removeDirectoryInfo(manual[i][0]), manual[i]);
+      }
+    }
+
+    BufferedReader reader = Files.getAppropriateReader(f);
+    PrintWriter writer = Files.getAppropriateWriter(o);
+
+    String[] hdr = reader.readLine().split("\t");
+    int[] inds = m == null ? null : ext.indexFactors(hdr, manHdr, false);
+    StringBuilder out = new StringBuilder();
+    // out.append(hdr[0]).append("\tManual");
+    out.append(hdr[0]);
+    for (int i = 1; i < metaData[0].length; i++) {
+      out.append("\t").append(metaData[0][i]);
+    }
+    for (int i = 1; i < hdr.length; i++) {
+      out.append("\t").append(hdr[i]);
+    }
+    writer.println(out.toString());
+
+    String l = null;
+    while ((l = reader.readLine()) != null) {
+      String[] pts = l.split("\t");
+      String samp = ext.removeDirectoryInfo(pts[0]);
+      String[] meta = metaInfo.get(samp);
+      if (meta == null) {
+        System.err.println("Error - " + samp);
+      } else if (meta[2].equals(".")) {
+        continue;
+      }
+      out = new StringBuilder(samp);
+      String[] man = m == null ? null : manInfo.get(ext.removeDirectoryInfo(pts[0]));
+      // out.append("\t").append(man == null ? 0 : 1);
+      for (int i = 1; i < meta.length; i++) {
+        out.append("\t").append(meta[i]);
+      }
+      if (man == null) {
+        for (int i = 1; i < pts.length; i++) {
+          out.append("\t").append(pts[i]);
+        }
+      } else {
+        for (int i = 1; i < pts.length; i++) {
+          out.append("\t").append(man[inds[i]]);
+        }
+      }
+      writer.println(out.toString());
+    }
+    reader.close();
+    writer.close();
+
+  }
+
   private static void removeParens() {
     String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
     for (String d : (new File(dir).list())) {
@@ -1260,6 +1669,9 @@ public class lab {
       }
     })) {
       rsqFiles.add(FileLink.setup(map + f).keys(snpCol).values(rsqCol));
+    }
+    for (FileLink fl : rsqFiles) {
+      fl.build();
     }
 
     String[] files = {"CARDIA_BAS_EA_141217_BC.txt.gz", "CARDIA_LYM_EA_141217_BC.txt.gz",
