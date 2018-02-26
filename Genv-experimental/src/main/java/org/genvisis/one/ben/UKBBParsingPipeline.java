@@ -502,7 +502,7 @@ public class UKBBParsingPipeline {
         String b = parts[hdrInds[5]];
         boolean aMiss = isMissing(a);
         boolean bMiss = isMissing(b);
-        boolean aRef = parts[hdrInds[4]] == parts[hdrInds[6]];
+        boolean aRef = parts[hdrInds[4]].equals(parts[hdrInds[6]]);
 
         if (aMiss && bMiss) {
           // skip
