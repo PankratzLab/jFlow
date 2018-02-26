@@ -1623,7 +1623,7 @@ public class lab {
 
     List<FileLink> rsqFiles = new ArrayList<>();
     AliasedFileColumn snpCol = StandardFileColumns.snp("SNP");
-    FileColumn<String> rsqCol = StandardFileColumns.allButKey(snpCol, "\t");
+    FileColumn<String> rsqCol = StandardFileColumns.allExcept("\t", snpCol);
     for (String f : new File(map).list(new FilenameFilter() {
 
       @Override
@@ -1645,8 +1645,8 @@ public class lab {
     for (String f : files) {
       AliasedFileColumn snpCol1 = StandardFileColumns.snp("SNP");
       FileParserFactory factory = FileParserFactory.setup(dir + f, snpCol1,
-                                                          StandardFileColumns.allButKey(snpCol1,
-                                                                                        "\t"));
+                                                          StandardFileColumns.allExcept("\t",
+                                                                                        snpCol1));
       for (FileLink fl : rsqFiles) {
         factory.link(fl);
       }

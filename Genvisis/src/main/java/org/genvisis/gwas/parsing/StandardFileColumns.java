@@ -1,11 +1,13 @@
 package org.genvisis.gwas.parsing;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
-import org.genvisis.common.ArrayUtils;
+import java.util.Set;
+import java.util.stream.Collectors;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 
 /**
  * Commonly used FileColumns. If you end up creating a FileColumn more than once, consider putting
@@ -16,56 +18,45 @@ public final class StandardFileColumns {
   private StandardFileColumns() {}
 
   /**
-   * A special {@link FileColumn&lt;String&gt;} that returns all values in a line except the value
-   * in the key column.
-   * 
-   * @param key {@link AliasedFileColumn}
-   * @param outDelim Delimiter with which to join the values
-   * @return {@link FileColumn&lt;String&gt;}
+   * @see #allExcept(String, Collection)
    */
-  public static final FileColumn<String> allButKey(IndexedFileColumn<?> key, String outDelim) {
+  public static final FileColumn<String> allExcept(String outputDelimeter,
+                                                   IndexedFileColumn<?>... excludes) {
+    return allExcept(outputDelimeter, Arrays.asList(excludes));
+  }
+
+  /**
+   * A special {@link FileColumn} that returns all values in a line except the values in the
+   * excluded columns.
+   * 
+   * @param outputDelimeter Delimiter with which to join the values and headers
+   * @param excludes {@link IndexedFileColumn}s to exclude
+   */
+  public static final FileColumn<String> allExcept(String outputDelimeter,
+                                                   Collection<IndexedFileColumn<?>> excludes) {
     return new FileColumn<String>() {
 
-      String outHeader;
-      List<Integer> outIndices;
+      private Map<String, Integer> subSetHeaderMap;
+      private final String outDelim = outputDelimeter;
 
       @Override
       public void initialize(FileParser parser) {
-        key.initialize(parser);
+        excludes.forEach(e -> e.initialize(parser));
         Map<String, Integer> headerMap = parser.getHeaderMap();
-        String[] heads = new String[headerMap.size() - 1];
-        outIndices = new ArrayList<>();
-        int keyInd = key.getIndex();
-        for (Entry<String, Integer> ent : headerMap.entrySet()) {
-          if (ent.getValue() == keyInd) {
-            continue;
-          }
-          int v = ent.getValue();
-          if (v > keyInd) {
-            v--;
-          }
-          heads[v] = ent.getKey();
-          outIndices.add(ent.getValue());
-        }
-        outHeader = ArrayUtils.toStr(heads, outDelim);
-        Collections.sort(outIndices);
+        Set<Integer> excludedIndices = excludes.stream().map(IndexedFileColumn::getIndex)
+                                               .collect(Collectors.toSet());
+        subSetHeaderMap = Maps.filterValues(headerMap, Predicates.not(excludedIndices::contains));
       }
 
       @Override
       public String getValue(String[] line) throws ParseFailureException {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0, count = outIndices.size(); i < count; i++) {
-          sb.append(line[outIndices.get(i)]);
-          if (i < count - 1) {
-            sb.append(outDelim);
-          }
-        }
-        return sb.toString();
+        return subSetHeaderMap.values().stream().map(i -> line[i])
+                              .collect(Collectors.joining(outDelim));
       }
 
       @Override
       public String getName() {
-        return outHeader;
+        return Joiner.on(outDelim).join(subSetHeaderMap.keySet());
       }
 
       @Override
