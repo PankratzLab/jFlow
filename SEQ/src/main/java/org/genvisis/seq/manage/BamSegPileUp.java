@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -26,7 +27,9 @@ import com.google.common.collect.RangeSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeMap;
 import com.google.common.collect.TreeRangeSet;
+import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
@@ -48,6 +51,7 @@ public class BamSegPileUp {
   private final ASSEMBLY_NAME aName;
   private final FilterNGS filterNGS;
   private final ReferenceGenome referenceGenome;
+  private final QueryInterval[] queryIntervals;
 
   /**
    * @param bam the bam file to pile
@@ -58,7 +62,8 @@ public class BamSegPileUp {
    * @param log
    */
   public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals,
-                      FilterNGS filterNGS, ASSEMBLY_NAME aName, Logger log) {
+                      QueryInterval[] queryIntervals, FilterNGS filterNGS, ASSEMBLY_NAME aName,
+                      Logger log) {
     super();
     this.bam = bam;
     this.aName = aName;
@@ -77,6 +82,7 @@ public class BamSegPileUp {
       bamPileArray[i] = bamPile;
     }
     createPileMap();
+    this.queryIntervals = queryIntervals;
     this.segsPiled = Sets.newHashSetWithExpectedSize(intervals.length);
     this.refSequences = Maps.newHashMap();
     this.filterNGS = filterNGS;
@@ -121,13 +127,8 @@ public class BamSegPileUp {
     log.report("Initializing bam reading for " + bam);
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
-         CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(BamOps.convertSegsToQI(bamPileArray,
-                                                                                                         reader.getFileHeader(),
-                                                                                                         0,
-                                                                                                         true,
-                                                                                                         aName.addChr(),
-                                                                                                         log))) {
-      log.report("Iteraring through reads for " + bam);
+         CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(queryIntervals)) {
+      log.report("Iterating through reads for " + bam);
       int readsProcessed = 0;
       while (samRecordIterator.hasNext()) {
         process(samRecordIterator.next());
@@ -244,9 +245,11 @@ public class BamSegPileUp {
     private final Segment[] pileSegs;
     private final FilterNGS filterNGS;
     private final String referenceGenomeFasta;
+    private final QueryInterval[] queryIntervals;
 
     public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta,
-                        Segment[] pileSegs, FilterNGS filterNGS, ASSEMBLY_NAME aName, Logger log) {
+                        Segment[] pileSegs, QueryInterval[] qi, FilterNGS filterNGS,
+                        ASSEMBLY_NAME aName, Logger log) {
       super();
       this.bamFile = bamFile;
       this.aName = aName;
@@ -255,7 +258,7 @@ public class BamSegPileUp {
       this.pileSegs = pileSegs;
       this.filterNGS = filterNGS;
       this.log = log;
-
+      this.queryIntervals = qi;
     }
 
     @Override
@@ -264,7 +267,7 @@ public class BamSegPileUp {
       if (!Files.exists(ser)) {
         BamOps.verifyIndex(bamFile, log);
         BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
-                                                     filterNGS, aName, log);
+                                                     queryIntervals, filterNGS, aName, log);
         BamPile[] bamPilesFinal = bamSegPileUp.pileup();
         int numMiss = 0;
         for (BamPile element : bamPilesFinal) {
@@ -287,6 +290,7 @@ public class BamSegPileUp {
     private final Segment[] pileSegs;
     private final FilterNGS filterNGS;
     private final String referenceGenomeFasta;
+    private final Map<String, QueryInterval[]> qiMap;
 
     public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta,
                           FilterNGS filterNGS, Segment[] pileSegs, ASSEMBLY_NAME aName,
@@ -300,6 +304,43 @@ public class BamSegPileUp {
       this.pileSegs = pileSegs;
       this.filterNGS = filterNGS;
       new File(serDir).mkdirs();
+      qiMap = new HashMap<String, QueryInterval[]>();
+      setupQIs();
+    }
+
+    private void setupQIs() {
+      long t1 = System.nanoTime();
+      Map<SAMSequenceDictionary, QueryInterval[]> dicts = new HashMap<>();
+      for (String bam : bamFiles) {
+        try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
+                                                        Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES))) {
+          SAMSequenceDictionary sd = reader.getFileHeader().getSequenceDictionary();
+          QueryInterval[] qi = null;
+          for (SAMSequenceDictionary d : dicts.keySet()) {
+            boolean same = false;
+            try {
+              sd.assertSameDictionary(d);
+              same = true;
+            } catch (AssertionError e) {
+              // not the same
+            }
+            if (same) {
+              qi = dicts.get(d);
+              break;
+            }
+          }
+          if (qi == null) {
+            qi = BamOps.convertSegsToQI(pileSegs, reader.getFileHeader(), 0, true, aName.addChr(),
+                                        log);
+            dicts.put(sd, qi);
+          }
+          qiMap.put(bam, qi);
+        } catch (IOException e) {
+          throw new IllegalStateException("Couldn't read header of BAM file: " + bam, e);
+        }
+      }
+      dicts = null;
+      log.reportTime("Constructed query intervals in " + ext.getTimeElapsedNanos(t1));
     }
 
     @Override
@@ -310,7 +351,8 @@ public class BamSegPileUp {
     @Override
     public Callable<BamPileResult> next() {
       PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta,
-                                             pileSegs, filterNGS, aName, log);
+                                             pileSegs, qiMap.get(bamFiles[index]), filterNGS, aName,
+                                             log);
       index++;
       return worker;
     }
