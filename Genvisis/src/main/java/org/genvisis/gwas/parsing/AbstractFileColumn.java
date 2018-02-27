@@ -16,8 +16,18 @@ public abstract class AbstractFileColumn<T> implements FileColumn<T> {
   }
 
   @Override
-  public String getName() {
+  public final String getName() {
     return this.name;
+  }
+
+  /**
+   * The default implementation is to simply call {@link #getName()}, implementations that require
+   * different names and headers or whose header is not known prior to initialization should
+   * override {@link #getHeader()}
+   */
+  @Override
+  public String getHeader() {
+    return getName();
   }
 
   @Override

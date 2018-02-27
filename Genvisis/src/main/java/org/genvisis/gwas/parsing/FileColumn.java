@@ -3,12 +3,21 @@ package org.genvisis.gwas.parsing;
 public interface FileColumn<T> {
 
   /**
-   * Get the name of the column. Not expected to be unique. Used if writing output and to link
-   * columns between files.
+   * Get the name of the column. This name serves as the unique identifier and must not change after
+   * construction.
    * 
    * @return The column name
    */
   String getName();
+
+  /**
+   * Get the header label for the column. This will often be the same as {@link #getName()} but will
+   * only be called after {@link #initialize(FileParser)} and can therefore use data from the input
+   * file where necessary
+   * 
+   * @return The header for the column when writing to an output file
+   */
+  String getHeader();
 
   /**
    * Initialize this FileColumn. Repeated calls to this method should be no-ops.

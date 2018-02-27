@@ -34,7 +34,9 @@ public final class StandardFileColumns {
    */
   public static final FileColumn<String> allExcept(String outputDelimeter,
                                                    Collection<IndexedFileColumn<?>> excludes) {
-    return new FileColumn<String>() {
+    return new AbstractFileColumn<String>("allExcept_"
+                                          + excludes.stream().map(FileColumn::getName)
+                                                    .collect(Collectors.joining(outputDelimeter))) {
 
       private Map<String, Integer> subSetHeaderMap;
       private final String outDelim = outputDelimeter;
@@ -55,13 +57,8 @@ public final class StandardFileColumns {
       }
 
       @Override
-      public String getName() {
+      public String getHeader() {
         return Joiner.on(outDelim).join(subSetHeaderMap.keySet());
-      }
-
-      @Override
-      public boolean dieOnParseFailure() {
-        return false;
       }
 
     };

@@ -574,7 +574,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   private String buildHeaderLineOut(List<FileColumn<?>> outputColumns, String outDelim) {
     StringBuilder lineOut = new StringBuilder();
     for (int i = 0, count = outputColumns.size(); i < count; i++) {
-      lineOut.append(outputColumns.get(i).getName());
+      lineOut.append(outputColumns.get(i).getHeader());
       if (i < count - 1) {
         lineOut.append(outDelim);
       }
