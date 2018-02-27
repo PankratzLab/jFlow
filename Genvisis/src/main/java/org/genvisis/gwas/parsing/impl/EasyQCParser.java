@@ -29,10 +29,9 @@ public class EasyQCParser {
     FileColumn<Double> p = new DoubleWrapperColumn(new AliasedFileColumn("PVAL", "chi_P_2df"));
     FileColumn<String> imp = new AliasedFileColumn("IMPUTATION", "Imputation_value");
 
-    FileParser parser = FileParserFactory.setup(inputFile, snp, chr, pos, strand, eff, oth, n, beta,
-                                                se, p, imp)
-                                         .build();
-    try {
+    try (FileParser parser = FileParserFactory.setup(inputFile, snp, chr, pos, strand, eff, oth, n,
+                                                     beta, se, p, imp)
+                                              .build()) {
       parser.parseToFile(outFile, " ");
     } catch (IOException e) {
       e.printStackTrace();

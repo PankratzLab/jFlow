@@ -68,9 +68,7 @@ public class PlinkAssocParser {
     if (link != null) {
       factory.link(link);
     }
-    FileParser parser = factory.build();
-
-    try {
+    try (FileParser parser = factory.build()) {
       parser.parseToFile(outFile, "\t");
 
       if (hits) {

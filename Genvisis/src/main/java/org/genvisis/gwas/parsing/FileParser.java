@@ -44,7 +44,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   private List<FileColumn<?>> optlDataFound;
 
   private BufferedReader reader;
-  private boolean opened = false;
   private long lineCount = 0;
   private ImmutableMap<String, Integer> header;
 
@@ -55,8 +54,9 @@ public class FileParser implements Iterable<DataLine>, Closeable {
    * @param inputFile String full path to file
    * @param inputDelim Input delimiter, or null if the delimiter should be determined from the
    *          header line
+   * @throws IOException
    */
-  FileParser(AbstractFileParserFactory factory) {
+  FileParser(AbstractFileParserFactory factory) throws IOException {
     this.inputFile = factory.inputFile;
     this.inputFileDelim = factory.inputFileDelim;
     skipPrefices = new ImmutableSet.Builder<String>().addAll(factory.skipPrefices).build();
@@ -71,6 +71,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
                                                                .build();
     linkedFileColumns = new ImmutableMap.Builder<FileLink, Map<FileColumn<?>, FileColumn<?>>>().putAll(factory.linkedFileColumns)
                                                                                                .build();
+    open();
   }
 
   /**
@@ -95,9 +96,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   }
 
   private void open() throws IOException {
-    if (opened) {
-      return;
-    }
     reader = Files.getAppropriateReader(inputFile);
     String line = null;
     int skip = skippedLines;
@@ -145,8 +143,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       }
       break;
     }
-
-    opened = true;
   }
 
   /**
@@ -283,11 +279,6 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
   @Override
   public Iterator<DataLine> iterator() {
-    try {
-      open();
-    } catch (IOException e1) {
-      throw new RuntimeException(e1);
-    }
     return new Iterator<DataLine>() {
 
       boolean started = false;

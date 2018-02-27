@@ -1,6 +1,7 @@
 package org.genvisis.gwas.parsing;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -228,7 +229,7 @@ public abstract class AbstractFileParserFactory {
     return this;
   }
 
-  public FileParser build() {
+  public FileParser build() throws IOException {
     FileParser parser = new FileParser(this);
     parser.loadLinkedData();
     return parser;

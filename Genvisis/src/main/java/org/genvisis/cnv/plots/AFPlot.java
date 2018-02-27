@@ -147,64 +147,65 @@ public class AFPlot {
                                         log)
                                 .chr(CHROMOSOME.valueOf("C" + Byte.toString(chr)))
                                 .getG1Kphase3v5AlleleFreq().get();
-      FileParser parser = FileParserFactory.setup(G1KFile, snpCol, chrCol, posCol, refCol, altCol,
-                                                  afAll, afEas, afEur, afAfr, afAmr, afSas)
-                                           .filter(new AbstractColumnFilter(snpCol, chrCol, posCol,
-                                                                            refCol, altCol) {
+      try (FileParser parser = FileParserFactory.setup(G1KFile, snpCol, chrCol, posCol, refCol,
+                                                       altCol, afAll, afEas, afEur, afAfr, afAmr,
+                                                       afSas)
+                                                .filter(new AbstractColumnFilter(snpCol, chrCol,
+                                                                                 posCol, refCol,
+                                                                                 altCol) {
 
-                                             @Override
-                                             public boolean filter(DataLine values) {
-                                               String snpV = values.getString(snpCol);
-                                               String chrPos = values.getString(chrCol) + ":"
-                                                               + values.getString(posCol);
-                                               boolean hasSnp = dataSnps.contains(snpV)
-                                                                || dataSnps.contains(chrPos);
-                                               if (!hasSnp) return false;
-                                               boolean goodAll = !values.getString(refCol)
-                                                                        .contains(",")
-                                                                 && !values.getString(altCol)
-                                                                           .contains(",");
-                                               if (!goodAll) return false;
-                                               boolean goodChrPos = values.hasValid(chrCol)
-                                                                    && values.hasValid(posCol);
-                                               if (!goodChrPos) return false;
-                                               boolean goodAFs = values.hasValid(afAll)
-                                                                 && values.hasValid(afEas)
-                                                                 && values.hasValid(afEur)
-                                                                 && values.hasValid(afAfr)
-                                                                 && values.hasValid(afAmr)
-                                                                 && values.hasValid(afSas);
-                                               return goodAFs;
-                                             }
-                                           }).build();
-      for (DataLine line : parser) {
-        if (Thread.currentThread().isInterrupted()) {
-          reset();
-          return;
+                                                  @Override
+                                                  public boolean filter(DataLine values) {
+                                                    String snpV = values.getString(snpCol);
+                                                    String chrPos = values.getString(chrCol) + ":"
+                                                                    + values.getString(posCol);
+                                                    boolean hasSnp = dataSnps.contains(snpV)
+                                                                     || dataSnps.contains(chrPos);
+                                                    if (!hasSnp) return false;
+                                                    boolean goodAll = !values.getString(refCol)
+                                                                             .contains(",")
+                                                                      && !values.getString(altCol)
+                                                                                .contains(",");
+                                                    if (!goodAll) return false;
+                                                    boolean goodChrPos = values.hasValid(chrCol)
+                                                                         && values.hasValid(posCol);
+                                                    if (!goodChrPos) return false;
+                                                    boolean goodAFs = values.hasValid(afAll)
+                                                                      && values.hasValid(afEas)
+                                                                      && values.hasValid(afEur)
+                                                                      && values.hasValid(afAfr)
+                                                                      && values.hasValid(afAmr)
+                                                                      && values.hasValid(afSas);
+                                                    return goodAFs;
+                                                  }
+                                                }).build()) {
+        for (DataLine line : parser) {
+          if (Thread.currentThread().isInterrupted()) {
+            reset();
+            return;
+          }
+          try {
+            Marker m = new Marker(line.getString(snpCol),
+                                  new GenomicPosition(line.getUnsafe(chrCol),
+                                                      line.getUnsafe(posCol)),
+                                  Allele.create(line.getString(refCol), true),
+                                  Allele.create(line.getString(altCol), false));
+            dataMap = new HashMap<>();
+            dataMap.put(POPULATION.ALL, line.getUnsafe(afAll));
+            dataMap.put(POPULATION.EAS, line.getUnsafe(afEas));
+            dataMap.put(POPULATION.EUR, line.getUnsafe(afEur));
+            dataMap.put(POPULATION.AFR, line.getUnsafe(afAfr));
+            dataMap.put(POPULATION.AMR, line.getUnsafe(afAmr));
+            dataMap.put(POPULATION.SAS, line.getUnsafe(afSas));
+            Object key = isChrPosLookup() ? m.getGenomicPosition() : line.getString(snpCol);
+            getG1KMarkers().put(key, m);
+            getG1KData().put(key, dataMap);
+          } catch (IllegalArgumentException e) {
+            // thrown by Allele.create() if bases are invalid values
+            // just skip marker
+            // maybe TODO create AlleleWrapperColumn
+          }
         }
-        try {
-          Marker m = new Marker(line.getString(snpCol),
-                                new GenomicPosition(line.getUnsafe(chrCol), line.getUnsafe(posCol)),
-                                Allele.create(line.getString(refCol), true),
-                                Allele.create(line.getString(altCol), false));
-          dataMap = new HashMap<>();
-          dataMap.put(POPULATION.ALL, line.getUnsafe(afAll));
-          dataMap.put(POPULATION.EAS, line.getUnsafe(afEas));
-          dataMap.put(POPULATION.EUR, line.getUnsafe(afEur));
-          dataMap.put(POPULATION.AFR, line.getUnsafe(afAfr));
-          dataMap.put(POPULATION.AMR, line.getUnsafe(afAmr));
-          dataMap.put(POPULATION.SAS, line.getUnsafe(afSas));
-          Object key = isChrPosLookup() ? m.getGenomicPosition() : line.getString(snpCol);
-          getG1KMarkers().put(key, m);
-          getG1KData().put(key, dataMap);
-        } catch (IllegalArgumentException e) {
-          // thrown by Allele.create() if bases are invalid values
-          // just skip marker
-          // maybe TODO create AlleleWrapperColumn
-        }
-      }
-      try {
-        parser.close();
       } catch (IOException e) {}
       t.doStep();
     }

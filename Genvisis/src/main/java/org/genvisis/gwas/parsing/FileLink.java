@@ -103,8 +103,7 @@ public class FileLink extends AbstractFileParserFactory {
   @Override
   public FileParser build() {
     if (data == null) {
-      FileParser parser = super.build();
-      try {
+      try (FileParser parser = super.build()) {
         data = parser.load(!dieOnInvalidKey,
                            getKeys().toArray(new FileColumn<?>[getKeys().size()]));
         parser.close();

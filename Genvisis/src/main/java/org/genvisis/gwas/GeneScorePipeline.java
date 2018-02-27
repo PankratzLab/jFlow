@@ -1176,13 +1176,11 @@ public class GeneScorePipeline {
             return hitMrkSet.contains(values.get(MARKER_COL, null));
           }
         };
-        FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, MARKER_COL)
+        try (FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, MARKER_COL)
                                                         .optionalColumns(EFFECT_ALLELE_COL,
                                                                          NON_EFFECT_ALLELE_COL,
                                                                          BETA_COL)
-                                                        .filter(hitMarkerFilter).build();
-
-        try {
+                                                             .filter(hitMarkerFilter).build()) {
           String subsetFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
           Map<String, HitMarker> dataList = crossFilterParser.parseToFileAndLoad(subsetFile, "\t",
                                                                                  true, MARKER_COL)
