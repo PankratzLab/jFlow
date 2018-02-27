@@ -194,7 +194,7 @@ public class TempFileTranspose {
         try {
           String file = null;
           while ((file = ListFileCheckoutSystem.checkout(listFile, 1, label,
-                                                         new Logger())[0]) != null) {
+                                                         proj.getLog())[0]) != null) {
             String out = getTempFile(file);
             parameter = readParameter(file);
             if (nullStatus != parameter[TransposeData.MARKERDATA_NULLSTATUS_START]) {
@@ -317,6 +317,7 @@ public class TempFileTranspose {
     HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
     for (String file : files) {
       String out = tempDir + ext.removeDirectoryInfo(file) + ".tpd";
+      // NOTE - file system must be capable of holding files.length number of file handles open at once
       readerMap.put(out, new RandomAccessFile(out, "r"));
       markerCountMap.put(out, getMarkerCount(file));
     }
@@ -338,7 +339,7 @@ public class TempFileTranspose {
         RandomAccessFile sampFile;
         try {
           while ((samp = ListFileCheckoutSystem.checkout(tempDir + "samp.temp", 1, label,
-                                                         new Logger())[0]) != null) {
+                                                         proj.getLog())[0]) != null) {
             int sInd = sampleIndices.get(samp);
             sampFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue() + samp
                                             + Sample.SAMPLE_FILE_EXTENSION, "rw");
