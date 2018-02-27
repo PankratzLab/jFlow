@@ -27,14 +27,20 @@ import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.gwas.MergeExtractPipeline.DataSource;
 import org.genvisis.gwas.parsing.AbstractColumnFilter;
+import org.genvisis.gwas.parsing.AbstractFileColumn;
+import org.genvisis.gwas.parsing.AliasedFileColumn;
 import org.genvisis.gwas.parsing.ColumnFilter;
+import org.genvisis.gwas.parsing.ColumnFilters;
 import org.genvisis.gwas.parsing.DataLine;
+import org.genvisis.gwas.parsing.DoubleFilter;
 import org.genvisis.gwas.parsing.FileColumn;
 import org.genvisis.gwas.parsing.FileParser;
 import org.genvisis.gwas.parsing.FileParserFactory;
+import org.genvisis.gwas.parsing.ParseFailureException;
 import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.AlleleOrder;
+import org.genvisis.stats.Maths.COMPARISON;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 import com.google.common.base.Joiner;
@@ -1043,8 +1049,6 @@ public class GeneScorePipeline {
 
         log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
                    + crossFilterFile + "']");
-        BufferedReader dataReader;
-        PrintWriter dataWriter;
         HashMap<String, int[]> mkrsBim;
 
         mkrsBim = new HashMap<String, int[]>();
@@ -1070,45 +1074,58 @@ public class GeneScorePipeline {
 
         log.report(ext.getTime() + "]\tFound " + cntAmbig
                    + " ambiguous markers (will be excluded)");
-        dataReader = Files.getAppropriateReader(metaDir + dFile);
-        dataWriter = new PrintWriter(crossFilterFile);
 
-        int cnt = 0;
-        String dataHdr = dataReader.readLine();
-        String[] dataHdrs = dataHdr.split(PSF.Regex.GREEDY_WHITESPACE);
-        int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false);
-        int ind = -1;
-        for (int i : indices) {
-          if (i > 0) {
-            ind = i;
-            break;
-          }
-        }
-        String line;
-        dataWriter.println("MarkerName\tChr\tPosition\t"
-                           + ArrayUtils.toStr(ArrayUtils.subArray(dataHdrs, 1))); // Allele1\tAllele2\tFreq.Allele1.HapMapCEU\tb\tSE\tp\tN
-        while ((line = dataReader.readLine()) != null) {
-          String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
-          if (mkrsBim.containsKey(parts[0])
-              && (ind == -1
-                  || (ext.isValidDouble(parts[ind])
-                      && Double.parseDouble(parts[ind]) < constraintEntry.getValue().indexThreshold))) {
-            int[] chrPosBim = mkrsBim.get(parts[0]);
-            dataWriter.print(parts[0]);
-            dataWriter.print("\t");
-            dataWriter.print(chrPosBim[0]);
-            dataWriter.print("\t");
-            dataWriter.print(chrPosBim[1]);
-            dataWriter.print("\t");
-            dataWriter.println(ArrayUtils.toStr(ArrayUtils.subArray(parts, 1)));
-            cnt++;
-          }
-        }
-        dataWriter.flush();
-        dataWriter.close();
-        dataReader.close();
+        final String outDelim = "\t";
 
-        study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, cnt);
+        final AliasedFileColumn markerCol = StandardFileColumns.snp("MarkerName");
+        final FileColumn<Byte> chrLinkedColumn = new AbstractFileColumn<Byte>("Chr") {
+
+          @Override
+          public Byte getValue(String[] line) throws ParseFailureException {
+            return (byte) mkrsBim.get(markerCol.getValue(line))[0];
+          }
+        };
+        final FileColumn<Integer> posLinkedColumn = new AbstractFileColumn<Integer>("Position") {
+
+          @Override
+          public Integer getValue(String[] line) throws ParseFailureException {
+            return mkrsBim.get(markerCol.getValue(line))[1];
+          }
+        };
+        final FileColumn<Double> pColumn = StandardFileColumns.pVal("p");
+        final FileColumn<String> remainingColumns = StandardFileColumns.allExcept(outDelim,
+                                                                                  markerCol,
+                                                                                  new AliasedFileColumn("excludedChr",
+                                                                                                        Aliases.CHRS),
+                                                                                  new AliasedFileColumn("excludedPos",
+                                                                                                        Aliases.POSITIONS));
+        final ColumnFilter mkrsBimFilter = new AbstractColumnFilter(markerCol) {
+
+          @Override
+          public boolean filter(DataLine values) {
+            return mkrsBim.containsKey(values.get(markerCol, null));
+          }
+        };
+        final ColumnFilter pValThreshold = new DoubleFilter(pColumn, COMPARISON.LT,
+                                                            constraintEntry.getValue().indexThreshold);
+        final ColumnFilter pValMissing = new AbstractColumnFilter(pColumn) {
+
+          @Override
+          public boolean filter(DataLine values) {
+            return !values.has(pColumn);
+          }
+        };
+        FileParser crossFilterParser = FileParserFactory.setup(metaDir + dFile, markerCol,
+                                                               chrLinkedColumn, posLinkedColumn,
+                                                               remainingColumns)
+                                                        .optionalColumns(pColumn)
+                                                        .filter(mkrsBimFilter)
+                                                        .filter(ColumnFilters.or(pValMissing,
+                                                                                 pValThreshold))
+                                                        .build();
+        int hitCount = crossFilterParser.parseToFile(crossFilterFile, outDelim);
+
+        study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, hitCount);
       }
     }
   }
@@ -1177,9 +1194,9 @@ public class GeneScorePipeline {
           }
         };
         try (FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, MARKER_COL)
-                                                        .optionalColumns(EFFECT_ALLELE_COL,
-                                                                         NON_EFFECT_ALLELE_COL,
-                                                                         BETA_COL)
+                                                             .optionalColumns(EFFECT_ALLELE_COL,
+                                                                              NON_EFFECT_ALLELE_COL,
+                                                                              BETA_COL)
                                                              .filter(hitMarkerFilter).build()) {
           String subsetFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
           Map<String, HitMarker> dataList = crossFilterParser.parseToFileAndLoad(subsetFile, "\t",
