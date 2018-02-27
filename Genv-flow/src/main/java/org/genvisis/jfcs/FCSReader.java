@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.genvisis.bgen.BGENBitMath;
@@ -141,23 +142,23 @@ public class FCSReader {
 
     int read = getSystemFile().read(headBytes);
     if (read != headBytes.length) {
-      throw new IOException("");
+      throw new IOException("Failed to read the proper number of header bytes (expected "
+                            + FCSHeader.HEADER_NUM_BYTES + "; found " + read);
     }
 
-    String hdrStr = new String(headBytes, "US-ASCII");
-    String[] pts = hdrStr.split("\\s+");
-
-    header.fileFormat = pts[0];
-    header.textStart = Integer.parseInt(pts[1]);
-    header.textStop = Integer.parseInt(pts[2]);
-    if (pts.length >= 5) {
-      header.dataStart = Integer.parseInt(pts[3]);
-      header.dataStop = Integer.parseInt(pts[4]);
-    }
-    if (pts.length >= 7) {
-      header.analysisStart = Integer.parseInt(pts[5]);
-      header.analysisStop = Integer.parseInt(pts[6]);
-    }
+    header.fileFormat = new String(Arrays.copyOfRange(headBytes, 0, 6), "US-ASCII").trim();
+    header.textStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 10, 18),
+                                                   "US-ASCII").trim());
+    header.textStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 18, 26),
+                                                  "US-ASCII").trim());
+    header.dataStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 26, 34),
+                                                   "US-ASCII").trim());
+    header.dataStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 34, 42),
+                                                  "US-ASCII").trim());
+    header.analysisStart = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 42, 50),
+                                                       "US-ASCII").trim());
+    header.analysisStop = Integer.parseInt(new String(Arrays.copyOfRange(headBytes, 50, 58),
+                                                      "US-ASCII").trim());
     return header;
   }
 
