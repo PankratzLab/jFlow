@@ -9,39 +9,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.genvisis.jfcs.FCS_KEYWORD;
 
-public class DeIdentifierProto {
+public class Deidentifier {
 
-  // input directory
-  // fcs output directory
-  // link output directory
+  private static final String KEY_PATIENT_ID = "PATIENT ID";
+  private static final String KEY_EXPERIMENT_NAME = "EXPERIMENT NAME";
+  private static final String KEY_SAMPLE_ID = "SAMPLE ID";
+  private static final String KEY_GUID = "GUID";
+  private static final String KEY_SRC = "$SRC";
+  private static final String KEY_FIL = "$FIL";
 
-  /*-
-   * Process per file:
-   *  read fcs file
-   *  pull keywords
-   *  remove/replace keywords
-   *  write to link file
-   *  write to new fcs file
-   *    - rewrite header (text start / end, data start / end if existed prev, analysis start/end if existed prev - if in keywords, replace values)
-   */
-
-  String KEY_PATIENT_ID = "PATIENT ID";
-  String KEY_EXPERIMENT_NAME = "EXPERIMENT NAME";
-  String KEY_SAMPLE_ID = "SAMPLE ID";
-  String KEY_GUID = "GUID";
-  String KEY_SRC = "$SRC";
-  String KEY_FIL = "$FIL";
-
-  List<String> keys = new ArrayList<>();
+  private static final List<String> keys = new ArrayList<>();
   {
     keys.add(KEY_PATIENT_ID);
     keys.add(KEY_EXPERIMENT_NAME);
@@ -50,44 +33,16 @@ public class DeIdentifierProto {
     keys.add(KEY_FIL);
   }
 
-  String rootIn;
-  String rootOut;
+  private String rootIn;
+  private String rootOut;
 
-  class Conversion {
-
-    public Conversion(File dir2, File out2, String f) {
-      this.dir = dir2;
-      this.out = out2;
-      this.fcs = f;
-    }
-
-    File dir;
-    File out;
-    String fcs;
-  }
-
-  private void start() {
+  public List<Conversion> identify() {
     File rootDir = new File(rootIn);
     File outDir = new File(rootOut);
 
     List<Conversion> allConvs = processDir(rootDir, outDir);
     removeExisting(allConvs);
-
-    ExecutorService service = Executors.newFixedThreadPool(Runtime.getRuntime()
-                                                                  .availableProcessors()
-                                                           - 1);
-    for (Conversion c : allConvs) {
-      // create new progress bar for each file, update as run
-
-      service.submit(() -> {
-        processSingleFCS(c);
-      });
-    }
-    service.shutdown();
-    try {
-      service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-    } catch (InterruptedException e) {}
-    Thread.yield();
+    return allConvs;
   }
 
   private void removeExisting(List<Conversion> convs) {
@@ -179,39 +134,7 @@ public class DeIdentifierProto {
     return Long.toString(trav);
   }
 
-  private String generateNewID(FCSKeywords ks) {
-    String id;
-    if (ks.hasKeyword(KEY_GUID)) {
-      id = ks.getKeyword(KEY_GUID);
-    } else {
-      id = java.util.UUID.randomUUID().toString();
-      ks.setKeyword(KEY_GUID, id);
-    }
-    return id;
-  }
-
-  private Map<String, String> getIdentifiers(FCSKeywords ks) {
-    Map<String, String> id = new HashMap<>();
-    for (String k : keys) {
-      id.put(k, ks.getKeyword(k));
-    }
-    return id;
-  }
-
-  private void writeLinkFile(String outDir, String newID, Map<String, String> idents) {
-    PrintWriter writer = Files.getAppropriateWriter(outDir + newID + ".txt");
-
-    writer.close();
-  }
-
-  private void fixKeywords(String newID, FCSKeywords ks) {
-    for (String k : keys) {
-      ks.setKeyword(k, newID);
-    }
-    ks.setKeyword(FCS_KEYWORD.FIL, newID + ".fcs");
-  }
-
-  private void processSingleFCS(Conversion conv) {
+  public static void processSingleFCS(Conversion conv) {
     FCSReader reader;
     try {
       reader = FCSReader.open(path(conv.dir) + conv.fcs);
@@ -234,26 +157,58 @@ public class DeIdentifierProto {
     reader.dispose();
   }
 
-  private String path(File f) {
+  private static String generateNewID(FCSKeywords ks) {
+    String id;
+    if (ks.hasKeyword(KEY_GUID)) {
+      id = ks.getKeyword(KEY_GUID);
+    } else {
+      id = java.util.UUID.randomUUID().toString();
+      ks.setKeyword(KEY_GUID, id);
+    }
+    return id;
+  }
+
+  private static Map<String, String> getIdentifiers(FCSKeywords ks) {
+    Map<String, String> id = new HashMap<>();
+    for (String k : keys) {
+      id.put(k, ks.getKeyword(k));
+    }
+    return id;
+  }
+
+  private static void fixKeywords(String newID, FCSKeywords ks) {
+    for (String k : keys) {
+      ks.setKeyword(k, newID);
+    }
+    ks.setKeyword(FCS_KEYWORD.FIL, newID + ".fcs");
+  }
+
+  private static void writeLinkFile(String outDir, String newID, Map<String, String> idents) {
+    PrintWriter writer = Files.getAppropriateWriter(outDir + newID + ".txt");
+
+    writer.close();
+  }
+
+  private static String path(File f) {
     return ext.verifyDirFormat(f.getAbsolutePath());
   }
 
-  private void cantOpen(IOException e, String fcsFile) {
+  private static void cantOpen(IOException e, String fcsFile) {
     // TODO
   }
 
-  private void writeFail(IOException e, String fcsFile, String newFile) {
+  private static void writeFail(IOException e, String fcsFile, String newFile) {
     // TODO
   }
 
   public void run() {
     rootIn = "F:/Flow_stage2/source/";
     rootOut = "F:/Flow_stage2/deident/";
-    start();
+    List<Conversion> toRun = identify();
   }
 
   public static void main(String[] args) {
-    new DeIdentifierProto().run();
+    new Deidentifier().run();
   }
 
 }
