@@ -51,12 +51,12 @@ public interface FileColumn<T> {
 
   /**
    * Returns the hash code value for this {@link FileColumn}. The hash code of a {@link FileColumn}
-   * is defined to be the result of the following calculation:
-   * 
-   * <pre>{@code 
+   * is defined to be the result of the following calculation: <br>
+   * <br>
+   * {@code
    *   int hashCode = 31 + ((getName() == null) ? 0 : getName().hashCode());
-   * }</pre>
-   * 
+   * }<br>
+   * <br>
    * This ensures that <tt>fileColumn1.equals(fileColumn2)</tt> implies that
    * <tt>fileColumn1.hashCode()==fileColumn1.hashCode()</tt> for any two {@link FileColumn}s,
    * <tt>fileColumn1</tt> and <tt>fileColumn2</tt>, as required by the general contract of
