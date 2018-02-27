@@ -157,7 +157,7 @@ public class FCSProcessingPipeline {
       String dir = "F:\\Flow\\boolGating\\";
       fcs = dir + "fcs\\";
       wsp = dir + "wsp\\";
-      out = dir + "out2\\";
+      out = dir + "out3\\";
       gateOverrideDir = dir + "ovvr\\";
       gateOverrideMatchFile = dir + "ovvrMatch.txt";
       new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,

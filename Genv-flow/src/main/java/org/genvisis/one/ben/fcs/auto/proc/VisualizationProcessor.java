@@ -37,37 +37,16 @@ public class VisualizationProcessor implements SampleProcessor {
     this.ovvrMatch = mM;
   }
 
-  private static String[][] hardcodedAddlImages = {{"effector helper Tcells (CD95/CD28)",
-                                                    "effector helper Tcells (CCR7- CD45RA+)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"naive helper Tcells (CD95/CD28)",
-                                                    "naive helper Tcells (CCR7+ CD45RA+)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"effector memory helper Tcells (CD95/CD28)",
-                                                    "effector memory helper Tcells (CCR7- CD45RA-)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"central memory helper Tcells (CD95/CD28)",
-                                                    "central memory helper Tcells (CCR7+ CD45RA-)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"effector cytotoxic Tcells (CD95/CD28)",
-                                                    "effector cytotoxic Tcells  (CCR7-  CD45RA+)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"naive cytotoxic Tcells (CD95/CD28)",
-                                                    "naive cytotoxic Tcells (CCR7+ , CD45RA+)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"effector memory cytotoxic Tcells (CD95/CD28)",
-                                                    "effector memory cytotoxic Tcells (CCR7- , CD45RA-)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"central memory cytotoxic Tcells (CD95/CD28)",
-                                                    "central memory cytotoxic Tcells (CCR7+ , CD45RA-)",
-                                                    "Comp-BV 605-A (CD95)", "Comp-BV 510-A (CD28)"},
-                                                   {"Effector_Cytotoxic Tcells (CD28/CD27)",
-                                                    "effector cytotoxic Tcells (CD95/CD28)",
-                                                    "Comp-BV 510-A (CD28)", "Comp-BB 515-A (CD27)"},
-                                                   {"Effector_Memory_Cytotoxic Tcells (CD28/CD27)",
-                                                    "effector memory cytotoxic Tcells (CD95/CD28)",
-                                                    "Comp-BV 510-A (CD28)",
-                                                    "Comp-BB 515-A (CD27)"},};
+  private static String[][] hardcodedAddlImages = {{"effector helper Tcells (CCR7/CD45RA)", "effector helper Tcells (CCR7- CD45RA+)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"naive helper Tcells (CCR7/CD45RA)", "naive helper Tcells (CCR7+ CD45RA+)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"effector memory helper Tcells (CCR7/CD45RA)", "effector memory helper Tcells (CCR7- CD45RA-)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"central memory helper Tcells (CCR7/CD45RA)", "central memory helper Tcells (CCR7+ CD45RA-)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"effector cytotoxic Tcells (CCR7/CD45RA)", "effector cytotoxic Tcells  (CCR7-  CD45RA+)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"naive cytotoxic Tcells (CCR7/CD45RA)", "naive cytotoxic Tcells (CCR7+ , CD45RA+)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"effector memory cytotoxic Tcells (CCR7/CD45RA)", "effector memory cytotoxic Tcells (CCR7- , CD45RA-)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"central memory cytotoxic Tcells (CCR7/CD45RA)", "central memory cytotoxic Tcells (CCR7+ , CD45RA-)", "Comp-BV 421-A (CCR7)", "Comp-BV 711-A (CD45RA)"},
+                                                   {"Effector_Cytotoxic Tcells (CD28/CD27)", "effector cytotoxic Tcells (CCR7/CD45RA)", "Comp-BV 510-A (CD28)", "Comp-BB 515-A (CD27)"},
+                                                   {"Effector_Memory_Cytotoxic Tcells (CD28/CD27)", "effector memory cytotoxic Tcells (CCR7/CD45RA)", "Comp-BV 510-A (CD28)", "Comp-BB 515-A (CD27)"},};
 
   static class AddlImage {
 
@@ -97,6 +76,8 @@ public class VisualizationProcessor implements SampleProcessor {
     dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
     dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
     dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
+    dimSwitch.put("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
+    dimSwitch.put("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
 
   }
 
@@ -118,42 +99,42 @@ public class VisualizationProcessor implements SampleProcessor {
     }
     fcp.setCurrentSampleInWSP(id);
 
-    boolean hasAll = true;
-
-    for (String s : fcp.getGatingStrategy().getAllGateNames()) {
-      Gate g = fcp.getGatingStrategy().gateMap.get(s);
-
-      String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-      String outFile = outDir + cleanedName + "/" + cleanedName + "."
-                       + ext.replaceWithLinuxSafeCharacters(g.getName());
-
-      if (Files.exists(outFile + ".png")) {
-        if (addlImgs.containsKey(g.getName())) {
-          boolean all = true;
-          for (AddlImage addl : addlImgs.get(g.getName())) {
-            String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
-                              + ext.replaceWithLinuxSafeCharacters(addl.name);
-            if (!Files.exists(outFile2 + ".png")) {
-              all = false;
-              break;
-            }
-          }
-          if (all) {
-            continue;
-          }
-        } else {
-          continue;
-        }
-      }
-
-      hasAll = false;
-      break;
-    }
-    if (hasAll) {
-      log.report("All screenshots found for " + fcp.getGatingStrategy().getAllGateNames().size()
-                 + " gates; Skipping FCS file: " + sn.fcsFile);
-      return;
-    }
+    //    boolean hasAll = true;
+    //
+    //    for (String s : fcp.getGatingStrategy().getAllGateNames()) {
+    //      Gate g = fcp.getGatingStrategy().gateMap.get(s);
+    //
+    //      String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+    //      String outFile = outDir + cleanedName + "/" + cleanedName + "."
+    //                       + ext.replaceWithLinuxSafeCharacters(g.getName());
+    //
+    //      if (Files.exists(outFile + ".png")) {
+    //        if (addlImgs.containsKey(g.getName())) {
+    //          boolean all = true;
+    //          for (AddlImage addl : addlImgs.get(g.getName())) {
+    //            String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+    //                              + ext.replaceWithLinuxSafeCharacters(addl.name);
+    //            if (!Files.exists(outFile2 + ".png")) {
+    //              all = false;
+    //              break;
+    //            }
+    //          }
+    //          if (all) {
+    //            continue;
+    //          }
+    //        } else {
+    //          continue;
+    //        }
+    //      }
+    //
+    //      hasAll = false;
+    //      break;
+    //    }
+    //    if (hasAll) {
+    //      log.report("All screenshots found for " + fcp.getGatingStrategy().getAllGateNames().size()
+    //                 + " gates; Skipping FCS file: " + sn.fcsFile);
+    //      return;
+    //    }
 
     long time2 = System.nanoTime();
     fcp.loadFile(sn.fcsFile, true);
