@@ -18,6 +18,7 @@ import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -1049,9 +1050,7 @@ public class GeneScorePipeline {
 
         log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
                    + crossFilterFile + "']");
-        HashMap<String, int[]> mkrsBim;
-
-        mkrsBim = new HashMap<String, int[]>();
+        HashMap<String, GenomicPosition> mkrsBim = new HashMap<>();
         SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
                                            .getMarkerSet();
         int cntAmbig = 0;
@@ -1066,7 +1065,7 @@ public class GeneScorePipeline {
           if (Sequence.validAllele(a1) && Sequence.validAllele(a2) // TODO validAllele requires a
                                                                   // 1 character allele
               && !a1.equals(Sequence.flip(a2))) {
-            mkrsBim.put(mkrNames[i], chrPos[i]);
+            mkrsBim.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
           } else {
             cntAmbig++;
           }
@@ -1082,14 +1081,14 @@ public class GeneScorePipeline {
 
           @Override
           public Byte getValue(String[] line) throws ParseFailureException {
-            return (byte) mkrsBim.get(markerCol.getValue(line))[0];
+            return mkrsBim.get(markerCol.getValue(line)).getChr();
           }
         };
         final FileColumn<Integer> posLinkedColumn = new AbstractFileColumn<Integer>("Position") {
 
           @Override
           public Integer getValue(String[] line) throws ParseFailureException {
-            return mkrsBim.get(markerCol.getValue(line))[1];
+            return mkrsBim.get(markerCol.getValue(line)).getPosition();
           }
         };
         final FileColumn<Double> pColumn = StandardFileColumns.pVal("p");
