@@ -505,24 +505,24 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   /**
    * {@link #parseToFile(String, String, List)} using default output orser
    */
-  public void parseToFile(String outputFile, String outDelim) throws IOException {
-    this.parseToFile(outputFile, outDelim, null);
+  public int parseToFile(String outputFile, String outDelim) throws IOException {
+    return this.parseToFile(outputFile, outDelim, null);
   }
 
   /**
    * {@link #parseToFile(String, String, boolean, boolean, List)} writing header and not appending
    */
-  public void parseToFile(String outputFile, String outDelim,
-                          List<FileColumn<?>> outputOrder) throws IOException {
-    this.parseToFile(outputFile, outDelim, true, false, outputOrder);
+  public int parseToFile(String outputFile, String outDelim,
+                         List<FileColumn<?>> outputOrder) throws IOException {
+    return this.parseToFile(outputFile, outDelim, true, false, outputOrder);
   }
 
   /**
    * {@link #parseToFile(String, String, boolean, boolean, List)} with default outputOrder
    */
-  public void parseToFile(String outputFile, String outDelim, boolean writeHeader,
-                          boolean append) throws IOException {
-    parseToFile(outputFile, outDelim, writeHeader, append, null);
+  public int parseToFile(String outputFile, String outDelim, boolean writeHeader,
+                         boolean append) throws IOException {
+    return parseToFile(outputFile, outDelim, writeHeader, append, null);
   }
 
   /**
@@ -532,10 +532,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
    * @param append true to append to outputFile
    * @param outputOrder order to output columns in, any additional output columns will be included
    *          after listed columns
+   * @return number of data lines written (does not include header, if applicable)
    * @throws IOException when thrown by {@link #close()}
    */
-  public void parseToFile(String outputFile, String outDelim, boolean writeHeader, boolean append,
-                          List<FileColumn<?>> outputOrder) throws IOException {
+  public int parseToFile(String outputFile, String outDelim, boolean writeHeader, boolean append,
+                         List<FileColumn<?>> outputOrder) throws IOException {
+    int lines = 0;
     try (PrintWriter writer = Files.getAppropriateWriter(outputFile, append)) {
       List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
       if (writeHeader) {
@@ -546,9 +548,11 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       while (iter.hasNext()) {
         DataLine line = iter.next();
         writer.println(buildLineOut(line, outputColumns, outDelim));
+        lines++;
       }
       close();
     }
+    return lines;
   }
 
   private ImmutableList<Object> buildParsedKey(DataLine line,
