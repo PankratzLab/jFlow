@@ -12,20 +12,20 @@ import java.util.Map.Entry;
 public class AliasedFileColumn extends AbstractFileColumn<String> implements IndexedFileColumn<String> {
 
   private final Aliases aliases;
+  private final boolean aliasHeader;
 
   private int matchedIndex;
   private String matchedAlias = null;
 
   /**
-   * Create an AliasedFileColumn with the given name that searches for the given aliases, fails if
-   * it finds multiple matches, and isn't case-sensitive.
+   * {@link #AliasedFileColumn(String, Aliases)} with a strategy that fails if it finds multiple
+   * matches, and isn't case-sensitive.
    * 
    * @param name String Column name
    * @param aliases String... Aliases to search for.
    */
   public AliasedFileColumn(String name, String... aliases) {
-    super(name, false);
-    this.aliases = new Aliases(aliases);
+    this(name, new Aliases(aliases));
   }
 
   /**
@@ -39,6 +39,21 @@ public class AliasedFileColumn extends AbstractFileColumn<String> implements Ind
   public AliasedFileColumn(String name, Aliases aliases) {
     super(name, false);
     this.aliases = aliases;
+    this.aliasHeader = false;
+  }
+
+  /**
+   * Create an AliasedFileColumn with the given name that searches for the given aliases, following
+   * the {@link Aliases#getStrategy()} value for multiple matches and
+   * {@link Aliases#isCaseSensitive()}. The output column header will be the matched input column
+   * header and the name will be the first provided alias
+   * 
+   * @param aliases {@link Aliases}
+   */
+  public AliasedFileColumn(Aliases aliases) {
+    super(aliases.getAliases()[0], false);
+    this.aliases = aliases;
+    this.aliasHeader = true;
   }
 
   @Override
@@ -70,6 +85,12 @@ public class AliasedFileColumn extends AbstractFileColumn<String> implements Ind
   @Override
   public String getValue(String[] line) throws ParseFailureException {
     return line[matchedIndex];
+  }
+
+  @Override
+  public String getHeader() {
+    if (aliasHeader) return matchedAlias;
+    else return super.getHeader();
   }
 
   /**
