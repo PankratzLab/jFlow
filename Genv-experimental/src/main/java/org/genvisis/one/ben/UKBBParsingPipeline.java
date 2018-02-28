@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.iterators.ArrayIterator;
 import org.genvisis.CLI;
 import org.genvisis.bgen.BGENBitMath;
+import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -46,6 +47,7 @@ import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.CmdLine;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
@@ -55,6 +57,7 @@ import org.genvisis.common.Matrix;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
+import org.genvisis.qsub.Qsub;
 import htsjdk.variant.variantcontext.Allele;
 
 public class UKBBParsingPipeline {
@@ -133,6 +136,8 @@ public class UKBBParsingPipeline {
   public void runPipeline() {
     createProject();
     createSampleList();
+    createPED();
+    createSampleData();
     discoverFilesets();
     createMarkerPositions();
     writeMarkerDetailSet();
@@ -146,8 +151,6 @@ public class UKBBParsingPipeline {
       log.reportException(e);
     }
     createSampRAFsFromMDRAFs();
-    createPED();
-    createSampleData();
   }
 
   protected void createProject() {
@@ -188,6 +191,41 @@ public class UKBBParsingPipeline {
       log.reportTime("Created sample list file: " + proj.SAMPLELIST_FILENAME.getValue());
     } else {
       log.reportTime("Project sample list file already exists; skipping creation.");
+    }
+  }
+
+  protected void createPED() {
+    if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
+      long t1 = System.nanoTime();
+      PrintWriter writer = Files.getAppropriateWriter(proj.PEDIGREE_FILENAME.getValue());
+      for (String[] ind : famData) {
+        StringBuilder sb = new StringBuilder(ind[0]).append("\t");
+        sb.append(ind[1]).append("\t");
+        sb.append(ind[2]).append("\t");
+        sb.append(ind[3]).append("\t");
+        sb.append(ind[4]).append("\t");
+        sb.append("0").append("\t");
+        sb.append(ind[1]);
+        writer.println(sb.toString());
+      }
+      writer.flush();
+      writer.close();
+      log.reportTime("Created ped file in " + ext.getTimeElapsedNanos(t1));
+    } else {
+      log.reportTime("Project sample list file already exists; skipping creation.");
+    }
+  }
+
+  protected void createSampleData() {
+    if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
+      try {
+        SampleData.createSampleData(proj.PEDIGREE_FILENAME.getValue(), null, proj);
+      } catch (Elision e) {
+        e.printStackTrace();
+        System.exit(1);
+      }
+    } else {
+      log.reportTime("Project SampleData file already exists; skipping creation.");
     }
   }
 
@@ -566,68 +604,53 @@ public class UKBBParsingPipeline {
     TempFileTranspose tft = new TempFileTranspose(proj, proj.PROJECT_DIRECTORY.getValue() + "temp/",
                                                   jobID);
     tft.setupMarkerListFile();
-    try {
-      tft.runFirst();
-      tft.setupSampleListFile();
-      tft.runSecond();
-    } catch (IOException e) {
-      log.reportException(e);
-    }
+    tft.setupSampleListFile();
+
+    int gb = 22;
+    int wall = 24;
+    int proc = 16;
+
+    String file = setupTransposeScripts(gb, wall, proc);
+    CmdLine.run("qsub " + file, ext.pwd());
   }
 
-  private int createSamplesToRunFile() {
-    PrintWriter writer = Files.getAppropriateWriter(proj.MARKER_DATA_DIRECTORY.getValue()
-                                                    + TransposeData.TEMP_SAMPLES_FILE);
-    long atLeastSize = Sample.PARAMETER_SECTION_BYTES
-                       + Sample.getNBytesPerSampleMarker(getNullStatus())
-                         * numberOfMarkersInProj.get();
-    String[] listOfAllSamplesInProj = proj.getSamples();
-    int count = 0;
-    for (String sample : listOfAllSamplesInProj) {
-      String file = proj.SAMPLE_DIRECTORY.getValue(true, true) + sample
-                    + Sample.SAMPLE_FILE_EXTENSION;
-      if (!Files.exists(file) || new File(file).length() < atLeastSize) {
-        writer.println(sample);
-        count++;
-      }
-    }
-    writer.close();
-    return count;
-  }
+  private String setupTransposeScripts(int qGBLim, int qWallLim, int qProcLim) {
+    String currDir = ext.pwd();
+    String jar = Launch.getJarLocation();
+    String jobName1 = "tempTransposeFirst.qsub";
+    String jobName2 = "tempTransposeSecond.qsub";
 
-  protected void createPED() {
-    if (!Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
-      long t1 = System.nanoTime();
-      PrintWriter writer = Files.getAppropriateWriter(proj.PEDIGREE_FILENAME.getValue());
-      for (String[] ind : famData) {
-        StringBuilder sb = new StringBuilder(ind[0]).append("\t");
-        sb.append(ind[1]).append("\t");
-        sb.append(ind[2]).append("\t");
-        sb.append(ind[3]).append("\t");
-        sb.append(ind[4]).append("\t");
-        sb.append("0").append("\t");
-        sb.append(ind[1]);
-        writer.println(sb.toString());
-      }
-      writer.flush();
-      writer.close();
-      log.reportTime("Created ped file in " + ext.getTimeElapsedNanos(t1));
-    } else {
-      log.reportTime("Project sample list file already exists; skipping creation.");
-    }
-  }
+    long bytesPerMkrF = Sample.getNBytesPerSampleMarker(getNullStatus()) * famData.length
+                        * maxMarkersPerMDRAF + TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN;
+    long bytesPerSmpF = Sample.getNBytesPerSampleMarker(getNullStatus()) * allMarkers.length
+                        + Sample.PARAMETER_SECTION_BYTES;
 
-  protected void createSampleData() {
-    if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
-      try {
-        SampleData.createSampleData(proj.PEDIGREE_FILENAME.getValue(), null, proj);
-      } catch (Elision e) {
-        e.printStackTrace();
-        System.exit(1);
-      }
-    } else {
-      log.reportTime("Project SampleData file already exists; skipping creation.");
+    long gbLim = qGBLim * 1024 * 1024 * 1024;
+
+    int numF = 1;
+    while (((numF + 1) * bytesPerMkrF) < (gbLim * .8)) {
+      numF++;
     }
+    numF = Math.min(numF, qProcLim);
+
+    String jobCmd1 = "cd " + currDir + "\n" + jar + TempFileTranspose.class.getName() + " proj="
+                     + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=M qsub=" + currDir
+                     + jobName1;
+
+    Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
+
+    numF = 1;
+    while (((numF + 1) * bytesPerSmpF) < (gbLim * .8)) {
+      numF++;
+    }
+    numF = Math.min(numF, qProcLim);
+
+    String jobCmd2 = "cd " + currDir + "\n" + jar + TempFileTranspose.class.getName() + " proj="
+                     + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=S qsub=" + currDir
+                     + jobName2;
+    Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
+
+    return jobName1;
   }
 
   private byte getNullStatus() {
