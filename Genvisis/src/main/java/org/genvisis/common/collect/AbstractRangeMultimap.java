@@ -179,9 +179,14 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return mapOfRanges.isEmpty();
   }
 
+  /**
+   * Unlike other implementations of {@link Multimap}, this implementation is not stored with
+   * non-distinct keys and an easily accessible Collection of values. As such, this method returns a
+   * newly constructed {@link ImmutableMultiset} rather than a view that can be used to modify the
+   * underlying {@link Multimap} {@link AbstractRangeMultimap}
+   */
   @Override
   public ImmutableMultiset<Range<K>> keys() {
-    // TODO doc inefficiency and non-updateyness
     return mapOfRanges.entrySet().stream()
                       .collect(ImmutableMultiset.toImmutableMultiset(Entry::getKey,
                                                                      e -> e.getValue().size()));
