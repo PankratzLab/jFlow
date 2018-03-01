@@ -16,6 +16,7 @@ import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 
 public class FileParser implements Iterable<DataLine>, Closeable {
 
@@ -36,12 +37,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
   private String parseFailValue = ".";
 
-  private List<FileLink> linkedParsers;
+  private ImmutableSet<FileLink> linkedParsers;
   private Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
-  protected List<FileColumn<?>> dataInOrder;
-  protected List<FileColumn<?>> addlDataToLoad;
-  protected List<FileColumn<?>> optlDataToLoad;
-  private List<FileColumn<?>> optlDataFound;
+  protected ImmutableSet<FileColumn<?>> dataInOrder;
+  protected ImmutableSet<FileColumn<?>> addlDataToLoad;
+  protected ImmutableSet<FileColumn<?>> optlDataToLoad;
+  private ImmutableSet<FileColumn<?>> optlDataFound;
 
   private BufferedReader reader;
   private long lineCount = 0;
@@ -63,12 +64,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     filters = new ImmutableList.Builder<ColumnFilter>().addAll(factory.filters).build();
     filterDeath = new ImmutableMap.Builder<ColumnFilter, Boolean>().putAll(factory.filterDeath)
                                                                    .build();
-    linkedParsers = new ImmutableList.Builder<FileLink>().addAll(factory.linkedParsers).build();
-    dataInOrder = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.dataInOrder).build();
-    addlDataToLoad = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.addlDataToLoad)
-                                                               .build();
-    optlDataToLoad = new ImmutableList.Builder<FileColumn<?>>().addAll(factory.optlDataToLoad)
-                                                               .build();
+    linkedParsers = new ImmutableSet.Builder<FileLink>().addAll(factory.linkedParsers).build();
+    dataInOrder = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.dataInOrder).build();
+    addlDataToLoad = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.addlDataToLoad)
+                                                              .build();
+    optlDataToLoad = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.optlDataToLoad)
+                                                              .build();
     linkedFileColumns = new ImmutableMap.Builder<FileLink, Map<FileColumn<?>, FileColumn<?>>>().putAll(factory.linkedFileColumns)
                                                                                                .build();
     open();
@@ -85,6 +86,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
   private List<FileColumn<?>> getOutputColumnsInOrder() {
     List<FileColumn<?>> cols = new ArrayList<>(dataInOrder);
+    cols.addAll(optlDataFound);
     for (FileLink fl : linkedParsers) {
       for (FileColumn<?> fc : fl.getValues()) {
         if (!cols.contains(fc)) {
@@ -132,15 +134,16 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       for (FileColumn<?> fc : addlDataToLoad) {
         fc.initialize(this);
       }
-      optlDataFound = new ArrayList<>();
+      Builder<FileColumn<?>> b = ImmutableSet.builder();
       for (FileColumn<?> fc : optlDataToLoad) {
         try {
           fc.initialize(this);
-          optlDataFound.add(fc);
+          b.add(fc);
         } catch (IllegalStateException e) {
           // not in file
         }
       }
+      optlDataFound = b.build();
       break;
     }
   }
@@ -556,10 +559,17 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   }
 
   private List<FileColumn<?>> buildOutputColumns(List<FileColumn<?>> outputOrder) {
-    List<FileColumn<?>> outputColumns = outputOrder == null ? getOutputColumnsInOrder()
-                                                            : outputOrder;
-    if (outputOrder != null) {
-      List<FileColumn<?>> allOutput = getOutputColumnsInOrder();
+    List<FileColumn<?>> outputColumns;
+    if (outputOrder == null) {
+      outputColumns = getOutputColumnsInOrder();
+    } else {
+      outputColumns = new ArrayList<>();
+      Set<FileColumn<?>> allOutput = ImmutableSet.copyOf(getOutputColumnsInOrder());
+      for (FileColumn<?> fc : outputOrder) {
+        if (allOutput.contains(fc)) {
+          outputColumns.add(fc);
+        }
+      }
       if (!outputColumns.containsAll(allOutput)) {
         for (FileColumn<?> fc : allOutput) {
           if (!outputColumns.contains(fc)) {
