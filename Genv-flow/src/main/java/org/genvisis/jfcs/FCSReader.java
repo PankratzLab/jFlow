@@ -214,8 +214,10 @@ public class FCSReader {
   public void dispose() {
     keys = null;
     spill = null;
-    data.dispose();
-    data = null;
+    if (data != null) {
+      data.dispose();
+      data = null;
+    }
   }
 
   public FCSKeywords getKeywords() {
