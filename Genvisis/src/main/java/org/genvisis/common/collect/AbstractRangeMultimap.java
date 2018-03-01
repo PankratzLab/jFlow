@@ -66,8 +66,8 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    *             entry. Checking if a range is mapped to any value(s) can better be performed using
    *             {@link #subRangeMap(Range)}
    */
-  @Override
   @Deprecated
+  @Override
   public boolean containsEntry(Object key, Object value) {
     C mappedValue = mapOfRanges.get(key);
     return value.equals(mappedValue);
@@ -84,6 +84,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return mapOfRanges.containsKey(key);
   }
 
+  @Deprecated
   @Override
   public boolean containsValue(Object value) {
     return mapOfRanges.values().stream().anyMatch(c -> c.contains(value));
@@ -110,10 +111,6 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
                       .build();
   }
 
-  /**
-   * {@link AbstractRangeMultimap}s are only equal to other {@link AbstractRangeMultimap}s where
-   * their underlying {@link RangeMap}s are equal.
-   */
   @SuppressWarnings("rawtypes")
   @Override
   public boolean equals(Object obj) {
@@ -127,9 +124,6 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return true;
   }
 
-  /**
-   * Uses {@link RangeMap#hashCode()} to match to equal {@link AbstractRangeMultimap}s
-   */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -138,10 +132,6 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return result;
   }
 
-  /**
-   * In keeping with the contract of the {@link Multimap} interface, this method will never return
-   * null, instead returning an empty {@linkImmutableCollection} when the key is not mapped
-   */
   @Override
   public C get(K key) {
     C value = rangeMap.get(key);
@@ -198,10 +188,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return mapOfRanges.keySet();
   }
 
-  /**
-   * Removes any entries with empty collections as their value, such that {@link #asMapOfRanges()}
-   * will contain only "legitimate" mappings to non-empty collections
-   */
+  @Override
   public void purgeEmptyValues() {
     if (!mapOfRanges.isEmpty()) {
       Iterator<Entry<Range<K>, C>> entryIterator = mapOfRanges.entrySet().iterator();
@@ -210,12 +197,6 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     }
   }
 
-  /**
-   * Adds the items in value to the mappings for range. Specifically, after a call to put(range,
-   * value), if range.contains(k), then get(k) will return a collection that contains everything in
-   * value. To perform the replacing put that {@link RangeMap}s generally exhibit, use
-   * {@link #replaceValues(Range, Iterable)} If range is empty, then this is a no-op.
-   */
   @Override
   public void put(Range<K> range, C value) {
     if (!range.isEmpty()) {
