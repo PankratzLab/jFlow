@@ -213,20 +213,22 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    */
   @Override
   public void put(Range<K> range, C value) {
-    RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
-    Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
-    if (!existingSubRangeMapOfRanges.isEmpty()) {
-      RangeMap<K, C> updatedMappings = newRangeMap();
-      for (Map.Entry<Range<K>, C> existingEntry : existingSubRangeMapOfRanges.entrySet()) {
-        updatedMappings.put(existingEntry.getKey(),
-                            addAllToCollection(existingEntry.getValue(), value));
+    if (!range.isEmpty()) {
+      RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
+      Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
+      if (!existingSubRangeMapOfRanges.isEmpty()) {
+        RangeMap<K, C> updatedMappings = newRangeMap();
+        for (Map.Entry<Range<K>, C> existingEntry : existingSubRangeMapOfRanges.entrySet()) {
+          updatedMappings.put(existingEntry.getKey(),
+                              addAllToCollection(existingEntry.getValue(), value));
+        }
+        existingSubRangeMap.putAll(updatedMappings);
       }
-      existingSubRangeMap.putAll(updatedMappings);
+      RangeSet<K> unmappedRangeSet = TreeRangeSet.create();
+      unmappedRangeSet.add(range);
+      unmappedRangeSet.removeAll(existingSubRangeMapOfRanges.keySet());
+      unmappedRangeSet.asRanges().forEach(r -> rangeMap.put(r, value));
     }
-    RangeSet<K> unmappedRangeSet = TreeRangeSet.create();
-    unmappedRangeSet.add(range);
-    unmappedRangeSet.removeAll(existingSubRangeMapOfRanges.keySet());
-    unmappedRangeSet.asRanges().forEach(r -> rangeMap.put(r, value));
   }
 
   /**
