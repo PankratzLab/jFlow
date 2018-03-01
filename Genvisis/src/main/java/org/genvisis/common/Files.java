@@ -2033,12 +2033,12 @@ public class Files {
     return null;
   }
 
-  public static int getSize(String filename) {
-    int size = -1;
+  public static long getSize(String filename) {
+    long size = -1;
 
     try {
       if (Files.exists(filename)) {
-        size = (int) new File(filename).length();
+        size = new File(filename).length();
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -2062,7 +2062,7 @@ public class Files {
   }
 
   public static double[] getSizeScaled(String filename) {
-    int sz = getSize(filename);
+    long sz = getSize(filename);
     if (sz == -1) {
       return new double[] {sz, -1};
     }

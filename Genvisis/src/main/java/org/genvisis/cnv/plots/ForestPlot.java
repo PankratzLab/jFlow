@@ -442,9 +442,9 @@ public class ForestPlot {
         return;
       }
     }
-    final HashMap<String, Integer> progSteps = new HashMap<String, Integer>();
+    final HashMap<String, Long> progSteps = new HashMap<>();
     for (String file : files.keySet()) {
-      int sz = Files.getSize(file);
+      long sz = Files.getSize(file);
       progSteps.put(file, sz);
       if (Thread.interrupted()) {
         interruptLoading();

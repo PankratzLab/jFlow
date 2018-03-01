@@ -625,29 +625,29 @@ public class UKBBParsingPipeline {
     long bytesPerSmpF = Sample.getNBytesPerSampleMarker(getNullStatus()) * allMarkers.length
                         + Sample.PARAMETER_SECTION_BYTES;
 
-    long gbLim = qGBLim * 1024 * 1024 * 1024;
+    long bLim = ((long) qGBLim) * 1024 * 1024 * 1024;
 
     int numF = 1;
-    while (((numF + 1) * bytesPerMkrF) < (gbLim * .8)) {
+    while (((numF + 1) * bytesPerMkrF) < (bLim * .8)) {
       numF++;
     }
     numF = Math.min(numF, qProcLim);
 
-    String jobCmd1 = "cd " + currDir + "\n" + jar + TempFileTranspose.class.getName() + " proj="
-                     + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=M qsub=" + currDir
-                     + jobName1;
+    String jobCmd1 = "cd " + currDir + "\njava -jar " + jar + " "
+                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
+                     + " jobID=$PBS_JOBID type=M qsub=" + currDir + jobName1;
 
     Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
 
     numF = 1;
-    while (((numF + 1) * bytesPerSmpF) < (gbLim * .8)) {
+    while (((numF + 1) * bytesPerSmpF) < (bLim * .8)) {
       numF++;
     }
     numF = Math.min(numF, qProcLim);
 
-    String jobCmd2 = "cd " + currDir + "\n" + jar + TempFileTranspose.class.getName() + " proj="
-                     + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=S qsub=" + currDir
-                     + jobName2;
+    String jobCmd2 = "cd " + currDir + "\njava -jar " + jar + " "
+                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
+                     + " jobID=$PBS_JOBID type=S qsub=" + currDir + jobName2;
     Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
 
     return jobName1;

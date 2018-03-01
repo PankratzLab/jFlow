@@ -1007,7 +1007,7 @@ public class TransposeData {
                        + Sample.SAMPLE_FILE_EXTENSION;
             boolean write = true;
             if (Files.exists(filename)) {
-              int lenByt = Files.getSize(filename);
+              long lenByt = Files.getSize(filename);
               if (lenByt == numBytes_PerSamp + Sample.PARAMETER_SECTION_BYTES) {
                 write = false;
               }

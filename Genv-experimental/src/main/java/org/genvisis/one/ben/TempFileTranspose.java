@@ -166,19 +166,25 @@ public class TempFileTranspose {
           long size = Sample.getNBytesPerSampleMarker(TransposeData.getNullstatusFromRandomAccessFile(file,
                                                                                                       false))
                       * (long) Compression.bytesToInt(readParameter(file),
-                                                      TransposeData.MARKERDATA_NUMMARKERS_START);
-          if (Files.getSize(getTempFile(file)) == size) {
+                                                      TransposeData.MARKERDATA_NUMMARKERS_START)
+                      * proj.getSamples().length;
+          long found = Files.getSize(getTempFile(file));
+          if (found == size) {
             add = false;
+          } else {
+            proj.getLog()
+                .reportTime("Re-processing " + file + "; found " + found + ", expected " + size);
           }
         } catch (IOException e) {
           // just recreate
         }
       }
       if (add) {
-        toDo.add(temp);
+        toDo.add(file);
       }
     }
-    ListFileCheckoutSystem.initFile(getMarkerListFile(), files);
+    proj.getLog().reportTime("Processing " + toDo.size() + " marker files.");
+    ListFileCheckoutSystem.initFile(getMarkerListFile(), toDo.toArray(new String[toDo.size()]));
   }
 
   public String getMarkerListFile() {
@@ -225,10 +231,11 @@ public class TempFileTranspose {
               long rT2 = System.nanoTime();
               long wT = System.nanoTime();
               OutputStream os = new FileOutputStream(out);
-
+              long written = 0;
               for (int s = 0, c = proj.getSamples().length; s < c; s++) {
                 for (int m = 0; m < readBuffer.length; m++) { // should be all markers
                   os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
+                  written += numBytesPerSampleMarker;
                 }
               }
               os.flush();
@@ -238,11 +245,12 @@ public class TempFileTranspose {
               os = null;
               readBuffer = null;
               proj.getLog()
-                  .reportTime("Tranposed " + file + ", took "
+                  .reportTime("Tranposed " + file + " - wrote " + written + " bytes, took "
                               + ext.formatTimeElapsed(rT2 - rT, TimeUnit.NANOSECONDS)
                               + " to read and "
                               + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS)
                               + " to write.");
+              if (preSel != null) return;
             }
           } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -336,7 +344,11 @@ public class TempFileTranspose {
   }
 
   public void setupSampleListFile() {
-    ListFileCheckoutSystem.initFile(getSampleListFile(), proj.getSamples());
+    String[] samples = proj.getSamples();
+    for (int i = 0; i < samples.length; i++) {
+      samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
+    }
+    ListFileCheckoutSystem.initFile(getSampleListFile(), samples);
   }
 
   public void runSecond() throws IOException {
@@ -469,8 +481,6 @@ public class TempFileTranspose {
   public static void main(String[] args) throws IOException {
     String tempDir;
     String jobID;
-    String jobPath;
-    String type;
 
     CLI cli = new CLI(TempFileTranspose.class);
 
