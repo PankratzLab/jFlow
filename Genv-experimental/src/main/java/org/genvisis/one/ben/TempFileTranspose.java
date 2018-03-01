@@ -60,11 +60,15 @@ public class TempFileTranspose {
           if (list.length == 0) {
             return null;
           }
-          String[] values = new String[pull];
-          String[] remain = new String[list.length - pull];
-          System.arraycopy(list, 0, values, 0, pull);
-          System.arraycopy(list, pull, remain, 0, remain.length);
-          Files.writeArray(remain, nF);
+          int p = Math.min(pull, list.length);
+          int r = Math.max(0, list.length - p);
+          String[] values = new String[p];
+          String[] remain = new String[r];
+          System.arraycopy(list, 0, values, 0, p);
+          if (r > 0) {
+            System.arraycopy(list, pull, remain, 0, remain.length);
+            Files.writeArray(remain, nF);
+          }
 
           java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
 
