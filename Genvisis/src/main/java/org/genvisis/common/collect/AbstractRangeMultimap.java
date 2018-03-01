@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import com.google.common.base.Functions;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableCollection;
@@ -198,9 +199,8 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   /**
-   * Removes any entries with empty collections as their value, such that
-   * {@link AbstractRangeMultimap#size()} and {@link Map#size()} from {@link #asMapOfRanges()} will
-   * return the size of legitimate mappings
+   * Removes any entries with empty collections as their value, such that {@link #asMapOfRanges()}
+   * will contain only "legitimate" mappings to non-empty collections
    */
   public void purgeEmptyValues() {
     if (!mapOfRanges.isEmpty()) {
@@ -354,16 +354,9 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     return prevValues;
   }
 
-  /**
-   * @deprecated This method simply returns the size of {@link #asMapOfRanges()} and does not follow
-   *             the contract of {@link Multimap}. Additionally, without calling
-   *             {@link #purgeEmptyValues()}, the size may contain entries with empty collections as
-   *             their value
-   */
   @Override
-  @Deprecated
   public int size() {
-    return mapOfRanges.size();
+    return mapOfRanges.values().parallelStream().collect(Collectors.summingInt(C::size));
   }
 
   @Override
