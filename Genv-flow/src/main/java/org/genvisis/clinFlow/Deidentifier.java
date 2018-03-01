@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.jfcs.FCSKeywords;
@@ -35,30 +36,37 @@ public class Deidentifier {
 
   private String rootIn;
   private String rootOut;
+  private String linkDir;
+
+  public Deidentifier(String in, String out, String link) {
+    this.rootIn = ext.verifyDirFormat(in);
+    this.rootOut = ext.verifyDirFormat(out);
+    this.linkDir = ext.verifyDirFormat(link);
+  }
 
   public List<Conversion> identify() {
     File rootDir = new File(rootIn);
     File outDir = new File(rootOut);
 
     List<Conversion> allConvs = processDir(rootDir, outDir);
-    removeExisting(allConvs);
+    //    removeExisting(allConvs);
     return allConvs;
   }
 
-  private void removeExisting(List<Conversion> convs) {
-    for (int i = convs.size() - 1; i >= 0; i++) {
-      try {
-        if (exists(convs.get(i))) {
-          convs.remove(i);
-        }
-      } catch (IOException e) {
-        Conversion c = convs.remove(i);
-        cantOpen(e, path(c.dir) + c.fcs);
-      }
-    }
-  }
+  //  private void removeExisting(List<Conversion> convs) {
+  //    for (int i = convs.size() - 1; i >= 0; i--) {
+  //      try {
+  //        if (exists(convs.get(i))) {
+  //          convs.remove(i);
+  //        }
+  //      } catch (IOException e) {
+  //        Conversion c = convs.remove(i);
+  //        cantOpen(e, path(c.dir) + c.fcs);
+  //      }
+  //    }
+  //  }
 
-  private boolean exists(Conversion c) throws IOException {
+  public static boolean exists(Conversion c) throws IOException {
     if (!c.out.exists()) {
       return false;
     }
@@ -94,7 +102,7 @@ public class Deidentifier {
 
     List<Conversion> convs = new ArrayList<>();
     for (String f : fcss) {
-      convs.add(new Conversion(dir, out, f));
+      convs.add(new Conversion(dir, out, linkDir, f));
     }
     for (File d : dirs) {
       convs.addAll(processDir(d, new File(out, generateNewDirName(d))));
@@ -147,13 +155,16 @@ public class Deidentifier {
     Map<String, String> idents = getIdentifiers(reader.getKeywords());
     fixKeywords(newID, reader.getKeywords());
     String outPath = path(conv.out);
+    conv.out.mkdirs();
     try {
       FCSReader.write(reader, outPath + newID + ".fcs");
     } catch (IOException e) {
       writeFail(e, conv.fcs, outPath + newID + ".fcs");
       return;
     }
-    writeLinkFile(outPath, newID, idents);
+    idents.put("SOURCE PATH", path(conv.dir));
+    idents.put("OUTPUT PATH", outPath);
+    writeLinkFile(path(conv.link == null ? conv.out : new File(conv.link)), newID, idents);
     reader.dispose();
   }
 
@@ -186,6 +197,10 @@ public class Deidentifier {
   private static void writeLinkFile(String outDir, String newID, Map<String, String> idents) {
     PrintWriter writer = Files.getAppropriateWriter(outDir + newID + ".txt");
 
+    for (Entry<String, String> e : idents.entrySet()) {
+      writer.println(e.getKey() + "\t" + e.getValue());
+    }
+
     writer.close();
   }
 
@@ -208,7 +223,7 @@ public class Deidentifier {
   }
 
   public static void main(String[] args) {
-    new Deidentifier().run();
+    new Deidentifier("F:/Flow_stage2/source/", "F:/Flow_stage2/deident/", "F:/Flow_stage2/").run();
   }
 
 }
