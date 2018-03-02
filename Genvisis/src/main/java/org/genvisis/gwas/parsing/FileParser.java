@@ -194,20 +194,17 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         throw new IllegalStateException("Line " + lineCount + " was the wrong length; expected "
                                         + header.size() + ", found " + parts.length);
       }
-      for (FileColumn<?> fc : dataInOrder) {
-        lineData.parseOrFail(fc, parts);
-      }
-      for (FileColumn<?> fc : addlDataToLoad) {
-        lineData.parseOrFail(fc, parts);
-      }
-      for (FileColumn<?> fc : optlDataFound) {
-        lineData.parseOrFail(fc, parts);
-      }
-      for (ColumnFilter fc : filters) {
-        if (!fc.filter(lineData)) {
-          if (filterDeath.get(fc)) {
+
+      for (ColumnFilter cf : filters) {
+        for (FileColumn<?> fc : cf.getFilterColumns()) {
+          if (!lineData.has(fc)) {
+            lineData.parseOrFail(fc, parts);
+          }
+        }
+        if (!cf.filter(lineData)) {
+          if (filterDeath.get(cf)) {
             String colNames = "";
-            List<FileColumn<?>> cols = fc.getFilterColumns();
+            List<FileColumn<?>> cols = cf.getFilterColumns();
             for (int f = 0; f < cols.size(); f++) {
               colNames += cols.get(f).getName();
               if (f < cols.size() - 1) {
@@ -219,6 +216,24 @@ public class FileParser implements Iterable<DataLine>, Closeable {
           }
           skip = true;
           break;
+        }
+        if (skip) break;
+      }
+      if (!skip) {
+        for (FileColumn<?> fc : dataInOrder) {
+          if (!lineData.has(fc)) {
+            lineData.parseOrFail(fc, parts);
+          }
+        }
+        for (FileColumn<?> fc : addlDataToLoad) {
+          if (!lineData.has(fc)) {
+            lineData.parseOrFail(fc, parts);
+          }
+        }
+        for (FileColumn<?> fc : optlDataFound) {
+          if (!lineData.has(fc)) {
+            lineData.parseOrFail(fc, parts);
+          }
         }
       }
     } while (skip);
