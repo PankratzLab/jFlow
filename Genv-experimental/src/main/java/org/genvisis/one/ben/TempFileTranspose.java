@@ -254,7 +254,7 @@ public class TempFileTranspose {
                               + " to read and "
                               + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS)
                               + " to write.");
-              if (preSel != null) return;
+              if (preSel != null) break;
             }
           } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -269,7 +269,7 @@ public class TempFileTranspose {
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      if (qsubPath != null) {
+      if (qsubPath != null && preSel != null) {
         CmdLine.run("qsub " + qsubPath, ext.pwd());
       }
     }
