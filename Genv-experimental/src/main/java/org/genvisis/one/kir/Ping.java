@@ -124,7 +124,7 @@ public class Ping {
                                      .replaceAll(BOWTIE_THREADS, Integer.toString(numthreads));
 
       String pingR = outDir + ext.getTimestampForFilename() + "ping.Rscript";
-      CmdLine.prepareBatchForCommandLine(new String[] {pingScript}, pingR, true, log);
+      CmdLine.prepareBatchForCommandLine(pingR, true, log, new String[] {pingScript});
       CmdLine.runCommandWithFileChecks(new String[] {"Rscript", pingR}, "", new String[] {pingR},
                                        null, true, false, false, log);
 

@@ -110,7 +110,7 @@ public class Lumpy {
     String bat = VCFOps.getAppropriateRoot(inputVCF, false) + ".sort.bat";
     String script = "vcf-sort " + inputVCF + " > " + sortVCF;
 
-    CmdLine.prepareBatchForCommandLine(new String[] {script}, bat, true, log);
+    CmdLine.prepareBatchForCommandLine(bat, true, log, new String[] {script});
     CmdLine.runCommandWithFileChecks(new String[] {bat}, "", new String[] {bat, inputVCF},
                                      new String[] {sortVCF}, true, false, false, log);
 

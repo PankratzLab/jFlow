@@ -253,8 +253,8 @@ public class SomaticSniper {
         commandFilt.add(indelPile);
         commandFilt.add(">");
         commandFilt.add(indelPileFilt);
-        String[] runBat = CmdLine.prepareBatchForCommandLine(ArrayUtils.toStringArray(commandFilt),
-                                                             indelPileFilt + ".sh", true, log);
+        String[] runBat = CmdLine.prepareBatchForCommandLine(indelPileFilt + ".sh",
+                                                             true, log, ArrayUtils.toStringArray(commandFilt));
         progress = CmdLine.runCommandWithFileChecks(runBat, "", new String[] {indelPile},
                                                     new String[] {indelPileFilt}, true,
                                                     somaticParams.isOverwriteExisting(), false,

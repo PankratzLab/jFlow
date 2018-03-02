@@ -54,7 +54,7 @@ public class SVTyper {
     cmd.append(" -S " + pairedEndSVAnalysis.getSplitterBam());
     cmd.append(" -i " + inputVCF);
     cmd.append(" > " + outputVCF);
-    CmdLine.prepareBatchForCommandLine(new String[] {cmd.toString()}, bat, true, log);
+    CmdLine.prepareBatchForCommandLine(bat, true, log, new String[] {cmd.toString()});
 
     List<String> run = new ArrayList<>();
     run.add(bat);

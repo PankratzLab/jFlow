@@ -58,7 +58,7 @@ public class SNPSIFT {
       String[] args = new String[] {DB_NSFP, V, inputVCF, PSF.Ext.CARROT, outputVCF};
       command = ArrayUtils.concatAll(command, args);
       String batFile = outputVCF + ".bat";
-      command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
+      command = CmdLine.prepareBatchForCommandLine(batFile, true, log, command);
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},
                                                   new String[] {outputVCF}, verbose,
                                                   overWriteExisting, false, log);
@@ -75,7 +75,7 @@ public class SNPSIFT {
       String[] args = new String[] {TSTV, inputVCF, PSF.Ext.CARROT, outputTsTv};
       command = ArrayUtils.concatAll(command, args);
       String batFile = outputTsTv + ".bat";
-      command = CmdLine.prepareBatchForCommandLine(command, batFile, true, log);
+      command = CmdLine.prepareBatchForCommandLine(batFile, true, log, command);
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF, batFile},
                                                   new String[] {outputTsTv}, verbose,
                                                   overWriteExisting, false, log);

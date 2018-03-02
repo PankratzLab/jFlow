@@ -172,7 +172,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
       script += pyScript + " -i stdin |";
       script += "samtools view -Sb - > " + outFile;
 
-      CmdLine.prepareBatchForCommandLine(new String[] {script}, bat, true, log);
+      CmdLine.prepareBatchForCommandLine(bat, true, log, new String[] {script});
       boolean success = CmdLine.runCommandWithFileChecks(new String[] {bat}, "",
                                                          new String[] {bat, bamFile},
                                                          new String[] {outFile}, true, false, false,
@@ -189,7 +189,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
       String bat = outDir + ext.rootOf(bamFile) + ".discordants.unsorted.bat";
       String script = "samtools view -b -F 1294 " + bamFile + " > " + outFile;
 
-      CmdLine.prepareBatchForCommandLine(new String[] {script}, bat, true, log);
+      CmdLine.prepareBatchForCommandLine(bat, true, log, new String[] {script});
       boolean success = CmdLine.runCommandWithFileChecks(new String[] {bat}, "",
                                                          new String[] {bat, bamFile},
                                                          new String[] {outFile}, true, false, false,
@@ -206,7 +206,7 @@ public class LumpyPrep implements PairedEndSVAnalysis {
       String bat = outDir + ext.rootOf(ext.rootOf(bamFile)) + ".sorted.bat";
       String script = "samtools sort " + bamFile + " > " + outFile;
 
-      CmdLine.prepareBatchForCommandLine(new String[] {script}, bat, true, log);
+      CmdLine.prepareBatchForCommandLine(bat, true, log, new String[] {script});
       boolean success = CmdLine.runCommandWithFileChecks(new String[] {bat}, "",
                                                          new String[] {bat, bamFile},
                                                          new String[] {outFile}, true, false, false,

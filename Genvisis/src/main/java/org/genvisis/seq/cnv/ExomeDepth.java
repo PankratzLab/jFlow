@@ -257,7 +257,7 @@ public class ExomeDepth {
     String scriptFile = outputDir + outputRoot + "Exome_Counts.Rscript";
     String script = generateCountsScripts();
 
-    CmdLine.prepareBatchForCommandLine(new String[] {script}, scriptFile, true, log);
+    CmdLine.prepareBatchForCommandLine(scriptFile, true, log, new String[] {script});
     created = CmdLine.runCommandWithFileChecks(new String[] {getRscriptCall(), scriptFile}, "",
                                                allReferenceBAMFiles, new String[] {getCountFile()},
                                                true, false, false, log);
@@ -438,7 +438,7 @@ public class ExomeDepth {
       script += getCNVPlotScript(bufferPercent);
       script += "dev.off()";
       String scriptFile = exomeDepthPDFOutput + ".Rscript";
-      CmdLine.prepareBatchForCommandLine(new String[] {script}, scriptFile, true, log);
+      CmdLine.prepareBatchForCommandLine(scriptFile, true, log, new String[] {script});
       boolean created = CmdLine.runCommandWithFileChecks(new String[] {"Rscript", scriptFile}, "",
                                                          new String[] {rDafrexomeDepthOutput},
                                                          new String[] {exomeDepthPDFOutput}, true,
@@ -462,7 +462,7 @@ public class ExomeDepth {
       script += addBaseLoadScript(script);
       script += getRawDataDumpScript();
       String scriptFile = exomeDepthRawDataOutput + ".rawData.Rscript";
-      CmdLine.prepareBatchForCommandLine(new String[] {script}, scriptFile, true, log);
+      CmdLine.prepareBatchForCommandLine(scriptFile, true, log, new String[] {script});
       boolean created = CmdLine.runCommandWithFileChecks(new String[] {"Rscript", scriptFile}, "",
                                                          new String[] {rDafrexomeDepthOutput},
                                                          new String[] {exomeDepthRawDataOutput},

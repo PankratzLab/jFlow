@@ -400,7 +400,7 @@ public class PlinkSeq implements Serializable {
       // we always pump the commands to a .bat since no --out option
       commandBase = ArrayUtils.concatAll(commandBase, new String[] {PSF.Ext.CARROT, outputFile});
       String bat = ext.addToRoot(outputFile, ".bat");
-      commandBase = CmdLine.prepareBatchForCommandLine(commandBase, bat, true, log);
+      commandBase = CmdLine.prepareBatchForCommandLine(bat, true, log, commandBase);
       return new PlinkSeqWorker(type, commandBase, new String[] {bat}, new String[] {outputFile},
                                 true, overwriteExisting, false, log);
     } else {

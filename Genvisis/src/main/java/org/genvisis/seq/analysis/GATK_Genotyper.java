@@ -144,8 +144,8 @@ public class GATK_Genotyper {
     String command = "cat " + in
                      + "|sed 's/1000g2014oct_/g10002014oct_/g'|sed 's/1000g2015aug_/g10002015aug_/g'>"
                      + out;
-    String[] bat = CmdLine.prepareBatchForCommandLine(new String[] {command}, out + ".bat", true,
-                                                      log);
+    String[] bat = CmdLine.prepareBatchForCommandLine(out + ".bat", true, log,
+                                                      new String[] {command});
     if (CmdLine.runCommandWithFileChecks(bat, "", new String[] {in}, new String[] {out}, true,
                                          false, false, log)) {
       return out;

@@ -31,7 +31,7 @@ public class SamtoolsDepth {
     command.add(">");
     command.add(out);
     String c = out + ".sh";
-    CmdLine.prepareBatchForCommandLine(ArrayUtils.toStringArray(command), out + ".sh", true, log);
+    CmdLine.prepareBatchForCommandLine(out + ".sh", true, log, ArrayUtils.toStringArray(command));
     return CmdLine.runCommandWithFileChecks(new String[] {c}, "", new String[] {bam},
                                             new String[] {out}, true, false, false, log);
 
