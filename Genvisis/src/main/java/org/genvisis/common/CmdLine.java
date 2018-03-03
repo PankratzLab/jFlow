@@ -7,125 +7,272 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableList;
 
 public class CmdLine {
 
+  public static class Builder {
+
+    private boolean verbose = false;
+    private boolean overWriteExistingOutput = false;
+    private boolean skipReporting = false;
+    private boolean treatEmptyAsMissing = false;
+    private final Logger log;
+
+    public Builder(Logger log) {
+      this.log = log;
+    }
+
+    public CmdLine build() {
+      return new CmdLine(verbose, overWriteExistingOutput, skipReporting, treatEmptyAsMissing, log);
+    }
+
+    public Builder verbose() {
+      verbose = true;
+      return this;
+    }
+
+    public Builder overWriteExistingOutput() {
+      overWriteExistingOutput = true;
+      return this;
+    }
+
+    public Builder skipReporting() {
+      skipReporting = true;
+      return this;
+    }
+
+    public Builder treatEmptyAsMissing() {
+      treatEmptyAsMissing = true;
+      return this;
+    }
+
+    public Builder setVerbose(boolean verbose) {
+      this.verbose = verbose;
+      return this;
+    }
+
+    public Builder setOverWriteExistingOutput(boolean overWriteExistingOutput) {
+      this.overWriteExistingOutput = overWriteExistingOutput;
+      return this;
+    }
+
+    public Builder setSkipReporting(boolean skipReporting) {
+      this.skipReporting = skipReporting;
+      return this;
+    }
+
+    public Builder setTreatEmptyAsMissing(boolean treatEmptyAsMissing) {
+      this.treatEmptyAsMissing = treatEmptyAsMissing;
+      return this;
+    }
+
+  }
+
   public static class Command {
 
-    List<String> commandList;
-    Collection<String> necessaryInputFiles;
-    Collection<String> expectedOutputFiles;
-    String dir;
+    public static class Builder {
 
-    /**
-     * @param commandList the commands as a List of Strings, spaces will be inserted between each
-     *          element
-     * @param necessaryInputFiles check these files for existence, will fail if they do not all
-     *          exist
-     * @param expectedOutputFiles check these files for existence, will skip the command if all
-     *          exist
-     * @param dir directory to run the command in, and also directory to check for existing files
-     */
-    public Command(List<String> commandList, Collection<String> necessaryInputFiles,
-                   Collection<String> expectedOutputFiles, String dir) {
-      super();
-      this.commandList = commandList;
-      this.necessaryInputFiles = necessaryInputFiles;
-      this.expectedOutputFiles = expectedOutputFiles;
-      this.dir = dir;
+      private final List<String> commandList;
+      private Collection<String> necessaryInputFiles = ImmutableList.of();
+      private Collection<String> expectedOutputFiles = ImmutableList.of();
+      private String dir = "";
+
+      /**
+       * @param commandList the commands, spaces will be inserted between each element
+       */
+      public Builder(List<String> commandList) {
+        this.commandList = Collections.unmodifiableList(commandList);
+      }
+
+      /**
+       * @param commands the commands, spaces will be inserted between each element
+       */
+      public Builder(String... commands) {
+        this(Arrays.asList(commands));
+      }
+
+      public Command build() {
+        return new Command(this);
+      }
+
+      /**
+       * @param necessaryInputFiles check these files for existence, will fail if they do not all
+       *          exist prior to running
+       * @return this {@link Builder}
+       */
+      public Builder necessaryInputFiles(Collection<String> necessaryInputFiles) {
+        this.necessaryInputFiles = Collections.unmodifiableCollection(necessaryInputFiles);
+        return this;
+      }
+
+      /**
+       * @param expectedOutputFiles check these files for existence, will fail if they do not all
+       *          exist after running
+       * @return this {@link Builder}
+       */
+      public Builder expectedOutputFiles(Collection<String> expectedOutputFiles) {
+        this.expectedOutputFiles = Collections.unmodifiableCollection(expectedOutputFiles);
+        return this;
+      }
+
+      /**
+       * @param necessaryInputFiles check these files for existence, will fail if they do not all
+       *          exist prior to running
+       * @return this {@link Builder}
+       */
+      public Builder necessaryInputFiles(String... necessaryInputFiles) {
+        return necessaryInputFiles(Arrays.asList(necessaryInputFiles));
+      }
+
+      /**
+       * @param expectedOutputFiles check these files for existence, will fail if they do not all
+       *          exist after running
+       * @return this {@link Builder}
+       */
+      public Builder expectedOutputFiles(String... expectedOutputFiles) {
+        return expectedOutputFiles(Arrays.asList(expectedOutputFiles));
+      }
+
+      /**
+       * @param dir directory to run {@code Command} in
+       * @return this {@link Builder}
+       */
+      public Builder dir(String dir) {
+        this.dir = dir;
+        return this;
+      }
+
+    }
+
+    private final List<String> commandList;
+    private final Collection<String> necessaryInputFiles;
+    private final Collection<String> expectedOutputFiles;
+    private final String dir;
+
+    private Command(Builder builder) {
+      this.commandList = builder.commandList;
+      this.necessaryInputFiles = builder.necessaryInputFiles;
+      this.expectedOutputFiles = builder.expectedOutputFiles;
+      this.dir = builder.dir;
     }
 
     /**
-     * @param commandArray the String array of commands with associated commands grouped at a given
-     *          index (String[] commands = new
-     *          String[]{"myFavoriteCommand","input=one.txt","output=2.txt"}
-     * @param necessaryInputFiles will check these files for existence, will fail if they do not all
-     *          exist
-     * @param expectedOutputFiles will check these files for existence, will skip the command if all
-     *          exist
-     * @param dir directory to run the command in, and also directory to check for existing files
+     * @return the commandList
      */
-    public Command(String[] commandArray, String[] necessaryInputFiles,
-                   String[] expectedOutputFiles, String dir) {
-      this(Arrays.asList(commandArray),
-           necessaryInputFiles == null ? null : Arrays.asList(necessaryInputFiles),
-           expectedOutputFiles == null ? null : Arrays.asList(expectedOutputFiles), dir);
+    public List<String> getCommandList() {
+      return commandList;
     }
 
     /**
-     * @param commandArray the String array of commands with associated commands grouped at a given
-     *          index (String[] commands = new
-     *          String[]{"myFavoriteCommand","input=one.txt","output=2.txt"}
-     * @param necessaryInputFiles will check these files for existence, will fail if they do not all
-     *          exist
-     * @param expectedOutputFiles will check these files for existence, will skip the command if all
-     *          exist
+     * @return the necessaryInputFiles
      */
-    public Command(String[] commandArray, String[] necessaryInputFiles,
-                   String[] expectedOutputFiles) {
-      this(commandArray, necessaryInputFiles, expectedOutputFiles, "");
-    }
-
-    public boolean runCommand(Logger log) {
-      return runCommand(true, false, false, true, log);
+    public Collection<String> getNecessaryInputFiles() {
+      return necessaryInputFiles;
     }
 
     /**
-     * @param verbose
-     * @param overWriteExistingOutput
-     * @param skipReporting if set to false, the cmdline reporting will be sent to the log,
-     *          otherwise it will be ignored. Nice to report when error checking, but there is a
-     *          high probability of reduced performance and strange output if always used
-     * @param log
-     * @return true on success, false on failure
+     * @return the expectedOutputFiles
      */
-    public boolean runCommand(boolean verbose, boolean overWriteExistingOutput,
-                              boolean skipReporting, boolean treatEmptyAsMissing, Logger log) {
-      boolean success = false;
-      if (overWriteExistingOutput || expectedOutputFiles == null
-          || !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
-        if (necessaryInputFiles == null
-            || Files.exists(dir, necessaryInputFiles, treatEmptyAsMissing)) {
-          if (verbose) {
-            log.report(ext.getTime() + " Info - running command "
-                       + IterableUtils.toStr(commandList, " "));
-          }
-          if (run(commandList, dir, null, null, (skipReporting ? null : log), false)) {
-            if (expectedOutputFiles != null
-                && !Files.exists(dir, expectedOutputFiles, treatEmptyAsMissing)) {
-              log.reportError("Error - the command " + IterableUtils.toStr(commandList, " ")
-                              + " appeared to run, but could not find all necessary output files in "
-                              + dir + ":" + IterableUtils.toStr(expectedOutputFiles, "\n"));
-            } else {
-              if (verbose) {
-                log.report(ext.getTime() + " Info - finished running command "
-                           + IterableUtils.toStr(commandList, " "));
-              }
-              success = true;
-            }
+    public Collection<String> getExpectedOutputFiles() {
+      return expectedOutputFiles;
+    }
+
+    /**
+     * @return the dir
+     */
+    public String getDir() {
+      return dir;
+    }
+
+    /**
+     * A convenience for {@link Builder#Builder(List)}
+     * 
+     * @param commandList the commands, spaces will be inserted between each element
+     */
+    public static Builder builder(List<String> commandList) {
+      return new Builder(commandList);
+    }
+
+    /**
+     * A convenience for {@link Builder#Builder(String...)}
+     * 
+     * @param commands the commands, spaces will be inserted between each element
+     */
+    public static Builder builder(String... commands) {
+      return new Builder(commands);
+    }
+
+  }
+
+  private final boolean verbose;
+  private final boolean overWriteExistingOutput;
+  private final boolean skipReporting;
+  private final boolean treatEmptyAsMissing;
+  private final Logger log;
+
+  private CmdLine(boolean verbose, boolean overWriteExistingOutput, boolean skipReporting,
+                  boolean treatEmptyAsMissing, Logger log) {
+    super();
+    this.verbose = verbose;
+    this.overWriteExistingOutput = overWriteExistingOutput;
+    this.skipReporting = skipReporting;
+    this.treatEmptyAsMissing = treatEmptyAsMissing;
+    this.log = log;
+  }
+
+  public boolean run(Command command) {
+    boolean success = false;
+    if (overWriteExistingOutput || command.expectedOutputFiles == null
+        || !Files.exists(command.dir, command.expectedOutputFiles, treatEmptyAsMissing)) {
+      if (command.getNecessaryInputFiles() == null
+          || Files.exists(command.dir, command.getNecessaryInputFiles(), treatEmptyAsMissing)) {
+        if (verbose) {
+          log.report(ext.getTime() + " Info - running command "
+                     + IterableUtils.toStr(command.getCommandList(), " "));
+        }
+        if (run(command.getCommandList(), command.dir, null, null, (skipReporting ? null : log),
+                false)) {
+          if (command.expectedOutputFiles != null
+              && !Files.exists(command.dir, command.expectedOutputFiles, treatEmptyAsMissing)) {
+            log.reportError("Error - the command "
+                            + IterableUtils.toStr(command.getCommandList(), " ")
+                            + " appeared to run, but could not find all necessary output files in "
+                            + command.dir + ":"
+                            + IterableUtils.toStr(command.expectedOutputFiles, "\n"));
           } else {
-            log.reportError("Error - the command " + IterableUtils.toStr(commandList, " ")
-                            + " has failed");
+            if (verbose) {
+              log.report(ext.getTime() + " Info - finished running command "
+                         + IterableUtils.toStr(command.getCommandList(), " "));
+            }
+            success = true;
           }
         } else {
-          log.reportError("Error - could not find all necessary input files in " + dir + ":\n"
-                          + IterableUtils.toStr(necessaryInputFiles, "\n"));
+          log.reportError("Error - the command "
+                          + IterableUtils.toStr(command.getCommandList(), " ") + " has failed");
         }
       } else {
-        if (verbose) {
-          log.report(ext.getTime()
-                     + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
-          log.report("COMMAND SKIPPED: " + IterableUtils.toStr(commandList, " "));
-        }
-        success = true;
+        log.reportError("Error - could not find all necessary input files in " + command.dir + ":\n"
+                        + IterableUtils.toStr(command.getNecessaryInputFiles(), "\n"));
       }
-      return success;
+    } else {
+      if (verbose) {
+        log.report(ext.getTime()
+                   + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
+        log.report("COMMAND SKIPPED: " + IterableUtils.toStr(command.getCommandList(), " "));
+      }
+      success = true;
     }
+    return success;
+  }
 
+  public static Builder builder(Logger log) {
+    return new Builder(log);
   }
 
   public static String getCmdLocation(String commmand) {
@@ -149,8 +296,8 @@ public class CmdLine {
    * @return String[] of the batFile
    */
 
-  public static String[] prepareBatchForCommandLine(String batFile, boolean verbose,
-                                                    Logger log, String... commands) {
+  public static String[] prepareBatchForCommandLine(String batFile, boolean verbose, Logger log,
+                                                    String... commands) {
     if (verbose) {
       log.report(ext.getTime() + " Info - running command " + ArrayUtils.toStr(commands, " ")
                  + "\nUsing file " + batFile);
@@ -323,7 +470,12 @@ public class CmdLine {
    *          probability of reduced performance and strange output if always used
    * @param log
    * @return
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
    */
+  @Deprecated
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
                                                  String[] necessaryInputFiles,
                                                  String[] expectedOutputFiles, boolean verbose,
@@ -351,16 +503,23 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
    */
+  @Deprecated
   public static boolean runCommandWithFileChecks(String[] commandArray, String dir,
                                                  String[] necessaryInputFiles,
                                                  String[] expectedOutputFiles, boolean verbose,
                                                  boolean overWriteExistingOutput,
                                                  boolean skipReporting, boolean treatEmptyAsMissing,
                                                  Logger log) {
-    return new Command(commandArray, necessaryInputFiles, expectedOutputFiles,
-                       dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
-                                       treatEmptyAsMissing, log);
+    return builder(log).setVerbose(verbose).setOverWriteExistingOutput(overWriteExistingOutput)
+                       .setSkipReporting(skipReporting).setTreatEmptyAsMissing(treatEmptyAsMissing)
+                       .build()
+                       .run(Command.builder(commandArray).necessaryInputFiles(necessaryInputFiles)
+                                   .expectedOutputFiles(expectedOutputFiles).dir(dir).build());
   }
 
   /**
@@ -377,15 +536,21 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return true on success, false on failure
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
    */
+  @Deprecated
   public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
                                                  Collection<String> necessaryInputFiles,
                                                  Collection<String> expectedOutputFiles,
                                                  boolean verbose, boolean overWriteExistingOutput,
                                                  boolean treatEmptyAsMissing, Logger log) {
-    return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
-                       dir).runCommand(verbose, overWriteExistingOutput, false, treatEmptyAsMissing,
-                                       log);
+    return builder(log).setVerbose(verbose).setOverWriteExistingOutput(overWriteExistingOutput)
+                       .setTreatEmptyAsMissing(treatEmptyAsMissing).build()
+                       .run(Command.builder(commandList).necessaryInputFiles(necessaryInputFiles)
+                                   .expectedOutputFiles(expectedOutputFiles).dir(dir).build());
   }
 
   /**
@@ -405,16 +570,23 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
    */
+  @Deprecated
   public static boolean runCommandWithFileChecks(List<String> commandList, String dir,
                                                  Collection<String> necessaryInputFiles,
                                                  Collection<String> expectedOutputFiles,
                                                  boolean verbose, boolean overWriteExistingOutput,
                                                  boolean skipReporting, boolean treatEmptyAsMissing,
                                                  Logger log) {
-    return new Command(commandList, necessaryInputFiles, expectedOutputFiles,
-                       dir).runCommand(verbose, overWriteExistingOutput, skipReporting,
-                                       treatEmptyAsMissing, log);
+    return builder(log).setVerbose(verbose).setOverWriteExistingOutput(overWriteExistingOutput)
+                       .setSkipReporting(skipReporting).setTreatEmptyAsMissing(treatEmptyAsMissing)
+                       .build()
+                       .run(Command.builder(commandList).necessaryInputFiles(necessaryInputFiles)
+                                   .expectedOutputFiles(expectedOutputFiles).dir(dir).build());
   }
 
   public static boolean runDefaults(String command, String dir) {
