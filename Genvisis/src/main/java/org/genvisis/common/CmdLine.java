@@ -19,14 +19,17 @@ public class CmdLine {
     private boolean overWriteExistingOutput = false;
     private boolean skipReporting = false;
     private boolean treatEmptyAsMissing = false;
-    private final Logger log;
+    private boolean ignoreIllegalStateExceptions = false;
+    private PrintStream inOS = null;
+    private PrintStream errOS = null;
+    private Logger log;
 
     public Builder(Logger log) {
       this.log = log;
     }
 
     public CmdLine build() {
-      return new CmdLine(verbose, overWriteExistingOutput, skipReporting, treatEmptyAsMissing, log);
+      return new CmdLine(this);
     }
 
     public Builder verbose() {
@@ -49,23 +52,43 @@ public class CmdLine {
       return this;
     }
 
-    public Builder setVerbose(boolean verbose) {
+    public Builder inOS(PrintStream inOS) {
+      this.inOS = inOS;
+      return this;
+    }
+
+    public Builder errOS(PrintStream errOS) {
+      this.errOS = errOS;
+      return this;
+    }
+
+    public Builder ignoreIllegalStateExceptions() {
+      ignoreIllegalStateExceptions = true;
+      return this;
+    }
+
+    private Builder setVerbose(boolean verbose) {
       this.verbose = verbose;
       return this;
     }
 
-    public Builder setOverWriteExistingOutput(boolean overWriteExistingOutput) {
+    private Builder setOverWriteExistingOutput(boolean overWriteExistingOutput) {
       this.overWriteExistingOutput = overWriteExistingOutput;
       return this;
     }
 
-    public Builder setSkipReporting(boolean skipReporting) {
+    private Builder setSkipReporting(boolean skipReporting) {
       this.skipReporting = skipReporting;
       return this;
     }
 
-    public Builder setTreatEmptyAsMissing(boolean treatEmptyAsMissing) {
+    private Builder setTreatEmptyAsMissing(boolean treatEmptyAsMissing) {
       this.treatEmptyAsMissing = treatEmptyAsMissing;
+      return this;
+    }
+
+    private Builder setIgnoreIllegalStateExceptions(boolean ignoreIllegalStateExceptions) {
+      this.ignoreIllegalStateExceptions = ignoreIllegalStateExceptions;
       return this;
     }
 
@@ -75,16 +98,21 @@ public class CmdLine {
   private final boolean overWriteExistingOutput;
   private final boolean skipReporting;
   private final boolean treatEmptyAsMissing;
+  private final PrintStream inOS;
+  private final PrintStream errOS;
+  private final boolean ignoreIllegalStateExceptions;
   private final Logger log;
 
-  private CmdLine(boolean verbose, boolean overWriteExistingOutput, boolean skipReporting,
-                  boolean treatEmptyAsMissing, Logger log) {
+  private CmdLine(Builder builder) {
     super();
-    this.verbose = verbose;
-    this.overWriteExistingOutput = overWriteExistingOutput;
-    this.skipReporting = skipReporting;
-    this.treatEmptyAsMissing = treatEmptyAsMissing;
-    this.log = log;
+    verbose = builder.verbose;
+    overWriteExistingOutput = builder.overWriteExistingOutput;
+    skipReporting = builder.skipReporting;
+    treatEmptyAsMissing = builder.treatEmptyAsMissing;
+    ignoreIllegalStateExceptions = builder.ignoreIllegalStateExceptions;
+    inOS = builder.inOS;
+    errOS = builder.errOS;
+    log = builder.log;
   }
 
   public boolean run(Command command) {
@@ -98,8 +126,7 @@ public class CmdLine {
           log.report(ext.getTime() + " Info - running command "
                      + ArrayUtils.toStr(command.getElements(), " "));
         }
-        if (run(command.getElements(), command.getDir(), null, null, (skipReporting ? null : log),
-                false)) {
+        if (runCommand(command)) {
           if (command.getExpectedOutputFiles() != null
               && !Files.exists(command.getDir(), command.getExpectedOutputFiles(),
                                treatEmptyAsMissing)) {
@@ -133,84 +160,8 @@ public class CmdLine {
     return success;
   }
 
-  public static Builder builder(Logger log) {
-    return new Builder(log);
-  }
+  private boolean runCommand(Command command) {
 
-  public static String getCmdLocation(String commmand) {
-    Map<String, String> env = System.getenv();
-    for (String envName : env.keySet()) {
-      System.out.format("%s=%s%n", envName, env.get(envName));
-    }
-
-    if (env.containsKey(commmand)) {
-      return env.get(commmand);
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * @param batFile where the the command will be written
-   * @param verbose report the command written to the batFile
-   * @param log
-   * @param commands an array representing the command to run
-   * @return String[] of the batFile
-   */
-
-  public static String[] prepareBatchForCommandLine(String batFile, boolean verbose, Logger log,
-                                                    String... commands) {
-    if (verbose) {
-      log.report(ext.getTime() + " Info - running command " + ArrayUtils.toStr(commands, " ")
-                 + "\nUsing file " + batFile);
-    }
-    Files.write(ArrayUtils.toStr(commands, " "), batFile);
-    Files.chmod(batFile);
-    return new String[] {batFile};
-  }
-
-  public static boolean run(String command, String dir) {
-    return run(command, dir, null);
-  }
-
-  public static boolean run(String command, String dir, PrintStream os) {
-    return run(command, dir, os, false);
-  }
-
-  public static boolean run(String command, String dir, PrintStream os,
-                            boolean ignoreIllegalStateExceptions) {
-    return run(command, dir, os, os, new Logger(), ignoreIllegalStateExceptions);
-  }
-
-  public static boolean run(Collection<String> commands, String dir, PrintStream inOs,
-                            PrintStream errOS, Logger log, boolean ignoreIllegalStateExceptions) {
-    return run(commands.toArray(new String[commands.size()]), dir, inOs, errOS, log,
-               ignoreIllegalStateExceptions);
-  }
-
-  public static boolean run(String command, String dir, PrintStream inOs, PrintStream errOS,
-                            Logger log, boolean ignoreIllegalStateExceptions) {
-    // StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
-    // String[] cmdarray = new String[st.countTokens()];
-    // for (int i = 0; st.hasMoreTokens(); i++) {
-    // cmdarray[i] = st.nextToken();
-    // }
-    String regex = "[\"\']([^\"\']*)[\"\']|(\\S+)";
-    Matcher m = Pattern.compile(regex).matcher(command);
-    ArrayList<String> cmdList = new ArrayList<String>();
-    while (m.find()) {
-      if (m.group(1) != null) {
-        cmdList.add(m.group(1));
-      } else {
-        cmdList.add(m.group(2));
-      }
-    }
-    String[] cmdarray = cmdList.toArray(new String[cmdList.size()]);
-    return run(cmdarray, dir, inOs, errOS, log, ignoreIllegalStateExceptions);
-  }
-
-  public static boolean run(String[] commandArray, String dir, PrintStream inOs, PrintStream errOS,
-                            Logger log, boolean ignoreIllegalStateExceptions) {
     Process proc;
     InputStream in, err;
     // PrintWriter writer;
@@ -219,13 +170,13 @@ public class CmdLine {
     String charSet = "UTF-8";
 
     noError = true;
-
+    String dir = command.getDir();
     if (dir.equals("")) {
       dir = "./";
     }
-
-    for (String command : commandArray) {
-      if (command.contains(">") || command.contains("|")) {
+    String[] commandArray = command.getElements();
+    for (String element : commandArray) {
+      if (element.contains(">") || element.contains("|")) {
         if (Files.isWindows()) {
           log.reportError("FYI - the Runtime.exec command will likely not work, since it contains a pipe or redirect, write command to a file and exec that instead");
           break;
@@ -257,10 +208,10 @@ public class CmdLine {
             while (in.available() > 0) {
               b = new byte[in.available()];
               in.read(b);
-              if (inOs != null) {
-                inOs.print(new String(b, charSet));
+              if (inOS != null) {
+                inOS.print(new String(b, charSet));
               }
-              if (log != null) {
+              if (!skipReporting) {
                 log.report(new String(b, charSet), false, true);
               } /*
                  * else { }
@@ -273,7 +224,7 @@ public class CmdLine {
               if (errOS != null) {
                 errOS.print(new String(b, charSet));
               }
-              if (log != null) {
+              if (!skipReporting) {
                 log.report(new String(b, charSet), false, true);
               } /*
                  * else else { }
@@ -314,6 +265,126 @@ public class CmdLine {
     }
 
     return noError;
+
+  }
+
+  public static Builder builder(Logger log) {
+    return new Builder(log);
+  }
+
+  public static String getCmdLocation(String commmand) {
+    Map<String, String> env = System.getenv();
+    for (String envName : env.keySet()) {
+      System.out.format("%s=%s%n", envName, env.get(envName));
+    }
+
+    if (env.containsKey(commmand)) {
+      return env.get(commmand);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * @param batFile where the the command will be written
+   * @param verbose report the command written to the batFile
+   * @param log
+   * @param commands an array representing the command to run
+   * @return String[] of the batFile
+   */
+
+  public static String[] prepareBatchForCommandLine(String batFile, boolean verbose, Logger log,
+                                                    String... commands) {
+    if (verbose) {
+      log.report(ext.getTime() + " Info - running command " + ArrayUtils.toStr(commands, " ")
+                 + "\nUsing file " + batFile);
+    }
+    Files.write(ArrayUtils.toStr(commands, " "), batFile);
+    Files.chmod(batFile);
+    return new String[] {batFile};
+  }
+
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
+  public static boolean run(String command, String dir) {
+    return run(command, dir, null);
+  }
+
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
+  public static boolean run(String command, String dir, PrintStream os) {
+    return run(command, dir, os, false);
+  }
+
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
+  public static boolean run(String command, String dir, PrintStream os,
+                            boolean ignoreIllegalStateExceptions) {
+    return run(command, dir, os, os, new Logger(), ignoreIllegalStateExceptions);
+  }
+
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
+  public static boolean run(Collection<String> commands, String dir, PrintStream inOs,
+                            PrintStream errOS, Logger log, boolean ignoreIllegalStateExceptions) {
+    return run(commands.toArray(new String[commands.size()]), dir, inOs, errOS, log,
+               ignoreIllegalStateExceptions);
+  }
+
+  public static boolean run(String command, String dir, PrintStream inOs, PrintStream errOS,
+                            Logger log, boolean ignoreIllegalStateExceptions) {
+    // StringTokenizer st = new StringTokenizer(command, " \t\n\r\f");
+    // String[] cmdarray = new String[st.countTokens()];
+    // for (int i = 0; st.hasMoreTokens(); i++) {
+    // cmdarray[i] = st.nextToken();
+    // }
+    String regex = "[\"\']([^\"\']*)[\"\']|(\\S+)";
+    Matcher m = Pattern.compile(regex).matcher(command);
+    ArrayList<String> cmdList = new ArrayList<String>();
+    while (m.find()) {
+      if (m.group(1) != null) {
+        cmdList.add(m.group(1));
+      } else {
+        cmdList.add(m.group(2));
+      }
+    }
+    String[] cmdarray = cmdList.toArray(new String[cmdList.size()]);
+    return run(cmdarray, dir, inOs, errOS, log, ignoreIllegalStateExceptions);
+  }
+
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
+  public static boolean run(String[] commandArray, String dir, PrintStream inOS, PrintStream errOS,
+                            Logger log, boolean ignoreIllegalStateExceptions) {
+    return builder(log == null ? new Logger()
+                               : log).inOS(inOS).errOS(errOS)
+                                     .setIgnoreIllegalStateExceptions(ignoreIllegalStateExceptions)
+                                     .build().run(Command.builder(commandArray).dir(dir).build());
   }
 
   /**
@@ -451,18 +522,46 @@ public class CmdLine {
                                    .expectedOutputFiles(expectedOutputFiles).dir(dir).build());
   }
 
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
   public static boolean runDefaults(String command, String dir) {
     return run(command, dir, System.out, System.err, null, false);
   }
 
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
   public static boolean runDefaults(String command, String dir, Logger log) {
     return run(command, dir, System.out, System.err, log, false);
   }
 
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
   public static boolean runDefaults(Collection<String> command, String dir) {
     return run(command, dir, System.out, System.err, null, false);
   }
 
+  /**
+   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
+   *             instead. This reduces the possibility for mistakes with repeated args of the same
+   *             type and makes for readable code
+   */
+  @Deprecated
   public static boolean runDefaults(Collection<String> command, String dir, Logger log) {
     return run(command, dir, System.out, System.err, log, false);
   }
