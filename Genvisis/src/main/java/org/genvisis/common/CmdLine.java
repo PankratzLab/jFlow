@@ -192,6 +192,28 @@ public class CmdLine {
     }
 
     /**
+     * A simple {@link Command} that does not include any settings other than the elements of the
+     * command to run
+     * 
+     * @param elements
+     * @return
+     */
+    public static Command basic(List<String> elements) {
+      return new Builder(elements).build();
+    }
+
+    /**
+     * A simple {@link Command} that does not include any settings other than the elements of the
+     * command to run
+     * 
+     * @param elements
+     * @return
+     */
+    public static Command basic(String... elements) {
+      return new Builder(elements).build();
+    }
+
+    /**
      * A convenience for {@link Builder#Builder(List)}
      * 
      * @param elements the elements, spaces will be inserted between each element
