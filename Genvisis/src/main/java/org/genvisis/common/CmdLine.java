@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.genvisis.common.CmdLine.Command;
 import com.google.common.collect.ImmutableList;
 
 public class CmdLine {
@@ -78,23 +79,23 @@ public class CmdLine {
 
     public static class Builder {
 
-      private final List<String> commandList;
+      private final String[] elements;
       private Collection<String> necessaryInputFiles = ImmutableList.of();
       private Collection<String> expectedOutputFiles = ImmutableList.of();
       private String dir = "";
 
       /**
-       * @param commandList the commands, spaces will be inserted between each element
+       * @param elements the elements, spaces will be inserted between each element
        */
-      public Builder(List<String> commandList) {
-        this.commandList = Collections.unmodifiableList(commandList);
+      public Builder(List<String> elements) {
+        this.elements = elements.toArray(new String[elements.size()]);
       }
 
       /**
-       * @param commands the commands, spaces will be inserted between each element
+       * @param elements the elements, spaces will be inserted between each element
        */
-      public Builder(String... commands) {
-        this(Arrays.asList(commands));
+      public Builder(String... elements) {
+        this.elements = elements;
       }
 
       public Command build() {
@@ -150,23 +151,23 @@ public class CmdLine {
 
     }
 
-    private final List<String> commandList;
+    private final String[] elements;
     private final Collection<String> necessaryInputFiles;
     private final Collection<String> expectedOutputFiles;
     private final String dir;
 
     private Command(Builder builder) {
-      this.commandList = builder.commandList;
+      this.elements = builder.elements;
       this.necessaryInputFiles = builder.necessaryInputFiles;
       this.expectedOutputFiles = builder.expectedOutputFiles;
       this.dir = builder.dir;
     }
 
     /**
-     * @return the commandList
+     * @return the elements
      */
-    public List<String> getCommandList() {
-      return commandList;
+    public String[] getElements() {
+      return elements;
     }
 
     /**
@@ -193,19 +194,19 @@ public class CmdLine {
     /**
      * A convenience for {@link Builder#Builder(List)}
      * 
-     * @param commandList the commands, spaces will be inserted between each element
+     * @param elements the elements, spaces will be inserted between each element
      */
-    public static Builder builder(List<String> commandList) {
-      return new Builder(commandList);
+    public static Builder builder(List<String> elements) {
+      return new Builder(elements);
     }
 
     /**
      * A convenience for {@link Builder#Builder(String...)}
      * 
-     * @param commands the commands, spaces will be inserted between each element
+     * @param elements the elements, spaces will be inserted between each element
      */
-    public static Builder builder(String... commands) {
-      return new Builder(commands);
+    public static Builder builder(String... elements) {
+      return new Builder(elements);
     }
 
   }
@@ -234,27 +235,26 @@ public class CmdLine {
           || Files.exists(command.dir, command.getNecessaryInputFiles(), treatEmptyAsMissing)) {
         if (verbose) {
           log.report(ext.getTime() + " Info - running command "
-                     + IterableUtils.toStr(command.getCommandList(), " "));
+                     + ArrayUtils.toStr(command.getElements(), " "));
         }
-        if (run(command.getCommandList(), command.dir, null, null, (skipReporting ? null : log),
+        if (run(command.getElements(), command.dir, null, null, (skipReporting ? null : log),
                 false)) {
           if (command.expectedOutputFiles != null
               && !Files.exists(command.dir, command.expectedOutputFiles, treatEmptyAsMissing)) {
-            log.reportError("Error - the command "
-                            + IterableUtils.toStr(command.getCommandList(), " ")
+            log.reportError("Error - the command " + ArrayUtils.toStr(command.getElements(), " ")
                             + " appeared to run, but could not find all necessary output files in "
                             + command.dir + ":"
                             + IterableUtils.toStr(command.expectedOutputFiles, "\n"));
           } else {
             if (verbose) {
               log.report(ext.getTime() + " Info - finished running command "
-                         + IterableUtils.toStr(command.getCommandList(), " "));
+                         + ArrayUtils.toStr(command.getElements(), " "));
             }
             success = true;
           }
         } else {
-          log.reportError("Error - the command "
-                          + IterableUtils.toStr(command.getCommandList(), " ") + " has failed");
+          log.reportError("Error - the command " + ArrayUtils.toStr(command.getElements(), " ")
+                          + " has failed");
         }
       } else {
         log.reportError("Error - could not find all necessary input files in " + command.dir + ":\n"
@@ -264,7 +264,7 @@ public class CmdLine {
       if (verbose) {
         log.report(ext.getTime()
                    + " Info - all of the expected output files exist and the overwrite option was not flagged, skipping:");
-        log.report("COMMAND SKIPPED: " + IterableUtils.toStr(command.getCommandList(), " "));
+        log.report("COMMAND SKIPPED: " + ArrayUtils.toStr(command.getElements(), " "));
       }
       success = true;
     }
