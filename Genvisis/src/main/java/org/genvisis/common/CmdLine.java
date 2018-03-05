@@ -354,6 +354,14 @@ public class CmdLine {
   }
 
   /**
+   * @param log
+   * @return a basic {@link CmdLine} that doesn't override any of the default settings
+   */
+  public static CmdLine basic(Logger log) {
+    return new Builder(log).build();
+  }
+
+  /**
    * A convenience for {@link Builder#Builder(Logger)}
    * 
    * @param log
