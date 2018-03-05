@@ -390,7 +390,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -401,7 +401,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -412,7 +412,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -424,7 +424,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -458,7 +458,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -488,7 +488,7 @@ public class CmdLine {
    *          probability of reduced performance and strange output if always used
    * @param log
    * @return
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -521,7 +521,7 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -554,7 +554,7 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return true on success, false on failure
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -588,7 +588,7 @@ public class CmdLine {
    *          used as placeholders, set to false
    * @param log
    * @return
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -608,7 +608,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -619,7 +619,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -630,7 +630,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code
@@ -641,7 +641,7 @@ public class CmdLine {
   }
 
   /**
-   * @deprecated Build a {@link CmdLine} using {@link CmdLine.Builder} and a {@link Command} using
+   * @deprecated Build a {@link CmdLine} using {@link Builder} and a {@link Command} using
    *             {@link Command.Builder} and then call {@link #run(Command)} on the {@link CmdLine}
    *             instead. This reduces the possibility for mistakes with repeated args of the same
    *             type and makes for readable code

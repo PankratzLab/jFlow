@@ -38,7 +38,7 @@ public class Command {
      *          exist prior to running
      * @return this {@link Builder}
      */
-    public Command.Builder necessaryInputFiles(Collection<String> necessaryInputFiles) {
+    public Builder necessaryInputFiles(Collection<String> necessaryInputFiles) {
       this.necessaryInputFiles = Collections.unmodifiableCollection(necessaryInputFiles);
       return this;
     }
@@ -48,7 +48,7 @@ public class Command {
      *          exist after running
      * @return this {@link Builder}
      */
-    public Command.Builder expectedOutputFiles(Collection<String> expectedOutputFiles) {
+    public Builder expectedOutputFiles(Collection<String> expectedOutputFiles) {
       this.expectedOutputFiles = Collections.unmodifiableCollection(expectedOutputFiles);
       return this;
     }
@@ -58,7 +58,7 @@ public class Command {
      *          exist prior to running
      * @return this {@link Builder}
      */
-    public Command.Builder necessaryInputFiles(String... necessaryInputFiles) {
+    public Builder necessaryInputFiles(String... necessaryInputFiles) {
       return necessaryInputFiles(Arrays.asList(necessaryInputFiles));
     }
 
@@ -67,7 +67,7 @@ public class Command {
      *          exist after running
      * @return this {@link Builder}
      */
-    public Command.Builder expectedOutputFiles(String... expectedOutputFiles) {
+    public Builder expectedOutputFiles(String... expectedOutputFiles) {
       return expectedOutputFiles(Arrays.asList(expectedOutputFiles));
     }
 
@@ -75,7 +75,7 @@ public class Command {
      * @param dir directory to run {@code Command} in
      * @return this {@link Builder}
      */
-    public Command.Builder dir(String dir) {
+    public Builder dir(String dir) {
       this.dir = dir;
       return this;
     }
@@ -87,7 +87,7 @@ public class Command {
   private final Collection<String> expectedOutputFiles;
   private final String dir;
 
-  private Command(Command.Builder builder) {
+  private Command(Builder builder) {
     this.elements = builder.elements;
     this.necessaryInputFiles = builder.necessaryInputFiles;
     this.expectedOutputFiles = builder.expectedOutputFiles;
@@ -149,7 +149,7 @@ public class Command {
    * 
    * @param elements the elements, spaces will be inserted between each element
    */
-  public static Command.Builder builder(List<String> elements) {
+  public static Builder builder(List<String> elements) {
     return new Builder(elements);
   }
 
@@ -158,7 +158,7 @@ public class Command {
    * 
    * @param elements the elements, spaces will be inserted between each element
    */
-  public static Command.Builder builder(String... elements) {
+  public static Builder builder(String... elements) {
     return new Builder(elements);
   }
 
