@@ -376,8 +376,10 @@ public class CmdLine {
    * @param log
    * @param commands an array representing the command to run
    * @return String[] of the batFile
+   * @deprecated Build a {@link Command} using {@link Command.Builder} including a call to
+   *             {@link Command.Builder#batch(String, Logger)} to build and run a batch file
    */
-
+  @Deprecated
   public static String[] prepareBatchForCommandLine(String batFile, boolean verbose, Logger log,
                                                     String... commands) {
     if (verbose) {

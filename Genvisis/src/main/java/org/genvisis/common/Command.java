@@ -4,13 +4,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
 public class Command {
 
   public static class Builder {
 
-    private final String[] elements;
+    private String[] elements;
     private Collection<String> necessaryInputFiles = ImmutableList.of();
     private Collection<String> expectedOutputFiles = ImmutableList.of();
     private String dir = "";
@@ -77,6 +78,32 @@ public class Command {
      */
     public Builder dir(String dir) {
       this.dir = dir;
+      return this;
+    }
+
+    /**
+     * Runs {@link #batch(String, Logger)} without logging
+     */
+    public Builder batch(String batFile) {
+      return batch(batFile, null);
+    }
+
+    /**
+     * Setup a batch file to run instead of running the command directly
+     * 
+     * @param batFile where the the command will be written
+     * @param log {@link Logger} to log actual command run, null to not log
+     * @return this {@link Builder}
+     */
+    public Builder batch(String batFile, Logger log) {
+      String commandText = Joiner.on(' ').join(elements);
+      if (log != null) {
+        log.report(ext.getTime() + " Info - running command " + commandText + "\nUsing file "
+                   + batFile);
+      }
+      Files.write(commandText, batFile);
+      Files.chmod(batFile);
+      elements = new String[] {batFile};
       return this;
     }
 
