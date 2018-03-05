@@ -95,28 +95,28 @@ public class Command {
   }
 
   /**
-   * @return the elements
+   * @return the elements of the command
    */
   public String[] getElements() {
     return elements;
   }
 
   /**
-   * @return the necessaryInputFiles
+   * @return the necessary input files required to run the {@link Command}
    */
   public Collection<String> getNecessaryInputFiles() {
     return necessaryInputFiles;
   }
 
   /**
-   * @return the expectedOutputFiles
+   * @return the expected output files required to indicate success in running the {@link Command}
    */
   public Collection<String> getExpectedOutputFiles() {
     return expectedOutputFiles;
   }
 
   /**
-   * @return the dir
+   * @return the directory to run the {@link Command} in
    */
   public String getDir() {
     return dir;

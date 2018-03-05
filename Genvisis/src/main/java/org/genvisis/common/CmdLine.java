@@ -24,69 +24,148 @@ public class CmdLine {
     private PrintStream errOS = null;
     private Logger log;
 
+    /**
+     * @param log
+     */
     public Builder(Logger log) {
       this.log = log;
     }
 
+    /**
+     * @return a new {@link CmdLine} with the current setup of this {@link Builder}
+     */
     public CmdLine build() {
       return new CmdLine(this);
     }
 
+    /**
+     * Set verbosity to true
+     * 
+     * @return this {@link Builder}
+     */
     public Builder verbose() {
       verbose = true;
       return this;
     }
 
+    /**
+     * Set overWriteExistingOutput to true, {@link Command}s will be run even if their
+     * {@link Command#getExpectedOutputFiles()} already exist
+     * 
+     * @return this {@link Builder}
+     */
     public Builder overWriteExistingOutput() {
       overWriteExistingOutput = true;
       return this;
     }
 
+    /**
+     * Set skipReporting to true, the output from {@link Command}s will not be logged
+     * 
+     * @return this {@link Builder}
+     */
     public Builder skipReporting() {
       skipReporting = true;
       return this;
     }
 
+    /**
+     * Set treatEmptyAsMissing to true, empty files will be treated as missing when resolving
+     * {@link Command#getNecessaryInputFiles()} and {@link Command#getExpectedOutputFiles()}
+     * 
+     * @return this {@link Builder}
+     */
     public Builder treatEmptyAsMissing() {
       treatEmptyAsMissing = true;
       return this;
     }
 
+    /**
+     * Send the stin stream to inOS
+     * 
+     * @param inOS
+     * @return this {@link Builder}
+     */
     public Builder inOS(PrintStream inOS) {
       this.inOS = inOS;
       return this;
     }
 
+    /**
+     * Send the sterr stream to errOS
+     * 
+     * @param errOS
+     * @return this {@link Builder}
+     */
     public Builder errOS(PrintStream errOS) {
       this.errOS = errOS;
       return this;
     }
 
+    /**
+     * Set ignoreIllegalStateExceptions to true, {@link IllegalStateException}s will be caught and
+     * not re-thrown
+     * 
+     * @return this {@link Builder}
+     */
     public Builder ignoreIllegalStateExceptions() {
       ignoreIllegalStateExceptions = true;
       return this;
     }
 
+    /**
+     * Set verbosity
+     * 
+     * @param verbose new setting for verbosity
+     * @return this {@link Builder}
+     */
     private Builder setVerbose(boolean verbose) {
       this.verbose = verbose;
       return this;
     }
 
+    /**
+     * Set overWriteExistingOutput, when true {@link Command}s will be run even if their
+     * {@link Command#getExpectedOutputFiles()} already exist
+     * 
+     * @param overWriteExistingOutput new setting for overWriteExistingOutput
+     * @return this {@link Builder}
+     */
     private Builder setOverWriteExistingOutput(boolean overWriteExistingOutput) {
       this.overWriteExistingOutput = overWriteExistingOutput;
       return this;
     }
 
+    /**
+     * Set skipReporting, when true the output from {@link Command}s will not be logged
+     * 
+     * @param skipReporting new value for skipReporting
+     * @return this {@link Builder}
+     */
     private Builder setSkipReporting(boolean skipReporting) {
       this.skipReporting = skipReporting;
       return this;
     }
 
+    /**
+     * Set treatEmptyAsMissing, when true empty files will be treated as missing when resolving
+     * {@link Command#getNecessaryInputFiles()} and {@link Command#getExpectedOutputFiles()}
+     * 
+     * @param treatEmptyAsMissing new value for treatEmptyAsMissing
+     * @return this {@link Builder}
+     */
     private Builder setTreatEmptyAsMissing(boolean treatEmptyAsMissing) {
       this.treatEmptyAsMissing = treatEmptyAsMissing;
       return this;
     }
 
+    /**
+     * Set ignoreIllegalStateExceptions, when true {@link IllegalStateException}s will be caught and
+     * not re-thrown
+     * 
+     * @param ignoreIllegalStateExceptions new value for ignoreIllegalStateExceptions
+     * @return this {@link Builder}
+     */
     private Builder setIgnoreIllegalStateExceptions(boolean ignoreIllegalStateExceptions) {
       this.ignoreIllegalStateExceptions = ignoreIllegalStateExceptions;
       return this;
@@ -115,6 +194,12 @@ public class CmdLine {
     log = builder.log;
   }
 
+  /**
+   * Run the specified {@link Command}
+   * 
+   * @param command The {@link Command} to run
+   * @return true on success, false on failure
+   */
   public boolean run(Command command) {
     boolean success = false;
     if (overWriteExistingOutput || command.getExpectedOutputFiles() == null
@@ -268,6 +353,12 @@ public class CmdLine {
 
   }
 
+  /**
+   * A convenience for {@link Builder#Builder(Logger)}
+   * 
+   * @param log
+   * @return a {@link Builder} to build a new {@link CmdLine}
+   */
   public static Builder builder(Logger log) {
     return new Builder(log);
   }
