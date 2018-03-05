@@ -54,8 +54,8 @@ public class SRAUtils {
       command.add(">");
       command.add(outputBam);
 
-      String[] bat = CmdLine.prepareBatchForCommandLine(outputBam + ".bat",
-                                                        true, log, ArrayUtils.toStringArray(command));
+      String[] bat = CmdLine.prepareBatchForCommandLine(outputBam + ".bat", true, log,
+                                                        ArrayUtils.toStringArray(command));
       return CmdLine.runCommandWithFileChecks(bat, "", inputs, outputs, true, false, false, false,
                                               log);
     }
