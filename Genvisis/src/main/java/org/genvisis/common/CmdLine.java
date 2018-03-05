@@ -249,7 +249,6 @@ public class CmdLine {
 
     Process proc;
     InputStream in, err;
-    // PrintWriter writer;
     boolean finish;
     boolean noError;
     String charSet = "UTF-8";
@@ -278,11 +277,6 @@ public class CmdLine {
 
     try {
       proc = Runtime.getRuntime().exec(commandArray, null, new File(dir));
-      // if (logfile != null) {
-      // writer = Files.openAppropriateWriter(dir+logfile);
-      // } else {
-      // writer = null;
-      // }
       in = proc.getInputStream();
       err = proc.getErrorStream();
       finish = false;
@@ -298,9 +292,7 @@ public class CmdLine {
               }
               if (!skipReporting) {
                 log.report(new String(b, charSet), false, true);
-              } /*
-                 * else { }
-                 */
+              }
               b = null;
             }
             while (err.available() > 0) {
@@ -311,9 +303,7 @@ public class CmdLine {
               }
               if (!skipReporting) {
                 log.report(new String(b, charSet), false, true);
-              } /*
-                 * else else { }
-                 */
+              }
               b = null;
             }
           }
@@ -324,15 +314,11 @@ public class CmdLine {
             Thread.sleep(10);
           } catch (InterruptedException e2) {}
           if (ignoreIllegalStateExceptions) {
-            // System.err.println("Ignoring illegal state exception");
             finish = true;
             noError = false;
           }
         }
       }
-      // if (writer != null) {
-      // writer.close();
-      // }
     } catch (IOException ioe) {
       String message;
 
