@@ -23,25 +23,25 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   private final String inputFile;
   private String inputFileDelim;
 
-  private int skippedLines = 0;
-  private Set<String> skipPrefices;
+  private final int skippedLines;
+  private final Set<String> skipPrefices;
 
-  private boolean failBlank = false;
-  private boolean failCount = true;
+  private final boolean failBlank;
+  private final boolean failCount;
 
-  private List<ColumnFilter> filters;
-  private Map<ColumnFilter, Boolean> filterDeath;
+  private final List<ColumnFilter> filters;
+  private final Map<ColumnFilter, Boolean> filterDeath;
 
-  private boolean noHeader = false;
-  private boolean trimInput = true;
+  private final boolean noHeader;
+  private final boolean trimInput;
 
-  private String parseFailValue = ".";
+  private final String parseFailValue;
 
-  private ImmutableSet<FileLink> linkedParsers;
-  private Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
-  protected ImmutableSet<FileColumn<?>> dataInOrder;
-  protected ImmutableSet<FileColumn<?>> addlDataToLoad;
-  protected ImmutableSet<FileColumn<?>> optlDataToLoad;
+  private final ImmutableSet<FileLink> linkedParsers;
+  private final Map<FileLink, Map<FileColumn<?>, FileColumn<?>>> linkedFileColumns;
+  protected final ImmutableSet<FileColumn<?>> dataInOrder;
+  protected final ImmutableSet<FileColumn<?>> addlDataToLoad;
+  protected final ImmutableSet<FileColumn<?>> optlDataToLoad;
   private ImmutableSet<FileColumn<?>> optlDataFound;
 
   private BufferedReader reader;
@@ -60,18 +60,26 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   FileParser(AbstractFileParserFactory factory) throws IOException {
     this.inputFile = factory.inputFile;
     this.inputFileDelim = factory.inputFileDelim;
-    skipPrefices = new ImmutableSet.Builder<String>().addAll(factory.skipPrefices).build();
-    filters = new ImmutableList.Builder<ColumnFilter>().addAll(factory.filters).build();
-    filterDeath = new ImmutableMap.Builder<ColumnFilter, Boolean>().putAll(factory.filterDeath)
-                                                                   .build();
-    linkedParsers = new ImmutableSet.Builder<FileLink>().addAll(factory.linkedParsers).build();
-    dataInOrder = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.dataInOrder).build();
-    addlDataToLoad = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.addlDataToLoad)
-                                                              .build();
-    optlDataToLoad = new ImmutableSet.Builder<FileColumn<?>>().addAll(factory.optlDataToLoad)
-                                                              .build();
-    linkedFileColumns = new ImmutableMap.Builder<FileLink, Map<FileColumn<?>, FileColumn<?>>>().putAll(factory.linkedFileColumns)
-                                                                                               .build();
+
+    this.skippedLines = factory.skippedLines;
+    skipPrefices = ImmutableSet.copyOf(factory.skipPrefices);
+
+    this.failBlank = factory.failBlank;
+    this.failCount = factory.failCount;
+
+    filters = ImmutableList.copyOf(factory.filters);
+    filterDeath = ImmutableMap.copyOf(factory.filterDeath);
+
+    this.noHeader = factory.noHeader;
+    this.trimInput = factory.trimInput;
+
+    this.parseFailValue = factory.parseFailValue;
+
+    linkedParsers = ImmutableSet.copyOf(factory.linkedParsers);
+    linkedFileColumns = ImmutableMap.copyOf(factory.linkedFileColumns);
+    dataInOrder = ImmutableSet.copyOf(factory.dataInOrder);
+    addlDataToLoad = ImmutableSet.copyOf(factory.addlDataToLoad);
+    optlDataToLoad = ImmutableSet.copyOf(factory.optlDataToLoad);
     open();
   }
 
