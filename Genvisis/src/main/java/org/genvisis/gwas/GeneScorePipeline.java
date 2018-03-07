@@ -41,6 +41,7 @@ import org.genvisis.gwas.parsing.ParseFailureException;
 import org.genvisis.gwas.parsing.StandardFileColumns;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.AlleleOrder;
+import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.genvisis.stats.Maths.COMPARISON;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
@@ -71,10 +72,10 @@ public class GeneScorePipeline {
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
   private static final String DATA_SOURCE_FILENAME = "data.txt";
 
-  private static final FileColumn<String> MARKER_COL = StandardFileColumns.snp("Marker");
-  private static final FileColumn<String> EFFECT_ALLELE_COL = StandardFileColumns.a1("EffectAllele");
-  private static final FileColumn<String> NON_EFFECT_ALLELE_COL = StandardFileColumns.a2("NonEffectAllele");
-  private static final FileColumn<Double> BETA_COL = StandardFileColumns.beta("beta");
+  private static final String MARKER_COL_NAME = "Marker";
+  private static final String EFFECT_ALLELE_COL_NAME = "EffectAllele";
+  private static final String NON_EFFECT_ALLELE_COL_NAME = "NonEffectAllele";
+  private static final String BETA_COL_NAME = "beta";
 
   private static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
                                              Aliases.EFFECTS};
@@ -205,7 +206,8 @@ public class GeneScorePipeline {
                                                        log);
       if (dataSources.size() == 0) {
         // error
-        log.reportError("Error - no data sources loaded from file: " + dataSource);
+        log.reportError("Error - no data sources loaded from file: " + dataSource + "; expected "
+                        + markerLocations.length);
       } else {
         log.reportTime("Loading data file " + dataSources.get(0).dataFile);
         DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
@@ -1062,17 +1064,17 @@ public class GeneScorePipeline {
         for (int i = 0; i < mkrNames.length; i++) {
           String a1 = (alleles[i][0]).toUpperCase();
           String a2 = (alleles[i][1]).toUpperCase();
-          if (Sequence.validAllele(a1) && Sequence.validAllele(a2) // TODO validAllele requires a
-                                                                  // 1 character allele
-              && !a1.equals(Sequence.flip(a2))) {
+          boolean validAlleles = (a1.length() > 1 || a2.length() > 1)
+                                 || (Sequence.validBase(a1) && Sequence.validBase(a2));
+          if (validAlleles && !a1.equals(Sequence.flip(a2))) {
             mkrsBim.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
           } else {
             cntAmbig++;
           }
         }
 
-        log.report(ext.getTime() + "]\tFound " + cntAmbig
-                   + " ambiguous markers (will be excluded)");
+        log.report(ext.getTime() + "]\tFound " + cntAmbig + " ambiguous markers out of "
+                   + mkrNames.length + " (will be excluded)");
 
         final String outDelim = "\t";
 
@@ -1081,7 +1083,18 @@ public class GeneScorePipeline {
 
           @Override
           public Byte getValue(String[] line) throws ParseFailureException {
-            return mkrsBim.get(markerCol.getValue(line)).getChr();
+            String mkr = markerCol.getValue(line);
+            if (mkr == null) {
+              System.err.println("Error - couldn't identify marker in line: "
+                                 + ArrayUtils.toStr(line));
+              return null;
+            }
+            GenomicPosition gp = mkrsBim.get(mkr);
+            if (gp == null) {
+              System.err.println("Error - GenomicPosition not found for marker: " + mkr);
+              return null;
+            }
+            return gp.getChr();
           }
         };
         final FileColumn<Integer> posLinkedColumn = new AbstractFileColumn<Integer>("Position") {
@@ -1185,21 +1198,25 @@ public class GeneScorePipeline {
           hitMrkSet.add(mkr);
         }
 
-        ColumnFilter hitMarkerFilter = new AbstractColumnFilter(MARKER_COL) {
+        final FileColumn<String> markerCol = StandardFileColumns.snp(MARKER_COL_NAME);
+        final FileColumn<?> effectAlleleCol = StandardFileColumns.a1(EFFECT_ALLELE_COL_NAME);
+        final FileColumn<?> nonEffectAlleleCol = StandardFileColumns.a2(NON_EFFECT_ALLELE_COL_NAME);
+        final FileColumn<?> betaCol = StandardFileColumns.beta(BETA_COL_NAME);
+        ColumnFilter hitMarkerFilter = new AbstractColumnFilter(markerCol) {
 
           @Override
           public boolean filter(DataLine values) {
-            return hitMrkSet.contains(values.get(MARKER_COL, null));
+            return hitMrkSet.contains(values.get(markerCol, null));
           }
         };
-        try (FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, MARKER_COL)
-                                                             .optionalColumns(EFFECT_ALLELE_COL,
-                                                                              NON_EFFECT_ALLELE_COL,
-                                                                              BETA_COL)
+        try (FileParser crossFilterParser = FileParserFactory.setup(crossFilterFile, markerCol)
+                                                             .optionalColumns(effectAlleleCol,
+                                                                              nonEffectAlleleCol,
+                                                                              betaCol)
                                                              .filter(hitMarkerFilter).build()) {
           String subsetFile = prefDir + "/subsetData_" + filePrefix.getKey() + ".xln";
           Map<String, HitMarker> dataList = crossFilterParser.parseToFileAndLoad(subsetFile, "\t",
-                                                                                 true, MARKER_COL)
+                                                                                 true, markerCol)
                                                              .entrySet().stream()
                                                              .collect(Collectors.toMap(Map.Entry::getKey,
                                                                                        e -> formHitMarker(e.getValue())));
@@ -1212,9 +1229,11 @@ public class GeneScorePipeline {
   }
 
   private static final HitMarker formHitMarker(DataLine hitMarkerDataLine) {
-    return new HitMarker(hitMarkerDataLine.get(EFFECT_ALLELE_COL, null),
-                         hitMarkerDataLine.get(NON_EFFECT_ALLELE_COL, null),
-                         hitMarkerDataLine.get(BETA_COL, null));
+    return new HitMarker(hitMarkerDataLine.get(StandardFileColumns.a1(EFFECT_ALLELE_COL_NAME),
+                                               "NA"),
+                         hitMarkerDataLine.get(StandardFileColumns.a2(NON_EFFECT_ALLELE_COL_NAME),
+                                               "NA"),
+                         hitMarkerDataLine.get(StandardFileColumns.beta(BETA_COL_NAME), null));
   }
 
   private static final String SCORE_FILE = "score.profile";
@@ -1270,8 +1289,10 @@ public class GeneScorePipeline {
             Joiner alleleJoiner = Joiner.on('/');
             log.reportError("Alleles in study (" + alleleJoiner.join(alleles[m])
                             + ") do not match source alleles ("
-                            + alleleJoiner.join(hitMarker.getEffectAllele(),
-                                                hitMarker.getNonEffectAllele())
+                            + alleleJoiner.join(hitMarker.getEffectAllele() == null ? "NULL"
+                                                                                    : hitMarker.getEffectAllele(),
+                                                hitMarker.getNonEffectAllele() == null ? "NULL"
+                                                                                       : hitMarker.getNonEffectAllele())
                             + ") for " + mkr);
             continue;
           }
@@ -1299,34 +1320,19 @@ public class GeneScorePipeline {
             boolean isNaN = Float.isNaN(dosage);
             HitMarker hitMarker = hitMarkerData.get(mkr);
             float beta = hitMarker.getEffect().floatValue();
+
             AlleleOrder alleleOrder = matchedMarkerAlleleOrders.get(mkr);
-            if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
-              cnt += isNaN ? 0 : 1;
-              cnt2 += isNaN ? 0 : (2.0 - dosage);
-              scoreSum += (2.0 - (isNaN ? matchedMarkerFreqs.get(mkr) : dosage)) * beta;
-            } else if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
+            if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : dosage;
               scoreSum += (isNaN ? matchedMarkerFreqs.get(mkr) : dosage) * beta;
+            } else if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
+              cnt += isNaN ? 0 : 1;
+              cnt2 += isNaN ? 0 : (2.0 - dosage);
+              scoreSum += (2.0 - (isNaN ? matchedMarkerFreqs.get(mkr) : dosage)) * beta;
             } else {
               throw new IllegalStateException("Mismatched alleles were not caught when mapping");
             }
-            // int code = Metal.determineStrandConfig(new String[]{}, new String[]{});
-            // if (code == Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND || code ==
-            // Metal.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND) {
-            // cnt += isNaN ? 0 : 1;
-            // cnt2 += isNaN ? 0 : (2.0 - dosage);
-            // scoreSum += (2.0 - (isNaN ? freqs.get(mkr) : dosage)) * beta;
-            // } else if (code == Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND || code ==
-            // Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND) {
-            // cnt += isNaN ? 0 : 1;
-            // cnt2 += isNaN ? 0 : dosage;
-            // scoreSum += (isNaN ? freqs.get(mkr) : dosage) * beta;
-            // } else {
-            // System.err.println("Error - METAL CODE " + code + " - " + mkr + " == mkrAlleles: {" +
-            // mkrAllele1 + ", " + mkrAllele2 + "}; scoringAlleles: {" + scoringAllele1 + ", " +
-            // scoringAllele2 + "}");
-            // }
           }
 
           double mkrRatio = markers.length / (double) cnt;
@@ -1343,10 +1349,10 @@ public class GeneScorePipeline {
   }
 
   private static StrandOps.AlleleOrder determineAlleleOrder(String[] alleles, HitMarker hitMarker) {
-    return StrandOps.determineStrandConfig(alleles,
-                                           new String[] {hitMarker.getEffectAllele(),
-                                                         hitMarker.getNonEffectAllele()})
-                    .getAlleleOrder();
+    CONFIG config = StrandOps.determineStrandConfig(new String[] {hitMarker.getEffectAllele(),
+                                                                  hitMarker.getNonEffectAllele()},
+                                                    alleles);
+    return config.getAlleleOrder();
   }
 
   // private void runPlink(Study study) {

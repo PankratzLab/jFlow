@@ -382,7 +382,7 @@ public class DosageData implements Serializable {
           }
           index++;
           if (indexA1 != -1) {
-            if (line[indexA1].length() > 1 || !Sequence.validAllele(line[indexA1])) {
+            if (line[indexA1].length() > 1 || !Sequence.validBase(line[indexA1])) {
               if (verbose) {
                 String msg = "Warning - invalid allele ('" + line[indexA1] + "') at marker "
                              + markerNames[i];
@@ -392,7 +392,7 @@ public class DosageData implements Serializable {
             alleles[index][0] = line[indexA1];
           }
           if (indexA2 != -1) {
-            if (line[indexA2].length() > 1 || !Sequence.validAllele(line[indexA2])) {
+            if (line[indexA2].length() > 1 || !Sequence.validBase(line[indexA2])) {
               if (verbose) {
                 String msg = "Warning - invalid allele ('" + line[indexA2] + "') at marker "
                              + markerNames[i];
@@ -1880,7 +1880,7 @@ public class DosageData implements Serializable {
             // gathering alleles if available
             if (fromParameters[6] != -1) {
               if (line[fromParameters[6]].length() > 1
-                  || !Sequence.validAllele(line[fromParameters[6]])) {
+                  || !Sequence.validBase(line[fromParameters[6]])) {
                 log.reportError("Warning - invalid allele ('" + line[fromParameters[6]]
                                 + "') at marker " + markerNames[i]);
               }
@@ -1894,7 +1894,7 @@ public class DosageData implements Serializable {
             // gathering alleles if available
             if (fromParameters[7] != -1) {
               if (line[fromParameters[7]].length() > 1
-                  || !Sequence.validAllele(line[fromParameters[7]])) {
+                  || !Sequence.validBase(line[fromParameters[7]])) {
                 log.reportError("Warning - invalid allele ('" + line[fromParameters[7]]
                                 + "') at marker " + markerNames[i]);
               }

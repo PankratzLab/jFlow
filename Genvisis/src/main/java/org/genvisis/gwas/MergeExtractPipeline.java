@@ -323,7 +323,7 @@ public class MergeExtractPipeline {
               if (markerLocations != null) {
                 for (int[] markerLocation : markerLocations) {
                   if (markerLocation[0] == chr) {
-                    if (bpStart != -1 && bpEnd != -1) {
+                    if (bpStart != -1 && bpEnd != -1 && markerLocation[1] >= 0) {
                       if (bpStart <= markerLocation[1] - bpWindow
                           && bpEnd >= markerLocation[1] + bpWindow) {
                         keep = true;

@@ -15,7 +15,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
-import org.genvisis.seq.manage.StrandOps.Config;
+import org.genvisis.seq.manage.StrandOps.CONFIG;
 
 public class AlleleVerification {
 
@@ -115,7 +115,7 @@ public class AlleleVerification {
         }
 
         // write a method to consider freq that returns the same thing basically
-        Config config = StrandOps.determineStrandConfig(alleles, ref_alleles);
+        CONFIG config = StrandOps.determineStrandConfig(alleles, ref_alleles);
 
         switch (config) {
           case OPPOSITE_ORDER_FLIPPED_STRAND:

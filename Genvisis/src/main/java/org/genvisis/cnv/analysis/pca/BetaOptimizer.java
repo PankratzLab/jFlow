@@ -47,7 +47,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.gwas.windows.BasicHit;
 import org.genvisis.gwas.windows.GeneralHitWindowDetector;
 import org.genvisis.seq.manage.StrandOps;
-import org.genvisis.seq.manage.StrandOps.Config;
+import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.stats.Correlation;
 import org.genvisis.stats.LeastSquares;
@@ -850,7 +850,7 @@ public class BetaOptimizer {
 
   }
 
-  private static boolean useConfig(Config config) {
+  private static boolean useConfig(CONFIG config) {
     switch (config) {
 
       case OPPOSITE_ORDER_FLIPPED_STRAND:
@@ -906,8 +906,8 @@ public class BetaOptimizer {
                                                      line[indices[2]].toUpperCase()};
                 String[] markerAlleles = new String[] {current.getMarkerAlleles()[0],
                                                        current.getMarkerAlleles()[1]};
-                Config strandConfig = StrandOps.determineStrandConfig(markerAlleles, betaAlleles);
-                if (strandConfig == Config.AMBIGUOUS) {
+                CONFIG strandConfig = StrandOps.determineStrandConfig(markerAlleles, betaAlleles);
+                if (strandConfig == CONFIG.AMBIGUOUS) {
                   ambi++;
                 }
                 if (useConfig(strandConfig) && current.isValidMatch()) {
@@ -1031,7 +1031,7 @@ public class BetaOptimizer {
         MarkerRsFormat markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(),
                                                            indices[i], "NA",
                                                            new String[] {"N", "N"}, allelesMarker,
-                                                           Config.UNKNOWN, SITE_TYPE.UNKNOWN);
+                                                           CONFIG.UNKNOWN, SITE_TYPE.UNKNOWN);
 
         if (ArrayUtils.countIf(allelesMarker, "N") == 0) {
           CloseableIterator<VariantContext> vcIter = reader.query(Positions.getChromosomeUCSC(current.getChr(),
@@ -1065,7 +1065,7 @@ public class BetaOptimizer {
                   String[] tmpMarkerAlleles = new String[] {allelesMarker[0], allelesMarker[1]};
                   String[] tmpVcAllel = new String[] {element[0], element[1]};
 
-                  Config config = StrandOps.determineStrandConfig(tmpMarkerAlleles, tmpVcAllel);
+                  CONFIG config = StrandOps.determineStrandConfig(tmpMarkerAlleles, tmpVcAllel);
                   markerRsFormat = new MarkerRsFormat(namesToQuery[i], current.getStart(),
                                                       indices[i], vc.getID(), element,
                                                       allelesMarker, config,
@@ -1119,12 +1119,12 @@ public class BetaOptimizer {
     private final String[] dbSnpAlleles;
     private final String[] markerAlleles;
     private final int posMarker;
-    private final Config config;
+    private final CONFIG config;
     private boolean validMatch;
     private final SITE_TYPE type;
 
     private MarkerRsFormat(String markerName, int posMarker, int projectIndex, String rs,
-                           String[] refs, String[] markers, Config config, SITE_TYPE type) {
+                           String[] refs, String[] markers, CONFIG config, SITE_TYPE type) {
       super();
       this.markerName = markerName;
       this.posMarker = posMarker;
@@ -1146,8 +1146,8 @@ public class BetaOptimizer {
     }
 
     public boolean flippedStrand() {
-      return config == Config.OPPOSITE_ORDER_FLIPPED_STRAND
-             || config == Config.SAME_ORDER_FLIPPED_STRAND;
+      return config == CONFIG.OPPOSITE_ORDER_FLIPPED_STRAND
+             || config == CONFIG.SAME_ORDER_FLIPPED_STRAND;
     }
 
     public SITE_TYPE getType() {
@@ -1158,7 +1158,7 @@ public class BetaOptimizer {
       return rs;
     }
 
-    public Config getConfig() {
+    public CONFIG getConfig() {
       return config;
     }
 
@@ -1186,8 +1186,8 @@ public class BetaOptimizer {
       if (!validMatch) {
         throw new IllegalArgumentException("Did not have valid rs id match, this method should not be used");
       }
-      return config == Config.OPPOSITE_ORDER_FLIPPED_STRAND
-             || config == Config.OPPOSITE_ORDER_SAME_STRAND;
+      return config == CONFIG.OPPOSITE_ORDER_FLIPPED_STRAND
+             || config == CONFIG.OPPOSITE_ORDER_SAME_STRAND;
     }
 
     public static void writeSerial(List<MarkerRsFormat> markerRsFormats, String fileName) {

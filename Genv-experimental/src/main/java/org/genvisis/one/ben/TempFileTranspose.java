@@ -1,5 +1,6 @@
 package org.genvisis.one.ben;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -66,11 +67,10 @@ public class TempFileTranspose {
           String[] remain = new String[r];
           System.arraycopy(list, 0, values, 0, p);
           if (r > 0) {
-            System.arraycopy(list, pull, remain, 0, remain.length);
+            System.arraycopy(list, p, remain, 0, remain.length);
             Files.writeArray(remain, nF);
+            java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
           }
-
-          java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
 
           Files.writeArray(values, nF);
           return values;
@@ -204,64 +204,54 @@ public class TempFileTranspose {
     byte numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
     final String listFile = getMarkerListFile();
 
-    String[] preSel = qsubPath != null ? ListFileCheckoutSystem.checkout(listFile, proc, label,
-                                                                         proj.getLog())
-                                       : null;
-    if (qsubPath == null || preSel != null) {
-      for (int i = 0; i < proc; i++) {
+    for (int i = 0; i < proc; i++) {
+      Runnable run = () -> {
+        try {
+          String file = null;
+          while ((file = ListFileCheckoutSystem.checkout(listFile, 1, label,
+                                                         proj.getLog())[0]) != null) {
+            processOneMDRAF(f, numBytesPerSampleMarker, file);
+          }
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      };
+      executor.submit(run);
+    }
+    executor.shutdown();
+    try {
+      executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void runFirstResub() throws IOException {
+    nullStatus = getNullStatus();
+    final long f = MarkerSet.fingerprintForMarkers(proj);
+
+    int proc = Runtime.getRuntime().availableProcessors();
+    ExecutorService executor = Executors.newFixedThreadPool(proc);
+    final byte numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+    final String listFile = getMarkerListFile();
+
+    final String[] preSel = ListFileCheckoutSystem.checkout(listFile, proc, label, proj.getLog());
+
+    if (preSel != null) {
+      proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + proc);
+      for (int i = 0; i < preSel.length; i++) {
         final int ind = i;
         Runnable run = () -> {
-          byte[] parameter;
-          byte[][] readBuffer;
           try {
-            String file = null;
-            while ((file = preSel != null ? preSel[ind]
-                                          : ListFileCheckoutSystem.checkout(listFile, 1, label,
-                                                                            proj.getLog())[0]) != null) {
-              String out = getTempFile(file);
-              parameter = readParameter(file);
-              if (nullStatus != parameter[TransposeData.MARKERDATA_NULLSTATUS_START]) {
-                throw new IllegalStateException("Error - null status was inconsistent between mdRAF files.  Found "
-                                                + nullStatus + " and "
-                                                + parameter[TransposeData.MARKERDATA_NULLSTATUS_START]);
-              }
-              // read entire mdRAF file into memory:
-              long rT = System.nanoTime();
-              readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(file,
-                                                                                        parameter,
-                                                                                        null, 0, -1,
-                                                                                        f,
-                                                                                        proj.getLog());
-              long rT2 = System.nanoTime();
-              long wT = System.nanoTime();
-              OutputStream os = new FileOutputStream(out);
-              long written = 0;
-              for (int s = 0, c = proj.getSamples().length; s < c; s++) {
-                for (int m = 0; m < readBuffer.length; m++) { // should be all markers
-                  os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
-                  written += numBytesPerSampleMarker;
-                }
-              }
-              os.flush();
-              os.close();
-              long wT2 = System.nanoTime();
-
-              os = null;
-              readBuffer = null;
-              proj.getLog()
-                  .reportTime("Tranposed " + file + " - wrote " + written + " bytes, took "
-                              + ext.formatTimeElapsed(rT2 - rT, TimeUnit.NANOSECONDS)
-                              + " to read and "
-                              + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS)
-                              + " to write.");
-              if (preSel != null) break;
-            }
+            processOneMDRAF(f, numBytesPerSampleMarker, preSel[ind]);
           } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
         };
         executor.submit(run);
+        proj.getLog().report("Submitted process for mdRAF file: " + preSel[ind]);
       }
       executor.shutdown();
       try {
@@ -269,10 +259,48 @@ public class TempFileTranspose {
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      if (qsubPath != null && preSel != null) {
+      if (qsubPath != null) {
         CmdLine.run("qsub " + qsubPath, ext.pwd());
       }
     }
+  }
+
+  private void processOneMDRAF(final long f, byte numBytesPerSampleMarker,
+                               String file) throws IOException, FileNotFoundException {
+    byte[] parameter;
+    byte[][] readBuffer;
+    String out = getTempFile(file);
+    parameter = readParameter(file);
+    if (nullStatus != parameter[TransposeData.MARKERDATA_NULLSTATUS_START]) {
+      throw new IllegalStateException("Error - null status was inconsistent between mdRAF files.  Found "
+                                      + nullStatus + " and "
+                                      + parameter[TransposeData.MARKERDATA_NULLSTATUS_START]);
+    }
+    // read entire mdRAF file into memory:
+    long rT = System.nanoTime();
+    readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(file, parameter, null,
+                                                                              0, -1, f,
+                                                                              proj.getLog());
+    long rT2 = System.nanoTime();
+    long wT = System.nanoTime();
+    OutputStream os = new FileOutputStream(out);
+    long written = 0;
+    for (int s = 0, c = proj.getSamples().length; s < c; s++) {
+      for (int m = 0; m < readBuffer.length; m++) { // should be all markers
+        os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
+        written += numBytesPerSampleMarker;
+      }
+    }
+    os.flush();
+    os.close();
+    long wT2 = System.nanoTime();
+
+    os = null;
+    readBuffer = null;
+    proj.getLog()
+        .reportTime("Tranposed " + file + " - wrote " + written + " bytes, took "
+                    + ext.formatTimeElapsed(rT2 - rT, TimeUnit.NANOSECONDS) + " to read and "
+                    + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS) + " to write.");
   }
 
   static class Outliers {
@@ -365,9 +393,6 @@ public class TempFileTranspose {
     ExecutorService executor = Executors.newFixedThreadPool(threads);
 
     String listFile = getSampleListFile();
-    String[] preSel = qsubPath != null ? ListFileCheckoutSystem.checkout(listFile, threads, label,
-                                                                         proj.getLog())
-                                       : null;
 
     int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
     int numBytesPerSample = numBytesPerSampleMarker * proj.getMarkerNames().length;
@@ -375,7 +400,64 @@ public class TempFileTranspose {
     long fingerPrint = MarkerSet.fingerprintForSamples(proj);
     final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
-    if (qsubPath == null || preSel != null) {
+    HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
+    for (String file : files) {
+      String out = getTempFile(file);
+      // NOTE - file system must be capable of holding files.length number of file handles open at once
+      readerMap.put(out, new RandomAccessFile(out, "r"));
+      markerCountMap.put(out, getMarkerCount(file));
+    }
+    for (int t = 0; t < threads; t++) {
+      Runnable run = () -> {
+        String samp;
+        try {
+          while ((samp = ListFileCheckoutSystem.checkout(listFile, 1, label,
+                                                         proj.getLog())[0]) != null) {
+            processOneSAMPRAF(outliers, files, markerCountMap, numBytesPerSampleMarker,
+                              numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices, readerMap,
+                              samp);
+          }
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      };
+      executor.submit(run);
+    }
+    executor.shutdown();
+    try {
+      executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    for (RandomAccessFile f : readerMap.values()) {
+      f.close();
+    }
+  }
+
+  public void runSecondResub() throws IOException {
+    nullStatus = getNullStatus();
+    final Outliers outliers = Outliers.construct(proj, MarkerDataLoader.loadOutliers(proj));
+    final String[] files = discover(); // deterministic / always the same order
+    final Map<String, Integer> markerCountMap = new HashMap<>();
+
+    final int threads = Runtime.getRuntime().availableProcessors();
+    ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+    String listFile = getSampleListFile();
+    final String[] preSel = ListFileCheckoutSystem.checkout(listFile, threads, label,
+                                                            proj.getLog());
+
+    proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + threads);
+
+    int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+    int numBytesPerSample = numBytesPerSampleMarker * proj.getMarkerNames().length;
+    byte[] mkrCntBytes = Compression.intToBytes(proj.getMarkerNames().length);
+    long fingerPrint = MarkerSet.fingerprintForSamples(proj);
+    final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
+
+    if (preSel != null) {
       HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
       for (String file : files) {
         String out = getTempFile(file);
@@ -383,68 +465,15 @@ public class TempFileTranspose {
         readerMap.put(out, new RandomAccessFile(out, "r"));
         markerCountMap.put(out, getMarkerCount(file));
       }
-      for (int t = 0; t < threads; t++) {
+      for (int t = 0; t < preSel.length; t++) {
+        final int ind = t;
         Runnable run = () -> {
-          Hashtable<String, Float> outs;
-          byte[] buffer;
           String samp;
-          RandomAccessFile sampFile;
           try {
-            while ((samp = ListFileCheckoutSystem.checkout(listFile, 1, label,
-                                                           proj.getLog())[0]) != null) {
-              int sInd = sampleIndices.get(samp);
-              sampFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue() + samp
-                                              + Sample.SAMPLE_FILE_EXTENSION, "rw");
-
-              sampFile.write(mkrCntBytes);
-              sampFile.write(nullStatus);
-
-              outs = outliers.getSampleOutliersForFile(proj, samp);
-              byte[] outBytes = null;
-              if (outs.size() > 0) {
-                outBytes = Compression.objToBytes(outs);
-
-                sampFile.write(Compression.intToBytes(outBytes.length));
-
-              } else {
-                sampFile.write(Compression.intToBytes(0));
-              }
-              sampFile.write(Compression.longToBytes(fingerPrint));
-
-              long aveR = 0;
-              long aveW = 0;
-              for (int i = 0; i < files.length; i++) {
-                long tO = System.nanoTime();
-                String out = getTempFile(files[i]);
-                buffer = new byte[numBytesPerSampleMarker * markerCountMap.get(out)];
-                synchronized (out) {
-                  RandomAccessFile tpRAF = readerMap.get(out);
-                  long seekL = sInd * (long) numBytesPerSample;
-                  if (tpRAF.getFilePointer() != seekL) {
-                    tpRAF.seek(seekL);
-                  }
-                  tpRAF.read(buffer);
-                }
-                long tE = System.nanoTime() - tO;
-                aveR += ((tE - aveR) / (i + 1));
-                tO = System.nanoTime();
-                sampFile.write(buffer);
-                tE = System.nanoTime() - tO;
-                aveW += ((tE - aveW) / (i + 1));
-                buffer = null;
-              }
-
-              if (outBytes != null) {
-                sampFile.write(outBytes);
-              }
-              sampFile.close();
-
-              proj.getLog()
-                  .reportTime("Compiled sample " + samp + "; average read "
-                              + ext.formatTimeElapsed(aveR, TimeUnit.NANOSECONDS)
-                              + ", average write "
-                              + ext.formatTimeElapsed(aveW, TimeUnit.NANOSECONDS));
-            }
+            samp = preSel[ind];
+            processOneSAMPRAF(outliers, files, markerCountMap, numBytesPerSampleMarker,
+                              numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices, readerMap,
+                              samp);
           } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -466,6 +495,69 @@ public class TempFileTranspose {
         CmdLine.run("qsub " + qsubPath, ext.pwd());
       }
     }
+
+  }
+
+  private void processOneSAMPRAF(Outliers outliers, String[] files,
+                                 Map<String, Integer> markerCountMap, int numBytesPerSampleMarker,
+                                 int numBytesPerSample, byte[] mkrCntBytes, long fingerPrint,
+                                 final ImmutableMap<String, Integer> sampleIndices,
+                                 HashMap<String, RandomAccessFile> readerMap,
+                                 String samp) throws FileNotFoundException, IOException {
+    Hashtable<String, Float> outs;
+    byte[] buffer;
+    RandomAccessFile sampFile;
+    int sInd = sampleIndices.get(samp);
+    sampFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, false) + samp
+                                    + Sample.SAMPLE_FILE_EXTENSION, "rw");
+
+    sampFile.write(mkrCntBytes);
+    sampFile.write(nullStatus);
+
+    outs = outliers.getSampleOutliersForFile(proj, samp);
+    byte[] outBytes = null;
+    if (outs.size() > 0) {
+      outBytes = Compression.objToBytes(outs);
+
+      sampFile.write(Compression.intToBytes(outBytes.length));
+
+    } else {
+      sampFile.write(Compression.intToBytes(0));
+    }
+    sampFile.write(Compression.longToBytes(fingerPrint));
+
+    long aveR = 0;
+    long aveW = 0;
+    for (int i = 0; i < files.length; i++) {
+      long tO = System.nanoTime();
+      String out = getTempFile(files[i]);
+      buffer = new byte[numBytesPerSampleMarker * markerCountMap.get(out)];
+      synchronized (out) {
+        RandomAccessFile tpRAF = readerMap.get(out);
+        long seekL = sInd * (long) numBytesPerSample;
+        if (tpRAF.getFilePointer() != seekL) {
+          tpRAF.seek(seekL);
+        }
+        tpRAF.read(buffer);
+      }
+      long tE = System.nanoTime() - tO;
+      aveR += ((tE - aveR) / (i + 1));
+      tO = System.nanoTime();
+      sampFile.write(buffer);
+      tE = System.nanoTime() - tO;
+      aveW += ((tE - aveW) / (i + 1));
+      buffer = null;
+    }
+
+    if (outBytes != null) {
+      sampFile.write(outBytes);
+    }
+    sampFile.close();
+
+    proj.getLog()
+        .reportTime("Compiled sample " + samp + "; average read "
+                    + ext.formatTimeElapsed(aveR, TimeUnit.NANOSECONDS) + ", average write "
+                    + ext.formatTimeElapsed(aveW, TimeUnit.NANOSECONDS));
   }
 
   private byte[] readParameter(String file) throws IOException {
@@ -512,16 +604,24 @@ public class TempFileTranspose {
         if (cli.has("setup")) {
           tft.setupMarkerListFile();
         }
-        tft.qsubPath = cli.get("qsub");
-        tft.runFirst();
+        if (cli.has("qsub")) {
+          tft.qsubPath = cli.get("qsub");
+          tft.runFirstResub();
+        } else {
+          tft.runFirst();
+        }
         break;
       case "S":
       case "s":
         if (cli.has("setup")) {
           tft.setupSampleListFile();
         }
-        tft.qsubPath = cli.get("qsub");
-        tft.runSecond();
+        if (cli.has("qsub")) {
+          tft.qsubPath = cli.get("qsub");
+          tft.runSecondResub();
+        } else {
+          tft.runSecond();
+        }
         break;
       default:
         throw new IllegalArgumentException("Invalid type: " + cli.get("type"));

@@ -15,7 +15,7 @@ import org.genvisis.common.PSF.Colors.ORANGES;
 import org.genvisis.common.PSF.Colors.VIOLETS;
 import org.genvisis.common.PSF.Colors.YELLOWS;
 import org.genvisis.seq.manage.StrandOps;
-import org.genvisis.seq.manage.StrandOps.Config;
+import org.genvisis.seq.manage.StrandOps.CONFIG;
 
 /**
  * {@link AbstractPanel} subtype that creates {@link PlotPoint}s from the data loaded by
@@ -39,7 +39,7 @@ public class AFPanel extends AbstractPanel {
   private static final byte LAYER = 1;
 
   AFPlot plot;
-  Map<Config, Integer> configColorMap;
+  Map<CONFIG, Integer> configColorMap;
 
   private static final GenericLine[] CENTER_LINES = {new GenericLine(0f, 0.2f, 0.8f, 1f, (byte) 2,
                                                                      (byte) 2, LAYER),
@@ -68,8 +68,8 @@ public class AFPanel extends AbstractPanel {
     setForceYAxisWholeNumbers(true);
 
     configColorMap = new HashMap<>();
-    for (int i = 0; i < Config.values().length; i++) {
-      configColorMap.put(Config.values()[i], i);
+    for (int i = 0; i < CONFIG.values().length; i++) {
+      configColorMap.put(CONFIG.values()[i], i);
     }
   }
 
@@ -102,7 +102,7 @@ public class AFPanel extends AbstractPanel {
     float afObs, afExp;
     boolean add;
     Marker g1Marker;
-    Config config;
+    CONFIG config;
     byte color = COLOR;
     Map<Object, String[]> alleles = plot.getObservedAlleles();
     Set<Entry<Object, Double>> dataSet;
