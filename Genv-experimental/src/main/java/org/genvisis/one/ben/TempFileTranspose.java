@@ -449,8 +449,6 @@ public class TempFileTranspose {
     final String[] preSel = ListFileCheckoutSystem.checkout(listFile, threads, label,
                                                             proj.getLog());
 
-    proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + threads);
-
     int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
     int numBytesPerSample = numBytesPerSampleMarker * proj.getMarkerNames().length;
     byte[] mkrCntBytes = Compression.intToBytes(proj.getMarkerNames().length);
@@ -458,6 +456,7 @@ public class TempFileTranspose {
     final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
     if (preSel != null) {
+      proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + threads);
       HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
       for (String file : files) {
         String out = getTempFile(file);
