@@ -1,4 +1,4 @@
-package org.genvisis.gwas.parsing.impl;
+package org.genvisis.common.parsing.impl;
 
 import java.io.IOException;
 import org.genvisis.CLI;
@@ -8,19 +8,19 @@ import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.common.parsing.AbstractColumnFilter;
+import org.genvisis.common.parsing.AbstractFileParserFactory;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.Aliases;
+import org.genvisis.common.parsing.ColumnFilter;
+import org.genvisis.common.parsing.DataLine;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileLink;
+import org.genvisis.common.parsing.FileParser;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.StandardFileColumns;
+import org.genvisis.common.parsing.Aliases.MultipleAliasStrategy;
 import org.genvisis.gwas.HitWindows;
-import org.genvisis.gwas.parsing.AbstractColumnFilter;
-import org.genvisis.gwas.parsing.AbstractFileParserFactory;
-import org.genvisis.gwas.parsing.AliasedFileColumn;
-import org.genvisis.gwas.parsing.Aliases;
-import org.genvisis.gwas.parsing.Aliases.MultipleAliasStrategy;
-import org.genvisis.gwas.parsing.ColumnFilter;
-import org.genvisis.gwas.parsing.DataLine;
-import org.genvisis.gwas.parsing.FileColumn;
-import org.genvisis.gwas.parsing.FileLink;
-import org.genvisis.gwas.parsing.FileParser;
-import org.genvisis.gwas.parsing.FileParserFactory;
-import org.genvisis.gwas.parsing.StandardFileColumns;
 
 /**
  * Parse Plink association test results, either linear or logistic. <br />

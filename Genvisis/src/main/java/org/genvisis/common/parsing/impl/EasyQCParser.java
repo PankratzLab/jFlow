@@ -1,13 +1,13 @@
-package org.genvisis.gwas.parsing.impl;
+package org.genvisis.common.parsing.impl;
 
 import java.io.IOException;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.parsing.AliasedFileColumn;
-import org.genvisis.gwas.parsing.DoubleWrapperColumn;
-import org.genvisis.gwas.parsing.FileColumn;
-import org.genvisis.gwas.parsing.FileParser;
-import org.genvisis.gwas.parsing.FileParserFactory;
-import org.genvisis.gwas.parsing.StandardFileColumns;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.DoubleWrapperColumn;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileParser;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.StandardFileColumns;
 
 public class EasyQCParser {
 

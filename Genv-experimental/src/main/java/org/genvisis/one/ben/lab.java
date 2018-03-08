@@ -31,6 +31,11 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileLink;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -41,11 +46,6 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
-import org.genvisis.gwas.parsing.AliasedFileColumn;
-import org.genvisis.gwas.parsing.FileColumn;
-import org.genvisis.gwas.parsing.FileLink;
-import org.genvisis.gwas.parsing.FileParserFactory;
-import org.genvisis.gwas.parsing.StandardFileColumns;
 
 public class lab {
 

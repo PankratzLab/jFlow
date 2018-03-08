@@ -14,13 +14,13 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.parsing.AliasedFileColumn;
-import org.genvisis.gwas.parsing.DoubleWrapperColumn;
-import org.genvisis.gwas.parsing.FileColumn;
-import org.genvisis.gwas.parsing.FileLink;
-import org.genvisis.gwas.parsing.FileParserFactory;
-import org.genvisis.gwas.parsing.FixedValueColumn;
-import org.genvisis.gwas.parsing.StandardFileColumns;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.DoubleWrapperColumn;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileLink;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.FixedValueColumn;
+import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.qsub.Qsub;
 
 public class SnpTest {

@@ -1,14 +1,14 @@
-package org.genvisis.gwas.parsing;
+package org.genvisis.common.parsing;
 
-public class IntegerWrapperColumn extends CachedFileColumn<Integer> {
+public class DoubleWrapperColumn extends CachedFileColumn<Double> {
 
   private FileColumn<?> base;
 
-  public IntegerWrapperColumn(FileColumn<?> base) {
+  public DoubleWrapperColumn(FileColumn<?> base) {
     this(base, base.dieOnParseFailure());
   }
 
-  public IntegerWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
+  public DoubleWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
     super(base.getName(), dieOnParseFailure);
     this.base = base;
   }
@@ -23,9 +23,9 @@ public class IntegerWrapperColumn extends CachedFileColumn<Integer> {
   }
 
   @Override
-  public Integer calculateValue(String[] line) throws ParseFailureException {
+  public Double calculateValue(String[] line) throws ParseFailureException {
     try {
-      return Integer.parseInt(getBaseValue(line));
+      return Double.parseDouble(getBaseValue(line));
     } catch (NumberFormatException e) {
       throw new ParseFailureException(e);
     }

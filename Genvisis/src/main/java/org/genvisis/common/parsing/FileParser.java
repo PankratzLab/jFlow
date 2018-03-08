@@ -1,4 +1,4 @@
-package org.genvisis.gwas.parsing;
+package org.genvisis.common.parsing;
 
 import java.io.BufferedReader;
 import java.io.Closeable;

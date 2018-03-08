@@ -10,17 +10,17 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
-import org.genvisis.gwas.parsing.AbstractColumnFilter;
-import org.genvisis.gwas.parsing.AbstractFileColumn;
-import org.genvisis.gwas.parsing.AliasedFileColumn;
-import org.genvisis.gwas.parsing.ColumnFilter;
-import org.genvisis.gwas.parsing.DataLine;
-import org.genvisis.gwas.parsing.FileColumn;
-import org.genvisis.gwas.parsing.FileParser;
-import org.genvisis.gwas.parsing.FileParserFactory;
-import org.genvisis.gwas.parsing.FixedValueColumn;
-import org.genvisis.gwas.parsing.ParseFailureException;
-import org.genvisis.gwas.parsing.StandardFileColumns;
+import org.genvisis.common.parsing.AbstractColumnFilter;
+import org.genvisis.common.parsing.AbstractFileColumn;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.ColumnFilter;
+import org.genvisis.common.parsing.DataLine;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileParser;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.FixedValueColumn;
+import org.genvisis.common.parsing.ParseFailureException;
+import org.genvisis.common.parsing.StandardFileColumns;
 
 public class CARDIA2Processor {
 
