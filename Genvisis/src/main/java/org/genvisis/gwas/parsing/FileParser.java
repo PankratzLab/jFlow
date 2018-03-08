@@ -107,53 +107,78 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
   private void open() throws IOException {
     reader = Files.getAppropriateReader(inputFile);
-    String line = null;
-    int skip = skippedLines;
-    header = null;
-    lineCount = 0;
-    while ((line = reader.readLine()) != null) {
-      lineCount++;
-      if (trimInput) {
-        line = line.trim();
-      }
-      boolean skipIt = false;
-      if (skipPrefices.size() > 0) {
-        for (String skp : skipPrefices) {
-          if (line.startsWith(skp)) {
-            skipIt = true;
-            break;
-          }
+    for (int i = 0; i < skippedLines; i++) {
+      getNextLine();
+    }
+    if (!noHeader) {
+      String headerLine = getNextLine();
+      if (headerLine != null) {
+        header = ArrayUtils.immutableIndexMap(headerLine.split(inputFileDelim));
+        if (inputFileDelim == null) {
+          inputFileDelim = ext.determineDelimiter(headerLine);
         }
       }
-      if (skipIt) continue;
-      if (skip > 0) {
-        skip--;
+    } else if (inputFileDelim == null) {
+      try (BufferedReader delimReader = Files.getAppropriateReader(inputFile)) {
+        for (int i = 0; i < lineCount; i++)
+          delimReader.readLine();
+        String firstLine;
+        do {
+          firstLine = delimReader.readLine();
+        } while (firstLine != null && matchesSkipPrefix(firstLine));
+        if (firstLine != null) {
+          if (trimInput) firstLine = firstLine.trim();
+          inputFileDelim = ext.determineDelimiter(firstLine);
+        }
+      }
+    }
+
+    for (FileColumn<?> fc : dataInOrder) {
+      fc.initialize(this);
+    }
+    for (FileColumn<?> fc : addlDataToLoad) {
+      fc.initialize(this);
+    }
+    Builder<FileColumn<?>> b = ImmutableSet.builder();
+    for (FileColumn<?> fc : optlDataToLoad) {
+      try {
+        fc.initialize(this);
+        b.add(fc);
+      } catch (IllegalStateException e) {
+        // not in file
+      }
+    }
+    optlDataFound = b.build();
+  }
+
+  private String getNextLine() throws IOException {
+    String line;
+    boolean skip;
+    do {
+      skip = false;
+      line = reader.readLine();
+      lineCount++;
+      if (line == null) break;
+      skip = matchesSkipPrefix(line);
+      if (skip) {
         continue;
       }
-      if (inputFileDelim == null) {
-        inputFileDelim = ext.determineDelimiter(line);
+      if (trimInput && line != null) {
+        line = line.trim();
       }
-      if (!noHeader) {
-        header = ArrayUtils.immutableIndexMap(line.split(inputFileDelim));
-      }
-      for (FileColumn<?> fc : dataInOrder) {
-        fc.initialize(this);
-      }
-      for (FileColumn<?> fc : addlDataToLoad) {
-        fc.initialize(this);
-      }
-      Builder<FileColumn<?>> b = ImmutableSet.builder();
-      for (FileColumn<?> fc : optlDataToLoad) {
-        try {
-          fc.initialize(this);
-          b.add(fc);
-        } catch (IllegalStateException e) {
-          // not in file
+    } while (skip);
+    return line;
+  }
+
+  private boolean matchesSkipPrefix(String line) {
+    if (!skipPrefices.isEmpty()) {
+      for (String skp : skipPrefices) {
+        if (line.startsWith(skp)) {
+          return true;
         }
       }
-      optlDataFound = b.build();
-      break;
     }
+    return false;
   }
 
   /**
@@ -170,32 +195,17 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     DataLine lineData;
     String[] parts;
 
-    boolean skip = false;
+    boolean skip;
     do {
       skip = false;
       parts = null;
       lineData = null;
-
-      String line = reader.readLine();
-      lineCount++;
+      String line = getNextLine();
       if (line == null) break;
-      if (trimInput) {
-        line = line.trim();
-      }
       if (failBlank && line.equals("")) {
         throw new IllegalStateException("Line " + lineCount + " was blank!");
       }
-      if (skipPrefices.size() > 0) {
-        for (String skp : skipPrefices) {
-          if (line.startsWith(skp)) {
-            skip = true;
-            break;
-          }
-        }
-      }
-      if (skip) {
-        continue;
-      }
+
       lineData = new DataLine(parseFailValue);
       parts = line.split(inputFileDelim, -1);
       if (failCount && parts.length != header.size()) {
