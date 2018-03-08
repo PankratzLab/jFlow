@@ -113,12 +113,12 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     if (!noHeader) {
       String headerLine = getNextLine();
       if (headerLine != null) {
-        header = ArrayUtils.immutableIndexMap(headerLine.split(inputFileDelim));
         if (inputFileDelim == null) {
           inputFileDelim = ext.determineDelimiter(headerLine);
         }
+        header = ArrayUtils.immutableIndexMap(headerLine.split(inputFileDelim));
       }
-    } else if (inputFileDelim == null) {
+    } else {
       try (BufferedReader delimReader = Files.getAppropriateReader(inputFile)) {
         for (int i = 0; i < lineCount; i++)
           delimReader.readLine();
@@ -128,7 +128,13 @@ public class FileParser implements Iterable<DataLine>, Closeable {
         } while (firstLine != null && matchesSkipPrefix(firstLine));
         if (firstLine != null) {
           if (trimInput) firstLine = firstLine.trim();
-          inputFileDelim = ext.determineDelimiter(firstLine);
+          if (inputFileDelim == null) inputFileDelim = ext.determineDelimiter(firstLine);
+          String[] firstLineCols = firstLine.split(inputFileDelim);
+          ImmutableMap.Builder<String, Integer> headerBuilder = ImmutableMap.builderWithExpectedSize(firstLineCols.length);
+          for (int i = 0; i < firstLineCols.length; i++) {
+            headerBuilder.put(String.valueOf(i), i);
+          }
+          header = headerBuilder.build();
         }
       }
     }
