@@ -8,7 +8,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import org.genvisis.ExhaustiveUnitTests;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -18,6 +20,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 
+@Category(ExhaustiveUnitTests.class)
 public class TestTreeRangeSetMultimap {
 
   public TestTreeRangeSetMultimap() {}
