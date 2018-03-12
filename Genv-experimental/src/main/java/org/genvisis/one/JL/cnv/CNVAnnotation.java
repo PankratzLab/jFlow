@@ -62,15 +62,14 @@ public class CNVAnnotation {
 	 * @param cnvFile
 	 *            file containing {@link CNVariant} to annotate
 	 * @param freqCnvFile
-	 *            use this file containing {@link CNVariant} to assign
-	 *            frequencies
+	 *            use this file containing {@link CNVariant} to assign frequencies
 	 * @param problemRegionsFile
 	 *            bed file of problematic regions
 	 * @param outDir
 	 *            output directory
 	 * @param maxProblematicOverlap
-	 *            flag cnvs that have problematic regions overlapping more than
-	 *            this amount
+	 *            flag cnvs that have problematic regions overlapping more than this
+	 *            amount
 	 * @param threads
 	 *            number of threads
 	 */
