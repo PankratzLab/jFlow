@@ -86,6 +86,10 @@ A final option is to create a `pom.xml` that uses the `Assembly` pom as its pare
 
 Performing application assembly (merging all classes into a single unified jar) is costly, therefore this behavior must be explicitly enabled by turning profiles on. For example, the `genv` profile turns on 
 
+#### Running tests
+
+The default when a maven install is executed is to run every test. In order to have a faster build that skips lengthy tests, the `fastTests` profile can be activated by setting the `fastTests` property to `true`. (`-DfastTests=true` from the command line or added as a property in an eclipse run conifguration)
+
 #### Style templates
 
 This repository includes Eclipse style templates, located in `Genvisis.git/config`. Before committing changes to Genvisis, please import these templates to your [Clean Up](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-cleanup.htm) and [Formatter](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) code style preferences.
