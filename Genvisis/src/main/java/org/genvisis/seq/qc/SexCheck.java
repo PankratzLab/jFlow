@@ -132,9 +132,16 @@ public class SexCheck {
         e.printStackTrace();
       }
     } else {
-      String seqX = Positions.getChromosomeUCSC(X, true);
-      String seqY = Positions.getChromosomeUCSC(Y, true);
       SAMFileHeader header = reader.getFileHeader();
+
+      String seqX = Positions.getChromosomeUCSC(X, true);
+      if (header.getSequenceIndex(seqX) < 0) {
+        seqX = Positions.getChromosomeUCSC(X, false);
+      }
+      String seqY = Positions.getChromosomeUCSC(Y, true);
+      if (header.getSequenceIndex(seqY) < 0) {
+        seqY = Positions.getChromosomeUCSC(Y, false);
+      }
       String sample = header.getReadGroups().get(0).getSample();
       log.reportTimeInfo("Computing sex checks for sample " + sample + " in file " + bamFile);
       int refX = header.getSequenceIndex(seqX);

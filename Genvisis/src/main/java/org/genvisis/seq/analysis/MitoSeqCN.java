@@ -84,9 +84,9 @@ public class MitoSeqCN {
       }
       log.reportTimeInfo(genomeBinsMinusBinsCaputure.getBpCovered()
                          + " bp covered by reference bin regions");
-      if (!referenceGenome.hasContig(aName.getMitoContig())
-          || !referenceGenome.hasContig(aName.getxContig())
-          || !referenceGenome.hasContig(aName.getyContig())) {
+      if (!referenceGenome.requestContig(aName.getMitoContig()).hasContig()
+          || !referenceGenome.requestContig(aName.getxContig()).hasContig()
+          || !referenceGenome.requestContig(aName.getyContig()).hasContig()) {
         throw new IllegalArgumentException("Required contig for " + aName + " is missing ( "
                                            + aName.getMitoContig() + " ," + aName.getxContig()
                                            + ", " + aName.getyContig() + " from "

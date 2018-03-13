@@ -1,10 +1,5 @@
 package org.genvisis.seq.manage;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.variant.variantcontext.VariantContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
@@ -21,6 +16,11 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.variant.variantcontext.VariantContext;
 
 public class ReferenceGenome {
 
@@ -154,14 +154,66 @@ public class ReferenceGenome {
     return seqs;
   }
 
-  public boolean hasContig(String contig) {
+  /**
+   * Stores results of contig presence/absence, as well as if formatting was needed (remove "chr"
+   * etc)
+   */
+  public static class ContigRequest {
+
+    private final String requestedContig;
+    private final boolean hasContig;
+    private final String contigPresent;
+
+    /**
+     * @param requestedContig the requested contig
+     * @param hasContig whether this contig is present as request, or trimmed
+     * @param contigPresent the contig actually present
+     */
+    private ContigRequest(String requestedContig, boolean hasContig, String contigPresent) {
+      super();
+      this.requestedContig = requestedContig;
+      this.hasContig = hasContig;
+      this.contigPresent = contigPresent;
+    }
+
+    /**
+     * @return the requestedContig
+     */
+    public String getRequestedContig() {
+      return requestedContig;
+    }
+
+    /**
+     * @return the hasContig
+     */
+    public boolean hasContig() {
+      return hasContig;
+    }
+
+    /**
+     * @return the contigPresent
+     */
+    public String getContigPresent() {
+      return contigPresent;
+    }
+
+  }
+
+  public ContigRequest requestContig(String contig) {
     if (indexedFastaSequenceFile.getSequenceDictionary() == null) {
       log.reportError("Could not find sequence dictionary for " + referenceFasta + " ("
                       + ext.rootOf(referenceFasta) + ".dict)"
                       + ", will not be able to check if contig " + contig + " is present");
-      return false;
+      return new ContigRequest(contig, false, null);
     }
-    return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig) != null;
+    if (indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig) != null) {
+      return new ContigRequest(contig, true, contig);
+    }
+    String contigTrim = contig.replaceAll("chr", "");
+    if (indexedFastaSequenceFile.getSequenceDictionary().getSequence(contigTrim) != null) {
+      return new ContigRequest(contig, true, contigTrim);
+    }
+    return new ContigRequest(contig, false, null);
   }
 
   public String[] getSequenceFor(Segment segment) {
@@ -177,8 +229,9 @@ public class ReferenceGenome {
   }
 
   public int getContigLength(String contig) {
-    if (hasContig(contig)) {
-      return indexedFastaSequenceFile.getSequenceDictionary().getSequence(contig)
+    ContigRequest cr = requestContig(contig);
+    if (cr.hasContig()) {
+      return indexedFastaSequenceFile.getSequenceDictionary().getSequence(cr.getContigPresent())
                                      .getSequenceLength();
     } else {
       return -1;
@@ -197,8 +250,11 @@ public class ReferenceGenome {
     if (segment.getChr() == 26) {
       requestedContig = aName.getMitoContig();
     }
-    if (hasContig(requestedContig)) {
 
+    ContigRequest cr = requestContig(requestedContig);
+
+    if (cr.hasContig()) {
+      requestedContig = cr.getContigPresent();
       int seqLength = indexedFastaSequenceFile.getSequenceDictionary().getSequence(requestedContig)
                                               .getSequenceLength();
       int start = segment.getStart() - defaultBuffer;
