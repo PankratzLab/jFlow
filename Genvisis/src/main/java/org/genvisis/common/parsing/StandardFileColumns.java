@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.genvisis.common.Positions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
@@ -98,30 +99,26 @@ public final class StandardFileColumns {
   }
 
   /**
-   * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#CHRS} that will fail if
-   * multiple aliases are found.
-   * 
-   * @param colName Desired name of column
-   * @return IntegerWrapperColumn
+   * {@link #chr(String, boolean)} that will not die on parse failure
    */
   public static FileColumn<Byte> chr(String colName) {
     return chr(colName, false);
   }
 
   /**
-   * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#CHRS} that will fail if
-   * multiple aliases are found.
+   * Creates a non-case-sensitive {@link NumberWrapperColumn} that uses
+   * {@link Positions#chromosomeNumber(String)} to determine the byte value of a chromosome wrapped
+   * around an {@link AliasedFileColumn} based on {@link org.genvisis.common.Aliases#CHRS} that will
+   * fail if multiple aliases are found.
    * 
    * @param colName Desired name of column
    * @param dieOnMissing
-   * @return IntegerWrapperColumn
+   * @return FileColumn<Byte>
    */
   public static FileColumn<Byte> chr(String colName, boolean dieOnMissing) {
-    return new ByteWrapperColumn(new AliasedFileColumn(colName,
-                                                       new Aliases(org.genvisis.common.Aliases.CHRS)),
-                                 dieOnMissing);
+    return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
+                                                           new Aliases(org.genvisis.common.Aliases.CHRS)),
+                                     Positions::chromosomeNumber, dieOnMissing);
   }
 
   /**
