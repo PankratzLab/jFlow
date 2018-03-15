@@ -1,4 +1,4 @@
-package org.genvisis.one.JL.aging.bam;
+package org.genvisis.seq.qc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class FlagStats {
   private int read2;
   private int properlyPaired;
   private int itselfAndMateMapped;
-  private int singleton; // mappped but mate is not
+  private int singleton;
   private int mateMappedToDiffChr;
   private int mateMappedToDiffChrMQgte5;
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.SamRecordOps;
+import org.genvisis.seq.qc.FlagStats;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;

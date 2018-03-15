@@ -10,6 +10,7 @@ import org.genvisis.one.JL.aging.bam.BamAnalysisFilters.GCRangeFilter;
 import org.genvisis.one.JL.aging.bam.BamAnalysisFilters.PatternFilter;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
+import org.genvisis.seq.qc.FlagStats;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 
@@ -130,7 +131,7 @@ public class PatternCounterTelomere implements BamAnalysis {
   public static PatternFilter getTelomericPattern(int minCount) {
     // https://github.com/zd1/telseq/blob/35019d2291c89162a34f322680a23d1a46a87990/src/Telseq/telseq.h#L33-L34
     HashSet<String> telPattern = new HashSet<>();
-    telPattern.add("TTAGGG"); // reg
+    telPattern.add("TTAGGG");
     telPattern.add("CCCTAA");// rev comp
     return new PatternFilter(telPattern, minCount);
   }
