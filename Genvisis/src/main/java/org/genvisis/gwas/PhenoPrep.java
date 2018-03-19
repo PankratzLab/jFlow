@@ -206,11 +206,11 @@ public class PhenoPrep {
     prep.summarizeCentralMoments(dir + idFile);
 
     if (histogram) {
-      String[] parts = Files.getHeaderOfFile(dir + filename, log);
+      String[] parts = Files.getHeaderOfFile(dir + outFile, log);
       // int idIndex = ext.indexOfStr(idColName, parts);
       int dataIndex = ext.indexOfStr(pheno, parts);
 
-      String[] dataStrs = HashVec.loadFileToStringArray(dir + filename, true, new int[] {dataIndex},
+      String[] dataStrs = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {dataIndex},
                                                         false);
       String[] valid = ArrayUtils.removeMissingValues(dataStrs);
       int missing = dataStrs.length - valid.length;
