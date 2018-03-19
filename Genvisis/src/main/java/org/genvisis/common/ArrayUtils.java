@@ -1610,7 +1610,7 @@ public class ArrayUtils {
       }
     }
 
-    stdevNegative = ArrayUtils.stdev(Doubles.toArray(positives));
+    stdevNegative = ArrayUtils.stdev(Doubles.toArray(negatives));
     stdevPositive = ArrayUtils.stdev(Doubles.toArray(positives));
 
     newData = new double[array.length];
