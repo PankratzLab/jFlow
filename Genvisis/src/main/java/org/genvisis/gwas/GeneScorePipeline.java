@@ -1718,7 +1718,6 @@ public class GeneScorePipeline {
   // }
 
   public static void main(String[] args) {
-    int numArgs = args.length;
 
     String workDir = null;
     String logFile = null;
@@ -1783,13 +1782,13 @@ public class GeneScorePipeline {
                    // (default))\n" +
                    "";
 
+    boolean fail = false;
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);
         System.exit(1);
       } else if (arg.startsWith(ARG_WORKING_DIR)) {
         workDir = arg.split("=")[1];
-        numArgs--;
       } else if (arg.startsWith("process=")) {
         processList = arg.split("=")[1].split(",");
         process = true;
@@ -1809,7 +1808,6 @@ public class GeneScorePipeline {
             ind++;
           }
         }
-        numArgs--;
       } else if (arg.startsWith(ARG_WINDOW_SIZE)) {
         String[] lst = arg.split("=")[1].split(",");
         int cntValid = 0;
@@ -1826,7 +1824,6 @@ public class GeneScorePipeline {
             ind++;
           }
         }
-        numArgs--;
       } else if (arg.startsWith(ARG_WINDOW_EXT)) {
         String[] lst = arg.split("=")[1].split(",");
         int cntValid = 0;
@@ -1843,18 +1840,16 @@ public class GeneScorePipeline {
             ind++;
           }
         }
-        numArgs--;
       } else if (arg.startsWith(ARG_MISS_THRESH)) {
         mT = ext.parseDoubleArg(arg);
-        numArgs--;
       } else if (arg.startsWith("log=")) {
         logFile = arg.split("=")[1];
-        numArgs--;
       } else {
+        fail = true;
         System.err.println("Error - invalid argument: " + arg);
       }
     }
-    if (numArgs != 0 || args.length == 0) {
+    if (fail || args.length == 0) {
       System.err.println(usage);
       System.exit(1);
     }
