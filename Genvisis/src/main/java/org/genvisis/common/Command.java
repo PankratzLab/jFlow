@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 
@@ -12,7 +13,9 @@ public class Command {
   public static class Builder {
 
     private String[] elements;
+    @Nonnull
     private Collection<String> necessaryInputFiles = ImmutableList.of();
+    @Nonnull
     private Collection<String> expectedOutputFiles = ImmutableList.of();
     private String dir = "";
 
@@ -39,7 +42,7 @@ public class Command {
      *          exist prior to running
      * @return this {@link Builder}
      */
-    public Builder necessaryInputFiles(Collection<String> necessaryInputFiles) {
+    public Builder necessaryInputFiles(@Nonnull Collection<String> necessaryInputFiles) {
       this.necessaryInputFiles = Collections.unmodifiableCollection(necessaryInputFiles);
       return this;
     }
@@ -49,7 +52,7 @@ public class Command {
      *          exist after running
      * @return this {@link Builder}
      */
-    public Builder expectedOutputFiles(Collection<String> expectedOutputFiles) {
+    public Builder expectedOutputFiles(@Nonnull Collection<String> expectedOutputFiles) {
       this.expectedOutputFiles = Collections.unmodifiableCollection(expectedOutputFiles);
       return this;
     }
@@ -59,7 +62,7 @@ public class Command {
      *          exist prior to running
      * @return this {@link Builder}
      */
-    public Builder necessaryInputFiles(String... necessaryInputFiles) {
+    public Builder necessaryInputFiles(@Nonnull String... necessaryInputFiles) {
       return necessaryInputFiles(Arrays.asList(necessaryInputFiles));
     }
 
@@ -68,7 +71,7 @@ public class Command {
      *          exist after running
      * @return this {@link Builder}
      */
-    public Builder expectedOutputFiles(String... expectedOutputFiles) {
+    public Builder expectedOutputFiles(@Nonnull String... expectedOutputFiles) {
       return expectedOutputFiles(Arrays.asList(expectedOutputFiles));
     }
 
@@ -110,7 +113,9 @@ public class Command {
   }
 
   private final String[] elements;
+  @Nonnull
   private final Collection<String> necessaryInputFiles;
+  @Nonnull
   private final Collection<String> expectedOutputFiles;
   private final String dir;
 
@@ -131,14 +136,14 @@ public class Command {
   /**
    * @return the necessary input files required to run the {@link Command}
    */
-  public Collection<String> getNecessaryInputFiles() {
+  public @Nonnull Collection<String> getNecessaryInputFiles() {
     return necessaryInputFiles;
   }
 
   /**
    * @return the expected output files required to indicate success in running the {@link Command}
    */
-  public Collection<String> getExpectedOutputFiles() {
+  public @Nonnull Collection<String> getExpectedOutputFiles() {
     return expectedOutputFiles;
   }
 

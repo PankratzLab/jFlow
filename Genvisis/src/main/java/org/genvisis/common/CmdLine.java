@@ -202,9 +202,9 @@ public class CmdLine {
    */
   public boolean run(Command command) {
     boolean success = false;
-    if (overWriteExistingOutput || command.getExpectedOutputFiles() == null
+    if (overWriteExistingOutput || command.getExpectedOutputFiles().isEmpty()
         || !Files.exists(command.getDir(), command.getExpectedOutputFiles(), treatEmptyAsMissing)) {
-      if (command.getNecessaryInputFiles() == null
+      if (command.getNecessaryInputFiles().isEmpty()
           || Files.exists(command.getDir(), command.getNecessaryInputFiles(),
                           treatEmptyAsMissing)) {
         if (verbose) {
@@ -212,7 +212,7 @@ public class CmdLine {
                      + ArrayUtils.toStr(command.getElements(), " "));
         }
         if (runCommand(command)) {
-          if (command.getExpectedOutputFiles() != null
+          if (!command.getExpectedOutputFiles().isEmpty()
               && !Files.exists(command.getDir(), command.getExpectedOutputFiles(),
                                treatEmptyAsMissing)) {
             log.reportError("Error - the command " + ArrayUtils.toStr(command.getElements(), " ")
