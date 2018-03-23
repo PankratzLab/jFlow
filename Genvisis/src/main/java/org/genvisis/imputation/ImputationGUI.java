@@ -178,7 +178,7 @@ public class ImputationGUI extends JDialog {
       chckbxUseGRC.setFont(COMPONENT_FONT);
       fileTypePanel.contentPanel.add(chckbxUseGRC, "cell 0 2 2 1,alignx center,aligny top");
       chckbxUseGRC.setVisible(false);
-      lblUseGRC = new JLabel("(writes 'chr' in contigs)");
+      lblUseGRC = new JLabel("(GRC contig names do not include 'chr')");
       lblUseGRC.setFont(COMPONENT_FONT.deriveFont(10f));
       fileTypePanel.contentPanel.add(lblUseGRC, "cell 0 3 2 1,alignx center,aligny center");
       lblUseGRC.setVisible(false);
