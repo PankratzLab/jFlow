@@ -15,6 +15,11 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.Sequence;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.CHROMOSOME;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.plots.AFPlot;
+import org.genvisis.cnv.plots.AFPlot.POPULATION;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -31,6 +36,7 @@ import org.genvisis.common.parsing.ColumnFilter;
 import org.genvisis.common.parsing.ColumnFilters;
 import org.genvisis.common.parsing.DataLine;
 import org.genvisis.common.parsing.DoubleFilter;
+import org.genvisis.common.parsing.DoubleWrapperColumn;
 import org.genvisis.common.parsing.FileColumn;
 import org.genvisis.common.parsing.FileParser;
 import org.genvisis.common.parsing.FileParserFactory;
@@ -66,9 +72,7 @@ public class GeneScorePipeline {
   private static String[] DEFAULT_ADDL_ANNOT_VAR_NAMES = new String[0];
   private static double DEFAULT_MIN_MISS_THRESH = 0.5;
 
-  private static final String PLINK_FRQ_DIR = "N:/statgen/1000G_work/Frequencies/";
   private static final String TAG = "##";
-  private static final String PLINK_FRQ_FILE_PATTERN = "chr" + TAG + "_eu_unrel.frq.xln";
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
   private static final String DATA_SOURCE_FILENAME = "data.txt";
 
@@ -311,25 +315,25 @@ public class GeneScorePipeline {
     return rsPos;
   }
 
-  private static HashMap<String, Double> get1000GFreq(HashMap<String, int[]> markerMap) {
-    // BufferedReader reader = null;
-    String currFile, /* temp, */plinkFile;
-    // String[] line;
-    HashMap<Integer, ArrayList<String>> mkrsByChr, nonRSByChr;
-    ArrayList<String> chrMkrs, nonRS;
-    HashMap<String, Double> plinkFreqs = new HashMap<String, Double>();
+  private static HashMap<String, Double> get1000GFreq(HashMap<String, int[]> markerMap,
+                                                      AFPlot.POPULATION population,
+                                                      GENOME_BUILD build, Logger log) {
+    AFPlot.POPULATION pop = population == null ? POPULATION.ALL : population;
+    HashMap<Integer, HashSet<String>> mkrsByChr, nonRSByChr;
+    HashSet<String> chrMkrs, nonRS;
+    HashMap<String, Double> markerFreqs = new HashMap<String, Double>();
 
-    mkrsByChr = new HashMap<Integer, ArrayList<String>>();
-    nonRSByChr = new HashMap<Integer, ArrayList<String>>();
+    mkrsByChr = new HashMap<Integer, HashSet<String>>();
+    nonRSByChr = new HashMap<Integer, HashSet<String>>();
     for (java.util.Map.Entry<String, int[]> entry : markerMap.entrySet()) {
       chrMkrs = mkrsByChr.get(entry.getValue()[0]);
       nonRS = nonRSByChr.get(entry.getValue()[0]);
       if (chrMkrs == null) {
-        chrMkrs = new ArrayList<String>();
+        chrMkrs = new HashSet<String>();
         mkrsByChr.put(entry.getValue()[0], chrMkrs);
       }
       if (nonRS == null) {
-        nonRS = new ArrayList<String>();
+        nonRS = new HashSet<String>();
         nonRSByChr.put(entry.getValue()[0], nonRS);
       }
       chrMkrs.add(entry.getKey());
@@ -338,100 +342,60 @@ public class GeneScorePipeline {
       }
     }
 
-    plinkFile = PLINK_FRQ_DIR + PLINK_FRQ_FILE_PATTERN;
     for (Integer chr : mkrsByChr.keySet()) {
       // skip this chromosome if we don't have any markers for which we need freqencies
       if (mkrsByChr.get(chr) == null || mkrsByChr.get(chr).isEmpty()) {
         continue;
       }
-      currFile = plinkFile.replace(TAG, chr.toString());
 
-      HashMap<String, String> rsToFullData = new HashMap<String, String>();
-      String[] posRS = readPlinkFile(chr, currFile, rsToFullData);
+      String afFile = Resources.genome(build, log)
+                               .chr(CHROMOSOME.valueOf("C" + Integer.toString(chr)))
+                               .getG1Kphase3v5AlleleFreq().get();
+
+      FileColumn<String> snpCol = new AliasedFileColumn("SNP", "ID");
+      FileColumn<Byte> chrCol = StandardFileColumns.chr("CHROM");
+      FileColumn<Integer> posCol = StandardFileColumns.pos("POS");
+      FileColumn<Double> afCol = new DoubleWrapperColumn(new AliasedFileColumn(pop.name(),
+                                                                               pop.colName));
 
       chrMkrs = mkrsByChr.get(chr);
       nonRS = nonRSByChr.get(chr);
+      long parseFails = 0;
 
-      ArrayList<String> rsNotFound = new ArrayList<String>();
-
-      for (String mkr : chrMkrs) {
-        if (rsToFullData.containsKey(mkr)) {
-          plinkFreqs.put(mkr, Double.valueOf(rsToFullData.get(mkr).split("\t")[1]));
-        } else {
-          rsNotFound.add(mkr);
-          continue;
+      try (FileParser parser = FileParserFactory.setup(afFile, snpCol, posCol, chrCol, afCol)
+                                                .build()) {
+        for (DataLine line : parser) {
+          String snp = line.getString(snpCol);
+          try {
+            if (snp.startsWith("rs")) {
+              if (chrMkrs.contains(snp)) {
+                markerFreqs.put(snp, line.get(afCol));
+                chrMkrs.remove(snp);
+              }
+            } else if (nonRS.contains(snp)) {
+              markerFreqs.put(snp, line.get(afCol));
+              nonRS.remove(snp);
+            }
+          } catch (ParseFailureException e) {
+            parseFails++;
+          }
         }
+      } catch (IOException e) {
+        e.printStackTrace();
       }
 
-      nonRS.addAll(rsNotFound);
-
-      for (String nonRSMkr : nonRS) {
-        int pos = markerMap.get(nonRSMkr)[1];
-        String mkrNm = pos > 0 && pos < posRS.length && null != posRS[pos]
-                       && !"".equals(posRS[pos]) ? posRS[pos] : "";
-        plinkFreqs.put(nonRSMkr,
-                       "".equals(mkrNm) ? 0.0
-                                        : Double.valueOf(rsToFullData.get(mkrNm).split("\t")[1]));
-      }
-
-      // Hashtable<String, Vector<String>> plinkData = HashVec.loadFileToHashVec(currFile, 1, new
-      // int[]{4}, "\t", true, false);
-      //
-
-      //
-      // ArrayList<String> found = new ArrayList<String>();
-      //
-      // for (String mkr : chrMkrs) {
-      // if (plinkData.containsKey(mkr))
-      // }
-      //
-      // try {
-      // reader = Files.getAppropriateReader(currFile);
-      // temp = reader.readLine();
-      // while((temp = reader.readLine()) != null) {
-      // line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
-      // String rsOrPos = line[1];
-      // String a1 = line[2];
-      // String a2 = line[3];
-      // String freqStr = line[4];
-      //
-      // if (rsOrPos.startsWith("rs")) {
-      // if (mkrsByChr.get(chr).contains(rsOrPos.split(":")[0])) {
-      // plinkFreqs.put(rsOrPos.split(":")[0], Double.valueOf(freqStr));
-      // mkrsByChr.get(chr).remove(rsOrPos.split(":")[0]);
-      // }
-      // } else if (!nonRSByChr.get(chr).isEmpty()){
-      // // check positions
-      // int plinkPos = Integer.parseInt(rsOrPos.split(":")[1]);
-      // for (String nonRSMkr : nonRSByChr.get(chr)) {
-      // int mkrPos = markerMap.get(nonRSMkr)[1];
-      // if (Math.abs(plinkPos - mkrPos) <= ACCEPTABLE_SEPARATION) {
-      // plinkFreqs.put(nonRSMkr, Double.valueOf(freqStr));
-      // }
-      // }
-      // }
-      // }
-      // reader.close();
-      // reader = null;
-      // } catch (IOException e) {
-      // // TODO Auto-generated catch block
-      // e.printStackTrace();
-      // if (reader != null) {
-      // try {
-      // reader.close();
-      // } catch (IOException e1) {
-      // // TODO Auto-generated catch block
-      // // e1.printStackTrace();
-      // }
-      // reader = null;
-      // }
-      // }
+      log.reportTime("Chromosome " + chr + " -- Couldn't find " + chrMkrs.size() + " RS-ids and "
+                     + nonRS.size() + " non-RS snps."
+                     + (parseFails > 0 ? "  Failed to parse allele frequencies for " + parseFails
+                                         + " markers."
+                                       : ""));
     }
 
-    return plinkFreqs;
+    return markerFreqs;
   }
 
-  public static void preprocessDataFiles(String[] files, Logger log) {
+  public static void preprocessDataFiles(String[] files, AFPlot.POPULATION pop, GENOME_BUILD build,
+                                         Logger log) {
     BufferedReader reader;
     String temp, delimiter;
     String[] header, snps = null, data, line;
@@ -515,7 +479,7 @@ public class GeneScorePipeline {
               }
               fileData = null;
             }
-            freqs = get1000GFreq(markerMap);
+            freqs = get1000GFreq(markerMap, pop, build, log);
           } else {
             freqs = null;// new HashMap<String, Double>();
             // while ((temp = reader.readLine()) != null) {
@@ -1665,7 +1629,8 @@ public class GeneScorePipeline {
     createDataFile(dir, validData, phenos);
 
     log.reportTime("Processing " + preprocess.size() + " results files...");
-    preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]), log);
+    preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]), POPULATION.ALL,
+                        GENOME_BUILD.HG19, log);
     log.reportTime("Done!");
   }
 
@@ -1729,6 +1694,8 @@ public class GeneScorePipeline {
 
     String[] processList = null;
     boolean process = false;
+    POPULATION pop = POPULATION.ALL;
+    GENOME_BUILD build = GENOME_BUILD.HG19;
     // boolean test = true;
     // if (test) {
     // preprocessDataFiles(new String[]{
@@ -1792,6 +1759,13 @@ public class GeneScorePipeline {
       } else if (arg.startsWith("process=")) {
         processList = arg.split("=")[1].split(",");
         process = true;
+        numArgs--;
+      } else if (arg.startsWith("pop=")) {
+        pop = POPULATION.valueOf(arg.split("=")[1]);
+        numArgs--;
+      } else if (arg.startsWith("build=")) {
+        build = GENOME_BUILD.valueOf(arg.split("=")[1]);
+        numArgs--;
       } else if (arg.startsWith(ARG_INDEX_THRESH)) {
         String[] lst = arg.split("=")[1].split(",");
         int cntValid = 0;
@@ -1857,7 +1831,7 @@ public class GeneScorePipeline {
     Logger log = new Logger(logFile, true);
 
     if (process) {
-      preprocessDataFiles(processList, log);
+      preprocessDataFiles(processList, pop, build, log);
       return;
     }
 
