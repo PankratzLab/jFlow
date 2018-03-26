@@ -14,12 +14,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.compress.utils.Sets;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
@@ -46,6 +48,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
+import com.google.common.collect.ImmutableMap;
 
 public class lab {
 
@@ -1205,390 +1208,6 @@ public class lab {
 
   }
 
-  private static void processP1Counts() throws IOException {
-    String header = "F:\\Flow\\CBC_processing\\final counts\\headerLookup.xln";
-    String headerList = "F:\\Flow\\CBC_processing\\final counts\\headerShortList.txt";
-    String[] hdrsShrt = HashVec.loadFileToStringArray(headerList, false, null, false);
-    ArrayList<String> hdrsShrtList = new ArrayList<>();
-    for (String h : hdrsShrt) {
-      hdrsShrtList.add(h);
-    }
-
-    String[][] headerInfo = HashVec.loadFileToStringMatrix(header, true, new int[] {0, 1, 2, 3, 4},
-                                                           "\t", 0, false);
-    HashMap<String, List<Integer>> headerIndexMap = new HashMap<>();
-    for (String h : hdrsShrt) {
-      headerIndexMap.put(h, new ArrayList<Integer>());
-    }
-    for (String[] line : headerInfo) {
-      headerIndexMap.get(line[2]).add(Integer.parseInt(line[3]));
-    }
-
-    String file = "F:\\Flow\\CBC_processing\\final counts\\all.p1.cnts.xln";
-    String out = "F:\\Flow\\CBC_processing\\final counts\\all.p1.cnts_fixed.xln";
-
-    BufferedReader reader = Files.getAppropriateReader(file);
-    PrintWriter writer = Files.getAppropriateWriter(out);
-
-    reader.readLine();
-
-    String h = "Sample";
-    for (String hdr : hdrsShrtList) {
-      h += "\t" + hdr;
-    }
-    writer.println(h);
-
-    String line = null;
-    while ((line = reader.readLine()) != null) {
-      String[] pts = line.split("\t");
-      StringBuilder outStr = new StringBuilder(pts[0]);
-      for (String hdr : hdrsShrtList) {
-        List<Integer> inds = headerIndexMap.get(hdr);
-        if (inds.size() == 1) {
-          outStr.append("\t").append(pts[inds.get(0)]);
-        } else {
-          String s1 = pts[inds.get(0)];
-          String s2 = pts[inds.get(1)];
-          if (s1.equals("null")) {
-            outStr.append("\t").append(s2);
-          } else {
-            outStr.append("\t").append(s1);
-          }
-        }
-      }
-      writer.println(outStr);
-    }
-    reader.close();
-    writer.close();
-
-  }
-
-  private static void processP2Counts_Step2() throws IOException {
-    String dir = "F:\\Flow\\CBC_processing\\final counts\\man\\p1\\";
-
-    HashMap<String, HashMap<String, Integer>> hdrFileInd = new HashMap<>();
-
-    for (int i = 1; i < 3; i++) {
-      String fixF = dir + "all.p1.g" + i + ".cnts.xln";
-      String[] hdr = Files.getHeaderOfFile(fixF, null);
-      for (int h = 1; h < hdr.length; h++) {
-        String hd = hdr[h].trim().replace("\"", "");
-        if (!hdrFileInd.containsKey(hd)) {
-          hdrFileInd.put(hd, new HashMap<>());
-        }
-        hdrFileInd.get(hd).put(fixF, h);
-      }
-    }
-
-    PrintWriter all = Files.getAppropriateWriter(dir + "all.p1.fixed.cnts.xln");
-    String h = "Sample";
-    ArrayList<String> hdrList = new ArrayList<>();
-    for (String hd : hdrFileInd.keySet()) {
-      hdrList.add(hd);
-    }
-    hdrList.sort(new Comparator<String>() {
-
-      @Override
-      public int compare(String o1, String o2) {
-        return Integer.compare(o1.length(), o2.length());
-      }
-    });
-    for (String hd : hdrList) {
-      h += "\t" + hd;
-    }
-    all.println(h);
-
-    for (int i = 1; i < 3; i++) {
-      String fixF = dir + "all.p1.g" + i + ".cnts.xln";
-
-      BufferedReader reader = Files.getAppropriateReader(fixF);
-      reader.readLine();
-      String line = null;
-      while ((line = reader.readLine()) != null) {
-        String[] pts = line.split("\t");
-        StringBuilder outStr = new StringBuilder(pts[0]);
-        for (String hd : hdrList) {
-          if (hdrFileInd.get(hd).containsKey(fixF)) {
-            outStr.append("\t").append(pts[hdrFileInd.get(hd).get(fixF)]);
-          } else {
-            outStr.append("\tnull");
-          }
-        }
-        all.println(outStr.toString());
-      }
-    }
-    all.close();
-
-  }
-
-  private static void processP2Counts_Step1() throws IOException {
-    String dir = "F:\\Flow\\CBC_processing\\final counts\\p2\\";
-
-    for (int i = 0; i < 32; i++) {
-      String hdrF = dir + "hdr." + i + ".txt";
-      String cntF = dir + "p2." + i + ".cnts.xln";
-      String fixF = dir + "fixed.p2." + i + ".cnts.xln";
-
-      String[] hdr = HashVec.loadFileToStringArray(hdrF, false, new int[] {1}, false, false, "\t");
-      HashSet<String> hdrSet = new HashSet<>();
-      for (int h = 1; h < hdr.length; h++) {
-        int p = -1;
-        String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
-        hdrSet.add(hS);
-      }
-      HashMap<String, ArrayList<Integer>> hdrInds = new HashMap<>();
-      for (String h : hdrSet) {
-        hdrInds.put(h, new ArrayList<>());
-      }
-      for (int h = 1; h < hdr.length; h++) {
-        int p = -1;
-        String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
-        hdrInds.get(hS).add(h);
-      }
-
-      BufferedReader reader = Files.getAppropriateReader(cntF);
-      PrintWriter writer = Files.getAppropriateWriter(fixF);
-
-      reader.readLine();
-
-      String h1 = "Sample";
-      for (String h : hdrSet) {
-        h1 += "\t" + h;
-      }
-      writer.println(h1);
-
-      String line = null;
-      while ((line = reader.readLine()) != null) {
-        String[] pts = line.split("\t");
-        StringBuilder outStr = new StringBuilder(pts[0]);
-        for (String h : hdrSet) {
-          List<Integer> inds = hdrInds.get(h);
-          if (inds.size() == 1) {
-            outStr.append("\t").append(pts[inds.get(0)]);
-          } else {
-            boolean added = false;
-            for (int in : inds) {
-              String s = pts[in];
-              if (!s.equals("null")) {
-                outStr.append("\t").append(s);
-                added = true;
-              }
-            }
-            if (!added) {
-              outStr.append("\tnull");
-            }
-          }
-        }
-        writer.println(outStr);
-      }
-      reader.close();
-      writer.close();
-    }
-  }
-
-  private static void processP1Man_2() throws IOException {
-    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
-
-    HashMap<String, HashMap<String, Integer>> hdrFileInd = new HashMap<>();
-
-    for (String d : new File(dir).list()) {
-      for (String f : new File(dir + d).list()) {
-        String[] hdr = Files.getHeaderOfFile(dir + d + "\\" + f, null);
-        for (int h = 1; h < hdr.length; h++) {
-          if (!hdrFileInd.containsKey(hdr[h])) {
-            hdrFileInd.put(hdr[h], new HashMap<>());
-          }
-          hdrFileInd.get(hdr[h]).put(f, h);
-        }
-      }
-    }
-
-    PrintWriter all = Files.getAppropriateWriter(dir + "p2.cnts.xln");
-    String h = "Sample\tSource";
-    for (String hd : hdrFileInd.keySet()) {
-      h += "\t" + hd;
-    }
-    all.println(h);
-
-    for (String d : new File(dir).list()) {
-      if (!new File(dir + d).isDirectory()) {
-        continue;
-      }
-      for (String f : new File(dir + d).list()) {
-
-        BufferedReader reader = Files.getAppropriateReader(dir + d + "\\" + f);
-        reader.readLine();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-          String[] pts = line.split("\t");
-          StringBuilder outStr = new StringBuilder(pts[0]).append("\t").append(d);
-          for (String hd : hdrFileInd.keySet()) {
-            if (hdrFileInd.get(hd).containsKey(f)) {
-              outStr.append("\t").append(pts[hdrFileInd.get(hd).get(f)]);
-            } else {
-              if (!hd.equals("defaultRectangleGate")) {
-                System.out.println();
-              }
-              outStr.append("\tnull");
-            }
-          }
-          all.println(outStr.toString());
-        }
-      }
-    }
-    all.close();
-
-  }
-
-  private static void processP1Man_1() throws IOException {
-    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
-
-    for (String d : new File(dir).list()) {
-      for (String f : new File(dir + d).list()) {
-        String path = dir + d + "\\" + f;
-
-        String[] hdr = Files.getHeaderOfFile(path, null);
-        for (int h = 0; h < hdr.length; h++) {
-          String[] pts = hdr[h].split(" / ");
-          hdr[h] = pts[pts.length - 1];
-        }
-
-        HashSet<String> hdrSet = new HashSet<>();
-        for (int h = 0; h < hdr.length; h++) {
-          int p = -1;
-          String h1 = hdr[h];
-          p = h1.indexOf(" (");
-          String hS = h1.substring(0, p == -1 ? h1.length() : p);
-          hdrSet.add(hS);
-        }
-        HashMap<String, ArrayList<Integer>> hdrInds = new HashMap<>();
-        for (String h : hdrSet) {
-          hdrInds.put(h, new ArrayList<>());
-        }
-        for (int h = 0; h < hdr.length; h++) {
-          int p = -1;
-          String hS = hdr[h].substring(0, (p = hdr[h].indexOf(" (")) == -1 ? hdr[h].length() : p);
-          hdrInds.get(hS).add(h + 1);
-        }
-
-        String[] data = HashVec.loadFileToStringArray(path, true, null, false);
-        PrintWriter writer = Files.getAppropriateWriter(path);
-
-        String h1 = "Sample";
-        for (String h : hdrSet) {
-          h1 += "\t" + h;
-        }
-        writer.println(h1);
-
-        for (String line : data) {
-          String[] pts = line.split("\t");
-          StringBuilder outStr = new StringBuilder(pts[0]);
-          for (String h : hdrSet) {
-            List<Integer> inds = hdrInds.get(h);
-            Set<String> vals = new HashSet<>();
-            for (Integer ind : inds) {
-              vals.add(pts[ind]);
-            }
-            outStr.append("\t");
-            vals.remove("null");
-            if (vals.size() == 1) {
-              outStr.append(vals.toArray(new String[1])[0]);
-            } else if (vals.size() == 0) {
-              outStr.append("null");
-            } else {
-              System.out.println(vals);
-              outStr.append("NA");
-              System.err.println("Error - " + h);
-            }
-          }
-          writer.println(outStr);
-        }
-        writer.close();
-
-      }
-    }
-  }
-
-  private static void combine() throws IOException {
-    String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\sources\\redo\\";
-    String[][] metaData = null;
-    metaData = HashVec.loadFileToStringMatrix("F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\metaData.xln",
-                                              false, null, "\t", 0, false);
-
-    HashMap<String, String[]> metaInfo = new HashMap<>();
-    for (int i = 1; i < metaData.length; i++) {
-      metaInfo.put(metaData[i][0], metaData[i]);
-    }
-
-    String f;
-    String m = null;
-    String o;
-
-    f = dir + "p2.cnts.xln";
-    // m = dir + "man.p2.fixed.cnts.xln";
-    o = dir + "p2.xln";
-
-    String[][] manual;
-    String[] manHdr = null;
-    HashMap<String, String[]> manInfo = null;
-    if (m != null) {
-      manual = HashVec.loadFileToStringMatrix(m, false, null, "\t", 0, false);
-
-      manHdr = manual[0];
-      manInfo = new HashMap<>();
-      for (int i = 1; i < manual.length; i++) {
-        manInfo.put(ext.removeDirectoryInfo(manual[i][0]), manual[i]);
-      }
-    }
-
-    BufferedReader reader = Files.getAppropriateReader(f);
-    PrintWriter writer = Files.getAppropriateWriter(o);
-
-    String[] hdr = reader.readLine().split("\t");
-    int[] inds = m == null ? null : ext.indexFactors(hdr, manHdr, false);
-    StringBuilder out = new StringBuilder();
-    // out.append(hdr[0]).append("\tManual");
-    out.append(hdr[0]);
-    for (int i = 1; i < metaData[0].length; i++) {
-      out.append("\t").append(metaData[0][i]);
-    }
-    for (int i = 1; i < hdr.length; i++) {
-      out.append("\t").append(hdr[i]);
-    }
-    writer.println(out.toString());
-
-    String l = null;
-    while ((l = reader.readLine()) != null) {
-      String[] pts = l.split("\t");
-      String samp = ext.removeDirectoryInfo(pts[0]);
-      String[] meta = metaInfo.get(samp);
-      if (meta == null) {
-        System.err.println("Error - " + samp);
-      } else if (meta[2].equals(".")) {
-        continue;
-      }
-      out = new StringBuilder(samp);
-      String[] man = m == null ? null : manInfo.get(ext.removeDirectoryInfo(pts[0]));
-      // out.append("\t").append(man == null ? 0 : 1);
-      for (int i = 1; i < meta.length; i++) {
-        out.append("\t").append(meta[i]);
-      }
-      if (man == null) {
-        for (int i = 1; i < pts.length; i++) {
-          out.append("\t").append(pts[i]);
-        }
-      } else {
-        for (int i = 1; i < pts.length; i++) {
-          out.append("\t").append(man[inds[i]]);
-        }
-      }
-      writer.println(out.toString());
-    }
-    reader.close();
-    writer.close();
-
-  }
-
   private static void removeParens() {
     String dir = "F:\\Flow\\CBC_processing\\final counts\\redoEverythingSource\\fixedHeaders\\";
     for (String d : (new File(dir).list())) {
@@ -1777,6 +1396,213 @@ public class lab {
   //
   // }
 
+  public static void checkMissing() {
+    Project proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+    float[] lrrs;
+    int count = 0;
+    for (String s : proj.getSamples()) {
+      String sF = proj.SAMPLE_DIRECTORY.getValue() + s + ".sampRAF";
+      Sample samp = Sample.loadFromRandomAccessFile(sF);
+      lrrs = samp.getLRRs();
+      if (lrrs == null || lrrs.length == 0 || ArrayUtils.removeNaN(lrrs).length == 0) {
+        count++;
+      }
+      samp = null;
+      lrrs = null;
+    }
+    System.out.println("Found " + count + " samples with missing or NaN LRR data");
+  }
+
+  public static void checkOOR() {
+    Project proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
+    OutOfRangeValues oorv = OutOfRangeValues.construct(proj);
+    System.out.println("Expecting " + oorv.smpMap.size() + " samples to have oor values.");
+    for (String samp : oorv.smpMap.keySet()) {
+      int exp = oorv.smpMap.get(samp).size();
+      String file = proj.SAMPLE_DIRECTORY.getValue() + samp + ".sampRAF";
+      try {
+        Hashtable<String, Float> outs = Sample.loadOutOfRangeValuesFromRandomAccessFile(file);
+        System.out.println("Sample " + samp + "; expected: " + exp + ", found: "
+                           + (outs == null ? "null" : outs.size()));
+        outs = null;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+    }
+  }
+
+  private static final void combineAllWithSelect() throws IOException {
+    ImmutableMap.Builder<String, String> b = new ImmutableMap.Builder<>();
+    b.put("Comp-BV 605-A \\(CD95\\)", "Comp-BV605-A \\(CD95\\)");
+    b.put("Comp-BV 510-A \\(CD28\\)", "Comp-BV510-A \\(CD28\\)");
+    b.put("Comp-BB 515-A \\(CD27\\)", "Comp-BB515-A \\(CD27\\)");
+    b.put("Comp-BB515-A \\(CD27\\)", "Comp-FITC-A \\(CD27\\)");
+    b.put("Comp-BV 421-A \\(CCR7\\)", "Comp-BV421-A \\(CCR7\\)");
+    b.put("Comp-BV 711-A \\(CD45RA\\)", "Comp-BV711-A \\(CD45RA\\)");
+    b.put("Comp-BUV 395-A \\(CD8\\)", "Comp-BUV396-A \\(CD8\\)");
+    b.put("LIVE/DEAD", "L/D");
+    b.put("Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)", "Comp-PE-Cy7-A \\(CD19\\)");
+    b.put("Comp-BUV 737-A \\(IgD\\)", "Comp-BUV737-A \\(IgD\\)");
+    
+    final ImmutableMap<String, String> dimSwitch = b.build();
+
+    String dir = "/scratch.global/cole0482/fcsVizPipe/r26_TcellSubs_Kmeans_wsp_v8/";
+    String dir1 = dir + "outCnts/";
+    String sel = dir + "nonMan.samp.txt";
+    int batch = 37;
+    
+    HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null, true, false, "\t"));
+    HashSet<String> fndHash = new HashSet<>();
+    System.out.println("Loaded " + selHash.size() + " samples to keep");
+    
+    List<String> xtraFiles = new ArrayList<>();
+    xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln");
+    xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln");
+    
+    
+    LinkedHashSet<String> headers = new LinkedHashSet<>();
+    for (int i = 0; i < batch; i++) {
+      String f = dir1 + "b" + i + "/p1.cnts.xln";
+      if (!Files.exists(f)) continue;
+      String[] hdr = Files.getHeaderOfFile(f, null);
+      for (String s : hdr) {
+        String[] s1 = s.split(" / ");
+        String s11 = s1[s1.length - 1];
+        for (Entry<String, String> en : dimSwitch.entrySet()) {
+          s11 = s11.replaceAll(en.getKey(), en.getValue());
+        }
+        headers.add(s11);
+      }
+    }
+    for (String f : xtraFiles) {
+      String[] hdr = Files.getHeaderOfFile(f, null);
+      for (String s : hdr) {
+        String[] s1 = s.split(" / ");
+        String s11 = s1[s1.length - 1];
+        for (Entry<String, String> en : dimSwitch.entrySet()) {
+          s11 = s11.replaceAll(en.getKey(), en.getValue());
+        }
+        headers.add(s11);
+      }
+    }
+    
+    PrintWriter allOut = Files.getAppropriateWriter(dir + "allNonManCounts.xln");
+    allOut.print("Sample");
+    for (String h : headers) {
+      allOut.print("\t");
+      allOut.print(h);
+    }
+    allOut.println();
+    for (int i = 0; i < batch + 1; i++) {
+      String f = dir1 + "b" + i + "/p1.cnts.xln";
+      if (!Files.exists(f)) continue;
+      BufferedReader reader = Files.getAppropriateReader(f);
+      String line = reader.readLine();
+      String[] hdr = line.split("\t", -1);
+      String[] fix = new String[hdr.length];
+      for (int s = 0; s < hdr.length; s++) {
+        String[] s1 = hdr[s].split(" / ");
+        String s11 = s1[s1.length - 1];
+        for (Entry<String, String> en : dimSwitch.entrySet()) {
+          s11 = s11.replaceAll(en.getKey(), en.getValue());
+        }
+        fix[s] = s11;
+      }
+      
+      Map<String, List<Integer>> hdrInds = new HashMap<>();
+      for (int h = 0; h < fix.length; h++) {
+        if (!hdrInds.containsKey(fix[h])) {
+          hdrInds.put(fix[h], new ArrayList<>());
+        }
+        hdrInds.get(fix[h]).add(h);
+      }
+
+      int cnt = 0;
+      while ((line = reader.readLine()) != null) {
+        int ind  = line.indexOf("\t");
+        String samp = line.substring(0, ind);
+        samp = samp.substring(samp.lastIndexOf('/') + 1);
+        
+        if (selHash.contains(samp)) {
+          if (!fndHash.add(samp)) {
+            System.out.println("Duplicate: " + samp);
+          }
+          cnt++;
+          String[] sP = line.split("\t");
+          allOut.print(samp);
+          for(String h : headers) {
+            allOut.print("\t");
+            if (hdrInds.containsKey(h)) {
+              for (int hI : hdrInds.get(h)) {
+                if (!sP[hI].equals("null")) {
+                  allOut.print(sP[hI]);
+                }
+              }
+            } else {
+              allOut.print("null");
+            }
+          }
+          allOut.println();
+        }
+      }
+      System.out.println("Found " + cnt + " samples in batch " + i);
+      reader.close();
+    }
+    for (String f : xtraFiles) {
+      if (!Files.exists(f)) continue;
+      BufferedReader reader = Files.getAppropriateReader(f);
+      String line = reader.readLine();
+      String[] hdr = line.split("\t", -1);
+      String[] fix = new String[hdr.length];
+      for (int s = 0; s < hdr.length; s++) {
+        String[] s1 = hdr[s].split(" / ");
+        String s11 = s1[s1.length - 1];
+        for (Entry<String, String> en : dimSwitch.entrySet()) {
+          s11 = s11.replaceAll(en.getKey(), en.getValue());
+        }
+        fix[s] = s11;
+      }
+      
+      Map<String, List<Integer>> hdrInds = new HashMap<>();
+      for (int h = 0; h < fix.length; h++) {
+        if (!hdrInds.containsKey(fix[h])) {
+          hdrInds.put(fix[h], new ArrayList<>());
+        }
+        hdrInds.get(fix[h]).add(h);
+      }
+      
+      while ((line = reader.readLine()) != null) {
+        int ind  = line.indexOf("\t");
+        String samp = line.substring(0, ind);
+        samp = samp.substring(samp.lastIndexOf('/') + 1);
+        
+        String[] sP = line.split("\t");
+        allOut.print(samp);
+        for(String h : headers) {
+          allOut.print("\t");
+          if (hdrInds.containsKey(h)) {
+            for (int hI : hdrInds.get(h)) {
+              if (!sP[hI].equals("null")) {
+                allOut.print(sP[hI]);
+              }
+            }
+          } else {
+            allOut.print("null");
+          }
+        }
+        allOut.println();
+      }
+      reader.close();
+    }
+
+    System.out.println("Missing " + (selHash.size() - fndHash.size()) + " samples");
+    selHash.removeAll(fndHash);
+    Files.writeIterable(selHash, dir + "missing.samp.txt");
+    
+    allOut.close();
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException {
     int numArgs = args.length;
     Project proj;
@@ -1800,6 +1626,8 @@ public class lab {
       // fixBCXResults();
       // fixBCXResultsAlleleFreq();
 
+      combineAllWithSelect();
+      
       // runHRC();
       // QQPlot.main(new String[]
       // {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
@@ -1828,14 +1656,9 @@ public class lab {
       //      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
 
       //      proj.SAMPLE_DIRECTORY.setValue("G:\\transposeTesting\\sampleFiles\\");
-      proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
-      TempFileTranspose tft = new TempFileTranspose(proj,
-                                                    proj.PROJECT_DIRECTORY.getValue() + "temp/",
-                                                    "");
-      if (args.length == 1 && args[0].equals("-setup")) {
-        tft.setupMarkerListFile();
-      }
-      tft.runFirst();
+
+      //      checkMissing();
+      //      checkOOR();
 
       // transposeFile();
 

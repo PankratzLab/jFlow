@@ -103,7 +103,7 @@ public class FCSProcessingPipeline {
         };
         break;
       case PCTS_CNTS:
-        pf = new PercentageAndCountWriterFactory(outDir, panel);
+        pf = new PercentageAndCountWriterFactory(outDir, panel, ovvrDir, ovvrSuff, ovvrMatch);
         break;
       default:
         System.err.println("Error - pipeline option " + pipeToRun
