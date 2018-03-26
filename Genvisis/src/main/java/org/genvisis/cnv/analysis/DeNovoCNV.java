@@ -11,6 +11,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.hmm.PFB;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
@@ -873,13 +875,13 @@ public class DeNovoCNV {
     }
 
     if (!new File(proj.PROJECT_DIRECTORY.getValue() + "custom.pfb").exists()) {
-      PennCNV.populationBAF(proj);
+      PFB.populationBAF(proj);
     } else {
       log.report("Skipped generating custom population BAF, - found " + trioPedigreeFullPath);
     }
 
     if (!new File(gcModelFullPath).exists()) {
-      PennCNV.gcModel(proj, gcBaseFileFullPath, gcModelFullPath, numWindowUnits);
+      GcModel.gcModel(proj, gcBaseFileFullPath, gcModelFullPath, numWindowUnits);
     } else {
       log.report("Skipped generating custom GC Model, - found " + trioPedigreeFullPath);
     }

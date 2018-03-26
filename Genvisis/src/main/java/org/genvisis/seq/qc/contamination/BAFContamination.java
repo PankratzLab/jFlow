@@ -4,10 +4,10 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
@@ -293,7 +293,7 @@ public class BAFContamination {
     }
     if (!Files.exists(pfb)) {
       proj.getLog().reportTimeInfo("Creating " + pfb + " for contamination detection");
-      PennCNV.populationBAF(proj);
+      PFB.populationBAF(proj);
     }
     if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
       proj.getLog().reportTimeInfo("Creating " + proj.SAMPLE_QC_FILENAME.getValue()

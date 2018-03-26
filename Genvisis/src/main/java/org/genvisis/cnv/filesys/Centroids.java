@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.genvisis.cnv.analysis.CentroidCompute;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.TextExport;
@@ -746,7 +745,7 @@ public class Centroids implements Serializable, TextExport {
 
     PFB pfb = PFB.loadPFB(proj);
     if (pfb == null) {
-      String newPFB = PennCNV.populationBAF(proj);
+      String newPFB = PFB.populationBAF(proj);
       pfb = PFB.loadPFB(proj, newPFB);
     }
     final PFB autoPFB = pfb;

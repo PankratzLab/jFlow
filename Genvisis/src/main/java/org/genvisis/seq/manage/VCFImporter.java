@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Project;
@@ -473,7 +472,7 @@ public class VCFImporter {
       TransposeData.transposeData(proj, 2000000000, false);
     }
     if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
-      PennCNV.gcModel(proj, gc5Base, proj.GC_MODEL_FILENAME.getValue(), 100);
+      GcModel.gcModel(proj, gc5Base, proj.GC_MODEL_FILENAME.getValue(), 100);
     } else {
       proj.getLog().reportTimeInfo("Skipping transpose step");
     }

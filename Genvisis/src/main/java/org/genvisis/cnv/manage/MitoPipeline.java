@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.analysis.pca.BetaOptimizer;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator;
 import org.genvisis.cnv.analysis.pca.PCA;
@@ -29,6 +28,7 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.SampleQC;
@@ -478,7 +478,7 @@ public class MitoPipeline {
           log.reportTimeWarning("Generating gcModel for " + build.getBuild() + " at "
                                 + proj.GC_MODEL_FILENAME.getValue() + " from " + gmodelBase.get());
           proj.getLog().setLevel(3);
-          PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+          GcModel.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
         }
         if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
           refGenomeFasta = proj.getReferenceGenomeFASTAFilename();

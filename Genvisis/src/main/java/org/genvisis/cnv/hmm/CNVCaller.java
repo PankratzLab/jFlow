@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
@@ -77,7 +76,7 @@ public class CNVCaller {
     PENNCNV_DEFAULT,
     /**
      * Less than 0 pfbs are treated as CN only. In genvisis -1 pfbs represent snps without genotypes
-     * (uncalled, see {@link PennCNV#populationBAF(Project)})
+     * (uncalled, see {@link PFB#populationBAF(Project)})
      */
     LESS_THAN_0_GO_CN;
   }
@@ -943,7 +942,7 @@ public class CNVCaller {
       if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
         proj.getLog().reportTimeInfo("Did not find " + proj.CUSTOM_PFB_FILENAME.getValue()
                                      + ", attempting to generate it now");
-        PennCNV.populationBAF(proj);
+        PFB.populationBAF(proj);
       }
       pfbFile = proj.CUSTOM_PFB_FILENAME.getValue();
     }
@@ -958,7 +957,7 @@ public class CNVCaller {
                                + " at " + proj.GC_MODEL_FILENAME.getValue() + " from "
                                + gmodelBase.get());
         proj.getLog().setLevel(3);
-        PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+        GcModel.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
       }
     }
     GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false,
@@ -997,7 +996,7 @@ public class CNVCaller {
     if (!Files.exists(proj.CUSTOM_PFB_FILENAME.getValue())) {
       proj.getLog().reportTimeInfo("Did not find " + proj.CUSTOM_PFB_FILENAME.getValue()
                                    + ", attempting to generate it now");
-      PennCNV.populationBAF(proj);
+      PFB.populationBAF(proj);
     }
     PFB pfb = PFB.loadPFB(proj, proj.CUSTOM_PFB_FILENAME.getValue());
     if (!Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
@@ -1009,7 +1008,7 @@ public class CNVCaller {
                                + " at " + proj.GC_MODEL_FILENAME.getValue() + " from "
                                + gmodelBase.get());
         proj.getLog().setLevel(3);
-        PennCNV.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
+        GcModel.gcModel(proj, gmodelBase.get(), proj.GC_MODEL_FILENAME.getValue(), 100);
       }
     }
     GcModel gcModel = GcAdjustor.GcModel.populateFromFile(proj.GC_MODEL_FILENAME.getValue(false,
@@ -1100,6 +1099,7 @@ public class CNVCaller {
     boolean callGen = false;
     boolean useCentroids = true;
     String excludeFile = null;
+    String sampleFile = null;
 
     String usage = "\n" + "cnv.hmm.CNVCaller requires 0-1 arguments\n";
     usage += "   (1) proj (i.e. proj=" + filename + " (default))\n" + "";
@@ -1135,6 +1135,9 @@ public class CNVCaller {
       } else if (arg.startsWith("-genome")) {
         callGen = true;
         numArgs--;
+      } else if (arg.startsWith("samples=")) {
+        sampleFile = ext.parseStringArg(arg);
+        numArgs--;
       } else if (arg.startsWith("-noCentroids")) {
         useCentroids = false;
         numArgs--;
@@ -1158,9 +1161,9 @@ public class CNVCaller {
       if (excludeFile != null && !"".equals(excludeFile)) {
         markersToUse = loadMarkersToUse(proj, excludeFile);
       }
+      String[] samples = sampleFile == null ? proj.getSamples() : HashVec.loadFileToStringArray(sampleFile, false, null, false);
       if (callGen) {
 
-        String[] samples = proj.getSamples();
         boolean[] inclSampAll = proj.getSamplesToInclude(null);
         int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
         ArrayList<String> males = new ArrayList<String>();
@@ -1189,7 +1192,7 @@ public class CNVCaller {
         callGenomeCnvs(proj, output, sexCents, markersToUse, minNumMarkers, minConf,
                        PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
       } else {
-        callAutosomalCNVs(proj, output, proj.getSamples(), null, markersToUse, null, minNumMarkers,
+        callAutosomalCNVs(proj, output, samples, null, markersToUse, null, minNumMarkers,
                           minConf, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
       }
     } catch (Exception e) {

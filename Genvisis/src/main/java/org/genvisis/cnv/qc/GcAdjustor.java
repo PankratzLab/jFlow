@@ -2,6 +2,7 @@ package org.genvisis.cnv.qc;
 
 import java.awt.Color;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,16 +13,21 @@ import java.util.Hashtable;
 import java.util.Map;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.plots.ColorExt;
 import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
+import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.common.PSF.Regex;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
@@ -897,6 +903,184 @@ public class GcAdjustor {
       return null;
     }
 
+    /**
+     * Generate the GCModel file needed by PennCNV software
+     * (http://www.openbioinformatics.org/penncnv/).
+     *
+     * @param proj The project you are going to run PennCNV on.
+     * @param inputGcBaseFullPath The user-supplied genome builds. Positions within each chromosome
+     *          must be sorted by increasing order. For example,
+     *          http://hgdownload.cse.ucsc.edu/goldenPath/hg18/database/gc5Base.txt.gz
+     * @param outputGcModelFullPath The name of the GCModel file.
+     * @param numwindow For each SNP, GC Content is calculated for the range of numwindow*5120 before
+     *          its location through numwindow*5120 after. To use the default setting of 100, please
+     *          enter 0. In order to be able to cross-reference with the same feature in PennCNV, this
+     *          code intends to base on cal_gc_snp.pl in PennCNV package. But since the difference
+     *          between Java and Perl, significant structural changes have been made. A sample gcBase
+     *          file looks like below (There is no header line): 585 chr1 0 5120 chr1.0 5 1024 0
+     *          /gbdb/hg18/wib/gc5Base.wib 0 100 1024 59840 3942400 585 chr1 5120 10240 chr1.1 5 1024
+     *          1024 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 59900 3904400 585 chr1 10240 15360 chr1.2 5
+     *          1024 2048 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 55120 3411200 585 chr1 15360 20480
+     *          chr1.3 5 1024 3072 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 49900 3078800 585 chr1 20480
+     *          25600 chr1.4 5 1024 4096 /gbdb/hg18/wib/gc5Base.wib 0 100 1024 47600 2682400 A sample
+     *          gcModel file (the output) look like this: Name Chr Position GC rs4961 4 2876505
+     *          48.6531211131841 rs3025091 11 102219838 38.1080923507463 rs3092963 3 46371942
+     *          44.4687694340796 rs3825776 15 56534122 40.7894123134328 rs17548390 6 3030512
+     *          45.3604050062189 rs2276302 11 113355350 43.8200598569652 snpFile or pfb file
+     *          (Population B Allele Frequency) is an additional data file that is required by the
+     *          corresponding feature in PennCNV but not here. It looks like the this: Name Chr
+     *          Position PFB rs1000113 5 150220269 0.564615751221256 rs1000115 9 112834321
+     *          0.565931333264192 rs10001190 4 6335534 0.5668604380025 rs10002186 4 38517993
+     *          0.57141752993563 rs10002743 4 6327482 0.567557695424774
+     */
+    public static void gcModel(Project proj, String inputGcBaseFullPath, String outputGcModelFullPath,
+                               int numwindow) {
+      MarkerSetInfo markerSet;
+      String[] markerNames;
+      byte[] chrs;
+      int[] positions;
+    
+      BufferedReader reader;
+      String[] line;
+      PrintWriter writer;
+      byte curchr;
+      int curstart, curend, curcount;
+      boolean skip = false;
+      double cursum;
+      Hashtable<Byte, Byte> seen_chr = new Hashtable<Byte, Byte>();
+    
+      int[] snp_count;
+      double[] snp_sum;
+      byte prechr = -1;
+      int prestart = -1;
+      int chr_index;
+      Logger log;
+    
+      log = proj.getLog();
+    
+      // generate or load SnpFile (pbf file or Population B Allele Frequency)
+      markerSet = proj.getMarkerSet();
+      markerNames = markerSet.getMarkerNames();
+      chrs = markerSet.getChrs(); // to be used only in the SnpFile (.pdf file) block. But then in the
+                                 // outputFile.
+      positions = markerSet.getPositions(); // to be used only in the SnpFile (.pdf file) block. But
+                                           // then in the GcFile block.
+    
+      // How do we know whether "numwindow==null" ???
+      if (numwindow == 0) {
+        numwindow = 100;
+      }
+    
+      snp_count = new int[markerNames.length];
+      snp_sum = new double[markerNames.length];
+      chr_index = 0;
+    
+      // load gcFile
+      try {
+    
+        PSF.checkInterrupted();
+    
+        // If an invalid gc base path was given, try using the resources
+        if (!new File(inputGcBaseFullPath).exists()) {
+          Resource r = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), log).getModelBase();
+          if (r.isAvailable()) {
+            inputGcBaseFullPath = r.getAbsolute();
+          }
+        }
+        reader = Files.getAppropriateReader(inputGcBaseFullPath);
+        while (reader.ready()) {
+          line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
+          curchr = Positions.chromosomeNumber(line[1]);
+          curstart = Integer.parseInt(line[2]);
+          curend = Integer.parseInt(line[3]);
+          curcount = Integer.parseInt(line[11]);
+          cursum = Double.parseDouble(line[12]);
+    
+          // For each record in gcFile, scan snpFile for the range of +/- numwindow*5120
+          if (curchr > 0) {
+            if (curchr == prechr) {
+              if (curstart < prestart) {
+                log.reportError("Error in gcFile: a record in chr" + curchr + " has position "
+                                + curstart + ", less then the previous position $prestart");
+                reader.close();
+                return;
+              }
+            } else if (seen_chr.containsKey(curchr)) {
+              log.reportError("Error in gcFile: rows of the same chromosome must be adjacent. But now chr"
+                              + curchr + " occur multiple times in non-continuous segment of the "
+                              + inputGcBaseFullPath + ": at " + curchr + ":" + curstart);
+              reader.close();
+              return;
+            } else {
+              seen_chr.put(curchr, (byte) 1);
+    
+              skip = false;
+              if (chrs[chr_index] > curchr) {
+                chr_index = 0;
+              }
+              while (chr_index < (chrs.length) && chrs[chr_index] != curchr) {
+                chr_index++;
+              }
+            }
+    
+            if (!(curchr == prechr && skip)) {
+              while (chr_index < chrs.length && chrs[chr_index] == curchr
+                     && positions[chr_index] < Math.max(curstart - numwindow * 5120, 0)) {
+                chr_index++;
+              }
+              if (chr_index >= chrs.length) {
+                chr_index = 0;
+                skip = true;
+              } else if (chrs[chr_index] != curchr) {
+                skip = true;
+              } else {
+                for (int i = chr_index; i < snp_count.length && chrs[i] == curchr
+                                        && positions[i] <= (curend + numwindow * 5120); i++) {
+                  snp_count[i] += curcount;
+                  snp_sum[i] += cursum;
+                }
+              }
+            }
+    
+            prestart = curstart;
+            prechr = curchr;
+          }
+        }
+        reader.close();
+      } catch (Exception e) {
+        log.reportError("Error reading from '" + inputGcBaseFullPath + "'");
+        log.reportException(e);
+        return;
+      }
+    
+      PSF.checkInterrupted();
+      // load pfb file or generate it
+    
+      // output the result
+      try {
+        writer = Files.openAppropriateWriter(outputGcModelFullPath);
+        writer.println("Name\tChr\tPosition\tGC");
+        for (int i = 0; i < markerNames.length; i++) {
+          // writer.println(markerNames[i]+"\t"+chrs[i]+"\t"+positions[i]+"\t"+(snp_count[i]==0?(snp_sum[i]==0?0:"err"):(snp_sum[i]/snp_count[i])));
+          writer.println(markerNames[i] + "\t"
+                         + (chrs[i] < 23 ? chrs[i]
+                                         : (chrs[i] == 23 ? "X"
+                                                          : (chrs[i] == 24 ? "Y"
+                                                                           : (chrs[i] == 25 ? "XY"
+                                                                                            : (chrs[i] == 26 ? "M"
+                                                                                                             : "Un")))))
+                         + "\t" + positions[i] + "\t"
+                         + (snp_count[i] == 0 ? (snp_sum[i] == 0 ? 0 : "err")
+                                              : (snp_sum[i] / snp_count[i])));
+        }
+        writer.close();
+        log.report("Generated population GC Model " + outputGcModelFullPath);
+      } catch (Exception e) {
+        log.reportError("Error writing to '" + outputGcModelFullPath + "'");
+        log.reportException(e);
+      }
+    }
+
     public static GcModel loadSerial(String fullPathToGcSer) {
       return (GcModel) SerializedFiles.readSerial(fullPathToGcSer);
     }
@@ -1215,10 +1399,20 @@ public class GcAdjustor {
   }
 
   public static void main(String[] args) {
-    Project proj = new Project(null, null);
-    String fullPathToGcModel = "D:/data/gedi_gwas/CompareGC_CORRECTION/custom.gcmodel";
-    String fullPathToFileOfTestSamples = "D:/data/gedi_gwas/CompareGC_CORRECTION/testGCCorrection.txt";
-    test(proj, fullPathToGcModel, fullPathToFileOfTestSamples);
+    CLI cli = new CLI(GcModel.class);
+    
+    cli.addArg("filename", "Project properties file");
+    cli.addArg("logfile", "Project log file", false);
+    cli.addArg("gc5base", "GC5Base file");
+    
+    cli.parseWithExit(args);
+    
+    String filename = cli.get("filename");
+    String logfile = cli.has("logfile") ? cli.get("logfile") : null;
+    String gc5base = cli.get("gc5base");
+    
+    Project proj = new Project(filename, logfile);
+    GcModel.gcModel(proj, gc5base, proj.GC_MODEL_FILENAME.getValue(), 100);
   }
 
   public static class GCAdjustorBuilder {

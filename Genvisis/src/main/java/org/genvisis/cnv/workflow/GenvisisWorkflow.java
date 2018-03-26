@@ -569,7 +569,7 @@ public class GenvisisWorkflow {
         public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
           String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
           String gcOutputFile = variables.get(this).get(gcModelOutputReq);
-          org.genvisis.cnv.analysis.PennCNV.gcModel(proj, gcBaseFile, gcOutputFile, 100);
+          org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj, gcBaseFile, gcOutputFile, 100);
         }
 
         @Override
@@ -591,7 +591,7 @@ public class GenvisisWorkflow {
           }
           String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
           return cmd.append(Files.getRunString())
-                    .append(" cnv.analysis.PennCNV proj=" + proj.getPropertyFilename() + " log="
+                    .append(" org.genvisis.cnv.qc.GcAdjustor.GcModel proj=" + proj.getPropertyFilename() + " log="
                             + proj.getLog().getFilename() + " gc5base=" + gcBaseFile)
                     .toString();
         }
@@ -1595,7 +1595,7 @@ public class GenvisisWorkflow {
 
         @Override
         public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-          org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
+          org.genvisis.cnv.hmm.PFB.populationBAF(proj);
         }
 
         @Override
@@ -1621,7 +1621,7 @@ public class GenvisisWorkflow {
                .append(kvCmd).append("\n");
           }
           return cmd.append(Files.getRunString())
-                    .append(" cnv.analysis.PennCNV -pfb proj=" + proj.getPropertyFilename()
+                    .append(" org.genvisis.cnv.hmm.PFB proj=" + proj.getPropertyFilename()
                             + " log=" + proj.getLog().getFilename())
                     .toString();
         }

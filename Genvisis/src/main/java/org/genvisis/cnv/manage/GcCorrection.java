@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -339,7 +338,7 @@ public class GcCorrection {
       if (!Files.exists(proj.GC_MODEL_FILENAME.getValue())) {
         String gcBase = Files.exists("N:/statgen/NCBI/hg19.gc5Base.txt.gz") ? "N:/statgen/NCBI/hg19.gc5Base.txt.gz"
                                                                             : "/home/pankrat2/public/bin/NCBI/hg19.gc5Base.txt.gz";
-        PennCNV.gcModel(proj, gcBase, proj.GC_MODEL_FILENAME.getValue(), 100);
+        GcModel.gcModel(proj, gcBase, proj.GC_MODEL_FILENAME.getValue(), 100);
       }
       gcCorrect(proj, numThreads);
     } catch (Exception e) {

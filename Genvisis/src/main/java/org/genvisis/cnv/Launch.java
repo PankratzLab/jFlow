@@ -1047,7 +1047,7 @@ public class Launch extends JFrame implements ActionListener {
       } else if (command.equals(POPULATIONBAF))
 
       {
-        org.genvisis.cnv.analysis.PennCNV.populationBAF(proj);
+        org.genvisis.cnv.hmm.PFB.populationBAF(proj);
       } else if (command.equals(CUSTOM_CENTROIDS)) {
         SwingUtilities.invokeLater(new Runnable() {
 
@@ -1106,7 +1106,7 @@ public class Launch extends JFrame implements ActionListener {
                     proj.PROJECT_DIRECTORY.getValue() + "genome/");
 
       } else if (command.equals(GCMODEL)) {
-        org.genvisis.cnv.analysis.PennCNV.gcModel(proj,
+        org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj,
                                                   Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
                                                                                   "gc5Base.txt",
                                                                                   true, false, log),
