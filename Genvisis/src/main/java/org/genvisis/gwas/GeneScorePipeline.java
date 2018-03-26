@@ -1759,13 +1759,10 @@ public class GeneScorePipeline {
       } else if (arg.startsWith("process=")) {
         processList = arg.split("=")[1].split(",");
         process = true;
-        numArgs--;
       } else if (arg.startsWith("pop=")) {
         pop = POPULATION.valueOf(arg.split("=")[1]);
-        numArgs--;
       } else if (arg.startsWith("build=")) {
         build = GENOME_BUILD.valueOf(arg.split("=")[1]);
-        numArgs--;
       } else if (arg.startsWith(ARG_INDEX_THRESH)) {
         String[] lst = arg.split("=")[1].split(",");
         int cntValid = 0;
