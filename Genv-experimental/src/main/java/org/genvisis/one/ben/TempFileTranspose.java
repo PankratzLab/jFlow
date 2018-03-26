@@ -15,7 +15,6 @@ import java.util.Hashtable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -303,74 +302,6 @@ public class TempFileTranspose {
                     + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS) + " to write.");
   }
 
-  static class Outliers {
-
-    enum TYPE {
-      X, Y, LRR;
-    }
-
-    public Map<String, Map<TYPE, Float>> getMarkerOutliers(String markerName) {
-      return mkrMap.containsKey(markerName) ? mkrMap.get(markerName) : new HashMap<>();
-    }
-
-    public Map<String, Map<TYPE, Float>> getSampleOutliers(String sampleName) {
-      return smpMap.containsKey(sampleName) ? smpMap.get(sampleName) : new HashMap<>();
-    }
-
-    public Hashtable<String, Float> getSampleOutliersForFile(Project proj, String sampleName) {
-      Hashtable<String, Float> table = new Hashtable<>();
-      Map<String, Map<TYPE, Float>> outs = getSampleOutliers(sampleName);
-      for (Entry<String, Map<TYPE, Float>> e : outs.entrySet()) {
-        for (Entry<TYPE, Float> e1 : e.getValue().entrySet()) {
-          table.put(proj.getMarkerIndices().get(e.getKey()) + "\t"
-                    + e1.getKey().name().toLowerCase(), e1.getValue());
-        }
-      }
-      return table;
-    }
-
-    public static Outliers construct(Project proj, Hashtable<String, Float> set) {
-      Outliers outs = new Outliers();
-      String[] allMarkers = proj.getMarkerNames();
-      for (Entry<String, Float> out : set.entrySet()) {
-        String[] k = out.getKey().split("\t");
-        int mInd = Integer.parseInt(k[0]);
-        String sName = k[1];
-        TYPE typ = TYPE.valueOf(k[2].toUpperCase());
-        outs.add(allMarkers[mInd], sName, typ, out.getValue());
-      }
-      return outs;
-    }
-
-    private Outliers() {
-      mkrMap = new HashMap<>();
-      smpMap = new HashMap<>();
-    }
-
-    Map<String, Map<String, Map<TYPE, Float>>> mkrMap;
-    Map<String, Map<String, Map<TYPE, Float>>> smpMap;
-
-    private void add(String mkr, String samp, TYPE typ, Float value) {
-      if (!mkrMap.containsKey(mkr)) {
-        mkrMap.put(mkr, new HashMap<>());
-      }
-      Map<String, Map<TYPE, Float>> outMap = mkrMap.get(mkr);
-      if (!outMap.containsKey(samp)) {
-        outMap.put(samp, new HashMap<>());
-      }
-      outMap.get(samp).put(typ, value);
-      if (!smpMap.containsKey(samp)) {
-        smpMap.put(samp, new HashMap<>());
-      }
-      outMap = smpMap.get(samp);
-      if (!outMap.containsKey(mkr)) {
-        outMap.put(mkr, new HashMap<>());
-      }
-      outMap.get(mkr).put(typ, value);
-    }
-
-  }
-
   public String getSampleListFile() {
     return tempDir + "samp.list";
   }
@@ -385,7 +316,7 @@ public class TempFileTranspose {
 
   public void runSecond() throws IOException {
     nullStatus = getNullStatus();
-    Outliers outliers = Outliers.construct(proj, MarkerDataLoader.loadOutliers(proj));
+    OutOfRangeValues outliers = OutOfRangeValues.construct(proj);
     String[] files = discover(); // deterministic / always the same order
     Map<String, Integer> markerCountMap = new HashMap<>();
 
@@ -438,7 +369,7 @@ public class TempFileTranspose {
 
   public void runSecondResub() throws IOException {
     nullStatus = getNullStatus();
-    final Outliers outliers = Outliers.construct(proj, MarkerDataLoader.loadOutliers(proj));
+    final OutOfRangeValues outliers = OutOfRangeValues.construct(proj);
     final String[] files = discover(); // deterministic / always the same order
     final Map<String, Integer> markerCountMap = new HashMap<>();
 
@@ -446,7 +377,7 @@ public class TempFileTranspose {
     ExecutorService executor = Executors.newFixedThreadPool(threads);
 
     String listFile = getSampleListFile();
-    final String[] preSel = ListFileCheckoutSystem.checkout(listFile, threads, label,
+    final String[] preSel = ListFileCheckoutSystem.checkout(listFile, threads * 1000, label,
                                                             proj.getLog());
 
     int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
@@ -497,7 +428,7 @@ public class TempFileTranspose {
 
   }
 
-  private void processOneSAMPRAF(Outliers outliers, String[] files,
+  private void processOneSAMPRAF(OutOfRangeValues outliers, String[] files,
                                  Map<String, Integer> markerCountMap, int numBytesPerSampleMarker,
                                  int numBytesPerSample, byte[] mkrCntBytes, long fingerPrint,
                                  final ImmutableMap<String, Integer> sampleIndices,
