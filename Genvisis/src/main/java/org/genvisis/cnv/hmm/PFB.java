@@ -12,7 +12,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -81,10 +80,10 @@ public class PFB {
   public static String populationBAF(Project proj) {
     String[] sampleList;
     String output;
-  
+
     Logger log = proj.getLog();
     String filename = proj.SAMPLE_SUBSET_FILENAME.getValue(true, false);
-  
+
     if (ext.rootOf(filename) == null || ext.rootOf(filename).equals("")
         || !Files.exists(filename)) {
       sampleList = proj.getSampleList().getSamples();
@@ -97,7 +96,7 @@ public class PFB {
       proj.message("Failed to load \"" + filename + "\"");
       return null;
     }
-  
+
     MarkerSetInfo markerSet = proj.getMarkerSet();
     String[] markerNames = markerSet.getMarkerNames();
     byte[] chrs = markerSet.getChrs();
@@ -114,41 +113,37 @@ public class PFB {
                                                               false, true);
       float[] bafs = samp.getBAFs();
       byte[] genotypes = samp.getAB_Genotypes();
-      IntStream.range(0, bafSum.length)
-               .parallel()
-               .forEach((j) -> {
-                 if (!Float.isNaN(bafs[j])) {
-                   bafSum[j] += bafs[j];
-                   bafCounts[j]++;
-                   if (genotypes[j] >= 0) {
-                     genoCounts[j]++;
-                   }
-                 }
-               });
+      IntStream.range(0, bafSum.length).parallel().forEach((j) -> {
+        if (!Float.isNaN(bafs[j])) {
+          bafSum[j] += bafs[j];
+          bafCounts[j]++;
+          if (genotypes[j] >= 0) {
+            genoCounts[j]++;
+          }
+        }
+      });
     }
     double[] bafAverage = new double[chrs.length];
     Set<String> missingGenotypeMarkers = Collections.synchronizedSet(new HashSet<>());
-    
-    IntStream.range(0, bafSum.length)
-             .parallel()
-             .forEach((i) -> {
-               boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
-               if (genoCounts[i] != 0 && !cnOnly) {// Since mock genotypes can be present, we demand non-CN
-                 // only
-                 bafAverage[i] = bafSum[i] / bafCounts[i];
-               } else if (cnOnly) {
-                 bafAverage[i] = 2;
-               } else {
-                 bafAverage[i] = -1; // This is to more clearly differentiate CN only markers from SNPs
-                 // without callrate
-                 
-                 missingGenotypeMarkers.add(markerNames[i]);
-               }
-             });
-  
+
+    IntStream.range(0, bafSum.length).parallel().forEach((i) -> {
+      boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
+      if (genoCounts[i] != 0 && !cnOnly) {// Since mock genotypes can be present, we demand non-CN
+        // only
+        bafAverage[i] = bafSum[i] / bafCounts[i];
+      } else if (cnOnly) {
+        bafAverage[i] = 2;
+      } else {
+        bafAverage[i] = -1; // This is to more clearly differentiate CN only markers from SNPs
+        // without callrate
+
+        missingGenotypeMarkers.add(markerNames[i]);
+      }
+    });
+
     PSF.checkInterrupted();
     try {
-  
+
       PrintWriter writer = Files.openAppropriateWriter(output);
       writer.println("Name\tChr\tPosition\tPFB");
       for (int i = 0; i < markerNames.length; i++) {
@@ -204,18 +199,18 @@ public class PFB {
     }
 
   }
-  
+
   public static void main(String[] args) {
     CLI cli = new CLI(PFB.class);
-    
+
     cli.addArg("filename", "Project properties file");
     cli.addArg("logfile", "Project log file", false);
-    
+
     cli.parseWithExit(args);
-    
+
     String filename = cli.get("filename");
     String logfile = cli.has("logfile") ? cli.get("logfile") : null;
-    
+
     Project proj = new Project(filename, logfile);
 
     populationBAF(proj);

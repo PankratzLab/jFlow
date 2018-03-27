@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -33,11 +32,6 @@ import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
-import org.genvisis.common.parsing.AliasedFileColumn;
-import org.genvisis.common.parsing.FileColumn;
-import org.genvisis.common.parsing.FileLink;
-import org.genvisis.common.parsing.FileParserFactory;
-import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -45,6 +39,11 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
+import org.genvisis.common.parsing.AliasedFileColumn;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileLink;
+import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
@@ -1444,23 +1443,24 @@ public class lab {
     b.put("LIVE/DEAD", "L/D");
     b.put("Comp-PE-Cy7 \\(blue\\)-A \\(CD19\\)", "Comp-PE-Cy7-A \\(CD19\\)");
     b.put("Comp-BUV 737-A \\(IgD\\)", "Comp-BUV737-A \\(IgD\\)");
-    
+
     final ImmutableMap<String, String> dimSwitch = b.build();
 
     String dir = "/scratch.global/cole0482/fcsVizPipe/r26_TcellSubs_Kmeans_wsp_v8/";
     String dir1 = dir + "outCnts/";
     String sel = dir + "nonMan.samp.txt";
     int batch = 37;
-    
-    HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null, true, false, "\t"));
+
+    HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null, true,
+                                                                            false, "\t"));
     HashSet<String> fndHash = new HashSet<>();
     System.out.println("Loaded " + selHash.size() + " samples to keep");
-    
+
     List<String> xtraFiles = new ArrayList<>();
     xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln");
     xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln");
-    
-    
+    xtraFiles.add("/scratch.global/lanej/flow/manual/panel1_v8_counts/p1.cnts.xln");
+
     LinkedHashSet<String> headers = new LinkedHashSet<>();
     for (int i = 0; i < batch; i++) {
       String f = dir1 + "b" + i + "/p1.cnts.xln";
@@ -1486,8 +1486,8 @@ public class lab {
         headers.add(s11);
       }
     }
-    
-    PrintWriter allOut = Files.getAppropriateWriter(dir + "allNonManCounts.xln");
+
+    PrintWriter allOut = Files.getAppropriateWriter(dir + "allCounts.xln");
     allOut.print("Sample");
     for (String h : headers) {
       allOut.print("\t");
@@ -1509,7 +1509,7 @@ public class lab {
         }
         fix[s] = s11;
       }
-      
+
       Map<String, List<Integer>> hdrInds = new HashMap<>();
       for (int h = 0; h < fix.length; h++) {
         if (!hdrInds.containsKey(fix[h])) {
@@ -1520,10 +1520,10 @@ public class lab {
 
       int cnt = 0;
       while ((line = reader.readLine()) != null) {
-        int ind  = line.indexOf("\t");
+        int ind = line.indexOf("\t");
         String samp = line.substring(0, ind);
         samp = samp.substring(samp.lastIndexOf('/') + 1);
-        
+
         if (selHash.contains(samp)) {
           if (!fndHash.add(samp)) {
             System.out.println("Duplicate: " + samp);
@@ -1531,7 +1531,7 @@ public class lab {
           cnt++;
           String[] sP = line.split("\t");
           allOut.print(samp);
-          for(String h : headers) {
+          for (String h : headers) {
             allOut.print("\t");
             if (hdrInds.containsKey(h)) {
               for (int hI : hdrInds.get(h)) {
@@ -1563,7 +1563,7 @@ public class lab {
         }
         fix[s] = s11;
       }
-      
+
       Map<String, List<Integer>> hdrInds = new HashMap<>();
       for (int h = 0; h < fix.length; h++) {
         if (!hdrInds.containsKey(fix[h])) {
@@ -1571,15 +1571,15 @@ public class lab {
         }
         hdrInds.get(fix[h]).add(h);
       }
-      
+
       while ((line = reader.readLine()) != null) {
-        int ind  = line.indexOf("\t");
+        int ind = line.indexOf("\t");
         String samp = line.substring(0, ind);
         samp = samp.substring(samp.lastIndexOf('/') + 1);
-        
+
         String[] sP = line.split("\t");
         allOut.print(samp);
-        for(String h : headers) {
+        for (String h : headers) {
           allOut.print("\t");
           if (hdrInds.containsKey(h)) {
             for (int hI : hdrInds.get(h)) {
@@ -1599,7 +1599,7 @@ public class lab {
     System.out.println("Missing " + (selHash.size() - fndHash.size()) + " samples");
     selHash.removeAll(fndHash);
     Files.writeIterable(selHash, dir + "missing.samp.txt");
-    
+
     allOut.close();
   }
 
@@ -1627,7 +1627,7 @@ public class lab {
       // fixBCXResultsAlleleFreq();
 
       combineAllWithSelect();
-      
+
       // runHRC();
       // QQPlot.main(new String[]
       // {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});

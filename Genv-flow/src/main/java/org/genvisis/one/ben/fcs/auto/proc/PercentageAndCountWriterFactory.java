@@ -20,8 +20,8 @@ public class PercentageAndCountWriterFactory implements ProcessorFactory<Percent
   final String ovvrSfx;
   final String ovvrMatch;
 
-  public PercentageAndCountWriterFactory(String outDir, int panel, 
-                                         String ovvrDir, String ovvrSfx, String ovvrMatch) {
+  public PercentageAndCountWriterFactory(String outDir, int panel, String ovvrDir, String ovvrSfx,
+                                         String ovvrMatch) {
     this.outputDir = outDir;
     this.panel = panel;
     this.ovvrDir = ovvrDir;

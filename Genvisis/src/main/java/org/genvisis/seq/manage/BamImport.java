@@ -365,7 +365,6 @@ public class BamImport {
                                    // interest
         results[index] = pileTrain.next();
         index++;
-
       }
       if (compileProject) {
         compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
@@ -476,12 +475,12 @@ public class BamImport {
 
   }
 
-  private static void compileProject(Project proj, int correctionPCs, int numthreads, Logger log,
-                                     String[] bamsToImport, ReferenceGenome referenceGenome,
-                                     List<MarkerFileType> markerTypes,
-                                     LocusSet<Segment> analysisSet, String[] offTargetsToUse,
-                                     BamPileResult[] results, ASSEMBLY_NAME aName,
-                                     NORMALIZATON_METHOD normMethod, boolean doCorrection) {
+  public static void compileProject(Project proj, int correctionPCs, int numthreads, Logger log,
+                                    String[] bamsToImport, ReferenceGenome referenceGenome,
+                                    List<MarkerFileType> markerTypes, LocusSet<Segment> analysisSet,
+                                    String[] offTargetsToUse, BamPileResult[] results,
+                                    ASSEMBLY_NAME aName, NORMALIZATON_METHOD normMethod,
+                                    boolean doCorrection) {
     String[] mappedReadCounts = new String[bamsToImport.length + 1];
     mappedReadCounts[0] = "Sample\tAlignedReadCount\tUnalignedReadCount";
     long fingerPrint = proj.getMarkerSet().getFingerprint();

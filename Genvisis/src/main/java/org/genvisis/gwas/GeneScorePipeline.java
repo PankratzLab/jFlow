@@ -72,7 +72,6 @@ public class GeneScorePipeline {
   private static String[] DEFAULT_ADDL_ANNOT_VAR_NAMES = new String[0];
   private static double DEFAULT_MIN_MISS_THRESH = 0.5;
 
-  private static final String TAG = "##";
   private static final String CROSS_FILTERED_DATAFILE = "bimData.xln";
   private static final String DATA_SOURCE_FILENAME = "data.txt";
 
@@ -80,9 +79,6 @@ public class GeneScorePipeline {
   private static final String EFFECT_ALLELE_COL_NAME = "EffectAllele";
   private static final String NON_EFFECT_ALLELE_COL_NAME = "NonEffectAllele";
   private static final String BETA_COL_NAME = "beta";
-
-  private static final String[][] LINKERS = {Aliases.MARKER_NAMES, Aliases.ALLELES[0],
-                                             Aliases.EFFECTS};
 
   private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tP-VALUE\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tEXCEL-SIG";
   private final String metaDir;

@@ -1107,11 +1107,12 @@ public class Launch extends JFrame implements ActionListener {
 
       } else if (command.equals(GCMODEL)) {
         org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj,
-                                                  Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
-                                                                                  "gc5Base.txt",
-                                                                                  true, false, log),
-                                                  proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
-                                                  100);
+                                                       Files.firstPathToFileThatExists(Aliases.REFERENCE_FOLDERS,
+                                                                                       "gc5Base.txt",
+                                                                                       true, false,
+                                                                                       log),
+                                                       proj.PROJECT_DIRECTORY.getValue() + "data/custom.gcModel",
+                                                       100);
       } else if (command.equals(MARKER_METRICS)) {
         org.genvisis.cnv.qc.MarkerMetrics.fullQC(proj, proj.getSamplesToExclude(), null, true,
                                                  proj.NUM_THREADS.getValue());

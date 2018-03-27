@@ -119,9 +119,9 @@ public class AFPlot {
    */
   public enum POPULATION {
     ALL("AF"), EAS("EAS_AF"), EUR("EUR_AF"), AFR("AFR_AF"), AMR("AMR_AF"), SAS("SAS_AF");
-    
+
     public final String colName;
-    
+
     private POPULATION(String col) {
       this.colName = col;
     }
@@ -141,12 +141,18 @@ public class AFPlot {
       FileColumn<Integer> posCol = StandardFileColumns.pos("POS");
       FileColumn<String> refCol = new AliasedFileColumn("REF", "REF");
       FileColumn<String> altCol = new AliasedFileColumn("ALT", "ALT");
-      FileColumn<Double> afAll = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.ALL.name(), POPULATION.ALL.colName));
-      FileColumn<Double> afEas = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.EAS.name(), POPULATION.EAS.colName));
-      FileColumn<Double> afEur = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.EUR.name(), POPULATION.EUR.colName));
-      FileColumn<Double> afAfr = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.AFR.name(), POPULATION.AFR.colName));
-      FileColumn<Double> afAmr = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.AMR.name(), POPULATION.AMR.colName));
-      FileColumn<Double> afSas = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.SAS.name(), POPULATION.SAS.colName));
+      FileColumn<Double> afAll = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.ALL.name(),
+                                                                               POPULATION.ALL.colName));
+      FileColumn<Double> afEas = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.EAS.name(),
+                                                                               POPULATION.EAS.colName));
+      FileColumn<Double> afEur = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.EUR.name(),
+                                                                               POPULATION.EUR.colName));
+      FileColumn<Double> afAfr = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.AFR.name(),
+                                                                               POPULATION.AFR.colName));
+      FileColumn<Double> afAmr = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.AMR.name(),
+                                                                               POPULATION.AMR.colName));
+      FileColumn<Double> afSas = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.SAS.name(),
+                                                                               POPULATION.SAS.colName));
 
       String G1KFile = Resources.genome(proj == null ? GENOME_BUILD.HG19
                                                      : proj.GENOME_BUILD_VERSION.getValue(),

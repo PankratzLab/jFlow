@@ -1161,7 +1161,9 @@ public class CNVCaller {
       if (excludeFile != null && !"".equals(excludeFile)) {
         markersToUse = loadMarkersToUse(proj, excludeFile);
       }
-      String[] samples = sampleFile == null ? proj.getSamples() : HashVec.loadFileToStringArray(sampleFile, false, null, false);
+      String[] samples = sampleFile == null ? proj.getSamples()
+                                            : HashVec.loadFileToStringArray(sampleFile, false, null,
+                                                                            false);
       if (callGen) {
 
         boolean[] inclSampAll = proj.getSamplesToInclude(null);
@@ -1192,8 +1194,8 @@ public class CNVCaller {
         callGenomeCnvs(proj, output, sexCents, markersToUse, minNumMarkers, minConf,
                        PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
       } else {
-        callAutosomalCNVs(proj, output, samples, null, markersToUse, null, minNumMarkers,
-                          minConf, PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
+        callAutosomalCNVs(proj, output, samples, null, markersToUse, null, minNumMarkers, minConf,
+                          PFB_MANAGEMENT_TYPE.PENNCNV_DEFAULT, numThreads, 1);
       }
     } catch (Exception e) {
       e.printStackTrace();

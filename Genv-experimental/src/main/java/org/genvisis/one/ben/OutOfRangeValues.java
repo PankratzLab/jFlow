@@ -13,10 +13,10 @@ public class OutOfRangeValues {
     X, Y, LRR;
   }
 
-  
   /**
    * @param markerName
-   * @return Map<String, Map<OutOfRangeValues.TYPE, Float>> map of sample names to out-of-range values
+   * @return Map<String, Map<OutOfRangeValues.TYPE, Float>> map of sample names to out-of-range
+   *         values
    */
   public Map<String, Map<OutOfRangeValues.TYPE, Float>> getMarkerOutliers(String markerName) {
     return mkrMap.containsKey(markerName) ? mkrMap.get(markerName) : new HashMap<>();
@@ -24,7 +24,8 @@ public class OutOfRangeValues {
 
   /**
    * @param sampleName
-   * @return Map<String, Map<OutOfRangeValues.TYPE, Float>> map of marker names to out-of-range values
+   * @return Map<String, Map<OutOfRangeValues.TYPE, Float>> map of marker names to out-of-range
+   *         values
    */
   public Map<String, Map<OutOfRangeValues.TYPE, Float>> getSampleOutliers(String sampleName) {
     return smpMap.containsKey(sampleName) ? smpMap.get(sampleName) : new HashMap<>();
@@ -35,8 +36,8 @@ public class OutOfRangeValues {
     Map<String, Map<OutOfRangeValues.TYPE, Float>> outs = getSampleOutliers(sampleName);
     for (Entry<String, Map<OutOfRangeValues.TYPE, Float>> e : outs.entrySet()) {
       for (Entry<OutOfRangeValues.TYPE, Float> e1 : e.getValue().entrySet()) {
-        table.put(proj.getMarkerIndices().get(e.getKey()) + "\t"
-                  + e1.getKey().name().toLowerCase(), e1.getValue());
+        table.put(proj.getMarkerIndices().get(e.getKey()) + "\t" + e1.getKey().name().toLowerCase(),
+                  e1.getValue());
       }
     }
     return table;

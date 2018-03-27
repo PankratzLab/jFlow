@@ -591,8 +591,9 @@ public class GenvisisWorkflow {
           }
           String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
           return cmd.append(Files.getRunString())
-                    .append(" org.genvisis.cnv.qc.GcAdjustor.GcModel proj=" + proj.getPropertyFilename() + " log="
-                            + proj.getLog().getFilename() + " gc5base=" + gcBaseFile)
+                    .append(" org.genvisis.cnv.qc.GcAdjustor.GcModel proj="
+                            + proj.getPropertyFilename() + " log=" + proj.getLog().getFilename()
+                            + " gc5base=" + gcBaseFile)
                     .toString();
         }
 
@@ -1621,8 +1622,8 @@ public class GenvisisWorkflow {
                .append(kvCmd).append("\n");
           }
           return cmd.append(Files.getRunString())
-                    .append(" org.genvisis.cnv.hmm.PFB proj=" + proj.getPropertyFilename()
-                            + " log=" + proj.getLog().getFilename())
+                    .append(" org.genvisis.cnv.hmm.PFB proj=" + proj.getPropertyFilename() + " log="
+                            + proj.getLog().getFilename())
                     .toString();
         }
 

@@ -985,9 +985,11 @@ public class Sample implements Serializable {
             xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[index],
                                                                      readBuffer[index + 1]});
             if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              if (outOfRangeValues == null || outOfRangeValues.size() == 0 || !outOfRangeValues.containsKey(j + "\tx")) {
+              if (outOfRangeValues == null || outOfRangeValues.size() == 0
+                  || !outOfRangeValues.containsKey(j + "\tx")) {
                 // slightly possible that the value of this lrr is /actually/ -32.677
-                System.err.println("Missing out-of-range LRR value; sample " + sampleName + ", marker " + j);
+                System.err.println("Missing out-of-range LRR value; sample " + sampleName
+                                   + ", marker " + j);
               } else {
                 xs[j] = outOfRangeValues.get(j + "\tx");
               }
