@@ -36,8 +36,8 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
   final String ovvrSfx;
   final String ovvrMatch;
   static final Map<String, String> dimSwitch = new HashMap<>();
-  
-  {    
+
+  {
     dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
     dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
     dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
@@ -47,8 +47,8 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
   }
 
   public PercentageAndCountWriter(Map<String, Map<String, Double>> pctMap,
-                                  Map<String, Map<String, Integer>> cntMap,
-                                  String ovvrDir, String ovvrSfx, String ovvrMatch) {
+                                  Map<String, Map<String, Integer>> cntMap, String ovvrDir,
+                                  String ovvrSfx, String ovvrMatch) {
     this.pctMap = pctMap;
     this.cntMap = cntMap;
     this.ovvrDir = ovvrDir;
@@ -63,7 +63,7 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
     }
     loadPopsAndGates(sn);
     loadData(sn);
-    
+
     if (ovvrDir != null) {
       d.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
     }
@@ -84,7 +84,7 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
       boolean[] parent = g.getParentGating(d);
       int g1 = ArrayUtils.booleanArraySum(gating);
       int g2 = ArrayUtils.booleanArraySum(parent);
-      
+
       String name = g.getFullNameAndGatingPath();
       for (Entry<String, String> dim : dimSwitch.entrySet()) {
         name.replaceAll(dim.getKey(), dim.getValue());
