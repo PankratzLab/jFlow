@@ -20,7 +20,6 @@ public class WorkerTrain<E> implements Iterator<E> {
   private final ExecutorService executor;
   private Producer<E> producer;
   private final BlockingQueue<Future<E>> bq;
-  private int currentQSize;
   private final int numThreads;
   private final int qBuffer;
   private final Logger log;
@@ -41,7 +40,6 @@ public class WorkerTrain<E> implements Iterator<E> {
     this.bq = new ArrayBlockingQueue<Future<E>>(qBuffer, true);
     this.producer = producer;
     this.log = log;
-    this.currentQSize = 0;
     this.autoShutDown = true;
   }
 
@@ -64,9 +62,8 @@ public class WorkerTrain<E> implements Iterator<E> {
 
   @Override
   public boolean hasNext() {
-    while (producer.hasNext() && currentQSize < qBuffer) {// add if possible
+    while (producer.hasNext() && bq.remainingCapacity() > 0) {// add if possible
       bq.add(executor.submit(producer.next()));
-      currentQSize++;
     }
     boolean hasNext = !bq.isEmpty();
     if (!hasNext && autoShutDown) {
@@ -79,7 +76,6 @@ public class WorkerTrain<E> implements Iterator<E> {
   public E next() {
     try {
       E e = bq.take().get();
-      currentQSize--;
       return e;
     } catch (ExecutionException e) {
       e.printStackTrace();
