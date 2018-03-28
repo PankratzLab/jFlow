@@ -1223,7 +1223,7 @@ public class SourceFileParser implements Runnable {
         LongFormatParseResult result = train.next();
         if (result.count == 0) {
           log.reportError("Encountered an error processing " + result.fileParsed + " , halting");
-          train.shutdown();
+          train.close();
           return 0;
         }
         count += result.count;

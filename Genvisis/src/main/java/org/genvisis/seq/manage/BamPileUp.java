@@ -160,7 +160,7 @@ public class BamPileUp implements Iterator<BamPile> {
             }
           }
         } finally {
-          train.shutdown();
+          train.close();
         }
       }
     }

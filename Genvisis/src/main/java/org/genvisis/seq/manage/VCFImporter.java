@@ -420,7 +420,7 @@ public class VCFImporter {
           allNewOutliers.putAll(outliers);
         }
       }
-      train.shutdown();
+      train.close();
       if (allNewOutliers.size() > 0) {
         SerializedFiles.writeSerial(allNewOutliers,
                                     projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");

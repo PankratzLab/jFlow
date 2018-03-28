@@ -795,7 +795,7 @@ public class CentroidCompute {
       }
       index++;
     }
-    train.shutdown();
+    train.close();
     Centroids[] computed = new Centroids[builders.length];
     for (int i = 0; i < centroids.length; i++) {
       Centroids cent = new Centroids(centroids[i], proj.getMarkerSet().getFingerprint());
@@ -889,7 +889,7 @@ public class CentroidCompute {
       }
       index++;
     }
-    train.shutdown();
+    train.close();
     proj.getLog().reportTimeInfo("Took" + ext.getTimeElapsed(time));
   }
 

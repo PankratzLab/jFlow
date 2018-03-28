@@ -13,10 +13,9 @@ import java.util.concurrent.Future;
 /**
  * Class used to add callables to a thread pool and retrieve in order
  *
- * @param <E> the object type returned by {@link WorkerTrain#next()} WARNING - make sure to call
- *          shutdown after processing, I think
+ * @param <E> the object type returned by {@link WorkerTrain#next()}
  */
-public class WorkerTrain<E> implements Iterator<E> {
+public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
 
   private final ExecutorService executor;
   private final Producer<E> producer;
@@ -25,7 +24,6 @@ public class WorkerTrain<E> implements Iterator<E> {
   private final int qBuffer;
   private final Thread trainLoader;
   private final Logger log;
-  private boolean autoShutDown;
 
   /**
    * @param producer dishes up {@link Callable}s to run on the thread pool
@@ -43,7 +41,6 @@ public class WorkerTrain<E> implements Iterator<E> {
     this.producer = producer;
     this.log = log;
     this.trainLoader = new Thread(this::loadTrain);
-    this.autoShutDown = true;
 
     start();
   }
@@ -72,14 +69,11 @@ public class WorkerTrain<E> implements Iterator<E> {
     }
   }
 
-  public void shutdown() {
+  @Override
+  public void close() {
     trainLoader.interrupt();
     executor.shutdown();
     producer.shutdown();
-  }
-
-  public void setAutoShutDown(boolean autoShutDown) {
-    this.autoShutDown = autoShutDown;
   }
 
   public Logger getLog() {
@@ -89,7 +83,7 @@ public class WorkerTrain<E> implements Iterator<E> {
   @Override
   public boolean hasNext() {
     boolean hasNext = producer.hasNext() || !bq.isEmpty();
-    if (!hasNext && autoShutDown) shutdown();
+    if (!hasNext) close();
     return hasNext;
   }
 
@@ -100,16 +94,15 @@ public class WorkerTrain<E> implements Iterator<E> {
         return bq.take().get();
       } catch (InterruptedException e) {
         log.reportException(e);
-        shutdown();
+        close();
         Thread.currentThread().interrupt();
         return null;
       } catch (ExecutionException e) {
         log.reportException(e);
-        shutdown();
+        close();
         return null;
       }
     } else {
-      shutdown();
       throw new NoSuchElementException();
     }
   }

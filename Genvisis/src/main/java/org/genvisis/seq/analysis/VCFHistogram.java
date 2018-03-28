@@ -483,7 +483,7 @@ public class VCFHistogram implements Serializable {
     while (train.hasNext()) {
       hists[indext] = train.next();
     }
-    train.shutdown();
+    train.close();
     //
     // try {
     // String finalOutput = outputDir+outputRoot+"_final";

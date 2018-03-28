@@ -93,7 +93,7 @@ public class SeqError {
                 tmpI++;
               }
             } finally {
-              train.shutdown();
+              train.close();
             }
           }
         }

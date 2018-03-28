@@ -78,7 +78,7 @@ public class MDL implements Iterator<MarkerData> {
    */
   private void initTrain(FileMatch match) {
     if (decompTrain != null) {
-      decompTrain.shutdown();
+      decompTrain.close();
     }
     producer = new BufferReader(proj, markerSet, match.getFileName(),
                                 Ints.toArray(match.getFileIndices()),
@@ -108,7 +108,7 @@ public class MDL implements Iterator<MarkerData> {
 
   public void shutdown() {
     if (decompTrain != null) {
-      decompTrain.shutdown();
+      decompTrain.close();
     }
   }
 

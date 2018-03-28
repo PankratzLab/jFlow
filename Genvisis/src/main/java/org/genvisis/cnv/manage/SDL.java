@@ -49,7 +49,7 @@ public class SDL implements Iterator<Sample> {
   public boolean hasNext() {
     boolean hasNext = train.hasNext();
     if (!hasNext) {
-      train.shutdown();
+      train.close();
     }
     return hasNext;
   }
