@@ -1,6 +1,7 @@
 package org.genvisis.common;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -18,10 +19,11 @@ import java.util.concurrent.Future;
 public class WorkerTrain<E> implements Iterator<E> {
 
   private final ExecutorService executor;
-  private Producer<E> producer;
+  private final Producer<E> producer;
   private final BlockingQueue<Future<E>> bq;
   private final int numThreads;
   private final int qBuffer;
+  private final Thread trainLoader;
   private final Logger log;
   private boolean autoShutDown;
 
@@ -37,13 +39,32 @@ public class WorkerTrain<E> implements Iterator<E> {
     this.qBuffer = buffer <= 0 ? nThreads : Math.max(numThreads, buffer);// always utilize all
                                                                          // threads given
     this.executor = Executors.newFixedThreadPool(numThreads);
-    this.bq = new ArrayBlockingQueue<Future<E>>(qBuffer, true);
+    this.bq = new ArrayBlockingQueue<>(qBuffer, true);
     this.producer = producer;
     this.log = log;
+    this.trainLoader = new Thread(this::loadTrain);
     this.autoShutDown = true;
+
+    start();
+  }
+
+  private void start() {
+    trainLoader.start();
+  }
+
+  private void loadTrain() {
+    while (producer.hasNext()) {
+      if (Thread.interrupted()) return;
+      try {
+        bq.put(executor.submit(producer.next()));
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
   public void shutdown() {
+    trainLoader.interrupt();
     executor.shutdown();
     producer.shutdown();
   }
@@ -52,44 +73,41 @@ public class WorkerTrain<E> implements Iterator<E> {
     this.autoShutDown = autoShutDown;
   }
 
-  public void setProducer(Producer<E> producer) {
-    this.producer = producer;
-  }
-
   public Logger getLog() {
     return log;
   }
 
   @Override
   public boolean hasNext() {
-    while (producer.hasNext() && bq.remainingCapacity() > 0) {// add if possible
-      bq.add(executor.submit(producer.next()));
-    }
-    boolean hasNext = !bq.isEmpty();
-    if (!hasNext && autoShutDown) {
-      shutdown();
-    }
+    boolean hasNext = producer.hasNext() || !bq.isEmpty();
+    if (!hasNext && autoShutDown) shutdown();
     return hasNext;
   }
 
   @Override
   public E next() {
-    try {
-      E e = bq.take().get();
-      return e;
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    if (hasNext()) {
+      try {
+        return bq.take().get();
+      } catch (InterruptedException e) {
+        log.reportException(e);
+        shutdown();
+        Thread.currentThread().interrupt();
+        return null;
+      } catch (ExecutionException e) {
+        log.reportException(e);
+        shutdown();
+        return null;
+      }
+    } else {
+      shutdown();
+      throw new NoSuchElementException();
     }
-    shutdown();
-    return null;
   }
 
   @Override
   public void remove() {
-    // TODO Auto-generated method stub
-
+    throw new UnsupportedOperationException();
   }
 
   /**
