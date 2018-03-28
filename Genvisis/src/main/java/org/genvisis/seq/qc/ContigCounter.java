@@ -141,25 +141,25 @@ public class ContigCounter {
     String[] bamFiles = Files.listFullPaths(bamDir, ".bam");
     log.reportTimeInfo("Found " + bamFiles.length + " bams in " + bamDir);
     ContigStatProducer producer = new ContigStatProducer(bamFiles, log);
-    WorkerTrain<ContigStatResults> train = new WorkerTrain<>(producer, threads, 2, log);
 
     log.reportTimeInfo("Output: " + outputFile);
-    PrintWriter writer = Files.getAppropriateWriter(outputFile);
+    try (WorkerTrain<ContigStatResults> train = new WorkerTrain<>(producer, threads, 2, log);
+         PrintWriter writer = Files.getAppropriateWriter(outputFile)) {
 
-    boolean writeHeader = true;
+      boolean writeHeader = true;
 
-    while (train.hasNext()) {
-      ContigStatResults stats = train.next();
-      for (String contig : stats.stats.keySet()) {
-        if (writeHeader) {
-          writer.println("SAMPLE\tCONTIG\t" + ArrayUtils.toStr(FlagStats.getHeader()));
-          writeHeader = false;
+      while (train.hasNext()) {
+        ContigStatResults stats = train.next();
+        for (String contig : stats.stats.keySet()) {
+          if (writeHeader) {
+            writer.println("SAMPLE\tCONTIG\t" + ArrayUtils.toStr(FlagStats.getHeader()));
+            writeHeader = false;
+          }
+          writer.println(stats.sample + "\t" + contig + "\t"
+                         + ArrayUtils.toStr(stats.stats.get(contig).getData()));
         }
-        writer.println(stats.sample + "\t" + contig + "\t"
-                       + ArrayUtils.toStr(stats.stats.get(contig).getData()));
       }
     }
-    writer.close();
   }
 
   public static void main(String[] args) {

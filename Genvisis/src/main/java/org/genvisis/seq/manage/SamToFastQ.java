@@ -119,9 +119,10 @@ public class SamToFastQ {
         //
       }
     };
-    WorkerTrain<Boolean> train = new WorkerTrain<>(prepProducer, numThreads, 10, log);
-    while (train.hasNext()) {
-      train.next();
+    try (WorkerTrain<Boolean> train = new WorkerTrain<>(prepProducer, numThreads, 10, log)) {
+      while (train.hasNext()) {
+        train.next();
+      }
     }
   }
 

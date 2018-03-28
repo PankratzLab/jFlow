@@ -328,13 +328,12 @@ public class BAFContamination {
       String output = proj.PROJECT_DIRECTORY.getValue() + "contamination.txt";
       ContaminationProducer producer = new ContaminationProducer(proj, pfbs, callRates,
                                                                  proj.getSamples());
-      WorkerTrain<BAFContaminationResults> train = new WorkerTrain<BAFContamination.BAFContaminationResults>(producer,
-                                                                                                             numThreads,
-                                                                                                             1,
-                                                                                                             proj.getLog());
+      try (WorkerTrain<BAFContaminationResults> train = new WorkerTrain<BAFContamination.BAFContaminationResults>(producer,
+                                                                                                                  numThreads,
+                                                                                                                  1,
+                                                                                                                  proj.getLog());
+           PrintWriter writer = Files.openAppropriateWriter(output)) {
 
-      try {
-        PrintWriter writer = Files.openAppropriateWriter(output);
         writer.println("Sample\tLRR_SD\tBAF1585_SD\tAB_callrate\tAA_STDEV\tBB_STDEV\tContamBeta");
         int index = 0;
         while (train.hasNext()) {
@@ -351,7 +350,6 @@ public class BAFContamination {
           index++;
           writer.flush();
         }
-        writer.close();
       } catch (Exception e) {
         proj.getLog().reportError("Error writing to " + output);
         proj.getLog().reportException(e);

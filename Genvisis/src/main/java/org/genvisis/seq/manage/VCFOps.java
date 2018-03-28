@@ -1919,20 +1919,22 @@ public class VCFOps {
     String[] toSplit = getAllContigs(vcf, log);
     log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
     VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
-    WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer,
-                                                                                 numthreads,
-                                                                                 numthreads, log);
     ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
-    while (train.hasNext()) {
-      ChrSplitResults tmp = train.next();
-      if (onlyWithVariants) {
-        if (tmp.hasVariants()) {
-          chrSplitResults.add(tmp);
+    try (WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer,
+                                                                                      numthreads,
+                                                                                      numthreads,
+                                                                                      log)) {
+      while (train.hasNext()) {
+        ChrSplitResults tmp = train.next();
+        if (onlyWithVariants) {
+          if (tmp.hasVariants()) {
+            chrSplitResults.add(tmp);
+          } else {
+            log.reportTimeWarning("skipping " + tmp.getChr() + " , no variants were found");
+          }
         } else {
-          log.reportTimeWarning("skipping " + tmp.getChr() + " , no variants were found");
+          chrSplitResults.add(tmp);
         }
-      } else {
-        chrSplitResults.add(tmp);
       }
     }
     return chrSplitResults.toArray(new ChrSplitResults[chrSplitResults.size()]);

@@ -520,64 +520,65 @@ public class GcAdjustorParameter implements Serializable {
 
       GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel,
                                                            samples, verbose, centroids, methods);
-      WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<GcAdjustorParameter[][][]>(producer,
-                                                                                                numThreads,
-                                                                                                2,
-                                                                                                proj.getLog());
-      int sampleIndex = 0;
+      try (WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<GcAdjustorParameter[][][]>(producer,
+                                                                                                     numThreads,
+                                                                                                     2,
+                                                                                                     proj.getLog())) {
+        int sampleIndex = 0;
 
-      GcAdjustorParameter[][][][] finalParams = new GcAdjustorParameter[builders.length][centroids == null ? 1
-                                                                                                           : 1
-                                                                                                             + centroids.length][methods.length][samples.length];
+        GcAdjustorParameter[][][][] finalParams = new GcAdjustorParameter[builders.length][centroids == null ? 1
+                                                                                                             : 1
+                                                                                                               + centroids.length][methods.length][samples.length];
 
-      while (train.hasNext()) {
-        GcAdjustorParameter[][][] tmp = train.next();// builders, cents,methods
-        for (int builderIndex = 0; builderIndex < tmp.length; builderIndex++) {
-          for (int centIndex = 0; centIndex < tmp[builderIndex].length; centIndex++) {
-            for (int methodIndex = 0; methodIndex < tmp[builderIndex][centIndex].length; methodIndex++) {
-              if (compute[builderIndex][centIndex][methodIndex]
-                  && tmp[builderIndex][centIndex][methodIndex] == null) {
-                throw new IllegalStateException("Mismatched compute mask");
-              } else {
-                finalParams[builderIndex][centIndex][methodIndex][sampleIndex] = tmp[builderIndex][centIndex][methodIndex];
+        while (train.hasNext()) {
+          GcAdjustorParameter[][][] tmp = train.next();// builders, cents,methods
+          for (int builderIndex = 0; builderIndex < tmp.length; builderIndex++) {
+            for (int centIndex = 0; centIndex < tmp[builderIndex].length; centIndex++) {
+              for (int methodIndex = 0; methodIndex < tmp[builderIndex][centIndex].length; methodIndex++) {
+                if (compute[builderIndex][centIndex][methodIndex]
+                    && tmp[builderIndex][centIndex][methodIndex] == null) {
+                  throw new IllegalStateException("Mismatched compute mask");
+                } else {
+                  finalParams[builderIndex][centIndex][methodIndex][sampleIndex] = tmp[builderIndex][centIndex][methodIndex];
+                }
               }
             }
           }
+          sampleIndex++;
+          if (sampleIndex % 100 == 0) {
+            proj.getLog().reportTimeInfo("Generated gc correction parameters for " + sampleIndex
+                                         + " of " + proj.getSamples().length + " samples");
+          }
         }
-        sampleIndex++;
-        if (sampleIndex % 100 == 0) {
-          proj.getLog().reportTimeInfo("Generated gc correction parameters for " + sampleIndex
-                                       + " of " + proj.getSamples().length + " samples");
-        }
-      }
-      proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {});
-      for (int builderIndex = 0; builderIndex < finalParams.length; builderIndex++) {
-        for (int centIndex = 0; centIndex < finalParams[builderIndex].length; centIndex++) {
-          for (int methodIndex = 0; methodIndex < finalParams[builderIndex][centIndex].length; methodIndex++) {
-            String output = outputs[builderIndex][centIndex][methodIndex];
-            if (compute[builderIndex][centIndex][methodIndex]
-                && finalParams[builderIndex][centIndex][methodIndex] == null) {
-              throw new IllegalStateException("Mismatched compute mask");
-            } else {
-              if (centIndex != 0) {
-                GcAdjustorParameters tmp = new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
-                                                                    gcContent,
-                                                                    centroids[centIndex - 1],
-                                                                    methods[methodIndex],
-                                                                    proj.getSampleList()
-                                                                        .getFingerprint(),
-                                                                    proj.getMarkerSet()
-                                                                        .getFingerprint());
-                tmp.writeSerial(output);
+        proj.GC_CORRECTION_PARAMETERS_FILENAMES.setValue(new String[] {});
+        for (int builderIndex = 0; builderIndex < finalParams.length; builderIndex++) {
+          for (int centIndex = 0; centIndex < finalParams[builderIndex].length; centIndex++) {
+            for (int methodIndex = 0; methodIndex < finalParams[builderIndex][centIndex].length; methodIndex++) {
+              String output = outputs[builderIndex][centIndex][methodIndex];
+              if (compute[builderIndex][centIndex][methodIndex]
+                  && finalParams[builderIndex][centIndex][methodIndex] == null) {
+                throw new IllegalStateException("Mismatched compute mask");
               } else {
-                GcAdjustorParameters tmp = new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
-                                                                    gcContent, null,
-                                                                    methods[methodIndex],
-                                                                    proj.getSampleList()
-                                                                        .getFingerprint(),
-                                                                    proj.getMarkerSet()
-                                                                        .getFingerprint());
-                tmp.writeSerial(output);
+                if (centIndex != 0) {
+                  GcAdjustorParameters tmp = new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
+                                                                      gcContent,
+                                                                      centroids[centIndex - 1],
+                                                                      methods[methodIndex],
+                                                                      proj.getSampleList()
+                                                                          .getFingerprint(),
+                                                                      proj.getMarkerSet()
+                                                                          .getFingerprint());
+                  tmp.writeSerial(output);
+                } else {
+                  GcAdjustorParameters tmp = new GcAdjustorParameters(finalParams[builderIndex][centIndex][methodIndex],
+                                                                      gcContent, null,
+                                                                      methods[methodIndex],
+                                                                      proj.getSampleList()
+                                                                          .getFingerprint(),
+                                                                      proj.getMarkerSet()
+                                                                          .getFingerprint());
+                  tmp.writeSerial(output);
+                }
               }
             }
           }

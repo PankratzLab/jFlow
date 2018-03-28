@@ -55,9 +55,11 @@ public class AffyProcess {
     if (valid) {
       CombineProducer producer = new CombineProducer(proj, chpFiles, cn5chpFiles,
                                                      combinedOutputFiles, delimiter, log);
-      WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, numthreads, log);
-      while (train.hasNext()) {
-        train.next();
+      try (WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, numthreads,
+                                                                 log)) {
+        while (train.hasNext()) {
+          train.next();
+        }
       }
     }
   }

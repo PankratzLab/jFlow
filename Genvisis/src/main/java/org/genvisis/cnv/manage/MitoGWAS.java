@@ -157,9 +157,11 @@ public class MitoGWAS {
                                           perm));
 
     PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
-    WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 2, proj.getLog());
-    while (train.hasNext()) {
-      train.next();
+    try (WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 2,
+                                                               proj.getLog())) {
+      while (train.hasNext()) {
+        train.next();
+      }
     }
 
     summarize(proj, root, plinkCommands);

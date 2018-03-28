@@ -98,15 +98,16 @@ public class Ping {
     new File(outDir).mkdirs();
     final String[] bams = Files.listFullPaths(bamDir, ".bam");
     Producer<Boolean> convProducer = new ConvProducer(bams, outDir, samToFastQLoc, log);
-    WorkerTrain<Boolean> train = new WorkerTrain<>(convProducer, numthreads, 10, log);
-    int index = 0;
-    log.reportTimeInfo("found " + bams.length + " bams to convert");
-    while (train.hasNext()) {
-      if (!train.next()) {
-        log.reportError("Could not convert " + bams[index] + " to fastq");
+    try (WorkerTrain<Boolean> train = new WorkerTrain<>(convProducer, numthreads, 10, log)) {
+      int index = 0;
+      log.reportTimeInfo("found " + bams.length + " bams to convert");
+      while (train.hasNext()) {
+        if (!train.next()) {
+          log.reportError("Could not convert " + bams[index] + " to fastq");
+        }
+        log.reportTimeInfo("finished converting " + bams[index]);
+        index++;
       }
-      log.reportTimeInfo("finished converting " + bams[index]);
-      index++;
     }
   }
 

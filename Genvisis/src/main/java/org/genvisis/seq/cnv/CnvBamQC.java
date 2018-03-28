@@ -406,13 +406,16 @@ public class CnvBamQC {
     PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null,
                                                  callSplit.getSegsToSearch(), ASSEMBLY_NAME.HG19,
                                                  log);
-    WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2, log);
+
     BamPile[][] bamPiles = new BamPile[bamFiles.length][];
-    int index = 0;
-    while (train.hasNext()) {
-      BamPile[] bPilesTmp = train.next().loadResults(log);
-      bamPiles[index] = bPilesTmp;
-      index++;
+    try (WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2,
+                                                                           log)) {
+      int index = 0;
+      while (train.hasNext()) {
+        BamPile[] bPilesTmp = train.next().loadResults(log);
+        bamPiles[index] = bPilesTmp;
+        index++;
+      }
     }
     CnvBamQC cnvBamQC = new CnvBamQC(bamFiles, callSplit, bamPiles, mappability, log);
     String summary = serToReport + "qc_summary.txt";

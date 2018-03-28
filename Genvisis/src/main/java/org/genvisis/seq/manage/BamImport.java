@@ -353,18 +353,20 @@ public class BamImport {
                                                        filterNGS,
                                                        analysisSet.analysisSet.getStrictSegments(),
                                                        aName, log);
-      WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<>(pileProducer, numthreads, 2, log);
-      int index = 0;
       proj.SAMPLE_DIRECTORY.getValue(true, false);
       proj.XY_SCALE_FACTOR.setValue((double) 10);
 
       BamPileResult[] results = new BamPileResult[bamsToImport.length];
-      while (pileTrain.hasNext()) {// creating temporary bam
-                                   // pileup of read counts for
-                                   // positions/segments of
-                                   // interest
-        results[index] = pileTrain.next();
-        index++;
+      try (WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<>(pileProducer, numthreads, 2,
+                                                                    log)) {
+        int index = 0;
+        while (pileTrain.hasNext()) {// creating temporary bam
+                                     // pileup of read counts for
+                                     // positions/segments of
+                                     // interest
+          results[index] = pileTrain.next();
+          index++;
+        }
       }
       if (compileProject) {
         compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
@@ -487,28 +489,29 @@ public class BamImport {
     BamPileConverterProducer conversionProducer = new BamPileConverterProducer(proj, results,
                                                                                fingerPrint,
                                                                                normMethod, log);
-    WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
-                                                                                                                numthreads,
-                                                                                                                10,
-                                                                                                                log);
 
     Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
 
-    int convIndex = 0;
-    while (conversionTrain.hasNext()) {// normalize read counts
-                                       // and dump to sampRAF,
-                                       // special care for
-                                       // variant sites
-      BamPileConversionResults conversionResult = conversionTrain.next();
-      BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
+    try (WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
+                                                                                                                     numthreads,
+                                                                                                                     10,
+                                                                                                                     log)) {
+      int convIndex = 0;
+      while (conversionTrain.hasNext()) {// normalize read counts
+                                         // and dump to sampRAF,
+                                         // special care for
+                                         // variant sites
+        BamPileConversionResults conversionResult = conversionTrain.next();
+        BamIndexStats bamIndexStats = conversionResult.getBamIndexStats();
 
-      int numAligned = bamIndexStats == null ? -1 : bamIndexStats.getAlignedRecordCount();
-      int numNotAligned = bamIndexStats == null ? -1 : bamIndexStats.getUnalignedRecordCount();
-      mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t"
-                                        + numNotAligned;
-      convIndex++;
-      if (conversionResult.getOutliers() != null && conversionResult.getOutliers().size() > 0) {
-        allOutliers.putAll(conversionResult.getOutliers());
+        int numAligned = bamIndexStats == null ? -1 : bamIndexStats.getAlignedRecordCount();
+        int numNotAligned = bamIndexStats == null ? -1 : bamIndexStats.getUnalignedRecordCount();
+        mappedReadCounts[convIndex + 1] = conversionResult.getSample() + "\t" + numAligned + "\t"
+                                          + numNotAligned;
+        convIndex++;
+        if (conversionResult.getOutliers() != null && conversionResult.getOutliers().size() > 0) {
+          allOutliers.putAll(conversionResult.getOutliers());
+        }
       }
     }
     String readCountFile = proj.PROJECT_DIRECTORY.getValue() + "sample.readCounts.txt";
@@ -569,20 +572,21 @@ public class BamImport {
     String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
     String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
 
+    Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
     RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
                                                        proj.getMarkerSet(), correcteds);
-    WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
-                                                                                            numthreads,
-                                                                                            10,
-                                                                                            proj.getLog());
-    Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                                 numthreads,
+                                                                                                 10,
+                                                                                                 proj.getLog())) {
 
-    while (train.hasNext()) {// consolidate the pc corrected
-                             // projects back into a single
-                             // sample
-      Hashtable<String, Float> tmp = train.next();
-      if (tmp != null) {
-        recompallOutliers.putAll(tmp);
+      while (train.hasNext()) {// consolidate the pc corrected
+                               // projects back into a single
+                               // sample
+        Hashtable<String, Float> tmp = train.next();
+        if (tmp != null) {
+          recompallOutliers.putAll(tmp);
+        }
       }
     }
 

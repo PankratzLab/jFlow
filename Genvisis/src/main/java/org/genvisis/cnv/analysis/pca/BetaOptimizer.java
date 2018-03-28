@@ -583,31 +583,32 @@ public class BetaOptimizer {
                           BetaProducer producer = new BetaProducer(filterGenoResultSecondary.analysisGenos,
                                                                    filterGenoResultSecondary.sampleDef,
                                                                    current, parser, maxPCs, 0, log);
-                          WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer,
-                                                                                                                              numthreads,
-                                                                                                                              10,
-                                                                                                                              log);
-                          while (train.hasNext()) {
-                            BetaCorrelationResult[] results = train.next();
-                            String method = "_" + oType;
-                            switch (runtype) {
-                              case ALL_PC_SAMPS:
-                                method = "AllPCASamps_" + method;
-                                break;
-                              case RACE_IN:
-                                method = ext.rootOf(singleRaceSamples) + method;
-                                break;
-                              case RACE_OUT:
-                                method = "not_" + ext.rootOf(singleRaceSamples) + method;
-                                break;
-                              default:
-                                break;
+                          try (WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer,
+                                                                                                                                   numthreads,
+                                                                                                                                   10,
+                                                                                                                                   log)) {
+                            while (train.hasNext()) {
+                              BetaCorrelationResult[] results = train.next();
+                              String method = "_" + oType;
+                              switch (runtype) {
+                                case ALL_PC_SAMPS:
+                                  method = "AllPCASamps_" + method;
+                                  break;
+                                case RACE_IN:
+                                  method = ext.rootOf(singleRaceSamples) + method;
+                                  break;
+                                case RACE_OUT:
+                                  method = "not_" + ext.rootOf(singleRaceSamples) + method;
+                                  break;
+                                default:
+                                  break;
+                              }
+                              writer.println(ArrayUtils.toStr(results[0].getSummary()) + "\t"
+                                             + ArrayUtils.toStr(results[1].getSummary()) + "\t"
+                                             + betaFile + "\t" + method + "\t" + pval + "\t"
+                                             + filterGenoResultSecondary.numSamps + "\t" + method
+                                             + "_" + pval + "\t" + markerCallRate);
                             }
-                            writer.println(ArrayUtils.toStr(results[0].getSummary()) + "\t"
-                                           + ArrayUtils.toStr(results[1].getSummary()) + "\t"
-                                           + betaFile + "\t" + method + "\t" + pval + "\t"
-                                           + filterGenoResultSecondary.numSamps + "\t" + method
-                                           + "_" + pval + "\t" + markerCallRate);
                           }
                         } catch (FileNotFoundException e) {
                           log.reportException(e);

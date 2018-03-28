@@ -156,23 +156,26 @@ public class PlinkSeqMegs {
     ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
     ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile,
                                                  keggPathwayFile, maf, loadLoc, log);
-    WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer,
-                                                                                           numthreads,
-                                                                                           numthreads,
-                                                                                           log);
-    while (importTrain.hasNext()) {
-      PlinkSeqWorker[] tmp = importTrain.next();
-      for (PlinkSeqWorker element : tmp) {
-        workers.add(element);
+    try (WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer,
+                                                                                                numthreads,
+                                                                                                numthreads,
+                                                                                                log)) {
+      while (importTrain.hasNext()) {
+        PlinkSeqWorker[] tmp = importTrain.next();
+        for (PlinkSeqWorker element : tmp) {
+          workers.add(element);
+        }
       }
     }
     PlinkSeqProducer producer = new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]),
                                                      log);
-    WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer,
-                                                                                 numthreads,
-                                                                                 numthreads, log);
-    while (train.hasNext()) {
-      train.next();
+    try (WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer,
+                                                                                      numthreads,
+                                                                                      numthreads,
+                                                                                      log)) {
+      while (train.hasNext()) {
+        train.next();
+      }
     }
   }
 

@@ -38,33 +38,35 @@ public class QuantNormProject {
     numthreads = 7;
     Project projNorm = Project.prepareNewProject(proj, "quantNorm");
     QNormProducer producer = new QNormProducer(proj, projNorm, proj.getSamples());
-    WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
-                                                                                            numthreads,
-                                                                                            2,
-                                                                                            proj.getLog());
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-    int index = 0;
-    long time = System.currentTimeMillis();
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                                 numthreads,
+                                                                                                 2,
+                                                                                                 proj.getLog())) {
+      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      int index = 0;
+      long time = System.currentTimeMillis();
 
-    while (train.hasNext()) {
+      while (train.hasNext()) {
 
-      if (index % numthreads == 0) {
-        proj.getLog()
-            .reportTimeInfo("Normalized " + index + " samples in " + ext.getTimeElapsed(time));
-        time = System.currentTimeMillis();
+        if (index % numthreads == 0) {
+          proj.getLog()
+              .reportTimeInfo("Normalized " + index + " samples in " + ext.getTimeElapsed(time));
+          time = System.currentTimeMillis();
 
+        }
+        Hashtable<String, Float> tmp = train.next();
+        outliers.putAll(tmp);
+        proj.getLog().reportTimeInfo(index + "");
+        index++;
       }
-      Hashtable<String, Float> tmp = train.next();
-      outliers.putAll(tmp);
-      proj.getLog().reportTimeInfo(index + "");
-      index++;
-    }
-    if (!Files.exists(projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
-      SerializedFiles.writeSerial(outliers,
-                                  projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser");
-      TransposeData.transposeData(projNorm, 2000000000, false);
-      CentroidCompute.computeAndDumpCentroids(projNorm);
-      Centroids.recompute(projNorm, projNorm.CUSTOM_CENTROIDS_FILENAME.getValue());
+
+      if (!Files.exists(projNorm.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser")) {
+        SerializedFiles.writeSerial(outliers, projNorm.SAMPLE_DIRECTORY.getValue(true, true)
+                                              + "outliers.ser");
+        TransposeData.transposeData(projNorm, 2000000000, false);
+        CentroidCompute.computeAndDumpCentroids(projNorm);
+        Centroids.recompute(projNorm, projNorm.CUSTOM_CENTROIDS_FILENAME.getValue());
+      }
     }
 
     summarizeMetrics(proj, projNorm, numthreads);

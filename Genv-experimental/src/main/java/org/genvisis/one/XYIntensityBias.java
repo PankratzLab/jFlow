@@ -20,28 +20,30 @@ public class XYIntensityBias {
   private static void run(Project proj) {
 
     XYProducer producer = new XYProducer(proj, proj.getSamples());
-    WorkerTrain<double[][]> train = new WorkerTrain<double[][]>(producer, 6, 2, proj.getLog());
-    String outDir = proj.PROJECT_DIRECTORY.getValue() + "xyComp/";
-    new File(outDir).mkdirs();
-    String out = outDir + "xyComp.txt";
-    try {
-      PrintWriter writer = Files.openAppropriateWriter(out);
-      String[] xh = ArrayUtils.tagOn(HEADER_BASE, "X_", null);
-      String[] yh = ArrayUtils.tagOn(HEADER_BASE, "Y_", null);
+    try (WorkerTrain<double[][]> train = new WorkerTrain<double[][]>(producer, 6, 2,
+                                                                     proj.getLog())) {
+      String outDir = proj.PROJECT_DIRECTORY.getValue() + "xyComp/";
+      new File(outDir).mkdirs();
+      String out = outDir + "xyComp.txt";
+      try {
+        PrintWriter writer = Files.openAppropriateWriter(out);
+        String[] xh = ArrayUtils.tagOn(HEADER_BASE, "X_", null);
+        String[] yh = ArrayUtils.tagOn(HEADER_BASE, "Y_", null);
 
-      writer.println("Sample\t" + ArrayUtils.toStr(xh) + "\t" + ArrayUtils.toStr(yh));
-      int index = 0;
-      while (train.hasNext()) {
-        double[][] vals = train.next();
-        writer.println(proj.getSamples()[index] + "\t" + ArrayUtils.toStr(vals[0]) + "\t"
-                       + ArrayUtils.toStr(vals[1]));
-        index++;
-        proj.getLog().reportTimeInfo(index + "");
+        writer.println("Sample\t" + ArrayUtils.toStr(xh) + "\t" + ArrayUtils.toStr(yh));
+        int index = 0;
+        while (train.hasNext()) {
+          double[][] vals = train.next();
+          writer.println(proj.getSamples()[index] + "\t" + ArrayUtils.toStr(vals[0]) + "\t"
+                         + ArrayUtils.toStr(vals[1]));
+          index++;
+          proj.getLog().reportTimeInfo(index + "");
+        }
+        writer.close();
+      } catch (Exception e) {
+        proj.getLog().reportError("Error writing to " + out);
+        proj.getLog().reportException(e);
       }
-      writer.close();
-    } catch (Exception e) {
-      proj.getLog().reportError("Error writing to " + out);
-      proj.getLog().reportException(e);
     }
   }
 

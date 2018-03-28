@@ -224,48 +224,49 @@ public class GCcorrectionIterator {
     format("LRR_MEAN", plotCombos);
     format("LRR_SD", plotCombos);
     IPloadProducer ipp = new IPloadProducer(finals, proj.getLog());
-    WorkerTrain<IterationParameters> train = new WorkerTrain<GCcorrectionIterator.IterationParameters>(ipp,
-                                                                                                       numthreads,
-                                                                                                       2,
-                                                                                                       proj.getLog());
-    if (!Files.exists(outputGZ)) {
-      String[] withoutCent = ArrayUtils.tagOn(specificHeader, null, "");
-      String[] withCent = ArrayUtils.tagOn(specificHeader, null, CENT_TAG);
-      PrintWriter writer = Files.getAppropriateWriter(outputGZ);
-      writer.println(ArrayUtils.toStr(commonHeader) + "\t" + ArrayUtils.toStr(withoutCent) + "\t"
-                     + ArrayUtils.toStr(withCent));
-      int index = 0;
-      while (train.hasNext()) {
-        IterationParameters cur = train.next();
-        if (index % 50 == 0) {
-          proj.getLog().reportTimeInfo("Summarized " + index);
-        }
-        if (cur.getSerFiles().length != 2) {
-          throw new IllegalStateException("Ser replicates must be in two-fers");
+    try (WorkerTrain<IterationParameters> train = new WorkerTrain<GCcorrectionIterator.IterationParameters>(ipp,
+                                                                                                            numthreads,
+                                                                                                            2,
+                                                                                                            proj.getLog())) {
+      if (!Files.exists(outputGZ)) {
+        String[] withoutCent = ArrayUtils.tagOn(specificHeader, null, "");
+        String[] withCent = ArrayUtils.tagOn(specificHeader, null, CENT_TAG);
+        PrintWriter writer = Files.getAppropriateWriter(outputGZ);
+        writer.println(ArrayUtils.toStr(commonHeader) + "\t" + ArrayUtils.toStr(withoutCent) + "\t"
+                       + ArrayUtils.toStr(withCent));
+        int index = 0;
+        while (train.hasNext()) {
+          IterationParameters cur = train.next();
+          if (index % 50 == 0) {
+            proj.getLog().reportTimeInfo("Summarized " + index);
+          }
+          if (cur.getSerFiles().length != 2) {
+            throw new IllegalStateException("Ser replicates must be in two-fers");
 
-        } else {
-          GcAdjustorParameters noCents = cur.getNoCents();
-          GcAdjustorParameters cents = cur.getCents();
-          String[] allSamples = proj.getSamples();
-          GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
-          GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
-          for (int j = 0; j < noCentParams.length; j++) {
-            GcAdjustorParameter noC = noCentParams[j];
-            GcAdjustorParameter c = centParams[j];
-            if (!allSamples[j].equals(noC.getSample()) || !allSamples[j].equals(c.getSample())) {
-              throw new IllegalStateException("MisMatched sample order");
-            } else {
-              writer.println(noC.getSample() + "\t" + ArrayUtils.toStr(cur.getParams()) + "\t"
-                             + ArrayUtils.toStr(noC.getQCString()) + "\t"
-                             + ArrayUtils.toStr(c.getQCString()));
+          } else {
+            GcAdjustorParameters noCents = cur.getNoCents();
+            GcAdjustorParameters cents = cur.getCents();
+            String[] allSamples = proj.getSamples();
+            GcAdjustorParameter[] noCentParams = noCents.getGcAdjustorParameters();
+            GcAdjustorParameter[] centParams = cents.getGcAdjustorParameters();
+            for (int j = 0; j < noCentParams.length; j++) {
+              GcAdjustorParameter noC = noCentParams[j];
+              GcAdjustorParameter c = centParams[j];
+              if (!allSamples[j].equals(noC.getSample()) || !allSamples[j].equals(c.getSample())) {
+                throw new IllegalStateException("MisMatched sample order");
+              } else {
+                writer.println(noC.getSample() + "\t" + ArrayUtils.toStr(cur.getParams()) + "\t"
+                               + ArrayUtils.toStr(noC.getQCString()) + "\t"
+                               + ArrayUtils.toStr(c.getQCString()));
+              }
             }
           }
+          finals.set(index, null);
+          index++;
+          proj.getLog().memoryPercentTotalFree();
         }
-        finals.set(index, null);
-        index++;
-        proj.getLog().memoryPercentTotalFree();
+        writer.close();
       }
-      writer.close();
     }
     ArrayList<RScatter> allLooks = new ArrayList<RScatter>();
 

@@ -589,20 +589,21 @@ public class BamOps {
     HashMap<String, String> matched = new HashMap<String, String>();
     HashMap<String, String> bamSamples = new HashMap<String, String>();
     SampleNameProducer producer = new SampleNameProducer(bams);
-    WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer,
-                                                                                  numThreads, 10,
-                                                                                  log);
+    try (WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer,
+                                                                                       numThreads,
+                                                                                       10, log)) {
 
-    while (train.hasNext()) {
-      SampleNameExtractor ex = train.next();
-      String bamSamp = ex.getName();
-      if (bamSamples.containsKey(bamSamp)) {
-        throw new IllegalArgumentException("Bams must be sample unique");
-      } else {
-        bamSamples.put(bamSamp, ex.getBamFile());
-        if (variantSets != null) {
-          for (String set : variantSets) {
-            bamSamples.put(bamSamp + set, ex.getBamFile());
+      while (train.hasNext()) {
+        SampleNameExtractor ex = train.next();
+        String bamSamp = ex.getName();
+        if (bamSamples.containsKey(bamSamp)) {
+          throw new IllegalArgumentException("Bams must be sample unique");
+        } else {
+          bamSamples.put(bamSamp, ex.getBamFile());
+          if (variantSets != null) {
+            for (String set : variantSets) {
+              bamSamples.put(bamSamp + set, ex.getBamFile());
+            }
           }
         }
       }

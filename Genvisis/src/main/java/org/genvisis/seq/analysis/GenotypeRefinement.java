@@ -83,14 +83,15 @@ public class GenotypeRefinement {
 
     RefinementProducer producer = new RefinementProducer(gatk, splits, outputDir, ped, log);
 
-    WorkerTrain<GenotypeRefiner> train = new WorkerTrain<>(producer, threads, 10, log);
     List<GenotypeRefiner> refinedResults = new ArrayList<>();
-    while (train.hasNext()) {
-      GenotypeRefiner tmp = train.next();
-      if (!tmp.isFail()) {
-        refinedResults.add(tmp);
-      } else {
-        log.reportError("Could not refine genotypes for " + tmp.toString());
+    try (WorkerTrain<GenotypeRefiner> train = new WorkerTrain<>(producer, threads, 10, log)) {
+      while (train.hasNext()) {
+        GenotypeRefiner tmp = train.next();
+        if (!tmp.isFail()) {
+          refinedResults.add(tmp);
+        } else {
+          log.reportError("Could not refine genotypes for " + tmp.toString());
+        }
       }
     }
     log.reportTimeWarning("Starting hacky portion to get quick look at denovo variants");

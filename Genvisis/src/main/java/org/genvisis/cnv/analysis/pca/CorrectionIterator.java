@@ -335,12 +335,9 @@ public class CorrectionIterator implements Serializable {
 
       ArrayList<EvaluationResult> store = new ArrayList<EvaluationResult>();
 
-      try {
-        PrintWriter writer = Files.openAppropriateWriter(iterationResult.getOutputSummary());
-        WorkerTrain<EvaluationResult> train = new WorkerTrain<EvaluationResult>(cEvaluator,
-                                                                                numthreads,
-                                                                                numthreads,
-                                                                                proj.getLog());
+      try (PrintWriter writer = Files.openAppropriateWriter(iterationResult.getOutputSummary());
+           WorkerTrain<EvaluationResult> train = new WorkerTrain<>(cEvaluator, numthreads,
+                                                                   numthreads, proj.getLog())) {
         int index = 0;
         while (train.hasNext()) {
           EvaluationResult result = train.next();
@@ -355,7 +352,6 @@ public class CorrectionIterator implements Serializable {
           result.shrink();
           store.add(result);
         }
-        writer.close();
       } catch (Exception e) {
         proj.getLog().reportError("Error writing to " + iterationResult.getOutputSummary());
         proj.getLog().reportException(e);
@@ -1136,13 +1132,15 @@ public class CorrectionIterator implements Serializable {
     // producer.setSubsetDataHeritability(subsetDataHeritability);
     // }
 
-    WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads,
-                                                                         numthreads, proj.getLog());
-    while (summaryTrain.hasNext()) {
-      IterSummary iterSummary = summaryTrain.next();
-      RScatter[] rScattersTmp = iterSummary.getrScatters();
-      for (RScatter element : rScattersTmp) {
-        rScatters.add(element);
+    try (WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<IterSummary>(producer, numthreads,
+                                                                              numthreads,
+                                                                              proj.getLog())) {
+      while (summaryTrain.hasNext()) {
+        IterSummary iterSummary = summaryTrain.next();
+        RScatter[] rScattersTmp = iterSummary.getrScatters();
+        for (RScatter element : rScattersTmp) {
+          rScatters.add(element);
+        }
       }
     }
 

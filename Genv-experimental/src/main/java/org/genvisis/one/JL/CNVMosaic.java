@@ -76,23 +76,25 @@ public class CNVMosaic {
         MosaicProducer producer = new MosaicProducer(proj, builder,
                                                      ArrayUtils.toStringArray(samples), markerSet,
                                                      segs);
-        WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<LocusSet<MosaicRegion>>(producer,
-                                                                                            numThreads,
-                                                                                            2,
-                                                                                            proj.getLog());
-        int index = 0;
-        while (train.hasNext()) {
-          index++;
-          LocusSet<MosaicRegion> tmp = train.next();
-          tmp.addAll(all);
-          for (int i = 0; i < tmp.getLoci().length; i++) {
-            String sampKey = sampleData.lookup(tmp.getLoci()[i].getFamilyID() + "\t"
-                                               + tmp.getLoci()[i].getIndividualID())[0];
-            writer.println(tmp.getLoci()[i].toAnalysisString() + "\t"
-                           + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey + "\t"
-                           + tmp.getLoci()[i].getUCSClocation());
+        try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<LocusSet<MosaicRegion>>(producer,
+                                                                                                 numThreads,
+                                                                                                 2,
+                                                                                                 proj.getLog())) {
+          int index = 0;
+          while (train.hasNext()) {
+            index++;
+            LocusSet<MosaicRegion> tmp = train.next();
+            tmp.addAll(all);
+            for (int i = 0; i < tmp.getLoci().length; i++) {
+              String sampKey = sampleData.lookup(tmp.getLoci()[i].getFamilyID() + "\t"
+                                                 + tmp.getLoci()[i].getIndividualID())[0];
+              writer.println(tmp.getLoci()[i].toAnalysisString() + "\t"
+                             + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey
+                             + "\t" + tmp.getLoci()[i].getUCSClocation());
+            }
+            proj.getLog()
+                .reportTimeInfo("Calling mos for sample " + index + " of " + samples.size());
           }
-          proj.getLog().reportTimeInfo("Calling mos for sample " + index + " of " + samples.size());
         }
         writer.close();
       } catch (Exception e) {
@@ -153,31 +155,33 @@ public class CNVMosaic {
         proj.getLog().reportTimeInfo("Removed " + numSampsRemoved + "  samples and "
                                      + numCNVsRemoved + " cnvs");
         MosaicForceProducer producer = new MosaicForceProducer(proj, indSets);
-        WorkerTrain<MosaicRegion[]> train = new WorkerTrain<MosaicRegion[]>(producer,
-                                                                            proj.NUM_THREADS.getValue(),
-                                                                            2, proj.getLog());
+        try (WorkerTrain<MosaicRegion[]> train = new WorkerTrain<MosaicRegion[]>(producer,
+                                                                                 proj.NUM_THREADS.getValue(),
+                                                                                 2,
+                                                                                 proj.getLog())) {
 
-        try {
-          PrintWriter writer = Files.openAppropriateWriter(output);
-          writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
-                         + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
-          int index = 0;
-          while (train.hasNext()) {
-            MosaicRegion[] regions = train.next();
-            for (MosaicRegion region : regions) {
-              String sampKey = sampleData.lookup(region.getFamilyID() + "\t"
-                                                 + region.getIndividualID())[0];
-              writer.println(region.toAnalysisString() + "\t"
-                             + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey
-                             + "\t" + region.getUCSClocation());
+          try {
+            PrintWriter writer = Files.openAppropriateWriter(output);
+            writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
+                           + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
+            int index = 0;
+            while (train.hasNext()) {
+              MosaicRegion[] regions = train.next();
+              for (MosaicRegion region : regions) {
+                String sampKey = sampleData.lookup(region.getFamilyID() + "\t"
+                                                   + region.getIndividualID())[0];
+                writer.println(region.toAnalysisString() + "\t"
+                               + sampleData.individualShouldBeExcluded(sampKey) + "\t" + sampKey
+                               + "\t" + region.getUCSClocation());
+              }
+              index++;
+              proj.getLog().reportTimeInfo(index + " of " + indSets.size());
             }
-            index++;
-            proj.getLog().reportTimeInfo(index + " of " + indSets.size());
+            writer.close();
+          } catch (Exception e) {
+            proj.getLog().reportError("Error writing to " + output);
+            proj.getLog().reportException(e);
           }
-          writer.close();
-        } catch (Exception e) {
-          proj.getLog().reportError("Error writing to " + output);
-          proj.getLog().reportException(e);
         }
       }
 

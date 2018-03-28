@@ -1,7 +1,5 @@
 package org.genvisis.seq.manage;
 
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -39,6 +37,8 @@ import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.contamination.MAF;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
 
 /**
  * Class to import a vcf into Genvisis format
@@ -404,23 +404,23 @@ public class VCFImporter {
                                                                 PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED,
                                                                 gcModel);
       Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
-      WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker,
-                                                                                              numThreads,
-                                                                                              0,
-                                                                                              proj.getLog());
+      try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker,
+                                                                                                   numThreads,
+                                                                                                   0,
+                                                                                                   proj.getLog())) {
 
-      int index = 0;
-      while (train.hasNext()) {
-        index++;
-        if (index % 10 == 0) {
-          proj.getLog().reportTimeInfo(index + " of " + proj.getSamples().length);
-        }
-        Hashtable<String, Float> outliers = train.next();
-        if (outliers.size() > 0) {
-          allNewOutliers.putAll(outliers);
+        int index = 0;
+        while (train.hasNext()) {
+          index++;
+          if (index % 10 == 0) {
+            proj.getLog().reportTimeInfo(index + " of " + proj.getSamples().length);
+          }
+          Hashtable<String, Float> outliers = train.next();
+          if (outliers.size() > 0) {
+            allNewOutliers.putAll(outliers);
+          }
         }
       }
-      train.close();
       if (allNewOutliers.size() > 0) {
         SerializedFiles.writeSerial(allNewOutliers,
                                     projNorm.SAMPLE_DIRECTORY.getValue() + "outliers.ser");

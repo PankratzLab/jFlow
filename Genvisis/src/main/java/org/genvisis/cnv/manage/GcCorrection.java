@@ -48,39 +48,42 @@ public class GcCorrection {
 
     GCProducer producer = new GCProducer(projOriginal, projCorrected, gcModel,
                                          !Files.exists(outliersSer));
-    WorkerTrain<GcCorrectedSample> train = new WorkerTrain<GcCorrectedSample>(producer, numThreads,
-                                                                              2,
-                                                                              projOriginal.getLog());
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
-    String[] samples = projOriginal.getSamples();
-    String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0]
-                             + Sample.SAMPLE_FILE_EXTENSION;
-    if (!Files.exists(firstSampleFile)) {
-      int numSamples = samples.length;
-      int index = 0;
-      while (train.hasNext()) {
-        index++;
-        if (index % 50 == 0) {
-          projOriginal.getLog()
-                      .reportTimeInfo(index + " of " + numSamples + " have been corrected");
+    try (WorkerTrain<GcCorrectedSample> train = new WorkerTrain<GcCorrectedSample>(producer,
+                                                                                   numThreads, 2,
+                                                                                   projOriginal.getLog())) {
+      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      String[] samples = projOriginal.getSamples();
+      String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0]
+                               + Sample.SAMPLE_FILE_EXTENSION;
+      if (!Files.exists(firstSampleFile)) {
+        int numSamples = samples.length;
+        int index = 0;
+        while (train.hasNext()) {
+          index++;
+          if (index % 50 == 0) {
+            projOriginal.getLog()
+                        .reportTimeInfo(index + " of " + numSamples + " have been corrected");
+          }
+          GcCorrectedSample gcCorrectedSample = train.next();
+          outliers.putAll(gcCorrectedSample.getOutliers());
         }
-        GcCorrectedSample gcCorrectedSample = train.next();
-        outliers.putAll(gcCorrectedSample.getOutliers());
-      }
-      if (!Files.exists(outliersSer)) {
-        SerializedFiles.writeSerial(outliers, outliersSer);
+        if (!Files.exists(outliersSer)) {
+          SerializedFiles.writeSerial(outliers, outliersSer);
+        } else {
+          projOriginal.getLog().reportTimeWarning("Did not write outliers, " + outliersSer
+                                                  + " already exists");
+        }
+
+        if (!Files.exists(projCorrected.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF")) {
+          TransposeData.transposeData(projCorrected, 2000000000, false);
+        }
       } else {
-        projOriginal.getLog().reportTimeWarning("Did not write outliers, " + outliersSer
-                                                + " already exists");
+        projOriginal.getLog().reportTimeWarning(firstSampleFile + " exists, skipping correction");
       }
-      if (!Files.exists(projCorrected.MARKER_DATA_DIRECTORY.getValue() + "markers.0.mdRAF")) {
-        TransposeData.transposeData(projCorrected, 2000000000, false);
-      }
-    } else {
-      projOriginal.getLog().reportTimeWarning(firstSampleFile + " exists, skipping correction");
     }
 
     summarizeMetrics(numThreads);
+
   }
 
   private void summarizeMetrics(int numThreads) {

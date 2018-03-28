@@ -111,41 +111,42 @@ public class Mosaicism {
       MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped,
                                                                chrBoundaries, markerSet,
                                                                indicesByChr);
-      WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,
-                                                              numthreads > 0 ? numthreads
-                                                                             : proj.NUM_THREADS.getValue(),
-                                                              2, proj.getLog());
-      int index = 0;
-      long timePer = System.currentTimeMillis();
-      long time = System.currentTimeMillis();
+      try (WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,
+                                                                   numthreads > 0 ? numthreads
+                                                                                  : proj.NUM_THREADS.getValue(),
+                                                                   2, proj.getLog())) {
+        int index = 0;
+        long timePer = System.currentTimeMillis();
+        long time = System.currentTimeMillis();
 
-      while (train.hasNext()) {
-        PSF.checkInterrupted(new Runnable() {
+        while (train.hasNext()) {
+          PSF.checkInterrupted(new Runnable() {
 
-          @Override
-          public void run() {
-            writer.close();
-          }
-        });
-        try {
-          String[] results = train.next();
-          index++;
-          if (index % numthreads == 0) {
-            proj.getLog()
-                .reportTimeInfo((index) + " of " + samples.length + " in "
-                                + ext.getTimeElapsed(timePer) + ", total time at "
-                                + ext.getTimeElapsed(time));
-            timePer = System.currentTimeMillis();
+            @Override
+            public void run() {
+              writer.close();
+            }
+          });
+          try {
+            String[] results = train.next();
+            index++;
+            if (index % numthreads == 0) {
+              proj.getLog()
+                  .reportTimeInfo((index) + " of " + samples.length + " in "
+                                  + ext.getTimeElapsed(timePer) + ", total time at "
+                                  + ext.getTimeElapsed(time));
+              timePer = System.currentTimeMillis();
+            }
+
+            for (String result : results) {
+              writer.println(result);
+            }
+          } catch (Exception e) {
+            proj.getLog().reportException(e);
+            producer.shutdown();
           }
 
-          for (String result : results) {
-            writer.println(result);
-          }
-        } catch (Exception e) {
-          proj.getLog().reportException(e);
-          producer.shutdown();
         }
-
       }
       writer.close();
     } catch (Exception e) {

@@ -1215,21 +1215,22 @@ public class SourceFileParser implements Runnable {
                                                                    fingerprint, markerIndexMap,
                                                                    abLookup, renamedIDsHash,
                                                                    headers, log);
-      WorkerTrain<LongFormatParseResult> train = new WorkerTrain<SourceFileParser.LongFormatParseResult>(producer,
-                                                                                                         numThreads,
-                                                                                                         10,
-                                                                                                         log);
-      while (train.hasNext()) {
-        LongFormatParseResult result = train.next();
-        if (result.count == 0) {
-          log.reportError("Encountered an error processing " + result.fileParsed + " , halting");
-          train.close();
-          return 0;
-        }
-        count += result.count;
-        allOutliers.putAll(result.outliers);
-        for (String key : result.countHash.getHash().keySet()) {
-          countHash.add(key);
+      try (WorkerTrain<LongFormatParseResult> train = new WorkerTrain<SourceFileParser.LongFormatParseResult>(producer,
+                                                                                                              numThreads,
+                                                                                                              10,
+                                                                                                              log)) {
+        while (train.hasNext()) {
+          LongFormatParseResult result = train.next();
+          if (result.count == 0) {
+            log.reportError("Encountered an error processing " + result.fileParsed + " , halting");
+            train.close();
+            return 0;
+          }
+          count += result.count;
+          allOutliers.putAll(result.outliers);
+          for (String key : result.countHash.getHash().keySet()) {
+            countHash.add(key);
+          }
         }
       }
       // for (int i = 0; i < files.length; i++) {

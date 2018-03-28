@@ -82,12 +82,13 @@ public class Indelathon {
     // extracting soft clips
     SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedSamps,
                                                                  indelBamDir, log);
-    WorkerTrain<SoftClipResult> train = new WorkerTrain<Indelathon.SoftClipResult>(producer,
-                                                                                   numThreads, 10,
-                                                                                   log);
     ArrayList<SoftClipResult> results = new ArrayList<Indelathon.SoftClipResult>();
-    while (train.hasNext()) {
-      results.add(train.next());
+    try (WorkerTrain<SoftClipResult> train = new WorkerTrain<Indelathon.SoftClipResult>(producer,
+                                                                                        numThreads,
+                                                                                        10, log)) {
+      while (train.hasNext()) {
+        results.add(train.next());
+      }
     }
 
     // summarize barcodes

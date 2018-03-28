@@ -823,13 +823,11 @@ public class MosaicismQuant implements Calcfc {
       LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
       MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set,
                                                               MOSAIC_TYPE.values(), numControls);
-      WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer,
-                                                                                                     numThreads,
-                                                                                                     1,
-                                                                                                     proj.getLog());
-
-      try {
-        PrintWriter writer = Files.openAppropriateWriter(out);
+      try (WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer,
+                                                                                                          numThreads,
+                                                                                                          1,
+                                                                                                          proj.getLog());
+           PrintWriter writer = Files.openAppropriateWriter(out)) {
         writer.print("Sample");
         for (int i = 0; i < set.getLoci().length; i++) {
           writer.print("\t" + set.getLoci()[i].getUCSClocation());
@@ -849,7 +847,6 @@ public class MosaicismQuant implements Calcfc {
           index++;
         }
 
-        writer.close();
         fullMosiacResults = new FullMosiacResults(sampleMosaicQuantResults, set);
         fullMosiacResults.writeSerial(ser);
       } catch (Exception e) {

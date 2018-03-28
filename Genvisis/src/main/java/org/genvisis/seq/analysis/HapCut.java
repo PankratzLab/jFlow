@@ -60,9 +60,10 @@ public class HapCut {
     log.reportTimeInfo("found " + bams.length + " bams to HapCut");
     HapCutProducer producer = new HapCutProducer(bams, vcf, outDir, variantSet, hapCutLoc,
                                                  extractHairsLoc, fgbioLoc, log);
-    WorkerTrain<HapCutResult> train = new WorkerTrain<>(producer, threads, 10, log);
-    while (train.hasNext()) {
-      train.next();
+    try (WorkerTrain<HapCutResult> train = new WorkerTrain<>(producer, threads, 10, log)) {
+      while (train.hasNext()) {
+        train.next();
+      }
     }
   }
 

@@ -158,13 +158,12 @@ public class Pathways implements Serializable {
   }
 
   private void downloadKeggData(GeneTrack geneTrack, int numthreads, Logger log) {
-    ArrayList<Pathway> paths = new ArrayList<Pathway>();
-    BufferedReader in;
-    try {
+    ArrayList<Pathway> paths = new ArrayList<>();
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_LIST).openStream()));
+         WorkerTrain<Pathway> train = new WorkerTrain<>(new KeggPathwayProducer(geneTrack, in, log),
+                                                        numthreads, numthreads, log)) {
       int index = 0;
-      in = new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_LIST).openStream()));
-      KeggPathwayProducer producer = new KeggPathwayProducer(geneTrack, in, log);
-      WorkerTrain<Pathway> train = new WorkerTrain<Pathway>(producer, numthreads, numthreads, log);
+
       while (train.hasNext()) {
         index++;
         if (index % 20 == 0) {

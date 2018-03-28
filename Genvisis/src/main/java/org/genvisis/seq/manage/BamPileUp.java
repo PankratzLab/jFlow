@@ -133,8 +133,8 @@ public class BamPileUp implements Iterator<BamPile> {
                                                                        bamPiles.toArray(new BamPile[bamPiles.size()]),
                                                                        filterNGS, log);
         // an extra thread was noted to produce about a half hour speed up per sample
-        WorkerTrain<TmpBamPile> train = new WorkerTrain<>(tmpBamPileProducer, 2, 200, log);
-        try {
+
+        try (WorkerTrain<TmpBamPile> train = new WorkerTrain<>(tmpBamPileProducer, 2, 200, log)) {
           bamPiles = new ArrayList<BamPile>(bamPiles.size());
           while (train.hasNext()) {
             TmpBamPile tmpBamPile = train.next();
@@ -159,8 +159,6 @@ public class BamPileUp implements Iterator<BamPile> {
               }
             }
           }
-        } finally {
-          train.close();
         }
       }
     }

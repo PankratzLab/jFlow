@@ -98,12 +98,14 @@ public class MitoSeqCN {
         MitoCNProducer producer = new MitoCNProducer(bams, referenceGenome,
                                                      genomeBinsMinusBinsCaputure, outDir, aName,
                                                      log);
-        WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer,
-                                                                                  numthreads,
-                                                                                  numthreads, log);
+
         ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
-        try {
-          PrintWriter writer = Files.openAppropriateWriter(output);
+
+        try (WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer,
+                                                                                       numthreads,
+                                                                                       numthreads,
+                                                                                       log);
+             PrintWriter writer = Files.openAppropriateWriter(output)) {
           writer.println(ArrayUtils.toStr(MitoCNResult.header));
           while (train.hasNext()) {
             MitoCNResult result = train.next();
@@ -114,7 +116,6 @@ public class MitoSeqCN {
             }
 
           }
-          writer.close();
         } catch (Exception e) {
           log.reportError("Error writing to " + output);
           log.reportException(e);

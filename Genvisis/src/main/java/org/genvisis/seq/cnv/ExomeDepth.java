@@ -626,14 +626,15 @@ public class ExomeDepth {
     ExomeDepthAnalysis[] eAnalysis = new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
 
     ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
-    WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer,
-                                                                                           numthreads,
-                                                                                           numthreads,
-                                                                                           log);
-    int index = 0;
-    while (train.hasNext()) {
-      eAnalysis[index] = train.next();
-      index++;
+    try (WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer,
+                                                                                                numthreads,
+                                                                                                numthreads,
+                                                                                                log)) {
+      int index = 0;
+      while (train.hasNext()) {
+        eAnalysis[index] = train.next();
+        index++;
+      }
     }
     ArrayList<SeqCNVariant> allTmp = new ArrayList<SeqCNVariant>();
     for (ExomeDepthAnalysis eAnalysi : eAnalysis) {

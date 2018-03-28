@@ -85,12 +85,14 @@ public class BamContamination {
                                                                      log);
     log.reportTimeInfo("Detected " + bamFiles.length + " bam files in " + bams);
     DynamicHistogram[] hists = new DynamicHistogram[bamFiles.length];
-    WorkerTrain<DynamicHistogram> train = new WorkerTrain<DynamicHistogram>(producer, numthreads,
-                                                                            numthreads, log);
-    int index = 0;
-    while (train.hasNext()) {
-      hists[index] = train.next();
-      index++;
+    try (WorkerTrain<DynamicHistogram> train = new WorkerTrain<DynamicHistogram>(producer,
+                                                                                 numthreads,
+                                                                                 numthreads, log)) {
+      int index = 0;
+      while (train.hasNext()) {
+        hists[index] = train.next();
+        index++;
+      }
     }
     String outputHist = bams + "contamSummary.txt";
     try {

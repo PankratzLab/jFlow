@@ -82,19 +82,20 @@ public class ExomeDepthRun {
     proj.CNV_FILENAMES.setValue(new String[] {currentCnvFile});
     GenvisisSampleProducer producer = new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot,
                                                                  log);
-    WorkerTrain<ExomeSample> train = new WorkerTrain<ExomeDepthRun.ExomeSample>(producer,
-                                                                                numthreads, 10,
-                                                                                log);
     Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
     ExomeSample[] exomeSamples = new ExomeSample[eDepthAnalysis.length];
-    int index = 0;
-    while (train.hasNext()) {
-      ExomeSample eSample = train.next();
-      exomeSamples[index] = eSample;
-      allOutliers.putAll(eSample.getOutliers());
-      index++;
-      if (index % 100 == 0) {
-        log.reportTimeInfo("Imported " + index + " samples");
+    try (WorkerTrain<ExomeSample> train = new WorkerTrain<ExomeDepthRun.ExomeSample>(producer,
+                                                                                     numthreads, 10,
+                                                                                     log)) {
+      int index = 0;
+      while (train.hasNext()) {
+        ExomeSample eSample = train.next();
+        exomeSamples[index] = eSample;
+        allOutliers.putAll(eSample.getOutliers());
+        index++;
+        if (index % 100 == 0) {
+          log.reportTimeInfo("Imported " + index + " samples");
+        }
       }
     }
     String outliersSer = proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers.ser";

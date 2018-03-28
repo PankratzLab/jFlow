@@ -62,9 +62,10 @@ public class Qtest {
 
   public static void main(String[] args) {
     HiProducer producer = new HiProducer();
-    WorkerTrain<Hi> train = new WorkerTrain<Hi>(producer, 4, 100, new Logger());
-    while (train.hasNext()) {
-      System.out.println("SDFD" + train.next().getIndex());// always in order
+    try (WorkerTrain<Hi> train = new WorkerTrain<Hi>(producer, 4, 100, new Logger())) {
+      while (train.hasNext()) {
+        System.out.println("SDFD" + train.next().getIndex());// always in order
+      }
     }
 
   }

@@ -44,20 +44,21 @@ public class FocusedRegion {
     Logger log = new Logger(outDir + "focus.log");
     String[] bams = HashVec.loadFileToStringArray(bamFile, false, new int[] {0}, true);
     log.reportTimeInfo(bams.length + " bam files found");
-    PrintWriter writer = Files.getAppropriateWriter(output);
     FocusProducer producer = new FocusProducer(seg, new ReferenceGenome(ref, log), bams, log);
-    WorkerTrain<FocusResults> train = new WorkerTrain<FocusResults>(producer, numthreads, 10, log);
+    try (PrintWriter writer = Files.getAppropriateWriter(output);
+         WorkerTrain<FocusResults> train = new WorkerTrain<FocusResults>(producer, numthreads, 10,
+                                                                         log)) {
 
-    writer.println("SAMPLE\t" + BamPile.getBampPileHeader());
-    while (train.hasNext()) {
+      writer.println("SAMPLE\t" + BamPile.getBampPileHeader());
+      while (train.hasNext()) {
 
-      FocusResults results = train.next();
-      for (BamPile bamPile : results.piles) {
-        writer.println(results.sample + "\t" + bamPile.getOuput(log));
+        FocusResults results = train.next();
+        for (BamPile bamPile : results.piles) {
+          writer.println(results.sample + "\t" + bamPile.getOuput(log));
+        }
+        log.reportTimeInfo("Finished " + results.sample);
       }
-      log.reportTimeInfo("Finished " + results.sample);
     }
-    writer.close();
     String segFile = ext.addToRoot(output, ".segs");
 
     Files.write(seg.getChromosomeUCSC() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);

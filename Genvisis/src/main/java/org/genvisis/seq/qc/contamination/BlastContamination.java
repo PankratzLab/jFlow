@@ -160,12 +160,14 @@ public class BlastContamination {
                                               int blastWordSize, int reportWordSize, Logger log) {
     BlastFastaq bFastaq = new BlastFastaq(fastaq, numReads, fastaDb, blastWordSize, reportWordSize,
                                           numReadsPerThread, log);
-    WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<BlastResultsSummary[]>(bFastaq,
-                                                                                      numSampThreads,
-                                                                                      10, log);
-    BlastContamination blastContamination = new BlastContamination(fastaDb, train, new Logger());
-    blastContamination.runContam();
-    return blastContamination;
+    try (WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<BlastResultsSummary[]>(bFastaq,
+                                                                                           numSampThreads,
+                                                                                           10,
+                                                                                           log)) {
+      BlastContamination blastContamination = new BlastContamination(fastaDb, train, new Logger());
+      blastContamination.runContam();
+      return blastContamination;
+    }
   }
 
   private static void batchIt(String dbDir, int numReads, int numReadsPerThread, int blastWordSize,

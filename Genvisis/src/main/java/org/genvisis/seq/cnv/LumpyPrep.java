@@ -83,14 +83,15 @@ public class LumpyPrep implements PairedEndSVAnalysis {
     List<PairedEndSVAnalysis> preps = new ArrayList<>();
     log.reportTimeWarning("Lumpy preparation assumes that the following are on your system path\nsamtools\npython (2.7)");
 
-    WorkerTrain<LumpyPrep> train = new WorkerTrain<>(new LumpyPrepProducer(bams, outDir, log),
-                                                     threads, 10, log);
-    while (train.hasNext()) {
-      LumpyPrep current = train.next();
-      if (!current.isFail()) {
-        preps.add(current);
-      } else {
-        log.reportTimeWarning("Could not prepare bam " + current.baseBam + " for lumpy analysis");
+    try (WorkerTrain<LumpyPrep> train = new WorkerTrain<>(new LumpyPrepProducer(bams, outDir, log),
+                                                          threads, 10, log)) {
+      while (train.hasNext()) {
+        LumpyPrep current = train.next();
+        if (!current.isFail()) {
+          preps.add(current);
+        } else {
+          log.reportTimeWarning("Could not prepare bam " + current.baseBam + " for lumpy analysis");
+        }
       }
     }
     return preps;

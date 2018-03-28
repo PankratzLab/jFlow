@@ -44,24 +44,25 @@ public class SummarizeOSTrioCoverage {
 
       ArrayList<String> famsNotFound = new ArrayList<String>();
       SumFamProducer producer = new SumFamProducer(vpop, outDir, log, map);
-      WorkerTrain<FamSum> train = new WorkerTrain<SummarizeOSTrioCoverage.FamSum>(producer,
-                                                                                  numThreads, 2,
-                                                                                  log);
+      try (WorkerTrain<FamSum> train = new WorkerTrain<SummarizeOSTrioCoverage.FamSum>(producer,
+                                                                                       numThreads,
+                                                                                       2, log)) {
 
-      int num = 0;
-      ArrayList<FamSum> haveData = new ArrayList<FamSum>();
-      while (train.hasNext()) {
+        int num = 0;
+        ArrayList<FamSum> haveData = new ArrayList<FamSum>();
+        while (train.hasNext()) {
 
-        FamSum famSum = train.next();
-        if (num == 0) {
-          writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().developHeader()));
+          FamSum famSum = train.next();
+          if (num == 0) {
+            writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().developHeader()));
+          }
+          num++;
+          if (famSum.getFamCoverageResults().getNumTotalRegions() > 0) {
+            writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().getData()));
+            haveData.add(famSum);
+          }
+
         }
-        num++;
-        if (famSum.getFamCoverageResults().getNumTotalRegions() > 0) {
-          writer.println(ArrayUtils.toStr(famSum.getFamCoverageResults().getData()));
-          haveData.add(famSum);
-        }
-
       }
       Files.writeArray(ArrayUtils.toStringArray(famsNotFound), outDir + "famsNotFound.txt");
       writer.close();

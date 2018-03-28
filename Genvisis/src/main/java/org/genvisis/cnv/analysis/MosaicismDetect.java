@@ -616,28 +616,29 @@ public class MosaicismDetect {
     };
 
     MosaicProducer producer = new MosaicProducer(proj, builder, proj.getSamples(), markerSet, segs);
-    WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer, numThreads, 10,
-                                                                  proj.getLog());
-    int numCalled = 0;
-    boolean wroteHeader = false;
+    try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer, numThreads, 10,
+                                                                       proj.getLog())) {
+      int numCalled = 0;
+      boolean wroteHeader = false;
 
-    PrintWriter writer = Files.getAppropriateWriter(output);
-    while (train.hasNext()) {
-      LocusSet<MosaicRegion> current = train.next();
-      numCalled++;
-      if (numCalled % 100 == 0) {
-        proj.getLog().reportTimeInfo("Called " + numCalled + " samples for mosaicism");
-      }
-      for (MosaicRegion region : current.getLoci()) {
-        if (!wroteHeader) {
-          writer.println(ArrayUtils.toStr(region.getHeader()));
-          wroteHeader = true;
+      PrintWriter writer = Files.getAppropriateWriter(output);
+      while (train.hasNext()) {
+        LocusSet<MosaicRegion> current = train.next();
+        numCalled++;
+        if (numCalled % 100 == 0) {
+          proj.getLog().reportTimeInfo("Called " + numCalled + " samples for mosaicism");
         }
-        // could definitely put a num marker filter here..
-        writer.println(region.toAnalysisString());
+        for (MosaicRegion region : current.getLoci()) {
+          if (!wroteHeader) {
+            writer.println(ArrayUtils.toStr(region.getHeader()));
+            wroteHeader = true;
+          }
+          // could definitely put a num marker filter here..
+          writer.println(region.toAnalysisString());
+        }
       }
+      writer.close();
     }
-    writer.close();
   }
 
   public static void main(String[] args) {

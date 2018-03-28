@@ -249,10 +249,11 @@ public class TelSeq {
   private static void runType(int threads, Logger log, String[] bams, List<TelSeqResult> results,
                               List<String> argPopulator, String baseDir, TYPE type) {
     TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
-    WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads, 100,
-                                                                           log);
-    while (train.hasNext()) {
-      results.add(train.next());
+    try (WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads,
+                                                                                100, log)) {
+      while (train.hasNext()) {
+        results.add(train.next());
+      }
     }
   }
 }

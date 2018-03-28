@@ -103,16 +103,17 @@ public class SomaticCNVEvaluation {
     // }
     BeastFilt beastFilt = new BeastFilt(normalCutoff, diffCutoff);
     TNCNVProducer producer = new TNCNVProducer(proj, inds, trackers, beastFilt);
-    WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer, numThreads,
-                                                                           numThreads,
-                                                                           proj.getLog());
+
     String outDir = proj.PROJECT_DIRECTORY.getValue() + "SomaticCNV/";
     new File(outDir).mkdirs();
     String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
     if (!Files.exists(outFile)) {
       System.exit(1);
-      try {
-        PrintWriter writer = Files.openAppropriateWriter(outFile);
+      try (WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer,
+                                                                                  numThreads,
+                                                                                  numThreads,
+                                                                                  proj.getLog());
+           PrintWriter writer = Files.openAppropriateWriter(outFile)) {
         writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
                        + ArrayUtils.toStr(SomaticEvaluation.HEADER));
         while (train.hasNext()) {

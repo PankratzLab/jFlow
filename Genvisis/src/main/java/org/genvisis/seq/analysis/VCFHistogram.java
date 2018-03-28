@@ -476,14 +476,14 @@ public class VCFHistogram implements Serializable {
 
     HistProducer producer = new HistProducer(histInits, vcf, outputDir, outputRoot,
                                              referenceGenomeFasta, log);
-    WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads,
-                                                                    numthreads, log);
-    VCFHistogram[] hists = new VCFHistogram[histInits.length];
-    int indext = 0;
-    while (train.hasNext()) {
-      hists[indext] = train.next();
+    try (WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads,
+                                                                         numthreads, log)) {
+      VCFHistogram[] hists = new VCFHistogram[histInits.length];
+      int indext = 0;
+      while (train.hasNext()) {
+        hists[indext] = train.next();
+      }
     }
-    train.close();
     //
     // try {
     // String finalOutput = outputDir+outputRoot+"_final";

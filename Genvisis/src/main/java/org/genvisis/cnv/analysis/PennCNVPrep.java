@@ -94,57 +94,58 @@ public class PennCNVPrep {
                                                                numCorrectionThreads, 1, markers,
                                                                correctionType, sexStrategy);
       proj.getLog().reportTimeInfo("Using correction type " + correctionType);
-      WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
-                                                                                                      numMarkerThreads,
-                                                                                                      10,
-                                                                                                      proj.getLog());
-      ArrayList<String> notCorrected = new ArrayList<String>();
-      MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
-      int index = 0;
-      while (train.hasNext()) {
-        MarkerData markerDataToStore = null;
-        PrincipalComponentsIntensity principalComponentsIntensity = train.next();
-        MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
-        if (principalComponentsIntensity.isFail()) {
-          notCorrected.add(markers[index]);
-          markerDataToStore = markerData;
-        } else {
-          byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
-          float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
-                                                                                     true);
-          float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
-                                                                                         true);// for
-
-          if (correctionType == CORRECTION_TYPE.COMBO) {
-            markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                                               markerData.getPosition(),
-                                               markerData.getFingerprint(), markerData.getGCs(),
-                                               null, null, correctedXY[0], correctedXY[1], null,
-                                               null, correctedLRRBAF[0],
-                                               principalComponentsIntensity.getCorrectedLRR(),
-                                               abGenotypes, abGenotypes);
+      try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+                                                                                                           numMarkerThreads,
+                                                                                                           10,
+                                                                                                           proj.getLog())) {
+        ArrayList<String> notCorrected = new ArrayList<String>();
+        MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
+        int index = 0;
+        while (train.hasNext()) {
+          MarkerData markerDataToStore = null;
+          PrincipalComponentsIntensity principalComponentsIntensity = train.next();
+          MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
+          if (principalComponentsIntensity.isFail()) {
+            notCorrected.add(markers[index]);
+            markerDataToStore = markerData;
           } else {
-            markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                                               markerData.getPosition(),
-                                               markerData.getFingerprint(), markerData.getGCs(),
-                                               null, null, correctedXY[0], correctedXY[1], null,
-                                               null,
-                                               (preserveBafs
-                                                || correctionType == CORRECTION_TYPE.LRR_ONLY) ? markerData.getBAFs()
-                                                                                               : correctedLRRBAF[0],
-                                               correctionType == CORRECTION_TYPE.XY ? correctedLRRBAF[1]
-                                                                                    : principalComponentsIntensity.getCorrectedLRR(),
-                                               abGenotypes, abGenotypes);
+            byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();
+            float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+                                                                                       true);
+            float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+                                                                                           true);// for
+
+            if (correctionType == CORRECTION_TYPE.COMBO) {
+              markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                                 markerData.getPosition(),
+                                                 markerData.getFingerprint(), markerData.getGCs(),
+                                                 null, null, correctedXY[0], correctedXY[1], null,
+                                                 null, correctedLRRBAF[0],
+                                                 principalComponentsIntensity.getCorrectedLRR(),
+                                                 abGenotypes, abGenotypes);
+            } else {
+              markerDataToStore = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                                 markerData.getPosition(),
+                                                 markerData.getFingerprint(), markerData.getGCs(),
+                                                 null, null, correctedXY[0], correctedXY[1], null,
+                                                 null,
+                                                 (preserveBafs
+                                                  || correctionType == CORRECTION_TYPE.LRR_ONLY) ? markerData.getBAFs()
+                                                                                                 : correctedLRRBAF[0],
+                                                 correctionType == CORRECTION_TYPE.XY ? correctedLRRBAF[1]
+                                                                                      : principalComponentsIntensity.getCorrectedLRR(),
+                                                 abGenotypes, abGenotypes);
+            }
           }
+          markerDataStorage.addToNextIndex(markerDataToStore);
+          index++;
         }
-        markerDataStorage.addToNextIndex(markerDataToStore);
-        index++;
-      }
-      markerDataStorage.serialize(output);
-      if (notCorrected.size() > 0) {
-        Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
-                         output.replaceAll("\\.ser",
-                                           "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
+        markerDataStorage.serialize(output);
+        if (notCorrected.size() > 0) {
+          Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
+                           output.replaceAll("\\.ser",
+                                             "_") + notCorrected.size() + "_markersThatFailedCorrection.txt");
+        }
       }
     } else {
       proj.getLog().reportFileExists(output);

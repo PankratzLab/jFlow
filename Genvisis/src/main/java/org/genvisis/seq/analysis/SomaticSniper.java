@@ -46,11 +46,12 @@ public class SomaticSniper {
     }
     Files.writeArray(ArrayUtils.toStringArray(summaryMatch), tnMatch);
     TNProducer producer = new TNProducer(tnSamples);
-    WorkerTrain<TNSample> train = new WorkerTrain<TNSample>(producer, numThreads, 2, log);
     ArrayList<String> finalOuts = new ArrayList<String>();
-    while (train.hasNext()) {
-      TNSample tmp = train.next();
-      finalOuts.add(tmp.getOutputGz());
+    try (WorkerTrain<TNSample> train = new WorkerTrain<TNSample>(producer, numThreads, 2, log)) {
+      while (train.hasNext()) {
+        TNSample tmp = train.next();
+        finalOuts.add(tmp.getOutputGz());
+      }
     }
     String out = params.getOutputDir() + "tn.out.vcf.gz";
     params.getOutputDir();

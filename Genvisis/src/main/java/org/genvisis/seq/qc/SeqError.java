@@ -83,17 +83,15 @@ public class SeqError {
             VariantContext vc = vcTmp.fullyDecode(header, false);
             numSetPass++;
             DuplicateProducer producer = new DuplicateProducer(vc, dETwos, referenceGenome);
-            WorkerTrain<DuplicateETwo> train = new WorkerTrain<>(producer, numthreads, numthreads,
-                                                                 log);
-            try {
+            try (WorkerTrain<DuplicateETwo> train = new WorkerTrain<>(producer, numthreads,
+                                                                      numthreads, log)) {
+
               int tmpI = 0;
               dETwos = new DuplicateETwo[dETwos.length];
               while (train.hasNext()) {
                 dETwos[tmpI] = train.next();
                 tmpI++;
               }
-            } finally {
-              train.close();
             }
           }
         }

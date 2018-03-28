@@ -780,22 +780,23 @@ public class CentroidCompute {
     String[] markers = proj.getMarkerNames();
     float[][][][] centroids = new float[builders.length][markers.length][][];
     CentroidProducer producer = new CentroidProducer(proj, markers, builders, numDecompressThreads);
-    WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer,
-                                                                              numCentThreads, 10,
-                                                                              proj.getLog());
-    int index = 0;
-    while (train.hasNext()) {
-      CentroidCompute[] centroidCompute = train.next();
-      // if (index % 100000 == 0) {
-      // proj.getLog().reportTimeInfo(index + " of " + markers.length);
-      // }
-      for (int i = 0; i < centroidCompute.length; i++) {
-        centroids[i][index] = centroidCompute[i].getCentroid();
+    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer,
+                                                                                   numCentThreads,
+                                                                                   10,
+                                                                                   proj.getLog())) {
+      int index = 0;
+      while (train.hasNext()) {
+        CentroidCompute[] centroidCompute = train.next();
+        // if (index % 100000 == 0) {
+        // proj.getLog().reportTimeInfo(index + " of " + markers.length);
+        // }
+        for (int i = 0; i < centroidCompute.length; i++) {
+          centroids[i][index] = centroidCompute[i].getCentroid();
 
+        }
+        index++;
       }
-      index++;
     }
-    train.close();
     Centroids[] computed = new Centroids[builders.length];
     for (int i = 0; i < centroids.length; i++) {
       Centroids cent = new Centroids(centroids[i], proj.getMarkerSet().getFingerprint());
@@ -878,18 +879,18 @@ public class CentroidCompute {
     CentroidBuilder builder = new CentroidBuilder();
     CentroidProducer producer = new CentroidProducer(proj, markers, new CentroidBuilder[] {builder},
                                                      2);
-    WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, 6, 100,
-                                                                              proj.getLog());
-    int index = 0;
-    while (train.hasNext()) {
-      CentroidCompute[] centroidCompute = train.next();
-      if (!centroidCompute[0].getMarkerData().getMarkerName().equals(markers[index])) {
-        proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName() + "\t"
-                                  + markers[index]);
+    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, 6, 100,
+                                                                                   proj.getLog())) {
+      int index = 0;
+      while (train.hasNext()) {
+        CentroidCompute[] centroidCompute = train.next();
+        if (!centroidCompute[0].getMarkerData().getMarkerName().equals(markers[index])) {
+          proj.getLog().reportError(centroidCompute[0].getMarkerData().getMarkerName() + "\t"
+                                    + markers[index]);
+        }
+        index++;
       }
-      index++;
     }
-    train.close();
     proj.getLog().reportTimeInfo("Took" + ext.getTimeElapsed(time));
   }
 

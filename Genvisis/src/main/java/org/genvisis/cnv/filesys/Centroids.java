@@ -531,13 +531,14 @@ public class Centroids implements Serializable, TextExport {
     samples = proj.getSamples();
     Hashtable<String, Float> outliers = new Hashtable<String, Float>();
     RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
-    WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
-                                                                                            numThreads,
-                                                                                            10,
-                                                                                            proj.getLog());
-    while (train.hasNext()) {
-      Hashtable<String, Float> currentOutliers = train.next();
-      outliers.putAll(currentOutliers);
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+                                                                                                 numThreads,
+                                                                                                 10,
+                                                                                                 proj.getLog())) {
+      while (train.hasNext()) {
+        Hashtable<String, Float> currentOutliers = train.next();
+        outliers.putAll(currentOutliers);
+      }
     }
     // for (int i = 0; i < samples.length; i++) {
     // original = proj.getFullSampleFromRandomAccessFile(samples[i]);

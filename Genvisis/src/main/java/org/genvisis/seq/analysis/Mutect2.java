@@ -158,16 +158,18 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
       NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads,
                                                    log);
-      WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer, numThreads,
-                                                                             2, log);
-      ArrayList<String> vcfsToCombine = new ArrayList<String>();
+      try (WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer,
+                                                                                  numThreads, 2,
+                                                                                  log)) {
+        ArrayList<String> vcfsToCombine = new ArrayList<String>();
 
-      while (train.hasNext()) {
-        Mutect2Normal validate = train.next();
-        if (validate.isFail() || !Files.exists(validate.getOutputVCF())) {
-          throw new IllegalStateException("PON generation failed");
-        } else {
-          vcfsToCombine.add(validate.getOutputVCF());
+        while (train.hasNext()) {
+          Mutect2Normal validate = train.next();
+          if (validate.isFail() || !Files.exists(validate.getOutputVCF())) {
+            throw new IllegalStateException("PON generation failed");
+          } else {
+            vcfsToCombine.add(validate.getOutputVCF());
+          }
         }
       }
     }
@@ -327,19 +329,19 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
                                                                        false, new int[] {0, 1});
     Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads,
                                   log);
-    WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,
-                                                                                   numThreads, 2,
-                                                                                   log);
     ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
     ArrayList<String> finalTNnoFiltVCfs = new ArrayList<String>();
     ArrayList<String> finalTNFiltVCFS = new ArrayList<String>();
+    try (WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,
+                                                                                        numThreads,
+                                                                                        2, log)) {
+      while (train.hasNext()) {
+        MutectTumorNormal tmp = train.next();
+        results.add(tmp);
+        finalTNnoFiltVCfs.add(tmp.getReNamedOutputVCF());
+        finalTNFiltVCFS.add(tmp.getReNamedFilteredVCF());
 
-    while (train.hasNext()) {
-      MutectTumorNormal tmp = train.next();
-      results.add(tmp);
-      finalTNnoFiltVCfs.add(tmp.getReNamedOutputVCF());
-      finalTNFiltVCFS.add(tmp.getReNamedFilteredVCF());
-
+      }
     }
     if (merge) {
       String rootNoFilter = outputDir + ext.rootOf(fileOftumorNormalMatchedBams) + ".merged";

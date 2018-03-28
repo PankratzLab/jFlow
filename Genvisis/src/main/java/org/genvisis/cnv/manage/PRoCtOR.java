@@ -284,67 +284,69 @@ public class PRoCtOR {
                                                              samplesToUseCluster, LS_TYPE.REGULAR,
                                                              numCorrectionThreads, 1, markers,
                                                              correctionType, sexStrategy);
-    WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
-                                                                                                    numMarkerThreads,
-                                                                                                    10,
-                                                                                                    proj.getLog());
-    ArrayList<String> notCorrected = new ArrayList<String>();
-    int index = 0;
+    try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+                                                                                                         numMarkerThreads,
+                                                                                                         10,
+                                                                                                         proj.getLog())) {
+      ArrayList<String> notCorrected = new ArrayList<String>();
+      int index = 0;
 
-    while (train.hasNext()) {
-      PrincipalComponentsIntensity principalComponentsIntensity = train.next();
-      MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
+      while (train.hasNext()) {
+        PrincipalComponentsIntensity principalComponentsIntensity = train.next();
+        MarkerData markerData = principalComponentsIntensity.getCentroidCompute().getMarkerData();
+
+        try {
+          if (principalComponentsIntensity.isFail()) {
+            notCorrected.add(markers[index]);
+            /*
+             * MDRAF requires knowing # of markers beforehand; this would require a double-pass (to
+             * determine # successfully corrected) rather than streaming approach. Instead, either
+             * write original data or write missing / dummy data.
+             */
+            smdw.write(markerData, proj.getArrayType().getCanXYBeNegative());
+          } else {
+            byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();// for
+            // now
+            float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
+                                                                                       true);
+            float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
+                                                                                           true);
+            markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
+                                        markerData.getPosition(), markerData.getFingerprint(),
+                                        markerData.getGCs(), null, null, correctedXY[0],
+                                        correctedXY[1], null, null,
+                                        preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
+                                        correctedLRRBAF[1], abGenotypes, abGenotypes);
+            smdw.write(markerData, proj.getArrayType().getCanXYBeNegative());
+          }
+        } catch (IOException e) {
+          proj.getLog().reportException(e);
+          System.exit(1);
+        } catch (Elision e) {
+          proj.getLog().reportException(e);
+          System.exit(1);
+        }
+
+        index++;
+      }
 
       try {
-        if (principalComponentsIntensity.isFail()) {
-          notCorrected.add(markers[index]);
-          /*
-           * MDRAF requires knowing # of markers beforehand; this would require a double-pass (to
-           * determine # successfully corrected) rather than streaming approach. Instead, either
-           * write original data or write missing / dummy data.
-           */
-          smdw.write(markerData, proj.getArrayType().getCanXYBeNegative());
-        } else {
-          byte[] abGenotypes = principalComponentsIntensity.getGenotypesUsed();// for
-          // now
-          float[][] correctedXY = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.XY_RETURN,
-                                                                                     true);
-          float[][] correctedLRRBAF = principalComponentsIntensity.getCorrectedIntensity(PrincipalComponentsIntensity.BAF_LRR_RETURN,
-                                                                                         true);
-          markerData = new MarkerData(markerData.getMarkerName(), markerData.getChr(),
-                                      markerData.getPosition(), markerData.getFingerprint(),
-                                      markerData.getGCs(), null, null, correctedXY[0],
-                                      correctedXY[1], null, null,
-                                      preserveBafs ? markerData.getBAFs() : correctedLRRBAF[0],
-                                      correctedLRRBAF[1], abGenotypes, abGenotypes);
-          smdw.write(markerData, proj.getArrayType().getCanXYBeNegative());
-        }
+        smdw.writeOutliers();
+        smdw.close();
       } catch (IOException e) {
-        proj.getLog().reportException(e);
-        System.exit(1);
-      } catch (Elision e) {
         proj.getLog().reportException(e);
         System.exit(1);
       }
 
-      index++;
-    }
-
-    try {
-      smdw.writeOutliers();
-      smdw.close();
-    } catch (IOException e) {
-      proj.getLog().reportException(e);
-      System.exit(1);
-    }
-
-    if (!notCorrected.isEmpty()) {
-      Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
-                       shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
-                                                                              + "_markersThatFailedCorrection.txt");
+      if (!notCorrected.isEmpty()) {
+        Files.writeArray(notCorrected.toArray(new String[notCorrected.size()]),
+                         shadowProject.PROJECT_DIRECTORY.getValue() + notCorrected.size()
+                                                                                + "_markersThatFailedCorrection.txt");
+      }
     }
 
     TransposeData.reverseTranspose(shadowProject);
+
   }
 
   public static void main(String[] args) {

@@ -28,24 +28,24 @@ public class ChromosomalSV {
     PreparedMarkerSet preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
     String[] samples = proj.getSamples();
     ChrProducer producer = new ChrProducer(proj, samples, preparedMarkerSet);
-    WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
-                                                                      proj.getLog());
-    int index = 0;
     ChrResult[][][] allResults = new ChrResult[samples.length][][];
     Hashtable<String, ArrayList<Double>> summaryMedian = new Hashtable<String, ArrayList<Double>>();
-
-    while (train.hasNext()) {
-      allResults[index] = train.next();
-      // for (int i = 0; i < allResults[index].length; i++) {
-      // if (!summaryMedian.containsKey(i + "")) {
-      // summaryMedian.put(i + "", new ArrayList<Double>());
-      // }
-      // if (!Double.isNaN(allResults[index][i].getMedian())) {
-      // summaryMedian.get(i + "").add(allResults[index][i].getMedian());
-      // }
-      // }
-      index++;
-      proj.getLog().reportTimeInfo(index + "");
+    try (WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
+                                                                           proj.getLog())) {
+      int index = 0;
+      while (train.hasNext()) {
+        allResults[index] = train.next();
+        // for (int i = 0; i < allResults[index].length; i++) {
+        // if (!summaryMedian.containsKey(i + "")) {
+        // summaryMedian.put(i + "", new ArrayList<Double>());
+        // }
+        // if (!Double.isNaN(allResults[index][i].getMedian())) {
+        // summaryMedian.get(i + "").add(allResults[index][i].getMedian());
+        // }
+        // }
+        index++;
+        proj.getLog().reportTimeInfo(index + "");
+      }
     }
 
     double[] allMedians = new double[preparedMarkerSet.getChrs().length];

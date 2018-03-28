@@ -296,13 +296,15 @@ public class Zip {
     files = Files.list(dirin, null);
     if (numThreads > 1) {
       GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
-      WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads, log);
-      int index = 0;
-      while (train.hasNext()) {
-        if (!train.next()) {
-          log.reportError("Could not compress file " + files[index]);
+      try (WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads,
+                                                                 log)) {
+        int index = 0;
+        while (train.hasNext()) {
+          if (!train.next()) {
+            log.reportError("Could not compress file " + files[index]);
+          }
+          index++;
         }
-        index++;
       }
     } else {
       for (int i = 0; i < files.length; i++) {

@@ -169,25 +169,27 @@ public class Stepwise {
       if (numThreads > 1) {
         RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                              svdRegressionSwitch);
-        WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads,
-                                                                              2, new Logger());
-        int index = 0;
-        int currentSize = in.size() + 1;
+        try (WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer,
+                                                                                   numThreads, 2,
+                                                                                   new Logger())) {
+          int index = 0;
+          int currentSize = in.size() + 1;
 
-        while (train.hasNext()) {
-          RegressionModel model2 = train.next();
-          if (!model2.analysisFailed() && model2.getSigs().length == currentSize + 1) {
-            pvals[index] = model2.getSigs();
+          while (train.hasNext()) {
+            RegressionModel model2 = train.next();
+            if (!model2.analysisFailed() && model2.getSigs().length == currentSize + 1) {
+              pvals[index] = model2.getSigs();
 
-            if (pvals[index][pvals[index].length - 1] < lowestP) {
-              lowestP = pvals[index][pvals[index].length - 1];
+              if (pvals[index][pvals[index].length - 1] < lowestP) {
+                lowestP = pvals[index][pvals[index].length - 1];
+              }
+              if (model2.getRsquare() > highestRsq) {
+                highestRsq = model2.getRsquare();
+                bestModel = index;
+              }
             }
-            if (model2.getRsquare() > highestRsq) {
-              highestRsq = model2.getRsquare();
-              bestModel = index;
-            }
+            index++;
           }
-          index++;
         }
 
       } else {
@@ -448,16 +450,18 @@ public class Stepwise {
 
       RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                            svdRegressionSwitch);
-      WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer, numThreads, 2,
-                                                                            new Logger());
-      int index = 0;
+      try (WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer,
+                                                                                 numThreads, 2,
+                                                                                 new Logger())) {
+        int index = 0;
 
-      while (train.hasNext()) {
-        RegressionModel model = train.next();
-        double[] modelSigs = model.getSigs();
-        sigs[index] = modelSigs[modelSigs.length - 1];
-        stats[index] = model.getRsquare();
-        index++;
+        while (train.hasNext()) {
+          RegressionModel model = train.next();
+          double[] modelSigs = model.getSigs();
+          sigs[index] = modelSigs[modelSigs.length - 1];
+          stats[index] = model.getRsquare();
+          index++;
+        }
       }
       return new StepWiseSummary(sigs, stats, orderOfOriginal);
     } else {

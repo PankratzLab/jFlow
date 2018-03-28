@@ -248,49 +248,51 @@ public class SeqQCValidation {
                      + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
       SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations,
                                                                      numVariantsToTest, 1, log);
-      WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer, numthreads, 1,
-                                                                            log);
-      while (train.hasNext()) {
-        SeqQCValidation tmp = train.next();
-        DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();
-        for (DuplicateETwo dETwo : dETwos) {
-          writer.print(dETwo.getSummary() + "\t"
-                       + tmp.getSetFilter().getvFilterJEXL().getjExps().get(0).name + "\t"
-                       + dETwo.getFilterNGS().getAltAlleleDepthFilter()[0] + "\t"
-                       + dETwo.getFilterNGS().getAltAlleleDepthRatioFilter()[0]);
-          VcFilterDouble[] doubles = dETwo.getvContextFilterSample().getvDoubles();
-          int GQIndex = -1;
-          int VQSLODIndex = -1;
-          int dpIndex = -1;
-          for (int j = 0; j < doubles.length; j++) {
-            if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.GQ_STRICT) {
-              GQIndex = j;
+      try (WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer,
+                                                                                 numthreads, 1,
+                                                                                 log)) {
+        while (train.hasNext()) {
+          SeqQCValidation tmp = train.next();
+          DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();
+          for (DuplicateETwo dETwo : dETwos) {
+            writer.print(dETwo.getSummary() + "\t"
+                         + tmp.getSetFilter().getvFilterJEXL().getjExps().get(0).name + "\t"
+                         + dETwo.getFilterNGS().getAltAlleleDepthFilter()[0] + "\t"
+                         + dETwo.getFilterNGS().getAltAlleleDepthRatioFilter()[0]);
+            VcFilterDouble[] doubles = dETwo.getvContextFilterSample().getvDoubles();
+            int GQIndex = -1;
+            int VQSLODIndex = -1;
+            int dpIndex = -1;
+            for (int j = 0; j < doubles.length; j++) {
+              if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.GQ_STRICT) {
+                GQIndex = j;
+              }
+              if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE) {
+                VQSLODIndex = j;
+              }
+              if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.DP) {
+                dpIndex = j;
+              }
             }
-            if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.VQSLOD_LOOSE) {
-              VQSLODIndex = j;
+            if (GQIndex >= 0) {
+              writer.print("\t" + doubles[GQIndex].getFilterThreshold());
+            } else {
+              writer.print("\tNA");
             }
-            if (doubles[j].getDfilter() == VARIANT_FILTER_DOUBLE.DP) {
-              dpIndex = j;
+            if (VQSLODIndex >= 0) {
+              writer.print("\t" + doubles[VQSLODIndex].getFilterThreshold());
+            } else {
+              writer.print("\tNA");
             }
+            if (dpIndex >= 0) {
+              writer.print("\t" + doubles[dpIndex].getFilterThreshold());
+            } else {
+              writer.print("\tNA");
+            }
+            writer.println();
           }
-          if (GQIndex >= 0) {
-            writer.print("\t" + doubles[GQIndex].getFilterThreshold());
-          } else {
-            writer.print("\tNA");
-          }
-          if (VQSLODIndex >= 0) {
-            writer.print("\t" + doubles[VQSLODIndex].getFilterThreshold());
-          } else {
-            writer.print("\tNA");
-          }
-          if (dpIndex >= 0) {
-            writer.print("\t" + doubles[dpIndex].getFilterThreshold());
-          } else {
-            writer.print("\tNA");
-          }
-          writer.println();
+          writer.flush();
         }
-        writer.flush();
       }
       writer.close();
     } catch (Exception e) {
