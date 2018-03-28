@@ -30,14 +30,14 @@ public class WorkerTrain<E> implements Iterator<E> {
   /**
    * @param producer dishes up {@link Callable}s to run on the thread pool
    * @param nThreads thread pool size
-   * @param buffer the amount of data that will be added to the processing que, if <= 0 or less than
-   *          the number of threads, the number of threads will be used as the buffer size
+   * @param buffer the amount of data that will be added to the processing queue, if less than
+   *          double the number of threads, double the number of threads will be used as the buffer
+   *          size
    * @param log
    */
   public WorkerTrain(Producer<E> producer, int nThreads, int buffer, Logger log) {
     this.numThreads = nThreads;
-    this.qBuffer = buffer <= 0 ? nThreads : Math.max(numThreads, buffer);// always utilize all
-                                                                         // threads given
+    this.qBuffer = Math.max(numThreads * 2, buffer);
     this.executor = Executors.newFixedThreadPool(numThreads);
     this.bq = new ArrayBlockingQueue<>(qBuffer, true);
     this.producer = producer;
@@ -46,6 +46,15 @@ public class WorkerTrain<E> implements Iterator<E> {
     this.autoShutDown = true;
 
     start();
+  }
+
+  /**
+   * @param producer dishes up {@link Callable}s to run on the thread pool
+   * @param nThreads thread pool size
+   * @param log
+   */
+  public WorkerTrain(Producer<E> producer, int nThreads, Logger log) {
+    this(producer, nThreads, 0, log);
   }
 
   private void start() {
