@@ -52,7 +52,6 @@ public class BamPileUp implements Iterator<BamPile> {
   private final Logger log;
   private BamPileUpSummary bamPileUpSummary;
   private QueryInterval[] queryIntervals;
-  private WorkerTrain<TmpBamPile> train;
   private final boolean optimize;
 
   public BamPileUp(String bam, ReferenceGenome referenceGenome, int refBinSize, FilterNGS filterNGS,
@@ -84,10 +83,6 @@ public class BamPileUp implements Iterator<BamPile> {
     bamPiles = new ArrayList<BamPile>();
     bamPilesToReturn = new ArrayList<BamPile>();
     currentSegment = new Segment((byte) 0, 0, 0);
-    train = new WorkerTrain<BamPileUp.TmpBamPile>(null, 2, 200, log);// an extra thread should be
-                                                                     // about a half hour speed up
-                                                                     // per sample
-    train.setAutoShutDown(false);
     bamPileUpSummary = new BamPileUpSummary(log);
   }
 
@@ -137,30 +132,35 @@ public class BamPileUp implements Iterator<BamPile> {
         TmpBamPileProducer tmpBamPileProducer = new TmpBamPileProducer(samRecord, currentSegment,
                                                                        bamPiles.toArray(new BamPile[bamPiles.size()]),
                                                                        filterNGS, log);
-        train.setProducer(tmpBamPileProducer);
-        bamPiles = new ArrayList<BamPile>(bamPiles.size());
-        while (train.hasNext()) {
-          TmpBamPile tmpBamPile = train.next();
-          if (tmpBamPile.overlapsCurrentRecord()) {
-            bamPiles.add(tmpBamPile.getBamPile());// stays in this round
-          } else {
-            BamPile bamPile = tmpBamPile.getBamPile();
-            bamPile.setReference(referenceGenome);
-            if (filterNGS.getReadDepthFilter() == null
-                || bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
-              int altAlleleDepth = filterNGS.getReadDepthFilter() != null
-                                   && filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1]
-                                                                                : -1;
-              if (pileType == PILE_TYPE.REGULAR
-                  || (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log)
-                      && bamPile.getNumAlt(log) > altAlleleDepth
-                      && bamPile.getNumRef(log) > altAlleleDepth)) {
-                bamPileUpSummary.setPositionsPiled(bamPileUpSummary.getPositionsPiled() + 1);
-                bamPileUpSummary.addToHistogram(bamPile.getPropRef(log));
-                bamPilesToReturn.add(bamPile);
+        // an extra thread was noted to produce about a half hour speed up per sample
+        WorkerTrain<TmpBamPile> train = new WorkerTrain<>(tmpBamPileProducer, 2, 200, log);
+        try {
+          bamPiles = new ArrayList<BamPile>(bamPiles.size());
+          while (train.hasNext()) {
+            TmpBamPile tmpBamPile = train.next();
+            if (tmpBamPile.overlapsCurrentRecord()) {
+              bamPiles.add(tmpBamPile.getBamPile());// stays in this round
+            } else {
+              BamPile bamPile = tmpBamPile.getBamPile();
+              bamPile.setReference(referenceGenome);
+              if (filterNGS.getReadDepthFilter() == null
+                  || bamPile.getTotalDepth(false, false) > filterNGS.getReadDepthFilter()[0]) {
+                int altAlleleDepth = filterNGS.getReadDepthFilter() != null
+                                     && filterNGS.getReadDepthFilter().length > 1 ? filterNGS.getReadDepthFilter()[1]
+                                                                                  : -1;
+                if (pileType == PILE_TYPE.REGULAR
+                    || (bamPile.hasAltAllele(log) && bamPile.hasOnlyOneAlt(log)
+                        && bamPile.getNumAlt(log) > altAlleleDepth
+                        && bamPile.getNumRef(log) > altAlleleDepth)) {
+                  bamPileUpSummary.setPositionsPiled(bamPileUpSummary.getPositionsPiled() + 1);
+                  bamPileUpSummary.addToHistogram(bamPile.getPropRef(log));
+                  bamPilesToReturn.add(bamPile);
+                }
               }
             }
           }
+        } finally {
+          train.shutdown();
         }
       }
     }

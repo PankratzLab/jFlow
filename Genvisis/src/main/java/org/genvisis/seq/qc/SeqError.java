@@ -56,50 +56,49 @@ public class SeqError {
   public void populateError(VariantContextFilter setFilter, ReferenceGenome referenceGenome,
                             int numVariantsToTest, int numthreads) {
 
-    VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
-    VCFHeader header = reader.getFileHeader();
-    HashSet<String> allDEs = DuplicateETwo.getUniqSamples(dETwos);
+    try (VCFFileReader reader = new VCFFileReader(new File(vcfFile), true)) {
+      VCFHeader header = reader.getFileHeader();
+      HashSet<String> allDEs = DuplicateETwo.getUniqSamples(dETwos);
 
-    log.reportTimeInfo("Computing concordance for (" + dETwos.length + ") comparisons per variant");
-    int numTotal = 0;
-    int numSetPass = 0;
-    WorkerTrain<DuplicateETwo> train = new WorkerTrain<SeqError.DuplicateETwo>(null, numthreads,
-                                                                               numthreads, log);
-    train.setAutoShutDown(false);
-    long time = System.currentTimeMillis();
-    for (VariantContext vcTmp : reader) {
-      numTotal++;
-      if (numTotal % 10000 == 0) {
-        log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass
-                           + " passing the set filter " + ext.getTimeElapsed(time));
-        time = System.currentTimeMillis();
-      }
-      if (numVariantsToTest >= 0 && numSetPass == numVariantsToTest) {
-        log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest
-                           + " variants to test reached " + ext.getTimeElapsed(time));
-        reader.close();
-        train.shutdown();
-        return;
-      }
-      if (setFilter == null || setFilter.filter(vcTmp).passed()) {
-        // System.out.println(vcTmp.getCommonInfo().getAttribute("esp6500si_all"));
-        if (VCOps.getAAC(vcTmp, allDEs) > 0) {
-          VariantContext vc = vcTmp.fullyDecode(header, false);
-          numSetPass++;
-          DuplicateProducer producer = new DuplicateProducer(vc, dETwos, referenceGenome);
-
-          train.setProducer(producer);
-          int tmpI = 0;
-          dETwos = new DuplicateETwo[dETwos.length];
-          while (train.hasNext()) {
-            dETwos[tmpI] = train.next();
-            tmpI++;
+      log.reportTimeInfo("Computing concordance for (" + dETwos.length
+                         + ") comparisons per variant");
+      int numTotal = 0;
+      int numSetPass = 0;
+      long time = System.currentTimeMillis();
+      for (VariantContext vcTmp : reader) {
+        numTotal++;
+        if (numTotal % 10000 == 0) {
+          log.reportTimeInfo(numTotal + " variants processed...with " + numSetPass
+                             + " passing the set filter " + ext.getTimeElapsed(time));
+          time = System.currentTimeMillis();
+        }
+        if (numVariantsToTest >= 0 && numSetPass == numVariantsToTest) {
+          log.reportTimeInfo(numTotal + " variants processed...," + numVariantsToTest
+                             + " variants to test reached " + ext.getTimeElapsed(time));
+          return;
+        }
+        if (setFilter == null || setFilter.filter(vcTmp).passed()) {
+          // System.out.println(vcTmp.getCommonInfo().getAttribute("esp6500si_all"));
+          if (VCOps.getAAC(vcTmp, allDEs) > 0) {
+            VariantContext vc = vcTmp.fullyDecode(header, false);
+            numSetPass++;
+            DuplicateProducer producer = new DuplicateProducer(vc, dETwos, referenceGenome);
+            WorkerTrain<DuplicateETwo> train = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                                 log);
+            try {
+              int tmpI = 0;
+              dETwos = new DuplicateETwo[dETwos.length];
+              while (train.hasNext()) {
+                dETwos[tmpI] = train.next();
+                tmpI++;
+              }
+            } finally {
+              train.shutdown();
+            }
           }
         }
       }
     }
-    reader.close();
-    train.shutdown();
   }
 
   public void summarize(String fullPathToOutput) {
@@ -192,10 +191,9 @@ public class SeqError {
     /**
      * Variant must past the sample filter for one
      */
-    ONE_PASS,
-    /**
-     * // * // * Variant must past the sample filter on the average of the two //
-     */
+    ONE_PASS,/**
+              * // * // * Variant must past the sample filter on the average of the two //
+              */
     // AVERAGE_PASS
     ;
   }
