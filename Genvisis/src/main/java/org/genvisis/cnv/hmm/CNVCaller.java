@@ -192,7 +192,12 @@ public class CNVCaller {
             // MAX_LRR_MEDIAN_ADJUST));
             break;
           case ADJUST_HMM_SD:
-            pennHmm = PennHmm.adjustBSD(pennHmm, lrrSd, proj.getLog());
+            if (lrrSd != 0) {
+              pennHmm = PennHmm.adjustBSD(pennHmm, lrrSd, proj.getLog());
+            } else {
+              proj.getLog()
+                  .reportTimeWarning("LRRSD was 0.0 for sample " + dna + ", cannot call CNVs");
+            }
             break;
           case GC_ADJUST:
             if (gcModel == null) {
@@ -283,70 +288,72 @@ public class CNVCaller {
 
   private CNVCallResult callCNVS(int[] chrsToCall, boolean callReverse, int minNumMarkers,
                                  double minConf, int numThreads) {
-    WorkerHive<CNVCallResult> hive = new WorkerHive<CNVCallResult>(numThreads, 10, proj.getLog());
-    boolean[] finalAnalysisSet = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
-    HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<String, ArrayList<Integer>>();
-    byte[] chrs = markerSet.getChrs();
-
-    for (int i = 0; i < analysisProjectIndices.length; i++) {
-      String chr = Positions.getChromosomeUCSC(chrs[analysisProjectIndices[i]], true);
-      if (!chrIndices.containsKey(chr)) {
-        chrIndices.put(chr, new ArrayList<Integer>());
-      }
-      chrIndices.get(chr).add(i);
-      finalAnalysisSet[analysisProjectIndices[i]] = true;
-    }
-    int[][] snpDists = getSNPDist(proj, markerSet, false, finalAnalysisSet);
-
-    if (chrsToCall == null) {
-      chrsToCall = ArrayUtils.arrayOfIndices(snpDists.length);
-    }
-    for (int curChr : chrsToCall) {
-      String chr = Positions.getChromosomeUCSC(curChr, true);
-      if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
-        int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
-        int[] currentChrPositions = ArrayUtils.subArray(analysisPositions, currentChrIndices);
-        double[] currentChrLrr = ArrayUtils.subArray(analysisLrrs, currentChrIndices);
-        double[] currentChrBaf = ArrayUtils.subArray(analysisBafs, currentChrIndices);
-        double[] currentChrPfbs = ArrayUtils.subArray(analysisPfbs, currentChrIndices);
-        boolean[] currentChrCnDef = ArrayUtils.subArray(copyNumberDef, currentChrIndices);
-        String[] currentNames = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
-                                                                        analysisProjectIndices),
-                                                    currentChrIndices);
-        CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr, currentChrPositions,
-                                                     currentNames, pennHmm, currentChrLrr,
-                                                     currentChrBaf, currentChrPfbs,
-                                                     snpDists[curChr], currentChrCnDef, callReverse,
-                                                     debugMode);
-        hive.addCallable(worker);
-      } else {
-        if (debugMode) {
-          proj.getLog()
-              .reportTimeWarning("There were fewer than " + MIN_MARKERS_PER_CHROMOSOME
-                                 + " analysis markers on chromosome " + chr
-                                 + " in the final call set, skipping");
-        }
-      }
-    }
-    hive.execute(true);
-    ArrayList<CNVCallResult> results = hive.getResults();
     ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
     ArrayList<CNVariant> allReverse = new ArrayList<CNVariant>();
     ArrayList<CNVariant> allReverseConsensus = new ArrayList<CNVariant>();
+    if (pennHmm != null) {
+      WorkerHive<CNVCallResult> hive = new WorkerHive<CNVCallResult>(numThreads, 10, proj.getLog());
+      boolean[] finalAnalysisSet = ArrayUtils.booleanArray(markerSet.getMarkerNames().length,
+                                                           false);
+      HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<String, ArrayList<Integer>>();
+      byte[] chrs = markerSet.getChrs();
 
-    for (int i = 0; i < results.size(); i++) {
-      for (int j = 0; j < results.get(i).getChrCNVs().getLoci().length; j++) {
-        if (results.get(i).getChrCNVs().getLoci()[j].getNumMarkers() >= minNumMarkers
-            && !Double.isNaN(results.get(i).getChrCNVs().getLoci()[j].getScore())
-            && results.get(i).getChrCNVs().getLoci()[j].getScore() > minConf) {
-          allCNVs.add(results.get(i).getChrCNVs().getLoci()[j]);
+      for (int i = 0; i < analysisProjectIndices.length; i++) {
+        String chr = Positions.getChromosomeUCSC(chrs[analysisProjectIndices[i]], true);
+        if (!chrIndices.containsKey(chr)) {
+          chrIndices.put(chr, new ArrayList<Integer>());
+        }
+        chrIndices.get(chr).add(i);
+        finalAnalysisSet[analysisProjectIndices[i]] = true;
+      }
+      int[][] snpDists = getSNPDist(proj, markerSet, false, finalAnalysisSet);
+
+      if (chrsToCall == null) {
+        chrsToCall = ArrayUtils.arrayOfIndices(snpDists.length);
+      }
+      for (int curChr : chrsToCall) {
+        String chr = Positions.getChromosomeUCSC(curChr, true);
+        if (snpDists[curChr].length > MIN_MARKERS_PER_CHROMOSOME && chrIndices.containsKey(chr)) {
+          int[] currentChrIndices = Ints.toArray(chrIndices.get(chr));
+          int[] currentChrPositions = ArrayUtils.subArray(analysisPositions, currentChrIndices);
+          double[] currentChrLrr = ArrayUtils.subArray(analysisLrrs, currentChrIndices);
+          double[] currentChrBaf = ArrayUtils.subArray(analysisBafs, currentChrIndices);
+          double[] currentChrPfbs = ArrayUtils.subArray(analysisPfbs, currentChrIndices);
+          boolean[] currentChrCnDef = ArrayUtils.subArray(copyNumberDef, currentChrIndices);
+          String[] currentNames = ArrayUtils.subArray(ArrayUtils.subArray(markerSet.getMarkerNames(),
+                                                                          analysisProjectIndices),
+                                                      currentChrIndices);
+          CNVCallerWorker worker = new CNVCallerWorker(proj, dna, (byte) curChr,
+                                                       currentChrPositions, currentNames, pennHmm,
+                                                       currentChrLrr, currentChrBaf, currentChrPfbs,
+                                                       snpDists[curChr], currentChrCnDef,
+                                                       callReverse, debugMode);
+          hive.addCallable(worker);
+        } else {
+          if (debugMode) {
+            proj.getLog()
+                .reportTimeWarning("There were fewer than " + MIN_MARKERS_PER_CHROMOSOME
+                                   + " analysis markers on chromosome " + chr
+                                   + " in the final call set, skipping");
+          }
         }
       }
-      if (callReverse) {
-        throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, go back in git history");
+      hive.execute(true);
+      ArrayList<CNVCallResult> results = hive.getResults();
+
+      for (int i = 0; i < results.size(); i++) {
+        for (int j = 0; j < results.get(i).getChrCNVs().getLoci().length; j++) {
+          if (results.get(i).getChrCNVs().getLoci()[j].getNumMarkers() >= minNumMarkers
+              && !Double.isNaN(results.get(i).getChrCNVs().getLoci()[j].getScore())
+              && results.get(i).getChrCNVs().getLoci()[j].getScore() > minConf) {
+            allCNVs.add(results.get(i).getChrCNVs().getLoci()[j]);
+          }
+        }
+        if (callReverse) {
+          throw new IllegalArgumentException("Call reverse is no longer active since it gives identical results. If you really want to use it, go back in git history");
+        }
       }
     }
-
     LocusSet<CNVariant> allLocusSet = new LocusSet<CNVariant>(allCNVs.toArray(new CNVariant[allCNVs.size()]),
                                                               true, proj.getLog()) {
 
