@@ -3,8 +3,6 @@ package org.genvisis.one.ben.fcs.auto;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilder;
@@ -25,8 +23,8 @@ import org.xml.sax.SAXException;
 
 public class WSPLoader {
 
-  private static final String[][] PANELS = {{"panel 1", "p1", "panel one"},
-                                            {"panel 2", "p2", "panel two"},};
+  private static final String[][] PANELS = {{"panel 1", "p1", "panel one", "panel1"},
+                                            {"panel 2", "p2", "panel two", "panel2"},};
   private static final String WSP_EXT = ".wsp";
   private static final FilenameFilter WSP_FILTER = new FilenameFilter() {
 
@@ -136,12 +134,12 @@ public class WSPLoader {
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       }
-      try {
-        sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
-      } catch (UnsupportedEncodingException e2) {
-        log.reportError(e2.getMessage());
-        sn.fcsFile = fcsFile;
-      }
+      //      try {
+      //        sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
+      //      } catch (UnsupportedEncodingException e2) {
+      //        log.reportError(e2.getMessage());
+      sn.fcsFile = fcsFile;
+      //      }
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();
@@ -173,10 +171,13 @@ public class WSPLoader {
         }
       } else {
         if (panel1IDs.contains(id)) {
+          System.out.println("Found panel 1 sample; id " + id + ", file "
+                             + ext.removeDirectoryInfo(sn.fcsFile));
           panel1Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
-        }
-        if (panel2IDs.contains(id)) {
+        } else if (panel2IDs.contains(id)) {
           panel2Nodes.put(ext.removeDirectoryInfo(sn.fcsFile), sn);
+        } else {
+          System.out.println("Couldn't find id " + id + " in " + panel1IDs.toString());
         }
       }
       allSamples.add(sn);

@@ -131,9 +131,9 @@ public class SamplingPipeline {
 
   int checkPanel(String lwr) {
     int panel = 0;
-    if (lwr.contains("panel 1") || lwr.contains("panel one")) {
+    if (lwr.contains("panel 1") || lwr.contains("panel one") || lwr.contains("panel1")) {
       panel = 1;
-    } else if (lwr.contains("panel 2") || lwr.contains("panel two")) {
+    } else if (lwr.contains("panel 2") || lwr.contains("panel two") || lwr.contains("panel2")) {
       panel = 2;
     }
     if (panel > 0 && (panelToRun == -1 || panelToRun == panel)) {
