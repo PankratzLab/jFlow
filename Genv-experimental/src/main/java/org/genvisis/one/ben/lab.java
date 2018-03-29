@@ -1449,20 +1449,23 @@ public class lab {
     String dir = "/scratch.global/cole0482/fcsVizPipe/r26_TcellSubs_Kmeans_wsp_v8/";
     String dir1 = dir + "outCnts/";
     String sel = dir + "nonMan.samp.txt";
-    int batch = 37;
+    int batch = 38;
 
     HashSet<String> selHash = Sets.newHashSet(HashVec.loadFileToStringArray(sel, false, null, true,
                                                                             false, "\t"));
     HashSet<String> fndHash = new HashSet<>();
     System.out.println("Loaded " + selHash.size() + " samples to keep");
 
-    List<String> xtraFiles = new ArrayList<>();
-    xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln");
-    xtraFiles.add("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln");
-    xtraFiles.add("/scratch.global/lanej/flow/manual/panel1_v8_counts/p1.cnts.xln");
+    Map<String, String> xtraFiles = new HashMap<>();
+    xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v8_counts/p1.cnts.xln", "V8_manual");
+    xtraFiles.put("/scratch.global/lanej/flow/manual/panel1_v3_counts/p1.cnts.xln", "V3_manual");
+    xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_consolidated_counts/p1.cnts.xln",
+                  "consol_manual");
+    xtraFiles.put("/scratch.global/lanej/flow/manual/kmeans_Panel1_bcellsubs_regated_counts/p1.cnts.xln",
+                  "bcell_manual");
 
     LinkedHashSet<String> headers = new LinkedHashSet<>();
-    for (int i = 0; i < batch; i++) {
+    for (int i = 0; i < batch + 1; i++) {
       String f = dir1 + "b" + i + "/p1.cnts.xln";
       if (!Files.exists(f)) continue;
       String[] hdr = Files.getHeaderOfFile(f, null);
@@ -1475,7 +1478,7 @@ public class lab {
         headers.add(s11);
       }
     }
-    for (String f : xtraFiles) {
+    for (String f : xtraFiles.keySet()) {
       String[] hdr = Files.getHeaderOfFile(f, null);
       for (String s : hdr) {
         String[] s1 = s.split(" / ");
@@ -1488,12 +1491,70 @@ public class lab {
     }
 
     PrintWriter allOut = Files.getAppropriateWriter(dir + "allCounts.xln");
-    allOut.print("Sample");
+    allOut.print("Sample\tSource");
     for (String h : headers) {
       allOut.print("\t");
       allOut.print(h);
     }
     allOut.println();
+
+    HashSet<String> sampsFound = new HashSet<>();
+    for (String f : xtraFiles.keySet()) {
+      if (!Files.exists(f)) continue;
+      BufferedReader reader = Files.getAppropriateReader(f);
+      String line = reader.readLine();
+      String[] hdr = line.split("\t", -1);
+      String[] fix = new String[hdr.length];
+      for (int s = 0; s < hdr.length; s++) {
+        String[] s1 = hdr[s].split(" / ");
+        String s11 = s1[s1.length - 1];
+        for (Entry<String, String> en : dimSwitch.entrySet()) {
+          s11 = s11.replaceAll(en.getKey(), en.getValue());
+        }
+        fix[s] = s11;
+      }
+
+      Map<String, List<Integer>> hdrInds = new HashMap<>();
+      for (int h = 0; h < fix.length; h++) {
+        if (!hdrInds.containsKey(fix[h])) {
+          hdrInds.put(fix[h], new ArrayList<>());
+        }
+        hdrInds.get(fix[h]).add(h);
+      }
+
+      while ((line = reader.readLine()) != null) {
+        int ind = line.indexOf("\t");
+        String samp = line.substring(0, ind);
+        samp = samp.substring(samp.lastIndexOf('/') + 1);
+        if (!sampsFound.add(samp)) continue;
+
+        String[] sP = line.split("\t");
+        allOut.print(samp);
+        allOut.print("\t");
+        allOut.print(xtraFiles.get(f));
+        for (String h : headers) {
+          allOut.print("\t");
+          if (hdrInds.containsKey(h)) {
+            boolean p = false;
+            for (int hI : hdrInds.get(h)) {
+              if (!sP[hI].equals("null") && !sP[hI].equals("")) {
+                allOut.print(sP[hI]);
+                p = true;
+                break;
+              }
+            }
+            if (!p) {
+              allOut.print("null");
+            }
+          } else {
+            allOut.print("null");
+          }
+        }
+        allOut.println();
+      }
+      reader.close();
+    }
+
     for (int i = 0; i < batch + 1; i++) {
       String f = dir1 + "b" + i + "/p1.cnts.xln";
       if (!Files.exists(f)) continue;
@@ -1528,16 +1589,24 @@ public class lab {
           if (!fndHash.add(samp)) {
             System.out.println("Duplicate: " + samp);
           }
+          if (!sampsFound.add(samp)) continue;
           cnt++;
           String[] sP = line.split("\t");
           allOut.print(samp);
+          allOut.print("\tOpenCyto");
           for (String h : headers) {
             allOut.print("\t");
             if (hdrInds.containsKey(h)) {
+              boolean p = false;
               for (int hI : hdrInds.get(h)) {
-                if (!sP[hI].equals("null")) {
+                if (!sP[hI].equals("null") && !sP[hI].equals("")) {
                   allOut.print(sP[hI]);
+                  p = true;
+                  break;
                 }
+              }
+              if (!p) {
+                allOut.print("null");
               }
             } else {
               allOut.print("null");
@@ -1547,52 +1616,6 @@ public class lab {
         }
       }
       System.out.println("Found " + cnt + " samples in batch " + i);
-      reader.close();
-    }
-    for (String f : xtraFiles) {
-      if (!Files.exists(f)) continue;
-      BufferedReader reader = Files.getAppropriateReader(f);
-      String line = reader.readLine();
-      String[] hdr = line.split("\t", -1);
-      String[] fix = new String[hdr.length];
-      for (int s = 0; s < hdr.length; s++) {
-        String[] s1 = hdr[s].split(" / ");
-        String s11 = s1[s1.length - 1];
-        for (Entry<String, String> en : dimSwitch.entrySet()) {
-          s11 = s11.replaceAll(en.getKey(), en.getValue());
-        }
-        fix[s] = s11;
-      }
-
-      Map<String, List<Integer>> hdrInds = new HashMap<>();
-      for (int h = 0; h < fix.length; h++) {
-        if (!hdrInds.containsKey(fix[h])) {
-          hdrInds.put(fix[h], new ArrayList<>());
-        }
-        hdrInds.get(fix[h]).add(h);
-      }
-
-      while ((line = reader.readLine()) != null) {
-        int ind = line.indexOf("\t");
-        String samp = line.substring(0, ind);
-        samp = samp.substring(samp.lastIndexOf('/') + 1);
-
-        String[] sP = line.split("\t");
-        allOut.print(samp);
-        for (String h : headers) {
-          allOut.print("\t");
-          if (hdrInds.containsKey(h)) {
-            for (int hI : hdrInds.get(h)) {
-              if (!sP[hI].equals("null")) {
-                allOut.print(sP[hI]);
-              }
-            }
-          } else {
-            allOut.print("null");
-          }
-        }
-        allOut.println();
-      }
       reader.close();
     }
 
