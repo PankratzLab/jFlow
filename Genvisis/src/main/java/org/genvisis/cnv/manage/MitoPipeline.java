@@ -389,9 +389,10 @@ public class MitoPipeline {
       }
       // if a useFile is given, all samples must be available
       if (verifyUseFile(proj, sampleList.getSamples(), useFile)) {
-        if (new File(proj.MARKER_DATA_DIRECTORY.getValue(false, false)
-                     + "markers.0.mdRAF").exists()) {
-          log.report("Marker data (at least the first file 'markers.0.mdRAF') have already been parsed");
+        if (Files.list(proj.MARKER_DATA_DIRECTORY.getValue(false, false), "mdRAF").length > 0) {
+          log.report("Marker data (files with extension mdRAF in "
+                     + proj.MARKER_DATA_DIRECTORY.getValue(false, false)
+                     + ") have already been parsed");
           log.report("Skipping transpose step for the analysis. If you would like to re-transpose the data, please remove (or change the name of) "
                      + proj.MARKER_DATA_DIRECTORY.getValue(false, false));
         } else {
