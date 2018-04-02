@@ -147,7 +147,7 @@ public class ProgressMonitor {
                                                            // updates
   private static final int DET_ELAPSED_LOG_SECONDS = 10; // seconds between determinate task updates
 
-  HashMap<String, Task> taskMap = new HashMap<String, Task>();
+  HashMap<String, Task> taskMap = new HashMap<>();
   // subclass for no-duplicates behavior ("HashStack")
   Stack<String> taskUpdateStack = new Stack<String>() {
     ;

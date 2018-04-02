@@ -32,9 +32,9 @@ public class CheckIDsAgainstDNAs {
     String trav;
     Vector<Vector<String>> idMatches;
 
-    hashMatches = new Hashtable<String, Vector<Vector<String>>>();
-    hashDNAs = new Hashtable<String, String>();
-    yearBugs = new Hashtable<String, String>();
+    hashMatches = new Hashtable<>();
+    hashDNAs = new Hashtable<>();
+    yearBugs = new Hashtable<>();
     yearIssue = false;
 
     loadNinfoType1(1);
@@ -343,7 +343,7 @@ public class CheckIDsAgainstDNAs {
     BufferedReader reader;
     PrintWriter writer;
     String bakfile, skipped = "";
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     String[] line, trav;
     String temp;
 

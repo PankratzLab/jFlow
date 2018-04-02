@@ -45,15 +45,15 @@ public class simulateNullDistribution {
     PrintWriter writer = null;
     String[] line = null, trav, fams;
     String temp;
-    Hashtable<String, Hashtable<String, String>> phenos = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> phenos = new Hashtable<>();
     Hashtable<String, String> affs;
-    Hashtable<String, Vector<String>> vips = new Hashtable<String, Vector<String>>(), backup;
-    Hashtable<String, Vector<String>> genos = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> vips = new Hashtable<>(), backup;
+    Hashtable<String, Vector<String>> genos = new Hashtable<>();
     List<String> v;
     IntVector alleles = new IntVector();
     DoubleVector counts = new DoubleVector();
     int numParticipants, allele;
-    Vector<String> pre = new Vector<String>();
+    Vector<String> pre = new Vector<>();
     String prev;
     TrimFam tf;
     int numCols;
@@ -298,7 +298,7 @@ public class simulateNullDistribution {
   }
 
   public static Hashtable<String, Vector<String>> cloneHash(Hashtable<String, Vector<String>> hash) {
-    Hashtable<String, Vector<String>> clone = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> clone = new Hashtable<>();
     String[] keys = HashVec.getKeys(hash);
 
     for (String key : keys) {

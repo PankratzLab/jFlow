@@ -30,7 +30,7 @@ public class FindVNTRs {
     Vector<String> v;
     CountVector cv;
 
-    hash = new Hashtable<String, Vector<String>>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

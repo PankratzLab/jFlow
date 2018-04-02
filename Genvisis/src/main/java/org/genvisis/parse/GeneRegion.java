@@ -29,7 +29,7 @@ public class GeneRegion {
     int[] counts;
 
     boundaries = new int[235][3];
-    countVectors = new Hashtable<String, CountVector>();
+    countVectors = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(filename));

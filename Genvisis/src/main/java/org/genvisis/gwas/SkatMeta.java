@@ -57,8 +57,8 @@ public class SkatMeta {
 
     dir = new File(dir).getAbsolutePath() + "/";
 
-    v = new Vector<String>();
-    remaining = new Vector<String>();
+    v = new Vector<>();
+    remaining = new Vector<>();
     new File("batchChecks/").mkdir();
     for (String file : files) {
       root = ext.rootOf(file);
@@ -230,7 +230,7 @@ public class SkatMeta {
       problem = true;
     }
 
-    commands = new Vector<String>();
+    commands = new Vector<>();
     commands.add("load(\"" + dir + snpInfoFile + "\")");
     commands.add("ls()");
 
@@ -251,11 +251,11 @@ public class SkatMeta {
               "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename, 5000,
               0.25, 1);
 
-    toBeSplit = new Vector<String>();
+    toBeSplit = new Vector<>();
     toBeSplit.add("# make sure to run \"qsub " + ext.rootOf(filename) + ".qsub\" first!!!");
     toBeSplit.add("cd batchSplits/");
 
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     jobSizes = new IntVector();
 
     dir = ext.verifyDirFormat(dir);
@@ -270,7 +270,7 @@ public class SkatMeta {
 
             files = finalSets[i][j][k].split(";");
             for (int f = 0; f < files.length; f++) {
-              commands = new Vector<String>();
+              commands = new Vector<>();
               commands.add("load(\"" + dir + snpInfoFile + "\")");
               commands.add("load(\"" + dir + files[f] + "\")");
               if (Files.exists(dir + "batchChecks/" + ext.rootOf(files[f]) + ".object")) {
@@ -509,7 +509,7 @@ public class SkatMeta {
 
     maxChr = getMaxChr();
     jobSizes = new IntVector();
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     infoSizes = new int[maxChr + 2];
 
     if (runningByChr) {
@@ -539,9 +539,9 @@ public class SkatMeta {
       }
     }
 
-    toBeRunIndividually = new Vector<String>();
+    toBeRunIndividually = new Vector<>();
     toBeRunIndividually.add("cd batchRuns/");
-    toBeRunMetad = new Vector<String>();
+    toBeRunMetad = new Vector<>();
     toBeRunMetad.add("cd batchRuns/");
     new File(dir + "batchRuns/").mkdir();
     dir = ext.verifyDirFormat(dir);
@@ -598,7 +598,7 @@ public class SkatMeta {
                 }
               }
 
-              commands = new Vector<String>();
+              commands = new Vector<>();
               commands.add("library(skatMeta)");
               commands.add("load(\"" + dir + snpInfoFile + "\")");
               commands.add("load(\"" + objectFilename + "\")");
@@ -659,21 +659,21 @@ public class SkatMeta {
     Qsub.qsubMultiple(jobNames, jobSizes, "chunks/", "chunkRun", 16, true, "sb", -1, 62000, 2);
     System.err.println("multiple individual runs done");
 
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     jobSizes = new IntVector();
     // Meta-analysis stratified by race
     for (int i = 0; i < phenotypes.length; i++) {
       for (int k = 0; k < races.length; k++) {
         for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
           chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-          commands = new Vector<String>();
+          commands = new Vector<>();
           commands.add("library(skatMeta)");
           if (runningByChr) {
             snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
           }
           commands.add("load(\"" + dir + snpInfoFile + "\")");
 
-          objects = new Vector<String>();
+          objects = new Vector<>();
           for (int j = 0; j < studies.length; j++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               if (runningByChr) {
@@ -753,14 +753,14 @@ public class SkatMeta {
       // Meta-analysis of all races
       for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
         chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-        commands = new Vector<String>();
+        commands = new Vector<>();
         commands.add("library(skatMeta)");
         if (runningByChr) {
           snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
         }
         commands.add("load(\"" + dir + snpInfoFile + "\")");
 
-        objects = new Vector<String>();
+        objects = new Vector<>();
         for (int j = 0; j < studies.length; j++) {
           for (int k = 0; k < races.length; k++) {
             if (!finalSets[i][j][k].equals("<missing>")) {

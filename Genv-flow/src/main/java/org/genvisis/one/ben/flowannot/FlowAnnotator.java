@@ -308,7 +308,7 @@ public class FlowAnnotator {
     splitPane_1.setLeftComponent(controlPanel);
     controlPanel.setLayout(new MigLayout("", "[110.00,grow]", "[][][grow][][]"));
 
-    fcsCombo = new JComboBox<String>();
+    fcsCombo = new JComboBox<>();
     fcsCombo.addActionListener(comboListener);
 
     constructingTree = true;

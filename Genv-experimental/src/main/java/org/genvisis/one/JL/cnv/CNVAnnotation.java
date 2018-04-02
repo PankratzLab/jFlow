@@ -127,7 +127,7 @@ public class CNVAnnotation {
           if (beastScore != null) {
             segmentAnotation.getAttributes()
                             .put(SegmentAnnotationKeys.BEAST.toString(),
-                                 new ArrayList<String>(Arrays.asList(Float.toString(beastScore.getBeastHeights()[i]))));
+                                 new ArrayList<>(Arrays.asList(Float.toString(beastScore.getBeastHeights()[i]))));
           }
 
           wesMappabilityAnnotator.annotate(cnv, segmentAnotation);
@@ -141,7 +141,7 @@ public class CNVAnnotation {
               if (bpOlap > maxProblematicOverlap) {
                 segmentAnotation.getAttributes()
                                 .put(SegmentAnnotationKeys.PROBLEM_REGION.toString(),
-                                     new ArrayList<String>(Arrays.asList("TRUE")));
+                                     new ArrayList<>(Arrays.asList("TRUE")));
                 break;
               }
             }

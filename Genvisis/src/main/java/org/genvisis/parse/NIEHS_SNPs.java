@@ -48,7 +48,7 @@ public class NIEHS_SNPs {
 
     if (!new File(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".ser").exists()) {
       log = new Logger(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".log");
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       count = 0;
       try {
         reader = new BufferedReader(new FileReader(DIR + VARIANT_FILE));
@@ -103,7 +103,7 @@ public class NIEHS_SNPs {
       chrs = new byte[annotation.length];
       positions = new int[annotation.length];
       markerNames = new String[annotation.length];
-      geneSNPs = new Hashtable<String, Vector<String>>();
+      geneSNPs = new Hashtable<>();
       for (int i = 0; i < annotation.length; i++) {
         line = annotation[i].split("-");
         markerNames[i] = hash.get(annotation[i]);
@@ -140,7 +140,7 @@ public class NIEHS_SNPs {
     log = new Logger(DIR + ext.rootOf(VARIANT_FILE) + ".log");
     map = SnpMarkerSet.load(DIR + ext.rootOf(RS_LOOKUP_FILE) + ".ser");
     annotation = Matrix.extractColumn(map.getAnnotation(), 0);
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < annotation.length; i++) {
       if (hash.containsKey(annotation[i])) {
         log.reportError("Error - multiple instances of " + annotation[i]);

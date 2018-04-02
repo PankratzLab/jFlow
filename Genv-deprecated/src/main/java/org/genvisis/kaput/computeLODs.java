@@ -17,7 +17,7 @@ public class computeLODs {
     PrintWriter writer = null;
     StringTokenizer st;
     String temp, chrome, trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int start, stop, n = 0, numLoci;
     double[][] dRay;
     double dub;

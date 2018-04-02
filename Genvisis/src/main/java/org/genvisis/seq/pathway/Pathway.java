@@ -17,7 +17,7 @@ public class Pathway extends LocusSet<GeneData> {
 
     super(loci, sort, log);
     this.pathwayName = pathwayName;
-    geneNames = new HashSet<String>();
+    geneNames = new HashSet<>();
     this.complete = complete;
     for (GeneData element : loci) {
       geneNames.add(element.getGeneName());

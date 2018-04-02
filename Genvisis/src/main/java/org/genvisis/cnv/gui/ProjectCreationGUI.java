@@ -431,7 +431,7 @@ public class ProjectCreationGUI extends JDialog {
     if (!validSrcDir) return -1;
 
     if (!currentDir.equals(srcDir)) {
-      HashMap<String, Integer> extensions = new HashMap<String, Integer>();
+      HashMap<String, Integer> extensions = new HashMap<>();
       // look for the most likely extension
       for (String s : (new File(srcDir).list())) {
         String[] split = s.split("\\.", 2); // only split on the first . to capture things like

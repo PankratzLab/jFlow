@@ -26,7 +26,7 @@ public class GelBands {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, cell, values;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     // int count;
     boolean betweenLadders;
     int[] ladder;

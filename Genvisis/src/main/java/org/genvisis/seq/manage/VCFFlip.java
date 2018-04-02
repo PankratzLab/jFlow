@@ -65,7 +65,7 @@ public class VCFFlip {
 
         if (!justGenoFlip) {
           List<Allele> alleles = vc.getAlleles();
-          List<Allele> newAlleles = new ArrayList<Allele>();
+          List<Allele> newAlleles = new ArrayList<>();
           Allele newRef = null;
           Allele newAlt = null;
 
@@ -93,14 +93,14 @@ public class VCFFlip {
           }
           builder.alleles(newAlleles);
 
-          ArrayList<Allele> newHomRef = new ArrayList<Allele>();
+          ArrayList<Allele> newHomRef = new ArrayList<>();
           newHomRef.add(newRef);
           newHomRef.add(newRef);
-          ArrayList<Allele> newHomAlt = new ArrayList<Allele>();
+          ArrayList<Allele> newHomAlt = new ArrayList<>();
           newHomAlt.add(newAlt);
           newHomAlt.add(newAlt);
 
-          ArrayList<Allele> newHet = new ArrayList<Allele>();
+          ArrayList<Allele> newHet = new ArrayList<>();
           newHet.add(newRef);
           newHet.add(newAlt);
 
@@ -117,14 +117,14 @@ public class VCFFlip {
           }
         } else {
           builder.alleles(vc.getAlleles());
-          ArrayList<Allele> newHomRef = new ArrayList<Allele>();
+          ArrayList<Allele> newHomRef = new ArrayList<>();
           newHomRef.add(vc.getReference());
           newHomRef.add(vc.getReference());
-          ArrayList<Allele> newHomAlt = new ArrayList<Allele>();
+          ArrayList<Allele> newHomAlt = new ArrayList<>();
           newHomAlt.add(vc.getAlternateAlleles().get(0));
           newHomAlt.add(vc.getAlternateAlleles().get(0));
 
-          ArrayList<Allele> newHet = new ArrayList<Allele>();
+          ArrayList<Allele> newHet = new ArrayList<>();
           newHet.add(vc.getReference());
           newHet.add(vc.getAlternateAlleles().get(0));
 

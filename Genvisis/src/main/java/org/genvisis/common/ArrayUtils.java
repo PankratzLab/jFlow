@@ -1065,7 +1065,7 @@ public class ArrayUtils {
    */
   public static double[] movingAverageForward(int n, double[] array, boolean skipNaN) {
     double[] ma = new double[array.length];
-    ArrayList<Double> tmp = new ArrayList<Double>();
+    ArrayList<Double> tmp = new ArrayList<>();
     for (int i = 0; i < array.length; i++) {
       if (!skipNaN || !Double.isNaN(array[i])) {
         tmp.add(array[i]);
@@ -1089,7 +1089,7 @@ public class ArrayUtils {
   public static double[] movingMedianForward(int n, double[] array) {
     double[] ma = new double[array.length];
     // double[] a = new double[n];
-    ArrayList<Double> tmp = new ArrayList<Double>();
+    ArrayList<Double> tmp = new ArrayList<>();
     for (int i = 0; i < array.length; i++) {
       tmp.add(array[i]);
       if (i >= n) {
@@ -2510,7 +2510,7 @@ public class ArrayUtils {
       nChunks = 1;
     }
     int[] chunks = ArrayUtils.splitUpDistributeRemainder(array.length, nChunks, log);
-    ArrayList<T[]> da = new ArrayList<T[]>();
+    ArrayList<T[]> da = new ArrayList<>();
     int start = 0;
     for (int chunk : chunks) {
       for (int j = 0; j < chunk; j++) {
@@ -2837,7 +2837,7 @@ public class ArrayUtils {
    * @return a vector of Strings
    */
   public static Vector<String> toStringVector(String[] array) {
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     for (String element : array) {
       v.add(element);
     }
@@ -2855,7 +2855,7 @@ public class ArrayUtils {
    * @return array of the unique Strings
    */
   public static String[] unique(String[] array) {
-    Set<String> filter = new LinkedHashSet<String>();
+    Set<String> filter = new LinkedHashSet<>();
 
     for (int i = 0; i < array.length; i++) {
       filter.add(array[i]);
@@ -2865,9 +2865,9 @@ public class ArrayUtils {
   }
 
   public static <T extends Number> List<T> unique(List<T> list) {
-    Set<T> filter = new LinkedHashSet<T>(list);
+    Set<T> filter = new LinkedHashSet<>(list);
 
-    return new ArrayList<T>(filter);
+    return new ArrayList<>(filter);
   }
 
   // /**
@@ -2932,7 +2932,7 @@ public class ArrayUtils {
    */
   public static BooleanClassifier classifyStringsToBoolean(String[] toClassify, String[] masks) {
     String[] uniqs = unique(toClassify);
-    ArrayList<String> uniqNoMask = new ArrayList<String>();
+    ArrayList<String> uniqNoMask = new ArrayList<>();
     for (String uniq : uniqs) {
       if (ext.indexOfStr(uniq, masks) < 0) {
         uniqNoMask.add(uniq);
@@ -3628,7 +3628,7 @@ public class ArrayUtils {
    * Create a sub-list using only indicies with {@code true} values in the given use array.
    */
   public static <T> List<T> subList(List<T> listIn, boolean[] use) {
-    List<T> listOut = new ArrayList<T>();
+    List<T> listOut = new ArrayList<>();
     for (int i = 0; i < listIn.size(); i++) {
       if (use[i]) {
         listOut.add(listIn.get(i));
@@ -3662,7 +3662,7 @@ public class ArrayUtils {
    * @return the unique elements and their counts
    */
   public static String[][] frequency(String[] array) {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int count;
     String[] keys;
     String[][] summary;
@@ -4131,7 +4131,7 @@ public class ArrayUtils {
   }
 
   public static double[] getValuesBetween(double[] array, double min, double max, boolean gteLte) {
-    ArrayList<Double> tmp = new ArrayList<Double>();
+    ArrayList<Double> tmp = new ArrayList<>();
     for (int i = 0; i < array.length; i++) {
       if (!Double.isNaN(array[i])
           && (array[i] > min && array[i] < max || (gteLte && array[i] >= min && array[i] <= max))) {
@@ -4160,7 +4160,7 @@ public class ArrayUtils {
   }
 
   public static float[] getValuesBetween(float[] array, double min, double max, boolean gteLte) {
-    ArrayList<Float> tmp = new ArrayList<Float>();
+    ArrayList<Float> tmp = new ArrayList<>();
     for (int i = 0; i < array.length; i++) {
       if (!Double.isNaN(array[i])
           && (array[i] > min && array[i] < max || (gteLte && array[i] >= min && array[i] <= max))) {
@@ -4171,7 +4171,7 @@ public class ArrayUtils {
   }
 
   public static int[] getValuesBetween(int[] array, int min, int max, boolean gteLte) {
-    ArrayList<Integer> tmp = new ArrayList<Integer>();
+    ArrayList<Integer> tmp = new ArrayList<>();
     for (int element : array) {
       if ((element > min && element < max) || (gteLte && element >= min && element <= max)) {
         tmp.add(element);
@@ -4525,7 +4525,7 @@ public class ArrayUtils {
    *         neither
    */
   public static int determineType(double[] array, boolean allow21) {
-    List<BigDecimal> bds = new ArrayList<BigDecimal>();
+    List<BigDecimal> bds = new ArrayList<>();
     // Find the first two non-NaN doubles
     for (int i = 0; bds.size() < 3 && i < array.length; i++) {
       if (!Double.isNaN(array[i])) {
@@ -4970,10 +4970,10 @@ public class ArrayUtils {
    * @return a {@link List<List>>} which is transposed
    */
   public static <T> List<List<T>> transpose(List<List<T>> table) {
-    List<List<T>> ret = new ArrayList<List<T>>();
+    List<List<T>> ret = new ArrayList<>();
     final int N = table.get(0).size();
     for (int i = 0; i < N; i++) {
-      List<T> col = new ArrayList<T>();
+      List<T> col = new ArrayList<>();
       for (List<T> row : table) {
         col.add(row.get(i));
       }
@@ -5107,7 +5107,7 @@ public class ArrayUtils {
     }
 
     done = false;
-    v = new Vector<int[]>();
+    v = new Vector<>();
     indices = new int[r];
     while (!done) {
       for (int i = 0; i < r; i++) {
@@ -5178,7 +5178,7 @@ public class ArrayUtils {
   }
 
   public static String[] removeMissingValues(String[] array) {
-    ArrayList<String> valid = new ArrayList<String>();
+    ArrayList<String> valid = new ArrayList<>();
     for (String str : array) {
       if (str == null || !ext.isValidDouble(str)) {
         continue;

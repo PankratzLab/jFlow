@@ -55,7 +55,7 @@ public class CigarOps {
   }
 
   public static Cigar getConstantCigar(int length, CigarOperator ci) {
-    ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
+    ArrayList<CigarElement> cigarElements = new ArrayList<>();
     cigarElements.add(new CigarElement(length, ci));
 
     return new Cigar(cigarElements);
@@ -70,7 +70,7 @@ public class CigarOps {
   public static Cigar convertBtopToCigar(BlastResults blastResults, int initialSequencLength,
                                          Logger log) {
     String btop = blastResults.getBtop();
-    ArrayList<CigarElement> cigarElements = new ArrayList<CigarElement>();
+    ArrayList<CigarElement> cigarElements = new ArrayList<>();
     Cigar cigar = null;
 
     if (btop == null) {
@@ -152,7 +152,7 @@ public class CigarOps {
 
       // flip the strand of the cigar
       List<CigarElement> cigarElementsStrandCurrent = cigar.getCigarElements();
-      ArrayList<CigarElement> cigarElementsStrandFlip = new ArrayList<CigarElement>();
+      ArrayList<CigarElement> cigarElementsStrandFlip = new ArrayList<>();
       for (int i = cigarElementsStrandCurrent.size() - 1; i >= 0; i--) {
         cigarElementsStrandFlip.add(cigarElementsStrandCurrent.get(i));
       }
@@ -197,7 +197,7 @@ public class CigarOps {
    * @return a new cigar with any identical {@link CigarElement} in a row combined
    */
   private static Cigar uniquify(Cigar cigar) {
-    ArrayList<CigarElement> unique = new ArrayList<CigarElement>();
+    ArrayList<CigarElement> unique = new ArrayList<>();
     if (cigar.getCigarElements().size() == 1) {
       // System.out.println("HI2\t" + cigar);
       return cigar;
@@ -230,7 +230,7 @@ public class CigarOps {
    * @return
    */
   private static String[] breakUpBtop(String btop, Logger log) {
-    ArrayList<String> btopBroken = new ArrayList<String>();
+    ArrayList<String> btopBroken = new ArrayList<>();
     String currentInt = null;
     String currentString = null;
     for (int i = 0; i < btop.length(); i++) {

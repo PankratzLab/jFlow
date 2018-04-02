@@ -25,7 +25,7 @@ public class ConvertToMDRformat {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Vector<Vector<String>> alleles = new Vector<Vector<String>>();
+    Vector<Vector<String>> alleles = new Vector<>();
     Vector<String> markers;
     int count;
 

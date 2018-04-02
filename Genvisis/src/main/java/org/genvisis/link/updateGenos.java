@@ -16,9 +16,9 @@ public class updateGenos {
   public updateGenos(String filename) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer;
-    Hashtable<String, String> allMarkers = new Hashtable<String, String>();
+    Hashtable<String, String> allMarkers = new Hashtable<>();
     Hashtable<String, Vector<String>> people;
-    Hashtable<String, Hashtable<String, Vector<String>>> chrs = new Hashtable<String, Hashtable<String, Vector<String>>>();
+    Hashtable<String, Hashtable<String, Vector<String>>> chrs = new Hashtable<>();
     Vector<String> changes, markerNames;
     String temp, bakFilename;
     String[] line, alteration;
@@ -79,13 +79,13 @@ public class updateGenos {
       if (chrs.containsKey(allMarkers.get(line[2]))) {
         people = chrs.get(allMarkers.get(line[2]));
       } else {
-        chrs.put(allMarkers.get(line[2]), people = new Hashtable<String, Vector<String>>());
+        chrs.put(allMarkers.get(line[2]), people = new Hashtable<>());
       }
 
       if (people.containsKey(line[0] + "\t" + line[1])) {
         changes = people.get(line[0] + "\t" + line[1]);
       } else {
-        people.put(line[0] + "\t" + line[1], changes = new Vector<String>());
+        people.put(line[0] + "\t" + line[1], changes = new Vector<>());
       }
       changes.add(line[2] + "\t" + line[3] + "\t" + line[4] + "\t" + line[5] + "\t" + line[6]);
     }
@@ -107,7 +107,7 @@ public class updateGenos {
         writer.println(reader.readLine());
         temp = reader.readLine();
         line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
-        markerNames = new Vector<String>();
+        markerNames = new Vector<>();
         for (int j = 3; j < line.length; j++) {
           markerNames.add(line[j].toUpperCase());
         }

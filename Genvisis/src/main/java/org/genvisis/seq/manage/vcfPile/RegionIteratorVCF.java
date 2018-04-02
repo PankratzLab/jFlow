@@ -59,7 +59,7 @@ public class RegionIteratorVCF<T extends Segment> implements Iterator<VariantCon
     CloseableIterator<VariantContext> rIter = reader.query(Positions.getChromosomeUCSC(region.getChr(),
                                                                                        true),
                                                            region.getStart(), region.getStop());
-    ArrayList<VariantContext> tmp = new ArrayList<VariantContext>();
+    ArrayList<VariantContext> tmp = new ArrayList<>();
     while (rIter.hasNext()) {
       VariantContext vc = rIter.next();// apparently an approximate query
       if (VCOps.getSegment(vc).overlaps(region)) {

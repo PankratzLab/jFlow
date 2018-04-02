@@ -48,10 +48,10 @@ public class GcCorrection {
 
     GCProducer producer = new GCProducer(projOriginal, projCorrected, gcModel,
                                          !Files.exists(outliersSer));
-    try (WorkerTrain<GcCorrectedSample> train = new WorkerTrain<GcCorrectedSample>(producer,
+    try (WorkerTrain<GcCorrectedSample> train = new WorkerTrain<>(producer,
                                                                                    numThreads, 2,
                                                                                    projOriginal.getLog())) {
-      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      Hashtable<String, Float> outliers = new Hashtable<>();
       String[] samples = projOriginal.getSamples();
       String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0]
                                + Sample.SAMPLE_FILE_EXTENSION;
@@ -141,7 +141,7 @@ public class GcCorrection {
       projOriginal.getLog().reportException(e);
     }
 
-    ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rScatters = new ArrayList<>();
     String gcLookDir = projCorrected.PROJECT_DIRECTORY.getValue() + "gc_analysis/";
     new File(gcLookDir).mkdirs();
 
@@ -245,7 +245,7 @@ public class GcCorrection {
                                                                gcmodel,
                                                                GC_CORRECTION_METHOD.GENVISIS_GC,
                                                                true, true, false);
-        outliers = new Hashtable<String, Float>();
+        outliers = new Hashtable<>();
         correctedSamp = new Sample(curSample.getSampleName(), curSample.getFingerprint(),
                                    curSample.getGCs(), curSample.getXs(), curSample.getYs(),
                                    curSample.getBAFs(),
@@ -259,7 +259,7 @@ public class GcCorrection {
           outliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(newSampleFile);
         }
         if (outliers == null) {
-          outliers = new Hashtable<String, Float>();
+          outliers = new Hashtable<>();
         }
       }
       return new GcCorrectedSample(outliers, correctedSamp);

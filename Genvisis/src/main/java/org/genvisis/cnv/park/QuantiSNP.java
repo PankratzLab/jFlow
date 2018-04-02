@@ -48,12 +48,12 @@ public class QuantiSNP {
     BufferedReader reader;
     PrintWriter writer, cnvWriter = null;
     String[] line, snpNames = null;
-    Vector<String> vNames = new Vector<String>();
+    Vector<String> vNames = new Vector<>();
     int count, version, index;
     String id = "", trav, temp;
     boolean pdgwas;
     int[] indices;
-    Hashtable<String, String> snpPoslar = new Hashtable<String, String>();
+    Hashtable<String, String> snpPoslar = new Hashtable<>();
 
     if (new File(WINDOWS_DIRECTORY).exists()) {
       trav = WINDOWS_DIRECTORY;
@@ -191,7 +191,7 @@ public class QuantiSNP {
 
   public static void createBatch(String rootDirectory, String inputDirectory,
                                  String outputDirectory, int numBatches) {
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     Hashtable<String, String> genders;
     String[] inputs, outputs;
     String commands, gender;
@@ -258,8 +258,8 @@ public class QuantiSNP {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> lookupDNAtoSubject = new Hashtable<String, String>();
-    Hashtable<String, String> lookupSubjectToDNA = new Hashtable<String, String>();
+    Hashtable<String, String> lookupDNAtoSubject = new Hashtable<>();
+    Hashtable<String, String> lookupSubjectToDNA = new Hashtable<>();
     String[] outputs, inds;
 
     try {

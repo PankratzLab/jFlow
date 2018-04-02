@@ -31,8 +31,8 @@ public class haplostats {
     BufferedReader reader = null;
     PrintWriter writer = null, pheno = null;
     String[] line;
-    Hashtable<String, Vector<haploguy>> hash = new Hashtable<String, Vector<haploguy>>();
-    Vector<String> fams = new Vector<String>();
+    Hashtable<String, Vector<haploguy>> hash = new Hashtable<>();
+    Vector<String> fams = new Vector<>();
     Vector<haploguy> v;
     String temp;
     int[] data;
@@ -66,7 +66,7 @@ public class haplostats {
         if (hash.containsKey(line[0])) {
           v = hash.get(line[0]);
         } else {
-          v = new Vector<haploguy>();
+          v = new Vector<>();
           fams.add(line[0]);
         }
         dude = new haploguy("" + (Integer.valueOf(line[0]).intValue() * 1000

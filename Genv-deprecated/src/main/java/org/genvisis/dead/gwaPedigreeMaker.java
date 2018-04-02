@@ -23,8 +23,8 @@ public class gwaPedigreeMaker {
     PrintWriter writer = null;
     String[] line, trav = null;
     String prev;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String[]> v = new Vector<String[]>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String[]> v = new Vector<>();
     int count;
     boolean done = false;
 

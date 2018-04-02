@@ -443,7 +443,7 @@ public class UKBBParsingPipeline {
   }
 
   protected void createMarkerPositions() {
-    List<String> markerList = new ArrayList<String>();
+    List<String> markerList = new ArrayList<>();
     String file = proj.MARKER_POSITION_FILENAME.getValue();
     if (!Files.exists(file)) {
       long time = System.nanoTime();
@@ -590,7 +590,7 @@ public class UKBBParsingPipeline {
 
       @Override
       public Iterator<Marker> iterator() {
-        return new ArrayIterator<Marker>(markers);
+        return new ArrayIterator<>(markers);
       }
     };
   }
@@ -732,7 +732,7 @@ public class UKBBParsingPipeline {
       }
     }
 
-    ArrayList<Runnable> runners = new ArrayList<Runnable>();
+    ArrayList<Runnable> runners = new ArrayList<>();
     int sz = binsOfBins.size();
     final CountDownLatch cdl = new CountDownLatch(binsOfBins.size()) {
 
@@ -1404,7 +1404,7 @@ public class UKBBParsingPipeline {
       }
       long t1 = System.nanoTime();
       bimData = HashVec.loadFileToStringMatrix(bimFile, false, new int[] {0, 1, 3, 4, 5});
-      bimMap = new HashMap<String, Integer>();
+      bimMap = new HashMap<>();
       for (int i = 0; i < bimData.length; i++) {
         bimMap.put(bimData[i][1], i);
       }

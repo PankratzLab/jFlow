@@ -22,8 +22,8 @@ public class ParseRawSNPsOld48 {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String[]> v = new Vector<String[]>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String[]> v = new Vector<>();
     int count = 0, startpoint = 3, endpoint = -1, tally = 0;
     String[] header = null, famidPair;
     int[] keys, indIDs, snpPositions, snpOrder;

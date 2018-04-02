@@ -88,8 +88,8 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
     sampleData = proj.getSampleData(false);
 
     count = 0;
-    invalidBytes = new HashSet<String>();
-    colorHash = new Hashtable<String, Byte>();
+    invalidBytes = new HashSet<>();
+    colorHash = new Hashtable<>();
     String mosaicColorFile = proj.MOSAIC_COLOR_CODES_FILENAME.getValue();
     try {
       reader = Files.getReader(mosaicColorFile, true, false);
@@ -116,7 +116,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
 
     image = null;
     // locLookup = new Hashtable<String,IntVector>(); // takes place in AbstractPanel
-    sampLookup = new Hashtable<String, IntVector>();
+    sampLookup = new Hashtable<>();
     // linkSamples = true;
 
     for (int i = 0; i < data.length; i++) {

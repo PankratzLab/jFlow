@@ -43,8 +43,8 @@ public class BOLT {
     // phenotype array is of the form "field id", "common name"
 
     String[] header = Files.getHeaderOfFile(filename, new Logger());
-    ArrayList<String> finalHeader = new ArrayList<String>();
-    ArrayList<String> cols = new ArrayList<String>();
+    ArrayList<String> finalHeader = new ArrayList<>();
+    ArrayList<String> cols = new ArrayList<>();
 
     // bolt expects the first two columns to be FID and IID
     // grab ukb's 'eid' column for this purpose, and ensure it's first

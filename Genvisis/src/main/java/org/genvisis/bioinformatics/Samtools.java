@@ -19,7 +19,7 @@ public class Samtools {
 
   public static void extractRegions(String outputFilename, String fullPathToSuperNovoPhase2Output,
                                     String fullPathToTrioNameList, int windowInBp, Logger log) {
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     String[][] bamFilenamesByTrios;
 
     hash = loadFromFile(fullPathToSuperNovoPhase2Output, log);
@@ -33,7 +33,7 @@ public class Samtools {
     Hashtable<String, Vector<String>> hash;
     Vector<String> v;
 
-    hash = new Hashtable<String, Vector<String>>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       while (reader.ready()) {
@@ -41,7 +41,7 @@ public class Samtools {
         if (hash.containsKey(line[2])) {
           v = hash.get(line[2]);
         } else {
-          v = new Vector<String>();
+          v = new Vector<>();
         }
         v.add(line[4]);
       }
@@ -288,12 +288,12 @@ public class Samtools {
     HashSet<String> result;
     Vector<String> currentTrio;
 
-    result = new HashSet<String>();
+    result = new HashSet<>();
     filenames = Files.list(miniSamDir, ".bam");
     isVisited = new boolean[filenames.length];
     for (int i = 0; i < filenames.length; i++) {
       if (!isVisited[i]) {
-        currentTrio = new Vector<String>(3);
+        currentTrio = new Vector<>(3);
         currentTrio.add(filenames[i]);
         line1 = filenames[i].split("_");
         for (int j = 0; j < filenames.length; j++) {

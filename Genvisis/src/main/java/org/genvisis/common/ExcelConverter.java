@@ -25,7 +25,7 @@ public class ExcelConverter {
   public ExcelConverter(ArrayList<String> files, String output, Logger log) {
     super();
 
-    this.files = new ArrayList<ExcelConversionParams>();
+    this.files = new ArrayList<>();
     for (int i = 0; i < files.size(); i++) {
       this.files.add(new ExcelConversionParams(files.get(i), "\t", ext.rootOf(files.get(i))));
     }

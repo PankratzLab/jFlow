@@ -48,10 +48,10 @@ public class ParseRawSNPs {
     PrintWriter writer = null;
     String[] line;
     CountHashHash checkCall = new CountHashHash();
-    Hashtable<String, String> mergeDNAs = new Hashtable<String, String>();
-    Hashtable<String, String> mergeIDs = new Hashtable<String, String>();
-    Hashtable<String, String[]> alleleTranslation = new Hashtable<String, String[]>();
-    Vector<String[]> v = new Vector<String[]>();
+    Hashtable<String, String> mergeDNAs = new Hashtable<>();
+    Hashtable<String, String> mergeIDs = new Hashtable<>();
+    Hashtable<String, String[]> alleleTranslation = new Hashtable<>();
+    Vector<String[]> v = new Vector<>();
     int count = 0;
     String temp, genotype, snpName;
     int[] indices, counts, keys;

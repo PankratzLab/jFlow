@@ -107,7 +107,7 @@ public final class Resources {
      */
     @Override
     protected void doCheck() {
-      Set<String> knownPaths = new HashSet<String>();
+      Set<String> knownPaths = new HashSet<>();
       for (Resource r : listAll()) {
         knownPaths.add(r.getLocalPath());
       }
@@ -140,7 +140,7 @@ public final class Resources {
 
     public AbstractResourceCheck() {
       // Build the list of files in the local resource dir
-      localResources = new HashSet<String>();
+      localResources = new HashSet<>();
       String resourceDir = LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR);
       if (Files.exists(resourceDir)) {
         for (String resource : Files.listAllFilesInTree(resourceDir)) {
@@ -169,7 +169,7 @@ public final class Resources {
    */
   private static synchronized void initResourceList() {
     if (allResources == null) {
-      Set<Resource> resources = new HashSet<Resource>();
+      Set<Resource> resources = new HashSet<>();
       resources.addAll(path(null).getResources());
       resources.addAll(hapMap(null).getResources());
       resources.addAll(mitoCN(null).getResources());
@@ -788,7 +788,7 @@ public final class Resources {
 
     @Override
     public List<Resource> getResources() {
-      List<Resource> resources = new ArrayList<Resource>();
+      List<Resource> resources = new ArrayList<>();
 
       for (Class<?> c : classes) {
         for (Method m : c.getDeclaredMethods()) {

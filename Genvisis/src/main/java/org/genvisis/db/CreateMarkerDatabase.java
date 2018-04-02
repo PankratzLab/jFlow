@@ -48,7 +48,7 @@ public class CreateMarkerDatabase {
     PrintWriter writer;
     String[] line, header, dataline, postHoc, requirement, options;
     String trav, markerName;
-    Hashtable<String, String[][]> hash = new Hashtable<String, String[][]>();
+    Hashtable<String, String[][]> hash = new Hashtable<>();
     String[][] data;
     int[] indices;
     String[] fields;

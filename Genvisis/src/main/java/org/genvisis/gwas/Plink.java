@@ -68,7 +68,7 @@ public class Plink {
     Vector<String> filter;
     int count;
 
-    extraCommands = new Vector<String>();
+    extraCommands = new Vector<>();
     if (!new File("plink.frq").exists()) {
       System.err.println("Error - 'plink.frq' required for batched genome");
       extraCommands.add("plink --bfile " + root + " --freq --noweb &");
@@ -88,7 +88,7 @@ public class Plink {
     imiss = loadImissFile("plink.imiss");
 
     inds = HashVec.loadFileToStringArray(root + ".fam", false, new int[] {0, 1, 5}, false);
-    filter = new Vector<String>();
+    filter = new Vector<>();
     count = 0;
     for (String ind : inds) {
       line = ind.split(PSF.Regex.GREEDY_WHITESPACE);
@@ -126,7 +126,7 @@ public class Plink {
       }
     }
 
-    v = new Vector<String[]>();
+    v = new Vector<>();
     for (int i = 0; i < threads; i++) {
       for (int j = i; j < threads; j++) {
         v.add(new String[] {ext.formNum(i, 3), ext.formNum(j, 3), i + "." + j});
@@ -164,7 +164,7 @@ public class Plink {
     Hashtable<String, String> imiss;
     String[] line;
 
-    imiss = new Hashtable<String, String>();
+    imiss = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER,
@@ -208,7 +208,7 @@ public class Plink {
       return;
     }
 
-    imiss = new Hashtable<String, String>();
+    imiss = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader("plink.imiss"));
       ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), IMISS_HEADER,
@@ -226,7 +226,7 @@ public class Plink {
       return;
     }
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     listCount = 0;
     step = -1;
     while (new File("tmp.list" + ext.formNum(listCount, 3)).exists()) {
@@ -257,7 +257,7 @@ public class Plink {
     }
 
     inds = HashVec.loadFileToStringArray(root + ".fam", false, new int[] {0, 1, 5}, false);
-    filter = new Vector<String>();
+    filter = new Vector<>();
     count = 0;
     for (String ind : inds) {
       line = ind.split(PSF.Regex.GREEDY_WHITESPACE);
@@ -294,7 +294,7 @@ public class Plink {
       }
     }
 
-    v = new Vector<String[]>();
+    v = new Vector<>();
     for (int i = 0; i < listCount + newCount; i++) {
       for (int j = 0; j < newCount; j++) {
         v.add(new String[] {ext.formNum(i, 3), ext.formNum(listCount + j, 3),
@@ -326,7 +326,7 @@ public class Plink {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     hash = HashVec.loadFileToHashString(ids,
                                         filterPairs ? new int[] {0, 1, 2, 3} : new int[] {0, 1},
@@ -420,10 +420,10 @@ public class Plink {
     log = new Logger("flaggingRelateds.out", true);
     if (iMissFile == null) {
       log.report("Warning - no .imiss file specified, indiviudals will not be preferentially selected based on call rate");
-      callrates = new Hashtable<String, String>();
+      callrates = new Hashtable<>();
     } else if (!Files.exists(iMissFile)) {
       log.reportError("Error - specified .imiss file missing , indiviudals will not be preferentially selected based on call rate");
-      callrates = new Hashtable<String, String>();
+      callrates = new Hashtable<>();
     } else {
       ext.checkHeader(Files.getHeaderOfFile(iMissFile, PSF.Regex.GREEDY_WHITESPACE, log),
                       IMISS_HEADER, true);
@@ -434,11 +434,11 @@ public class Plink {
 
     if (lrrFile == null) {
       log.report("Warning - no LRR_SD file specified, indiviudals will not be preferentially selected based on LRR_SD");
-      lrr_sds = new Hashtable<String, String>();
+      lrr_sds = new Hashtable<>();
     } else if (!Files.exists(lrrFile)) {
       log.reportError("Error - specified LRR_SD file (" + lrrFile
                       + ") is missing, individuals will not be preferentially selected based on LRR_SD");
-      lrr_sds = new Hashtable<String, String>();
+      lrr_sds = new Hashtable<>();
     } else {
       boolean properHeader = ext.checkHeader(Files.getHeaderOfFile(lrrFile,
                                                                    PSF.Regex.GREEDY_WHITESPACE,
@@ -452,17 +452,17 @@ public class Plink {
       } else {
         log.reportError("Error - specified LRR_SD file has an improper header (looking for \"SAMPLE\" and \"LRR_SD\" as the first two columns of file.");
         log.reportError("Individuals will not be preferentially selected based on LRR_SD.");
-        lrr_sds = new Hashtable<String, String>();
+        lrr_sds = new Hashtable<>();
       }
     }
 
     if (famFile == null) {
       log.report("Warning - no .fam SD file specified, assuming .genome file is complete");
-      in = new Hashtable<String, String>();
+      in = new Hashtable<>();
     } else if (!Files.exists(famFile)) {
       log.reportError("Error - specified .fam file (" + famFile
                       + ") is missing, assuming .genome file is complete");
-      in = new Hashtable<String, String>();
+      in = new Hashtable<>();
       famFile = null;
     } else {
       in = HashVec.loadFileToHashString(famFile, new int[] {0, 1}, new int[] {-7}, false, "\t",
@@ -481,8 +481,8 @@ public class Plink {
 
     counts = new int[removeOutTo];
     numExtras = 0;
-    out = new Hashtable<String, String>();
-    duplicates = new HashMap<String, Set<String>>();
+    out = new Hashtable<>();
+    duplicates = new HashMap<>();
     try {
       reader = Files.getAppropriateReader(genomeFile);
       ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE), CLUSTER_HEADER,
@@ -542,7 +542,7 @@ public class Plink {
               // the duplicate sets should be merged, to avoid potential divergence.
 
               // Create the set for this duplicate pair
-              Set<String> dupeSet = new HashSet<String>();
+              Set<String> dupeSet = new HashSet<>();
               dupeSet.add(fidIid1);
               dupeSet.add(fidIid2);
               // Merge with any pre-existing sets
@@ -841,8 +841,8 @@ public class Plink {
     String[] keys;
 
     count = 0;
-    indHash = new Hashtable<String, int[]>();
-    markerHash = new Hashtable<String, int[]>();
+    indHash = new Hashtable<>();
+    markerHash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       writer = Files.openAppropriateWriter(filename + ".xln");

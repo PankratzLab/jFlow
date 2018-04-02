@@ -102,7 +102,7 @@ public class CALiCo {
 
       log.report("Performing conditional corvariate analysis based on file: " + phenoCovarDir
                  + CONDITIONALS_TXT_FILE);
-      conditionals = new Hashtable<String, String[]>();
+      conditionals = new Hashtable<>();
       try {
         reader = new BufferedReader(new FileReader(phenoCovarDir + CONDITIONALS_TXT_FILE));
         while (reader.ready()) {
@@ -248,8 +248,8 @@ public class CALiCo {
     // combine lists, only those that are unique
     Files.cat(args, resultDir + "cat_hits.txt", ArrayUtils.intArray(models.length, 1), null);
 
-    minimumPvalueHash = new Hashtable<String, Double>();
-    markerPositionHash = new Hashtable<String, int[]>(); // key=markerName, values=new int[]
+    minimumPvalueHash = new Hashtable<>();
+    markerPositionHash = new Hashtable<>(); // key=markerName, values=new int[]
                                                         // {chr,position,position}
                                                         // populate both hashtables
     try {
@@ -773,7 +773,7 @@ public class CALiCo {
     // args[args.length-1] = "replace=.";
 
     sexAsCovariate = false;
-    v = new Vector<String>();
+    v = new Vector<>();
     v.add(phenoCovarFilename);
     v.add("out=" + outputDir + root + "_covars.dat");
     v.add("'IID'=FID");
@@ -791,7 +791,7 @@ public class CALiCo {
     GenParser.parse(args, log);
 
     // determine which samples have complete data for pheotype AND all covariates
-    keysToRemove = new ArrayList<Integer>();
+    keysToRemove = new ArrayList<>();
     hashPheno = HashVec.loadFileToHashString(outputDir + root + "_pheno.dat", new int[] {0, 1},
                                              new int[] {2}, false, "\t", true, false);
     hashCovariates = HashVec.loadFileToHashString(outputDir + root + "_covars.dat",
@@ -943,7 +943,7 @@ public class CALiCo {
       delimiterForOutputFile = "\t";
     }
 
-    outFile = new Vector<String>();
+    outFile = new Vector<>();
     outFile.add("model" + delimiterForOutputFile + "SNP.original" + delimiterForOutputFile + "rsID"
                 + delimiterForOutputFile + "CHR.build36" + delimiterForOutputFile + "CHR.build37"
                 + delimiterForOutputFile + "bp.build36" + delimiterForOutputFile + "bp.build37"
@@ -1072,7 +1072,7 @@ public class CALiCo {
       } else {
         System.out.println("Creating " + root + site + ".out");
         count = 1;
-        v = new Vector<String>();
+        v = new Vector<>();
         filename = ext.replaceAllWith(filePattern,
                                       new String[][] {{"#", count + ""}, {"%%", site}});
         while (Files.exists(dir + filename)) {
@@ -1101,8 +1101,8 @@ public class CALiCo {
 
     String[] sites = new String[] {"b", "c", "m", "s"};
 
-    qqFiles = new Vector<String>();
-    lowCallrateMarkerFiles = new Vector<String>();
+    qqFiles = new Vector<>();
+    lowCallrateMarkerFiles = new Vector<>();
     inputFiles = new String[0];
     for (String site : sites) {
       filename = root + site + ".out";

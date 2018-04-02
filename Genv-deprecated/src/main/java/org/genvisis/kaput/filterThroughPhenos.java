@@ -17,11 +17,11 @@ public class filterThroughPhenos {
     PrintWriter conAff = null, conUnaff = null, discord = null, unused = null, diskey = null;
     String temp, ID, trav, prev = "", rents = "shtoops";
     StringTokenizer st;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String> affs = new Vector<String>();
-    Vector<String> unfs = new Vector<String>();
-    Vector<String> splats = new Vector<String>();
-    Vector<String> disc = new Vector<String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String> affs = new Vector<>();
+    Vector<String> unfs = new Vector<>();
+    Vector<String> splats = new Vector<>();
+    Vector<String> disc = new Vector<>();
     int pheno;
 
     reader = new BufferedReader(new FileReader(phenoFile));

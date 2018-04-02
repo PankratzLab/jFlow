@@ -64,8 +64,8 @@ public class VariantSorter {
     geneInfo = Collapsed.loadFileToHashString(dir + "knownGene.xln", 0, new int[] {2}, "\t", false);
 
     System.out.println("Parsing files...");
-    hash = new Hashtable<String, Vector<String>>();
-    variants = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    variants = new Hashtable<>();
     for (int i = 0; i < files.length; i++) {
       if (!files[i].startsWith("NA")) {
         System.out.print(".");
@@ -145,7 +145,7 @@ public class VariantSorter {
 
     Collapsed.writeList(HashVec.getKeys(variants), dir + "siftInput.txt");
 
-    siftInfo = new Hashtable<String, String>();
+    siftInfo = new Hashtable<>();
     if (Collapsed.exists(dir + "siftOutput.txt")) {
       try {
         reader = new BufferedReader(new FileReader(dir + "siftOutput.txt"));
@@ -170,7 +170,7 @@ public class VariantSorter {
     }
 
     genes = HashVec.getKeys(hash);
-    favHits = new Hashtable<String, Vector<String>>();
+    favHits = new Hashtable<>();
     try {
       writer = Files.openAppropriateWriter(dir + "bins.xln");
       for (String element : CATS) {

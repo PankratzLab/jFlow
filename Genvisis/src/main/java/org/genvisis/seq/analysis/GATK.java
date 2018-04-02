@@ -413,7 +413,7 @@ public class GATK {
                                         String[] annotations, String resourceName, int numThreads) {
     String[] inputs = new String[] {inputVcf, annoVcf};
     String[] outputs = new String[] {outVCF};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(javaLocation);
     command.add(JAR);
     command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -614,7 +614,7 @@ public class GATK {
     input = ArrayUtils.concatAll(input, vcfs);
     String[] outputs = new String[] {outputVcf, getVcfIndex(outputVcf)};
 
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(javaLocation);
     command.add(JAR);
     command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -651,7 +651,7 @@ public class GATK {
     }
     String[] outputs = new String[] {outputVCF, getVcfIndex(outputVCF)};
 
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(javaLocation);
     command.add(JAR);
     command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -862,7 +862,7 @@ public class GATK {
 
     new File(outputDir).mkdirs();
     String[] input = new String[] {referenceGenomeFasta, inputVCF, ped, supportingSnps};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(javaLocation);
     command.add(JAR);
     command.add(gatkLocation + GENOME_ANALYSIS_TK);
@@ -890,7 +890,7 @@ public class GATK {
                                     Logger log) {
     String[] input = new String[] {referenceGenomeFasta, bamFile, dbSnpKnownSites, regionsFile,
                                    cosmicKnownSites};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(javaLocation);
     command.add(JAR);
     command.add(gatkLocation + GENOME_ANALYSIS_TK);

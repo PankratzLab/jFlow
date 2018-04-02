@@ -100,10 +100,10 @@ public class Pipeline {
                                     refGenome, ngsSample.getaName(), ngsSample.getaType(),
                                     numthreads, log);
 
-      ArrayList<String> input = new ArrayList<String>();
+      ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);
       setInput(input);
-      ArrayList<String> output = new ArrayList<String>();
+      ArrayList<String> output = new ArrayList<>();
       output.add(result);
       setOutput(output);
       return this;
@@ -140,10 +140,10 @@ public class Pipeline {
       String result = TelSeq.runTelSeq(new String[] {bamFile}, telSeqDir, captureBed, numthreads,
                                        ngsSample.getaType(), ngsSample.getaName(),
                                        captureBufferSize, log);
-      ArrayList<String> input = new ArrayList<String>();
+      ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);
       setInput(input);
-      ArrayList<String> output = new ArrayList<String>();
+      ArrayList<String> output = new ArrayList<>();
       output.add(result);
       setOutput(output);
 
@@ -188,7 +188,7 @@ public class Pipeline {
                                          NORMALIZATON_METHOD.GENOME, new String[] {bamFile},
                                          refGenome, false, true, 1);
 
-      ArrayList<String> input = new ArrayList<String>();
+      ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);
       setInput(input);
       return this;
@@ -248,10 +248,10 @@ public class Pipeline {
       new File(outputDir).mkdir();
       // TODO, remove capture bed prior to running
       Computel.runComputel(bamFile, outputDir, computelLocation, log);
-      ArrayList<String> input = new ArrayList<String>();
+      ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);
       setInput(input);
-      ArrayList<String> output = new ArrayList<String>();
+      ArrayList<String> output = new ArrayList<>();
       output.add(null);
       setOutput(output);
       return this;
@@ -334,7 +334,7 @@ public class Pipeline {
       throw new IllegalArgumentException(captureBed + " must exist");
     }
 
-    WorkerHive<PipelinePart> hive = new WorkerHive<Pipeline.PipelinePart>(numThreads, 10, log);
+    WorkerHive<PipelinePart> hive = new WorkerHive<>(numThreads, 10, log);
     hive.addCallable(new UnMappedPart(inputBam, rootOutDir, log));// it's cheap to do
     for (PIPELINE_PARTS part : parts) {
       switch (part) {

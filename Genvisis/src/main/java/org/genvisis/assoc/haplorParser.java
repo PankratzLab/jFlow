@@ -36,8 +36,8 @@ public class haplorParser {
 
     public HapFam(String famID) throws IOException {
       id = famID;
-      posts = new Hashtable<String, String>();
-      members = new Hashtable<String, HapInd>();
+      posts = new Hashtable<>();
+      members = new Hashtable<>();
       maxConfig = "-";
       maxPost = 0;
     }
@@ -55,7 +55,7 @@ public class haplorParser {
 
     public HapInd(String indID) throws IOException {
       id = indID;
-      posts = new Hashtable<String, String>();
+      posts = new Hashtable<>();
       maxHap = "-";
       maxPost = 0;
     }
@@ -67,10 +67,10 @@ public class haplorParser {
     PrintWriter[] writers;
     String[] line, marks;
     String temp, trav, prev, maxPair;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int numMarkers, numConfigs, numInds, count;
-    Vector<String> fams = new Vector<String>();
-    Vector<String> missingdata = new Vector<String>();
+    Vector<String> fams = new Vector<>();
+    Vector<String> missingdata = new Vector<>();
     String[] haplotypes;
     double[] hapFreqs;
     int[] hapKeys;
@@ -85,8 +85,8 @@ public class haplorParser {
     boolean compare = (new File("f3_haplos.out")).exists() && (new File("f3_em.out")).exists();
     boolean done;
     int offset;
-    Vector<String> compHaps = new Vector<String>();
-    Vector<String> comparisons = new Vector<String>();
+    Vector<String> compHaps = new Vector<>();
+    Vector<String> comparisons = new Vector<>();
 
     writers = new PrintWriter[TARGET_HAPLOTYPES.length];
     for (int i = 0; i < TARGET_HAPLOTYPES.length; i++) {

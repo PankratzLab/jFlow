@@ -22,7 +22,7 @@ public class S3cmdDL {
     String get = dir + "get.sh";
 
     Logger log = new Logger();
-    ArrayList<String> cmd1 = new ArrayList<String>();
+    ArrayList<String> cmd1 = new ArrayList<>();
     cmd1.add("s3cmd");
     cmd1.add("ls");
     cmd1.add(bucket);
@@ -33,7 +33,7 @@ public class S3cmdDL {
     CmdLine.runCommandWithFileChecks(new String[] {sh}, "", null, null, true, true, false, log);
 
     String[] files = HashVec.loadFileToStringArray(txt, false, null, false);
-    ArrayList<String> filesGet = new ArrayList<String>();
+    ArrayList<String> filesGet = new ArrayList<>();
     for (int i = 0; i < files.length; i++) {
       out: if (files[i].endsWith(exten)) {
         String actual = files[i].substring(files[i].indexOf(" s3:"));

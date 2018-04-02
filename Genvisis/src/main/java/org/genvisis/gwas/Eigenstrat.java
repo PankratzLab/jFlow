@@ -221,8 +221,8 @@ public class Eigenstrat {
     }
 
     System.out.println("Computing eigenvalues...");
-    ids = new Vector<String>();
-    allScores = new Vector<double[]>();
+    ids = new Vector<>();
+    allScores = new Vector<>();
     try {
       if (eigenFormat) {
         reader = new BufferedReader(new FileReader(targetRoot + ".eigenstratgeno"));

@@ -229,7 +229,7 @@ public class AFPlot {
   }
 
   private void setChrs(Set<Byte> chrsToLoad) {
-    chrs = new HashSet<Byte>();
+    chrs = new HashSet<>();
     if (chrsToLoad == null) {
       for (int i = 1; i <= ALL_CHRS_COUNT; i++) {
         chrs.add((byte) i);

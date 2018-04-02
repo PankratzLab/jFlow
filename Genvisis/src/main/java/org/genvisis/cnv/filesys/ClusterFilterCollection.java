@@ -32,7 +32,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
 
   // constructor, get(String markerName), load, serialize
   public ClusterFilterCollection() {
-    hash = new Hashtable<String, ArrayList<ClusterFilter>>();
+    hash = new Hashtable<>();
   }
 
   public void addClusterFilter(String markerName, ClusterFilter filter) {
@@ -250,7 +250,7 @@ public class ClusterFilterCollection implements Serializable, TextExport {
   public static void merge(String[] filenames, String outfile) {
     String[] markerNames;
     ClusterFilterCollection master, trav;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     ArrayList<ClusterFilter> masterArray, travArray;
 
     master = new ClusterFilterCollection();

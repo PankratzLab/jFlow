@@ -141,7 +141,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 
     private void mapNormals(String[] bamFilesFullPath) {
       normalSamples = new NormalSample[samples.length];
-      Hashtable<String, String> map = new Hashtable<String, String>();
+      Hashtable<String, String> map = new Hashtable<>();
       for (String element : bamFilesFullPath) {
         map.put(BamOps.getSampleName(element), element);
       }
@@ -158,10 +158,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
       NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads,
                                                    log);
-      try (WorkerTrain<Mutect2Normal> train = new WorkerTrain<GATK.Mutect2Normal>(producer,
+      try (WorkerTrain<Mutect2Normal> train = new WorkerTrain<>(producer,
                                                                                   numThreads, 2,
                                                                                   log)) {
-        ArrayList<String> vcfsToCombine = new ArrayList<String>();
+        ArrayList<String> vcfsToCombine = new ArrayList<>();
 
         while (train.hasNext()) {
           Mutect2Normal validate = train.next();
@@ -297,7 +297,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
         e.printStackTrace();
       }
       if (type == MUTECT_RUN_TYPES.COMBINE_NORMALS) {
-        ArrayList<String> ponVcfs = new ArrayList<String>();
+        ArrayList<String> ponVcfs = new ArrayList<>();
         for (int i = 0; i < normals.getNormalSamples().length; i++) {
           if (Files.exists(normals.getNormalSamples()[i].getPonVCF())) {
             ponVcfs.add(normals.getNormalSamples()[i].getPonVCF());
@@ -329,10 +329,10 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
                                                                        false, new int[] {0, 1});
     Mutect2 mutect2 = new Mutect2(gatk, tumorNormalMatchedBams, ponVcf, outputDir, numSampleThreads,
                                   log);
-    ArrayList<MutectTumorNormal> results = new ArrayList<GATK.MutectTumorNormal>();
-    ArrayList<String> finalTNnoFiltVCfs = new ArrayList<String>();
-    ArrayList<String> finalTNFiltVCFS = new ArrayList<String>();
-    try (WorkerTrain<MutectTumorNormal> train = new WorkerTrain<GATK.MutectTumorNormal>(mutect2,
+    ArrayList<MutectTumorNormal> results = new ArrayList<>();
+    ArrayList<String> finalTNnoFiltVCfs = new ArrayList<>();
+    ArrayList<String> finalTNFiltVCFS = new ArrayList<>();
+    try (WorkerTrain<MutectTumorNormal> train = new WorkerTrain<>(mutect2,
                                                                                         numThreads,
                                                                                         2, log)) {
       while (train.hasNext()) {
@@ -441,7 +441,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     }
 
     if (extract) {
-      ArrayList<String> bamsToExtract = new ArrayList<String>();
+      ArrayList<String> bamsToExtract = new ArrayList<>();
       for (String[] tumorNormalMatchedBam : tumorNormalMatchedBams) {
         for (String element : tumorNormalMatchedBam) {
           bamsToExtract.add(element);
@@ -491,7 +491,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
                                                                                   new int[] {0},
                                                                                   true),
                                                     numNormalBatches, log);
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     String[][] batches = new String[splits.size()][1];
     String baseOut = "[%0]";
     for (int i = 0; i < batches.length; i++) {
@@ -517,7 +517,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
 
   private static ArrayList<String> getBaseArgs(GATK gatk, String outputDir, int numthreads,
                                                int numSampleThreads) {
-    ArrayList<String> base = new ArrayList<String>();
+    ArrayList<String> base = new ArrayList<>();
     base.add("gatk=" + gatk.getGATKLocation());
     base.add("ref=" + gatk.getReferenceGenomeFasta());
     base.add("knownSnps=" + gatk.getDbSnpKnownSites());

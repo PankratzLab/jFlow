@@ -27,15 +27,15 @@ public class RelativeQuantification {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, inds, regionNames, probeNames, values;
-    Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> individuals = new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
+    Hashtable<String, Hashtable<String, Hashtable<String, String[]>>> individuals = new Hashtable<>();
     Hashtable<String, Hashtable<String, String[]>> probes;
     Hashtable<String, String[]> regions;
     double[][][] means, stderrs;
     DoubleVector sampleStderrs;
     String ind, region, probeName;
-    Hashtable<String, String> probeGeneLookup = new Hashtable<String, String>();
-    Vector<String> vProbes = new Vector<String>();
-    Vector<String> vRegions = new Vector<String>();
+    Hashtable<String, String> probeGeneLookup = new Hashtable<>();
+    Vector<String> vProbes = new Vector<>();
+    Vector<String> vRegions = new Vector<>();
 
     File[] files = new File(dir + subdir).listFiles(new FilenameFilter() {
 
@@ -62,12 +62,12 @@ public class RelativeQuantification {
           if (individuals.containsKey(ind)) {
             probes = individuals.get(ind);
           } else {
-            individuals.put(ind, probes = new Hashtable<String, Hashtable<String, String[]>>());
+            individuals.put(ind, probes = new Hashtable<>());
           }
           if (probes.containsKey(probeName)) {
             regions = probes.get(probeName);
           } else {
-            probes.put(probeName, regions = new Hashtable<String, String[]>());
+            probes.put(probeName, regions = new Hashtable<>());
           }
           if (regions.containsKey(region)) {
             values = regions.get(region);

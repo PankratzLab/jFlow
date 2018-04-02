@@ -20,9 +20,9 @@ public class shiftAlleles {
     String temp;
     int numMarkers, chr;
     Vector<String> oldAlleles, newAlleles;
-    Hashtable<String, String> hash, markers, integrityCheck = new Hashtable<String, String>();
-    Vector<Hashtable<String, String>> plates = new Vector<Hashtable<String, String>>();
-    Vector<String> plateNames = new Vector<String>();
+    Hashtable<String, String> hash, markers, integrityCheck = new Hashtable<>();
+    Vector<Hashtable<String, String>> plates = new Vector<>();
+    Vector<String> plateNames = new Vector<>();
     boolean[] touched = new boolean[23];
     String markerName, plateAffected;
 
@@ -42,7 +42,7 @@ public class shiftAlleles {
         hash = plates.elementAt(plateNames.indexOf(line[2]));
       } else {
         plateNames.add(line[2]);
-        plates.add(hash = new Hashtable<String, String>());
+        plates.add(hash = new Hashtable<>());
       }
       hash.put(line[0] + "\t" + line[1], line[2]);
     }
@@ -58,7 +58,7 @@ public class shiftAlleles {
         System.exit(1);
       }
     }
-    markers = new Hashtable<String, String>();
+    markers = new Hashtable<>();
     chr = 0;
     while (reader.ready()) {
       temp = reader.readLine();
@@ -97,7 +97,7 @@ public class shiftAlleles {
       line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
       markerName = line[0].toUpperCase();
       line[0] = "0";
-      oldAlleles = new Vector<String>();
+      oldAlleles = new Vector<>();
       for (String element : line) {
         oldAlleles.add(element);
       }
@@ -114,7 +114,7 @@ public class shiftAlleles {
         integrityCheck.put(markerName + ":" + plateAffected, "");
       }
       line[0] = "0";
-      newAlleles = new Vector<String>();
+      newAlleles = new Vector<>();
       for (String element : line) {
         newAlleles.add(element);
       }

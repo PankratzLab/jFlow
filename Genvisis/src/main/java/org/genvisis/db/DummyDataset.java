@@ -38,7 +38,7 @@ public class DummyDataset {
     if (params != null) {
       outfile = params[0][0];
       header = null;
-      v = new Vector<String[]>();
+      v = new Vector<>();
       countV = new IntVector();
       for (int i = 1; i < params.length; i++) {
         if (params[i][0].equalsIgnoreCase("header")) {
@@ -109,8 +109,8 @@ public class DummyDataset {
         }
       }
 
-      hashes = new Hashtable<String, Hashtable<String, String>>();
-      v = new Vector<String>();
+      hashes = new Hashtable<>();
+      v = new Vector<>();
       try {
         reader = new BufferedReader(new FileReader(infile));
         while (reader.ready()) {
@@ -120,7 +120,7 @@ public class DummyDataset {
           if (hashes.containsKey(line[0])) {
             hash = hashes.get(line[0]);
           } else {
-            hashes.put(line[0], hash = new Hashtable<String, String>());
+            hashes.put(line[0], hash = new Hashtable<>());
           }
           if (hash.containsKey(line[1])) {
             hash.put(line[1], (Integer.parseInt(hash.get(line[1])) + 1) + "");

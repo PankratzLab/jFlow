@@ -63,7 +63,7 @@ public class Pathways implements Serializable {
   }
 
   public Pathway[] getPathwaysFor(GeneData geneData) {
-    ArrayList<Pathway> tmp = new ArrayList<Pathway>();
+    ArrayList<Pathway> tmp = new ArrayList<>();
     for (Pathway pathway : pathways) {
       if (pathway.containsGene(geneData.getGeneName())) {
         tmp.add(pathway);
@@ -186,7 +186,7 @@ public class Pathways implements Serializable {
 
   private static Pathway matchPathwayGenes(GeneTrack geneTrack, String[] line, Logger log) {
 
-    HashSet<String> pathGenes = new HashSet<String>();
+    HashSet<String> pathGenes = new HashSet<>();
     String path = line[0].replaceAll(PATH + ":", "");
     String pathName = ext.replaceWithLinuxSafeCharacters(line[1], true);
     Hashtable<String, ArrayList<String>> lookup = getNCBILookupForPathway(path, log);
@@ -214,7 +214,7 @@ public class Pathways implements Serializable {
       // return new Pathway(path + ":Invalid", new GeneData[] {}, false, log);
     }
     // else {
-    ArrayList<GeneData> genes = new ArrayList<GeneData>();
+    ArrayList<GeneData> genes = new ArrayList<>();
     for (String gene : pathGenes) {
       GeneData[] tmp = geneTrack.lookupAllGeneData(gene);
       for (GeneData element : tmp) {
@@ -227,7 +227,7 @@ public class Pathways implements Serializable {
 
   private static Hashtable<String, ArrayList<String>> getNCBILookupForPathway(String pathway,
                                                                               Logger log) {
-    ArrayList<String> keggGenes = new ArrayList<String>();
+    ArrayList<String> keggGenes = new ArrayList<>();
 
     try {
       BufferedReader in = new BufferedReader(new InputStreamReader(new URL(KEGG_HUMAN_PATHWAY_GENE_LINK
@@ -251,7 +251,7 @@ public class Pathways implements Serializable {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    Hashtable<String, ArrayList<String>> lookup = new Hashtable<String, ArrayList<String>>();
+    Hashtable<String, ArrayList<String>> lookup = new Hashtable<>();
     for (int i = 0; i < keggGenes.size(); i++) {
       lookup.put(keggGenes.get(i), new ArrayList<String>());
 

@@ -190,7 +190,7 @@ public abstract class RegressionModel {
     double[][] betaPerms = new double[betas.length][numReps];
     onePer = true;
     String[] fams = ArrayUtils.unique(famIDs);
-    Hashtable<String, IntVector> hash = new Hashtable<String, IntVector>();
+    Hashtable<String, IntVector> hash = new Hashtable<>();
     IntVector iv;
     double[] rDeps = new double[fams.length];
     double[][] rIndeps = new double[fams.length][];
@@ -323,7 +323,7 @@ public abstract class RegressionModel {
   }
 
   public boolean dataQC() {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     double[][] oldIndeps;
     double diff, offset;
     String[] keys;
@@ -370,7 +370,7 @@ public abstract class RegressionModel {
       }
     }
 
-    newVariableNames = new Vector<String>();
+    newVariableNames = new Vector<>();
     newVariableNames.add(varNames[0]);
     for (int j = 0; j < indeps[0].length; j++) {
       hash.clear();
@@ -477,7 +477,7 @@ public abstract class RegressionModel {
 
   public static RegressionModel determineAppropriate(double[] deps, double[][] indeps,
                                                      boolean bypassDataCheck, boolean verbose) {
-    Vector<String> depCount = new Vector<String>();
+    Vector<String> depCount = new Vector<>();
 
     for (int i = 0; i < deps.length && depCount.size() <= 2; i++) {
       if (!Double.isNaN(deps[i])) {
@@ -490,11 +490,11 @@ public abstract class RegressionModel {
   }
 
   public static boolean isBinaryTrait(String[] pheno, Logger log) {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String[] keys;
     double diff;
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     if (pheno == null) {
       log.reportError("Error - null array");
       return false;
@@ -535,7 +535,7 @@ public abstract class RegressionModel {
     int numElements;
     boolean use;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       reader = Files.getAppropriateReader(filename);
       delimiter = Files.determineDelimiter(filename, log);

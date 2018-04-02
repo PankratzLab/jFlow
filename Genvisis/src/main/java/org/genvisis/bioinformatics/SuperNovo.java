@@ -134,7 +134,7 @@ public class SuperNovo {
     try {
       candidateList = new BufferedReader(new FileReader(fileNameOfDeNovoPointMutationCandidateList));
       candidateList.readLine();
-      iterationsVec = new Vector<String[]>();
+      iterationsVec = new Vector<>();
       while (candidateList.ready()) {
         line = candidateList.readLine().split("\t");
         iterationsVec.add(new String[] {line[0].substring(0, line[0].length() - 1), line[1],
@@ -356,7 +356,7 @@ public class SuperNovo {
     } else {
       bamFilenamesByTrios = loadNamesFromList(fullPathToTrioNameList);
     }
-    qsubFilesVec = new Vector<String>(bamFilenamesByTrios.length);
+    qsubFilesVec = new Vector<>(bamFilenamesByTrios.length);
     command = "cd " + outputDir + "\n" + Files.getRunString() + " one.SuperNovo -denovo bim="
               + bimFilename + " outdir=" + outputDir + " bamdir=" + bamDir + " reffasta="
               + refFastaFilename + " regionlengthatime=" + regionLegnthATime + " numthreads="
@@ -441,9 +441,9 @@ public class SuperNovo {
     // prevChr = "start";
     try {
       reader = Files.getAppropriateReader(bimFilename);
-      chrs = new Vector<String>();
-      starts = new Vector<Integer>();
-      stops = new Vector<Integer>();
+      chrs = new Vector<>();
+      starts = new Vector<>();
+      stops = new Vector<>();
       while (reader.ready()) {
         line = reader.readLine().split("\t");
         if (!line[0].equals("") && line[0] != null && line[0].toLowerCase().startsWith("chr")) {
@@ -671,7 +671,7 @@ public class SuperNovo {
     readsCounts = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][READS_COUNTS_ARRAY_STRUCT.length];
     phredScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
     mappingScores = new int[SAMPLE_SUFFIX.length][numMarkersPlusWindow][BASES_WITH_N_INDEL.length];
-    altAllelesForInsertions_Child = new Hashtable<String, String>();
+    altAllelesForInsertions_Child = new Hashtable<>();
     status = trioId + "\tchr" + chr + ":" + startPosAdjForWindow + "-" + stopPosAdjForWindow + "\t("
              + startPosition + "-" + stopPosition + ")";
 
@@ -695,10 +695,10 @@ public class SuperNovo {
     status += ("\t" + (new Date().getTime() - timer));
     timer = new Date().getTime();
 
-    denovoMutations = new Vector<int[]>(10);
+    denovoMutations = new Vector<>(10);
     getFilteredResults(readsCounts, mappingScores, startPosition - startPosAdjForWindow,
                        stopPosition - startPosAdjForWindow, denovoMutations);
-    denovoMutationNotes = new ArrayList<List<Integer>[][]>(denovoMutations.size());
+    denovoMutationNotes = new ArrayList<>(denovoMutations.size());
     for (int j = 0; j < denovoMutations.size(); j++) {
       denovoMutationNotes.add(new ArrayList[DENOVO_MUTATION_NOTES_ARRAY_STRUCT.length][SAMPLE_SUFFIX.length]);
     }
@@ -1241,7 +1241,7 @@ public class SuperNovo {
                 || (l == 2 && readsCounts[k][j][indicesOfInDels[l]] == 2)
                 || (l == 3 && readsCounts[k][j][INDEX_OF_NUM_ALLELES_LOOSE] > 2)) {
               if (temp[l][k] == null) {
-                temp[l][k] = new Vector<Integer>();
+                temp[l][k] = new Vector<>();
               }
               temp[l][k].add(j - index);
             }
@@ -1279,7 +1279,7 @@ public class SuperNovo {
                     && readsCounts[1][index2][orderedIndices[1]] <= 1
                     && readsCounts[2][index2][orderedIndices[1]] <= 1)) {
               if (temp[4][0] == null) {
-                temp[4][0] = new Vector<Integer>();
+                temp[4][0] = new Vector<>();
               }
               temp[4][0].add(currentDenovoMuations[0] - index2); // temp[indexOf_DenovoCounts][indexOfChild].add(distanceToTheNearbyDenovo)
             }
@@ -1747,7 +1747,7 @@ public class SuperNovo {
     String line;
     Vector<String[]> samContentVec;
 
-    samContentVec = new Vector<String[]>();
+    samContentVec = new Vector<>();
 
     try {
       p = Runtime.getRuntime().exec("samtools view " + ext.rootOf(fullpathToSamFile) + " chr" + chr
@@ -1785,7 +1785,7 @@ public class SuperNovo {
     String line;
     Vector<String[]> samContentVec;
 
-    samContentVec = new Vector<String[]>();
+    samContentVec = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(fullpathToSamFile));
       while ((line = reader.readLine()) != null) {
@@ -1826,7 +1826,7 @@ public class SuperNovo {
 
     resultFilenames = Files.list(resultDir, ".txt");
     trioIds = new String[resultFilenames.length];
-    result = new Hashtable<String, Hashtable<String, String[]>>();
+    result = new Hashtable<>();
     for (int i = 0; i < trioIds.length; i++) {
       trioIds[i] = resultFilenames[i].split("_")[0];
       try {
@@ -1875,7 +1875,7 @@ public class SuperNovo {
 
     resultFilenames = Files.list(resultDir, ".txt");
     trioIds = new String[resultFilenames.length];
-    result = new HashMap<String, HashMap<String, String[]>>();
+    result = new HashMap<>();
     readsCounts = new int[3][7];
     for (int i = 0; i < trioIds.length; i++) {
       trioIds[i] = resultFilenames[i].split("_")[0];
@@ -2083,19 +2083,19 @@ public class SuperNovo {
       log.report("Creating new annotation directory in: " + annotationDir);
       new File(annotationDir).mkdirs();
     }
-    annotationNeedsVars = new Vector<String>();
-    annotationNeedsInDels = new Vector<String>();
+    annotationNeedsVars = new Vector<>();
+    annotationNeedsInDels = new Vector<>();
     // miniBamNeeds = new Vector<String>();
     miniSamHash = Samtools.listFiles(miniSamScriptsDir, log);
     annotationHash = SeattleSeq.loadAllAnnotationInDir(annotationDir, log);
-    miniSamNeeded = new Hashtable<String, Vector<String>>();
+    miniSamNeeded = new Hashtable<>();
     resultFilenames = Files.list(resultDir, ".txt");
-    result = new Hashtable<String, Hashtable<String, String[]>>();
+    result = new Hashtable<>();
     orderedIndices = new int[SAMPLE_SUFFIX.length][];
     seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
     geneCounts = new CountHash();
     geneTrioCounts = new CountHash();
-    geneTrioCount = new HashSet<String>();
+    geneTrioCount = new HashSet<>();
     for (String resultFilename : resultFilenames) {
       trioId = resultFilename.split("_")[0];
       log.report(ext.getTime() + "\tProcessing " + trioId);
@@ -2406,20 +2406,20 @@ public class SuperNovo {
       log.report("Creating new annotation directory in: " + seatleSeqDir);
       new File(seatleSeqDir).mkdirs();
     }
-    annotationNeedsVars = new Vector<String>();
-    annotationNeedsInDels = new Vector<String>();
+    annotationNeedsVars = new Vector<>();
+    annotationNeedsInDels = new Vector<>();
     // miniBamNeeds = new Vector<String>();
     miniSamHash = Samtools.listFiles(miniSamScriptsDir, log);
     annotationHash = SeattleSeq.loadAllAnnotationInDir(seatleSeqDir, log);
     additionalComments = loadAdditionalComments(fullpathToAdditionalComments);
-    miniSamNeeded = new Hashtable<String, Vector<String>>();
+    miniSamNeeded = new Hashtable<>();
     resultFilenames = Files.list(resultDir, ".txt");
-    result = new Hashtable<String, Hashtable<String, String[]>>();
+    result = new Hashtable<>();
     orderedIndices = new int[SAMPLE_SUFFIX.length][];
     seatleSeekHeader = Matrix.extractColumn(SeattleSeq.RELEVANTS, 0);
     geneCounts = new CountHash();
     geneTrioCounts = new CountHash();
-    geneTrioCount = new HashSet<String>();
+    geneTrioCount = new HashSet<>();
     for (String resultFilename : resultFilenames) {
       trioId = resultFilename.split("_")[0];
       log.report(ext.getTime() + "\tProcessing " + trioId);
@@ -2737,7 +2737,7 @@ public class SuperNovo {
     Hashtable<String, String[]> allelePairs;
     int i;
 
-    result = new Hashtable<String, Hashtable<String, String[]>>();
+    result = new Hashtable<>();
     try {
       reader = Files.getAppropriateReader(filename);
       reader.readLine();
@@ -2746,7 +2746,7 @@ public class SuperNovo {
         if (result.containsKey(line[0])) {
           allelePairs = result.get(line[0]);
         } else {
-          allelePairs = new Hashtable<String, String[]>();
+          allelePairs = new Hashtable<>();
           result.put(line[0], allelePairs);
         }
         i = 3;
@@ -3128,7 +3128,7 @@ public class SuperNovo {
     BufferedReader reader;
     Vector<String[]> result;
     String[][] result2;
-    result = new Vector<String[]>();
+    result = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(fullPathToTheList));
       while (reader.ready()) {
@@ -3162,7 +3162,7 @@ public class SuperNovo {
     for (int i = 0; i < indices.length; i++) {
       indices[i] = -1;
     }
-    result = new Vector<String[]>(filenames.length / 3);
+    result = new Vector<>(filenames.length / 3);
     for (int i = 0; i < filenames.length; i++) {
       if (!isVisited[i] && filenames[i].contains("C_L")) {
         location = filenames[i].indexOf("C_L");
@@ -3217,7 +3217,7 @@ public class SuperNovo {
     for (int i = 0; i < indices.length; i++) {
       indices[i] = -1;
     }
-    result = new Vector<String[]>(filenames.length / 3);
+    result = new Vector<>(filenames.length / 3);
     nameSegments = filenames[0].split("_");
     numMatches = 0;
     for (int i = 0; i < nameSegments.length; i++) {
@@ -3338,8 +3338,8 @@ public class SuperNovo {
                                                                               Positions.CHR_CODES,
                                                                               false, true)],
                               endPosition + window);
-    haplotypeDb = new Hashtable<Byte, Hashtable<Integer, String>>();
-    readCounts = new Hashtable<Byte, Vector<int[]>>();
+    haplotypeDb = new Hashtable<>();
+    readCounts = new Hashtable<>();
     ref = new char[endPositionExt - beginPositionExt + 1];
 
     for (int i = 0; i < fullpathsToSamFiles.length; i++) {
@@ -3353,8 +3353,8 @@ public class SuperNovo {
                                           endPositionExt);
       numLines = samContentVec.size();
       for (int j = 0; j < numLines; j++) {
-        insertionStringOfCurrentRead = new Hashtable<Integer, String>();
-        insertionPhredOfCurrentRead = new Hashtable<Integer, String>();
+        insertionStringOfCurrentRead = new Hashtable<>();
+        insertionPhredOfCurrentRead = new Hashtable<>();
         tmp = cigarToReFormatedString(samContentVec.get(j), beginPositionExt, endPositionExt,
                                       insertionStringOfCurrentRead, insertionPhredOfCurrentRead);
         if (tmp != null && (beginPositionExt + Integer.parseInt(tmp[0])) <= endPosition
@@ -3645,7 +3645,7 @@ public class SuperNovo {
             }
           } else {
             if (varsNotInHaplotypeDbTmp[i] == null) {
-              varsNotInHaplotypeDbTmp[i] = new Vector<Integer>();
+              varsNotInHaplotypeDbTmp[i] = new Vector<>();
             }
             varsNotInHaplotypeDbTmp[i].add(j);
           }
@@ -3660,7 +3660,7 @@ public class SuperNovo {
               }
             } else {
               if (varsNotInHaplotypeDbTmp[i] == null) {
-                varsNotInHaplotypeDbTmp[i] = new Vector<Integer>();
+                varsNotInHaplotypeDbTmp[i] = new Vector<>();
               }
               varsNotInHaplotypeDbTmp[i].add(j);
             }
@@ -3736,7 +3736,7 @@ public class SuperNovo {
         currentReadCount.add(new int[] {begin, length, 1});
       }
     } else {
-      currentReadCount = new Vector<int[]>();
+      currentReadCount = new Vector<>();
       currentReadCount.add(new int[] {begin, length, 1});
       readCounts.put(alleleId, currentReadCount);
     }
@@ -3774,7 +3774,7 @@ public class SuperNovo {
     String allele;
     Logger log;
 
-    positions = new HashSet<Integer>();
+    positions = new HashSet<>();
     for (byte i = 1; i <= altAlleles.size(); i++) {
       currentAltAllele = altAlleles.get(i);
       tmp = currentAltAllele.keySet().toArray();

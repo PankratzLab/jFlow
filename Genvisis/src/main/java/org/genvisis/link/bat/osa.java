@@ -19,12 +19,12 @@ public class osa {
     PrintWriter writer = null, traitData = null;
     StringTokenizer st = null;
     String temp, key, data, chrome, last, next;
-    Vector<String> IDs = new Vector<String>();
+    Vector<String> IDs = new Vector<>();
     double[] covars;
     double trav, prev;
     int[] keys;
     int increment, countPerInc;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     reader = new BufferedReader(new FileReader(filename));
     temp = reader.readLine();

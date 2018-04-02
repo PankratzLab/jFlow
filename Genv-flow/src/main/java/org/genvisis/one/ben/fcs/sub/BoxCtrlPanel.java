@@ -27,11 +27,11 @@ public class BoxCtrlPanel extends JPanel {
   */
   private static final long serialVersionUID = 1L;
   public JTree tree;
-  HashSet<String> actualData = new HashSet<String>();
+  HashSet<String> actualData = new HashSet<>();
 
   public void setData(String[] hdrs) {
     nodes.clear();
-    ArrayList<String[]> headers = new ArrayList<String[]>();
+    ArrayList<String[]> headers = new ArrayList<>();
     for (String s : hdrs) {
       if (s.startsWith("\"")) {
         s = s.substring(1);
@@ -42,7 +42,7 @@ public class BoxCtrlPanel extends JPanel {
       s = s.split("\\|")[0].trim();
       headers.add(s.split("/"));
     }
-    ArrayList<DefaultMutableTreeNode> rootNodes = new ArrayList<DefaultMutableTreeNode>();
+    ArrayList<DefaultMutableTreeNode> rootNodes = new ArrayList<>();
     for (String[] hdr : headers) {
       String parent = hdr.length > 1 ? hdr[hdr.length - 2] : null;
       if (parent == null) {
@@ -105,7 +105,7 @@ public class BoxCtrlPanel extends JPanel {
 
       @Override
       public void setSelectionPaths(TreePath[] pPaths) {
-        ArrayList<TreePath> validPaths = new ArrayList<TreePath>();
+        ArrayList<TreePath> validPaths = new ArrayList<>();
         for (TreePath path : pPaths) {
           Object[] pathObjs = path.getPath();
           if (actualData.contains(ArrayUtils.toStr(pathObjs, "\t"))) { // only allow selections that
@@ -245,7 +245,7 @@ public class BoxCtrlPanel extends JPanel {
 
   }
 
-  HashMap<String, DefaultMutableTreeNode> nodes = new HashMap<String, DefaultMutableTreeNode>();
+  HashMap<String, DefaultMutableTreeNode> nodes = new HashMap<>();
 
   public TreeNode getNodeForKey(String key) {
     return nodes.get(key);

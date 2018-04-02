@@ -35,7 +35,7 @@ public class TNHetDetector {
                              Logger log) {
     log.reportTimeInfo("Building normal hash");
     VcfPopulation vpop = VcfPopulation.load(vcfPop, POPULATION_TYPE.TUMOR_NORMAL, log);
-    Hashtable<String, Genotype> normalHash = new Hashtable<String, Genotype>();
+    Hashtable<String, Genotype> normalHash = new Hashtable<>();
     Hashtable<String, String> match = matchSamples(vpop, log);
 
     VcfPopulation.splitVcfByPopulation(vcfNormals, vcfPop, true, true, false, log);
@@ -68,7 +68,7 @@ public class TNHetDetector {
       VariantContext vcTumor = VCOps.getSubset(vc, vpop.getSuperPop().get(VcfPopulation.TUMOR),
                                                VC_SUBSET_TYPE.SUBSET_STRICT);
       VariantContextBuilder builder = new VariantContextBuilder(vcTumor);
-      ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+      ArrayList<Genotype> genotypes = new ArrayList<>();
       for (String tumorSamp : vcTumor.getSampleNames()) {
         Genotype g = vcTumor.getGenotype(tumorSamp);
         boolean add = false;
@@ -108,10 +108,10 @@ public class TNHetDetector {
   }
 
   private static VcfPopulation developTNVpopCase(VcfPopulation vpop) {
-    Set<String> tmpSet = new HashSet<String>();
-    Set<String> tmpSet2 = new HashSet<String>();
+    Set<String> tmpSet = new HashSet<>();
+    Set<String> tmpSet2 = new HashSet<>();
 
-    Hashtable<String, Set<String>> casePop = new Hashtable<String, Set<String>>();
+    Hashtable<String, Set<String>> casePop = new Hashtable<>();
 
     casePop.put(VcfPopulation.TUMOR, tmpSet);
     casePop.put(VcfPopulation.NORMAL, tmpSet2);
@@ -125,7 +125,7 @@ public class TNHetDetector {
   }
 
   private static Hashtable<String, String> matchSamples(VcfPopulation vpop, Logger log) {
-    Hashtable<String, String> matched = new Hashtable<String, String>();
+    Hashtable<String, String> matched = new Hashtable<>();
 
     for (String tnPair : vpop.getSubPop().keySet()) {
       Set<String> samps = vpop.getSubPop().get(tnPair);

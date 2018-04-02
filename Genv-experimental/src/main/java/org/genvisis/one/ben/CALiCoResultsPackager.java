@@ -98,7 +98,7 @@ public class CALiCoResultsPackager {
 
     }
 
-    HashMap<String, String[]> dataMap = new HashMap<String, String[]>();
+    HashMap<String, String[]> dataMap = new HashMap<>();
 
     public static ModelData loadModelData(String modelFile) throws IOException {
       ModelData md = new ModelData(modelFile);
@@ -136,10 +136,10 @@ public class CALiCoResultsPackager {
     String[] rsIDs;
     String modelID;
     String modelDesc;
-    LinkedHashSet<String> keyList = new LinkedHashSet<String>();
-    HashMap<String, String> addLines = new HashMap<String, String>();
-    HashMap<String, String> selfLines = new HashMap<String, String>();
-    HashMap<String, String> freqLines = new HashMap<String, String>();
+    LinkedHashSet<String> keyList = new LinkedHashSet<>();
+    HashMap<String, String> addLines = new HashMap<>();
+    HashMap<String, String> selfLines = new HashMap<>();
+    HashMap<String, String> freqLines = new HashMap<>();
 
     public ModelSNP() {}
   }
@@ -151,7 +151,7 @@ public class CALiCoResultsPackager {
   static String plinkFileRoot = "F:/GlucInul/plink";
 
   public static ModelSNP[] loadModels(ModelData md) throws IOException {
-    ArrayList<ModelSNP> keys = new ArrayList<ModelSNP>();
+    ArrayList<ModelSNP> keys = new ArrayList<>();
     String[][] keyLines = HashVec.loadFileToStringMatrix(runDir + "conditionals.txt", false,
                                                          new int[] {0, 1});
     for (String[] keyLine : keyLines) {
@@ -385,7 +385,7 @@ public class CALiCoResultsPackager {
     Hashtable<String, String> hash;
     int count;
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(plinkFileRoot + ".bim"));
       count = 0;
@@ -410,7 +410,7 @@ public class CALiCoResultsPackager {
 
   public static String[] writeLinesForModel(ModelSNP model, Hashtable<String, String> markerHash,
                                             PrintWriter logWriter) {
-    ArrayList<String> outputLines = new ArrayList<String>();
+    ArrayList<String> outputLines = new ArrayList<>();
     String delim = "\t";
     for (String snp : model.keyList) {
       String[] snpBIMData = markerHash.get(snp).split(PSF.Regex.GREEDY_WHITESPACE);

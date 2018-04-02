@@ -43,7 +43,7 @@ public class MetaAnalysisParams {
 
   public MetaAnalysisParams(String filename, Logger log) {
     String[] line;
-    List<String> v = new Vector<String>();
+    List<String> v = new Vector<>();
     boolean problem;
 
     problem = false;
@@ -168,7 +168,7 @@ public class MetaAnalysisParams {
   public List<String> populateParam() {
     List<String> v;
 
-    v = new ArrayList<String>();
+    v = new ArrayList<>();
     while (nextIsParam()) {
       v.add(trav);
     }

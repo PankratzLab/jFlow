@@ -27,24 +27,24 @@ public class phenoStruct {
     String[] line, subline;
     String temp, id = "", trav, prev;
     boolean done = false;
-    Vector<String> members = new Vector<String>();
+    Vector<String> members = new Vector<>();
     List<String> v;
-    Vector<String> VPDmems = new Vector<String>();
+    Vector<String> VPDmems = new Vector<>();
     Hashtable<String, String> diagnosis, sex, aoo, ethnicity, dna; // add
     // covariate
     // like
     // this
-    Hashtable<String, String> confirmedDx = new Hashtable<String, String>();
-    Hashtable<String, Vector<String>> VIPlists = new Hashtable<String, Vector<String>>();
-    Hashtable<String, Vector<String>> VPDlists = new Hashtable<String, Vector<String>>();
+    Hashtable<String, String> confirmedDx = new Hashtable<>();
+    Hashtable<String, Vector<String>> VIPlists = new Hashtable<>();
+    Hashtable<String, Vector<String>> VPDlists = new Hashtable<>();
     TrimFam tf;
     int count = 0;
 
-    Vector<String> affected = new Vector<String>();
-    Vector<String> unaffected = new Vector<String>();
-    Vector<String> halfsibs = new Vector<String>();
-    Vector<String> deleteThese = new Vector<String>();
-    Vector<String> halfling = new Vector<String>();
+    Vector<String> affected = new Vector<>();
+    Vector<String> unaffected = new Vector<>();
+    Vector<String> halfsibs = new Vector<>();
+    Vector<String> deleteThese = new Vector<>();
+    Vector<String> halfling = new Vector<>();
     Vector<String> vips;
 
     affected.add("VPD");
@@ -134,11 +134,11 @@ public class phenoStruct {
     }
 
     // collect all phenotypic information from the ninfo1 file
-    diagnosis = new Hashtable<String, String>();
-    sex = new Hashtable<String, String>(); // add covariate like this
-    aoo = new Hashtable<String, String>();
-    ethnicity = new Hashtable<String, String>();
-    dna = new Hashtable<String, String>();
+    diagnosis = new Hashtable<>();
+    sex = new Hashtable<>(); // add covariate like this
+    aoo = new Hashtable<>();
+    ethnicity = new Hashtable<>();
+    dna = new Hashtable<>();
     try {
       ext.checkHeader(info.readLine().split(PSF.Regex.GREEDY_WHITESPACE), tools.NINFO1_HEADER,
                       true);
@@ -216,8 +216,8 @@ public class phenoStruct {
         VIPlists.put(prev, members);
         VPDlists.put(prev, VPDmems);
         prev = trav;
-        members = new Vector<String>();
-        VPDmems = new Vector<String>();
+        members = new Vector<>();
+        VPDmems = new Vector<>();
       }
 
       if (!done) {
@@ -254,7 +254,7 @@ public class phenoStruct {
 
     done = false;
     prev = "";
-    members = new Vector<String>();
+    members = new Vector<>();
     while (!done) {
       if (fams.ready()) {
         line = fams.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -372,7 +372,7 @@ public class phenoStruct {
   }
 
   public boolean checkForParentOffspringSinglets(List<String> v, List<String> vips) {
-    Vector<String> presentVIPs = new Vector<String>();
+    Vector<String> presentVIPs = new Vector<>();
 
     for (int i = 0; i < v.size(); i++) {
       if (vips.contains(v.get(i).split(PSF.Regex.GREEDY_WHITESPACE)[1])) {

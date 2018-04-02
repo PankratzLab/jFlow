@@ -51,7 +51,7 @@ public class LinkageFormat {
     BufferedReader reader;
     PrintWriter writer, phenophile = null;
     String[] line = null, data;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(filein));

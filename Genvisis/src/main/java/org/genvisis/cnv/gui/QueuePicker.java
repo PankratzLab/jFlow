@@ -400,7 +400,7 @@ public class QueuePicker extends JDialog {
                                         + "<p>\"Set as queue defaults\" will not affect qsub filename.</p>"
                                         + "</html>";
 
-  HashMap<String, JobQueue> premadeQueues = new HashMap<String, JobQueue>();
+  HashMap<String, JobQueue> premadeQueues = new HashMap<>();
   private JLabel lblProcMinMax;
   private JLabel lblMemMinMax;
   private JLabel lblWalltimeMinMax;
@@ -467,7 +467,7 @@ public class QueuePicker extends JDialog {
       premadeQueues.put(jq.getName(), jq);
     }
     names[queues.size()] = "";
-    comboQueue.setModel(new DefaultComboBoxModel<String>(names));
+    comboQueue.setModel(new DefaultComboBoxModel<>(names));
     comboQueue.setSelectedItem(QueueProperties.getDefaultQueueName());
   }
 

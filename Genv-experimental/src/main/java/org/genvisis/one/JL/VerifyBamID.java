@@ -26,7 +26,7 @@ public class VerifyBamID {
     new File(dir).mkdirs();
     Logger log = new Logger();
     String sample = BamOps.getSampleName(bamFile);
-    HashSet<String> sub = new HashSet<String>();
+    HashSet<String> sub = new HashSet<>();
     String verfifyVCF = ext.rootOf(ext.addToRoot(vcf, ".verify")) + ".gz";
 
     String output = ext.rootOf(bamFile) + "_verify";

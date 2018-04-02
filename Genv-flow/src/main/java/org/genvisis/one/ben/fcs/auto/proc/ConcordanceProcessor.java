@@ -66,8 +66,8 @@ public class ConcordanceProcessor extends AbstractSampleProcessor {
       }
     }
 
-    ConcurrentHashMap<String, String> fileResults = new ConcurrentHashMap<String, String>();
-    ConcurrentHashMap<String, String> treeResults = new ConcurrentHashMap<String, String>();
+    ConcurrentHashMap<String, String> fileResults = new ConcurrentHashMap<>();
+    ConcurrentHashMap<String, String> treeResults = new ConcurrentHashMap<>();
     for (int i = 0; i < auto.length; i++) {
       boolean[] prevHand = i == 0 ? ArrayUtils.booleanArray(hand[i].length, true) : hand[i - 1];
       boolean[] prevAuto = i == 0 ? ArrayUtils.booleanArray(auto[i].length, true) : auto[i - 1];

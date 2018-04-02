@@ -37,7 +37,7 @@ public class sumOSA {
   }
 
   public sumOSA() throws IOException {
-    Vector<String> runs = new Vector<String>();
+    Vector<String> runs = new Vector<>();
     int count = 0;
 
     for (int i = 1; i <= 23; i++) {
@@ -59,7 +59,7 @@ public class sumOSA {
   }
 
   public sumOSA(String[] dirs) throws IOException {
-    Vector<String> runs = new Vector<String>();
+    Vector<String> runs = new Vector<>();
 
     for (String dir : dirs) {
       runs.add(dir);
@@ -75,7 +75,7 @@ public class sumOSA {
     osaChrom[][] osac;
     String plug = "plug";
     int chr;
-    List<osaChrom[][]> runs = new ArrayList<osaChrom[][]>();
+    List<osaChrom[][]> runs = new ArrayList<>();
 
     batch = Files.openAppropriateWriter("batchPerms");
     batch.println("sleep 5");
@@ -149,8 +149,8 @@ public class sumOSA {
     osaChrom[][] osac = new osaChrom[2][23];
 
     for (int i = 0; i < 2; i++) {
-      cutLookup = new Vector<String>();
-      cutoffLookup = new Vector<String>();
+      cutLookup = new Vector<>();
+      cutoffLookup = new Vector<>();
       temp = base + ((i == 0) ? "Ascending" : "Descending") + "Key.dat";
       if (new File(temp).exists()) {
         reader = new BufferedReader(new FileReader(temp));

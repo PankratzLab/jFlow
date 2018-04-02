@@ -19,7 +19,7 @@ public class LocusSets<T extends Segment> {
   public LocusSet<Segment> getUnion() {
     int maxNum = -1;
     int maxIndex = 1;
-    ArrayList<Segment> union = new ArrayList<Segment>();
+    ArrayList<Segment> union = new ArrayList<>();
     for (int i = 0; i < locusSets.size(); i++) {
       if (locusSets.get(i).getLoci().length > maxNum) {
         maxNum = locusSets.get(i).getLoci().length;
@@ -28,7 +28,7 @@ public class LocusSets<T extends Segment> {
     }
     for (int i = 0; i < locusSets.get(maxIndex).getLoci().length; i++) {
       T tmp = locusSets.get(maxIndex).getLoci()[i];
-      ArrayList<T> finalOverLap = new ArrayList<T>();
+      ArrayList<T> finalOverLap = new ArrayList<>();
       for (int j = 0; j < locusSets.size(); j++) {
         if (j != maxIndex) {
           T[] curOverlap = locusSets.get(j).getOverLappingLoci(tmp);
@@ -88,14 +88,14 @@ public class LocusSets<T extends Segment> {
 
   public static void unionize(String[] files, String output, Logger log) {
 
-    ArrayList<LocusSet<Segment>> sets = new ArrayList<LocusSet<Segment>>();
+    ArrayList<LocusSet<Segment>> sets = new ArrayList<>();
     for (String file : files) {
       LocusSet<Segment> tmp = LocusSet.loadSegmentSetFromFile(file, 0, 1, 2, 0, true, true, 0, log);
       log.reportTimeInfo("Loaded " + tmp.getLoci().length + " segments from " + file);
       sets.add(tmp.mergeOverlapping());
     }
 
-    LocusSets<Segment> lSets = new LocusSets<Segment>(sets, log);
+    LocusSets<Segment> lSets = new LocusSets<>(sets, log);
     LocusSet<Segment> union = lSets.getUnion();
     long unionSize = union.getBpCovered();
     log.reportTimeInfo("Union contains " + unionSize + " bp total");

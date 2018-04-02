@@ -230,8 +230,8 @@ public class MosaicismQuant implements Calcfc {
     if (sampleSortIndex == maxIndex) {
       maxIndex--;
     }
-    ArrayList<Double> controlData = new ArrayList<Double>();
-    ArrayList<String> controlDataNames = new ArrayList<String>();
+    ArrayList<Double> controlData = new ArrayList<>();
+    ArrayList<String> controlDataNames = new ArrayList<>();
 
     double sampData = data[sorted[sampleSortIndex]];
     for (int i = minIndex; i < maxIndex; i++) {
@@ -290,7 +290,7 @@ public class MosaicismQuant implements Calcfc {
     public void load(int numThreads) {
       if (!loaded) {
         load();
-        WorkerHive<SampleMosiacBase> hive = new WorkerHive<MosaicismQuant.SampleMosiacBase>(numThreads,
+        WorkerHive<SampleMosiacBase> hive = new WorkerHive<>(numThreads,
                                                                                             10,
                                                                                             getProj().getLog());
         for (SampleMosiacBase control2 : controls) {
@@ -457,7 +457,7 @@ public class MosaicismQuant implements Calcfc {
       int[] indicesInSeg = ext.indexLargeFactors(markersInSeg, markerSet.getMarkerNames(), true,
                                                  proj.getLog(), true);
       double[] bafs = ArrayUtils.toDoubleArray(samp.getBAFs());
-      ArrayList<Integer> bafIndicesToUse = new ArrayList<Integer>();
+      ArrayList<Integer> bafIndicesToUse = new ArrayList<>();
 
       for (int index : indicesInSeg) {
         if (useBaf(minBaf, maxBaf, bafs[index])) {
@@ -471,7 +471,7 @@ public class MosaicismQuant implements Calcfc {
       } else {
         if (bafIndicesToUse.size() > numControlForce) {
           Collections.shuffle(bafIndicesToUse);
-          ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<Integer>();
+          ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<>();
           for (int i = 0; i < numControlForce; i++) {
             bafIndicesToUseTmp.add(bafIndicesToUse.get(i));
           }
@@ -514,7 +514,7 @@ public class MosaicismQuant implements Calcfc {
                                    + " for sample " + sampleName
                                    + ", imputting with random re-sampling");
             Collections.shuffle(bafIndicesToUse);
-            ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<Integer>();
+            ArrayList<Integer> bafIndicesToUseTmp = new ArrayList<>();
             bafIndicesToUseTmp.addAll(bafIndicesToUse);
             int add = 0;
             while (bafIndicesToUseTmp.size() < numControlForce) {
@@ -823,7 +823,7 @@ public class MosaicismQuant implements Calcfc {
       LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
       MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set,
                                                               MOSAIC_TYPE.values(), numControls);
-      try (WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<MosaicismQuant.MosaicQuantResults[]>(mProducer,
+      try (WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<>(mProducer,
                                                                                                           numThreads,
                                                                                                           1,
                                                                                                           proj.getLog());
@@ -1003,7 +1003,7 @@ public class MosaicismQuant implements Calcfc {
       }
       writer.close();
       String outBase = out + ".base";
-      ArrayList<RScatter> rd = new ArrayList<RScatter>();
+      ArrayList<RScatter> rd = new ArrayList<>();
       RScatter rsScatter = new RScatter(out, outBase + ".rscript", ext.removeDirectoryInfo(outBase),
                                         outBase + ".jpeg", "Position",
                                         new String[] {"Baf", "Pval", "BaseLinePval"},

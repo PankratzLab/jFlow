@@ -19,7 +19,7 @@ import java.util.List;
 
 public abstract class CFCSAbstractDatatype implements CFCSDatatype, CFCSErrorCodes {
 
-  protected final List<Object> data = new ArrayList<Object>();
+  protected final List<Object> data = new ArrayList<>();
   protected CFCSDataSizing sizing;
 
   // --------------------------------------------------------------------

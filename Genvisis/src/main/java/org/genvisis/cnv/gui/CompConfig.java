@@ -427,7 +427,7 @@ class CNVPanel extends JPanel implements ActionListener {
       // if we have a rect with multiple CNVs, we use the checkList.
       List<CNVariant> selectedCNVs;
       if (selectedCNV != null) {
-        selectedCNVs = new ArrayList<CNVariant>();
+        selectedCNVs = new ArrayList<>();
         selectedCNVs.add(selectedCNV);
       } else {
         selectedCNVs = checkList.getSelected();
@@ -459,8 +459,8 @@ class CNVPanel extends JPanel implements ActionListener {
     int checkCount;
 
     public CNVCheckList(List<CNVariant> variants) {
-      variantMap = new HashMap<JCheckBox, CNVariant>();
-      checkList = new ArrayList<JCheckBox>();
+      variantMap = new HashMap<>();
+      checkList = new ArrayList<>();
       checkCount = 0;
 
       // This will control behavior when checking or unchecking an option
@@ -506,7 +506,7 @@ class CNVPanel extends JPanel implements ActionListener {
      * @return List of all selected CNVs
      */
     public List<CNVariant> getSelected() {
-      List<CNVariant> selected = new ArrayList<CNVariant>();
+      List<CNVariant> selected = new ArrayList<>();
       for (int i = 0; i < checkList.size(); i++) {
         JCheckBox checkBox = checkList.get(i);
         if (checkBox.isSelected()) {

@@ -91,8 +91,8 @@ public class grep {
                                     log);
 
     if (params != null) {
-      withs = new ArrayList<String>();
-      withouts = new ArrayList<String>();
+      withs = new ArrayList<>();
+      withouts = new ArrayList<>();
       for (int i = 0; i < params.size(); i++) {
         trav = params.get(i);
         if (trav.startsWith("input=")) {

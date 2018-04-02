@@ -222,7 +222,7 @@ public class ManhattanPlot {
     if (numChrs != chrsToLoad.length) {
       if (numChrs == 1) {
         int chr = ArrayUtils.booleanArrayToIndices(chrsToLoad)[0];
-        chrPipe.addPipe(new FilterPipe<Integer>(COMPARISON.EQ, chr, Integer.class));
+        chrPipe.addPipe(new FilterPipe<>(COMPARISON.EQ, chr, Integer.class));
       } else {
         String[] dropIfMatch = ArrayUtils.toStringArray(ArrayUtils.booleanArrayToIndices(ArrayUtils.booleanNegative(chrsToLoad)));
         chrPipe.addPipe(new DropIfMatchAnyPipe(dropIfMatch, true));
@@ -237,7 +237,7 @@ public class ManhattanPlot {
     DataPipe pValPipe = new DataPipe();
     pValPipe.addPipe(new DropIfMatchAnyPipe(ext.MISSING_VALUES, true));
     if (!Double.isNaN(pvalThresh)) {
-      pValPipe.addPipe(new FilterPipe<Double>(COMPARISON.LTE, pvalThresh, Double.class));
+      pValPipe.addPipe(new FilterPipe<>(COMPARISON.LTE, pvalThresh, Double.class));
     }
     selTrans.put(data.getLinkedColumnName(PVAL_LINKER), pValPipe);
 

@@ -242,11 +242,11 @@ public class SNPVCFTesting {
     int MAX_CONTIG_LEN = 512 * 1024 * 1024;
 
     int[] rsNumbers = new int[lines - headerLineCount];
-    HashMap<Integer, String> rsNumberLineMap = new HashMap<Integer, String>();
+    HashMap<Integer, String> rsNumberLineMap = new HashMap<>();
 
     System.out.println(ext.getTime() + "]\tReading data...");
     int cnt = 0;
-    HashSet<Integer> contigs = new HashSet<Integer>();
+    HashSet<Integer> contigs = new HashSet<>();
     while ((line = reader.readLine()) != null) {
       line = line.trim();
       String[] lineParts = line.split("\t");
@@ -320,8 +320,8 @@ public class SNPVCFTesting {
     Hashtable<Integer, Integer> mergeHash = SerialHash.loadSerializedIntHash(mergedFile);
 
     int MAX_CONTIG_LEN = 512 * 1024 * 1024;
-    HashMap<Integer, String> rsNumberLineMap = new HashMap<Integer, String>();
-    HashSet<Integer> contigs = new HashSet<Integer>();
+    HashMap<Integer, String> rsNumberLineMap = new HashMap<>();
+    HashSet<Integer> contigs = new HashSet<>();
     int[] rsNumbers = new int[mergeHash.size()];
     int index = 0;
     for (java.util.Map.Entry<Integer, Integer> mergeEntry : mergeHash.entrySet()) {

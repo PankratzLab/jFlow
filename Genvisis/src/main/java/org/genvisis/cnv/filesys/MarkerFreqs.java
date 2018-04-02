@@ -106,7 +106,7 @@ public class MarkerFreqs implements Serializable {
     markerSet = proj.getMarkerSet();
     markerNames = markerSet.getMarkerNames();
     double[] mafs = new double[markerNames.length];
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       hash.put(markerNames[i], i + "");
     }

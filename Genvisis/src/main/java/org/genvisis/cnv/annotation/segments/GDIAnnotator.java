@@ -50,7 +50,7 @@ public class GDIAnnotator implements SegmentAnnotator {
     String gdiFile = Resources.annotation(log).getGDI().get();
     int[] indices = ext.indexFactors(REQUIRED_HEADER, Files.getHeaderOfFile(gdiFile, log), true);
 
-    Map<String, String> attributes = new HashMap<String, String>();
+    Map<String, String> attributes = new HashMap<>();
 
     if (ArrayUtils.countIf(indices, -1) > 0) {
       throw new IllegalArgumentException("Invalid header in " + gdiFile + " , require "
@@ -106,7 +106,7 @@ public class GDIAnnotator implements SegmentAnnotator {
 
     List<String> genes = segmentAnotation.getAttributes()
                                          .get(SegmentAnnotationKeys.GENE.toString());
-    List<String> gdis = new ArrayList<String>();
+    List<String> gdis = new ArrayList<>();
     for (String gene : genes) {
       if (gdiLookup.containsKey(gene)) {
         gdis.add(gdiLookup.get(gene));

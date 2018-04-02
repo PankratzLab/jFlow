@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class SciStringComparator implements Comparator<String> {
 
-  private Map<String, Double> doubleVals = new HashMap<String, Double>();
+  private Map<String, Double> doubleVals = new HashMap<>();
   private boolean isNumeric = true;
 
   @Override

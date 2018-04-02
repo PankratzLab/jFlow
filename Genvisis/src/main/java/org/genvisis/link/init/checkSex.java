@@ -19,7 +19,7 @@ public class checkSex {
     String id, first, second, dna;
     StringTokenizer st;
     int ctSame, ctDiff;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     reader = tools.getNinfoReader(1, false);
     reader.readLine();

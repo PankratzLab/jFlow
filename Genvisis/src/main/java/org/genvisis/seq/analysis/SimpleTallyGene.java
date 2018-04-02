@@ -80,7 +80,7 @@ public class SimpleTallyGene {
   public static void run(String vcf, String vpop, double maf, Segment seg, String name,
                          String omimDir) {
 
-    WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
+    WorkerHive<Params> hive = new WorkerHive<>(1, 1, new Logger());
     hive.addCallable(new Params(vcf, seg, name, vpop, omimDir, null, maf));
     hive.execute(true);
 
@@ -94,7 +94,7 @@ public class SimpleTallyGene {
     mafs = mafs == null ? new double[] {1.2} : mafs;
     String tnVpop = "/Volumes/Beta/data/Cushings/mito/CUSHINGS_TUMOR.vpop";
 
-    WorkerHive<Params> hive = new WorkerHive<SimpleTallyGene.Params>(1, 1, new Logger());
+    WorkerHive<Params> hive = new WorkerHive<>(1, 1, new Logger());
     String omimDir = "/Volumes/Beta/ref/OMIM/";
     for (int i = 0; i < names.length; i++) {
       for (double maf : mafs) {

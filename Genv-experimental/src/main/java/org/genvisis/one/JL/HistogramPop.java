@@ -55,8 +55,8 @@ public class HistogramPop extends Application {
    */
   private ParseResult parseData() {
     String[] data = getData();
-    ArrayList<ArrayList<Double>> ds = new ArrayList<ArrayList<Double>>();
-    ArrayList<String> titles = new ArrayList<String>();
+    ArrayList<ArrayList<Double>> ds = new ArrayList<>();
+    ArrayList<String> titles = new ArrayList<>();
     for (int i = 0; i < data.length; i++) {
       String[] all = data[i].split("\t");
       for (int j = 0; j < all.length; j++) {
@@ -163,7 +163,7 @@ public class HistogramPop extends Application {
     yAxis.setAutoRanging(true);
     xAxis.setAutoRanging(true);
 
-    areaChart = new AreaChart<Number, Number>(xAxis, yAxis);
+    areaChart = new AreaChart<>(xAxis, yAxis);
     updateChart();
 
     final Button button1 = new Button();
@@ -238,7 +238,7 @@ public class HistogramPop extends Application {
     boolean replace = areaChart.getData().size() > 0;
     for (int i = 0; i < histograms.length; i++) {
       BasicHistogram histogram = histograms[i];
-      XYChart.Series<Number, Number> countsBin = new XYChart.Series<Number, Number>();
+      XYChart.Series<Number, Number> countsBin = new XYChart.Series<>();
       countsBin.setName(parseResult.titles[i]);
       for (int j = 0; j < histogram.binMax.length; j++) {
         if (Double.isFinite(histogram.binMin[j]) && Double.isFinite(histogram.binMax[j])) {

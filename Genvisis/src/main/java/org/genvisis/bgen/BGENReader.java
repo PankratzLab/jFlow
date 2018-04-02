@@ -123,7 +123,7 @@ public class BGENReader implements Closeable, Iterable<BGENRecord> {
     filename = file;
     raf = new RandomAccessFile(file, "r");
     ptrMap = new HashMap<>();
-    chrSets = new HashMap<Integer, TreeSet<BGENRecordMetaData>>();
+    chrSets = new HashMap<>();
     readHeader();
     if (buildMap) {
       readMap();

@@ -290,7 +290,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   private BlastParams blastParams = null;
   private Map<String, Integer> markerProjectIndices;
-  private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<String, PlinkMarkerLoader>();
+  private final HashMap<String, PlinkMarkerLoader> plinkMarkerLoaders = new HashMap<>();
 
   private BlastFrame blastFrame;
 
@@ -1731,7 +1731,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     files = Files.list(proj.DATA_DIRECTORY.getValue(false, true), ".cent");
     // log.report("Found "+files.length+" .cent files in "+proj.getDir(Project.DATA_DIRECTORY));
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < markerList.length; i++) {
       hash.put(markerList[i], i + "");
     }
@@ -1744,8 +1744,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
     }
 
-    v = new Vector<float[][][]>();
-    fileList = new Vector<String>();
+    v = new Vector<>();
+    fileList = new Vector<>();
     for (String file : files) {
       log.report("<", false, true);
       trav = Centroids.load(proj.DATA_DIRECTORY.getValue(false, true) + file);
@@ -1775,12 +1775,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public void loadMarkerListFromFile(String filename) {
     BufferedReader reader;
-    Vector<String> markerNames = new Vector<String>();
-    Vector<String> markerComments = new Vector<String>();
+    Vector<String> markerNames = new Vector<>();
+    Vector<String> markerComments = new Vector<>();
     String[] line;
     Vector<String> missingMarkers;
 
-    missingMarkers = new Vector<String>();
+    missingMarkers = new Vector<>();
     try {
       try {
         reader = Files.getReader(filename, true, false);
@@ -1854,8 +1854,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public void prepGCAdjustorLoad() {
     String[] gcParamFiles = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue();
-    ArrayList<String> display = new ArrayList<String>();
-    ArrayList<String> actual = new ArrayList<String>();
+    ArrayList<String> display = new ArrayList<>();
+    ArrayList<String> actual = new ArrayList<>();
 
     for (String gcParamFile : gcParamFiles) {
       if (Files.exists(gcParamFile)) {
@@ -2922,7 +2922,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // clusterFilterPanel.add(last1);
     clusterFilterPanel.add(delete);
 
-    newGenotype = new JComboBox<String>(GENOTYPE_OPTIONS);
+    newGenotype = new JComboBox<>(GENOTYPE_OPTIONS);
     ActionListener newGenotypeListener = new ActionListener() {
 
       @SuppressWarnings("unchecked")
@@ -3270,7 +3270,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     editItem.setText("Edit Existing Marker List");
 
     String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
-    HashSet<String> mnemonics = new HashSet<String>();
+    HashSet<String> mnemonics = new HashSet<>();
     for (String val : vals) {
       JMenuItem listEntry = new JMenuItem();
       JMenuItem editEntry = new JMenuItem();
@@ -3315,7 +3315,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         prevSort = ae.getActionCommand();
         previousListItem.removeAll();
         String[] vals = proj.DISPLAY_MARKERS_FILENAMES.getValue();
-        HashSet<String> mnemonics = new HashSet<String>();
+        HashSet<String> mnemonics = new HashSet<>();
         if ("alpha".equals(ae.getActionCommand())) {
           int[] indices = Sort.getSortedIndices(vals);
           for (int index : indices) {
@@ -3452,7 +3452,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
     };
 
-    mnemonics = new HashSet<String>();
+    mnemonics = new HashSet<>();
     for (String val : vals) {
       JMenuItem listEntry = new JMenuItem();
       String[] tmp = val.split("/");

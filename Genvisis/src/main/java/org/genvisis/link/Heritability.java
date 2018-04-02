@@ -68,12 +68,12 @@ public class Heritability {
                                                covars.endsWith(".csv"), "\t", true, false);
       covarHeader = ArrayUtils.subArray(covarHeader, 2);
     } else {
-      covarHash = new Hashtable<String, String>();
+      covarHash = new Hashtable<>();
       covarHeader = new String[0];
     }
 
-    seen = new Hashtable<String, String>();
-    referenced = new Hashtable<String, String>();
+    seen = new Hashtable<>();
+    referenced = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(pedfile));
       reader.mark(10000);
@@ -343,7 +343,7 @@ public class Heritability {
     if (params != null) {
       pedigreeFile = null;
       dbFile = null;
-      models = new Vector<String[]>();
+      models = new Vector<>();
       merlinExec = DEFAULT_MERLIN_EXEC;
       solarExec = DEFAULT_SOLAR_EXEC;
       for (int i = 0; i < params.size(); i++) {
@@ -411,11 +411,11 @@ public class Heritability {
 
             numNotInPed = 0;
             counter = new CountHash();
-            HashSet<String> validIDs = new HashSet<String>();
-            Vector<String> deps = new Vector<String>();
-            Vector<double[]> indeps = new Vector<double[]>();
+            HashSet<String> validIDs = new HashSet<>();
+            Vector<String> deps = new Vector<>();
+            Vector<double[]> indeps = new Vector<>();
             int count = 0;
-            HashMap<String, Integer> subIndexMap = new HashMap<String, Integer>();
+            HashMap<String, Integer> subIndexMap = new HashMap<>();
             try {
               System.out.println(dir + root + "/pheno.dat");
               writer = Files.openAppropriateWriter(dir + root + "/pheno.dat");
@@ -504,11 +504,11 @@ public class Heritability {
 
               /* sibs : */ {
                 double[][] correlationData;
-                ArrayList<Double> sibICCData = new ArrayList<Double>();
-                ArrayList<String> sibICCResponseIDs = new ArrayList<String>();
-                ArrayList<Double> correl1 = new ArrayList<Double>();
-                ArrayList<Double> correl2 = new ArrayList<Double>();
-                HashSet<String> used = new HashSet<String>();
+                ArrayList<Double> sibICCData = new ArrayList<>();
+                ArrayList<String> sibICCResponseIDs = new ArrayList<>();
+                ArrayList<Double> correl1 = new ArrayList<>();
+                ArrayList<Double> correl2 = new ArrayList<>();
+                HashSet<String> used = new HashSet<>();
                 for (int k = 0; k < sibList.size(); k++) {
                   if (used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])
                       || used.contains(sibList.get(k)[0] + "\t" + sibList.get(k)[1])) {
@@ -540,10 +540,10 @@ public class Heritability {
               }
               /* po : */ {
                 double[][] correlationData;
-                ArrayList<Double> poICCData = new ArrayList<Double>();
-                ArrayList<String> poICCResponseIDs = new ArrayList<String>();
-                ArrayList<Double> correl1 = new ArrayList<Double>();
-                ArrayList<Double> correl2 = new ArrayList<Double>();
+                ArrayList<Double> poICCData = new ArrayList<>();
+                ArrayList<String> poICCResponseIDs = new ArrayList<>();
+                ArrayList<Double> correl1 = new ArrayList<>();
+                ArrayList<Double> correl2 = new ArrayList<>();
                 for (int k = 0; k < poPairs.size(); k++) {
                   Integer resid1 = subIndexMap.get(poPairs.get(k)[0]);
                   Integer resid2 = subIndexMap.get(poPairs.get(k)[1]);
@@ -569,10 +569,10 @@ public class Heritability {
               }
               /* trios : */ {
                 double[][] correlationData;
-                ArrayList<Double> trioICCData = new ArrayList<Double>();
-                ArrayList<String> trioICCResponseIDs = new ArrayList<String>();
-                ArrayList<Double> correl1 = new ArrayList<Double>();
-                ArrayList<Double> correl2 = new ArrayList<Double>();
+                ArrayList<Double> trioICCData = new ArrayList<>();
+                ArrayList<String> trioICCResponseIDs = new ArrayList<>();
+                ArrayList<Double> correl1 = new ArrayList<>();
+                ArrayList<Double> correl2 = new ArrayList<>();
                 for (int k = 0; k < trios.size(); k++) {
                   int iidInd = trios.get(k)[0];
                   int faInd = trios.get(k)[1];

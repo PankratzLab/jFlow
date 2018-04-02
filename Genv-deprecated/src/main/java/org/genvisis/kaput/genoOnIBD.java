@@ -18,7 +18,7 @@ public class genoOnIBD {
     PrintWriter writer;
     String[] line = null, pair;
     String temp, trav, prev;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     Hashtable<String, Vector<String>> preIDs;
     boolean done;
     Vector<String> ids, founders;
@@ -42,9 +42,9 @@ public class genoOnIBD {
       System.exit(2);
     }
     reader = new BufferedReader(new FileReader(pre));
-    preIDs = new Hashtable<String, Vector<String>>();
-    ids = new Vector<String>();
-    founders = new Vector<String>();
+    preIDs = new Hashtable<>();
+    ids = new Vector<>();
+    founders = new Vector<>();
     prev = "";
     done = false;
     while (!done) {
@@ -62,7 +62,7 @@ public class genoOnIBD {
           System.exit(3);
         }
         preIDs.put(prev, ids);
-        ids = new Vector<String>();
+        ids = new Vector<>();
         founders.removeAllElements();
         prev = trav;
       }

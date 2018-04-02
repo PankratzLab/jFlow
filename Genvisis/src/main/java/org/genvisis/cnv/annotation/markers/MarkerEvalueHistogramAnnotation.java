@@ -24,13 +24,13 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
   public MarkerEvalueHistogramAnnotation(String name, String description) {
     super(name, description, new DynamicHistogram(0, 1, 2));// the Dynamic histogram is not actualy
                                                             // used
-    exactHistogram = new Hashtable<String, Integer>();
+    exactHistogram = new Hashtable<>();
   }
 
   public void setDataToExactHistogram() {
     String[] numericKeys = HashVec.getNumericKeys(exactHistogram);
 
-    ArrayList<String> data = new ArrayList<String>();
+    ArrayList<String> data = new ArrayList<>();
     for (String key : numericKeys) {
       data.add(key);
       data.add(exactHistogram.get(key).toString());
@@ -58,8 +58,8 @@ public class MarkerEvalueHistogramAnnotation extends HistogramAnnotation {
       List<String> tmp = getDataAsList();
       if (!tmp.get(0).equals(".")) {// skip no alignments
         // System.out.println(tmp.toString());
-        ArrayList<String> tmpCounts = new ArrayList<String>();
-        ArrayList<String> tmpEvals = new ArrayList<String>();
+        ArrayList<String> tmpCounts = new ArrayList<>();
+        ArrayList<String> tmpEvals = new ArrayList<>();
         for (int i = 0; i < tmp.size(); i += 2) {
           tmpEvals.add(tmp.get(i));
           tmpCounts.add(tmp.get(i + 1));

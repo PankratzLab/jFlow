@@ -61,7 +61,7 @@ public class ReferenceGenome {
    * @return
    */
   public LocusSet<Segment> getBins(int bpBinSize) {
-    ArrayList<Segment> bins = new ArrayList<Segment>();
+    ArrayList<Segment> bins = new ArrayList<>();
     SAMSequenceDictionary samSequenceDictionary = indexedFastaSequenceFile.getSequenceDictionary();
     System.out.println(samSequenceDictionary.getSequences().size() + " contigs detected");
     for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {

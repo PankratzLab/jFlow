@@ -24,7 +24,7 @@ public class SegmentAnotation implements Serializable {
    */
   public SegmentAnotation() {
     super();
-    this.attributes = new HashMap<String, List<String>>();
+    this.attributes = new HashMap<>();
   }
 
   /**

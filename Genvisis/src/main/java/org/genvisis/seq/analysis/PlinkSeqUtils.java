@@ -85,7 +85,7 @@ public class PlinkSeqUtils {
      * @return
      */
     public static PseqPhenoTypes[] loadPhenos(String phenoFile, Logger log) {
-      ArrayList<PseqPhenoTypes> phenotypes = new ArrayList<PlinkSeqUtils.PseqPhenoTypes>();
+      ArrayList<PseqPhenoTypes> phenotypes = new ArrayList<>();
       if (phenoFile == null) {
         log.reportError("No phenotype file was provided, continuing carefully");
         return null;
@@ -291,8 +291,8 @@ public class PlinkSeqUtils {
       super();
       this.analysis = analysis;
       this.resultsFile = resultsFile;
-      locMap = new Hashtable<String, Integer>();
-      locSummaries = new ArrayList<PlinkSeqUtils.PlinkSeqLocSummary>();
+      locMap = new Hashtable<>();
+      locSummaries = new ArrayList<>();
       numTotalTests = new int[BURDEN_Tests.values().length];
       numTestsAtI = new int[BURDEN_Tests.values().length][I_THRESHOLDS.length];
       this.log = log;
@@ -625,7 +625,7 @@ public class PlinkSeqUtils {
     }
 
     private HashSet<String> determineGenesPassing() {
-      HashSet<String> passingGenes = new HashSet<String>();
+      HashSet<String> passingGenes = new HashSet<>();
 
       if (Files.exists(resultsFile)) {
         String[] header = Files.getLineContaining(resultsFile, "\t", HEADER, log);

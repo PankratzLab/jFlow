@@ -48,7 +48,7 @@ public class CNVSampleQC {
   }
 
   public static CNVSampleQC[] getCNVSampleQCFromFile(Project proj, String QCFile) {
-    ArrayList<CNVSampleQC> cnvSampleQCs = new ArrayList<CNVSampleQC>();
+    ArrayList<CNVSampleQC> cnvSampleQCs = new ArrayList<>();
     Logger log = proj.getLog();
 
     try {
@@ -93,7 +93,7 @@ public class CNVSampleQC {
   }
 
   public static Hashtable<String, CNVSampleQC> getSampleQCs(Project proj, String QCFile) {
-    Hashtable<String, CNVSampleQC> cnvSampleQCHash = new Hashtable<String, CNVSampleQC>();
+    Hashtable<String, CNVSampleQC> cnvSampleQCHash = new Hashtable<>();
     if (QCFile == null) {
       return null;
     }

@@ -79,7 +79,7 @@ public class DnaseEnrichment {
 
   private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold
                                                                   // DHS regions
-  private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>(); // global
+  private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<>(); // global
                                                                                                       // static
                                                                                                       // variable
                                                                                                       // for
@@ -260,10 +260,10 @@ public class DnaseEnrichment {
     FileWriter fstream;
     BufferedWriter out;
 
-    List<List<Object>> resultArrayList = new ArrayList<List<Object>>();
+    List<List<Object>> resultArrayList = new ArrayList<>();
 
     for (OutputFileFormat curRecord : overlapStats) {
-      ArrayList<Object> resultArray = new ArrayList<Object>();
+      ArrayList<Object> resultArray = new ArrayList<>();
       resultArray.add(curRecord.file);
 
       for (double[] element : curRecord.ratio) {
@@ -316,7 +316,7 @@ public class DnaseEnrichment {
   private static ArrayList<OutputFileFormat> findOverlapRegions(String dir, String filename,
                                                                 Hashtable<String, Integer> bedFileChrMapPartCount) {
 
-    ArrayList<OutputFileFormat> thisFileOutput = new ArrayList<OutputFileFormat>();
+    ArrayList<OutputFileFormat> thisFileOutput = new ArrayList<>();
 
     // read the pvalues records from the pvalue file in memory
     ArrayList<PValueFileFormat> pValueRecords = readPValueFile(filename);
@@ -364,7 +364,7 @@ public class DnaseEnrichment {
    */
   private static ArrayList<HashSet<String>> findDHSRegionMarkers() {
 
-    ArrayList<HashSet<String>> dhsregionsHashSetList = new ArrayList<HashSet<String>>();
+    ArrayList<HashSet<String>> dhsregionsHashSetList = new ArrayList<>();
     PlinkFile plinkFileContents = null;
 
     String dir = ext.parseDirectoryOfFile(plinkFile);
@@ -380,7 +380,7 @@ public class DnaseEnrichment {
         LOGGER.info("Processing for DHS region: " + element);
         Segment[][] segs = getSegments(bedDir + element);
 
-        HashSet<String> ldMarkerHashSet = new HashSet<String>();
+        HashSet<String> ldMarkerHashSet = new HashSet<>();
 
         for (int j = 0; j < plinkSegments.size(); j++) {
           // if there is a overlap
@@ -406,7 +406,7 @@ public class DnaseEnrichment {
   private static ArrayList<Segment> createSegmentsFromPlinkFile(PlinkFile plinkFileContents) {
     // get chr, position and marker names from the plink file
     LOGGER.info("Reading plink file. This might take couple of seconds. Please wait ...");
-    ArrayList<Segment> plinkSegments = new ArrayList<Segment>();
+    ArrayList<Segment> plinkSegments = new ArrayList<>();
 
     // if something was wrong in the plink file data fields inform the user
     if (plinkFileContents.markerNames.length != plinkFileContents.chrs.length
@@ -440,7 +440,7 @@ public class DnaseEnrichment {
       reader.readLine(); // skill the first header line
 
       while (reader.ready()) {
-        Hashtable<String, ChrPositionMap> chrPositionMapList = new Hashtable<String, ChrPositionMap>();
+        Hashtable<String, ChrPositionMap> chrPositionMapList = new Hashtable<>();
         LOGGER.info("Processing: " + curLdFilePath + Files.SERIALIZED_FILE_EXTENSION);
 
         for (int ldLineCounter = 0; ldLineCounter < ldLines && reader.ready(); ldLineCounter++) {
@@ -461,7 +461,7 @@ public class DnaseEnrichment {
                 value = chrPositionMap.getChrPositionMap().get(Byte.valueOf(curlineParams[0]));
               } else {
                 chrPositionMap.getChrPositionMap().put(Byte.valueOf(curlineParams[0]),
-                                                       value = new HashSet<Integer>());
+                                                       value = new HashSet<>());
               }
               value.add(Integer.parseInt(curlineParams[1]));
               value.add(Integer.parseInt(curlineParams[3]));
@@ -560,7 +560,7 @@ public class DnaseEnrichment {
   private static Hashtable<String, Integer> readBedFileChrMapPartCount() {
     String curLine;
     String[] curLineParams;
-    Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<>();
     BufferedReader reader;
     try {
       reader = new BufferedReader(new FileReader(bedDir + BED_FILE_CHR_MAP_FOLDER + File.separator
@@ -657,7 +657,7 @@ public class DnaseEnrichment {
     boolean insideRegion;
     int pValueBin;
     Map<String, Long> value;
-    TreeMap<Integer, Map<String, Long>> overlapStats = new TreeMap<Integer, Map<String, Long>>();
+    TreeMap<Integer, Map<String, Long>> overlapStats = new TreeMap<>();
     String[] ldFilesList = Files.list(ldDir, LD_FILES_EXTENTION);
     ChrPositionMap chrPositionMap = null;
 
@@ -696,7 +696,7 @@ public class DnaseEnrichment {
           value = overlapStats.get(pValueBin);
         } else {
           // else create new
-          overlapStats.put(pValueBin, value = new HashMap<String, Long>());
+          overlapStats.put(pValueBin, value = new HashMap<>());
         }
         // if there are segments for this chr
 
@@ -750,7 +750,7 @@ public class DnaseEnrichment {
     Segment curSeg;
     double curPValue;
 
-    ArrayList<PValueFileFormat> result = new ArrayList<PValueFileFormat>();
+    ArrayList<PValueFileFormat> result = new ArrayList<>();
 
     try {
       BufferedReader reader = new BufferedReader(new FileReader(pValueFilepath));

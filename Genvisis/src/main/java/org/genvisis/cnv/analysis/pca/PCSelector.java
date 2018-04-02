@@ -119,7 +119,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
   public static SelectionResult select(Project proj, double filterValue, STAT_TYPE sType,
                                        SELECTION_TYPE selType) {
     PCSelector selector = new PCSelector(proj, sType);
-    ArrayList<Integer> sigPCs = new ArrayList<Integer>();
+    ArrayList<Integer> sigPCs = new ArrayList<>();
     SelectionResult rankResult = null;
     StatsCrossTabRank[] ranks = new StatsCrossTabRank[LrrSd.NUMERIC_COLUMNS.length];
 
@@ -158,7 +158,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
           break;
 
       }
-      Hashtable<String, Integer> has = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> has = new Hashtable<>();
 
       for (StatsCrossTabRank sRank : ranks) {
         for (int j = 0; j < sRank.getStats().length; j++) {
@@ -241,7 +241,7 @@ public class PCSelector implements Iterator<StatsCrossTabRank> {
 
   private static String[] summarize(StatsCrossTabRank[] ranks, String[] titles, int[] sigPCs,
                                     String output) {
-    ArrayList<String> titleSummary = new ArrayList<String>();
+    ArrayList<String> titleSummary = new ArrayList<>();
 
     try {
       PrintWriter writer = Files.openAppropriateWriter(output);

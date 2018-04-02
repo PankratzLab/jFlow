@@ -20,7 +20,7 @@ public class Permap {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     String[] peeps;
     double[] values;
     double mean, stdev;

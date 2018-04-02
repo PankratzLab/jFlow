@@ -22,8 +22,8 @@ public class procEnsemblIDs {
     PrintWriter writer = null;
     String[] line;
     String temp;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Hashtable<String, String> genes = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Hashtable<String, String> genes = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(geneIDs));

@@ -111,7 +111,7 @@ public class TransposeData {
     String[] allMarkerNamesInProj;
     String[] markersInEachFile1;
     String[] markerFilenames;
-    Hashtable<String, String> markerLookup = new Hashtable<String, String>();
+    Hashtable<String, String> markerLookup = new Hashtable<>();
     Hashtable<String, Float>[] markFileOutliers;
     Hashtable<String, Float> allOutliers;
     SimpleDateFormat timeFormat;
@@ -254,7 +254,7 @@ public class TransposeData {
                                                                                                              true)
                                                                               + "outliers.ser");
         } else {
-          allOutliers = new Hashtable<String, Float>();
+          allOutliers = new Hashtable<>();
         }
         markFileOutliers = getOutlierHashForEachMdRafFile(allOutliers, numFiles, numMarkers_File,
                                                           allSampleNamesInProj);
@@ -470,7 +470,7 @@ public class TransposeData {
    * @param proj
    */
   public static void recreateMarkerLookup(Project proj) {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String[] files, markerNames;
     byte[] readBuffer;
     RandomAccessFile currentFile;
@@ -1068,7 +1068,7 @@ public class TransposeData {
                                                                                                        true)
                                                                    + "outliers.ser");
     } else {
-      return new Hashtable<String, Float>();
+      return new Hashtable<>();
     }
   }
 
@@ -1260,7 +1260,7 @@ public class TransposeData {
 
     result = new Hashtable[numMarkerFiles];
     for (int i = 0; i < numMarkerFiles; i++) {
-      result[i] = new Hashtable<String, Float>();
+      result[i] = new Hashtable<>();
     }
 
     keys = allOutliers.keys();
@@ -1299,7 +1299,7 @@ public class TransposeData {
     HashMap<String, Integer> sampleIndexMap = new HashMap<>();
     result = new Hashtable[sampleNamesWholeProj.length];
     for (int i = 0; i < result.length; i++) {
-      result[i] = new Hashtable<String, Float>();
+      result[i] = new Hashtable<>();
       sampleIndexMap.put(sampleNamesWholeProj[i], i);
     }
 

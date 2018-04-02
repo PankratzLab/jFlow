@@ -21,7 +21,7 @@ public class RemoveMarkersFromResults {
     PrintWriter writer;
     String[] line;
     String temp, current, future;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int snpIndex;
 
     File[] files = new File(dir.equals("") ? "." : dir).listFiles(new FilenameFilter() {

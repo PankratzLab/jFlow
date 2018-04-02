@@ -81,7 +81,7 @@ public class procGenePositions {
     String[] line, geneIDs;
     String geneId;
     String temp;
-    Hashtable<String, GenePosition[]> hash = new Hashtable<String, GenePosition[]>();
+    Hashtable<String, GenePosition[]> hash = new Hashtable<>();
 
     int count;
     GenePosition[] gps, trav;

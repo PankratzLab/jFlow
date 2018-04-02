@@ -73,9 +73,9 @@ public class CytoCNVariant extends CNVariant {
                        double avgLogratio, String firstProbe, String firstGene) {
     super(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
     this.cytoBand = cytoBand;
-    probeNamestmp = new ArrayList<String>();
-    genestmp = new ArrayList<String>();
-    cytoBandtmp = new ArrayList<String>();
+    probeNamestmp = new ArrayList<>();
+    genestmp = new ArrayList<>();
+    cytoBandtmp = new ArrayList<>();
     avgLogRatio = avgLogratio;
     probeNamestmp.add(firstProbe);
     addGene(firstGene);
@@ -243,8 +243,8 @@ public class CytoCNVariant extends CNVariant {
    * @return CytoCNVariant[][] organized as CytoCNVariant[sample0][CytoCNVariantsForSample0]
    */
   public static CytoCNVariant[][] toIndividuals(CytoCNVariant[] cytoCNVariants, Logger log) {
-    Hashtable<String, ArrayList<CytoCNVariant>> track = new Hashtable<String, ArrayList<CytoCNVariant>>();
-    ArrayList<String> inds = new ArrayList<String>();
+    Hashtable<String, ArrayList<CytoCNVariant>> track = new Hashtable<>();
+    ArrayList<String> inds = new ArrayList<>();
 
     for (CytoCNVariant cytoCNVariant : cytoCNVariants) {
       String key = cytoCNVariant.getFamilyID() + "\t" + cytoCNVariant.getIndividualID();
@@ -274,7 +274,7 @@ public class CytoCNVariant extends CNVariant {
     // the unique indices for the samples in the file
     int[][] indicesSamples;
     // temporary storage for the parsed (finalized) aberrations as we move through the file
-    ArrayList<CytoCNVariant> cytoCNVariant = new ArrayList<CytoCNVariant>();
+    ArrayList<CytoCNVariant> cytoCNVariant = new ArrayList<>();
     int scan = 0;
     int count = 0;
     // temporary storage for aberrations that are currently being parsed (one per sample)
@@ -573,7 +573,7 @@ public class CytoCNVariant extends CNVariant {
    * @return
    */
   private static String[] getSamples(String[] line) {
-    ArrayList<String> tmpSamps = new ArrayList<String>();
+    ArrayList<String> tmpSamps = new ArrayList<>();
     for (int i = 0; i < line.length; i++) {
       if (!line[i].equals("")) {
         tmpSamps.add(line[i]);

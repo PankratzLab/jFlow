@@ -60,8 +60,8 @@ public class SkatMetaPrimary {
     }
 
     try {
-      v = new Vector<String>();
-      consolidateVector = new Vector<String>();
+      v = new Vector<>();
+      consolidateVector = new Vector<>();
       // generate batch files in dir+root+"/batchFiles/"; example:
       // "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
       foundGenos = false;
@@ -162,8 +162,8 @@ public class SkatMetaPrimary {
       }
 
       iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
-      v = new Vector<String>();
-      jobNamesWithAbsolutePaths = new Vector<String>();
+      v = new Vector<>();
+      jobNamesWithAbsolutePaths = new Vector<>();
       jobSizes = new IntVector();
       v.add("setwd(\"" + resultDir + "\")");
       consolidate = cohort + "<- c(";
@@ -204,7 +204,7 @@ public class SkatMetaPrimary {
     phenos = phenosCommaDelimited.split(",");
     races = racesCommaDelimited.split(",");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         try {
@@ -223,7 +223,7 @@ public class SkatMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "scriptAll");
     Files.chmod("scriptAll");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
@@ -235,7 +235,7 @@ public class SkatMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "scriptAllItasca");
     Files.chmod("scriptAllItasca");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         if (Files.exists(cohort + "_" + race + "_" + pheno + "/batchFiles/finishUpOnSB_" + cohort
@@ -250,7 +250,7 @@ public class SkatMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "finishUpOnSB");
     Files.chmod("finishUpOnSB");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
@@ -263,7 +263,7 @@ public class SkatMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "mergeAll");
     Files.chmod("mergeAll");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/results/");
@@ -285,7 +285,7 @@ public class SkatMetaPrimary {
 
     phenos = phenosCommaDelimited.split(",");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       try {
         batchAdditionals(pheno, cohort, snpInfo, qsubMem, qsubWalltime);
@@ -331,7 +331,7 @@ public class SkatMetaPrimary {
     batchDir = phenoDir + "/batchFiles/";
 
     try {
-      v = new Vector<String>();
+      v = new Vector<>();
       // generate batch files in dir+root+"/batchFiles/"; example:
       // "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
       // foundGenos = false;

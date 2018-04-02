@@ -231,7 +231,7 @@ public abstract class MarkerBlast {
         MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(blastParams, false);
         List<MarkerFastaEntry[]> splits = ArrayUtils.splitUpArray(fastaEntries, numThreads, log);
 
-        ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
+        ArrayList<BlastWorker> workers = new ArrayList<>();
         if (fastaEntries != null && fastaEntries.length > 0) {
           for (int i = 0; i < splits.size(); i++) {
             if (!Files.exists(tmps[i])) {
@@ -243,7 +243,7 @@ public abstract class MarkerBlast {
         }
 
         if (workers.size() > 0) {
-          WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads,
+          WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<>(numThreads,
                                                                                                      10,
                                                                                                      log);
           hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
@@ -860,7 +860,7 @@ public abstract class MarkerBlast {
                                          + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
     }
     String[] required = new String[] {"Name", "Chr", "MapInfo"};
-    ArrayList<String> markerNames = new ArrayList<String>();
+    ArrayList<String> markerNames = new ArrayList<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(csv);
       boolean start = false;

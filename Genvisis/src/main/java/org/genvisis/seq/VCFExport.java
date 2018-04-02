@@ -25,8 +25,8 @@ public class VCFExport {
 
     reader = Files.getAppropriateReader(vcfFile);
     writer = Files.getAppropriateWriter(ext.rootOf(vcfFile, false) + ".xln");
-    infoTags = new ArrayList<String>();
-    multiTags = new HashMap<String, String[]>();
+    infoTags = new ArrayList<>();
+    multiTags = new HashMap<>();
     String line = null;
     while ((line = reader.readLine()) != null && !line.startsWith("#CHROM")) {
       if (line.startsWith("##INFO")) {

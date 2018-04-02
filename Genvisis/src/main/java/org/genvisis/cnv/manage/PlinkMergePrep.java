@@ -186,7 +186,7 @@ public class PlinkMergePrep {
       if (renameMarkers) {
         String[] markers = HashVec.loadFileToStringArray(mkrFile, false, new int[] {0}, true, false,
                                                          "\t");
-        ArrayList<String> newMkrs = new ArrayList<String>();
+        ArrayList<String> newMkrs = new ArrayList<>();
         String root = ext.rootOf(plinkRootWithDir1, true);
         for (String marker : markers) {
           newMkrs.add(root + "_" + marker);
@@ -303,7 +303,7 @@ public class PlinkMergePrep {
       if (renameMarkers) {
         String[] markers = HashVec.loadFileToStringArray(mkrFile, false, new int[] {0}, true, false,
                                                          "\t");
-        ArrayList<String> newMkrs = new ArrayList<String>();
+        ArrayList<String> newMkrs = new ArrayList<>();
         for (String plinkRootsWithDir : plinkRootsWithDirs) { // add all newly-renamed markers
           String root = ext.rootOf(plinkRootsWithDir, true);
           for (String marker : markers) {

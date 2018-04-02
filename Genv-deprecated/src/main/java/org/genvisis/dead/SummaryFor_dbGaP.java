@@ -31,7 +31,7 @@ public class SummaryFor_dbGaP {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, data;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     int snpCol, orCol, pCol, statCol, testCol, a1Col, a2Col, genoCol;
     String caseP;
 

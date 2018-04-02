@@ -104,7 +104,7 @@ public class CNVMarkerQC implements Runnable {
 
   private static double[] summarize(Project proj, CNVMarkerQC[] markerFrequencies,
                                     String[] markerNames) {
-    Hashtable<String, Double> mafBuilder = new Hashtable<String, Double>();
+    Hashtable<String, Double> mafBuilder = new Hashtable<>();
     double[] mafs = new double[markerNames.length];
     for (CNVMarkerQC markerFrequencie : markerFrequencies) {
       double[] fileMAFs = markerFrequencie.getMafs();
@@ -160,7 +160,7 @@ public class CNVMarkerQC implements Runnable {
 
   private static ArrayList<ArrayList<String>> getcabinet(Hashtable<String, ArrayList<String>> markerFiles,
                                                          int threads) {
-    ArrayList<ArrayList<String>> cabinet = new ArrayList<ArrayList<String>>();
+    ArrayList<ArrayList<String>> cabinet = new ArrayList<>();
     Set<String> keys = markerFiles.keySet();
     for (int i = 0; i < threads; i++) {
       cabinet.add(new ArrayList<String>());
@@ -175,11 +175,11 @@ public class CNVMarkerQC implements Runnable {
 
   private static Hashtable<String, ArrayList<String>> assignFiles(MarkerLookup markerLookup,
                                                                   String[] markerNames) {
-    Hashtable<String, ArrayList<String>> markerFiles = new Hashtable<String, ArrayList<String>>();
+    Hashtable<String, ArrayList<String>> markerFiles = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       if (!markerFiles.containsKey(markerLookup.get(markerNames[i])
                                                .split(PSF.Regex.GREEDY_WHITESPACE)[0])) {
-        ArrayList<String> al = new ArrayList<String>();
+        ArrayList<String> al = new ArrayList<>();
         markerFiles.put(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0], al);
       }
       markerFiles.get(markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE)[0])

@@ -35,19 +35,19 @@ public class EmimPipeline {
     BufferedReader reader = Files.getAppropriateReader(popFile);
     String line = reader.readLine();
     String[] hdrs = line.split("\t", -1);
-    ArrayList<String> pops = new ArrayList<String>();
-    ArrayList<Integer> popIndices = new ArrayList<Integer>();
+    ArrayList<String> pops = new ArrayList<>();
+    ArrayList<Integer> popIndices = new ArrayList<>();
     for (int i = 0; i < hdrs.length; i++) {
       if (!"".equals(hdrs[i])) {
         popIndices.add(i);
         pops.add(hdrs[i]);
       }
     }
-    ArrayList<String> ids = new ArrayList<String>();
+    ArrayList<String> ids = new ArrayList<>();
     @SuppressWarnings("unchecked")
     ArrayList<Boolean>[] incls = new ArrayList[pops.size()];
     for (int i = 0; i < incls.length; i++) {
-      incls[i] = new ArrayList<Boolean>();
+      incls[i] = new ArrayList<>();
     }
     while ((line = reader.readLine()) != null) {
       String[] incl = line.split("\t", -1);
@@ -61,7 +61,7 @@ public class EmimPipeline {
 
     PopFileData popFileObj = new PopFileData();
     popFileObj.pops = pops.toArray(new String[pops.size()]);
-    popFileObj.idsIndexMap = new LinkedHashMap<String, Integer>();
+    popFileObj.idsIndexMap = new LinkedHashMap<>();
     for (int i = 0; i < ids.size(); i++) {
       popFileObj.idsIndexMap.put(ids.get(i), i);
     }
@@ -143,7 +143,7 @@ public class EmimPipeline {
                     String popFile, String subPopFile, String riskAlleleFile, double pThreshold,
                     Set<Emim.EMIM_MODEL> models, boolean phaseWithShapeit, String qsubQueue,
                     Logger log1) {
-    ArrayList<String> pbsFiles = new ArrayList<String>();
+    ArrayList<String> pbsFiles = new ArrayList<>();
     Logger log = log1 == null ? new Logger() : log1;
     PopFileData popData, subPopData;
     popFile = new File(popFile).getAbsolutePath();
@@ -303,7 +303,7 @@ public class EmimPipeline {
   }
 
   private static boolean checkRoots(String[] cnvFiles, String[] plinkRoots) {
-    HashSet<String> rootSet = new HashSet<String>();
+    HashSet<String> rootSet = new HashSet<>();
     if (plinkRoots != null) {
       for (String root : plinkRoots) {
         if (!rootSet.add(root)) {
@@ -597,7 +597,7 @@ public class EmimPipeline {
   }
 
   private static void writeQsubs(List<String> qsubFiles, String runDir, String qsubQueue) {
-    ArrayList<String> qsubCommands = new ArrayList<String>();
+    ArrayList<String> qsubCommands = new ArrayList<>();
     for (String qsub : qsubFiles) {
 
       String dir = ext.parseDirectoryOfFile(qsub);
@@ -631,7 +631,7 @@ public class EmimPipeline {
     String qsub = null;
     boolean process = false;
     boolean forest = false;
-    Set<Emim.EMIM_MODEL> models = new HashSet<Emim.EMIM_MODEL>(Emim.EMIM_MODEL.valueSet());
+    Set<Emim.EMIM_MODEL> models = new HashSet<>(Emim.EMIM_MODEL.valueSet());
     boolean phaseWithShapeit = false;
     String forestMarkers = "./gwasHits.txt";
 

@@ -32,7 +32,7 @@ public class RankRecessive {
     double[] mafs;
     String[] alleles;
 
-    hash = new Hashtable<String, Vector<String[]>>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       header = reader.readLine().trim().split("\\t", -1);

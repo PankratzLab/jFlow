@@ -53,8 +53,8 @@ public class ConvertChargeToVCF {
 
       int countSkipped = 0;
       String outputVCF = fullPathToFile + ".vcf";
-      ArrayList<Segment> segs = new ArrayList<Segment>(12000000);
-      ArrayList<VariantContext> vcs = new ArrayList<VariantContext>(12000000);
+      ArrayList<Segment> segs = new ArrayList<>(12000000);
+      ArrayList<VariantContext> vcs = new ArrayList<>(12000000);
 
       VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVCF);
       builder.clearOptions();
@@ -81,7 +81,7 @@ public class ConvertChargeToVCF {
           String ref = line[indices[1]];
           String alt = line[indices[2]];
           if ((!ref.equals(".") || !alt.equals(".")) && !alt.contains(",")) {
-            ArrayList<Allele> alleles = new ArrayList<Allele>();
+            ArrayList<Allele> alleles = new ArrayList<>();
             if (!ref.equals(".")) {
               alleles.add(Allele.create(ref, true));
             }

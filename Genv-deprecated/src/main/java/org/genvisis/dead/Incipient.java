@@ -152,8 +152,8 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
       AnswerString = answer;
       category = whichCategory;
       hashNum = incdHashNum;
-      qHistory = new Vector<TimePoint>();
-      aHistory = new Vector<TimePoint>();
+      qHistory = new Vector<>();
+      aHistory = new Vector<>();
       q_score = RESET_Q_SCORE;
       a_score = RESET_A_SCORE;
     }
@@ -1061,7 +1061,7 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
   }
 
   public int[] random(int size) {
-    Vector<String> source = new Vector<String>();
+    Vector<String> source = new Vector<>();
     int[] keys = new int[size];
     String temp;
 
@@ -1400,8 +1400,8 @@ public class Incipient implements ActionListener, KeyListener, MenuListener {
 
   public void initialize() {
     today = (int) ((new Date()).getTime() / 86400000);
-    hash = new Hashtable<String, Word>();
-    wrongHistory = new Vector<String>();
+    hash = new Hashtable<>();
+    wrongHistory = new Vector<>();
     loadData();
     System.err.println(hash.size());
 

@@ -74,7 +74,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
       ExtProjectDataParser parser = builder.build(proj, manifestFile);
       parser.determineIndicesFromTitles();
       parser.loadData();
-      ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
+      ArrayList<MarkerFastaEntry> entries = new ArrayList<>(ArrayUtils.booleanArraySum(parser.getDataPresent()));
       MarkerSetInfo markerSet = proj.getMarkerSet();
       ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
                                                                                                                    log)

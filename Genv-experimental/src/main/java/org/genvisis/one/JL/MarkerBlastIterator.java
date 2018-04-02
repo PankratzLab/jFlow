@@ -135,9 +135,9 @@ public class MarkerBlastIterator {
                                                           proj.getLog());
 
     for (MarkerBlastResult result : results) {
-      Hashtable<String, Integer> trackResults = new Hashtable<String, Integer>();
-      ArrayList<MarkerIterationSummary> summaries = new ArrayList<MarkerIterationSummary>();
-      ArrayList<String> markersOffTargetPerfectMatch = new ArrayList<String>();
+      Hashtable<String, Integer> trackResults = new Hashtable<>();
+      ArrayList<MarkerIterationSummary> summaries = new ArrayList<>();
+      ArrayList<String> markersOffTargetPerfectMatch = new ArrayList<>();
       for (int j = 0; j < result.getTmpFiles().length; j++) {
         proj.getLog().reportTimeInfo("Processing " + result.getTmpFiles()[j] + " blast results");
 
@@ -288,11 +288,11 @@ public class MarkerBlastIterator {
 
       }
       // int numMarkers = 0;
-      ArrayList<String> oneHitters = new ArrayList<String>();
-      ArrayList<String> notOneHitters = new ArrayList<String>();
-      ArrayList<Double> notOneHittersMaxCrossHybe = new ArrayList<Double>();
-      ArrayList<String> noAppropriateMatch = new ArrayList<String>();
-      ArrayList<Double> noAppropriateMatchMaxCrossHybe = new ArrayList<Double>();
+      ArrayList<String> oneHitters = new ArrayList<>();
+      ArrayList<String> notOneHitters = new ArrayList<>();
+      ArrayList<Double> notOneHittersMaxCrossHybe = new ArrayList<>();
+      ArrayList<String> noAppropriateMatch = new ArrayList<>();
+      ArrayList<Double> noAppropriateMatchMaxCrossHybe = new ArrayList<>();
       MarkerSetInfo markerSet = proj.getMarkerSet();
       for (int k = 0; k < summaries.size(); k++) {
         // numMarkers++;
@@ -416,12 +416,12 @@ public class MarkerBlastIterator {
           }
 
           writer.close();
-          ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+          ArrayList<RScatter> rScatters = new ArrayList<>();
 
           for (int l = 0; l < QC_GROUPINGS.length; l++) {
             String groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l];
             String title = "n=" + ArrayUtils.sum(dHistograms[j][0].getCounts());
-            ArrayList<String> ys = new ArrayList<String>();
+            ArrayList<String> ys = new ArrayList<>();
             for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
               ys.add(titles[3 * QC_GROUPINGS[l][k] + 2]);
             }
@@ -440,7 +440,7 @@ public class MarkerBlastIterator {
             rScatters.add(rScatterGroupAvg);
 
             groupPlot = ext.rootOf(allPlotFiles[j], false) + "_" + QC_TITLES[l] + "_counts";
-            ys = new ArrayList<String>();
+            ys = new ArrayList<>();
             for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
               ys.add(titles[3 * QC_GROUPINGS[l][k] + 1]);
             }
@@ -562,8 +562,8 @@ public class MarkerBlastIterator {
       if (!Files.exists(catResults)) {
         Files.cat(result.getTmpFiles(), catResults, new int[0], log);
       }
-      Hashtable<String, Integer> trackResults = new Hashtable<String, Integer>();
-      ArrayList<MarkerIterationSummary> summaries = new ArrayList<MarkerIterationSummary>();
+      Hashtable<String, Integer> trackResults = new Hashtable<>();
+      ArrayList<MarkerIterationSummary> summaries = new ArrayList<>();
 
       try {
         BufferedReader reader = Files.getAppropriateReader(catResults);
@@ -709,7 +709,7 @@ public class MarkerBlastIterator {
                            + numMatch + " matched the correct location at percent "
                            + appropriateMatchPercent + " and maf > " + mafFilter);
         writerMatch.close();
-        ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+        ArrayList<RScatter> rScatters = new ArrayList<>();
 
         for (String element : X_COLUMNS_PLOT) {
           for (int j2 = 0; j2 < QC_GROUPINGS.length; j2++) {
@@ -789,9 +789,9 @@ public class MarkerBlastIterator {
       this.markerName = markerName;
       this.gcContent = gcContent;
       hasAppropriateMatch = false;
-      crossHybPercentMatch = new ArrayList<Double>();
-      crossHybEvalue = new ArrayList<Double>();
-      crossHybLength = new ArrayList<Double>();
+      crossHybPercentMatch = new ArrayList<>();
+      crossHybEvalue = new ArrayList<>();
+      crossHybLength = new ArrayList<>();
     }
 
     public double getGcContent() {

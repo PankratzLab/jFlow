@@ -130,7 +130,7 @@ public class BamExtractor {
   public static void extractAll(BamSample bamSample, String outputDirectory, int bpBuffer,
                                 boolean verbose, boolean overWriteExisting, int numThreads,
                                 Logger log) {
-    WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
+    WorkerHive<BamExtractor> hive = new WorkerHive<>(numThreads, 10, log);
 
     for (int i = 0; i < bamSample.getSamples().length; i++) {
       String curBam = bamSample.getBamForSampleAt(i);
@@ -243,9 +243,9 @@ public class BamExtractor {
 
     public BamSample(String[] bamFiles, Logger log, boolean verbose) {
       this.bamFiles = bamFiles;
-      bamSampleMap = new Hashtable<String, String>();
+      bamSampleMap = new Hashtable<>();
       samples = null;
-      segsToExtract = new ArrayList<Segment>();
+      segsToExtract = new ArrayList<>();
       this.log = log;
       this.verbose = verbose;
     }
@@ -337,7 +337,7 @@ public class BamExtractor {
     }
 
     public void generateMap() {
-      ArrayList<String> tmpSamples = new ArrayList<String>();
+      ArrayList<String> tmpSamples = new ArrayList<>();
       for (String bamFile2 : bamFiles) {
         if (!fail) {
           if (Files.exists(bamFile2)) {

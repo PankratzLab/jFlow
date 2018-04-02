@@ -292,7 +292,7 @@ public class ControlSelection {
 
     if (!Files.exists(matchDir + "plink.assoc.logistic.tabs")) {
 
-      ArrayList<String> plink = new ArrayList<String>();
+      ArrayList<String> plink = new ArrayList<>();
       plink.add("plink2");
 
       plink.add("--logistic");

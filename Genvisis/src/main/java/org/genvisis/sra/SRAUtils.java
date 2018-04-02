@@ -41,7 +41,7 @@ public class SRAUtils {
     private static boolean dumpSra(String inputSra, String outputBam, Logger log) {
       String[] inputs = new String[] {inputSra};
       String[] outputs = new String[] {outputBam};
-      ArrayList<String> command = new ArrayList<String>();
+      ArrayList<String> command = new ArrayList<>();
       command.add("cd " + ext.parseDirectoryOfFile(inputSra) + "\n");
       command.add(SAM_DUMP);
       command.add("-u");// output un-mapped reads as well
@@ -126,7 +126,7 @@ public class SRAUtils {
     String bamDir = outDir + "bams/";
     new File(bamDir).mkdirs();
 
-    WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(threads, 10,
+    WorkerHive<SRAConversionResult> hive = new WorkerHive<>(threads, 10,
                                                                                         log);
     for (String sraFile : sraFiles) {
       sraFile = sraFile.trim();

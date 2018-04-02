@@ -106,7 +106,7 @@ public class CNVScan {
         gdiAnnotator.annotate(cnv, segmentAnotation);
         Segment[] probSegs = probs.getOverLappingLoci(cnv);
         // boolean use = true;
-        List<String> pros = new ArrayList<String>();
+        List<String> pros = new ArrayList<>();
 
         if (probSegs != null && probSegs.length > 0) {
           for (Segment problem : probSegs) {

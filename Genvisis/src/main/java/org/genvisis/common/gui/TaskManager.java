@@ -41,7 +41,7 @@ public final class TaskManager {
    * Register a {@link TaskListener} to respond to property changes on the given channel
    */
   public static void registerListener(String channel, TaskListener abstractTaskListener) {
-    listeners.put(channel, new WeakReference<TaskListener>(abstractTaskListener));
+    listeners.put(channel, new WeakReference<>(abstractTaskListener));
   }
 
   /**

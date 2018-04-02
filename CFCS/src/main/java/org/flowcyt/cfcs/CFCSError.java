@@ -19,7 +19,7 @@ import java.util.Map;
 public final class CFCSError extends RuntimeException implements CFCSErrorCodes {
 
   private static final long serialVersionUID = 6437215805474546003L;
-  private static final Map<Integer, String> errors = new HashMap<Integer, String>();
+  private static final Map<Integer, String> errors = new HashMap<>();
 
   static {
     errors.put(new Integer(CFCSNoSuchBin), "CFCSNoSuchBin");

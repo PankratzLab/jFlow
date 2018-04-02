@@ -144,7 +144,7 @@ public class BamQC {
   }
 
   private double getStDevInsertSize(DynamicHistogram dynamicHistogram) {
-    ArrayList<Double> inserts = new ArrayList<Double>();
+    ArrayList<Double> inserts = new ArrayList<>();
     double[] bins = dynamicHistogram.getBins();
     for (int i = 0; i < bins.length; i++) {
       int count = dynamicHistogram.getCounts()[i];
@@ -356,7 +356,7 @@ public class BamQC {
                                Logger log) {
     BamQC[] bamQCs = new BamQC[inputbams.length];
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    Hashtable<String, Future<BamQC>> tmpResults = new Hashtable<String, Future<BamQC>>();
+    Hashtable<String, Future<BamQC>> tmpResults = new Hashtable<>();
     for (int i = 0; i < bamQCs.length; i++) {
       tmpResults.put(i + "", executor.submit(new WorkerBamQC(inputbams[i], outputDir, libraryNGS,
                                                              filterNGS, normalizeDepthsTo, log)));

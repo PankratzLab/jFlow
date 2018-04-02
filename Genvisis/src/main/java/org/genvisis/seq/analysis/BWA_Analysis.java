@@ -26,8 +26,8 @@ public class BWA_Analysis {
     private static final String OUTPUT_SEP = "_";
 
     public static String[] getBatchesByLane(BWA_AnalysisIndividual[] bwIndividuals) {
-      Hashtable<String, ArrayList<BWA_AnalysisIndividual>> track = new Hashtable<String, ArrayList<BWA_AnalysisIndividual>>();
-      ArrayList<String> unique = new ArrayList<String>();
+      Hashtable<String, ArrayList<BWA_AnalysisIndividual>> track = new Hashtable<>();
+      ArrayList<String> unique = new ArrayList<>();
       for (BWA_AnalysisIndividual bwIndividual : bwIndividuals) {
         String baseId = bwIndividual.getID();
         if (!track.containsKey(baseId)) {
@@ -341,7 +341,7 @@ public class BWA_Analysis {
       verifyAnalsyisInds();
       if (!fail) {
         ExecutorService executor = Executors.newFixedThreadPool(numBetweenSampleThreads);
-        Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
+        Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<>();
         for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
           Logger tmpLog = new Logger(ext.rootOf(log.getFilename(), false) + "_BWA_ID_"
                                      + bwAnalysisIndividuals[i].getID() + "_batch"
@@ -478,7 +478,7 @@ public class BWA_Analysis {
 
       BufferedReader reader = Files.getAppropriateReader(fileOfSamplePairs);
       int index = 0;
-      Hashtable<String, Integer> track = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> track = new Hashtable<>();
       while (reader.ready()) {
         String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         if (line.length != 2) {
@@ -561,7 +561,7 @@ public class BWA_Analysis {
     if (!fail) {
       fail = !verifyInputFiles();
       if (!fail) {
-        Hashtable<String, Integer> track = new Hashtable<String, Integer>();
+        Hashtable<String, Integer> track = new Hashtable<>();
         bwAnalysisIndividuals = new BWA_AnalysisIndividual[inputFiles.length / 2];
         int currIndex = 0;
         for (String inputFile : inputFiles) {

@@ -206,14 +206,14 @@ public final class QueueProperties {
     if (qList == null) {
       load(propFile);
     }
-    return qList == null ? new ArrayList<JobQueue>() : qList;
+    return qList == null ? new ArrayList<>() : qList;
   }
 
   public static List<JobQueue> getJobQueues() {
     if (qList == null) {
       load(PROPERTIES_FILE);
     }
-    return qList == null ? new ArrayList<JobQueue>() : qList;
+    return qList == null ? new ArrayList<>() : qList;
   }
 
   public static synchronized void load(String propFile) {
@@ -239,7 +239,7 @@ public final class QueueProperties {
     }
     String line;
     JobQueue q = null;
-    qList = new ArrayList<JobQueue>();
+    qList = new ArrayList<>();
     try {
       while ((line = reader.readLine()) != null) {
         if ("".equals(line)) continue;
@@ -282,7 +282,7 @@ public final class QueueProperties {
   private static synchronized void init(String propFile) {
     if (qList == null) {
       List<JobQueue> allQs = QueuesParser.parseAllowedQueues(log);
-      qList = new ArrayList<JobQueue>();
+      qList = new ArrayList<>();
       for (JobQueue q : allQs) {
         if (q.isAllowed()) {
           qList.add(q);

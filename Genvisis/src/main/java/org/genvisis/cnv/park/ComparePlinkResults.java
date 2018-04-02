@@ -77,7 +77,7 @@ public class ComparePlinkResults {
       });
       System.out.println("found " + files.length + " files in " + dir);
 
-      hits = new Vector<int[]>();
+      hits = new Vector<>();
       for (File file : files) {
         try {
           reader = new BufferedReader(new FileReader(file));
@@ -112,7 +112,7 @@ public class ComparePlinkResults {
 
       keys = Sort.getSort2DIndices(hits);
 
-      composite = new Vector<int[]>();
+      composite = new Vector<>();
       for (int j = 0; j < hits.size(); j++) {
         chr = hits.elementAt(keys[j])[0];
         start = hits.elementAt(keys[j])[1];
@@ -303,7 +303,7 @@ public class ComparePlinkResults {
       });
       System.out.println("found " + files.length + " files in " + callDirectory);
 
-      hash = new Hashtable<String, boolean[]>();
+      hash = new Hashtable<>();
       for (int i = 0; i < files.length; i++) {
         System.out.println(files[i].getName());
         cnvs = CNVariant.loadPlinkFile(files[i].getAbsolutePath());

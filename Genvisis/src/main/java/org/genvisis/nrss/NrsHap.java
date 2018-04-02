@@ -44,7 +44,7 @@ public class NrsHap {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Vector<String> markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+    Vector<String> markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     int count, lowIndex, highIndex;
@@ -185,7 +185,7 @@ public class NrsHap {
           positions = null;
           pvals = null;
           indexSNPs = null;
-          markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+          markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
           markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           indexVector = new IntVector();
@@ -209,7 +209,7 @@ public class NrsHap {
   public static void procRegion(String results, int p_column) {
     BufferedReader reader = null;
     String[] line;
-    Vector<String> markerVector = new Vector<String>();
+    Vector<String> markerVector = new Vector<>();
     DoubleVector pvalueVector = new DoubleVector();
     String chr = null;
 
@@ -252,7 +252,7 @@ public class NrsHap {
                                         String extraStuff) {
     int[] keys;
     double[] pval_window;
-    Vector<String> snps = new Vector<String>();
+    Vector<String> snps = new Vector<>();
     BufferedReader reader;
     String[] line;
 
@@ -298,7 +298,7 @@ public class NrsHap {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     String[][] data;
     int[] order;
     int count;
@@ -405,7 +405,7 @@ public class NrsHap {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Vector<String> markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+    Vector<String> markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     int count, lowIndex, highIndex;
@@ -589,7 +589,7 @@ public class NrsHap {
           positions = null;
           pvals = null;
           indexSNPs = null;
-          markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+          markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
           markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           indexVector = new IntVector();

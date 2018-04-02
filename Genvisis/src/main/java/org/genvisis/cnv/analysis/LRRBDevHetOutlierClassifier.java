@@ -24,11 +24,11 @@ public class LRRBDevHetOutlierClassifier {
     private final int lrrCol;
     private final int bdevCol;
 
-    final HashMap<String, IndividualData> dataMap = new HashMap<String, IndividualData>(10000);
+    final HashMap<String, IndividualData> dataMap = new HashMap<>(10000);
     PopulationData populationData;
 
-    HashSet<String> indivList = new HashSet<String>();
-    HashSet<String> outlierList = new HashSet<String>();
+    HashSet<String> indivList = new HashSet<>();
+    HashSet<String> outlierList = new HashSet<>();
     HashMap<String, Double> scoreMap;
     HashMap<String, Integer> validatedCodes;
     ArrayList<String> truePositive;
@@ -170,8 +170,8 @@ public class LRRBDevHetOutlierClassifier {
     abstract String getClassifierName();
 
     private static void scoreEuclidean(final AnalysisData analysis, OutlierClassifier classifier) {
-      analysis.scoreMap = new HashMap<String, Double>();
-      final TreeSet<String> scoreList = new TreeSet<String>(new Comparator<String>() {
+      analysis.scoreMap = new HashMap<>();
+      final TreeSet<String> scoreList = new TreeSet<>(new Comparator<String>() {
 
         @Override
         public int compare(String o1, String o2) {
@@ -221,10 +221,10 @@ public class LRRBDevHetOutlierClassifier {
         scrHigher = analysis.scoreMap.get(indivHigher);
       }
 
-      analysis.outlierList = new HashSet<String>();
+      analysis.outlierList = new HashSet<>();
       analysis.outlierList.addAll(scoreList);
 
-      analysis.indivList = new HashSet<String>();
+      analysis.indivList = new HashSet<>();
       for (java.util.Map.Entry<String, IndividualData> entry : analysis.dataMap.entrySet()) {
         if (!analysis.outlierList.contains(entry.getKey())) {
           analysis.indivList.add(entry.getKey());
@@ -328,11 +328,11 @@ public class LRRBDevHetOutlierClassifier {
   boolean isFileRoot;
   private HashSet<String> excludeList;
   private HashSet<String> popList;
-  ArrayList<AnalysisData> analyses = new ArrayList<LRRBDevHetOutlierClassifier.AnalysisData>();
+  ArrayList<AnalysisData> analyses = new ArrayList<>();
 
   private void loadExcluded(String file, boolean project) {
-    excludeList = new HashSet<String>();
-    popList = new HashSet<String>();
+    excludeList = new HashSet<>();
+    popList = new HashSet<>();
     if (file == null) {
       return;
     }
@@ -360,7 +360,7 @@ public class LRRBDevHetOutlierClassifier {
     String[] files = Files.list(dir, prefix, null, true);
 
     for (String file : files) {
-      ArrayList<AnalysisData> fileData = new ArrayList<LRRBDevHetOutlierClassifier.AnalysisData>();
+      ArrayList<AnalysisData> fileData = new ArrayList<>();
       BufferedReader reader = Files.getReader(dir + file, true, false);
       if (reader != null) {
         String temp;
@@ -543,9 +543,9 @@ public class LRRBDevHetOutlierClassifier {
     if (validationFile == null) {
       return;
     }
-    HashSet<String> locationsInValidationSet = new HashSet<String>();
-    HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
-    HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<String, HashMap<String, Integer>>();
+    HashSet<String> locationsInValidationSet = new HashSet<>();
+    HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<>();
+    HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<>();
 
     BufferedReader reader = Files.getAppropriateReader(validationFile);
     String line = reader.readLine(); // skip header
@@ -560,7 +560,7 @@ public class LRRBDevHetOutlierClassifier {
 
       HashSet<String> outliers = outliersInRegionsMap.get(ucsc);
       if (outliers == null) {
-        outliers = new HashSet<String>();
+        outliers = new HashSet<>();
         outliersInRegionsMap.put(ucsc, outliers);
       }
       if (outlierStr.equals("1")) {
@@ -569,7 +569,7 @@ public class LRRBDevHetOutlierClassifier {
 
       HashMap<String, Integer> indivDetails = regionToIndivDetailMap.get(ucsc);
       if (indivDetails == null) {
-        indivDetails = new HashMap<String, Integer>();
+        indivDetails = new HashMap<>();
         regionToIndivDetailMap.put(ucsc, indivDetails);
       }
       indivDetails.put(id, Integer.parseInt(detailStr));
@@ -579,13 +579,13 @@ public class LRRBDevHetOutlierClassifier {
 
     int[] totalStats = {0, 0, 0, 0};
     // TP, FP, FN, TN
-    HashMap<String, int[]> regionStats = new HashMap<String, int[]>();
+    HashMap<String, int[]> regionStats = new HashMap<>();
 
     for (AnalysisData analysis : analyses) {
-      analysis.truePositive = new ArrayList<String>();
-      analysis.trueNegative = new ArrayList<String>();
-      analysis.falsePositive = new ArrayList<String>();
-      analysis.falseNegative = new ArrayList<String>();
+      analysis.truePositive = new ArrayList<>();
+      analysis.trueNegative = new ArrayList<>();
+      analysis.falsePositive = new ArrayList<>();
+      analysis.falseNegative = new ArrayList<>();
       int[] stats = {0, 0, 0, 0};
 
       HashSet<String> validOutliers = outliersInRegionsMap.get(analysis.ucscRegion);
@@ -617,7 +617,7 @@ public class LRRBDevHetOutlierClassifier {
       if (indivDetails == null) {
         continue;
       }
-      analysis.validatedCodes = new HashMap<String, Integer>();
+      analysis.validatedCodes = new HashMap<>();
       for (String id : analysis.dataMap.keySet()) {
         Integer code = indivDetails.get(id);
         if (code == null) {
@@ -670,9 +670,9 @@ public class LRRBDevHetOutlierClassifier {
    */
   private static void validateResults(String validationFile, String resultsFile,
                                       String outFile) throws IOException {
-    HashSet<String> locationsInValidationSet = new HashSet<String>();
-    HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<String, HashSet<String>>();
-    HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<String, HashMap<String, Integer>>();
+    HashSet<String> locationsInValidationSet = new HashSet<>();
+    HashMap<String, HashSet<String>> outliersInRegionsMap = new HashMap<>();
+    HashMap<String, HashMap<String, Integer>> regionToIndivDetailMap = new HashMap<>();
 
     BufferedReader reader = Files.getAppropriateReader(validationFile);
     String line = reader.readLine();
@@ -687,7 +687,7 @@ public class LRRBDevHetOutlierClassifier {
 
       HashSet<String> outliers = outliersInRegionsMap.get(ucsc);
       if (outliers == null) {
-        outliers = new HashSet<String>();
+        outliers = new HashSet<>();
         outliersInRegionsMap.put(ucsc, outliers);
       }
       if (outlierStr.equals("1")) {
@@ -696,7 +696,7 @@ public class LRRBDevHetOutlierClassifier {
 
       HashMap<String, Integer> indivDetails = regionToIndivDetailMap.get(ucsc);
       if (indivDetails == null) {
-        indivDetails = new HashMap<String, Integer>();
+        indivDetails = new HashMap<>();
         regionToIndivDetailMap.put(ucsc, indivDetails);
       }
       indivDetails.put(id, Integer.parseInt(detailStr));
@@ -704,7 +704,7 @@ public class LRRBDevHetOutlierClassifier {
     }
     reader.close();
 
-    HashMap<String, HashSet<String>> calledOutliers = new HashMap<String, HashSet<String>>();
+    HashMap<String, HashSet<String>> calledOutliers = new HashMap<>();
 
     reader = Files.getAppropriateReader(resultsFile);
     line = reader.readLine();
@@ -715,7 +715,7 @@ public class LRRBDevHetOutlierClassifier {
       String ucsc = temp[1];
       HashSet<String> regionOutliers = calledOutliers.get(ucsc);
       if (regionOutliers == null) {
-        regionOutliers = new HashSet<String>();
+        regionOutliers = new HashSet<>();
         calledOutliers.put(ucsc, regionOutliers);
       }
       regionOutliers.add(id);
@@ -723,7 +723,7 @@ public class LRRBDevHetOutlierClassifier {
     reader.close();
 
     // TP, FP, FN, TN
-    HashMap<String, int[]> regionStats = new HashMap<String, int[]>();
+    HashMap<String, int[]> regionStats = new HashMap<>();
     int[] totalStats = {0, 0, 0, 0};
 
     for (java.util.Map.Entry<String, HashSet<String>> regionOutliers : calledOutliers.entrySet()) {

@@ -219,9 +219,9 @@ public class ICC implements Serializable {
   private void init(double[] data) {
     if (valid) {
       // we first assemble the unique class membership from the rowLabels
-      ArrayList<String> uniqueClasses = new ArrayList<String>();
+      ArrayList<String> uniqueClasses = new ArrayList<>();
       int dataPointsToUse = 0;
-      Hashtable<String, ArrayList<Integer>> track = new Hashtable<String, ArrayList<Integer>>();
+      Hashtable<String, ArrayList<Integer>> track = new Hashtable<>();
       for (int i = 0; i < response.length; i++) {
         if (!isMasked(response[i], maskedResponses, onlyTheseResponses) && !Double.isNaN(data[i])) {
           if (!track.containsKey(response[i])) {

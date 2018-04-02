@@ -57,8 +57,8 @@ public class HaplogroupSelector {
                        + ArrayUtils.toStr(selectFrom, ", and ") + " using ..."
                        + ext.removeDirectoryInfo(haplogrepFile));
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
-    HashSet<String> samplesToChooseFrom = new HashSet<String>();
-    HashSet<String> samplesToChooseFor = new HashSet<String>();
+    HashSet<String> samplesToChooseFrom = new HashSet<>();
+    HashSet<String> samplesToChooseFor = new HashSet<>();
 
     for (String pop : selectFrom) {
       samplesToChooseFrom.addAll(vpop.getSuperPop().get(pop));
@@ -85,8 +85,8 @@ public class HaplogroupSelector {
     StringBuilder caseControlBuilder = new StringBuilder();
     caseControlBuilder.append("##phe1,Integer,-9,\"1/2 = ARIC/CUSHING\"\n");
     caseControlBuilder.append("#ID\tphe1");
-    ArrayList<String> samplesToKeep = new ArrayList<String>();
-    ArrayList<String> unMatched = new ArrayList<String>();
+    ArrayList<String> samplesToKeep = new ArrayList<>();
+    ArrayList<String> unMatched = new ArrayList<>();
     unMatched.add("UnMatchedSample\tHaplogroup");
 
     for (HaploMatch haploMatch : haploMatchs) {
@@ -132,7 +132,7 @@ public class HaplogroupSelector {
       this.sample = sample;
       this.haplogroup = haplogroup;
       this.haploStringLength = haplogroup.length();
-      this.controlsMatched = new ArrayList<HaplogroupSelector.HaploMatch>();
+      this.controlsMatched = new ArrayList<>();
     }
 
     private String getResults() {
@@ -161,14 +161,14 @@ public class HaplogroupSelector {
   private static ArrayList<HaploMatch> searchForMatches(HaplogroupStruct haplogroupStruct,
                                                         HaploTrie haploTrie, int xFactor,
                                                         int minMatch) {
-    ArrayList<HaploMatch> haploMatches = new ArrayList<HaploMatch>();
+    ArrayList<HaploMatch> haploMatches = new ArrayList<>();
     for (String haplogroup : haplogroupStruct.haploCase.keySet()) {
       for (String acase : haplogroupStruct.haploCase.get(haplogroup)) {
         haploMatches.add(new HaploMatch(acase, haplogroup));
       }
     }
     Collections.sort(haploMatches);// try to sort specific to general
-    HashSet<String> taken = new HashSet<String>();
+    HashSet<String> taken = new HashSet<>();
     for (HaploMatch haploMatch : haploMatches) {
       for (int i = 0; i < xFactor; i++) {
 
@@ -225,9 +225,9 @@ public class HaplogroupSelector {
 
   private static HaplogroupStruct loadHaplogroups(String haplogrepFile, HashSet<String> choosefor,
                                                   HashSet<String> chooseFrom, Logger log) {
-    HashMap<String, HashSet<String>> haploControl = new HashMap<String, HashSet<String>>();
-    HashMap<String, HashSet<String>> haploCase = new HashMap<String, HashSet<String>>();
-    HashMap<String, String> fullSampleMap = new HashMap<String, String>();
+    HashMap<String, HashSet<String>> haploControl = new HashMap<>();
+    HashMap<String, HashSet<String>> haploCase = new HashMap<>();
+    HashMap<String, String> fullSampleMap = new HashMap<>();
 
     int hapIndex = ext.indexOfStr("Haplogroup", Files.getHeaderOfFile(haplogrepFile, log));
 

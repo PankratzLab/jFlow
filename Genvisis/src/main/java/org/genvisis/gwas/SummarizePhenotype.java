@@ -127,8 +127,8 @@ public class SummarizePhenotype {
       isPercent = false;
       sf = 4;
 
-      filters = new Vector<Integer>();
-      filterText = new Vector<String>();
+      filters = new Vector<>();
+      filterText = new Vector<>();
       for (int j = 3; j < parameters[i].length; j++) {
         if (parameters[i][j].equals("-stdev")) {
           isStdev = true;
@@ -192,7 +192,7 @@ public class SummarizePhenotype {
       }
       // }
       theSize = modelData.size();
-      dataVec = new Vector<Double>(theSize);
+      dataVec = new Vector<>(theSize);
       for (int j = 0; j < theSize; j++) {
         line = modelData.elementAt(j);
         isToInclude = true;
@@ -256,7 +256,7 @@ public class SummarizePhenotype {
     String[] temp2, temp3;
     String iid;
 
-    currentData = new Vector<String[]>();
+    currentData = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(idListFileName));
       while (reader.ready()) {
@@ -284,7 +284,7 @@ public class SummarizePhenotype {
     String[] line;
     BufferedReader reader;
 
-    data = new Hashtable<String, String[]>();
+    data = new Hashtable<>();
     delimiter = null;
     for (String[] element : FILETYPE_DELIMINATOR) {
       if (dataFileName.toLowerCase().endsWith(element[0])) {
@@ -375,8 +375,8 @@ public class SummarizePhenotype {
 
     wkDir = ext.parseDirectoryOfFile(modelListFileName);
     try {
-      models = new Hashtable<String, String[][]>();
-      modelList = new Vector<String>();
+      models = new Hashtable<>();
+      modelList = new Vector<>();
       reader = new BufferedReader(new FileReader(modelListFileName));
       reader.readLine();
       while (reader.ready()) {
@@ -399,7 +399,7 @@ public class SummarizePhenotype {
       }
       reader.close();
 
-      parametersVec = new Vector<String[]>();
+      parametersVec = new Vector<>();
       reader = new BufferedReader(new FileReader(wkDir + PARAMETERS_FILE_NAME));
       reader.readLine();
       while (reader.ready()) {
@@ -411,7 +411,7 @@ public class SummarizePhenotype {
         parameters[i] = parametersVec.elementAt(i);
       }
 
-      data = new Hashtable<String, Hashtable<String, String[]>>();
+      data = new Hashtable<>();
       result = new String[modelList.size()][parametersVec.size()];
       for (int i = 0; i < result.length; i++) {
         modelName = modelList.elementAt(i);
@@ -419,7 +419,7 @@ public class SummarizePhenotype {
         dataFileNames = models.get(modelName)[0];
         variablesInModel = models.get(modelName)[1];
         idListFileName = models.get(modelName)[2][0];
-        currentData = new Vector<String[]>();
+        currentData = new Vector<>();
 
         for (int j = 0; j < dataFileNames.length; j++) {
           if (!data.containsKey(dataFileNames[j])) {

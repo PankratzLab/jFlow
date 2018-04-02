@@ -24,11 +24,11 @@ public class FamilyHistory {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, data, trav;
-    Hashtable<String, String[]> hashStringArray = new Hashtable<String, String[]>();
-    Hashtable<String, Vector<String[]>> hashVecStringArray = new Hashtable<String, Vector<String[]>>();
+    Hashtable<String, String[]> hashStringArray = new Hashtable<>();
+    Hashtable<String, Vector<String[]>> hashVecStringArray = new Hashtable<>();
     int index;
     Vector<String[]> v;
-    Vector<String> variance = new Vector<String>();
+    Vector<String> variance = new Vector<>();
     boolean quant = false;
     double[] avg_max;
     int[] counts;
@@ -54,7 +54,7 @@ public class FamilyHistory {
         if (hashVecStringArray.containsKey(line[1])) {
           v = hashVecStringArray.get(line[1]);
         } else {
-          hashVecStringArray.put(line[1], v = new Vector<String[]>());
+          hashVecStringArray.put(line[1], v = new Vector<>());
         }
         data = hashStringArray.get(line[1] + "\t" + line[2]);
         v.add(new String[] {line[2], line[index], data[0], data[1]});

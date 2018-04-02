@@ -477,7 +477,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
     int missingPositionCount = 0;
     int ambiguousPositionCount = 0;
-    ArrayList<String> missingSeqMkrs = new ArrayList<String>();
+    ArrayList<String> missingSeqMkrs = new ArrayList<>();
     PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
                                                           + "MarkerPositionBLASTIssues.txt");
     issuesWriter.println(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
@@ -641,7 +641,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     Map<String, Marker> markerNameMap = markerNameMapRef == null ? null : markerNameMapRef.get();
     if (markerNameMap == null) {
       markerNameMap = generateMarkerNameMap();
-      markerNameMapRef = new SoftReference<Map<String, Marker>>(markerNameMap);
+      markerNameMapRef = new SoftReference<>(markerNameMap);
     }
     return markerNameMap;
   }
@@ -654,7 +654,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
     if (chrMap == null) {
       chrMap = generateChrMap();
-      chrMapRef = new SoftReference<SortedSetMultimap<Byte, Marker>>(chrMap);
+      chrMapRef = new SoftReference<>(chrMap);
     }
     return chrMap;
   }
@@ -668,7 +668,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                                                                             : genomicPositionMapRef.get();
     if (genomicPositionMap == null) {
       genomicPositionMap = generateGenomicPositionMap();
-      genomicPositionMapRef = new SoftReference<SetMultimap<GenomicPosition, Marker>>(genomicPositionMap);
+      genomicPositionMapRef = new SoftReference<>(genomicPositionMap);
     }
     return genomicPositionMap;
   }
@@ -682,7 +682,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                                                     : markerIndexMapRef.get();
     if (markerIndexMap == null) {
       markerIndexMap = generateMarkerIndexMap();
-      markerIndexMapRef = new SoftReference<Map<Marker, Integer>>(markerIndexMap);
+      markerIndexMapRef = new SoftReference<>(markerIndexMap);
     }
     return markerIndexMap;
   }
@@ -791,7 +791,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     String[] markerNames = markerNameArrayRef == null ? null : markerNameArrayRef.get();
     if (markerNames == null) {
       markerNames = generateMarkerNameArray();
-      markerNameArrayRef = new SoftReference<String[]>(markerNames);
+      markerNameArrayRef = new SoftReference<>(markerNames);
     }
     return markerNames;
   }
@@ -805,7 +805,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     byte[] chrs = chrArrayRef == null ? null : chrArrayRef.get();
     if (chrs == null) {
       chrs = generateChrArray();
-      chrArrayRef = new SoftReference<byte[]>(chrs);
+      chrArrayRef = new SoftReference<>(chrs);
     }
     return chrs;
   }
@@ -819,7 +819,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     int[] positions = positionArrayRef == null ? null : positionArrayRef.get();
     if (positions == null) {
       positions = generatePositionsArray();
-      positionArrayRef = new SoftReference<int[]>(positions);
+      positionArrayRef = new SoftReference<>(positions);
     }
     return positions;
   }

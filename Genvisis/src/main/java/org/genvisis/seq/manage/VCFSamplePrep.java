@@ -133,7 +133,7 @@ public class VCFSamplePrep {
 
         @Override
         public Hashtable<String, Float> call() throws Exception {
-          Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+          Hashtable<String, Float> outliers = new Hashtable<>();
           VCFSamplePrep prep = new VCFSamplePrep(proj,
                                                  proj.getFullSampleFromRandomAccessFile(sample),
                                                  gcModel);

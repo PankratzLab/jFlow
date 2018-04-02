@@ -94,7 +94,7 @@ public class CARDIA2017ResultsProcessor {
 
     String skipFile = this.dir + prefix + "removeSnpsLowQual.txt";
     HashSet<String> ignore = Files.exists(skipFile) ? HashVec.loadFileToHashSet(skipFile, false)
-                                                    : new HashSet<String>();
+                                                    : new HashSet<>();
 
     HashMap<Integer, PrintWriter> writers = new HashMap<>();
     HashMap<Integer, PrintWriter> missWriters = new HashMap<>();

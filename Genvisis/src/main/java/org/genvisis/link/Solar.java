@@ -30,7 +30,7 @@ public class Solar {
     String temp, famID, indID;
     StringTokenizer st;
     String[] line;
-    Vector<String> markerV = new Vector<String>();
+    Vector<String> markerV = new Vector<>();
     int numMarkers, numAlleles;
     double total;
     Hashtable<String, String> hash;

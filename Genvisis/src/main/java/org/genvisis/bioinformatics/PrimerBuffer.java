@@ -35,7 +35,7 @@ public class PrimerBuffer {
 
     ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFast, log);
     String output = ext.addToRoot(queryFile, ".query");
-    ArrayList<ReferenceAlleleQuery> rAlleleQueries = new ArrayList<ReferenceAlleleQuery>();
+    ArrayList<ReferenceAlleleQuery> rAlleleQueries = new ArrayList<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(queryFile);
       int[] header = ext.indexFactors(reader.readLine().trim().split("\t"), HEADER, true);
@@ -111,7 +111,7 @@ public class PrimerBuffer {
       // private static final String[] HEADER_OUT_ADD = new String[] { "BUFFER_LOC",
       // "BUFFER_SEQUENCE_TOTAL_LENGTH", "SEQUENCE" };
 
-      ArrayList<String> result = new ArrayList<String>();
+      ArrayList<String> result = new ArrayList<>();
       result.add(seg.getChr() + "");
       result.add(seg.getStart() + "");
       result.add(seg.getStop() + "");

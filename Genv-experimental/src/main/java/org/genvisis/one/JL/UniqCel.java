@@ -15,7 +15,7 @@ public class UniqCel {
     String p2 = dir + "phase3/";
     String[] celsP2 = Files.list(p2, ".CEL");
 
-    ArrayList<String> finalCels = new ArrayList<String>();
+    ArrayList<String> finalCels = new ArrayList<>();
     for (String element : celsP1) {
       finalCels.add(p1 + element);
     }

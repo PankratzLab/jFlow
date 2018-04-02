@@ -31,7 +31,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
     super();
     this.vcfFile = vcfFile;
     this.samplesTopile = samplesTopile;
-    this.rIteratorVCF = new RegionIteratorVCF<T>(vcfFile, toPile, log);
+    this.rIteratorVCF = new RegionIteratorVCF<>(vcfFile, toPile, log);
     this.referenceGenome = referenceGenome;
     this.log = log;
   }
@@ -48,7 +48,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 
   @Override
   public PiledVcfRegion<T> next() {
-    PiledVcfRegion<T> pRegion = new PiledVcfRegion<T>(rIteratorVCF.getCurrentIndex(),
+    PiledVcfRegion<T> pRegion = new PiledVcfRegion<>(rIteratorVCF.getCurrentIndex(),
                                                       referenceGenome, samplesTopile);
     VariantContext[] vcs = rIteratorVCF.next();
     for (VariantContext vc : vcs) {
@@ -84,7 +84,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
 
     ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFile, log);
     String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcfFile), true));
-    VCFPile<Segment> vcfPile = new VCFPile<Segment>(vcfFile, referenceGenome, samples, toPile, log);
+    VCFPile<Segment> vcfPile = new VCFPile<>(vcfFile, referenceGenome, samples, toPile, log);
     String output = outputDirectory + VCFOps.getAppropriateRoot(vcfFile, true)
                     + ".vcfPile.summary.txt";
     try {

@@ -149,7 +149,7 @@ public class SeqQCValidation {
   private static FilterNGS[] getAltAlleleDepthFilters(int startDepth, int stopDepth, int jumpDepth,
                                                       double startRatio, double stopRatio,
                                                       double jumpRatio) {
-    ArrayList<FilterNGS> filterNGSs = new ArrayList<FilterNGS>();
+    ArrayList<FilterNGS> filterNGSs = new ArrayList<>();
     for (int i = startDepth; i <= stopDepth; i += jumpDepth) {
       for (double j = startRatio; j <= stopRatio; j += jumpRatio) {
         FilterNGS filterNGS = new FilterNGS(0, 0, null);
@@ -163,7 +163,7 @@ public class SeqQCValidation {
   }
 
   private static String[][] loadPairWise(String fileOFSamplesForPairWise, Logger log) {
-    ArrayList<String[]> comps = new ArrayList<String[]>();
+    ArrayList<String[]> comps = new ArrayList<>();
     if (Files.getHeaderOfFile(fileOFSamplesForPairWise, log).length == 2) {
       log.reportTimeInfo("Assuming pair-wise comparisions have been pre-defined");
       try {
@@ -212,11 +212,11 @@ public class SeqQCValidation {
     } else {
       referenceGenome.setDefaultBuffer(50);
     }
-    ArrayList<DuplicateETwo> deETwos = new ArrayList<SeqError.DuplicateETwo>(numComp);
+    ArrayList<DuplicateETwo> deETwos = new ArrayList<>(numComp);
     for (VariantContextFilter vContextFilterSample : vContextFilterSamples) {
       for (FilterNGS altDepthFilterNGS : altDepthFilterNGSs) {
         for (String[] element : sampsForPairWise) {
-          HashSet<String> curDups = new HashSet<String>();
+          HashSet<String> curDups = new HashSet<>();
           curDups.add(element[0]);
           curDups.add(element[1]);
           deETwos.add(new DuplicateETwo(curDups, DUPLICATE_COMP_TYPE.ALL_PASS,
@@ -248,7 +248,7 @@ public class SeqQCValidation {
                      + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
       SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations,
                                                                      numVariantsToTest, 1, log);
-      try (WorkerTrain<SeqQCValidation> train = new WorkerTrain<SeqQCValidation>(producer,
+      try (WorkerTrain<SeqQCValidation> train = new WorkerTrain<>(producer,
                                                                                  numthreads, 1,
                                                                                  log)) {
         while (train.hasNext()) {

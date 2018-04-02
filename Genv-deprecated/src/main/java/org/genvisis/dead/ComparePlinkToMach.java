@@ -29,12 +29,12 @@ public class ComparePlinkToMach {
 
     // Vector<String> machPeopleIndicies;
     Vector<String> plinkPeopleIndicies;
-    Hashtable<String, String[]> plinkData = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> plinkData = new Hashtable<>();
     String[] markers;
 
     markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(markersToDo, false, true, true));
 
-    plinkPeopleIndicies = new Vector<String>();
+    plinkPeopleIndicies = new Vector<>();
     try {
       reader1 = new BufferedReader(new FileReader(dir + "chr" + chr + ".fam"));
       while (reader1.ready()) {

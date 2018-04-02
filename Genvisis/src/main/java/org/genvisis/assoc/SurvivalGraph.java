@@ -22,15 +22,15 @@ public class SurvivalGraph {
     PrintWriter writer = null;
     String[] line;
     String temp;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v, classV, ageV;
     String[] fams, classes, ages;
     double[][] counts;
     int[] keys;
     double[] sums, freqs;
 
-    classV = new Vector<String>();
-    ageV = new Vector<String>();
+    classV = new Vector<>();
+    ageV = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       while (reader.ready()) {
@@ -44,7 +44,7 @@ public class SurvivalGraph {
           if (hash.containsKey(line[0])) {
             v = hash.get(line[0]);
           } else {
-            hash.put(line[0], v = new Vector<String>());
+            hash.put(line[0], v = new Vector<>());
           }
           v.add(line[1] + "\t" + line[2]);
           HashVec.addIfAbsent(line[1], classV, false);

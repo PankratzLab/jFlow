@@ -57,7 +57,7 @@ public class VCFImporter {
   public ConversionResults importVCF(Project proj, Set<String> samples, final String vcfFile,
                                      boolean createMarkerPositions) {
     HashSet<String> verifiedSamples = verifySamples(proj, vcfFile, samples);
-    ArrayList<LocusID> markers = new ArrayList<VCOps.LocusID>(1000000);
+    ArrayList<LocusID> markers = new ArrayList<>(1000000);
     log.reportTimeWarning("Only un-ambigous and biallelic variants will be exported...until we figure these out");
     FilterNGS.VariantContextFilter niceAllele = new FilterNGS.VariantContextFilter(new VARIANT_FILTER_DOUBLE[] {},
                                                                                    new VARIANT_FILTER_BOOLEAN[] {VARIANT_FILTER_BOOLEAN.BIALLELIC_FILTER,
@@ -75,7 +75,7 @@ public class VCFImporter {
       if (niceAllele.filter(vc).passed()) {
         markers.add(new LocusID(vc));
         for (SampleNGS vcSample : vcSamples) {
-          HashSet<String> tmp = new HashSet<String>();
+          HashSet<String> tmp = new HashSet<>();
           tmp.add(vcSample.getSampleName());
           VariantContext vcSub = VCOps.getSubset(vc, tmp, VC_SUBSET_TYPE.SUBSET_STRICT);
           vcSample.addGeno(vc, vcSub.getGenotype(0), log);
@@ -88,7 +88,7 @@ public class VCFImporter {
       generateMarkerPositions(proj, markers);
     }
     long fingerprint = proj.getMarkerSet().getFingerprint();
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
     for (SampleNGS vcSample : vcSamples) {
       vcSample.dump(proj, allOutliers, fingerprint, log);
     }
@@ -102,9 +102,9 @@ public class VCFImporter {
    */
   private HashSet<String> verifySamples(Project proj, String vcf, Set<String> samples) {
 
-    HashSet<String> samplesHave = new HashSet<String>();
+    HashSet<String> samplesHave = new HashSet<>();
 
-    ArrayList<String> samplesMissing = new ArrayList<String>();
+    ArrayList<String> samplesMissing = new ArrayList<>();
     String[] samplesVCF = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
     if (samples == null) {
       for (String element : samplesVCF) {
@@ -207,7 +207,7 @@ public class VCFImporter {
   }
 
   private static HashSet<String> getset(String[] set) {
-    HashSet<String> hset = new HashSet<String>();
+    HashSet<String> hset = new HashSet<>();
     for (String element : set) {
       hset.add(element);
     }
@@ -323,13 +323,13 @@ public class VCFImporter {
     String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
     List<String[]> sampleChunks = ArrayUtils.splitUpArray(samples, numRounds, proj.getLog());
-    WorkerHive<ConversionResults> hive = new WorkerHive<VCFImporter.ConversionResults>(numThreads,
+    WorkerHive<ConversionResults> hive = new WorkerHive<>(numThreads,
                                                                                        10,
                                                                                        proj.getLog());
     proj.SAMPLE_DIRECTORY.getValue(true, false);
     proj.MARKER_DATA_DIRECTORY.getValue(true, false);
     proj.DATA_DIRECTORY.getValue(true, false);
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
     if (proj.getSamples() == null || proj.getSamples().length == 0) {
       for (int i = 0; i < sampleChunks.size(); i++) {
         hive.addCallable(new VCFImporterWorker(proj, vcf, getset(sampleChunks.get(i)), i == 0));
@@ -403,8 +403,8 @@ public class VCFImporter {
                                                                                                    false),
                                                                 PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED,
                                                                 gcModel);
-      Hashtable<String, Float> allNewOutliers = new Hashtable<String, Float>();
-      try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(vPrepWorker,
+      Hashtable<String, Float> allNewOutliers = new Hashtable<>();
+      try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(vPrepWorker,
                                                                                                    numThreads,
                                                                                                    0,
                                                                                                    proj.getLog())) {

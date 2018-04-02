@@ -79,7 +79,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
   private JComboBox markerFileList;
   // int curMarkerIndex;
 
-  private final HashMap<String, String> markerFileNameLoc = new HashMap<String, String>();
+  private final HashMap<String, String> markerFileNameLoc = new HashMap<>();
 
   private Project proj;
   private final ForestPlot forestPlot;
@@ -362,7 +362,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     subNavPanel.add(next);
     subNavPanel.add(last);
 
-    Vector<String> items = new Vector<String>();
+    Vector<String> items = new Vector<>();
     items.add(MARKER_LIST_PLACEHOLDER);
     if (proj != null) {
       String[] files = proj.FOREST_PLOT_FILENAMES.getValue();
@@ -539,7 +539,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     String fileName = ext.verifyDirFormat(ext.parseDirectoryOfFile(forestPlot.getMarkerFileName()))
                       + "sort.txt";
     ArrayList<StudyData> currentData = forestPlot.getCurrentMetaStudy().getStudies();
-    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<>();
     for (StudyData sd : currentData) {
       names.add(sd.getLabel());
     }
@@ -608,7 +608,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     String file = ext.verifyDirFormat(rawfile);
     file = file.substring(0, file.length() - 1);
     int num = markerFileList.getModel().getSize() - 2;
-    Vector<String> currFiles = new Vector<String>();
+    Vector<String> currFiles = new Vector<>();
     if (num > 0) {
       for (int i = 1; i < num + 1; i++) {
         currFiles.add((String) markerFileList.getModel().getElementAt(i));
@@ -750,7 +750,7 @@ public class ForestPlotFrame extends JFrame implements WindowListener {
     String[] projFiles = proj.FOREST_PLOT_FILENAMES.getValue();
     String[] currFiles = markerFileNameLoc.values().toArray(new String[] {});
 
-    ArrayList<String> newFiles = new ArrayList<String>();
+    ArrayList<String> newFiles = new ArrayList<>();
     for (String file : currFiles) {
       boolean found = false;
       for (String oldFile : projFiles) {

@@ -228,7 +228,7 @@ public class cnvTrio extends CNVariant {
   }
 
   private static cnvTrio[] loadTrios(String fullPathToTrioFile, Logger log) {
-    ArrayList<cnvTrio> tmpTrios = new ArrayList<cnvTrio>();
+    ArrayList<cnvTrio> tmpTrios = new ArrayList<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(fullPathToTrioFile);
       String[] header = reader.readLine().trim().split("\t");
@@ -313,7 +313,7 @@ public class cnvTrio extends CNVariant {
     Logger log = proj.getLog();
     TrioQC[] trios = TrioQC.loadTrios(proj, trioFile);
     CNVariant[] cnVariants;
-    Hashtable<String, Integer> rawRegionFrequency = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> rawRegionFrequency = new Hashtable<>();
     if (cnvFile == null) {
       DeNovoCNV.parsePennCnvResult(proj, proj.PENNCNV_RESULTS_DIRECTORY.getValue(false, true),
                                    proj.DATA_DIRECTORY.getValue(false, true) + trioFile,
@@ -341,8 +341,8 @@ public class cnvTrio extends CNVariant {
 
   private static Hashtable<String, Integer> determinRegionFrequencies(CNVariant[] cnVariants,
                                                                       Logger log) {
-    Hashtable<String, Integer> regionFrequency = new Hashtable<String, Integer>();
-    ArrayList<String> uniqstmp = new ArrayList<String>();
+    Hashtable<String, Integer> regionFrequency = new Hashtable<>();
+    ArrayList<String> uniqstmp = new ArrayList<>();
     log.report(ext.getTime() + " Info - building population cnv frequency map for "
                + cnVariants.length + " cnvs, this may take some time...");
     for (int i = 0; i < cnVariants.length; i++) {
@@ -403,7 +403,7 @@ public class cnvTrio extends CNVariant {
                                  String parentOutput, Logger log) {
     Hashtable<String, Integer> trioIndex = hashOffspringTrios(trios, sampleData);
     Hashtable<String, Integer> parentalIndex = hashParentalTrios(trios, sampleData);
-    ArrayList<CNVariant> parentalCNVs = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> parentalCNVs = new ArrayList<>();
     int count = 0;
     for (CNVariant cnVariant : cnVariants) {
       String key = cnVariant.getFamilyID() + "\t" + cnVariant.getIndividualID();
@@ -535,7 +535,7 @@ public class cnvTrio extends CNVariant {
    */
   private static Hashtable<String, Integer> hashOffspringTrios(TrioQC[] trios,
                                                                SampleData sampleData) {
-    Hashtable<String, Integer> trioIndex = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> trioIndex = new Hashtable<>();
     for (int i = 0; i < trios.length; i++) {
       String key = trios[i].getOffspringFIDIID();
       trioIndex.put(key, i);
@@ -545,7 +545,7 @@ public class cnvTrio extends CNVariant {
 
   private static Hashtable<String, Integer> hashParentalTrios(TrioQC[] trios,
                                                               SampleData sampleData) {
-    Hashtable<String, Integer> trioIndex = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> trioIndex = new Hashtable<>();
     for (int i = 0; i < trios.length; i++) {
       trioIndex.put(sampleData.lookup(trios[i].getFADNA())[1], i);
       trioIndex.put(sampleData.lookup(trios[i].getMODNA())[1], i);
@@ -586,9 +586,9 @@ public class cnvTrio extends CNVariant {
       this.iDNA = iDNA;
       this.faDNA = faDNA;
       this.moDNA = moDNA;
-      ICNV = new ArrayList<CNVariant>();
-      fullSummary = new ArrayList<String>();
-      filteredCNVS = new ArrayList<String>();
+      ICNV = new ArrayList<>();
+      fullSummary = new ArrayList<>();
+      filteredCNVS = new ArrayList<>();
     }
 
     public String getFaID() {
@@ -708,7 +708,7 @@ public class cnvTrio extends CNVariant {
     }
 
     private static float getregionMedianLRR(float[] lrrs, int[] indices) {
-      ArrayList<Float> tmp = new ArrayList<Float>(indices.length);
+      ArrayList<Float> tmp = new ArrayList<>(indices.length);
       float median = Float.NaN;
       if (indices != null) {
         for (int i = 0; i < indices.length; i++) {
@@ -782,7 +782,7 @@ public class cnvTrio extends CNVariant {
      * @return
      */
     private static TrioQC[] loadTrios(Project proj, String trioFile) {
-      ArrayList<TrioQC> alTrio = new ArrayList<TrioQC>();
+      ArrayList<TrioQC> alTrio = new ArrayList<>();
       int trioIndex = 0;
       Logger log = proj.getLog();
 
@@ -862,7 +862,7 @@ public class cnvTrio extends CNVariant {
     SampleData sampleData = proj.getSampleData(false);
     cnvTrio[] rawCNVTrios = loadTrios(proj.PROJECT_DIRECTORY.getValue() + trioResultsFile,
                                       proj.getLog());
-    List<cnvTrio> filteredCnvTrios = new ArrayList<cnvTrio>();
+    List<cnvTrio> filteredCnvTrios = new ArrayList<>();
     for (cnvTrio rawCNVTrio : rawCNVTrios) {
       CNVFilterPass filterPass = trioFilter.getCNVTrioFilterPass(rawCNVTrio);
       proj.getLog().report(filterPass.getReasonNotPassing() + "\t"
@@ -888,7 +888,7 @@ public class cnvTrio extends CNVariant {
       writerSummary.println(ArrayUtils.toStr(PLINK_CNV_HEADER) + "\t"
                             + ArrayUtils.toStr(FILTERED_OUTPUT_HEADER));
       writerCNV.println(ArrayUtils.toStr(PLINK_CNV_HEADER));
-      Hashtable<String, String> track = new Hashtable<String, String>();
+      Hashtable<String, String> track = new Hashtable<>();
 
       for (int i = 0; i < filteredCnvTrios.size(); i++) {
         cnvTrio currentTrio = filteredCnvTrios.get(i);

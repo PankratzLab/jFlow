@@ -893,11 +893,11 @@ public class CARe_Analyses {
     Vector<String> files, fileDescriptions, raceFiles;
 
     date = new Date().getTime();
-    raceFiles = new Vector<String>();
+    raceFiles = new Vector<>();
     log = new Logger(DRIVE_ROOT + "Analyses/ICAM/parseDemographics2.log");
     for (String[] element : RACES) {
-      files = new Vector<String>();
-      fileDescriptions = new Vector<String>();
+      files = new Vector<>();
+      fileDescriptions = new Vector<>();
       for (String element2 : STUDIES) {
         dir = DRIVE_ROOT + "Analyses/ICAM/IBC/" + element[0] + "/" + element2 + "/";
         if (new File(dir + "abo_icam.dosage").exists()) {
@@ -966,7 +966,7 @@ public class CARe_Analyses {
       }
     }
 
-    vHash = new Hashtable<String, Vector<String>>();
+    vHash = new Hashtable<>();
     // v = new Vector<String>();
     for (String element : STUDIES) {
       for (String[] element2 : RACES) {
@@ -1133,7 +1133,7 @@ public class CARe_Analyses {
     dir = "";
 
     count = 0;
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       writer = Files.openAppropriateWriter("catchUp." + ext.rootOf(phenofile)
                                            + (conditionals ? "_withCondi" : ""));
@@ -1360,9 +1360,9 @@ public class CARe_Analyses {
     // dir = "C:\\CARe_data\\conditionalMeta\\";
     dir = "";
     log = new Logger(dir + "metaAnalyzing" + (label == null ? "" : "_" + label) + ".log");
-    all = new Vector<String>();
+    all = new Vector<>();
     for (String[] element : RACES) {
-      race = new Vector<String>();
+      race = new Vector<>();
       for (String element2 : STUDIES) {
         filename = (label == null ? "" : label + "_") + element2 + "_" + element[0] + ".input";
         if (new File(dir + filename).exists()) {
@@ -1382,7 +1382,7 @@ public class CARe_Analyses {
     Vector<String> all;
 
     dir = "C:\\CARe_data\\conditionalMeta\\";
-    all = new Vector<String>();
+    all = new Vector<>();
     for (String[] element : RACES) {
       all.add(dir + element[0] + "_metal1.out");
     }
@@ -1407,11 +1407,11 @@ public class CARe_Analyses {
     log = new Logger(DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/parseFreqs.log");
 
     // parses alleleFreqs for genotype data
-    positions = new Hashtable<String, String>();
+    positions = new Hashtable<>();
     new File(DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/alleleFreqs/").mkdirs();
     for (String[] element : RACES) {
-      files = new Vector<String>();
-      parameters = new Vector<String>();
+      files = new Vector<>();
+      parameters = new Vector<>();
       for (String studie : studies) {
         dir = DRIVE_ROOT + "CARe_geno_data_and_misc/IBC/" + studie + "/iSELECT/renamed/";
         root = element[0] + "Full";
@@ -1464,7 +1464,7 @@ public class CARe_Analyses {
     // parses alleleFreqs for imputed data
     // positions = new Hashtable<String, String>();
     for (String[] element : RACES) {
-      files = new Vector<String>();
+      files = new Vector<>();
       for (String studie : studies) {
         dir = DRIVE_ROOT + "CARe_imputed_all_llange_24mar2010/" + studie + "/IBC/" + element[0]
               + "/";
@@ -1707,7 +1707,7 @@ public class CARe_Analyses {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     // String[] STUDIES = new String[] {"MESA"};
     // String[][] RACES = new String[][] {{"blacks", "AAM"},{"whites", "CEU"}};
@@ -1867,9 +1867,9 @@ public class CARe_Analyses {
 
     for (int iter = 0; iter <= numberOfAdditionalIterations; iter++) {
       new File(finalDir + "iteration" + iter + "/").mkdirs();
-      allFiles = new Vector<String>();
+      allFiles = new Vector<>();
       for (String[] element : RACES) {
-        files = new Vector<String>();
+        files = new Vector<>();
         for (int j = 0; j < STUDIES.length; j++) {
           dir = DRIVE_ROOT + "Analyses/ICAM/IBC/" + element[0] + "/" + STUDIES[j] + "/analysis_of_"
                 + pheno + "/";
@@ -1956,7 +1956,7 @@ public class CARe_Analyses {
     Vector<String> v;
     int[] skips;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String[] element : RACES) {
       for (String element2 : STUDIES) {
         filename = DRIVE_ROOT + "/Analyses/ICAM/IBC/" + element[0] + "/" + element2
@@ -1980,7 +1980,7 @@ public class CARe_Analyses {
     Vector<String> v;
     int[] skips;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String[] element : RACES) {
       for (String element2 : STUDIES) {
         filename = DRIVE_ROOT + "/Analyses/ICAM/IBC/" + element[0] + "/" + element2

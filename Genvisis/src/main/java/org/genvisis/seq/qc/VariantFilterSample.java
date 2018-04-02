@@ -25,17 +25,17 @@ public class VariantFilterSample {
   public VariantFilterSamplePass filter(VariantContext vc, FILTER_METHOD method) {
     VariantFilterSamplePass vcPass = new VariantFilterSamplePass();
     Set<String> samples = vc.getSampleNames();
-    HashSet<String> samplesToSetMissing = new HashSet<String>();
+    HashSet<String> samplesToSetMissing = new HashSet<>();
     VariantContextFilterPass tmp = null;
     if (vCFiltWholeVariant != null) {
       tmp = vCFiltWholeVariant.filter(vc);
       vcPass.getVcfps().add(tmp);
     }
     if (tmp == null || tmp.passed()) {
-      HashSet<String> passingSamples = new HashSet<String>();
+      HashSet<String> passingSamples = new HashSet<>();
       int samplesTested = 0;
       for (String sample : samples) {
-        HashSet<String> curSamp = new HashSet<String>();
+        HashSet<String> curSamp = new HashSet<>();
         curSamp.add(sample);
         VariantContext vcSamp = VCOps.getSubset(vc, curSamp, VC_SUBSET_TYPE.SUBSET_STRICT, false);
         Genotype g = vcSamp.getGenotype(0);
@@ -141,7 +141,7 @@ public class VariantFilterSample {
 
     public VariantFilterSamplePass() {
       super();
-      vcfps = new ArrayList<VariantContextFilterPass>();
+      vcfps = new ArrayList<>();
     }
 
     public VariantContext getPassingContext() {

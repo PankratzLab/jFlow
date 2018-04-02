@@ -236,7 +236,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     extraLayersVisible = null;
 
     image = null;
-    locLookup = new Hashtable<String, IntVector>();
+    locLookup = new Hashtable<>();
     flow = true;
     // pointsGeneratable = true;
     beEfficient = true;
@@ -612,7 +612,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
 
     long fullTime = System.currentTimeMillis();
 
-    pointsPlotted = new HashSet<Integer>();
+    pointsPlotted = new HashSet<>();
 
     if (g instanceof Graphics2D) {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -857,7 +857,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     locLookup.clear();
     // time = new Date().getTime();
     // step = Math.max((points.length)/100, 1);
-    layers = new Hashtable<String, Vector<PlotPoint>>();
+    layers = new Hashtable<>();
 
     long pointTime;
     if (DEBUGGING) {
@@ -915,7 +915,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
               if (layers.containsKey(trav)) {
                 layer = layers.get(trav);
               } else {
-                layers.put(trav, layer = new Vector<PlotPoint>(points.length));
+                layers.put(trav, layer = new Vector<>(points.length));
               }
               layer.add(points[i]);
             }
@@ -1761,7 +1761,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     radius = 0;
 
     gridIntensities = getGridIntensityForHeatMapGrid(nRows, nCols, radius);
-    ArrayList<Integer> intense = new ArrayList<Integer>();
+    ArrayList<Integer> intense = new ArrayList<>();
     for (int i = 0; i < nCols; i++) {
       for (int j = 0; j < nRows; j++) {
         if (gridIntensities[i][j] > 0) {
@@ -1771,11 +1771,11 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
     }
     int[] intent = Ints.toArray(intense);
 
-    HashSet<Integer> quantSet = new HashSet<Integer>();
+    HashSet<Integer> quantSet = new HashSet<>();
     for (int i = 0, count = (int) (1 / lvls[k]) - 1; i < count; i++) {
       quantSet.add(ArrayUtils.quantWithExtremeForTie(intent, (i + 1) * lvls[k]));
     }
-    ArrayList<Integer> quants = new ArrayList<Integer>(quantSet);
+    ArrayList<Integer> quants = new ArrayList<>(quantSet);
     Collections.sort(quants);
     // int[][] parulaColors = org.genvisis.one.ben.ParulaColorMap.getParulaMap(quants.size() + 1);
     //

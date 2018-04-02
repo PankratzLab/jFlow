@@ -110,7 +110,7 @@ public class PODAnnotator {
                                         + set.getLoci()[i].getUCSClocation() + " and got "
                                         + results.get(i).getSearchSpaceString());
       } else {
-        regionResults.add(new PODRegion<T>(set.getLoci()[i], results.get(i)));
+        regionResults.add(new PODRegion<>(set.getLoci()[i], results.get(i)));
       }
     }
     return regionResults;
@@ -290,13 +290,13 @@ public class PODAnnotator {
     for (POD pod : POD.values()) {
       switch (pod) {
         case MATERNAL:
-          manager.put(pod.toString(), new ColorItem<String>(pod.toString(), Color.BLUE));
+          manager.put(pod.toString(), new ColorItem<>(pod.toString(), Color.BLUE));
           break;
         case NONE:
-          manager.put(pod.toString(), new ColorItem<String>(pod.toString(), Color.LIGHT_GRAY));
+          manager.put(pod.toString(), new ColorItem<>(pod.toString(), Color.LIGHT_GRAY));
           break;
         case PATERNAL:
-          manager.put(pod.toString(), new ColorItem<String>(pod.toString(), Color.MAGENTA));
+          manager.put(pod.toString(), new ColorItem<>(pod.toString(), Color.MAGENTA));
           break;
         default:
           break;

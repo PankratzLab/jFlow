@@ -55,7 +55,7 @@ public class BlastFastaq extends BlastSeqProducer {
   @Override
   public Callable<BlastResultsSummary[]> next() {
     int numAdded = 0;
-    ArrayList<FastaEntry> curEntries = new ArrayList<FastaEntry>();
+    ArrayList<FastaEntry> curEntries = new ArrayList<>();
     while (reader.hasNext() && numAdded < numSeqsPerThread) {
       numTested++;
       FastqRecord record = reader.next();

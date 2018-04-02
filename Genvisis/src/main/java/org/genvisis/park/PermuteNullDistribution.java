@@ -31,7 +31,7 @@ public class PermuteNullDistribution {
     PrintWriter writer = null;
     String[] line;
     String temp, size;
-    Hashtable<String, Vector<String[]>> hash = new Hashtable<String, Vector<String[]>>();
+    Hashtable<String, Vector<String[]>> hash = new Hashtable<>();
     Hashtable<String, Vector<String>> countHash;
     Vector<String[]> vStringArray;
     Vector<String> vString;
@@ -69,7 +69,7 @@ public class PermuteNullDistribution {
           if (hash.containsKey(line[0])) {
             vStringArray = hash.get(line[0]);
           } else {
-            hash.put(line[0], vStringArray = new Vector<String[]>());
+            hash.put(line[0], vStringArray = new Vector<>());
           }
           vStringArray.add(line);
         }
@@ -83,14 +83,14 @@ public class PermuteNullDistribution {
       System.exit(2);
     }
 
-    countHash = new Hashtable<String, Vector<String>>();
+    countHash = new Hashtable<>();
     fams = HashVec.getKeys(hash);
     for (String fam : fams) {
       size = hash.get(fam).size() + "";
       if (countHash.containsKey(size)) {
         vString = countHash.get(size);
       } else {
-        countHash.put(size, vString = new Vector<String>());
+        countHash.put(size, vString = new Vector<>());
       }
       vString.add(fam);
     }
@@ -98,7 +98,7 @@ public class PermuteNullDistribution {
     sizes = HashVec.getNumericKeys(countHash);
     depMatrix = new double[sizes.length][][];
     indepMatrix = new double[sizes.length][][][];
-    pheno = new Vector<String>();
+    pheno = new Vector<>();
     count = 0;
     for (int i = 0; i < sizes.length; i++) {
       fams = ArrayUtils.toStringArray(countHash.get(sizes[i]));

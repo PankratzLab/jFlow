@@ -210,7 +210,7 @@ public class GATK_Genotyper {
         siSampleHaplotypeCallers = new GATK.SingleSampleHaplotypeCaller[inputBams.length];
         int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads,
                                                           numWithinSampleThreads, log);
-        WorkerHive<GATK.SingleSampleHaplotypeCaller> hive = new WorkerHive<GATK.SingleSampleHaplotypeCaller>(numBetweenSampleThreads,
+        WorkerHive<GATK.SingleSampleHaplotypeCaller> hive = new WorkerHive<>(numBetweenSampleThreads,
                                                                                                              10,
                                                                                                              log);
         WorkerSingleSampleAllSites[] workers = new WorkerSingleSampleAllSites[inputBams.length];

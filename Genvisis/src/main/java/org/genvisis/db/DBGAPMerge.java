@@ -39,8 +39,8 @@ public class DBGAPMerge {
 
     private List<DataColumn> dataDefs;
     private HashMap<String, Integer> defMap;
-    ArrayList<String> ids = new ArrayList<String>();
-    HashMap<String, String[]> idDataMap = new HashMap<String, String[]>();
+    ArrayList<String> ids = new ArrayList<>();
+    HashMap<String, String[]> idDataMap = new HashMap<>();
 
     public int getIndexOfDataColumn(String key) {
       return defMap.get(key);
@@ -48,7 +48,7 @@ public class DBGAPMerge {
 
     public void setDataDefs(List<DataColumn> readDataDict) {
       dataDefs = readDataDict;
-      defMap = new HashMap<String, Integer>();
+      defMap = new HashMap<>();
       for (int i = 0; i < dataDefs.size(); i++) {
         DataColumn dc = dataDefs.get(i);
         String key = dc.varName + ";" + dc.varID + ";" + dc.table;
@@ -67,7 +67,7 @@ public class DBGAPMerge {
     String varID;
     String varName;
     String varDesc;
-    HashMap<String, String> varValueDescriptions = new HashMap<String, String>();
+    HashMap<String, String> varValueDescriptions = new HashMap<>();
     String varUnit;
     String comment;
   }
@@ -79,7 +79,7 @@ public class DBGAPMerge {
   private static final String MISSING_DATA = ".";
 
   public ArrayList<FileSet> discoverFiles(String dir) {
-    ArrayList<FileSet> fss = new ArrayList<DBGAPMerge.FileSet>();
+    ArrayList<FileSet> fss = new ArrayList<>();
 
     String[] allFiles = new File(dir).list();
 
@@ -140,7 +140,7 @@ public class DBGAPMerge {
 
   public ArrayList<DataColumn> readDataDict(FileSet fs) throws ParserConfigurationException,
                                                         SAXException, IOException {
-    ArrayList<DataColumn> dict = new ArrayList<DBGAPMerge.DataColumn>();
+    ArrayList<DataColumn> dict = new ArrayList<>();
 
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     DocumentBuilder builder = factory.newDocumentBuilder();
@@ -233,7 +233,7 @@ public class DBGAPMerge {
 
   public void run(String[] dirs, String outFile, String outMap, Logger log) {
     this.log = log;
-    ArrayList<FileSet> files = new ArrayList<DBGAPMerge.FileSet>();
+    ArrayList<FileSet> files = new ArrayList<>();
     for (String dir : dirs) {
       files.addAll(discoverFiles(ext.verifyDirFormat(dir)));
     }
@@ -257,13 +257,13 @@ public class DBGAPMerge {
       }
     }
 
-    TreeSet<String> idSet = new TreeSet<String>();
+    TreeSet<String> idSet = new TreeSet<>();
     for (FileSet fs : files) {
       idSet.addAll(fs.ids);
     }
 
-    ArrayList<String> dataColumnKeys = new ArrayList<String>();
-    HashMap<String, ArrayList<FileSet>> dataColumnMap = new HashMap<String, ArrayList<FileSet>>();
+    ArrayList<String> dataColumnKeys = new ArrayList<>();
+    HashMap<String, ArrayList<FileSet>> dataColumnMap = new HashMap<>();
     int total = 0;
     for (FileSet fs : files) {
       for (DataColumn dc : fs.dataDefs) {
@@ -274,7 +274,7 @@ public class DBGAPMerge {
         }
         ArrayList<FileSet> fss = dataColumnMap.get(key);
         if (fss == null) {
-          fss = new ArrayList<DBGAPMerge.FileSet>();
+          fss = new ArrayList<>();
           dataColumnMap.put(key, fss);
         }
         fss.add(fs);

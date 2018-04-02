@@ -25,8 +25,8 @@ public class HapMapParserOld {
     PrintWriter writer;
     String[] line, indIDs = null, trans;
     String temp, trav;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     int index, ones, twos;
     String root = ext.rootOf(filename);
 

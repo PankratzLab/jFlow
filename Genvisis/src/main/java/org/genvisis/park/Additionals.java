@@ -21,7 +21,7 @@ public class Additionals {
     PrintWriter writer = null;
     String[] line;
     String fam, id = "", trav, prev;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     boolean affy;
 
     try {
@@ -90,7 +90,7 @@ public class Additionals {
     }
 
     try {
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       reader = Files.getReader("ninfo1.csv", tools.CRF_DIR); // (csv file
       // has 1
       // indiviual
@@ -124,10 +124,10 @@ public class Additionals {
     PrintWriter writer;
     String[] line;
     String trav, fam;
-    Vector<String> typed = new Vector<String>();
-    Vector<String> fams = new Vector<String>();
-    Hashtable<String, String> affecteds = new Hashtable<String, String>();
-    Hashtable<String, Vector<Vector<String>>> hash = new Hashtable<String, Vector<Vector<String>>>();
+    Vector<String> typed = new Vector<>();
+    Vector<String> fams = new Vector<>();
+    Hashtable<String, String> affecteds = new Hashtable<>();
+    Hashtable<String, Vector<Vector<String>>> hash = new Hashtable<>();
     Vector<Vector<String>> data;
     int numDads, numMoms;
 
@@ -260,9 +260,9 @@ public class Additionals {
     String[] line;
     String trav;
     Hashtable<String, String> affectionStatus;
-    Hashtable<String, IntVector[]> hash = new Hashtable<String, IntVector[]>();
-    Hashtable<String, IntVector[]> siblings = new Hashtable<String, IntVector[]>();
-    Hashtable<String, String> processed = new Hashtable<String, String>();
+    Hashtable<String, IntVector[]> hash = new Hashtable<>();
+    Hashtable<String, IntVector[]> siblings = new Hashtable<>();
+    Hashtable<String, String> processed = new Hashtable<>();
     IntVector[] counts, sibs, rents; // parentAff, parentVPD, siblingAff,
     // siblingVPD, childAff, childVPD
     String affStat, parentalAffStat, sibsRents;

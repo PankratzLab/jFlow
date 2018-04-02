@@ -61,13 +61,13 @@ public class ParseSNPlocations {
                                           String mergedVCF, Logger log, ProgressMonitor monitor) {
     BufferedReader reader;
 
-    ArrayList<int[]> resultList = new ArrayList<int[]>();
+    ArrayList<int[]> resultList = new ArrayList<>();
 
     String[] parts;
     String line = null;
-    ArrayList<String> nonRS = new ArrayList<String>();
-    ArrayList<String> rsNotFound = new ArrayList<String>();
-    HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
+    ArrayList<String> nonRS = new ArrayList<>();
+    ArrayList<String> rsNotFound = new ArrayList<>();
+    HashMap<String, Integer> indexMap = new HashMap<>();
     int index = 0;
 
     String PROG_KEY = "PARSESNPS";
@@ -144,7 +144,7 @@ public class ParseSNPlocations {
             if (markerVC == null && mergedVCFReader != null) {
               String curr = null;
               String next = rs;
-              HashSet<String> found = new HashSet<String>();
+              HashSet<String> found = new HashSet<>();
               found.add(rs);
               do {
                 curr = next;
@@ -238,9 +238,9 @@ public class ParseSNPlocations {
 
     String[] parts;
     String line = null;
-    ArrayList<String> nonRS = new ArrayList<String>();
-    ArrayList<String> rsNotFound = new ArrayList<String>();
-    HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
+    ArrayList<String> nonRS = new ArrayList<>();
+    ArrayList<String> rsNotFound = new ArrayList<>();
+    HashMap<String, Integer> indexMap = new HashMap<>();
     int index = 0;
 
     String PROG_KEY = "PARSESNPS";
@@ -323,7 +323,7 @@ public class ParseSNPlocations {
             if (markerVC == null && mergedVCFReader != null) {
               String curr = null;
               String next = rs;
-              HashSet<String> found = new HashSet<String>();
+              HashSet<String> found = new HashSet<>();
               found.add(rs);
               do {
                 curr = next;
@@ -539,7 +539,7 @@ public class ParseSNPlocations {
                     log.report("done");
                   } else {
                     log.report("failed; " + mergeDB + " not found");
-                    mergeHash = new Hashtable<Integer, Integer>();
+                    mergeHash = new Hashtable<>();
                   }
                 }
                 trav = Integer.parseInt(rs.substring(2));
@@ -696,7 +696,7 @@ public class ParseSNPlocations {
                     log.report("done");
                   } else {
                     log.report("failed; " + mergeDB + " not found");
-                    mergeHash = new Hashtable<Integer, Integer>();
+                    mergeHash = new Hashtable<>();
                   }
                 }
                 trav = Integer.parseInt(line[0].substring(2));
@@ -860,7 +860,7 @@ public class ParseSNPlocations {
       reader.close();
       System.out.println(ext.getTime() + "\tFound " + count + " merged markers");
 
-      hash = new Hashtable<Integer, Integer>(count);
+      hash = new Hashtable<>(count);
 
       count = 0;
       reader = Files.getAppropriateReader(source);

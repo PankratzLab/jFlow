@@ -463,7 +463,7 @@ public class LinkageMap {
     BufferedReader reader;
     String[] line;
     String trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     double[] newPositions;
     boolean problem = false;
     boolean wasInMorgans = currentlyInMorgans;

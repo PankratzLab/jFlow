@@ -89,9 +89,9 @@ public class SnpNexusParser {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, Hashtable<String, String[]>> hashes = new Hashtable<String, Hashtable<String, String[]>>();
+    Hashtable<String, Hashtable<String, String[]>> hashes = new Hashtable<>();
     Hashtable<String, String[]> hash;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     int index, option;
     String[] data;
     double d;
@@ -126,7 +126,7 @@ public class SnpNexusParser {
             break;
           case 0:
             for (int i = 0; i < 2; i++) {
-              v = new Vector<String>();
+              v = new Vector<>();
               if (hash.containsKey(line[0])) {
                 data = hash.get(line[0]);
                 for (String element : data) {

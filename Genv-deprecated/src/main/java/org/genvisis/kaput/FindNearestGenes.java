@@ -39,7 +39,7 @@ public class FindNearestGenes {
     markers = ArrayUtils.toStringArray(HashVec.loadFileToVec(DIR + filename, false, true, false));
 
     System.out.println("Loading map...");
-    poslar = new Hashtable<String, String>();
+    poslar = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(DIR + MAP));
       while (reader.ready()) {
@@ -76,8 +76,8 @@ public class FindNearestGenes {
       reader = new BufferedReader(new FileReader(GENES));
       reader.readLine();
       chr_start_stop = new int[3];
-      queuePoslar = new Vector<int[]>();
-      queueNames = new Vector<String>();
+      queuePoslar = new Vector<>();
+      queueNames = new Vector<>();
       while (reader.ready()) {
         line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         chr_start_stop = parseChrInfo(line);

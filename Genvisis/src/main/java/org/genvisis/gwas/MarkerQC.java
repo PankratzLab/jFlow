@@ -193,8 +193,8 @@ public class MarkerQC {
     log.report(ext.getTime());
     time = new Date().getTime();
     try {
-      v = new Vector<String>();
-      headers = new Vector<String[]>();
+      v = new Vector<>();
+      headers = new Vector<>();
       for (int i = 3; i < params.length; i++) {
         if (params[i][0].equals("maf")) {
           v.add("\"" + dir + params[i][1] + "\" 1 4=" + params[i][0]);
@@ -228,8 +228,8 @@ public class MarkerQC {
             ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
                             MISSHAP_HEADER, true);
             prev = "";
-            mishaps = new Vector<String>();
-            hash = new Hashtable<String, String[]>();
+            mishaps = new Vector<>();
+            hash = new Hashtable<>();
             done = false;
             while (!done) {
               if (reader.ready()) {
@@ -510,7 +510,7 @@ public class MarkerQC {
     if (paramV != null) {
       file = null;
       markers = null;
-      v = new Vector<String[]>();
+      v = new Vector<>();
       for (int i = 0; i < paramV.size(); i++) {
         line = paramV.get(i).trim().split("=");
         key = line[0];

@@ -29,8 +29,8 @@ public class OptimalSet {
   public static void optimize(String filename) {
     PrintWriter writer;
     String[] line, types;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     int sumUpkeep;
     long time;
     String[][] names;

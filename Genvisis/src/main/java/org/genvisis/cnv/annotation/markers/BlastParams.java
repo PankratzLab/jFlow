@@ -98,7 +98,7 @@ public class BlastParams implements AnalysisParams {
 
   @Override
   public VCFHeaderLine developHeaderLine() {
-    ArrayList<String> valueString = new ArrayList<String>();
+    ArrayList<String> valueString = new ArrayList<>();
     valueString.add(parseKeys[0] + fileSeq);
     valueString.add(parseKeys[1] + fastaDb);
     valueString.add(parseKeys[2] + maxAlignmentsReported);

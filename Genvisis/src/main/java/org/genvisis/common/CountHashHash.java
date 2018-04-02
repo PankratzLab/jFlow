@@ -7,7 +7,7 @@ public class CountHashHash {
   private final Hashtable<String, CountHash> hashes;
 
   public CountHashHash() {
-    hashes = new Hashtable<String, CountHash>();
+    hashes = new Hashtable<>();
   }
 
   public void add(String key, String value) {

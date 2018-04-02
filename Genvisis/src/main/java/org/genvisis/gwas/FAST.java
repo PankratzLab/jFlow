@@ -121,7 +121,7 @@ public class FAST {
 
         @Override
         public void run() {
-          ArrayList<String> metalAnalyses = new ArrayList<String>();
+          ArrayList<String> metalAnalyses = new ArrayList<>();
           String factorName = ext.rootOf(factorDir.getName(), true);
           Logger factorLog = new Logger(studyDir + factorName + ".log");
           factorLog.report(ext.getTime() + "]\tBegin processing for factor " + factorName);
@@ -515,7 +515,7 @@ public class FAST {
     HashMap<String, HashMap<String, HashMap<String, String>>> traits = loadTraitFiles(traitDir);
     // Study Pop DefObject
     HashMap<String, HashMap<String, DataDefinitions>> data = parseDataDefinitionsFile(dataFile);
-    ArrayList<String> dirs = new ArrayList<String>();
+    ArrayList<String> dirs = new ArrayList<>();
     // if (!checkKeys(traits, data)) {
     // // TODO error, missing trait (okay) or missing data (not as okay)
     // }
@@ -795,7 +795,7 @@ public class FAST {
       }
     });
 
-    HashMap<String, HashMap<String, HashMap<String, String>>> studyToFactorToPopToFile = new HashMap<String, HashMap<String, HashMap<String, String>>>();
+    HashMap<String, HashMap<String, HashMap<String, String>>> studyToFactorToPopToFile = new HashMap<>();
 
     for (String file : files) {
       String[] pts = file.substring(0, file.lastIndexOf(".")).split("_");
@@ -804,12 +804,12 @@ public class FAST {
       String factor = pts[2];
       HashMap<String, HashMap<String, String>> factorMap = studyToFactorToPopToFile.get(study);
       if (factorMap == null) {
-        factorMap = new HashMap<String, HashMap<String, String>>();
+        factorMap = new HashMap<>();
         studyToFactorToPopToFile.put(study, factorMap);
       }
       HashMap<String, String> popMap = factorMap.get(factor);
       if (popMap == null) {
-        popMap = new HashMap<String, String>();
+        popMap = new HashMap<>();
         factorMap.put(factor, popMap);
       }
       popMap.put(pop, file);
@@ -818,7 +818,7 @@ public class FAST {
   }
 
   public static HashMap<String, HashMap<String, DataDefinitions>> parseDataDefinitionsFile(String file) throws IOException {
-    HashMap<String, HashMap<String, DataDefinitions>> defs = new HashMap<String, HashMap<String, DataDefinitions>>();
+    HashMap<String, HashMap<String, DataDefinitions>> defs = new HashMap<>();
 
     BufferedReader reader = Files.getAppropriateReader(file);
     String line = null;
@@ -850,7 +850,7 @@ public class FAST {
 
       HashMap<String, DataDefinitions> defsMap = defs.get(dd.study);
       if (defsMap == null) {
-        defsMap = new HashMap<String, DataDefinitions>();
+        defsMap = new HashMap<>();
         defs.put(dd.study, defsMap);
       }
       defsMap.put(dd.popcode, dd);
@@ -1050,10 +1050,10 @@ public class FAST {
       return;
     }
 
-    HashMap<String, String[]> studyPopIDs = new HashMap<String, String[]>();
-    HashMap<String, HashMap<String, String[]>> studyPopDataPerSNP = new HashMap<String, HashMap<String, String[]>>();
-    HashMap<String, HashMap<String, String>> studyPopInfoPerSNP = new HashMap<String, HashMap<String, String>>();
-    HashSet<String> snpSet = new HashSet<String>();
+    HashMap<String, String[]> studyPopIDs = new HashMap<>();
+    HashMap<String, HashMap<String, String[]>> studyPopDataPerSNP = new HashMap<>();
+    HashMap<String, HashMap<String, String>> studyPopInfoPerSNP = new HashMap<>();
+    HashSet<String> snpSet = new HashSet<>();
 
     String[] snps = null;
     if (new File(snpList).exists()) {
@@ -1086,9 +1086,9 @@ public class FAST {
           }
         });
 
-        HashMap<String, String> dataFilesPerSNP = new HashMap<String, String>();
-        HashMap<String, Integer> dataLinePerSNP = new HashMap<String, Integer>();
-        HashSet<String> tempSnps = new HashSet<String>(snpSet);
+        HashMap<String, String> dataFilesPerSNP = new HashMap<>();
+        HashMap<String, Integer> dataLinePerSNP = new HashMap<>();
+        HashSet<String> tempSnps = new HashSet<>(snpSet);
         try {
 
           search: for (String dFile : chrDataFiles) {
@@ -1106,7 +1106,7 @@ public class FAST {
                 dataLinePerSNP.put(mkr, cnt);
                 HashMap<String, String> snpInfoMap = studyPopInfoPerSNP.get(study + "\t" + pop);
                 if (snpInfoMap == null) {
-                  snpInfoMap = new HashMap<String, String>();
+                  snpInfoMap = new HashMap<>();
                   studyPopInfoPerSNP.put(study + "\t" + pop, snpInfoMap);
                 }
                 snpInfoMap.put(mkr, line);
@@ -1140,7 +1140,7 @@ public class FAST {
             reader.close();
             HashMap<String, String[]> snpDataMap = studyPopDataPerSNP.get(study + "\t" + pop);
             if (snpDataMap == null) {
-              snpDataMap = new HashMap<String, String[]>();
+              snpDataMap = new HashMap<>();
               studyPopDataPerSNP.put(study + "\t" + pop, snpDataMap);
             }
             snpDataMap.put(snp, line.split(PSF.Regex.GREEDY_WHITESPACE));
@@ -1157,7 +1157,7 @@ public class FAST {
       HashMap<String, String[]> line = dataEntry.getValue();
       String[] ids = studyPopIDs.get(studyPop);
 
-      ArrayList<String> snpOrder = new ArrayList<String>(line.keySet());
+      ArrayList<String> snpOrder = new ArrayList<>(line.keySet());
       PrintWriter writer = Files.getAppropriateWriter(outfileBase + "_"
                                                       + studyPop.replaceAll("\t", "_") + ".data");
 

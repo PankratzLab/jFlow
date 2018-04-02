@@ -26,9 +26,9 @@ public class heritabilityEstimate {
     PrintWriter writer = null;
     String[] line, phenoNames = null, data;
     int[] indices = null;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     Hashtable<String, String> affHash;
-    Vector<String> vips = new Vector<String>(), v;
+    Vector<String> vips = new Vector<>(), v;
     Vector<String[]> members;
     String trav, prev;
     affHash = tools.getBestPDdx();
@@ -64,7 +64,7 @@ public class heritabilityEstimate {
     }
 
     reader = tools.getNinfoReader(2);
-    members = new Vector<String[]>();
+    members = new Vector<>();
     reader.readLine();
     prev = "";
     while (reader.ready()) {

@@ -44,7 +44,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
   }
 
   public static SegmentLists parseUCSCSegmentList(String filename, boolean ignoreFirstLine) {
-    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<>();
     Vector<Segment> vSegs;
     Segment[][] lists;
     int[] chrs;
@@ -56,7 +56,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
       if (hash.containsKey(seg.getChr() + "")) {
         vSegs = hash.get(seg.getChr() + "");
       } else {
-        hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
+        hash.put(seg.getChr() + "", vSegs = new Vector<>());
       }
       vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
     }
@@ -85,7 +85,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
    */
   public static SegmentLists parseSegmentList(String filename, int chrCol, int startCol,
                                               int stopCol, boolean ignoreFirstLine) {
-    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<>();
     Vector<Segment> vSegs;
     Segment[][] lists;
     int[] chrs;
@@ -97,7 +97,7 @@ public class SegmentLists implements Serializable, PlainTextExport {
       if (hash.containsKey(seg.getChr() + "")) {
         vSegs = hash.get(seg.getChr() + "");
       } else {
-        hash.put(seg.getChr() + "", vSegs = new Vector<Segment>());
+        hash.put(seg.getChr() + "", vSegs = new Vector<>());
       }
       vSegs.add(new Segment(seg.getChr(), seg.getStart(), seg.getStop()));
     }

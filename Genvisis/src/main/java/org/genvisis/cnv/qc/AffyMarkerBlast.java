@@ -115,7 +115,7 @@ public class AffyMarkerBlast extends MarkerBlast {
     probeFileParser.loadData();
     annotFileParser.determineIndicesFromTitles();
     annotFileParser.loadData();
-    ArrayList<MarkerFastaEntry> entries = new ArrayList<MarkerFastaEntry>(ArrayUtils.booleanArraySum(probeFileParser.getDataPresent()));
+    ArrayList<MarkerFastaEntry> entries = new ArrayList<>(ArrayUtils.booleanArraySum(probeFileParser.getDataPresent()));
     MarkerSetInfo markerSet = proj.getMarkerSet();
     ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
                                                                                                                  log)

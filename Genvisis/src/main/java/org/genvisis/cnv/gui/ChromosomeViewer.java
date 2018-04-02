@@ -39,7 +39,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
     startPosition = start;
     stopPosition = stop;
     track = gt;
-    geneRects = new ArrayList<GeneRectangle>();
+    geneRects = new ArrayList<>();
     oldGenes = new GeneData[0];
     addMouseMotionListener(this);
 
@@ -70,7 +70,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
     super.paintComponent(g);
     GeneData[] genes;
     int[][] exons;
-    Vector<Segment> v = new Vector<Segment>();
+    Vector<Segment> v = new Vector<>();
     int width, begin, end;
     int lastNameEnd = 0;
 
@@ -209,7 +209,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
   public void mouseMoved(MouseEvent e) {
     // Create a mouseover tooltip with the name of any genes within this range
     setToolTipText(null);
-    ArrayList<String> genes = new ArrayList<String>();
+    ArrayList<String> genes = new ArrayList<>();
 
     // Work through the list of genes in this view and see if we're inside their bounding boxes
     for (GeneRectangle geneRect : geneRects) {

@@ -158,7 +158,7 @@ public class TargetRegions<T extends Segment> {
        */
       private static final long serialVersionUID = 1L;
     };
-    TargetRegions<Segment> targetRegions = new TargetRegions<Segment>(vcf, set, vpop, log);
+    TargetRegions<Segment> targetRegions = new TargetRegions<>(vcf, set, vpop, log);
     targetRegions.summarizeRegions(output, toMatchVCF, toMatchAnnotations);
   }
 

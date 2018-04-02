@@ -455,7 +455,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       JLabel reqLbl = new JLabel("Requires:");
       panel.contentPanel.add(reqLbl, "cell 0 1");
 
-      Map<Requirement, JLabel> reqLbls = new java.util.HashMap<Requirement, JLabel>();
+      Map<Requirement, JLabel> reqLbls = new java.util.HashMap<>();
       requirementsLabels.put(step, reqLbls);
       int rowIndex = 2;
       addLabels(step, reqs, panel.contentPanel, rowIndex, new ArrayList<Integer>());
@@ -564,7 +564,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         panel.add(fileBtn, "cell 1 " + rowIndex);
         ArrayList<JButton> list = fileBtns.get(step);
         if (list == null) {
-          list = new ArrayList<JButton>();
+          list = new ArrayList<>();
           fileBtns.put(step, list);
         }
         list.add(fileBtn);
@@ -732,7 +732,7 @@ public class GenvisisWorkflowGUI extends JDialog {
      */
     public StepRefresher(final GenvisisWorkflowGUI gui, final Step... steps) {
       refrenceGUI = gui;
-      stepsToRefresh = new HashSet<Step>();
+      stepsToRefresh = new HashSet<>();
       for (final Step s : steps) {
         stepsToRefresh.addAll(s.getRelatedSteps());
       }
@@ -746,7 +746,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   }
 
   private Set<Step> getAllRelatedSteps(final Collection<Step> refreshSteps) {
-    HashSet<Step> allSteps = new HashSet<Step>();
+    HashSet<Step> allSteps = new HashSet<>();
     allSteps.addAll(refreshSteps);
     boolean go = true;
     while (go) {

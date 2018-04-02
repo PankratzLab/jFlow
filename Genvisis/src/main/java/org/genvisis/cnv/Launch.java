@@ -194,8 +194,8 @@ public class Launch extends JFrame implements ActionListener {
   // A dedicated class could also include related information like an action listener or icon, and
   // would
   // not be limited to one level of nesting.
-  private static final Map<String, List<String>> MENUS = new LinkedHashMap<String, List<String>>();
-  private static final Map<String, String> plotIcons = new LinkedHashMap<String, String>();
+  private static final Map<String, List<String>> MENUS = new LinkedHashMap<>();
+  private static final Map<String, String> plotIcons = new LinkedHashMap<>();
 
   // Static initializer
   {
@@ -264,7 +264,7 @@ public class Launch extends JFrame implements ActionListener {
     super("Genvisis " + VersionHelper.lastRelease(currentManifest.getVersion()).getNormalVersion());
     timestampOfPropertiesFile = -1;
     timestampOfSampleDataFile = -1;
-    threadsRunning = new Vector<Thread>();
+    threadsRunning = new Vector<>();
     log = new Logger();
   }
 
@@ -275,7 +275,7 @@ public class Launch extends JFrame implements ActionListener {
     String[] properties = LaunchProperties.getListOfProjectProperties();
 
     String[] projNames = LaunchProperties.getListOfProjectNames();
-    Map<String, Integer> indMap = new HashMap<String, Integer>();
+    Map<String, Integer> indMap = new HashMap<>();
     for (int i = 0; i < projNames.length; i++) {
       indMap.put(projNames[i], i);
     }
@@ -290,7 +290,7 @@ public class Launch extends JFrame implements ActionListener {
 
     // update the project box
     if (projectsBox != null) {
-      projectsBox.setModel(new DefaultComboBoxModel<String>(projNames));
+      projectsBox.setModel(new DefaultComboBoxModel<>(projNames));
     }
 
     // update the menu
@@ -595,7 +595,7 @@ public class Launch extends JFrame implements ActionListener {
       menu = new JMenu(title);
       menu.setMnemonic((int) title.charAt(0));
       menuBar.add(menu);
-      hash = new HashSet<Character>();
+      hash = new HashSet<>();
       List<String> entries = MENUS.get(title);
       for (String entry : entries) {
         if (entry == "1") {
@@ -664,7 +664,7 @@ public class Launch extends JFrame implements ActionListener {
    * @param menu Menu to add projects to
    */
   private void createProjectMenu(JMenuItem menu) {
-    Set<Character> hash = new HashSet<Character>();
+    Set<Character> hash = new HashSet<>();
     menu.removeAll();
 
     for (String project : projects) {
@@ -782,7 +782,7 @@ public class Launch extends JFrame implements ActionListener {
     projectsBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
     String[] projNames = LaunchProperties.getListOfProjectNames();
     projNames = ArrayUtils.sortedCopyAlphanum(projNames);
-    projectsBox.setModel(new DefaultComboBoxModel<String>(projNames));
+    projectsBox.setModel(new DefaultComboBoxModel<>(projNames));
 
     if (indexOfCurrentProj > 0 && projectsBox.getItemCount() > 0) {
       projectsBox.setSelectedIndex(indexOfCurrentProj);

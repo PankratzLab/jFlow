@@ -25,7 +25,7 @@ public class Images {
     int maxWid = 0;
     int maxHgt = 0;
 
-    final HashMap<String, BufferedImage> images = new HashMap<String, BufferedImage>();
+    final HashMap<String, BufferedImage> images = new HashMap<>();
 
     System.out.print("Reading image files: <");
     for (String imageFile : imageFilesWithPaths) {

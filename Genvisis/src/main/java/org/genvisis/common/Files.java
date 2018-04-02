@@ -748,8 +748,8 @@ public class Files {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
-    Hashtable<String, String[]> used = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
+    Hashtable<String, String[]> used = new Hashtable<>();
     String[] point;
     String[] keys;
     String trav;
@@ -985,10 +985,10 @@ public class Files {
     String serializedFilename;
     boolean serializing;
     String delimiter;
-    ArrayList<String> fileNames = new ArrayList<String>(fileParameters.length);
+    ArrayList<String> fileNames = new ArrayList<>(fileParameters.length);
     delimiter = Files.suggestDelimiter(outputFilename, log);
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < keys.length; i++) {
       hash.put(ignoreCase ? keys[i].toLowerCase() : keys[i], i + "");
     }
@@ -1032,7 +1032,7 @@ public class Files {
           parser = new GenParser(line, log);
           serializing = parser.toBeSerialized();
           if (serializing) {
-            sHash = new Hashtable<String, String[]>();
+            sHash = new Hashtable<>();
           } else {
             sHash = null;
           }
@@ -1153,7 +1153,7 @@ public class Files {
     delimiter = Files.suggestDelimiter(outputFilename, log);
 
     log.report("Data will be parsed for each file separately and then merged");
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < keys.length; i++) {
       hash.put(ignoreCase ? keys[i].toLowerCase() : keys[i], i + "");
     }
@@ -1200,7 +1200,7 @@ public class Files {
 
           serializing = parser.toBeSerialized();
           if (serializing) {
-            sHash = new Hashtable<String, String[]>();
+            sHash = new Hashtable<>();
           } else {
             sHash = null;
           }
@@ -1330,7 +1330,7 @@ public class Files {
     }
 
     count = 0;
-    hash = new Hashtable<String, Integer>(keys.length);
+    hash = new Hashtable<>(keys.length);
     for (int i = 0; i < lookupSource.length; i++) {
       if (lookupSource[i].length > 0) {
         if (lookupSource[i].length < numColsInKey + 1) {
@@ -1452,7 +1452,7 @@ public class Files {
     String line, delim;
 
     String[] keys = HashVec.loadFileToStringArray(keysFile, false, new int[] {0}, false);
-    HashMap<String, Integer> keyMap = new HashMap<String, Integer>();
+    HashMap<String, Integer> keyMap = new HashMap<>();
     for (int i = 0; i < keys.length; i++) {
       keyMap.put(keys[i], i);
     }
@@ -1499,7 +1499,7 @@ public class Files {
 
     // delimiters = new String[files.length];
     // headers = new String[files.length][];
-    output = new Vector<Vector<String>>();
+    output = new Vector<>();
     for (int i = 0; i < files.length; i++) {
       // headers[i] = getHeaderOfFile(files[i], delimiters[i], log);
       output.add(new Vector<String>());
@@ -1515,7 +1515,7 @@ public class Files {
         percent = false;
         sf = 4;
         values = new String[] {parameter[2]};
-        filters = new Vector<String>();
+        filters = new Vector<>();
         if (parameter[1].equals("mean") || parameter[1].equals("stdev")) {
           // stdev = false;
           // blank = false;
@@ -1640,7 +1640,7 @@ public class Files {
     Vector<String[]> v;
     boolean include;
 
-    v = new Vector<String[]>();
+    v = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       header = reader.readLine().trim().split(delimiter);
@@ -2424,7 +2424,7 @@ public class Files {
   public static String[] listAllFilesInTree(String dir) {
     Vector<String> allFiles;
 
-    allFiles = new Vector<String>();
+    allFiles = new Vector<>();
     traverseTree(dir, "", allFiles);
     return ArrayUtils.toStringArray(allFiles);
   }
@@ -3378,7 +3378,7 @@ public class Files {
       if (reader == null && log != null) {
         log.reportError("Error: file \"" + filename + "\" not found in current directory");
       }
-      v = new Vector<String>();
+      v = new Vector<>();
       count = 0;
       while (reader.ready() && count < nLines) {
         String line = reader.readLine();
@@ -3485,7 +3485,7 @@ public class Files {
         Files.writeArray(ArrayUtils.addStrToArray(command, sampleCode, 0), filename);
         return null;
       } else {
-        v = new Vector<String>();
+        v = new Vector<>();
         while (reader.ready()) {
           temp = reader.readLine();
           if (!temp.startsWith("#")
@@ -3723,7 +3723,7 @@ public class Files {
    * @return
    */
   public static String[] parseRemoteFTPFiles(String ftpdirAddress, String type, Logger log) {
-    ArrayList<String> remoteVcfs = new ArrayList<String>();
+    ArrayList<String> remoteVcfs = new ArrayList<>();
     URL url;
     if (!ftpdirAddress.startsWith("ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/")) {
       log.reportTimeWarning("Did not detect that " + ftpdirAddress
@@ -3787,7 +3787,7 @@ public class Files {
     BufferedReader reader;
     String[] line;
     String temp;
-    Vector<String[]> list = new Vector<String[]>();
+    Vector<String[]> list = new Vector<>();
     boolean problem = false;
 
     try {

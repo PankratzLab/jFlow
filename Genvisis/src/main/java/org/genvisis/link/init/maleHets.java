@@ -21,8 +21,8 @@ public class maleHets {
     String temp, fam, id, marker, first, second;
     StringTokenizer st;
     int numLeft;
-    Vector<String> listOfErrors = new Vector<String>();
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Vector<String> listOfErrors = new Vector<>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader("chrom23.pre"));
@@ -134,7 +134,7 @@ public class maleHets {
     System.out.println("done");
 
     Enumeration<String> enumer = hash.keys();
-    Vector<String> male_identity_crises = new Vector<String>();
+    Vector<String> male_identity_crises = new Vector<>();
     while (enumer.hasMoreElements()) {
       temp = enumer.nextElement();
       if (Integer.valueOf(hash.get(temp)).intValue() >= 3) {

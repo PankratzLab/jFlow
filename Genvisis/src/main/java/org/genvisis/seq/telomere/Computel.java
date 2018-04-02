@@ -36,7 +36,7 @@ public class Computel {
     String[] inputs = new String[] {config, computelCommandR};
     ext.parseDirectoryOfFile(config);
     String[] outputs = new String[] {outputDir + "results/tel.length.xls"};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("Rscript");
     command.add(computelCommandR);
     command.add(config);
@@ -48,7 +48,7 @@ public class Computel {
                                         Logger log) {
     String[] inputs = new String[] {inputBam};
     String[] outputs = new String[] {r1, r2};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("java");
     command.add("-jar");
     command.add(computelLoc + SAM_TO_FASTQ_LOC);
@@ -144,7 +144,7 @@ public class Computel {
         Files.write(config, configFile);
         boolean success = run(configFile, finalOutDirectory, computelCommand, log);
         if (success) {
-          ArrayList<String> filesToDelete = new ArrayList<String>();
+          ArrayList<String> filesToDelete = new ArrayList<>();
           filesToDelete.add(r1);
           filesToDelete.add(r2);
           filesToDelete.add(finalOutDirectory + "results/align/tel.align.sam");

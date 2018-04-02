@@ -20,7 +20,7 @@ public class createAspex {
     String temp, chrome, blank, id;
     boolean peachy = true;
     int numMarkers;
-    Vector<String> markers = new Vector<String>();
+    Vector<String> markers = new Vector<>();
     double[] markerDists;
     if (chromosome < 10) {
       chrome = "0" + chromosome;

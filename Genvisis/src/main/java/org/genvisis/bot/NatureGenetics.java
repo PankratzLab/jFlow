@@ -20,7 +20,7 @@ public class NatureGenetics {
 
     lines = ext.getClipboard().split("\n");
     index = 0;
-    hash = new HashSet<String>();
+    hash = new HashSet<>();
   }
 
   public void next() {

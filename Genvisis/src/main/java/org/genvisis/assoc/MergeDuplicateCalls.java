@@ -21,7 +21,7 @@ public class MergeDuplicateCalls {
     Hashtable<String, String[]> hash;
     int numFields;
 
-    hash = new Hashtable<String, String[]>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + filename));
       numFields = -1;

@@ -29,7 +29,7 @@ public class ReferenceGenomeTest {
     }
     System.out.println(ArrayUtils.toStr(test));
     System.out.println(ArrayUtils.toStr(bah));
-    ArrayList<Segment> tseg = new ArrayList<Segment>();
+    ArrayList<Segment> tseg = new ArrayList<>();
 
     for (int i = 1; i < 23; i++) {
       tseg.add(new Segment((byte) i,

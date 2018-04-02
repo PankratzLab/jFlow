@@ -170,7 +170,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
   private HashMap<String, Integer> colorData;
   private JPanel treePanel;
   private JScrollPane scrollPane;
-  private final HashSet<String> selectedDataHash = new HashSet<String>();
+  private final HashSet<String> selectedDataHash = new HashSet<>();
   private final ImageIcon flip1_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p.jpg");
   private final ImageIcon flip1_2 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_blue_3.jpg");
   private final ImageIcon flip2_1 = Grafik.getImageIcon("images/flip_and_invert/flip_10p_inv.jpg");
@@ -201,15 +201,15 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     } else {
       sampleData = null;
     }
-    validExts = new HashSet<String>();
-    dataKeys = new ArrayList<String>();
-    dataHash = new HashMap<String, ArrayList<String[]>>();
+    validExts = new HashSet<>();
+    dataKeys = new ArrayList<>();
+    dataHash = new HashMap<>();
     filenameMap = new HashMap<>();
-    dataColumnsHash = new HashMap<String, String[]>();
-    validColumnsHash = new HashMap<String, boolean[]>();
+    dataColumnsHash = new HashMap<>();
+    validColumnsHash = new HashMap<>();
     fileColumnDataPipes = new HashMap<>();
-    linkerIndices = new HashMap<String, int[]>();
-    columnMetaData = new HashMap<String, HashMap<Integer, ColumnMetaData>>();
+    linkerIndices = new HashMap<>();
+    columnMetaData = new HashMap<>();
 
     if (fileExts != null) {
       for (String ext : fileExts) {
@@ -303,7 +303,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     if (proj != null && promptOnClose) {
       previouslyLoadedFiles = proj.TWOD_LOADED_FILENAMES.getValue();
       String errMsg = "";
-      Set<String> failed = new HashSet<String>();
+      Set<String> failed = new HashSet<>();
       for (String previouslyLoadedFile : previouslyLoadedFiles) {
         String result = loadFile(previouslyLoadedFile);
         if (!result.isEmpty()) {
@@ -328,7 +328,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
       updateTreeForNewData();
       String[] sel = proj.TWOD_LOADED_VARIABLES.getValue();
-      List<String> passed = new ArrayList<String>();
+      List<String> passed = new ArrayList<>();
       // Determine which variable(s) of this file were selected
       for (String s : sel) {
         // Selection syntax is "filename|variable_index"
@@ -801,7 +801,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
   }
 
   public String[] getNamesSelected() {
-    ArrayList<String> resultList = new ArrayList<String>();
+    ArrayList<String> resultList = new ArrayList<>();
     String[][] metaData = getCurrentColumnMetaData();
     String[][] selectedValues = tree.getSelectionValues();
     for (int i = 0; i < metaData.length; i++) {
@@ -847,8 +847,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
     // file/collection name and column number of selected data collection
     selectedNodes = tree.getSelectionValues();
-    v = new ArrayList<String[]>();
-    xHash = new HashMap<String, String[]>();
+    v = new ArrayList<>();
+    xHash = new HashMap<>();
     if (selectedNodes[0][0] != null && linkerIndices.get(selectedNodes[0][0]) != null) {
       selectedColumn = Integer.parseInt(selectedNodes[0][1]);
       selectedFile = selectedNodes[0][0];
@@ -971,7 +971,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
         }
       }
       keys = xHash.keySet();
-      v = new ArrayList<String[]>();
+      v = new ArrayList<>();
       for (String key : keys) {
         inLine = xHash.get(key);
         if (includeColorKeyValue) {
@@ -1299,7 +1299,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     // - is required?
     // - use prev if missing?
 
-    HashSet<String> tagSet = new HashSet<String>();
+    HashSet<String> tagSet = new HashSet<>();
     tagSet.add("fileX");
     tagSet.add("fileY");
     tagSet.add("xDataColumn");
@@ -1327,12 +1327,12 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
     notRqrd.add(SCRN_TAG_COLOR_DATA_COL);
     notRqrd.add(SCRN_TAG_COLOR_FILE);
 
-    HashMap<String, ArrayList<String>> tagValues = new HashMap<String, ArrayList<String>>();
+    HashMap<String, ArrayList<String>> tagValues = new HashMap<>();
     for (String tagKey : tagSet) {
       tagValues.put(tagKey, new ArrayList<String>());
     }
 
-    HashSet<String> lineTagEntries = new HashSet<String>();
+    HashSet<String> lineTagEntries = new HashSet<>();
     for (String line : ctrlLines) {
       String[] lineTags = line.trim().split(ext.REGEX_TO_SPLIT_SPACES_NOT_IN_QUOTES);
       for (String lineTag : lineTags) {
@@ -1385,7 +1385,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
       lineTagEntries.clear();
     }
 
-    ArrayList<ScreenToCapture> caps = new ArrayList<TwoDPlot.ScreenToCapture>();
+    ArrayList<ScreenToCapture> caps = new ArrayList<>();
     int capCnt = ctrlLines.size();
     for (int i = 0; i < capCnt; i++) {
       String[] files = new String[3];
@@ -1440,7 +1440,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
   public void createScreenshots(String baseDir, List<ScreenToCapture> screens) {
     generatingScreenshots = true;
-    HashSet<String> dataFiles = new HashSet<String>();
+    HashSet<String> dataFiles = new HashSet<>();
 
     for (ScreenToCapture cap : screens) {
       if (cap.dataXFile != null && Files.exists(baseDir + cap.dataXFile)) {
@@ -1595,7 +1595,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
                                                                        screencap.colorIDIndex,
                                                                        new int[] {screencap.colorIndex},
                                                                        "\t", true);
-    this.colorData = new HashMap<String, Integer>();
+    this.colorData = new HashMap<>();
     for (java.util.Map.Entry<String, String> entry : colorData.entrySet()) {
       this.colorData.put(entry.getKey(), Integer.valueOf(entry.getValue()));
     }
@@ -1646,7 +1646,7 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
 
       lineLength = header.length;
 
-      ArrayList<String[]> data = new ArrayList<String[]>();
+      ArrayList<String[]> data = new ArrayList<>();
       boolean[] valid = ArrayUtils.booleanArray(header.length, true);
 
       String tempLine = "";
@@ -1820,8 +1820,8 @@ public class TwoDPlot extends JPanel implements WindowListener, ActionListener, 
    * CHR POS START STOP LABEL
    */
   public String[][] getCurrentColumnMetaData() {
-    ArrayList<String[]> resultList = new ArrayList<String[]>();
-    HashSet<String> inclSet = new HashSet<String>();
+    ArrayList<String[]> resultList = new ArrayList<>();
+    HashSet<String> inclSet = new HashSet<>();
     String[][] selectionValues = tree.getSelectionValues();
     for (String[] selectionValue : selectionValues) {
       String[] result = null;

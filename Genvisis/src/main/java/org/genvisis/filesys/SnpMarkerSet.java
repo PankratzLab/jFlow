@@ -269,7 +269,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     int countNon;
 
     rsNumbers = new int[markerNames.length];
-    nonRSmarkerNames = new Vector<String>();
+    nonRSmarkerNames = new Vector<>();
 
     countNon = 0;
     for (int i = 0; i < markerNames.length; i++) {
@@ -352,7 +352,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
   public int[][] getPositionsByChr() {
     int[][] posByChr;
 
-    HashMap<Integer, ArrayList<Integer>> posMap = new HashMap<Integer, ArrayList<Integer>>();
+    HashMap<Integer, ArrayList<Integer>> posMap = new HashMap<>();
     for (int i = 0; i < 27; i++) {
       posMap.put(i, new ArrayList<Integer>());
     }
@@ -602,7 +602,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
       return;
     }
 
-    Set<String> excludeMarkers = excludeMarkersFile == null ? new HashSet<String>()
+    Set<String> excludeMarkers = excludeMarkersFile == null ? new HashSet<>()
                                                             : HashVec.loadFileToHashSet(excludeMarkersFile,
                                                                                         false);
 
@@ -793,7 +793,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                 if (verbose) {
                   log.report("failed; " + mergeDB + " not found");
                 }
-                mergeHash = new Hashtable<Integer, Integer>();
+                mergeHash = new Hashtable<>();
               }
             }
             trav = Integer.parseInt(markerNames[i].substring(2));
@@ -949,7 +949,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     markerNames = getMarkerNames();
     chrs = getChrs();
     positions = getPositions();
-    chrHash = new Hashtable<String, String>(markerNames.length);
+    chrHash = new Hashtable<>(markerNames.length);
     for (int i = 0; i < markerNames.length; i++) {
       chrHash.put(markerNames[i], chrs[i] + "\t" + positions[i]);
     }
@@ -966,7 +966,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     markerNames = getMarkerNames();
     chrs = getChrs();
     positions = getPositions();
-    segHash = new Hashtable<String, Segment>(markerNames.length);
+    segHash = new Hashtable<>(markerNames.length);
     for (int i = 0; i < markerNames.length; i++) {
       segHash.put(markerNames[i], new Segment(chrs[i], positions[i], positions[i] + 1));
     }
@@ -1074,8 +1074,8 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                               + " duplicate markers detected in SnpMarkerSet");
       }
       // reload marker hash and identify duplicate markers
-      hash = new HashSet<String>((int) (1 + markerNames.length / .75));
-      dupeHash = new HashSet<String>((int) (1 + (markerNames.length - hash.size()) / .75));
+      hash = new HashSet<>((int) (1 + markerNames.length / .75));
+      dupeHash = new HashSet<>((int) (1 + (markerNames.length - hash.size()) / .75));
       for (String mkr : markerNames) {
         if (hash.contains(mkr)) {
           dupeHash.add(mkr);

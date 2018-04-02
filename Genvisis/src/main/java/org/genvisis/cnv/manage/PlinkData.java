@@ -408,7 +408,7 @@ public class PlinkData {
     PrintWriter writer;
     char[][] alleles;
 
-    allelesTmp = new Vector<char[]>();
+    allelesTmp = new Vector<>();
     try {
       reader = new Scanner(new FileInputStream(plinkDirAndFilenameRoot + ".bim"));
       reader.nextLine();
@@ -579,7 +579,7 @@ public class PlinkData {
     Scanner reader;
     Vector<String> data;
 
-    data = new Vector<String>();
+    data = new Vector<>();
     try {
       reader = new Scanner(new FileInputStream(famOrBimFileFullPath));
 
@@ -840,7 +840,7 @@ public class PlinkData {
 
     log = proj.getLog();
     log.report(ext.getTime());
-    hash = new Hashtable<String, Integer>();
+    hash = new Hashtable<>();
     markerSet = proj.getMarkerSet();
     markerNames = markerSet.getMarkerNames();
 
@@ -1102,7 +1102,7 @@ public class PlinkData {
   }
 
   private static String[] loadSampsInPed(String ped, Logger log) {
-    ArrayList<String> samps = new ArrayList<String>();
+    ArrayList<String> samps = new ArrayList<>();
     try {
       BufferedReader reader = new BufferedReader(new FileReader(ped));
       String temp = null;
@@ -1191,8 +1191,8 @@ public class PlinkData {
                                                    targetMarkers.length,
                                                    ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     indicesOfTargetMarkersInProj = new int[targetMarkers.length];
-    chrsOfTargetMarkers = new HashMap<String, Byte>();
-    posOfTargetMarkers = new HashMap<String, Integer>();
+    chrsOfTargetMarkers = new HashMap<>();
+    posOfTargetMarkers = new HashMap<>();
     getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj,
                               chrsOfTargetMarkers, posOfTargetMarkers, log);
     log.reportTime("Exporting data for " + targetMarkers.length + " markers.");
@@ -1235,7 +1235,7 @@ public class PlinkData {
     boolean found;
     String[] allSampInProj = proj.getSamples();
 
-    hash = new Hashtable<String, Integer>();
+    hash = new Hashtable<>();
     for (String targetSample : targetSamples) {
       if (hash.containsKey(targetSample)) {
         log.reportError("Warning - duplicate sample id in the list of samples to include: "
@@ -1316,7 +1316,7 @@ public class PlinkData {
       positions = markerSet.getPositions();
       found = new boolean[inputTargetMarkers.length];
       log.report("Loading " + inputTargetMarkers.length + " target markers");
-      HashMap<String, Integer> markerPositions = new HashMap<String, Integer>();
+      HashMap<String, Integer> markerPositions = new HashMap<>();
       for (int j = 0; j < allMarkersInProj.length; j++) {
         markerPositions.put(allMarkersInProj[j], j);
       }
@@ -1537,7 +1537,7 @@ public class PlinkData {
 
     log = proj.getLog();
     allSamples = proj.getSamples();
-    dnas = new Vector<String>();
+    dnas = new Vector<>();
 
     try {
       filename = proj.PEDIGREE_FILENAME.getValue();

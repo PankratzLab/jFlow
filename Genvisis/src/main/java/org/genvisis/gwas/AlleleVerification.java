@@ -80,7 +80,7 @@ public class AlleleVerification {
         // 1000G uses the format chr:position:a1:a2 OR rsid:position:a1:a2, so we need to convert to
         // chr:position or rsid
         Set<String> keys = ref.keySet();
-        Hashtable<String, String> tempref = new Hashtable<String, String>();
+        Hashtable<String, String> tempref = new Hashtable<>();
         for (String k : keys) {
           String newKey = k;
           if (k.contains(":")) {

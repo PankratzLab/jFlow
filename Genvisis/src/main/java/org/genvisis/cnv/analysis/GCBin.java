@@ -59,7 +59,7 @@ public class GCBin extends Segment {
     }
     PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
     int[][] indices = markerSet.getIndicesByChr();
-    ArrayList<GCBin> allGc = new ArrayList<GCBin>();
+    ArrayList<GCBin> allGc = new ArrayList<>();
 
     for (int i = 0; i < indices.length; i++) {
       if (indices[i].length > 0) {

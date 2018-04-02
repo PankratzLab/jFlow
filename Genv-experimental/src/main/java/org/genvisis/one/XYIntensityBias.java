@@ -20,7 +20,7 @@ public class XYIntensityBias {
   private static void run(Project proj) {
 
     XYProducer producer = new XYProducer(proj, proj.getSamples());
-    try (WorkerTrain<double[][]> train = new WorkerTrain<double[][]>(producer, 6, 2,
+    try (WorkerTrain<double[][]> train = new WorkerTrain<>(producer, 6, 2,
                                                                      proj.getLog())) {
       String outDir = proj.PROJECT_DIRECTORY.getValue() + "xyComp/";
       new File(outDir).mkdirs();

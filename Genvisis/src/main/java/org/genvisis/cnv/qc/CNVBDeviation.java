@@ -39,8 +39,8 @@ public class CNVBDeviation {
     // TODO, set the 0s to NaN?
     medianBDeviationAll = 0;
     medianBDeviationHet = 0;
-    bDeviationsAll = new ArrayList<Double>();
-    bDeviationsHet = new ArrayList<Double>();
+    bDeviationsAll = new ArrayList<>();
+    bDeviationsHet = new ArrayList<>();
   }
 
   /**

@@ -31,7 +31,7 @@ public class SDL implements Iterator<Sample> {
 
   private void init() {
     producer = new SDLProducer(proj, samples, lType);
-    train = new WorkerTrain<Sample>(producer, numThreads, 2, proj.getLog());
+    train = new WorkerTrain<>(producer, numThreads, 2, proj.getLog());
   }
 
   public enum LOAD_TYPE {

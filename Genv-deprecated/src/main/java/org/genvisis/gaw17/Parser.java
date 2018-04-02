@@ -108,9 +108,9 @@ public class Parser {
     Hashtable<String, Vector<String>> hash, nonsynon;
     Vector<String> genes;
 
-    genes = new Vector<String>();
-    hash = new Hashtable<String, Vector<String>>();
-    nonsynon = new Hashtable<String, Vector<String>>();
+    genes = new Vector<>();
+    hash = new Hashtable<>();
+    nonsynon = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split(",");

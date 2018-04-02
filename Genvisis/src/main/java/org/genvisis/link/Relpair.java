@@ -216,8 +216,8 @@ public class Relpair {
     Hashtable<String, String> within, between;
     String[] keys;
 
-    within = new Hashtable<String, String>();
-    between = new Hashtable<String, String>();
+    within = new Hashtable<>();
+    between = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + "relpair.out"));
       do {

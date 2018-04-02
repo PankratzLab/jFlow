@@ -463,7 +463,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     }
     sp.updateColorKey(uniqueValueCounts.convertToHash(), panelIndex);
 
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     for (PlotPoint point : points) { // only indi points? (i.e. not centroid points?)
       if (point != null
           && disabledClassValues.containsKey(currentClass + "\t" + point.getColor())) {
@@ -492,7 +492,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
   }
 
   private void generateLines(String[] sex) {
-    ArrayList<GenericLine> linesList = new ArrayList<GenericLine>();
+    ArrayList<GenericLine> linesList = new ArrayList<>();
     byte size = (byte) 3;
     byte momColor = (byte) 6;
     byte dadColor = (byte) 7;
@@ -551,7 +551,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     String[] line;
 
     try {
-      alleleCountsNew = new Hashtable<String, Byte>(alleleCounts.length);
+      alleleCountsNew = new Hashtable<>(alleleCounts.length);
       isNewGenotypingDifferent = new boolean[alleleCounts.length];
       reader = new BufferedReader(new FileReader(alternativeGenotypingFilename));
       reader.readLine();

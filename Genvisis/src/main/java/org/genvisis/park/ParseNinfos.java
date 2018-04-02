@@ -76,13 +76,13 @@ public class ParseNinfos {
     PrintWriter writer_CSV, writer_DAT, writer_DOB, writer;
     String[] line, master;
     String temp, trav;
-    Hashtable<String, Vector<String[]>> hash = new Hashtable<String, Vector<String[]>>();
+    Hashtable<String, Vector<String[]>> hash = new Hashtable<>();
     Vector<String[]> v;
-    Vector<String> inds = new Vector<String>();
+    Vector<String> inds = new Vector<>();
     Vector<String> phenos, dnas;
     int lastCol;
-    Vector<String> missingPheno = new Vector<String>();
-    Vector<String> missingDOB = new Vector<String>();
+    Vector<String> missingPheno = new Vector<>();
+    Vector<String> missingDOB = new Vector<>();
 
     try {
       try {
@@ -127,7 +127,7 @@ public class ParseNinfos {
         if (hash.containsKey(line[0] + "\t" + line[1])) {
           v = hash.get(line[0] + "\t" + line[1]);
         } else {
-          hash.put(line[0] + "\t" + line[1], v = new Vector<String[]>());
+          hash.put(line[0] + "\t" + line[1], v = new Vector<>());
           inds.add(line[0] + "\t" + line[1]);
         }
         v.add(line);
@@ -140,8 +140,8 @@ public class ParseNinfos {
       for (int i = 0; i < inds.size(); i++) {
         v = hash.get(inds.elementAt(i));
         master = new String[header.length];
-        phenos = new Vector<String>();
-        dnas = new Vector<String>();
+        phenos = new Vector<>();
+        dnas = new Vector<>();
         for (int j = 0; j < v.size(); j++) {
           line = v.elementAt(j);
           if (!phenos.contains(line[3] + "-" + line[6])) {
@@ -263,7 +263,7 @@ public class ParseNinfos {
     PrintWriter writer_CSV, writer_DAT;
     String[] line;
     String trav;
-    Hashtable<String, Vector<String[]>> hash = new Hashtable<String, Vector<String[]>>();
+    Hashtable<String, Vector<String[]>> hash = new Hashtable<>();
     Hashtable<String, String> hashString;
 
     try {
@@ -286,7 +286,7 @@ public class ParseNinfos {
       writer_CSV.println();
       writer_DAT.println();
 
-      hashString = new Hashtable<String, String>();
+      hashString = new Hashtable<>();
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         line[4] = line[4].equals("") ? "0" : line[4];

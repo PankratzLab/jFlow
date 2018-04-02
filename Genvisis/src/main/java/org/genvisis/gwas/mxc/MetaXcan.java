@@ -15,7 +15,7 @@ public class MetaXcan {
     String[] files = Files.list(dataFolder, extension);
     int numProcs = Math.min(24, files.length);
 
-    ArrayList<String> commands = new ArrayList<String>();
+    ArrayList<String> commands = new ArrayList<>();
     for (String s : files) {
       String c = "\njava -jar " + Launch.getJarLocation() + " gwas.mxc.ParseMXCResults data="
                  + dataFolder + s + " mxc=" + mxc_folder + " ref=" + refFile + " freq=" + freqFile

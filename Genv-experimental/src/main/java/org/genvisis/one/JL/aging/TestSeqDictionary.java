@@ -18,7 +18,7 @@ public class TestSeqDictionary {
 
   public static void main(String[] args) {
     String bam = "/Volumes/Beta/data/aric_sra/test/bams/SRR1700989.bam";
-    ArrayList<Segment> testSegs = new ArrayList<Segment>();
+    ArrayList<Segment> testSegs = new ArrayList<>();
     for (int i = 0; i < 27; i++) {
       testSegs.add(new Segment((byte) i, 1, 1000));
 

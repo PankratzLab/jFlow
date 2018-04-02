@@ -20,7 +20,7 @@ public class empiricalPvalues {
     PrintWriter optfile = null;
     String temp, chrome, file = null;
     StringTokenizer st;
-    Hashtable<String, boolean[]> hash = new Hashtable<String, boolean[]>();
+    Hashtable<String, boolean[]> hash = new Hashtable<>();
     int numMarkers;
     boolean[] handle;
     boolean done = false;

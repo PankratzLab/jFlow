@@ -86,7 +86,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
     public static ArrayList<BlastAnnotation> filterAnnotations(Project proj,
                                                                List<BlastAnnotation> annotations,
                                                                int alignFilter) {
-      ArrayList<BlastAnnotation> filteredList = new ArrayList<BlastAnnotation>();
+      ArrayList<BlastAnnotation> filteredList = new ArrayList<>();
       for (BlastAnnotation annot : annotations) {
         if (countAlignment(annot) > alignFilter) {
           filteredList.add(annot);
@@ -188,7 +188,7 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
   private final JCheckBox chckbxSortByLocation;
   private final JSeparator separator_1;
   private final JCheckBox chckbxPinToFront;
-  HashMap<BlastLabel, JLabel> alignCntLblMap = new HashMap<BlastLabel, JLabel>();
+  HashMap<BlastLabel, JLabel> alignCntLblMap = new HashMap<>();
   private ArrayList<BlastLabel> bLabels;
   private ArrayList<BlastLabel> sorted;
   private ArrayList<JLabel> otherLabels;
@@ -466,11 +466,11 @@ public class BlastFrame extends JFrame implements WindowFocusListener {
   }
 
   public void updateLabels() {
-    BlastLabel.spaces = new TreeSet<Integer>();
-    BlastLabel.spaceSets = new TreeMap<Integer, Integer>();
-    bLabels = new ArrayList<BlastLabel>();
-    sorted = new ArrayList<BlastLabel>();
-    otherLabels = new ArrayList<JLabel>();
+    BlastLabel.spaces = new TreeSet<>();
+    BlastLabel.spaceSets = new TreeMap<>();
+    bLabels = new ArrayList<>();
+    sorted = new ArrayList<>();
+    otherLabels = new ArrayList<>();
     for (BlastAnnotation annot : annotations) {
       BlastLabel lbl = new BlastLabel(proj, referenceAnnotation, annot, referenceGenome);
       // if (lbl.strandFlipped) continue;

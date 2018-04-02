@@ -116,8 +116,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
   private JMenu loadRecentFileMenu;
   private JMenu editRegionFileMenu;
   private ButtonGroup regionButtonGroup;
-  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
-  private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
+  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<>();
+  private final HashMap<String, String> regionFileNameLoc = new HashMap<>();
   private String[] originalRegionFiles = null;
 
   public CompPlot(Project proj) {
@@ -159,7 +159,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
       @Override
       public void windowClosing(WindowEvent e) {
         String[] curr = CompPlot.this.proj.REGION_LIST_FILENAMES.getValue();
-        HashSet<String> currSet = new HashSet<String>();
+        HashSet<String> currSet = new HashSet<>();
         for (String s : curr) {
           currSet.add(s);
         }
@@ -209,8 +209,8 @@ public class CompPlot extends JFrame implements ChrNavigator {
     }
 
     // Load the variants into memory
-    hashes = new ArrayList<CNVariantHash>();
-    filterFiles = new ArrayList<String>();
+    hashes = new ArrayList<>();
+    filterFiles = new ArrayList<>();
     Iterator<String> fit = fileList.iterator();
     while (fit.hasNext()) {
       String file = fit.next();
@@ -230,7 +230,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
 
     files = fileList.toArray(new String[fileList.size()]);
 
-    allFiles = new ArrayList<String>();
+    allFiles = new ArrayList<>();
     for (String file2 : files) {
       File file = new File(file2);
       String filename = file.getName();

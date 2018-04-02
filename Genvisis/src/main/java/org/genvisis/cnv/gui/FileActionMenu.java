@@ -36,9 +36,9 @@ public abstract class FileActionMenu {
   }
 
   private void init() {
-    existingFiles = new ArrayList<String>();
-    buttonMap = new HashMap<String, JCheckBoxMenuItem>();
-    namePathMap = new Hashtable<String, Integer>();
+    existingFiles = new ArrayList<>();
+    buttonMap = new HashMap<>();
+    namePathMap = new Hashtable<>();
     if (actionFiles != null) {
       for (int i = 0; i < actionFiles.length; i++) {
         if (Files.exists(actionFiles[i])) {

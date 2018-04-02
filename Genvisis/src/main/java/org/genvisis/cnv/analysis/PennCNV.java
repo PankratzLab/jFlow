@@ -391,8 +391,8 @@ public class PennCNV {
     PrintWriter writer;
     String[] line, data;
     String temp, sampleID = null;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     SampleData sampleData;
     int err;
     double lrrSD_cutoff;
@@ -520,7 +520,7 @@ public class PennCNV {
     // TODO check input and output file names for .cnv extension( - error if not? or just
     // warning...?)
 
-    java.util.HashMap<String, java.util.TreeMap<String, java.util.ArrayList<String[]>>> cnvSet = new HashMap<String, TreeMap<String, ArrayList<String[]>>>();
+    java.util.HashMap<String, java.util.TreeMap<String, java.util.ArrayList<String[]>>> cnvSet = new HashMap<>();
 
     String temp;
     String[] line;
@@ -541,7 +541,7 @@ public class PennCNV {
           // get all CNVs for an individual:
           TreeMap<String, ArrayList<String[]>> chrSets = cnvSet.get(key);
           if (chrSets == null) {
-            chrSets = new TreeMap<String, ArrayList<String[]>>();
+            chrSets = new TreeMap<>();
             cnvSet.put(key, chrSets);
           }
           chr = line[2];
@@ -639,16 +639,16 @@ public class PennCNV {
       return;
     }
 
-    warnings = new Vector<String>();
+    warnings = new Vector<>();
     sampleData = proj.getSampleData(false);
-    pedinfo = new Hashtable<String, Vector<String>>();
+    pedinfo = new Hashtable<>();
     Pedigree ped = proj.loadPedigree();
     PrintWriter[] denoValWriter = new PrintWriter[1];
     try {
       reader = new BufferedReader(new FileReader(filename));
       writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + ".cnv");
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       while (reader.ready()) {
         temp = reader.readLine();
         if (!temp.startsWith("NOTICE:")) {
@@ -913,7 +913,7 @@ public class PennCNV {
     if (separateQsubFiles) {
       execList = null;
     } else {
-      execList = new Vector<String>();
+      execList = new Vector<>();
     }
 
     String[] samples = getSamplesForTransform(proj, !useExcludes);
@@ -933,7 +933,7 @@ public class PennCNV {
         log.reportError("Error - no marker set available.");
       } else {
         log.report("Transforming data for chromosomal CNV analysis");
-        HashSet<String> xMarkers = new HashSet<String>();
+        HashSet<String> xMarkers = new HashSet<>();
         byte[] chrs = ms.getChrs();
         String[] markers = ms.getMarkerNames();
         for (int i = 0; i < chrs.length; i++) {
@@ -1002,7 +1002,7 @@ public class PennCNV {
       log.report("All PennCNV files and scripts have been prepped. The next thing would be to qsub "
                  + proj.PENNCNV_RESULTS_DIRECTORY.getValue() + "runAllPenncnv.pbs");
     }
-    List<String> toRun = new ArrayList<String>();
+    List<String> toRun = new ArrayList<>();
     toRun.add(dir + "assemblePenncnv");
     toRun.add(dir + "chrX/assemblePenncnv");
     if (sexCent) {

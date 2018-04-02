@@ -181,7 +181,7 @@ public class BlastAnnotationTesting {
   }
 
   private static ArrayList<String> getTestMarks(Project proj) {
-    ArrayList<String> t = new ArrayList<String>();
+    ArrayList<String> t = new ArrayList<>();
     MarkerSetInfo markerSet = proj.getMarkerSet();
 
     for (int i = 0; i < markerSet.getIndicesByChr().length; i++) {

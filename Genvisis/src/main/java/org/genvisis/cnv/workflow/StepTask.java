@@ -12,7 +12,7 @@ public class StepTask extends Task<Void, Void> {
 
   GenvisisWorkflowGUI gui;
   protected Throwable failureException;
-  private ArrayList<String> failReasons = new ArrayList<String>();
+  private ArrayList<String> failReasons = new ArrayList<>();
   protected Step.FINAL_CODE returnCode = Step.FINAL_CODE.CANCELLED;
   private boolean failed = false;
   private Project proj;

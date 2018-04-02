@@ -25,7 +25,7 @@ public class extractMarkers {
     PrintWriter writer = null;
     String[] line;
     String temp, chrome;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     int count;
     String[] chrs, markerNames, markersPicked;
     int[] indices;

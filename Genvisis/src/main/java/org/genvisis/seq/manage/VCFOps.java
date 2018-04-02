@@ -82,7 +82,7 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
  */
 public class VCFOps {
 
-  public static final Set<String> BLANK_SAMPLE = new HashSet<String>();
+  public static final Set<String> BLANK_SAMPLE = new HashSet<>();
   public static final Options[] DEFUALT_WRITER_OPTIONS = new Options[] {Options.INDEX_ON_THE_FLY};
 
   private static final String[] ANNO_BASE = new String[] {"CHROM", "POS", "ID", "REF", "ALT",
@@ -276,7 +276,7 @@ public class VCFOps {
 
       case SUBSET_STRICT:
         ArrayList<String> samplesHave = vcfFileReader.getFileHeader().getSampleNamesInOrder();
-        ArrayList<String> newSampleSubset = new ArrayList<String>();
+        ArrayList<String> newSampleSubset = new ArrayList<>();
         for (String samp : samplesHave) {
           if (samples.contains(samp)) {
             newSampleSubset.add(samp);
@@ -358,7 +358,7 @@ public class VCFOps {
       log.reportFileExists(outputVCF);
       return true;
     }
-    HashSet<String> samps = new HashSet<String>();
+    HashSet<String> samps = new HashSet<>();
     for (int i = 0; i < maxAlleles; i++) {
       samps.add("Allele" + i);
     }
@@ -375,8 +375,8 @@ public class VCFOps {
       // int totalDiff = vc.getAlleles().size();
 
       GenotypesContext genotypesContext = vc.getGenotypes();
-      ArrayList<Genotype> genos = new ArrayList<Genotype>();
-      Hashtable<String, String> added = new Hashtable<String, String>();
+      ArrayList<Genotype> genos = new ArrayList<>();
+      Hashtable<String, String> added = new Hashtable<>();
       int currentIndex = 0;
       for (Genotype g : genotypesContext) {
         List<Allele> alleles = g.getAlleles();
@@ -585,7 +585,7 @@ public class VCFOps {
   // }
 
   private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
-    Hashtable<String, String> changedIds = new Hashtable<String, String>();
+    Hashtable<String, String> changedIds = new Hashtable<>();
     Files.copyFile(famFile, famFile + ".bak");
     String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
     String[][] newfam = new String[fam.length][fam[0].length];
@@ -604,7 +604,7 @@ public class VCFOps {
       newSex = true;
       log.reportTimeWarning("Assigning alternating sex specifications");
     }
-    Hashtable<String, String> uniqIds = new Hashtable<String, String>();
+    Hashtable<String, String> uniqIds = new Hashtable<>();
     boolean swit = true;
     for (int i = 0; i < fam.length; i++) {
       String FidIid = fam[i][0];
@@ -739,9 +739,9 @@ public class VCFOps {
       this.subPop = subPop;
       this.superPop = superPop;
       this.type = type;
-      uniqSubPop = new ArrayList<String>();
+      uniqSubPop = new ArrayList<>();
       uniqSubPop.addAll(subPop.keySet());
-      uniqSuperPop = new ArrayList<String>();
+      uniqSuperPop = new ArrayList<>();
       uniqSuperPop.addAll(superPop.keySet());
       fileName = "inMemoryPop";
       this.log = log;
@@ -756,11 +756,11 @@ public class VCFOps {
     }
 
     public VcfPopulation(POPULATION_TYPE type, Logger log) {
-      subPop = new Hashtable<String, Set<String>>();
-      superPop = new Hashtable<String, Set<String>>();
+      subPop = new Hashtable<>();
+      superPop = new Hashtable<>();
       superPop.put(EXCLUDE, new HashSet<String>());
-      uniqSubPop = new ArrayList<String>();
-      uniqSuperPop = new ArrayList<String>();
+      uniqSubPop = new ArrayList<>();
+      uniqSuperPop = new ArrayList<>();
       this.type = type;
       this.log = log;
     }
@@ -796,7 +796,7 @@ public class VCFOps {
     }
 
     public String[] getPopulationForInd(String ind, RETRIEVE_TYPE type) {
-      ArrayList<String> tmp = new ArrayList<String>();
+      ArrayList<String> tmp = new ArrayList<>();
       Set<String> avail;
       switch (type) {
         case SUB:
@@ -824,7 +824,7 @@ public class VCFOps {
     }
 
     private HashSet<String> getAllInds() {
-      HashSet<String> allInds = new HashSet<String>();
+      HashSet<String> allInds = new HashSet<>();
       for (String key : superPop.keySet()) {
         allInds.addAll(superPop.get(key));
       }
@@ -1167,7 +1167,7 @@ public class VCFOps {
    * @param log
    */
   public static void runHomoGeneity(String vcf, String[] fullPathToPopFiles, Logger log) {
-    HashSet<String> toRemoveHash = new HashSet<String>();
+    HashSet<String> toRemoveHash = new HashSet<>();
     String[] toRemove = new String[] {};
     Segment[] toRemoveSeg = new Segment[] {};
     double callRate = 0.80;
@@ -1252,7 +1252,7 @@ public class VCFOps {
       }
 
       Files.writeArray(toRemoveHash.toArray(new String[toRemoveHash.size()]), idFile);
-      HashSet<String> sampleHash = new HashSet<String>();
+      HashSet<String> sampleHash = new HashSet<>();
       for (String sample : samples) {
         sampleHash.add(sample);
       }
@@ -1296,10 +1296,10 @@ public class VCFOps {
       Set<String> anchors = vpop.getSuperPop().get(VcfPopulation.ANCHOR);
       Set<String> barnacles = vpop.getSuperPop().get(VcfPopulation.BARNACLE);
 
-      ArrayList<String> currentBarns = new ArrayList<String>();
+      ArrayList<String> currentBarns = new ArrayList<>();
 
       for (int j = 0; j < numBarnsPerSample; j++) {
-        HashSet<String> barnaclesPresent = new HashSet<String>();
+        HashSet<String> barnaclesPresent = new HashSet<>();
         String[] currentBarnsA = currentBarns.toArray(new String[currentBarns.size()]);
         System.out.println("SIZE" + ArrayUtils.unique(currentBarnsA).length);
         for (String barn : barnacles) {
@@ -1425,7 +1425,7 @@ public class VCFOps {
       return null;
     } else {
       String[] ids = HashVec.loadFileToStringArray(idFile, false, new int[] {0}, true);
-      HashSet<String> tmp = new HashSet<String>();
+      HashSet<String> tmp = new HashSet<>();
       for (String id : ids) {
         tmp.add(id);
       }
@@ -1658,7 +1658,7 @@ public class VCFOps {
       } else {
         String[] tmp = null;
         if (bams.split(",").length > 1) {
-          ArrayList<String> baTmp = new ArrayList<String>();
+          ArrayList<String> baTmp = new ArrayList<>();
           String[] split = bams.split(",");
           for (int i = 0; i < split.length; i++) {
             if (Files.isDirectory(split[i])) {
@@ -1919,8 +1919,8 @@ public class VCFOps {
     String[] toSplit = getAllContigs(vcf, log);
     log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
     VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
-    ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<ChrSplitResults>();
-    try (WorkerTrain<ChrSplitResults> train = new WorkerTrain<VCFOps.ChrSplitResults>(producer,
+    ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<>();
+    try (WorkerTrain<ChrSplitResults> train = new WorkerTrain<>(producer,
                                                                                       numthreads,
                                                                                       numthreads,
                                                                                       log)) {
@@ -2015,7 +2015,7 @@ public class VCFOps {
   }
 
   public static void dumpSnpEffGenes(String vcfFile, String geneFile, Logger log) {
-    Hashtable<String, String> track = new Hashtable<String, String>();
+    Hashtable<String, String> track = new Hashtable<>();
     try {
       PrintWriter writer = Files.openAppropriateWriter(geneFile);
       VCFFileReader reader = new VCFFileReader(new File(vcfFile), true);
@@ -2343,7 +2343,7 @@ public class VCFOps {
                                                   ext.parseDirectoryOfFile(vcf), true, true, log);
     // plinkSeq.createNewProject(pseqProject);
     plinkSeq.loadData(pseqProject, LOAD_TYPES.VCF, null);
-    WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(1, 10, log);
+    WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<>(1, 10, log);
     assocHive.addCallable(PlinkSeq.generateAWorker(pseqProject, ANALYSIS_TYPES.I_SUMMARY, null,
                                                    null, null, null, -1, "0",
                                                    pseqProject.getProjectName(), true, log));
@@ -2435,7 +2435,7 @@ public class VCFOps {
                                                           description);
     vcfHeader.addMetaDataLine(vHeaderLine);
     writer.writeHeader(vcfHeader);
-    ArrayList<Segment> segs = new ArrayList<Segment>();
+    ArrayList<Segment> segs = new ArrayList<>();
 
     for (VariantContext vc : reader) {
       LocusSet<BEDFeatureSeg> bLocusSet = bedReader.loadSegsFor(VCOps.getSegment(vc), new Logger());
@@ -2475,7 +2475,7 @@ public class VCFOps {
   }
 
   private static String[] getExtractAnnotationCommand(UTILITY_TYPE type, Logger log) {
-    ArrayList<String> params = new ArrayList<String>();
+    ArrayList<String> params = new ArrayList<>();
     params.add("#Full path to a vcf (preferably indexed");
     params.add(VCF_COMMAND);
     params.add("#Full path to a .bed file to extract");
@@ -2487,7 +2487,7 @@ public class VCFOps {
   }
 
   public static void fromParameters(String filename, UTILITY_TYPE type, Logger log) {
-    List<String> params = new Vector<String>();
+    List<String> params = new Vector<>();
     switch (type) {
       case CONVERT_PLINK:
         log.reportTimeInfo("Invalid op type " + type);

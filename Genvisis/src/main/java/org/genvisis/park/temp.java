@@ -34,7 +34,7 @@ public class temp {
 
     dir = filename = trav = "";
     time = new Date().getTime();
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     count = hash.size();
     System.out.println(count);
     try {

@@ -133,7 +133,7 @@ public class VcfQuery {
   private VariantContext[] queryASegment(Segment seg) {
     CloseableIterator<VariantContext> cdl = vcfSourceReader.query(seg.getChr() + "", seg.getStart(),
                                                                   seg.getStop());
-    ArrayList<VariantContext> vcs = new ArrayList<VariantContext>();
+    ArrayList<VariantContext> vcs = new ArrayList<>();
     while (cdl.hasNext()) {
       vcs.add(cdl.next());
     }
@@ -169,7 +169,7 @@ public class VcfQuery {
     @Override
     public QueryResults call() throws Exception {
       QueryResults qResults = new QueryResults();
-      ArrayList<QueryResult> results = new ArrayList<VcfQuery.QueryResult>();
+      ArrayList<QueryResult> results = new ArrayList<>();
       String tmpFile = outputDir + ext.rootOf(vcfFile) + ".query";
       VariantContextWriter writer = null;
 
@@ -410,7 +410,7 @@ public class VcfQuery {
     }
     log.reportTimeInfo("Attempting to extract the following:\n"
                        + ArrayUtils.toStr(params.getInfoToExtract(), "\n"));
-    WorkerHive<QueryResults> hive = new WorkerHive<QueryResults>(numThreads, 10, log);
+    WorkerHive<QueryResults> hive = new WorkerHive<>(numThreads, 10, log);
     hive.setReportEvery(1);
     hive.addCallables(qManagers);
     hive.execute(true);

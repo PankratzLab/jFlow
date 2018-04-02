@@ -54,7 +54,7 @@ public class Probabel {
 
     node = 0;
     antinode = 6;
-    v = new Vector<String>();
+    v = new Vector<>();
     System.out.println("Limit: " + ext.addCommas((long) (maxGb * Math.pow(2, 30)) / 1000000)
                        + " megabytes");
     for (int chr = 1; chr <= 22; chr++) {
@@ -163,7 +163,7 @@ public class Probabel {
   public static void createBatchFiles(String pheno, int type, int numBatches) {
     String[][] parameters;
     String commands = "";
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
 
     for (int i = 1; i <= 23; i++) {
       if (new File("chr" + i).exists()) {
@@ -314,8 +314,8 @@ public class Probabel {
     try {
       System.out.println("Collecting results from phenotype file '" + pheno + "'");
       writer = Files.openAppropriateWriter(ext.rootOf(pheno) + "_add.xln");
-      var = new Vector<String>();
-      yok = new Vector<String>();
+      var = new Vector<>();
+      yok = new Vector<>();
       for (int chr = 1; chr <= 23; chr++) {
         try {
           reader = new BufferedReader(new FileReader("chr" + chr + "/" + ext.rootOf(pheno) + "_chr"
@@ -366,7 +366,7 @@ public class Probabel {
     int count;
     String[] lookup;
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(classFile));
       while (reader.ready()) {
@@ -453,7 +453,7 @@ public class Probabel {
     affectedClass = line[0];
     unaffectedClass = line[1];
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(classFile));
       while (reader.ready()) {
@@ -658,7 +658,7 @@ public class Probabel {
                && (new File(dir + root + ".info")).exists();
       }
     });
-    HashSet<String> fileRoots = new HashSet<String>();
+    HashSet<String> fileRoots = new HashSet<>();
     for (String f : files) {
       fileRoots.add(ext.rootOf(f, true));
     }
@@ -680,9 +680,9 @@ public class Probabel {
       return null;
     }
 
-    HashSet<String> dosageRoots = new HashSet<String>();
-    HashSet<String> infoRoots = new HashSet<String>();
-    HashSet<String> roots = new HashSet<String>();
+    HashSet<String> dosageRoots = new HashSet<>();
+    HashSet<String> infoRoots = new HashSet<>();
+    HashSet<String> roots = new HashSet<>();
 
     for (String f : doseDir.list()) {
       if (f.endsWith(".dose")) {
@@ -737,7 +737,7 @@ public class Probabel {
       System.out.println(ext.getTime() + "]\tChunking .dose file " + fileRoot);
       try {
         BufferedReader reader = Files.getAppropriateReader(fileDir + fileRoot + ".dose");
-        ArrayList<PrintWriter> dosageWriters = new ArrayList<PrintWriter>();
+        ArrayList<PrintWriter> dosageWriters = new ArrayList<>();
         String line = null;
         while ((line = reader.readLine()) != null) {
           String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);

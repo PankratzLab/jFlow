@@ -158,7 +158,7 @@ public class LibraryNGS implements Serializable {
     public double getMedianCoverage() {
       double medianCoverage = (0.0D / 0.0D);
       int numBases = 0;
-      ArrayList<Double> allCounts = new ArrayList<Double>(75000000);
+      ArrayList<Double> allCounts = new ArrayList<>(75000000);
       for (int[] depth : depths) {
         for (int element : depth) {
           numBases++;
@@ -866,10 +866,10 @@ public class LibraryNGS implements Serializable {
         return loadSerial(SerializedFiles.getSerializedFileName(null, fullPathToBaitLibrary));
       }
       log.report(ext.getTime() + " Info - loading baits library from " + fullPathToBaitLibrary);
-      List<String> tmpTargetIDs = new ArrayList<String>(9000000);
-      List<String> tmpProbeIDs = new ArrayList<String>(9000000);
-      List<Segment> tmpBaits = new ArrayList<Segment>(9000000);
-      List<Double> tmpGCContent = new ArrayList<Double>(9000000);
+      List<String> tmpTargetIDs = new ArrayList<>(9000000);
+      List<String> tmpProbeIDs = new ArrayList<>(9000000);
+      List<Segment> tmpBaits = new ArrayList<>(9000000);
+      List<Double> tmpGCContent = new ArrayList<>(9000000);
       try {
         BufferedReader reader = Files.getAppropriateReader(fullPathToBaitLibrary);
         int[] indices = ext.indexFactors(reader.readLine().trim().split("\t"), BAITS_HEADER, true);

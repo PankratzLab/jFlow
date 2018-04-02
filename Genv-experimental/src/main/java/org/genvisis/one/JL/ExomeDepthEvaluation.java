@@ -128,8 +128,8 @@ public class ExomeDepthEvaluation {
             private static final long serialVersionUID = 1L;
 
           };
-          ArrayList<String> listHit = new ArrayList<String>();
-          ArrayList<String> listMiss = new ArrayList<String>();
+          ArrayList<String> listHit = new ArrayList<>();
+          ArrayList<String> listMiss = new ArrayList<>();
 
           for (int k = 0; k < missSet.getLoci().length; k++) {
             listMiss.add(missSet.getLoci()[k].getFamilyID() + "\t"
@@ -155,7 +155,7 @@ public class ExomeDepthEvaluation {
           CNVariantHash.load(cnvHitsFile, 1, log);
           CNVariantHash.load(cnvMissFile, 1, log);
         }
-        ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+        ArrayList<RScatter> rScatters = new ArrayList<>();
         for (int k = 0; k < exomeDMisses.length; k++) {
           plot(exomeDHits, exomeDMisses, rScatters, k, false, cType, otype);
           plot(exomeDHits, exomeDMisses, rScatters, k, true, cType, otype);
@@ -215,7 +215,7 @@ public class ExomeDepthEvaluation {
       sitesHistogram = new DynamicHistogram(0, 100, 0);
       lengthHistogram = new DynamicHistogram(0, 20, 0);
       probeCoverageHistogram = new DynamicHistogram(0, 100, 0);
-      cnvsToStore = new ArrayList<CNVariant>();
+      cnvsToStore = new ArrayList<>();
     }
 
     public void addCNV(CNVariant cnVariant, MarkerSetInfo markerSet, int[][] indicesByChr,

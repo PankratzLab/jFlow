@@ -133,7 +133,7 @@ public class ParseKcol implements Runnable {
     idHeader = proj.getProperty(proj.ID_HEADER);
     // sourceExtension = proj.getProperty(proj.SOURCE_FILENAME_EXTENSION);
     delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
-    allOutliers = new Hashtable<String, Float>();
+    allOutliers = new Hashtable<>();
     try {
       for (int i = 0; i < files.length; i++) {
         if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + CANCEL_OPTION_FILE).exists()) {
@@ -622,7 +622,7 @@ public class ParseKcol implements Runnable {
     abLookupRequired = false;
     System.out.println("\t\tFound " + files.length + " file" + (files.length == 1 ? "" : "s")
                        + " to parse");
-    fixes = new Hashtable<String, String>();
+    fixes = new Hashtable<>();
     if (new File(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat").exists()) {
       System.out.println("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
       fixes = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat", false);
@@ -797,7 +797,7 @@ public class ParseKcol implements Runnable {
       }
 
       // count = 1;
-      alNames = new ArrayList<String>(500000);
+      alNames = new ArrayList<>(500000);
       int linecount = 0;
       while (reader.ready()) {
         String testline = reader.readLine();
@@ -850,7 +850,7 @@ public class ParseKcol implements Runnable {
 
     lookup = getABLookup(abLookupRequired, markerNames, proj);
 
-    fileCabinet = new Vector<Vector<String>>();
+    fileCabinet = new Vector<>();
     for (int i = 0; i < numThreads; i++) {
       fileCabinet.add(new Vector<String>());
     }
@@ -886,7 +886,7 @@ public class ParseKcol implements Runnable {
       }
     }
 
-    allOutliers = new Hashtable<String, Float>();
+    allOutliers = new Hashtable<>();
     for (int i = 0; i < numThreads; i++) {
       if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true) + "outliers" + i + ".ser").exists()) {
         allOutliers.putAll((Hashtable<String, Float>) SerializedFiles.readSerial(proj.SAMPLE_DIRECTORY.getValue(true,
@@ -956,7 +956,7 @@ public class ParseKcol implements Runnable {
 
     abLookup = getABLookup(abLookupRequired, markerNames, proj);
 
-    markerIndices = new Hashtable<String, Integer>();
+    markerIndices = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       markerIndices.put(markerNames[i], new Integer(i));
     }
@@ -983,7 +983,7 @@ public class ParseKcol implements Runnable {
     count = 0;
     countHash = new CountHash();
     dupHash = new CountHash();
-    allOutliers = new Hashtable<String, Float>();
+    allOutliers = new Hashtable<>();
     try {
       for (int i = 0; i < files.length; i++) {
         try {
@@ -1388,7 +1388,7 @@ public class ParseKcol implements Runnable {
 
     idHeader = proj.getProperty(proj.ID_HEADER);
     delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
-    hash = new Hashtable<String, String[]>();
+    hash = new Hashtable<>();
     for (int i = 0; i < files.length; i++) {
       if (new File("report").exists()) {
         writeToLookupFile(proj, hash, i + 1);

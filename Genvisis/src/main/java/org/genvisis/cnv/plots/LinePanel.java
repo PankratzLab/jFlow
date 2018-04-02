@@ -72,7 +72,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
     // this.samples = twoDPlot.getSamples();
     // this.markerData = twoDPlot.getMarkerData();
     // this.sampleData = twoDPlot.getSampleData();
-    locLookup = new Hashtable<String, IntVector>();// ??? zx
+    locLookup = new Hashtable<>();// ??? zx
     setOfKeys = new String[0][0];
     // this.updateQcPanel = true;//zx
 
@@ -214,7 +214,7 @@ public class LinePanel extends AbstractPanel implements MouseListener, MouseMoti
       // sampleData.getClass();
 
       PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
-      ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
+      ArrayList<GenericLine> linesData = new ArrayList<>();
       index = (byte) (includeColorKeyValue ? 4 : 3);
       if (currentData.size() > 0) {
         setOfKeys = new String[currentData.size()][currentData.elementAt(0).length - index];

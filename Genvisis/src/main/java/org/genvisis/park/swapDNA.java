@@ -64,7 +64,7 @@ public class swapDNA {
     for (int i = start; i <= stop; i++) {
       try {
         reader = new BufferedReader(new FileReader("chromosome" + i + ".dat"));
-        hash = new Hashtable<String, String>();
+        hash = new Hashtable<>();
         while (reader.ready()) {
           line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
           if (line.length > 2) {

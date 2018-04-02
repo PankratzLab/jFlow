@@ -16,8 +16,8 @@ public class haploPerm {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Vector<String> inds = new Vector<String>();
-    Vector<String> affstat = new Vector<String>();
+    Vector<String> inds = new Vector<>();
+    Vector<String> affstat = new Vector<>();
     int n;
     int[] randKey;
 

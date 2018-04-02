@@ -96,7 +96,7 @@ public class PlinkToLinkage {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     int count;
     String backup;
 

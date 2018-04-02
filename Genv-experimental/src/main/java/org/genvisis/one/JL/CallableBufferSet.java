@@ -51,7 +51,7 @@ public class CallableBufferSet<E, T> {
   }
 
   public ArrayList<T> execute() {
-    WorkerHive<T> hive = new WorkerHive<T>(numThreads, timeOutDay, log);
+    WorkerHive<T> hive = new WorkerHive<>(numThreads, timeOutDay, log);
     hive.addCallables(buffers);
     hive.execute(true);
     ArrayList<T> results = hive.getResults();
@@ -67,7 +67,7 @@ public class CallableBufferSet<E, T> {
 
     public CallableBuffer(int bufferSize) {
       this.bufferSize = bufferSize;
-      this.buffer = new ArrayList<E>(bufferSize);
+      this.buffer = new ArrayList<>(bufferSize);
     }
 
     public void addToBuffer(final E e) {

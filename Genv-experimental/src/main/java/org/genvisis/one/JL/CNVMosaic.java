@@ -35,7 +35,7 @@ public class CNVMosaic {
 
     LocusSet<MosaicRegion> results = null;
     SampleData sampleData = proj.getSampleData(false);
-    ArrayList<String> samples = new ArrayList<String>();
+    ArrayList<String> samples = new ArrayList<>();
     String[] samps = proj.getSamples();
     for (int i = 0; i < samps.length; i++) {
       if (!sampleData.individualShouldBeExcluded(samps[i])) {
@@ -47,7 +47,7 @@ public class CNVMosaic {
     MosaicBuilder builder = new MosaicBuilder();
     builder.indicesByChr(indicesByChr);
 
-    ArrayList<Segment> callSegs = new ArrayList<Segment>();
+    ArrayList<Segment> callSegs = new ArrayList<>();
 
     for (int i = 0; i < indicesByChr.length; i++) {
       if (i > 0 && i < 23 && indicesByChr[i].length > 0) {
@@ -66,7 +66,7 @@ public class CNVMosaic {
     String ser = output + ".ser";
 
     if (!Files.exists(ser) || !Files.exists(output)) {
-      ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
+      ArrayList<MosaicRegion> all = new ArrayList<>();
 
       try {
         PrintWriter writer = Files.openAppropriateWriter(output);
@@ -76,7 +76,7 @@ public class CNVMosaic {
         MosaicProducer producer = new MosaicProducer(proj, builder,
                                                      ArrayUtils.toStringArray(samples), markerSet,
                                                      segs);
-        try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<LocusSet<MosaicRegion>>(producer,
+        try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer,
                                                                                                  numThreads,
                                                                                                  2,
                                                                                                  proj.getLog())) {
@@ -137,7 +137,7 @@ public class CNVMosaic {
         Map<String, LocusSet<CNVariant>> indSets = CNVariant.breakIntoInds(cnvs, proj.getLog());
         int numSampsRemoved = 0;
         int numCNVsRemoved = 0;
-        ArrayList<String> remove = new ArrayList<String>();
+        ArrayList<String> remove = new ArrayList<>();
         for (String ind : indSets.keySet()) {
           String sampKey = sampleData.lookup(ind)[0];
           if (sampleData.individualShouldBeExcluded(sampKey)) {
@@ -155,7 +155,7 @@ public class CNVMosaic {
         proj.getLog().reportTimeInfo("Removed " + numSampsRemoved + "  samples and "
                                      + numCNVsRemoved + " cnvs");
         MosaicForceProducer producer = new MosaicForceProducer(proj, indSets);
-        try (WorkerTrain<MosaicRegion[]> train = new WorkerTrain<MosaicRegion[]>(producer,
+        try (WorkerTrain<MosaicRegion[]> train = new WorkerTrain<>(producer,
                                                                                  proj.NUM_THREADS.getValue(),
                                                                                  2,
                                                                                  proj.getLog())) {
@@ -192,7 +192,7 @@ public class CNVMosaic {
   private static void plot(Project proj, String output, int[] cns, Restrictions[] restrictions,
                            boolean mos) {
 
-    ArrayList<RScatter> rscatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rscatters = new ArrayList<>();
 
     for (int cn : cns) {
       String outPlot8 = ext.addToRoot(output, ".markMarkbox_" + cn);
@@ -398,7 +398,7 @@ public class CNVMosaic {
           MarkerSetInfo markerSet = proj.getMarkerSet();
           int[][] indicesByChr = markerSet.getIndicesByChr();
           Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
-          ArrayList<MosaicRegion> all = new ArrayList<MosaicRegion>();
+          ArrayList<MosaicRegion> all = new ArrayList<>();
           MosaicBuilder builderMosaic = new MosaicBuilder();
           builderMosaic.verbose(true);
           MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,

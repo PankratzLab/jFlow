@@ -38,7 +38,7 @@ public class Polymutt {
   public static void batchAllGlf(String sourceDir) {
     String[] files;
     String root, dir, filename;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
 
     if (!sourceDir.startsWith("/")) {
       System.err.println("Error - sourceDirectory needs to explicit");
@@ -48,7 +48,7 @@ public class Polymutt {
     dir = ext.pwd();
     new File(dir + "batches/").mkdirs();
     sourceDir = ext.verifyDirFormat(sourceDir);
-    v = new Vector<String>();
+    v = new Vector<>();
     files = Files.list(sourceDir, ".bam");
     for (String file : files) {
       root = ext.rootOf(file);
@@ -71,7 +71,7 @@ public class Polymutt {
     scratch = "/lustre/polymutt/";
     scratch = "/project/scratch/polymutt/";
 
-    v = new Vector<String>();
+    v = new Vector<>();
     Files.write("T\tGLF_Index", "same_for_all.dat");
     Files.writeArray(new String[] {"fam	3	0	0	1	3", "fam	2	0	0	2	2", "fam	1	3	2	2	1"},
                      "same_for_all.ped");
@@ -131,8 +131,8 @@ public class Polymutt {
       return;
     }
 
-    unknownAnnotations = new Vector<String>();
-    finishedAnnotations = new Vector<String>();
+    unknownAnnotations = new Vector<>();
+    finishedAnnotations = new Vector<>();
     parsedAnnotations = SeattleSeq.loadAllBadAnnotationInDir(annotationDir, log);
     iterations = HashVec.loadFileToStringMatrix(triosFile, false, new int[] {0, 1, 2});
     for (String[] iteration : iterations) {
@@ -336,7 +336,7 @@ public class Polymutt {
                       + " when expecting " + GENOTYPE_ORDER.length + ". scores: " + phredScores);
     }
 
-    mostLikelyGenotypes = new Vector<String>();
+    mostLikelyGenotypes = new Vector<>();
     order = Sort.getSortedIndices(scores);
     bestScore = scores[order[0]];
     count = 0;
@@ -507,7 +507,7 @@ public class Polymutt {
     String command, fill;
     String dir;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       reader = Files.getAppropriateReader(controlFile);
       dir = ext.verifyDirFormat(reader.readLine());
@@ -745,7 +745,7 @@ public class Polymutt {
         reps = ArrayUtils.subArray(line, 1);
 
         problem = false;
-        filenames = new Vector<String>();
+        filenames = new Vector<>();
         for (String rep : reps) {
           fill = ext.replaceAllWith(pattern, "[%%]", rep);
           if (Files.exists(dir + fill)) {
@@ -761,7 +761,7 @@ public class Polymutt {
           return;
         }
 
-        iterations = new Vector<int[]>();
+        iterations = new Vector<>();
         for (int r = 1; r <= reps.length; r++) {
           nCr = ArrayUtils.nCr_indices(reps.length, r);
           for (int[] element : nCr) {
@@ -935,7 +935,7 @@ public class Polymutt {
   }
 
   public static void batchAssess() {
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     int count;
     String[] files;
     String dir;

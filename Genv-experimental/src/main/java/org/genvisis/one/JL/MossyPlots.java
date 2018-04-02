@@ -34,9 +34,9 @@ public class MossyPlots {
     String[][] mos = HashVec.loadFileToStringMatrix(mosBaseFile, false, null);
     String mosFile = outDir + "mosResults_excludesTagged.txt";
 
-    ArrayList<String> filtered = new ArrayList<String>();
+    ArrayList<String> filtered = new ArrayList<>();
     filtered.add(ArrayUtils.toStr(mos[0]) + "\tExclude\tTUMOR\tChr");
-    ArrayList<GeomText> geomTexts = new ArrayList<Rscript.GeomText>();
+    ArrayList<GeomText> geomTexts = new ArrayList<>();
     // public static final String[] MOSAICISM_HEADER = { "Sample", "Band", "LRR N", "mean LRR", "BAF
     // N", "SD of BAF (0.15-0.85)", "IQR of BAF (0.15-0.85)", "%Homo", "BandPercentMosaicism",
     // "BpWeightedAverage", "NumberRegionsDetected" };
@@ -65,7 +65,7 @@ public class MossyPlots {
       }
     }
     Files.writeArray(ArrayUtils.toStringArray(filtered), mosFile);
-    ArrayList<RScatter> rscScatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rscScatters = new ArrayList<>();
 
     String tNAll = outDir + "tumorNormalAll.plot";
 

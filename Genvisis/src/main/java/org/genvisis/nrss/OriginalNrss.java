@@ -55,7 +55,7 @@ public class OriginalNrss {
     PrintWriter writer;
     String[] line;
     Hashtable<String, String> hash;
-    Vector<String> markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+    Vector<String> markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector varVector = variate_column == -1 ? null
@@ -75,7 +75,7 @@ public class OriginalNrss {
     double maxStat;
     int maxSNP;
     double minPvalue;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     String[] genes;
 
     try {
@@ -219,7 +219,7 @@ public class OriginalNrss {
           positions = null;
           pvals = null;
           indexSNPs = null;
-          markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+          markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
           markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           indexVector = new IntVector();
@@ -258,7 +258,7 @@ public class OriginalNrss {
   public static Hashtable<String, String> loadLD(String filename) {
     BufferedReader reader;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(filename));
@@ -283,7 +283,7 @@ public class OriginalNrss {
     BufferedReader reader = null;
     String[] line;
     Hashtable<String, String> hash;
-    Vector<String> markerVector = new Vector<String>();
+    Vector<String> markerVector = new Vector<>();
     DoubleVector pvalueVector = new DoubleVector();
 
     hash = loadLD(ld);
@@ -431,7 +431,7 @@ public class OriginalNrss {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     String[][] data;
     int[] order;
     int count;
@@ -541,7 +541,7 @@ public class OriginalNrss {
     PrintWriter writer;
     String[] line;
     Hashtable<String, String> hash;
-    Vector<String> markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+    Vector<String> markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
     IntVector markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     DoubleVector pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
     int count, lowIndex, highIndex;
@@ -727,7 +727,7 @@ public class OriginalNrss {
           positions = null;
           pvals = null;
           indexSNPs = null;
-          markerVector = new Vector<String>(EST_NUM_MARKERS_IN_LARGEST_CHR);
+          markerVector = new Vector<>(EST_NUM_MARKERS_IN_LARGEST_CHR);
           markerLocations = new IntVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           pvalueVector = new DoubleVector(EST_NUM_MARKERS_IN_LARGEST_CHR);
           indexVector = new IntVector();

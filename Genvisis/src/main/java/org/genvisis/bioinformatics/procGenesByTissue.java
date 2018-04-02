@@ -148,10 +148,10 @@ public class procGenesByTissue {
     PrintWriter writer = null;
     String[] line, header;
     String trav;
-    Hashtable<String, HS_DataPoint> hash = new Hashtable<String, HS_DataPoint>();
+    Hashtable<String, HS_DataPoint> hash = new Hashtable<>();
     Hashtable<String, Vector<String>> tagGeneIDLookup, geneidOmimLookup;
-    Hashtable<String, double[]> expressionData = new Hashtable<String, double[]>();
-    Hashtable<String, String> omimNameLookup = new Hashtable<String, String>();
+    Hashtable<String, double[]> expressionData = new Hashtable<>();
+    Hashtable<String, String> omimNameLookup = new Hashtable<>();
     Vector<String> v;
     int count;
     HS_DataPoint hsdp;

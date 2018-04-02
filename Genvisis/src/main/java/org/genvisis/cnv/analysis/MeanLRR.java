@@ -169,7 +169,7 @@ public class MeanLRR {
     if (regions == null) {
       return;
     }
-    components = new Hashtable<String, Vector<String>>();
+    components = new Hashtable<>();
     for (int i = 0; i < positions.length; i++) {
       for (int j = 0; j < regions.length; j++) {
         if (chrs[i] == regions[j].getChr() && positions[i] >= regions[j].getStart()

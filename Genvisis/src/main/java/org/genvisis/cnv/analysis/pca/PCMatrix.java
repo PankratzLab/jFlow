@@ -117,7 +117,7 @@ public class PCMatrix {
 
     // Compute t-tests
     for (int i = 0; i < matrix.length; i++) {
-      List<double[]> colData = new ArrayList<double[]>();
+      List<double[]> colData = new ArrayList<>();
       for (int j = 0; j < valList.length; j++) {
         // we will split data for t-test based on this column
         String colOfInterest = valList[j];
@@ -144,7 +144,7 @@ public class PCMatrix {
                                           Hashtable<String, Vector<String>> sampleVec) {
     String[][] values = new String[2][];
     values[0] = new String[pcSamples.length];
-    Set<String> unique = new HashSet<String>();
+    Set<String> unique = new HashSet<>();
 
     for (int i = 0; i < pcSamples.length; i++) {
       // Convert the sample ID to FID\tIID key

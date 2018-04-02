@@ -27,7 +27,7 @@ public final class StartupValidation {
 
   private static int status = -1;
   private static String warningString = "";
-  private static List<StartupErrorHandler> handlers = new ArrayList<StartupErrorHandler>();
+  private static List<StartupErrorHandler> handlers = new ArrayList<>();
   private static StartupCheck[] toCheck = new StartupCheck[] {new ResourceVersionCheck(),
                                                               new RemoteVersionCheck()};
 
@@ -104,7 +104,7 @@ public final class StartupValidation {
    * Perform validation checks
    */
   private static void doValidation() {
-    List<String> warnings = new ArrayList<String>();
+    List<String> warnings = new ArrayList<>();
     boolean haveInternet = true;
 
     // Check for internet connection, which will determine which checks we perform

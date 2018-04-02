@@ -41,7 +41,7 @@ public class PhaserNGS {
   }
 
   private static String phase(String phaserPy, String bam, String vcf, String outDir, Logger log) {
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
 
     // --bam ../bams/C018307-02_S129_L001_001.sorted.not.dedup.realigned.recal.bam --vcf
     // ../gatk/gatk.mica.nodDup.chr6.vcf --sample C018307-02 --paired_end 1 --mapq 255 --baseq 10

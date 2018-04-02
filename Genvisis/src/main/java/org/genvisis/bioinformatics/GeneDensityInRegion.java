@@ -32,7 +32,7 @@ public class GeneDensityInRegion {
     loc = Positions.parseUCSClocation(region);
     regionAsGene = new GeneData("", new String[0], (byte) loc[0], true, (byte) 0, loc[1], loc[2],
                                 new int[][] {}, (byte) 0, false);
-    inRegion = new Vector<GeneData>();
+    inRegion = new Vector<>();
     for (GeneData gene : genes) {
       if (gene.overlaps(regionAsGene)) {
         inRegion.add(gene);
@@ -59,7 +59,7 @@ public class GeneDensityInRegion {
       writer.println("Total region: " + ext.prettyUpDistance(regionAsGene.getSize(), 1));
       writer.println("Number of non-redundant RefSeq genes: " + genes.length);
 
-      segments = new Vector<Segment>();
+      segments = new Vector<>();
       for (GeneData gene : genes) {
         segments.add(new Segment(gene.getStart(), gene.getStop()));
       }
@@ -71,7 +71,7 @@ public class GeneDensityInRegion {
       writer.println("Genes span: " + ext.prettyUpDistance(sum, 1) + " ("
                      + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
-      segments = new Vector<Segment>();
+      segments = new Vector<>();
       for (GeneData gene : genes) {
         segments.add(new Segment(gene.getStart() - window, gene.getStop() + window));
       }
@@ -84,7 +84,7 @@ public class GeneDensityInRegion {
                      + " up- and down-stream, the genes span: " + ext.prettyUpDistance(sum, 1)
                      + " (" + (int) ((double) sum / (double) regionAsGene.getSize() * 100) + "%)");
 
-      segments = new Vector<Segment>();
+      segments = new Vector<>();
       for (GeneData gene : genes) {
         exonBoundaries = gene.getExonBoundaries();
         for (int[] exonBoundarie : exonBoundaries) {

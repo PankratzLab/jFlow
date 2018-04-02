@@ -137,7 +137,7 @@ public class CytoAgilentParse {
       String[] line;
       int[] indices;
       int count = 0;
-      Hashtable<String, String> track = new Hashtable<String, String>();
+      Hashtable<String, String> track = new Hashtable<>();
       do {
         line = reader.readLine().trim().split(SPLITS[0], -1);
         indices = ext.indexFactors(DATA_TO_GRAB, line, true, log, false);

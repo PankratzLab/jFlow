@@ -52,7 +52,7 @@ public final class CFCSDataSet implements CFCSErrorCodes {
   private CFCSData data;
   private String version = DEFAULT_VERSION;
   private final CFCSKeywords keywords = new CFCSKeywords();
-  private final List<Object> segments = new ArrayList<Object>(OTHER_START);
+  private final List<Object> segments = new ArrayList<>(OTHER_START);
 
   private int crc16 = 0;
   private boolean bReadSegmentsFirstTime = true;
@@ -71,7 +71,7 @@ public final class CFCSDataSet implements CFCSErrorCodes {
   CFCSDataSet(final CFCSSystem.SentientInputStream stream) {
     this();
 
-    final List<long[]> headers = new LinkedList<long[]>();
+    final List<long[]> headers = new LinkedList<>();
 
     try {
       version = readFileVersion(stream);
@@ -266,7 +266,7 @@ public final class CFCSDataSet implements CFCSErrorCodes {
 
     // Convert the content for all the segments (ready or not) into bytes
 
-    final List<long[]> headers = new LinkedList<long[]>();
+    final List<long[]> headers = new LinkedList<>();
 
     int stext = UNDEFINED;
 

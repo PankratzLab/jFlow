@@ -27,7 +27,7 @@ public class FocusedSample {
     super();
     this.overwriteExisting = overwriteExisting;
     focusedSample = getFocusedSample(sample, focusedIndices, newFingerPrint);
-    outliers = new Hashtable<String, Float>();
+    outliers = new Hashtable<>();
     // this.fail =false;
   }
 
@@ -144,7 +144,7 @@ public class FocusedSample {
       log.reportTimeInfo("Samples to export = " + ArrayUtils.booleanArraySum(samplesToUse));
       int[] markerToUseIndices = ext.indexLargeFactors(markersToUse, original.getMarkerNames(),
                                                        true, log, true);
-      WorkerHive<FocusedSample> hive = new WorkerHive<FocusedSample>(numThreads, 10, log);
+      WorkerHive<FocusedSample> hive = new WorkerHive<>(numThreads, 10, log);
       WorkerSubset[] workerSubsets = getWorkers(original, newFocus, markerToUseIndices,
                                                 samplesToUse, newFingerPrint, overwriteExisting);
       hive.addCallables(workerSubsets);
@@ -159,7 +159,7 @@ public class FocusedSample {
   }
 
   private static void writeOutliers(Project newFocus, FocusedSample[] focusedSamples) {
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
     for (FocusedSample focusedSample2 : focusedSamples) {
       outliers.putAll(focusedSample2.getOutliers());
     }

@@ -246,7 +246,7 @@ public class CNVariant extends Segment {
     List<CNVariant> v = null;
     String[] line;
 
-    v = new ArrayList<CNVariant>();
+    v = new ArrayList<>();
     try {
       reader = Files.getReader(filename, true, true);
 
@@ -325,7 +325,7 @@ public class CNVariant extends Segment {
   public static void findConsensus(String file1, String file2) {
     PrintWriter writer;
     CNVariant[] list1, list2, consensus;
-    Vector<CNVariant> v = new Vector<CNVariant>();
+    Vector<CNVariant> v = new Vector<>();
 
     list1 = loadPlinkFile(file1);
     list2 = loadPlinkFile(file2);
@@ -384,12 +384,12 @@ public class CNVariant extends Segment {
                                                       CONSENSUS_TYPE cType, OVERLAP_TYPE oType) {
     PrintWriter writer;
     CNVariant[] list1, list2;
-    HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
-    HashSet<CNVariant> matched2 = new HashSet<CNVariant>();
+    HashSet<CNVariant> matched1 = new HashSet<>();
+    HashSet<CNVariant> matched2 = new HashSet<>();
 
-    HashSet<CNVariant> unmatched1 = new HashSet<CNVariant>();
-    HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
-    Vector<String> outputLines = new Vector<String>();
+    HashSet<CNVariant> unmatched1 = new HashSet<>();
+    HashSet<CNVariant> unmatched2 = new HashSet<>();
+    Vector<String> outputLines = new Vector<>();
 
     list1 = loadPlinkFile(file1);
     list2 = loadPlinkFile(file2);
@@ -528,12 +528,12 @@ public class CNVariant extends Segment {
   public static void findSignificantConsensus(String file1, String file2, boolean checkLarger) {
     PrintWriter writer;
     CNVariant[] list1, list2;
-    HashSet<CNVariant> matched1 = new HashSet<CNVariant>();
-    HashSet<CNVariant> matched2 = new HashSet<CNVariant>();
+    HashSet<CNVariant> matched1 = new HashSet<>();
+    HashSet<CNVariant> matched2 = new HashSet<>();
 
-    HashSet<CNVariant> unmatched1 = new HashSet<CNVariant>();
-    HashSet<CNVariant> unmatched2 = new HashSet<CNVariant>();
-    Vector<String> outputLines = new Vector<String>();
+    HashSet<CNVariant> unmatched1 = new HashSet<>();
+    HashSet<CNVariant> unmatched2 = new HashSet<>();
+    Vector<String> outputLines = new Vector<>();
 
     list1 = loadPlinkFile(file1);
     list2 = loadPlinkFile(file2);
@@ -709,7 +709,7 @@ public class CNVariant extends Segment {
 
   public static LocusSet<CNVariant> loadLocSet(String cnvFile, Logger log) {
     CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
-    LocusSet<CNVariant> cLocusSet = new LocusSet<CNVariant>(cnvs, true, log);
+    LocusSet<CNVariant> cLocusSet = new LocusSet<>(cnvs, true, log);
     return cLocusSet;
 
   }
@@ -722,7 +722,7 @@ public class CNVariant extends Segment {
 
   public static <T extends CNVariant> HashSet<String> getUniqueInds(LocusSet<T> cLocusSet,
                                                                     Logger log) {
-    HashSet<String> uniqueInds = new HashSet<String>();
+    HashSet<String> uniqueInds = new HashSet<>();
     for (int i = 0; i < cLocusSet.getLoci().length; i++) {
       CNVariant tmp = cLocusSet.getLoci()[i];
       uniqueInds.add(tmp.getFamilyID() + "\t" + tmp.getIndividualID());

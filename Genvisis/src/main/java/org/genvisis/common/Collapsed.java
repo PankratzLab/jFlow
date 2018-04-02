@@ -61,7 +61,7 @@ public class Collapsed {
                                                                boolean ignoreFirstLine) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String key, temp;
 
     if (valueIndices == null) {
@@ -190,7 +190,7 @@ public class Collapsed {
     if (hash.containsKey(key)) {
       v = hash.get(key);
     } else {
-      hash.put(key, v = new Vector<String>());
+      hash.put(key, v = new Vector<>());
     }
 
     if (onlyifabsent) {

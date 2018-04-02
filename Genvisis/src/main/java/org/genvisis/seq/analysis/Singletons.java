@@ -26,8 +26,8 @@ public class Singletons {
     Logger log = new Logger(outDir + "singleton.log");
     for (String vcf : vcfs) {
       VCFFileReader reader = new VCFFileReader(new File(vcf), true);
-      HashMap<String, Integer> singletonCounts = new HashMap<String, Integer>();
-      HashMap<String, Integer> altCounts = new HashMap<String, Integer>();
+      HashMap<String, Integer> singletonCounts = new HashMap<>();
+      HashMap<String, Integer> altCounts = new HashMap<>();
 
       String[] samples = VCFOps.getSamplesInFile(vcf);
       for (int i = 0; i < samples.length; i++) {
@@ -102,13 +102,13 @@ public class Singletons {
 
   public static void main(String[] args) {
     CLI c = new CLI(Singletons.class);
-    ArrayList<String> dotAnnos = new ArrayList<String>();
+    ArrayList<String> dotAnnos = new ArrayList<>();
     dotAnnos.add("esp6500si_all");
     dotAnnos.add("ExAC_ALL");
     dotAnnos.add("charge.n_blacks");
     dotAnnos.add("charge.n_whites");
 
-    HashSet<String> sampsToExclude = new HashSet<String>();
+    HashSet<String> sampsToExclude = new HashSet<>();
     sampsToExclude.add("PT434_T030");
     sampsToExclude.add("PT431_T029");
     sampsToExclude.add("PT427_T028");

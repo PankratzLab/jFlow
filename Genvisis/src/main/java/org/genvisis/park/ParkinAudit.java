@@ -126,12 +126,12 @@ public class ParkinAudit {
     PrintWriter writer;
     String[] line, trav;
     String temp;
-    Hashtable<String, Vector<String>> famIDs = new Hashtable<String, Vector<String>>();
-    Hashtable<String, MutationCarrier> indData = new Hashtable<String, MutationCarrier>();
-    Hashtable<String, String> diagnoses = new Hashtable<String, String>(),
-        lods = new Hashtable<String, String>();
+    Hashtable<String, Vector<String>> famIDs = new Hashtable<>();
+    Hashtable<String, MutationCarrier> indData = new Hashtable<>();
+    Hashtable<String, String> diagnoses = new Hashtable<>(),
+        lods = new Hashtable<>();
     ;
-    Vector<String> inds = new Vector<String>(), fams = new Vector<String>(), members;
+    Vector<String> inds = new Vector<>(), fams = new Vector<>(), members;
     CheckIDsAgainstDNAs idCheck = new CheckIDsAgainstDNAs();
     MutationCarrier mc, mem;
     int[] parkinExons;
@@ -175,7 +175,7 @@ public class ParkinAudit {
         if (famIDs.containsKey(mc.FamID)) {
           members = famIDs.get(mc.FamID);
         } else {
-          famIDs.put(mc.FamID, members = new Vector<String>());
+          famIDs.put(mc.FamID, members = new Vector<>());
           fams.add(mc.FamID);
         }
         members.add(mc.UniqueID);
@@ -198,7 +198,7 @@ public class ParkinAudit {
         if (famIDs.containsKey(mc.FamID)) {
           members = famIDs.get(mc.FamID);
         } else {
-          famIDs.put(mc.FamID, members = new Vector<String>());
+          famIDs.put(mc.FamID, members = new Vector<>());
           fams.add(mc.FamID);
         }
         members.add(mc.UniqueID);

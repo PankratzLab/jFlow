@@ -65,7 +65,7 @@ public class Emmax {
       }
     }
 
-    scripts = new Vector<String>();
+    scripts = new Vector<>();
     for (int l = 0; l < phenoFiles.length; l++) {
       log.report("Prepping scripts for " + phenoFiles[l] + " and "
                  + (covFiles[l] == null
@@ -134,7 +134,7 @@ public class Emmax {
     PrintWriter writer;
 
     fileNames = Files.list(resultDir, ".log");
-    modelList = new Hashtable<String, String[]>();
+    modelList = new Hashtable<>();
     for (String fileName2 : fileNames) {
       found = false;
       fileName = ext.rootOf(fileName2);
@@ -174,7 +174,7 @@ public class Emmax {
         lambda = new double[fileNameRootsTemp.length];
         numMarkers = new int[fileNameRootsTemp.length];
         for (int i = 0; i < fileNameRootsTemp.length; i++) {
-          pVals = new Vector<Double>();
+          pVals = new Vector<>();
           if (fileNameRootsTemp[i] != null) {
             reader = new BufferedReader(new FileReader(resultDir + fileNameRootsTemp[i] + ".log"));
             while (reader.ready()) {

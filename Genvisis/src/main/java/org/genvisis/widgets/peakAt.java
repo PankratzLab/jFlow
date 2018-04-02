@@ -107,7 +107,7 @@ public class peakAt {
             writer.flush();
           }
         } else if (tail) {
-          ll = new LinkedList<String>();
+          ll = new LinkedList<>();
           while (reader.ready()) {
             ll.addLast(reader.readLine());
             if (ll.size() > numLines) {

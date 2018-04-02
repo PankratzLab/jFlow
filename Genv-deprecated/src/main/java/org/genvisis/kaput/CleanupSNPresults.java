@@ -34,7 +34,7 @@ public class CleanupSNPresults {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, checkLine, hashKeys;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     CountVector vicfam = new CountVector();
     Vector<String> v;
     int best;

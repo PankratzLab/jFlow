@@ -67,11 +67,11 @@ public class VCFTumorNormalOps {
                                                             reader.getFileHeader()
                                                                   .getSequenceDictionary());
 
-    Set<String> samps = new HashSet<String>();
+    Set<String> samps = new HashSet<>();
     samps.add(normalSamp);
     samps.add(tumorSamp);
-    ArrayList<String> attsRemoveVCAddGT = new ArrayList<String>();
-    Set<VCFHeaderLine> newHeaderLines = new HashSet<VCFHeaderLine>();
+    ArrayList<String> attsRemoveVCAddGT = new ArrayList<>();
+    Set<VCFHeaderLine> newHeaderLines = new HashSet<>();
     Collection<VCFInfoHeaderLine> infos = reader.getFileHeader().getInfoHeaderLines();
     for (VCFInfoHeaderLine vcfInfoHeaderLine : infos) {
       if (!vcfInfoHeaderLine.getID().equals("DB")
@@ -104,7 +104,7 @@ public class VCFTumorNormalOps {
     newHeaderLines.add(ADPreserve);
     newHeaderLines.add(filterPreserve);
     newHeaderLines.addAll(reader.getFileHeader().getFormatHeaderLines());
-    ArrayList<String> attsToTransferFromNormal = new ArrayList<String>();
+    ArrayList<String> attsToTransferFromNormal = new ArrayList<>();
     for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader().getFormatHeaderLines()) {
       VCFFormatHeaderLine normal = new VCFFormatHeaderLine(vcfFormatHeaderLine.getID() + NORMAL_TAG,
                                                            vcfFormatHeaderLine.isFixedCount() ? vcfFormatHeaderLine.getCount()
@@ -130,11 +130,11 @@ public class VCFTumorNormalOps {
       if (index % 10000 == 0) {
         log.reportTimeInfo("Parsed " + index + " total variants, " + pass + " variants were PASS");
       }
-      ArrayList<Genotype> renamed = new ArrayList<Genotype>();
+      ArrayList<Genotype> renamed = new ArrayList<>();
       Genotype normal = rename(vc.getGenotype(normalDef), normalSamp);
       Genotype tumor = rename(vc.getGenotype(tumorDef), tumorSamp);
       tumor = transferFormat(tumor, normal, vc, attsRemoveVCAddGT, attsToTransferFromNormal);
-      Hashtable<String, Object> map = new Hashtable<String, Object>();
+      Hashtable<String, Object> map = new Hashtable<>();
       map.putAll(vc.getAttributes());
 
       renamed.add(tumor);
@@ -192,7 +192,7 @@ public class VCFTumorNormalOps {
     if (vc.isFiltered()) {
       builder.attribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(), vc.getFilters().toString());
     } else {
-      HashSet<String> noFilt = new HashSet<String>();
+      HashSet<String> noFilt = new HashSet<>();
       noFilt.add("PASS");
       builder.attribute(GENOTYPE_INFO.MUTECT_FILTERS.getFlag(), noFilt.toString());
     }
@@ -212,7 +212,7 @@ public class VCFTumorNormalOps {
    */
   public static void renameMergeVCF(String inputVCF, String outputVCF) {
     VCFFileReader reader = new VCFFileReader(new File(inputVCF), true);
-    Set<String> samps = new HashSet<String>();
+    Set<String> samps = new HashSet<>();
     String[] sampIn = VCFOps.getSamplesInFile(inputVCF);
     for (String element : sampIn) {
       String fix = element.replaceAll(".variant.*", "");
@@ -227,7 +227,7 @@ public class VCFTumorNormalOps {
     writer.writeHeader(outHeader);
     for (VariantContext vc : reader) {
       VariantContextBuilder builder = new VariantContextBuilder(vc);
-      ArrayList<Genotype> renameGeno = new ArrayList<Genotype>();
+      ArrayList<Genotype> renameGeno = new ArrayList<>();
       for (Genotype g : vc.getGenotypes()) {
         GenotypeBuilder gBuilder = new GenotypeBuilder(g);
         gBuilder.name(g.getSampleName().replaceAll(".variant.*", ""));
@@ -281,11 +281,11 @@ public class VCFTumorNormalOps {
       throw new IllegalArgumentException("Vpop must be " + POPULATION_TYPE.TUMOR_NORMAL);
     }
 
-    Hashtable<String, String> all = new Hashtable<String, String>();
+    Hashtable<String, String> all = new Hashtable<>();
     for (String bamFile : bamFiles) {
       all.put(BamOps.getSampleName(bamFile), bamFile);
     }
-    ArrayList<TNSample> tnSamples = new ArrayList<TNSample>();
+    ArrayList<TNSample> tnSamples = new ArrayList<>();
     for (String tnPair : vpop.getSubPop().keySet()) {
       Set<String> samps = vpop.getSubPop().get(tnPair);
       String tumor = null;

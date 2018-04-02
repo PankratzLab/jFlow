@@ -61,7 +61,7 @@ public class CNVConcordance {
 
     public ComparisionGlobalResults(CNVConcordance.ComparisionIndividualResults[] comparisionIndividualResults) {
       indResults = comparisionIndividualResults;
-      globalOverLapScores = new ArrayList<Double>();
+      globalOverLapScores = new ArrayList<>();
     }
 
     public String getReport() {
@@ -130,7 +130,7 @@ public class CNVConcordance {
       this.ind2 = ind2;
       this.numCNVind1 = numCNVind1;
       this.numCNVind2 = numCNVind2;
-      overlapScores = new ArrayList<Double>(getTotalCNVCount());
+      overlapScores = new ArrayList<>(getTotalCNVCount());
     }
 
     public void addAllScores(List<Double> globalOverLapScores) {
@@ -303,7 +303,7 @@ public class CNVConcordance {
   private ComparisionIndividualResults[] compareAll() {
     if (!fail) {
       int numComp = 0;
-      ArrayList<ComparisionIndividualResults> allResults = new ArrayList<ComparisionIndividualResults>();
+      ArrayList<ComparisionIndividualResults> allResults = new ArrayList<>();
       for (String[] pair : pairs) {
         String ind1 = pair[0];
         String ind2 = pair[1];
@@ -500,7 +500,7 @@ public class CNVConcordance {
   }
 
   public static List<CNVariant> filterCNVs(CNVFilter cnvFilter, List<CNVariant> cnvs) {
-    List<CNVariant> filtered = new ArrayList<CNVariant>(cnvs.size());
+    List<CNVariant> filtered = new ArrayList<>(cnvs.size());
     for (CNVariant cnv : cnvs) {
       CNVFilterPass filterPass = cnvFilter.getCNVFilterPass(cnv);
       if (filterPass.passedFilter()) {
@@ -588,7 +588,7 @@ public class CNVConcordance {
   }
 
   private static List<CNVariant> extractVariants(Hashtable<String, CNVariant[]> indCNVS) {
-    List<CNVariant> cnvs = new ArrayList<CNVariant>();
+    List<CNVariant> cnvs = new ArrayList<>();
     List<String> arr = Collections.list(indCNVS.keys());
     for (int i = 0; i < arr.size(); i++) {
       CNVariant[] chrCNVs = indCNVS.get(arr.get(i));
@@ -604,7 +604,7 @@ public class CNVConcordance {
     String[][] pairs = new String[load.length][];
     for (int i = 0; i < load.length; i++) {
       String[] tmp = load[i].split("\t");
-      ArrayList<String> compareDef = new ArrayList<String>();
+      ArrayList<String> compareDef = new ArrayList<>();
       for (int j = 0; j < tmp.length; j++) {
         if (!tmp[j].equals("")) {
           compareDef.add(tmp[j]);
@@ -618,7 +618,7 @@ public class CNVConcordance {
   private static Map<String, double[]> loadQC(String qcFile) {
     // Known Issue - genvisis-generated LRR file might have headers sprinkled throughout
     String[] load = HashVec.loadFileToStringArray(qcFile, false, null, false);
-    Map<String, double[]> qcMap = new HashMap<String, double[]>();
+    Map<String, double[]> qcMap = new HashMap<>();
     for (int i = 0; i < load.length; i++) {
       String[] line = load[i].split("\t");
       // skip header lines

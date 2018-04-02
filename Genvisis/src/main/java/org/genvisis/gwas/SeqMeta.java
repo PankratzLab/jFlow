@@ -90,8 +90,8 @@ public class SeqMeta {
 
     dir = new File(dir).getAbsolutePath() + "/";
 
-    v = new Vector<String>();
-    remaining = new Vector<String>();
+    v = new Vector<>();
+    remaining = new Vector<>();
     new File("batchChecks/").mkdir();
     for (String file : files) {
       root = ext.rootOf(file);
@@ -273,7 +273,7 @@ public class SeqMeta {
       problem = true;
     }
 
-    commands = new Vector<String>();
+    commands = new Vector<>();
     commands.add("load(\"" + dir + snpInfoFile + "\")");
     commands.add("ls()");
 
@@ -295,7 +295,7 @@ public class SeqMeta {
               "cd " + dir + "\n" + getRscriptExecutable(maps, log) + " --no-save " + filename, 5000,
               0.25, 1);
 
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     jobSizes = new IntVector();
 
     dir = ext.verifyDirFormat(dir);
@@ -313,7 +313,7 @@ public class SeqMeta {
 
             files = finalSets[i][j][k].split(";");
             for (int f = 0; f < files.length; f++) {
-              commands = new Vector<String>();
+              commands = new Vector<>();
               commands.add("load(\"" + dir + snpInfoFile + "\")");
               commands.add("load(\"" + dir + files[f] + "\")");
               if (Files.exists(dir + "batchChecks/" + ext.rootOf(files[f]) + ".object")) {
@@ -549,7 +549,7 @@ public class SeqMeta {
 
     maxChr = getMaxChr();
     jobSizes = new IntVector();
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     infoSizes = new int[maxChr + 2];
 
     if (runningByChr) {
@@ -634,7 +634,7 @@ public class SeqMeta {
                 }
               }
 
-              commands = new Vector<String>();
+              commands = new Vector<>();
               commands.add("print(.libPaths())");
               commands.add("library(bdsmatrix)");
               commands.add("library(seqMeta)");
@@ -709,14 +709,14 @@ public class SeqMeta {
     new File("chunks/").mkdir();
     Qsub.qsubExecutor(dir, jobNames, jobSizes, "chunks/chunkRun", 24, 62000, 24);
 
-    jobNames = new Vector<String>();
+    jobNames = new Vector<>();
     jobSizes = new IntVector();
     for (int i = 0; i < phenotypes.length; i++) {
       // Meta-analysis stratified by race
       for (int k = 0; k < races.length; k++) {
         for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
           chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-          commands = new Vector<String>();
+          commands = new Vector<>();
           commands.add("print(.libPaths())");
           commands.add("library(bdsmatrix)");
           commands.add("library(seqMeta)");
@@ -725,7 +725,7 @@ public class SeqMeta {
           }
           commands.add("load(\"" + dir + snpInfoFile + "\")");
 
-          objects = new Vector<String>();
+          objects = new Vector<>();
           for (int j = 0; j < studies.length; j++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
               if (runningByChr) {
@@ -800,7 +800,7 @@ public class SeqMeta {
       // Meta-analysis of all races
       for (int chr = 1; chr <= (runningByChr ? maxChr : 1); chr++) {
         chrom = chr == 23 ? "X" : (chr == 24 ? "Y" : chr + "");
-        commands = new Vector<String>();
+        commands = new Vector<>();
         commands.add("print(.libPaths())");
         commands.add("library(bdsmatrix)");
         commands.add("library(seqMeta)");
@@ -809,7 +809,7 @@ public class SeqMeta {
         }
         commands.add("load(\"" + dir + snpInfoFile + "\")");
 
-        objects = new Vector<String>();
+        objects = new Vector<>();
         for (int j = 0; j < studies.length; j++) {
           for (int k = 0; k < races.length; k++) {
             if (!finalSets[i][j][k].equals("<missing>")) {
@@ -1008,7 +1008,7 @@ public class SeqMeta {
       return;
     }
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       writer = Files.openAppropriateWriter(dir + "summary_metrics_list.xln");
       // writer.println("Study\tRace\tPhenotype\tN_samples\tn_genotyped\tn_MAF1%\tLambda_MAF1%\tbetaMean_MAF1%\tbetaSD_MAF1%\tn_20count\tLambda_20count\tbetaMean_20count\tbetaSD_20count\tn_MAF5%\tLambda_MAF5%\tbetaMean_MAF5%\tbetaSD_MAF5%");
@@ -1099,7 +1099,7 @@ public class SeqMeta {
     }
 
     start = 1;
-    ranges = new Vector<int[]>();
+    ranges = new Vector<>();
     try {
       writer = Files.openAppropriateWriter(dir + "sampleSizes.xln");
       for (int k = 0; k < races.length; k++) {
@@ -1279,7 +1279,7 @@ public class SeqMeta {
     files = Files.list(dir, null, ".Rdata", false);
     finalSets = identifySet(maps, files, log);
 
-    commands = new Vector<String>();
+    commands = new Vector<>();
     dir = ext.verifyDirFormat(dir);
     for (int i = 0; i < phenotypes.length; i++) {
       for (int j = 0; j < studies.length; j++) {
@@ -1312,7 +1312,7 @@ public class SeqMeta {
     String[][] methods;
     Vector<String> v;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     methods = maps.getMethods();
 
     for (String[] method : methods) {
@@ -1399,9 +1399,9 @@ public class SeqMeta {
                  + ext.addCommas(snpGeneFunctionalHash.size()) + " functional variants) in "
                  + ext.getTimeElapsed(time));
     } else {
-      snpGeneHash = new Hashtable<String, String>();
-      snpGeneFunctionalHash = new Hashtable<String, String>();
-      geneLoci = new Hashtable<String, Vector<String>>();
+      snpGeneHash = new Hashtable<>();
+      snpGeneFunctionalHash = new Hashtable<>();
+      geneLoci = new Hashtable<>();
 
       try {
         log.report(ext.getTime() + "\tReading in " + filename);
@@ -1470,7 +1470,7 @@ public class SeqMeta {
 
     for (int i = 0; i < phenotypes.length; i++) {
       log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]);
-      macs = new Hashtable<String, int[]>();
+      macs = new Hashtable<>();
       snpGeneFunctionalHashPan = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
                                                              + methods[0][0] + "/"
                                                              + phenotypes[i][0] + "_"
@@ -1483,7 +1483,7 @@ public class SeqMeta {
       for (int k = 0; k < races.length; k++) {
         log.report(ext.getTime() + "\tStarting calculations for " + phenotypes[i][0]
                    + " specifically for " + races[k][0]);
-        raceSpecificMacs = new Hashtable<String, int[]>();
+        raceSpecificMacs = new Hashtable<>();
         snpGeneFunctionalHashRaceSpecific = filterSnpGeneFunctionalHash(dir + phenotypes[i][0] + "/"
                                                                         + races[k][0] + "/"
                                                                         + methods[0][0] + "/"
@@ -1610,7 +1610,7 @@ public class SeqMeta {
     log.report(ext.getTime() + "\tFiltering " + ext.removeDirectoryInfo(filename) + " based on a "
                + ext.formDeci(mafThresholdDouble * 100, 10, false) + "% threshold");
 
-    snpGeneFunctionalHashFiltered = new Hashtable<String, String>(snpGeneFunctionalHash.size() / 2);
+    snpGeneFunctionalHashFiltered = new Hashtable<>(snpGeneFunctionalHash.size() / 2);
     try {
       reader = Files.getAppropriateReader(filename);
       header = ext.splitCommasIntelligently(reader.readLine(), true, log);
@@ -1704,17 +1704,17 @@ public class SeqMeta {
     files = Files.list(dir, ".Rdata");
     finalSets = identifySet(maps, files, log);
 
-    lineCounts = new Vector<String>();
+    lineCounts = new Vector<>();
     for (int i = 0; i < phenotypes.length; i++) {
-      groupHits = new Hashtable<String, Hits>();
-      groupParams = new Hashtable<String, Vector<String>>();
+      groupHits = new Hashtable<>();
+      groupParams = new Hashtable<>();
 
       // MODELS = { // name, grouping, subroutine, arguments, header type, mafThreshold //,
       // parameters for parsing
       // log.reportError("Error - a method must have at least 3 parameters: name, grouping,
       // algorithm, (optional) MAF threshold, (optional) additional arguments such as weighting");
 
-      macHashesHashByRace = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+      macHashesHashByRace = new Hashtable<>();
       for (int m = 0; m < methods.length; m++) {
         if (!groupHits.containsKey(methods[m][1])) {
           groupHits.put(methods[m][1], new Hits());
@@ -2131,8 +2131,8 @@ public class SeqMeta {
     System.out.println("Attempting to parse " + dir + filename);
 
     ch = new CountHash();
-    hash = new Hashtable<String, Segment>();
-    errors = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    errors = new Hashtable<>();
     try {
       reader = Files.getAppropriateReader(filename);
       temp = reader.readLine();
@@ -2252,9 +2252,9 @@ public class SeqMeta {
     races = Matrix.extractColumn(maps.getRacesWithFilenameAliases(), 0);
 
     groups = new String[] {};
-    filesToCat = new Vector<Vector<String>>();
-    inputsToCat = new Vector<String>();
-    batchesToCat = new Vector<String>();
+    filesToCat = new Vector<>();
+    inputsToCat = new Vector<>();
+    batchesToCat = new Vector<>();
     countHash = new CountHash();
     for (String[] method : methods) {
       if (ext.indexOfStr(method[1], groups) == -1) {
@@ -2288,7 +2288,7 @@ public class SeqMeta {
         filename = phenotype[0] + "_" + groups[g] + ".csv";
         pvalThresholdsLog.report(ext.rootOf(filename) + "\t" + ns[g] + "\t"
                                  + countHash.getCount(groups[g]) + "\t" + indexThreshold);
-        additionalCols = new Vector<String>();
+        additionalCols = new Vector<>();
         if (groups[g].equals("SingleVariant")) {
           additionalCols.add("SKATgene");
           additionalCols.add("PanEthnic_beta_SingleSNP");
@@ -2464,7 +2464,7 @@ public class SeqMeta {
       line = ArrayUtils.subArray(line, keeps);
       typeMatrix = Matrix.booleanMatrix(typesToSplit.length, line.length, false);
 
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 1; i < line.length; i++) {
         writer.print("\t");
         for (int j = 0; j < typesToSplit.length; j++) {
@@ -2553,7 +2553,7 @@ public class SeqMeta {
       line = ArrayUtils.subArray(line, keeps);
       pvals = ArrayUtils.booleanArray(line.length, false);
 
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 1; i < line.length; i++) {
         writer.print("\t");
         if (line[i].contains("_p_")) {
@@ -2739,7 +2739,7 @@ public class SeqMeta {
     methods = maps.getMethods();
     groups = maps.getGroups();
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String[] phenotype : phenotypes) {
       pheno = phenotype[0];
       for (String group : groups) {
@@ -2886,9 +2886,9 @@ public class SeqMeta {
     Vector<String> warnings;
     int raceIndex, phenoIndex;
 
-    statsForStudyRacePheno = new Hashtable<String, String[]>();
+    statsForStudyRacePheno = new Hashtable<>();
     for (int i = 0; i < studies.length; i++) {
-      warnings = new Vector<String>();
+      warnings = new Vector<>();
       if (Files.exists(dir + "summary_stats/" + studies[i] + "_summary_stats.txt")) {
         try {
           reader = Files.getAppropriateReader(dir + "summary_stats/" + studies[i]
@@ -2979,12 +2979,12 @@ public class SeqMeta {
 
     statsForStudyRacePheno = loadSummaryStats(dir, studies, races, phenotypes, log);
 
-    mainTable = new Vector<String>();
+    mainTable = new Vector<>();
     mainTable.add("Study\tRace\tAge\tminMean\tmaxMean\tN\t%Female\t"
                   + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
-    unitsTable = new Vector<String>();
+    unitsTable = new Vector<>();
     unitsTable.add("Study\tRace\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
-    countsTable = new Vector<String>();
+    countsTable = new Vector<>();
     countsTable.add("Study\tRace\t" + ArrayUtils.toStr(Matrix.extractColumn(phenotypes, 0)));
     for (int k = 0; k < races.length; k++) {
       for (int j = 0; j < studies.length; j++) {
@@ -3055,7 +3055,7 @@ public class SeqMeta {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, header, originalBits;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     double[][][] data;
     int count;
     long time, total;
@@ -3247,8 +3247,8 @@ public class SeqMeta {
       return;
     }
 
-    needToBeProcessed = new Vector<String>();
-    readyToBeConcatenated = new Vector<String>();
+    needToBeProcessed = new Vector<>();
+    readyToBeConcatenated = new Vector<>();
     for (String[] phenotype : phenotypes) {
       // Meta-analysis stratified by race
       for (String[] race : races) {
@@ -3485,7 +3485,7 @@ public class SeqMeta {
     new File("pleiotropy/").mkdirs();
     for (String[] method : methods) {
       for (String[] race : races) {
-        filenames = new Vector<String>();
+        filenames = new Vector<>();
         for (String[] phenotype : phenotypes) {
           localRaceDir = dir + phenotype[0] + "/" + race[0] + "/" + method[0] + "/";
           filename = race[0] + "_" + phenotype[0] + "_" + method[0] + ".csv";
@@ -3502,7 +3502,7 @@ public class SeqMeta {
                           "pleiotropy/" + method[0] + "_" + race[0] + "_pleiotropy.xln", log);
       }
 
-      filenames = new Vector<String>();
+      filenames = new Vector<>();
       for (String[] phenotype : phenotypes) {
         localDir = dir + phenotype[0] + "/" + method[0] + "/";
         filename = phenotype[0] + "_" + method[0] + ".csv";

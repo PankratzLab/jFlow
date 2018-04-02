@@ -99,7 +99,7 @@ public class TelSeq {
                              List<String> additionalArgs, Logger log) {
     String[] outputs = new String[] {output};
     String[] input = new String[] {inputBam};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("telseq");
     command.add("-o");
     command.add(output);
@@ -172,8 +172,8 @@ public class TelSeq {
                                  Logger log) {
 
     log.reportTimeInfo("Assuming telseq is on system path");
-    ArrayList<TelSeqResult> results = new ArrayList<TelSeq.TelSeqResult>();
-    ArrayList<String> argPopulator = new ArrayList<String>();
+    ArrayList<TelSeqResult> results = new ArrayList<>();
+    ArrayList<String> argPopulator = new ArrayList<>();
     argPopulator.add("-m");// doesn't look like telseq handles RGs properly
 
     switch (aType) {
@@ -201,7 +201,7 @@ public class TelSeq {
       throw new IllegalStateException("Missing proper heading for " + results.get(0).output);
     }
 
-    ArrayList<String> result = new ArrayList<String>();
+    ArrayList<String> result = new ArrayList<>();
     result.add("BAM\t" + ArrayUtils.toStr(TELSEQ_REPORT) + "\tType\tSampleName\tReadSize");
     for (TelSeqResult telSeqResult : results) {
       if (Files.exists(telSeqResult.output)) {
@@ -236,7 +236,7 @@ public class TelSeq {
       segs.getBufferedSegmentSet(captureBufferSize)
           .writeSegmentRegions(buffBed, aName == ASSEMBLY_NAME.GRCH37, log);
 
-      ArrayList<String> argPopulatorBuffBed = new ArrayList<String>();
+      ArrayList<String> argPopulatorBuffBed = new ArrayList<>();
       argPopulatorBuffBed.addAll(argPopulator);
       argPopulatorBuffBed.add("-e");
       argPopulatorBuffBed.add(buffBed);
@@ -249,7 +249,7 @@ public class TelSeq {
   private static void runType(int threads, Logger log, String[] bams, List<TelSeqResult> results,
                               List<String> argPopulator, String baseDir, TYPE type) {
     TelSeqProducer producer = new TelSeqProducer(bams, argPopulator, baseDir, type, log);
-    try (WorkerTrain<TelSeqResult> train = new WorkerTrain<TelSeq.TelSeqResult>(producer, threads,
+    try (WorkerTrain<TelSeqResult> train = new WorkerTrain<>(producer, threads,
                                                                                 100, log)) {
       while (train.hasNext()) {
         results.add(train.next());

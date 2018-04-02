@@ -55,7 +55,7 @@ public class MarkerBlastQC {
     List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
     parsers.add(gcAnnotations);
     parsers.add(blastResults);
-    ArrayList<String> oneHitters = new ArrayList<String>();
+    ArrayList<String> oneHitters = new ArrayList<>();
 
     // TODO: Update to more efficient Annotation Loading for entire file
     markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);

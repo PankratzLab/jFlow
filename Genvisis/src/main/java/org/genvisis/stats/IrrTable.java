@@ -37,9 +37,9 @@ public class IrrTable {
     this.log = log;
     this.verbose = verbose;
     ratings = new int[numJudges][numSubjects];
-    rated = new Hashtable<String, String>();
+    rated = new Hashtable<>();
     judgeTotals = initJudgeTotals(numJudges);
-    uniqRatings = new HashSet<Integer>();
+    uniqRatings = new HashSet<>();
     totalRated = 0;
     judgedAgreementsBySample = null;
     judgedAgreementsByCategory = null;
@@ -232,13 +232,13 @@ public class IrrTable {
   private static Hashtable<Integer, Integer>[] initJudgeTotals(int numJudges) {
     Hashtable<Integer, Integer>[] judgeTotals = new Hashtable[numJudges];
     for (int i = 0; i < judgeTotals.length; i++) {
-      judgeTotals[i] = new Hashtable<Integer, Integer>();
+      judgeTotals[i] = new Hashtable<>();
     }
     return judgeTotals;
   }
 
   private static Hashtable<Integer, Integer> initIndices(HashSet<Integer> uniq) {
-    Hashtable<Integer, Integer> indices = new Hashtable<Integer, Integer>();
+    Hashtable<Integer, Integer> indices = new Hashtable<>();
     int index = 0;
     for (int cat : uniq) {
       indices.put(cat, index);

@@ -12,7 +12,7 @@ import htsjdk.variant.vcf.VCFFormatHeaderLine;
 public class GenotypeOps {
 
   public static List<Allele> getNoCall() {
-    ArrayList<Allele> noCall = new ArrayList<Allele>();
+    ArrayList<Allele> noCall = new ArrayList<>();
     noCall.add(Allele.NO_CALL);
     noCall.add(Allele.NO_CALL);
     return noCall;

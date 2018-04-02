@@ -25,7 +25,7 @@ public class CNVBurdenIterator {
 
     abstract double getData(int ind);
 
-    final ArrayList<CNVariant> cnvs = new ArrayList<CNVariant>();
+    final ArrayList<CNVariant> cnvs = new ArrayList<>();
 
     public int getCNVs(double minSizeKB) {
       int cnt = 0;
@@ -61,7 +61,7 @@ public class CNVBurdenIterator {
   static class MappedData extends CNVData {
 
     String fidiid;
-    HashMap<Integer, Double> data = new HashMap<Integer, Double>();
+    HashMap<Integer, Double> data = new HashMap<>();
 
     @Override
     String getID() {
@@ -135,18 +135,18 @@ public class CNVBurdenIterator {
   private void loadIDs(String famFile, String idsFile) {
     HashSet<String> famIDs, tempIDs;
 
-    famIDs = new HashSet<String>();
+    famIDs = new HashSet<>();
     if (famFile != null && !"".equals(famFile)) {
       famIDs.addAll(HashVec.loadFileToHashString(famFile, ID_COLS, null, false, "\t", false, false)
                            .keySet());
     }
 
-    tempIDs = new HashSet<String>();
+    tempIDs = new HashSet<>();
     if (idsFile != null && !"".equals(idsFile)) {
       tempIDs = HashVec.loadFileToHashSet(idsFile, false);
     }
 
-    usedIDs = new HashSet<String>();
+    usedIDs = new HashSet<>();
     usedIDs.addAll(famIDs);
     usedIDs.addAll(tempIDs);
     if (famIDs.size() > 0 && tempIDs.size() > 0) {
@@ -430,7 +430,7 @@ public class CNVBurdenIterator {
     Hashtable<String, String> dataTable = HashVec.loadFileToHashString(dataFile, idCols,
                                                                        inclGenderDataCols, false,
                                                                        "\t", true, true);
-    idData = new HashMap<String, MappedData>();
+    idData = new HashMap<>();
     for (java.util.Map.Entry<String, String> entry : dataTable.entrySet()) {
       String[] dataLine = entry.getValue().split("\t");
 

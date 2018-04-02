@@ -28,9 +28,9 @@ public class AIMsPicker {
     boolean candidate;
     int count, round, randomPick, randomFail, pick;
 
-    order = new Vector<String>();
-    clusters = new Hashtable<String, Vector<String>>();
-    allInfo = new Hashtable<String, String[]>();
+    order = new Vector<>();
+    clusters = new Hashtable<>();
+    allInfo = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

@@ -197,7 +197,7 @@ public class BeastScore {
     float[] indicesMADScaled = new float[indicesToScale.length];
     for (int i = 0; i < indicesToScale.length; i++) {
       if (indicesToScale[i] != null && indicesToScale[i].length > 0) {
-        ArrayList<Float> medianIndices = new ArrayList<Float>();
+        ArrayList<Float> medianIndices = new ArrayList<>();
         for (int j = 0; j < indicesToScale[i].length; j++) {
           int index = indicesToScale[i][j];
           if (!Double.isNaN(inverseTransformedData[index]) && (use == null || use[index])) {
@@ -255,7 +255,7 @@ public class BeastScore {
                                         int[][] indicesForHeights, boolean[] use, Logger log) {
     float[] beastHeights = new float[indicesForHeights.length];
     for (int i = 0; i < indicesForHeights.length; i++) {
-      ArrayList<Float> medianHeightIndices = new ArrayList<Float>();
+      ArrayList<Float> medianHeightIndices = new ArrayList<>();
       for (int j = 0; j < indicesForHeights[i].length; j++) {
         if ((use == null || use[indicesForHeights[i][j]])
             && !Float.isNaN(inverseTransformedDataScaleMAD[indicesForHeights[i][j]])) {
@@ -384,12 +384,12 @@ public class BeastScore {
 
     CNVariant[] cnvs = CNVariant.loadPlinkFile(cnvFile);
 
-    HashSet<String> inds = new HashSet<String>();
+    HashSet<String> inds = new HashSet<>();
     for (CNVariant cnv : cnvs) {
       inds.add(cnv.getIndividualID());
     }
-    ArrayList<String> ids = new ArrayList<String>(inds);
-    HashMap<String, ArrayList<CNVariant>> cnvMap = new HashMap<String, ArrayList<CNVariant>>();
+    ArrayList<String> ids = new ArrayList<>(inds);
+    HashMap<String, ArrayList<CNVariant>> cnvMap = new HashMap<>();
     for (String s : ids) {
       cnvMap.put(s, new ArrayList<CNVariant>());
     }

@@ -18,7 +18,7 @@ import java.util.Map;
 
 public final class CFCSParameters extends CFCSAbstractParameters {
 
-  private final Map<Object, CFCSAbstractParameter> cache = new HashMap<Object, CFCSAbstractParameter>();
+  private final Map<Object, CFCSAbstractParameter> cache = new HashMap<>();
 
   // --------------------------------------------------------------------
 

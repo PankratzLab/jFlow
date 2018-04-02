@@ -23,8 +23,8 @@ public class ARIC {
     String[] vte = HashVec.loadFileToStringArray(phenoDef, false, new int[] {0}, true);
 
     LocusSet<CNVariant> cnvsSet = CNVariant.loadLocSet(cnvs, proj.getLog());
-    ArrayList<CNVariant> caseCNVs = new ArrayList<CNVariant>();
-    ArrayList<CNVariant> controlCNVs = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> caseCNVs = new ArrayList<>();
+    ArrayList<CNVariant> controlCNVs = new ArrayList<>();
     SampleData sampleData = proj.getSampleData(false);
 
     String cases = ext.addToRoot(cnvs, ".vte");

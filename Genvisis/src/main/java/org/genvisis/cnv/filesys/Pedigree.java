@@ -42,7 +42,7 @@ public class Pedigree extends FamilyStructure {
                                                                                     cache);
 
       // at this point, only non-excluded IDs are present in all_trios and parentToChildren
-      ArrayList<String[]> sibPairs = new ArrayList<String[]>();
+      ArrayList<String[]> sibPairs = new ArrayList<>();
       for (String[] trio : ped.cached_all_trios) {
         ArrayList<String> faChildren = parentToChildren.get(trio[1]);
         if (faChildren == null) {
@@ -56,7 +56,7 @@ public class Pedigree extends FamilyStructure {
         } else if (moChildren.size() == 1 && !trio[0].equals(faChildren.get(0))) {
           // Error!
         }
-        HashSet<String> unionSet = new HashSet<String>();
+        HashSet<String> unionSet = new HashSet<>();
         unionSet.addAll(faChildren);
         unionSet.retainAll(moChildren);
         if (unionSet.size() == 0) {
@@ -84,7 +84,7 @@ public class Pedigree extends FamilyStructure {
       if (ped.cached_parentToChildrenMap != null) {
         return ped.cached_parentToChildrenMap;
       }
-      HashMap<String, ArrayList<String>> parentMap = new HashMap<String, ArrayList<String>>();
+      HashMap<String, ArrayList<String>> parentMap = new HashMap<>();
 
       for (int i = 0; i < ped.getIDs().length; i++) {
         if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
@@ -95,7 +95,7 @@ public class Pedigree extends FamilyStructure {
             && (!completeOnly || (/* faInd = */ped.getIndexOfFaInIDs(i)) >= 0)) {
           ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
           if (children == null) {
-            children = new ArrayList<String>();
+            children = new ArrayList<>();
             parentMap.put(ped.getFID(i) + "\t" + ped.getFA(i), children);
           }
           children.add(ped.getFID(i) + "\t" + ped.getIID(i));
@@ -108,7 +108,7 @@ public class Pedigree extends FamilyStructure {
             && (!completeOnly || (/* moInd = */ped.getIndexOfMoInIDs(i)) >= 0)) {
           ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
           if (children == null) {
-            children = new ArrayList<String>();
+            children = new ArrayList<>();
             parentMap.put(ped.getFID(i) + "\t" + ped.getMO(i), children);
           }
           children.add(ped.getFID(i) + "\t" + ped.getIID(i));
@@ -127,8 +127,8 @@ public class Pedigree extends FamilyStructure {
       if (ped.cached_poPairsIDs != null) {
         return ped.cached_poPairsIDs;
       }
-      ArrayList<String[]> pairs = new ArrayList<String[]>();
-      ArrayList<int[]> completePairs = new ArrayList<int[]>();
+      ArrayList<String[]> pairs = new ArrayList<>();
+      ArrayList<int[]> completePairs = new ArrayList<>();
       for (int i = 0; i < ped.getIDs().length; i++) {
         int faInd = -1;
         int moInd = -1;
@@ -173,8 +173,8 @@ public class Pedigree extends FamilyStructure {
       if (ped.cached_complete_trios != null) {
         return ped.cached_complete_trios;
       }
-      ArrayList<String[]> allTrios = new ArrayList<String[]>();
-      ArrayList<int[]> trios = new ArrayList<int[]>();
+      ArrayList<String[]> allTrios = new ArrayList<>();
+      ArrayList<int[]> trios = new ArrayList<>();
       for (int i = 0; i < ped.getIDs().length; i++) {
         int faInd = -1;
         int moInd = -1;
@@ -222,7 +222,7 @@ public class Pedigree extends FamilyStructure {
                         + "]\t Error - cannot run checkMendelErrors without a Project");
         return null;
       }
-      Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<String, MendelErrorCheck>();
+      Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<>();
       byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
                                                                markerData.getMarkerName(),
                                                                gcThreshold, log);
@@ -381,7 +381,7 @@ public class Pedigree extends FamilyStructure {
                                              true, true);
     } else {
       log.report("Warning - no sex check file found, sex will be set to '0' for all individuals.  Otherwise, first run SexChecks and then re-run.");
-      sexDict = new Hashtable<String, String>();
+      sexDict = new Hashtable<>();
     }
 
     samples = samples == null ? proj.getSamples() : samples;

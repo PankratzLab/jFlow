@@ -33,7 +33,7 @@ public class SeqCNVariant extends CNVariant {
 
   @Override
   public String toAnalysisString() {
-    ArrayList<String> extraInfo = new ArrayList<String>();
+    ArrayList<String> extraInfo = new ArrayList<>();
     if (cExtraInfos != null) {
       for (CNVExtraInfo cnvExtraInfo : cExtraInfos) {
         extraInfo.add(cnvExtraInfo.getdExtra());
@@ -44,7 +44,7 @@ public class SeqCNVariant extends CNVariant {
 
   @Override
   public String[] getHeader() {
-    ArrayList<String> extraHeaders = new ArrayList<String>();
+    ArrayList<String> extraHeaders = new ArrayList<>();
     if (cExtraInfos != null) {
       for (CNVExtraInfo cnvExtraInfo : cExtraInfos) {
         extraHeaders.add(cnvExtraInfo.getsExtra());

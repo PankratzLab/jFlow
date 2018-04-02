@@ -358,9 +358,9 @@ public class GenCNV implements Runnable {
 
     public Pheno(String phenoName) {
       this.phenoName = phenoName;
-      inds = new ArrayList<String>();
-      phenos = new ArrayList<Double>();
-      hasPheno = new Hashtable<String, Integer>();
+      inds = new ArrayList<>();
+      phenos = new ArrayList<>();
+      hasPheno = new Hashtable<>();
     }
 
     public Hashtable<String, Integer> getHasPheno() {
@@ -581,8 +581,8 @@ public class GenCNV implements Runnable {
       numPassingThreshold = 0;
       numTests = 0;
       numTotal = 0;
-      lociTested = new ArrayList<String>();
-      lociTestedPvalue = new ArrayList<Double>();
+      lociTested = new ArrayList<>();
+      lociTestedPvalue = new ArrayList<>();
     }
 
     public String getMinPvalLocus() {
@@ -667,7 +667,7 @@ public class GenCNV implements Runnable {
     }
 
     public String[] getLociByPvalue(double pvalCutoff) {
-      ArrayList<String> results = new ArrayList<String>();
+      ArrayList<String> results = new ArrayList<>();
       for (int i = 0; i < lociTestedPvalue.size(); i++) {
         if (lociTestedPvalue.get(i) <= pvalCutoff) {
           results.add(lociTested.get(i) + "\t" + lociTestedPvalue.get(i));
@@ -680,7 +680,7 @@ public class GenCNV implements Runnable {
     // pvalue ties count toward total
     public String getTopLociByPvalue(int numberToReturn, double pvalCutoff) {
       String[] sortedLoci = new String[numberToReturn];
-      Hashtable<Double, ArrayList<String>> map = new Hashtable<Double, ArrayList<String>>();
+      Hashtable<Double, ArrayList<String>> map = new Hashtable<>();
       for (int i = 0; i < lociTestedPvalue.size(); i++) {
         if (map.containsKey(lociTestedPvalue.get(i))) {
           map.get(lociTestedPvalue.get(i)).add(lociTested.get(i));
@@ -736,7 +736,7 @@ public class GenCNV implements Runnable {
     public PrepResults(String phenotype, String[] finalIDs, double[][] database) {
       this.phenotype = phenotype;
       phenoValues = new double[finalIDs.length];
-      tracker = new Hashtable<String, Integer>();
+      tracker = new Hashtable<>();
       assignPhenos(finalIDs, database);
     }
 
@@ -787,7 +787,7 @@ public class GenCNV implements Runnable {
 
   private static ArrayList<ArrayList<Analysis>> getcabinet(List<Analysis> analyses,
                                                            int numThreads) {
-    ArrayList<ArrayList<Analysis>> cabinet = new ArrayList<ArrayList<Analysis>>();
+    ArrayList<ArrayList<Analysis>> cabinet = new ArrayList<>();
     for (int i = 0; i < numThreads; i++) {
       cabinet.add(new ArrayList<Analysis>());
     }
@@ -828,7 +828,7 @@ public class GenCNV implements Runnable {
                                 Logger log) {
     Thread[] threads = new Thread[numThreads];
     Pheno[] phenos = loadGPHENO(dir + gPhenoFile, log);
-    ArrayList<Analysis> analyses = new ArrayList<Analysis>();
+    ArrayList<Analysis> analyses = new ArrayList<>();
     log.report(ext.getTime() + " Info - positions with frequency less than " + excludeFreqBelow
                + " will be removed");
     log.report(ext.getTime() + " Info - p-value cutoff set to " + pvalCutoff);
@@ -857,8 +857,8 @@ public class GenCNV implements Runnable {
   private static void summarizeAll(GenCNV[] genCNVs, String dir, String gPhenoFile,
                                    String outputSerial, Logger log) {
     log.report(ArrayUtils.toStr(ANALYSIS_SUMMARY_HEADER));
-    ArrayList<Significance> allSigs = new ArrayList<Significance>();
-    ArrayList<Burden> allburdens = new ArrayList<Burden>();
+    ArrayList<Significance> allSigs = new ArrayList<>();
+    ArrayList<Burden> allburdens = new ArrayList<>();
 
     for (GenCNV genCNV : genCNVs) {
       Analysis[] analyses = genCNV.getAnalyses();
@@ -948,7 +948,7 @@ public class GenCNV implements Runnable {
 
     String[] uniqInds = getUniqInds(phenos);
     Hashtable<String, String> hashcovars = defineCovars(covars, log);
-    ArrayList<PrepResults> prepResults = new ArrayList<PrepResults>();
+    ArrayList<PrepResults> prepResults = new ArrayList<>();
     for (int i = 0; i < phenos.length; i++) {
       // log.report("" + phenos[i].getArrayInds().length + "\t" + phenos[i].getPhenoName());
       if (hashcovars.containsKey(phenos[i].getPhenoName()) || !hasVariance(phenos[i])) {
@@ -972,7 +972,7 @@ public class GenCNV implements Runnable {
   }
 
   private static boolean hasVariance(Pheno pheno) {
-    Hashtable<Double, Boolean> tracker = new Hashtable<Double, Boolean>();
+    Hashtable<Double, Boolean> tracker = new Hashtable<>();
     double[] phenos = pheno.getArrayPheno();
     for (double pheno2 : phenos) {
       tracker.put(pheno2, true);
@@ -1016,8 +1016,8 @@ public class GenCNV implements Runnable {
   }
 
   private static String[] getUniqInds(Pheno[] phenos) {
-    ArrayList<String> inds = new ArrayList<String>();
-    Hashtable<String, Boolean> tracker = new Hashtable<String, Boolean>();
+    ArrayList<String> inds = new ArrayList<>();
+    Hashtable<String, Boolean> tracker = new Hashtable<>();
     for (Pheno pheno : phenos) {
       String[] phenoinds = pheno.getArrayInds();
       for (String phenoind : phenoinds) {
@@ -1033,7 +1033,7 @@ public class GenCNV implements Runnable {
   }
 
   public static Hashtable<String, String> defineCovars(String[] covars, Logger log) {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     for (String covar : covars) {
       if (hash.containsKey(covar)) {
         log.reportError("Error - covariate " + covar + " was defined twice");

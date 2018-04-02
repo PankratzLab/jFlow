@@ -48,7 +48,7 @@ public class PLINK2GenomePackager {
       // return;
     }
 
-    HashMap<String, String> covarPrefices = new HashMap<String, String>();
+    HashMap<String, String> covarPrefices = new HashMap<>();
 
     for (String covarFile : covars) {
       String[] parts = covarFile.split("_");
@@ -94,7 +94,7 @@ public class PLINK2GenomePackager {
 
     String famFile = famList[0];
 
-    HashMap<String, String> plinkRuns = new HashMap<String, String>();
+    HashMap<String, String> plinkRuns = new HashMap<>();
 
     for (String pheno : phenos) {
       String[] parts = pheno.split("_");

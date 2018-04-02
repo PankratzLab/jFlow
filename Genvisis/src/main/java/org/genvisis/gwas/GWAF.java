@@ -124,7 +124,7 @@ public class GWAF {
                                                                                      + ".log",
                                                   null, 5000, 12, null));
         } else {
-          v = new Vector<String>();
+          v = new Vector<>();
           // step = (int)Math.ceil((double)((count-startAt)+1)/(double)nodesToUse.length);
           // for (int i = 0; i < nodesToUse.length; i++) {
           // list = Files.qsub("", null, i*step+startAt,

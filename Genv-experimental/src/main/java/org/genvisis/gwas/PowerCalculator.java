@@ -38,7 +38,7 @@ public class PowerCalculator {
       alpha = 1E-8;
     }
 
-    Map<String, String> data = new Hashtable<String, String>();
+    Map<String, String> data = new Hashtable<>();
     data.put("fA", ext.prettyP(maf));
     data.put("k", ext.formDeci(prevalence, 3));
     data.put("rAa", ext.formDeci(relativeRisk, 3));

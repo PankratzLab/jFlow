@@ -75,7 +75,7 @@ public class VCFHistogram implements Serializable {
     vpop.report();
     this.walker = walker;
     this.log = log;
-    tested = new ArrayList<Segment>();
+    tested = new ArrayList<>();
     initHists();
   }
 
@@ -88,7 +88,7 @@ public class VCFHistogram implements Serializable {
   }
 
   public RScatters dumpAndPlot(String dir, String root) {
-    ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rScatters = new ArrayList<>();
     LocusSet<Segment> toDump = new LocusSet<Segment>(tested.toArray(new Segment[tested.size()]),
                                                      true, log) {
 
@@ -100,8 +100,8 @@ public class VCFHistogram implements Serializable {
     toDump.writeRegions(dir + root + ".segments", TO_STRING_TYPE.REGULAR, false, log);
 
     for (int i = 0; i < histograms[0].length; i++) {
-      ArrayList<String> tmpTitles = new ArrayList<String>();
-      ArrayList<DynamicHistogram> tmpHists = new ArrayList<DynamicHistogram>();
+      ArrayList<String> tmpTitles = new ArrayList<>();
+      ArrayList<DynamicHistogram> tmpHists = new ArrayList<>();
       String output = dir + root;
       for (int j = 0; j < histograms.length; j++) {
         tmpTitles.add(histTitles[j][i] + "_n_" + ArrayUtils.sum(histograms[j][i].getCounts()));
@@ -289,7 +289,7 @@ public class VCFHistogram implements Serializable {
 
   private static String[] divideToNewCaseControlStatus(VcfPopulation vcfPopulation, String dir,
                                                        Logger log) {
-    ArrayList<String> newVpops = new ArrayList<String>();
+    ArrayList<String> newVpops = new ArrayList<>();
     for (String superPop : vcfPopulation.getSuperPop().keySet()) {
       for (String superPopComp : vcfPopulation.getSuperPop().keySet()) {
         if (!superPop.equals(superPopComp)) {
@@ -476,7 +476,7 @@ public class VCFHistogram implements Serializable {
 
     HistProducer producer = new HistProducer(histInits, vcf, outputDir, outputRoot,
                                              referenceGenomeFasta, log);
-    try (WorkerTrain<VCFHistogram> train = new WorkerTrain<VCFHistogram>(producer, numthreads,
+    try (WorkerTrain<VCFHistogram> train = new WorkerTrain<>(producer, numthreads,
                                                                          numthreads, log)) {
       VCFHistogram[] hists = new VCFHistogram[histInits.length];
       int indext = 0;

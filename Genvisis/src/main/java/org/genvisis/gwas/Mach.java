@@ -131,11 +131,11 @@ public class Mach {
     commands += "cd .." + "\n";
     commands += "\n";
 
-    v = new Vector<String>();
+    v = new Vector<>();
     if (nodesToUse == null) {
       v = ArrayUtils.toStringVector(Qsub.qsub("", "chr#", 1, 22, commands, null, 10000, 48, null));
     } else {
-      v = new Vector<String>();
+      v = new Vector<>();
       // step = (int)Math.ceil((double)(22)/(double)nodesToUse.length);
       // for (int i = 0; i < nodesToUse.length; i++) {
       // list = Files.qsub("", null, i*step+0, i==nodesToUse.length-1?22:((i+1)*step-1), commands,
@@ -388,7 +388,7 @@ public class Mach {
     BufferedReader reader;
     PrintWriter writer, mapWriter;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     Vector<String> v;
     String[] indIDs;
     int count;
@@ -465,7 +465,7 @@ public class Mach {
       rowCount = 0;
       count = 0;
       c = 0;
-      v = new Vector<String>();
+      v = new Vector<>();
       while (c >= 0) {
         if (count == 0) {
           trav = "";
@@ -658,9 +658,9 @@ public class Mach {
       System.err.println("Error - mismatched format patterns, assuming these are output from minimac");
     }
 
-    indexHash = new Hashtable<String, Integer>();
-    chrHash = new Hashtable<String, Vector<String>>();
-    v = new Vector<String>();
+    indexHash = new Hashtable<>();
+    chrHash = new Hashtable<>();
+    v = new Vector<>();
     try {
       // reader = new BufferedReader(new FileReader(markerList));
       reader = Files.getAppropriateReader(markerList);
@@ -710,8 +710,8 @@ public class Mach {
     log.report("Will be pulling information from " + chrHash.size() + " chromosomes");
 
     chrKeys = HashVec.getKeys(chrHash);
-    indicesHash = new Hashtable<String, int[]>();
-    infoHash = new Hashtable<String, String[]>();
+    indicesHash = new Hashtable<>();
+    infoHash = new Hashtable<>();
     for (String chrKey : chrKeys) {
       try {
         chr = Integer.parseInt(chrKey);
@@ -1204,10 +1204,10 @@ public class Mach {
 
     time = new Date().getTime();
 
-    markerHash = new Hashtable<String, String>();
-    chrHash = new Hashtable<String, Integer>();
-    regionMarkerHashes = new Hashtable<String, Hashtable<String, String>>();
-    v = new Vector<String>();
+    markerHash = new Hashtable<>();
+    chrHash = new Hashtable<>();
+    regionMarkerHashes = new Hashtable<>();
+    v = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(markerList));
       System.out.println("Reading data from " + markerList);
@@ -1310,7 +1310,7 @@ public class Mach {
             System.err.println("Warning - unknown marker info format extension (" + markersFile
                                + "); skipping header verification");
           }
-          v = new Vector<String>();
+          v = new Vector<>();
           v.add("1");
           v.add("2");
           count = 2;
@@ -1428,7 +1428,7 @@ public class Mach {
     }
 
     count = 0;
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + pedfile));
       while (reader.ready()) {
@@ -1571,7 +1571,7 @@ public class Mach {
     String[] line;
     Hashtable<String, String> hash;
     Hashtable<String, Vector<String>> hashV;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     FamilyStructure struct;
     String[][] ids;
     byte[] genders, affections;
@@ -1584,7 +1584,7 @@ public class Mach {
     genders = struct.getGenders();
     affections = struct.getAffections();
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader("plink.imiss"));
       ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
@@ -1603,7 +1603,7 @@ public class Mach {
       System.exit(2);
     }
 
-    hashV = new Hashtable<String, Vector<String>>();
+    hashV = new Hashtable<>();
     for (int i = 0; i < ids.length; i++) {
       HashVec.addToHashVec(hashV, genders[i] + "_" + affections[i],
                            ids[i][0] + "\t" + ids[i][1] + "\t" + hash.get(ids[i][0] + "\t"

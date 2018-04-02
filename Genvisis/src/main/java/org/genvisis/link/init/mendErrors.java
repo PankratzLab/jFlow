@@ -20,7 +20,7 @@ public class mendErrors {
     PrintWriter writer;
     StringTokenizer st;
     String temp, chrome, fam, data, marker, id, win; // what I need
-    Vector<String> listOfErrors = new Vector<String>();
+    Vector<String> listOfErrors = new Vector<>();
 
     for (int chromosome = start; chromosome <= stop; chromosome++) {
       try {

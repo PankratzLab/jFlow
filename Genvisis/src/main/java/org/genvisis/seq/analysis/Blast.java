@@ -453,7 +453,7 @@ public class Blast {
       super();
       this.name = name;
       this.taxonMode = taxonMode;
-      hitCounts = new Hashtable<String, Integer>();
+      hitCounts = new Hashtable<>();
       percentIdentityHistogram = new DynamicHistogram(reportWordSize, 100, 0);
       evalueHistogram = new DynamicHistogram(0, 1, 2);
       numPerfectMatches = 0;

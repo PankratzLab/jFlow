@@ -34,11 +34,11 @@ public class AddBlankSamples {
                                                       reader.getFileHeader()
                                                             .getSequenceDictionary());
 
-      Set<String> samps = new HashSet<String>();
+      Set<String> samps = new HashSet<>();
       for (int i = 0; i < numBlanks; i++) {
         samps.add("Blank_" + i);
       }
-      Set<VCFHeaderLine> newHeaderLines = new HashSet<VCFHeaderLine>();
+      Set<VCFHeaderLine> newHeaderLines = new HashSet<>();
       newHeaderLines.addAll(reader.getFileHeader().getInfoHeaderLines());
       newHeaderLines.addAll(reader.getFileHeader().getOtherHeaderLines());
       newHeaderLines.addAll(reader.getFileHeader().getContigLines());
@@ -52,7 +52,7 @@ public class AddBlankSamples {
       writer.writeHeader(outHeader);
       for (VariantContext vc : reader) {
         VariantContextBuilder builder = new VariantContextBuilder(vc);
-        ArrayList<Genotype> genotypesBlanks = new ArrayList<Genotype>();
+        ArrayList<Genotype> genotypesBlanks = new ArrayList<>();
         for (int i = 0; i < numBlanks; i++) {
           GenotypeBuilder gb = new GenotypeBuilder("Blank_" + i, vc.getAlleles());
           genotypesBlanks.add(gb.make());

@@ -45,9 +45,9 @@ public class CNVBMAF extends CNVBDeviation {
 
   public CNVBMAF(String[] intensityOnlyFlags, double gcThreshold) {
     super(intensityOnlyFlags, gcThreshold);
-    bmafAll = new ArrayList<Double>();
-    bmafNonHet = new ArrayList<Double>();
-    bmafHet = new ArrayList<Double>();
+    bmafAll = new ArrayList<>();
+    bmafNonHet = new ArrayList<>();
+    bmafHet = new ArrayList<>();
     countsHetGeno = 0;
     countsHetBAF = 0;
     bmafMetric = 0;// TODO, could set to NaN instead

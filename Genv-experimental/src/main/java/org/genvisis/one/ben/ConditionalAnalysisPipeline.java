@@ -41,12 +41,12 @@ public class ConditionalAnalysisPipeline {
     String analysisRootDir;
     String regionDirNameRoot;
     // set programmatically:
-    HashMap<String, String[]> genoData = new HashMap<String, String[]>();
-    HashMap<String, String[]> infoData = new HashMap<String, String[]>();
+    HashMap<String, String[]> genoData = new HashMap<>();
+    HashMap<String, String[]> infoData = new HashMap<>();
 
-    HashSet<String> prevSNPs = new HashSet<String>();
-    HashMap<String, String[]> prevSNPdata = new HashMap<String, String[]>();
-    HashMap<String, String[]> prevSNPinfo = new HashMap<String, String[]>();
+    HashSet<String> prevSNPs = new HashSet<>();
+    HashMap<String, String[]> prevSNPdata = new HashMap<>();
+    HashMap<String, String[]> prevSNPinfo = new HashMap<>();
 
     @Override
     public String toString() {
@@ -87,7 +87,7 @@ public class ConditionalAnalysisPipeline {
       // TODO generic parsing for file-name template: is it in chr#.<>.<> format [chunked], or chr#
       // format [whole_chr]?
       // assuming data file names include position
-      ArrayList<String> inclDataFiles = new ArrayList<String>();
+      ArrayList<String> inclDataFiles = new ArrayList<>();
       for (String chrDataFile : chrDataFiles) {
         String[] pts = chrDataFile.split("\\.");
         int chunkStart = Integer.parseInt(pts[1]);
@@ -126,7 +126,7 @@ public class ConditionalAnalysisPipeline {
 
       String infoHeader = "snp_id rs_id position exp_freq_a1 info certainty type info_type0 concord_type0 r2_type0";
 
-      TreeSet<String> sortedFiles = new TreeSet<String>(new Comparator<String>() {
+      TreeSet<String> sortedFiles = new TreeSet<>(new Comparator<String>() {
 
         @Override
         public int compare(String o1, String o2) {
@@ -232,7 +232,7 @@ public class ConditionalAnalysisPipeline {
     private static void createNewTraitFiles(final Region region, String traitDir,
                                             DataDefinitions dd, boolean baseline) {
       String[] iids = HashVec.loadFileToStringArray(dd.indivFile, false, new int[] {0}, false);
-      HashMap<String, Integer> indexMap = new HashMap<String, Integer>();
+      HashMap<String, Integer> indexMap = new HashMap<>();
       for (int i = 0; i < iids.length; i++) {
         indexMap.put(iids[i], i);
       }
@@ -268,7 +268,7 @@ public class ConditionalAnalysisPipeline {
 
       int offset = 5; // column index offset to start of geno data
 
-      ArrayList<String> missing = new ArrayList<String>();
+      ArrayList<String> missing = new ArrayList<>();
 
       try {
         int traitCount = Files.countLines(traitDir + traitFile, 1);
@@ -278,11 +278,11 @@ public class ConditionalAnalysisPipeline {
         //
         double[] phenoData = new double[traitCount];
         // double[][] indepData = new double[traitCount][];
-        ArrayList<double[]> indepDataLines = new ArrayList<double[]>();
+        ArrayList<double[]> indepDataLines = new ArrayList<>();
 
         String line = reader.readLine(); // header
         String[] parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
-        ArrayList<String> colNames = new ArrayList<String>();
+        ArrayList<String> colNames = new ArrayList<>();
 
         for (int i = 6; i < parts.length; i++) {
           colNames.add(parts[i]);
@@ -297,12 +297,12 @@ public class ConditionalAnalysisPipeline {
         }
 
         int cnt = 0;
-        ArrayList<Double> phenoDataList = new ArrayList<Double>();
+        ArrayList<Double> phenoDataList = new ArrayList<>();
 
         while ((line = reader.readLine()) != null) {
           parts = line.split(PSF.Regex.GREEDY_WHITESPACE);
 
-          ArrayList<Double> lineData = new ArrayList<Double>();
+          ArrayList<Double> lineData = new ArrayList<>();
 
           String iid = parts[1];
           Integer iidIndex = iids.get(iid);
@@ -435,12 +435,12 @@ public class ConditionalAnalysisPipeline {
 
     private String[] setup() {
       // Study -> PopCode -> Defs
-      ArrayList<DataDefinitions> allDefs = new ArrayList<FAST.DataDefinitions>();
+      ArrayList<DataDefinitions> allDefs = new ArrayList<>();
       for (HashMap<String, DataDefinitions> sub : dataDefs.values()) {
         allDefs.addAll(sub.values());
       }
 
-      ArrayList<String> newDataDefs = new ArrayList<String>();
+      ArrayList<String> newDataDefs = new ArrayList<>();
       for (DataDefinitions dd : allDefs) {
         log("Retrieving required data files...");
         String[] files = findDataFiles(region, dd);
@@ -593,7 +593,7 @@ public class ConditionalAnalysisPipeline {
 
       sb = new StringBuilder();
 
-      prevDataKeyList = new ArrayList<String>();
+      prevDataKeyList = new ArrayList<>();
       sb.append("IID");
       sb.append("\t").append(dd.study).append("_").append(dd.popcode).append("_")
         .append(region.indexSNP);
@@ -638,7 +638,7 @@ public class ConditionalAnalysisPipeline {
                                                       + (dumpInfo ? "_snpInfo.txt"
                                                                   : "_snpData.txt"));
       StringBuilder sb = new StringBuilder();
-      ArrayList<String> studyPopOrder = new ArrayList<String>();
+      ArrayList<String> studyPopOrder = new ArrayList<>();
       int maxLength = 0;
 
       HashMap<String, String[]> pullFrom = dumpInfo ? region.infoData : region.genoData;
@@ -654,7 +654,7 @@ public class ConditionalAnalysisPipeline {
         }
         cnt++;
       }
-      ArrayList<String> keyListOrder = new ArrayList<String>();
+      ArrayList<String> keyListOrder = new ArrayList<>();
       for (String key : prevFrom.keySet()) {
         keyListOrder.add(key);
         sb.append("\t").append(key.replaceAll("\t", "_"));
@@ -993,12 +993,12 @@ public class ConditionalAnalysisPipeline {
                                               HashMap<String, HashMap<String, DataDefinitions>> dataDefs) {
     String[] iterDirs = getIterDirs(region);
 
-    HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<String, HashMap<String, StringBuilder>>();
-    HashMap<String, HashMap<String, ArrayList<StringBuilder>>> resultsMap = new HashMap<String, HashMap<String, ArrayList<StringBuilder>>>();
-    ArrayList<String> popCodeOrder = new ArrayList<String>();
+    HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<>();
+    HashMap<String, HashMap<String, ArrayList<StringBuilder>>> resultsMap = new HashMap<>();
+    ArrayList<String> popCodeOrder = new ArrayList<>();
 
     for (String study : dataDefs.keySet()) {
-      HashMap<String, StringBuilder> factorMap = new HashMap<String, StringBuilder>();
+      HashMap<String, StringBuilder> factorMap = new HashMap<>();
       headerMap.put(study, factorMap);
       String iterPath = ext.verifyDirFormat(region.analysisRootDir + iterDirs[0]);
       String iterStudyDir = iterPath + study + "/";
@@ -1020,7 +1020,7 @@ public class ConditionalAnalysisPipeline {
     }
 
     for (String study : dataDefs.keySet()) {
-      HashMap<String, ArrayList<StringBuilder>> map = new HashMap<String, ArrayList<StringBuilder>>();
+      HashMap<String, ArrayList<StringBuilder>> map = new HashMap<>();
       resultsMap.put(study, map);
     }
 
@@ -1035,7 +1035,7 @@ public class ConditionalAnalysisPipeline {
         for (String factorDir : factorDirs) {
           ArrayList<StringBuilder> iterSBs = resultsMap.get(study).get(factorDir);
           if (iterSBs == null) {
-            iterSBs = new ArrayList<StringBuilder>();
+            iterSBs = new ArrayList<>();
             resultsMap.get(study).put(factorDir, iterSBs);
           }
 
@@ -1063,7 +1063,7 @@ public class ConditionalAnalysisPipeline {
             metaFile = factorDir + "_InvVar1.out";
           }
 
-          HashMap<String, String> popFiles = new HashMap<String, String>();
+          HashMap<String, String> popFiles = new HashMap<>();
           for (String popCode : popDefs.keySet()) {
             popFiles.put(popCode, popCode + "/output/concatenated.result");
           }
@@ -1125,8 +1125,8 @@ public class ConditionalAnalysisPipeline {
     String[][] factors = new String[][] {Aliases.MARKER_NAMES, Aliases.EFFECTS, Aliases.STD_ERRS,
                                          Aliases.PVALUES};
 
-    HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<String, HashMap<String, StringBuilder>>();
-    HashMap<String, HashMap<String, HashMap<String, StringBuilder>>> resultsMap = new HashMap<String, HashMap<String, HashMap<String, StringBuilder>>>();
+    HashMap<String, HashMap<String, StringBuilder>> headerMap = new HashMap<>();
+    HashMap<String, HashMap<String, HashMap<String, StringBuilder>>> resultsMap = new HashMap<>();
 
     for (String regionIter : iterDirs) {
       String iterMarker = regionIter.split("_")[2];
@@ -1144,12 +1144,12 @@ public class ConditionalAnalysisPipeline {
 
         HashMap<String, StringBuilder> factorHeaderMap = headerMap.get(study);
         if (factorHeaderMap == null) {
-          factorHeaderMap = new HashMap<String, StringBuilder>();
+          factorHeaderMap = new HashMap<>();
           headerMap.put(study, factorHeaderMap);
         }
         HashMap<String, HashMap<String, StringBuilder>> factorResultsMap = resultsMap.get(study);
         if (factorResultsMap == null) {
-          factorResultsMap = new HashMap<String, HashMap<String, StringBuilder>>();
+          factorResultsMap = new HashMap<>();
           resultsMap.put(study, factorResultsMap);
         }
 
@@ -1184,7 +1184,7 @@ public class ConditionalAnalysisPipeline {
 
             HashMap<String, StringBuilder> markerResultsMap = factorResultsMap.get(factorDir);
             if (markerResultsMap == null) {
-              markerResultsMap = new HashMap<String, StringBuilder>();
+              markerResultsMap = new HashMap<>();
               factorResultsMap.put(factorDir, markerResultsMap);
             }
 

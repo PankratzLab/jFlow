@@ -60,7 +60,7 @@ public class Internat {
     BufferedReader buff = null;
     ArrayList<String> list;
 
-    list = new ArrayList<String>();
+    list = new ArrayList<>();
     try {
       // Create the URL obect that points
       // at the default file index.html
@@ -88,7 +88,7 @@ public class Internat {
   }
 
   public static String[] getMash(String source, Logger log) {
-    ArrayList<String> list = new ArrayList<String>();
+    ArrayList<String> list = new ArrayList<>();
 
     try {
       URL url = new URL(source);
@@ -217,7 +217,7 @@ public class Internat {
     out.close();
     BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     String line = "";
-    output = new Vector<String>();
+    output = new Vector<>();
     while ((line = in.readLine()) != null) {
       output.add(line);
     }

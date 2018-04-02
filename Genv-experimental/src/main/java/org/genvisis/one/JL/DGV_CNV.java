@@ -42,7 +42,7 @@ public class DGV_CNV {
                                                                           "South_American"};
 
   public static void parseToCNVs(String DGVDir, Logger log) {
-    Hashtable<String, int[]> copyHash = new Hashtable<String, int[]>();
+    Hashtable<String, int[]> copyHash = new Hashtable<>();
     copyHash.put("loss", new int[] {1});
     copyHash.put("duplication", new int[] {3});
     copyHash.put("gain", new int[] {3});
@@ -59,7 +59,7 @@ public class DGV_CNV {
     copyHash.put("mobile", new int[] {2});
     copyHash.put("sequence", new int[] {2});
     copyHash.put("tandem", new int[] {2});
-    Hashtable<String, String> skipTypes = new Hashtable<String, String>();
+    Hashtable<String, String> skipTypes = new Hashtable<>();
     skipTypes.put("inversion", "inversion");
     skipTypes.put("tandem duplication", "tandem duplication");
     skipTypes.put("insertion", "insertion");
@@ -198,7 +198,7 @@ public class DGV_CNV {
   }
 
   public static void parseToCNVss(String DGVDir, Logger log) {
-    Hashtable<String, int[]> copyHash = new Hashtable<String, int[]>();
+    Hashtable<String, int[]> copyHash = new Hashtable<>();
     copyHash.put("loss", new int[] {1});
     copyHash.put("duplication", new int[] {3});
     copyHash.put("gain", new int[] {3});

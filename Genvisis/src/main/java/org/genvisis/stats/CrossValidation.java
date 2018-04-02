@@ -141,7 +141,7 @@ public class CrossValidation {
   }
 
   public static boolean isLogistic(double[] test) {
-    Hashtable<Double, Double> tmp = new Hashtable<Double, Double>();
+    Hashtable<Double, Double> tmp = new Hashtable<>();
     for (double element : test) {
       tmp.put(element, element);
       if (tmp.size() > 2) {

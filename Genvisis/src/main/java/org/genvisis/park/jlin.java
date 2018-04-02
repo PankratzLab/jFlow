@@ -18,8 +18,8 @@ public class jlin {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, Vector<int[]>> hash = new Hashtable<String, Vector<int[]>>();
-    Vector<String> fams = new Vector<String>();
+    Hashtable<String, Vector<int[]>> hash = new Hashtable<>();
+    Vector<String> fams = new Vector<>();
     Vector<int[]> v;
     String temp;
     int[] data;
@@ -50,7 +50,7 @@ public class jlin {
         if (hash.containsKey(line[0])) {
           v = hash.get(line[0]);
         } else {
-          hash.put(line[0], v = new Vector<int[]>());
+          hash.put(line[0], v = new Vector<>());
           fams.add(line[0]);
         }
         v.add(data);

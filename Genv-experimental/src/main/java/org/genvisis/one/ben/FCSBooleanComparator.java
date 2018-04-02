@@ -29,7 +29,7 @@ public class FCSBooleanComparator {
     String[] dirs1 = new File(srcDir).list((d, f) -> {
       return new File(srcDir + f).isDirectory();
     });
-    List<String[]> compSubDirs = new ArrayList<String[]>();
+    List<String[]> compSubDirs = new ArrayList<>();
     for (int i = 0; i < compDirs.size(); i++) {
       String compDir = compDirs.get(i);
       compSubDirs.add(new File(compDir).list((d, f) -> {
@@ -91,7 +91,7 @@ public class FCSBooleanComparator {
     writer1.close();
 
     // shared dirs is shared samples
-    HashSet<String> allGates = new HashSet<String>();
+    HashSet<String> allGates = new HashSet<>();
     for (Map<String, Map<String, int[]>> sampGateMatrs : sampConfMap.values()) {
       if (sampGateMatrs == null) continue;
       for (Map<String, int[]> gateMatrs : sampGateMatrs.values()) {

@@ -27,9 +27,9 @@ public class procTagsToGeneIDs {
     String[] line, files, ids;
     String temp, trav, geneid;
     // Hashtable override = new Hashtable();
-    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<>();
     Hashtable<String, String> h2;
-    Hashtable<String, Vector<String>> aliases = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> aliases = new Hashtable<>();
     Vector<String> v;
 
     // if (new File(OVERRIDE).exists()) {

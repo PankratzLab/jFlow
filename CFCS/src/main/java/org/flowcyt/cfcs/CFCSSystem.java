@@ -29,7 +29,7 @@ import java.util.List;
 
 public final class CFCSSystem implements CFCSErrorCodes {
 
-  private final List<CFCSDataSet> datasets = new ArrayList<CFCSDataSet>();
+  private final List<CFCSDataSet> datasets = new ArrayList<>();
   private URLConnection connection;
   private FileOutputStream fos;
 

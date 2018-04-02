@@ -36,7 +36,7 @@ public class BatchEffectDetector {
       ExtProjectDataParser parser = MarkerMetrics.developParser(proj, qcFile);
       MarkerLRRPair[] pairs = getPairs(proj, parser);
 
-      ArrayList<String> markersToUse = new ArrayList<String>();
+      ArrayList<String> markersToUse = new ArrayList<>();
 
       String summary = outDir + "markerSDSummary";
       try {

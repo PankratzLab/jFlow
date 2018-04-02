@@ -67,8 +67,8 @@ public class VariantSorter {
     geneInfo = Collapsed.loadFileToHashString(dir + "knownGene.xln", 0, new int[] {2}, "\t", false);
 
     System.out.println("Parsing files...");
-    hash = new Hashtable<String, Vector<String>>();
-    variants = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    variants = new Hashtable<>();
     for (int i = 0; i < files.length; i++) {
       if (!files[i].startsWith("NA")) {
         System.out.print(".");
@@ -148,7 +148,7 @@ public class VariantSorter {
 
     Collapsed.writeList(HashVec.getKeys(variants), dir + "siftInput.dat");
 
-    siftInfo = new Hashtable<String, String>();
+    siftInfo = new Hashtable<>();
     if (Collapsed.exists(dir + "siftOutput.dat")) {
       try {
         reader = new BufferedReader(new FileReader(dir + "siftOutput.dat"));
@@ -173,7 +173,7 @@ public class VariantSorter {
     }
 
     genes = HashVec.getKeys(hash);
-    favHits = new Hashtable<String, Vector<String>>();
+    favHits = new Hashtable<>();
     try {
       writer = Files.openAppropriateWriter(dir + "bins.xln");
       for (String element : CATS) {
@@ -374,7 +374,7 @@ public class VariantSorter {
     }
 
     System.out.println("Parsing files...");
-    hash = new Hashtable<String, Vector<String>>();
+    hash = new Hashtable<>();
     for (int i = 0; i < files.length; i++) {
       if (!files[i].startsWith("NA")) {
         System.out.print(".");
@@ -384,8 +384,8 @@ public class VariantSorter {
             line = reader.readLine().trim().split("\\t");
             if (!line[0].startsWith("#")) {
               loc = new int[] {Positions.chromosomeNumber(line[0]), Integer.parseInt(line[1])};
-              plusHits = new Vector<String>();
-              minusHits = new Vector<String>();
+              plusHits = new Vector<>();
+              minusHits = new Vector<>();
               for (int j = 0; j < geneLocs.length; j++) {
                 if (loc[0] == geneLocs[j][0][0] && loc[1] >= geneLocs[j][1][0] - 5
                     && loc[1] <= geneLocs[j][1][1] + 5) {
@@ -427,7 +427,7 @@ public class VariantSorter {
     }
 
     genes = HashVec.getKeys(hash);
-    favHits = new Hashtable<String, Vector<String>>();
+    favHits = new Hashtable<>();
     try {
       writer = Files.openAppropriateWriter(dir + "bins.xln");
       writer.println("Gene\tnumber of indels within an exon");

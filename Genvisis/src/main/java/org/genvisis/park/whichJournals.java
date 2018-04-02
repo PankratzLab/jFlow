@@ -26,7 +26,7 @@ public class whichJournals {
     Hashtable<String, String[]> impacts;
     Vector<String> v;
 
-    jk = new Hashtable<String, String>();
+    jk = new Hashtable<>();
     try {
       for (reader = new BufferedReader(new FileReader(JOURNAL_KEY)); reader.ready(); jk.put(line[1].toLowerCase(),
                                                                                             line[0].toLowerCase())) {
@@ -40,7 +40,7 @@ public class whichJournals {
       System.exit(2);
     }
 
-    impacts = new Hashtable<String, String[]>();
+    impacts = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(IMPACT_DB));
       while (reader.ready()) {
@@ -59,7 +59,7 @@ public class whichJournals {
       System.exit(2);
     }
 
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       for (reader = new BufferedReader(new FileReader(filename)); reader.ready();) {
         temp = reader.readLine();
@@ -81,7 +81,7 @@ public class whichJournals {
       System.exit(2);
     }
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(DB_FILE));
       while (reader.ready()) {

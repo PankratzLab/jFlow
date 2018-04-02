@@ -23,7 +23,7 @@ public class SasOutput {
     PrintWriter writer;
     String[] line;
     String temp;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     String type, stratum;
     boolean inMeans;
@@ -54,7 +54,7 @@ public class SasOutput {
             writer.println(hash.get(key));
           }
 
-          hash = new Hashtable<String, String>();
+          hash = new Hashtable<>();
         }
         if (temp.startsWith("******")) {
           inMeans = !inMeans;

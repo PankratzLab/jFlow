@@ -29,7 +29,7 @@ public class BlastContamination {
                             Logger log) {
     super();
     this.train = train;
-    taxonCounts = new Hashtable<String, Integer>();
+    taxonCounts = new Hashtable<>();
   }
 
   public void runContam() {
@@ -110,9 +110,9 @@ public class BlastContamination {
   private static void runContams(String[] fastaDbs, int numReads, String[] fastaqs,
                                  int numSampThreads, int numReadsPerThread, int blastWordSize,
                                  int reportWordSize, String outputFile, Logger log) {
-    ArrayList<Hashtable<String, Integer>> popCounts = new ArrayList<Hashtable<String, Integer>>();
+    ArrayList<Hashtable<String, Integer>> popCounts = new ArrayList<>();
     for (int i = 0; i < fastaqs.length; i++) {
-      Hashtable<String, Integer> allCounts = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> allCounts = new Hashtable<>();
       for (int j = 0; j < fastaDbs.length; j++) {
         log.reportTimeInfo("Currently processing file " + ext.removeDirectoryInfo(fastaqs[i]) + " ("
                            + i + " of " + fastaqs.length + ") .fastqs; (" + j + " of "
@@ -125,8 +125,8 @@ public class BlastContamination {
       }
       popCounts.add(allCounts);
     }
-    ArrayList<String> allTaxa = new ArrayList<String>();
-    HashSet<String> tmpUniq = new HashSet<String>();
+    ArrayList<String> allTaxa = new ArrayList<>();
+    HashSet<String> tmpUniq = new HashSet<>();
     for (int i = 0; i < popCounts.size(); i++) {
       tmpUniq.addAll(popCounts.get(i).keySet());
     }
@@ -160,7 +160,7 @@ public class BlastContamination {
                                               int blastWordSize, int reportWordSize, Logger log) {
     BlastFastaq bFastaq = new BlastFastaq(fastaq, numReads, fastaDb, blastWordSize, reportWordSize,
                                           numReadsPerThread, log);
-    try (WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<BlastResultsSummary[]>(bFastaq,
+    try (WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<>(bFastaq,
                                                                                            numSampThreads,
                                                                                            10,
                                                                                            log)) {

@@ -16,7 +16,7 @@ public class bootstrapSNP {
   public static int NUM_BOOTSTRAP_REPS = 5000;
 
   public bootstrapSNP(String filename, boolean single) throws IOException {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     BufferedReader reader = new BufferedReader(new FileReader(filename));
     StringTokenizer st;
     double[] bootstrapped;
@@ -49,9 +49,9 @@ public class bootstrapSNP {
     int count = 0;
     double[] bootstrapped;
 
-    Hashtable<String, String> hash22 = new Hashtable<String, String>();
-    Hashtable<String, String> hash12 = new Hashtable<String, String>();
-    Hashtable<String, String> hash11 = new Hashtable<String, String>();
+    Hashtable<String, String> hash22 = new Hashtable<>();
+    Hashtable<String, String> hash12 = new Hashtable<>();
+    Hashtable<String, String> hash11 = new Hashtable<>();
 
     reader = new BufferedReader(new FileReader(filename));
     writer = new PrintWriter(new FileWriter(filename.substring(0, filename.length() - 4)

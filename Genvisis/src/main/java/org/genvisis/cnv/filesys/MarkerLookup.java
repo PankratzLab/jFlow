@@ -50,7 +50,7 @@ public class MarkerLookup implements Serializable {
     String[] line;
     String[] listOfMarkersInMarkerLookup;
 
-    filenames = new HashSet<String>();
+    filenames = new HashSet<>();
 
     listOfMarkersInMarkerLookup = getMarkerList();
     for (String element : listOfMarkersInMarkerLookup) {

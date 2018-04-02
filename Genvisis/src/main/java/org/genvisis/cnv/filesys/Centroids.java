@@ -194,7 +194,7 @@ public class Centroids implements Serializable, TextExport {
     markerNames = markerSet.getMarkerNames();
     centroids = new float[markerNames.length][][];
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       hash.put(markerNames[i], i + "");
     }
@@ -454,7 +454,7 @@ public class Centroids implements Serializable, TextExport {
 
     @Override
     public Hashtable<String, Float> call() throws Exception {
-      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      Hashtable<String, Float> outliers = new Hashtable<>();
       Sample original = proj.getFullSampleFromRandomAccessFile(sample);
       Sample sample = new Sample(original.getSampleName(), original.getFingerprint(),
                                  original.getGCs(), original.getXs(), original.getYs(),
@@ -529,9 +529,9 @@ public class Centroids implements Serializable, TextExport {
 
     // cents = centroids.getCentroids();
     samples = proj.getSamples();
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
     RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
                                                                                                  numThreads,
                                                                                                  10,
                                                                                                  proj.getLog())) {
@@ -713,9 +713,9 @@ public class Centroids implements Serializable, TextExport {
     fullToTruncMarkerIndices = new Hashtable[threadCount];
     markerDataLoaders = new MarkerDataLoader[threadCount];
     for (int i = 0; i < threadCount; i++) {
-      markerLists[i] = new Vector<String>();
-      markerIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
-      fullToTruncMarkerIndices[i] = new Hashtable<Integer, Integer>();
+      markerLists[i] = new Vector<>();
+      markerIndexQueues[i] = new ConcurrentLinkedQueue<>();
+      fullToTruncMarkerIndices[i] = new Hashtable<>();
     }
 
     allMarkers = markerSet.getMarkerNames();
@@ -740,7 +740,7 @@ public class Centroids implements Serializable, TextExport {
     rawCentroidsMale = new float[allMarkers.length][][];
     rawCentroidsFemale = new float[allMarkers.length][][];
 
-    pfbInfo = new Hashtable<Integer, String[][]>();
+    pfbInfo = new Hashtable<>();
     log.report("Computing sex-specific centroids for " + markerCount + " sex-specific markers on "
                + threadCount + " thread(s).");
 

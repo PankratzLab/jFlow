@@ -81,7 +81,7 @@ public class kNN {
     } else {
       errorRates = new double[stopK + 1][3];
       double minError = Double.POSITIVE_INFINITY;
-      Vector<String> v = new Vector<String>();
+      Vector<String> v = new Vector<>();
       int count = 0;
 
       while (v.size() < 3 && count < targets.length) {
@@ -289,7 +289,7 @@ public class kNN {
     BufferedReader reader;
     String[] header, line;
     boolean manualPartition;
-    Vector<double[]> records = new Vector<double[]>();
+    Vector<double[]> records = new Vector<>();
     double[] dataline;
     DoubleVector dependents = new DoubleVector();
     IntVector[] partitionIndices = new IntVector[] {new IntVector(), new IntVector(),

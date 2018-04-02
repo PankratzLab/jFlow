@@ -24,7 +24,7 @@ public abstract class Gate {
   protected String id;
   protected String parentID;
   protected Gate parentGate;
-  protected ArrayList<Gate> children = new ArrayList<Gate>();
+  protected ArrayList<Gate> children = new ArrayList<>();
   protected GateDimension xDim, yDim;
   protected boolean changed = false;
   protected int displayLevel = 0;
@@ -407,11 +407,11 @@ public abstract class Gate {
 
     }
 
-    private final ArrayList<Double> verticesX = new ArrayList<Double>();
-    private final ArrayList<Double> verticesY = new ArrayList<Double>();
+    private final ArrayList<Double> verticesX = new ArrayList<>();
+    private final ArrayList<Double> verticesY = new ArrayList<>();
     private Path2D myPath;
     private Path2D transformedPath;
-    ArrayList<Rectangle> myRects = new ArrayList<Rectangle>();
+    ArrayList<Rectangle> myRects = new ArrayList<>();
     private boolean mimicFlowJo = false;
 
     public PolygonGate(Gate parentGate, String name, String id, boolean flowjo) {

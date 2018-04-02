@@ -93,10 +93,10 @@ public class GeneScorePipeline {
   // private boolean runRegression = false;
   // private boolean writeHist = false;
 
-  private final ArrayList<String> metaFiles = new ArrayList<String>();
-  private final ArrayList<Study> studies = new ArrayList<GeneScorePipeline.Study>();
-  private final HashMap<String, Constraint> analysisConstraints = new HashMap<String, GeneScorePipeline.Constraint>();
-  private final HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<String, HashMap<String, Integer>>();
+  private final ArrayList<String> metaFiles = new ArrayList<>();
+  private final ArrayList<Study> studies = new ArrayList<>();
+  private final HashMap<String, Constraint> analysisConstraints = new HashMap<>();
+  private final HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<>();
 
   // private int bimChrIndex = 0;
   // private int bimMkrIndex = 1;
@@ -147,22 +147,22 @@ public class GeneScorePipeline {
 
     String dataSource;
     ArrayList<DataSource> dataSources;
-    HashMap<String, DosageData> data = new HashMap<String, DosageData>();
+    HashMap<String, DosageData> data = new HashMap<>();
 
-    ArrayList<String> phenoFiles = new ArrayList<String>();
+    ArrayList<String> phenoFiles = new ArrayList<>();
 
-    HashMap<String, PhenoData> phenoData = new HashMap<String, GeneScorePipeline.PhenoData>();
+    HashMap<String, PhenoData> phenoData = new HashMap<>();
 
     // constraint -> datafile -> phenofile
-    HashMap<String, HashMap<String, HashMap<String, RegressionResult>>> regressions = new HashMap<String, HashMap<String, HashMap<String, RegressionResult>>>();
+    HashMap<String, HashMap<String, HashMap<String, RegressionResult>>> regressions = new HashMap<>();
     // constraint -> datafile
-    HashMap<String, HashMap<String, double[]>> scores = new HashMap<String, HashMap<String, double[]>>();
+    HashMap<String, HashMap<String, double[]>> scores = new HashMap<>();
     // constraint -> datafile
-    HashMap<String, HashMap<String, Integer>> hitSnpCounts = new HashMap<String, HashMap<String, Integer>>();
+    HashMap<String, HashMap<String, Integer>> hitSnpCounts = new HashMap<>();
     // constraint -> datafile
-    HashMap<String, HashMap<String, Integer>> hitWindowCnts = new HashMap<String, HashMap<String, Integer>>();
+    HashMap<String, HashMap<String, Integer>> hitWindowCnts = new HashMap<>();
     // constraint -> datafile
-    HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<String, HashMap<String, Integer>>();
+    HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<>();
     Map<String, Map<String, HitMarker>> markerData = new HashMap<>();
 
     /**
@@ -173,7 +173,7 @@ public class GeneScorePipeline {
      * @return
      */
     public HashSet<String> retrieveMarkers(String dataKey, HashSet<String> hitMkrSet) {
-      HashSet<String> returnMarkers = new HashSet<String>();
+      HashSet<String> returnMarkers = new HashSet<>();
       if (data.get(dataKey).isEmpty()) {
         return returnMarkers;
       }
@@ -271,15 +271,15 @@ public class GeneScorePipeline {
   private class PhenoData {
 
     String phenoName;
-    HashMap<String, PhenoIndiv> indivs = new HashMap<String, GeneScorePipeline.PhenoIndiv>();
-    ArrayList<String> covars = new ArrayList<String>();
+    HashMap<String, PhenoIndiv> indivs = new HashMap<>();
+    ArrayList<String> covars = new ArrayList<>();
   }
 
   private class PhenoIndiv {
 
     String fid, iid;
     double depvar;
-    HashMap<String, Double> covars = new HashMap<String, Double>();
+    HashMap<String, Double> covars = new HashMap<>();
   }
 
   private static String[] readPlinkFile(int chr, String file, HashMap<String, String> rsToFull) {
@@ -317,19 +317,19 @@ public class GeneScorePipeline {
     AFPlot.POPULATION pop = population == null ? POPULATION.ALL : population;
     HashMap<Integer, HashSet<String>> mkrsByChr, nonRSByChr;
     HashSet<String> chrMkrs, nonRS;
-    HashMap<String, Double> markerFreqs = new HashMap<String, Double>();
+    HashMap<String, Double> markerFreqs = new HashMap<>();
 
-    mkrsByChr = new HashMap<Integer, HashSet<String>>();
-    nonRSByChr = new HashMap<Integer, HashSet<String>>();
+    mkrsByChr = new HashMap<>();
+    nonRSByChr = new HashMap<>();
     for (java.util.Map.Entry<String, int[]> entry : markerMap.entrySet()) {
       chrMkrs = mkrsByChr.get(entry.getValue()[0]);
       nonRS = nonRSByChr.get(entry.getValue()[0]);
       if (chrMkrs == null) {
-        chrMkrs = new HashSet<String>();
+        chrMkrs = new HashSet<>();
         mkrsByChr.put(entry.getValue()[0], chrMkrs);
       }
       if (nonRS == null) {
-        nonRS = new HashSet<String>();
+        nonRS = new HashSet<>();
         nonRSByChr.put(entry.getValue()[0], nonRS);
       }
       chrMkrs.add(entry.getKey());
@@ -410,7 +410,7 @@ public class GeneScorePipeline {
         delimiter = ext.determineDelimiter(temp);
         header = temp.trim().split(delimiter);
         indices = ext.indexFactors(factors, header, false, false, true, true, log);
-        markerMap = new HashMap<String, int[]>();
+        markerMap = new HashMap<>();
         String errorMsg = "";
         if (indices[0] == -1) {
           errorMsg = "ERROR - no MarkerName column found";
@@ -546,17 +546,17 @@ public class GeneScorePipeline {
     // instantiate inner hashmaps:
     for (Study study : studies) {
       for (String pref : analysisConstraints.keySet()) {
-        HashMap<String, HashMap<String, RegressionResult>> res = new HashMap<String, HashMap<String, RegressionResult>>();
+        HashMap<String, HashMap<String, RegressionResult>> res = new HashMap<>();
         for (String dFile : metaFiles) {
           String dataFile = ext.rootOf(dFile, false);
-          HashMap<String, RegressionResult> res2 = new HashMap<String, RegressionResult>();
+          HashMap<String, RegressionResult> res2 = new HashMap<>();
           res.put(dataFile, res2);
         }
         study.regressions.put(pref, res);
 
-        HashMap<String, Integer> cntMap = new HashMap<String, Integer>();
-        HashMap<String, Integer> hitMap = new HashMap<String, Integer>();
-        HashMap<String, Integer> cntMap2 = new HashMap<String, Integer>();
+        HashMap<String, Integer> cntMap = new HashMap<>();
+        HashMap<String, Integer> hitMap = new HashMap<>();
+        HashMap<String, Integer> cntMap2 = new HashMap<>();
         study.hitWindowCnts.put(pref, cntMap);
         study.hitSnpCounts.put(pref, hitMap);
         study.dataCounts.put(pref, cntMap2);
@@ -618,7 +618,7 @@ public class GeneScorePipeline {
           String[] temp = line.split("\t");
           HashMap<String, Integer> dFileCnts = dataCounts.get(temp[0]);
           if (dFileCnts == null) {
-            dFileCnts = new HashMap<String, Integer>();
+            dFileCnts = new HashMap<>();
             dataCounts.put(temp[0], dFileCnts);
           }
           dFileCnts.put(temp[1], Integer.parseInt(temp[2]));
@@ -633,12 +633,12 @@ public class GeneScorePipeline {
     }
 
     for (String dFile : metaFiles) {
-      HashMap<String, Constraint> threshNeed = new HashMap<String, GeneScorePipeline.Constraint>();
+      HashMap<String, Constraint> threshNeed = new HashMap<>();
 
       HashMap<String, Integer> cnts = dataCounts.get(dFile);
       if (cnts == null) {
         threshNeed.putAll(analysisConstraints);
-        cnts = new HashMap<String, Integer>();
+        cnts = new HashMap<>();
         dataCounts.put(dFile, cnts);
       } else {
         for (String pref : analysisConstraints.keySet()) {
@@ -706,7 +706,7 @@ public class GeneScorePipeline {
 
     for (String dFile : metaFiles) {
       String dataFile = ext.rootOf(dFile, false);
-      HashSet<String> hitMkrSet = new HashSet<String>();
+      HashSet<String> hitMkrSet = new HashSet<>();
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 
         int metaCount = Files.countLines(metaDir + dFile, 0);
@@ -742,7 +742,7 @@ public class GeneScorePipeline {
 
         if (!hitMkrSet.isEmpty()) {
           // read betas and freqs for hitwindow markers
-          HashMap<String, double[]> dataMarkers = new HashMap<String, double[]>();
+          HashMap<String, double[]> dataMarkers = new HashMap<>();
           try {
             BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
             String line = reader.readLine();
@@ -775,7 +775,7 @@ public class GeneScorePipeline {
             for (Study study : studies) {
               study.loadDataSources(dataFile + "\t" + filePrefix.getKey(), hitMkrs);
 
-              HashMap<String, double[]> bimSubsetMarkers = new HashMap<String, double[]>();
+              HashMap<String, double[]> bimSubsetMarkers = new HashMap<>();
               HashSet<String> bimMkrSet = study.retrieveMarkers(dataFile + "\t"
                                                                 + filePrefix.getKey(), hitMkrSet);
 
@@ -792,7 +792,7 @@ public class GeneScorePipeline {
 
               HashMap<String, double[]> fileMap = study.scores.get(filePrefix.getKey());
               if (fileMap == null) {
-                fileMap = new HashMap<String, double[]>();
+                fileMap = new HashMap<>();
                 study.scores.put(filePrefix.getKey(), fileMap);
               }
               fileMap.put(dataFile, new double[] {bimScore1 / dataScore1, bimScore2 / dataScore2});
@@ -833,8 +833,8 @@ public class GeneScorePipeline {
     // 3
     // 4 - sex
     // 5 - pheno
-    ArrayList<String> fam = new ArrayList<String>();
-    ArrayList<String> pheno = new ArrayList<String>();
+    ArrayList<String> fam = new ArrayList<>();
+    ArrayList<String> pheno = new ArrayList<>();
     String temp;
     try {
       for (int i = 0; i < study.dataSources.size(); i++) {
@@ -894,7 +894,7 @@ public class GeneScorePipeline {
         // fid == header[0]
         // iid == header[1]
         // depvar = header[2];
-        ArrayList<String> covars = new ArrayList<String>();
+        ArrayList<String> covars = new ArrayList<>();
         for (int i = 3; i < header.length; i++) {
           covars.add(header[i]);
         }
@@ -1153,7 +1153,7 @@ public class GeneScorePipeline {
         String hitsFile = prefDir + "/hits_" + filePrefix.getKey() + ".out";
         String[] hitMarkers = HashVec.loadFileToStringArray(hitsFile, true,
                                                             new int[] {hitsMkrIndex}, false);
-        HashSet<String> hitMrkSet = new HashSet<String>();
+        HashSet<String> hitMrkSet = new HashSet<>();
         for (String mkr : hitMarkers) {
           hitMrkSet.add(mkr);
         }
@@ -1353,7 +1353,7 @@ public class GeneScorePipeline {
 
           String scoreFile = prefDir + "/" + SCORE_FILE;
 
-          HashMap<String, Double> scoreData = new HashMap<String, Double>();
+          HashMap<String, Double> scoreData = new HashMap<>();
 
           BufferedReader scoreReader = Files.getAppropriateReader(scoreFile);
           String line = scoreReader.readLine();
@@ -1382,9 +1382,9 @@ public class GeneScorePipeline {
 
           for (int i = 0; i < study.phenoFiles.size(); i++) {
             PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
-            ArrayList<Double> depData = new ArrayList<Double>();
-            ArrayList<double[]> baselineIndeps = new ArrayList<double[]>();
-            ArrayList<double[]> indepData = new ArrayList<double[]>();
+            ArrayList<Double> depData = new ArrayList<>();
+            ArrayList<double[]> baselineIndeps = new ArrayList<>();
+            ArrayList<double[]> indepData = new ArrayList<>();
 
             for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
               if (scoreData.containsKey(indiv.getKey())) {

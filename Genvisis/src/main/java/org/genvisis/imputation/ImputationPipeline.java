@@ -62,7 +62,7 @@ public class ImputationPipeline {
   private final Set<String> dropSamples;
   private final Set<String> keepMarkers;
   private final Set<String> keepSamples;
-  private final Map<String, Marker> prepMarkers = new HashMap<String, Marker>();
+  private final Map<String, Marker> prepMarkers = new HashMap<>();
 
   public ImputationPipeline(Project proj, String referenceFile, KeepDrops keepDrops) {
     this.proj = proj;
@@ -145,7 +145,7 @@ public class ImputationPipeline {
 
   private Set<String> getChrMarkers(int chr) {
     Set<String> markersToExport = getMarkersToExport();
-    Set<String> chrMarkers = new HashSet<String>();
+    Set<String> chrMarkers = new HashSet<>();
     for (String m : markersToExport) {
       if (prepMarkers.get(m).getChr() == (byte) chr) {
         chrMarkers.add(m);
@@ -165,7 +165,7 @@ public class ImputationPipeline {
 
     int[] indices = Sort.getSortedIndices(pos);
 
-    ArrayList<String> mkrs = new ArrayList<String>();
+    ArrayList<String> mkrs = new ArrayList<>();
     for (int i = 0; i < indices.length; i++) {
       if (i == 0 || pos[indices[i]] != pos[indices[i - 1]]) { // skip if prev (in sorted array) was
                                                              // same position
@@ -178,7 +178,7 @@ public class ImputationPipeline {
   public void exportToPlink(String plinkDirAndRoot, int[] chrs) {
     // TODO (??) Only alphanumeric characters in FID/IID
     (new File(ext.parseDirectoryOfFile(plinkDirAndRoot + ".bim"))).mkdirs();
-    HashSet<String> toDrop = new HashSet<String>();
+    HashSet<String> toDrop = new HashSet<>();
     if (keepSamples != null && keepSamples.size() > 0) {
       for (String s : proj.getSamples()) {
         if (keepSamples.contains(s) && !dropSamples.contains(s)) {
@@ -208,8 +208,8 @@ public class ImputationPipeline {
 
       String[] targetMarkers = mkrs.toArray(new String[mkrs.size()]);
       int[] indicesOfTargetMarkersInProj = new int[targetMarkers.length];
-      HashMap<String, Byte> chrsOfTargetMarkers = new HashMap<String, Byte>();
-      HashMap<String, Integer> posOfTargetMarkers = new HashMap<String, Integer>();
+      HashMap<String, Byte> chrsOfTargetMarkers = new HashMap<>();
+      HashMap<String, Integer> posOfTargetMarkers = new HashMap<>();
       PlinkData.getIndicesOfTargetMarkers(proj, targetMarkers, indicesOfTargetMarkersInProj,
                                           chrsOfTargetMarkers, posOfTargetMarkers, proj.getLog());
 

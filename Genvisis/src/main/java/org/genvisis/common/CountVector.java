@@ -14,7 +14,7 @@ public class CountVector {
   private int[] order;
 
   public CountVector() {
-    v = new Vector<String>();
+    v = new Vector<>();
     iv = new IntVector();
     order = null;
   }
@@ -81,7 +81,7 @@ public class CountVector {
   public Hashtable<String, String> convertToHash() {
     Hashtable<String, String> hash;
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < v.size(); i++) {
       hash.put(v.elementAt(i), iv.elementAt(i) + "");
     }

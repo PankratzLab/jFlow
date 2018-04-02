@@ -77,7 +77,7 @@ public class tools {
     BufferedReader reader = null;
     String[] line;
     String trav, prev;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = tools.getNinfoReader(2, false);
@@ -131,7 +131,7 @@ public class tools {
     BufferedReader reader = null;
     String[] line;
     String trav, prev;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = tools.getNinfoReader(whichNinfo, false);
@@ -267,7 +267,7 @@ public class tools {
     BufferedReader reader = null;
     String[] line;
     String trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = tools.getNinfoReader(2, false);
@@ -343,7 +343,7 @@ public class tools {
   public static Hashtable<String, String> pullTraitFromDB(String trait) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int index;
     String dbFile = DB_FILE;
 
@@ -400,7 +400,7 @@ public class tools {
 
     bestDx = getBestPDdx();
 
-    famHash = new Hashtable<String, Hashtable<String, Vector<String>>>();
+    famHash = new Hashtable<>();
     try {
       reader = getNinfoReader(2, true);
       ext.checkHeader(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE), NINFO2_HEADER, true);
@@ -409,7 +409,7 @@ public class tools {
         if (famHash.containsKey(line[0])) {
           hash = famHash.get(line[0]);
         } else {
-          famHash.put(line[0], hash = new Hashtable<String, Vector<String>>());
+          famHash.put(line[0], hash = new Hashtable<>());
         }
         if (!onlyIncludeAffecteds
             || (onlyCountVPD && isVPD(bestDx.get(line[0] + "\t" + line[1])).equals("1"))

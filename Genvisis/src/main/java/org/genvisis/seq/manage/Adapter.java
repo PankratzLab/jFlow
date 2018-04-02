@@ -52,7 +52,7 @@ public class Adapter {
   }
 
   public static ArrayList<Adapter> getCurrentAdapters(Adapter[] extras) {
-    ArrayList<Adapter> adapters = new ArrayList<Adapter>();
+    ArrayList<Adapter> adapters = new ArrayList<>();
     adapters.add(getAgilentQXTAdapter());
     adapters.add(getIlluminaTopAdapter());
     adapters.add(getIlluminaBottomAdapter());
@@ -134,7 +134,7 @@ public class Adapter {
       fastaEntries[i] = new FastaEntry(sequences[i] + "_softClippedSequence", sequences[i]);
     }
     List<FastaEntry[]> splits = ArrayUtils.splitUpArray(fastaEntries, numThreads, log);
-    ArrayList<BlastWorker> workers = new ArrayList<Blast.BlastWorker>();
+    ArrayList<BlastWorker> workers = new ArrayList<>();
     String[] tmps = new String[splits.size()];
     if (fastaEntries != null && fastaEntries.length > 0) {
       for (int i = 0; i < splits.size(); i++) {
@@ -144,7 +144,7 @@ public class Adapter {
         tmps[i] = tmp;
       }
     }
-    WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<Blast.BlastResultsSummary[]>(numThreads,
+    WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<>(numThreads,
                                                                                                10,
                                                                                                log);
     hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));

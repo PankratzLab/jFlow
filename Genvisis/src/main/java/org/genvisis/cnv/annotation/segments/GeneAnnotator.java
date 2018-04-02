@@ -62,7 +62,7 @@ public class GeneAnnotator implements SegmentAnnotator {
       throw new IllegalArgumentException(error);
     }
 
-    List<String> values = new ArrayList<String>();
+    List<String> values = new ArrayList<>();
     GeneData[] geneDatas = geneSet.getOverLappingLoci(segment);
 
     if (geneDatas == null || geneDatas.length == 0) {

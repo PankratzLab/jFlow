@@ -82,9 +82,9 @@ public class ExomeDepthRun {
     proj.CNV_FILENAMES.setValue(new String[] {currentCnvFile});
     GenvisisSampleProducer producer = new GenvisisSampleProducer(proj, eDepthAnalysis, outputRoot,
                                                                  log);
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
     ExomeSample[] exomeSamples = new ExomeSample[eDepthAnalysis.length];
-    try (WorkerTrain<ExomeSample> train = new WorkerTrain<ExomeDepthRun.ExomeSample>(producer,
+    try (WorkerTrain<ExomeSample> train = new WorkerTrain<>(producer,
                                                                                      numthreads, 10,
                                                                                      log)) {
       int index = 0;
@@ -158,7 +158,7 @@ public class ExomeDepthRun {
       this.eDepthAnalysis = eDepthAnalysis;
       // this.outputSampleRoot = outputSampleRoot;
       this.log = log;
-      outliers = new Hashtable<String, Float>();
+      outliers = new Hashtable<>();
     }
 
     public Hashtable<String, Float> getOutliers() {

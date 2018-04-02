@@ -176,7 +176,7 @@ public class BamSegPileUp implements Iterator<BamPile> {
         BamOps.verifyIndex(bamFile, log);
         BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
                                                      filterNGS, aName, log);
-        ArrayList<BamPile> bamPiles = new ArrayList<BamPile>();
+        ArrayList<BamPile> bamPiles = new ArrayList<>();
         while (bamSegPileUp.hasNext()) {
           BamPile bamPile = bamSegPileUp.next();
           bamPile.summarize();

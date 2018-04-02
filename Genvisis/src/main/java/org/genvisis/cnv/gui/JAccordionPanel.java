@@ -96,7 +96,7 @@ public class JAccordionPanel extends JPanel {
     });
   }
 
-  List<JAccordionPanel> grp = new ArrayList<JAccordionPanel>();
+  List<JAccordionPanel> grp = new ArrayList<>();
 
   public void addToGroup(List<JAccordionPanel> bg) {
     grp = bg;

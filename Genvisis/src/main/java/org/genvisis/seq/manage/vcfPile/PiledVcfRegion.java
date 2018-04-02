@@ -50,7 +50,7 @@ class PiledVcfRegion<T extends Segment> implements Serializable {
       throw new IllegalStateException(error);
     } else {
       for (int i = 0; i < vcfSamples.length; i++) {
-        HashSet<String> tmp = new HashSet<String>();
+        HashSet<String> tmp = new HashSet<>();
         tmp.add(vcfSamples[i]);
         VariantContext vcTmp = VCOps.getSubset(vc, tmp, VC_SUBSET_TYPE.SUBSET_STRICT);
         Genotype g = vcTmp.getGenotype(0);

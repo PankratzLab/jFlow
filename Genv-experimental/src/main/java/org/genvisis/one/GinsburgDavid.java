@@ -117,8 +117,8 @@ public class GinsburgDavid {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, subline;
-    Hashtable<String, String> lookup = new Hashtable<String, String>();
-    List<String> dnaList = new Vector<String>();
+    Hashtable<String, String> lookup = new Hashtable<>();
+    List<String> dnaList = new Vector<>();
     String temp, unparseable;
     int pedNum, mother, father, sex;
     String sStrain, bStrain;
@@ -277,7 +277,7 @@ public class GinsburgDavid {
   public static List<String> getDNAlist(String dir, String genotypes, boolean report) {
     BufferedReader reader;
     String[] line;
-    Vector<String> dnaList = new Vector<String>();
+    Vector<String> dnaList = new Vector<>();
     String temp;
 
     try {
@@ -339,9 +339,9 @@ public class GinsburgDavid {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    List<String> v = new Vector<String>();
-    Vector<String> preData = new Vector<String>();
-    List<String> dnaList = new Vector<String>();
+    List<String> v = new Vector<>();
+    Vector<String> preData = new Vector<>();
+    List<String> dnaList = new Vector<>();
     String temp;
 
     dnaList = getDNAlist(dir, genotypes, false);
@@ -410,7 +410,7 @@ public class GinsburgDavid {
     PrintWriter writer;
     String[] line, inds = null;
     String temp;
-    Vector<String> markers = new Vector<String>();
+    Vector<String> markers = new Vector<>();
     int count, index;
     short[][] genos = null;
     boolean done;
@@ -583,7 +583,7 @@ public class GinsburgDavid {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, fixes, fix;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v;
     int index;
     String[] markerNames;
@@ -640,11 +640,11 @@ public class GinsburgDavid {
     PrintWriter writer;
     String[] line, keys;
     String temp, fam;
-    Vector<String> listOfErrors = new Vector<String>();
+    Vector<String> listOfErrors = new Vector<>();
     boolean done;
     int locus, numLoci;
     String markerName, father, mother;
-    Vector<String[]> errors = new Vector<String[]>();
+    Vector<String[]> errors = new Vector<>();
     Hashtable<String, String> markerMap;
     Hashtable<String, IntVector> hash;
     IntVector iv;
@@ -732,8 +732,8 @@ public class GinsburgDavid {
 
       writer = Files.openAppropriateWriter(dir + "logfile of errors.out");
       writer.println("FamID\tLocus#\tMarker\tFather\tMother");
-      markerMap = new Hashtable<String, String>();
-      hash = new Hashtable<String, IntVector>();
+      markerMap = new Hashtable<>();
+      hash = new Hashtable<>();
       for (int i = 0; i < errors.size(); i++) {
         line = errors.elementAt(i);
         writer.println(ArrayUtils.toStr(line));
@@ -861,7 +861,7 @@ public class GinsburgDavid {
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
 
-    xMarkers = new Vector<String>();
+    xMarkers = new Vector<>();
     for (int i = 0; i < markerNames.length; i++) {
       if (chrs[i] == 23) {
         xMarkers.add(markerNames[i]);
@@ -1070,7 +1070,7 @@ public class GinsburgDavid {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int[] indices;
     String cagePrefix;
 

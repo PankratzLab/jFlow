@@ -36,12 +36,12 @@ public class CorrelTypePcs {
       return;
     }
     String out = outDir + ext.rootOf(fullPathPcFile[0]) + "_pcs.comp.txt";
-    ArrayList<RScatter> rsList = new ArrayList<RScatter>();
+    ArrayList<RScatter> rsList = new ArrayList<>();
 
     if (!Files.exists(out)) {
       try {
         PrintWriter writer = Files.openAppropriateWriter(out);
-        ArrayList<String> outHeader = new ArrayList<String>();
+        ArrayList<String> outHeader = new ArrayList<>();
         outHeader.add("PC_FILE_1");
         outHeader.add("PC_FILE_2");
         outHeader.add("METHOD_FILE");
@@ -84,7 +84,7 @@ public class CorrelTypePcs {
                 int min = Math.min(parser.getNumericDataTitles().length,
                                    parserComp.getNumericDataTitles().length);
                 for (int pcIndex = 0; pcIndex < min; pcIndex++) {
-                  ArrayList<String> outData = new ArrayList<String>();
+                  ArrayList<String> outData = new ArrayList<>();
                   outData.add(fullPathPcFile[pcFile1Index]);
                   outData.add(fullPathPcFile[pcFile2Index]);
                   outData.add(ext.rootOf(gzipper));
@@ -94,7 +94,7 @@ public class CorrelTypePcs {
                     String pc = parser.getNumericDataTitles()[pcIndex];
                     double[][] data = new double[][] {parser.getNumericDataForTitle(pc),
                                                       parserComp.getNumericDataForTitle(pc)};
-                    ArrayList<Integer> indicesToCorrel = new ArrayList<Integer>();
+                    ArrayList<Integer> indicesToCorrel = new ArrayList<>();
                     for (int i = 0; i < data[0].length; i++) {
                       if (!Double.isNaN(data[0][i]) && !Double.isNaN(data[1][i])) {
                         indicesToCorrel.add(i);
@@ -177,7 +177,7 @@ public class CorrelTypePcs {
 
   private static String[] getPCIndices(String file, Logger log) {
     String[] header = Files.getHeaderOfFile(file, log);
-    ArrayList<Integer> ind = new ArrayList<Integer>();
+    ArrayList<Integer> ind = new ArrayList<>();
     for (int i = 0; i < header.length; i++) {
       if (header[i].startsWith("PC")) {
         ind.add(i);
@@ -189,11 +189,11 @@ public class CorrelTypePcs {
 
   public static void main(String[] args) {
 
-    ArrayList<String> pcFilesAll = new ArrayList<String>();
+    ArrayList<String> pcFilesAll = new ArrayList<>();
     Project proj = new Project("/home/pankrat2/lanej/projects/aric_exome.properties");
     pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/aric_exomeALL_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
     pcFilesAll.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeALL_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
-    ArrayList<String> pcFilesW = new ArrayList<String>();
+    ArrayList<String> pcFilesW = new ArrayList<>();
     pcFilesW.add("/home/pankrat2/shared/aric_exome_chip/aric_exomeW_1000PCs_OHW_40_ws15_recomp_gc_corrected.PCs.extrapolated.txt");
     pcFilesW.add("/home/pankrat2/shared/aric_exome_chip/gc_corrected/aric_exomeW_1000PCs_OHW_40_ws15_gc_corrected.PCs.extrapolated.txt");
 

@@ -108,7 +108,7 @@ public class ExploreLinearity {
   public static void exploreFromFile(String filename, boolean lastNotFirst) {
     BufferedReader reader = null;
     String[] line;
-    Vector<double[]> v = new Vector<double[]>();
+    Vector<double[]> v = new Vector<>();
     double[][] data;
     double[] dataline;
     DoubleVector dv = new DoubleVector();

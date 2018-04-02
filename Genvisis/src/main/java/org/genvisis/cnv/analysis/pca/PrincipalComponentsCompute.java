@@ -475,7 +475,7 @@ public class PrincipalComponentsCompute {
     // HashVec.loadFileToStringArray(useFile, false, new int[] { 0 }, true);
     String[] projSamples = proj.getSampleList().getSamples();
     boolean[] samplesToUse = new boolean[projSamples.length];
-    Hashtable<String, Boolean> track = new Hashtable<String, Boolean>();
+    Hashtable<String, Boolean> track = new Hashtable<>();
     int used = 0;
 
     for (String element : samplesToUseFromFile) {
@@ -531,14 +531,14 @@ public class PrincipalComponentsCompute {
     HashSet<String> tracker;
 
     projectMarkers = proj.getMarkerNames();
-    tracker = new HashSet<String>();
+    tracker = new HashSet<>();
 
     for (String marker2 : markers) {
       if (ext.indexOfStr(marker2, Aliases.MARKER_NAMES) == -1) {
         tracker.add(marker2);
       }
     }
-    List<String> sorted = new ArrayList<String>();
+    List<String> sorted = new ArrayList<>();
 
     for (String projectMarker : projectMarkers) {
       if (tracker.contains(projectMarker)) {
@@ -678,7 +678,7 @@ public class PrincipalComponentsCompute {
     float sum = 0;
     int count = 0;
     float mean = 0;
-    ArrayList<Integer> toImpute = new ArrayList<Integer>();
+    ArrayList<Integer> toImpute = new ArrayList<>();
     for (int i = 0; i < data.length; i++) {
       if (Float.isNaN(data[i])) {
         toImpute.add(i);

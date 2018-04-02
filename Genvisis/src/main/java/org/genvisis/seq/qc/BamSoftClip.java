@@ -41,8 +41,8 @@ public class BamSoftClip {
   }
 
   private static void clipVInsert(String[] bams, String outputDir, Logger log) {
-    ArrayList<Summary> summaries = new ArrayList<Summary>();
-    HashSet<String> allSofts = new HashSet<String>();
+    ArrayList<Summary> summaries = new ArrayList<>();
+    HashSet<String> allSofts = new HashSet<>();
     for (String bam : bams) {
 
       SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
@@ -52,8 +52,8 @@ public class BamSoftClip {
       int numTotalReads = 0;
       DynamicAveragingHistogram dynamicAveragingHistogram = new DynamicAveragingHistogram(-700, 700,
                                                                                           0);
-      Hashtable<String, Integer> seqCount = new Hashtable<String, Integer>();
-      HashSet<String> rgs = new HashSet<String>();
+      Hashtable<String, Integer> seqCount = new Hashtable<>();
+      HashSet<String> rgs = new HashSet<>();
       for (SAMRecord samRecord : reader) {
         numTotalReads++;
         if (numTotalReads % 3000000 == 0) {
@@ -93,7 +93,7 @@ public class BamSoftClip {
       }
       dynamicAveragingHistogram.average();
       String out = outputDir + BamOps.getSampleName(bam) + "clipSum.txt";
-      ArrayList<String> outPrint = new ArrayList<String>();
+      ArrayList<String> outPrint = new ArrayList<>();
       outPrint.add("InsertSize\tCount\tAvgSoftClipped");
       for (int j = 0; j < dynamicAveragingHistogram.getCounts().length; j++) {
         outPrint.add(dynamicAveragingHistogram.getBins()[j] + "\t"
@@ -101,9 +101,9 @@ public class BamSoftClip {
                      + dynamicAveragingHistogram.getAverages()[j]);
       }
       String outCounts = outputDir + BamOps.getSampleName(bam) + "clipSumCounts.txt";
-      ArrayList<String> outPrintCount = new ArrayList<String>();
+      ArrayList<String> outPrintCount = new ArrayList<>();
       outPrint.add("clippedBases\tCount");
-      ArrayList<String> remove = new ArrayList<String>();
+      ArrayList<String> remove = new ArrayList<>();
       for (String clip : seqCount.keySet()) {
         if (seqCount.get(clip) > 5 && clip.length() > 3) {
           allSofts.add(clip);

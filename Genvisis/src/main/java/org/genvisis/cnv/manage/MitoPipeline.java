@@ -607,9 +607,9 @@ public class MitoPipeline {
     if (useFile != null) {
       String[] samplesToVerify = HashVec.loadFileToStringArray(useFile, false, new int[] {0},
                                                                false);
-      Hashtable<String, String> track = new Hashtable<String, String>();
-      ArrayList<String> notAvailable = new ArrayList<String>();
-      ArrayList<String> available = new ArrayList<String>();
+      Hashtable<String, String> track = new Hashtable<>();
+      ArrayList<String> notAvailable = new ArrayList<>();
+      ArrayList<String> available = new ArrayList<>();
       for (String sample : samples) {
         track.put(sample, sample);
       }
@@ -653,7 +653,7 @@ public class MitoPipeline {
   private static boolean verifyAllSamples(Project proj, String[] samples) {
     boolean allParsed = true;
     SampleData sampleData = proj.getSampleData(false);
-    ArrayList<String> notInSampleData = new ArrayList<String>();
+    ArrayList<String> notInSampleData = new ArrayList<>();
     Logger log = proj.getLog();
 
     for (String sample : samples) {
@@ -688,8 +688,8 @@ public class MitoPipeline {
     MarkerLookup markerLookup = proj.getMarkerLookup();
     String[] markersToVerify = HashVec.loadFileToStringArray(fileOfMarkers, false, new int[] {0},
                                                              false);
-    ArrayList<String> notAvailable = new ArrayList<String>();
-    ArrayList<String> available = new ArrayList<String>();
+    ArrayList<String> notAvailable = new ArrayList<>();
+    ArrayList<String> available = new ArrayList<>();
     Logger log = proj.getLog();
 
     if (markerLookup == null) {
@@ -724,7 +724,7 @@ public class MitoPipeline {
    */
   private static boolean verifyAllProjectMarkersAreAvailable(Project proj) {
     boolean allParsed = true;
-    ArrayList<String> notParsed = new ArrayList<String>();
+    ArrayList<String> notParsed = new ArrayList<>();
     String[] markers = proj.getMarkerNames();
     MarkerLookup markerLookup = proj.getMarkerLookup();
     if (markerLookup == null) {
@@ -795,7 +795,7 @@ public class MitoPipeline {
    */
   private static Hashtable<String, String> loadQC(Project proj, String outputBase) {
     BufferedReader reader;
-    Hashtable<String, String> qcLookup = new Hashtable<String, String>();
+    Hashtable<String, String> qcLookup = new Hashtable<>();
     int DNAIndex = 0;
     Logger log = proj.getLog();
     String sampleQcFile = proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA_SAMPLES_SUMMARY;

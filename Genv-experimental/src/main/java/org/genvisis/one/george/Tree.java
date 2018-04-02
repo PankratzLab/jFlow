@@ -23,7 +23,7 @@ public class Tree {
   // leafId = 0 means not in any category and not in tree. Returns array of all 0's
   private Tuple<Integer[], Boolean> getArrayHelp(int leafId, Node n,
                                                  Integer[] storeArr) throws Exception {
-    if (leafId == 0) return new Tuple<Integer[], Boolean>(storeArr, true);
+    if (leafId == 0) return new Tuple<>(storeArr, true);
 
     Integer[] newStoreArr = shallowcopy(storeArr);
 
@@ -32,7 +32,7 @@ public class Tree {
     }
     if (newStoreArr[leafId - 1] == 1) {
       System.out.println("true");
-      return new Tuple<Integer[], Boolean>(newStoreArr, true);
+      return new Tuple<>(newStoreArr, true);
     }
     if (n.getChildren() != null) {
       for (int i = 0; i < n.getChildren().length; i++) {
@@ -43,7 +43,7 @@ public class Tree {
         if (success) return tup;
       }
     }
-    return new Tuple<Integer[], Boolean>(null, false);
+    return new Tuple<>(null, false);
   }
 
   public Integer[] getArray(int leafId) throws Exception {

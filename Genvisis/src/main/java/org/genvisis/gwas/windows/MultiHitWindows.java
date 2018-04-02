@@ -85,7 +85,7 @@ public class MultiHitWindows {
       int suggestiveMarkers = 0;
       int indexMarkers = 0;
       numTotal = markers.size();
-      List<MultiHit> index = new ArrayList<MultiHit>();
+      List<MultiHit> index = new ArrayList<>();
 
       double lowestP = Double.MAX_VALUE;
       for (MultiHit marker : markers) {
@@ -118,7 +118,7 @@ public class MultiHitWindows {
      *         case of multiple index SNPs)
      */
     public List<String> stats() {
-      List<String> stats = new ArrayList<String>();
+      List<String> stats = new ArrayList<>();
       for (MultiHit index : indexHits) {
         StringBuilder sb = new StringBuilder();
         sb.append(index.getName()).append("\t");
@@ -311,7 +311,7 @@ public class MultiHitWindows {
    * @return List of all markers, according to the given {@link PFileStructure}
    */
   private static List<MultiHit> parseMarkers(PFileStructure pFile, Logger log) {
-    List<MultiHit> markers = new ArrayList<MultiHit>();
+    List<MultiHit> markers = new ArrayList<>();
 
     try {
       BufferedReader reader = Files.getAppropriateReader(pFile.getFile());
@@ -359,7 +359,7 @@ public class MultiHitWindows {
         name = line[markerIndex];
         chr = Byte.parseByte(line[chrIndex]);
         pos = Integer.parseInt(line[posIndex]);
-        Map<String, Double> pValMap = new HashMap<String, Double>();
+        Map<String, Double> pValMap = new HashMap<>();
         for (int i = 0; i < pvalIndices.length; i++) {
           String label = pFile.getPvals()[i];
           String p = line[pvalIndices[i]];
@@ -385,12 +385,12 @@ public class MultiHitWindows {
    */
   private static List<MultiHitWindow> findWindows(Multimap<String, MultiHit> continuousMarkers,
                                                   String pValLabel, WindowThreshold hitParams) {
-    List<MultiHitWindow> windows = new ArrayList<MultiHitWindow>();
+    List<MultiHitWindow> windows = new ArrayList<>();
 
-    List<String> segments = new ArrayList<String>(continuousMarkers.keySet());
+    List<String> segments = new ArrayList<>(continuousMarkers.keySet());
     Collections.sort(segments, new SciStringComparator());
     for (String segment : segments) {
-      List<MultiHit> markers = new ArrayList<MultiHit>(continuousMarkers.get(segment));
+      List<MultiHit> markers = new ArrayList<>(continuousMarkers.get(segment));
       windows.addAll(findWindows(markers, pValLabel, hitParams));
     }
 
@@ -402,7 +402,7 @@ public class MultiHitWindows {
    */
   private static List<MultiHitWindow> findWindows(List<MultiHit> markers, String pValLabel,
                                                   WindowThreshold hitParams) {
-    List<MultiHitWindow> windows = new ArrayList<MultiHitWindow>();
+    List<MultiHitWindow> windows = new ArrayList<>();
 
     for (int i = 0; i < markers.size(); i++) {
       if (markers.get(i).pVal(pValLabel) < hitParams.getIndexPval()) {

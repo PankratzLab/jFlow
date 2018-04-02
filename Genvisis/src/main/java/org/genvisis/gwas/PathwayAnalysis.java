@@ -36,10 +36,10 @@ class KEGGpathway {
     String pathway, pathwayName;
     String gene, entry;
 
-    pathwayLookup = new Hashtable<String, String>();
-    pathways = new Hashtable<String, Vector<String>>();
-    genes = new Hashtable<String, Vector<String>>();
-    v = new Vector<String>();
+    pathwayLookup = new Hashtable<>();
+    pathways = new Hashtable<>();
+    genes = new Hashtable<>();
+    v = new Vector<>();
     entry = "the very beginning";
     try {
       reader = new BufferedReader(new FileReader(ko_file));
@@ -51,7 +51,7 @@ class KEGGpathway {
             System.err.println("Error - did not reset after ENTRY " + entry + " starting at: "
                                + temp);
           }
-          v = new Vector<String>();
+          v = new Vector<>();
           while (temp.startsWith(" ")) {
             temp = temp.trim();
             pathway = temp.split(PSF.Regex.GREEDY_WHITESPACE)[0];
@@ -67,7 +67,7 @@ class KEGGpathway {
           }
         }
         if (temp.startsWith("ENTRY")) {
-          v = new Vector<String>();
+          v = new Vector<>();
           entry = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE)[1];
           // System.err.println(entry);
         }
@@ -117,8 +117,8 @@ class KEGGpathway {
     String[] line;
 
     pathwayLookup = HashVec.loadFileToHashString(ko2_names_file, false);
-    pathways = new Hashtable<String, Vector<String>>();
-    genes = new Hashtable<String, Vector<String>>();
+    pathways = new Hashtable<>();
+    genes = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(ko2_file));
       while (reader.ready()) {
@@ -157,7 +157,7 @@ class KEGGpathway {
     int[] noChrCounts;
 
     genesAndSegs = HashVec.loadFileToStringMatrix(geneLocFile, true, new int[] {0, 1});
-    genes = new Hashtable<String, Vector<String>>();
+    genes = new Hashtable<>();
     maxChr = -1;
     for (String[] genesAndSeg : genesAndSegs) {
       seg = new Segment(genesAndSeg[1]);
@@ -184,8 +184,8 @@ class KEGGpathway {
       }
     }
 
-    snpsToGenes = new Hashtable<String, Vector<String>>();
-    genesToSNPs = new Hashtable<String, Vector<String>>();
+    snpsToGenes = new Hashtable<>();
+    genesToSNPs = new Hashtable<>();
 
     markerSet = new SnpMarkerSet(mapfile);
     markerNames = markerSet.getMarkerNames();
@@ -485,7 +485,7 @@ public class PathwayAnalysis {
       return "1.00";
     }
 
-    markerSetHash = new Hashtable<String, String>();
+    markerSetHash = new Hashtable<>();
     for (String element : markerList) {
       markerSetHash.put(element, "");
     }
@@ -590,7 +590,7 @@ public class PathwayAnalysis {
           pathway = "ko" + temp.substring(temp.indexOf(".html") - 5, temp.indexOf(".html"));
           subheader = temp.substring(temp.indexOf(".html") + 7, temp.indexOf("</a>"));
           countGene = 0;
-          snpsInPathway = new Vector<String>();
+          snpsInPathway = new Vector<>();
           if (kegg.pathways.containsKey(pathway)) {
             genesInPathway = kegg.pathways.get(pathway);
             for (int i = 0; i < genesInPathway.size(); i++) {
@@ -825,7 +825,7 @@ public class PathwayAnalysis {
     kegg.matchMarkersToGenes(mapfile, KEGG_GENE_POSITIONS, offset);
     System.out.println("done");
 
-    snpsInPathway = new Vector<String>();
+    snpsInPathway = new Vector<>();
     if (kegg.pathways.containsKey(pathway)) {
       genesInPathway = kegg.pathways.get(pathway);
       for (int i = 0; i < genesInPathway.size(); i++) {

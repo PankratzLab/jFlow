@@ -16,7 +16,7 @@ public class removeInds {
     PrintWriter writer = null;
     StringTokenizer st;
     String temp;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     reader = new BufferedReader(new FileReader(deletes));
     while (reader.ready()) {

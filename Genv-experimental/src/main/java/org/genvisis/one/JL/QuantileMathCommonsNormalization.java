@@ -88,7 +88,7 @@ public class QuantileMathCommonsNormalization {
 
     for (int s = 0; s < rawData[1].length; ++s) {
 
-      ArrayList<Double> nonNAvalues = new ArrayList<Double>();
+      ArrayList<Double> nonNAvalues = new ArrayList<>();
 
       boolean needsReplacement = false;
 

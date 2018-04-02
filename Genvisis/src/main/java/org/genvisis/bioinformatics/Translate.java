@@ -101,7 +101,7 @@ public class Translate {
     Vector<String> v;
     int index;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     do {
       index = str.indexOf(target);
       if (index > -1) {

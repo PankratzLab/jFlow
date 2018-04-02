@@ -103,18 +103,18 @@ public class BlastLabel extends JLabel {
   public static Font LBL_FONT = BASE_FONT.deriveFont(15f);
   public static final int CHAR_PADDING = 2;
   static boolean expanded = false; // static to affect all
-  static TreeSet<Integer> spaces = new TreeSet<Integer>();
-  static TreeMap<Integer, Integer> spaceSets = new TreeMap<Integer, Integer>();
+  static TreeSet<Integer> spaces = new TreeSet<>();
+  static TreeMap<Integer, Integer> spaceSets = new TreeMap<>();
 
   protected BlastAnnotation myAnnotation;
   Segment fullSegment;
   private String seq;
-  private final TreeSet<Integer> mySpaces = new TreeSet<Integer>();
-  private final TreeMap<Integer, Integer> mySpaceSets = new TreeMap<Integer, Integer>();
+  private final TreeSet<Integer> mySpaces = new TreeSet<>();
+  private final TreeMap<Integer, Integer> mySpaceSets = new TreeMap<>();
   boolean positiveStrand = false;
   boolean oppositeStrand = false;
   boolean reverseSequence = false;
-  ArrayList<CigarSeq> seqParts = new ArrayList<CigarSeq>();
+  ArrayList<CigarSeq> seqParts = new ArrayList<>();
   private final int alignmentCount;
 
   int getAlignment() {

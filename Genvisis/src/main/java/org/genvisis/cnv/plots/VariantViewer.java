@@ -212,8 +212,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
   private final ArrayList<Color[]> colorScheme = Trailer.getColor();
 
-  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
-  private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
+  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<>();
+  private final HashMap<String, String> regionFileNameLoc = new HashMap<>();
   private String geneFileName;
   private volatile boolean loadingFile = false;
   private JComboBox geneListCmb;
@@ -222,14 +222,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   BlockDraw selectedBlockDraw;
   DrawPoint selectedDrawPoint;
 
-  ArrayList<Rectangle> activeRects = new ArrayList<Rectangle>();
-  ArrayList<BlockDraw> activeBlocks = new ArrayList<VariantViewer.BlockDraw>();
-  ArrayList<DrawPoint> activePoints = new ArrayList<VariantViewer.DrawPoint>();
+  ArrayList<Rectangle> activeRects = new ArrayList<>();
+  ArrayList<BlockDraw> activeBlocks = new ArrayList<>();
+  ArrayList<DrawPoint> activePoints = new ArrayList<>();
 
-  HashSet<VariantContext> drawnFreqs = new HashSet<VariantContext>();
+  HashSet<VariantContext> drawnFreqs = new HashSet<>();
 
-  HashSet<String> hiddenPops = new HashSet<String>();
-  HashSet<DrawType> hiddenDrawTypes = new HashSet<VariantViewer.DrawType>();
+  HashSet<String> hiddenPops = new HashSet<>();
+  HashSet<DrawType> hiddenDrawTypes = new HashSet<>();
 
   int defaultInitial = ToolTipManager.sharedInstance().getInitialDelay();
   int defaultReshow = ToolTipManager.sharedInstance().getReshowDelay();
@@ -334,8 +334,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     int x;
     VariantContext vc;
-    HashMap<String, Double> mafMap = new HashMap<String, Double>();
-    HashMap<String, Double> macMap = new HashMap<String, Double>();
+    HashMap<String, Double> mafMap = new HashMap<>();
+    HashMap<String, Double> macMap = new HashMap<>();
   }
 
   private final AbstractAction geneFileSelectAction = new AbstractAction() {
@@ -444,10 +444,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
       @Override
       public void windowClosing(WindowEvent e) {
         if (VariantViewer.this.proj != null) {
-          ArrayList<String> files = new ArrayList<String>(regionFileNameLoc.values());
+          ArrayList<String> files = new ArrayList<>(regionFileNameLoc.values());
           String[] currSet = VariantViewer.this.proj.GENE_LIST_FILENAMES.getValue();
 
-          ArrayList<String> newSet = new ArrayList<String>();
+          ArrayList<String> newSet = new ArrayList<>();
           outer: for (String s : files) {
             for (int i = 0; i < currSet.length; i++) {
               if (currSet[i].equals(s)) {
@@ -543,7 +543,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     String line;
     ArrayList<String[]> data;
 
-    data = new ArrayList<String[]>();
+    data = new ArrayList<>();
     try {
       reader = Files.getAppropriateReader(file);
       while ((line = reader.readLine()) != null) {
@@ -566,13 +566,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     log.reportTimeWarning("Loading " + file);
 
     String[][] geneFile = readFile(file);
-    geneList = new ArrayList<String>();
-    geneToIsoformMap = new HashMap<String, HashMap<String, GeneData>>();
-    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
-    geneToExonSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
-    geneToCommentMap = new HashMap<String, String>();
-    loadedVCFData = new HashMap<String, HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>>();
-    headerMap = new HashMap<String, VCFHeader>();
+    geneList = new ArrayList<>();
+    geneToIsoformMap = new HashMap<>();
+    geneToRegionMap = new HashMap<>();
+    geneToExonSegmentMap = new HashMap<>();
+    geneToCommentMap = new HashMap<>();
+    loadedVCFData = new HashMap<>();
+    headerMap = new HashMap<>();
     String[] genes = ArrayUtils.extract(geneFile, 0);
     GeneData[][] geneData = track.lookupAllGeneData(genes);
 
@@ -590,11 +590,11 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
       }
       if (multiChr) {
-        HashMap<Integer, HashMap<String, GeneData>> chrMap = new HashMap<Integer, HashMap<String, GeneData>>();
+        HashMap<Integer, HashMap<String, GeneData>> chrMap = new HashMap<>();
         for (int g = 0; g < geneData[i].length; g++) {
           HashMap<String, GeneData> isoMap = chrMap.get((int) geneData[i][g].getChr());
           if (isoMap == null) {
-            isoMap = new HashMap<String, GeneData>();
+            isoMap = new HashMap<>();
             chrMap.put((int) geneData[i][g].getChr(), isoMap);
           }
           isoMap.put(geneData[i][g].isCollapsedIsoforms() ? COLLAPSE_ISOFORMS_KEY
@@ -608,7 +608,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         }
 
       } else {
-        HashMap<String, GeneData> isoformMap = new HashMap<String, GeneData>();
+        HashMap<String, GeneData> isoformMap = new HashMap<>();
         geneToIsoformMap.put(genes[i].toUpperCase(), isoformMap);
         geneList.add(genes[i].toUpperCase());
         for (int g = 0; g < geneData[i].length; g++) {
@@ -623,12 +623,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         geneToCommentMap.put(geneFile[i][0], geneFile[i][1]);
       }
     }
-    geneToRegionMap = new HashMap<String, HashMap<String, String>>();
-    geneToExonSegmentMap = new HashMap<String, HashMap<String, Segment[]>>();
+    geneToRegionMap = new HashMap<>();
+    geneToExonSegmentMap = new HashMap<>();
     for (String gene : geneList) {
       HashMap<String, GeneData> isoMap = geneToIsoformMap.get(gene);
-      HashMap<String, String> isoPosMap = new HashMap<String, String>();
-      HashMap<String, Segment[]> isoSegMap = new HashMap<String, Segment[]>();
+      HashMap<String, String> isoPosMap = new HashMap<>();
+      HashMap<String, Segment[]> isoSegMap = new HashMap<>();
       geneToRegionMap.put(gene, isoPosMap);
       geneToExonSegmentMap.put(gene, isoSegMap);
       for (Entry<String, GeneData> isoEntry : isoMap.entrySet()) {
@@ -636,7 +636,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         isoPosMap.put(isoEntry.getKey(),
                       "chr" + value.getChr() + ":" + value.getStart() + "-" + value.getStop());
         int[][] exons = value.getExonBoundaries();
-        ArrayList<Segment> segList = new ArrayList<Segment>();
+        ArrayList<Segment> segList = new ArrayList<>();
         for (int[] i : exons) {
           segList.add(new Segment(value.getChr(), i[0], i[1]));
         }
@@ -665,7 +665,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   }
 
   private ArrayList<VariantContextWithFile> filter(Segment exon, List<VariantContextWithFile> all) {
-    ArrayList<VariantContextWithFile> retArr = new ArrayList<VariantContextWithFile>();
+    ArrayList<VariantContextWithFile> retArr = new ArrayList<>();
     for (VariantContextWithFile vc : all) {
       if (exon.overlaps(new Segment(vc.vc.getContig(), vc.vc.getStart(), vc.vc.getEnd()))) {
         retArr.add(vc);
@@ -682,7 +682,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   }
 
   private String[] getANNOVARProteinChanges(VariantContextWithFile vcF) {
-    ArrayList<String> vals = new ArrayList<String>();
+    ArrayList<String> vals = new ArrayList<>();
 
     String selectedIsoform = isoformList.getSelectedItem().toString();
     java.util.List<Object> annAttrs = vcF.vc.getAttributeAsList("GeneDetail.refGene");
@@ -720,7 +720,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     int width, begin, tempX, tempPx, len, lenPx, height;
     Rectangle display;
 
-    ArrayList<VCFLocation> freqLocs = new ArrayList<VariantViewer.VCFLocation>();
+    ArrayList<VCFLocation> freqLocs = new ArrayList<>();
 
     boolean antiAlias = true;
     if (g instanceof Graphics2D) {
@@ -907,7 +907,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         } else {
           if (drawType == DRAW_AS_POPULATIONS) {
             // draw populations
-            ArrayList<BlockDraw> toDraw = new ArrayList<VariantViewer.BlockDraw>();
+            ArrayList<BlockDraw> toDraw = new ArrayList<>();
             for (VariantContextWithFile vc : vcfInSeg) {
 
               int exonCheck = vc.vc.getAttributeAsInt("SNPEFF_EXON_ID", -1);
@@ -917,7 +917,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
               }
 
               GenotypesContext gctx = vc.vc.getGenotypes();
-              HashMap<String, Integer> popGenoCnt = new HashMap<String, Integer>();
+              HashMap<String, Integer> popGenoCnt = new HashMap<>();
               int totAff = 0;
               for (int i = 0; i < gctx.size(); i++) {
                 Genotype geno = gctx.get(i);
@@ -964,8 +964,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
             }
           } else if (drawType == DRAW_AS_INDIVS) {
             // draw all in relative position, pushing up if overlapping
-            ArrayList<DrawPoint> drawn = new ArrayList<DrawPoint>();
-            ArrayList<Rectangle> plotted = new ArrayList<Rectangle>();
+            ArrayList<DrawPoint> drawn = new ArrayList<>();
+            ArrayList<Rectangle> plotted = new ArrayList<>();
             // HashMap<VCFLocation, HashMap<String, Integer>> spills = new
             // HashMap<VariantViewer.VCFLocation, HashMap<String,Integer>>();
 
@@ -1090,7 +1090,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     int x = bd.x - (width / 2);
     int tempY = 2;
     int scav = 0;
-    HashMap<String, Integer> drawPop = new HashMap<String, Integer>();
+    HashMap<String, Integer> drawPop = new HashMap<>();
     int drawMax = 0;
     activeRects.add(new Rectangle(x, 2, width, height));
     activeBlocks.add(bd);
@@ -1260,7 +1260,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     FontMetrics fm = legendPanel.getGraphics().getFontMetrics();
     int lblMaxWidth = 0;
-    HashMap<String, String> lblMap = new HashMap<String, String>();
+    HashMap<String, String> lblMap = new HashMap<>();
 
     lblMaxWidth = fm.stringWidth("Moderate Impact");
     if (popColorMap != null) {
@@ -1487,7 +1487,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
       return;
     }
 
-    ArrayList<String> pops = new ArrayList<String>();
+    ArrayList<String> pops = new ArrayList<>();
 
     for (Entry<String, HashSet<String>> popSetEntry : (showExcludes ? popIndiMapWithExcludes.entrySet()
                                                                     : popIndiMap.entrySet())) {
@@ -2946,12 +2946,12 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     String gene = geneList.get(geneIndex);
     HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformData = loadedVCFData.get(gene);
     if (isoformData == null) {
-      return new ArrayList<VariantContextWithFile>();
+      return new ArrayList<>();
     }
     String isoform = (String) isoformList.getSelectedItem();
     ArrayList<ArrayList<VariantContextWithFile>> exonData = isoformData.get(isoform);
     if (exonData == null || exonIndex >= exonData.size()) {
-      return new ArrayList<VariantContextWithFile>();
+      return new ArrayList<>();
     }
     return exonData.get(exonIndex);
   }
@@ -2959,13 +2959,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   private void loadPopulationFile() throws IOException {
     BufferedReader reader = Files.getAppropriateReader(popFile);
     String[] header = reader.readLine().trim().split("\t", -1);
-    popColorMap = new LinkedHashMap<String, Color>();
-    popIndiMap = new HashMap<String, HashSet<String>>();
-    popIndiMapWithExcludes = new HashMap<String, HashSet<String>>();
-    popSet = new HashSet<String>();
-    excluded = new HashSet<String>();
-    popMap = new HashMap<String, String>();
-    superPopMap = new HashMap<String, String>();
+    popColorMap = new LinkedHashMap<>();
+    popIndiMap = new HashMap<>();
+    popIndiMapWithExcludes = new HashMap<>();
+    popSet = new HashSet<>();
+    excluded = new HashSet<>();
+    popMap = new HashMap<>();
+    superPopMap = new HashMap<>();
 
     int iidCol = -1;
     int exclCol = -1;
@@ -3004,14 +3004,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         if (exclCol == -1 || !parts[exclCol].equals("1")) {
           HashSet<String> indiSet = popIndiMap.get(parts[popCol]);
           if (indiSet == null) {
-            indiSet = new HashSet<String>();
+            indiSet = new HashSet<>();
             popIndiMap.put(parts[popCol], indiSet);
           }
           indiSet.add(parts[iidCol]);
         }
         HashSet<String> indiSet = popIndiMapWithExcludes.get(parts[popCol]);
         if (indiSet == null) {
-          indiSet = new HashSet<String>();
+          indiSet = new HashSet<>();
           popIndiMapWithExcludes.put(parts[popCol], indiSet);
         }
         indiSet.add(parts[iidCol]);
@@ -3033,7 +3033,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   }
 
   private LinkedHashMap<String, Color> parseColors(String colorHeader) {
-    LinkedHashMap<String, Color> colorMap = new LinkedHashMap<String, Color>();
+    LinkedHashMap<String, Color> colorMap = new LinkedHashMap<>();
     String[] pts = colorHeader.split(";");
     int overflow = 9;
     for (int i = 1; i < pts.length; i++) {
@@ -3082,7 +3082,7 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     } else {
       GeneData gd = getCurrentGeneData();
       Set<String> sub = popMap.keySet();
-      ArrayList<VariantContextWithFile> data = new ArrayList<VariantContextWithFile>();
+      ArrayList<VariantContextWithFile> data = new ArrayList<>();
       for (String vcfFile : vcfFiles) {
         VCFFileReader vcfReader = new VCFFileReader(new File(vcfFile), true);
         VCFHeader header = vcfReader.getFileHeader();
@@ -3104,14 +3104,14 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
   }
 
   private HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> sortData(List<VariantContextWithFile> vcfEntries) {
-    HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList = new HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>>();
+    HashMap<String, ArrayList<ArrayList<VariantContextWithFile>>> isoformMapToVCFList = new HashMap<>();
     HashMap<String, Segment[]> isoToExonSegMap = geneToExonSegmentMap.get(geneList.get(geneIndex));
 
     for (Entry<String, Segment[]> isoSegEntry : isoToExonSegMap.entrySet()) {
       String isoKey = isoSegEntry.getKey();
       Segment[] isoExonSegs = isoSegEntry.getValue();
 
-      ArrayList<ArrayList<VariantContextWithFile>> isoVCFLists = new ArrayList<ArrayList<VariantContextWithFile>>();
+      ArrayList<ArrayList<VariantContextWithFile>> isoVCFLists = new ArrayList<>();
       isoformMapToVCFList.put(isoKey, isoVCFLists);
 
       for (int i = 0; i < isoExonSegs.length; i++) {

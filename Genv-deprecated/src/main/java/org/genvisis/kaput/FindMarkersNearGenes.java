@@ -61,8 +61,8 @@ public class FindMarkersNearGenes {
     String[] line;
     String[] geneNames;
     int[][] genePositions;
-    Hashtable<String, String> geneLookup = new Hashtable<String, String>();
-    Hashtable<String, String> markerPositions = new Hashtable<String, String>();
+    Hashtable<String, String> geneLookup = new Hashtable<>();
+    Hashtable<String, String> markerPositions = new Hashtable<>();
     Hashtable<String, String> mafLookup;
     int index, chr, pos;
     Vector<String> markers;
@@ -107,7 +107,7 @@ public class FindMarkersNearGenes {
     }
 
     System.out.println(ext.getTime() + "  Finding qualified SNPs...");
-    markers = new Vector<String>();
+    markers = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(dir + root + ".bim"));
       while (reader.ready()) {
@@ -261,7 +261,7 @@ public class FindMarkersNearGenes {
     PrintWriter writer;
     String[] line;
     String trav;
-    Hashtable<String, String> seen = new Hashtable<String, String>();
+    Hashtable<String, String> seen = new Hashtable<>();
     String[] genes;
     String[][] tags;
     int[][] genePositions, geneCounts;
@@ -390,7 +390,7 @@ public class FindMarkersNearGenes {
     int chr = 0;
     int prev = 0, count, suffix;
     boolean done = false;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String commands;
 
     try {

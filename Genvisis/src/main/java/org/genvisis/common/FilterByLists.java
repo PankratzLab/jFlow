@@ -85,7 +85,7 @@ public class FilterByLists {
       if (!new File(listFile).exists()) {
         System.err.println("Since '" + filename
                            + "' is not a filename, assuming this is the key to " + type);
-        hash = new Hashtable<String, String>();
+        hash = new Hashtable<>();
         hash.put(filename, "1");
       } else {
         hash = HashVec.loadFileToHashString(listFile, listCols, new int[] {-7}, false, null, false,
@@ -175,7 +175,7 @@ public class FilterByLists {
 
     if (reportMissingElements) {
       if (keepsHash != null) {
-        v = new Vector<String>();
+        v = new Vector<>();
         for (int i = 0; i < keepKeys.length; i++) {
           if (!keepsHash.get(keepKeys[i]).equals("")) {
             v.add(keepKeys[i]);
@@ -191,7 +191,7 @@ public class FilterByLists {
       }
 
       if (deletesHash != null) {
-        v = new Vector<String>();
+        v = new Vector<>();
         for (int i = 0; i < delKeys.length; i++) {
           if (!deletesHash.get(delKeys[i]).equals("")) {
             v.add(delKeys[i]);

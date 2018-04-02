@@ -66,7 +66,7 @@ public class ParseMXCResults {
   }
 
   private static void generateRScript(String outputFile) {
-    ArrayList<String> r = new ArrayList<String>();
+    ArrayList<String> r = new ArrayList<>();
     outputFile = new File(outputFile).getAbsolutePath();
 
     String filename = ext.rootOf(outputFile, false);
@@ -456,7 +456,7 @@ public class ParseMXCResults {
       }
     });
 
-    Hashtable<String, ArrayList<String[]>> regions = new Hashtable<String, ArrayList<String[]>>();
+    Hashtable<String, ArrayList<String[]>> regions = new Hashtable<>();
     int start = 0;
     // for each index, generate a list of mxc genes in the region
     // calculate the lambda for this region

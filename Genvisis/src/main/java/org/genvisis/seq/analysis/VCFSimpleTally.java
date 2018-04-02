@@ -199,7 +199,7 @@ public class VCFSimpleTally {
   }
 
   private static Hashtable<String, String[]> loadToGeneFuncHash(String geneFile, Logger log) {
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(geneFile);
       while (reader.ready()) {
@@ -237,7 +237,7 @@ public class VCFSimpleTally {
     }
 
     private static GeneSet getAnySet(Logger log) {
-      Hashtable<String, String> permiscuousSet = new Hashtable<String, String>();
+      Hashtable<String, String> permiscuousSet = new Hashtable<>();
       permiscuousSet.put(ANY_GENE_SET, ANY_GENE_SET);
       return new GeneSet(null, log, permiscuousSet, ANY_GENE_SET);
     }
@@ -268,7 +268,7 @@ public class VCFSimpleTally {
     }
 
     private void load() {
-      genes = new Hashtable<String, String>();
+      genes = new Hashtable<>();
       try {
         BufferedReader reader = Files.getAppropriateReader(fileName);
 
@@ -321,7 +321,7 @@ public class VCFSimpleTally {
     }
 
     private void load() {
-      anno = new Hashtable<String, String[]>();
+      anno = new Hashtable<>();
       try {
         BufferedReader reader = Files.getAppropriateReader(fileName);
         String[] head = reader.readLine().trim().split("\t");
@@ -342,7 +342,7 @@ public class VCFSimpleTally {
               throw new IllegalArgumentException("Error, lines cannot be greater length than the header in"
                                                  + fileName);
             }
-            ArrayList<String> filled = new ArrayList<String>();
+            ArrayList<String> filled = new ArrayList<>();
             for (int i = 0; i < header.length; i++) {
               if (i < line.length) {
                 filled.add(line[i]);
@@ -370,7 +370,7 @@ public class VCFSimpleTally {
   }
 
   private static Hashtable<String, GeneVariantPositionSummary> parseAvailable(GeneVariantPositionSummary[] summaries) {
-    Hashtable<String, GeneVariantPositionSummary> parse = new Hashtable<String, GeneVariantPositionSummary>();
+    Hashtable<String, GeneVariantPositionSummary> parse = new Hashtable<>();
     for (GeneVariantPositionSummary summarie : summaries) {
       String key = summarie.getKey();
 
@@ -384,7 +384,7 @@ public class VCFSimpleTally {
   }
 
   private static ArrayList<Integer> removeNeg(List<Integer> others) {
-    ArrayList<Integer> pos = new ArrayList<Integer>();
+    ArrayList<Integer> pos = new ArrayList<>();
     for (int i = 0; i < others.size(); i++) {
       if (others.get(i) >= 0) {
         pos.add(others.get(i));
@@ -498,9 +498,9 @@ public class VCFSimpleTally {
 
     private static Hashtable<String, Integer> computeNN(List<Integer> al,
                                                         List<Integer> others) throws IllegalStateException {
-      ArrayList<Integer> combined = new ArrayList<Integer>();
-      ArrayList<String> member = new ArrayList<String>();
-      Hashtable<String, Integer> totals = new Hashtable<String, Integer>();
+      ArrayList<Integer> combined = new ArrayList<>();
+      ArrayList<String> member = new ArrayList<>();
+      Hashtable<String, Integer> totals = new Hashtable<>();
       for (int i = 0; i < al.size(); i++) {
         combined.add(al.get(i));
         member.add(MEMBER);
@@ -511,8 +511,8 @@ public class VCFSimpleTally {
         member.add(NONMEMBER);
       }
       for (int i = 0; i < al.size(); i++) {
-        ArrayList<Double> distances = new ArrayList<Double>();
-        ArrayList<String> currentMemberDistance = new ArrayList<String>();
+        ArrayList<Double> distances = new ArrayList<>();
+        ArrayList<String> currentMemberDistance = new ArrayList<>();
 
         for (int j = 0; j < combined.size(); j++) {
           distances.add((double) Math.abs(al.get(i) - combined.get(j)));
@@ -562,7 +562,7 @@ public class VCFSimpleTally {
     }
 
     private String[] getData() {
-      ArrayList<String> data = new ArrayList<String>();
+      ArrayList<String> data = new ArrayList<>();
       data.add(centriodBelong + "");
       data.add(distanceBelong.getDistance() + "");
       data.add(distanceBelong.getIter() + "");
@@ -584,7 +584,7 @@ public class VCFSimpleTally {
   private static Hashtable<String, PosCluster[]> densityEnrichment(SimpleTallyResult cases,
                                                                    SimpleTallyResult controls,
                                                                    Logger log) throws IllegalStateException {
-    Hashtable<String, PosCluster[]> cluster = new Hashtable<String, PosCluster[]>();
+    Hashtable<String, PosCluster[]> cluster = new Hashtable<>();
     Hashtable<String, GeneVariantPositionSummary> casesSummaries = parseAvailable(GeneVariantPositionSummary.readSerial(cases.getFinalGeneVariantPositions(),
                                                                                                                         log));
     log.reportTimeInfo("Computing density enrichments  for comp "
@@ -630,8 +630,8 @@ public class VCFSimpleTally {
                                      Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
       int hqIndex = ext.indexOfStr("HQ", Files.getHeaderOfFile(sr.getFinalAnnotSample(), log));
 
-      Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
-      Hashtable<String, Integer> countsGene = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> counts = new Hashtable<>();
+      Hashtable<String, Integer> countsGene = new Hashtable<>();
 
       reader.readLine();
       while (reader.ready()) {
@@ -821,8 +821,8 @@ public class VCFSimpleTally {
     vpopAc.report();
     String caseDef = ext.rootOf(vpop);
     ChrSplitResults[] chrSplitResults = VCFOps.splitByChrs(vcf, outDir, numThreads, false, log);
-    WorkerHive<String> hive = new WorkerHive<String>(numThreads, 10, log);
-    ArrayList<String> filtVcfs = new ArrayList<String>();
+    WorkerHive<String> hive = new WorkerHive<>(numThreads, 10, log);
+    ArrayList<String> filtVcfs = new ArrayList<>();
 
     for (ChrSplitResults chrSplitResult : chrSplitResults) {// filter each chromosome
       String outputVcf = outDir + ext.rootOf(vpop) + ".maf_" + maf + "." + chrSplitResult.getChr()
@@ -851,7 +851,7 @@ public class VCFSimpleTally {
     // String finalAnnotGeneSample = finalOut + ".gene.sample";
 
     Set<String> cases = vpopAc.getSuperPop().get(caseDef);
-    Set<String> hqCases = new HashSet<String>();
+    Set<String> hqCases = new HashSet<>();
 
     for (String removeCase : lqs) {
       if (!cases.contains(removeCase)) {
@@ -871,20 +871,20 @@ public class VCFSimpleTally {
     controls.remove(caseDef);
     controls.remove(VcfPopulation.EXCLUDE);
 
-    Set<String> tmpSet = new HashSet<String>();
-    Hashtable<String, Set<String>> controlPop = new Hashtable<String, Set<String>>();
+    Set<String> tmpSet = new HashSet<>();
+    Hashtable<String, Set<String>> controlPop = new Hashtable<>();
     controlPop.put(caseDef + "_" + VcfPopulation.CONTROL, tmpSet);
 
     for (String acontrolPop : controls.keySet()) {
       controlPop.get(caseDef + "_" + VcfPopulation.CONTROL).addAll(controls.get(acontrolPop));
     }
-    Hashtable<String, Set<String>> controlSubPop = new Hashtable<String, Set<String>>();
+    Hashtable<String, Set<String>> controlSubPop = new Hashtable<>();
 
     for (String aControl : controlPop.get(caseDef + "_" + VcfPopulation.CONTROL)) {
       if (!controlSubPop.containsKey(caseDef + "_"
                                      + vpopAc.getPopulationForInd(aControl,
                                                                   RETRIEVE_TYPE.SUB)[0])) {
-        Set<String> tmpSetSub = new HashSet<String>();
+        Set<String> tmpSetSub = new HashSet<>();
         controlSubPop.put(caseDef + "_"
                           + vpopAc.getPopulationForInd(aControl, RETRIEVE_TYPE.SUB)[0], tmpSetSub);
       }
@@ -970,7 +970,7 @@ public class VCFSimpleTally {
                                                                     caseDef + "_N_" + cases.size(),
                                                                     null)));
 
-      ArrayList<String> controlsOrdered = new ArrayList<String>();
+      ArrayList<String> controlsOrdered = new ArrayList<>();
       // general note, this is no longer a simple tally and would recommend re-doing this whthing.
       controlsOrdered.addAll(controls.keySet());
       for (int i = 0; i < controlsOrdered.size(); i++) {
@@ -1004,7 +1004,7 @@ public class VCFSimpleTally {
       annoWriter.println();
       annoWriterSample.println();
 
-      Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<String, ArrayList<GeneSummary[]>>();
+      Hashtable<String, ArrayList<GeneSummary[]>> geneSummaries = new Hashtable<>();
       for (int i = 0; i < filtVcfs.size(); i++) {
         log.reportTimeInfo("Summarizing " + filtVcfs.get(i));
         VCFFileReader result = new VCFFileReader(new File(filtVcfs.get(i)), true);
@@ -1058,7 +1058,7 @@ public class VCFSimpleTally {
 
             GenotypesContext gc = vcCaseGroup.getVcAlt().getGenotypes();
 
-            ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<VCFSimpleTally.VcGroupSummary>();
+            ArrayList<VcGroupSummary> controlGroupSummaries = new ArrayList<>();
             for (int j = 0; j < controlsOrdered.size(); j++) {
               VcGroupSummary vcControlGroup = new VcGroupSummary(controlsOrdered.get(j),
                                                                  controls.get(controlsOrdered.get(j)),
@@ -1067,7 +1067,7 @@ public class VCFSimpleTally {
             }
 
             for (Genotype g : gc) {
-              HashSet<String> tmpVCSub = new HashSet<String>();
+              HashSet<String> tmpVCSub = new HashSet<>();
               tmpVCSub.add(g.getSampleName());
               VariantContextFilterPass pass = qualCase.filter(VCOps.getSubset(vc, tmpVCSub));
               annoWriterSample.print(vc.getContig() + "\t" + vc.getStart() + "\t" + vc.getID()
@@ -1124,7 +1124,7 @@ public class VCFSimpleTally {
       annoGeneBedWriter.close();
       annoWriter.close();
       writer.close();
-      ArrayList<GeneVariantPositionSummary> controlPos = new ArrayList<GeneVariantPositionSummary>();
+      ArrayList<GeneVariantPositionSummary> controlPos = new ArrayList<>();
       for (String gene : geneSummaries.keySet()) {
         ArrayList<GeneSummary[]> geneSummariesCurrent = geneSummaries.get(gene);
 
@@ -1172,7 +1172,7 @@ public class VCFSimpleTally {
   private static void summarizeQC(String controlGroup, String output,
                                   VariantContextFilter caseFilter,
                                   VariantContextFilter controlFilter) {
-    ArrayList<String> filterSummary = new ArrayList<String>();
+    ArrayList<String> filterSummary = new ArrayList<>();
     filterSummary.add("GROUP\tTYPE\tID\tVALUE\tDIRECTION");
     for (int i = 0; i < caseFilter.getvBooleans().length; i++) {
       VcFilterBoolean vb = caseFilter.getvBooleans()[i];
@@ -1326,10 +1326,10 @@ public class VCFSimpleTally {
       this.name = name;
       this.group = group;
       this.effects = effects;
-      variantNPositions = new ArrayList<Integer>();
-      variantAAPositions = new ArrayList<Integer>();
-      hqVariantNPositions = new ArrayList<Integer>();
-      hqVariantAAPositions = new ArrayList<Integer>();
+      variantNPositions = new ArrayList<>();
+      variantAAPositions = new ArrayList<>();
+      hqVariantNPositions = new ArrayList<>();
+      hqVariantAAPositions = new ArrayList<>();
       key = name + "_" + ArrayUtils.toStr(effects, "||");
     }
 
@@ -1426,14 +1426,14 @@ public class VCFSimpleTally {
       hqNumMut = 0;
 
       this.effects = effects;
-      uniqueHqIndsWithVar = new HashSet<String>();
-      uniqueIndsWithVar = new HashSet<String>();
-      numVarsPerInd = new Hashtable<String, Integer>();
-      numHQVarsPerInd = new Hashtable<String, Integer>();
-      numHQDiffHaploVarsPerInd = new Hashtable<String, Integer>();
-      numVarsDiffHaploPerInd = new Hashtable<String, Integer>();
-      sampleHaplotype = new Hashtable<String, ArrayList<String>>();
-      sampleHQHaplotype = new Hashtable<String, ArrayList<String>>();
+      uniqueHqIndsWithVar = new HashSet<>();
+      uniqueIndsWithVar = new HashSet<>();
+      numVarsPerInd = new Hashtable<>();
+      numHQVarsPerInd = new Hashtable<>();
+      numHQDiffHaploVarsPerInd = new Hashtable<>();
+      numVarsDiffHaploPerInd = new Hashtable<>();
+      sampleHaplotype = new Hashtable<>();
+      sampleHQHaplotype = new Hashtable<>();
       geneVariantPositionSummary = new GeneVariantPositionSummary(geneName, group, effects);
     }
 
@@ -1456,7 +1456,7 @@ public class VCFSimpleTally {
     }
 
     private String[] getSummary() {
-      ArrayList<String> summary = new ArrayList<String>();
+      ArrayList<String> summary = new ArrayList<>();
       summary.add(numVar + "");
       summary.add(numMut + "");
 
@@ -1505,7 +1505,7 @@ public class VCFSimpleTally {
             uniqueIndsWithVar.addAll(vcGroupSummary.getIndsWithAlt());
             addHash(numVarsPerInd, vcGroupSummary.getIndsWithAlt());
             GenotypesContext gc = vcGroupSummary.getVcAlt().getGenotypes();
-            HashSet<String> newHaplos = new HashSet<String>();
+            HashSet<String> newHaplos = new HashSet<>();
             for (Genotype g : gc) {
               if (!sampleHaplotype.containsKey(g.getSampleName())) {
                 sampleHaplotype.put(g.getSampleName(), new ArrayList<String>());
@@ -1525,7 +1525,7 @@ public class VCFSimpleTally {
               addHash(numHQVarsPerInd, vcGroupSummary.getHqIndsWithAlt());
 
               GenotypesContext gcHQ = vcGroupSummary.getVcAltHq().getGenotypes();
-              HashSet<String> newHaplosHQ = new HashSet<String>();
+              HashSet<String> newHaplosHQ = new HashSet<>();
               for (Genotype g : gcHQ) {
                 if (!sampleHQHaplotype.containsKey(g.getSampleName())) {
                   sampleHQHaplotype.put(g.getSampleName(), new ArrayList<String>());
@@ -1620,7 +1620,7 @@ public class VCFSimpleTally {
     }
 
     private String[] getSummary() {
-      ArrayList<String> summary = new ArrayList<String>();
+      ArrayList<String> summary = new ArrayList<>();
       summary.add(avgGq + "");
       summary.add(avgDp + "");
       summary.add(numWithCalls + "");
@@ -1701,7 +1701,7 @@ public class VCFSimpleTally {
     // ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
     for (int i = 0; i < vpopsCase.length; i++) {
 
-      ArrayList<ExcelConversionParams> excelFile = new ArrayList<ExcelConversionParams>();
+      ArrayList<ExcelConversionParams> excelFile = new ArrayList<>();
 
       String outDir = ext.parseDirectoryOfFile(vpopsCase[i]);
       new File(outDir).mkdirs();
@@ -1726,7 +1726,7 @@ public class VCFSimpleTally {
         }
       }
       String lowerQualitySamples = ext.rootOf(vpopsCase[i], false) + ".lowerQualitySamples.txt";
-      HashSet<String> lqs = new HashSet<String>();
+      HashSet<String> lqs = new HashSet<>();
       if (Files.exists(lowerQualitySamples)) {
         log.reportTimeInfo("Loading lower quality samples from " + lowerQualitySamples);
         String[] lq = HashVec.loadFileToStringArray(lowerQualitySamples, false, new int[] {0},
@@ -1739,7 +1739,7 @@ public class VCFSimpleTally {
       }
 
       String geneLimiters = ext.rootOf(vpopsCase[i], false) + ".geneLimiter.txt";
-      HashSet<String> genelimit = new HashSet<String>();
+      HashSet<String> genelimit = new HashSet<>();
       if (Files.exists(geneLimiters)) {
         log.reportTimeInfo("Loading gene limiters " + geneLimiters);
         genelimit = HashVec.loadFileToHashSet(geneLimiters, false);
@@ -1767,10 +1767,10 @@ public class VCFSimpleTally {
       String geneFileControl = controlResult.getFinalAnnotGene();
       String caseWithControls = ext.addToRoot(geneFileCase, "_" + ext.rootOf(controlFile));
 
-      ArrayList<Hashtable<String, PosCluster[]>> clusters = new ArrayList<Hashtable<String, PosCluster[]>>();
-      ArrayList<Hashtable<String, String[]>> controlFuncHashes = new ArrayList<Hashtable<String, String[]>>();
-      ArrayList<String> allControlFiles = new ArrayList<String>();
-      Hashtable<String, PosCluster[]> clusterAllControls = new Hashtable<String, VCFSimpleTally.PosCluster[]>();
+      ArrayList<Hashtable<String, PosCluster[]>> clusters = new ArrayList<>();
+      ArrayList<Hashtable<String, String[]>> controlFuncHashes = new ArrayList<>();
+      ArrayList<String> allControlFiles = new ArrayList<>();
+      Hashtable<String, PosCluster[]> clusterAllControls = new Hashtable<>();
       if (doclustering) {
         try {
           clusterAllControls = densityEnrichment(caseResult, controlResult, log);
@@ -1791,7 +1791,7 @@ public class VCFSimpleTally {
 
         for (String controlGroup : controls.getSubPop().keySet()) {
           log.reportTimeInfo("Generating control specific comparison for " + controlGroup);
-          Hashtable<String, Set<String>> specificControls = new Hashtable<String, Set<String>>();
+          Hashtable<String, Set<String>> specificControls = new Hashtable<>();
           specificControls.put(controlGroup, controls.getSubPop().get(controlGroup));
 
           VcfPopulation tmpPop = new VcfPopulation(specificControls, specificControls,

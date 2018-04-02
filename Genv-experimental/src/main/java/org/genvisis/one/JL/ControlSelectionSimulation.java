@@ -407,7 +407,7 @@ public class ControlSelectionSimulation {
   }
 
   private static void runPlink(String mds, String matchDir, double maf, String out, boolean covar) {
-    ArrayList<String> plink = new ArrayList<String>();
+    ArrayList<String> plink = new ArrayList<>();
 
     plink.add("plink2");
 

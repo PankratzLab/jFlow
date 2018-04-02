@@ -47,14 +47,14 @@ public class Mappability<SEGMENT extends Segment> {
 
   public void computeMappability() {
     if (BedOps.verifyBedIndex(mappabilityFile, log) && BedOps.verifyBedIndex(callSubsetBed, log)) {
-      this.mappabilityResults = new ArrayList<Mappability.MappabilityResult<SEGMENT>>();
+      this.mappabilityResults = new ArrayList<>();
       BEDFileReader mapReader = new BEDFileReader(mappabilityFile, true);
       BEDFileReader callSubsetReader = new BEDFileReader(callSubsetBed, true);
       for (int i = 0; i < set.getLoci().length; i++) {
         if (i % 100 == 0) {
           log.reportTimeInfo(i + " of " + set.getLoci().length);
         }
-        mappabilityResults.add(new MappabilityResult<SEGMENT>(mapReader, callSubsetReader,
+        mappabilityResults.add(new MappabilityResult<>(mapReader, callSubsetReader,
                                                               set.getLoci()[i], log));
       }
       mapReader.close();
@@ -62,7 +62,7 @@ public class Mappability<SEGMENT extends Segment> {
   }
 
   public Hashtable<String, Integer> generateInternalGeneCounts() {
-    Hashtable<String, Integer> geneCounts = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> geneCounts = new Hashtable<>();
     for (int i = 0; i < mappabilityResults.size(); i++) {
       MappabilityResult<SEGMENT> cnMapp = mappabilityResults.get(i);
       for (int j = 0; j < cnMapp.getSubsetNames().length; j++) {
@@ -78,7 +78,7 @@ public class Mappability<SEGMENT extends Segment> {
   }
 
   private Hashtable<String, Integer> generateGeneCounts(LocusSet<GeneData> gLocusSet) {
-    Hashtable<String, Integer> geneCounts = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> geneCounts = new Hashtable<>();
     for (int i = 0; i < mappabilityResults.size(); i++) {
       MappabilityResult<SEGMENT> cnMapp = mappabilityResults.get(i);
       GeneData[] overlappingGenes = gLocusSet.getOverLappingLoci(cnMapp.getT());
@@ -110,7 +110,7 @@ public class Mappability<SEGMENT extends Segment> {
 
     };
 
-    Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(cLocusSet, mappabilityFile,
+    Mappability<CNVariant> cnMappability = new Mappability<>(cLocusSet, mappabilityFile,
                                                                       callSubsetBed, log);
     cnMappability.computeMappability();
     Hashtable<String, Integer> geneCounts = cnMappability.generateGeneCounts(gLocusSet);
@@ -328,7 +328,7 @@ public class Mappability<SEGMENT extends Segment> {
       LocusSet<BEDFeatureSeg> callSegs = callSubsetReader.loadSegsFor(t, log);
 
       //
-      HashSet<String> subsetNamesAl = new HashSet<String>();
+      HashSet<String> subsetNamesAl = new HashSet<>();
       this.numBases = 0;
       double currentScore = -1;
       // int calledOnCount = 0;

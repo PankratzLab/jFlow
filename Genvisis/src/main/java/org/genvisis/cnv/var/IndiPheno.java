@@ -10,7 +10,7 @@ public class IndiPheno {
   private double[] filters;
   private double[] covars;
   private int[] classes;
-  private List<Hashtable<String, CNVariant[]>> cnvClasses = new Vector<Hashtable<String, CNVariant[]>>();
+  private List<Hashtable<String, CNVariant[]>> cnvClasses = new Vector<>();
   private static volatile boolean cnvsLoaded = false;
 
   public IndiPheno() {}

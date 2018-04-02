@@ -769,7 +769,7 @@ public class Sample implements Serializable {
     bytesPerSampleMarker = getNBytesPerSampleMarker();
     bytesRemained = getDataLength() * bytesPerSampleMarker;
     long time = new Date().getTime();
-    outOfRangeValuesEachSample = new Hashtable<String, Float>();
+    outOfRangeValuesEachSample = new Hashtable<>();
     try {
       rafFile = new RandomAccessFile(filename, "rw");
 
@@ -1373,7 +1373,7 @@ public class Sample implements Serializable {
   @SuppressWarnings("unchecked")
   public static void verifyAndGenerateOutliers(Project proj, int numthreads, boolean verbose) {
     String outlierFileName = proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser";
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
 
     if (Files.exists(outlierFileName)) {
       if (verbose) {
@@ -1401,7 +1401,7 @@ public class Sample implements Serializable {
         }
 
       }
-      WorkerHive<HashLoadResult> hive = new WorkerHive<HashLoadResult>(numthreads, 10,
+      WorkerHive<HashLoadResult> hive = new WorkerHive<>(numthreads, 10,
                                                                        proj.getLog());
 
       for (int i = 0; i < proj.getSamples().length; i++) {

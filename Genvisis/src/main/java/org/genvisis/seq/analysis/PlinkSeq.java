@@ -190,7 +190,7 @@ public class PlinkSeq implements Serializable {
   public PlinkSeqWorker[] fullGamutAssoc(PseqProject pseqProject, String[] locGroups,
                                          String[] varMasks, int numPerm, String mac,
                                          String outputRoot, boolean execute, int numThreads) {
-    ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeqWorker>();
+    ArrayList<PlinkSeqWorker> workers = new ArrayList<>();
     PseqPhenoTypes[] pseqPhenoTypes = pseqProject.getPhenotypes();
     if (pseqPhenoTypes != null) {
       for (PseqPhenoTypes pseqPhenoType : pseqPhenoTypes) {
@@ -222,7 +222,7 @@ public class PlinkSeq implements Serializable {
     workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, null, 0,
                                 "0", outputRoot, overwriteExisting, log));
     if (execute) {
-      WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<PlinkSeq.PlinkSeqWorker>(numThreads, 10,
+      WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<>(numThreads, 10,
                                                                                      log);
       assocHive.addCallables(workers.toArray(new PlinkSeqWorker[workers.size()]));
       assocHive.execute(true);

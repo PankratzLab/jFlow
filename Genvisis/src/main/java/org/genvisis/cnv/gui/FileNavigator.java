@@ -20,7 +20,7 @@ public class FileNavigator extends JPanel implements ChangeListener {
    * Create the panel.
    */
   public FileNavigator(String[] files, Color[] colors) {
-    fileList = new ArrayList<String>();
+    fileList = new ArrayList<>();
     for (int i = 0; i < files.length; i++) {
       File file = new File(files[i]);
       String filename = file.getName();
@@ -35,7 +35,7 @@ public class FileNavigator extends JPanel implements ChangeListener {
 
   @Override
   public void stateChanged(ChangeEvent arg0) {
-    ArrayList<String> oldFiles = new ArrayList<String>();
+    ArrayList<String> oldFiles = new ArrayList<>();
     oldFiles.addAll(fileList);
     JCheckBox box = (JCheckBox) arg0.getSource();
     String text = box.getText();

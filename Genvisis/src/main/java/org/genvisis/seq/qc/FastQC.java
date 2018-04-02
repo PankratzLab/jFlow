@@ -74,7 +74,7 @@ public class FastQC {
     gatherFastaQFiles();
     if (!fail) {
       ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-      Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<String, Future<Boolean>>();
+      Hashtable<String, Future<Boolean>> tmpResults = new Hashtable<>();
       for (int i = 0; i < fastaQFiles.length; i++) {
         tmpResults.put(i + "",
                        executor.submit(new FastQCWorkerThread(fastQCLocation, fastaQFiles[i],
@@ -124,7 +124,7 @@ public class FastQC {
           }
         }
         if (!fail) {
-          ArrayList<RScatter> rscaScatters = new ArrayList<RScatter>();
+          ArrayList<RScatter> rscaScatters = new ArrayList<>();
 
           for (int i = 0; i < fastaQCModuleResults[0].length; i++) {
             String currentModule = fastaQCModuleResults[0][i].getModuleTitleFormatted();
@@ -280,7 +280,7 @@ public class FastQC {
 
   private static FastaQCModuleResults[] parseFastaQCResult(String fullPathFastQCZipFile,
                                                            boolean allModules, Logger log) {
-    ArrayList<FastaQCModuleResults> fastaQCModuleResults = new ArrayList<FastQC.FastaQCModuleResults>(10);
+    ArrayList<FastaQCModuleResults> fastaQCModuleResults = new ArrayList<>(10);
     try {
       ZipFile zipFile = new ZipFile(fullPathFastQCZipFile);
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -352,7 +352,7 @@ public class FastQC {
           log.report(ext.getTime() + " Info - gathering files from "
                      + ArrayUtils.toStr(rootInputDirs, "\n"));
         }
-        ArrayList<String> tmpAllFiles = new ArrayList<String>();
+        ArrayList<String> tmpAllFiles = new ArrayList<>();
 
         for (String element : BWA_Analysis.FQ_EXTS) {
           for (String rootInputDir : rootInputDirs) {
@@ -476,8 +476,8 @@ public class FastQC {
       this.sourceFile = sourceFile;
       this.moduleTitle = moduleTitle;
       this.moduleHeader = moduleHeader;
-      moduleValues = new Hashtable<String, String[]>();
-      allKeys = new ArrayList<String>();
+      moduleValues = new Hashtable<>();
+      allKeys = new ArrayList<>();
       internalIndex = 0;
       this.log = log;
     }
@@ -539,7 +539,7 @@ public class FastQC {
 
   public static void main(String[] args) {
     int numArgs = args.length;
-    ArrayList<String> rootInputDirs = new ArrayList<String>();
+    ArrayList<String> rootInputDirs = new ArrayList<>();
     String rootOutputDir = null;
     boolean overwriteExisting = false;
 

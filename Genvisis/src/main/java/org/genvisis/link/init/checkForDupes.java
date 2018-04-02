@@ -20,9 +20,9 @@ public class checkForDupes {
     BufferedReader reader = null;
     PrintWriter writer, copy;
     String temp, trav;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
-    Hashtable<String, String[]> hashGenos = new Hashtable<String, String[]>();
-    Vector<String> DNAs, dupeDNAs, dupeTravs = new Vector<String>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
+    Hashtable<String, String[]> hashGenos = new Hashtable<>();
+    Vector<String> DNAs, dupeDNAs, dupeTravs = new Vector<>();
     String[] line;
     String[][] dupeGenos;
     int numAgree, numDisagree;
@@ -51,14 +51,14 @@ public class checkForDupes {
           dupeTravs.add(trav);
         }
       } else {
-        DNAs = new Vector<String>();
+        DNAs = new Vector<>();
         DNAs.add(line[0]);
         hash.put(trav, DNAs);
       }
     } while (reader.ready());
     reader.close();
 
-    dupeDNAs = new Vector<String>();
+    dupeDNAs = new Vector<>();
     for (int i = 0; i < dupeTravs.size(); i++) {
       DNAs = hash.get(dupeTravs.elementAt(i));
       for (int j = 0; j < DNAs.size(); j++) {

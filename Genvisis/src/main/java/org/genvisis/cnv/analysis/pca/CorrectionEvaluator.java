@@ -250,10 +250,10 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
                       + " datapoints");
 
     } else {
-      ArrayList<Double> tmpInternals = new ArrayList<Double>();
-      ArrayList<Double> tmpExternals = new ArrayList<Double>();
-      ArrayList<String> tmpResponseInternal = new ArrayList<String>();
-      ArrayList<String> tmpResponseExternal = new ArrayList<String>();
+      ArrayList<Double> tmpInternals = new ArrayList<>();
+      ArrayList<Double> tmpExternals = new ArrayList<>();
+      ArrayList<String> tmpResponseInternal = new ArrayList<>();
+      ArrayList<String> tmpResponseExternal = new ArrayList<>();
 
       for (int i = 0; i < externalEstimate.length; i++) {
         if (samplesToInclude[i] && !Double.isNaN(internalEstimate[i])
@@ -356,7 +356,7 @@ public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> impl
   private String[] gatherPatternTitles(String dataFile, String[] patterns, Logger log) {
 
     String[] header = Files.getHeaderOfFile(dataFile, log);
-    ArrayList<String> matches = new ArrayList<String>();
+    ArrayList<String> matches = new ArrayList<>();
     for (String element : header) {
       for (String pattern : patterns) {
         if (element.startsWith(pattern)) {

@@ -17,9 +17,9 @@ public class StringLDdb implements Serializable {
   private boolean changed;
 
   public StringLDdb() {
-    hash = new Hashtable<String, String>();
-    missing = new Hashtable<String, String>();
-    monomorphs = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    missing = new Hashtable<>();
+    monomorphs = new Hashtable<>();
     changed = true;
   }
 

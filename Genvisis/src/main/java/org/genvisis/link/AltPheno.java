@@ -24,12 +24,12 @@ public class AltPheno {
     PrintWriter[] writers;
     String[] line;
     String trav;
-    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<>();
     Vector<String> v;
     String[] chrs, phenoNames = null, fams, phenos;
     String classpath;
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (int i = 1; i <= 23; i++) {
       if (new File(dir + "re_chrom" + ext.chrome(i) + ".pre").exists()) {
         if (new File(dir + "map" + ext.chrome(i) + ".dat").exists()) {
@@ -157,8 +157,8 @@ public class AltPheno {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, percentages;
-    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<String, Hashtable<String, Vector<String>>>();
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v;
     String[] phenoNames = null, fams;
     double trav, max, maxPossible;
@@ -174,7 +174,7 @@ public class AltPheno {
       for (int i = 0; i < phenoNames.length; i++) {
         phenoNames[i] = line[i + 2];
       }
-      hashes.put("allFams", hash = new Hashtable<String, Vector<String>>());
+      hashes.put("allFams", hash = new Hashtable<>());
       for (String phenoName : phenoNames) {
         hash.put(phenoName, new Vector<String>());
       }
@@ -183,7 +183,7 @@ public class AltPheno {
         if (hashes.containsKey(line[0])) {
           hash = hashes.get(line[0]);
         } else {
-          hashes.put(line[0], hash = new Hashtable<String, Vector<String>>());
+          hashes.put(line[0], hash = new Hashtable<>());
           for (String phenoName : phenoNames) {
             hash.put(phenoName, new Vector<String>());
           }
@@ -273,8 +273,8 @@ public class AltPheno {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<String, Hashtable<String, Vector<String>>>();
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     String[] phenoNames = null, fams;
 
     try {
@@ -288,7 +288,7 @@ public class AltPheno {
       for (int i = 0; i < phenoNames.length; i++) {
         phenoNames[i] = line[i + 2];
       }
-      hashes.put("allFams", hash = new Hashtable<String, Vector<String>>());
+      hashes.put("allFams", hash = new Hashtable<>());
       for (String phenoName : phenoNames) {
         hash.put(phenoName, new Vector<String>());
       }
@@ -297,7 +297,7 @@ public class AltPheno {
         if (hashes.containsKey(line[0])) {
           hash = hashes.get(line[0]);
         } else {
-          hashes.put(line[0], hash = new Hashtable<String, Vector<String>>());
+          hashes.put(line[0], hash = new Hashtable<>());
           for (String phenoName : phenoNames) {
             hash.put(phenoName, new Vector<String>());
           }

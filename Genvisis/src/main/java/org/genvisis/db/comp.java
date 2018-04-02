@@ -103,7 +103,7 @@ public class comp {
     String[] line, traits, split;
     String temp;
     String db_file, notes;
-    Vector<String> vString, deps, depCount, included = new Vector<String>();
+    Vector<String> vString, deps, depCount, included = new Vector<>();
     Vector<String[]> idV;
     String[][] ids;
     Vector<double[]> vDoubleArray;
@@ -118,7 +118,7 @@ public class comp {
     boolean logistic;
     double[] predicteds = null;
     double[][] residuals = null;
-    Vector<String> limitKeys = new Vector<String>(), limitTargets = new Vector<String>();
+    Vector<String> limitKeys = new Vector<>(), limitTargets = new Vector<>();
     boolean[] factorDirections;
     double[][] effectsAndConfidenceIntervals;
     DoubleVector[] trends;
@@ -274,8 +274,8 @@ public class comp {
 
       System.out.println("Analyzing " + traits[trt]);
       // System.out.println("Loading data into memory");
-      vDoubleArray = new Vector<double[]>();
-      idV = new Vector<String[]>();
+      vDoubleArray = new Vector<>();
+      idV = new Vector<>();
       while (reader.ready()) {
         line = reader.readLine().split(delimiter);
         if (factorNames.length != line.length) {
@@ -327,7 +327,7 @@ public class comp {
       }
       vDoubleArray = null;
 
-      depCount = new Vector<String>();
+      depCount = new Vector<>();
       count = 0;
       while (count < N && depCount.size() <= MAX_CLASSES) {
         HashVec.addIfAbsent(data[count][0] + "", depCount);
@@ -368,9 +368,9 @@ public class comp {
       effectsAndConfidenceIntervals = new double[M + 1][];
       for (int factor = 1; factor <= M; factor++) {
         try {
-          deps = new Vector<String>(400000);
-          indeps = new Vector<double[]>(400000);
-          idV = new Vector<String[]>(400000);
+          deps = new Vector<>(400000);
+          indeps = new Vector<>(400000);
+          idV = new Vector<>(400000);
           for (int i = 0; i < N; i++) {
             if (data[i][factor] != Double.MIN_VALUE) {
               idV.add(ids[i]);
@@ -527,7 +527,7 @@ public class comp {
             e.printStackTrace();
           }
           if (new File(traits[trt] + "-trend.lst").exists()) {
-            trendyKey = new Hashtable<String, String>();
+            trendyKey = new Hashtable<>();
             try {
               try {
                 if (!new File("trendy_key.xln").exists()) {
@@ -698,10 +698,10 @@ public class comp {
             }
             writer.println("\tp-value");
             for (int factor = 0; factor <= M; factor++) {
-              idV = new Vector<String[]>();
+              idV = new Vector<>();
               dv1 = new DoubleVector();
               dv2 = new DoubleVector();
-              vString = new Vector<String>();
+              vString = new Vector<>();
               counts = new int[k];
               for (int i = 0; i < N; i++) {
                 if (data[i][factor] != Double.MIN_VALUE) {
@@ -943,9 +943,9 @@ public class comp {
       writer.println();
 
       if (optionFlagged("force")) {
-        deps = new Vector<String>();
-        indeps = new Vector<double[]>();
-        idV = new Vector<String[]>();
+        deps = new Vector<>();
+        indeps = new Vector<>();
+        idV = new Vector<>();
         for (int i = 0; i < N; i++) {
           dataline = new double[data[i].length - 1];
           count = 0;
@@ -1011,9 +1011,9 @@ public class comp {
             System.err.println(" - stepwise regression for all variables canceled since all are significant");
             flagOption("allsw", false);
           }
-          deps = new Vector<String>();
-          indeps = new Vector<double[]>();
-          idV = new Vector<String[]>();
+          deps = new Vector<>();
+          indeps = new Vector<>();
+          idV = new Vector<>();
           for (int i = 0; i < N; i++) {
             dataline = new double[numSig];
             count = 0;
@@ -1048,9 +1048,9 @@ public class comp {
       if (optionFlagged("allsw") || optionFlagged("allswBonf")) {
         writer.println();
         writer.println("If all variables were considered in the stepwise regression, the final model would contain:");
-        deps = new Vector<String>();
-        indeps = new Vector<double[]>();
-        idV = new Vector<String[]>();
+        deps = new Vector<>();
+        indeps = new Vector<>();
+        idV = new Vector<>();
         sigNames = new String[M];
         for (int i = 1; i <= M; i++) {
           sigNames[i - 1] = factorNames[indices[i]];
@@ -1159,8 +1159,8 @@ public class comp {
 
     fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
-    hashVec = new Hashtable<String, Vector<String>>();
-    hashVecData = new Hashtable<String, Vector<double[]>>();
+    hashVec = new Hashtable<>();
+    hashVecData = new Hashtable<>();
     dv1 = new DoubleVector();
     dv2 = new DoubleVector();
     for (int i = 0; i < ids.length; i++) {
@@ -1168,8 +1168,8 @@ public class comp {
         vDoubleArray = hashVecData.get(ids[i][1]);
         members = hashVec.get(ids[i][1] + "mems");
       } else {
-        hashVecData.put(ids[i][1], vDoubleArray = new Vector<double[]>());
-        hashVec.put(ids[i][1] + "mems", members = new Vector<String>());
+        hashVecData.put(ids[i][1], vDoubleArray = new Vector<>());
+        hashVec.put(ids[i][1] + "mems", members = new Vector<>());
       }
       if (members.indexOf(ids[i][2]) == -1) {
         vDoubleArray.add(new double[] {data[i][0], data[i][1], data[i][2]});
@@ -1333,15 +1333,15 @@ public class comp {
     double[] subtotals;
     double[][] avgCounts, baseCounts;
     IntVector iv, iv1, iv2;
-    Vector<String> types = new Vector<String>();
+    Vector<String> types = new Vector<>();
     int[] order, orderedAlleles;
     double[] countsInOrder;
     String[] alleleLabels;
 
     fams = ArrayUtils.unique(Matrix.extractColumn(ids, 1));
 
-    hashVec = new Hashtable<String, Vector<String>>();
-    hashVecData = new Hashtable<String, Vector<int[]>>();
+    hashVec = new Hashtable<>();
+    hashVecData = new Hashtable<>();
     iv1 = new IntVector();
     iv2 = new IntVector();
     for (int i = 0; i < ids.length; i++) {
@@ -1349,8 +1349,8 @@ public class comp {
         genotypes = hashVecData.get(ids[i][1]);
         members = hashVec.get(ids[i][1] + "mems");
       } else {
-        hashVecData.put(ids[i][1], genotypes = new Vector<int[]>());
-        hashVec.put(ids[i][1] + "mems", members = new Vector<String>());
+        hashVecData.put(ids[i][1], genotypes = new Vector<>());
+        hashVec.put(ids[i][1] + "mems", members = new Vector<>());
       }
       if (members.indexOf(ids[i][2]) == -1) {
         genotypes.add(new int[] {(int) data[i][0], (int) data[i][1], (int) data[i][2]});

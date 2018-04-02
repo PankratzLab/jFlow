@@ -174,7 +174,7 @@ public class FreezeInfo {
   }
 
   static HashMap<String, ArrayList<String[]>> load() throws IOException {
-    HashMap<String, ArrayList<String[]>> frz5Data = new HashMap<String, ArrayList<String[]>>();
+    HashMap<String, ArrayList<String[]>> frz5Data = new HashMap<>();
 
     BufferedReader frz5reader = Files.getAppropriateReader(FRZ_5_SRC);
     String line = null;
@@ -186,7 +186,7 @@ public class FreezeInfo {
       String mkr = ind == -1 ? parts[0] : parts[0].substring(0, ind);
       ArrayList<String[]> data = frz5Data.get(mkr);
       if (data == null) {
-        data = new ArrayList<String[]>();
+        data = new ArrayList<>();
         frz5Data.put(mkr, data);
       }
       data.add(new String[] {parts[5], parts[6], parts[8], parts[14], parts[3], parts[4]});

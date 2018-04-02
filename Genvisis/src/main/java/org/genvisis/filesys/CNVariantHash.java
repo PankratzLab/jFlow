@@ -45,7 +45,7 @@ public class CNVariantHash implements Serializable {
                                      ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
 
     // time = new Date().getTime();
-    vHashes = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
+    vHashes = new Hashtable<>();
     try {
       reader = Files.getReader(filename, true, true);
 
@@ -71,12 +71,12 @@ public class CNVariantHash implements Serializable {
         if (vHashes.containsKey(trav)) {
           vHash = vHashes.get(trav);
         } else {
-          vHashes.put(trav, vHash = new Hashtable<String, Vector<CNVariant>>());
+          vHashes.put(trav, vHash = new Hashtable<>());
         }
         if (vHash.containsKey(cnv.getChr() + "")) {
           v = vHash.get(cnv.getChr() + "");
         } else {
-          vHash.put(cnv.getChr() + "", v = new Vector<CNVariant>());
+          vHash.put(cnv.getChr() + "", v = new Vector<>());
         }
         v.add(cnv);
 
@@ -91,7 +91,7 @@ public class CNVariantHash implements Serializable {
     }
     progMonitor.endTask(taskName);
 
-    hashes = new Hashtable<String, Hashtable<String, CNVariant[]>>();
+    hashes = new Hashtable<>();
     // time = new Date().getTime();
 
     inds = HashVec.getKeys(vHashes);
@@ -101,7 +101,7 @@ public class CNVariantHash implements Serializable {
     for (String ind : inds) {
       progMonitor.updateTask(taskName);
       vHash = vHashes.get(ind);
-      finalHash = new Hashtable<String, CNVariant[]>();
+      finalHash = new Hashtable<>();
       chrs = HashVec.getKeys(vHash);
       for (String chr : chrs) {
         finalHash.put(chr, CNVariant.toCNVariantArray(vHash.get(chr)));
@@ -129,7 +129,7 @@ public class CNVariantHash implements Serializable {
     if (hashes.containsKey(famID_indID)) {
       return hashes.get(famID_indID);
     } else {
-      return new Hashtable<String, CNVariant[]>();
+      return new Hashtable<>();
     }
   }
 
@@ -201,7 +201,7 @@ public class CNVariantHash implements Serializable {
    */
   public CNVariant[] getAllInRegion(byte chr, int start, int stop, int minProbes, int minSizeKb,
                                     int minQualityScore) {
-    Vector<CNVariant> inRegion = new Vector<CNVariant>();
+    Vector<CNVariant> inRegion = new Vector<>();
 
     Enumeration<String> e = hashes.keys();
     while (e.hasMoreElements()) {

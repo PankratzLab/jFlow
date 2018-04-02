@@ -84,7 +84,7 @@ public class FileFinder extends JDialog {
       JScrollPane scrollPane = new JScrollPane();
       contentPanel.add(scrollPane, "cell 0 3,grow");
       {
-        list = new JList<String>((String[]) Arrays.copyOf(options, options.length));
+        list = new JList<>((String[]) Arrays.copyOf(options, options.length));
         list.setSelectionMode(multiSelect ? ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
                                           : ListSelectionModel.SINGLE_SELECTION);
         scrollPane.setViewportView(list);

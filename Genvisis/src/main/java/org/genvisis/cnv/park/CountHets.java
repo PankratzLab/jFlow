@@ -27,9 +27,9 @@ public class CountHets {
     PrintWriter writer;
     String[] line;
     String trav;
-    Hashtable<String, Vector<CNVregion>> hash = new Hashtable<String, Vector<CNVregion>>();
-    Vector<String> hashKeys = new Vector<String>();
-    Vector<CNVregion> v = new Vector<CNVregion>();
+    Hashtable<String, Vector<CNVregion>> hash = new Hashtable<>();
+    Vector<String> hashKeys = new Vector<>();
+    Vector<CNVregion> v = new Vector<>();
     CNVregion region;
     String cnvDirectory;
     boolean problem;
@@ -48,7 +48,7 @@ public class CountHets {
         if (hash.containsKey(trav)) {
           v = hash.get(trav);
         } else {
-          hash.put(trav, v = new Vector<CNVregion>());
+          hash.put(trav, v = new Vector<>());
           hashKeys.add(trav);
         }
         v.add(region);

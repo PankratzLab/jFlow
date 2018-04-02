@@ -129,7 +129,7 @@ public class SampleQC {
       }
       Quantiles[] quantiles = Quantiles.qetQuantilesFor(numQ, pcBasisSubset, pcTitles,
                                                         proj.getLog());
-      Hashtable<String, String> hashtable = new Hashtable<String, String>();
+      Hashtable<String, String> hashtable = new Hashtable<>();
       for (int i = 0; i < proj.getSamples().length; i++) {
         String qcInfo = developMetricsLine(i, quantiles, pcBasisSubset, justQuantiles);
         hashtable.put(proj.getSamples()[i], qcInfo);
@@ -145,7 +145,7 @@ public class SampleQC {
     if (fidiids == null) {
       return false;
     }
-    Hashtable<String, String> fidiidhash = new Hashtable<String, String>();
+    Hashtable<String, String> fidiidhash = new Hashtable<>();
     for (int i = 0; i < samples.length; i++) {
       fidiidhash.put(samples[i], fidiids[i]);
     }
@@ -156,7 +156,7 @@ public class SampleQC {
     if (sampledata.replaceData(fidiidhash, "DNA", header, "\t", proj.getLog())) {
       proj.getLog()
           .reportTimeInfo("Replaced FID/IID columns in Sample Data with FID/IID from Pedigree");
-      HashSet<String> sampleDataFidIids = new HashSet<String>();
+      HashSet<String> sampleDataFidIids = new HashSet<>();
       int nonUnique = 0;
       for (String fidiid : fidiidhash.values()) {
         if (!sampleDataFidIids.add(fidiid)) {
@@ -220,7 +220,7 @@ public class SampleQC {
    * Prepares a hash to be used in the addition to sample data
    */
   private Hashtable<String, String> developHash(Quantiles[] quantiles, boolean justQuantiles) {
-    Hashtable<String, String> hashtable = new Hashtable<String, String>();
+    Hashtable<String, String> hashtable = new Hashtable<>();
     for (int i = 0; i < samples.length; i++) {
       String qcInfo = (excludes[i] ? "1" : "0") + "\t" + excludeNotes[i];
       if (checkDuplicates) {
@@ -238,7 +238,7 @@ public class SampleQC {
   }
 
   private String[] developHeader(Quantiles[] quantiles, int numQ, boolean justQuantiles) {
-    ArrayList<String> header = new ArrayList<String>();
+    ArrayList<String> header = new ArrayList<>();
     header.add(SampleQC.EXCLUDE_HEADER);
     header.add("ExcludeNote");
     if (checkDuplicates) {
@@ -337,9 +337,9 @@ public class SampleQC {
       return false;
     }
     fidiids = new String[samples.length];
-    fidiidToIndex = new HashMap<String, Integer>();
+    fidiidToIndex = new HashMap<>();
     mzTwinIds = ArrayUtils.stringArray(samples.length, ".");
-    HashMap<String, Integer> sampleIndices = new HashMap<String, Integer>();
+    HashMap<String, Integer> sampleIndices = new HashMap<>();
     for (int i = 0; i < samples.length; i++) {
       sampleIndices.put(samples[i], i);
     }
@@ -367,7 +367,7 @@ public class SampleQC {
     try {
       BufferedReader reader = Files.getAppropriateReader(duplicatesSetFile);
       duplicateIds = ArrayUtils.stringArray(samples.length, ".");
-      HashMap<String, HashSet<Integer>> duplicateSets = new HashMap<String, HashSet<Integer>>();
+      HashMap<String, HashSet<Integer>> duplicateSets = new HashMap<>();
       String[] line;
       int duplicatesFound = 0;
       while (reader.ready()) {
@@ -387,7 +387,7 @@ public class SampleQC {
           duplicatesFound++;
           HashSet<Integer> dupeSet = duplicateSets.get(duplicateId);
           if (dupeSet == null) {
-            dupeSet = new HashSet<Integer>();
+            dupeSet = new HashSet<>();
             duplicateSets.put(duplicateId, dupeSet);
           }
           dupeSet.add(index);

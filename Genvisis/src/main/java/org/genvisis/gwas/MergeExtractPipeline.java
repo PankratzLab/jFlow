@@ -64,7 +64,7 @@ public class MergeExtractPipeline {
   float bestGuessThreshold = 0;
 
   public MergeExtractPipeline() {
-    dataSources = new ArrayList<MergeExtractPipeline.DataSource>();
+    dataSources = new ArrayList<>();
   }
 
   private void initLog() {
@@ -101,8 +101,8 @@ public class MergeExtractPipeline {
       throw new IllegalArgumentException(msg);
     }
 
-    lbl = new ArrayList<String>();
-    reg = new ArrayList<int[]>();
+    lbl = new ArrayList<>();
+    reg = new ArrayList<>();
     regionsFile = regionFile;
     if (Files.isRelativePath(regionFile)) {
       if (runDir != null && !"".equals(runDir)) {
@@ -480,8 +480,8 @@ public class MergeExtractPipeline {
       }
     }
 
-    ArrayList<String> plinkRoots = new ArrayList<String>();
-    ArrayList<String> plinkLabels = new ArrayList<String>();
+    ArrayList<String> plinkRoots = new ArrayList<>();
+    ArrayList<String> plinkLabels = new ArrayList<>();
     // discover and merge all plink files
     for (int i = dataSources.size() - 1; i >= 0; i--) {
       if (dataSources.get(i).dataFile.endsWith(".bed")
@@ -603,7 +603,7 @@ public class MergeExtractPipeline {
       String[] annArr = annotation[i];
       HashMap<String, Annotation> annMap = mkrAnnotations.get(snp);
       if (annMap == null) {
-        annMap = new HashMap<String, MergeExtractPipeline.Annotation>();
+        annMap = new HashMap<>();
         mkrAnnotations.put(snp, annMap);
       }
       System.out.println("Combining annotations for " + snp + "; existing: " + annMap.keySet()
@@ -634,11 +634,11 @@ public class MergeExtractPipeline {
     String file = getOutputMapFile() + ".annot";
     PrintWriter writer = Files.getAppropriateWriter(file);
 
-    HashSet<String> labelSet = new HashSet<String>();
+    HashSet<String> labelSet = new HashSet<>();
     for (HashMap<String, Annotation> m : annotations.values()) {
       labelSet.addAll(m.keySet());
     }
-    ArrayList<String> allLabels = new ArrayList<String>(labelSet);
+    ArrayList<String> allLabels = new ArrayList<>(labelSet);
 
     StringBuilder sb = new StringBuilder("SNP");
     for (String s : allLabels) {
@@ -720,7 +720,7 @@ public class MergeExtractPipeline {
 
   private HashMap<String, HashMap<String, Annotation>> getAnnotations(DosageData dd,
                                                                       String[] annotationLabels) {
-    HashMap<String, HashMap<String, Annotation>> annotations = new HashMap<String, HashMap<String, Annotation>>();
+    HashMap<String, HashMap<String, Annotation>> annotations = new HashMap<>();
     String[][] ann = dd.getMarkerSet().getAnnotation();
     if (ann != null) {
       for (int i = 0; i < ann.length; i++) {
@@ -732,7 +732,7 @@ public class MergeExtractPipeline {
           ann1.annotation = annots[a];
           HashMap<String, Annotation> annMap = annotations.get(ann1.snp);
           if (annMap == null) {
-            annMap = new HashMap<String, MergeExtractPipeline.Annotation>();
+            annMap = new HashMap<>();
             annotations.put(ann1.snp, annMap);
           }
           annMap.put(ann1.annotationName, ann1);
@@ -767,7 +767,7 @@ public class MergeExtractPipeline {
                                          + "\" doesn't exist.");
     }
 
-    ArrayList<DataSource> sources = new ArrayList<MergeExtractPipeline.DataSource>();
+    ArrayList<DataSource> sources = new ArrayList<>();
     try {
       reader = Files.getAppropriateReader(file);
       while ((line = reader.readLine()) != null) {

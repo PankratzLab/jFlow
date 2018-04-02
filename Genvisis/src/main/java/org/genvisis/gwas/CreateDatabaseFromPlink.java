@@ -84,7 +84,7 @@ public class CreateDatabaseFromPlink {
     markerNames = markerSet.getMarkerNames();
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
-    notes = new Hashtable<String, String>();
+    notes = new Hashtable<>();
 
     freqfile = params[2][0];
     alleles = HashVec.loadFileToStringMatrix(dir + freqfile, true, new int[] {2, 3});
@@ -120,7 +120,7 @@ public class CreateDatabaseFromPlink {
       return;
     }
 
-    vModels = new Vector<int[]>();
+    vModels = new Vector<>();
     if (allMarkers) {
       if (params.length > 4) {
         System.err.println("Error - The allMarkers flagged was set to true, so all markers will be exported and the following lines will be ignored");
@@ -276,7 +276,7 @@ public class CreateDatabaseFromPlink {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, header;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String dbfile, outfile;
     // double[] freqs;
     int[] varIndices;
@@ -424,7 +424,7 @@ public class CreateDatabaseFromPlink {
       reader = new BufferedReader(new FileReader(tpedfile));
       writer = Files.openAppropriateWriter(outfile);
       for (int i = 0; i < markerNames.length; i++) {
-        hash = new Hashtable<String, String>();
+        hash = new Hashtable<>();
         line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         if (!line[1].equals(markerNames[i])) {
           log.reportError("Error - the freq file does not match the map file at line " + (i + 1)
@@ -570,7 +570,7 @@ public class CreateDatabaseFromPlink {
     }
 
     if (rlinker == null) {
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
     } else {
       hash = HashVec.loadFileToHashString(rlinker, new int[] {0}, new int[] {2}, false, "", false,
                                           false);
@@ -669,7 +669,7 @@ public class CreateDatabaseFromPlink {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, batch_dna;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     int count;
     String[] markerNames;
 

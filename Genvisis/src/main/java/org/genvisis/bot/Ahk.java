@@ -220,7 +220,7 @@ public class Ahk {
     dimension = (int) Math.sqrt(matrix.length);
     pixels = convertToIntPixels(screencapture);
 
-    matches = new Vector<int[]>();
+    matches = new Vector<>();
     for (int i = 0; i < pixels.length; i++) {
       sX = i % width;
       sY = (int) Math.floor(i / width);

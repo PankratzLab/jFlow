@@ -50,7 +50,7 @@ public class TumorNormalSummary {
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
 
     vpop.report();
-    Set<String> all = new HashSet<String>();
+    Set<String> all = new HashSet<>();
     all.addAll(vpop.getSuperPop().get(VcfPopulation.TUMOR));
     all.addAll(vpop.getSuperPop().get(VcfPopulation.NORMAL));
 

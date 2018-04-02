@@ -20,7 +20,7 @@ public class Hits {
   private final Hashtable<String, Double> hash;
 
   public Hits() {
-    hash = new Hashtable<String, Double>();
+    hash = new Hashtable<>();
   }
 
   public void incorporateFromFile(String filename, double threshold, Logger log) {

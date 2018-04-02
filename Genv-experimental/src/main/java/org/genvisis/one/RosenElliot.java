@@ -47,7 +47,7 @@ public class RosenElliot {
     String sire, dob, dod;
     int daysAtDeath, daysLivedSoFar, aff;
     Date latest = new Date();
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(dir + filename));
@@ -154,7 +154,7 @@ public class RosenElliot {
     PrintWriter writer;
     String[] line;
     String trav;
-    Vector<String> dnas = new Vector<String>();
+    Vector<String> dnas = new Vector<>();
     int index;
     boolean reversi;
 
@@ -264,8 +264,8 @@ public class RosenElliot {
     String dna, sire, dam;
     int count;
 
-    Hashtable<String, String> lookup = new Hashtable<String, String>();
-    List<String> dnaList = new Vector<String>();
+    Hashtable<String, String> lookup = new Hashtable<>();
+    List<String> dnaList = new Vector<>();
 
     try {
       dnaList = GinsburgDavid.getDNAlist(dir, GENOTYPES_FILE, true);
@@ -315,7 +315,7 @@ public class RosenElliot {
     PrintWriter writer;
     String[] line;
     String trav, filename;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(dir + traitfile));

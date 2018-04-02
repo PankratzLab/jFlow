@@ -132,9 +132,9 @@ public class GeneQC {
                                                                         Files.getHeaderOfFile(output,
                                                                                               log),
                                                                         true));
-    ArrayList<Integer> numMrnaTotal = new ArrayList<Integer>();
-    ArrayList<Integer> numMrnaNonUTR = new ArrayList<Integer>();
-    Hashtable<String, Integer> index = new Hashtable<String, Integer>();
+    ArrayList<Integer> numMrnaTotal = new ArrayList<>();
+    ArrayList<Integer> numMrnaNonUTR = new ArrayList<>();
+    Hashtable<String, Integer> index = new Hashtable<>();
     // String[] targets = new String[] { "GENE","NumOtherGenes","NumExons", "averageCoverage",
     // "averageGC","numBaitsPerTarget" ,"MRNA_Overlap","NonUTRMrnaOverlap"};
 
@@ -279,7 +279,7 @@ public class GeneQC {
       private static final long serialVersionUID = 1L;
 
     };
-    ArrayList<GeneData> genes = new ArrayList<GeneData>();
+    ArrayList<GeneData> genes = new ArrayList<>();
 
     GeneTrack geneTrack = GeneTrack.load(geneTrackFile);
 

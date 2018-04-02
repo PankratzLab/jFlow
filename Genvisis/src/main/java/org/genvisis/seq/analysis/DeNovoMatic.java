@@ -72,7 +72,7 @@ public class DeNovoMatic {
                                                               numThreads, log);
     String[] finalFilesToMerge = new String[resultsMerge.length];
 
-    WorkerHive<MergeFamResult> hive = new WorkerHive<DeNovoMatic.MergeFamResult>(numThreads, 10,
+    WorkerHive<MergeFamResult> hive = new WorkerHive<>(numThreads, 10,
                                                                                  log);
     hive.addCallables(resultsMerge);
     hive.execute(true);
@@ -129,7 +129,7 @@ public class DeNovoMatic {
       this.mergedVCF = mergedVCF;
       potentialDenovoVcf = VCFOps.getAppropriateRoot(mergedVCF, false) + ".denovo.vcf.gz";
       this.off = off;
-      offCombo = new HashSet<String>();
+      offCombo = new HashSet<>();
       offCombo.add(off + ".variant");
       offCombo.add(off + ".variant2");
       // this.p1 = p1;
@@ -160,7 +160,7 @@ public class DeNovoMatic {
                                                         VCFOps.DEFUALT_WRITER_OPTIONS,
                                                         reader.getFileHeader()
                                                               .getSequenceDictionary());
-        HashSet<VCFHeaderLine> newHeader = new HashSet<VCFHeaderLine>();
+        HashSet<VCFHeaderLine> newHeader = new HashSet<>();
         // for (VCFHeaderLine vcfHeaderLine : reader.getFileHeader().getMetaDataInInputOrder()) {
         // newHeader.add(vcfHeaderLine);
         // }
@@ -193,7 +193,7 @@ public class DeNovoMatic {
         newHeader.add(hqNonTransmissionP1);
         newHeader.add(hqNonTransmissionP2);
 
-        ArrayList<String> originalAtts = new ArrayList<String>();
+        ArrayList<String> originalAtts = new ArrayList<>();
         for (VCFFormatHeaderLine vcfFormatHeaderLine : reader.getFileHeader()
                                                              .getFormatHeaderLines()) {
           originalAtts.add(vcfFormatHeaderLine.getID());
@@ -217,7 +217,7 @@ public class DeNovoMatic {
           newHeader.add(newFormatP2);
 
         }
-        HashSet<String> offFinal = new HashSet<String>();
+        HashSet<String> offFinal = new HashSet<>();
         offFinal.add(off);
         VCFHeader header = new VCFHeader(newHeader, offFinal);
 
@@ -242,7 +242,7 @@ public class DeNovoMatic {
                                                                            VC_SUBSET_TYPE.SUBSET_STRICT));
             GenotypeBuilder g1bBuilder = new GenotypeBuilder(g1);
             g1bBuilder.name(off);
-            Hashtable<String, Object> map = new Hashtable<String, Object>();
+            Hashtable<String, Object> map = new Hashtable<>();
             map.put("HQ_P1_NT", pass1.getTestPerformed().replaceAll(":", "_").replaceAll(" ", "_"));
             map.put("HQ_P2_NT", pass2.getTestPerformed().replaceAll(":", "_").replaceAll(" ", "_"));
 
@@ -272,7 +272,7 @@ public class DeNovoMatic {
               }
             }
             g1bBuilder.attributes(map);
-            ArrayList<Genotype> gtypes = new ArrayList<Genotype>();
+            ArrayList<Genotype> gtypes = new ArrayList<>();
             gtypes.add(g1bBuilder.make());
             vBuilder.genotypes(gtypes);
             writer.add(vBuilder.make());
@@ -311,12 +311,12 @@ public class DeNovoMatic {
                                                             MutectTumorNormal[] results,
                                                             String outputDir, int numThreads,
                                                             Logger log) {
-    Hashtable<String, ArrayList<MutectTumorNormal>> offSpringMatch = new Hashtable<String, ArrayList<MutectTumorNormal>>();
+    Hashtable<String, ArrayList<MutectTumorNormal>> offSpringMatch = new Hashtable<>();
     if (results.length % 2 != 0) {
       throw new IllegalArgumentException("Expecting even number of results");
 
     }
-    ArrayList<MergeFamResult> mergeResults = new ArrayList<MergeFamResult>();
+    ArrayList<MergeFamResult> mergeResults = new ArrayList<>();
     for (MutectTumorNormal result : results) {
       String currentVCF = result.getReNamedFilteredVCF();
       String[] inds = VCFOps.getSamplesInFile(result.getReNamedFilteredVCF());
@@ -347,7 +347,7 @@ public class DeNovoMatic {
                                                      .toArray(new MutectTumorNormal[offSpringMatch.get(fam)
                                                                                                   .size()]);
 
-      ArrayList<String> toMerge = new ArrayList<String>();
+      ArrayList<String> toMerge = new ArrayList<>();
       for (MutectTumorNormal famResult : famResults) {
         toMerge.add(famResult.getReNamedOutputVCF());
       }
@@ -370,8 +370,8 @@ public class DeNovoMatic {
   private static void prepareMatchedBamFile(VcfPopulation vpop, String fileOfBams, String output,
                                             Logger log) {
     String[] bams = HashVec.loadFileToStringArray(fileOfBams, false, new int[] {0}, true);
-    ArrayList<String> toWrite = new ArrayList<String>();
-    Hashtable<String, String> match = new Hashtable<String, String>();
+    ArrayList<String> toWrite = new ArrayList<>();
+    Hashtable<String, String> match = new Hashtable<>();
     for (String bam : bams) {
       match.put(BamOps.getSampleName(bam), bam);
     }

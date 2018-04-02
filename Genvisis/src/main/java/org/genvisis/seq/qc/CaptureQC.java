@@ -44,7 +44,7 @@ public class CaptureQC {
 
     LocusSet<BEDFeatureSeg> bedSet = new BEDFileReader(targetBedFile, false).loadAll(log);
 
-    ArrayList<BEDFeatureSeg> targets = new ArrayList<BEDFileReader.BEDFeatureSeg>();
+    ArrayList<BEDFeatureSeg> targets = new ArrayList<>();
     for (BEDFeatureSeg seg : bedSet.getLoci()) {
       String[] info = seg.getBedFeature().getName().split("\\|");
       // System.out.println(ArrayUtils.toStr(info));
@@ -59,7 +59,7 @@ public class CaptureQC {
         }
       }
     }
-    LocusSet<BEDFeatureSeg> targetSet = new LocusSet<BEDFileReader.BEDFeatureSeg>(targets, true,
+    LocusSet<BEDFeatureSeg> targetSet = new LocusSet<>(targets, true,
                                                                                   log);
     // for (int i = 0; i < geneNames.length; i++) {
 

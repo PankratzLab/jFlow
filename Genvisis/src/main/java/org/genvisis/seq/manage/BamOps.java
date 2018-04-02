@@ -61,7 +61,7 @@ public class BamOps {
    * @return
    */
   public static boolean verifyIndex(String bamFile, Logger log) {
-    ArrayList<Option> options = new ArrayList<SamReaderFactory.Option>();
+    ArrayList<Option> options = new ArrayList<>();
     options.add(Option.INCLUDE_SOURCE_IN_RECORDS);
     String index = getAssociatedBamIndex(bamFile);
     if (!Files.exists(index)) {
@@ -244,7 +244,7 @@ public class BamOps {
    * @return
    */
   public static String[] getAllBarCodes(String[] bams, Logger log) {
-    HashSet<String> unique = new HashSet<String>();
+    HashSet<String> unique = new HashSet<>();
     for (String bam : bams) {
       unique.addAll(getBarcodesFor(bam, log));
     }
@@ -257,12 +257,12 @@ public class BamOps {
    * @return
    */
   public static ArrayList<String> getBarcodesFor(String bam, Logger log) {
-    ArrayList<String> barcodes = new ArrayList<String>();
+    ArrayList<String> barcodes = new ArrayList<>();
     SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();
     samReaderFactory.validationStringency(ValidationStringency.LENIENT);
     SamReader reader = samReaderFactory.open(new File(bam));
     List<SAMReadGroupRecord> rgs = reader.getFileHeader().getReadGroups();
-    HashSet<String> barcodesUnique = new HashSet<String>();
+    HashSet<String> barcodesUnique = new HashSet<>();
     for (SAMReadGroupRecord samReadGroupRecord : rgs) {
       String[] id = samReadGroupRecord.getId().split("_");
       String[] tmpCodes = id[id.length - 3].split("-");
@@ -420,7 +420,7 @@ public class BamOps {
     SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
 
     SAMRecordIterator iterator = reader.iterator();
-    ArrayList<Double> insertSizes = new ArrayList<Double>();
+    ArrayList<Double> insertSizes = new ArrayList<>();
     int readsScanned = 0;
     while (iterator.hasNext()) {
       SAMRecord samRecord = iterator.next();
@@ -586,10 +586,10 @@ public class BamOps {
                                                                 Set<String> variantSets,
                                                                 String[] bams, int numThreads,
                                                                 Logger log) {
-    HashMap<String, String> matched = new HashMap<String, String>();
-    HashMap<String, String> bamSamples = new HashMap<String, String>();
+    HashMap<String, String> matched = new HashMap<>();
+    HashMap<String, String> bamSamples = new HashMap<>();
     SampleNameProducer producer = new SampleNameProducer(bams);
-    try (WorkerTrain<SampleNameExtractor> train = new WorkerTrain<SampleNameExtractor>(producer,
+    try (WorkerTrain<SampleNameExtractor> train = new WorkerTrain<>(producer,
                                                                                        numThreads,
                                                                                        10, log)) {
 

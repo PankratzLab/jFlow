@@ -20,10 +20,10 @@ public class LongLDdb implements Serializable {
   private boolean changed;
 
   public LongLDdb() {
-    hash = new Hashtable<Long, String>();
-    lookup = new Hashtable<String, Long>();
-    missing = new Hashtable<String, String>();
-    monomorphs = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    lookup = new Hashtable<>();
+    missing = new Hashtable<>();
+    monomorphs = new Hashtable<>();
     count = 0;
     changed = true;
   }

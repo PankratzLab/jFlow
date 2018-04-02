@@ -20,7 +20,7 @@ public class MindTheGap {
                                  Logger log) {
     String[] inputs = new String[] {inputBam};
     String[] outputs = new String[] {r1, r2};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("java");
     command.add("-jar");
     command.add(samToFastQLoc);

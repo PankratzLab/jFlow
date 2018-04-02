@@ -56,7 +56,7 @@ public class MStr {
               if (g.isCalled()) {
                 samplesWithOneGenotype[index] = true;
 
-                ArrayList<String> alts = new ArrayList<String>();
+                ArrayList<String> alts = new ArrayList<>();
                 String ref = null;
                 for (Allele a : g.getAlleles()) {
                   if (a.isNonReference()) {

@@ -29,8 +29,8 @@ public class ChromosomalSV {
     String[] samples = proj.getSamples();
     ChrProducer producer = new ChrProducer(proj, samples, preparedMarkerSet);
     ChrResult[][][] allResults = new ChrResult[samples.length][][];
-    Hashtable<String, ArrayList<Double>> summaryMedian = new Hashtable<String, ArrayList<Double>>();
-    try (WorkerTrain<ChrResult[][]> train = new WorkerTrain<ChrResult[][]>(producer, numthreads, 10,
+    Hashtable<String, ArrayList<Double>> summaryMedian = new Hashtable<>();
+    try (WorkerTrain<ChrResult[][]> train = new WorkerTrain<>(producer, numthreads, 10,
                                                                            proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {
@@ -174,7 +174,7 @@ public class ChromosomalSV {
     String[] markerNames = preparedMarkerSet.getMarkerNames();
     for (int i = 0; i < preparedMarkerSet.getIndicesByChr().length; i++) {
       int[] indices = preparedMarkerSet.getIndicesByChr()[i];
-      ArrayList<Integer> noOffTarget = new ArrayList<Integer>();
+      ArrayList<Integer> noOffTarget = new ArrayList<>();
       for (int indice : indices) {
         if (markerNames[indice].contains(NGS_MARKER_TYPE.OFF_TARGET.getFlag())) {
           noOffTarget.add(indice);
@@ -184,8 +184,8 @@ public class ChromosomalSV {
       ChrResult chrResultAll = getResult(lrrs, i, indices, TYPE.ALL);
       results[i][0] = chrResultAll;
       int[] bounds = boundaries[i];
-      ArrayList<Integer> left = new ArrayList<Integer>();
-      ArrayList<Integer> right = new ArrayList<Integer>();
+      ArrayList<Integer> left = new ArrayList<>();
+      ArrayList<Integer> right = new ArrayList<>();
 
       for (int indice : indices) {
         if (pos[indice] <= bounds[0]) {

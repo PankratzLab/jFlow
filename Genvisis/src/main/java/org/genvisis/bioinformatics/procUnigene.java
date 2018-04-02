@@ -27,8 +27,8 @@ public class procUnigene {
     PrintWriter writer = null;
     String[] line;
     String temp = "", trav;
-    Set<String> v = new LinkedHashSet<String>();
-    Map<String, Integer> vCounts = new HashMap<String, Integer>();
+    Set<String> v = new LinkedHashSet<>();
+    Map<String, Integer> vCounts = new HashMap<>();
     int count = 0;
     String[] data = ArrayUtils.stringArray(VARS.length + 1, ".");
 
@@ -77,7 +77,7 @@ public class procUnigene {
       reader.close();
 
       writer = Files.openAppropriateWriter("possibleTissues.out");
-      List<String> sortedVals = new ArrayList<String>(v);
+      List<String> sortedVals = new ArrayList<>(v);
       Collections.sort(sortedVals);
       for (int i = 0; i < sortedVals.size(); i++) {
         String s = sortedVals.get(i);

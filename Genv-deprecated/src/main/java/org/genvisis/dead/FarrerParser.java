@@ -29,7 +29,7 @@ public class FarrerParser {
     PrintWriter writer;
     String[] line;
     String model, trav;
-    Hashtable<String, Hashtable<String, String>> hashes = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hashes = new Hashtable<>();
     Hashtable<String, String> hash;
     Vector<String> v;
     String[] markers, models, files, finalSummary;
@@ -147,7 +147,7 @@ public class FarrerParser {
         model = file.substring(0, file.indexOf(".assoc.logistic"));
         ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
                         LOGISTIC_HEADER_WITH_CI, true);
-        v = new Vector<String>();
+        v = new Vector<>();
         while (reader.ready()) {
           line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
           if (ext.indexOfStr(line[1], markers) >= 0) {

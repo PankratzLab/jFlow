@@ -19,8 +19,8 @@ public class ConsolidateTaxons {
   public static void consolidate(String rootDir) {
     String[] dirs = Files.listDirectories(rootDir);
     Logger log = new Logger();
-    ArrayList<Hashtable<String, String[]>> taxa = new ArrayList<Hashtable<String, String[]>>();
-    HashSet<String> allTaxa = new HashSet<String>();
+    ArrayList<Hashtable<String, String[]>> taxa = new ArrayList<>();
+    HashSet<String> allTaxa = new HashSet<>();
     String output = rootDir + "taxaSummary.txt";
     log.reportTimeInfo("NUMDIRS = " + dirs.length);
     for (String dir : dirs) {
@@ -32,7 +32,7 @@ public class ConsolidateTaxons {
 
         if (contam.endsWith("contam")) {
           log.reportTimeInfo("Consolidating " + contam);
-          Hashtable<String, String[]> current = new Hashtable<String, String[]>();
+          Hashtable<String, String[]> current = new Hashtable<>();
           try {
             BufferedReader reader = Files.getAppropriateReader(contam);
             while (reader.ready()) {
@@ -67,7 +67,7 @@ public class ConsolidateTaxons {
       writer.println();
       for (String ataxa : allTaxa) {
         if (!ataxa.equals("Taxa")) {
-          ArrayList<Integer> counts = new ArrayList<Integer>();
+          ArrayList<Integer> counts = new ArrayList<>();
           for (int i = 0; i < taxa.size(); i++) {
             int[] blankCounts = new int[taxa.get(i).get("Taxa").length];
             Arrays.fill(blankCounts, 0);

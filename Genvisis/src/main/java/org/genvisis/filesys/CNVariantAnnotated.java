@@ -57,7 +57,7 @@ public class CNVariantAnnotated extends CNVariant {
 
   @Override
   public String[] getHeader() {
-    List<String> header = new ArrayList<String>();
+    List<String> header = new ArrayList<>();
     for (String head : PLINK_CNV_HEADER) {
       header.add(head);
     }
@@ -76,10 +76,10 @@ public class CNVariantAnnotated extends CNVariant {
 
     public TallyResult() {
       super();
-      this.allCN = new HashSet<String>();
-      this.dupCN = new HashSet<String>();
-      this.delCN = new HashSet<String>();
-      this.allLocs = new HashSet<CNVariant>();
+      this.allCN = new HashSet<>();
+      this.dupCN = new HashSet<>();
+      this.delCN = new HashSet<>();
+      this.allLocs = new HashSet<>();
     }
 
     public HashSet<String> getAllCN() {
@@ -108,7 +108,7 @@ public class CNVariantAnnotated extends CNVariant {
   public static Map<String, TallyResult> tallyAnnotation(List<CNVariantAnnotated> cList,
                                                          SegmentAnnotationKeys key) {
 
-    Map<String, TallyResult> tally = new HashMap<String, TallyResult>();
+    Map<String, TallyResult> tally = new HashMap<>();
     for (CNVariantAnnotated cnVarAn : cList) {
       if (cnVarAn.segmentAnotation.getAttributes().containsKey(key.toString())) {
         List<String> anns = cnVarAn.segmentAnotation.getAttributes().get(key.toString());

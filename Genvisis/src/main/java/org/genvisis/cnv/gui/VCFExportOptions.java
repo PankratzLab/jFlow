@@ -151,7 +151,7 @@ public class VCFExportOptions extends JDialog {
       contentPanel.add(lblClusterFilterCollection, "flowx,cell 0 5");
     }
     {
-      comboBoxClusterFilters = new JComboBox<String>();// (getClusterFiltersOptions());
+      comboBoxClusterFilters = new JComboBox<>();// (getClusterFiltersOptions());
       comboBoxClusterFilters.setFont(comboBoxClusterFilters.getFont().deriveFont(Font.PLAIN));
       comboBoxClusterFilters.setSelectedItem(NO_CLUSTER_FILTERS);
       contentPanel.add(comboBoxClusterFilters, "cell 0 6,growx");
@@ -161,7 +161,7 @@ public class VCFExportOptions extends JDialog {
       contentPanel.add(lblTargetMarkersFile, "flowx,cell 0 2");
     }
     {
-      comboBoxTargetMarkers = new JComboBox<String>();// (getTargetMarkersOptions());
+      comboBoxTargetMarkers = new JComboBox<>();// (getTargetMarkersOptions());
       comboBoxTargetMarkers.addItemListener(new ItemListener() {
 
         @Override
@@ -175,7 +175,7 @@ public class VCFExportOptions extends JDialog {
               if (nmld.getReturnCode() == JOptionPane.YES_OPTION) {
                 String mkrFile = nmld.getFileName();
                 proj.TARGET_MARKERS_FILENAMES.addValue(mkrFile);
-                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
+                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<>(getTargetMarkersOptions()));
                 comboBoxTargetMarkers.setSelectedItem(mkrFile);
                 proj.saveProperties();
               } else {
@@ -193,7 +193,7 @@ public class VCFExportOptions extends JDialog {
                 for (File newFile : newFiles) {
                   proj.TARGET_MARKERS_FILENAMES.addValue(newFile.getAbsolutePath());
                 }
-                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<String>(getTargetMarkersOptions()));
+                comboBoxTargetMarkers.setModel(new DefaultComboBoxModel<>(getTargetMarkersOptions()));
                 comboBoxTargetMarkers.setSelectedItem(newFiles[0].getAbsolutePath());
                 proj.saveProperties();
               } else {

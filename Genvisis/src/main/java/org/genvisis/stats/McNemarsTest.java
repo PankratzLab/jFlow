@@ -128,7 +128,7 @@ public class McNemarsTest {
     int count;
     McNemarsTest mt;
 
-    v = new Vector<String[]>();
+    v = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(dir + pairs));
       while (reader.ready()) {

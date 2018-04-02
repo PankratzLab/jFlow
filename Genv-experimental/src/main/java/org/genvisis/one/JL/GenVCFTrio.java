@@ -17,7 +17,7 @@ import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 public class GenVCFTrio {
 
   public static void genList(String list, Logger log) {
-    Hashtable<String, HashSet<String>> trios = new Hashtable<String, HashSet<String>>();
+    Hashtable<String, HashSet<String>> trios = new Hashtable<>();
 
     try {
       BufferedReader reader = Files.getAppropriateReader(list);

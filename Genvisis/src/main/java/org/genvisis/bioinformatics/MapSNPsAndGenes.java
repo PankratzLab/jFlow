@@ -285,8 +285,8 @@ public class MapSNPsAndGenes {
     data = ArrayUtils.toStringArray(HashVec.loadFileToVec(ext.rootOf(dir + snps, false)
                                                           + "_positions.xln", false, false, false));
 
-    ArrayList<String> mkrList = new ArrayList<String>();
-    ArrayList<int[]> posList = new ArrayList<int[]>();
+    ArrayList<String> mkrList = new ArrayList<>();
+    ArrayList<int[]> posList = new ArrayList<>();
     for (int i = 0; i < data.length - 1; i++) {
       line = data[i + 1].trim().split(PSF.Regex.GREEDY_WHITESPACE);
       if (!ext.isMissingValue(line[1]) && !ext.isMissingValue(line[2])) {

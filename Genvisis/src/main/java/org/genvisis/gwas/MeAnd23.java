@@ -28,14 +28,14 @@ public class MeAnd23 {
       plinkGenerators[i] = new PlinkGenerator(allFiles[i], log);
     }
 
-    WorkerHive<PlinkGenerator> hive = new WorkerHive<PlinkGenerator>(numThreads, 10, log);
+    WorkerHive<PlinkGenerator> hive = new WorkerHive<>(numThreads, 10, log);
     hive.addCallables(plinkGenerators);
     hive.execute(true);
     plinkGenerators = hive.getResults().toArray(new PlinkGenerator[plinkGenerators.length]);
 
     log.reportTimeInfo("Generating list of files to merge for non-failing conversions");
 
-    ArrayList<String> toMerge = new ArrayList<String>();
+    ArrayList<String> toMerge = new ArrayList<>();
     for (PlinkGenerator plinkGenerator : plinkGenerators) {
       if (plinkGenerator.isCreated()) {
         toMerge.add(ArrayUtils.toStr(plinkGenerator.getPlinks()));

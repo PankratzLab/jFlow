@@ -103,7 +103,7 @@ public class DeNovoPValParser {
    * Create a map of file name (format: FID_IID_CHR_BP1_BP2.log) to file.
    */
   private static Map<String, File> getLogs(String denovoDir) {
-    Map<String, File> m = new HashMap<String, File>();
+    Map<String, File> m = new HashMap<>();
     File[] files = new File(denovoDir).listFiles(new FilenameFilter() {
 
       @Override

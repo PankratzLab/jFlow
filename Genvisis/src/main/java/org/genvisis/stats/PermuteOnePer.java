@@ -43,7 +43,7 @@ public class PermuteOnePer {
   }
 
   public PermuteOnePer(String[] famIDs, double[] trait, int[][] variables, String[][] varNames) {
-    Hashtable<String, DoubleVector[][]> hash = new Hashtable<String, DoubleVector[][]>();
+    Hashtable<String, DoubleVector[][]> hash = new Hashtable<>();
     Hashtable<String, double[][]> cHash;
     DoubleVector[][] sorted;
     Ttest tt;
@@ -58,7 +58,7 @@ public class PermuteOnePer {
     offsets = new int[numTraits];
     for (int i = 0; i <= numTraits; i++) {
       count = 0;
-      v = new Vector<String>();
+      v = new Vector<>();
       while (v.size() <= UPPER_LIMIT && count < famIDs.length) {
         if (i == numTraits && !Double.isNaN(trait[count])) {
           HashVec.addIfAbsent(trait[count] + "", v);
@@ -192,7 +192,7 @@ public class PermuteOnePer {
     String temp;
     String[] line;
     String[][] varNames = null;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     PermuteOnePer pop;
 
     try {
@@ -399,7 +399,7 @@ public class PermuteOnePer {
 
   public Hashtable<String, double[][]> convertHashtable(Hashtable<String, DoubleVector[][]> hash,
                                                         int col) {
-    Hashtable<String, double[][]> newHash = new Hashtable<String, double[][]>();
+    Hashtable<String, double[][]> newHash = new Hashtable<>();
     String[] fams = HashVec.getKeys(hash);
     DoubleVector[][] sorted;
     double[][] matrix;

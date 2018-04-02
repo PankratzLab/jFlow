@@ -99,9 +99,9 @@ public class MitoSeqCN {
                                                      genomeBinsMinusBinsCaputure, outDir, aName,
                                                      log);
 
-        ArrayList<MitoCNResult> results = new ArrayList<MitoSeqCN.MitoCNResult>();
+        ArrayList<MitoCNResult> results = new ArrayList<>();
 
-        try (WorkerTrain<MitoCNResult> train = new WorkerTrain<MitoSeqCN.MitoCNResult>(producer,
+        try (WorkerTrain<MitoCNResult> train = new WorkerTrain<>(producer,
                                                                                        numthreads,
                                                                                        numthreads,
                                                                                        log);
@@ -192,7 +192,7 @@ public class MitoSeqCN {
 
     private String[] getResult() {
 
-      ArrayList<String> result = new ArrayList<String>();
+      ArrayList<String> result = new ArrayList<>();
       result.add(sample);
       result.add(Integer.toString(numMitoReads));
       result.add(Integer.toString(bamIndexStats.getAlignedRecordCount()));
@@ -258,7 +258,7 @@ public class MitoSeqCN {
                                                                                     true,
                                                                                     new File(outputMTBam));
 
-        ArrayList<Segment> toSearch = new ArrayList<Segment>();
+        ArrayList<Segment> toSearch = new ArrayList<>();
         toSearch.add(new Segment(params.getMitoContig(), 0, mitoLength + 1));
         toSearch.add(new Segment(params.getxContig(), 0, xLength + 1));
         toSearch.add(new Segment(params.getyContig(), 0, yLength + 1));

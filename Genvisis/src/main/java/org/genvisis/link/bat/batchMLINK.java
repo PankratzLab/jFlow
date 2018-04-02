@@ -15,7 +15,7 @@ public class batchMLINK {
     BufferedReader reader = null;
     PrintWriter writer = null, writer1 = null, writer2 = null, writer3 = null, writer4 = null;
     String chrome;
-    Vector<double[]> modelParams = new Vector<double[]>();
+    Vector<double[]> modelParams = new Vector<>();
     StringTokenizer st;
     double[] handle;
 

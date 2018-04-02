@@ -404,11 +404,11 @@ public class Beagle {
       famStruct = pedfile.getFamilyStructure();
       pedIDs = famStruct.getIDs();
       affs = famStruct.getAffections();
-      famids = new Hashtable<String, String>();
+      famids = new Hashtable<>();
       for (String[] pedID : pedIDs) {
         famids.put(pedID[1], pedID[0]);
       }
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       for (int i = 0; i < pedIDs.length; i++) {
         hash.put(pedIDs[i][1], affs[i] + "");
       }
@@ -884,7 +884,7 @@ public class Beagle {
       famStruct = pedfile.getFamilyStructure();
       pedIDs = famStruct.getIDs();
       affs = famStruct.getAffections();
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       for (int i = 0; i < pedIDs.length; i++) {
         if (affs[i] != 1 && affs[i] != 2) {
           log.reportError("Error - indiviudal " + pedIDs[i][0] + "," + pedIDs[i][1]
@@ -1002,7 +1002,7 @@ public class Beagle {
     if (segFile != null) {
       includes = HashVec.loadFileToHashVec(segFile, new int[] {1, 3}, new int[] {5, 6, 7}, "\t",
                                            true, false);
-      includeSegs = new Hashtable<String, Segment[]>();
+      includeSegs = new Hashtable<>();
       keys = HashVec.getKeys(includes);
       for (String key : keys) {
         v = includes.get(key);
@@ -1029,7 +1029,7 @@ public class Beagle {
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
 
-    intervalIndices = new HashMap<Segment, int[]>();
+    intervalIndices = new HashMap<>();
     intervals = new Segment[intervalStartAndStopMarkers.length];
     System.out.println("Aligning to the following segments:");
     for (int i = 0; i < intervalStartAndStopMarkers.length; i++) {
@@ -1053,7 +1053,7 @@ public class Beagle {
     }
     Arrays.sort(intervals);
 
-    hashes = new Hashtable<String, Hashtable<String, Vector<String[]>>>();
+    hashes = new Hashtable<>();
     for (int i = 0; i < intervals.length; i++) {
       hashes.put(i + "", new Hashtable<String, Vector<String[]>>());
     }
@@ -1242,8 +1242,8 @@ public class Beagle {
     meanCounts = new int[2][values.length + 1];
 
     if (plinkFile != null) {
-      checks = new Hashtable<String, String>();
-      extras = new Hashtable<String, String>();
+      checks = new Hashtable<>();
+      extras = new Hashtable<>();
       for (int i = 0; i < ids.length; i++) {
         for (int j = i + 1; j < ids.length; j++) {
           checks.put(ids[i] + "\t" + ids[j], "");

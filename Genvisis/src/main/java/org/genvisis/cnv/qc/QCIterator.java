@@ -194,7 +194,7 @@ public class QCIterator implements Runnable {
   // TODO to compare two different plink format files;
   public static void compareFiles(Project proj, String[] plinkCnvQCs, String[] SampleQCFiles,
                                   String compareThresholdFileName, Logger log) {
-    Hashtable<Integer, Hashtable<String, CNVariantQC[]>> fileIndcnVariantQCs = new Hashtable<Integer, Hashtable<String, CNVariantQC[]>>();
+    Hashtable<Integer, Hashtable<String, CNVariantQC[]>> fileIndcnVariantQCs = new Hashtable<>();
     String[][] inds = new String[plinkCnvQCs.length][];
     int[][] allPossibleCombinations = Maths.getIndicesForAllCombinations(plinkCnvQCs.length, 2);
     // CNVComparison cnvComparison;
@@ -204,8 +204,8 @@ public class QCIterator implements Runnable {
       fileIndcnVariantQCs.put(i, CNVariantQC.getIndCNVQCs(inds[i], cnVariantQCs));
     }
     for (int[] allPossibleCombination : allPossibleCombinations) {
-      ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<CNVariantQC[]>();
-      ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<CNVariantQC[]>();
+      ArrayList<CNVariantQC[]> cnvQCX = new ArrayList<>();
+      ArrayList<CNVariantQC[]> cnvQCY = new ArrayList<>();
       int fileX = allPossibleCombination[0];
       int fileY = allPossibleCombination[1];
       String[] indsx = inds[fileX];
@@ -246,8 +246,8 @@ public class QCIterator implements Runnable {
                                                         qcThresholds, 1, log);
         CNVariantQC[][] filteredcnvsQCs1 = filteredOnly1.getFilteredcnvQCs1();
         CNVariantQC[][] filteredcnvsQCs2 = filteredOnly2.getFilteredcnvQCs1();
-        ArrayList<CNVariantQC[]> cnvQC1 = new ArrayList<CNVariantQC[]>();
-        ArrayList<CNVariantQC[]> cnvQC2 = new ArrayList<CNVariantQC[]>();
+        ArrayList<CNVariantQC[]> cnvQC1 = new ArrayList<>();
+        ArrayList<CNVariantQC[]> cnvQC2 = new ArrayList<>();
         for (int j = 0; j < filteredcnvsQCs1.length; j++) {
           if (filteredcnvsQCs1[j] != null && filteredcnvsQCs2[j] != null) {
             cnvQC1.add(filteredcnvsQCs1[j]);
@@ -297,7 +297,7 @@ public class QCIterator implements Runnable {
   }
 
   private static Hashtable<String, Double> hashMAFs(String[] markerNames, double[] mafs) {
-    Hashtable<String, Double> markerMAFs = new Hashtable<String, Double>();
+    Hashtable<String, Double> markerMAFs = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       markerMAFs.put(markerNames[i], mafs[i]);
     }
@@ -392,7 +392,7 @@ public class QCIterator implements Runnable {
     double[] GCWFCutoffs = binIt(0.02, 0.02, 20);
     double[] sampleCallRates = binIt(0.96, .96, 20);
 
-    ArrayList<OptimizedQCThresholds> qcThresholds = new ArrayList<OptimizedQCThresholds>();
+    ArrayList<OptimizedQCThresholds> qcThresholds = new ArrayList<>();
     // qcThresholds.add(new OptimizedQCThresholds(alphas[i], confCutoffs[j], lrrCutoffs[k], l,
     // BAFQCcutoffs[m], twopqCutoffs[n], hetCutoffs[o], GCWFCutoffs[p], q));
     // OptimizedQCThresholds noFilter = new OptimizedQCThresholds(0.5, 1.5, 20.0, 200000, 1, 0.0,
@@ -467,7 +467,7 @@ public class QCIterator implements Runnable {
 
   private static void printNewCNVariantQCFile(Project proj, String output, String[] inds,
                                               CNVariantQC[][] allIndcnVariantQCsArrays) {
-    ArrayList<CNVariantQC> toSerialize = new ArrayList<CNVariantQC>();
+    ArrayList<CNVariantQC> toSerialize = new ArrayList<>();
     for (int i = 0; i < inds.length; i++) {
       CNVariantQC[] indcnVariantQCs = allIndcnVariantQCsArrays[i];
       for (CNVariantQC indcnVariantQC : indcnVariantQCs) {
@@ -525,7 +525,7 @@ public class QCIterator implements Runnable {
   }
 
   private static ArrayList<ArrayList<Double>> getcabinet(double[] percents, int processors) {
-    ArrayList<ArrayList<Double>> cabinet = new ArrayList<ArrayList<Double>>();
+    ArrayList<ArrayList<Double>> cabinet = new ArrayList<>();
 
     for (int i = 0; i < processors; i++) {
       cabinet.add(new ArrayList<Double>());
@@ -540,7 +540,7 @@ public class QCIterator implements Runnable {
   private static Hashtable<String, Hashtable<String, Integer>> defineCompLists(String rootDir,
                                                                                String compFile,
                                                                                Logger log) {
-    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<String, Hashtable<String, Integer>>();
+    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<>();
     BufferedReader reader;
     String[] line;
     int maxNumComparisions = 0;
@@ -584,7 +584,7 @@ public class QCIterator implements Runnable {
 
   private static void defineComparisons(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
                                         String[] line, Logger log) {
-    Hashtable<String, Integer> defined = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> defined = new Hashtable<>();
     for (int i = 0; i < line.length; i++) {
       for (int j = 0; j < line.length; j++) {
         if (i != j && line[i] == line[j]) {

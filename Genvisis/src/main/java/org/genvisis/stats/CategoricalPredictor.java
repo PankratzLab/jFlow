@@ -32,7 +32,7 @@ public class CategoricalPredictor {
 
   public DummyCoding createDummyCoding(boolean debug) {
     String[] uniq = ArrayUtils.unique(catVariables);
-    ArrayList<String> finalUniq = new ArrayList<String>();
+    ArrayList<String> finalUniq = new ArrayList<>();
     for (String element : uniq) {
       if (ext.indexOfStr(element, masks) < 0) {
         finalUniq.add(element);

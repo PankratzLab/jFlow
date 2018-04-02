@@ -21,7 +21,7 @@ public class Unique {
                           String countsFile, boolean noInput) {
     BufferedReader reader;
     PrintWriter writer = null;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String[] line;
     String temp;
     int count;
@@ -81,7 +81,7 @@ public class Unique {
           temp = reader.readLine();
           if (count == 0
               && (double) (new File(filenames[i]).length()) / (double) temp.length() > 1000) {
-            hash = new Hashtable<String, String>((int) ((double) (new File(filenames[i]).length())
+            hash = new Hashtable<>((int) ((double) (new File(filenames[i]).length())
                                                         / (double) temp.length() * 1.2));
           }
           line = temp.trim().split(delimiters[i]);
@@ -181,7 +181,7 @@ public class Unique {
   }
 
   public static String proc(String[] array, boolean sorted) {
-    Map<String, KeyCounts> map = new HashMap<String, KeyCounts>();
+    Map<String, KeyCounts> map = new HashMap<>();
     StringBuilder sb;
     String ls;
 
@@ -206,7 +206,7 @@ public class Unique {
 
     Collection<KeyCounts> values = map.values();
     if (sorted) {
-      List<KeyCounts> valList = new ArrayList<KeyCounts>(values);
+      List<KeyCounts> valList = new ArrayList<>(values);
       Collections.sort(valList);
       values = valList;
     }
@@ -221,7 +221,7 @@ public class Unique {
   }
 
   public static String[][] proc(String[][] arrays, boolean verbose) {
-    Hashtable<String, int[]> hash = new Hashtable<String, int[]>();
+    Hashtable<String, int[]> hash = new Hashtable<>();
     String[] keys;
     int[] counts;
     String[][] allCounts;
@@ -314,7 +314,7 @@ public class Unique {
                    + "   Unique is also available in the Launch.crf variety and includes options for comma/tab-delimited and skipping headers\n"
                    + "";
 
-    filenames = new Vector<String>();
+    filenames = new Vector<>();
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);

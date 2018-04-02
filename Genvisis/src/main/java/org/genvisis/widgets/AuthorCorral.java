@@ -42,13 +42,13 @@ public class AuthorCorral {
     BufferedReader inReader = Files.getReader(inFile, true, true);
     String[] header = inReader.readLine().split("\t");
 
-    ArrayList<String> authorNamesOrder = new ArrayList<String>();
-    ArrayList<String> contribOrder = new ArrayList<String>();
-    HashMap<String, String[]> fullnameToParts = new HashMap<String, String[]>();
-    HashMap<String, ArrayList<String[]>> namesToDepts = new HashMap<String, ArrayList<String[]>>();
-    HashMap<String, ArrayList<String>> contribsToNames = new HashMap<String, ArrayList<String>>();
+    ArrayList<String> authorNamesOrder = new ArrayList<>();
+    ArrayList<String> contribOrder = new ArrayList<>();
+    HashMap<String, String[]> fullnameToParts = new HashMap<>();
+    HashMap<String, ArrayList<String[]>> namesToDepts = new HashMap<>();
+    HashMap<String, ArrayList<String>> contribsToNames = new HashMap<>();
 
-    ArrayList<String> errors = new ArrayList<String>();
+    ArrayList<String> errors = new ArrayList<>();
 
     for (int i = 7; i < header.length; i++) {
       contribOrder.add(header[i].trim());
@@ -114,7 +114,7 @@ public class AuthorCorral {
 
         ArrayList<String[]> myDepts = namesToDepts.get(fullname);
         if (myDepts == null) {
-          myDepts = new ArrayList<String[]>();
+          myDepts = new ArrayList<>();
           namesToDepts.put(fullname, myDepts);
         }
 
@@ -173,7 +173,7 @@ public class AuthorCorral {
     PrintWriter outWriter = Files.getWriter(outFile);
 
     StringBuilder authorString = new StringBuilder();
-    ArrayList<String> deptOrder = new ArrayList<String>();
+    ArrayList<String> deptOrder = new ArrayList<>();
 
     for (int i = 0; i < authorNamesOrder.size(); i++) {
       ArrayList<String[]> myDepts = namesToDepts.get(authorNamesOrder.get(i));
@@ -277,8 +277,8 @@ public class AuthorCorral {
     outWriter.println(rtfOutput ? rtfFormatted("Email list", false) : "Email list");
     outWriter.print(rtfOutput ? PARAGRAH : "");
     StringBuilder emailString = new StringBuilder();
-    HashSet<String> emailSet = new HashSet<String>();
-    HashSet<String> noEmailSet = new HashSet<String>();
+    HashSet<String> emailSet = new HashSet<>();
+    HashSet<String> noEmailSet = new HashSet<>();
     int outerCount = 0;
     for (int i = 0; i < authorNamesOrder.size(); i++) {
       ArrayList<String[]> myDepts = namesToDepts.get(authorNamesOrder.get(i));

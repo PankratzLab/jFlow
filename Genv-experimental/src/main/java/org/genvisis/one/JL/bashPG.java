@@ -8,7 +8,7 @@ import org.genvisis.common.Logger;
 public class bashPG {
 
   private static void bashIT() {
-    ArrayList<String> b = new ArrayList<String>();
+    ArrayList<String> b = new ArrayList<>();
     b.add("/bin/sh");
     b.add("-c");
 

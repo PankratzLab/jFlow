@@ -59,7 +59,7 @@ public class MDL implements Iterator<MarkerData> {
   public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames, int numDecompressThreads,
              int markerBuffer) {
     this.proj = proj;
-    missing = new Hashtable<String, String>();
+    missing = new Hashtable<>();
     this.markerNames = markerNames;
     this.markerSet = markerSet == null ? proj.getMarkerSet() : markerSet;
     this.numDecompressThreads = numDecompressThreads;
@@ -93,7 +93,7 @@ public class MDL implements Iterator<MarkerData> {
       e.printStackTrace();
     }
     currentFile = match.fileName;
-    decompTrain = new WorkerTrain<MarkerData>(producer, numDecompressThreads, markerBuffer,
+    decompTrain = new WorkerTrain<>(producer, numDecompressThreads, markerBuffer,
                                               proj.getLog());
   }
 
@@ -184,9 +184,9 @@ public class MDL implements Iterator<MarkerData> {
     private FileMatch(String fileName) {
       super();
       this.fileName = fileName;
-      markersToLoad = new ArrayList<String>(100000);
-      projIndices = new ArrayList<Integer>(100000);
-      fileIndices = new ArrayList<Integer>(100000);
+      markersToLoad = new ArrayList<>(100000);
+      projIndices = new ArrayList<>(100000);
+      fileIndices = new ArrayList<>(100000);
     }
 
     private String getFileName() {
@@ -217,7 +217,7 @@ public class MDL implements Iterator<MarkerData> {
    * @return {@link FileMatch} objects for determining order and markers to scan from each file
    */
   private ArrayList<FileMatch> matchFileNames() {
-    ArrayList<FileMatch> files = new ArrayList<MDL.FileMatch>();
+    ArrayList<FileMatch> files = new ArrayList<>();
     int[] indicesInProject = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true,
                                                    proj.getLog(), true);
     String currentFile = "";
@@ -328,7 +328,7 @@ public class MDL implements Iterator<MarkerData> {
                               + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
         }
       } else {
-        outlierHash = new Hashtable<String, Float>();
+        outlierHash = new Hashtable<>();
       }
     }
 

@@ -43,7 +43,7 @@ public class SSH {
   }
 
   private static void copyLocalToRemote(String local, String login, String remote, Logger log) {
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("scp");
     command.add("-r");
     command.add(local);
@@ -52,7 +52,7 @@ public class SSH {
   }
 
   private static void copyRemoteToLocal(String local, String login, String remote, Logger log) {
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("scp");
     command.add("-r");
     command.add(login + ":" + remote);
@@ -61,7 +61,7 @@ public class SSH {
   }
 
   private static void runRemoteCommand(String login, String commandToRun, Logger log) {
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("ssh");
     command.add(login);
     command.add("'" + commandToRun + "'");

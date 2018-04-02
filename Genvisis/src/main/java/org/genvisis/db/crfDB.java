@@ -53,14 +53,14 @@ public class crfDB {
     String[] line, subline;
     String temp, output_filename = "dump", unique_id;
     double score;
-    Hashtable<String, String[][]> hash = new Hashtable<String, String[][]>();
+    Hashtable<String, String[][]> hash = new Hashtable<>();
     Hashtable<String, String> colHash;
     Vector<Hashtable<String, String>> hashes;
     String[] hashNames;
     String[][] expecteds = null, allData = null, filenameKey;
     double[][][] bounds;
-    Vector<String> fileDescriptions = new Vector<String>(), idCollection = new Vector<String>(),
-        hashDescriptions = new Vector<String>(), specials = new Vector<String>();
+    Vector<String> fileDescriptions = new Vector<>(), idCollection = new Vector<>(),
+        hashDescriptions = new Vector<>(), specials = new Vector<>();
     String[] data;
     int numFiles, count, missing;
     char[] operator = null;
@@ -182,7 +182,7 @@ public class crfDB {
       dropFromFinal = new boolean[specials.size()];
       filenameKey = new String[numFiles + 1][2];
       filenameKey[numFiles] = new String[] {"final", "key"};
-      colHash = new Hashtable<String, String>();
+      colHash = new Hashtable<>();
 
       for (int i = 0; i < specials.size(); i++) {
         subline = (specials.elementAt(i)).split("=");
@@ -236,7 +236,7 @@ public class crfDB {
           expecteds[fn][i - 2] = subline[0];
         }
 
-        colHash = new Hashtable<String, String>();
+        colHash = new Hashtable<>();
         for (int i = 0; i < expecteds[fn].length; i++) {
           if (colHash.containsKey(expecteds[fn][i])) {
             log.reportError("Error - duplicate column header (" + expecteds[fn][i] + ") in file '"
@@ -493,9 +493,9 @@ public class crfDB {
 
         if (temp.startsWith("$RESIDUAL") || temp.startsWith("$PREDICTED")) {
           boolean[] used = new boolean[idCollection.size()];
-          Vector<String> deps = new Vector<String>();
-          Vector<double[]> indeps = new Vector<double[]>();
-          Vector<String> v = new Vector<String>();
+          Vector<String> deps = new Vector<>();
+          Vector<double[]> indeps = new Vector<>();
+          Vector<String> v = new Vector<>();
           double[] dataline;
           RegressionModel model;
           boolean logistic;
@@ -568,7 +568,7 @@ public class crfDB {
               }
               functionIndicies = new int[1][];
               functionIndicies[0] = getVector(line[1], expecteds, filenameKey);
-              recodeFrom = new Vector<String>();
+              recodeFrom = new Vector<>();
               recodeTo = new String[(line.length - 1) / 2];
               for (int l = 0; l < (line.length - 3) / 2; l++) {
                 recodeFrom.add(line[2 + l * 2]);

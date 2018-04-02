@@ -23,7 +23,7 @@ public class BinMissingnessByPosition {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(MAP));

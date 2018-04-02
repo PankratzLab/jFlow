@@ -13,7 +13,7 @@ public class HtmlSelection implements Transferable {
   private final String html;
 
   public HtmlSelection(String html) {
-    htmlFlavors = new ArrayList<DataFlavor>();
+    htmlFlavors = new ArrayList<>();
     try {
       htmlFlavors.add(new DataFlavor("text/html;class=java.lang.String"));
       htmlFlavors.add(new DataFlavor("text/html;class=java.io.Reader"));

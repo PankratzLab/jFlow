@@ -680,7 +680,7 @@ public class PlotResults extends JFrame implements ActionListener {
         dataIV = new IntVector();
         infoIV = new IntVector();
         mapIV = new IntVector();
-        hash = new Hashtable<String, Vector<String>>();
+        hash = new Hashtable<>();
         for (int chr = 1; chr <= NUM_CHR; chr++) {
           prog.setProgress(i * 23 + chr);
 
@@ -691,7 +691,7 @@ public class PlotResults extends JFrame implements ActionListener {
             if (reader == null) {
               throw new FileNotFoundException(filename);
             }
-            result = new Vector<double[]>();
+            result = new Vector<>();
             ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
                             RESULT_TYPE_HEADERS[resultType][0], true);
             for (int j = 0; j < RESULT_TYPE_SKIP_EXTRA_LINES[resultType]; j++) {
@@ -726,7 +726,7 @@ public class PlotResults extends JFrame implements ActionListener {
                                         ext.chrome(chr));
           try {
             reader = Files.getReader(dir + dirs[i] + "/" + filename, false, false);
-            result = new Vector<double[]>();
+            result = new Vector<>();
             ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
                             RESULT_TYPE_HEADERS[resultType][1], true);
             while (reader.ready()) {
@@ -760,7 +760,7 @@ public class PlotResults extends JFrame implements ActionListener {
         }
 
         if (Files.exists(dir + dirs[i] + "/markerPositions.dat")) {
-          hash = new Hashtable<String, Vector<String>>();
+          hash = new Hashtable<>();
           try {
             reader = Files.getReader(dir + dirs[i] + "/markerPositions.dat", true, false);
             ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),

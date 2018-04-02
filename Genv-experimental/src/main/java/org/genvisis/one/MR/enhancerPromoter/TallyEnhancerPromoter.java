@@ -41,7 +41,7 @@ public class TallyEnhancerPromoter {
       int chrom = indexOf(header, "CHROM");
       int pos = indexOf(header, "POS");
 
-      Map<String, String[]> current = new HashMap<String, String[]>();
+      Map<String, String[]> current = new HashMap<>();
 
       String prevType = ".";
       String[] outHeader = new String[] {"feature_type", "chrom", "start", "stop", "genes",
@@ -111,7 +111,7 @@ public class TallyEnhancerPromoter {
 
     String out = a;
 
-    ArrayList<String> seen = new ArrayList<String>();
+    ArrayList<String> seen = new ArrayList<>();
     Collections.addAll(seen, aGenes);
 
     for (String gene : bGenes) {

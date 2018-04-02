@@ -61,7 +61,7 @@ public class RandSortTest {
     }
     log.report(ext.getTime() + "\tdone marker data from " + markerDatabase);
 
-    v = new Vector<String>();
+    v = new Vector<>();
     log.report(ext.getTime() + "\tSorting markers by chromosome and position");
     chrs = new byte[markerNames.length];
     chrCounts = new int[Positions.CHR_CODES.length];
@@ -140,7 +140,7 @@ public class RandSortTest {
   public static Hashtable<String, String> loadFileToHashString(String filename, Logger log) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String markerName, chr, position, delimiter, temp;
     byte chrValue;
     int count, countBad, numBlankNames, numBlankChrs, numBlankPositions, numRepeatedNames,

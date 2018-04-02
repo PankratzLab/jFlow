@@ -29,10 +29,10 @@ public class CompareCalls {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, inds;
-    Hashtable<String, Hashtable<String, Vector<CNVariant>>> hash = new Hashtable<String, Hashtable<String, Vector<CNVariant>>>();
-    Hashtable<String, Vector<CNVariant>> source = new Hashtable<String, Vector<CNVariant>>();
+    Hashtable<String, Hashtable<String, Vector<CNVariant>>> hash = new Hashtable<>();
+    Hashtable<String, Vector<CNVariant>> source = new Hashtable<>();
     CNVariant[][] cnvs;
-    Vector<CNVariant> v = new Vector<CNVariant>();
+    Vector<CNVariant> v = new Vector<>();
     int match;
     int[] counts;
     int[][] allPossibleCombinations = Maths.getIndicesForAllCombinations(files.length, 2);
@@ -50,12 +50,12 @@ public class CompareCalls {
           if (hash.containsKey(line[0] + "\t" + line[1])) {
             source = hash.get(line[0] + "\t" + line[1]);
           } else {
-            hash.put(line[0] + "\t" + line[1], source = new Hashtable<String, Vector<CNVariant>>());
+            hash.put(line[0] + "\t" + line[1], source = new Hashtable<>());
           }
           if (source.containsKey(i + "")) {
             v = source.get(i + "");
           } else {
-            source.put(i + "", v = new Vector<CNVariant>());
+            source.put(i + "", v = new Vector<>());
           }
           v.add(new CNVariant(line, i));
         }

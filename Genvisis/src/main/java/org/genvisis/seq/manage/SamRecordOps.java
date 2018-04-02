@@ -89,7 +89,7 @@ public class SamRecordOps {
    * @return String[] containing any bp sequences that were soft clipped
    */
   public static SoftClipped[] getSoftClippedBases(SAMRecord samRecord, Logger log) {
-    ArrayList<SoftClipped> softies = new ArrayList<SoftClipped>();
+    ArrayList<SoftClipped> softies = new ArrayList<>();
     Cigar cigar = samRecord.getCigar();
     String[] bases = ArrayUtils.decodeByteArray(samRecord.getReadBases(), log);
     int curStart = 0;

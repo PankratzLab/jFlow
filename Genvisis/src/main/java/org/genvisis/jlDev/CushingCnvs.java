@@ -85,7 +85,7 @@ public class CushingCnvs {
     }
 
     private String[] getData() {
-      ArrayList<String> data = new ArrayList<String>();
+      ArrayList<String> data = new ArrayList<>();
       data.add(getChr() + "");
       data.add(getStart() + "");
       data.add(emp1 + "");
@@ -95,7 +95,7 @@ public class CushingCnvs {
     }
 
     private static LocusSet<PlinkEmpSeg> loadPlLocusSet(String filname, Logger log) {
-      ArrayList<PlinkEmpSeg> tmp = new ArrayList<PlinkEmpSeg>();
+      ArrayList<PlinkEmpSeg> tmp = new ArrayList<>();
       try {
         BufferedReader reader = Files.getAppropriateReader(filname);
         String[] header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -282,7 +282,7 @@ public class CushingCnvs {
     new File(mperm).delete();
     System.out.println(mperm);
     if (!Files.exists(mperm)) {
-      ArrayList<String> commandArray = new ArrayList<String>();
+      ArrayList<String> commandArray = new ArrayList<>();
       commandArray.add(PLINK);
       commandArray.add("--cnv-list");
       commandArray.add(outCNV);
@@ -295,7 +295,7 @@ public class CushingCnvs {
       CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(commandArray), dir, null, null,
                                        true, true, false, log);
 
-      commandArray = new ArrayList<String>();
+      commandArray = new ArrayList<>();
       commandArray.add(PLINK);
       commandArray.add("--cfile");
       commandArray.add(outCNVRoot);
@@ -342,11 +342,11 @@ public class CushingCnvs {
     BedOps.verifyBedIndex(mappabilityFile, log);
     // LocusSet<GeneData> gLocusSet = GeneTrack.load(geneTrackFile, false).convertToLocusSet(log);
     LocusSet<CNVariant> cLocusSet = CNVariant.loadLocSet(cnvFile, log);
-    ArrayList<String> cnvFreqFiles = new ArrayList<String>();
+    ArrayList<String> cnvFreqFiles = new ArrayList<>();
     int numIndss = CNVariant.getUniqueInds(cLocusSet, log).size();
     System.out.println(cnvFile);
     System.out.println(numIndss);
-    ArrayList<LocusSet<PlinkEmpSeg>> plinkResults = new ArrayList<LocusSet<PlinkEmpSeg>>();
+    ArrayList<LocusSet<PlinkEmpSeg>> plinkResults = new ArrayList<>();
     for (String element : cnvRemoveFilesstart) {
       if (Files.isDirectory(element)) {
         String[] tmpsCnvs = Files.list(element, null, ".cnv", true, true);
@@ -361,7 +361,7 @@ public class CushingCnvs {
     String[] cnvRemoveFiles = ArrayUtils.toStringArray(cnvFreqFiles);
     double[] controlFreqFilter = new double[] {0.01, 0.05, 1.1};
     double[] confs = new double[] {10, 20, 0};
-    WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<LocusSet<PlinkEmpSeg>>(6, 10,
+    WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<>(6, 10,
                                                                                    proj.getLog());
 
     if (proj != null) {
@@ -410,7 +410,7 @@ public class CushingCnvs {
 
           int numSig = 0;
           int numSigCN = 0;
-          ArrayList<CNVariant> sigOlaps = new ArrayList<CNVariant>();
+          ArrayList<CNVariant> sigOlaps = new ArrayList<>();
           for (CNVariant overlap : overlaps) {
             if (currentCNV.significantOverlap(overlap, true)) {
               numSig++;
@@ -436,7 +436,7 @@ public class CushingCnvs {
         }
       }
     }
-    Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(cLocusSet, mappabilityFile,
+    Mappability<CNVariant> cnMappability = new Mappability<>(cLocusSet, mappabilityFile,
                                                                       callSubsetBed, log);
     cnMappability.computeMappability();
 
@@ -545,9 +545,9 @@ public class CushingCnvs {
     String outputRawPlot = ext.rootOf(cnvFile, false) + ".qc.summary.plot.txt";
 
     String[] rawCounts = new String[] {"CNVS_PER_GENE", "MAPPABILITY_SCORE"};
-    Hashtable<String, String> problemsAdded = new Hashtable<String, String>();
-    ArrayList<GeomText> problemGenes = new ArrayList<GeomText>();
-    ArrayList<GeomText> problemGenesSmall = new ArrayList<GeomText>();
+    Hashtable<String, String> problemsAdded = new Hashtable<>();
+    ArrayList<GeomText> problemGenes = new ArrayList<>();
+    ArrayList<GeomText> problemGenesSmall = new ArrayList<>();
 
     try {
       PrintWriter writer = Files.openAppropriateWriter(outputRawPlot);
@@ -679,7 +679,7 @@ public class CushingCnvs {
     }
 
     public String[] getHeader() {
-      ArrayList<String> header = new ArrayList<String>();
+      ArrayList<String> header = new ArrayList<>();
       for (String removeFile : removeFiles) {
         String root = ext.removeDirectoryInfo(removeFile);
         header.add(root + "_" + "NUM_OVERLAP");
@@ -695,7 +695,7 @@ public class CushingCnvs {
     }
 
     public String[] getData() {
-      ArrayList<String> data = new ArrayList<String>();
+      ArrayList<String> data = new ArrayList<>();
       for (int i = 0; i < removeFiles.length; i++) {
         data.add(numOverLaps[i] + "");
         data.add(averageOverlapScore[i] + "");

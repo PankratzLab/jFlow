@@ -35,7 +35,7 @@ public class CNVComparison {
     this.qcThresholds = qcThresholds;
     this.filterType = filterType;
     this.log = log;
-    misses = new ArrayList<CNVariantQC>();
+    misses = new ArrayList<>();
     filteredcnvQCs1 = getFilteredCnvsByType(unfilteredcnvsQCs1);
     filteredcnvQCs2 = getFilteredCnvsByType(unfilteredcnvsQCs2);
     filteredCallsAvailable = getCallsAvailable(filteredcnvQCs1, filteredcnvQCs2);
@@ -214,7 +214,7 @@ public class CNVComparison {
   }
 
   private CNVariantQC[] filterCNVQC(CNVariantQC[] unfilteredcnvQCs) {
-    ArrayList<CNVariantQC> cnvQCs = new ArrayList<CNVariantQC>();
+    ArrayList<CNVariantQC> cnvQCs = new ArrayList<>();
 
     for (CNVariantQC unfilteredcnvQC : unfilteredcnvQCs) {
       // double[] mafs = unfilteredcnvQCs[i].getMafs();

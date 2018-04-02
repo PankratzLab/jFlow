@@ -98,7 +98,7 @@ public class VCFTally implements Serializable {
       Set<String> cases = vpop.getSubPop().get(VCFOps.VcfPopulation.CASE);
       Set<String> controls = vpop.getSubPop().get(VCFOps.VcfPopulation.CONTROL);
       log.reportTimeInfo(cases.size() + " Cases and " + controls.size() + " Controls");
-      Set<String> all = new HashSet<String>();
+      Set<String> all = new HashSet<>();
       all.addAll(cases);
       all.addAll(controls);
       if (cases.size() >= controls.size()) {
@@ -369,9 +369,9 @@ public class VCFTally implements Serializable {
       this.vContextFilters = vContextFilters;
       gRegions = geneTrack;
       charge = false;
-      passingLocs = new ArrayList<VCFTally.GenePass>();
-      uniqs = new Hashtable<String, HashSet<String>>();
-      all = new Hashtable<String, ArrayList<String>>();
+      passingLocs = new ArrayList<>();
+      uniqs = new Hashtable<>();
+      all = new Hashtable<>();
       populateQuery();
     }
 
@@ -400,7 +400,7 @@ public class VCFTally implements Serializable {
     }
 
     private void populateQuery() {
-      geneSegTrack = new Hashtable<Integer, int[]>();
+      geneSegTrack = new Hashtable<>();
       GeneData[][] gDatas = gRegions.getGeneTrack().getGenes();
       int index = 0;
       int curChr = 0;
@@ -439,7 +439,7 @@ public class VCFTally implements Serializable {
     // }
 
     private static Hashtable<String, Float> getTally(GenomeRegions genomeRegions, Logger log) {
-      Hashtable<String, Float> tally = new Hashtable<String, Float>();
+      Hashtable<String, Float> tally = new Hashtable<>();
       GeneData[][] gDatas = genomeRegions.getGeneTrack().getGenes();
       for (GeneData[] gData : gDatas) {
         for (GeneData element : gData) {

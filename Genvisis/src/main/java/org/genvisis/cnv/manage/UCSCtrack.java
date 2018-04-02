@@ -34,7 +34,7 @@ public class UCSCtrack {
     int idIndex;
     long time;
 
-    hash = new Hashtable<String, String[]>();
+    hash = new Hashtable<>();
     try {
       reader = Files.getReader(SAMPLE_DEMOGRAPHICS,
                                new String[] {"", DEFAULT_SAMPLE_DEMOGRAPHIC_DIRECTORY,

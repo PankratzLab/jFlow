@@ -177,7 +177,7 @@ public class Emim {
     log = new Logger();
     filenameOriginal = Files.backup("emimparams.dat", "./", "./", true);
 
-    HashSet<EMIM_PARAM> setParams = new HashSet<EMIM_PARAM>();
+    HashSet<EMIM_PARAM> setParams = new HashSet<>();
     if (runType.equals("C")) {
       switch (model) {
         case GENOTYPIC:

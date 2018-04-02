@@ -27,10 +27,10 @@ public class SampleNGS {
   public SampleNGS(String sampleName) {
     super();
     this.sampleName = sampleName;
-    geno = new ArrayList<Byte>(2000000);
-    xs = new ArrayList<Float>(2000000);
-    ys = new ArrayList<Float>(2000000);
-    gcs = new ArrayList<Float>(2000000);
+    geno = new ArrayList<>(2000000);
+    xs = new ArrayList<>(2000000);
+    ys = new ArrayList<>(2000000);
+    gcs = new ArrayList<>(2000000);
   }
 
   public String getSampleName() {

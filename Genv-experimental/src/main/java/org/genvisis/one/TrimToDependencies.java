@@ -58,8 +58,8 @@ public class TrimToDependencies implements Serializable {
       withinComment = false;
       try {
         reader = new BufferedReader(new FileReader(root + filename));
-        imports = new Vector<String>();
-        classes = new Vector<TrimToDependencies.Class>();
+        imports = new Vector<>();
+        classes = new Vector<>();
         while (reader.ready()) {
           reader.mark(10000);
           temp = removeAnyTrailingComment(reader.readLine());
@@ -197,9 +197,9 @@ public class TrimToDependencies implements Serializable {
     public Class(String newName) {
       name = newName;
       parentFile = null;
-      innerClasses = new Vector<Class>();
-      methods = new Vector<Method>();
-      variables = new Vector<Variable>();
+      innerClasses = new Vector<>();
+      methods = new Vector<>();
+      variables = new Vector<>();
       required = false;
     }
 
@@ -406,9 +406,9 @@ public class TrimToDependencies implements Serializable {
 
     public Method(String newName) {
       name = newName;
-      variables = new Hashtable<String, Variable>();
+      variables = new Hashtable<>();
       returnType = null;
-      methodsUsed = new Vector<Method>();
+      methodsUsed = new Vector<>();
       required = false;
       allLines = null;
     }
@@ -422,7 +422,7 @@ public class TrimToDependencies implements Serializable {
       Variable variable;
       Vector<String> vLines;
 
-      vLines = new Vector<String>();
+      vLines = new Vector<>();
       numBrackets = -9;
       try {
         log.report("Start of method '" + name + "'");
@@ -646,9 +646,9 @@ public class TrimToDependencies implements Serializable {
   }
 
   public TrimToDependencies(String source_directory, String target_directory) {
-    allClasses = new Hashtable<String, Class>();
-    allMethods = new Hashtable<String, Method>();
-    allVariables = new Hashtable<String, Variable>();
+    allClasses = new Hashtable<>();
+    allMethods = new Hashtable<>();
+    allVariables = new Hashtable<>();
 
     log = new Logger();
     // log = new Logger("trimming.log", false);

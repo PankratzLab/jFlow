@@ -225,7 +225,7 @@ public class FilterNGS implements Serializable {
     private FILTER_TYPE type;
 
     public static VARIANT_FILTER_DOUBLE[] getFiltersExcluding(VARIANT_FILTER_DOUBLE[] exclude) {
-      ArrayList<VARIANT_FILTER_DOUBLE> remain = new ArrayList<VARIANT_FILTER_DOUBLE>();
+      ArrayList<VARIANT_FILTER_DOUBLE> remain = new ArrayList<>();
       for (int i = 0; i < VARIANT_FILTER_DOUBLE.values().length; i++) {
         boolean use = true;
         for (VARIANT_FILTER_DOUBLE element : exclude) {
@@ -1409,7 +1409,7 @@ public class FilterNGS implements Serializable {
    * @return pretty standard filters for samrecords
    */
   public ArrayList<SamRecordFilter> getStandardSAMRecordFilters(SAM_FILTER_TYPE type, Logger log) {
-    ArrayList<SamRecordFilter> filters = new ArrayList<SamRecordFilter>();
+    ArrayList<SamRecordFilter> filters = new ArrayList<>();
     filters.add(new DuplicateReadFilter());
     filters.add(new AlignedFilter(true));
     filters.add(new SecondaryAlignmentFilter());

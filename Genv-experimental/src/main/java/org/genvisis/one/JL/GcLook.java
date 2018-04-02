@@ -100,7 +100,7 @@ public class GcLook {
     try {
       parser = builder.build(proj, proj.MARKER_METRICS_FILENAME.getValue());
       parser.loadData();
-      ArrayList<String> titles = new ArrayList<String>();
+      ArrayList<String> titles = new ArrayList<>();
 
       DynamicAveragingHistogram[][][] dHistograms = new DynamicAveragingHistogram[parser.getNumericData().length][CHRS.length][KB_BUFFER.values().length];
       for (int qcMetric = 0; qcMetric < parser.getNumericData().length; qcMetric++) {
@@ -207,7 +207,7 @@ public class GcLook {
           proj.getLog().reportException(e);
         }
       }
-      ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+      ArrayList<RScatter> rScatters = new ArrayList<>();
       for (int l = 0; l < QC_GROUPINGS.length; l++) {
         for (int chrIndex = 0; chrIndex < CHRS.length; chrIndex++) {
           for (int bufferIndex = 0; bufferIndex < KB_BUFFER.values().length; bufferIndex++) {
@@ -215,7 +215,7 @@ public class GcLook {
                                + (CHRS[chrIndex] >= 0 ? CHRS[chrIndex] : "All") + "_"
                                + KB_BUFFER.values()[bufferIndex] + "bp";
             String title = "n=" + ArrayUtils.sum(dHistograms[0][chrIndex][bufferIndex].getCounts());
-            ArrayList<String> ys = new ArrayList<String>();
+            ArrayList<String> ys = new ArrayList<>();
             for (int k = 0; k < QC_GROUPINGS[l].length; k++) {
               ys.add(dHistograms[QC_GROUPINGS[l][k]][chrIndex][bufferIndex].getTitle());
             }

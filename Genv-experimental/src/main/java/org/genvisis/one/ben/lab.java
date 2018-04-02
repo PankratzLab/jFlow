@@ -53,7 +53,7 @@ public class lab {
 
   private static void countCNVsForIndividuals(String indivFile, String cnvFile,
                                               String outFile) throws IOException {
-    Hashtable<String, String> sampleKeyHash = new Hashtable<String, String>();
+    Hashtable<String, String> sampleKeyHash = new Hashtable<>();
     BufferedReader reader = new BufferedReader(new FileReader(indivFile));
     String line = null;
     while ((line = reader.readLine()) != null) {

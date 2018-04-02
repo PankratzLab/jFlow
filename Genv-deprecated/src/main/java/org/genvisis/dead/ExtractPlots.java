@@ -36,8 +36,8 @@ public class ExtractPlots {
     PrintWriter writer = null;
     String[] line;
     String trav, temp;
-    Vector<String> markers = new Vector<String>();
-    Vector<String> loaded = new Vector<String>();
+    Vector<String> markers = new Vector<>();
+    Vector<String> loaded = new Vector<>();
     int count, version, countAll;
     String[] ids;
     int numMarkers, numSamples;
@@ -374,7 +374,7 @@ public class ExtractPlots {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int count, rep;
     boolean alreadyDone;
 

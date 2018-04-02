@@ -73,7 +73,7 @@ public class UCSCtrack {
       ignoreWhenAbsentInResultsFile = false;
       outfile = ext.rootOf(resultsFile) + "_described.xln";
 
-      filters = new Vector<String>();
+      filters = new Vector<>();
       outfile = ext.rootOf(resultsFile) + ".bed";
       for (int j = 1; j < line.length; j++) {
         if (line[j].equalsIgnoreCase("ignoreCase")) {
@@ -150,7 +150,7 @@ public class UCSCtrack {
       par = 0;
       unplaced = 0;
       mitochondrial = 0;
-      hash = new Hashtable<String, Double>();
+      hash = new Hashtable<>();
       try {
         writer = Files.getAppropriateWriter(outfile);
         writer.println("track type=wiggle_0 name=\"" + ext.rootOf(outfile) + "\"");

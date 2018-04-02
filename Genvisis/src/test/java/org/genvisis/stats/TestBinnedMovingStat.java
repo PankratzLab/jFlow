@@ -11,7 +11,7 @@ public class TestBinnedMovingStat {
 
   @Test
   public void testWindowEven() {
-    BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<Integer>(4, MovingStat.MEAN);
+    BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<>(4, MovingStat.MEAN);
     bma.add(1, 1);
     bma.add(5, 2);
     // Need at least 2 values and the 2 bin should be under construction and not part of the stat
@@ -47,7 +47,7 @@ public class TestBinnedMovingStat {
 
   @Test
   public void testWindowOdd() {
-    BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<Integer>(3, MovingStat.MEAN);
+    BinnedMovingStatistic<Integer> bma = new BinnedMovingStatistic<>(3, MovingStat.MEAN);
     bma.add(5, 1);
     bma.add(9, 2);
     // Need at least 2 values and the 2 bin should be under construction and not part of the stat

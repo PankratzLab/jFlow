@@ -337,7 +337,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         histData[(int) (x - minMax[0]) / step]++;
       }
 
-      histLines = new ArrayList<GenericLine>();
+      histLines = new ArrayList<>();
       for (int i = 0; i < histData.length - 1; i++) {
         histLines.add(new GenericLine((float) ((i * step) + minMax[0]), histData[i],
                                       (float) (((i + 1) * step) + minMax[0]), histData[i + 1],
@@ -349,7 +349,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       return;
     }
 
-    ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
+    ArrayList<GenericLine> lineList = new ArrayList<>();
     if (showMedSD[0] || showMedSD[1]) {
       xMed = columnsChangedX || dataChanged
              || Double.isNaN(xMed) ? (xData.length == 0 ? Double.NaN : ArrayUtils.median(xData))
@@ -902,10 +902,10 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
         ArrayList<RectangleGate> insideRects = getRectsContainingClick(e);
         ArrayList<RectangleGate> closeRects = getRectsWithVerticesNearClick(e);
 
-        ArrayList<Gate> insideGates = new ArrayList<Gate>();
+        ArrayList<Gate> insideGates = new ArrayList<>();
         insideGates.addAll(insidePolys);
         insideGates.addAll(insideRects);
-        ArrayList<Gate> closeGates = new ArrayList<Gate>();
+        ArrayList<Gate> closeGates = new ArrayList<>();
         closeGates.addAll(closePolys);
         closeGates.addAll(closeRects);
 
@@ -1090,7 +1090,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean fullRedraw = false;
     if (SwingUtilities.isLeftMouseButton(e)) {
       if (e.getClickCount() == 2) {
-        ArrayList<Gate> gates = new ArrayList<Gate>();
+        ArrayList<Gate> gates = new ArrayList<>();
         gates.addAll(getPolysContainingClick(e));
         gates.addAll(getRectsContainingClick(e));
 
@@ -1110,7 +1110,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
       highlightPoly = null;
       highlightRectangle = null;
 
-      ArrayList<Gate> allGates = new ArrayList<Gate>();
+      ArrayList<Gate> allGates = new ArrayList<>();
       allGates.addAll(getPolysContainingClick(e));
       allGates.addAll(getRectsContainingClick(e));
       if (allGates.isEmpty()) {

@@ -44,7 +44,7 @@ public class PowerCalculatorForQuantitativeTraits {
       alpha = 1E-8;
     }
 
-    Map<String, String> data = new Hashtable<String, String>();
+    Map<String, String> data = new Hashtable<>();
     data.put("vq", ext.formDeci(varianceExplained, 4));
     data.put("da", "0");
     data.put("nodom", "TRUE");

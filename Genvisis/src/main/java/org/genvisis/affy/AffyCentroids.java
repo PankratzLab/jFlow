@@ -322,7 +322,7 @@ public class AffyCentroids implements Serializable {
                                   String[] samples, SampleData sampleData) {
     float[] xs = markerData.getXs();
     float[] log2Xs;
-    ArrayList<Float> log2XsAL = new ArrayList<Float>();
+    ArrayList<Float> log2XsAL = new ArrayList<>();
     for (int k = 0; k < xs.length; k++) {
       if (checkSexMarker(proj, sampleData.getSexForIndividual(samples[k]), markerData)
           && samplesToBeUsed[k]) {

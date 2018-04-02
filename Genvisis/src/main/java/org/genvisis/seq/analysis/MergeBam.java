@@ -59,7 +59,7 @@ public class MergeBam {
     boolean progress = true;
     if (!fail) {
       if (inputBams.length >= 2) {
-        ArrayList<String> tmpCommand = new ArrayList<String>();
+        ArrayList<String> tmpCommand = new ArrayList<>();
         tmpCommand.add(SAMTOOLS_LOCATION);
         tmpCommand.add(MERGE);
 

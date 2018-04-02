@@ -32,7 +32,7 @@ public class SummarizeOSTrioCoverage {
     vpop.report();
     String[] files = Files.listFullPaths(indir, ".sorted.dedup.realigned.recal.txt");
     log.reportTimeInfo("Found " + files.length + " files to summarize");
-    Hashtable<String, String> map = new Hashtable<String, String>();
+    Hashtable<String, String> map = new Hashtable<>();
     for (String file : files) {
       String key = ext.removeDirectoryInfo(file).split("_")[0];
       map.put(key, file);
@@ -42,14 +42,14 @@ public class SummarizeOSTrioCoverage {
     try {
       PrintWriter writer = Files.openAppropriateWriter(outputFinal);
 
-      ArrayList<String> famsNotFound = new ArrayList<String>();
+      ArrayList<String> famsNotFound = new ArrayList<>();
       SumFamProducer producer = new SumFamProducer(vpop, outDir, log, map);
-      try (WorkerTrain<FamSum> train = new WorkerTrain<SummarizeOSTrioCoverage.FamSum>(producer,
+      try (WorkerTrain<FamSum> train = new WorkerTrain<>(producer,
                                                                                        numThreads,
                                                                                        2, log)) {
 
         int num = 0;
-        ArrayList<FamSum> haveData = new ArrayList<FamSum>();
+        ArrayList<FamSum> haveData = new ArrayList<>();
         while (train.hasNext()) {
 
           FamSum famSum = train.next();
@@ -260,7 +260,7 @@ public class SummarizeOSTrioCoverage {
     }
 
     private String[] developHeader() {
-      ArrayList<String> h = new ArrayList<String>();
+      ArrayList<String> h = new ArrayList<>();
       h.add("Family");
       h.add("OFF");
       h.add("MO");
@@ -283,7 +283,7 @@ public class SummarizeOSTrioCoverage {
     }
 
     private String[] getData() {
-      ArrayList<String> h = new ArrayList<String>();
+      ArrayList<String> h = new ArrayList<>();
       h.add(fam);
       h.add(off);
       h.add(mo);

@@ -20,10 +20,10 @@ public class info {
     PrintWriter masterMarkerWriter = Files.openAppropriateWriter("master marker info.out");
     StringTokenizer st;
     String chrome, trav, prev;
-    Vector<String> positron = new Vector<String>();
-    Vector<String> victor = new Vector<String>();
-    Vector<String> zeroGoodness = new Vector<String>();
-    Vector<String> markerNames = new Vector<String>();
+    Vector<String> positron = new Vector<>();
+    Vector<String> victor = new Vector<>();
+    Vector<String> zeroGoodness = new Vector<>();
+    Vector<String> markerNames = new Vector<>();
     double pos, inf;
 
     for (int chromosome = start; chromosome <= stop; chromosome++) {

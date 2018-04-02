@@ -57,7 +57,7 @@ public class VCFOpsMT {
     private final RCRS rcrs;
 
     private AlleleSwapper(Logger log) {
-      toSwaps = new HashSet<Integer>();
+      toSwaps = new HashSet<>();
       for (int element : BP_DIFFS) {
         toSwaps.add(element);
       }
@@ -108,7 +108,7 @@ public class VCFOpsMT {
                         + vc.getAlleles().contains(rcrsRef));
         throw new IllegalStateException("not surprisingly, assumptions about allele swapping have been violated");
       }
-      ArrayList<Allele> newAlleles = new ArrayList<Allele>();
+      ArrayList<Allele> newAlleles = new ArrayList<>();
       newAlleles.add(Allele.create(vc.getReference().getBases(), false));
       newAlleles.add(rcrsRef);
       for (Allele prevAlt : vc.getAlternateAlleles()) {
@@ -124,12 +124,12 @@ public class VCFOpsMT {
     private void reDeriveGenotypes(VariantContext vc, VariantContextBuilder builder,
                                    Allele rcrsRef) {
       GenotypesContext gc = vc.getGenotypes();// original genotypes
-      ArrayList<Genotype> newGenos = new ArrayList<Genotype>();
+      ArrayList<Genotype> newGenos = new ArrayList<>();
       for (Genotype g : gc) {// handle the new alleles on a genotype basis
         if (g.isCalled()) {
           GenotypeBuilder b = new GenotypeBuilder(g);
           List<Allele> old = g.getAlleles();
-          ArrayList<Allele> newGAlleles = new ArrayList<Allele>();
+          ArrayList<Allele> newGAlleles = new ArrayList<>();
           for (Allele a : old) {
             swapGenotypes(rcrsRef, newGAlleles, a);
           }
@@ -221,7 +221,7 @@ public class VCFOpsMT {
   }
 
   private static HashMap<String, Integer> getAlleleCounts(VariantContext vc) {
-    HashMap<String, Integer> alleleCounts = new HashMap<String, Integer>();
+    HashMap<String, Integer> alleleCounts = new HashMap<>();
 
     for (Genotype g : vc.getGenotypes()) {
       for (Allele a : g.getAlleles()) {
@@ -315,7 +315,7 @@ public class VCFOpsMT {
 
   private static VCFHeader getRcrsHeader(VCFFileReader reader, MT_GENOME mGenome) {
     VCFHeader header = new VCFHeader(reader.getFileHeader());
-    ArrayList<SAMSequenceRecord> records = new ArrayList<SAMSequenceRecord>();
+    ArrayList<SAMSequenceRecord> records = new ArrayList<>();
     switch (mGenome) {
       case HG19:
         records.add(new SAMSequenceRecord("chrM", 16571));

@@ -79,8 +79,8 @@ public class PrincipalComponentsEval {
                    + ext.rootOf(evalFile) + ".SpearmanP" + "\t" + ext.rootOf(evalFile)
                    + ".ICCMETHODS" + "\t" + ext.rootOf(evalFile) + ".ICCMATCHED");
     }
-    ArrayList<Double> evalHave = new ArrayList<Double>();
-    ArrayList<Double> residHave = new ArrayList<Double>();
+    ArrayList<Double> evalHave = new ArrayList<>();
+    ArrayList<Double> residHave = new ArrayList<>();
     for (int j = 0; j < data.length; j++) {
       if ((!Double.isNaN(data[j])) && (!Double.isNaN(eval[j]))) {
         evalHave.add(Double.valueOf(eval[j]));
@@ -304,7 +304,7 @@ public class PrincipalComponentsEval {
     try {
       BufferedReader reader = Files.getAppropriateReader(dataFile);
       reader.readLine();
-      ArrayList<String> samples = new ArrayList<String>();
+      ArrayList<String> samples = new ArrayList<>();
       while (reader.ready()) {
         String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         samples.add(line[0]);

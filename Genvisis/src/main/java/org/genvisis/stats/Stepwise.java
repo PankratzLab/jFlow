@@ -39,8 +39,8 @@ public class Stepwise {
 
   public Stepwise(double[] new_deps, double[][] new_indeps, int svdRegressionSwitch,
                   boolean bonferroniEntry, int numThreads) {
-    Xs = new Vector<double[]>();
-    Ys = new Vector<String>();
+    Xs = new Vector<>();
+    Ys = new Vector<>();
 
     for (int i = 0; i < new_deps.length; i++) {
       Xs.add(new_indeps[i]);
@@ -51,8 +51,8 @@ public class Stepwise {
   }
 
   public Stepwise(int[] new_deps, int[][] new_indeps) {
-    Xs = new Vector<double[]>();
-    Ys = new Vector<String>();
+    Xs = new Vector<>();
+    Ys = new Vector<>();
     double[] data;
 
     for (int i = 0; i < new_deps.length; i++) {
@@ -70,11 +70,11 @@ public class Stepwise {
   public static RegVectors procFile(String filename) {
     BufferedReader reader = null;
     String[] line;
-    Vector<String> deps = new Vector<String>();
-    Vector<double[]> indeps = new Vector<double[]>();
+    Vector<String> deps = new Vector<>();
+    Vector<double[]> indeps = new Vector<>();
     double[] data;
     boolean names = false;
-    Vector<String> indNames = new Vector<String>();
+    Vector<String> indNames = new Vector<>();
 
     try {
       reader = new BufferedReader(new FileReader(filename));
@@ -121,7 +121,7 @@ public class Stepwise {
     RegressionModel model;
     IntVector in = new IntVector();
     IntVector out = new IntVector();
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     double[][] pvals;
     int bestModel;
     boolean done;
@@ -160,7 +160,7 @@ public class Stepwise {
     }
 
     done = false;
-    increments = new Vector<IntVector>();
+    increments = new Vector<>();
     while (!done) {
       pvals = new double[out.size()][];
       bestModel = -1;
@@ -169,7 +169,7 @@ public class Stepwise {
       if (numThreads > 1) {
         RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                              svdRegressionSwitch);
-        try (WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer,
+        try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer,
                                                                                    numThreads, 2,
                                                                                    new Logger())) {
           int index = 0;
@@ -322,7 +322,7 @@ public class Stepwise {
   }
 
   public static Vector<double[]> travXs(int N, List<double[]> xs2, IntVector ins) {
-    Vector<double[]> v = new Vector<double[]>();
+    Vector<double[]> v = new Vector<>();
     double[] data, newdata;
 
     for (int i = 0; i < N; i++) {
@@ -450,7 +450,7 @@ public class Stepwise {
 
       RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                            svdRegressionSwitch);
-      try (WorkerTrain<RegressionModel> train = new WorkerTrain<RegressionModel>(producer,
+      try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer,
                                                                                  numThreads, 2,
                                                                                  new Logger())) {
         int index = 0;

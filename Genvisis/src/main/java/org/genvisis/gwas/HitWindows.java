@@ -154,7 +154,7 @@ public class HitWindows {
     Vector<String[]> v;
     String[] line;
 
-    v = new Vector<String[]>();
+    v = new Vector<>();
     line = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window",
                          "RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
                          "NumTotalMarkers", "SizeOfRegion"};
@@ -273,8 +273,8 @@ public class HitWindows {
     String[] header, traits, markerNames, chrPositions;
     Segment variant;
 
-    v = new Vector<String>();
-    hash = new Hashtable<String, Vector<String>>();
+    v = new Vector<>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(inputHits));
       header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -317,7 +317,7 @@ public class HitWindows {
       line = chrPositions[m].split(PSF.Regex.GREEDY_WHITESPACE);
       variant = new Segment(Byte.parseByte(line[0]), Integer.parseInt(line[1]),
                             Integer.parseInt(line[1]) + 1);
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 0; i < segs.length; i++) {
         for (int j = 0; j < segs[i].length; j++) {
           if (variant.overlaps(segs[i][j])) {

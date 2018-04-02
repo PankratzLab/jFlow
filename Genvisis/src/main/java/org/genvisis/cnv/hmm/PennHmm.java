@@ -511,8 +511,8 @@ public class PennHmm {
       CNVariant.CNVBuilder builder = new CNVBuilder();
       builder.familyID(fid);
       builder.individualID(iid);
-      indexStateChange = new ArrayList<int[]>();
-      ArrayList<CNVariant> tmp = new ArrayList<CNVariant>();
+      indexStateChange = new ArrayList<>();
+      ArrayList<CNVariant> tmp = new ArrayList<>();
       if (positions.length != q.length) {
         String error = "Have " + q.length + " state sequences, but " + positions.length
                        + " positions";
@@ -775,11 +775,11 @@ public class PennHmm {
                                                      double[] bafsChr, double[] pfbsChr,
                                                      boolean[] copyNumberOnlyDef, int[] q,
                                                      int normalState, Logger log) {
-    ArrayList<CNVariant> scored = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> scored = new ArrayList<>();
 
     for (int i = 0; i < cLocusSet.getLoci().length; i++) {
       CNVariant current = cLocusSet.getLoci()[i];
-      ArrayList<Integer> indicestmp = new ArrayList<Integer>();
+      ArrayList<Integer> indicestmp = new ArrayList<>();
       for (int j = 0; j < posChr.length; j++) {// TODO, speed up this search
         int pos = posChr[j];
         if (pos >= current.getStart() && pos <= current.getStop()) {

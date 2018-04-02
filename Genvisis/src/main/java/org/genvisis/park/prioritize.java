@@ -17,7 +17,7 @@ public class prioritize {
     PrintWriter writer = null;
     String[] line, l2;
     String temp, trav;
-    Hashtable<String, String[][]> hash = new Hashtable<String, String[][]>();
+    Hashtable<String, String[][]> hash = new Hashtable<>();
     String[] DBs = databases.split("\\|");
     String lookup = "";
     int[] lookupIndices = new int[DBs.length + 1];

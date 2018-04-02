@@ -240,7 +240,7 @@ public class FileAndOutputSelectorGUI extends JDialog {
           @Override
           public void actionPerformed(ActionEvent e) {
             JFileChooser jfc = new JFileChooser();
-            ArrayList<File> selFiles = new ArrayList<File>();
+            ArrayList<File> selFiles = new ArrayList<>();
             for (String str : txtFldInputFile.getText().split(";")) {
               selFiles.add(new File(str));
             }

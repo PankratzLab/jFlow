@@ -39,7 +39,7 @@ public class SequenceLookup {
    * @return
    */
   private static Hashtable<String, String> getNucleotideLookup() {
-    Hashtable<String, String> lookup = new Hashtable<String, String>();
+    Hashtable<String, String> lookup = new Hashtable<>();
     addCombo(new String[] {"A"}, "A", lookup);
     addCombo(new String[] {"C"}, "C", lookup);
     addCombo(new String[] {"G"}, "G", lookup);

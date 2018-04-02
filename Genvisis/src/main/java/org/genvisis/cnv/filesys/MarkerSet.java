@@ -227,7 +227,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
   @Override
   public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
     int index = seg.getChr();
-    ArrayList<String> markersIn = new ArrayList<String>();
+    ArrayList<String> markersIn = new ArrayList<>();
     int[] indices = indicesByChr == null ? getIndicesByChr()[index] : indicesByChr[index];
     for (int indice : indices) {
       int bp = positions[indice];

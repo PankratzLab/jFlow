@@ -82,7 +82,7 @@ public class GcAdjustorParameter implements Serializable {
   }
 
   public String[] getQCString() {
-    ArrayList<String> qc = new ArrayList<String>();
+    ArrayList<String> qc = new ArrayList<>();
     qc.add(betas[0] + "");
     qc.add(betas[1] + "");
     qc.add(wfPrior + "");
@@ -266,7 +266,7 @@ public class GcAdjustorParameter implements Serializable {
     private ArrayList<GcAdjustorParameter> getParams(GCAdjustorBuilder builder,
                                                      boolean[] computeMethods, float[] intensites,
                                                      int[] autosomalIndices) {
-      ArrayList<GcAdjustorParameter> parameters = new ArrayList<GcAdjustorParameter>();
+      ArrayList<GcAdjustorParameter> parameters = new ArrayList<>();
       for (int i = 0; i < correction_METHODs.length; i++) {
         if (computeMethods[i]) {
           builder.correctionMethod(correction_METHODs[i]);
@@ -520,7 +520,7 @@ public class GcAdjustorParameter implements Serializable {
 
       GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel,
                                                            samples, verbose, centroids, methods);
-      try (WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<GcAdjustorParameter[][][]>(producer,
+      try (WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<>(producer,
                                                                                                      numThreads,
                                                                                                      2,
                                                                                                      proj.getLog())) {

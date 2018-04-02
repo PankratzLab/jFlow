@@ -376,7 +376,7 @@ public class CentroidCompute {
       log.reportError("Error - no X values found, cannot compute genotype centers");
       failed = true;
     } else {
-      ArrayList<Double> filteredXs = new ArrayList<Double>(xs.length);
+      ArrayList<Double> filteredXs = new ArrayList<>(xs.length);
       for (int i = 0; i < xs.length; i++) {
         if ((forceAuto || checkSex(chr, i)) && (samplesToUse == null || samplesToUse[i])
             && !Float.isNaN(xs[i])) {
@@ -780,7 +780,7 @@ public class CentroidCompute {
     String[] markers = proj.getMarkerNames();
     float[][][][] centroids = new float[builders.length][markers.length][][];
     CentroidProducer producer = new CentroidProducer(proj, markers, builders, numDecompressThreads);
-    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer,
+    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<>(producer,
                                                                                    numCentThreads,
                                                                                    10,
                                                                                    proj.getLog())) {
@@ -879,7 +879,7 @@ public class CentroidCompute {
     CentroidBuilder builder = new CentroidBuilder();
     CentroidProducer producer = new CentroidProducer(proj, markers, new CentroidBuilder[] {builder},
                                                      2);
-    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<CentroidCompute[]>(producer, 6, 100,
+    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<>(producer, 6, 100,
                                                                                    proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {

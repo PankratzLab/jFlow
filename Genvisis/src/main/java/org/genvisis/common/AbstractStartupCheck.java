@@ -9,7 +9,7 @@ import java.util.List;
  */
 public abstract class AbstractStartupCheck implements StartupCheck {
 
-  private List<String> messages = new ArrayList<String>();
+  private List<String> messages = new ArrayList<>();
 
   @Override
   public List<String> check() {

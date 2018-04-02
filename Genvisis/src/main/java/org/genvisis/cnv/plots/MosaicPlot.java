@@ -127,8 +127,8 @@ public class MosaicPlot extends JFrame implements ActionListener {
       // TODO left incomplete, what was the goal of this added code??
     }
 
-    samples = new Vector<String[]>();
-    datapoints = new Vector<double[]>();
+    samples = new Vector<>();
+    datapoints = new Vector<>();
     try {
       reader = Files.getReader(mosaicFile, true, true);
       if (!ext.checkHeader(reader.readLine().trim().split("\t"), MOSAICISM_HEADER, false)) {

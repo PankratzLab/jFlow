@@ -27,7 +27,7 @@ public class CNV1000gConcordance {
 
     Logger log = new Logger();
     if (!Files.exists(pfile)) {
-      HashSet<String> samps = new HashSet<String>();
+      HashSet<String> samps = new HashSet<>();
 
       samps.addAll(HashVec.loadFileToHashSet(dupFIle, new int[] {0}, "", false));
 
@@ -64,14 +64,14 @@ public class CNV1000gConcordance {
     LocusSet<CNVariant> set = CNVariant.loadLocSet(pfile, new Logger());
 
     HashSet<String> rep = CNVariant.getUniqueInds(set, log);
-    HashSet<String> inds = new HashSet<String>();
-    HashSet<String> finals = new HashSet<String>();
+    HashSet<String> inds = new HashSet<>();
+    HashSet<String> finals = new HashSet<>();
 
     for (String ind : rep) {
       inds.add(ind.split("\t")[0]);
     }
-    ArrayList<String> comps = new ArrayList<String>();
-    ArrayList<String> newSampDat = new ArrayList<String>();
+    ArrayList<String> comps = new ArrayList<>();
+    ArrayList<String> newSampDat = new ArrayList<>();
     newSampDat.add("DNA\tFID\tIID");
     try {
       BufferedReader reader = Files.getAppropriateReader(dupFIle);

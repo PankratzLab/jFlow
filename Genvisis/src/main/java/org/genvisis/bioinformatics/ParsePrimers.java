@@ -19,7 +19,7 @@ public class ParsePrimers {
     String trav;
     Hashtable<String, String> hash, used;
 
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + sequence));
       while (reader.ready()) {
@@ -35,7 +35,7 @@ public class ParsePrimers {
       System.exit(2);
     }
 
-    used = new Hashtable<String, String>();
+    used = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + variants));
       writer = Files.openAppropriateWriter(dir + variants + "_IlluminaDesign.csv");

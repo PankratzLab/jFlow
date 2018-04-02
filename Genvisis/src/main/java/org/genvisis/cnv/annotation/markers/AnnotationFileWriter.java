@@ -232,7 +232,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
                                                                        SAMSequenceDictionary samSequenceDictionary) {
     MarkerSetInfo markerSet = proj.getMarkerSet();
     List<SAMSequenceRecord> samSequenceRecords = samSequenceDictionary.getSequences();
-    ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<SAMSequenceRecord>();
+    ArrayList<SAMSequenceRecord> updatedRecords = new ArrayList<>();
     SAMSequenceRecord mitoRecord = null;
     int currentIndex = 0;
     int[][] indicesByChr = markerSet.getIndicesByChr();

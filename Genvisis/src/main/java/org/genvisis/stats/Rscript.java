@@ -20,7 +20,7 @@ import org.genvisis.qsub.Qsub;
 
 public class Rscript {
 
-  public static final HashSet<String> R_INVALID_CHARS = new HashSet<String>(Arrays.asList("-", "=",
+  public static final HashSet<String> R_INVALID_CHARS = new HashSet<>(Arrays.asList("-", "=",
                                                                                           " ",
                                                                                           "\\(",
                                                                                           "\\)"));
@@ -87,7 +87,7 @@ public class Rscript {
 
     files = Files.list(dir, ".R");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String file : files) {
       root = ext.rootOf(dir + file, false);
       Qsub.qsub(root + ".qsub", getRscriptExecutable(log) + " --no-save " + root + ".R", 4000, 2,
@@ -319,7 +319,7 @@ public class Rscript {
     @Override
     public String[] developScript() {
       if (validate()) {
-        ArrayList<String> allPlots = new ArrayList<String>();
+        ArrayList<String> allPlots = new ArrayList<>();
         allPlots.add(getMultiPlotFunc());
 
         String plotDevice = device.getCall() + "\"" + mergeOutput + "\" ,onefile = TRUE)";
@@ -348,7 +348,7 @@ public class Rscript {
     @Override
     public boolean validate() {
       boolean valid = true;
-      Hashtable<String, String> plotVars = new Hashtable<String, String>();
+      Hashtable<String, String> plotVars = new Hashtable<>();
       for (RScatter rScatter : rScatters) {
         if (plotVars.containsKey(rScatter.getPlotVar())) {
           log.reportError("Multiple plot vars " + rScatter.getPlotVar());
@@ -485,7 +485,7 @@ public class Rscript {
         log.reportError("Geom text " + file + "  must have header " + ArrayUtils.toStr(HEADER));
         return null;
       } else {
-        ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
+        ArrayList<GeomText> geomTexts = new ArrayList<>();
         try {
           int[] indices = ext.indexFactors(HEADER, Files.getHeaderOfFile(file, log), true);
           BufferedReader reader = Files.getAppropriateReader(file);
@@ -974,7 +974,7 @@ public class Rscript {
 
     private GeomText[] getLabelers() {
       if (seriesLabeler != null) {
-        ArrayList<GeomText> geomTexts = new ArrayList<GeomText>();
+        ArrayList<GeomText> geomTexts = new ArrayList<>();
         double[] xs = ArrayUtils.toDoubleArray(HashVec.loadFileToStringArray(dataFile, true,
                                                                              new int[] {ext.indexOfStr(dataXvalueColumn,
                                                                                                        Files.getHeaderOfFile(dataFile,
@@ -1076,7 +1076,7 @@ public class Rscript {
             gTexts = labels;
           }
         }
-        ArrayList<String> rCmd = new ArrayList<String>();
+        ArrayList<String> rCmd = new ArrayList<>();
 
         rCmd.add("library(scales)");
         rCmd.add("library(ggplot2)");

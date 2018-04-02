@@ -150,13 +150,13 @@ public class SexPlot extends JFrame {
   }
 
   public static void loadSexCheckResults(Project proj) {
-    Vector<String> samples = new Vector<String>();
-    Vector<double[]> datapoints = new Vector<double[]>();
-    Vector<Byte> sexes = new Vector<Byte>();
-    Vector<Byte> estimatedSexes = new Vector<Byte>();
-    Vector<Boolean> excluded = new Vector<Boolean>();
-    Vector<Boolean> uncertains = new Vector<Boolean>();
-    Vector<String> notes = new Vector<String>();
+    Vector<String> samples = new Vector<>();
+    Vector<double[]> datapoints = new Vector<>();
+    Vector<Byte> sexes = new Vector<>();
+    Vector<Byte> estimatedSexes = new Vector<>();
+    Vector<Boolean> excluded = new Vector<>();
+    Vector<Boolean> uncertains = new Vector<>();
+    Vector<String> notes = new Vector<>();
     try {
       BufferedReader reader = Files.getReader(proj.SEXCHECK_RESULTS_FILENAME.getValue(), true,
                                               false);

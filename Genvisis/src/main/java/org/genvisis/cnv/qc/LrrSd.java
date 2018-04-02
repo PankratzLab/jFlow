@@ -397,7 +397,7 @@ public class LrrSd extends Parallelizable {
    * @return
    */
   private static Hashtable<String, String> checkSubset(String useFile, Logger log) {
-    Hashtable<String, String> subset = new Hashtable<String, String>();
+    Hashtable<String, String> subset = new Hashtable<>();
     if (useFile != null) {
       if (Files.exists(useFile)) {
         subset = HashVec.loadFileToHashString(useFile, 0, new int[] {0}, null, false);
@@ -491,7 +491,7 @@ public class LrrSd extends Parallelizable {
   public static int[] filterSamples(Project proj, String outputBase, String markersForABCallRate,
                                     String markersForEverythingElse, int numThreads, String useFile,
                                     boolean gcMetrics) {
-    Hashtable<String, String> sampDataQC = new Hashtable<String, String>();
+    Hashtable<String, String> sampDataQC = new Hashtable<>();
     int[] indices;
     String[] line;
     int numPassing, count;
@@ -639,7 +639,7 @@ public class LrrSd extends Parallelizable {
         return null;
       }
 
-      HashMap<String, Integer> sampleIndices = new HashMap<String, Integer>();
+      HashMap<String, Integer> sampleIndices = new HashMap<>();
       String[] samples = proj.getSamples();
       for (int i = 0; i < samples.length; i++) {
         sampleIndices.put(samples[i], i);

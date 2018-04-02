@@ -41,7 +41,7 @@ public class MergeDatasets {
   public static void checkForHomogeneity(String dir, String[] dirs, String outputDir,
                                          String hweCountFlag, Logger log) {
     Hashtable<String, Hashtable<String, String>> hashes;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     Hashtable<String, String> hash;
     BufferedReader reader;
     PrintWriter writer, writer2, writer3, writerProblematic;
@@ -70,7 +70,7 @@ public class MergeDatasets {
     }
     dirs = ArrayUtils.toStringArray(v);
 
-    hashes = new Hashtable<String, Hashtable<String, String>>();
+    hashes = new Hashtable<>();
     for (int i = 0; i < dirs.length; i++) {
       filename = (Files.exists(dir + dirs[i] + "hardy.hwe") ? "hardy.hwe" : "plink.hwe");
       try {
@@ -107,7 +107,7 @@ public class MergeDatasets {
 
       writerProblematic = Files.openAppropriateWriter(outputDir + "problematic.dat");
       System.out.println(ext.getTime() + "\tComputing tests of homogeneity...");
-      Hashtable<String, String> problematicTrack = new Hashtable<String, String>();
+      Hashtable<String, String> problematicTrack = new Hashtable<>();
       for (int i = 0; i < markerNames.length; i++) {
         hash = hashes.get(markerNames[i]);
         keys = HashVec.getKeys(hash, false);
@@ -385,7 +385,7 @@ public class MergeDatasets {
     PrintWriter writer, writer2;
     String[] line, files, keys, datasetNames;
     String temp;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v, values;
     Vector<Vector<String>> datasets;
     int[] counts, order;
@@ -427,8 +427,8 @@ public class MergeDatasets {
       System.out.println("Writing consensus map");
       for (String key : keys) {
         v = hash.get(key);
-        values = new Vector<String>();
-        datasets = new Vector<Vector<String>>();
+        values = new Vector<>();
+        datasets = new Vector<>();
         for (int j = 0; j < v.size(); j++) {
           line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
           index = values.indexOf(line[1] + "\t" + line[2]);
@@ -560,7 +560,7 @@ public class MergeDatasets {
       System.out.println("...done");
     } else {
       System.out.print("Serializing " + mergedMap);
-      hash = new Hashtable<String, String[]>();
+      hash = new Hashtable<>();
       try {
         reader = new BufferedReader(new FileReader(mergedMap));
         while (reader.ready()) {

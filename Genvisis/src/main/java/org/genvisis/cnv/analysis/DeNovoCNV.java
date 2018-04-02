@@ -230,7 +230,7 @@ public class DeNovoCNV {
       commandSuffix = "";
     }
 
-    iterationsVec = new Vector<String[]>();
+    iterationsVec = new Vector<>();
     counter = 0;
     try {
       reader = new BufferedReader(new FileReader(listOfTrioSetsFullPath));
@@ -366,7 +366,7 @@ public class DeNovoCNV {
       // "scripts/runPennCNV_", ".qsub"), 2000, 24);
 
       files = Files.list(pennOutDir + "scripts/", "runPennCNV", ".qsub", false);
-      jobNamesWithAbsolutePaths = new Vector<String>(files.length);
+      jobNamesWithAbsolutePaths = new Vector<>(files.length);
       for (String file : files) {
         jobNamesWithAbsolutePaths.add(pennOutDir + "scripts/" + file);
       }
@@ -386,7 +386,7 @@ public class DeNovoCNV {
     PrintWriter writer;
     String[] line;
     String temp, currentOffSpring;
-    Vector<String> warnings = new Vector<String>();
+    Vector<String> warnings = new Vector<>();
     int[] position;
     String score;
     SampleData sampleData;
@@ -406,7 +406,7 @@ public class DeNovoCNV {
       writer = Files.openAppropriateWriter(proj.DATA_DIRECTORY.getValue(false, true) + "denovo_"
                                            + pennCnvResultFileNameExt.replace("cnv", "") + ".cnv");
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-      offspringCnv = new Hashtable<String, String>();
+      offspringCnv = new Hashtable<>();
       for (String filename : filenames) {
         // currentOffspring = ext.rootOf(filenames[i]);
         offspringExisted = false;
@@ -499,7 +499,7 @@ public class DeNovoCNV {
       pennCnvResultFileNameExt = pennCnvResultFileNameExt.substring(1);
     }
     try {
-      triosPedigree = new Hashtable<String, String[]>();
+      triosPedigree = new Hashtable<>();
       reader = new BufferedReader(new FileReader(triosPedigreeFullPath));
       reader.readLine();
       while (reader.ready()) {
@@ -710,7 +710,7 @@ public class DeNovoCNV {
 
     for (File listOfFile : listOfFiles) {
       if (listOfFile.isFile() && listOfFile.toString().contains(cnvFileExtensions)) {
-        cnv = new Vector<String[]>();
+        cnv = new Vector<>();
         try {
           reader = new BufferedReader(new FileReader(listOfFile.getPath()));
           while (reader.ready()) {

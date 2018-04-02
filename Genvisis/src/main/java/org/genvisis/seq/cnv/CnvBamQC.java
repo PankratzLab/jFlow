@@ -108,7 +108,7 @@ public class CnvBamQC {
   private static RScatter[] plotResults(String summary, HistogramQC histogramQC, Logger log) {
     String[] plotFiles = ArrayUtils.concatAll(new String[] {summary}, splitCn(summary, log));
     String rscatterAll = ext.parseDirectoryOfFile(summary) + "summary.qc";
-    ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rScatters = new ArrayList<>();
     ArrayList<RScatter> rScatterHists = histogramQC.plotAndDumpMapQPop(ext.addToRoot(summary,
                                                                                      ".histogram"),
                                                                        log);
@@ -168,7 +168,7 @@ public class CnvBamQC {
    * @return
    */
   private static String[] splitCn(String summary, Logger log) {
-    ArrayList<String> splits = new ArrayList<String>();
+    ArrayList<String> splits = new ArrayList<>();
     splits.add(ext.addToRoot(summary, ".DUP"));
     splits.add(ext.addToRoot(summary, ".DEL"));
     PrintWriter[] writers = Files.getAppropriateWriters(ArrayUtils.toStringArray(splits));
@@ -268,7 +268,7 @@ public class CnvBamQC {
     }
 
     public ArrayList<RScatter> plotAndDumpMapQPop(String output, Logger log) {
-      ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+      ArrayList<RScatter> rScatters = new ArrayList<>();
       mapQPopDel.average();
       mapQPopDup.average();
       mapQPopAll.average();
@@ -390,7 +390,7 @@ public class CnvBamQC {
     // ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
 
     LocusSet<CNVariant> cnLocusSet = CNVariant.loadLocSet(cnvFile, log);
-    Mappability<CNVariant> mappability = new Mappability<CNVariant>(cnLocusSet, mappabilityFile,
+    Mappability<CNVariant> mappability = new Mappability<>(cnLocusSet, mappabilityFile,
                                                                     callSubsetBed, log);
     String[] bamFiles = null;
     if (Files.isDirectory(bams)) {
@@ -408,7 +408,7 @@ public class CnvBamQC {
                                                  log);
 
     BamPile[][] bamPiles = new BamPile[bamFiles.length][];
-    try (WorkerTrain<BamPileResult> train = new WorkerTrain<BamPileResult>(producer, numThreads, 2,
+    try (WorkerTrain<BamPileResult> train = new WorkerTrain<>(producer, numThreads, 2,
                                                                            log)) {
       int index = 0;
       while (train.hasNext()) {
@@ -454,7 +454,7 @@ public class CnvBamQC {
 
     private void matchAndSplit() {
       int numProblems = 0;
-      ArrayList<Segment> tmpSplit = new ArrayList<Segment>();
+      ArrayList<Segment> tmpSplit = new ArrayList<>();
       int currentIndex = 0;
       for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
         matched[i] = new ArrayIntList(100);

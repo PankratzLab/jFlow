@@ -181,7 +181,7 @@ public class DistributionPlot {
 
     private static XYChart.Series<Number, Number> getHistogram(double[] data, String name) {
 
-      XYChart.Series<Number, Number> countsBin = new XYChart.Series<Number, Number>();
+      XYChart.Series<Number, Number> countsBin = new XYChart.Series<>();
       countsBin.setName(name);
       BasicHistogram histogram = BasicHistogram.getHistogram(100, data);
       for (int j = 0; j < histogram.getCounts().length; j++) {

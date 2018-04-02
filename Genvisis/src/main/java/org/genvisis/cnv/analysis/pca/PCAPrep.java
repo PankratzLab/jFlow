@@ -52,7 +52,7 @@ public class PCAPrep {
     String baseLineMarkers = proj.PROJECT_DIRECTORY.getValue() + outputBase
                              + "_baselineMarkers.txt";
     String[] auto = proj.getAutosomalMarkers();
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     for (int i = 0; i < auto.length; i++) {
       if (!proj.getArrayType().isCNOnly(auto[i])) {
         tmp.add(auto[i]);
@@ -141,7 +141,7 @@ public class PCAPrep {
    * markers at the same time
    */
   private static String[] setMarkersToQC(Project proj, String[] files) {
-    ArrayList<String> markersToUse = new ArrayList<String>();
+    ArrayList<String> markersToUse = new ArrayList<>();
     for (String file : files) {
       String[] markers = HashVec.loadFileToStringArray(file, false, new int[] {0}, false);
       for (String marker : markers) {
@@ -157,7 +157,7 @@ public class PCAPrep {
    */
   private static boolean filterMarkerMetricsFile(Project proj, double markerCallRateFilter,
                                                  String markersABCallrate) {
-    ArrayList<String> abMarkersToUse = new ArrayList<String>();
+    ArrayList<String> abMarkersToUse = new ArrayList<>();
     BufferedReader reader;
     Logger log = proj.getLog();
 

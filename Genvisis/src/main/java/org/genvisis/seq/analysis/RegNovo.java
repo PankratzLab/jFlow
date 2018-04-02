@@ -121,7 +121,7 @@ public class RegNovo {
     }
     Set<String> offspring = vpop.getSuperPop().get(OFFSPRING);
     Set<String> controls = vpop.getSuperPop().get(VcfPopulation.CONTROL);
-    HashSet<String> all = new HashSet<String>();
+    HashSet<String> all = new HashSet<>();
     all.addAll(controls);
     all.addAll(offspring);
 
@@ -144,8 +144,8 @@ public class RegNovo {
       summaryWriter.println(ArrayUtils.toStr(HEADER) + "\t" + ArrayUtils.toStr(annos[0])
                             + "\tOff_Exclude\tOFF_Exclude_Notes\tP1_EXCLUDE\tP1_EXCLUDE_Notes\tP2_EXCLUDE\tP2_EXCLUDE_Notes\t"
                             + REG_NOVO);
-      Hashtable<String, Integer> counts = new Hashtable<String, Integer>();
-      ArrayList<Segment> segsToReview = new ArrayList<Segment>();
+      Hashtable<String, Integer> counts = new Hashtable<>();
+      ArrayList<Segment> segsToReview = new ArrayList<>();
       for (VariantContext vc : reader) {
         total++;
         if (vc.isBiallelic()) {
@@ -198,10 +198,10 @@ public class RegNovo {
                 }
                 if (curFam.size() == 3) {
                   String pString = "";
-                  HashSet<String> parents = new HashSet<String>();
+                  HashSet<String> parents = new HashSet<>();
                   for (String famInd : curFam) {
                     if (!famInd.equals(off)) {
-                      HashSet<String> parent = new HashSet<String>();
+                      HashSet<String> parent = new HashSet<>();
                       parent.add(famInd);
                       parents.add(famInd);
                       VariantContext vcFam = VCOps.getSubset(vc, parent,
@@ -334,7 +334,7 @@ public class RegNovo {
     Set<String> offspring = vpop.getSuperPop().get(OFFSPRING);
     Set<String> controls = vpop.getSuperPop().get(VcfPopulation.CONTROL);
     Set<String> exclude = vpop.getSuperPop().get(VcfPopulation.EXCLUDE);
-    Set<String> all = new HashSet<String>();
+    Set<String> all = new HashSet<>();
     all.addAll(offspring);
     all.addAll(controls);
     all.addAll(exclude);
@@ -365,7 +365,7 @@ public class RegNovo {
                                                             .getSequenceDictionary());
 
     VCFOps.copyHeader(reader, writerVC, null, HEADER_COPY_TYPE.FULL_COPY, log);
-    ArrayList<Segment> segsToReview = new ArrayList<Segment>();
+    ArrayList<Segment> segsToReview = new ArrayList<>();
     for (Segment element : segsSorted) {
       CloseableIterator<VariantContext> iter = reader.query(Positions.getChromosomeUCSC(element.getChr(),
                                                                                         true),
@@ -409,10 +409,10 @@ public class RegNovo {
                 if (VCOps.getAAC(vc, curFam) > 0) {
                   if (curFam.size() == 3) {
                     String[] parents = new String[curFam.size() - 1];
-                    HashSet<String> parentsHashSetCur = new HashSet<String>();
-                    HashSet<String> hashSetExcludeCur = new HashSet<String>();
+                    HashSet<String> parentsHashSetCur = new HashSet<>();
+                    HashSet<String> hashSetExcludeCur = new HashSet<>();
 
-                    HashSet<String> offHashSetCur = new HashSet<String>();
+                    HashSet<String> offHashSetCur = new HashSet<>();
                     int index = 0;
                     for (String famMember : curFam) {
                       if (!off.equals(famMember)) {
@@ -547,7 +547,7 @@ public class RegNovo {
                                   Logger log) {
     VcfPopulation vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.ANY, log);
     vpop.report();
-    Hashtable<String, String> excludeHash = new Hashtable<String, String>();
+    Hashtable<String, String> excludeHash = new Hashtable<>();
     if (excludeFile != null) {
       excludeHash = HashVec.loadFileToHashString(excludeFile, "Sample", new String[] {"Notes"},
                                                  "\t");

@@ -544,7 +544,7 @@ public class ResultsPackager {
         log.reportError("Warning - results file did not contain a column for 'StdErr/SE'; values will be set to NA");
       }
 
-      lowCallrateMarkers = new Vector<String>();
+      lowCallrateMarkers = new Vector<>();
       writer.println(ArrayUtils.toStr(STANDARD_OUTPUT_FORMAT));
       while (reader.ready()) {
         line = reader.readLine().trim().split(delimiter);
@@ -667,7 +667,7 @@ public class ResultsPackager {
       return;
     }
     try {
-      snpList = new Hashtable<Long, String>();
+      snpList = new Hashtable<>();
       index = 1;
       BufferedReader mapReader = Files.getAppropriateReader(mapFile);
       while (mapReader.ready()) {
@@ -1116,7 +1116,7 @@ public class ResultsPackager {
       columnDisplayNames = columnNamesOfAnalyses;
     }
 
-    columnsTmp = new Vector<String>();
+    columnsTmp = new Vector<>();
     for (String[] columnNamesOfAnalyse : columnNamesOfAnalyses) {
       for (String element : columnNamesOfAnalyse) {
         columnsTmp.add(element);

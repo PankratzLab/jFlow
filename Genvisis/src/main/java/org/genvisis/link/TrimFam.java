@@ -72,7 +72,7 @@ public class TrimFam {
 
       mother = null;
       father = null;
-      children = new Vector<Person>();
+      children = new Vector<>();
 
       written = false;
       necessary = false;
@@ -265,7 +265,7 @@ public class TrimFam {
       Person purse, kid;
       String temp = "", maxtMom = "-1";
       Vector<String> v;
-      Hashtable<String, Vector<String>> poss = new Hashtable<String, Vector<String>>();
+      Hashtable<String, Vector<String>> poss = new Hashtable<>();
       int maxt = 0;
       String[] keys;
 
@@ -278,7 +278,7 @@ public class TrimFam {
           if (poss.containsKey(temp)) {
             v = poss.get(temp);
           } else {
-            v = new Vector<String>();
+            v = new Vector<>();
             poss.put(temp, v);
           }
 
@@ -331,10 +331,10 @@ public class TrimFam {
     int numSubFams;
     String mostKids = null;
 
-    hash = new Hashtable<String, Person>();
-    extended = new ArrayList<String>();
-    nukular = new ArrayList<String>();
-    unused = new ArrayList<String>();
+    hash = new Hashtable<>();
+    extended = new ArrayList<>();
+    nukular = new ArrayList<>();
+    unused = new ArrayList<>();
     rename = canRename;
     namingScheme = scheme;
     hasSubfamilies = false;
@@ -349,7 +349,7 @@ public class TrimFam {
 
     famid = null;
 
-    genoed = new Hashtable<String, String>();
+    genoed = new Hashtable<>();
     for (int i = 0; i < preinfo.size(); i++) {
       line = preinfo.get(i).trim().split(PSF.Regex.GREEDY_WHITESPACE);
       if (line.length < 7) {
@@ -472,7 +472,7 @@ public class TrimFam {
   }
 
   public List<String> getExtendedFamilyInformation() {
-    List<String> output = new ArrayList<String>();
+    List<String> output = new ArrayList<>();
     int[] keys = reorder(extended);
 
     for (int i = 0; i < extended.size(); i++) {
@@ -483,7 +483,7 @@ public class TrimFam {
   }
 
   public List<String> getNuclearFamilyInformation() {
-    List<String> output = new ArrayList<String>();
+    List<String> output = new ArrayList<>();
     int[] keys = reorder(nukular);
 
     for (int i = 0; i < nukular.size(); i++) {
@@ -623,7 +623,7 @@ public class TrimFam {
     source = hash.get("root");
     while (!done) {
       done = true;
-      famIndHash = new Hashtable<String, Vector<String>>();
+      famIndHash = new Hashtable<>();
       inds = HashVec.getKeys(hash);
       for (String ind : inds) {
         purse = hash.get(ind);
@@ -703,7 +703,7 @@ public class TrimFam {
 
     // make parents of largest sibship 101 and 102
     daddy = hash.get(fatherOfLargestSibship);
-    usedRecodedIDs = new Vector<String>();
+    usedRecodedIDs = new Vector<>();
     if (!daddy.genotyped && !daddy.isRoot()) {
       daddy.recoded_id = "101";
       usedRecodedIDs.add("101");
@@ -757,9 +757,9 @@ public class TrimFam {
   }
 
   public static int[] reorder(List<String> original) {
-    List<String> unordered = new ArrayList<String>();
+    List<String> unordered = new ArrayList<>();
     List<String> pool;
-    List<String> subset = new ArrayList<String>();
+    List<String> subset = new ArrayList<>();
     int[] order = new int[original.size()], keys, numArray;
     int count = 0, maxID = 0, id;
     String[] line;
@@ -819,7 +819,7 @@ public class TrimFam {
   }
 
   public static void demo() throws IOException {
-    Vector<String> pre = new Vector<String>();
+    Vector<String> pre = new Vector<>();
     List<String> v;
 
     pre.add("70504	101	201	202	1	0	0");
@@ -879,8 +879,8 @@ public class TrimFam {
       priorityScores = HashVec.loadFileToHashString(priorityScoresFile, new int[] {0, 1},
                                                     new int[] {2}, false, "\t", false, false);
     }
-    fams = new Vector<String>();
-    preHash = new Hashtable<String, Vector<String>>();
+    fams = new Vector<>();
+    preHash = new Hashtable<>();
     countMissing = 0;
     try {
       reader = new BufferedReader(new FileReader(pedigreeFile));

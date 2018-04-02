@@ -102,7 +102,7 @@ public class Mendel {
   public static String[][] parseMaxLods(String filename) {
     BufferedReader reader;
     String temp;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String[][] results;
     boolean done = false;
     double lod, max;
@@ -167,8 +167,8 @@ public class Mendel {
     map = new LinkageMap(dir + mapfile);
     markerNames = map.getMarkerNames();
 
-    autosomalMarkers = new Vector<String>();
-    xLinkedMarkers = new Vector<String>();
+    autosomalMarkers = new Vector<>();
+    xLinkedMarkers = new Vector<>();
     if (markerSet != null) {
       chrHash = markerSet.getChrHash();
       for (String markerName : markerNames) {

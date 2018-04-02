@@ -50,14 +50,14 @@ public class BinnedMovingStatistic<T extends Number> {
   public BinnedMovingStatistic(int window, MovingStat movingType) {
     switch (movingType) {
       case MEAN:
-        binManager = new MeanBinManager<T>(window);
+        binManager = new MeanBinManager<>(window);
         break;
       case MAD:
-        binManager = new MADBinManager<T>(window);
+        binManager = new MADBinManager<>(window);
         break;
     }
-    binVals = new TreeList<Integer>();
-    currentBin = new ArrayList<T>();
+    binVals = new TreeList<>();
+    currentBin = new ArrayList<>();
   }
 
   /**
@@ -77,7 +77,7 @@ public class BinnedMovingStatistic<T extends Number> {
       // Start building the next bin
       binVals.add(currentBinVal);
       currentBinVal = bin;
-      currentBin = new ArrayList<T>();
+      currentBin = new ArrayList<>();
     }
     currentBin.add(val);
 
@@ -106,7 +106,7 @@ public class BinnedMovingStatistic<T extends Number> {
     if (!currentBin.isEmpty()) {
       binVals.add(currentBinVal);
       addCurrentBin();
-      currentBin = new ArrayList<T>();
+      currentBin = new ArrayList<>();
       currentBinVal = -1;
     }
     binManager.filledWindow();
@@ -300,8 +300,8 @@ public class BinnedMovingStatistic<T extends Number> {
 
     public MeanBinManager(int window) {
       super(window);
-      sums = new ArrayDeque<Double>();
-      counts = new ArrayDeque<Integer>();
+      sums = new ArrayDeque<>();
+      counts = new ArrayDeque<>();
     }
 
     @Override
@@ -352,8 +352,8 @@ public class BinnedMovingStatistic<T extends Number> {
     public MADBinManager(int window) {
       super(window);
       // Need to store the raw bin unfortunately, as it is necessary on eviction
-      bins = new TreeList<List<T>>();
-      values = new TreeMap<T, int[]>();
+      bins = new TreeList<>();
+      values = new TreeMap<>();
     }
 
     @Override
@@ -372,7 +372,7 @@ public class BinnedMovingStatistic<T extends Number> {
     public double getStat() {
       double median = median(values);
 
-      Map<Double, int[]> absDiffs = new TreeMap<Double, int[]>();
+      Map<Double, int[]> absDiffs = new TreeMap<>();
       for (Entry<T, int[]> entry : values.entrySet()) {
         Double diffKey = Math.abs(entry.getKey().doubleValue() - median);
         if (absDiffs.containsKey(diffKey)) {

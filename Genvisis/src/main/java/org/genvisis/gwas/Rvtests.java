@@ -57,7 +57,7 @@ public class Rvtests {
     }
 
     index = -1;
-    filenameAdditionalSegments = new Vector<String>();
+    filenameAdditionalSegments = new Vector<>();
     indices = new int[segmentIndices.length];
     for (int i = 0; i < indices.length; i++) {
       try {
@@ -69,7 +69,7 @@ public class Rvtests {
       }
     }
 
-    conversionTable = new Vector<String[]>();
+    conversionTable = new Vector<>();
     for (String element : filenameConversionDictionary) {
       tmp1 = element.split("=");
       if (tmp1.length == 2) {

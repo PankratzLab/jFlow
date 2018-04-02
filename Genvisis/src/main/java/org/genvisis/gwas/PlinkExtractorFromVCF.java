@@ -20,7 +20,7 @@ public class PlinkExtractorFromVCF {
     int[] temp;
     int lineIndex;
 
-    pos = new ArrayList<int[]>();
+    pos = new ArrayList<>();
     line = null;
     lineIndex = 0;
     try {
@@ -102,8 +102,8 @@ public class PlinkExtractorFromVCF {
       return;
     }
 
-    ArrayList<String> commands = new ArrayList<String>();
-    ArrayList<String> roots = new ArrayList<String>();
+    ArrayList<String> commands = new ArrayList<>();
+    ArrayList<String> roots = new ArrayList<>();
 
     commands.add("cd " + current);
     for (int i = 0; i < ucsc.length; i++) {

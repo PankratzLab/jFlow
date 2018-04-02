@@ -77,7 +77,7 @@ public class Metal {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, header;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     boolean logistic;
     int[] indices;
     int testIndex, seIndex;
@@ -197,7 +197,7 @@ public class Metal {
       reader = new BufferedReader(new FileReader(filename));
       writer = Files.openAppropriateWriter(output);
 
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       header = reader.readLine().trim().split(delimiterIn);
 
       markerIndices = ext.indexFactors(new String[][] {unitOfAnlaysis}, header, false, true, false,
@@ -417,7 +417,7 @@ public class Metal {
       }
 
       for (int i = 0; i < filenames.length; i++) {
-        mappings = new Vector<String>();
+        mappings = new Vector<>();
 
         if (!new File(dir + filenames[i]).exists()) {
           log.reportError("Error - file '" + filenames[i] + "' does not exist in directory '" + dir
@@ -603,7 +603,7 @@ public class Metal {
     PrintWriter writer;
     String trav;
     String[] line;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v;
     String[] header, roots, values;
     int[][] indices;
@@ -615,7 +615,7 @@ public class Metal {
       reader = new BufferedReader(new FileReader(filename));
       writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_consensus.xln");
       header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 1; i < header.length; i++) {
         HashVec.addIfAbsent(header[i].substring(0, header[i].indexOf("_")), v);
       }
@@ -800,10 +800,10 @@ public class Metal {
     double mafThreshold = Double.NaN;
     double[] seValues = null;
     double[] mafValues = null;
-    Hashtable<String, ArrayList<String>> customCommands = new Hashtable<String, ArrayList<String>>();
+    Hashtable<String, ArrayList<String>> customCommands = new Hashtable<>();
     if (params != null) {
       outputFile = params.remove(0);
-      ArrayList<Integer> paramsToRemove = new ArrayList<Integer>();// to avoid modifying within loop
+      ArrayList<Integer> paramsToRemove = new ArrayList<>();// to avoid modifying within loop
       for (int i = 0; i < params.size(); i++) {
         if (params.get(i).startsWith("build=")) {
           build = ext.parseByteArg(params.get(i));
@@ -839,7 +839,7 @@ public class Metal {
         log.reportError("Warning - build was not specified, assuming build 37 (aka hg19)");
         build = 37;
       }
-      Vector<String> remaining = new Vector<String>();
+      Vector<String> remaining = new Vector<>();
       for (int i = 0; i < params.size(); i++) {
         if (!paramsToRemove.contains(i)) {
           remaining.add(params.get(i));
@@ -916,7 +916,7 @@ public class Metal {
       // chrs = new Vector<String>();
       // positions = new Vector<String>();
       // geneNames = new Vector<String>();
-      markerPositionHash = new Hashtable<String, int[]>();
+      markerPositionHash = new Hashtable<>();
       countMismatches = 0;
       fileParameters = new String[4 + inputFiles.length];
 
@@ -924,7 +924,7 @@ public class Metal {
       fileParameters[2] = outputFile
                           + "_InvVar1.out 0 'Allele1' 'Allele2' 'Effect'=Beta 'StdErr' 'P-value' 'Direction'";
       fileParameters[3] = outputFile + "_NWeighted1.out 0 'Weight' 'P-value'";
-      Hashtable<String, Hashtable<String, String>> altHeaders = new Hashtable<String, Hashtable<String, String>>();
+      Hashtable<String, Hashtable<String, String>> altHeaders = new Hashtable<>();
       String[][] headersWithAlts = new String[][] {Aliases.ALLELES[0], Aliases.ALLELES[1],
                                                    Aliases.ALLELE_FREQS, Aliases.NS,
                                                    Aliases.EFFECTS, Aliases.STD_ERRS,
@@ -1047,12 +1047,12 @@ public class Metal {
                                    false);
     int mkrInd = hwInd[0];
 
-    HashSet<String> hwMkrs = new HashSet<String>();
+    HashSet<String> hwMkrs = new HashSet<>();
     for (int i = 1; i < hwResults.length; i++) {
       hwMkrs.add(hwResults[i][mkrInd]);
     }
 
-    HashMap<String, String[]> topHitsParts = new HashMap<String, String[]>();
+    HashMap<String, String[]> topHitsParts = new HashMap<>();
 
     BufferedReader reader = Files.getAppropriateReader("topHits.xln");
     String headerLine = reader.readLine().trim();
@@ -1220,7 +1220,7 @@ public class Metal {
       }
       writer.println("SNP\tA1\tA2\tfreqA1\teffN\tMAF");
       header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 1; i < header.length; i++) {
         HashVec.addIfAbsent(header[i].substring(0, header[i].lastIndexOf("_")), v);
       }
@@ -1364,7 +1364,7 @@ public class Metal {
       writers[1] = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_compFlipped.xln");
       writers[2] = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_compAmbiguous.xln");
       header = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 1; i < header.length; i++) {
         HashVec.addIfAbsent(header[i].substring(0, header[i].indexOf("_")), v);
       }
@@ -1728,8 +1728,8 @@ public class Metal {
     log.report("F1_study\tF2_study\tnumAgree\tnumExclusiveToF1\tnumExclusiveToF2");
     for (int i = 0; i < agreements.length; i++) {
       matches[i] = Sort.getReverseIndices(agreements[i])[0];
-      missHash1 = new Hashtable<String, String>();
-      missHash2 = new Hashtable<String, String>();
+      missHash1 = new Hashtable<>();
+      missHash2 = new Hashtable<>();
       for (String key : keys) {
         trav1 = hash1.get(key);
         trav2 = hash2.get(key);

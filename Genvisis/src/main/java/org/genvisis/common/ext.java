@@ -409,10 +409,10 @@ public class ext {
    *         operators, and the tokens
    */
   public static String[][] getOperatorsOperatorIndicesAndSplit(String str, String operators) {
-    Vector<String> operatorsPresent = new Vector<String>();
-    Vector<String> operatorIndices = new Vector<String>();
-    Vector<String> tokens = new Vector<String>();
-    Vector<String> ops = new Vector<String>();
+    Vector<String> operatorsPresent = new Vector<>();
+    Vector<String> operatorIndices = new Vector<>();
+    Vector<String> tokens = new Vector<>();
+    Vector<String> ops = new Vector<>();
     int count = 0;
     String hist = "";
 
@@ -942,7 +942,7 @@ public class ext {
    */
   public static int[] indexLargeFactors(String[] subset, String[] superset, boolean casesensitive,
                                         Logger log, boolean verbose) {
-    Hashtable<String, Integer> track = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> track = new Hashtable<>();
     int[] indices = new int[subset.length];
     Arrays.fill(indices, -1);
     boolean err = false;
@@ -1266,7 +1266,7 @@ public class ext {
   public static Map<String, Integer> indexMap(String[] subset, String[] superset,
                                               boolean casesensitive, Logger log, boolean verbose,
                                               boolean kill) {
-    Map<String, Integer> indices = new HashMap<String, Integer>(subset.length);
+    Map<String, Integer> indices = new HashMap<>(subset.length);
 
     if (!casesensitive) {
       // TODO implement CaseInsensitiveMap solution (maybe Apache Commons)
@@ -1275,7 +1275,7 @@ public class ext {
         indices.put(subset[i], indexArr[i]);
       }
     } else {
-      Set<String> targets = new HashSet<String>(Arrays.asList(subset));
+      Set<String> targets = new HashSet<>(Arrays.asList(subset));
       boolean err = false;
 
       for (int i = 0; i < superset.length; i++) {
@@ -1806,7 +1806,7 @@ public class ext {
   public static int[] parseIntArrayArg(String arg) {
     String lst = arg.trim().split("=")[1];
     String[] pts = lst.split(",");
-    ArrayList<Integer> returnList = new ArrayList<Integer>();
+    ArrayList<Integer> returnList = new ArrayList<>();
     for (String pt : pts) {
       // check for range
       if (pt.contains("-")) {
@@ -2014,7 +2014,7 @@ public class ext {
     boolean insideQuotes;
 
     insideQuotes = false;
-    v = new Vector<String>();
+    v = new Vector<>();
     startIndex = numCommas = 0;
     for (int i = 0; i < str.length(); i++) {
       if (str.charAt(i) == ',') {

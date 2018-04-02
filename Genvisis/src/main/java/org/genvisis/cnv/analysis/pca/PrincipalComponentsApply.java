@@ -289,7 +289,7 @@ public class PrincipalComponentsApply {
    * laid down in project order...If the markerDataLoader hangs, this is a good spot to sort
    */
   private void getMarkers() {
-    ArrayList<String> al = new ArrayList<String>();
+    ArrayList<String> al = new ArrayList<>();
     for (MarkerLoadings markerLoading : markerLoadings) {
       al.add(markerLoading.getMarker());
     }
@@ -320,7 +320,7 @@ public class PrincipalComponentsApply {
 
     public static MarkerLoadings[] getLoadings(String markerLoadingFile, int numComponents,
                                                Logger log) {
-      ArrayList<MarkerLoadings> ml = new ArrayList<MarkerLoadings>();
+      ArrayList<MarkerLoadings> ml = new ArrayList<>();
       try {
         BufferedReader reader = Files.getReader(markerLoadingFile, true, false);
         String[] line = reader.readLine().trim().split("\t");

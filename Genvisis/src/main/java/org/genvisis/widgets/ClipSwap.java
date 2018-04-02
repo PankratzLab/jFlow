@@ -219,7 +219,7 @@ public class ClipSwap {
 
     lines = ext.getClipboard().trim().split("\\n");
 
-    hash = new HashSet<String>();
+    hash = new HashSet<>();
     for (int i = 0; i < lines.length; i++) {
       if (!ext.isMissingValue(lines[i])) {
         hash.add(lines[i]);

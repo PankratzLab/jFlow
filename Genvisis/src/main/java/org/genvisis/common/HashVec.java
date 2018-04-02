@@ -87,7 +87,7 @@ public class HashVec {
     if (hash.containsKey(key)) {
       v = hash.get(key);
     } else {
-      hash.put(key, v = new Vector<String>());
+      hash.put(key, v = new Vector<>());
     }
 
     if (onlyifabsent) {
@@ -106,7 +106,7 @@ public class HashVec {
     if (hash.containsKey(key)) {
       v = hash.get(key);
     } else {
-      hash.put(key, v = new Vector<String[]>());
+      hash.put(key, v = new Vector<>());
     }
 
     v.add(array);
@@ -119,7 +119,7 @@ public class HashVec {
     if (hash1.containsKey(key1)) {
       hash2 = hash1.get(key1);
     } else {
-      hash1.put(key1, hash2 = new Hashtable<String, Object>());
+      hash1.put(key1, hash2 = new Hashtable<>());
     }
     hash2.put(key2, value);
   }
@@ -131,7 +131,7 @@ public class HashVec {
     if (hash1.containsKey(key1)) {
       hash2 = hash1.get(key1);
     } else {
-      hash1.put(key1, hash2 = new Hashtable<String, String>());
+      hash1.put(key1, hash2 = new Hashtable<>());
     }
     hash2.put(key2, value);
   }
@@ -145,12 +145,12 @@ public class HashVec {
     if (hash1.containsKey(key1)) {
       hash2 = hash1.get(key1);
     } else {
-      hash1.put(key1, hash2 = new Hashtable<String, Vector<String>>());
+      hash1.put(key1, hash2 = new Hashtable<>());
     }
     if (hash2.containsKey(key2)) {
       v = hash2.get(key2);
     } else {
-      hash2.put(key2, v = new Vector<String>());
+      hash2.put(key2, v = new Vector<>());
     }
     if (onlyifabsent) {
       addIfAbsent(value, v);
@@ -177,8 +177,8 @@ public class HashVec {
   }
 
   public static HashSet<String> loadToHashSet(String[] list) {
-    if (list == null) return new HashSet<String>();
-    HashSet<String> hash = new HashSet<String>(list.length);
+    if (list == null) return new HashSet<>();
+    HashSet<String> hash = new HashSet<>(list.length);
 
     for (String s : list) {
       hash.add(s);
@@ -189,7 +189,7 @@ public class HashVec {
 
   @SuppressWarnings("rawtypes")
   public static HashSet<String> convertHashNullToHashSet(Hashtable hash) {
-    HashSet<String> set = new HashSet<String>();
+    HashSet<String> set = new HashSet<>();
     for (Object k : hash.keySet()) {
       set.add(k.toString());
     }
@@ -197,7 +197,7 @@ public class HashVec {
   }
 
   public static Hashtable<String, Integer> loadToHashIndices(String[] list, Logger log) {
-    Hashtable<String, Integer> hash = new Hashtable<String, Integer>((list == null ? 10
+    Hashtable<String, Integer> hash = new Hashtable<>((list == null ? 10
                                                                                    : list.length));
 
     for (int i = 0; list != null && i < list.length; i++) {
@@ -264,8 +264,8 @@ public class HashVec {
                                              boolean trimFirst, boolean onlyIfAbsent,
                                              String delimiter) {
     BufferedReader reader = null;
-    Vector<String> v = new Vector<String>();
-    HashSet<String> onlyIfAbsentHash = new HashSet<String>();
+    Vector<String> v = new Vector<>();
+    HashSet<String> onlyIfAbsentHash = new HashSet<>();
     String[] line;
     int count;
 
@@ -340,7 +340,7 @@ public class HashVec {
                                                   boolean allowMissingData,
                                                   boolean treatEmptyAsNull) {
     BufferedReader reader = null;
-    Vector<String[]> v = new Vector<String[]>(initialCapacity);
+    Vector<String[]> v = new Vector<>(initialCapacity);
     String temp;
     String[] line, data;
 
@@ -482,7 +482,7 @@ public class HashVec {
                                                                boolean allowMissingData) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String key, temp;
 
     if (valueIndices == null) {
@@ -577,7 +577,7 @@ public class HashVec {
                                                                     boolean onlyIfAbsent) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     String key, temp;
 
     try {
@@ -625,7 +625,7 @@ public class HashVec {
                                                                                 boolean ignoreFirstLine) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, Hashtable<String, String>> hashes = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hashes = new Hashtable<>();
     String temp;
 
     try {
@@ -665,7 +665,7 @@ public class HashVec {
                                                                                            boolean onlyifabsent) {
     BufferedReader reader = null;
     String[] line;
-    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<String, Hashtable<String, Vector<String>>>();
+    Hashtable<String, Hashtable<String, Vector<String>>> hashes = new Hashtable<>();
     String temp, str;
 
     try {
@@ -702,7 +702,7 @@ public class HashVec {
    * Create a vector of String vectors, pre-allocated to the specified size
    */
   public static Vector<Vector<String>> newVecVecString(int size) {
-    Vector<Vector<String>> v = new Vector<Vector<String>>();
+    Vector<Vector<String>> v = new Vector<>();
 
     for (int i = 0; i < size; i++) {
       v.add(new Vector<String>());
@@ -715,7 +715,7 @@ public class HashVec {
    * Create a vector of hashtables, pre-allocated to the specified size.
    */
   public static Vector<Hashtable<String, String>> newVecHashStringString(int size) {
-    Vector<Hashtable<String, String>> hashes = new Vector<Hashtable<String, String>>();
+    Vector<Hashtable<String, String>> hashes = new Vector<>();
 
     for (int i = 0; i < size; i++) {
       hashes.add(new Hashtable<String, String>());
@@ -730,7 +730,7 @@ public class HashVec {
    * @return the new copy
    */
   public static List<String> cloneVectorString(List<String> v) {
-    List<String> vec = new ArrayList<String>();
+    List<String> vec = new ArrayList<>();
 
     for (String s : v) {
       vec.add(s);
@@ -773,7 +773,7 @@ public class HashVec {
    * @return A sorted list of keys for the given map
    */
   public static List<String> getKeyList(Map<String, ?> map) {
-    List<String> keys = new ArrayList<String>(map.keySet());
+    List<String> keys = new ArrayList<>(map.keySet());
     Collections.sort(keys);
     return keys;
   }
@@ -786,7 +786,7 @@ public class HashVec {
    * @return A sorted list of keys for the given hashtable, sorted alphanumerically
    */
   public static List<String> getNumericKeyList(Map<String, ?> map) {
-    List<String> keys = new ArrayList<String>(map.keySet());
+    List<String> keys = new ArrayList<>(map.keySet());
     Collections.sort(keys, new SciStringComparator());
     return keys;
   }
@@ -801,7 +801,7 @@ public class HashVec {
   }
 
   public static void main(String... strings) {
-    Map<String, String> map = new HashMap<String, String>();
+    Map<String, String> map = new HashMap<>();
     for (int i = 0; i < 1000000; i++) {
       map.put(String.valueOf(i), "");
     }

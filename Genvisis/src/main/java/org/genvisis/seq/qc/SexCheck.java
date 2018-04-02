@@ -43,7 +43,7 @@ public class SexCheck {
   public SexCheck(String[] bamFiles, int numThreads, Logger log) {
     super();
     producer = new SexCheckProducer(bamFiles, log);
-    train = new WorkerTrain<SexCheckResults>(producer, numThreads, 1, log);
+    train = new WorkerTrain<>(producer, numThreads, 1, log);
     this.log = log;
   }
 

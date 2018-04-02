@@ -31,7 +31,7 @@ public class ReferenceMaps {
     PrintWriter writer;
     String[] line, keys;
     String temp;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     Hashtable<String, String> inds;
     int count;
     int[][][] counts;
@@ -64,7 +64,7 @@ public class ReferenceMaps {
     keys = HashVec.getKeys(hash);
     counts = new int[keys.length][MCCAROLL_POPULATIONS.length][MAX_COPIES + 2];
     for (int i = 0; i < MCCAROLL_POPULATIONS.length; i++) {
-      inds = new Hashtable<String, String>();
+      inds = new Hashtable<>();
       try {
         reader = new BufferedReader(new FileReader(MCCAROLL_DIR + "pedinfo2sample_"
                                                    + MCCAROLL_POPULATIONS[i] + ".txt"));

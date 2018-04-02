@@ -314,7 +314,7 @@ public class Mlink {
     BufferedReader reader;
     String temp;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int count, spaces;
     boolean on;
 

@@ -39,7 +39,7 @@ public class DNAcopy {
   public static void createBatch(String inputDirectory, String batchDirectory,
                                  String outputDirectory, int numBatches) {
     PrintWriter writer;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String[] inputs, outputs;
     String trav, commands;
 
@@ -112,8 +112,8 @@ public class DNAcopy {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> lookupDNAtoSubject = new Hashtable<String, String>();
-    Hashtable<String, String> lookupSubjectToDNA = new Hashtable<String, String>();
+    Hashtable<String, String> lookupDNAtoSubject = new Hashtable<>();
+    Hashtable<String, String> lookupSubjectToDNA = new Hashtable<>();
     String[] outputs, inds;
     int[][] counts;
     int[] array;

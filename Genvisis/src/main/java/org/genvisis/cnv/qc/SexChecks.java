@@ -215,7 +215,7 @@ public class SexChecks {
     String[] markerNames = markerSet.getMarkerNames();
     if (nonCrossHybridizingMarkersFile == null) {
       log.reportError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
-      nonCrossHybridizingMarkers = new HashSet<String>(Arrays.asList(markerNames));
+      nonCrossHybridizingMarkers = new HashSet<>(Arrays.asList(markerNames));
     } else {
       log.report("Using " + nonCrossHybridizingMarkersFile
                  + " to identify markers that do not cross hybridize");
@@ -589,7 +589,7 @@ public class SexChecks {
   private boolean[] mosaicismUse() {
     boolean[] use = ArrayUtils.booleanArray(markerSet.getPositions().length, true);
     int[] xIndices = ArrayUtils.booleanArrayToIndices(xKeeps);
-    HashSet<Integer> xInclude = new HashSet<Integer>();
+    HashSet<Integer> xInclude = new HashSet<>();
     for (int i = 0; i < xIndices.length; i++) {
       if (xUseMarkers[i]) {
         xInclude.add(xIndices[i]);
@@ -658,8 +658,8 @@ public class SexChecks {
     SampleData sampleData = proj.getSampleData(false);
     String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent()
                         + "/";
-    Hashtable<String, String> estSex = new Hashtable<String, String>();
-    Hashtable<String, String> binarySex = new Hashtable<String, String>();
+    Hashtable<String, String> estSex = new Hashtable<>();
+    Hashtable<String, String> binarySex = new Hashtable<>();
     Hashtable<String, String> pedigreeMap = null;
     final String pedFile = proj.PEDIGREE_FILENAME.getValue();
     if (Files.exists(pedFile)) {
@@ -737,7 +737,7 @@ public class SexChecks {
    */
   private void addRegion(List<String>[] regionLists, int sex, String dna, String chr, String note) {
     if (regionLists[sex] == null) {
-      regionLists[sex] = new ArrayList<String>();
+      regionLists[sex] = new ArrayList<>();
     }
     regionLists[sex].add(dna + "\t" + chr + "\t" + note);
   }
@@ -842,9 +842,9 @@ public class SexChecks {
         bafs = markerData.getBAFs();
         lrrs = markerData.getLRRs();
 
-        intensityDeps = new Vector<String>();
-        xys = new Vector<double[]>();
-        baflrrs = new Vector<double[]>();
+        intensityDeps = new Vector<>();
+        xys = new Vector<>();
+        baflrrs = new Vector<>();
         for (int s = 0; s < samples.length; s++) {
           if (ext.isValidDouble(lrrs[s] + "")) {
             intensityDeps.add(sexes[s] + "");

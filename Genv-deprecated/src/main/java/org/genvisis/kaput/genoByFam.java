@@ -13,8 +13,8 @@ public class genoByFam {
 
   public genoByFam() throws IOException {
     BufferedReader reader = null;
-    Vector<String> fams = new Vector<String>();
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Vector<String> fams = new Vector<>();
+    Hashtable<String, String> hash = new Hashtable<>();
     PrintWriter writer = Files.openAppropriateWriter("genoByFam");
     // PrintWriter writer = Files.openAppropriateWriter("correctByFam");
     String temp, chrome, i;

@@ -55,7 +55,7 @@ public class Coverage {
                     new Logger(), true);
     variants = HashVec.loadFileToStringArray(filename, true, new int[] {0, 1, 2}, false);
 
-    hashes = new Hashtable<String, Hashtable<String, String>>();
+    hashes = new Hashtable<>();
     for (int i = 0; i < variants.length; i++) {
       line = variants[i].split(PSF.Regex.GREEDY_WHITESPACE);
       HashVec.addToHashHash(hashes, line[0], "chr" + line[1] + "_" + line[2], i + "");

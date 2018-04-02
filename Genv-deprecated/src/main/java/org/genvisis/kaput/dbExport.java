@@ -38,9 +38,9 @@ public class dbExport {
     PrintWriter writer = null;
     String[] allTraits, line, data;
     String varName, trav;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     int[] indices = new int[traits.size()], keys;
-    Vector<String> inds = new Vector<String>();
+    Vector<String> inds = new Vector<>();
     boolean missing;
     DoubleVector dv;
     double[] dist;
@@ -212,7 +212,7 @@ public class dbExport {
   public static void main(String[] args) throws IOException {
     String db_file = DEFAULT_DB;
     String filename = "default";
-    Vector<String> traits = new Vector<String>();
+    Vector<String> traits = new Vector<>();
     String[] line;
     String temp, firstBlood = "";
     boolean uniqueIDs = false;

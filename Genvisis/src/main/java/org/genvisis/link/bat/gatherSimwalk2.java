@@ -18,8 +18,8 @@ public class gatherSimwalk2 {
     PrintWriter peaks = null;
     StringTokenizer st;
     String chrome, temp;
-    Vector<String> vLines = new Vector<String>();
-    Vector<String> mrkrNames = new Vector<String>();
+    Vector<String> vLines = new Vector<>();
+    Vector<String> mrkrNames = new Vector<>();
     String vLine;
     int lineNumber;
     double pos;

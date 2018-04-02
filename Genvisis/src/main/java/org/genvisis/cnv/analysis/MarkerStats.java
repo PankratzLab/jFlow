@@ -31,7 +31,7 @@ import org.genvisis.common.Logger;
  */
 public final class MarkerStats {
 
-  public static final Set<String> ID_COLUMNS = new LinkedHashSet<String>();
+  public static final Set<String> ID_COLUMNS = new LinkedHashSet<>();
   public static final String ID_MARKER_NAME = "Marker name";
   public static final String ID_CHR = "Chr";
   public static final String ID_POS = "Pos";
@@ -55,7 +55,7 @@ public final class MarkerStats {
     String gcModel = proj.GC_MODEL_FILENAME.getValue(false, false);
     String gcModelName = new File(gcModel).getName();
 
-    List<String> outHeader = new ArrayList<String>();
+    List<String> outHeader = new ArrayList<>();
     for (String col : ID_COLUMNS) {
       outHeader.add(col);
     }
@@ -81,7 +81,7 @@ public final class MarkerStats {
     try {
       while (mdl.hasNext()) {
         MarkerData marker = mdl.next();
-        final List<String> line = new ArrayList<String>();
+        final List<String> line = new ArrayList<>();
         String markerName = marker.getMarkerName();
         int markerIndexInProject = markerIndices.get(markerName);
         float[] lrrs = ArrayUtils.subArray(marker.getLRRs(), samplesToInclude);
@@ -128,7 +128,7 @@ public final class MarkerStats {
 
   private static List<GcAdjustorParameters> getParams(Project proj, List<String> header,
                                                       String gcModel) {
-    List<GcAdjustorParameters> list = new ArrayList<GcAdjustorParameters>();
+    List<GcAdjustorParameters> list = new ArrayList<>();
     final Logger log = proj.getLog();
     String[] gcParamsFile = proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue();
 

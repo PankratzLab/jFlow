@@ -29,7 +29,7 @@ public class CNVRectangle extends GenericRectangle implements Comparable<CNVRect
     quantity = 1;
     selected = false;
     inUse = false;
-    cnvs = new ArrayList<CNVariant>();
+    cnvs = new ArrayList<>();
   }
 
   public CNVRectangle(CNVariant variant, int offset) {

@@ -145,7 +145,7 @@ public class Qsub {
                                                      + " threads=" + numThreads,
                 63000, 12, numThreads);
     } else if (separate) {
-      v = new ArrayList<String>();
+      v = new ArrayList<>();
       for (int i = 0; i < lines.length; i++) {
         qsubs = Qsub.qsub("", ext.rootOf(filename) + (i + 1) + ".#", start, stop,
                           (changeToCurrentWorkingDirectoryFirst ? "cd " + ext.pwd() + "\n" : "")
@@ -264,7 +264,7 @@ public class Qsub {
     writer.println("#$ -S /bin/bash");
     writer.println("#PBS -e $PBS_JOBNAME.$PBS_JOBID.e");
     writer.println("#PBS -o $PBS_JOBNAME.$PBS_JOBID.o");
-    params = new Vector<String>();
+    params = new Vector<>();
     if (totalMemoryRequested > 0) {
       params.add("mem=" + totalMemoryRequested + (useGb ? "gb" : "mb"));
     }
@@ -341,7 +341,7 @@ public class Qsub {
                          + "' does not exist, cannot create batches there");
     }
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (int i = start; i <= stop; i++) {
       // filename = ext.parseDirectoryOfFile(prefix,
       // true)+(prefix==null?"":ext.removeDirectoryInfo(prefix))+(start!=stop||(start>0&&start<25)?(prefix==null||prefix.equals("")?i:(prefix.endsWith("chr")?"":".")+i):"")+(root==null?"":"_"+root)+".qsub";
@@ -441,7 +441,7 @@ public class Qsub {
       files = Sort.getOrdered(jobNamesWithAbsolutePaths, jobOrder);
     }
     count = 0;
-    v = new ArrayList<String>();
+    v = new ArrayList<>();
     new File(batchDir).mkdirs();
     v.add("cd " + batchDir);
     while (count * maxJobsPerBatch < files.length) {

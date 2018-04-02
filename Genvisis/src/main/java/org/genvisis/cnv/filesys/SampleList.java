@@ -44,7 +44,7 @@ public class SampleList implements Serializable {
         sampleIndicesBuilder.put(samples[i], i);
       }
       sampleIndices = sampleIndicesBuilder.build();
-      sampleIndicesRef = new SoftReference<ImmutableMap<String, Integer>>(sampleIndices);
+      sampleIndicesRef = new SoftReference<>(sampleIndices);
     }
     return sampleIndices;
   }
@@ -129,7 +129,7 @@ public class SampleList implements Serializable {
     String[] samples = proj.getSamples();
     String sampleDir = proj.SAMPLE_DIRECTORY.getValue(false, true);
 
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
 
     proj.getLog().report("Extracting outliers from " + samples.length + " Sample files");
     for (String sample : samples) {

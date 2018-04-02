@@ -284,11 +284,11 @@ public class PRoCtOR {
                                                              samplesToUseCluster, LS_TYPE.REGULAR,
                                                              numCorrectionThreads, 1, markers,
                                                              correctionType, sexStrategy);
-    try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+    try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
                                                                                                          numMarkerThreads,
                                                                                                          10,
                                                                                                          proj.getLog())) {
-      ArrayList<String> notCorrected = new ArrayList<String>();
+      ArrayList<String> notCorrected = new ArrayList<>();
       int index = 0;
 
       while (train.hasNext()) {

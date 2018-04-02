@@ -66,7 +66,7 @@ public class WESMappabilityAnnotator extends BEDFileAnnotator {
     CloseableIterator<BEDFeature> iterator = query(Positions.getChromosomeUCSC(segment.getChr(),
                                                                                true),
                                                    segment.getStart(), segment.getStop());
-    List<String> values = new ArrayList<String>();
+    List<String> values = new ArrayList<>();
     double numBases = 0;
     double cumulativeMapScore = 0;
     boolean found = false;

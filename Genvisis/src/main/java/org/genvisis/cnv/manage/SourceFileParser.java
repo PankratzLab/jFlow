@@ -105,7 +105,7 @@ public class SourceFileParser implements Runnable {
 
     log = proj.getLog();
     idHeader = proj.ID_HEADER.getValue();
-    allOutliers = new Hashtable<String, Float>();
+    allOutliers = new Hashtable<>();
     headers = proj.getSourceFileHeaders(true);
     boolean headersOutput = false;
     try {
@@ -676,7 +676,7 @@ public class SourceFileParser implements Runnable {
     abLookupRequired = false;
 
     PSF.checkInterrupted();
-    fixes = new Hashtable<String, String>();
+    fixes = new Hashtable<>();
     if (new File(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat").exists()) {
       log.report("Also found a 'fixes.dat' file in the project directory, which will be used to rename samples");
       fixes = HashVec.loadFileToHashString(proj.PROJECT_DIRECTORY.getValue() + "fixes.dat", false);
@@ -887,7 +887,7 @@ public class SourceFileParser implements Runnable {
       reader.reset();
 
       int lines = Files.countLines(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0], count);
-      markerNameHash = new Hashtable<String, Integer>(lines + (lines / 3) + 100); // calc to never
+      markerNameHash = new Hashtable<>(lines + (lines / 3) + 100); // calc to never
                                                                                  // re-balance
       log.report(ext.getTime() + "]\tFound " + lines + " rows of data in the first file");
       while (reader.ready()) {
@@ -986,7 +986,7 @@ public class SourceFileParser implements Runnable {
     if (affyProcess != null) {
       affyProcess.combineAll(numThreads);
     }
-    fileCabinet = new Vector<Vector<String>>();
+    fileCabinet = new Vector<>();
     for (int i = 0; i < numThreads; i++) {
       fileCabinet.add(new Vector<String>());
     }
@@ -1039,9 +1039,9 @@ public class SourceFileParser implements Runnable {
             .reportError("Please verify source file integrity, or send us a test file to troubleshoot");
       }
     }
-    allOutliers = new Hashtable<String, Float>();
+    allOutliers = new Hashtable<>();
 
-    v = new Vector<String>();
+    v = new Vector<>();
 
     PSF.checkInterrupted();
     for (int i = 0; i < numThreads; i++) {
@@ -1186,7 +1186,7 @@ public class SourceFileParser implements Runnable {
     PSF.checkInterrupted();
     abLookup = SourceFileParser.getABLookup(abLookupRequired, markerNames, proj);
 
-    markerIndexMap = new Hashtable<String, Integer>();
+    markerIndexMap = new Hashtable<>();
     for (int i = 0; i < markerNames.length; i++) {
       markerIndexMap.put(markerNames[i], new Integer(i));
     }
@@ -1205,8 +1205,8 @@ public class SourceFileParser implements Runnable {
                    proj.PROJECT_DIRECTORY.getValue(), true);
     }
 
-    allOutliers = new Hashtable<String, Float>();
-    renamedIDsHash = new Hashtable<String, String>();
+    allOutliers = new Hashtable<>();
+    renamedIDsHash = new Hashtable<>();
     headers = proj.getSourceFileHeaders(true);// setting to true fixed an issue parsing NGRC data
     int count = 0;
     try {
@@ -1215,7 +1215,7 @@ public class SourceFileParser implements Runnable {
                                                                    fingerprint, markerIndexMap,
                                                                    abLookup, renamedIDsHash,
                                                                    headers, log);
-      try (WorkerTrain<LongFormatParseResult> train = new WorkerTrain<SourceFileParser.LongFormatParseResult>(producer,
+      try (WorkerTrain<LongFormatParseResult> train = new WorkerTrain<>(producer,
                                                                                                               numThreads,
                                                                                                               10,
                                                                                                               log)) {
@@ -1484,7 +1484,7 @@ public class SourceFileParser implements Runnable {
     boolean splitAB = false;
     long timeBegan = System.currentTimeMillis();
     int count = 0;
-    Hashtable<String, Float> fileOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> fileOutliers = new Hashtable<>();
     CountHash countHash = new CountHash();
     LongFormatParseResult result = new LongFormatParseResult(file, 0, null, countHash);
     try {

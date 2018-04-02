@@ -567,7 +567,7 @@ public class Project implements PropertyChangeListener {
                                                                                 "", GROUP.COLORS,
                                                                                 true, COPY.NO_COPY,
                                                                                 "", true, false);
-  public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<SOURCE_FILE_DELIMITERS>(this,
+  public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<>(this,
                                                                                                                PropertyKeys.KEY_SOURCE_FILE_DELIMITER,
                                                                                                                "",
                                                                                                                GROUP.IMPORT,
@@ -575,10 +575,10 @@ public class Project implements PropertyChangeListener {
                                                                                                                COPY.VALUE,
                                                                                                                0,
                                                                                                                SOURCE_FILE_DELIMITERS.class);
-  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<ARRAY>(this, PropertyKeys.KEY_ARRAY_TYPE,
+  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<>(this, PropertyKeys.KEY_ARRAY_TYPE,
                                                                   "", GROUP.IMPORT, false,
                                                                   COPY.VALUE, 0, ARRAY.class);
-  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<GENOME_BUILD>(this,
+  public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<>(this,
                                                                                           PropertyKeys.KEY_GENOME_BUILD_VERSION,
                                                                                           "The build version of the genome, options are "
                                                                                                                                  + Arrays.asList(GENOME_BUILD.values())
@@ -594,12 +594,12 @@ public class Project implements PropertyChangeListener {
                                                         false);
 
   private String projectPropertiesFilename;
-  private Reference<SampleList> sampleListRef = new SoftReference<SampleList>(null);
-  private Reference<SampleData> sampleDataRef = new SoftReference<SampleData>(null);
+  private Reference<SampleList> sampleListRef = new SoftReference<>(null);
+  private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
   private HashSet<String> cnvFilesLoadedInSampleData;
   private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
-  private Reference<MarkerLookup> markerLookupRef = new SoftReference<MarkerLookup>(null);
-  private Reference<MarkerDetailSet> markerSetRef = new SoftReference<MarkerDetailSet>(null);
+  private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
+  private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
   private Logger log;
   private boolean gui;
   private ProgressMonitor progressMonitor;
@@ -613,7 +613,7 @@ public class Project implements PropertyChangeListener {
   public static final String IMPORT_FILE = "import.ser";
 
   public Project() {
-    cnvFilesLoadedInSampleData = new HashSet<String>();
+    cnvFilesLoadedInSampleData = new HashSet<>();
     log = new Logger();
     gui = false;
     projectPropertiesFilename = "example.properties";
@@ -753,7 +753,7 @@ public class Project implements PropertyChangeListener {
   private void updateImportMetaFile() {
     List<Property<?>> importProps = getProperties(GROUP.IMPORT);
     String file = DATA_DIRECTORY.getValue(true, false) + IMPORT_FILE;
-    HashMap<String, String> propMap = new HashMap<String, String>();
+    HashMap<String, String> propMap = new HashMap<>();
     for (Property<?> p : importProps) {
       propMap.put(p.getName(), p.getValueString());
     }
@@ -768,7 +768,7 @@ public class Project implements PropertyChangeListener {
                                                                                          false);
       return map;
     } else {
-      return new HashMap<String, String>();
+      return new HashMap<>();
     }
   }
 
@@ -866,7 +866,7 @@ public class Project implements PropertyChangeListener {
     MarkerDetailSet markerSet = markerSetRef.get();
     if (markerSet == null) {
       markerSet = loadMarkerSet();
-      markerSetRef = new SoftReference<MarkerDetailSet>(markerSet);
+      markerSetRef = new SoftReference<>(markerSet);
     } else {
       // Previously this method would have loaded the Marker Set fresh from the serialized file.
       // Prevent proliferation of possibly modified array references here
@@ -943,7 +943,7 @@ public class Project implements PropertyChangeListener {
           log.reportError("Also failed to create MarkerLookup; failing");
         }
       }
-      markerLookupRef = new SoftReference<MarkerLookup>(markerLookup);
+      markerLookupRef = new SoftReference<>(markerLookup);
     }
     return markerLookup;
   }
@@ -962,7 +962,7 @@ public class Project implements PropertyChangeListener {
         log.report("SampleList is of length zero; generating a new one...");
         sampleList = SampleList.generateSampleList(this);
       }
-      sampleListRef = new SoftReference<SampleList>(sampleList);
+      sampleListRef = new SoftReference<>(sampleList);
     }
 
     return sampleList;
@@ -1141,20 +1141,20 @@ public class Project implements PropertyChangeListener {
       // files":Array.toStr(cnvFilenames, "/")));
       cnvFilesLoadedInSampleData = HashVec.loadToHashSet(cnvFilenames);
     }
-    sampleDataRef = new SoftReference<SampleData>(sampleData);
+    sampleDataRef = new SoftReference<>(sampleData);
     return sampleData;
   }
 
   public Hashtable<String, String> getFilteredHash() {
     if (getProperty(FILTERED_MARKERS_FILENAME).equals("")) {
-      return new Hashtable<String, String>();
+      return new Hashtable<>();
     } else if (Files.exists(FILTERED_MARKERS_FILENAME.getValue())) {
       return HashVec.loadFileToHashString(FILTERED_MARKERS_FILENAME.getValue(), 0, new int[] {0},
                                           "", false);
     } else {
       System.err.println("Error - '" + FILTERED_MARKERS_FILENAME.getValue(false, false)
                          + "' not found");
-      return new Hashtable<String, String>();
+      return new Hashtable<>();
     }
   }
 
@@ -1164,7 +1164,7 @@ public class Project implements PropertyChangeListener {
 
     files = Files.list(PROJECT_DIRECTORY.getValue(), ".mds");
 
-    v = new ArrayList<String>();
+    v = new ArrayList<>();
     if (files == null) {
       System.err.println("Error - no .mds files found in directory");
     } else {
@@ -1235,7 +1235,7 @@ public class Project implements PropertyChangeListener {
   }
 
   public String[] getPropertyKeys() {
-    ArrayList<String> propList = new ArrayList<String>();
+    ArrayList<String> propList = new ArrayList<>();
     for (Field f : Project.class.getFields()) {
       try {
         if (f.get(this) instanceof Property) {
@@ -1260,8 +1260,8 @@ public class Project implements PropertyChangeListener {
     changed = false;
     // knowns = Array.toStringVector(HashVec.getKeys(this, false, false));
     preknowns = ArrayUtils.toStringVector(getPropertyKeys());
-    unknowns = new Vector<String>();
-    corrections = new Vector<String>();
+    unknowns = new Vector<>();
+    corrections = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(projectPropertiesFilename));
       while (reader.ready()) {
@@ -1339,12 +1339,12 @@ public class Project implements PropertyChangeListener {
     String key;
     int index;
 
-    propKeysOfInterest = new HashSet<String>();
+    propKeysOfInterest = new HashSet<>();
     for (String prop : propsToSave) {
       propKeysOfInterest.add(prop);
     }
-    props = new Vector<String>();
-    changes = new Vector<String>();
+    props = new Vector<>();
+    changes = new Vector<>();
     loaded = ArrayUtils.toStringVector(propsToSave);
     loaded.remove(PROJECT_PROPERTIES_FILENAME.getValue());
     try {
@@ -1749,7 +1749,7 @@ public class Project implements PropertyChangeListener {
                                                                              6, new int[] {4}, "\t",
                                                                              false);
 
-        Map<String, String> misMatches = new HashMap<String, String>();
+        Map<String, String> misMatches = new HashMap<>();
         int zeroPeds = 0;
         for (Entry<String, String> e : pedigreeMap.entrySet()) {
           String sexVal = sexMap.get(e.getKey());
@@ -1829,7 +1829,7 @@ public class Project implements PropertyChangeListener {
    * @throws Exception
    */
   public Hashtable<String, Float> loadOutliersFromSamples() throws Exception {
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
     String[] samples = getSamples();
     for (String sample : samples) {
       Hashtable<String, Float> sOutliers = Sample.loadOutOfRangeValuesFromRandomAccessFile(SAMPLE_DIRECTORY.getValue()
@@ -1845,7 +1845,7 @@ public class Project implements PropertyChangeListener {
   public String[] getNonCNMarkers() {
     String[] mkrs = getMarkerNames();
     ARRAY myArrayType = ARRAY_TYPE.getValue();
-    ArrayList<String> nonCNs = new ArrayList<String>();
+    ArrayList<String> nonCNs = new ArrayList<>();
     for (int i = 0; i < mkrs.length; i++) {
       if (!myArrayType.isCNOnly(mkrs[i])) {
         nonCNs.add(mkrs[i]);
@@ -1857,7 +1857,7 @@ public class Project implements PropertyChangeListener {
   public String[] getAutosomalNonCNMarkers() {
     String[] mkrs = getAutosomalMarkers();
     ARRAY myArrayType = ARRAY_TYPE.getValue();
-    ArrayList<String> nonCNs = new ArrayList<String>();
+    ArrayList<String> nonCNs = new ArrayList<>();
     for (int i = 0; i < mkrs.length; i++) {
       if (!myArrayType.isCNOnly(mkrs[i])) {
         nonCNs.add(mkrs[i]);
@@ -1879,7 +1879,7 @@ public class Project implements PropertyChangeListener {
   public String[] getMarkersForChrs(int[] chrs) {
     MarkerSetInfo markerSet = getMarkerSet();
     byte[] markerChrs = markerSet.getChrs();
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     for (int i = 0; i < markerChrs.length; i++) {
       if (ext.indexOfInt(markerChrs[i], chrs) >= 0) {
         tmp.add(markerSet.getMarkerNames()[i]);
@@ -1891,7 +1891,7 @@ public class Project implements PropertyChangeListener {
   public String[] getAutosomalMarkers() {
     MarkerSetInfo markerSet = getMarkerSet();
     byte[] chrs = markerSet.getChrs();
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     for (int i = 0; i < chrs.length; i++) {
       if (chrs[i] < 23 && chrs[i] > 0) {
         tmp.add(markerSet.getMarkerNames()[i]);
@@ -1966,7 +1966,7 @@ public class Project implements PropertyChangeListener {
    * For copying an existing project to a new project that will have the same essential data
    */
   public void copyBasicFiles(Project projectToCopyTo, boolean overwrite) {
-    HashSet<FileProperty> propsToCop = new HashSet<FileProperty>();
+    HashSet<FileProperty> propsToCop = new HashSet<>();
     propsToCop.add(MARKERSET_FILENAME);
     propsToCop.add(MARKER_POSITION_FILENAME);
     propsToCop.add(SAMPLE_DATA_FILENAME);
@@ -2004,7 +2004,7 @@ public class Project implements PropertyChangeListener {
     COMMA("[\\s]*,[\\s]*", ","), TAB("[ ]*\t[ ]*", "\t"), SPACE(PSF.Regex.GREEDY_WHITESPACE, " ");
 
     String delim;
-    HashSet<String> alts = new HashSet<String>();
+    HashSet<String> alts = new HashSet<>();
 
     private SOURCE_FILE_DELIMITERS(String... delimValues) {
       delim = delimValues[0];
@@ -2163,7 +2163,7 @@ public class Project implements PropertyChangeListener {
     int numArgs = args.length;
     String filename = null;
     Project proj;
-    HashMap<String, String> kvPairs = new HashMap<String, String>();
+    HashMap<String, String> kvPairs = new HashMap<>();
 
     String usage = "\n" + "cnv.filesys.Project requires 2+ arguments\n"
                    + "   (1) project properties filename (i.e. proj="

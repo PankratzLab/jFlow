@@ -58,7 +58,7 @@ public class Oncotator {
     String[] inputFiles = new String[] {oncotator_Analysis.getInputVcf()};
     String[] outputFiles = new String[] {oncotator_Analysis.getOutputVcf()};
 
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add(ONCOTATOR);
     command.add(I);
     command.add(VCF);

@@ -315,7 +315,7 @@ public class StratPlot extends JFrame implements ActionListener, TreeSelectionLi
     log = proj.getLog();
     stratFiles = proj.getStratResults();
     names = new String[stratFiles.size()][];
-    hash = new Hashtable<String, float[][]>();
+    hash = new Hashtable<>();
     for (int i = 0; i < names.length; i++) {
       try {
         reader = Files.getReader(stratFiles.get(i), true, false);

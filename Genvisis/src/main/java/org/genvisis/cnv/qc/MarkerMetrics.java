@@ -172,7 +172,7 @@ public class MarkerMetrics {
       fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, batchHeaderIndexBatches,
              batchHeaderBatches);
     } else {
-      WorkerHive<Boolean> hive = new WorkerHive<Boolean>(numThreads, 10, proj.getLog());
+      WorkerHive<Boolean> hive = new WorkerHive<>(numThreads, 10, proj.getLog());
       List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
       String[] tmpQc = new String[batches.size()];
       String[] tmpMendel = new String[batches.size()];
@@ -327,7 +327,7 @@ public class MarkerMetrics {
         abGenotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName,
                                                             gcThreshold, log);
         lrrs = markerData.getLRRs();
-        aLRR = new ArrayList<Float>(samples.length);
+        aLRR = new ArrayList<>(samples.length);
 
         numLRRNaNs = 0;
         numNaNs = 0;
@@ -1017,10 +1017,10 @@ public class MarkerMetrics {
     clusterFilterCollection = proj.getClusterFilterCollection();
     annotationCollection = proj.getAnnotationCollection();
 
-    flaggedMarkers = new Hashtable<String, String>();
+    flaggedMarkers = new Hashtable<>();
     for (String filename : filenames) {
-      v = new Vector<String>();
-      warningHash = new Hashtable<String, Vector<String>>();
+      v = new Vector<>();
+      warningHash = new Hashtable<>();
       try {
         reader = Files.getAppropriateReader(dir + filename);
         if (reader == null) {
@@ -1063,9 +1063,9 @@ public class MarkerMetrics {
       } else {
         markerDataLoader = null;
       }
-      annotatedMarkers = new Hashtable<String, String>();
-      reclusteredMarkers = new Hashtable<String, String>();
-      droppedMarkers = new Hashtable<String, String>();
+      annotatedMarkers = new Hashtable<>();
+      reclusteredMarkers = new Hashtable<>();
+      droppedMarkers = new Hashtable<>();
       for (int j = 0; j < markerNames.length; j++) {
         if (j % 1000 == 0) {
           log.report((j + 1) + " of " + markerNames.length);
@@ -1145,7 +1145,7 @@ public class MarkerMetrics {
           allOtherMarkers.remove(markerNames[j]);
         }
         numReclustered = numAnnotated = numDropped = 0;
-        Set<String> toRemove = new HashSet<String>();
+        Set<String> toRemove = new HashSet<>();
         writer.print("Everything else\t" + allOtherMarkers.size());
 
         for (String markerName : allOtherMarkers) {
@@ -1214,7 +1214,7 @@ public class MarkerMetrics {
         log.reportException(e);
       }
 
-      warningHashHash = new Hashtable<String, HashSet<String>>();
+      warningHashHash = new Hashtable<>();
       warningCounts = new int[warningKeys.length];
       for (int k = 0; k < warningKeys.length; k++) {
         String key = warningKeys[k];
@@ -1362,8 +1362,8 @@ public class MarkerMetrics {
     } else {
       markerDataLoader = null;
     }
-    reclusteredMarkers = new Hashtable<String, String>();
-    droppedMarkers = new Hashtable<String, String>();
+    reclusteredMarkers = new Hashtable<>();
+    droppedMarkers = new Hashtable<>();
     for (int j = 0; j < markerNames.length; j++) {
       if (j % 1000 == 0) {
         log.report((j + 1) + " of " + markerNames.length + " annotated markers");
@@ -1426,7 +1426,7 @@ public class MarkerMetrics {
       Files.writeArray(markerNames, proj.RESULTS_DIRECTORY.getValue(false, true)
                                     + "markers_not_yet_annotated.out");
 
-      Set<String> toRemove = new HashSet<String>();
+      Set<String> toRemove = new HashSet<>();
       for (String markerName : allOtherMarkers) {
         if (clusterFilterCollection != null
             && clusterFilterCollection.getClusterFilters(markerName) != null) {

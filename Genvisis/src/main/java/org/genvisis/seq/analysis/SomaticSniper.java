@@ -39,15 +39,15 @@ public class SomaticSniper {
 
     TNSample[] tnSamples = matchSamples(bamFiles, params.getOutputDir(), vpop, params, log);
     String tnMatch = params.getOutputDir() + "tnMatch.txt";
-    ArrayList<String> summaryMatch = new ArrayList<String>();
+    ArrayList<String> summaryMatch = new ArrayList<>();
     summaryMatch.add("NORMAL_BAM\tTUMOR_BAM");
     for (TNSample tnSample : tnSamples) {
       summaryMatch.add(tnSample.getNormalBam() + "\t" + tnSample.getTumorBam());
     }
     Files.writeArray(ArrayUtils.toStringArray(summaryMatch), tnMatch);
     TNProducer producer = new TNProducer(tnSamples);
-    ArrayList<String> finalOuts = new ArrayList<String>();
-    try (WorkerTrain<TNSample> train = new WorkerTrain<TNSample>(producer, numThreads, 2, log)) {
+    ArrayList<String> finalOuts = new ArrayList<>();
+    try (WorkerTrain<TNSample> train = new WorkerTrain<>(producer, numThreads, 2, log)) {
       while (train.hasNext()) {
         TNSample tmp = train.next();
         finalOuts.add(tmp.getOutputGz());
@@ -89,12 +89,12 @@ public class SomaticSniper {
 
   private static TNSample[] matchSamples(String[] bamFiles, String outputDir, VcfPopulation vpop,
                                          SomaticParams somaticParams, Logger log) {
-    Hashtable<String, String> all = new Hashtable<String, String>();
+    Hashtable<String, String> all = new Hashtable<>();
     for (String bamFile : bamFiles) {
       all.put(BamOps.getSampleName(bamFile), bamFile);
     }
-    ArrayList<String> analysisBams = new ArrayList<String>();
-    ArrayList<TNSample> tnSamples = new ArrayList<TNSample>();
+    ArrayList<String> analysisBams = new ArrayList<>();
+    ArrayList<TNSample> tnSamples = new ArrayList<>();
     for (String tnPair : vpop.getSubPop().keySet()) {
       Set<String> samps = vpop.getSubPop().get(tnPair);
       String tumor = null;
@@ -171,7 +171,7 @@ public class SomaticSniper {
     }
 
     private String[] generateCommand(String normalBam, String tumorBam, String output) {
-      ArrayList<String> command = new ArrayList<String>();
+      ArrayList<String> command = new ArrayList<>();
       command.add(getSnipe());
       command.add("-F");
       command.add("vcf");
@@ -233,7 +233,7 @@ public class SomaticSniper {
     private boolean runSamToolsIndel() {
       String[] inputs = new String[] {tumorBam, somaticParams.getRefGenome()};
       String[] output = new String[] {indelPile};
-      ArrayList<String> commandCall = new ArrayList<String>();
+      ArrayList<String> commandCall = new ArrayList<>();
       commandCall.add(somaticParams.getSamtoolsLoc() + "samtools");
       commandCall.add("pileup");
       commandCall.add("�cvi");
@@ -247,7 +247,7 @@ public class SomaticSniper {
                                                           somaticParams.isOverwriteExisting(),
                                                           false, log);
       if (progress) {
-        ArrayList<String> commandFilt = new ArrayList<String>();
+        ArrayList<String> commandFilt = new ArrayList<>();
         commandFilt.add("perl");
         commandFilt.add(somaticParams.getSamtoolsLoc() + "misc/samtools.pl");
         commandFilt.add("varFilter");

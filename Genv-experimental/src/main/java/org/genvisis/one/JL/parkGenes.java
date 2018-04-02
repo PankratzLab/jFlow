@@ -22,8 +22,8 @@ public class parkGenes {
 
     LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",
                                                    new Logger());
-    ArrayList<CNVariant> found = new ArrayList<CNVariant>();
-    ArrayList<String> genes = new ArrayList<String>();
+    ArrayList<CNVariant> found = new ArrayList<>();
+    ArrayList<String> genes = new ArrayList<>();
     genes.add("HTRA2");
     genes.add("SNCA");
     genes.add("PINK1");
@@ -31,7 +31,7 @@ public class parkGenes {
     genes.add("ATP13A2");
     genes.add("PARK7");
     genes.add("PARK2");
-    ArrayList<GeneData> genLocs = new ArrayList<GeneData>();
+    ArrayList<GeneData> genLocs = new ArrayList<>();
     for (String gene : genes) {
       if (geneTrack.lookupAllGeneData(gene).length == 0) {
         throw new IllegalArgumentException(gene);

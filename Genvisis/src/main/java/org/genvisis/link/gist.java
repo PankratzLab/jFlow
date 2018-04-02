@@ -28,8 +28,8 @@ public class gist {
     PrintWriter writer;
     String[] line = null, alleles;
     String trav, prev, chrome = (chr < 10) ? "0" + chr : "" + chr;
-    Hashtable<String, String> gtypes = new Hashtable<String, String>(),
-        npls = new Hashtable<String, String>();
+    Hashtable<String, String> gtypes = new Hashtable<>(),
+        npls = new Hashtable<>();
     boolean done;
     Vector<String> founders;
     double c1, c2, c3, n;
@@ -70,7 +70,7 @@ public class gist {
     writer = Files.openAppropriateWriter("gist-" + chr + "@" + pos + "-" + target + ".dat");
     writer.println(TARGET_FREQ);
 
-    founders = new Vector<String>();
+    founders = new Vector<>();
     prev = "";
     done = false;
     c1 = c2 = c3 = n = 0;

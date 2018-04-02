@@ -38,11 +38,11 @@ public class GCcorrectionIterator {
   private static void batch(Project proj, String outputRootDir, int[] bpModels,
                             int[] regressDistance, int[] snpMAD, int numThreads) {
     String batchRoot = proj.PROJECT_DIRECTORY.getValue() + outputRootDir;
-    ArrayList<String> pbs = new ArrayList<String>();
+    ArrayList<String> pbs = new ArrayList<>();
     for (int bpModel : bpModels) {
       String currentSub = batchRoot + "gcmodel_bp_" + bpModel + ".pbs";
       pbs.add(currentSub);
-      ArrayList<String> command = new ArrayList<String>();
+      ArrayList<String> command = new ArrayList<>();
       command.add("java -jar ~/parkGC.jar one.JL.GCcorrectionIterator ");
       command.add("proj=" + proj.PROJECT_PROPERTIES_FILENAME.getValue());
       command.add("numthreads=" + numThreads);
@@ -75,7 +75,7 @@ public class GCcorrectionIterator {
       CentroidCompute.computeAndDumpCentroids(proj, freshCents, new CentroidBuilder(), numThreads,
                                               2);
     }
-    ArrayList<IterationParameters> finals = new ArrayList<IterationParameters>();
+    ArrayList<IterationParameters> finals = new ArrayList<>();
     GCAdjustorBuilder builder = new GCAdjustorBuilder();
     builder.verbose(true);
     String outputGz = proj.PROJECT_DIRECTORY.getValue() + outputRootDir + "finalSummaryRaw.gz";
@@ -100,8 +100,8 @@ public class GCcorrectionIterator {
           gcModel = GcModel.loadSerial(model);
         }
         // }
-        ArrayList<GCAdjustorBuilder> builders = new ArrayList<GCAdjustorBuilder>();
-        ArrayList<String> outs = new ArrayList<String>();
+        ArrayList<GCAdjustorBuilder> builders = new ArrayList<>();
+        ArrayList<String> outs = new ArrayList<>();
         for (int element : regressDistance) {
           for (int element2 : snpMAD) {
             String root = outputRootDir + "gcmodel_bp_" + bpModel + "_regress_" + element
@@ -218,13 +218,13 @@ public class GCcorrectionIterator {
     String[] specificHeader = new String[] {"BETA_0", "BETA_1", "WF_PRIOR", "WF_POST", "GCWF_PRIOR",
                                             "GCWF_POST", "LRR_MEAN_PRIOR", "LRR_MEAN_POST",
                                             "LRR_SD_PRIOR", "LRR_SD_POST"};
-    Hashtable<String, String[]> plotCombos = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> plotCombos = new Hashtable<>();
     format("WF", plotCombos);
     format("GCWF", plotCombos);
     format("LRR_MEAN", plotCombos);
     format("LRR_SD", plotCombos);
     IPloadProducer ipp = new IPloadProducer(finals, proj.getLog());
-    try (WorkerTrain<IterationParameters> train = new WorkerTrain<GCcorrectionIterator.IterationParameters>(ipp,
+    try (WorkerTrain<IterationParameters> train = new WorkerTrain<>(ipp,
                                                                                                             numthreads,
                                                                                                             2,
                                                                                                             proj.getLog())) {
@@ -268,7 +268,7 @@ public class GCcorrectionIterator {
         writer.close();
       }
     }
-    ArrayList<RScatter> allLooks = new ArrayList<RScatter>();
+    ArrayList<RScatter> allLooks = new ArrayList<>();
 
     for (String base : plotCombos.keySet()) {
 
@@ -391,7 +391,7 @@ public class GCcorrectionIterator {
                                                      List<GCAdjustorBuilder> builders) {
     IterationParameters[] params = new IterationParameters[builders.size()];
     for (int i = 0; i < generated.length; i++) {
-      ArrayList<String> sers = new ArrayList<String>();
+      ArrayList<String> sers = new ArrayList<>();
       for (int j = 0; j < generated[i].length; j++) {
         for (int j2 = 0; j2 < generated[i][j].length; j2++) {
           sers.add(generated[i][j][j2]);
@@ -441,7 +441,7 @@ public class GCcorrectionIterator {
     }
 
     private String[] getParams() {
-      ArrayList<String> params = new ArrayList<String>();
+      ArrayList<String> params = new ArrayList<>();
       params.add(bpModel + "");
       params.add(regressDistance + "");
       params.add(numSnpMad + "");

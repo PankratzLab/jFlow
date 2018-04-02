@@ -47,7 +47,7 @@ public class CreateNonSiteOnlyVcf {
     Logger log = new Logger(ext.parseDirectoryOfFile(vcf) + "log.log");
     String randSample = "FAKE_SAMPLE_WITH_HET_ONLY_CALLS"; // will create all het calls for this
                                                           // sample
-    HashSet<String> samps = new HashSet<String>();
+    HashSet<String> samps = new HashSet<>();
     samps.add(randSample);
 
     String output = VCFOps.getAppropriateRoot(vcf, false) + randSample

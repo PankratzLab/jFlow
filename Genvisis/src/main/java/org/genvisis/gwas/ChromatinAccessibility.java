@@ -61,7 +61,7 @@ public class ChromatinAccessibility {
     PrintWriter writer;
     String[] line, keys;
     String trav;
-    Hashtable<String, Vector<double[]>> hash = new Hashtable<String, Vector<double[]>>();
+    Hashtable<String, Vector<double[]>> hash = new Hashtable<>();
     Vector<double[]> v;
     String[] files;
     double[][] matrix;
@@ -78,7 +78,7 @@ public class ChromatinAccessibility {
             if (hash.containsKey(trav)) {
               v = hash.get(trav);
             } else {
-              hash.put(trav, v = new Vector<double[]>());
+              hash.put(trav, v = new Vector<>());
             }
             v.add(ArrayUtils.toDoubleArray(ArrayUtils.subArray(line, 9)));
           }
@@ -150,9 +150,9 @@ public class ChromatinAccessibility {
           System.out.print("\t1\t" + ext.getTimeElapsed(time));
         } else {
           time = new Date().getTime();
-          allSeg = new Vector<Vector<Vector<Segment>>>();
+          allSeg = new Vector<>();
           for (String element : CLASSES) {
-            allSeg.add(mSeg = new Vector<Vector<Segment>>());
+            allSeg.add(mSeg = new Vector<>());
             for (int k = 0; k <= 25; k++) {
               mSeg.add(new Vector<Segment>());
             }
@@ -227,7 +227,7 @@ public class ChromatinAccessibility {
       for (int j = 0; j < CLASSES.length; j++) {
         for (int k = 0; k <= 25; k++) {
           System.out.print(".");
-          vSeg = new Vector<Segment>();
+          vSeg = new Vector<>();
           for (int i = 0; i < files.length; i++) {
             for (int n = 0; n < segs[i][j][k].length; n++) {
               vSeg.add(segs[i][j][k][n]);

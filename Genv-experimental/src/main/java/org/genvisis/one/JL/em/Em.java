@@ -52,9 +52,9 @@ public class Em {
     Logger log = new Logger();
     log.reportTimeInfo(data.length + " by " + data[0].length);
 
-    ArrayList<String> out = new ArrayList<String>();
-    ArrayList<Double> xt = new ArrayList<Double>();
-    ArrayList<Double> yt = new ArrayList<Double>();
+    ArrayList<String> out = new ArrayList<>();
+    ArrayList<Double> xt = new ArrayList<>();
+    ArrayList<Double> yt = new ArrayList<>();
 
     for (String[] element : data) {
       xt.add(Double.parseDouble(element[0]));

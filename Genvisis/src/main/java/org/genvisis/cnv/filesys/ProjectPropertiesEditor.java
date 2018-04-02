@@ -82,7 +82,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
   private Project proj;
 
-  private final ArrayList<Integer> labelRows = new ArrayList<Integer>();
+  private final ArrayList<Integer> labelRows = new ArrayList<>();
 
   private abstract class InputValidator {
 
@@ -235,7 +235,7 @@ public class ProjectPropertiesEditor extends JFrame {
     }
   };
 
-  private final HashMap<String, InputValidator> validators = new HashMap<String, ProjectPropertiesEditor.InputValidator>();
+  private final HashMap<String, InputValidator> validators = new HashMap<>();
   {
     validators.put(PropertyKeys.KEY_PLINK_DIR_FILEROOTS, PLINK_VALIDATOR);
     validators.put(PropertyKeys.KEY_QQ_FILENAMES, QQ_PLOT_VALIDATOR);
@@ -694,7 +694,7 @@ public class ProjectPropertiesEditor extends JFrame {
 
     // If we were passed a filter of Project property names, we want to whitelist them so
     // they are the only keys accepted
-    Set<String> whitelistKeys = new HashSet<String>();
+    Set<String> whitelistKeys = new HashSet<>();
     if (propertyNames != null) {
       for (String key : propertyNames) {
         whitelistKeys.add(key);
@@ -832,7 +832,7 @@ public class ProjectPropertiesEditor extends JFrame {
     String currProjDir = proj.PROJECT_DIRECTORY.getValue();
     int rowCount = table.getRowCount();
 
-    HashMap<String, String> newValues = new HashMap<String, String>();
+    HashMap<String, String> newValues = new HashMap<>();
 
     for (int i = 0; i < rowCount; i++) {
       if (labelRows.contains(i)) {
@@ -926,7 +926,7 @@ public class ProjectPropertiesEditor extends JFrame {
         }
       }
 
-      HashSet<FileProperty> ignorePrefix = new HashSet<FileProperty>();
+      HashSet<FileProperty> ignorePrefix = new HashSet<>();
       ignorePrefix.add(proj.PROJECT_DIRECTORY);
       ignorePrefix.add(proj.SOURCE_DIRECTORY);
 
@@ -1332,7 +1332,7 @@ public class ProjectPropertiesEditor extends JFrame {
                 if (sourceButton == buttonReplace) {
                   setValue(newValue);
                 } else {
-                  HashSet<File> values = new HashSet<File>();
+                  HashSet<File> values = new HashSet<>();
                   for (File f : (File[]) value) {
                     values.add(f);
                   }

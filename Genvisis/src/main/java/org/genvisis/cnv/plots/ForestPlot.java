@@ -34,8 +34,8 @@ class MetaStudy {
   private boolean currentSortIsNaturalSort = false;
 
   public MetaStudy(float metaBeta, float metaStderr) {
-    studies = new ArrayList<StudyData>();
-    nameMap = new HashMap<String, StudyData>();
+    studies = new ArrayList<>();
+    nameMap = new HashMap<>();
     this.metaBeta = metaBeta;
     this.metaStderr = metaStderr;
     metaConf[0] = (float) (metaBeta - 1.96 * metaStderr);
@@ -79,7 +79,7 @@ class MetaStudy {
 
   private ArrayList<StudyData> getSorted(List<String> sortOrder2) {
     if (sorted == null || sorted.isEmpty() || currentSortIsNaturalSort) {
-      sorted = new ArrayList<StudyData>();
+      sorted = new ArrayList<>();
 
       sorted.add(new StudyBreak());
       for (int i = sortOrder2.size() - 1; i >= 0; i--) {
@@ -111,10 +111,10 @@ class MetaStudy {
 
   private ArrayList<StudyData> getSorted() {
     if (sorted == null || !currentSortIsNaturalSort) {
-      sorted = new ArrayList<StudyData>();
+      sorted = new ArrayList<>();
 
-      TreeMap<String, String> zeroStudyMap = new TreeMap<String, String>();
-      TreeMap<Float, String> betaStudyMap = new TreeMap<Float, String>();
+      TreeMap<String, String> zeroStudyMap = new TreeMap<>();
+      TreeMap<Float, String> betaStudyMap = new TreeMap<>();
       for (StudyData study : studies) {
         if (study.getBeta(false) == 0.0f) {
           zeroStudyMap.put(study.getLabel(), study.getLabel());
@@ -122,7 +122,7 @@ class MetaStudy {
           betaStudyMap.put(study.getBeta(false), study.getLabel());
         }
       }
-      ArrayList<StudyData> desc = new ArrayList<StudyData>();
+      ArrayList<StudyData> desc = new ArrayList<>();
       for (java.util.Map.Entry<String, String> entry : zeroStudyMap.entrySet()) {
         desc.add(nameMap.get(entry.getValue()));
       }
@@ -309,8 +309,8 @@ class ForestInput {
     this.displayMarker = displayMarker;
     this.file = file;
     this.comment = comment;
-    studyToColIndexMap = new HashMap<String, Integer>();
-    studyList = new ArrayList<String>();
+    studyToColIndexMap = new HashMap<>();
+    studyList = new ArrayList<>();
   }
 
   public void addStudy(String string, int i) {
@@ -359,7 +359,7 @@ public class ForestPlot {
   private boolean sortedDisplay;
   private List<String> sortOrder;
 
-  private ArrayList<ForestInput> dataIndices = new ArrayList<ForestInput>();
+  private ArrayList<ForestInput> dataIndices = new ArrayList<>();
 
   /**
    * @param proj
@@ -389,7 +389,7 @@ public class ForestPlot {
 
   private LinkedHashSet<ForestInput> readMarkerFile(String markerFile) {
     String file;
-    LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<ForestInput>();
+    LinkedHashSet<ForestInput> markerNames = new LinkedHashSet<>();
     BufferedReader markerReader = Files.getReader(markerFile, true, false);
 
     if (markerReader != null) {
@@ -424,16 +424,16 @@ public class ForestPlot {
       }
     }
 
-    return markerReader == null || Thread.interrupted() ? new LinkedHashSet<ForestInput>()
+    return markerReader == null || Thread.interrupted() ? new LinkedHashSet<>()
                                                         : markerNames;
   }
 
   private void loadStudyData() throws InterruptedException, RuntimeException {
-    HashMap<String, ArrayList<ForestInput>> files = new HashMap<String, ArrayList<ForestInput>>();
+    HashMap<String, ArrayList<ForestInput>> files = new HashMap<>();
     for (ForestInput fi : dataIndices) {
       ArrayList<ForestInput> inputList = files.get(fi.file);
       if (inputList == null) {
-        inputList = new ArrayList<ForestInput>();
+        inputList = new ArrayList<>();
         files.put(fi.file, inputList);
       }
       inputList.add(fi);
@@ -642,7 +642,7 @@ public class ForestPlot {
   }
 
   private ArrayList<StudyData> getStudyEntries(ForestInput input, String[] readData) {
-    ArrayList<StudyData> studies = new ArrayList<StudyData>();
+    ArrayList<StudyData> studies = new ArrayList<>();
     String betaVal, seVal;
     for (int i = input.studyList.size() - 1; i >= 0; i--) {
       String studyName = input.studyList.get(i);
@@ -700,7 +700,7 @@ public class ForestPlot {
   protected void reloadData() throws InterruptedException {
     atleastOneStudy = false;
 
-    dataIndices = new ArrayList<ForestInput>();
+    dataIndices = new ArrayList<>();
     if (markerFileName != null) {
       dataIndices.addAll(readMarkerFile(markerFileName));
     }
@@ -789,7 +789,7 @@ public class ForestPlot {
       }
       return;
     }
-    ArrayList<String> order = new ArrayList<String>();
+    ArrayList<String> order = new ArrayList<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(filename);
       String line = null;

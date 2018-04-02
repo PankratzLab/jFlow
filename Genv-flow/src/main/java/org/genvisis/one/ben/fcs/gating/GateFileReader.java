@@ -188,7 +188,7 @@ public class GateFileReader {
   private static HashMap<String, Gate> buildGateGraph(NodeList topGate) {
     Element topLevel = (Element) topGate.item(0);
     NodeList allGates = topLevel.getChildNodes();
-    HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
+    HashMap<String, Gate> gateMap = new HashMap<>();
     for (int i = 0, count = allGates.getLength(); i < count; i++) {
       Node gateNode = allGates.item(i);
       if (!gateNode.getNodeName().startsWith("gating:")) {
@@ -313,7 +313,7 @@ public class GateFileReader {
   }
 
   private static ArrayList<Node> getChildNodes(Node nd, String name) {
-    ArrayList<Node> retNodes = new ArrayList<Node>();
+    ArrayList<Node> retNodes = new ArrayList<>();
     NodeList children = nd.getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       if (children.item(i).getNodeName().equals(name)) {

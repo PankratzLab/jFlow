@@ -122,20 +122,20 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
     proj = project;
     log = proj.getLog();
     log.report("Creating new Line Plot object");
-    treeFilenameLookup = new Vector<String>();
+    treeFilenameLookup = new Vector<>();
     // TODO Need to save the previously loaded files in other location.
     // previouslyLoadedFiles = proj.getFilenames(Project.TWOD_LOADED_FILENAMES);
     previouslyLoadedFiles = new String[0];
-    dataHash = new Hashtable<String, Vector<String[]>>();
-    commentHash = new Hashtable<String, Vector<String[]>>();
-    namesHash = new Hashtable<String, String[]>();
-    numericHash = new Hashtable<String, boolean[]>();
-    keyIndices = new Hashtable<String, int[]>();
-    enabledGroups = new Hashtable<String, Boolean>();
-    colorKeyHash = new Hashtable<String, Hashtable<String, String>>();
-    tempGroupToColorHash = new Hashtable<String, Byte>();
-    groupToColorHash = new Hashtable<String, Byte>();
-    groupToColorLabelHash = new Hashtable<String, JLabel[]>();
+    dataHash = new Hashtable<>();
+    commentHash = new Hashtable<>();
+    namesHash = new Hashtable<>();
+    numericHash = new Hashtable<>();
+    keyIndices = new Hashtable<>();
+    enabledGroups = new Hashtable<>();
+    colorKeyHash = new Hashtable<>();
+    tempGroupToColorHash = new Hashtable<>();
+    groupToColorHash = new Hashtable<>();
+    groupToColorLabelHash = new Hashtable<>();
     for (String previouslyLoadedFile : previouslyLoadedFiles) {
       loadFile(previouslyLoadedFile);
     }
@@ -357,14 +357,14 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
     byte colorCode;
 
     selectedNodes = tree.getSelectionValues();
-    v = new Vector<String[]>();
-    ArrayList<Vector<String[]>> result = new ArrayList<Vector<String[]>>();
+    v = new Vector<>();
+    ArrayList<Vector<String[]>> result = new ArrayList<>();
     for (String[] selectedNode : selectedNodes) {
       if (selectedNode[0] != null && keyIndices.get(selectedNode[0]) != null) {
-        xHash = new Hashtable<String, String[]>();
+        xHash = new Hashtable<>();
         selectedColumn = Integer.parseInt(selectedNode[1]);
         dataOfSelectedFile = dataHash.get(selectedNode[0]);
-        yHash = new Hashtable<String, String>();
+        yHash = new Hashtable<>();
         for (int i = 0; i < dataOfSelectedFile.size(); i++) {
           inLine = dataOfSelectedFile.elementAt(i);
           yHash.put(String.valueOf(i), inLine[selectedColumn]);
@@ -372,7 +372,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
         }
         String recordName = namesHash.get(selectedNode[0])[selectedColumn];
         keys = HashVec.getKeys(xHash, false);
-        v = new Vector<String[]>();
+        v = new Vector<>();
         if (includeColorKeyValue) {
           for (String key : keys) {
             if (yHash.containsKey(key)) {
@@ -536,7 +536,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
         if (colorKeyHash.containsKey(curLineParams[2])) { // if this group is already there
           colorKeyHashValue = colorKeyHash.get(curLineParams[2]);
         } else {
-          colorKeyHash.put(curLineParams[2], colorKeyHashValue = new Hashtable<String, String>());
+          colorKeyHash.put(curLineParams[2], colorKeyHashValue = new Hashtable<>());
         }
 
         colorKeyHashValue.put(curLineParams[0], curLineParams[1]); // put filename as key and human
@@ -798,7 +798,7 @@ public class LinePlot extends JPanel implements WindowListener, ActionListener, 
         }
       }
     }
-    ArrayList<String[]> result = new ArrayList<String[]>();
+    ArrayList<String[]> result = new ArrayList<>();
     result.add(line);
     result.add(comment);
     return result;

@@ -13,10 +13,10 @@ public class Haplotypes {
   public static void countsPerPerson(String filename) {
     PrintWriter writer;
     String[] keys;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     String[][] data = HashVec.loadFileToStringMatrix(filename, true, new int[] {0, 1, 2, 3});
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (String[] element : data) {
       for (int j = 0; j < 2; j++) {
         hash.put(element[2 + j], "");

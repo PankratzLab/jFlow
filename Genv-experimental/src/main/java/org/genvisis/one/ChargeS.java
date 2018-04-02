@@ -371,7 +371,7 @@ public class ChargeS {
     if (Files.exists(plinkHWE + ".ser")) {
       hash = SerialHash.loadSerializedStringArrayHash(plinkHWE + ".ser");
     } else {
-      hash = new Hashtable<String, String[]>(2000000);
+      hash = new Hashtable<>(2000000);
       try {
         reader = new BufferedReader(new FileReader(plinkHWE));
         line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);

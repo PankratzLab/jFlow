@@ -156,7 +156,7 @@ public class CNVBeast {
    */
   private static CNVariant[] loadBeastResultsToCNVariant(Project proj, SampleData sampleData,
                                                          BeastConfig config) {
-    ArrayList<CNVariant> indCNVariants = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> indCNVariants = new ArrayList<>();
     String[] ind = sampleData.lookup(config.getSample());
     String summaryFile = config.getSummaryFile();
     byte chr = (byte) config.getAnalysisChr();
@@ -220,9 +220,9 @@ public class CNVBeast {
   private static BeastConfig[] parseAllSamples(Project proj, BeastConfig[][] configs,
                                                MarkerSetInfo markerSet, GcModel gcModel,
                                                int numThreads) {
-    ArrayList<BeastConfig> allConfigs = new ArrayList<BeastConfig>();
+    ArrayList<BeastConfig> allConfigs = new ArrayList<>();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    ArrayList<Future<BeastConfig[]>> tmpResults = new ArrayList<Future<BeastConfig[]>>();
+    ArrayList<Future<BeastConfig[]>> tmpResults = new ArrayList<>();
     for (int i = 0; i < configs.length; i++) {// need to submit the jobs first
       if (configs[i] != null && configs.length > 0) {
         String callString = null;
@@ -264,7 +264,7 @@ public class CNVBeast {
   private static BeastConfig[] analyzeConfigs(Project proj, BeastConfig[] configs, int numThreads) {
     BeastConfig[] analyzedConfigs = new BeastConfig[configs.length];
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    ArrayList<Future<BeastConfig>> tmpResults = new ArrayList<Future<BeastConfig>>();
+    ArrayList<Future<BeastConfig>> tmpResults = new ArrayList<>();
     for (BeastConfig config : configs) {
       BeastAnalysisThread worker = new BeastAnalysisThread(proj, config);
       tmpResults.add(executor.submit(worker));
@@ -292,7 +292,7 @@ public class CNVBeast {
                                                String fullPathToBeastExe,
                                                boolean overWriteExistingFiles) {
     int[][] indicesByChr = markerSet.getIndicesByChr();
-    ArrayList<BeastConfig> configs = new ArrayList<BeastConfig>(indicesByChr.length);
+    ArrayList<BeastConfig> configs = new ArrayList<>(indicesByChr.length);
     for (int i = 1; i < indicesByChr.length; i++) {// skip 0
       if (hasDataAt(indicesByChr, i)) {
         String baseName = sample + "_chr" + i;

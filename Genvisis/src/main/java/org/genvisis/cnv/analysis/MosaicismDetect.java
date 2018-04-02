@@ -89,7 +89,7 @@ public class MosaicismDetect {
     }
     int totalIndices = segIndices.length;
     ArrayList<Integer> evalIndicestmp = new ArrayList<>(totalIndices / 2);
-    LocusSet<CNVariant> dud = new LocusSet<CNVariant>(new CNVariant[0], true, proj.getLog());
+    LocusSet<CNVariant> dud = new LocusSet<>(new CNVariant[0], true, proj.getLog());
 
     LocusSet<MosaicRegion> mSet = new LocusSet<MosaicRegion>(new MosaicRegion[0], true,
                                                              proj.getLog()) {
@@ -150,8 +150,8 @@ public class MosaicismDetect {
                                                                                        ArrayUtils.reverse(p_density),
                                                                                        true));
       int[] states = new int[p_densityMA.length];
-      ArrayList<Double> p_densityScored = new ArrayList<Double>(p_densityMA.length);
-      ArrayList<Integer> mosIndicesTmp = new ArrayList<Integer>(p_densityMA.length);
+      ArrayList<Double> p_densityScored = new ArrayList<>(p_densityMA.length);
+      ArrayList<Integer> mosIndicesTmp = new ArrayList<>(p_densityMA.length);
       for (int i = 0; i < p_densityMA.length; i++) {
         double[] tD = ArrayUtils.removeNaN(new double[] {p_densityMA[i], p_densityMAReverse[i]});
         double d = tD.length > 0 ? ArrayUtils.mean(tD) : Double.NaN;

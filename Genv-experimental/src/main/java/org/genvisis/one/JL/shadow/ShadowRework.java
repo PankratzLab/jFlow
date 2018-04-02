@@ -201,8 +201,8 @@ public class ShadowRework {
                                                              numCorrectionThreads, 1,
                                                              proj.getMarkerNames(), correctionType,
                                                              sexStrategy);
-    ArrayList<String> notCorrected = new ArrayList<String>();
-    try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+    ArrayList<String> notCorrected = new ArrayList<>();
+    try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
                                                                                                          numMarkerThreads,
                                                                                                          10,
                                                                                                          proj.getLog())) {

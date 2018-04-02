@@ -176,7 +176,7 @@ public class BAFContamination {
     }
 
     private static double getStdev(byte geno, byte[] genotypes, double[] bafs) {
-      ArrayList<Double> tmp = new ArrayList<Double>();
+      ArrayList<Double> tmp = new ArrayList<>();
       for (int i = 0; i < bafs.length; i++) {
         if (genotypes[i] == geno) {
           tmp.add(geno == 2 ? bafs[i] : 1 - bafs[i]);
@@ -328,7 +328,7 @@ public class BAFContamination {
       String output = proj.PROJECT_DIRECTORY.getValue() + "contamination.txt";
       ContaminationProducer producer = new ContaminationProducer(proj, pfbs, callRates,
                                                                  proj.getSamples());
-      try (WorkerTrain<BAFContaminationResults> train = new WorkerTrain<BAFContamination.BAFContaminationResults>(producer,
+      try (WorkerTrain<BAFContaminationResults> train = new WorkerTrain<>(producer,
                                                                                                                   numThreads,
                                                                                                                   1,
                                                                                                                   proj.getLog());

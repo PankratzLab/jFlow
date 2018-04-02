@@ -88,7 +88,7 @@ public class CLI {
 
   private final Options options;
   private final String commandName;
-  private final Map<String, String> defaults = new HashMap<String, String>();
+  private final Map<String, String> defaults = new HashMap<>();
 
   private Map<String, String> parsed;
 
@@ -472,7 +472,7 @@ public class CLI {
         throw new ParseException("");
       }
 
-      parsed = new HashMap<String, String>();
+      parsed = new HashMap<>();
       for (Option o : options.getOptions()) {
         String opt = getName(o);
 

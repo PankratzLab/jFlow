@@ -165,7 +165,7 @@ public class BlastAnnotationTypes {
 
   public static Annotation[] getBaseAnnotations() {
 
-    ArrayList<Annotation> annotations = new ArrayList<Annotation>();
+    ArrayList<Annotation> annotations = new ArrayList<>();
     for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
       BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
       annotations.add(new Annotation(btype.getvType(), btype.getCount(), btype.getNumber(),
@@ -176,7 +176,7 @@ public class BlastAnnotationTypes {
   }
 
   public static AnnotationData[] getAnnotationDatas() {
-    ArrayList<AnnotationData> annotations = new ArrayList<AnnotationData>();
+    ArrayList<AnnotationData> annotations = new ArrayList<>();
     for (int i = 0; i < BLAST_ANNOTATION_TYPES.values().length; i++) {
       BLAST_ANNOTATION_TYPES btype = BLAST_ANNOTATION_TYPES.values()[i];
       annotations.add(new AnnotationData(btype.getvType(), btype.getCount(), btype.getNumber(),

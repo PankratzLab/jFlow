@@ -207,7 +207,7 @@ public class SpecialK {
   }
 
   private static HashMap<String, String> loadMergeFile(String mergeFile) {
-    HashMap<String, String> merge = new HashMap<String, String>();
+    HashMap<String, String> merge = new HashMap<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(mergeFile);
       while (reader.ready()) {

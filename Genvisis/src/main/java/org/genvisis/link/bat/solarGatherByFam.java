@@ -19,8 +19,8 @@ public class solarGatherByFam {
     String temp, fam;
     String[] chrome;
     int[] chromosome, position;
-    Vector<String> fams = new Vector<String>();
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Vector<String> fams = new Vector<>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     reader = new BufferedReader(new FileReader("solar_ped"));
     reader.readLine();

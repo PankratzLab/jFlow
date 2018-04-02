@@ -86,7 +86,7 @@ public class AutoMito {
     String baseMarkerQC = qcDir + name + "_base_markerQC.txt";
     String baseMarkers = ext.addToRoot(baseMarkerQC, ".nonCNOnlyMarkers");
     proj.MARKER_METRICS_FILENAME.setValue(baseMarkerQC);
-    ArrayList<String> nonCN_Only = new ArrayList<String>();
+    ArrayList<String> nonCN_Only = new ArrayList<>();
     String[] autos = proj.getAutosomalMarkers();
     for (int i = 0; i < autos.length; i++) {
       if (!proj.getArrayType().isCNOnly(autos[i])) {

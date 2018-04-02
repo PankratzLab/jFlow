@@ -39,7 +39,7 @@ public class GeneFeatureTable {
       int feature = ext.indexOfStr("feature_type", header);
       int genes = ext.indexOfStr("genes", header);
 
-      Map<String, String[]> out = new HashMap<String, String[]>();
+      Map<String, String[]> out = new HashMap<>();
       String[] outHeader = new String[] {"Gene", "Promoter", "Promoter_Flanking_Region",
                                          "Open_chromatin", "CTCF_Binding_Site", "TF_binding_site",
                                          "Enhancer"};

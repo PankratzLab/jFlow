@@ -306,7 +306,7 @@ public class DosageData implements Serializable {
       return;
     }
 
-    invalids = new Hashtable<String, String>();
+    invalids = new Hashtable<>();
     try {
       reader = Files.getAppropriateReader(dosageFile);// new BufferedReader(new
                                                       // FileReader(dosageFile));
@@ -1175,9 +1175,9 @@ public class DosageData implements Serializable {
     if (markersToUse != null) {
       HashSet<String> mkrsToKeep = HashVec.loadToHashSet(markersToUse);
       HashSet<String> markers = HashVec.loadToHashSet(markerNames);
-      HashSet<String> dupes = new HashSet<String>();
+      HashSet<String> dupes = new HashSet<>();
       if (markerNames.length != markers.size()) {
-        HashSet<String> hash = new HashSet<String>((int) (1 + markerNames.length / .75));
+        HashSet<String> hash = new HashSet<>((int) (1 + markerNames.length / .75));
         for (String mkr : markerNames) {
           if (hash.contains(mkr)) {
             dupes.add(mkr);
@@ -1252,10 +1252,10 @@ public class DosageData implements Serializable {
 
     String[][] dd1Ids = dd1.ids;
     String[][] dd2Ids = dd2.ids;
-    HashMap<String, Integer> dd1IdsAndIndices = new HashMap<String, Integer>();
-    HashMap<String, Integer> dd2IdsAndIndices = new HashMap<String, Integer>();
-    HashSet<String> duplicatedIDs = new HashSet<String>();
-    LinkedHashSet<String> idSet = new LinkedHashSet<String>(); // use to ensure uniqueness and order
+    HashMap<String, Integer> dd1IdsAndIndices = new HashMap<>();
+    HashMap<String, Integer> dd2IdsAndIndices = new HashMap<>();
+    HashSet<String> duplicatedIDs = new HashSet<>();
+    LinkedHashSet<String> idSet = new LinkedHashSet<>(); // use to ensure uniqueness and order
     for (int s = 0; s < dd1Ids.length; s++) {
       String id = dd1Ids[s][0] + "\t" + dd1Ids[s][1];
       idSet.add(id);
@@ -1276,15 +1276,15 @@ public class DosageData implements Serializable {
 
     String[] dd1Mkrs = dd1.markerSet.getMarkerNames();
     String[] dd2Mkrs = dd2.markerSet.getMarkerNames();
-    LinkedHashSet<String> markers = new LinkedHashSet<String>();
-    HashMap<String, Integer> dd1MarkersAndIndices = new HashMap<String, Integer>();
+    LinkedHashSet<String> markers = new LinkedHashSet<>();
+    HashMap<String, Integer> dd1MarkersAndIndices = new HashMap<>();
     for (int i = 0; i < dd1Mkrs.length; i++) {
       dd1MarkersAndIndices.put(dd1Mkrs[i], i);
       markers.add(dd1Mkrs[i]);
     }
-    HashMap<String, Integer> duplicatedMarkersAndIndices = new HashMap<String, Integer>();
-    HashMap<String, Integer> dd2MarkersAndIndices = new HashMap<String, Integer>();
-    HashSet<String> droppedMarkers = new HashSet<String>();
+    HashMap<String, Integer> duplicatedMarkersAndIndices = new HashMap<>();
+    HashMap<String, Integer> dd2MarkersAndIndices = new HashMap<>();
+    HashSet<String> droppedMarkers = new HashSet<>();
     for (int i = 0; i < dd2Mkrs.length; i++) {
       dd2MarkersAndIndices.put(dd2Mkrs[i], i);
 
@@ -1308,7 +1308,7 @@ public class DosageData implements Serializable {
       }
     }
 
-    HashSet<String> disallowedDuplicateIDsForALL = new HashSet<String>();
+    HashSet<String> disallowedDuplicateIDsForALL = new HashSet<>();
     if (duplicatedIDs.size() > 0 && duplicatedMarkersAndIndices.size() > 0) {
       if (onDupeOp == COMBINE_OP.EITHER_IF_OTHER_MISSING_ALL) {
         // find any duplicated/shared IDs that have ANY valid data for duplicated/shared markers
@@ -1793,7 +1793,7 @@ public class DosageData implements Serializable {
       dosageValue = -999;
 
       delimiter = DELIMITERS[toParameters[10]];
-      invalids = new Hashtable<String, String>();
+      invalids = new Hashtable<>();
       try {
         reader = Files.getAppropriateReader(dosageFile); // new BufferedReader(new
                                                         // FileReader(dosageFile));
@@ -2211,7 +2211,7 @@ public class DosageData implements Serializable {
         chrRgn.add(new int[] {rgn[1], rgn[2]});
       }
     } else if (markersToKeep != null) {
-      variants = new HashSet<String>();
+      variants = new HashSet<>();
       for (String m : markersToKeep) {
         variants.add(m);
       }
@@ -2293,7 +2293,7 @@ public class DosageData implements Serializable {
                                    String markerNamePrepend) {
     String probTag = "GP";
 
-    HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<String>();
+    HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<>();
     if (markersToKeep != null) {
       for (String s : markersToKeep) {
         markerSet.add(s);
@@ -2305,7 +2305,7 @@ public class DosageData implements Serializable {
       for (int[] rgn : regionsToKeep) {
         List<int[]> rgns = rgnsToKeep.get(rgn[0]);
         if (rgns == null) {
-          rgns = new ArrayList<int[]>();
+          rgns = new ArrayList<>();
           rgnsToKeep.put(rgn[0], rgns);
         }
         rgns.add(rgn);
@@ -2400,13 +2400,13 @@ public class DosageData implements Serializable {
 
     String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false,
                                                         new int[] {0, 1, 2, 3, 4, 5});
-    HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<String>();
+    HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<>();
     if (markersToKeep != null) {
       for (String s : markersToKeep) {
         markerSet.add(s);
       }
     }
-    HashSet<String> bimMarkers = new HashSet<String>();
+    HashSet<String> bimMarkers = new HashSet<>();
     for (String[] element : bimData) {
       bimMarkers.add(element[1]);
     }

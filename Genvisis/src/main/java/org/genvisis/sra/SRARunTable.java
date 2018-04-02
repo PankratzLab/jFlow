@@ -47,7 +47,7 @@ public class SRARunTable extends HashMap<String, SRASample> {
   }
 
   public String[] getAllRunSFiles() {
-    ArrayList<String> sraFiles = new ArrayList<String>();
+    ArrayList<String> sraFiles = new ArrayList<>();
     for (String sample : keySet()) {
       sraFiles.add(get(sample).getRunS());
     }

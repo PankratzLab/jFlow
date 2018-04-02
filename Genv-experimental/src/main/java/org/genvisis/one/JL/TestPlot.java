@@ -26,7 +26,7 @@ public class TestPlot extends Application {
     stage.initStyle(StageStyle.UNIFIED);
     final NumberAxis xAxis = new NumberAxis(0, 10, 1);
     final NumberAxis yAxis = new NumberAxis(-100, 500, 100);
-    final ScatterChart<Number, Number> sc = new ScatterChart<Number, Number>(xAxis, yAxis);
+    final ScatterChart<Number, Number> sc = new ScatterChart<>(xAxis, yAxis);
     xAxis.setLabel("Age (years)");
     yAxis.setLabel("Returns to date");
     sc.setTitle("Investment Overview");
@@ -50,7 +50,7 @@ public class TestPlot extends Application {
       System.out.println(unnamed);
     }
 
-    XYChart.Series<Number, Number> series1 = new XYChart.Series<Number, Number>();
+    XYChart.Series<Number, Number> series1 = new XYChart.Series<>();
     series1.setName("Equities");
     series1.getData().add(new XYChart.Data<Number, Number>(4.2, 193.2));
     series1.getData().add(new XYChart.Data<Number, Number>(2.8, 33.6));
@@ -69,7 +69,7 @@ public class TestPlot extends Application {
     series1.getData().add(new XYChart.Data(7.3, 110.3));
     series1.getData().add(new XYChart.Data(2.7, 41.2));
 
-    XYChart.Series<Number, Number> series2 = new XYChart.Series<Number, Number>();
+    XYChart.Series<Number, Number> series2 = new XYChart.Series<>();
     series2.setName("Mutual funds");
     series2.getData().add(new XYChart.Data(5.2, 229.2));
     series2.getData().add(new XYChart.Data(2.4, 37.6));

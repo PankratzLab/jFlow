@@ -141,7 +141,7 @@ public class ColorKeyPanel extends JPanel {
       classRadioButtons[getCurrentClass()].setSelected(true);
     }
 
-    disabledClassValues = new Hashtable<String, String>();
+    disabledClassValues = new Hashtable<>();
 
     classVariablesPanel.validate();
     if (classValuesPanel != null) {

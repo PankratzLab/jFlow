@@ -18,7 +18,7 @@ public class ChrPositionMap implements Serializable {
 
   public static final long serialVersionUID = 1L;
 
-  Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<Byte, HashSet<Integer>>();
+  Hashtable<Byte, HashSet<Integer>> chrPositionMap = new Hashtable<>();
 
   public Hashtable<Byte, HashSet<Integer>> getChrPositionMap() {
     return chrPositionMap;

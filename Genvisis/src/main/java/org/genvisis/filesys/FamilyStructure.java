@@ -147,7 +147,7 @@ public class FamilyStructure {
 
   private synchronized void buildfidiidToIndexMap() {
     if (cached_fidiidToIndexMap == null) {
-      HashMap<String, Integer> fidiidMap = new HashMap<String, Integer>();
+      HashMap<String, Integer> fidiidMap = new HashMap<>();
       for (int i = 0; i < ids.length; i++) {
         if (fidiidMap.put(fids[i] + "\t" + iids[i], i) != null) {
           System.err.println("Warning - Pedigree contains non-unique FID/IID combinations!");

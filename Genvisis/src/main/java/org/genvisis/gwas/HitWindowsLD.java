@@ -120,7 +120,7 @@ public class HitWindowsLD {
 
   public void setRegion(boolean region) {
     this.region = region;
-    markers = new ArrayList<String>();
+    markers = new ArrayList<>();
   }
 
   public ArrayList<String> getMarkers() {
@@ -321,7 +321,7 @@ public class HitWindowsLD {
   }
 
   public static String[] getTargets(String targetFile, Logger log) {
-    ArrayList<String> targets = new ArrayList<String>();
+    ArrayList<String> targets = new ArrayList<>();
     BufferedReader reader;
     try {
       reader = Files.getAppropriateReader(targetFile);
@@ -363,10 +363,10 @@ public class HitWindowsLD {
     private int index;
 
     public ReferenceMap(Logger log) {
-      trackpos = new Hashtable<String, Integer>();
-      trackchr = new Hashtable<String, Integer>();
-      trackindex = new Hashtable<String, Integer>();
-      lookup = new Hashtable<Integer, String>();
+      trackpos = new Hashtable<>();
+      trackchr = new Hashtable<>();
+      trackindex = new Hashtable<>();
+      lookup = new Hashtable<>();
       loadingChr = -1;
       loadingPos = -1;
       this.log = log;
@@ -601,7 +601,7 @@ public class HitWindowsLD {
   }
 
   private static String getRegionSummary(HitWindowsLD[] hitWindowsLD, Logger log) {
-    Hashtable<String, String> uniq = new Hashtable<String, String>();
+    Hashtable<String, String> uniq = new Hashtable<>();
     int uniqHits = 0;
     int regionMinPos = 0;
     int regionMaxPos = 0;

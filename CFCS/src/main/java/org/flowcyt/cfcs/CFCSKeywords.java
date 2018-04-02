@@ -62,9 +62,9 @@ public final class CFCSKeywords implements CFCSErrorCodes {
   };
 
   /* friendly */
-  static final Set<String> SYSTEM_KEYWORDS = new HashSet<String>();
+  static final Set<String> SYSTEM_KEYWORDS = new HashSet<>();
   /* friendly */
-  static final Set<String> NONTRANSFERABLE_KEYWORDS = new HashSet<String>();
+  static final Set<String> NONTRANSFERABLE_KEYWORDS = new HashSet<>();
 
   /* friendly */
   static final String[] SEGMENT_ROOTS = {"HEADER", "STEXT", "DATA", "ANALYSIS"};
@@ -117,8 +117,8 @@ public final class CFCSKeywords implements CFCSErrorCodes {
 
   private static final /* inner */ class CFCSKeywordTable {
 
-    private final List<CFCSKeyword> list = new LinkedList<CFCSKeyword>();
-    private final Map<String, CFCSKeyword> map = new HashMap<String, CFCSKeyword>();
+    private final List<CFCSKeyword> list = new LinkedList<>();
+    private final Map<String, CFCSKeyword> map = new HashMap<>();
 
     // ------------------------------------------------------------
 
@@ -590,7 +590,7 @@ public final class CFCSKeywords implements CFCSErrorCodes {
 
     final String string = keyword.getKeywordValue();
 
-    final List<Integer> positions = new LinkedList<Integer>();
+    final List<Integer> positions = new LinkedList<>();
 
     for (int i = 0; i < string.length(); i++) {
       char character = string.charAt(i);

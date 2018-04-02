@@ -81,9 +81,9 @@ public class Minimac {
     Vector<String> flips, mismatches, others;
     boolean done;
 
-    flips = new Vector<String>();
-    mismatches = new Vector<String>();
-    others = new Vector<String>();
+    flips = new Vector<>();
+    mismatches = new Vector<>();
+    others = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(logfile));
       do {
@@ -163,8 +163,8 @@ public class Minimac {
     }
     markerNames = new SnpMarkerSet(mapFile, mapType, false, new Logger()).getMarkerNames();
 
-    flipHash = flips == null ? new HashSet<String>() : HashVec.loadFileToHashSet(flips, false);
-    dropHash = drops == null ? new HashSet<String>() : HashVec.loadFileToHashSet(drops, false);
+    flipHash = flips == null ? new HashSet<>() : HashVec.loadFileToHashSet(flips, false);
+    dropHash = drops == null ? new HashSet<>() : HashVec.loadFileToHashSet(drops, false);
     flip = new boolean[markerNames.length];
     drop = new boolean[markerNames.length];
     for (int i = 0; i < markerNames.length; i++) {
@@ -260,7 +260,7 @@ public class Minimac {
       System.exit(2);
     }
 
-    merges = new Vector<String>();
+    merges = new Vector<>();
     for (int i = 0; i < markers.length; i++) {
       if (markers[i] != null) {
         list = markers[i].split(",");
@@ -297,7 +297,7 @@ public class Minimac {
     indices = ext.indexFactors(markers,
                                HashVec.loadFileToStringArray(mapFile, false, new int[] {1}, false),
                                false);
-    hash = new Hashtable<String, String>();
+    hash = new Hashtable<>();
     for (int i = 0; i < indices.length; i++) {
       hash.put(indices[i] + "", i + "");
     }
@@ -666,9 +666,9 @@ public class Minimac {
     double chisq;
     int numObserved;
 
-    flips = new Vector<String>();
-    mismatches = new Vector<String>();
-    others = new Vector<String>();
+    flips = new Vector<>();
+    mismatches = new Vector<>();
+    others = new Vector<>();
 
     hash = HashVec.loadFileToHashString(compStrand, new int[] {0}, new int[] {2, 3, 4, 5}, false,
                                         "\t", true, false);

@@ -96,12 +96,12 @@ public class PlinkMarkerLoader implements Runnable {
   private void lookupMarkerPositions() {
     BufferedReader reader;
     String[] line;
-    HashSet<String> lookFor = new HashSet<String>();
+    HashSet<String> lookFor = new HashSet<>();
     for (String s : markerList) {
       lookFor.add(s);
     }
-    markerIndicesLookup = new HashMap<String, Integer>();
-    HashMap<String, Integer> markerIndicesLookupTemp = new HashMap<String, Integer>();
+    markerIndicesLookup = new HashMap<>();
+    HashMap<String, Integer> markerIndicesLookupTemp = new HashMap<>();
     int cnt = 0;
     try {
       reader = Files.getAppropriateReader(fileRoot + ".bim");
@@ -137,7 +137,7 @@ public class PlinkMarkerLoader implements Runnable {
 
     String famFile = PSF.Plink.getFAM(fileRoot);
 
-    famIDLookup = new HashMap<String, Integer>();
+    famIDLookup = new HashMap<>();
 
     try {
       reader = Files.getAppropriateReader(famFile);
@@ -166,7 +166,7 @@ public class PlinkMarkerLoader implements Runnable {
   public void run() {
     RandomAccessFile in = null;
 
-    HashMap<String, byte[]> mkrGenotypes = new HashMap<String, byte[]>();
+    HashMap<String, byte[]> mkrGenotypes = new HashMap<>();
 
     if (killed) {
       return;

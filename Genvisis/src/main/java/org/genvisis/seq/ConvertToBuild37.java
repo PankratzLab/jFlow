@@ -37,10 +37,10 @@ public class ConvertToBuild37 {
     if (new File(dir + HASH_MAP_FILE).exists()) {
       hash = SerialHash.loadSerializedStringHash(dir + HASH_MAP_FILE);
     } else {
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
     }
 
-    err = new Hashtable<String, String>();
+    err = new Hashtable<>();
     files = Files.list(dir, ".err");
     for (String file : files) {
       lines = HashVec.loadFileToStringArray(dir + file, false, new int[] {0}, true, false, ",");
@@ -73,7 +73,7 @@ public class ConvertToBuild37 {
 
     count = 0;
     files = Files.list(dir, suffix);
-    newLocs = new Hashtable<String, String>();
+    newLocs = new Hashtable<>();
     for (String file : files) {
       try {
         reader = new BufferedReader(new FileReader(dir + file));

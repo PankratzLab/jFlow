@@ -26,8 +26,8 @@ public class sortFamInd {
     PrintWriter writer;
     StringTokenizer st;
     String temp, trav, dna;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String> vex = new Vector<String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String> vex = new Vector<>();
 
     if (!new File(filename).exists()) {
       System.err.println("Error - could not find " + filename + " in current directory");

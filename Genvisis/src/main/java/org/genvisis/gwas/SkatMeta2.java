@@ -436,7 +436,7 @@ public class SkatMeta2 {
     // regionToChr = (Hashtable<Integer, String>) test[3];
     chrList = ((Vector<String>) test[4]).toArray(new String[0]);
 
-    significantSnpOfEachRegion = new Hashtable<Integer, String>();
+    significantSnpOfEachRegion = new Hashtable<>();
     a = resultsDirFilenameTemplate.lastIndexOf("/");
     byChrResultDirFilenameTemplate = resultsDirFilenameTemplate.substring(0, a) + "/byChr/";
     if (!new File(byChrResultDirFilenameTemplate).exists()) {
@@ -445,7 +445,7 @@ public class SkatMeta2 {
     byChrResultDirFilenameTemplate += resultsDirFilenameTemplate.substring(a + 1);
 
     b = new int[2];
-    chrsWithoutFiles = new Vector<String>();
+    chrsWithoutFiles = new Vector<>();
     allEthnics = ArrayUtils.toStr(ethnics, "");
     for (String chr : chrList) {
       isFileAvailable = true;
@@ -608,7 +608,7 @@ public class SkatMeta2 {
     // String[][] qsubIterationsMatrix;
     String[] chrs, tmp;
     String[][] tmp2;
-    qsubIterations = new Hashtable<String, String[]>();
+    qsubIterations = new Hashtable<>();
     for (String pheno : phenos) {
       condFile = condFileDirAndNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
       condFile = condFile.replaceAll(FILENAME_CONDITION_SEGMENT, "cond" + startCondition);
@@ -752,7 +752,7 @@ public class SkatMeta2 {
     String[] analysesListSorted = null;
 
     if (genePvaluesSummary != null && genePvaluesSummary.size() > 0) {
-      analysesList = new HashSet<String>();
+      analysesList = new HashSet<>();
       conditionGroup = genePvaluesSummary.get(pheno);
       for (String condition : conditionGroup.keySet()) {
         ethnicGroup = conditionGroup.get(condition);
@@ -789,7 +789,7 @@ public class SkatMeta2 {
     Hashtable<String, Hashtable<Integer, Vector<String>>> result;
     String condFile;
 
-    result = new Hashtable<String, Hashtable<Integer, Vector<String>>>();
+    result = new Hashtable<>();
     for (String pheno : phenos) {
       condFile = conditionFileDirNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno)
                                              .replaceAll(FILENAME_CONDITION_SEGMENT, "cond1");
@@ -810,7 +810,7 @@ public class SkatMeta2 {
       log = new Logger();
     }
 
-    result = new Vector<String>();
+    result = new Vector<>();
     if (phenoGroups != null && phenoGroups.size() > 0) {
       for (String pheno : phenoGroups.keySet()) {
         conditionGroup = phenoGroups.get(pheno);
@@ -875,7 +875,7 @@ public class SkatMeta2 {
     String[] a = null;
 
     if (genePvalueSummary != null && genePvalueSummary.size() > 0) {
-      ethnicList = new HashSet<String>();
+      ethnicList = new HashSet<>();
       conditionGroup = genePvalueSummary.get(pheno);
       for (String condition : conditionGroup.keySet()) {
         ethnicGroup = conditionGroup.get(condition);
@@ -898,7 +898,7 @@ public class SkatMeta2 {
     String[] ethnicListSorted = null;
 
     if (snpResultsAll != null && snpResultsAll.size() > 0) {
-      ethnicList = new HashSet<String>();
+      ethnicList = new HashSet<>();
       for (String condition : snpResultsAll.keySet()) {
         ethnicGroup = snpResultsAll.get(condition);
         for (String ethnic : ethnicGroup.keySet()) {
@@ -1032,11 +1032,11 @@ public class SkatMeta2 {
       return null;
     }
 
-    regionToSnpWithMinP = new Hashtable<Integer, String>();
-    regionToGenes = new Hashtable<Integer, Vector<String>>();
-    regionToBoundaries = new Hashtable<Integer, int[]>();
-    regionToMinP = new Hashtable<Integer, Double>();
-    regionToChr = new Hashtable<Integer, String>();
+    regionToSnpWithMinP = new Hashtable<>();
+    regionToGenes = new Hashtable<>();
+    regionToBoundaries = new Hashtable<>();
+    regionToMinP = new Hashtable<>();
+    regionToChr = new Hashtable<>();
     snpsFromResultFile = loadFile(resultFullPath, null, namesOfColumnsOfSnpChrPos,
                                   namesOfColumnsOfGeneAndPvalues, criteriaForPValLooserThreshold,
                                   log);
@@ -1064,7 +1064,7 @@ public class SkatMeta2 {
           } catch (NumberFormatException err) {}
         }
 
-        regionsFound = new Vector<Integer>();
+        regionsFound = new Vector<>();
         for (int region : regionToChr.keySet()) {
           if (regionToChr.get(region).equals(snpChrPosition[1])) {
             boundaries = regionToBoundaries.get(region);
@@ -1078,7 +1078,7 @@ public class SkatMeta2 {
         if (regionsFound.size() == 0) {
           regionToBoundaries.put(regionId, new int[] {position, position});
           regionToChr.put(regionId, snpChrPosition[1]);
-          geneList = new Vector<String>();
+          geneList = new Vector<>();
           geneList.add(gene);
           regionToGenes.put(regionId, geneList);
           regionToMinP.put(regionId, p);
@@ -1142,7 +1142,7 @@ public class SkatMeta2 {
           } catch (NumberFormatException err) {}
         }
 
-        regionsFound = new Vector<Integer>();
+        regionsFound = new Vector<>();
         for (int region : regionToChr.keySet()) {
           if (regionToChr.get(region).equals(snpChrPosition[1])) {
             boundaries = regionToBoundaries.get(region);
@@ -1194,13 +1194,13 @@ public class SkatMeta2 {
     }
 
     if (regionToChr.size() > 0) {
-      ttt = new Hashtable<String, Integer>();
+      ttt = new Hashtable<>();
       for (int region : regionToChr.keySet()) {
         ttt.put(regionToChr.get(region) + "\t" + regionToSnpWithMinP.get(region), region);
       }
       line = HashVec.getKeys(ttt);
 
-      output = new Vector<String>();
+      output = new Vector<>();
       output.add("SNP\tSKATgene\tChr\tPos1\tPos2");
       for (String key : line) {
         regionId = ttt.get(key);
@@ -1229,7 +1229,7 @@ public class SkatMeta2 {
     String[] geneListSorted = null;
 
     if (genePvaluesSummary != null && genePvaluesSummary.size() > 0) {
-      geneList = new HashSet<String>();
+      geneList = new HashSet<>();
       conditionGroup = genePvaluesSummary.get(pheno);
 
       for (String condition : conditionGroup.keySet()) {
@@ -1296,7 +1296,7 @@ public class SkatMeta2 {
     String[] result = null;
 
     if (snpResultsAll != null && snpResultsAll.size() > 0) {
-      geneSnpList = new HashSet<String>();
+      geneSnpList = new HashSet<>();
       for (String condition : snpResultsAll.keySet()) {
         snpResultsCurrentCondition = snpResultsAll.get(condition);
         for (String ethnic : snpResultsCurrentCondition.keySet()) {
@@ -1339,7 +1339,7 @@ public class SkatMeta2 {
                                                             log);
     if (chrPositions.size() > 0) {
       if (snpResultsAll != null && snpResultsAll.size() > 0) {
-        geneSnpList = new HashSet<String>();
+        geneSnpList = new HashSet<>();
         for (String condition : snpResultsAll.keySet()) {
           snpResultsCurrentCondition = snpResultsAll.get(condition);
           for (String ethnic : snpResultsCurrentCondition.keySet()) {
@@ -1389,7 +1389,7 @@ public class SkatMeta2 {
     }
     Arrays.sort(regionIdsOrdered);
 
-    output = new Vector<String>();
+    output = new Vector<>();
     output.add("SNP\tSKATgene\tChr");
 
     // for (String geneSnp : previousCondition.keySet()) {
@@ -1455,8 +1455,8 @@ public class SkatMeta2 {
                                    new String[] {"gene", "Name"}, new String[] {"p"},
                                    new String[] {"p<=" + pThreshold}, log);
     if (previousRoundResult.size() > 0) {
-      significantSnpOfEachRegion_p = new Hashtable<Integer, Double>();
-      significantSnpOfEachRegion_snp = new Hashtable<Integer, String>();
+      significantSnpOfEachRegion_p = new Hashtable<>();
+      significantSnpOfEachRegion_snp = new Hashtable<>();
       for (String geneSnp : previousRoundResult.keySet()) {
         line = geneSnp.split("\t");
         regionId = getKeyOfValue(regionToGenes, line[0], log);
@@ -1482,7 +1482,7 @@ public class SkatMeta2 {
       }
       Arrays.sort(regionIdsOrdered);
 
-      output = new Vector<String>();
+      output = new Vector<>();
       output.add("SNP\tSKATgene\tCHROM");
       for (int region : regionIdsOrdered) {
         snpList = regionToSnps.get(region);
@@ -2013,12 +2013,12 @@ public class SkatMeta2 {
       log = new Logger();
     }
 
-    significantSnpOfEachRegion_snp = new Hashtable<Integer, String>();
+    significantSnpOfEachRegion_snp = new Hashtable<>();
     previousRoundResult = loadFile(fullpathToPreviousRoundResult, null,
                                    new String[] {"gene", "Name"}, new String[] {"p"},
                                    new String[] {"p<=" + pThreshold}, log);
     if (previousRoundResult.size() > 0) {
-      significantSnpOfEachRegion_p = new Hashtable<Integer, Double>();
+      significantSnpOfEachRegion_p = new Hashtable<>();
       for (String geneSnp : previousRoundResult.keySet()) {
         line = geneSnp.split("\t");
         regionId = getKeyOfValue(regionToGenes, line[0], log);
@@ -2059,7 +2059,7 @@ public class SkatMeta2 {
     }
 
     errorMessage = "";
-    phenoGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+    phenoGroup = new Hashtable<>();
     for (String pheno : phenos) {
       filename = fileDirNameTemplate.replaceAll(FILENAME_PHENO_SEGMENT, pheno);
       for (String ethnic : ethnics) {
@@ -2080,21 +2080,21 @@ public class SkatMeta2 {
               if (phenoGroup.containsKey(pheno)) {
                 conditionGroup = phenoGroup.get(pheno);
               } else {
-                conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+                conditionGroup = new Hashtable<>();
                 phenoGroup.put(pheno, conditionGroup);
               }
 
               if (conditionGroup.containsKey(condition)) {
                 ethnicGroup = conditionGroup.get(condition);
               } else {
-                ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
+                ethnicGroup = new Hashtable<>();
                 conditionGroup.put(condition, ethnicGroup);
               }
 
               if (ethnicGroup.containsKey(ethnic)) {
                 analysesGroup = ethnicGroup.get(ethnic);
               } else {
-                analysesGroup = new Hashtable<String, String>();
+                analysesGroup = new Hashtable<>();
                 ethnicGroup.put(ethnic, analysesGroup);
               }
 
@@ -2140,13 +2140,13 @@ public class SkatMeta2 {
     }
 
     if (filenames != null && filenames.length > 0) {
-      phenoGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+      phenoGroup = new Hashtable<>();
       for (String filename : filenames) {
         filenameRoot = ext.rootOf(filename).split("_");
         if (phenoGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]])) {
           conditionGroup = phenoGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]]);
         } else {
-          conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+          conditionGroup = new Hashtable<>();
           phenoGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[0]],
                          conditionGroup);
         }
@@ -2154,7 +2154,7 @@ public class SkatMeta2 {
         if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
           ethnicGroup = conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
         } else {
-          ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
+          ethnicGroup = new Hashtable<>();
           conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]],
                              ethnicGroup);
         }
@@ -2162,7 +2162,7 @@ public class SkatMeta2 {
         if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
           analysesGroup = ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
         } else {
-          analysesGroup = new Hashtable<String, String>();
+          analysesGroup = new Hashtable<>();
           ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]],
                           analysesGroup);
         }
@@ -2208,7 +2208,7 @@ public class SkatMeta2 {
           columnIndeciesOfPhenoConditionEthnicAnalysis[i]--;
         }
       }
-      phenoGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+      phenoGroup = new Hashtable<>();
       for (String filename : filenames) {
         tmp = ext.rootOf(filename);
         index = -1;
@@ -2235,14 +2235,14 @@ public class SkatMeta2 {
         if (phenoGroup.containsKey(phenos[index])) {
           conditionGroup = phenoGroup.get(phenos[index]);
         } else {
-          conditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+          conditionGroup = new Hashtable<>();
           phenoGroup.put(phenos[index], conditionGroup);
         }
 
         if (conditionGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]])) {
           ethnicGroup = conditionGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]]);
         } else {
-          ethnicGroup = new Hashtable<String, Hashtable<String, String>>();
+          ethnicGroup = new Hashtable<>();
           conditionGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[1]],
                              ethnicGroup);
         }
@@ -2250,7 +2250,7 @@ public class SkatMeta2 {
         if (ethnicGroup.containsKey(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]])) {
           analysesGroup = ethnicGroup.get(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]]);
         } else {
-          analysesGroup = new Hashtable<String, String>();
+          analysesGroup = new Hashtable<>();
           ethnicGroup.put(filenameRoot[columnIndeciesOfPhenoConditionEthnicAnalysis[2]],
                           analysesGroup);
         }
@@ -2305,7 +2305,7 @@ public class SkatMeta2 {
       log = new Logger();
     }
 
-    result = new Hashtable<String, String[]>();
+    result = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filefullpath));
       header = reader.readLine();
@@ -2403,7 +2403,7 @@ public class SkatMeta2 {
     BufferedReader reader;
     List<String> result;
 
-    result = new ArrayList<String>();
+    result = new ArrayList<>();
     try {
       reader = new BufferedReader(new FileReader(filefullpath));
       for (int i = 0; i < numHeaderLinesToSkip; i++) {
@@ -2446,7 +2446,7 @@ public class SkatMeta2 {
     }
 
     result = new String[snps.length];
-    notYetFound = new Vector<Integer>(result.length);
+    notYetFound = new Vector<>(result.length);
     for (int i = 0; i < result.length; i++) {
       snps[i] = snps[i].trim();
       line = snps[i].split(":");
@@ -2624,7 +2624,7 @@ public class SkatMeta2 {
     Hashtable<String, String> result;
 
     chrPos = lookupChrPosFromSnpInfoFiles(snpInfoDirFilenameTemplate, snps, chromosomes, log);
-    result = new Hashtable<String, String>();
+    result = new Hashtable<>();
     if (chrPos != null) {
       for (int i = 0; i < chrPos.length; i++) {
         result.put(snps[i], chrPos[i]);
@@ -2650,7 +2650,7 @@ public class SkatMeta2 {
         inFilenameAfterEthnicAnalysis = inFilenameAfterEthnic.replaceAll(FILENAME_ANALYSIS_SEGMENT,
                                                                          analysis);
         outFilename2 = outFilename1.replaceAll(FILENAME_ANALYSIS_SEGMENT, analysis);
-        list = new Vector<String>();
+        list = new Vector<>();
         toIncludeHeaderLine = true;
         for (String chr : chrList) {
           inFilename = inFilenameAfterEthnicAnalysis.replaceAll(FILENAME_CHROMOSOME_SEGMENT,
@@ -2691,8 +2691,8 @@ public class SkatMeta2 {
     condition = loadFile(input_fullpathToPreviousRoundCondition, null,
                          new String[] {"SKATgene", "Name"},
                          new String[] {"Chr"/* , "Pos1", "Pos2" */}, null, null);
-    uniqueGenes = new Vector<String>();
-    uniqueSnps = new Vector<String>();
+    uniqueGenes = new Vector<>();
+    uniqueSnps = new Vector<>();
     for (String geneSnp : condition.keySet()) {
       line = geneSnp.split("\t");
       if (!uniqueGenes.contains(line[0])) {
@@ -2703,10 +2703,10 @@ public class SkatMeta2 {
       }
     }
 
-    regionToGenes = new Hashtable<Integer, Vector<String>>();
-    regionToSnps = new Hashtable<Integer, Vector<String>>();
-    regionToChr = new Hashtable<Integer, String>();
-    chrList = new Vector<String>();
+    regionToGenes = new Hashtable<>();
+    regionToSnps = new Hashtable<>();
+    regionToChr = new Hashtable<>();
+    chrList = new Vector<>();
     for (String snp : uniqueSnps) {
       for (String gene : uniqueGenes) {
         if (condition.containsKey(gene + "\t" + snp)) {
@@ -2728,9 +2728,9 @@ public class SkatMeta2 {
             }
           } else {
             regionId = regionToSnps.size();
-            snpList = new Vector<String>();
+            snpList = new Vector<>();
             regionToSnps.put(regionId, snpList);
-            geneList = new Vector<String>();
+            geneList = new Vector<>();
             regionToGenes.put(regionId, geneList);
             regionToChr.put(regionId, chr);
             chrList.add(chr);
@@ -2766,8 +2766,8 @@ public class SkatMeta2 {
 
     condition = loadFile(input_fullpathToPreviousRoundCondition, null,
                          new String[] {"SKATgene", "SNP"}, new String[] {"Chr"}, null, null);
-    uniqueGenes = new Vector<String>();
-    uniqueSnps = new Vector<String>();
+    uniqueGenes = new Vector<>();
+    uniqueSnps = new Vector<>();
     for (String geneSnp : condition.keySet()) {
       line = geneSnp.split("\t");
       if (!uniqueGenes.contains(line[0])) {
@@ -2778,10 +2778,10 @@ public class SkatMeta2 {
       }
     }
 
-    regionToGenes = new Hashtable<Integer, Vector<String>>();
-    regionToSnps = new Hashtable<Integer, Vector<String>>();
-    regionToChr = new Hashtable<Integer, String>();
-    chrList = new Hashtable<String, String>();
+    regionToGenes = new Hashtable<>();
+    regionToSnps = new Hashtable<>();
+    regionToChr = new Hashtable<>();
+    chrList = new Hashtable<>();
     for (String snp : uniqueSnps) {
       for (String gene : uniqueGenes) {
         if (condition.containsKey(gene + "\t" + snp)) {
@@ -2803,9 +2803,9 @@ public class SkatMeta2 {
             }
           } else {
             regionId = regionToSnps.size();
-            snpList = new Vector<String>();
+            snpList = new Vector<>();
             regionToSnps.put(regionId, snpList);
-            geneList = new Vector<String>();
+            geneList = new Vector<>();
             regionToGenes.put(regionId, geneList);
             regionToChr.put(regionId, chr);
             chrList.put(chr, "");
@@ -2837,13 +2837,13 @@ public class SkatMeta2 {
 
     condition = loadFile(input_fullpathToPreviousRoundCondition, null,
                          new String[] {"SNP", "SKATgene"}, new String[] {"Chr"}, null, null);
-    snpToGene = new Hashtable<String, Vector<String>>();
+    snpToGene = new Hashtable<>();
     for (String geneSnp : condition.keySet()) {
       line = geneSnp.split("\t");
       if (snpToGene.containsKey(line[0])) {
         geneList = snpToGene.get(line[0]);
       } else {
-        geneList = new Vector<String>();
+        geneList = new Vector<>();
         snpToGene.put(line[0], geneList);
       }
       geneList.add(line[1] + "\t" + condition.get(geneSnp)[0]);
@@ -2939,7 +2939,7 @@ public class SkatMeta2 {
         System.exit(0);
       }
       indices = ext.indexFactors(columnNamesToOutput, columnNamesOfTheData, false);
-      snpsWithSignificantPval = new Hashtable<String, Double>();
+      snpsWithSignificantPval = new Hashtable<>();
 
       try {
         writer = new PrintWriter(new FileOutputStream(fullPathOutFilename));
@@ -3269,7 +3269,7 @@ public class SkatMeta2 {
     // regionToChr = test[3];
     chrs = ((Vector<String>) test[4]).toArray(new String[0]);
 
-    significantSnpOfEachRegion = new Hashtable<Integer, String>();
+    significantSnpOfEachRegion = new Hashtable<>();
 
     allEthnics = ArrayUtils.toStr(ethnics, "");
     resultFileForNextCond = resultsDirFilenameTemplate.replaceAll("_" + FILENAME_CHROMOSOME_SEGMENT,
@@ -3286,7 +3286,7 @@ public class SkatMeta2 {
                                                                                                "SingleSNP"),
                                                      chrs, ethnics, log);// TODO need all the
                                                                                                                                                                                                          // analyses
-        chrsToRemove = new Vector<String>();
+        chrsToRemove = new Vector<>();
         isAllRDataFilesForTheEthnicMissing = new boolean[ethnics.length];
         Arrays.fill(isAllRDataFilesForTheEthnicMissing, true);
         for (int i = 0; i < chrs.length; i++) {
@@ -3353,7 +3353,7 @@ public class SkatMeta2 {
         }
 
         chrs = removeElementsFromAarray(chrsToRemove, chrs);
-        ethnicsToRemove = new Vector<String>(ethnics.length);
+        ethnicsToRemove = new Vector<>(ethnics.length);
         for (int j = 0; j < ethnics.length; j++) {
           if (isAllRDataFilesForTheEthnicMissing[j]) {
             ethnicsToRemove.add(ethnics[j]);
@@ -3504,11 +3504,11 @@ public class SkatMeta2 {
     }
 
     if (phenoGroups != null && phenoGroups.size() > 0) {
-      summary = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>>();
+      summary = new Hashtable<>();
       for (String pheno : phenoGroups.keySet()) {
         conditionGroup = phenoGroups.get(pheno);
         if (!summary.containsKey(pheno)) {
-          summaryConditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+          summaryConditionGroup = new Hashtable<>();
           summary.put(pheno, summaryConditionGroup);
         } else {
           summaryConditionGroup = summary.get(pheno);
@@ -3518,7 +3518,7 @@ public class SkatMeta2 {
         for (String condition : conditionGroup.keySet()) {
           ethnicGroup = conditionGroup.get(condition);
           if (!summaryConditionGroup.containsKey(condition)) {
-            summaryEthnicGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+            summaryEthnicGroup = new Hashtable<>();
             summaryConditionGroup.put(condition, summaryEthnicGroup);
           } else {
             summaryEthnicGroup = summaryConditionGroup.get(condition);
@@ -3527,7 +3527,7 @@ public class SkatMeta2 {
           for (String ethnic : ethnicGroup.keySet()) {
             analysesGroup = ethnicGroup.get(ethnic);
             if (!summaryEthnicGroup.containsKey(ethnic)) {
-              summaryAnalysesGroup = new Hashtable<String, Hashtable<String, String>>();
+              summaryAnalysesGroup = new Hashtable<>();
               summaryEthnicGroup.put(ethnic, summaryAnalysesGroup);
             } else {
               summaryAnalysesGroup = summaryEthnicGroup.get(ethnic);
@@ -3536,7 +3536,7 @@ public class SkatMeta2 {
             for (String analysis : analysesTypesToSelect) {
               if (analysesGroup.containsKey(analysis)) {
                 if (!summaryAnalysesGroup.containsKey(analysis)) {
-                  summaryGeneGroup = new Hashtable<String, String>();
+                  summaryGeneGroup = new Hashtable<>();
                   summaryAnalysesGroup.put(analysis, summaryGeneGroup);
                 } else {
                   summaryGeneGroup = summaryAnalysesGroup.get(analysis);
@@ -3610,11 +3610,11 @@ public class SkatMeta2 {
     }
 
     if (phenoGroups != null && phenoGroups.size() > 0) {
-      summary = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>>();
+      summary = new Hashtable<>();
       for (String pheno : phenoGroups.keySet()) {
         conditionGroup = phenoGroups.get(pheno);
         if (!summary.containsKey(pheno)) {
-          summaryConditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String>>>>();
+          summaryConditionGroup = new Hashtable<>();
           summary.put(pheno, summaryConditionGroup);
         } else {
           summaryConditionGroup = summary.get(pheno);
@@ -3623,7 +3623,7 @@ public class SkatMeta2 {
         for (String condition : conditionGroup.keySet()) {
           ethnicGroup = conditionGroup.get(condition);
           if (!summaryConditionGroup.containsKey(condition)) {
-            summaryEthnicGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String>>>();
+            summaryEthnicGroup = new Hashtable<>();
             summaryConditionGroup.put(condition, summaryEthnicGroup);
           } else {
             summaryEthnicGroup = summaryConditionGroup.get(condition);
@@ -3632,7 +3632,7 @@ public class SkatMeta2 {
           for (String ethnic : ethnicGroup.keySet()) {
             analysesGroup = ethnicGroup.get(ethnic);
             if (!summaryEthnicGroup.containsKey(ethnic)) {
-              summaryAnalysesGroup = new Hashtable<String, Hashtable<String, String>>();
+              summaryAnalysesGroup = new Hashtable<>();
               summaryEthnicGroup.put(ethnic, summaryAnalysesGroup);
             } else {
               summaryAnalysesGroup = summaryEthnicGroup.get(ethnic);
@@ -3641,7 +3641,7 @@ public class SkatMeta2 {
             for (String analysis : analysesTypesToSelect) {
               if (analysesGroup.containsKey(analysis)) {
                 if (!summaryAnalysesGroup.containsKey(analysis)) {
-                  summaryGeneGroup = new Hashtable<String, String>();
+                  summaryGeneGroup = new Hashtable<>();
                   summaryAnalysesGroup.put(analysis, summaryGeneGroup);
                 } else {
                   summaryGeneGroup = summaryAnalysesGroup.get(analysis);
@@ -3704,12 +3704,12 @@ public class SkatMeta2 {
     // HashSet<String> geneSnpList;
 
     if (conditionGroups != null && conditionGroups.size() > 0) {
-      snpResultsAll = new Hashtable<String, Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>>();
+      snpResultsAll = new Hashtable<>();
       // geneSnpList = new HashSet<String>();
       for (String condition : conditionGroups.keySet()) {
         ethnicGroup = conditionGroups.get(condition);
         if (!snpResultsAll.containsKey(condition)) {
-          snpResultsConditionGroup = new Hashtable<String, Hashtable<String, Hashtable<String, String[]>>>();
+          snpResultsConditionGroup = new Hashtable<>();
           snpResultsAll.put(condition, snpResultsConditionGroup);
         } else {
           snpResultsConditionGroup = snpResultsAll.get(condition);
@@ -3717,7 +3717,7 @@ public class SkatMeta2 {
         for (String ethnic : ethnicGroup.keySet()) {
           analysesGroup = ethnicGroup.get(ethnic);
           if (!snpResultsConditionGroup.containsKey(ethnic)) {
-            snpResultsEthnicGroup = new Hashtable<String, Hashtable<String, String[]>>();
+            snpResultsEthnicGroup = new Hashtable<>();
             snpResultsConditionGroup.put(ethnic, snpResultsEthnicGroup);
           } else {
             snpResultsEthnicGroup = snpResultsConditionGroup.get(ethnic);

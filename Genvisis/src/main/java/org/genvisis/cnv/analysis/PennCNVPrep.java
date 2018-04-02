@@ -45,7 +45,7 @@ public class PennCNVPrep {
   private static final String STORAGE_BASE = "firstMarkerIndex_";
   private static final String STORAGE_EXT = ".ser";
 
-  private static volatile Map<String, MarkerDataStorage> fileToMarkerMap = new HashMap<String, MarkerDataStorage>();
+  private static volatile Map<String, MarkerDataStorage> fileToMarkerMap = new HashMap<>();
 
   private final Project proj;
   private final PrincipalComponentsResiduals principalComponentsResiduals;
@@ -94,11 +94,11 @@ public class PennCNVPrep {
                                                                numCorrectionThreads, 1, markers,
                                                                correctionType, sexStrategy);
       proj.getLog().reportTimeInfo("Using correction type " + correctionType);
-      try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<PrincipalComponentsIntensity>(producer,
+      try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
                                                                                                            numMarkerThreads,
                                                                                                            10,
                                                                                                            proj.getLog())) {
-        ArrayList<String> notCorrected = new ArrayList<String>();
+        ArrayList<String> notCorrected = new ArrayList<>();
         MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
         int index = 0;
         while (train.hasNext()) {
@@ -236,7 +236,7 @@ public class PennCNVPrep {
                                                        String correctedSampleDirectory,
                                                        boolean[] samplesToExport,
                                                        boolean forceLoadFromFiles) {
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
     int[] subSampleIndicesInProject = ext.indexLargeFactors(ArrayUtils.subArray(proj.getSamples(),
                                                                                 samplesToExport),
                                                             proj.getSamples(), true, proj.getLog(),
@@ -570,7 +570,7 @@ public class PennCNVPrep {
 
   private static String[] getSortedFileNames(Project proj, String dir, String tmpDir) {
     String[] markers = proj.getMarkerNames();
-    ArrayList<String> files = new ArrayList<String>();
+    ArrayList<String> files = new ArrayList<>();
     int diff = -1;
     for (int i = 0; i < markers.length; i++) {
       String possibleExist = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir) + dir
@@ -642,9 +642,9 @@ public class PennCNVPrep {
                                                                    numSampleChunks, proj.getLog());
 
       ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-      Hashtable<String, Future<Hashtable<String, Float>>> tmpResults = new Hashtable<String, Future<Hashtable<String, Float>>>();
+      Hashtable<String, Future<Hashtable<String, Float>>> tmpResults = new Hashtable<>();
       String[] sortedFileNames = getSortedFileNames(proj, dir, tmpDir);
-      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      Hashtable<String, Float> outliers = new Hashtable<>();
       String outlierFile = sampleDirectory + "outliers.ser";
 
       for (int i = 0; i < batches.length; i++) {
@@ -763,7 +763,7 @@ public class PennCNVPrep {
     String thisDir = (tmpDir == null ? proj.PROJECT_DIRECTORY.getValue() : tmpDir);
     new File(thisDir + dir).mkdirs();
     for (int i = 0; i < chunks.length; i++) {
-      ArrayList<String> chunk = new ArrayList<String>(chunks[i]);
+      ArrayList<String> chunk = new ArrayList<>(chunks[i]);
       for (int j = 0; j < chunks[i]; j++) {
         chunk.add(allMarkers[index]);
         index++;

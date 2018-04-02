@@ -39,13 +39,13 @@ public class PlinkCNV {
     }
     String[] filters = Files.list(dir, ".crf");
 
-    WorkerHive<PlinkResult> hive = new WorkerHive<PlinkResult>(6, 10, log);
+    WorkerHive<PlinkResult> hive = new WorkerHive<>(6, 10, log);
     GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.valueOf(build), log)
                                                   .getGTrack().get());
     if (Files.exists(dir + "mitoCarta.txt")) {
       String[] mitos = HashVec.loadFileToStringArray(dir + "mitoCarta.txt", false, new int[] {0},
                                                      true);
-      ArrayList<String> mitoList = new ArrayList<String>();
+      ArrayList<String> mitoList = new ArrayList<>();
       int count = 0;
       for (String mito : mitos) {
         if (geneTrack.lookupAllGeneData(mito) != null
@@ -62,7 +62,7 @@ public class PlinkCNV {
       Files.writeIterable(mitoList, dir + "mitoList-" + build + ".txt");
 
     }
-    ArrayList<String> glist = new ArrayList<String>();
+    ArrayList<String> glist = new ArrayList<>();
     for (int j = 0; j < geneTrack.getGenes().length; j++) {
       for (int j2 = 0; j2 < geneTrack.getGenes()[j].length; j2++) {
         GeneData gds = geneTrack.getGenes()[j][j2];
@@ -143,9 +143,9 @@ public class PlinkCNV {
           Files.copyFile(geneSampCnvs, phenoGene);
 
         }
-        ArrayList<String> fam = new ArrayList<String>();
-        ArrayList<String> quants = new ArrayList<String>();
-        HashSet<String> types = new HashSet<String>();
+        ArrayList<String> fam = new ArrayList<>();
+        ArrayList<String> quants = new ArrayList<>();
+        HashSet<String> types = new HashSet<>();
         for (int j = 2; j < phenos.length; j++) {
           if (sampSet.contains(phenos[j][1])) {// filter pheno file
             fam.add(phenos[j][0] + "\t" + phenos[j][1] + "\t" + 0 + "\t" + 0 + "\t" + phenos[j][2]
@@ -192,7 +192,7 @@ public class PlinkCNV {
 
             @Override
             public PlinkResult call() throws Exception {
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -217,7 +217,7 @@ public class PlinkCNV {
             @Override
             public PlinkResult call() throws Exception {
 
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -251,7 +251,7 @@ public class PlinkCNV {
             @Override
             public PlinkResult call() throws Exception {
 
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno + "_gene");
@@ -281,7 +281,7 @@ public class PlinkCNV {
             @Override
             public PlinkResult call() throws Exception {
 
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -301,7 +301,7 @@ public class PlinkCNV {
                                                new String[] {out}, true, oWrite, true, log);
 
               String[] header = Files.getHeaderOfFile(out, PSF.Regex.GREEDY_WHITESPACE, log);
-              ArrayList<String> summary = new ArrayList<String>();
+              ArrayList<String> summary = new ArrayList<>();
 
               int[] cols = new int[] {2, 3, 4, 5};
               String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
@@ -330,7 +330,7 @@ public class PlinkCNV {
             @Override
             public PlinkResult call() throws Exception {
 
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -346,7 +346,7 @@ public class PlinkCNV {
               String out = opDir + pheno + "_mito_tradBurden_count.cnv.qt.summary";
               CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(cmd), "", null,
                                                new String[] {out}, true, oWrite, true, log);
-              ArrayList<String> summary = new ArrayList<String>();
+              ArrayList<String> summary = new ArrayList<>();
 
               String load = opDir + pheno + "_mito_tradBurden_count.cnv.indiv";
               String[] header = Files.getHeaderOfFile(load, PSF.Regex.GREEDY_WHITESPACE, log);
@@ -378,7 +378,7 @@ public class PlinkCNV {
             @Override
             public PlinkResult call() throws Exception {
 
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -396,7 +396,7 @@ public class PlinkCNV {
                                                new String[] {out}, true, oWrite, true, log);
 
               String[] header = Files.getHeaderOfFile(out, PSF.Regex.GREEDY_WHITESPACE, log);
-              ArrayList<String> summary = new ArrayList<String>();
+              ArrayList<String> summary = new ArrayList<>();
 
               int[] cols = new int[] {2, 3, 4, 5};
               String[][] dataS = HashVec.loadFileToStringMatrix(out, true, cols,
@@ -437,7 +437,7 @@ public class PlinkCNV {
 
             @Override
             public PlinkResult call() throws Exception {
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -460,7 +460,7 @@ public class PlinkCNV {
 
             @Override
             public PlinkResult call() throws Exception {
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -483,7 +483,7 @@ public class PlinkCNV {
 
             @Override
             public PlinkResult call() throws Exception {
-              ArrayList<String> cmd = new ArrayList<String>();
+              ArrayList<String> cmd = new ArrayList<>();
               cmd.add(dir + "plink");
               cmd.add("--cfile");
               cmd.add(opDir + pheno);
@@ -513,20 +513,20 @@ public class PlinkCNV {
     }
     hive.execute(true);
     ArrayList<PlinkResult> results = hive.getResults();
-    ArrayList<String> filesToCombine = new ArrayList<String>();
+    ArrayList<String> filesToCombine = new ArrayList<>();
 
     String finalDir = dir + ext.rootOf(sampFile) + "_results/";
     filesToCombine.add(finalDir + "key.txt");
-    ArrayList<String> key = new ArrayList<String>();
-    ArrayList<String> combo = new ArrayList<String>();
+    ArrayList<String> key = new ArrayList<>();
+    ArrayList<String> combo = new ArrayList<>();
     String comboOut = finalDir + "combo.txt";
     String allSigGenes = finalDir + "sigGenes.txt";
-    HashSet<String> allSigGenesList = new HashSet<String>();
+    HashSet<String> allSigGenesList = new HashSet<>();
     String allSigGenes5k = finalDir + "sigGenes5k.txt";
-    HashSet<String> allSigGenesList5k = new HashSet<String>();
+    HashSet<String> allSigGenesList5k = new HashSet<>();
 
     String allSigGenesEMP2 = finalDir + "sigGenesEMP2_0_5.txt";
-    HashSet<String> allSigGenesListEMP2 = new HashSet<String>();
+    HashSet<String> allSigGenesListEMP2 = new HashSet<>();
 
     filesToCombine.add(comboOut);
     filesToCombine.add(allSigGenesEMP2);
@@ -546,9 +546,9 @@ public class PlinkCNV {
                                                               null, PSF.Regex.GREEDY_WHITESPACE,
                                                               1000, true);
         String allSigGenesSpecific = finalDir + result.key + "_Genes" + index + ".txt";
-        HashSet<String> allSigGenesListSpecific = new HashSet<String>();
+        HashSet<String> allSigGenesListSpecific = new HashSet<>();
 
-        ArrayList<String> toReport = new ArrayList<String>();
+        ArrayList<String> toReport = new ArrayList<>();
         toReport.add("Type\t" + ArrayUtils.toStr(data[0])
                      + "\tUCSC\tGENE\tGENE_5k\tLink_buffer\tAFF\tUNAFF\tNCNV\tM0\tM1\tCMD");
 

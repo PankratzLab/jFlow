@@ -54,7 +54,7 @@ public class CNVAnnotationTally {
    */
   public static Map<String, CNVAnnotationTally> tallyAnnotation(List<CNVariantAnnotated> cList,
                                                                 SegmentAnnotationKeys key) {
-    Map<String, CNVAnnotationTally> tally = new HashMap<String, CNVAnnotationTally>();
+    Map<String, CNVAnnotationTally> tally = new HashMap<>();
     for (CNVariantAnnotated cnVarAn : cList) {
       if (cnVarAn.getSegmentAnotation().getAttributes().containsKey(key.toString())) {
         List<String> anns = cnVarAn.getSegmentAnotation().getAttributes().get(key.toString());

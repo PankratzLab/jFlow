@@ -24,8 +24,8 @@ public interface ImputationImpl {
     String outDir;
     int threads;
 
-    HashMap<Integer, String> refMap = new HashMap<Integer, String>();
-    HashMap<Integer, String> hapsMap = new HashMap<Integer, String>();
+    HashMap<Integer, String> refMap = new HashMap<>();
+    HashMap<Integer, String> hapsMap = new HashMap<>();
 
     public MiniMac(Project proj, int[] chrs, String hapsDir, String outDir) {
       this.log = proj.getLog();
@@ -82,7 +82,7 @@ public interface ImputationImpl {
       String scriptFile = outDir + RUN;
       PrintWriter writer = Files.getAppropriateWriter(scriptFile);
 
-      Set<Integer> chrs = new HashSet<Integer>(hapsMap.keySet());
+      Set<Integer> chrs = new HashSet<>(hapsMap.keySet());
 
       for (Integer chr : chrs) {
         String shapeItCmd = TEMPLATE.replace(MIN, minimacPath).replace(REF, refMap.get(chr))
@@ -121,9 +121,9 @@ public interface ImputationImpl {
     String shapeItPath;
     int threads;
     String outDir;
-    HashMap<Integer, String> mapMap = new HashMap<Integer, String>();
-    HashMap<Integer, String> plinkFileMap = new HashMap<Integer, String>();
-    HashMap<Integer, Boolean> plinkFileTypeMap = new HashMap<Integer, Boolean>();
+    HashMap<Integer, String> mapMap = new HashMap<>();
+    HashMap<Integer, String> plinkFileMap = new HashMap<>();
+    HashMap<Integer, Boolean> plinkFileTypeMap = new HashMap<>();
 
     public ShapeIt(Project proj, int[] chrs, String plinkFileDir, String plinkChrFilePrefix,
                    String outDir) {
@@ -165,7 +165,7 @@ public interface ImputationImpl {
       String scriptFile = outDir + RUN;
       PrintWriter writer = Files.getAppropriateWriter(scriptFile);
 
-      Set<Integer> chrs = new HashSet<Integer>();
+      Set<Integer> chrs = new HashSet<>();
       chrs.addAll(mapMap.keySet());
       chrs.retainAll(plinkFileMap.keySet());
 
@@ -195,7 +195,7 @@ public interface ImputationImpl {
       String scriptFile = outDir + CON;
       PrintWriter writer = Files.getAppropriateWriter(scriptFile);
 
-      Set<Integer> chrs = new HashSet<Integer>();
+      Set<Integer> chrs = new HashSet<>();
       chrs.addAll(mapMap.keySet());
       chrs.retainAll(plinkFileMap.keySet());
 

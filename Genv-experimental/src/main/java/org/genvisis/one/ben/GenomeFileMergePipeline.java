@@ -30,12 +30,12 @@ public class GenomeFileMergePipeline {
   private static final String SEARCHFOR_GENOME = "plink.genome";
   private static final String SEARCHFOR_RELATEDS_SUFF = "genome_relateds.xln";
 
-  private final HashMap<String, String> idMap = new HashMap<String, String>();
-  private final ArrayList<Project> plinkProjects = new ArrayList<Project>();
-  private final ArrayList<Project> qcProjects = new ArrayList<Project>();
-  private final ArrayList<Project> projects = new ArrayList<Project>();
-  private final HashSet<String> dataLabelSet = new HashSet<String>();
-  private final ArrayList<GenomeFileSet> files = new ArrayList<GenomeFileMergePipeline.GenomeFileSet>();
+  private final HashMap<String, String> idMap = new HashMap<>();
+  private final ArrayList<Project> plinkProjects = new ArrayList<>();
+  private final ArrayList<Project> qcProjects = new ArrayList<>();
+  private final ArrayList<Project> projects = new ArrayList<>();
+  private final HashSet<String> dataLabelSet = new HashSet<>();
+  private final ArrayList<GenomeFileSet> files = new ArrayList<>();
 
   private boolean runPlinkOrQCIfMissing = false;
   private String outputFile = "audit.xln";
@@ -289,7 +289,7 @@ public class GenomeFileMergePipeline {
     }
     outLineCount = 5 + (5 * files.size()); // fid1 iid1 fid2 iid2 + 5 columns per projects (ibd0,
                                           // ibd1, ibd2, pi_hat, type) + diffFlag
-    outLineMap = new HashMap<String, String[]>(max.intValue(), 0.95f);
+    outLineMap = new HashMap<>(max.intValue(), 0.95f);
 
     for (int p = 0; p < files.size(); p++) {
       log.reportTime("Loading relateds data from " + files.get(p).relatedsFile);
@@ -454,7 +454,7 @@ public class GenomeFileMergePipeline {
     outLine[outLine.length - 1] = "DIFF_FLAG";
     writer.println(ArrayUtils.toStr(outLine, "\t"));
 
-    HashSet<String> types = new HashSet<String>();
+    HashSet<String> types = new HashSet<>();
     for (Entry<String, String[]> lines : outLineMap.entrySet()) {
       outLine = lines.getValue();
       types.clear();

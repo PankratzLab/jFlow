@@ -447,7 +447,7 @@ public class CmdLine {
     // }
     String regex = "[\"\']([^\"\']*)[\"\']|(\\S+)";
     Matcher m = Pattern.compile(regex).matcher(command);
-    ArrayList<String> cmdList = new ArrayList<String>();
+    ArrayList<String> cmdList = new ArrayList<>();
     while (m.find()) {
       if (m.group(1) != null) {
         cmdList.add(m.group(1));

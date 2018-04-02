@@ -79,7 +79,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
     // this.samples = twoDPlot.getSamples();
     // this.markerData = twoDPlot.getMarkerData();
     // this.sampleData = twoDPlot.getSampleData();
-    locLookup = new Hashtable<String, IntVector>();// ??? zx
+    locLookup = new Hashtable<>();// ??? zx
     linkerData = new String[0][0];
     // this.updateQcPanel = true;//zx
     setAxisFontSize(24);

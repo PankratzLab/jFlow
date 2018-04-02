@@ -18,10 +18,10 @@ public class DescribeFams {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, Vector<String>> famInds = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> famInds = new Hashtable<>();
     // Hashtable<String,Vector<String>> sibship = new Hashtable<String,Vector<String>>();
 
-    Hashtable<String, String> dxs = new Hashtable<String, String>();
+    Hashtable<String, String> dxs = new Hashtable<>();
     Vector<String> v;
     String[] fams, sibships, vpdSibships;
     // String famid, uniqueid;

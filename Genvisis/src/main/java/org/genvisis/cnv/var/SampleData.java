@@ -450,7 +450,7 @@ public class SampleData {
       }
       ImmutableSetMultimap.Builder<String, String> duplicateSetBuilder = ImmutableSetMultimap.builder();
 
-      metaIndices = new HashMap<String, Integer>();
+      metaIndices = new HashMap<>();
       for (int i = 1; i < header.length; i++) {
         String label = header[i].toUpperCase();
         if (label.startsWith("FILTER=")) {
@@ -512,8 +512,8 @@ public class SampleData {
       log.report("Class list: " + ArrayUtils.toStr(classNames), true, true, 1);
 
       sexCountHash = new CountVector();
-      sampleHash = new Hashtable<String, IndiPheno>();
-      lookup = new Hashtable<String, String[]>();
+      sampleHash = new Hashtable<>();
+      lookup = new Hashtable<>();
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         indi = new IndiPheno();
@@ -730,7 +730,7 @@ public class SampleData {
     String[] inds;
     String trav;
     long time;
-    Vector<String> missingFiles = new Vector<String>();
+    Vector<String> missingFiles = new Vector<>();
 
     for (int i = 0; i < files.length; i++) {
       if (!Files.exists(files[i])) {
@@ -759,7 +759,7 @@ public class SampleData {
       indi = sampleHash.get(ind);
       trav = lookup.get(ind.toLowerCase())[LOOKUP_FID_IID_INDEX];
 
-      finalHashes = new Vector<Hashtable<String, CNVariant[]>>();
+      finalHashes = new Vector<>();
       for (int j = 0; j < files.length; j++) {
         finalHashes.add(cnvhs[j].getDataFor(trav));
       }
@@ -1276,7 +1276,7 @@ public class SampleData {
   public Hashtable<String, String> createHashWithSampleID(Hashtable<String, String> colorKeyValue) {
     Hashtable<String, String> colorKeyValueHash;
 
-    colorKeyValueHash = new Hashtable<String, String>();
+    colorKeyValueHash = new Hashtable<>();
     for (String key : colorKeyValue.keySet()) {
       colorKeyValueHash.put(lookup(key)[0], colorKeyValue.get(key));
     }
@@ -1697,7 +1697,7 @@ public class SampleData {
             if (replace) {
               writer.println(ArrayUtils.toStr(sampleDataHeader));
               String[] line;
-              HashSet<String> linkers = new HashSet<String>();
+              HashSet<String> linkers = new HashSet<>();
               while (reader.ready() && replace) {
                 line = reader.readLine().trim().split("\t");
                 if (!linkers.add(line[linkerIndex])) {
@@ -1945,14 +1945,14 @@ public class SampleData {
   private static Individual[] loadPedInputFile(String[] samples, String pedFile,
                                                Logger log) throws Elision {
     String[] line;
-    ArrayList<Individual> al = new ArrayList<Individual>();
+    ArrayList<Individual> al = new ArrayList<>();
 
-    HashSet<String> sampSet = new HashSet<String>();
+    HashSet<String> sampSet = new HashSet<>();
     for (String sa : samples) {
       sampSet.add(sa);
     }
 
-    ArrayList<String> foundMissing = new ArrayList<String>();
+    ArrayList<String> foundMissing = new ArrayList<>();
 
     try {
       BufferedReader reader = Files.getReader(pedFile, true, false);
@@ -2027,16 +2027,16 @@ public class SampleData {
   private static Individual[] loadSampleMapFile(String[] samples, String sampleMapCsv,
                                                 Logger log) throws Elision {
     String[] line;
-    ArrayList<Individual> al = new ArrayList<Individual>();
+    ArrayList<Individual> al = new ArrayList<>();
     log.report("Using Sample Map file " + sampleMapCsv);
 
-    HashSet<String> sampSet = new HashSet<String>();
+    HashSet<String> sampSet = new HashSet<>();
     for (String sa : samples) {
       sampSet.add(sa);
     }
 
     String delim = ",";
-    ArrayList<String> foundMissing = new ArrayList<String>();
+    ArrayList<String> foundMissing = new ArrayList<>();
     try {
       BufferedReader reader = Files.getReader(sampleMapCsv, true, false);
       line = reader.readLine().trim().split(delim);

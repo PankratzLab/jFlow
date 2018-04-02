@@ -76,7 +76,7 @@ public class MitoGWAS {
       MarkerSetInfo markerSet = proj.getMarkerSet();
       String[] markerNames = markerSet.getMarkerNames();
       byte[] chr = markerSet.getChrs();
-      ArrayList<String> markersToAnalyze = new ArrayList<String>();
+      ArrayList<String> markersToAnalyze = new ArrayList<>();
       int numSkipped = 0;
       for (int i = 0; i < markerNames.length; i++) {
         if (proj.getArrayType().isCNOnly(markerNames[i]) || chr[i] < 1) {
@@ -109,7 +109,7 @@ public class MitoGWAS {
     proj.getLog()
         .reportTimeInfo("using maf of " + maf + " (MAF= " + maf + "  of " + ped.getDnas().length);
 
-    ArrayList<String> plinkConverCommand = new ArrayList<String>();
+    ArrayList<String> plinkConverCommand = new ArrayList<>();
     plinkConverCommand.add("plink2");
     plinkConverCommand.add("--file");
     plinkConverCommand.add(root);
@@ -142,7 +142,7 @@ public class MitoGWAS {
     String[] out = new String[] {fam, bim, bed};
     CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(plinkConverCommand), "", in, out,
                                      true, false, false, proj.getLog());
-    ArrayList<PlinkAssoc> plinkCommands = new ArrayList<MitoGWAS.PlinkAssoc>();
+    ArrayList<PlinkAssoc> plinkCommands = new ArrayList<>();
     String subDir = ext.rootOf(pcFile, false) + SUB_DIR;
     String natty = subDir + "WITHOUT_BUILDERS_NATURAL_WITHOUT_INDEPS_finalSummary.estimates.txt.gz";
     String[] nattyTitles = new String[] {"PC15", "PC150"};
@@ -157,7 +157,7 @@ public class MitoGWAS {
                                           perm));
 
     PlinkAssocProducer producer = new PlinkAssocProducer(plinkCommands, proj.getLog());
-    try (WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numthreads, 2,
+    try (WorkerTrain<Boolean> train = new WorkerTrain<>(producer, numthreads, 2,
                                                                proj.getLog())) {
       while (train.hasNext()) {
         train.next();
@@ -176,7 +176,7 @@ public class MitoGWAS {
                                   HashVec.loadFileToStringArray(ext.parseDirectoryOfFile(root)
                                                                 + "ldPruning/plink.prune.in", false,
                                                                 new int[] {0}, true));
-    Hashtable<String, String> qcHash = new Hashtable<String, String>();
+    Hashtable<String, String> qcHash = new Hashtable<>();
     for (String qcpas : qcpass) {
       qcHash.put(qcpas, qcpas);
     }
@@ -294,7 +294,7 @@ public class MitoGWAS {
         }
 
         boolean valid = true;
-        ArrayList<String> line = new ArrayList<String>(100);
+        ArrayList<String> line = new ArrayList<>(100);
         double[] pvals = new double[emp1s.length];
 
         for (int j = 0; j < emp1s.length; j++) {
@@ -392,7 +392,7 @@ public class MitoGWAS {
     // }
     proj.QQ_FILENAMES.setValue(pvalFiles);
     proj.saveProperties();
-    ArrayList<RScatter> rs = new ArrayList<RScatter>();
+    ArrayList<RScatter> rs = new ArrayList<>();
 
     String out = ext.addToRoot(pvalDB, ".qc");
 
@@ -557,7 +557,7 @@ public class MitoGWAS {
                                                         String mtPhenoFile, String[] titles,
                                                         String covarFile, Pedigree ped,
                                                         boolean perm) {
-    ArrayList<PlinkAssoc> plinkCommands = new ArrayList<PlinkAssoc>();
+    ArrayList<PlinkAssoc> plinkCommands = new ArrayList<>();
 
     ProjectDataParserBuilder builderCurrent = new ProjectDataParserBuilder();
     builderCurrent.numericDataTitles(titles);
@@ -585,7 +585,7 @@ public class MitoGWAS {
       boolean[] hasVarianceWithinPed = ArrayUtils.booleanArray(covarParser.getNumericDataTitles().length,
                                                                false);
       for (int i = 0; i < hasVarianceWithinPed.length; i++) {
-        Hashtable<String, String> varHash = new Hashtable<String, String>();
+        Hashtable<String, String> varHash = new Hashtable<>();
         for (int j = 0; j < ped.getDnas().length; j++) {
           int sampIndex = ext.indexOfStr(ped.getDnas()[j], proj.getSamples());
           String val = covarParser.getNumericDataForTitle(covarParser.getNumericDataTitles()[i])[sampIndex]
@@ -718,7 +718,7 @@ public class MitoGWAS {
                       true, false, false, false, false, null, false, log);
     }
 
-    ArrayList<String> plink = new ArrayList<String>();
+    ArrayList<String> plink = new ArrayList<>();
     plink.add("plink2");
 
     plink.add("--linear");

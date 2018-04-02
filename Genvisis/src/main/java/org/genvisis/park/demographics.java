@@ -22,10 +22,10 @@ public class demographics {
   public demographics(String filename) throws IOException {
     BufferedReader reader;
     PrintWriter writer;
-    Hashtable<String, Hashtable<String, String[]>> hash = new Hashtable<String, Hashtable<String, String[]>>();
-    Hashtable<String, String> unaffs = new Hashtable<String, String>();
+    Hashtable<String, Hashtable<String, String[]>> hash = new Hashtable<>();
+    Hashtable<String, String> unaffs = new Hashtable<>();
     Hashtable<String, String[]> h;
-    Vector<String> fams = new Vector<String>();
+    Vector<String> fams = new Vector<>();
     String[] line, info;
     String temp;
     int count = 0, total, max;
@@ -36,7 +36,7 @@ public class demographics {
     Enumeration<String> enumer;
     int males = 0, females = 0, unaffected = 0, brothers, sisters, malesInFam, femalesInFam,
         unaffInFam;
-    Vector<String> aoos = new Vector<String>();
+    Vector<String> aoos = new Vector<>();
     double meanAOO, stdev, d;
 
     bb_bs_ss = new int[3];
@@ -57,7 +57,7 @@ public class demographics {
       if (hash.containsKey(line[0])) {
         h = hash.get(line[0]);
       } else {
-        h = new Hashtable<String, String[]>();
+        h = new Hashtable<>();
         hash.put(line[0], h);
         fams.add(line[0]);
       }

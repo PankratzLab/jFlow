@@ -191,7 +191,7 @@ public class CNValidate implements Runnable {
     double[] chrLRRMediansMADScaled = new double[indices.length];
     for (int i = 0; i < indices.length; i++) {
       if (indices[i].length > 0) {
-        ArrayList<Float> chrLRRal = new ArrayList<Float>();
+        ArrayList<Float> chrLRRal = new ArrayList<>();
         for (int j = 0; j < indices[i].length; j++) {
           // check for NaN
           if (LRRsInvTransformedByChr[j] == LRRsInvTransformedByChr[j]) {
@@ -263,7 +263,7 @@ public class CNValidate implements Runnable {
   }
 
   private static List<List<String>> getcabinet(String[] inds, int processors) {
-    List<List<String>> cabinet = new ArrayList<List<String>>();
+    List<List<String>> cabinet = new ArrayList<>();
     for (int i = 0; i < processors; i++) {
       cabinet.add(new ArrayList<String>());
     }

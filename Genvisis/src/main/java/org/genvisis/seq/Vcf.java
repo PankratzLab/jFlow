@@ -62,7 +62,7 @@ public class Vcf {
                  + " for the following chromomosomes: " + ext.listRanges(Ints.toArray(iv)));
     } else {
       log.report(ext.getTime() + "\tLoading data from : " + vcfFile);
-      hash = new Hashtable<String, String[]>();
+      hash = new Hashtable<>();
       try {
         reader = Files.getAppropriateReader(vcfFile);
         do {

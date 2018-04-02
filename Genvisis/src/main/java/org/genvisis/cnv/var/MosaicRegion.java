@@ -87,7 +87,7 @@ public class MosaicRegion extends CNVariant implements Serializable {
 
   @Override
   public String toAnalysisString() {
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     tmp.add(bpWeightedScore + "");
     tmp.add(nearestStateScore + "");
     tmp.add(pdfScore + "");

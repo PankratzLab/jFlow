@@ -137,7 +137,7 @@ public class ManhattanLoadGUI extends JDialog {
     {
       JScrollPane scrollPane = new JScrollPane();
       filterPanel.add(scrollPane, "cell 0 2,grow");
-      chrList = new JList<JCheckBox>();
+      chrList = new JList<>();
       scrollPane.setViewportView(chrList);
       setupList(chrList);
       DefaultListModel<JCheckBox> dlm = new DefaultListModel<>();

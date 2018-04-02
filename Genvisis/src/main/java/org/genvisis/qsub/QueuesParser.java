@@ -97,7 +97,7 @@ public class QueuesParser {
     } catch (IOException e) {
       // error from running 'id' or from reading input; either way, unable to determine groups
     }
-    ArrayList<String> groups = new ArrayList<String>();
+    ArrayList<String> groups = new ArrayList<>();
     for (String g : grps) {
       groups.add(g.indexOf('(') != -1 ? g.substring(g.indexOf('(') + 1, g.length() - 1) : g);
     }
@@ -123,7 +123,7 @@ public class QueuesParser {
                                            Logger log) {
     if (!Files.programExists("qsub")) {
       log.reportError("Job queueing is not supported - 'qsub' command not found.  Please retry on a system that supports job queues and the qsub command.");
-      return new ArrayList<JobQueue>();
+      return new ArrayList<>();
     }
     Runtime rt = Runtime.getRuntime();
     String[] commands = {"qstat", "-Qf"};
@@ -136,7 +136,7 @@ public class QueuesParser {
       log.reportError("Failed to parse available queues: " + e.getMessage());
     }
 
-    ArrayList<JobQueue> queues = new ArrayList<JobQueue>();
+    ArrayList<JobQueue> queues = new ArrayList<>();
 
     if (stdInput == null) {
       return queues;
@@ -340,7 +340,7 @@ public class QueuesParser {
   }
 
   private static List<JobQueue> filterAllowed(List<JobQueue> all) {
-    ArrayList<JobQueue> filt = new ArrayList<JobQueue>();
+    ArrayList<JobQueue> filt = new ArrayList<>();
     for (JobQueue f : all) {
       if (f.isAllowed()) {
         filt.add(f);

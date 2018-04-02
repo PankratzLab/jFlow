@@ -36,7 +36,7 @@ public class CountProxies {
     String[] markerNames;
     double[] rsqs, pvalues, replications;
 
-    hash = new Hashtable<String, Vector<String>>();
+    hash = new Hashtable<>();
     line = Files.getHeaderOfFile(filename, PSF.Regex.GREEDY_WHITESPACE, new Logger());
     indices = ext.indexFactors(HEADER_EXPECTATIONS, line, false, true, true);
 

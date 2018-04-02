@@ -49,9 +49,9 @@ public class PlateLists {
     PrintWriter writer;
     String[] line, fams, inds, dnas;
     String trav, fam;
-    Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash = new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
+    Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash = new Hashtable<>();
     Hashtable<String, Vector<DnaSample>> family;
-    Vector<DnaSample> v = new Vector<DnaSample>();
+    Vector<DnaSample> v = new Vector<>();
     int[] indices, keys;
     Vector<Vector<DnaSample>> categories;
     DnaSample dna;
@@ -62,9 +62,9 @@ public class PlateLists {
     Vector<String> mzs;
     Hashtable<String, String> deldna, delind;
 
-    mzs = new Vector<String>();
-    deldna = new Hashtable<String, String>();
-    delind = new Hashtable<String, String>();
+    mzs = new Vector<>();
+    deldna = new Hashtable<>();
+    delind = new Hashtable<>();
     try {
       reader = tools.getNinfoReader(3);
       while (reader.ready()) {
@@ -87,7 +87,7 @@ public class PlateLists {
       System.exit(2);
     }
 
-    categories = new Vector<Vector<DnaSample>>();
+    categories = new Vector<>();
     for (String[] element : LABELS) {
       categories.add(new Vector<DnaSample>());
     }
@@ -123,12 +123,12 @@ public class PlateLists {
           if (hash.containsKey(fam)) {
             family = hash.get(fam);
           } else {
-            hash.put(fam, family = new Hashtable<String, Vector<DnaSample>>());
+            hash.put(fam, family = new Hashtable<>());
           }
           if (family.containsKey(trav)) {
             v = family.get(trav);
           } else {
-            family.put(trav, v = new Vector<DnaSample>());
+            family.put(trav, v = new Vector<>());
           }
           v.add(dna);
         }
@@ -232,9 +232,9 @@ public class PlateLists {
     PrintWriter writer;
     String[] line, fams, inds, dnas;
     String trav, fam;
-    Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash = new Hashtable<String, Hashtable<String, Vector<DnaSample>>>();
+    Hashtable<String, Hashtable<String, Vector<DnaSample>>> hash = new Hashtable<>();
     Hashtable<String, Vector<DnaSample>> family;
-    Vector<DnaSample> v = new Vector<DnaSample>();
+    Vector<DnaSample> v = new Vector<>();
     int[] indices, keys;
     Vector<Vector<DnaSample>> categories;
     DnaSample dna;
@@ -248,9 +248,9 @@ public class PlateLists {
     String plate;
     int plateNumber, seriesIndex;
 
-    mzs = new Vector<String>();
-    deldna = new Hashtable<String, String>();
-    delind = new Hashtable<String, String>();
+    mzs = new Vector<>();
+    deldna = new Hashtable<>();
+    delind = new Hashtable<>();
     try {
       reader = tools.getNinfoReader(3);
       while (reader.ready()) {
@@ -273,7 +273,7 @@ public class PlateLists {
       System.exit(2);
     }
 
-    categories = new Vector<Vector<DnaSample>>();
+    categories = new Vector<>();
     for (String[] element : LABELS) {
       categories.add(new Vector<DnaSample>());
     }
@@ -314,12 +314,12 @@ public class PlateLists {
             if (hash.containsKey(fam)) {
               family = hash.get(fam);
             } else {
-              hash.put(fam, family = new Hashtable<String, Vector<DnaSample>>());
+              hash.put(fam, family = new Hashtable<>());
             }
             if (family.containsKey(trav)) {
               v = family.get(trav);
             } else {
-              family.put(trav, v = new Vector<DnaSample>());
+              family.put(trav, v = new Vector<>());
             }
             v.add(dna);
             plate = dna.getPlate();
@@ -369,12 +369,12 @@ public class PlateLists {
           if (hash.containsKey(fam)) {
             family = hash.get(fam);
           } else {
-            hash.put(fam, family = new Hashtable<String, Vector<DnaSample>>());
+            hash.put(fam, family = new Hashtable<>());
           }
           if (family.containsKey(trav)) {
             v = family.get(trav);
           } else {
-            family.put(trav, v = new Vector<DnaSample>());
+            family.put(trav, v = new Vector<>());
           }
           v.add(dna);
         }

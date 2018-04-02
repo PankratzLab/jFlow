@@ -18,8 +18,8 @@ public class concordance {
     PrintWriter writer = null;
     StringTokenizer st;
     String trav, alleles, affStat, mmse;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
-    Vector<String> families = new Vector<String>(), v;
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
+    Vector<String> families = new Vector<>(), v;
     int group;
     int[] totals = new int[6], counts;
     String a1, a2;
@@ -55,7 +55,7 @@ public class concordance {
 
         if (!hash.containsKey(trav)) {
           families.add(trav);
-          hash.put(trav, v = new Vector<String>());
+          hash.put(trav, v = new Vector<>());
         } else {
           v = hash.get(trav);
         }

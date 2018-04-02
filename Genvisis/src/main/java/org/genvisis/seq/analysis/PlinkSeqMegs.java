@@ -153,10 +153,10 @@ public class PlinkSeqMegs {
     String[] vcfs = HashVec.loadFileToStringArray(vcfFile, false, new int[] {0}, true);
     System.out.println(ArrayUtils.toStr(vcfs));
 
-    ArrayList<PlinkSeqWorker> workers = new ArrayList<PlinkSeq.PlinkSeqWorker>();
+    ArrayList<PlinkSeqWorker> workers = new ArrayList<>();
     ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile,
                                                  keggPathwayFile, maf, loadLoc, log);
-    try (WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<PlinkSeq.PlinkSeqWorker[]>(importer,
+    try (WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<>(importer,
                                                                                                 numthreads,
                                                                                                 numthreads,
                                                                                                 log)) {
@@ -169,7 +169,7 @@ public class PlinkSeqMegs {
     }
     PlinkSeqProducer producer = new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]),
                                                      log);
-    try (WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<PlinkSeq.PlinkSeqWorker>(producer,
+    try (WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<>(producer,
                                                                                       numthreads,
                                                                                       numthreads,
                                                                                       log)) {
@@ -221,13 +221,13 @@ public class PlinkSeqMegs {
                                                 new String[] {"seq.analysis.PlinkSeqMegs",
                                                               "vpop=" + vpopFile,
                                                               PSF.Ext.NUM_THREADS_COMMAND + numthreads + ""});
-    ArrayList<String> batches = new ArrayList<String>();
-    ArrayList<String> masterVCFS = new ArrayList<String>();
+    ArrayList<String> batches = new ArrayList<>();
+    ArrayList<String> masterVCFS = new ArrayList<>();
     String rootOut = ext.parseDirectoryOfFile(vpopFile);
     for (int i = 0; i < cSplitResultsBatched.size(); i++) {
       String batch = rootOut + "megs" + i + ".pbs";
       String vcfFile = rootOut + "vcfs." + i + ".txt";
-      ArrayList<String> vcfs = new ArrayList<String>();
+      ArrayList<String> vcfs = new ArrayList<>();
       for (int j = 0; j < cSplitResultsBatched.get(i).length; j++) {
         String tmpVCF = cSplitResultsBatched.get(i)[j].getOutputVCF();
         vcfs.add(tmpVCF);

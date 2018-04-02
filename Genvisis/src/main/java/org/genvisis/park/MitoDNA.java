@@ -37,8 +37,8 @@ public class MitoDNA {
     PrintWriter writer;
     String[] line;
     String temp, trav, genos;
-    Vector<String> names = new Vector<String>();
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String> names = new Vector<>();
+    Vector<String[]> v = new Vector<>();
     int count, missing;
     String[] refSNPs = null;
     String[][] refs;

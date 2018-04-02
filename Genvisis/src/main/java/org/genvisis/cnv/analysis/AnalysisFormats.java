@@ -106,7 +106,7 @@ public class AnalysisFormats implements Runnable {
 
     final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
     for (int i = 0; i < threadCount; i++) {
-      sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
+      sampleIndexQueues[i] = new ConcurrentLinkedQueue<>();
     }
     for (int i = 0; i < samples.length; i++) {
       sampleIndexQueues[i % threadCount].add(i);
@@ -222,7 +222,7 @@ public class AnalysisFormats implements Runnable {
     final boolean[] includeMarkersList;
     boolean[] includeSamplesList;
     final Hashtable<String, Vector<String>> sexData;
-    final HashSet<String> chr11Markers = new HashSet<String>();
+    final HashSet<String> chr11Markers = new HashSet<>();
     Centroids[] centroids;
 
     String centFile = proj.CUSTOM_CENTROIDS_FILENAME.getValue();
@@ -340,7 +340,7 @@ public class AnalysisFormats implements Runnable {
 
     final ConcurrentLinkedQueue<Integer>[] sampleIndexQueues = new ConcurrentLinkedQueue[threadCount];
     for (int i = 0; i < threadCount; i++) {
-      sampleIndexQueues[i] = new ConcurrentLinkedQueue<Integer>();
+      sampleIndexQueues[i] = new ConcurrentLinkedQueue<>();
     }
     for (int i = 0; i < allSamples.length; i++) {
       sampleIndexQueues[i % threadCount].add(i);
@@ -496,7 +496,7 @@ public class AnalysisFormats implements Runnable {
     Vector<String[]> malePFBs, femalePFBs;
     Vector<String> markerList;
     Hashtable<String, Vector<String>> sexData;
-    Hashtable<String, Integer> sexMarkerToIndex = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> sexMarkerToIndex = new Hashtable<>();
 
     Centroids centroidsMale, centroidsFemale;
 
@@ -538,7 +538,7 @@ public class AnalysisFormats implements Runnable {
 
     allMarkers = ms.getMarkerNames();
     markerChrs = ms.getChrs();
-    markerList = new Vector<String>();
+    markerList = new Vector<>();
 
     for (int i = 0; i < markerChrs.length; i++) {
       switch (markerChrs[i]) {
@@ -594,8 +594,8 @@ public class AnalysisFormats implements Runnable {
     }
 
     // TODO should we write these out as they're computed instead of storing and writing later?
-    malePFBs = new Vector<String[]>();
-    femalePFBs = new Vector<String[]>();
+    malePFBs = new Vector<>();
+    femalePFBs = new Vector<>();
 
     rawCentroidsMale = new float[sexMarkers.length][][];
     rawCentroidsFemale = new float[sexMarkers.length][][];
@@ -896,7 +896,7 @@ public class AnalysisFormats implements Runnable {
   }
 
   public static void batchQuantiSNP(Project proj, int numBatches) {
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     Hashtable<String, String> genders;
     String[] inputs, outputs;
     String commands, gender;
@@ -974,7 +974,7 @@ public class AnalysisFormats implements Runnable {
 
   // TODO convert this to an Executor
   public static void launch(Project proj, int program, String markers, int numThreads) {
-    Vector<Vector<String>> sampleLists = new Vector<Vector<String>>();
+    Vector<Vector<String>> sampleLists = new Vector<>();
     String[] samples = proj.getSamples();
     Thread[] threads;
     HashSet<String> hash;
@@ -1024,7 +1024,7 @@ public class AnalysisFormats implements Runnable {
     }
 
     if (list.equals("")) {
-      hash = new HashSet<String>();
+      hash = new HashSet<>();
     } else {
       hash = HashVec.loadFileToHashSet(proj.PROJECT_DIRECTORY.getValue() + list, false);
     }

@@ -61,13 +61,13 @@ public class Indelathon {
     Logger log = new Logger(outDir + "indel.log");
     String[] bams = HashVec.loadFileToStringArray(bamFilesFile, false, new int[] {0}, true);
     String[] samps = VCFOps.getSamplesInFile(vcf);
-    ArrayList<String> excelFiles = new ArrayList<String>();
+    ArrayList<String> excelFiles = new ArrayList<>();
 
     Map<String, String> matchedSamps = BamOps.matchToVcfSamplesToBamFiles(samps, variantSets, bams,
                                                                           numThreads, log);
     String outIndelVCF = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.vcf.gz";
     String outSegSer = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".indels.seg.ser";
-    Hashtable<String, ArrayList<Segment>> sampSegs = new Hashtable<String, ArrayList<Segment>>();
+    Hashtable<String, ArrayList<Segment>> sampSegs = new Hashtable<>();
 
     if (!Files.exists(outIndelVCF) || !Files.exists(outSegSer)) {
       extractIndelVariants(vcf, log, outIndelVCF, outSegSer, sampSegs);
@@ -82,8 +82,8 @@ public class Indelathon {
     // extracting soft clips
     SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedSamps,
                                                                  indelBamDir, log);
-    ArrayList<SoftClipResult> results = new ArrayList<Indelathon.SoftClipResult>();
-    try (WorkerTrain<SoftClipResult> train = new WorkerTrain<Indelathon.SoftClipResult>(producer,
+    ArrayList<SoftClipResult> results = new ArrayList<>();
+    try (WorkerTrain<SoftClipResult> train = new WorkerTrain<>(producer,
                                                                                         numThreads,
                                                                                         10, log)) {
       while (train.hasNext()) {
@@ -101,7 +101,7 @@ public class Indelathon {
     }
     Files.write(bcPrint, outBarCode);
     String out = outDir + "countit.txt";
-    HashSet<String> allClips = new HashSet<String>();
+    HashSet<String> allClips = new HashSet<>();
     ArrayList<Adapter> adapters = Adapter.getCurrentAdapters(Adapter.getBarcodes(BamOps.getAllBarCodes(bams,
                                                                                                        log)));
     for (SoftClipResult result : results) {
@@ -159,7 +159,7 @@ public class Indelathon {
     ExcelConverter converter = new ExcelConverter(excelFiles, excelOut, log);
     converter.convert(true);
     for (SoftClipResult result : results) {
-      Hashtable<String, Integer> maxCountClipLength = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> maxCountClipLength = new Hashtable<>();
       for (String clip : result.getScAllCounts().keySet()) {
         String len = clip.length() + "";
         if (maxCountClipLength.containsKey(len)) {
@@ -256,7 +256,7 @@ public class Indelathon {
 
   private static Hashtable<String, HitSummary> summarizeBlasts(String[] blastFiles,
                                                                Set<String> softClip, Logger log) {
-    Hashtable<String, HitSummary> hits = new Hashtable<String, HitSummary>();
+    Hashtable<String, HitSummary> hits = new Hashtable<>();
 
     for (String blastFile : blastFiles) {
       try {
@@ -370,10 +370,10 @@ public class Indelathon {
     @SuppressWarnings("unchecked")
     @Override
     public SoftClipResult call() throws Exception {
-      scAllCounts = new Hashtable<String, Integer>();
-      scSegCounts = new Hashtable<String, Integer>();
+      scAllCounts = new Hashtable<>();
+      scSegCounts = new Hashtable<>();
 
-      segScs = new Hashtable<String, ArrayList<String>>();
+      segScs = new Hashtable<>();
 
       if (bamFile != null) {
         if (!Files.exists(scAllCountSerFile) || !Files.exists(segScsSerFile)) {
@@ -464,7 +464,7 @@ public class Indelathon {
     @Override
     public Callable<SoftClipResult> next() {
       String vcfSample = samples[index];
-      ArrayList<Segment> toQuery = new ArrayList<Segment>();
+      ArrayList<Segment> toQuery = new ArrayList<>();
       String bamFile = null;
       if (matchedIndelSamps.containsKey(vcfSample)) {
         bamFile = matchedIndelSamps.get(vcfSample);
@@ -515,8 +515,8 @@ public class Indelathon {
   private static String[] extractIndelSegments(String indelBamDir, Map<String, String> matchedSamps,
                                                Map<String, ArrayList<Segment>> sampSegs, int buffer,
                                                int numThreads, Logger log) {
-    WorkerHive<BamExtractor> hive = new WorkerHive<BamExtractor>(numThreads, 10, log);
-    ArrayList<String> indelBams = new ArrayList<String>();
+    WorkerHive<BamExtractor> hive = new WorkerHive<>(numThreads, 10, log);
+    ArrayList<String> indelBams = new ArrayList<>();
     new File(indelBamDir).mkdirs();
     for (String samp : matchedSamps.keySet()) {
       String outbam = indelBamDir + samp + "_indels_" + buffer + "bp.bam";
@@ -538,7 +538,7 @@ public class Indelathon {
     String vcf = "Indelathon.vcf";
     String outDir = "Indelathon/";
     String bams = null;
-    HashSet<String> sets = new HashSet<String>();
+    HashSet<String> sets = new HashSet<>();
     int numThreads = 24;
     int buffer = 100;
     int minSC = 0;

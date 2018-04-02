@@ -115,7 +115,7 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
     this.uncertains = uncertains;
     this.notes = notes;
 
-    colorHash = new Hashtable<String, String>();
+    colorHash = new Hashtable<>();
     try {
       reader = Files.getReader(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(), true, false);
       if (reader != null) {
@@ -132,8 +132,8 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
     }
 
     image = null;
-    locLookup = new Hashtable<String, IntVector>();
-    sampLookup = new Hashtable<String, IntVector>();
+    locLookup = new Hashtable<>();
+    sampLookup = new Hashtable<>();
 
     for (int i = 0; i < data.length; i++) {
       if (sampLookup.containsKey(samples[i])) {

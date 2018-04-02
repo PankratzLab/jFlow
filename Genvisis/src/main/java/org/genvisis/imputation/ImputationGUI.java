@@ -276,7 +276,7 @@ public class ImputationGUI extends JDialog {
       for (int i = 0; i < chrs.length; i++) {
         chrs[i] = i;
       }
-      chrList = new JList<Integer>(chrs);
+      chrList = new JList<>(chrs);
       chrList.setCellRenderer(new DefaultListCellRenderer() {
 
         @Override

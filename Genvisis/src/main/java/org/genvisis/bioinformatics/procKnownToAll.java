@@ -22,8 +22,8 @@ public class procKnownToAll {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, genes;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     for (String filename : filenames) {
       try {
         reader = new BufferedReader(new FileReader(filename));
@@ -72,7 +72,7 @@ public class procKnownToAll {
         System.exit(1);
       } else {
         if (v == null) {
-          v = new Vector<String>();
+          v = new Vector<>();
         }
         v.add(arg);
         numArgs--;

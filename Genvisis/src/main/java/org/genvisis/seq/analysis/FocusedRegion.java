@@ -46,7 +46,7 @@ public class FocusedRegion {
     log.reportTimeInfo(bams.length + " bam files found");
     FocusProducer producer = new FocusProducer(seg, new ReferenceGenome(ref, log), bams, log);
     try (PrintWriter writer = Files.getAppropriateWriter(output);
-         WorkerTrain<FocusResults> train = new WorkerTrain<FocusResults>(producer, numthreads, 10,
+         WorkerTrain<FocusResults> train = new WorkerTrain<>(producer, numthreads, 10,
                                                                          log)) {
 
       writer.println("SAMPLE\t" + BamPile.getBampPileHeader());
@@ -118,7 +118,7 @@ public class FocusedRegion {
           BamPileUp pileUp = new BamPileUp(bamFiles[current], referenceGenome, 1, new FilterNGS(),
                                            new Segment[] {seg}, PILE_TYPE.REGULAR,
                                            SAM_FILTER_TYPE.COPY_NUMBER, true, log);
-          ArrayList<BamPile> pile = new ArrayList<BamPile>();
+          ArrayList<BamPile> pile = new ArrayList<>();
           while (pileUp.hasNext()) {
             pile.add(pileUp.next());
           }

@@ -24,8 +24,8 @@ public class pdt {
                                  String templateFile) throws IOException {
     BufferedReader reader = null;
     PrintWriter writer = null;
-    Vector<String> v = new Vector<String>();
-    Vector<String[]> pedinfo = new Vector<String[]>();
+    Vector<String> v = new Vector<>();
+    Vector<String[]> pedinfo = new Vector<>();
     String[] line;
     String chrome = ext.chrome(chr);
     int numMarkers = -1;
@@ -124,7 +124,7 @@ public class pdt {
                                List<String[]> pedinfo) {
     BufferedReader reader = null;
     PrintWriter writer = null;
-    List<String[]> data = new ArrayList<String[]>();
+    List<String[]> data = new ArrayList<>();
     String[] dataline;
     String line[];
 
@@ -166,7 +166,7 @@ public class pdt {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String temp;
-    Vector<String> markerNames = new Vector<String>();
+    Vector<String> markerNames = new Vector<>();
     String chrome;
     int numMarkers = -1;
     String[] dists = null;

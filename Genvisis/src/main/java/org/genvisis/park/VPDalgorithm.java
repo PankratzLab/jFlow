@@ -71,7 +71,7 @@ public class VPDalgorithm {
     PrintWriter writer;
     String[] line, header, tempOfficialHeader;
     String temp, trav;
-    Hashtable<String, DxInfo> hash = new Hashtable<String, DxInfo>();
+    Hashtable<String, DxInfo> hash = new Hashtable<>();
     DxInfo info;
     int missing, countToVPD, countToUKBBC;
 
@@ -585,12 +585,12 @@ class DxInfo {
     brainBank_atLeast1 = brainBank_atLeast3 = 0;
     restTremor = rigidity = 0;
     atLeast1missing = atLeast2missing = restTremorMissing = rigidityMissing = exclusionMissing = 0;
-    inclusion = new Vector<String>();
-    brainBank_inclusion = new Vector<String>();
-    supporting = new Vector<String>();
-    brainBank_supporting = new Vector<String>();
-    exclusion = new Vector<String>();
-    brainBank_exclusion = new Vector<String>();
-    reasoning = new Vector<String>();
+    inclusion = new Vector<>();
+    brainBank_inclusion = new Vector<>();
+    supporting = new Vector<>();
+    brainBank_supporting = new Vector<>();
+    exclusion = new Vector<>();
+    brainBank_exclusion = new Vector<>();
+    reasoning = new Vector<>();
   }
 }

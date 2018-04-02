@@ -42,8 +42,8 @@ public class SequenceVariants {
       dbsnpHash = HashVec.loadFileToHashVec(annotationFile, new int[] {1, 2, 3, 4}, new int[] {0},
                                             "\t", true, true);
     } else {
-      hash = new Hashtable<String, Vector<String>>();
-      dbsnpHash = new Hashtable<String, Vector<String>>();
+      hash = new Hashtable<>();
+      dbsnpHash = new Hashtable<>();
     }
 
     try {

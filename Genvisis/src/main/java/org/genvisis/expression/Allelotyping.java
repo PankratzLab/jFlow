@@ -27,7 +27,7 @@ public class Allelotyping {
     BufferedReader reader;
     PrintWriter writer, summary;
     String[] line, indKeys, regionKeys, snpKeys;
-    Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>> snps = new Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>>();
+    Hashtable<String, Hashtable<String, Hashtable<String, DoubleVector>>> snps = new Hashtable<>();
     Hashtable<String, Hashtable<String, DoubleVector>> regions;
     Hashtable<String, DoubleVector> inds;
     DoubleVector values, regionMeans, regionStdevs, allObs, allObsAroundZero, regionLog2ratios;
@@ -54,12 +54,12 @@ public class Allelotyping {
         if (snps.containsKey(snpName)) {
           regions = snps.get(snpName);
         } else {
-          snps.put(snpName, regions = new Hashtable<String, Hashtable<String, DoubleVector>>());
+          snps.put(snpName, regions = new Hashtable<>());
         }
         if (regions.containsKey(region)) {
           inds = regions.get(region);
         } else {
-          regions.put(region, inds = new Hashtable<String, DoubleVector>());
+          regions.put(region, inds = new Hashtable<>());
         }
         if (inds.containsKey(ind)) {
           values = inds.get(ind);

@@ -118,8 +118,8 @@ public class FilterSNPsByRegion {
       buffer = DEFAULT_BUFFER;
     }
 
-    snps = new Vector<String>(1000);
-    snpsWithRegionNumbers = new Vector<String>(1000);
+    snps = new Vector<>(1000);
+    snpsWithRegionNumbers = new Vector<>(1000);
     snpsWithRegionNumbers.add("MarkerName\tRegionNumber"
                               + (regionNameIndex >= 0 ? "\tRegionName" : ""));
     try {

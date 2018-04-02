@@ -30,7 +30,7 @@ public class DeleteGenotypes {
     String[] line, marks;
     int count;
     String id = "", dir, trav;
-    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<>();
     Hashtable<String, String> markers, markerList;
     Hashtable<String, Vector<String>> lookup;
     Vector<String> sources;
@@ -40,7 +40,7 @@ public class DeleteGenotypes {
       while (reader.ready()) {
         line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
         if (line[0].equals("for")) {
-          markerList = new Hashtable<String, String>();
+          markerList = new Hashtable<>();
           while (reader.ready()) {
             markerList.put(reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[0], "");
           }
@@ -152,7 +152,7 @@ public class DeleteGenotypes {
     PrintWriter writer = null;
     String[] line;
     String trav;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     int version;
     String dir, serialNumber;
 

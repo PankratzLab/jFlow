@@ -20,7 +20,7 @@ public class interpolateMicrosatellites {
     PrintWriter writer = null;
     StringTokenizer st;
     String temp, trav, recall, id, interName = "interpolated.dat";
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     Vector<String> v;
     int[] keys;
 
@@ -113,7 +113,7 @@ public class interpolateMicrosatellites {
     writer.close();
 
     Enumeration<String> enumer = hash.keys();
-    v = new Vector<String>();
+    v = new Vector<>();
     while (enumer.hasMoreElements()) {
       st = new StringTokenizer(hash.get(enumer.nextElement()));
       trav = st.nextToken();

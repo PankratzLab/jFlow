@@ -110,7 +110,7 @@ public class Samtools {
       log.reportError("There were no .bam files to be found in " + dir);
     }
 
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       writer = Files.openAppropriateWriter(pwd + "sexPlot.xln");
       writer.println("File\tnumXreads\tnumYreads\tnumAutosomalReads\txProp\tyProp\txExpRatio\tyExpRatio");

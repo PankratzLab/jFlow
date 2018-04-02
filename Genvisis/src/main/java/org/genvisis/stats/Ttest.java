@@ -291,7 +291,7 @@ public class Ttest {
 
   public static void doPairedTtest(String filename) {
     BufferedReader reader;
-    Vector<double[]> v = new Vector<double[]>();
+    Vector<double[]> v = new Vector<>();
     String[] line;
     double[][] data;
 

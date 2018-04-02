@@ -254,7 +254,7 @@ public class Segment implements Serializable, Comparable<Segment> {
       Segment[] finalRemovers = removers.mergeOverlapping().getLoci();// deal with overlapping
                                                                       // removal segments
 
-      ArrayList<Segment> currentSegs = new ArrayList<Segment>();
+      ArrayList<Segment> currentSegs = new ArrayList<>();
 
       Segment[] removed = remove(finalRemovers[0], log);// seed removal
       if (removed != null) {
@@ -270,7 +270,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 
       int currentIndex = 1;
       while (currentIndex < finalRemovers.length) {// branch removal
-        ArrayList<Segment> tmp = new ArrayList<Segment>();
+        ArrayList<Segment> tmp = new ArrayList<>();
 
         for (int i = 0; i < currentSegs.size(); i++) {
           Segment[] removedMore = currentSegs.get(i).remove(finalRemovers[currentIndex], log);
@@ -280,7 +280,7 @@ public class Segment implements Serializable, Comparable<Segment> {
             }
           }
         }
-        currentSegs = new ArrayList<Segment>();
+        currentSegs = new ArrayList<>();
         currentSegs.addAll(tmp);
         currentIndex++;
       }
@@ -404,7 +404,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public static Segment[] mergeOverlapsAndSortAllChromosomes(Segment[] segments, int buffer) {
-    Hashtable<String, Vector<Segment>> splits = new Hashtable<String, Vector<Segment>>();
+    Hashtable<String, Vector<Segment>> splits = new Hashtable<>();
     for (int i = 0; i < segments.length; i++) {
       if (!splits.containsKey(segments[i].getChr() + "")) {
         splits.put(segments[i].getChr() + "", new Vector<Segment>());
@@ -412,7 +412,7 @@ public class Segment implements Serializable, Comparable<Segment> {
       splits.get(segments[i].getChr() + "")
             .add(buffer > 0 ? segments[i].getBufferedSegment(buffer) : segments[i]);
     }
-    ArrayList<Segment> merged = new ArrayList<Segment>();
+    ArrayList<Segment> merged = new ArrayList<>();
     for (String chr : splits.keySet()) {
       Vector<Segment> tmp = splits.get(chr);
       mergeOverlapsAndSort(tmp);
@@ -542,7 +542,7 @@ public class Segment implements Serializable, Comparable<Segment> {
     if (index < 0) {
       return null;
     } else {
-      ArrayList<Integer> overlaps = new ArrayList<Integer>();
+      ArrayList<Integer> overlaps = new ArrayList<>();
       overlaps.add(index);
       for (int i = index + 1; i < orderedList.length; i++) {
         if (seg.overlaps(orderedList[i])) {
@@ -674,7 +674,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   public static Segment[] loadUCSCregions(String filename, int column, boolean ignoreFirstLine,
                                           Logger log) {
     BufferedReader reader;
-    Vector<Segment> v = new Vector<Segment>();
+    Vector<Segment> v = new Vector<>();
 
     try {
       reader = new BufferedReader(new FileReader(filename));
@@ -700,8 +700,8 @@ public class Segment implements Serializable, Comparable<Segment> {
    * Removes duplicates based on {@link Segment#getUCSClocation()};
    */
   public static Segment[] unique(Segment[] segments) {
-    Hashtable<String, String> track = new Hashtable<String, String>();
-    ArrayList<Segment> unique = new ArrayList<Segment>();
+    Hashtable<String, String> track = new Hashtable<>();
+    ArrayList<Segment> unique = new ArrayList<>();
     for (int i = 0; i < segments.length; i++) {
       if (!track.containsKey(segments[i].getUCSClocation())) {
         track.put(segments[i].getUCSClocation(), segments[i].getUCSClocation());
@@ -732,7 +732,7 @@ public class Segment implements Serializable, Comparable<Segment> {
                                       int skipNumLines, boolean inclusiveStart,
                                       boolean inclusiveStop, int bpBuffer) {
     BufferedReader reader;
-    Vector<Segment> v = new Vector<Segment>();
+    Vector<Segment> v = new Vector<>();
     String[] line;
 
     try {
@@ -761,7 +761,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public static Segment[][] parseToChromosomeArrays(Segment[] segs, Logger log) {
-    Hashtable<Integer, Integer> track = new Hashtable<Integer, Integer>();
+    Hashtable<Integer, Integer> track = new Hashtable<>();
     int index = 0;
     for (int i = 0; i < segs.length; i++) {
       if (!track.containsKey((int) segs[i].getChr())) {
@@ -770,7 +770,7 @@ public class Segment implements Serializable, Comparable<Segment> {
       }
     }
 
-    ArrayList<ArrayList<Segment>> tmp = new ArrayList<ArrayList<Segment>>();
+    ArrayList<ArrayList<Segment>> tmp = new ArrayList<>();
     Set<Integer> indices = track.keySet();
     for (int i = 0; i < indices.size(); i++) {
       tmp.add(new ArrayList<Segment>());
@@ -789,7 +789,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public static Vector<Segment> toVector(Segment[] segs) {
-    Vector<Segment> v = new Vector<Segment>(segs.length);
+    Vector<Segment> v = new Vector<>(segs.length);
     for (Segment seg : segs) {
       v.add(seg);
     }

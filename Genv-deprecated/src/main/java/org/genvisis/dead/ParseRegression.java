@@ -70,7 +70,7 @@ public class ParseRegression {
     PrintWriter writer, extras = null;
     String[] line;
     int count;
-    Hashtable<String, String> alleles = new Hashtable<String, String>();
+    Hashtable<String, String> alleles = new Hashtable<>();
     Vector<String> snpNames, topSNPs;
     Hashtable<String, double[][]> allSNPs, used;
     double[][] data;
@@ -80,11 +80,11 @@ public class ParseRegression {
     int[] positions;
 
     for (String element : METHODS) {
-      snpNames = new Vector<String>();
-      alleles = new Hashtable<String, String>();
-      allSNPs = new Hashtable<String, double[][]>();
-      used = new Hashtable<String, double[][]>();
-      topSNPs = new Vector<String>();
+      snpNames = new Vector<>();
+      alleles = new Hashtable<>();
+      allSNPs = new Hashtable<>();
+      used = new Hashtable<>();
+      topSNPs = new Vector<>();
       for (String dir : dirs) {
         for (int j = 0; j < MODELS.length; j++) {
           try {
@@ -244,7 +244,7 @@ public class ParseRegression {
 
   public static void main(String[] args) throws IOException {
     int numArgs = args.length;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
 
     String usage = "\n" + "park.parseLinear requires 0-1 arguments\n"
                    + "   (1) directory (i.e. relevantDirectory/ (default))\n" + "";

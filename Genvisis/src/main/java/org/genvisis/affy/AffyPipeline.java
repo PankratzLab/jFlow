@@ -204,7 +204,7 @@ public class AffyPipeline {
       e.printStackTrace();
     }
 
-    ArrayList<String> psetCommand = new ArrayList<String>();
+    ArrayList<String> psetCommand = new ArrayList<>();
     psetCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENERATE_PROBE_LIST.getExe());
     psetCommand.add("--cdf-file");
     psetCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
@@ -226,8 +226,8 @@ public class AffyPipeline {
                                                         false, log);
 
     log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
-    ArrayList<String> probesetIdsAll = new ArrayList<String>(1800000);
-    ArrayList<String> probesetIdsSNP = new ArrayList<String>(925000);
+    ArrayList<String> probesetIdsAll = new ArrayList<>(1800000);
+    ArrayList<String> probesetIdsSNP = new ArrayList<>(925000);
 
     probesetIdsAll.add(AFFY_PROBELIST_HEADER);
     probesetIdsSNP.add(AFFY_PROBELIST_HEADER);
@@ -237,8 +237,8 @@ public class AffyPipeline {
     MarkerSetInfo markerSet = org.genvisis.cnv.filesys.MarkerSet.load(tmpMarkerSet);
     String[] names = markerSet.getMarkerNames();
 
-    HashMap<String, String> track = new HashMap<String, String>();
-    ArrayList<String> markersNotUsed = new ArrayList<String>();
+    HashMap<String, String> track = new HashMap<>();
+    ArrayList<String> markersNotUsed = new ArrayList<>();
 
     for (String name : names) {
       track.put(name, name);
@@ -319,7 +319,7 @@ public class AffyPipeline {
                                         String outDirRoot, String targetSketch) {
     String outCurrent = outDirRoot + analysisName + "_Normalization/";
     new File(outCurrent).mkdirs();
-    ArrayList<String> normalizeCommand = new ArrayList<String>();
+    ArrayList<String> normalizeCommand = new ArrayList<>();
     normalizeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.NORMALIZE.getExe());
     normalizeCommand.add("-cdf-file");
     normalizeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
@@ -383,7 +383,7 @@ public class AffyPipeline {
 
     String outCurrent = outDirRoot + analysisName + "_Genotypes/";
     new File(outCurrent).mkdirs();
-    ArrayList<String> genotypeCommand = new ArrayList<String>();
+    ArrayList<String> genotypeCommand = new ArrayList<>();
     genotypeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
     genotypeCommand.add("-c");
     genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
@@ -424,7 +424,7 @@ public class AffyPipeline {
   }
 
   private static void validateCelSelection(String[] celFiles, Logger log) {
-    HashMap<String, String> uniq = new HashMap<String, String>();
+    HashMap<String, String> uniq = new HashMap<>();
     boolean error = false;
     for (String celFile : celFiles) {
       if (uniq.containsKey(ext.removeDirectoryInfo(celFile))) {

@@ -29,11 +29,11 @@ public class Hearing {
     PrintWriter writer;
     String[] line;
     String trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     Vector<String> names;
     DoubleVector positions;
 
-    names = new Vector<String>();
+    names = new Vector<>();
     for (int chr = 1; chr <= 22; chr++) {
       try {
         reader = new BufferedReader(new FileReader(dir + source + "chr" + chr + "_SNP.noLD.ped"));
@@ -89,7 +89,7 @@ public class Hearing {
     }
 
     for (int chr = 1; chr <= 22; chr++) {
-      names = new Vector<String>();
+      names = new Vector<>();
       positions = new DoubleVector();
       try {
         reader = new BufferedReader(new FileReader(dir + source + "chr" + chr + "_SNP.noLD.map"));

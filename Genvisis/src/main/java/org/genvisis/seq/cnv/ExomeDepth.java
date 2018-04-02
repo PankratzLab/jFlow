@@ -67,8 +67,8 @@ public class ExomeDepth {
     super();
     allReferenceBAMFiles = allReferenceBamFiles;
     this.log = log;
-    sampleSpecificExclude = new Hashtable<String, HashSet<String>>();
-    globalExclude = new HashSet<String>();
+    sampleSpecificExclude = new Hashtable<>();
+    globalExclude = new HashSet<>();
     allSampleNames = BamOps.getSampleNames(allReferenceBamFiles, log);
     fail = gatherBai();
 
@@ -127,7 +127,7 @@ public class ExomeDepth {
       }
 
     } else {
-      List<String> missingSamplesFromVpop = new ArrayList<String>();
+      List<String> missingSamplesFromVpop = new ArrayList<>();
       for (int i = 0; i < allSampleNames.length; i++) {
         if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
           globalExclude.add(allSampleNames[i]);
@@ -188,7 +188,7 @@ public class ExomeDepth {
     script += loadCountFileScript() + "\n";
     script += MY_TEST_VAR + " <- " + EXOME_COUNTS_DAFR + "$"
               + Rscript.makeRSafe(ext.removeDirectoryInfo(eAnalysis.getInputBam())) + "\n";
-    ArrayList<String> tmpRef = new ArrayList<String>();
+    ArrayList<String> tmpRef = new ArrayList<>();
     for (int i = 0; i < allReferenceBAMFiles.length; i++) {
       if (!allReferenceBAMFiles[i].equals(eAnalysis.getInputBam())
           && !eAnalysis.getExcludeFromRef().contains(allSampleNames[i])
@@ -378,7 +378,7 @@ public class ExomeDepth {
       exomeDepthPDFOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "cnvs.pdf";
       exomeDepthRawDataOutput = outputDir + outputRoot + ext.rootOf(inputBam) + "rawData.txt";
       sampleName = BamOps.getSampleName(inputBam, log);
-      excludeFromRef = new HashSet<String>();
+      excludeFromRef = new HashSet<>();
       this.rScriptCall = rScriptCall;
       this.log = log;
     }
@@ -505,7 +505,7 @@ public class ExomeDepth {
 
     public SeqCNVariant[] processCNVs() {
 
-      ArrayList<SeqCNVariant> cnvs = new ArrayList<SeqCNVariant>();
+      ArrayList<SeqCNVariant> cnvs = new ArrayList<>();
       if (!Files.exists(getAnnoExomeDepthOutput())) {
         log.reportFileNotFound(getAnnoExomeDepthOutput());
       } else {
@@ -626,7 +626,7 @@ public class ExomeDepth {
     ExomeDepthAnalysis[] eAnalysis = new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
 
     ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
-    try (WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<ExomeDepth.ExomeDepthAnalysis>(producer,
+    try (WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<>(producer,
                                                                                                 numthreads,
                                                                                                 numthreads,
                                                                                                 log)) {
@@ -636,7 +636,7 @@ public class ExomeDepth {
         index++;
       }
     }
-    ArrayList<SeqCNVariant> allTmp = new ArrayList<SeqCNVariant>();
+    ArrayList<SeqCNVariant> allTmp = new ArrayList<>();
     for (ExomeDepthAnalysis eAnalysi : eAnalysis) {
       SeqCNVariant[] tmp = eAnalysi.processCNVs();
       for (SeqCNVariant element : tmp) {

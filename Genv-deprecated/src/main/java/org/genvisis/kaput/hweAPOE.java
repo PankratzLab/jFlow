@@ -22,8 +22,8 @@ public class hweAPOE {
     StringTokenizer st;
     String temp, trav, gender, alleles, affStat, mmse, aoo, demented, duration, smoked, data,
         ejukashun;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
-    Vector<String> fams = new Vector<String>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
+    Vector<String> fams = new Vector<>();
     Vector<String> v;
     int group;
     int[] totals = new int[GENOTYPES.length * 2], counts;
@@ -193,7 +193,7 @@ public class hweAPOE {
 
     if (!hash.containsKey(trav)) {
       newPerson = true;
-      hash.put(trav, v = new Vector<String>());
+      hash.put(trav, v = new Vector<>());
     } else {
       v = hash.get(trav);
     }

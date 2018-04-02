@@ -419,7 +419,7 @@ public class AffyPowerTools {
 
   private static String[] getMatchedFiles(String dir, Logger log, String Suffix) {
     String[] files = getFiles(dir);
-    ArrayList<String> celFiles = new ArrayList<String>();
+    ArrayList<String> celFiles = new ArrayList<>();
     for (String file : files) {
       if (file.endsWith(Suffix)) {
         celFiles.add(dir + file);
@@ -483,7 +483,7 @@ public class AffyPowerTools {
     int tracker = 0;
     int batch = 0;
     int count = 0;
-    ArrayList<String> probesetBatch = new ArrayList<String>();
+    ArrayList<String> probesetBatch = new ArrayList<>();
     for (int i = 0; i < probesets.size(); i++) {
       probesetBatch.add(probesets.get(i));
       tracker++;
@@ -495,7 +495,7 @@ public class AffyPowerTools {
         writeLists("", affyResultsDir, probesetBatch.toArray(new String[probesetBatch.size()]),
                    numJobs, log, header, head, probeType + "B" + batch + "_");
         batch++;
-        probesetBatch = new ArrayList<String>();
+        probesetBatch = new ArrayList<>();
       }
     }
     if (count != probesets.size()) {
@@ -542,9 +542,9 @@ public class AffyPowerTools {
   }
 
   private static ArrayList<ArrayList<String>> collectProbesets(String markerFile, Logger log) {
-    ArrayList<ArrayList<String>> allProbesets = new ArrayList<ArrayList<String>>();
-    ArrayList<String> cnProbesets = new ArrayList<String>();
-    ArrayList<String> snpProbesets = new ArrayList<String>();
+    ArrayList<ArrayList<String>> allProbesets = new ArrayList<>();
+    ArrayList<String> cnProbesets = new ArrayList<>();
+    ArrayList<String> snpProbesets = new ArrayList<>();
     try {
       BufferedReader reader = Files.getAppropriateReader(markerFile);
       int numProbesets = 0;

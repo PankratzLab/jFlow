@@ -26,12 +26,12 @@ public class haploCount {
     PrintWriter writer = null;
     String[] line = {"0", "-1"};
     String temp, global = "missed global statistic";
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int count, offset, numHaps;
     double[][] counts, output;
     double[][][] genotypes;
     boolean done;
-    Vector<String> haps = new Vector<String>();
+    Vector<String> haps = new Vector<>();
     String[][] scores;
     String dir, filename, bins, bintest, phenofile;
     int[] model = {-1, -1};
@@ -340,8 +340,8 @@ public class haploCount {
   public static double[][] fakeLogistic(double[][] counts, int[][] translations,
                                         int multiplier) throws IOException {
     LogisticRegression lr;
-    Vector<String> deps = new Vector<String>();
-    Vector<int[]> indeps = new Vector<int[]>();
+    Vector<String> deps = new Vector<>();
+    Vector<int[]> indeps = new Vector<>();
     double[] walds;
     double[][] output, ORs;
 

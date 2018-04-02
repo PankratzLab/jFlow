@@ -20,10 +20,10 @@ public class meld {
     BufferedReader[] readers = new BufferedReader[2];
     PrintWriter writer = null, dupes, mismatchedMarkers, mismatchGenotypes;
     String temp, id;
-    Vector<String> individuals = new Vector<String>();
+    Vector<String> individuals = new Vector<>();
     int[] store;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Hashtable<String, String> differs = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Hashtable<String, String> differs = new Hashtable<>();
     Vector<Hashtable<String, String>> offs;
     String[] line1, line2, markerNames;
     int diffs = 0, sames = 0;
@@ -62,7 +62,7 @@ public class meld {
           System.exit(1);
         }
         store = new int[line1.length - 3];
-        offs = new Vector<Hashtable<String, String>>();
+        offs = new Vector<>();
         for (int i = 0; i < line1.length - 3; i++) {
           offs.add(new Hashtable<String, String>());
         }

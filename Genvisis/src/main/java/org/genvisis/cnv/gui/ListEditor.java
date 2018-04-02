@@ -306,8 +306,8 @@ public class ListEditor extends JDialog implements ActionListener {
 
     Set<String> samples;
 
-    ArrayList<String> invalidPositions = new ArrayList<String>();
-    ArrayList<String> invalidIDs = new ArrayList<String>();
+    ArrayList<String> invalidPositions = new ArrayList<>();
+    ArrayList<String> invalidIDs = new ArrayList<>();
 
     public RegionValidator(String[] sampleNames, String missingVal, boolean allowMissing) {
       if (missingVal != null) {
@@ -384,8 +384,8 @@ public class ListEditor extends JDialog implements ActionListener {
         }
       }
 
-      invalidPositions = new ArrayList<String>();
-      invalidIDs = new ArrayList<String>();
+      invalidPositions = new ArrayList<>();
+      invalidIDs = new ArrayList<>();
 
       return success;
     }

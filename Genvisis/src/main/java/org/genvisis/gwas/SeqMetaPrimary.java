@@ -60,8 +60,8 @@ public class SeqMetaPrimary {
     }
 
     try {
-      v = new Vector<String>();
-      consolidateVector = new Vector<String>();
+      v = new Vector<>();
+      consolidateVector = new Vector<>();
       // generate batch files in dir+root+"/batchFiles/"; example:
       // "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
       foundGenos = false;
@@ -208,8 +208,8 @@ public class SeqMetaPrimary {
       }
 
       iterations = Matrix.toMatrix(ArrayUtils.toStringArray(consolidateVector));
-      v = new Vector<String>();
-      jobNamesWithAbsolutePaths = new Vector<String>();
+      v = new Vector<>();
+      jobNamesWithAbsolutePaths = new Vector<>();
       jobSizes = new IntVector();
       v.add("setwd(\"" + resultDir + "\")");
       consolidate = cohort + "<- c(";
@@ -251,7 +251,7 @@ public class SeqMetaPrimary {
     phenos = phenosCommaDelimited.split(",");
     races = racesCommaDelimited.split(",");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         try {
@@ -282,7 +282,7 @@ public class SeqMetaPrimary {
     // Files.writeArray(Array.toStringArray(v), "scriptAllItasca");
     // Files.chmod("scriptAllItasca");
     //
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         if (Files.exists(cohort + "_" + race + "_" + pheno + "/batchFiles/finishWithHigherMem_"
@@ -297,7 +297,7 @@ public class SeqMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "finishWithHigherMem");
     Files.chmod("finishWithHigherMem");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/batchFiles/");
@@ -310,7 +310,7 @@ public class SeqMetaPrimary {
     Files.writeArray(ArrayUtils.toStringArray(v), "mergeAll");
     Files.chmod("mergeAll");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       for (String race : races) {
         v.add("cd " + cohort + "_" + race + "_" + pheno + "/results/");
@@ -332,7 +332,7 @@ public class SeqMetaPrimary {
 
     phenos = phenosCommaDelimited.split(",");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String pheno : phenos) {
       try {
         batchAdditionals(pheno, cohort, snpInfo, qsubMem, qsubWalltime);
@@ -378,7 +378,7 @@ public class SeqMetaPrimary {
     batchDir = phenoDir + "/batchFiles/";
 
     try {
-      v = new Vector<String>();
+      v = new Vector<>();
       // generate batch files in dir+root+"/batchFiles/"; example:
       // "c:/diffpath/pheno_F7_studyIDs/batchFiles/chr1.R"
       // foundGenos = false;

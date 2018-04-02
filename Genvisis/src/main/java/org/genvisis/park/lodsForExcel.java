@@ -75,13 +75,13 @@ public class lodsForExcel {
     eStruct handle;
     String pos;
     String[] poslar;
-    Hashtable<String, eStruct> hash = new Hashtable<String, eStruct>();
+    Hashtable<String, eStruct> hash = new Hashtable<>();
     int trav, offset;
     int count, num;
     double prev, increment;
-    Vector<String> mapFailure = new Vector<String>();
+    Vector<String> mapFailure = new Vector<>();
     int numMarkers;
-    Vector<String> markers = new Vector<String>();
+    Vector<String> markers = new Vector<>();
     double posi, off;
 
     all = Files.openAppropriateWriter("excel-all.xls");

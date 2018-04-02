@@ -78,7 +78,7 @@ public class ExportCNVsToPedFormat {
     }
 
     time = new Date().getTime();
-    mzTwins = new Hashtable<String, Vector<String>>();
+    mzTwins = new Hashtable<>();
     if (pedFilename != null) {
       log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
       try {
@@ -92,7 +92,7 @@ public class ExportCNVsToPedFormat {
                                                                false, false);
         dnaMapping = HashVec.loadFileToStringMatrix(pedFilename, true, new int[] {0, 1, 6},
                                                     PSF.Regex.GREEDY_WHITESPACE, 10000, false);
-        HashSet<String> dnaSet = new HashSet<String>();
+        HashSet<String> dnaSet = new HashSet<>();
         for (String[] element : dnaMapping) {
           if (dnaSet.contains(element[2])) {
             HashVec.addToHashVec(mzTwins, element[2] + "\t" + element[2],
@@ -151,10 +151,10 @@ public class ExportCNVsToPedFormat {
 
     // Generate chrPosition and sampleHash, to be used for the rows and columns of the final result.
     time = new Date().getTime();
-    allChrPosHash = new Hashtable<String, String>();
+    allChrPosHash = new Hashtable<>();
     if (pedFilename == null || sampleListHashFromCnvOrPedData == null) {
-      sampleListHashFromCnvOrPedData = new Hashtable<String, String>();
-      dnaHashFromCnvOrPedData = new Hashtable<String, String>();
+      sampleListHashFromCnvOrPedData = new Hashtable<>();
+      dnaHashFromCnvOrPedData = new Hashtable<>();
       wasNull = true;
     }
     for (int i = 0; i < cnvs.length; i++) {
@@ -417,8 +417,8 @@ public class ExportCNVsToPedFormat {
       missingWriter = Files.getAppropriateWriter(outputRoot + "_missing.iid");
     } else {
       log.report("Warning - pedigree file missing, sex will be set to '0' for all individuals.");
-      iidMap = new Hashtable<String, Vector<String>>();
-      dnaMap = new Hashtable<String, Vector<String>>();
+      iidMap = new Hashtable<>();
+      dnaMap = new Hashtable<>();
     }
 
     writer = Files.getAppropriateWriter(outputRoot + "_" + fileNumber

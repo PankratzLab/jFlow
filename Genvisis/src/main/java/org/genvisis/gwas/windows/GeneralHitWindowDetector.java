@@ -33,7 +33,7 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
   public GeneralHitWindowDetector(List<T> hittablesInput, int window,
                                   double windowExtensionThreshold, double indexThreshold) {
     super();
-    this.hittables = new ArrayList<T>(hittablesInput);
+    this.hittables = new ArrayList<>(hittablesInput);
     Collections.sort(hittables);// sorts by chr and pos
     this.window = window;
     this.windowExtensionThreshold = windowExtensionThreshold;
@@ -82,7 +82,7 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
     for (int i = currentIndex; i < hittables.size(); i++) {
       if (hittables.get(i).getPval() < indexThreshold) {
         int startIndex = i;
-        ArrayList<Integer> minIndices = new ArrayList<Integer>();// in case of ties
+        ArrayList<Integer> minIndices = new ArrayList<>();// in case of ties
         minIndices.add(i);
         double minPval = hittables.get(i).getPval();
         int offset = 0;
@@ -144,7 +144,7 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
           }
 
           if (hittables.get(stopIndex).getPval() < minPval) {
-            minIndices = new ArrayList<Integer>();
+            minIndices = new ArrayList<>();
             minIndices.add(stopIndex);
             minPval = hittables.get(stopIndex).getPval();
           }
@@ -162,11 +162,11 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
           }
 
         }
-        ArrayList<T> indexHits = new ArrayList<T>();
+        ArrayList<T> indexHits = new ArrayList<>();
         for (Integer minIndex : minIndices) {
           indexHits.add(hittables.get(minIndex));
         }
-        currentWindow = new HitWindow<T>(window, indexHits, hittables.get(startIndex),
+        currentWindow = new HitWindow<>(window, indexHits, hittables.get(startIndex),
                                          hittables.get(stopIndex), numSig, numSuggestive,
                                          stopIndex - startIndex + 1);
 

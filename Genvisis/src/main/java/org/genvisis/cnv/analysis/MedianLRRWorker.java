@@ -58,13 +58,13 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
     private MarkerRegion(String regionName, int regionID, int regionType) {
       this.regionName = regionName;
       this.regionType = regionType;
-      markerIndex = new ArrayList<Integer>();
+      markerIndex = new ArrayList<>();
       // stores markers in the region
-      markersInRegion = new ArrayList<String>();
+      markersInRegion = new ArrayList<>();
       // for assigning in region
-      inRegion = new Hashtable<String, Boolean>();
+      inRegion = new Hashtable<>();
       // for assigning index
-      index = new Hashtable<String, Integer>();
+      index = new Hashtable<>();
     }
 
     private void addMarker(String marker) {
@@ -542,7 +542,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       }
       for (int j = 0; j < markerRegions.length; j++) {
         ArrayList<Integer> regionPositions = markerRegions[j].getMarkerIndex();
-        ArrayList<Float> regionLrrs = new ArrayList<Float>();
+        ArrayList<Float> regionLrrs = new ArrayList<>();
         for (int k = 0; k < regionPositions.size(); k++) {
           if (Float.isNaN(lrrs[regionPositions.get(k)])) {
             continue;
@@ -781,7 +781,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
   private float[][] getSampleResults(float[][] lrrs, PoplulationBAFs pDeviation) {
     // store median, MAD,median B deviation all,median B deviation het
     float[][] results = new float[7][lrrs[0].length];
-    ArrayList<ArrayList<Float>> sampleLRRS = new ArrayList<ArrayList<Float>>();
+    ArrayList<ArrayList<Float>> sampleLRRS = new ArrayList<>();
     for (int i = 0; i < lrrs[0].length; i++) {
       sampleLRRS.add(new ArrayList<Float>());
     }
@@ -1016,7 +1016,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
 
   private static String[] readToArray(String filename, Logger log) {
 
-    ArrayList<String> lines = new ArrayList<String>();
+    ArrayList<String> lines = new ArrayList<>();
     try {
       FileReader fileReader = new FileReader(filename);
       BufferedReader reader = new BufferedReader(fileReader);

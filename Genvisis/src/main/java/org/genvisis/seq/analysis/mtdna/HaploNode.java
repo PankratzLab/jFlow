@@ -21,7 +21,7 @@ class HaploNode {
 
   public HaploNode(char ch, HashSet<String> inds) {
     value = ch;
-    children = new HashMap<Character, HaploNode>();
+    children = new HashMap<>();
     this.inds = inds;
     bIsEnd = false;
   }
@@ -53,7 +53,7 @@ class HaploTrie {
 
   public HaploTrie() {
     root = new HaploNode((char) 0, new HashSet<String>());
-    used = new HashSet<String>();
+    used = new HashSet<>();
   }
 
   /**

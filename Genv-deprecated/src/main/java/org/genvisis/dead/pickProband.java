@@ -14,7 +14,7 @@ public class pickProband {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String trav;
     int pro, vpdpro;
 

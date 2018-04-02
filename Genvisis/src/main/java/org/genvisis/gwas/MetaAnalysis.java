@@ -23,7 +23,7 @@ public class MetaAnalysis {
     sdConversion = false;
     countInvalids = 0;
     lines = ext.getClipboard().trim().split("\\n");
-    v = new Vector<double[]>();
+    v = new Vector<>();
     numColumns = lines[0].trim().split(PSF.Regex.GREEDY_WHITESPACE).length;
     for (int i = 0; i < lines.length; i++) {
       line = lines[i].trim().split(PSF.Regex.GREEDY_WHITESPACE);

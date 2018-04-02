@@ -90,13 +90,13 @@ public final class VCFData {
                                          String outputDirAndRoot) {
     SampleData sd = proj.getSampleData(false);
     String[] allSamples = proj.getSamples();
-    Set<String> idsSet = new HashSet<String>();
-    List<String> idsToInclude = new ArrayList<String>();
+    Set<String> idsSet = new HashSet<>();
+    List<String> idsToInclude = new ArrayList<>();
     for (String s : (samplesToExport == null || samplesToExport.length == 0 ? allSamples
                                                                             : samplesToExport)) {
       idsSet.add(s);
     }
-    Map<String, Integer> idIndexMap = new HashMap<String, Integer>();
+    Map<String, Integer> idIndexMap = new HashMap<>();
     for (int i = 0; i < allSamples.length; i++) {
       String s = allSamples[i];
       if (sd.lookup(s) == null) {
@@ -289,7 +289,7 @@ public final class VCFData {
 
     int[] indices = Sort.getSortedIndices(pos);
 
-    ArrayList<String> mkrs = new ArrayList<String>();
+    ArrayList<String> mkrs = new ArrayList<>();
     for (int i = 0; i < indices.length; i++) {
       // skip if prev (in sorted array) was same position:
       if (i == 0 || pos[indices[i]] != pos[indices[i - 1]]) {
@@ -374,7 +374,7 @@ public final class VCFData {
       builder.clearOptions();
       builder.setOption(Options.INDEX_ON_THE_FLY);
 
-      HashSet<VCFHeaderLine> lines = new HashSet<VCFHeaderLine>();
+      HashSet<VCFHeaderLine> lines = new HashSet<>();
       VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "GT");
       lines.add(format);
 
@@ -402,7 +402,7 @@ public final class VCFData {
         builderVc.chr((useChr ? "chr" : "")
                       + Positions.chromosomeNumberInverse(markerData.getChr()));
         Marker mkr = markerMap.get(markerData.getMarkerName());
-        ArrayList<Allele> a = new ArrayList<Allele>();
+        ArrayList<Allele> a = new ArrayList<>();
         Allele aR = mkr.getRef();
         Allele aA = mkr.getAlt();
 
@@ -457,7 +457,7 @@ public final class VCFData {
         builderVc.start(mkr.getPosition());
         builderVc.stop(mkr.getPosition() + mkr.getRef().length() - 1);
         builderVc.id(mkr.getName());
-        Collection<Genotype> genos = new ArrayList<Genotype>();
+        Collection<Genotype> genos = new ArrayList<>();
         byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection,
                                                                  markerData.getMarkerName(),
                                                                  gcThreshold, proj.getLog());

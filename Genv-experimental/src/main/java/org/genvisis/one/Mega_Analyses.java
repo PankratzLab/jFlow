@@ -95,7 +95,7 @@ public class Mega_Analyses {
     PrintWriter writer;
     String[] line;
     String temp, trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String dir, filename;
 
     dir = DIR + "deCODE_results\\";
@@ -104,7 +104,7 @@ public class Mega_Analyses {
       writer = new PrintWriter(new FileWriter(dir.substring(0, dir.length() - 1) + ".txt"));
       writer.println("MarkerName\tLocational_ID\tChr\tPosition\tEffect_allele\tReference_allele\tEAF\tGenotyped_or_imputed\tInformation\tBETA\tSE\tP\tNCASES\tNCONTROLS");
       for (int chr = 1; chr <= 22; chr++) {
-        hash = new Hashtable<String, String>();
+        hash = new Hashtable<>();
         for (int i = 0; i < 2; i++) {
           filename = dir + "chr" + chr + (i == 0 ? "p" : "q") + ".assoc.log";
           if (new File(filename).exists()) {
@@ -224,7 +224,7 @@ public class Mega_Analyses {
                                                                                                                                                                                    // p-values
 
     System.out.println("Comparing");
-    missingFrom2 = new Vector<String>();
+    missingFrom2 = new Vector<>();
     keys = HashVec.getKeys(hash1, false);
     try {
       writer = Files.openAppropriateWriter("discordant.out");
@@ -464,7 +464,7 @@ public class Mega_Analyses {
                     log);
 
     Vector<String> v;
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String[] element : STUDIES) {
       if (element[5].equals("1")) {
         v.add(DIR + "filtered/" + subDir + "" + element[1]);
@@ -586,7 +586,7 @@ public class Mega_Analyses {
     String filename = DIR + "duplicatedMarkers/allDuplicatedSNPs.txt";
     // String filename = DIR+"duplicatedMarkers/filtered/allDuplicatedSNPcounts.txt";
     allSNPs = HashVec.loadFileToStringArray(filename, false, new int[] {0}, false);
-    hash = new Hashtable<String, Vector<String>>();
+    hash = new Hashtable<>();
     for (String allSNP : allSNPs) {
       hash.put(allSNP, new Vector<String>());
     }
@@ -758,8 +758,8 @@ public class Mega_Analyses {
     time = new Date().getTime();
     mostExtremeTie = minimizeInsteadofMaximize ? Double.POSITIVE_INFINITY
                                                : Double.NEGATIVE_INFINITY;
-    hash = new Hashtable<String, String>();
-    duplicates = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    duplicates = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -888,7 +888,7 @@ public class Mega_Analyses {
 
     String subDir = "OnlyThoseInRef/";
     Vector<String> v;
-    v = new Vector<String>();
+    v = new Vector<>();
     for (String[] element : STUDIES) {
       if (element[5].equals("1")) {
         v.add(DIR + "filtered/" + subDir + "" + element[1]);

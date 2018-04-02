@@ -38,11 +38,11 @@ public class QuantNormProject {
     numthreads = 7;
     Project projNorm = Project.prepareNewProject(proj, "quantNorm");
     QNormProducer producer = new QNormProducer(proj, projNorm, proj.getSamples());
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
                                                                                                  numthreads,
                                                                                                  2,
                                                                                                  proj.getLog())) {
-      Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+      Hashtable<String, Float> outliers = new Hashtable<>();
       int index = 0;
       long time = System.currentTimeMillis();
 
@@ -103,7 +103,7 @@ public class QuantNormProject {
                                      true);
     String[][] newColums = Files.paste(orginalFiles, comboQC, indices, 0, titles,
                                        new String[] {LrrSd.SAMPLE_COLUMN}, projOriginal.getLog());
-    ArrayList<Integer> lrrIndices = new ArrayList<Integer>();
+    ArrayList<Integer> lrrIndices = new ArrayList<>();
     for (int i = 0; i < LrrSd.NUMERIC_COLUMNS.length; i++) {
       if (LrrSd.NUMERIC_COLUMNS[i].startsWith("LRR_SD")) {
         lrrIndices.add(i);
@@ -153,12 +153,12 @@ public class QuantNormProject {
     }
     String gcLookDir = projCorrected.PROJECT_DIRECTORY.getValue() + "gc_analysis/";
     new File(gcLookDir).mkdirs();
-    ArrayList<RScatter> rscatterHist = new ArrayList<RScatter>();
-    ArrayList<DynamicHistogram> all = new ArrayList<DynamicHistogram>();
-    ArrayList<String> allTitles = new ArrayList<String>();
+    ArrayList<RScatter> rscatterHist = new ArrayList<>();
+    ArrayList<DynamicHistogram> all = new ArrayList<>();
+    ArrayList<String> allTitles = new ArrayList<>();
 
     for (int i = 0; i < histograms[0].length; i++) {
-      ArrayList<DynamicHistogram> tmps = new ArrayList<DynamicHistogram>();
+      ArrayList<DynamicHistogram> tmps = new ArrayList<>();
       String out = gcLookDir + "gc_" + LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)] + ".hist";
       String curQc = LrrSd.NUMERIC_COLUMNS[lrrIndices.get(i)];
       String[] titleTmp = ArrayUtils.tagOn(titles, curQc, null);
@@ -214,7 +214,7 @@ public class QuantNormProject {
                                              projCorrected.getLog());
     rScattersHists.execute();
 
-    ArrayList<RScatter> rScatters = new ArrayList<RScatter>();
+    ArrayList<RScatter> rScatters = new ArrayList<>();
 
     for (int i = 1; i < newColums[0].length; i++) {
 
@@ -285,7 +285,7 @@ public class QuantNormProject {
 
   private static Hashtable<String, Float> quantNormSample(Project projOriginal, Project projNorm,
                                                           String sample) {
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
     String output = projNorm.SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_FILE_EXTENSION;
 
     if (!Files.exists(output)) {

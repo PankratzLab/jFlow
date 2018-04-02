@@ -15,7 +15,7 @@ public class createAssociation {
     BufferedReader reader = null;
     PrintWriter writer;
     String[] line, markers;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     String blank;
 
     try {

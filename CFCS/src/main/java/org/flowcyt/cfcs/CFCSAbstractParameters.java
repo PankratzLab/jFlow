@@ -31,14 +31,14 @@ public abstract class CFCSAbstractParameters implements CFCSErrorCodes {
 
   protected final CFCSKeywords keywords;
 
-  protected final Map<String, PropertyDescriptor> parameter_descriptors = new HashMap<String, PropertyDescriptor>();
+  protected final Map<String, PropertyDescriptor> parameter_descriptors = new HashMap<>();
 
   // --------------------------------------------------------------------
 
   protected static final String[] keyword_properties = {"KeywordValue", "KeywordIntegerValue",
                                                         "KeywordDoubleValue",};
 
-  protected static final Map<Class<?>, PropertyDescriptor> keyword_descriptors = new HashMap<Class<?>, PropertyDescriptor>();
+  protected static final Map<Class<?>, PropertyDescriptor> keyword_descriptors = new HashMap<>();
 
   static {
     for (int i = 0; i < keyword_properties.length; i++) {

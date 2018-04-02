@@ -33,7 +33,7 @@ public class FilterDB {
     long time;
 
     time = new Date().getTime();
-    filters = new Vector<Filter>();
+    filters = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(filtersFilename));
       while (reader.ready()) {

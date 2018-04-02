@@ -17,7 +17,7 @@ public class Mega2 {
     PrintWriter writer;
     String[] line;
     String temp;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     int numMarkers;
     String chrome;
     double sumPos;

@@ -296,7 +296,7 @@ public class Zip {
     files = Files.list(dirin, null);
     if (numThreads > 1) {
       GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
-      try (WorkerTrain<Boolean> train = new WorkerTrain<Boolean>(producer, numThreads, numThreads,
+      try (WorkerTrain<Boolean> train = new WorkerTrain<>(producer, numThreads, numThreads,
                                                                  log)) {
         int index = 0;
         while (train.hasNext()) {
@@ -372,7 +372,7 @@ public class Zip {
 
   @SuppressWarnings("unchecked")
   public static String[] list(String filename) {
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
 
     try {
       ZipFile zf = new ZipFile(filename);

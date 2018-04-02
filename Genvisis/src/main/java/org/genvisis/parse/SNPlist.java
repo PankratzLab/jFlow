@@ -36,8 +36,8 @@ public class SNPlist {
     int missingInds, missingGenotypes;
     IntVector iv;
 
-    snps = new Vector<String>();
-    hashes = new Hashtable<String, Hashtable<String, String>>();
+    snps = new Vector<>();
+    hashes = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(dir + filename));
       line = reader.readLine().trim().split("\t");

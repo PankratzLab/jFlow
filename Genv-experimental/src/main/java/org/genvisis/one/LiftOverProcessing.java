@@ -175,7 +175,7 @@ public class LiftOverProcessing {
     String[] temp;
 
     reader = Files.getAppropriateReader(plinkDirAndRoot + RESULT_EXT);
-    results = new HashMap<String, int[]>();
+    results = new HashMap<>();
     line = null;
     while ((line = reader.readLine()) != null) {
       temp = line.split("\t");

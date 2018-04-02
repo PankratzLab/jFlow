@@ -511,7 +511,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   };
 
   static ArrayList<Color[]> getColor() {
-    ArrayList<Color[]> colors = new ArrayList<Color[]>();
+    ArrayList<Color[]> colors = new ArrayList<>();
     colors.add(new Color[] {BLUES.PERSIAN_BLUE, BLUES.DODGER_BLUE});
     colors.add(new Color[] {VIOLETS.BLUE_VIOLET, BLUES.SLATE_BLUE}); // deep/light purple
     colors.add(new Color[] {GREENS.GREEN, GREENS.GREEN_YELLOW}); // dark green
@@ -522,10 +522,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   private final ArrayList<Color[]> colorScheme = getColor();
 
-  final ArrayList<int[]> activeCNVs = new ArrayList<int[]>();
+  final ArrayList<int[]> activeCNVs = new ArrayList<>();
   volatile int[] selectedCNV = null;
-  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<String, JCheckBoxMenuItem>();
-  private final HashMap<String, String> regionFileNameLoc = new HashMap<String, String>();
+  private final HashMap<String, JCheckBoxMenuItem> regionFileNameBtn = new HashMap<>();
+  private final HashMap<String, String> regionFileNameLoc = new HashMap<>();
   // private JComboBox<String> regionFileList;
   private String regionFileName;
   private volatile boolean loadingFile = false;
@@ -854,10 +854,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       @Override
       public void windowClosing(WindowEvent e) {
         if (Trailer.this.proj != null && regionFileName != null) {
-          ArrayList<String> files = new ArrayList<String>(regionFileNameLoc.values());
+          ArrayList<String> files = new ArrayList<>(regionFileNameLoc.values());
           String[] currSet = Trailer.this.proj.INDIVIDUAL_CNV_LIST_FILENAMES.getValue();
 
-          ArrayList<String> newSet = new ArrayList<String>();
+          ArrayList<String> newSet = new ArrayList<>();
           for (String s : files) {
             boolean found = false;
             for (String element : currSet) {
@@ -1209,7 +1209,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private void paintGeneTrackPanel(Graphics g) {
     GeneData[] genes;
     int[][] exons;
-    Vector<Segment> v = new Vector<Segment>();
+    Vector<Segment> v = new Vector<>();
     Segment[] segs;
     int width, begin, end;
     String text;
@@ -2284,7 +2284,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           }
         }
       };
-      HashSet<String> mnems = new HashSet<String>();
+      HashSet<String> mnems = new HashSet<>();
       for (int i = 0; i < Transforms.TRANFORMATIONS.length; i++) {
         transformBtns[i] = new JRadioButtonMenuItem(Transforms.TRANFORMATIONS[i]);
         transformBtns[i].addItemListener(typeListener);
@@ -2323,7 +2323,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           }
         }
       };
-      mnems = new HashSet<String>();
+      mnems = new HashSet<>();
       for (int i = 0; i < Transforms.SCOPES.length; i++) {
         scopeBtns[i] = new JRadioButtonMenuItem(Transforms.SCOPES[i]);
         scopeBtns[i].addItemListener(scopeListener);
@@ -2457,8 +2457,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           }
         }
       };
-      namePathMap = new Hashtable<String, String>();
-      Vector<String> centFiles = new Vector<String>();
+      namePathMap = new Hashtable<>();
+      Vector<String> centFiles = new Vector<>();
       centFiles.add(proj.ORIGINAL_CENTROIDS_FILENAME.getValue());
       centFiles.add(proj.GENOTYPE_CENTROIDS_FILENAME.getValue());
       centFiles.add(proj.CUSTOM_CENTROIDS_FILENAME.getValue());
@@ -2482,7 +2482,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         }
       }
 
-      centButtonMap = new HashMap<String, JCheckBoxMenuItem>();
+      centButtonMap = new HashMap<>();
       ButtonGroup centButtons = new ButtonGroup();
       JCheckBoxMenuItem centBox = new JCheckBoxMenuItem("None");
       centBox.addItemListener(centListener);
@@ -2665,10 +2665,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     // act.addSeparator();
     {
 
-      previouslyLoadedManagers = new Hashtable<String, ColorExt.ColorManager<String>>();
+      previouslyLoadedManagers = new Hashtable<>();
       JMenu colorMenu = new JMenu("Colors");
       colorMenu.setMnemonic('O');
-      ArrayList<String[]> optsTmp = new ArrayList<String[]>();
+      ArrayList<String[]> optsTmp = new ArrayList<>();
       optsTmp.add(new String[] {"Default", "Default", "Set color scheme to the Genvisis default"});
       if (gcModel != null) {
         optsTmp.add(new String[] {"GC content", "GC content", "Color by GC content"});
@@ -2758,7 +2758,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
       JMenu excudeMenu = new JMenu("ExcludeBy");
       excudeMenu.setMnemonic('E');
-      ArrayList<String[]> optsTmp = new ArrayList<String[]>();
+      ArrayList<String[]> optsTmp = new ArrayList<>();
       optsTmp.add(new String[] {"None", "None", "No Exclusions"});
       if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null) {
         for (int i = 0; i < proj.MARKER_COLOR_KEY_FILENAMES.getValue().length; i++) {
@@ -3555,7 +3555,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                                                     : regionFileName;
       reader = Files.getAppropriateReader(file);// Files.getReader(file, jar, false, false);
       System.out.print("Loading regions from " + regionFileName + "...");
-      v = new Vector<String[]>();
+      v = new Vector<>();
       ignoredLines = countMissingRegions = invalidSamples = 0;
       line = null;
       // FIXME here is the logic for turning strings to regions
@@ -3903,7 +3903,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     CNVariant[] tmpCurrent = indiPheno.getCnvClasses().get(key).get(chr + "");
     if (!all) {
       if (tmpCurrent != null && tmpCurrent.length > 0) {
-        ArrayList<CNVariant> retain = new ArrayList<CNVariant>();
+        ArrayList<CNVariant> retain = new ArrayList<>();
         for (int i = 0; i < tmpCurrent.length; i++) {
           if (!remove.equals(tmpCurrent[i])) {
             retain.add(tmpCurrent[i]);
@@ -3940,7 +3940,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           }
         }
       }
-      ArrayList<CNVariant> uniqAdd = new ArrayList<CNVariant>();
+      ArrayList<CNVariant> uniqAdd = new ArrayList<>();
       for (int i = 0; i < use.length; i++) {
         if (use[i]) {
           uniqAdd.add(tmp[i]);
@@ -4036,13 +4036,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       super("Adjust with gc parameter file", proj.GC_CORRECTION_PARAMETERS_FILENAMES.getValue());
 
       String[] samps = proj.getSamples();
-      sampleIndex = new Hashtable<String, Integer>();
+      sampleIndex = new Hashtable<>();
       for (int i = 0; i < samps.length; i++) {
         sampleIndex.put(samps[i], i);
       }
       this.trailer = trailer;
       currentParamIndex = -1;
-      params = new ArrayList<GcAdjustorParameters>();
+      params = new ArrayList<>();
       this.log = log;
       developItemListener();
       developMenu();

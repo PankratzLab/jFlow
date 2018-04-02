@@ -102,11 +102,11 @@ public class expressionToGenes {
     PrintWriter geneids = null;
     String[] line, header;
     String temp, trav;
-    Hashtable<String, Vector<String>> tagPropLookup = new Hashtable<String, Vector<String>>();
-    Hashtable<String, String> propRefLookup = new Hashtable<String, String>();
-    Hashtable<String, String> geneData = new Hashtable<String, String>();
-    Hashtable<String, HS_DataPoint> hsData = new Hashtable<String, HS_DataPoint>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, Vector<String>> tagPropLookup = new Hashtable<>();
+    Hashtable<String, String> propRefLookup = new Hashtable<>();
+    Hashtable<String, String> geneData = new Hashtable<>();
+    Hashtable<String, HS_DataPoint> hsData = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     HS_DataPoint hsdp;
     Vector<String> nms;
 
@@ -195,7 +195,7 @@ public class expressionToGenes {
         line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
         trav = line[0];
         writer.print(trav);
-        nms = new Vector<String>();
+        nms = new Vector<>();
         if (tagPropLookup.containsKey(trav)) {
           v = tagPropLookup.get(trav);
           for (int i = 0; i < v.size(); i++) {

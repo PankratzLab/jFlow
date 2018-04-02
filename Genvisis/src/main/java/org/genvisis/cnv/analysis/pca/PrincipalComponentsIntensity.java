@@ -805,7 +805,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
                                                 boolean[] genoSampleClusters) {
     if (extraIndeps != null) {
       for (int i = 0; i < extraIndeps[0].length; i++) {
-        HashSet<String> variance = new HashSet<String>();
+        HashSet<String> variance = new HashSet<>();
 
         for (int j = 0; j < genoSampleClusters.length; j++) {
           if (genoSampleClusters[j]) {

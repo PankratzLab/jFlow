@@ -44,9 +44,9 @@ public class AnnotationCollection implements Serializable, TextExport {
                                                                         // marker2Name, ...
 
   public AnnotationCollection() {
-    commentsHash = new Hashtable<Character, String>();
-    markerAnnotations = new Hashtable<String, Vector<String>>();
-    annotationMarkerLists = new Hashtable<String, Vector<String>>();
+    commentsHash = new Hashtable<>();
+    markerAnnotations = new Hashtable<>();
+    annotationMarkerLists = new Hashtable<>();
   }
 
   public void addAnnotation(char c, String comment) {
@@ -196,7 +196,7 @@ public class AnnotationCollection implements Serializable, TextExport {
     Hashtable<String, Character> annotationKeys;
     boolean found;
 
-    annotationKeys = new Hashtable<String, Character>();
+    annotationKeys = new Hashtable<>();
     keys = currentAnnotationCollection.getKeys();
     for (char key2 : keys) {
       annotationKeys.put(currentAnnotationCollection.getDescriptionForComment(key2, false, false),
@@ -280,8 +280,8 @@ public class AnnotationCollection implements Serializable, TextExport {
    */
   public char[] getKeys() {
 
-    List<String> values = new ArrayList<String>(commentsHash.size());
-    Map<String, Character> reverseMap = new HashMap<String, Character>();
+    List<String> values = new ArrayList<>(commentsHash.size());
+    Map<String, Character> reverseMap = new HashMap<>();
 
     for (Entry<Character, String> e : commentsHash.entrySet()) {
       reverseMap.put(e.getValue(), e.getKey());

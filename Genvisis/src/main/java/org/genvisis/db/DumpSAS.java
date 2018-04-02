@@ -119,7 +119,7 @@ public class DumpSAS {
         validBlackMales, validWhiteFemales, validWhiteMales;
     Hashtable<String, int[]> cells;
     Hashtable<String, Vector<String>> hash, tableOrder;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
     String[] dbs, header, vars;
     Logger log;
     int[] indices;
@@ -133,11 +133,11 @@ public class DumpSAS {
     descriptions = HashVec.loadFileToHashString(dir + filename, new int[] {0, 1}, new int[] {2},
                                                 false, "\t", false, false);
     dbs = HashVec.getKeys(hash);
-    cells = new Hashtable<String, int[]>();
-    validBlackFemales = new Hashtable<String, String>();
-    validBlackMales = new Hashtable<String, String>();
-    validWhiteFemales = new Hashtable<String, String>();
-    validWhiteMales = new Hashtable<String, String>();
+    cells = new Hashtable<>();
+    validBlackFemales = new Hashtable<>();
+    validBlackMales = new Hashtable<>();
+    validWhiteFemales = new Hashtable<>();
+    validWhiteMales = new Hashtable<>();
     ch = new CountHash();
     try {
       writer = Files.openAppropriateWriter(dir + ext.rootOf(filename) + ".out");
@@ -164,14 +164,14 @@ public class DumpSAS {
                                                          + "_Whites" + ".fam", 1, new int[] {4},
                                                          "\t", false);
             } else {
-              typedWhites = new Hashtable<String, String>();
+              typedWhites = new Hashtable<>();
             }
             if (Files.exists(dir + db.substring(0, db.indexOf("_")) + "_Blacks" + ".fam")) {
               typedBlacks = HashVec.loadFileToHashString(dir + db.substring(0, db.indexOf("_"))
                                                          + "_Blacks" + ".fam", 1, new int[] {4},
                                                          "\t", false);
             } else {
-              typedBlacks = new Hashtable<String, String>();
+              typedBlacks = new Hashtable<>();
             }
             counts = new int[vars.length + 1][3];
             while (reader.ready()) {
@@ -347,7 +347,7 @@ public class DumpSAS {
         try {
           reader = new BufferedReader(new FileReader(dir + file));
           ext.checkHeader(reader.readLine().trim().split("\t", -1), CONTENTS_HEADER, false);
-          hash = new Hashtable<String, String>();
+          hash = new Hashtable<>();
           while (reader.ready()) {
             line = ext.removeQuotesFromExcelToken(reader.readLine(), new String[][] {{"\t", ""}})
                       .split("\t", -1);
@@ -437,7 +437,7 @@ public class DumpSAS {
       crffile = ext.rootOf(filename) + "_parse.crf";
       outfile = ext.rootOf(filename) + "_out.xln";
       idfile = ext.rootOf(filename) + "_ids.dat";
-      ids = new Vector<String>();
+      ids = new Vector<>();
       rootDir = ext.parseDirectoryOfFile(filename);
       for (String element : line) {
         if (element.startsWith("crf=")) {
@@ -453,9 +453,9 @@ public class DumpSAS {
         }
       }
       error = false;
-      forcedIDs = new Hashtable<String, String>();
-      hashes = new Hashtable<String, Hashtable<String, String>>();
-      files = new Vector<String>();
+      forcedIDs = new Hashtable<>();
+      hashes = new Hashtable<>();
+      files = new Vector<>();
       for (int i = 0; i < params.size(); i++) {
         line = params.get(i).trim().split("\t");
         if (line[0].equals("")) {
@@ -486,7 +486,7 @@ public class DumpSAS {
         writer = Files.openAppropriateWriter(crffile);
         writer.println("lookup");
         writer.println(idfile + " head=IID out=" + outfile);
-        masterIDs = new Hashtable<String, String>();
+        masterIDs = new Hashtable<>();
         for (int i = 0; i < files.size(); i++) {
           file = files.elementAt(i);
           header = Files.getHeaderOfFile(rootDir + file, log);

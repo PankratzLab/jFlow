@@ -44,14 +44,14 @@ class EvaluationResult implements Serializable {
     this.title = title;
     this.rSquared = rSquared;
     this.estimateData = estimateData;
-    iccs = new ArrayList<ICC>();
-    iccTitles = new ArrayList<String>();
-    pearsonCorrels = new ArrayList<double[]>();
-    spearmanCorrel = new ArrayList<double[]>();
-    correlTitles = new ArrayList<String>();
-    numIndsIcc = new ArrayList<Integer>();
-    numIndsPearsonCorrel = new ArrayList<Integer>();
-    numIndsCorrel = new ArrayList<Integer>();
+    iccs = new ArrayList<>();
+    iccTitles = new ArrayList<>();
+    pearsonCorrels = new ArrayList<>();
+    spearmanCorrel = new ArrayList<>();
+    correlTitles = new ArrayList<>();
+    numIndsIcc = new ArrayList<>();
+    numIndsPearsonCorrel = new ArrayList<>();
+    numIndsCorrel = new ArrayList<>();
   }
 
   public double getrSquared() {
@@ -75,7 +75,7 @@ class EvaluationResult implements Serializable {
   }
 
   public String[] getHeader() {
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     tmp.add("Evaluated");
     tmp.add("IterationType");
     tmp.add("OrderType");
@@ -106,7 +106,7 @@ class EvaluationResult implements Serializable {
   }
 
   public String[] getData() {
-    ArrayList<String> tmp = new ArrayList<String>();
+    ArrayList<String> tmp = new ArrayList<>();
     tmp.add(title);
     tmp.add(itType == null ? "NA" : itType.toString());
     tmp.add(orType == null ? "NA" : orType.toString());
@@ -244,8 +244,8 @@ class EvaluationResult implements Serializable {
       }
       writer.println();
 
-      ArrayList<String> sampsNotSeen = new ArrayList<String>();
-      ArrayList<String> sampsHave = new ArrayList<String>();
+      ArrayList<String> sampsNotSeen = new ArrayList<>();
+      ArrayList<String> sampsHave = new ArrayList<>();
 
       for (int i = 0; i < samples.length; i++) {
         if (samplesToEvaluate == null || samplesToEvaluate[i]) {

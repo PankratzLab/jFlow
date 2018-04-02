@@ -14,7 +14,7 @@ public class addMarkers {
 
   public addMarkers(String filename) throws IOException {
     BufferedReader reader = null;
-    Hashtable<String, String> markers = new Hashtable<String, String>(), hash;
+    Hashtable<String, String> markers = new Hashtable<>(), hash;
     String[] line;
     String temp, newMarker;
     int chr, numberOfNewMarkers;
@@ -56,7 +56,7 @@ public class addMarkers {
       reader = new BufferedReader(new FileReader(filename));
       reader.readLine();
       newMarker = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE)[i + 3];
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       while (reader.ready()) {
         line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
         hash.put(line[0],

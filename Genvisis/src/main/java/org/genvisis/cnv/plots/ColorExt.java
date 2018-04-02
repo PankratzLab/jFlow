@@ -117,7 +117,7 @@ public class ColorExt {
   }
 
   private static HashMap<String, Color> parseColors(String colorHeader) {
-    HashMap<String, Color> colorMap = new HashMap<String, Color>();
+    HashMap<String, Color> colorMap = new HashMap<>();
     String[] pts = colorHeader.split(";");
     for (int i = 1; i < pts.length; i++) {
       String code = pts[i].split("=")[0];
@@ -137,7 +137,7 @@ public class ColorExt {
   public static HashMap<String, Color> getCols(Project proj, String file) {
     String[] header = Files.getHeaderOfFile(file, proj.getLog());
     int classIndex = ext.indexOfStartsWith("CLASS=MARKER_COLOR", header, false);
-    HashMap<String, Color> cols = new HashMap<String, Color>();
+    HashMap<String, Color> cols = new HashMap<>();
     if (classIndex >= 0) {
       cols = parseColors(header[classIndex]);
     }
@@ -167,13 +167,13 @@ public class ColorExt {
 
       } else {
         HashMap<String, Color> cols = parseColors(header[classIndex]);
-        Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
-        Hashtable<String, String> lookup = new Hashtable<String, String>();
+        Hashtable<String, ColorItem<String>> manager = new Hashtable<>();
+        Hashtable<String, String> lookup = new Hashtable<>();
         Map<String, Integer> indices = proj.getMarkerIndices();
         try {
 
           for (String key : cols.keySet()) {
-            manager.put(key, new ColorItem<String>(key, cols.get(key)));
+            manager.put(key, new ColorItem<>(key, cols.get(key)));
           }
 
           BufferedReader reader = Files.getAppropriateReader(file);
@@ -230,7 +230,7 @@ public class ColorExt {
     public ColorManager(Hashtable<E, E> lookup, Hashtable<E, ColorItem<E>> manager) {
       this.lookup = lookup;
       this.manager = manager;
-      this.toUse = new HashSet<E>();
+      this.toUse = new HashSet<>();
       for (E e : manager.keySet()) {
         toUse.add(e);
       }

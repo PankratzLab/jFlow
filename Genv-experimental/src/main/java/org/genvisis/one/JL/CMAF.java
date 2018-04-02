@@ -36,7 +36,7 @@ public class CMAF {
   private static void compute(String vcf, double[] freqs, List<String> groups, int numSamples,
                               boolean useAC, String outDir, String requiredAnno, Logger log) {
     VCFFileReader reader = new VCFSourceReader(vcf, false);
-    HashMap<String, TrackCmaf> tracker = new HashMap<String, CMAF.TrackCmaf>();
+    HashMap<String, TrackCmaf> tracker = new HashMap<>();
     for (String group : groups) {
       for (double freq : freqs) {
         TrackCmaf current = new TrackCmaf();
@@ -95,7 +95,7 @@ public class CMAF {
     }
     reader.close();
 
-    ArrayList<String> out = new ArrayList<String>();
+    ArrayList<String> out = new ArrayList<>();
     for (String group : tracker.keySet()) {
       if (!group.startsWith("AC")) {
         for (String subGroup : tracker.get(group).keySet()) {
@@ -113,7 +113,7 @@ public class CMAF {
 
   public static void main(String[] args) {
     String vcf = "/Volumes/Beta/data/Cushings/mito/processDir/polymorphismsMTVariants.pos_1.posAdjust_-1.hg19_multianno.eff.gatk.sed1000g.posAdjust_1.vcf";
-    ArrayList<String> groups = new ArrayList<String>();
+    ArrayList<String> groups = new ArrayList<>();
     groups.add("AC");
     groups.add("Uniprot_name");
 

@@ -7,12 +7,12 @@ import java.util.List;
 
 public class Gating {
 
-  HashSet<String> allNames = new HashSet<String>();
+  HashSet<String> allNames = new HashSet<>();
   // ID -> Gate
-  public HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
+  public HashMap<String, Gate> gateMap = new HashMap<>();
   // paramName -> list of applicable Gates
-  public HashMap<String, ArrayList<Gate>> paramGateMap = new HashMap<String, ArrayList<Gate>>();
-  public ArrayList<Gate> gateRoots = new ArrayList<Gate>();
+  public HashMap<String, ArrayList<Gate>> paramGateMap = new HashMap<>();
+  public ArrayList<Gate> gateRoots = new ArrayList<>();
 
   private String fileName;
 
@@ -24,14 +24,14 @@ public class Gating {
     }
     ArrayList<Gate> gates = paramGateMap.get(g2.getXDimension().getParam());
     if (gates == null) {
-      gates = new ArrayList<Gate>();
+      gates = new ArrayList<>();
       paramGateMap.put(g2.getXDimension().getParam(), gates);
     }
     gates.add(g2);
     if (g2.getYDimension() != null) {
       gates = paramGateMap.get(g2.getYDimension().getParam());
       if (gates == null) {
-        gates = new ArrayList<Gate>();
+        gates = new ArrayList<>();
         paramGateMap.put(g2.getYDimension().getParam(), gates);
       }
       gates.add(g2);
@@ -65,7 +65,7 @@ public class Gating {
   public ArrayList<Gate> getGatesForParam(String paramName) {
     ArrayList<Gate> gates = paramGateMap.get(paramName);
     if (gates == null) {
-      gates = new ArrayList<Gate>();
+      gates = new ArrayList<>();
     }
     return gates;
   }
@@ -73,9 +73,9 @@ public class Gating {
   public ArrayList<Gate> getGatesForParamOnly(String paramName) {
     ArrayList<Gate> gates = getGatesForParam(paramName);
     if (gates == null) {
-      return new ArrayList<Gate>();
+      return new ArrayList<>();
     }
-    ArrayList<Gate> ret = new ArrayList<Gate>();
+    ArrayList<Gate> ret = new ArrayList<>();
     for (Gate g : gates) {
       if (g.getYDimension() == null) {
         ret.add(g);
@@ -93,14 +93,14 @@ public class Gating {
     gateRoots.add(g);
     ArrayList<Gate> gates = paramGateMap.get(g.getXDimension().getParam());
     if (gates == null) {
-      gates = new ArrayList<Gate>();
+      gates = new ArrayList<>();
       paramGateMap.put(g.getXDimension().getParam(), gates);
     }
     gates.add(g);
     if (g.getYDimension() != null) {
       gates = paramGateMap.get(g.getYDimension().getParam());
       if (gates == null) {
-        gates = new ArrayList<Gate>();
+        gates = new ArrayList<>();
         paramGateMap.put(g.getYDimension().getParam(), gates);
       }
       gates.add(g);
@@ -161,13 +161,13 @@ public class Gating {
   }
 
   public HashSet<Gate> getLeafGates(Gate parentGate) {
-    ArrayList<Gate> g = new ArrayList<Gate>();
+    ArrayList<Gate> g = new ArrayList<>();
     g.add(parentGate);
     return getLeafGates(g);
   }
 
   private HashSet<Gate> getLeafGates(List<Gate> parentGates) {
-    HashSet<Gate> leafs = new HashSet<Gate>();
+    HashSet<Gate> leafs = new HashSet<>();
     for (Gate g : parentGates) {
       if (g.getChildGates().isEmpty()) {
         leafs.add(g);

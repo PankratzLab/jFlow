@@ -14,8 +14,8 @@ public class CountHash {
   private int totalCount;
 
   public CountHash() {
-    hash = new Hashtable<String, String>();
-    orderOfEntry = new Hashtable<String, String>();
+    hash = new Hashtable<>();
+    orderOfEntry = new Hashtable<>();
     totalCount = 0;
   }
 

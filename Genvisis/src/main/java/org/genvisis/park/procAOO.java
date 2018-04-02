@@ -26,7 +26,7 @@ public class procAOO {
         ghPenultumate, diff;
     String[] line;
     String trav, prev, val;
-    Vector<String> values = new Vector<String>();
+    Vector<String> values = new Vector<>();
     String trait = filename.substring(0, filename.lastIndexOf("."));
 
     if (trait.equals("struct")) {

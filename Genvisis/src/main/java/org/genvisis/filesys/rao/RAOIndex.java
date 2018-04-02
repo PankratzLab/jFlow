@@ -45,7 +45,7 @@ public class RAOIndex implements RAObject {
 
   public long[] getPostionsInOrder() {
     long[] pos = new long[index.size()];
-    HashSet<Long> all = new HashSet<Long>();
+    HashSet<Long> all = new HashSet<>();
     for (String key : index.keySet()) {
       all.addAll(index.get(key));
     }

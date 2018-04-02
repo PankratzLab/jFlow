@@ -44,7 +44,7 @@ public class DataExportGUI extends JDialog {
   private static final long serialVersionUID = 1L;
   private final JPanel contentPane;
   private final JTree tree;
-  private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
+  private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<>();
   private Gating gating;
   private final FCSPlot plot;
   private ArrayList<JCheckBox> boxes;
@@ -77,7 +77,7 @@ public class DataExportGUI extends JDialog {
     JAccordionPanel gateAP = new JAccordionPanel();
     JAccordionPanel optAP = new JAccordionPanel();
 
-    ArrayList<JAccordionPanel> bg = new ArrayList<JAccordionPanel>();
+    ArrayList<JAccordionPanel> bg = new ArrayList<>();
 
     JLabel fileLabel = new JLabel("<html><u>Select Files...</u></html>");
     fileLabel.setFont(fileLabel.getFont().deriveFont(Font.PLAIN, 14));
@@ -118,7 +118,7 @@ public class DataExportGUI extends JDialog {
     if (plot != null) {
       List<String> files = plot.getAddedFiles();
       String curr = plot.getCurrentFile();
-      boxes = new ArrayList<JCheckBox>();
+      boxes = new ArrayList<>();
       for (int i = 0; i < files.size(); i++) {
         JCheckBox box = new JCheckBox(files.get(i));
         box.addActionListener(new ActionListener() {
@@ -293,7 +293,7 @@ public class DataExportGUI extends JDialog {
   }
 
   public ArrayList<String> getSelectedFiles() {
-    ArrayList<String> files = new ArrayList<String>();
+    ArrayList<String> files = new ArrayList<>();
 
     for (JCheckBox box : boxes) {
       if (box.isSelected()) {
@@ -305,7 +305,7 @@ public class DataExportGUI extends JDialog {
   }
 
   public ArrayList<Gate> getSelectedGates() {
-    ArrayList<Gate> gates = new ArrayList<Gate>();
+    ArrayList<Gate> gates = new ArrayList<>();
 
     TreePath[] selected = tree.getSelectionPaths();
     for (TreePath path : selected) {

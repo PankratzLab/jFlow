@@ -20,9 +20,9 @@ public class showMe {
     PrintWriter writer = null;
     String[] line, last;
     String temp, prev, aff;
-    Vector<String> v = new Vector<String>(), veeps = new Vector<String>();
-    Vector<String[]> peeps = new Vector<String[]>();
-    Hashtable<String, String> ages = new Hashtable<String, String>(), affection;
+    Vector<String> v = new Vector<>(), veeps = new Vector<>();
+    Vector<String[]> peeps = new Vector<>();
+    Hashtable<String, String> ages = new Hashtable<>(), affection;
 
     if (!new File(filename).exists()) {
       System.err.println("Error - could not find " + filename + " in current directory");

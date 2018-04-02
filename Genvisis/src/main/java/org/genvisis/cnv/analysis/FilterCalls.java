@@ -97,8 +97,8 @@ public class FilterCalls {
 
     final CNVariant cnv;
     final int popCnt;
-    final ArrayList<CNVariant> major = new ArrayList<CNVariant>();
-    final ArrayList<CNVariant> minor = new ArrayList<CNVariant>();
+    final ArrayList<CNVariant> major = new ArrayList<>();
+    final ArrayList<CNVariant> minor = new ArrayList<>();
 
     public CNVFilterNode(CNVariant myCNV, int pop) {
       cnv = myCNV;
@@ -196,14 +196,14 @@ public class FilterCalls {
     sampleData = proj == null ? null : proj.getSampleData(false);
 
     List<CNVariant> cnvList = CNVariant.loadPlinkFile(cnvFile, null, true);
-    HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<String, ArrayList<CNVariant>[]>();
+    HashMap<String, ArrayList<CNVariant>[]> cnvMap = new HashMap<>();
     for (CNVariant cnv : cnvList) {
       ArrayList<CNVariant>[] indivLists = cnvMap.get(cnv.getFamilyID() + "\t"
                                                      + cnv.getIndividualID());
       if (indivLists == null) {
         indivLists = new ArrayList[CNV_STATS_THRESHOLDS.length + 1];
         for (int i = 0; i < CNV_STATS_THRESHOLDS.length + 1; i++) {
-          indivLists[i] = new ArrayList<CNVariant>();
+          indivLists[i] = new ArrayList<>();
         }
         cnvMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), indivLists);
       }
@@ -275,8 +275,8 @@ public class FilterCalls {
                               int probes, double overlapThreshold) {
     System.out.println(ext.getTime() + "] Loading Plink-formatted CNV files...");
     CNVariant[] srcCNVs = CNVariant.loadPlinkFile(cnvList);
-    ArrayList<CNVariant> compCNVs = new ArrayList<CNVariant>();
-    HashSet<String> ids = new HashSet<String>();
+    ArrayList<CNVariant> compCNVs = new ArrayList<>();
+    HashSet<String> ids = new HashSet<>();
     for (String file : cnvFiles) {
       CNVariant[] cnvs = CNVariant.loadPlinkFile(file);
       for (CNVariant cnv : cnvs) {
@@ -285,9 +285,9 @@ public class FilterCalls {
       }
     }
 
-    ArrayList<CNVFilterNode> outputNodes = new ArrayList<FilterCalls.CNVFilterNode>();
-    ArrayList<String> majorMatches = new ArrayList<String>();
-    ArrayList<String> minorMatches = new ArrayList<String>();
+    ArrayList<CNVFilterNode> outputNodes = new ArrayList<>();
+    ArrayList<String> majorMatches = new ArrayList<>();
+    ArrayList<String> minorMatches = new ArrayList<>();
 
     System.out.println(ext.getTime() + "] Analyzing CNV overlap...");
     for (CNVariant cnv : srcCNVs) {
@@ -369,7 +369,7 @@ public class FilterCalls {
     int markerStart;
     int markerStop;
     CNVariant cnv;
-    final ArrayList<MergedCNVariant> originalCNVs = new ArrayList<MergedCNVariant>();
+    final ArrayList<MergedCNVariant> originalCNVs = new ArrayList<>();
     double medianLRR;
     double stdevLRR;
 
@@ -392,21 +392,21 @@ public class FilterCalls {
                                               double distanceQuotient, boolean cnvsAsPositions) {
     Logger log = proj.getLog();
     int initialCount = inCNVs.length;
-    ArrayList<CNVariant> mergedCNVs = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> mergedCNVs = new ArrayList<>();
 
-    HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+    HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<>();
 
     log.report(ext.getTime() + "] Organizing CNVs in memory...");
     for (CNVariant cnv : inCNVs) {
       HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
                                                                          + cnv.getIndividualID());
       if (chrCNVMap == null) {
-        chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
+        chrCNVMap = new HashMap<>();
         indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
       }
       ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
       if (cnvList == null) {
-        cnvList = new ArrayList<CNVariant>();
+        cnvList = new ArrayList<>();
         chrCNVMap.put(cnv.getChr(), cnvList);
       }
       cnvList.add(cnv);
@@ -477,7 +477,7 @@ public class FilterCalls {
         ArrayList<CNVariant> cnvList = cnvLists.getValue();
         Collections.sort(cnvList, cnvComparator);
 
-        LinkedList<MergedCNVariant> tempChromo = new LinkedList<FilterCalls.MergedCNVariant>();
+        LinkedList<MergedCNVariant> tempChromo = new LinkedList<>();
 
         // create objects for all CNVs while also setting start/end marker indices, accounting for
         // dropped markers
@@ -521,7 +521,7 @@ public class FilterCalls {
           tempChromo.add(orig);
         }
 
-        LinkedList<MergedCNVariant> chromo = new LinkedList<FilterCalls.MergedCNVariant>();
+        LinkedList<MergedCNVariant> chromo = new LinkedList<>();
 
         // create full list: CNVs and objects for the spaces between CNVs, also accounting for
         // dropped markers
@@ -564,8 +564,8 @@ public class FilterCalls {
           setLRRMedStdDev(cnv, droppedMarkerNames, markerNames, lrrs);
         }
 
-        HashMap<Integer, MergedCNVariant> removed = new HashMap<Integer, FilterCalls.MergedCNVariant>();
-        TreeSet<Integer> indexList = new TreeSet<Integer>();
+        HashMap<Integer, MergedCNVariant> removed = new HashMap<>();
+        TreeSet<Integer> indexList = new TreeSet<>();
         boolean done = false;
         while (!done) {
           int index = 0;
@@ -683,19 +683,19 @@ public class FilterCalls {
       PrintWriter writer = Files.openAppropriateWriter(out);
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
 
-      HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+      HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<>();
 
       log.report(ext.getTime() + "] Organizing CNVs in memory...");
       for (CNVariant cnv : srcCNVs) {
         HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
                                                                            + cnv.getIndividualID());
         if (chrCNVMap == null) {
-          chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
+          chrCNVMap = new HashMap<>();
           indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
         }
         ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
         if (cnvList == null) {
-          cnvList = new ArrayList<CNVariant>();
+          cnvList = new ArrayList<>();
           chrCNVMap.put(cnv.getChr(), cnvList);
         }
         cnvList.add(cnv);
@@ -759,7 +759,7 @@ public class FilterCalls {
           ArrayList<CNVariant> cnvList = cnvLists.getValue();
           Collections.sort(cnvList, cnvComparator);
 
-          LinkedList<MergedCNVariant> tempChromo = new LinkedList<FilterCalls.MergedCNVariant>();
+          LinkedList<MergedCNVariant> tempChromo = new LinkedList<>();
 
           // create objects for all CNVs while also setting start/end marker indices, accounting for
           // dropped markers
@@ -798,7 +798,7 @@ public class FilterCalls {
             tempChromo.add(orig);
           }
 
-          LinkedList<MergedCNVariant> chromo = new LinkedList<FilterCalls.MergedCNVariant>();
+          LinkedList<MergedCNVariant> chromo = new LinkedList<>();
 
           // create full list: CNVs and objects for the spaces between CNVs, also accounting for
           // dropped markers
@@ -841,8 +841,8 @@ public class FilterCalls {
             setLRRMedStdDev(cnv, droppedMarkerNames, markerNames, lrrs);
           }
 
-          HashMap<Integer, MergedCNVariant> removed = new HashMap<Integer, FilterCalls.MergedCNVariant>();
-          TreeSet<Integer> indexList = new TreeSet<Integer>();
+          HashMap<Integer, MergedCNVariant> removed = new HashMap<>();
+          TreeSet<Integer> indexList = new TreeSet<>();
           boolean done = false;
           while (!done) {
             int index = 0;
@@ -969,7 +969,7 @@ public class FilterCalls {
   private static void setLRRMedStdDev(MergedCNVariant cnv,
                                       Hashtable<String, String> droppedMarkerNames,
                                       String[] markerNames, float[] lrrs) {
-    ArrayList<Float> lrr = new ArrayList<Float>();
+    ArrayList<Float> lrr = new ArrayList<>();
     for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
       if (droppedMarkerNames.contains(markerNames[m])) {
         continue;
@@ -987,11 +987,11 @@ public class FilterCalls {
                                       MergedCNVariant oldCNV2,
                                       Hashtable<String, String> droppedMarkerNames,
                                       String[] markerNames, float[] lrrs) {
-    ArrayList<MergedCNVariant> allOriginalCNVs = new ArrayList<MergedCNVariant>();
+    ArrayList<MergedCNVariant> allOriginalCNVs = new ArrayList<>();
     allOriginalCNVs.addAll(oldCNV1.originalCNVs);
     allOriginalCNVs.addAll(oldCNV2.originalCNVs);
 
-    ArrayList<Float> lrr = new ArrayList<Float>();
+    ArrayList<Float> lrr = new ArrayList<>();
     for (MergedCNVariant cnv : allOriginalCNVs) {
       for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
         if (droppedMarkerNames.contains(markerNames[m])) {
@@ -1027,7 +1027,7 @@ public class FilterCalls {
       positions = markerSet.getPositionsByChr();
     }
 
-    ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> newCNVs = new ArrayList<>();
     newCNVs.addAll(inputCNVs);
     inputCNVs = null;
     int cnt = 1;
@@ -1056,24 +1056,24 @@ public class FilterCalls {
   private static ArrayList<CNVariant> getMergedCNVs(List<CNVariant> inputCNVs, float distFactor,
                                                     int[][] positions) {
 
-    HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<String, HashMap<Byte, ArrayList<CNVariant>>>();
+    HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<>();
 
     for (CNVariant cnv : inputCNVs) {
       HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
                                                                          + cnv.getIndividualID());
       if (chrCNVMap == null) {
-        chrCNVMap = new HashMap<Byte, ArrayList<CNVariant>>();
+        chrCNVMap = new HashMap<>();
         indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
       }
       ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
       if (cnvList == null) {
-        cnvList = new ArrayList<CNVariant>();
+        cnvList = new ArrayList<>();
         chrCNVMap.put(cnv.getChr(), cnvList);
       }
       cnvList.add(cnv);
     }
 
-    ArrayList<CNVariant> newCNVs = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> newCNVs = new ArrayList<>();
 
     StringBuilder status = new StringBuilder();
 
@@ -1359,7 +1359,7 @@ public class FilterCalls {
     String newFile = path + filenm + ".excluded.cnv";
 
     String[] excludes = ArrayUtils.subArray(proj.getSamples(), proj.getSamplesToExclude());
-    HashSet<String> excludeSet = new HashSet<String>();
+    HashSet<String> excludeSet = new HashSet<>();
     for (String exclude : excludes) {
       excludeSet.add(exclude);
     }
@@ -1436,7 +1436,7 @@ public class FilterCalls {
     filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
     filter.computeCentromereMidPoints();
 
-    ArrayList<CNVariant> newCNVList = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> newCNVList = new ArrayList<>();
     for (CNVariant cnv : cnvs) {
       CNVFilterPass fp = filter.getCNVFilterPass(cnv);
       CNVariant[] broken = filter.breakUpCentromere(fp, cnv);
@@ -1905,7 +1905,7 @@ public class FilterCalls {
       }
     }
 
-    ArrayList<CNVariant> acceptable = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> acceptable = new ArrayList<>();
 
     System.out.println(ext.getTime() + "\tFiltering CNVs...");
     for (CNVariant cnv : cnvs) {

@@ -106,7 +106,7 @@ public class DuplicateConcordance1 {
     }
     String[][] sampleInfo = HashVec.loadFileToStringMatrix(sampleData, true, sampleDataIndices);
     HashVec.loadFileToStringArray(sampleData, true, sampleDataIndices, false);
-    HashMap<String, HashSet<String>> duplicateSets = new HashMap<String, HashSet<String>>();
+    HashMap<String, HashSet<String>> duplicateSets = new HashMap<>();
     for (String[] sampleLine : sampleInfo) {
       String dna = sampleLine[0];
       boolean exclude = sampleLine[1].equals("1");
@@ -115,7 +115,7 @@ public class DuplicateConcordance1 {
       if (!duplicateID.equals(".") && !exclude) {
         HashSet<String> duplicateSet = duplicateSets.get(duplicateID);
         if (duplicateSet == null) {
-          duplicateSet = new HashSet<String>();
+          duplicateSet = new HashSet<>();
           duplicateSets.put(duplicateID, duplicateSet);
         }
         duplicateSet.add(dna);
@@ -126,7 +126,7 @@ public class DuplicateConcordance1 {
     int pairsChecked = 0;
 
     for (HashSet<String> duplicateSet : duplicateSets.values()) {
-      HashSet<String> loopDuplicateSet = new HashSet<String>(duplicateSet);
+      HashSet<String> loopDuplicateSet = new HashSet<>(duplicateSet);
       for (String dna1 : loopDuplicateSet) {
         duplicateSet.remove(dna1);
         if (!duplicateSet.isEmpty()) {
@@ -229,7 +229,7 @@ public class DuplicateConcordance1 {
         targetMarkers = proj.getTargetMarkers(markerKeeps);
       } else if (markerDrops != null) {
         Set<String> excludes = HashVec.loadFileToHashSet(markerDrops, false);
-        ArrayList<String> markers = new ArrayList<String>();
+        ArrayList<String> markers = new ArrayList<>();
         for (String marker : proj.getMarkerNames()) {
           if (!excludes.contains(marker)) {
             markers.add(marker);

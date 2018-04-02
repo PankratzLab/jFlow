@@ -47,8 +47,8 @@ public class PolygonGateEditor extends JDialog {
 
   private volatile boolean cancelled = true;
   private final Format inputFormat = new ParseAllFormat(NumberFormat.getNumberInstance());
-  ArrayList<JFormattedTextField> xFields = new ArrayList<JFormattedTextField>();
-  ArrayList<JFormattedTextField> yFields = new ArrayList<JFormattedTextField>();
+  ArrayList<JFormattedTextField> xFields = new ArrayList<>();
+  ArrayList<JFormattedTextField> yFields = new ArrayList<>();
   private JCheckBox chkMimicFlowJo;
 
   /**

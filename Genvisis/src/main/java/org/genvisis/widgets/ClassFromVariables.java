@@ -12,7 +12,7 @@ public class ClassFromVariables {
   public static void create() {
     String[] line, clip;
     String trans;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String className = "Constructor";
     String[][] vars;
     boolean noset = DEFAULT_NO_SET;

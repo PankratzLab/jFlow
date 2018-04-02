@@ -135,7 +135,7 @@ public class Conditional {
       return;
     }
 
-    v = new Vector<String>();
+    v = new Vector<>();
     if (originalCovariatesFile == null) {
       Files.copyFile(dir + "counts.xln", dir + newCovariatesFile);
     } else {
@@ -326,14 +326,14 @@ public class Conditional {
     log.report("Analyzing " + dir + doseFile + "," + infoFile + ", which contain "
                + markerNames.length + " markers");
 
-    v = new Vector<String>();
+    v = new Vector<>();
     for (int i = 0; i < snps.length; i++) {
       if (!new File(dir + snps[i] + ".ser").exists()) {
         v.add(snps[i] + "\t1");
       }
     }
     Files.writeArray(ArrayUtils.toStringArray(v), dir + "condis.txt");
-    hashes = new Hashtable<String, Hashtable<String, String>>();
+    hashes = new Hashtable<>();
     if (v.size() > 0) {
       if (Mach.extractSpecificMarkers(dir, dir + "condis.txt", dir + doseFile, dir + infoFile,
                                       false, log)) { // Array.toStringArray(v)
@@ -481,7 +481,7 @@ public class Conditional {
     boolean justIID;
 
     log = new Logger("Conditionals.log");
-    annotation = new Hashtable<String, String>();
+    annotation = new Hashtable<>();
     annotationHeader = new String[0];
     if (new File(annotationFile).exists()) {
       annotationHeader = Files.getHeaderOfFile(annotationFile, PSF.Regex.GREEDY_WHITESPACE, log);
@@ -525,11 +525,11 @@ public class Conditional {
     if (snps == null || snps.length == 0 || snps[0].equals("null") || snps[0].equals("")) {
       snps = new String[0];
     }
-    models = new Vector<String>();
+    models = new Vector<>();
     for (int i = 0; i < files.length; i++) {
       if (files[i] != null && files[i].equals("null")) {
         files[i] = null;
-        allMarkers = new Hashtable<String, String>();
+        allMarkers = new Hashtable<>();
       } else {
         allMarkers = HashVec.loadFileToHashString(files[i], false);
       }
@@ -556,17 +556,17 @@ public class Conditional {
       }
       done = false;
       count = 1;
-      results = new Vector<String>();
+      results = new Vector<>();
       runningTally = -1;
       v = ArrayUtils.toStringVector(snps);
-      freqs = new Hashtable<String, String>();
-      allResults = new Hashtable<String, Hashtable<String, String>>();
+      freqs = new Hashtable<>();
+      allResults = new Hashtable<>();
       while (!done) {
         if (iterate) {
           log.report("Running" + (files[i] == null ? "" : " " + ext.rootOf(files[i]))
                      + " iteration #" + count);
         }
-        metaInputs = new Vector<String>();
+        metaInputs = new Vector<>();
         for (int k = 0; k < dirs.length; k++) {
           if (dosageSets[k]) {
             if (useResiduals) {

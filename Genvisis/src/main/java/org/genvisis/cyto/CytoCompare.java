@@ -246,7 +246,7 @@ public class CytoCompare {
    * bit more carefully
    */
   private static Segment[] loadCytoSegments(String filename, Logger log) {
-    ArrayList<Segment> segs = new ArrayList<Segment>();
+    ArrayList<Segment> segs = new ArrayList<>();
     if (!Files.exists(filename)) {
       log.reportError("Error - could not load file " + filename
                       + " it does not exist at the current path");

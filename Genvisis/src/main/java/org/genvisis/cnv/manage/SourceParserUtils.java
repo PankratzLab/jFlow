@@ -116,7 +116,7 @@ public class SourceParserUtils {
 
     idHeader = proj.getProperty(proj.ID_HEADER);
     delimiter = proj.SOURCE_FILE_DELIMITER.getValue().getDelimiter();
-    hash = new Hashtable<String, String[]>();
+    hash = new Hashtable<>();
     for (int i = 0; i < files.length; i++) {
       if (new File("report").exists()) {
         SourceParserUtils.writeToLookupFile(proj, hash, i + 1);

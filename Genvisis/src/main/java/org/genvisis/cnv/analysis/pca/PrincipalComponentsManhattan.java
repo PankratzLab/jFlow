@@ -100,7 +100,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
                                     MarkerData markerData) {
     double[] lrrs = ArrayUtils.toDoubleArray(markerData.getLRRs());
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
+    Hashtable<String, Future<double[]>> tmpResults = new Hashtable<>();
     for (int j = 0; j < manhattanTests.length; j++) {
       tmpResults.put(j + "",
                      executor.submit(new ManhattanTestWorker(manhattanTests[j], lrrs, verbose,

@@ -142,7 +142,7 @@ public class MicaPlink {
     org.genvisis.common.Files.write(builder.toString(), outDir + "parsedResults.txt");
     org.genvisis.common.Files.write(builderSamp.toString(), outDir + "parsedResultsSamp.txt");
 
-    ArrayList<ExcelConversionParams> excelFile = new ArrayList<ExcelConversionParams>();
+    ArrayList<ExcelConversionParams> excelFile = new ArrayList<>();
     ExcelConversionParams parsedResults = new ExcelConversionParams(outDir + "parsedResults.txt",
                                                                     "\t", "ParsedResults");
     excelFile.add(parsedResults);

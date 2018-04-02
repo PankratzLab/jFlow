@@ -82,7 +82,7 @@ public class CheckPed {
     Multimap<String, Person> families = ArrayListMultimap.create();
 
     // Map of fid\tiid to Person data structure
-    Map<String, Person> peopleByFidIid = new HashMap<String, Person>();
+    Map<String, Person> peopleByFidIid = new HashMap<>();
 
     try {
       Hashtable<String, String> sexDict = null;
@@ -127,7 +127,7 @@ public class CheckPed {
       // For each FID, we'll create an IIDxIID table, with 1 row per individual in the family and a
       // column entry for each related member of the family. The cell values will be used to store
       // expected/actual information about the given relationship.
-      Map<String, Table<String, String, Relation>> familyTables = new HashMap<String, Table<String, String, Relation>>();
+      Map<String, Table<String, String, Relation>> familyTables = new HashMap<>();
 
       // STEP 2 - Traverse family networks, populating expected relatedness values for all
       // relationships
@@ -135,8 +135,8 @@ public class CheckPed {
       for (String fid : families.keySet()) {
         Table<String, String, Relation> t = HashBasedTable.create();
         for (Person p : families.get(fid)) {
-          Set<String> visited = new HashSet<String>();
-          Map<String, Double> mzIds = new HashMap<String, Double>();
+          Set<String> visited = new HashSet<>();
+          Map<String, Double> mzIds = new HashMap<>();
           noteVisit(visited, p, p);
           // base, relative, relatedness, distance, searchParents, visited IID pairs, table
           populateRelations(p, p, 1.0, 0, true, visited, t, peopleByFidIid, mzIds, minRel);
@@ -277,7 +277,7 @@ public class CheckPed {
         StringBuilder pedMismatches = new StringBuilder("");
         Map<String, Relation> colMap = family.get(iid);
         // FIXME sort on relation first
-        List<String> sortedFids = new ArrayList<String>(colMap.keySet());
+        List<String> sortedFids = new ArrayList<>(colMap.keySet());
         Collections.sort(sortedFids);
         for (String relId : sortedFids) {
           Relation pr = colMap.get(relId);
@@ -644,8 +644,8 @@ public class CheckPed {
       this.estSex = estSex;
       this.mzId = mzId;
       fidiid = fid + "\t" + iid;
-      children = new ArrayList<Person>();
-      extraFamilial = new TreeSet<ExtraFamilialRel>();
+      children = new ArrayList<>();
+      extraFamilial = new TreeSet<>();
     }
 
     private String parentId(String fid, String parent) {

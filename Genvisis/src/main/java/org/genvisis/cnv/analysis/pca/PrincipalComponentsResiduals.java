@@ -107,7 +107,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     this.proj = proj;
     log = proj.getLog();
     numSamples = 0;
-    samplesInPc = new Hashtable<String, Integer>();
+    samplesInPc = new Hashtable<>();
     this.markersToAssessFile = markersToAssessFile;
     this.printFull = printFull;
     this.gcThreshold = gcThreshold;
@@ -396,7 +396,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     // for sample
     for (int i = 0; i < fullData[0].length; i++) {
       // for marker
-      ArrayList<Double> sampLRR = new ArrayList<Double>();
+      ArrayList<Double> sampLRR = new ArrayList<>();
       for (int k = 0; k < fullData.length; k++) {
         // test for null in case we dropped data, test for individual NaN, test for homozygous, test
         // for missing if gcThreshold greater than 0
@@ -478,7 +478,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
    * @return the extracted subset of samples represented in the PCs
    */
   private static String[] getUsedSubset(String[] samples, boolean[] samplesToUse, Logger log) {
-    ArrayList<String> used = new ArrayList<String>();
+    ArrayList<String> used = new ArrayList<>();
     if (samples.length != samplesToUse.length) {
       log.reportError("Error - mismatched number of samples when extracting samples used, this should not happen");
       return null;
@@ -537,7 +537,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     } else {
       log.reportTimeWarning("Using the IID as supplied in the pc file to load samples");
     }
-    ArrayList<String> pcSamps = new ArrayList<String>();
+    ArrayList<String> pcSamps = new ArrayList<>();
     int sampIndex = 0;
     try {
       BufferedReader reader = Files.getReader(pcFilefull, true, false);
@@ -725,7 +725,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     }
     CrossValidation[][] crossValidations = new CrossValidation[numComponentsIter.length][];
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
-    ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<Future<CrossValidation[]>>();// stores
+    ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<>();// stores
                                                                                                  // the
                                                                                                  // future
                                                                                                  // CrossValidation[]
@@ -1316,7 +1316,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     this.numComponents = numComponents;
     this.log = log;
     numSamples = 0;
-    samplesInPc = new Hashtable<String, Integer>();
+    samplesInPc = new Hashtable<>();
     this.pcFile = pcFile;
     useIID = true;
     loadPcFile(pcFile, useIID);
@@ -1416,7 +1416,7 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
       log.reportTimeInfo("Reformatting pc basis");
 
       double[][] tmpBasis = new double[numComponents][samples.length];
-      Hashtable<String, Integer> tmpSampsInPC = new Hashtable<String, Integer>();
+      Hashtable<String, Integer> tmpSampsInPC = new Hashtable<>();
       int[] sampleMap = new int[samples.length];
       Arrays.fill(sampleMap, -1);
       for (int i = 0; i < samples.length; i++) {

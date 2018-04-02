@@ -43,7 +43,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 
   public LocusSet<BEDFeatureSeg> loadSegsFor(Segment segment, Logger log) {
     CloseableIterator<BEDFeature> iterator = query(segment);
-    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
+    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<>();
     while (iterator.hasNext()) {
       BEDFeature bedFeature = iterator.next();
       bedSegs.add(new BEDFeatureSeg(bedFeature, log));
@@ -63,7 +63,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
   }
 
   public LocusSet<BEDFeatureSeg> loadAll(Logger log) {
-    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<BEDFeatureSeg>();
+    ArrayList<BEDFeatureSeg> bedSegs = new ArrayList<>();
     CloseableIterator<BEDFeature> iterator;
     try {
       iterator = reader.iterator();
@@ -112,7 +112,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 
   public BEDFeature[] loadBEDFeaturesFor(Segment segment, Logger log) {
     CloseableIterator<BEDFeature> iterator = query(segment);
-    ArrayList<BEDFeature> bedSegs = new ArrayList<BEDFeature>();
+    ArrayList<BEDFeature> bedSegs = new ArrayList<>();
     while (iterator.hasNext()) {
       bedSegs.add(iterator.next());
     }

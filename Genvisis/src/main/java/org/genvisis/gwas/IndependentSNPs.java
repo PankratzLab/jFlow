@@ -125,8 +125,8 @@ public class IndependentSNPs {
     results = ResultSet.load(dir + filename + ".rset", false);
     log.report("...finished in " + ext.getTimeElapsed(time));
 
-    scores = new Hashtable<String, Float>();
-    merges = new Hashtable<String, String>();
+    scores = new Hashtable<>();
+    merges = new Hashtable<>();
     if (directoryOfIlluminaScores != null) {
       dirs = directoryOfIlluminaScores.split(";");
       for (int j = 0; j < dirs.length; j++) {
@@ -230,7 +230,7 @@ public class IndependentSNPs {
     } else {
       log.report((forceBeforeFile == null ? "No " : "No file named '" + forceBeforeFile + "'; no ")
                  + "SNPs will be forced to be included as tags");
-      forceBefore = new Hashtable<String, String>();
+      forceBefore = new Hashtable<>();
     }
     if (forceAfterFile != null && new File(dir + forceAfterFile).exists()) {
       log.report("Forcing those SNPs in '" + forceAfterFile
@@ -239,7 +239,7 @@ public class IndependentSNPs {
     } else {
       log.report((forceAfterFile == null ? "No " : "No file named '" + forceAfterFile + "'; no ")
                  + "SNPs will be forced to be included as tags after tagging");
-      forceAfter = new Hashtable<String, String>();
+      forceAfter = new Hashtable<>();
     }
     if (forceRegardlessFile != null && new File(dir + forceRegardlessFile).exists()) {
       log.report("Forcing those SNPs in '" + forceRegardlessFile
@@ -250,7 +250,7 @@ public class IndependentSNPs {
       log.report((forceRegardlessFile == null ? "No "
                                               : "No file named '" + forceRegardlessFile + "'; no ")
                  + "additional SNPs will be forced regardless of p-value");
-      forceRegardless = new Hashtable<String, String>();
+      forceRegardless = new Hashtable<>();
       forcedKeys = new String[0];
     }
 
@@ -267,10 +267,10 @@ public class IndependentSNPs {
     }
 
     chrHashes = LDdatabase.getChrHashes(lddbs);
-    tags = new Vector<String>();
-    missingIlluminaValues = new Vector<String>();
-    allMissingMarkers = new Hashtable<String, String>();
-    missingMarkers = new Vector<String>();
+    tags = new Vector<>();
+    missingIlluminaValues = new Vector<>();
+    allMissingMarkers = new Hashtable<>();
+    missingMarkers = new Vector<>();
     chrIVs = Vectors.initializedArray(IntVector.class, 27);
     for (int j = 0; j < iv.size(); j++) {
       score = getScore(superset[j], scores, merges, missingIlluminaValues, log);
@@ -439,8 +439,8 @@ public class IndependentSNPs {
                        dir + (outputRoot == null ? pval_threshold : outputRoot) + "_ill.txt");
     }
 
-    untaggedTags = new Vector<String>();
-    checkTags = new Vector<String>();
+    untaggedTags = new Vector<>();
+    checkTags = new Vector<>();
     if (filteringDataset != null) {
       log.report("Loading which markers are present in the " + filteringDataset + " dataset...",
                  false, true);
@@ -568,7 +568,7 @@ public class IndependentSNPs {
   }
 
   public static String[] findUnique(String[] inThese, String[] butNotInThese) {
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
 
     for (String element : inThese) {
       if (ext.indexOfStr(element, butNotInThese) == -1) {
@@ -583,7 +583,7 @@ public class IndependentSNPs {
     BufferedReader reader;
     String[] line;
     Hashtable<String, String> hash;
-    List<String> v = new ArrayList<String>();
+    List<String> v = new ArrayList<>();
     int numAlleles;
 
     hash = HashVec.loadFileToHashString(hitTags, 0, new int[] {0}, "\t", false);

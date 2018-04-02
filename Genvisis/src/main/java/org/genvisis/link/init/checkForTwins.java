@@ -18,8 +18,8 @@ public class checkForTwins {
     StringTokenizer st, famSt;
     int numInFam, A1, A2, B1, B2;
     int[] counts, geno;
-    Vector<String> members, matchups = new Vector<String>();
-    Hashtable<String, int[]> hash = new Hashtable<String, int[]>();
+    Vector<String> members, matchups = new Vector<>();
+    Hashtable<String, int[]> hash = new Hashtable<>();
     int[][] genos;
 
     for (int chromosome = 1; chromosome <= 23; chromosome++) {
@@ -41,7 +41,7 @@ public class checkForTwins {
 
             genos = new int[numInFam][];
             famSt = new StringTokenizer(famInfo, "#");
-            members = new Vector<String>();
+            members = new Vector<>();
             for (int i = 0; i < numInFam; i++) {
               st = new StringTokenizer(famSt.nextToken());
               members.add(st.nextToken() + "#" + st.nextToken());

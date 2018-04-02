@@ -21,7 +21,7 @@ public class TextVenn {
 
     log.reportTimeInfo("Found " + header.length + " categories in " + inputFile);
     log.reportTimeInfo(ArrayUtils.toStr(header));
-    ArrayList<HashSet<String>> cats = new ArrayList<HashSet<String>>();
+    ArrayList<HashSet<String>> cats = new ArrayList<>();
     for (String element : header) {
       cats.add(new HashSet<String>());
     }
@@ -49,16 +49,16 @@ public class TextVenn {
       log.reportTimeInfo("cat " + header[i] + " n= " + cats.get(i).size());
     }
 
-    ArrayList<String> comp = new ArrayList<String>();
-    ArrayList<String> compSummary = new ArrayList<String>();
-    ArrayList<ArrayList<String>> overlaps = new ArrayList<ArrayList<String>>();
+    ArrayList<String> comp = new ArrayList<>();
+    ArrayList<String> compSummary = new ArrayList<>();
+    ArrayList<ArrayList<String>> overlaps = new ArrayList<>();
     int maxOverlap = 0;
     for (int i = 0; i < cats.size(); i++) {
       for (int j = i + 1; j < cats.size(); j++) {
         comp.add(header[i] + "(n=" + cats.get(i).size() + ") vs " + header[j] + " (n= "
                  + cats.get(j).size() + ")");
         int overlap = 0;
-        ArrayList<String> tmp = new ArrayList<String>();
+        ArrayList<String> tmp = new ArrayList<>();
         for (String hit : cats.get(i)) {
           if (cats.get(j).contains(hit)) {
             overlap++;

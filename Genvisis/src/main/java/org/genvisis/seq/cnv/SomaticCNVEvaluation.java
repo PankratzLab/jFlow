@@ -73,7 +73,7 @@ public class SomaticCNVEvaluation {
     LocusSet<CNVariant> cnvs = CNVariant.loadLocSet(cnvFile, log);
     Map<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(cnvs, log);
     Set<String> tumors = vpop.getTumorSamples();
-    ArrayList<TNTrack> trackers = new ArrayList<TNTrack>();
+    ArrayList<TNTrack> trackers = new ArrayList<>();
     SampleData sampleData = proj.getSampleData(false);
 
     for (String tnPair : vpop.getSubPop().keySet()) {
@@ -109,7 +109,7 @@ public class SomaticCNVEvaluation {
     String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
     if (!Files.exists(outFile)) {
       System.exit(1);
-      try (WorkerTrain<TNCNV> train = new WorkerTrain<SomaticCNVEvaluation.TNCNV>(producer,
+      try (WorkerTrain<TNCNV> train = new WorkerTrain<>(producer,
                                                                                   numThreads,
                                                                                   numThreads,
                                                                                   proj.getLog());
@@ -142,7 +142,7 @@ public class SomaticCNVEvaluation {
                                       Integer.parseInt(results[i][3]),
                                       Integer.parseInt(results[i][4]));
         GeneData[] geneDatas = geneTrack.getOverlappingGenes(current);
-        HashSet<String> written = new HashSet<String>();
+        HashSet<String> written = new HashSet<>();
         for (int j = 0; j < geneDatas.length; j++) {
           if (!written.contains(geneDatas[j].getGeneName())) {
             writer.println(ArrayUtils.toStr(results[i]) + "\t" + geneDatas[j].getGeneName());
@@ -259,7 +259,7 @@ public class SomaticCNVEvaluation {
     }
 
     private String[] getSummary() {
-      ArrayList<String> summary = new ArrayList<String>();
+      ArrayList<String> summary = new ArrayList<>();
       summary.add(type);
       summary.add(bhTumor + "");
       summary.add(bhNormal + "");
@@ -316,7 +316,7 @@ public class SomaticCNVEvaluation {
       for (int i = 0; i < tumorCnvs.getLoci().length; i++) {
         String[] namesIn = markerSet.getMarkersIn(tumorCnvs.getLoci()[i],
                                                   markerSet.getIndicesByChr());
-        ArrayList<Integer> nonVariant = new ArrayList<Integer>();
+        ArrayList<Integer> nonVariant = new ArrayList<>();
 
         for (String element : namesIn) {
           NGS_MARKER_TYPE type = NGS_MARKER_TYPE.getType(element);

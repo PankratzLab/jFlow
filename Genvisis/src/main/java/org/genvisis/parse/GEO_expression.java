@@ -44,7 +44,7 @@ public class GEO_expression {
       writer = Files.openAppropriateWriter(ext.rootOf(filename, false) + "_transcripts.xln");
       writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(targets));
       writer.println("Sample\tfile\tbackground\t" + ArrayUtils.toStr(names));
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       count = 0;
       for (int i = 0; i < files.length; i++) {
         try {
@@ -151,7 +151,7 @@ public class GEO_expression {
     Vector<String[]> v;
     double sum;
 
-    hashV = new Hashtable<String, Vector<String[]>>();
+    hashV = new Hashtable<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       header1 = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -162,7 +162,7 @@ public class GEO_expression {
         if (hashV.containsKey(line[0])) {
           v = hashV.get(line[0]);
         } else {
-          hashV.put(line[0], v = new Vector<String[]>());
+          hashV.put(line[0], v = new Vector<>());
         }
         v.add(line);
       }

@@ -82,7 +82,7 @@ public class VCFPlinkPrep {
   }
 
   private static ArrayList<Genotype> filterGenotypes(int gq, VariantContext vc) {
-    ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+    ArrayList<Genotype> genotypes = new ArrayList<>();
     for (Genotype g : vc.getGenotypes()) {
       if (g.hasGQ() && g.getGQ() < gq) {
         GenotypeBuilder gb = new GenotypeBuilder(g);

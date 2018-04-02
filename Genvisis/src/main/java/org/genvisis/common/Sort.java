@@ -80,7 +80,7 @@ public class Sort {
   }
 
   public static <T extends Comparable<T>> int[] getSortedIndices(List<T> list) {
-    return getSortedIndices(new ComparableListWrapper<T>(list));
+    return getSortedIndices(new ComparableListWrapper<>(list));
   }
 
   public static int[] getSort2DIndices(byte[] bytes, int[] ints) {
@@ -108,7 +108,7 @@ public class Sort {
     @SuppressWarnings("unchecked")
     IndexedCC<C1, C2>[] icc = new IndexedCC[list1.size()];
     for (int i = 0; i < icc.length; i++) {
-      icc[i] = new IndexedCC<C1, C2>(list1.get(i), list2.get(i), i);
+      icc[i] = new IndexedCC<>(list1.get(i), list2.get(i), i);
     }
     return getSort2DIndices(icc);
   }
@@ -354,7 +354,7 @@ public class Sort {
    */
   public static <K, V extends Comparable<? super V>> List<Entry<K, V>> entriesSortedByValues(Map<K, V> map) {
 
-    List<Entry<K, V>> sortedEntries = new ArrayList<Entry<K, V>>(map.entrySet());
+    List<Entry<K, V>> sortedEntries = new ArrayList<>(map.entrySet());
 
     Collections.sort(sortedEntries, new Comparator<Entry<K, V>>() {
 

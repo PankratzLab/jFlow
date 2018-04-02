@@ -59,7 +59,7 @@ public class GeneSet implements Serializable {
   }
 
   public SegmentLists determineGeneSegments(int window) {
-    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<>();
     Vector<Segment> segs;
     Segment[][] lists;
     int[] chrs;
@@ -68,7 +68,7 @@ public class GeneSet implements Serializable {
       if (hash.containsKey(element.getChr() + "")) {
         segs = hash.get(element.getChr() + "");
       } else {
-        hash.put(element.getChr() + "", segs = new Vector<Segment>());
+        hash.put(element.getChr() + "", segs = new Vector<>());
       }
       segs.add(new Segment(element.getChr(), element.getStart() - window,
                            element.getStop() + window));
@@ -85,7 +85,7 @@ public class GeneSet implements Serializable {
   }
 
   public SegmentLists determineExonSegments(int upDownWindow) {
-    Hashtable<String, Vector<Segment>> hash = new Hashtable<String, Vector<Segment>>();
+    Hashtable<String, Vector<Segment>> hash = new Hashtable<>();
     Vector<Segment> segs;
     Segment[][] lists;
     int[] chrs;
@@ -97,7 +97,7 @@ public class GeneSet implements Serializable {
       if (hash.containsKey(gene.getChr() + "")) {
         segs = hash.get(gene.getChr() + "");
       } else {
-        hash.put(gene.getChr() + "", segs = new Vector<Segment>());
+        hash.put(gene.getChr() + "", segs = new Vector<>());
       }
       segs.add(new Segment(gene.getChr(), gene.getStart() - upDownWindow, gene.getStart()));
       segs.add(new Segment(gene.getChr(), gene.getStop(), gene.getStop() + upDownWindow));
@@ -119,7 +119,7 @@ public class GeneSet implements Serializable {
 
   public static void parseRefSeqGenes(String sourceFile) {
     BufferedReader reader;
-    Hashtable<String, Vector<GeneData>> hash = new Hashtable<String, Vector<GeneData>>();
+    Hashtable<String, Vector<GeneData>> hash = new Hashtable<>();
     Vector<GeneData> v, overlapping, finalList;
     GeneData gene;
     String[] geneNames;
@@ -143,7 +143,7 @@ public class GeneSet implements Serializable {
           if (hash.containsKey(gene.getGeneName())) {
             v = hash.get(gene.getGeneName());
           } else {
-            hash.put(gene.getGeneName(), v = new Vector<GeneData>());
+            hash.put(gene.getGeneName(), v = new Vector<>());
           }
           v.add(gene);
         }
@@ -159,12 +159,12 @@ public class GeneSet implements Serializable {
 
     System.out.println("Collapsing isoforms...");
     geneNames = HashVec.getKeys(hash);
-    finalList = new Vector<GeneData>();
+    finalList = new Vector<>();
     for (int i = 0; i < geneNames.length; i++) {
       v = hash.get(geneNames[i]);
       count = 0;
       while (v.size() > 0) {
-        overlapping = new Vector<GeneData>();
+        overlapping = new Vector<>();
         overlapping.add(v.remove(0));
         strand = overlapping.elementAt(0).getStrand();
         newlyAdded = true;
@@ -184,8 +184,8 @@ public class GeneSet implements Serializable {
         count++; // genes can be in more than one "finished" location, and even be on different
                 // chromosomes (though half the time it's an X/Y pairing)
 
-        assessionNumbers = new Vector<String>();
-        exons = new Vector<Segment>();
+        assessionNumbers = new Vector<>();
+        exons = new Vector<>();
         for (int j = 0; j < overlapping.size(); j++) {
           gene = overlapping.elementAt(j);
           finalList.add(gene); // add all genes/isoforms to list

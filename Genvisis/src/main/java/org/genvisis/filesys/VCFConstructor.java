@@ -87,12 +87,12 @@ public class VCFConstructor {
     ids = ArrayUtils.subArray(Matrix.extractColumn(matr, 1), 1);
     String[] snps = ArrayUtils.subArray(matr[0], 2);
 
-    genotypes = new HashMap<String, Collection<Genotype>>();
+    genotypes = new HashMap<>();
     for (int i = 0; i < snps.length; i++) {
       String mkr = snps[i];
       List<Allele> all = alleles.get(mkr);
       int m = i + 2;
-      Collection<Genotype> genos = new ArrayList<Genotype>();
+      Collection<Genotype> genos = new ArrayList<>();
       for (int id = 0; id < ids.length; id++) {
         int ind = id + 1;
         String indDose = matr[ind][m];
@@ -142,14 +142,14 @@ public class VCFConstructor {
   }
 
   private void parseAlleles(String[] markerNames) {
-    alleles = new HashMap<String, List<Allele>>();
+    alleles = new HashMap<>();
     for (int i = 0; i < markerNames.length; i++) {
       if (markerNames[i].startsWith("rs")) {
         log.reportError("Cannot parse alleles from RS marker");
         alleles.put(markerNames[i], new ArrayList<Allele>());
       } else {
         String[] pts = markerNames[i].split(":");
-        ArrayList<Allele> a = new ArrayList<Allele>();
+        ArrayList<Allele> a = new ArrayList<>();
         a.add(Allele.create(pts[2], true));
         a.add(Allele.create(pts[3], false));
         alleles.put(markerNames[i], a);
@@ -177,11 +177,11 @@ public class VCFConstructor {
     VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputFile);
     builder.clearOptions();
     builder.setOption(Options.INDEX_ON_THE_FLY);
-    HashSet<VCFHeaderLine> lines = new HashSet<VCFHeaderLine>();
+    HashSet<VCFHeaderLine> lines = new HashSet<>();
     VCFFormatHeaderLine format = new VCFFormatHeaderLine("GT", 1, VCFHeaderLineType.String, "GT");
     lines.add(format);
 
-    List<String> idNames = new ArrayList<String>();
+    List<String> idNames = new ArrayList<>();
     for (String s : ids) {
       idNames.add(s);
     }

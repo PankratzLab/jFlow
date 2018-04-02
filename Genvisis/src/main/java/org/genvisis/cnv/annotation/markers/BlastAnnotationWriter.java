@@ -224,7 +224,7 @@ public class BlastAnnotationWriter extends AnnotationFileWriter {
                                 MarkerEvalueHistogramAnnotation[] mevHistogramAnnotations,
                                 MarkerFastaEntry[] markerFastaEntries,
                                 ArrayBlastAnnotationList[][] intLists) {
-    Hashtable<String, Integer> markerSeqIndices = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> markerSeqIndices = new Hashtable<>();
     if (markerFastaEntries != null) {
       for (int i = 0; i < markerFastaEntries.length; i++) {
         PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerFastaEntries[i].getName(), proj.getLog());

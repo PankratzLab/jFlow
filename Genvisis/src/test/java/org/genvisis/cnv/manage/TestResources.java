@@ -13,7 +13,7 @@ import org.genvisis.common.Logger;
 public class TestResources {
 
   // Keep a list of all failures so we can summarize at the end
-  private static List<String> failures = new ArrayList<String>();
+  private static List<String> failures = new ArrayList<>();
 
   /**
    * Try to get the resource and record failure.

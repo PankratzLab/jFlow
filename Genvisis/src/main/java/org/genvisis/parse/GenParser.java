@@ -126,9 +126,9 @@ public class GenParser {
     }
     skip = -2;
     outfile = ext.rootOf(filename) + "_parsed.xln";
-    filters = new Vector<String>();
-    columns = new Vector<String>();
-    replacesV = new Vector<String[]>();
+    filters = new Vector<>();
+    columns = new Vector<>();
+    replacesV = new Vector<>();
     serialFilename = parseSerialFilename(line);
     forceFailCodes = false;
     for (int j = 1; j < line.length; j++) {
@@ -184,7 +184,7 @@ public class GenParser {
     cols = new int[columns.size()];
     colNames = new String[columns.size()];
     failCodes = ArrayUtils.stringArray(columns.size(), ".");
-    comps = new Vector<String>();
+    comps = new Vector<>();
     for (int j = 0; j < columns.size(); j++) {
       trav = columns.elementAt(j);
       if (trav.indexOf(";") >= 0) {
@@ -493,7 +493,7 @@ public class GenParser {
     String[] header, trav;
     String delimiter;
     int nonNull;
-    ArrayList<String> returnData = new ArrayList<String>();
+    ArrayList<String> returnData = new ArrayList<>();
     time = new Date().getTime();
     parser = new GenParser(line, data, log);
 

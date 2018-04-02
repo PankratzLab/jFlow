@@ -44,7 +44,7 @@ public class VCF {
 
   // private static final String SITE_ONLY = ".siteOnly";
   // private static final String BLANK_ANNO = ".";
-  private static final Set<String> SAMPLE = new TreeSet<String>();
+  private static final Set<String> SAMPLE = new TreeSet<>();
   private static final String[] testExpress = {"CHROM == 'chr1' && DP > 0 && DP < 100"};
   private static final String[] testExpress2 = {"ExonicFunc.refGene != '.' && ExonicFunc.refGene == 'nonsynonymous_SNV'"};
   private final VCFFileReader vcfFileReader;
@@ -122,8 +122,8 @@ public class VCF {
                      Hashtable<String, Vector<String>> IDsToExtract, String segFile, int numThreads,
                      int bpBuffer, int mac) {
     BamExtractor.BamSample bamSample = null;
-    ArrayList<String> toDumpTmp = new ArrayList<String>();
-    ArrayList<String> keys = new ArrayList<String>();
+    ArrayList<String> toDumpTmp = new ArrayList<>();
+    ArrayList<String> keys = new ArrayList<>();
     RareVariantFilter rareVariantFilter = null;
     if (vpop != null) {
       rareVariantFilter = new RareVariantFilter(vpop.getSubPop().get("CASE"),
@@ -132,8 +132,8 @@ public class VCF {
       rareVariantFilter.setMacCase(mac);
       rareVariantFilter.initFilters(log);
     }
-    Hashtable<String, Integer> histCOUNT = new Hashtable<String, Integer>();
-    Hashtable<String, Integer> histALLELE = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> histCOUNT = new Hashtable<>();
+    Hashtable<String, Integer> histALLELE = new Hashtable<>();
     Segment[] segs = null;
     if (segFile != null) {
       segs = Segment.loadRegions(segFile, 0, 1, 2, 0, true, true, true, 0);
@@ -411,7 +411,7 @@ public class VCF {
       vpop.report();
     }
     VCF vcf = new VCF(vcfFile, new Logger(ext.rootOf(vcfFile, false) + ".log"));
-    Hashtable<String, Vector<String>> IDsToExtract = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> IDsToExtract = new Hashtable<>();
     if (idFile != null) {
       IDsToExtract = HashVec.loadFileToHashVec(idFile, 0, new int[1], "\t", false, true);
       log.reportTimeInfo("Subsetting the search to " + IDsToExtract.size() + " ID(s)");
@@ -439,7 +439,7 @@ public class VCF {
     String idFile = null;
 
     String[] toDump = null;
-    ArrayList<String> filterExpression = new ArrayList<String>();
+    ArrayList<String> filterExpression = new ArrayList<>();
     String filterName = "filter";
     int numThreads = 1;
     int bpBuffer = 1000;

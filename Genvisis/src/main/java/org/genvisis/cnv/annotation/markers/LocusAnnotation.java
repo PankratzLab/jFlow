@@ -32,7 +32,7 @@ public class LocusAnnotation {
    * @return
    */
   public VariantContext annotateLocus(boolean skipDefaultValue) {
-    ArrayList<Allele> alleles = new ArrayList<Allele>();
+    ArrayList<Allele> alleles = new ArrayList<>();
     Allele refA = Allele.create(ref, false);
     alleles.add(refA);
     int maxAlleleLength = refA.getBases().length - 1;

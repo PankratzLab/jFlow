@@ -157,7 +157,7 @@ public class ExpectationMaximization {
 
   public static final Integer[] sampleNUniquePoints(int n, int length) {
     Random rand = new Random();
-    HashSet<Integer> set = new HashSet<Integer>();
+    HashSet<Integer> set = new HashSet<>();
     while (set.size() < n) {
       int r = rand.nextInt(length);
       if (!set.contains(r)) {

@@ -43,8 +43,8 @@ public class PCPopulation {
   public TestSampleDistances[] computeDistance() {
     populations = getPopulations(pResiduals, vpop);
     determinePCClusters();
-    Hashtable<String, TestSampleDistances> dists = new Hashtable<String, TestSampleDistances>();
-    Hashtable<String, TestPopulationDistances> pdists = new Hashtable<String, TestPopulationDistances>();
+    Hashtable<String, TestSampleDistances> dists = new Hashtable<>();
+    Hashtable<String, TestPopulationDistances> pdists = new Hashtable<>();
     for (int i = 0; i < populations.length; i++) {
       if (populations[i].isTest()) {
         for (int j = 0; j < populations.length; j++) {
@@ -70,7 +70,7 @@ public class PCPopulation {
         }
       }
     }
-    ArrayList<TestSampleDistances> finalizedDists = new ArrayList<PCPopulation.TestSampleDistances>(dists.size());
+    ArrayList<TestSampleDistances> finalizedDists = new ArrayList<>(dists.size());
     for (String ind : dists.keySet()) {
       TestSampleDistances curDist = dists.get(ind);
       curDist.computeNormDist(pdists, log);
@@ -90,13 +90,13 @@ public class PCPopulation {
 
   private static Population[] getPopulations(PrincipalComponentsResiduals pResiduals,
                                              VcfPopulation vpop) {
-    ArrayList<Population> pops = new ArrayList<Population>(vpop.getSuperPop().size());
+    ArrayList<Population> pops = new ArrayList<>(vpop.getSuperPop().size());
     if (vpop.valid()) {
       Hashtable<String, Integer> sampPCs = pResiduals.getSamplesInPc();
       for (String sPop : vpop.getSuperPop().keySet()) {
         boolean[] curMask = new boolean[sampPCs.size()];
         Arrays.fill(curMask, false);
-        HashSet<String> vpopPCs = new HashSet<String>();
+        HashSet<String> vpopPCs = new HashSet<>();
         for (String ind : vpop.getSuperPop().get(sPop)) {
           if (sampPCs.containsKey(ind)) {
             vpopPCs.add(ind);
@@ -124,8 +124,8 @@ public class PCPopulation {
     public TestPopulationDistances(Population population) {
       super();
       this.population = population;
-      otherDistances = new ArrayList<Double>();
-      otherPopulations = new ArrayList<String>();
+      otherDistances = new ArrayList<>();
+      otherPopulations = new ArrayList<>();
     }
 
     // public Population getPopulation() {
@@ -176,9 +176,9 @@ public class PCPopulation {
     public TestSampleDistances(String sample) {
       super();
       this.sample = sample;
-      distances = new ArrayList<Double>();
-      populations = new ArrayList<String>();
-      normDistances = new ArrayList<Double>();
+      distances = new ArrayList<>();
+      populations = new ArrayList<>();
+      normDistances = new ArrayList<>();
 
     }
 
@@ -416,7 +416,7 @@ public class PCPopulation {
         throw new IllegalStateException("This method must be called on the test case");
       } else {
         Set<String> testSamples = testPop.getSamples();
-        distances = new ArrayList<TestSampleDistance>(testSamples.size());
+        distances = new ArrayList<>(testSamples.size());
         double[][] trimmedPcs = PrincipalComponentsResiduals.trimPcBasis(clusterComponents,
                                                                          pResiduals.getPcBasis(),
                                                                          log);

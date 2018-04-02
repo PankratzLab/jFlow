@@ -39,8 +39,8 @@ public class CNVtools {
     BufferedReader mapReader, reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String> v = new Vector<String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String> v = new Vector<>();
     String slot, subdir;
     boolean firstTime = true;
     File file;
@@ -153,7 +153,7 @@ public class CNVtools {
 
   public static Hashtable<String, String> createMarkerLookup(String dir) {
     BufferedReader reader;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     File[] files = new File(dir).listFiles(new FilenameFilter() {
 

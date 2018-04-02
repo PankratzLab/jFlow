@@ -27,7 +27,7 @@ public class Slopes {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int timepoints;
     Vector<String> allValues, preValues, postValues;
     Vector<double[]> allDates, preDates, postDates;
@@ -46,12 +46,12 @@ public class Slopes {
         line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         refDate = parseDate(line[1]);
         timepoints = (line.length - 2) / 2;
-        allValues = new Vector<String>();
-        allDates = new Vector<double[]>();
-        preValues = new Vector<String>();
-        preDates = new Vector<double[]>();
-        postValues = new Vector<String>();
-        postDates = new Vector<double[]>();
+        allValues = new Vector<>();
+        allDates = new Vector<>();
+        preValues = new Vector<>();
+        preDates = new Vector<>();
+        postValues = new Vector<>();
+        postDates = new Vector<>();
         for (int i = 0; i < timepoints; i++) {
           if (line[2 + i * 2 + 0].equals(".")
               && line[2 + i * 2 + 1].equals(".")) {} else if (line[2 + i * 2 + 0].equals(".")) {
@@ -125,7 +125,7 @@ public class Slopes {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, ids;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> pairs;
     double[] dates, values;
     LeastSquares linear;
@@ -212,7 +212,7 @@ public class Slopes {
     int[] dateIs, valueIs, allIs;
 
     if (refFile == null) {
-      refs = new Hashtable<String, String>();
+      refs = new Hashtable<>();
     } else {
       line = Files.getHeaderOfFile(dir + refFile, "\t", new Logger());
       ext.checkHeader(line, new String[] {"id", "date"}, false);
@@ -259,7 +259,7 @@ public class Slopes {
         }
         values = Vectors.initializedArray(DoubleVector.class, 3);
         dates = Vectors.initializedArray(DoubleVector.class, 3);
-        dateCheck = new Hashtable<String, String>();
+        dateCheck = new Hashtable<>();
         for (int j = 0; j < v.size(); j++) {
           line = v.elementAt(j).split(PSF.Regex.GREEDY_WHITESPACE);
           for (int k = 0; k < line.length / 2; k++) {
@@ -337,7 +337,7 @@ public class Slopes {
     double firstEver, firstBefore, firstAfter;
 
     if (refFile == null) {
-      refs = new Hashtable<String, String>();
+      refs = new Hashtable<>();
     } else {
       line = Files.getHeaderOfFile(dir + refFile, "\t", new Logger());
       ext.checkHeader(line, new String[] {"id", "date"}, false);

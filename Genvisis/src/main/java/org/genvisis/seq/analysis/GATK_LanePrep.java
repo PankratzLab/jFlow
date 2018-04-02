@@ -51,7 +51,7 @@ public class GATK_LanePrep extends BWA_Analysis {
         picardAnalyses = new Picard.PicardAnalysis[bwAnalysisIndividuals.length];
         double memoryRatio = calcMemoryRatio(bwAnalysisIndividuals.length, getLog());
         ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
-        Hashtable<String, Future<Picard.PicardAnalysis>> tmpResults = new Hashtable<String, Future<Picard.PicardAnalysis>>();
+        Hashtable<String, Future<Picard.PicardAnalysis>> tmpResults = new Hashtable<>();
         for (int i = 0; i < bwAnalysisIndividuals.length; i++) {
           Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false) + "_Picard_ID_"
                                      + bwAnalysisIndividuals[i].getID() + "_Lane_"
@@ -130,7 +130,7 @@ public class GATK_LanePrep extends BWA_Analysis {
         picardMergeDedupes = new Picard.PicardMergeDedupe[picardAnalysesToMerge.length];
         double memoryRatio = calcMemoryRatio(picardAnalysesToMerge.length, getLog());
         ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
-        Hashtable<String, Future<Picard.PicardMergeDedupe>> tmpResults = new Hashtable<String, Future<Picard.PicardMergeDedupe>>();
+        Hashtable<String, Future<Picard.PicardMergeDedupe>> tmpResults = new Hashtable<>();
         for (int i = 0; i < picardMergeDedupes.length; i++) {
           Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)
                                      + "_Picard.PicardMergeDedupe_ID_"
@@ -192,7 +192,7 @@ public class GATK_LanePrep extends BWA_Analysis {
       if (picardMergeDedupes != null) {
         gRecalibrations = new GATK.BaseRecalibration[picardMergeDedupes.length];
         ExecutorService executor = Executors.newFixedThreadPool(getNumBetweenSampleThreads());
-        Hashtable<String, Future<GATK.BaseRecalibration>> tmpResults = new Hashtable<String, Future<GATK.BaseRecalibration>>();
+        Hashtable<String, Future<GATK.BaseRecalibration>> tmpResults = new Hashtable<>();
         for (int i = 0; i < picardMergeDedupes.length; i++) {
           Logger altLog = new Logger(ext.rootOf(getLog().getFilename(), false)
                                      + "_BaseRecalibration_ID_"
@@ -430,8 +430,8 @@ public class GATK_LanePrep extends BWA_Analysis {
                                                                     Logger log) {
     // log.report("Warning - assuming that unique sample Ids are the first two \"_\"-delimited
     // fields of the input fastaq files, and barcodes are the third");
-    Hashtable<String, ArrayList<Picard.PicardAnalysis>> track = new Hashtable<String, ArrayList<Picard.PicardAnalysis>>();
-    ArrayList<String> unique = new ArrayList<String>();
+    Hashtable<String, ArrayList<Picard.PicardAnalysis>> track = new Hashtable<>();
+    ArrayList<String> unique = new ArrayList<>();
     for (Picard.PicardAnalysis picardAnalysis : picardAnalyses) {
       String baseId = parseBaseId(picardAnalysis.getBaseID());
 
@@ -446,7 +446,7 @@ public class GATK_LanePrep extends BWA_Analysis {
       ArrayList<Picard.PicardAnalysis> current = track.get(unique.get(i));
       analysesToMerge[i] = current.toArray(new Picard.PicardAnalysis[current.size()]);
       String barcode = analysesToMerge[i][0].getBarcode();
-      ArrayList<String> barcodesToAdd = new ArrayList<String>();
+      ArrayList<String> barcodesToAdd = new ArrayList<>();
       for (int j = 0; j < analysesToMerge[i].length; j++) {
         if (!analysesToMerge[i][j].getBarcode().equals(barcode)) {
           log.report(ext.getTime() + " Info - since " + analysesToMerge[i][0].getBaseID() + " and "

@@ -126,7 +126,7 @@ public class LocusSet<T extends Segment> implements Serializable {
    */
   public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove,
                                                            int bpBuffer) {
-    ArrayList<Segment> newLoci = new ArrayList<Segment>();
+    ArrayList<Segment> newLoci = new ArrayList<>();
     LocusSet<Segment> operateSet = setToRemove.getStrictSegmentSet();
     if (bpBuffer > 0) {
       operateSet = setToRemove.getBufferedSegmentSet(bpBuffer);
@@ -142,7 +142,7 @@ public class LocusSet<T extends Segment> implements Serializable {
         }
       }
     }
-    LocusSet<Segment> toReturn = new LocusSet<Segment>(newLoci.toArray(new Segment[newLoci.size()]),
+    LocusSet<Segment> toReturn = new LocusSet<>(newLoci.toArray(new Segment[newLoci.size()]),
                                                        true, log);
     for (int i = 0; i < operateSet.getLoci().length; i++) {
       if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
@@ -155,12 +155,12 @@ public class LocusSet<T extends Segment> implements Serializable {
   }
 
   public LocusSet<Segment> getBufferedSegmentSet(int bpBuffer) {
-    ArrayList<Segment> buffered = new ArrayList<Segment>();
+    ArrayList<Segment> buffered = new ArrayList<>();
     for (T element : loci) {
       buffered.add(element.getBufferedSegment(bpBuffer));
     }
 
-    LocusSet<Segment> bufSet = new LocusSet<Segment>(buffered.toArray(new Segment[buffered.size()]),
+    LocusSet<Segment> bufSet = new LocusSet<>(buffered.toArray(new Segment[buffered.size()]),
                                                      true, log);
     return bufSet;
   }
@@ -193,8 +193,8 @@ public class LocusSet<T extends Segment> implements Serializable {
       return null;
     } else {
       byte currentChr = -1;
-      ArrayList<Segment> merged = new ArrayList<Segment>();
-      Vector<Segment> tmp = new Vector<Segment>();
+      ArrayList<Segment> merged = new ArrayList<>();
+      Vector<Segment> tmp = new Vector<>();
       int originalSize = loci.length;
       for (T element : loci) {
         if (element.getChr() != currentChr) {
@@ -220,14 +220,14 @@ public class LocusSet<T extends Segment> implements Serializable {
       if (verbose) {
         log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
       }
-      LocusSet<Segment> mergedSet = new LocusSet<Segment>(merged.toArray(new Segment[merged.size()]),
+      LocusSet<Segment> mergedSet = new LocusSet<>(merged.toArray(new Segment[merged.size()]),
                                                           true, log);
       return mergedSet;
     }
   }
 
   public LocusSet<Segment> getStrictSegmentSet() {
-    LocusSet<Segment> segSet = new LocusSet<Segment>(getStrictSegments(), true, log);
+    LocusSet<Segment> segSet = new LocusSet<>(getStrictSegments(), true, log);
     return segSet;
   }
 
@@ -252,7 +252,7 @@ public class LocusSet<T extends Segment> implements Serializable {
 
   public int[] getExactMatch(final Segment seg) {
     int[] overlaps = getOverlappingIndices(seg);
-    ArrayList<Integer> exacts = new ArrayList<Integer>();
+    ArrayList<Integer> exacts = new ArrayList<>();
     if (overlaps == null || overlaps.length == 0) {
       return null;
     } else {
@@ -298,12 +298,12 @@ public class LocusSet<T extends Segment> implements Serializable {
   public static <T extends Segment> LocusSet<T> combine(LocusSet<T> one, LocusSet<T> two,
                                                         boolean sort, Logger log) {
     T[] combinedLoci = ArrayUtils.concatAll(one.getLoci(), two.getLoci());
-    LocusSet<T> combined = new LocusSet<T>(combinedLoci, sort, log);
+    LocusSet<T> combined = new LocusSet<>(combinedLoci, sort, log);
     return combined;
   }
 
   public LocusSet<T> autosomal(boolean sort, Logger log) {
-    ArrayList<T> auto = new ArrayList<T>();
+    ArrayList<T> auto = new ArrayList<>();
     for (int i = 0; i < getLoci().length; i++) {
       if (getLoci()[i].getChr() < 23 && getLoci()[i].getChr() > 0) {
         auto.add(getLoci()[i]);
@@ -312,7 +312,7 @@ public class LocusSet<T extends Segment> implements Serializable {
     if (auto.size() < 1) {
       throw new IllegalArgumentException("no autosomals T found");
     }
-    LocusSet<T> aut = new LocusSet<T>(auto, sort, log);
+    LocusSet<T> aut = new LocusSet<>(auto, sort, log);
     return aut;
   }
 
@@ -393,7 +393,7 @@ public class LocusSet<T extends Segment> implements Serializable {
                                                          Logger log) {
     Segment[] segs = Segment.loadRegions(file, chrCol, startCol, stopCol, skipNumLines,
                                          inclusiveStart, inclusiveStop, bpBuffer);
-    LocusSet<Segment> lSet = new LocusSet<Segment>(segs, true, log);
+    LocusSet<Segment> lSet = new LocusSet<>(segs, true, log);
     return lSet;
   }
 
@@ -401,8 +401,8 @@ public class LocusSet<T extends Segment> implements Serializable {
    * @return a sorted int[][] of all the starts and stops of these loci
    */
   public int[][] getStartsAndStopsByChromosome() {
-    Hashtable<Byte, ArrayList<Integer>> tracks = new Hashtable<Byte, ArrayList<Integer>>();
-    ArrayList<Byte> uniqueChrs = new ArrayList<Byte>();
+    Hashtable<Byte, ArrayList<Integer>> tracks = new Hashtable<>();
+    ArrayList<Byte> uniqueChrs = new ArrayList<>();
     for (int i = 0; i < loci.length; i++) {
       if (!tracks.containsKey(loci[i].getChr())) {
         tracks.put(loci[i].getChr(), new ArrayList<Integer>());

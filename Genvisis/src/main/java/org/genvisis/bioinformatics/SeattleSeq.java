@@ -163,7 +163,7 @@ public class SeattleSeq {
     PrintWriter writer;
     String[] line, trav;
     String temp;
-    Hashtable<String, Vector<String[]>> hash = new Hashtable<String, Vector<String[]>>();
+    Hashtable<String, Vector<String[]>> hash = new Hashtable<>();
     Vector<String[]> v;
     int[] indices;
     Logger log;
@@ -244,7 +244,7 @@ public class SeattleSeq {
             writer.println();
             writer.flush();
           }
-          hash = new Hashtable<String, Vector<String[]>>();
+          hash = new Hashtable<>();
         }
         HashVec.addToHashArrayVec(hash, line[indices[2]], line);
         prev = line[indices[0]] + "\t" + line[indices[1]];
@@ -269,7 +269,7 @@ public class SeattleSeq {
     String markerName;
     String function;
 
-    hash = new Hashtable<String, String[]>();
+    hash = new Hashtable<>();
 
     if (directory == null) {
       log.reportError("The SeattleSeq annotation directory was null; returning an empty hashtable");
@@ -336,7 +336,7 @@ public class SeattleSeq {
     long time;
 
     problem = false;
-    finalHash = new Hashtable<String, String[]>();
+    finalHash = new Hashtable<>();
 
     if (directory == null) {
       log.reportError("The SeattleSeq annotation directory was null; returning an empty hashtable");
@@ -364,7 +364,7 @@ public class SeattleSeq {
           done = false;
           trav = null;
           linesSkipped = 0;
-          v = new Vector<String[]>();
+          v = new Vector<>();
           while (!done) {
             if (reader.ready()) {
               line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -416,7 +416,7 @@ public class SeattleSeq {
                 // or
                 // worse
                 finalHash.put(prev, trav);
-                v = new Vector<String[]>();
+                v = new Vector<>();
               }
               v.add(line);
               prev = markerName;

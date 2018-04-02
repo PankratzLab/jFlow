@@ -45,7 +45,7 @@ public class SkatMetaOutliers {
       return null;
     }
 
-    pvals = new Vector<Double>();
+    pvals = new Vector<>();
     for (File fileName : fileNames) {
       try {
         reader = new Scanner(new FileInputStream(fileName));

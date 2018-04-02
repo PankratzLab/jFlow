@@ -98,7 +98,7 @@ public class MergeKcol implements Runnable {
     String[] files = Files.list(kColDir + dirList[0], prefix, suffix, false);
     System.out.println(files.length);
     System.out.println(dirList.length);
-    fileCabinet = new Vector<Vector<String>>();
+    fileCabinet = new Vector<>();
     for (int i = 0; i < numThreads; i++) {
       fileCabinet.add(new Vector<String>());
     }

@@ -36,9 +36,9 @@ public class CheckForLD {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, keys, data;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Hashtable<String, String[]> markersByChrome = new Hashtable<String, String[]>();
-    Hashtable<String, String> markerPositions = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Hashtable<String, String[]> markersByChrome = new Hashtable<>();
+    Hashtable<String, String> markerPositions = new Hashtable<>();
     int start = 1;
     int stop = 22;
 
@@ -136,8 +136,8 @@ public class CheckForLD {
     BufferedReader reader;
     PrintWriter writer;
     String[] line, data;
-    Hashtable<String, String[]> markersByChrome = new Hashtable<String, String[]>();
-    Hashtable<String, String> markerPositions = new Hashtable<String, String>();
+    Hashtable<String, String[]> markersByChrome = new Hashtable<>();
+    Hashtable<String, String> markerPositions = new Hashtable<>();
     int start = 1;
     int stop = 22;
     String chrome;
@@ -275,7 +275,7 @@ public class CheckForLD {
     PrintWriter writer;
     String[] line, subline;
     Hashtable<String, String> maxObsLD, maxHapmapLD, hapCheck;
-    Vector<String> v = new Vector<String>();
+    Vector<String> v = new Vector<>();
 
     try {
       writer = Files.openAppropriateWriter(root + checkDir + prefix + "_summary.xln");
@@ -285,7 +285,7 @@ public class CheckForLD {
         maxObsLD = parseMaxLD(root + checkDir + prefix + ext.chrome(chr) + ".pre.LD", log);
         maxHapmapLD = parseMaxLD(root + hapmapDir + hapmapPrefix + ext.chrome(chr) + ".pre.LD",
                                  log);
-        hapCheck = new Hashtable<String, String>();
+        hapCheck = new Hashtable<>();
         try {
           reader = new BufferedReader(new FileReader(root + hapmapDir + hapmapPrefix
                                                      + ext.chrome(chr) + ".pre.CHECK"));
@@ -364,7 +364,7 @@ public class CheckForLD {
   public static Hashtable<String, String> parseMaxLD(String filename, Logger log) {
     BufferedReader reader;
     String[] line;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     try {
       reader = new BufferedReader(new FileReader(filename));
@@ -390,7 +390,7 @@ public class CheckForLD {
   }
 
   public static void plinkMethod(String dir, boolean vif, Logger log) {
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String[] markerNames;
 
     if (!new File(dir + "plink.bed").exists()) {

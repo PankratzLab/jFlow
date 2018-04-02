@@ -21,7 +21,7 @@ public class GeneTrack implements Serializable {
   private String geneSetFilename;
 
   public GeneTrack(String geneSetFilename) {
-    Hashtable<String, Vector<GeneData>> hash = new Hashtable<String, Vector<GeneData>>();
+    Hashtable<String, Vector<GeneData>> hash = new Hashtable<>();
     Vector<GeneData> v;
     int chr;
     String[] chrs;
@@ -33,7 +33,7 @@ public class GeneTrack implements Serializable {
       if (hash.containsKey(chr + "")) {
         v = hash.get(chr + "");
       } else {
-        hash.put(chr + "", v = new Vector<GeneData>());
+        hash.put(chr + "", v = new Vector<>());
       }
       v.add(element);
     }
@@ -70,7 +70,7 @@ public class GeneTrack implements Serializable {
 
     // System.out.println("Trying to get genes between chr"+chr+":"+start+"-"+stop);
 
-    v = new Vector<GeneData>();
+    v = new Vector<>();
     region = new Segment((byte) chr, start, stop);
     if (chr < starts.length && starts[chr].length > 0) {
       first = ArrayUtils.binarySearch(starts[chr], start, false);
@@ -128,7 +128,7 @@ public class GeneTrack implements Serializable {
    *         multiple
    */
   public GeneData[] lookupAllGeneData(String geneName) {
-    ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
+    ArrayList<GeneData> geneDatas = new ArrayList<>();
     for (int i = 1; i < 25; i++) {
       if (genes[i] != null) {
         for (int j = 0; j < genes[i].length; j++) {
@@ -142,9 +142,9 @@ public class GeneTrack implements Serializable {
   }
 
   public GeneData[][] lookupAllGeneData(String[] geneNames) {
-    HashMap<String, ArrayList<GeneData>> data = new HashMap<String, ArrayList<GeneData>>();
+    HashMap<String, ArrayList<GeneData>> data = new HashMap<>();
     for (String geneName : geneNames) {
-      ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
+      ArrayList<GeneData> geneDatas = new ArrayList<>();
       data.put(geneName.toLowerCase(), geneDatas);
     }
     for (int i = 1; i < 25; i++) {
@@ -182,7 +182,7 @@ public class GeneTrack implements Serializable {
   }
 
   public GeneData[] getOverlappingGenes(Segment seg) {
-    ArrayList<GeneData> tmp = new ArrayList<GeneData>();
+    ArrayList<GeneData> tmp = new ArrayList<>();
     for (GeneData[] gene : genes) {
       for (GeneData element : gene) {
         if (seg.overlaps(element)) {
@@ -194,7 +194,7 @@ public class GeneTrack implements Serializable {
   }
 
   public LocusSet<GeneData> convertToLocusSet(Logger log) {
-    ArrayList<GeneData> geneDatas = new ArrayList<GeneData>();
+    ArrayList<GeneData> geneDatas = new ArrayList<>();
     for (GeneData[] gene : genes) {
       for (GeneData element : gene) {
         geneDatas.add(element);

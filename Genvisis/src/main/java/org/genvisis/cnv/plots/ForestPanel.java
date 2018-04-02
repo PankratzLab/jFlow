@@ -113,8 +113,8 @@ public class ForestPanel extends AbstractPanel {
     ArrayList<StudyData> currentData = (ArrayList<StudyData>) forestPlot.getCurrentMetaStudy()
                                                                         .getStudies().clone();
     // PlotPoint[] tempPoints = new PlotPoint[currentData.size()];
-    ArrayList<PlotPoint> tempPoints = new ArrayList<PlotPoint>();
-    ArrayList<GenericLine> linesData = new ArrayList<GenericLine>();
+    ArrayList<PlotPoint> tempPoints = new ArrayList<>();
+    ArrayList<GenericLine> linesData = new ArrayList<>();
 
     float xAxisValue, yAxisValue;
     lines = new GenericLine[0];
@@ -189,7 +189,7 @@ public class ForestPanel extends AbstractPanel {
         breakCnt++;
       }
     }
-    ArrayList<GenericRectangle> rectData = new ArrayList<GenericRectangle>();
+    ArrayList<GenericRectangle> rectData = new ArrayList<>();
     rectangles = new GenericRectangle[0];
 
     float xAxisValue, yAxisValue;

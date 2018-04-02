@@ -208,7 +208,7 @@ public class CompareCalls_dev {
     CompareCalls_dev[] comparedCalls = new CompareCalls_dev[allPossibleCombinations.length];
     Hashtable<Integer, ArrayList<String>> fileIDs;
     Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indFileCNVs;
-    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<String, Hashtable<String, Integer>>();
+    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<>();
     defineCompHash = defineCompLists(rootDir, compFile);
     fileCNVs = getFileCNVs(files);
     fileIDs = getFileIDs(fileCNVs);
@@ -384,8 +384,8 @@ public class CompareCalls_dev {
   public static String[] filterCNVs(String rootDir, String cnvFile, String LRR_lookup,
                                     String compFile, double lrrFilter, double confFilter,
                                     int numMarkers) {
-    Hashtable<String, Double> lrrs = new Hashtable<String, Double>();
-    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<String, Hashtable<String, Integer>>();
+    Hashtable<String, Double> lrrs = new Hashtable<>();
+    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<>();
     BufferedReader reader;
     String[] line;
 
@@ -727,7 +727,7 @@ public class CompareCalls_dev {
   }
 
   private static Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> getindCNVsfromFiles(CNVariant[][] fileCNVs) {
-    Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indCNVs = new Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>>();
+    Hashtable<Integer, Hashtable<String, ArrayList<CNVariant>>> indCNVs = new Hashtable<>();
     for (int i = 0; i < fileCNVs.length; i++) {
       indCNVs.put(i, getindCNVsfromFile(fileCNVs[i]));
     }
@@ -736,7 +736,7 @@ public class CompareCalls_dev {
 
   public static Hashtable<String, ArrayList<CNVariant>> getindCNVsfromFile(CNVariant[] fileCNVs) {
     Hashtable<String, ArrayList<CNVariant>> indFileCNVs;
-    indFileCNVs = new Hashtable<String, ArrayList<CNVariant>>();
+    indFileCNVs = new Hashtable<>();
     for (int k = 0; k < fileCNVs.length; k++) {
       if (!indFileCNVs.containsKey(fileCNVs[k].getFamilyID())) {
         // TODO
@@ -749,7 +749,7 @@ public class CompareCalls_dev {
   }
 
   private static Hashtable<Integer, ArrayList<String>> getFileIDs(CNVariant[][] filesCNVs) {
-    Hashtable<Integer, ArrayList<String>> fileIds = new Hashtable<Integer, ArrayList<String>>();
+    Hashtable<Integer, ArrayList<String>> fileIds = new Hashtable<>();
     for (int i = 0; i < filesCNVs.length; i++) {
       fileIds.put(i, getIDList(filesCNVs[i]));
     }
@@ -757,8 +757,8 @@ public class CompareCalls_dev {
   }
 
   public static ArrayList<String> getIDList(CNVariant[] afileCNVs) {
-    ArrayList<String> al = new ArrayList<String>();
-    Hashtable<String, Integer> tracker = new Hashtable<String, Integer>();
+    ArrayList<String> al = new ArrayList<>();
+    Hashtable<String, Integer> tracker = new Hashtable<>();
     for (int k = 0; k < afileCNVs.length; k++) {
       // TODO
       // change to ind id when i update input file
@@ -780,7 +780,7 @@ public class CompareCalls_dev {
 
   // used in filtering
   private static Hashtable<String, Double> getLRRs(String rootDir, String LRR_lookup) {
-    Hashtable<String, Double> lrrs = new Hashtable<String, Double>();
+    Hashtable<String, Double> lrrs = new Hashtable<>();
     BufferedReader reader;
     String[] line;
     try {
@@ -809,7 +809,7 @@ public class CompareCalls_dev {
   // defines comparisons for appropriate parsing and comparing
   private static Hashtable<String, Hashtable<String, Integer>> defineCompLists(String rootDir,
                                                                                String compFile) {
-    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<String, Hashtable<String, Integer>>();
+    Hashtable<String, Hashtable<String, Integer>> defineCompHash = new Hashtable<>();
     BufferedReader reader;
     String[] line;
     int maxNumComparisions = 0;
@@ -863,7 +863,7 @@ public class CompareCalls_dev {
 
   private static void defineComparisons(Hashtable<String, Hashtable<String, Integer>> defineCompHash,
                                         String[] line) {
-    Hashtable<String, Integer> defined = new Hashtable<String, Integer>();
+    Hashtable<String, Integer> defined = new Hashtable<>();
     for (int i = 0; i < line.length; i++) {
       for (int j = 0; j < line.length; j++) {
         if (i != j && line[i] == line[j]) {
@@ -893,7 +893,7 @@ public class CompareCalls_dev {
 
   private static Hashtable<Byte, List<Integer>> getMarkerLookup(String rootDir,
                                                                 String markerPositionsFile) {
-    Hashtable<Byte, List<Integer>> markers = new Hashtable<Byte, List<Integer>>();
+    Hashtable<Byte, List<Integer>> markers = new Hashtable<>();
     BufferedReader reader;
     byte chr;
     String[] line;
@@ -918,7 +918,7 @@ public class CompareCalls_dev {
         } else {
           chr = Byte.valueOf(line[1]);
           if (!markers.containsKey(chr)) {
-            List<Integer> bpList = new ArrayList<Integer>();
+            List<Integer> bpList = new ArrayList<>();
             markers.put(chr, bpList);
           }
           markers.get(chr).add(Integer.parseInt(line[2]));

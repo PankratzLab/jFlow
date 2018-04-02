@@ -36,7 +36,7 @@ public class VTE_Analyses {
     BufferedReader reader;
     PrintWriter writer;
     String[] line;
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     Logger log;
     String[] trav, ref;
 

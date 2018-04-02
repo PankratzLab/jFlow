@@ -54,7 +54,7 @@ public class CALiCo_SOL {
       methods = new String[] {"LS"};
     }
 
-    script = new ArrayList<String>();
+    script = new ArrayList<>();
     for (int i = 0; (phenoFiles != null) && (i < phenoFiles.length); i++) {
       for (int j = 0; j < genoFiles.length; j++) {
         for (String method : methods) {
@@ -116,8 +116,8 @@ public class CALiCo_SOL {
     int genoFileSize;
 
     jobSizes = new IntVector();
-    GenoFileNames = new Vector<String>();
-    fileSizes = new Vector<Integer>();
+    GenoFileNames = new Vector<>();
+    fileSizes = new Vector<>();
     for (int i = 0; i < jobNamesWithAbsolutePaths.size(); i++) {
       line = jobNamesWithAbsolutePaths.get(i);
       line = line.substring(line.indexOf(" --GENO " + 8));

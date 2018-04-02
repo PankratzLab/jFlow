@@ -10,7 +10,7 @@ public abstract class CB<E, T> implements Callable<T> {
 
   public CB(int bufferSize) {
     this.bufferSize = bufferSize;
-    this.buffer = new ArrayList<E>(bufferSize);
+    this.buffer = new ArrayList<>(bufferSize);
   }
 
   public void addToBuffer(final E e) {

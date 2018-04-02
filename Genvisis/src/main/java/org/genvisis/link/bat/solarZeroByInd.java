@@ -20,7 +20,7 @@ public class solarZeroByInd {
     PrintWriter writer = null;
     String temp, blank, id;
     StringTokenizer st;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
 
     reader = new BufferedReader(new FileReader(fams));
     while (reader.ready()) {

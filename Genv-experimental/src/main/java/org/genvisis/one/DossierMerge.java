@@ -182,7 +182,7 @@ public class DossierMerge {
         // Files.writeList(results, dir+"pubmed_"+pmids[i]+".out");
 
         doi = title = null;
-        authors = new ArrayList<String>();
+        authors = new ArrayList<>();
         try {
           for (int j = 0; (doi == null || title == null || authors.size() == 0)
                           && j < results.length; j++) {

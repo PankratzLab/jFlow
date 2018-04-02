@@ -35,7 +35,7 @@ public class alleleDistribution {
     int[] keys;
     double[][] oe_sums;
 
-    notthese = new Hashtable<String, String>();
+    notthese = new Hashtable<>();
     if (new File("notthese.dat").exists()) {
       reader = new BufferedReader(new FileReader("notthese.dat"));
       while (reader.ready()) {
@@ -51,8 +51,8 @@ public class alleleDistribution {
       System.exit(1);
     }
 
-    hash = new Hashtable<String, String>();
-    species = new Vector<String>();
+    hash = new Hashtable<>();
+    species = new Vector<>();
     while (reader.ready()) {
       line = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
       if (!species.contains(line[2])) {

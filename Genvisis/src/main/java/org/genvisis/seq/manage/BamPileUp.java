@@ -80,8 +80,8 @@ public class BamPileUp implements Iterator<BamPile> {
 
     sIterator = reader.query(queryIntervals, false);
     filter = initializeFilters(filterNGS, filterType, log);
-    bamPiles = new ArrayList<BamPile>();
-    bamPilesToReturn = new ArrayList<BamPile>();
+    bamPiles = new ArrayList<>();
+    bamPilesToReturn = new ArrayList<>();
     currentSegment = new Segment((byte) 0, 0, 0);
     bamPileUpSummary = new BamPileUpSummary(log);
   }
@@ -135,7 +135,7 @@ public class BamPileUp implements Iterator<BamPile> {
         // an extra thread was noted to produce about a half hour speed up per sample
 
         try (WorkerTrain<TmpBamPile> train = new WorkerTrain<>(tmpBamPileProducer, 2, 200, log)) {
-          bamPiles = new ArrayList<BamPile>(bamPiles.size());
+          bamPiles = new ArrayList<>(bamPiles.size());
           while (train.hasNext()) {
             TmpBamPile tmpBamPile = train.next();
             if (tmpBamPile.overlapsCurrentRecord()) {

@@ -80,8 +80,8 @@ public class PlinkMendelianChecker {
     ArrayList<String> unrelLines;
 
     private GenomeLoader() {
-      pairData = new HashMap<String, HashMap<String, String>>();
-      unrelLines = new ArrayList<String>();
+      pairData = new HashMap<>();
+      unrelLines = new ArrayList<>();
     }
 
     // TODO only goes one direction?
@@ -91,16 +91,16 @@ public class PlinkMendelianChecker {
 
       GenomeLoader gl = new GenomeLoader();
 
-      HashSet<String> famSet = new HashSet<String>();
+      HashSet<String> famSet = new HashSet<>();
 
-      HashMap<String, HashSet<String>> pairSets = new HashMap<String, HashSet<String>>();
+      HashMap<String, HashSet<String>> pairSets = new HashMap<>();
 
       for (Pair p : pairs) {
         famSet.add(p.fid1);
         // famSet.add(p.fid2); // uncomment for bi-directional
         HashSet<String> indiPairs = pairSets.get(p.fid1 + "\t" + p.iid1);
         if (indiPairs == null) {
-          indiPairs = new HashSet<String>();
+          indiPairs = new HashSet<>();
           pairSets.put(p.fid1 + "\t" + p.iid1, indiPairs);
         }
         indiPairs.add(p.fid2 + "\t" + p.iid2);
@@ -162,7 +162,7 @@ public class PlinkMendelianChecker {
           if (pairSets.get(fid1 + "\t" + iid1).contains(fid2 + "\t" + iid2)) {
             HashMap<String, String> indiMap = gl.pairData.get(fid1 + "\t" + iid1);
             if (indiMap == null) {
-              indiMap = new HashMap<String, String>();
+              indiMap = new HashMap<>();
               gl.pairData.put(fid1 + "\t" + iid1, indiMap);
             }
             indiMap.put(fid2 + "\t" + iid2, line);
@@ -226,8 +226,8 @@ public class PlinkMendelianChecker {
     HashMap<String, ArrayList<String>> errorMarkersMapMother;
 
     private MendelLoader() {
-      errorMarkersMapFather = new HashMap<String, ArrayList<String>>();
-      errorMarkersMapMother = new HashMap<String, ArrayList<String>>();
+      errorMarkersMapFather = new HashMap<>();
+      errorMarkersMapMother = new HashMap<>();
     }
 
     static MendelLoader run(String mendelFile) {
@@ -259,7 +259,7 @@ public class PlinkMendelianChecker {
               if (mec.hasFaMendelError()) {
                 ArrayList<String> mkrs = ml.errorMarkersMapFather.get(fidiid);
                 if (mkrs == null) {
-                  mkrs = new ArrayList<String>();
+                  mkrs = new ArrayList<>();
                   ml.errorMarkersMapFather.put(fidiid, mkrs);
                 }
                 mkrs.add(temp[3]);
@@ -267,7 +267,7 @@ public class PlinkMendelianChecker {
               if (mec.hasMoMendelError()) {
                 ArrayList<String> mkrs = ml.errorMarkersMapMother.get(fidiid);
                 if (mkrs == null) {
-                  mkrs = new ArrayList<String>();
+                  mkrs = new ArrayList<>();
                   ml.errorMarkersMapMother.put(fidiid, mkrs);
                 }
                 mkrs.add(temp[3]);
@@ -352,7 +352,7 @@ public class PlinkMendelianChecker {
       samples = project.getSamples();
       sampleData = project.getSampleData(false);
       sampQC = SampleQC.loadSampleQC(project);
-      qcIndexMap = new HashMap<String, Integer>();
+      qcIndexMap = new HashMap<>();
       if (sampQC != null) {
         for (int i = 0; i < sampQC.getSamples().length; i++) {
           qcIndexMap.put(sampQC.getSamples()[i], i);
@@ -360,11 +360,11 @@ public class PlinkMendelianChecker {
       }
     }
 
-    pedDNA = new HashSet<String>();
-    pedToFAMO = new HashMap<String, String[]>();
-    childrenMap = new HashMap<String, ArrayList<String>>();
-    dnaLookup = new HashMap<String, String>();
-    idLookup = new HashMap<String, String>();
+    pedDNA = new HashSet<>();
+    pedToFAMO = new HashMap<>();
+    childrenMap = new HashMap<>();
+    dnaLookup = new HashMap<>();
+    idLookup = new HashMap<>();
 
     for (int i = 0; i < ped.getIDs().length; i++) {
       // if (pe == null) {
@@ -389,7 +389,7 @@ public class PlinkMendelianChecker {
       if (!"0".equals(ped.getFA(i))) {
         ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
         if (children == null) {
-          children = new ArrayList<String>();
+          children = new ArrayList<>();
           childrenMap.put(ped.getFID(i) + "\t" + ped.getFA(i), children);
         }
         children.add(ped.getFID(i) + "\t" + ped.getIID(i));
@@ -397,14 +397,14 @@ public class PlinkMendelianChecker {
       if (!"0".equals(ped.getMO(i))) {
         ArrayList<String> children = childrenMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
         if (children == null) {
-          children = new ArrayList<String>();
+          children = new ArrayList<>();
           childrenMap.put(ped.getFID(i) + "\t" + ped.getMO(i), children);
         }
         children.add(ped.getFID(i) + "\t" + ped.getIID(i));
       }
     }
 
-    ArrayList<Pair> pairs = new ArrayList<Pair>();
+    ArrayList<Pair> pairs = new ArrayList<>();
     for (java.util.Map.Entry<String, ArrayList<String>> childrenList : childrenMap.entrySet()) {
       String fidiid = childrenList.getKey();
 
@@ -439,7 +439,7 @@ public class PlinkMendelianChecker {
           spouseChildren = childrenMap.get(famo[0]);
         }
 
-        HashSet<String> sameParentSibs = new HashSet<String>(childrenList.getValue());
+        HashSet<String> sameParentSibs = new HashSet<>(childrenList.getValue());
         for (String otherChild : spouseChildren) {
           if (otherChild.equals(childFIDIID)) {
             continue;
@@ -817,7 +817,7 @@ public class PlinkMendelianChecker {
     PrintWriter writer;
     StringBuilder sb;
 
-    HashSet<String> writtenPairs = new HashSet<String>();
+    HashSet<String> writtenPairs = new HashSet<>();
 
     writer = Files.getAppropriateWriter(outDir + REL_CHECKS_FILENAME);
 
@@ -848,7 +848,7 @@ public class PlinkMendelianChecker {
         } else if (famo[1].equals(fidiid) && !".".equals(famo[0])) {
           spouseChildren = childrenMap.get(famo[0]);
         }
-        HashSet<String> sameParentSibs = new HashSet<String>(childrenList.getValue());
+        HashSet<String> sameParentSibs = new HashSet<>(childrenList.getValue());
 
         if (parentDNA != null && !writtenPairs.contains(parentDNA + "\t" + childDNA)) {
           writtenPairs.add(parentDNA + "\t" + childDNA);

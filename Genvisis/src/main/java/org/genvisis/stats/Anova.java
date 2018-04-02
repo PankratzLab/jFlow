@@ -55,7 +55,7 @@ public class Anova {
     BufferedReader reader = null;
     String depen, indepen;
     StringTokenizer st;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v;
 
     analysis_complete = false;
@@ -63,7 +63,7 @@ public class Anova {
     try {
       reader = new BufferedReader(new FileReader(filename));
 
-      groupNames = new Vector<String>();
+      groupNames = new Vector<>();
       while (reader.ready()) {
         st = new StringTokenizer(reader.readLine());
         depen = st.nextToken(); // in this case AOO
@@ -71,7 +71,7 @@ public class Anova {
 
         if (!hash.containsKey(indepen)) {
           groupNames.add(indepen);
-          v = new Vector<String>();
+          v = new Vector<>();
           v.add(depen);
           hash.put(indepen, v);
         } else {
@@ -99,7 +99,7 @@ public class Anova {
   public Anova(double[][] inputData) throws IOException {
     analysis_complete = false;
     data = inputData;
-    groupNames = new ArrayList<String>();
+    groupNames = new ArrayList<>();
     for (int i = 1; i <= data.length; i++) {
       groupNames.add("Group " + i);
     }

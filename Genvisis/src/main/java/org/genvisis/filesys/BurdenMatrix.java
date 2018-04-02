@@ -88,7 +88,7 @@ public class BurdenMatrix implements Serializable {
 
     if (variantWeightsFile != null) {
       importedWeights = HashVec.loadFileToStringMatrix(variantWeightsFile, false, new int[] {0, 1});
-      weightsHash = new Hashtable<String, Double>();
+      weightsHash = new Hashtable<>();
       for (int i = 0; i < importedWeights.length; i++) {
         try {
           weightsHash.put(importedWeights[i][0], new Double(importedWeights[i][1]));
@@ -148,7 +148,7 @@ public class BurdenMatrix implements Serializable {
     }
 
     included = failedForMAF = failedForFunction = 0;
-    geneMappingHash = new Hashtable<String, IntVector>();
+    geneMappingHash = new Hashtable<>();
     unknownFunctions = new CountVector();
     alleleFreqs = new double[markerNames.length];
     for (int i = 0; i < markerNames.length; i++) {
@@ -347,7 +347,7 @@ public class BurdenMatrix implements Serializable {
         System.err.println("Found :  " + head);
       }
 
-      hash = new Hashtable<String, String>();
+      hash = new Hashtable<>();
       data = HashVec.loadFileToStringMatrix(phenotypeFileToMergeWith, false, null, delimiter, 1000,
                                             false);
       for (String[] element : data) {

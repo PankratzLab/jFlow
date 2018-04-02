@@ -325,8 +325,8 @@ public class PhenoPrep {
       idsWithDNA = HashVec.loadFileToStringArray(idFile, false, new int[] {0}, false);
     }
 
-    vIDs = new Vector<String>();
-    vData = new Vector<double[]>();
+    vIDs = new Vector<>();
+    vData = new Vector<>();
     try {
       reader = new BufferedReader(new FileReader(filename));
       temp = reader.readLine();
@@ -581,8 +581,8 @@ public class PhenoPrep {
       newFinalHeader[finalHeader.length + i] = header[indices[i]];
     }
 
-    vIDs = new Vector<String>();
-    vData = new Vector<double[]>();
+    vIDs = new Vector<>();
+    vData = new Vector<>();
     for (int i = 0; i < finalIDs.length; i++) {
       if (hash.containsKey(finalIDs[i])) {
         line = hash.get(finalIDs[i]).split(PSF.Regex.GREEDY_WHITESPACE);

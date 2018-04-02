@@ -124,7 +124,7 @@ public class PrincipalComponentsValidate {
                                                                                   pcType, mtMarkers,
                                                                                   recomputeLRR,
                                                                                   log);
-    ArrayList<String> componentBatches = new ArrayList<String>();
+    ArrayList<String> componentBatches = new ArrayList<>();
     for (int i = 0; i < principalComponentsResiduals.length; i++) {
       int numTotalComponents = principalComponentsResiduals[i].getTotalNumComponents();
       componentBatches.add(numTotalComponents + "");
@@ -531,7 +531,7 @@ public class PrincipalComponentsValidate {
     private Hashtable<Integer, Integer> getNumReps() {// We assume files with the same number of
                                                       // components were computed from the same
                                                       // number of samples
-      Hashtable<Integer, Integer> numReps = new Hashtable<Integer, Integer>();
+      Hashtable<Integer, Integer> numReps = new Hashtable<>();
       for (int i = 0; i < totalNumComponents.length; i++) {
         if (!numReps.containsKey(totalNumComponents[i])) {
           numReps.put(totalNumComponents[i], 1);
@@ -550,7 +550,7 @@ public class PrincipalComponentsValidate {
      * across cross-validations and replicates
      */
     private Hashtable<Integer, Double> getReplicateAvgSSerr() {
-      Hashtable<Integer, Double> average = new Hashtable<Integer, Double>();
+      Hashtable<Integer, Double> average = new Hashtable<>();
       Hashtable<Integer, Integer> numReps = getNumReps();
       for (int i = 0; i < totalNumComponents.length; i++) {
         if (!average.containsKey(totalNumComponents[i])) {
@@ -572,7 +572,7 @@ public class PrincipalComponentsValidate {
      * across cross-validations and replicates
      */
     private Hashtable<Integer, Double> getReplicateAvgR2() {
-      Hashtable<Integer, Double> average = new Hashtable<Integer, Double>();
+      Hashtable<Integer, Double> average = new Hashtable<>();
       Hashtable<Integer, Integer> numReps = getNumReps();
       for (int i = 0; i < totalNumComponents.length; i++) {
         if (!average.containsKey(totalNumComponents[i])) {
@@ -740,7 +740,7 @@ public class PrincipalComponentsValidate {
       log.reportError("Error - cannot choose " + num + " random strings from " + a.length
                       + " strings, using all available instead");
     } else {
-      Hashtable<Integer, Boolean> tracker = new Hashtable<Integer, Boolean>();
+      Hashtable<Integer, Boolean> tracker = new Hashtable<>();
       for (int i = 0; i < num; i++) {
         int index = randomGenerator.nextInt(a.length);
         if (tracker.containsKey(index)) {

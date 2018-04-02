@@ -34,7 +34,7 @@ public class Filesystem {
     PrintWriter writer, error;
     StringTokenizer st;
     String[] line;
-    Vector<String> orderedMarkers = new Vector<String>();
+    Vector<String> orderedMarkers = new Vector<>();
     DoubleVector distMarkers = new DoubleVector();
     String[] unorderedMarkers;
     int[] key, allAlleles;
@@ -43,7 +43,7 @@ public class Filesystem {
     String temp, IDed, first, second;
     int tempI, total, count = 0, alleleCount;
     Hashtable<String, String> handle, changes;
-    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> hash = new Hashtable<>();
     String[] alleles;
     Vector<Vector<String>> alleleSizes;
     int[][] problemAlleles;
@@ -237,7 +237,7 @@ public class Filesystem {
     new LinkageMap(chr, ArrayUtils.toStringArray(orderedMarkers), alleleFreqs,
                    Doubles.toArray(distMarkers), false, false).createFile("map" + chrome + ".dat");
 
-    changes = new Hashtable<String, String>();
+    changes = new Hashtable<>();
 
     if (reportOutliers) {
       gen = new BufferedReader(new FileReader("mrkr" + chrome + ".dat"));
@@ -264,7 +264,7 @@ public class Filesystem {
 
   public static int[] spreadCheck(int[] source, String header) {
     int[] keys = Sort.getSortedIndices(source);
-    Vector<String> missedOpportunities = new Vector<String>();
+    Vector<String> missedOpportunities = new Vector<>();
     int[] missedOpps;
     IntVector missedCounts = new IntVector();
     double mean = ArrayUtils.mean(ArrayUtils.toDoubleArray(source));
@@ -332,7 +332,7 @@ public class Filesystem {
   public int[] boxPlotOutliers(int[] source, String header) {
     int[] keys = Sort.getSortedIndices(source);
     int q1, q3, iqr, lf, uf;
-    Vector<String> missedOpportunities = new Vector<String>();
+    Vector<String> missedOpportunities = new Vector<>();
     int[] missedOpps;
 
     if (source.length == 0) {

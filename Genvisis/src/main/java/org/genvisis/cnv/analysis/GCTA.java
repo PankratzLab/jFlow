@@ -169,9 +169,9 @@ public class GCTA {
         try {
           BufferedReader reader = Files.getAppropriateReader(summaryFile);
           reader.readLine();
-          source = new ArrayList<String>();
-          variance = new ArrayList<Double>();
-          se = new ArrayList<Double>();
+          source = new ArrayList<>();
+          variance = new ArrayList<>();
+          se = new ArrayList<>();
 
           while (reader.ready()) {
             String[] line = reader.readLine().trim().split("\t");
@@ -211,7 +211,7 @@ public class GCTA {
     // System.exit(1);
     // }
     String[] outputs = new String[] {summaryFile};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("gcta64");
     command.add("--grm");
     command.add(inputGrm);
@@ -305,7 +305,7 @@ public class GCTA {
                                     inputGrm + ".grm.id"};
 
     String[] outputs = new String[] {output + ".eigenval", output + ".eigenvec"};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("gcta64");
     command.add("--grm");
     command.add(inputGrm);
@@ -340,16 +340,16 @@ public class GCTA {
       new File(resultsDir).mkdirs();
       SampleData sampleData = proj.getSampleData(false);
       String[] samples = proj.getSamples();
-      ArrayList<String> fidIID = new ArrayList<String>();
+      ArrayList<String> fidIID = new ArrayList<>();
       for (String sample : samples) {
         fidIID.add(sampleData.lookup(sample)[1]);
       }
 
-      WorkerHive<VarianceResult> hive = new WorkerHive<GCTA.VarianceResult>(numThreads, 10,
+      WorkerHive<VarianceResult> hive = new WorkerHive<>(numThreads, 10,
                                                                             proj.getLog());
       for (int i = 0; i < Math.min(125, parser.getNumericDataTitles().length); i++) {
         final String current = parser.getNumericDataTitles()[i];
-        ArrayList<String> pheno = new ArrayList<String>();
+        ArrayList<String> pheno = new ArrayList<>();
         double[] data = parser.getNumericDataForTitle(current);
 
         // We adjusted the phenotypes (or the mean phenotype) for age
@@ -398,7 +398,7 @@ public class GCTA {
     // String[] inputs = new String[] { inputGrm };
 
     String[] outputs = new String[] {outputGrm + ".grm.N.bin", outputGrm + ".grm.id"};
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("gcta64");
     command.add("--grm");
     command.add(inputGrm);
@@ -566,7 +566,7 @@ public class GCTA {
                              Logger log) {
 
     String[] inputs = PSF.Plink.getPlinkBedBimFam(plinkRoot);
-    ArrayList<String> command = new ArrayList<String>();
+    ArrayList<String> command = new ArrayList<>();
     command.add("gcta64");
     command.add("--bfile");
     command.add(plinkRoot);

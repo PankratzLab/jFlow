@@ -15,11 +15,11 @@ import java.util.Hashtable;
 public class XYLayout implements LayoutManager2, Serializable {
 
   public XYLayout() {
-    info = new Hashtable<Component, Object>();
+    info = new Hashtable<>();
   }
 
   public XYLayout(int i, int j) {
-    info = new Hashtable<Component, Object>();
+    info = new Hashtable<>();
     width = i;
     height = j;
   }

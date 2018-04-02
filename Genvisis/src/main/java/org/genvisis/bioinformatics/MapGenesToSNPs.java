@@ -114,7 +114,7 @@ public class MapGenesToSNPs {
       buffer = DEFAULT_BUFFER;
     }
 
-    snps = new Vector<String>(1000);
+    snps = new Vector<>(1000);
     try {
       reader = new BufferedReader(new FileReader(lookupFile));
       writer = Files.openAppropriateWriter(ext.rootOf(genesFile) + "_SNPs.xln");

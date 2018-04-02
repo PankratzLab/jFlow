@@ -41,10 +41,10 @@ public class CNVRectangles {
     colorScheme = CompPlot.colorScheme;
     // Read the data from the CNV files
     this.location = location;
-    fileMap = new HashMap<String, ArrayList<CNVariant>>();
+    fileMap = new HashMap<>();
     HashSet<String> sampleSet = null;
     if (samplesToUse != null) {
-      sampleSet = new HashSet<String>();
+      sampleSet = new HashSet<>();
       for (String s : samplesToUse) {
         sampleSet.add(s);
       }
@@ -60,13 +60,13 @@ public class CNVRectangles {
       File file = new File(hash.getFilename());
       CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes,
                                              minSize, qualityScore);
-      ArrayList<CNVariant> cnvList = new ArrayList<CNVariant>(Arrays.asList(cnvs));
+      ArrayList<CNVariant> cnvList = new ArrayList<>(Arrays.asList(cnvs));
 
       fileMap.put(file.getName(), cnvList);
     }
 
     // Populate the hashmap and rectangles
-    cnvRectangles = new ArrayList<CNVRectangle>();
+    cnvRectangles = new ArrayList<>();
     for (String key : fileMap.keySet()) {
       if (filterFiles.contains(key)) {
         for (CNVariant variant : fileMap.get(key)) {
@@ -90,7 +90,7 @@ public class CNVRectangles {
    * Create an empty object
    */
   public CNVRectangles() {
-    cnvRectangles = new ArrayList<CNVRectangle>();
+    cnvRectangles = new ArrayList<>();
   }
 
   /**
@@ -100,8 +100,8 @@ public class CNVRectangles {
    * @return ArrayList of collapsed rectangles
    */
   public ArrayList<CNVRectangle> getCollapsedRectangles() {
-    ArrayList<CNVRectangle> collapsedRectangles = new ArrayList<CNVRectangle>();
-    HashMap<String, CNVRectangle> cnvMap = new LinkedHashMap<String, CNVRectangle>();
+    ArrayList<CNVRectangle> collapsedRectangles = new ArrayList<>();
+    HashMap<String, CNVRectangle> cnvMap = new LinkedHashMap<>();
 
     /**
      * Store the rectangles in a HashMap based on their signature
@@ -152,19 +152,19 @@ public class CNVRectangles {
    * @return ArrayList of all rectangles sorted by Individual ID
    */
   public ArrayList<CNVRectangle> getFullRectangles() {
-    ArrayList<CNVRectangle> fullRectangles = new ArrayList<CNVRectangle>();
+    ArrayList<CNVRectangle> fullRectangles = new ArrayList<>();
 
     /**
      * Store everything in a hashmap with a key of the individual ID plus filename so we can get all
      * CNVs associated with that ID on the same line
      */
-    HashMap<String, ArrayList<CNVRectangle>> cnvMap = new HashMap<String, ArrayList<CNVRectangle>>();
+    HashMap<String, ArrayList<CNVRectangle>> cnvMap = new HashMap<>();
     for (CNVRectangle cnvRect : cnvRectangles) {
       String iid = cnvRect.getFilename() + ":" + cnvRect.getCNV().getIndividualID();
       if (cnvMap.containsKey(iid)) {
         cnvMap.get(iid).add(cnvRect);
       } else {
-        ArrayList<CNVRectangle> cnvRects = new ArrayList<CNVRectangle>();
+        ArrayList<CNVRectangle> cnvRects = new ArrayList<>();
         cnvRects.add(cnvRect);
         cnvMap.put(iid, cnvRects);
       }
@@ -205,7 +205,7 @@ public class CNVRectangles {
    * @return ArrayList of packed rectangles
    */
   public ArrayList<CNVRectangle> getPackedRectangles() {
-    ArrayList<CNVRectangle> packedRectangles = new ArrayList<CNVRectangle>();
+    ArrayList<CNVRectangle> packedRectangles = new ArrayList<>();
     clearUsed(cnvRectangles);
     lowestStart = getLowestRect(cnvRectangles);
     packedRectangles = packRectangles(cnvRectangles);
@@ -216,7 +216,7 @@ public class CNVRectangles {
    * @return A list of all {@link CNVariant} instances in all rectangles in this collection.
    */
   public List<CNVariant> getCNVs() {
-    List<CNVariant> variants = new ArrayList<CNVariant>();
+    List<CNVariant> variants = new ArrayList<>();
     for (CNVRectangle rectangle : cnvRectangles) {
       variants.addAll(rectangle.getCNVs());
     }
@@ -230,7 +230,7 @@ public class CNVRectangles {
    * @return ArrayList of packed rectangles
    */
   private ArrayList<CNVRectangle> packRectangles(List<CNVRectangle> cnvRects) {
-    ArrayList<CNVRectangle> packedRectangles = new ArrayList<CNVRectangle>();
+    ArrayList<CNVRectangle> packedRectangles = new ArrayList<>();
     int i = 0;
     while (hasUnused(cnvRects)) {
       CNVRectangle cnvRect = getLeftMost(lowestStart, cnvRects);

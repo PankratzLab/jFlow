@@ -78,7 +78,7 @@ public class StatsCrossTabs {
 
   public void computeTable(boolean all) {
     if (verify) {
-      Hashtable<Integer, Integer> complete = new Hashtable<Integer, Integer>();
+      Hashtable<Integer, Integer> complete = new Hashtable<>();
       for (int i = 0; i < statisticTable.length; i++) {
         if (dataToTest[i]) {
           for (int j = 0; j < statisticTable.length; j++) {
@@ -225,8 +225,8 @@ public class StatsCrossTabs {
     int numNansC1 = 0;
     int numNansC2 = 0;
 
-    ArrayList<Double> c1 = new ArrayList<Double>(dataToClean[0].length);
-    ArrayList<Double> c2 = new ArrayList<Double>(dataToClean[0].length);
+    ArrayList<Double> c1 = new ArrayList<>(dataToClean[0].length);
+    ArrayList<Double> c2 = new ArrayList<>(dataToClean[0].length);
 
     for (int i = 0; i < dataToClean[0].length; i++) {
       boolean keep = true;

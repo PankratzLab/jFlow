@@ -152,12 +152,12 @@ public class LDdatabase implements Serializable {
       chrHash = SnpMarkerSet.loadSnpMarkerSetToChrHash(root + ".bim",
                                                        SnpMarkerSet.PLINK_BIM_FORMAT);
     }
-    subHash = new Hashtable<String, String>();
+    subHash = new Hashtable<>();
 
     time = new Date().getTime();
     log.report("Sorting markers by chromosome");
     ivs = Vectors.initializedArray(IntVector.class, NUM_CHROMOSOMES);
-    missing = new Hashtable<String, Vector<String>>();
+    missing = new Hashtable<>();
     for (int i = 0; i < targets.length; i++) {
       trav = chrHash.get(targets[i]);
       if (trav == null) {
@@ -202,7 +202,7 @@ public class LDdatabase implements Serializable {
         }
 
         log.report("Checking how many chr" + chr + " pairs are present already...", false, true);
-        v = new Vector<String>();
+        v = new Vector<>();
         try {
           writer = null;
           for (int i = 0; i < subset.length; i++) {
@@ -245,7 +245,7 @@ public class LDdatabase implements Serializable {
             reader = new BufferedReader(new FileReader(dir + "freqCheck.frq"));
             ext.checkHeader(reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE),
                             FREQ_HEADER, true);
-            monomorphs = new Vector<String>();
+            monomorphs = new Vector<>();
             while (reader.ready()) {
               line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
               if (line[4].equals("0")) {
@@ -381,7 +381,7 @@ public class LDdatabase implements Serializable {
   public static Hashtable<String, Hashtable<String, String>> getChrHashes(LDdatabase[] lddbs) {
     Hashtable<String, Hashtable<String, String>> chrHashes;
 
-    chrHashes = new Hashtable<String, Hashtable<String, String>>();
+    chrHashes = new Hashtable<>();
     for (int i = 0; i < lddbs.length; i++) {
       chrHashes.put(i + "", lddbs[i].getChrHash());
     }

@@ -17,7 +17,7 @@ public class addPheno2gh {
     PrintWriter writer;
     StringTokenizer st;
     String temp, chrome, id;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     double aao;
 
     try {

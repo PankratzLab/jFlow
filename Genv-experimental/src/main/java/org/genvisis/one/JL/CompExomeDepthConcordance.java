@@ -20,7 +20,7 @@ public class CompExomeDepthConcordance {
 
   public static void comp(String[] files, Hashtable<String, String> iidMatch, String mapFile,
                           String callSubset, String problematicRegionFIle) {
-    ArrayList<LocusSet<CNVariant>> sets = new ArrayList<LocusSet<CNVariant>>();
+    ArrayList<LocusSet<CNVariant>> sets = new ArrayList<>();
     String resultDir = ext.parseDirectoryOfFile(files[0]) + "results/";
     new File(resultDir).mkdirs();
     Logger log = new Logger();
@@ -29,7 +29,7 @@ public class CompExomeDepthConcordance {
       LocusSet<CNVariant> tmp = CNVariant.loadLocSet(file, log);
       Map<String, LocusSet<CNVariant>> inds = CNVariant.breakIntoInds(tmp, log);
 
-      ArrayList<CNVariant> indsForThisFile = new ArrayList<CNVariant>();
+      ArrayList<CNVariant> indsForThisFile = new ArrayList<>();
       for (String ind : iidMatch.keySet()) {
         if (inds.containsKey(ind)) {
           inds.get(ind).addAll(indsForThisFile);
@@ -50,8 +50,8 @@ public class CompExomeDepthConcordance {
 
     for (int i = 0; i < sets.size(); i++) {
       LocusSet<CNVariant> current = sets.get(i);
-      ArrayList<CNVariant> match = new ArrayList<CNVariant>();
-      ArrayList<CNVariant> noMatch = new ArrayList<CNVariant>();
+      ArrayList<CNVariant> match = new ArrayList<>();
+      ArrayList<CNVariant> noMatch = new ArrayList<>();
 
       for (int j = 0; j < sets.size(); j++) {
 
@@ -125,7 +125,7 @@ public class CompExomeDepthConcordance {
   private static void dumpAndSummarize(LocusSet<CNVariant> out, String outFile,
                                        String mappabilityFile, String callSubsetBed,
                                        String problematicRegionFIle, Logger log) {
-    Mappability<CNVariant> cnMappability = new Mappability<CNVariant>(out, mappabilityFile,
+    Mappability<CNVariant> cnMappability = new Mappability<>(out, mappabilityFile,
                                                                       callSubsetBed, log);
     cnMappability.computeMappability();
     LocusSet<Segment> pSet = LocusSet.loadSegmentSetFromFile(problematicRegionFIle, 0, 1, 2, 0,
@@ -158,7 +158,7 @@ public class CompExomeDepthConcordance {
   public static void main(String[] args) {
     String dir = "D:/data/Project_Tsai_21_25_26_spector/cnvs/compConcord/";
     String[] cnvFiles = Files.listFullPaths(dir, ".cnvs");
-    Hashtable<String, String> iidMatch = new Hashtable<String, String>();
+    Hashtable<String, String> iidMatch = new Hashtable<>();
     iidMatch.put("D100\tD100",
                  "HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT");
     iidMatch.put("HapMap_Control_CAGAGAGG-CTCTCTAT\tHapMap_Control_CAGAGAGG-CTCTCTAT",

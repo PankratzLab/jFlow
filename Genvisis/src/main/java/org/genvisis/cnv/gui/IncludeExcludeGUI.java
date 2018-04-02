@@ -27,7 +27,7 @@ public class IncludeExcludeGUI extends JDialog {
   private final JPanel contentPanel = new JPanel();
   private JPanel panel;
   private volatile int close = JOptionPane.CLOSED_OPTION;
-  private final ArrayList<JCheckBox> chks = new ArrayList<JCheckBox>();
+  private final ArrayList<JCheckBox> chks = new ArrayList<>();
 
   /**
    * Create the dialog.

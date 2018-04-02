@@ -31,9 +31,9 @@ public class WorkerHive<T> {
     super();
     this.log = log;
     this.executor = Executors.newFixedThreadPool(nThreads);
-    this.bees = new ArrayList<Callable<T>>();
-    this.futures = new ArrayList<Future<T>>();
-    this.results = new ArrayList<T>();
+    this.bees = new ArrayList<>();
+    this.futures = new ArrayList<>();
+    this.results = new ArrayList<>();
   }
 
   /**
@@ -44,9 +44,9 @@ public class WorkerHive<T> {
   }
 
   public void clear() {
-    this.bees = new ArrayList<Callable<T>>();
-    this.futures = new ArrayList<Future<T>>();
-    this.results = new ArrayList<T>();
+    this.bees = new ArrayList<>();
+    this.futures = new ArrayList<>();
+    this.results = new ArrayList<>();
   }
 
   /**

@@ -25,12 +25,12 @@ public final class JobQueue {
   private int minNodeCnt = -1;
   private int maxNodeCnt = -1;
   private JobQueue.QueueType type;
-  private List<String> routeDests = new ArrayList<String>();
-  private ArrayList<String> allowedGroups = new ArrayList<String>();
+  private List<String> routeDests = new ArrayList<>();
+  private ArrayList<String> allowedGroups = new ArrayList<>();
   private boolean userAccessControlEnabled;
   private boolean groupAccessControlEnabled;
   private boolean groupControlSloppy = false;
-  private List<String> allowedUsers = new ArrayList<String>();
+  private List<String> allowedUsers = new ArrayList<>();
   private boolean isDefaultQueue = false;
 
   public boolean isDefaultQueue() {

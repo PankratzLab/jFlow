@@ -17,7 +17,7 @@ public class LinkageToPlink {
 
   public static void convert(String dir, String snp_database) {
     PrintWriter writer;
-    Vector<String[]> v = new Vector<String[]>();
+    Vector<String[]> v = new Vector<>();
     String chrome;
 
     System.out.println("Creating files...");

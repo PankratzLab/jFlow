@@ -19,7 +19,7 @@ public class OutlierHashtable implements Serializable {
   public OutlierHashtable(long sampleFingerPrintOfTheProj, long markerFingerPrintOfTheProj) {
     sampFingerPrintFromProj = sampleFingerPrintOfTheProj;
     markFingerPrintFromProj = markerFingerPrintOfTheProj;
-    outlierHashtableBig = new Hashtable<Long, Float>();
+    outlierHashtableBig = new Hashtable<>();
   }
 
   public void add(int markerIndexInProj, int sampleIndexInProj, byte dataItem, float value) {

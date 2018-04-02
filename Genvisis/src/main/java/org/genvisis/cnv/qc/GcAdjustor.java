@@ -454,24 +454,24 @@ public class GcAdjustor {
       byte[] chrs = preparedMarkerSet.getChrs();
       int[] positions = preparedMarkerSet.getPositions();
 
-      ArrayList<Double> tmpRegressGcs = new ArrayList<Double>(3000);// usually around 3K, stores
+      ArrayList<Double> tmpRegressGcs = new ArrayList<>(3000);// usually around 3K, stores
                                                                     // info for regression model
-      ArrayList<Double> tmpRegressIntensity = new ArrayList<Double>(3000);// usually around 3K,
+      ArrayList<Double> tmpRegressIntensity = new ArrayList<>(3000);// usually around 3K,
                                                                           // stores info for
                                                                           // regression model
-      ArrayList<Double> tmpFullGcs = new ArrayList<Double>(markers.length);// can't be more than
+      ArrayList<Double> tmpFullGcs = new ArrayList<>(markers.length);// can't be more than
                                                                            // this, stores data for
                                                                            // full correction
-      ArrayList<Double> tmpFullIntensity = new ArrayList<Double>(markers.length);// can't be more
+      ArrayList<Double> tmpFullIntensity = new ArrayList<>(markers.length);// can't be more
                                                                                  // than this,
                                                                                  // stores data for
                                                                                  // full correction
-      ArrayList<int[]> tmpQcIndices = new ArrayList<int[]>(3000);// refers to the index matched
+      ArrayList<int[]> tmpQcIndices = new ArrayList<>(3000);// refers to the index matched
                                                                  // gc/LRR values
-      ArrayList<int[]> tmpchr11qcIndices = new ArrayList<int[]>(3000);// refers to the index matched
+      ArrayList<int[]> tmpchr11qcIndices = new ArrayList<>(3000);// refers to the index matched
                                                                       // gc/LRR values on chromosome
                                                                       // 11 only
-      ArrayList<Integer> tmpCorrectedIndices = new ArrayList<Integer>(markers.length);// refers to
+      ArrayList<Integer> tmpCorrectedIndices = new ArrayList<>(markers.length);// refers to
                                                                                       // all indices
                                                                                       // we will
                                                                                       // correct
@@ -481,8 +481,8 @@ public class GcAdjustor {
       for (int i = 0; i < indicesByChr.length; i++) {
         int currentRegressDistance = 0;
         int currentBin = 0;
-        ArrayList<Integer> tmpCurrentBin = new ArrayList<Integer>(1000);
-        ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<Integer>(1000);// only used for
+        ArrayList<Integer> tmpCurrentBin = new ArrayList<>(1000);
+        ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<>(1000);// only used for
                                                                              // chromosome 11...for
                                                                              // defualt pennCNV
                                                                              // behavior, and track
@@ -542,8 +542,8 @@ public class GcAdjustor {
                   } else {
                     tmpQcIndices.add(null);
                   }
-                  tmpCurrentBin = new ArrayList<Integer>(1000);
-                  tmpCurrentBinChr11 = new ArrayList<Integer>(1000);
+                  tmpCurrentBin = new ArrayList<>(1000);
+                  tmpCurrentBinChr11 = new ArrayList<>(1000);
                   if (correctionMethod == GC_CORRECTION_METHOD.GENVISIS_GC) {// PennCNV skips this
                                                                              // marker, even though
                                                                              // it can be added to
@@ -619,8 +619,8 @@ public class GcAdjustor {
           }
           tmpQcIndices.add(null);
         }
-        tmpCurrentBin = new ArrayList<Integer>(1000);// reset the bins
-        tmpCurrentBinChr11 = new ArrayList<Integer>(1000);// reset the bins
+        tmpCurrentBin = new ArrayList<>(1000);// reset the bins
+        tmpCurrentBinChr11 = new ArrayList<>(1000);// reset the bins
       }
       if (tmpRegressGcs.size() == 0) {
         fail = true;
@@ -688,8 +688,8 @@ public class GcAdjustor {
                                   int[][] pennCNVGCBins, boolean verbose, Logger log) {
     double[] waves = new double[2];// Organizes as WF, GCWF
     Arrays.fill(waves, Double.NaN);
-    ArrayList<Double> medianIntensity = new ArrayList<Double>();
-    ArrayList<Double> medianGc = new ArrayList<Double>();
+    ArrayList<Double> medianIntensity = new ArrayList<>();
+    ArrayList<Double> medianGc = new ArrayList<>();
     for (int[] wFbin : WFbins) {
       if (wFbin != null) {
         medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities, wFbin)));
@@ -705,8 +705,8 @@ public class GcAdjustor {
                         + " bins, but found " + pennCNVGCBins.length + " bins instead");
 
       } else {
-        medianIntensity = new ArrayList<Double>();
-        medianGc = new ArrayList<Double>();
+        medianIntensity = new ArrayList<>();
+        medianGc = new ArrayList<>();
         for (int i = 0; i < pennCNVGCBins.length; i++) {
           if (pennCNVGCBins[i] != null) {
             medianGc.add(DEFUALT_PENNCNV_CHR11_GC_BINS[i]);
@@ -783,7 +783,7 @@ public class GcAdjustor {
     private final byte[] chrs;
     private final int[] positions;
     private final double[] gcs;
-    private Map<String, Integer> index = new Hashtable<String, Integer>();
+    private Map<String, Integer> index = new Hashtable<>();
     private ColorManager<String> colorManager;
 
     // private Logger log;
@@ -814,17 +814,17 @@ public class GcAdjustor {
         NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(gcs, true),
                                                        ArrayUtils.stdev(getGcs(), true));
         Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
-        Hashtable<String, String> lookup = new Hashtable<String, String>();// items associated with
+        Hashtable<String, String> lookup = new Hashtable<>();// items associated with
                                                                            // category
                                                                            // (marker->PoorQualityCategory)
-        Hashtable<String, ColorItem<String>> manager = new Hashtable<String, ColorExt.ColorItem<String>>();
+        Hashtable<String, ColorItem<String>> manager = new Hashtable<>();
         for (int i = 0; i < gcs.length; i++) {
           int gcColorIndex = (int) Math.round(nd.cumulativeProbability(gcs[i]) * numBins - 1);
           gcColorIndex = Math.max(0, gcColorIndex);
           gcColorIndex = Math.min(numBins, gcColorIndex);
           lookup.put(markers[i], gcColorIndex + "");
           manager.put(gcColorIndex + "",
-                      new ColorItem<String>(gcColorIndex + "", colors[gcColorIndex]));
+                      new ColorItem<>(gcColorIndex + "", colors[gcColorIndex]));
         }
         colorManager = new ColorManager<String>(lookup, manager) {
 
@@ -946,7 +946,7 @@ public class GcAdjustor {
       int curstart, curend, curcount;
       boolean skip = false;
       double cursum;
-      Hashtable<Byte, Byte> seen_chr = new Hashtable<Byte, Byte>();
+      Hashtable<Byte, Byte> seen_chr = new Hashtable<>();
 
       int[] snp_count;
       double[] snp_sum;
@@ -1224,11 +1224,11 @@ public class GcAdjustor {
     // }
 
     public static GcModel populateFromFile(String fullPathToGcModel, boolean verbose, Logger log) {
-      ArrayList<String> markers = new ArrayList<String>();
-      ArrayList<Byte> chrs = new ArrayList<Byte>();
-      ArrayList<Integer> positions = new ArrayList<Integer>();
-      ArrayList<Double> gcs = new ArrayList<Double>();
-      Hashtable<String, Integer> index = new Hashtable<String, Integer>();
+      ArrayList<String> markers = new ArrayList<>();
+      ArrayList<Byte> chrs = new ArrayList<>();
+      ArrayList<Integer> positions = new ArrayList<>();
+      ArrayList<Double> gcs = new ArrayList<>();
+      Hashtable<String, Integer> index = new Hashtable<>();
       String fullPathToGcSer = ext.rootOf(fullPathToGcModel, false) + ".gcmodel.ser";
       if (Files.exists(fullPathToGcSer)) {
         log.report("Info - loading gc model file " + fullPathToGcSer);

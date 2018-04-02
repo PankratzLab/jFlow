@@ -27,7 +27,7 @@ public class gatherQuant {
     PrintWriter peaks = null;
     PrintWriter lot = null;
     String[] line, vLine;
-    Vector<String[]> vLines = new Vector<String[]>();
+    Vector<String[]> vLines = new Vector<>();
     String chrome;
     int numDirs, pos, max_pos;
     double lod, max_lod;
@@ -211,7 +211,7 @@ public class gatherQuant {
 
   public static void main(String[] args) throws IOException {
     String trait = "AOO";
-    Vector<String> directories = new Vector<String>();
+    Vector<String> directories = new Vector<>();
     String[] dirs;
 
     String usage = "\n" + "park.gatherQuant requires at least 1 argument\n"

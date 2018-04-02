@@ -34,7 +34,7 @@ public class OMIM {
     if (gHashtable.containsKey(gene)) {
       return gHashtable.get(gene);
     } else {
-      ArrayList<OMIMGene> blank = new ArrayList<OMIM.OMIMGene>();
+      ArrayList<OMIMGene> blank = new ArrayList<>();
       blank.add(new OMIMGene(new String[] {"NA"}, new String[] {"NA"}, "NA", "NA", "NA", "NA", "NA",
                              "NA", "NA", "NA"));
       return blank;
@@ -43,8 +43,8 @@ public class OMIM {
 
   private static Hashtable<String, ArrayList<OMIMGene>> loadGeneOmimMap(String filename,
                                                                         Logger log) {
-    Hashtable<String, ArrayList<OMIMGene>> gHashtable = new Hashtable<String, ArrayList<OMIMGene>>();
-    Hashtable<String, String> status = new Hashtable<String, String>();
+    Hashtable<String, ArrayList<OMIMGene>> gHashtable = new Hashtable<>();
+    Hashtable<String, String> status = new Hashtable<>();
     status.put("C", "confirmed - observed in at least two laboratories or in several families");
     status.put("P", "based on evidence from one laboratory or one family");
     status.put("I", "inconsistent - results of different laboratories disagree");

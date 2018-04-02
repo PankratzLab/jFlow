@@ -490,9 +490,9 @@ public class BamImport {
                                                                                fingerPrint,
                                                                                normMethod, log);
 
-    Hashtable<String, Float> allOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> allOutliers = new Hashtable<>();
 
-    try (WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<BamImport.BamPileConversionResults>(conversionProducer,
+    try (WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<>(conversionProducer,
                                                                                                                      numthreads,
                                                                                                                      10,
                                                                                                                      log)) {
@@ -572,10 +572,10 @@ public class BamImport {
     String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
     String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
 
-    Hashtable<String, Float> recompallOutliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> recompallOutliers = new Hashtable<>();
     RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
                                                        proj.getMarkerSet(), correcteds);
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<Hashtable<String, Float>>(producer,
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
                                                                                                  numthreads,
                                                                                                  10,
                                                                                                  proj.getLog())) {
@@ -687,7 +687,7 @@ public class BamImport {
     proj.LRRSD_CUTOFF.setValue(.60);
     proj.INTENSITY_PC_NUM_COMPONENTS.setValue(correctionPCs);
     String mediaMarks = ext.addToRoot(proj.INTENSITY_PC_MARKERS_FILENAME.getValue(), ".median");
-    ArrayList<ProjectCorrected> correctedProjects = new ArrayList<ProjectCorrected>();
+    ArrayList<ProjectCorrected> correctedProjects = new ArrayList<>();
     Files.writeArray(ArrayUtils.subArray(proj.getMarkerNames(), 0, 1000), mediaMarks);
     String[] autoMarks = proj.getAutosomalMarkers();
     for (MarkerFileType type : types) {
@@ -708,7 +708,7 @@ public class BamImport {
       } else {
         tmpList = HashVec.loadFileToStringArray(type.getFile(), true, new int[] {0}, true);
       }
-      ArrayList<String> autosomalToUse = new ArrayList<String>();
+      ArrayList<String> autosomalToUse = new ArrayList<>();
       int[] indices = ext.indexLargeFactors(tmpList, autoMarks, true, proj.getLog(), false);
       for (int indice : indices) {
         if (indice >= 0) {
@@ -843,7 +843,7 @@ public class BamImport {
                                                           List<ProjectCorrected> correctedProjects) {
     String sampleFile = newSampleDirectory + sampleName + Sample.SAMPLE_FILE_EXTENSION;
     proj.getLog().reportTimeInfo("Sample file = " + sampleFile);
-    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
+    Hashtable<String, Float> outliers = new Hashtable<>();
     if (!Files.exists(sampleName)) {
       Sample sampleOriginal = proj.getFullSampleFromRandomAccessFile(sampleName);
       int numAccountedFor = 0;
@@ -891,10 +891,10 @@ public class BamImport {
     String allFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(),
                                    ".OffTargetProblemsFlagged");
 
-    ArrayList<String> problems = new ArrayList<String>();
-    ArrayList<String> noProblems = new ArrayList<String>();
-    ArrayList<String> all = new ArrayList<String>();
-    ArrayList<String> goodOffTargets = new ArrayList<String>();
+    ArrayList<String> problems = new ArrayList<>();
+    ArrayList<String> noProblems = new ArrayList<>();
+    ArrayList<String> all = new ArrayList<>();
+    ArrayList<String> goodOffTargets = new ArrayList<>();
 
     String header = "BinName\tCLASS=MARKER_COLOR;OFF_TARGET_OK=Blue;LIKELY_OFF_TARGET_PROBLEM=RED;OTHER_TYPE=Green";
     problems.add(header);
@@ -946,16 +946,16 @@ public class BamImport {
                                       + genomeBinsMinusBinsCaputure.getLoci().length
                                       + varFeatures.getLoci().length];
     String header = "BinName\tChr\tPosition\tCLASS=MARKER_COLOR;OFF_TARGET=Blue;VARIANT_SITE=RED;ON_TARGET=Green";
-    ArrayList<String> onTMarkers = new ArrayList<String>();
+    ArrayList<String> onTMarkers = new ArrayList<>();
     onTMarkers.add(header);
 
-    ArrayList<String> offTMarkers = new ArrayList<String>();
+    ArrayList<String> offTMarkers = new ArrayList<>();
     offTMarkers.add(header);
 
-    ArrayList<String> variantSiteMarkers = new ArrayList<String>();
+    ArrayList<String> variantSiteMarkers = new ArrayList<>();
     variantSiteMarkers.add(header);
 
-    ArrayList<String> allMarkerColors = new ArrayList<String>();
+    ArrayList<String> allMarkerColors = new ArrayList<>();
     allMarkerColors.add(header);
 
     try {
@@ -1037,7 +1037,7 @@ public class BamImport {
                                                            allMarkerColorFile});
     String allMarkerFile = ext.addToRoot(proj.MARKER_POSITION_FILENAME.getValue(), ".allMarkers");
 
-    ArrayList<MarkerFileType> markerTypes = new ArrayList<MarkerFileType>();
+    ArrayList<MarkerFileType> markerTypes = new ArrayList<>();
 
     if (!onTMarkers.isEmpty()) {
       Files.writeArray(ArrayUtils.toStringArray(onTMarkers), onTargetFile);

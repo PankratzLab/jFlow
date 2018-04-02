@@ -56,7 +56,7 @@ public class LineChartSample extends Application {
     xAxis.setLabel("PC");
     yAxis.setLabel("Beta Correlation of inverse mito estimates (p<.05)");
 
-    final XYChart<Number, Number> lineChart = new LineChart<Number, Number>(xAxis, yAxis);
+    final XYChart<Number, Number> lineChart = new LineChart<>(xAxis, yAxis);
 
     lineChart.setTitle(ext.rootOf(file));
 

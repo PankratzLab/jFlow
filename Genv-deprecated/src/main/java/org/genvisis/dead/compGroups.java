@@ -69,7 +69,7 @@ public class compGroups {
     String[] line;
     Pattern delimiters = Pattern.compile("[\\-\\s]+");
     String trav;
-    Hashtable<String, Vector<String>> hash = new Hashtable<String, Vector<String>>();
+    Hashtable<String, Vector<String>> hash = new Hashtable<>();
     Vector<String> v = null;
     int[] phenos;
     int count, group, correction, count2;
@@ -100,7 +100,7 @@ public class compGroups {
           System.exit(4);
         }
         hash.get("groups").add(trav);
-        hash.put(trav, v = new Vector<String>());
+        hash.put(trav, v = new Vector<>());
         newGroup = false;
       } else {
         if (line.length == 1) {
@@ -129,7 +129,7 @@ public class compGroups {
     }
     reader = new BufferedReader(new FileReader(DB_FILE));
 
-    v = new Vector<String>();
+    v = new Vector<>();
     phenoNames = reader.readLine().split(PSF.Regex.GREEDY_WHITESPACE);
     for (int i = 0; i < phenoNames.length; i++) {
       if (containsStr(phenoNames[i], USE)) {
@@ -145,7 +145,7 @@ public class compGroups {
       phenos[i] = Integer.valueOf(v.elementAt(i)).intValue();
     }
 
-    data = new Vector<Vector<String[]>>();
+    data = new Vector<>();
     for (String group2 : groups) {
       data.add(new Vector<String[]>());
     }
@@ -194,7 +194,7 @@ public class compGroups {
         binaryData = true;
 
         count = 0;
-        v = new Vector<String>();
+        v = new Vector<>();
         for (int i = 0; i < groups.length; i++) {
           correction = 0;
           for (int j = 0; j < data.elementAt(i).size(); j++) {

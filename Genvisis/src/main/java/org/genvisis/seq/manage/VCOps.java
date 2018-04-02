@@ -271,10 +271,10 @@ public class VCOps {
   public static VariantContext getIndividualPassingContext(final VariantContext vc,
                                                            final VariantContextFilter variantContextFilter,
                                                            Logger log) {
-    HashSet<String> passing = new HashSet<String>();
+    HashSet<String> passing = new HashSet<>();
     Set<String> curSamps = vc.getSampleNames();
     for (String samp : curSamps) {
-      HashSet<String> tmp = new HashSet<String>();
+      HashSet<String> tmp = new HashSet<>();
       tmp.add(samp);
       if (variantContextFilter.filter(getSubset(vc, tmp)).passed()) {
         passing.add(samp);
@@ -304,7 +304,7 @@ public class VCOps {
                                                    final ALT_ALLELE_CONTEXT_TYPE type,
                                                    boolean verbose, final Logger log) {
     GenotypesContext gc = vc.getGenotypes();
-    HashSet<String> samplesWithAlt = new HashSet<String>();
+    HashSet<String> samplesWithAlt = new HashSet<>();
     int altAlleleDepth = -1;
     double altAlleleDepthRatio = -1;
     if (filterNGS != null && filterNGS.getAltAlleleDepthFilter() != null
@@ -367,7 +367,7 @@ public class VCOps {
                                                                                       // non-reference
             double ratio = (double) AD[1] / geno.getDP();
             if (altAlleleDepthRatio <= 0 || ratio >= altAlleleDepthRatio) {
-              HashSet<String> tmp = new HashSet<String>();
+              HashSet<String> tmp = new HashSet<>();
               tmp.add(geno.getSampleName());
               if (variantContextFilter == null
                   || variantContextFilter.filter(getSubset(vc, tmp)).passed()) {
@@ -448,7 +448,7 @@ public class VCOps {
           }
           return null;
         }
-        ArrayList<Allele> uniqs = new ArrayList<Allele>();
+        ArrayList<Allele> uniqs = new ArrayList<>();
         for (int i = 0; i < gAlleles.size(); i++) {
           boolean have = false;
           for (int j = 0; j < uniqs.size(); j++) {
@@ -464,7 +464,7 @@ public class VCOps {
           throw new IllegalStateException("Variant does not capture genotyped alleles\t"
                                           + varAlleles.toString() + "\t" + uniqs.toString());
         }
-        ArrayList<Integer> gAlleleIndices = new ArrayList<Integer>();
+        ArrayList<Integer> gAlleleIndices = new ArrayList<>();
         int index = 0;
         for (Allele varAllele : varAlleles) {
           for (Allele gAllele : uniqs) {
@@ -641,7 +641,7 @@ public class VCOps {
   }
 
   public static <E> Set<E> getOverlap(Set<E> subset, Set<E> superSet) {
-    Hashtable<E, E> overlap = new Hashtable<E, E>();
+    Hashtable<E, E> overlap = new Hashtable<>();
     // Set<E> overlap = new Set<E>();
     for (E e : superSet) {
       if (subset.contains(e)) {
@@ -661,7 +661,7 @@ public class VCOps {
    */
   public static VariantContext getSubset(final VariantContext vc, final String sampleName,
                                          VC_SUBSET_TYPE type) {
-    HashSet<String> tmp = new HashSet<String>();
+    HashSet<String> tmp = new HashSet<>();
     tmp.add(sampleName);
     return getSubset(vc, tmp, type);
   }
@@ -726,7 +726,7 @@ public class VCOps {
       return builder.make();
     } else {
       Set<String> samples = vc.getSampleNames();
-      ArrayList<Genotype> genotypes = new ArrayList<Genotype>();
+      ArrayList<Genotype> genotypes = new ArrayList<>();
       for (String sample : samples) {
 
         GenotypeBuilder gbuilder = new GenotypeBuilder(vc.getGenotype(sample));
@@ -803,7 +803,7 @@ public class VCOps {
   }
 
   public static List<Allele> getAllelesFor(VariantContext vc, String sampleName) {
-    HashSet<String> tmp = new HashSet<String>();
+    HashSet<String> tmp = new HashSet<>();
     tmp.add(sampleName);
     return getAllelesFor(vc, tmp);
   }

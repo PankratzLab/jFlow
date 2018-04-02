@@ -64,7 +64,7 @@ public class IntensityCorrectionQC {
       index++;
     }
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    Hashtable<String, Future<double[]>> tmpResults = new Hashtable<String, Future<double[]>>();
+    Hashtable<String, Future<double[]>> tmpResults = new Hashtable<>();
     double[][] allResults = new double[numTests][];
     for (int i = startPC; i < stopPC; i += jumpPC) {
       tmpResults.put(i + "",
@@ -627,7 +627,7 @@ public class IntensityCorrectionQC {
     }
 
     public void determineValidForICC() {
-      Hashtable<String, String> track = new Hashtable<String, String>();
+      Hashtable<String, String> track = new Hashtable<>();
       validForICC = false;
       for (String classDef : classDefs) {
         if (ext.indexOfStr(classDef, IntensityCorrectionQC.MASK, true, true) < 0) {
@@ -706,7 +706,7 @@ public class IntensityCorrectionQC {
     try {
       BufferedReader reader = Files.getAppropriateReader(dataFile);
       reader.readLine();
-      ArrayList<String> samples = new ArrayList<String>();
+      ArrayList<String> samples = new ArrayList<>();
       while (reader.ready()) {
         String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         samples.add(line[0]);

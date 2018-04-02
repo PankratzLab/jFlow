@@ -109,7 +109,7 @@ public class BetaOptimizer {
     }
 
     private static String[] getHeader() {
-      ArrayList<String> header = new ArrayList<String>();
+      ArrayList<String> header = new ArrayList<>();
       header.add("PC");
       header.add("correl_pearsonSigned");
       header.add("pval_pearsonSigned");
@@ -124,7 +124,7 @@ public class BetaOptimizer {
     }
 
     private String[] getSummary() {
-      ArrayList<String> summary = new ArrayList<String>();
+      ArrayList<String> summary = new ArrayList<>();
       summary.add(comparisonIndex + "");
       summary.add(correlPearsonSigned + "");
       summary.add(pPearsonSigned + "");
@@ -184,8 +184,8 @@ public class BetaOptimizer {
     }
 
     private BetaCorrelationResult getResult(double[] data) {
-      ArrayList<Double> dataBetas = new ArrayList<Double>();
-      ArrayList<Double> meta = new ArrayList<Double>();
+      ArrayList<Double> dataBetas = new ArrayList<>();
+      ArrayList<Double> meta = new ArrayList<>();
       int countMafRemoved = 0;
       for (int i = 0; i < genotypes.length; i++) {
         if (i % 2000 == 0) {
@@ -194,8 +194,8 @@ public class BetaOptimizer {
                              + Thread.currentThread().getName());
           log.reportTimeInfo("removed " + countMafRemoved + " markers for maf filter of " + maf);
         }
-        ArrayList<Double> tmpGeno = new ArrayList<Double>();
-        ArrayList<Double> tmpData = new ArrayList<Double>();
+        ArrayList<Double> tmpGeno = new ArrayList<>();
+        ArrayList<Double> tmpData = new ArrayList<>();
         for (int j = 0; j < genotypes[i].length; j++) {
           if (genotypes[i][j] >= 0 && !Double.isNaN(data[j])) {
             tmpGeno.add((double) genotypes[i][j]);
@@ -431,7 +431,7 @@ public class BetaOptimizer {
   private static ArrayList<MetaBeta> getWindowPruned(FilterGenoResult filterGenoResultPrimary,
                                                      List<MetaBeta> metaPrimary, double pval,
                                                      Logger log) {
-    ArrayList<MetaBeta> filtered = new ArrayList<BetaOptimizer.MetaBeta>();
+    ArrayList<MetaBeta> filtered = new ArrayList<>();
     if (filterGenoResultPrimary.genoDef.length != metaPrimary.size()) {
       throw new IllegalStateException("Mismatched meta and genotype info, should have "
                                       + filterGenoResultPrimary.genoDef.length + " but got "
@@ -444,11 +444,11 @@ public class BetaOptimizer {
       }
     }
     log.reportTimeInfo(filtered.size() + " markers remaining post QC");
-    GeneralHitWindowDetector<MetaBeta> hitWindowDetector = new GeneralHitWindowDetector<MetaBeta>(filtered,
+    GeneralHitWindowDetector<MetaBeta> hitWindowDetector = new GeneralHitWindowDetector<>(filtered,
                                                                                                   125000,
                                                                                                   pval,
                                                                                                   pval);
-    ArrayList<MetaBeta> windows = new ArrayList<BetaOptimizer.MetaBeta>();
+    ArrayList<MetaBeta> windows = new ArrayList<>();
     while (hitWindowDetector.hasNext()) {
       List<MetaBeta> index = hitWindowDetector.next().getIndexHits();
       for (MetaBeta in : index) {
@@ -484,7 +484,7 @@ public class BetaOptimizer {
           ArrayList<MetaBeta> metaBetas = prep(proj, markerSet, abLookup, dbsnpVCF, namesToQuery,
                                                outpuDir, betaFile, ArrayUtils.max(pvals), log);
           if (pvalRefineCutoff > 0 && metaBetas.size() > pvalRefineCutoff) {
-            ArrayList<Double> tmpPvals = new ArrayList<Double>();
+            ArrayList<Double> tmpPvals = new ArrayList<>();
 
             for (double pval : pvals) {
               tmpPvals.add(pval);
@@ -583,7 +583,7 @@ public class BetaOptimizer {
                           BetaProducer producer = new BetaProducer(filterGenoResultSecondary.analysisGenos,
                                                                    filterGenoResultSecondary.sampleDef,
                                                                    current, parser, maxPCs, 0, log);
-                          try (WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<BetaOptimizer.BetaCorrelationResult[]>(producer,
+                          try (WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<>(producer,
                                                                                                                                    numthreads,
                                                                                                                                    10,
                                                                                                                                    log)) {
@@ -634,8 +634,8 @@ public class BetaOptimizer {
       String rootOutBetas = outpuDir + ext.rootOf(betaFile) + "_summaryPlots";
       String rootOutInvBetas = outpuDir + ext.rootOf(betaFile) + "_Inv_summaryPlots";
 
-      ArrayList<RScatter> rScattersBetas = new ArrayList<RScatter>();
-      ArrayList<RScatter> rScattersInvBetas = new ArrayList<RScatter>();
+      ArrayList<RScatter> rScattersBetas = new ArrayList<>();
+      ArrayList<RScatter> rScattersInvBetas = new ArrayList<>();
 
       String[] summHeader = Files.getHeaderOfFile(bigSummaryOut, log);
       Hashtable<String, Hashtable<String, Vector<String>>> info = HashVec.loadFileToHashHashVec(bigSummaryOut,
@@ -660,7 +660,7 @@ public class BetaOptimizer {
         String[][] altLegends = null;
         if (currentInfo != null) {
           String[] tmpMethods = new String[currentInfo.size()];
-          Map<String, String> legendMap = new HashMap<String, String>();
+          Map<String, String> legendMap = new HashMap<>();
           int ind = 0;
           for (String method : currentInfo.keySet()) {
             String[] inf = currentInfo.get(method).get(0).split("\t");
@@ -787,7 +787,7 @@ public class BetaOptimizer {
   }
 
   private static ArrayList<MetaBeta> filter(List<MetaBeta> metaBetas, double pval) {
-    ArrayList<MetaBeta> filt = new ArrayList<MetaBeta>();
+    ArrayList<MetaBeta> filt = new ArrayList<>();
     for (MetaBeta m : metaBetas) {
       if (m.getPval() < pval) {
         filt.add(m);
@@ -884,12 +884,12 @@ public class BetaOptimizer {
                       + ArrayUtils.toStr(BETA_HEADER));
       return null;
     } else {
-      ArrayList<MetaBeta> metaBetas = new ArrayList<BetaOptimizer.MetaBeta>();
-      Hashtable<String, Integer> index = new Hashtable<String, Integer>();
+      ArrayList<MetaBeta> metaBetas = new ArrayList<>();
+      Hashtable<String, Integer> index = new Hashtable<>();
       for (int i = 0; i < markerRsFormats.size(); i++) {
         index.put(markerRsFormats.get(i).getRs(), i);
       }
-      HashSet<String> added = new HashSet<String>();
+      HashSet<String> added = new HashSet<>();
       try {
         BufferedReader reader = Files.getAppropriateReader(betaFile);
         while (reader.ready()) {
@@ -1014,7 +1014,7 @@ public class BetaOptimizer {
     }
 
     VCFFileReader reader = new VCFFileReader(new File(dbsnpVCF), true);
-    ArrayList<MarkerRsFormat> markerRsFormats = new ArrayList<MarkerRsFormat>();
+    ArrayList<MarkerRsFormat> markerRsFormats = new ArrayList<>();
     String outTxt = ext.rootOf(outSer, false) + ".txt";
     try {
       PrintWriter writer = Files.openAppropriateWriter(outTxt);

@@ -16,7 +16,7 @@ public class PrepSuperNovo {
 
   public static void prepDir(String dir, String extension, String outputDir, Logger log) {
     String[] bams = Files.list(dir, extension);
-    Hashtable<String, Hashtable<String, String>> trios = new Hashtable<String, Hashtable<String, String>>();
+    Hashtable<String, Hashtable<String, String>> trios = new Hashtable<>();
     for (String bam : bams) {
       String id = bam.split("_")[0];
       String trioId = id.substring(0, id.length() - 1);

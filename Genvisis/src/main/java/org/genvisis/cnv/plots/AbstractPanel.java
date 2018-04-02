@@ -185,7 +185,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     extraLayersVisible = null;
 
     image = null;
-    locLookup = new Hashtable<String, IntVector>();
+    locLookup = new Hashtable<>();
     imageStatus = IMAGE_NULL;
     flow = true;
     // pointsGeneratable = true;
@@ -432,7 +432,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
 
     long fullTime = System.currentTimeMillis();
 
-    pointsPlotted = new HashSet<Integer>();
+    pointsPlotted = new HashSet<>();
 
     if (g instanceof Graphics2D) {
       ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -748,7 +748,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     prog = null;
     time = new Date().getTime();
     step = Math.max((points.length) / 100, 1);
-    layers = new Hashtable<String, Vector<PlotPoint>>();
+    layers = new Hashtable<>();
 
     if (chartType == HEAT_MAP_TYPE) {
       drawHeatMap(g);
@@ -785,7 +785,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
               if (layers.containsKey(trav)) {
                 layer = layers.get(trav);
               } else {
-                layers.put(trav, layer = new Vector<PlotPoint>(points.length));
+                layers.put(trav, layer = new Vector<>(points.length));
               }
               layer.add(points[i]);
             }

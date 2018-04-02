@@ -96,8 +96,8 @@ public class diff {
       writer = null;
       trav1 = trav2 = "";
       count1 = count2 = 0;
-      buffer1 = new Vector<String>();
-      buffer2 = new Vector<String>();
+      buffer1 = new Vector<>();
+      buffer2 = new Vector<>();
       while (trav1 != null || trav2 != null) {
         if (reader1.ready()) {
           trav1 = reader1.readLine();

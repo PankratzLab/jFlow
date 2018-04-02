@@ -193,9 +193,9 @@ public class CytoPanel extends JPanel implements ActionListener {
   private boolean errorFindingFromWorkBench() {
     String[] allFiles = Files.list(startDir, SAMPLES_EXT);
     boolean error = false;
-    ArrayList<String> tmpFile = new ArrayList<String>();
-    ArrayList<String> tmpName = new ArrayList<String>();
-    ArrayList<String> tmpIndex = new ArrayList<String>();
+    ArrayList<String> tmpFile = new ArrayList<>();
+    ArrayList<String> tmpName = new ArrayList<>();
+    ArrayList<String> tmpIndex = new ArrayList<>();
     for (int i = 0; i < workBenchFiles.length; i++) {
       String[] headers = CytoCNVariant.getSampleNames(startDir + workBenchFiles[i], log);
       for (int j = 0; j < headers.length; j++) {
@@ -394,7 +394,7 @@ public class CytoPanel extends JPanel implements ActionListener {
    * variants
    */
   private static String[] filterCNP(Project proj, String[] files) {
-    ArrayList<String> filter = new ArrayList<String>();
+    ArrayList<String> filter = new ArrayList<>();
     for (int i = 0; i < files.length; i++) {
       // if (!linuxSafeRootEquals(proj.getFilename(proj.COMMON_CNP_FILENAME),files[i]) &&
       // !linuxSafeRootEquals(proj.getFilename(proj.REPORTED_CNP_FILENAME),files[i]) &&
@@ -532,7 +532,7 @@ public class CytoPanel extends JPanel implements ActionListener {
    * @return default true, false if files have already been parsed and want to cancel
    */
   private boolean checkAlreadyParsed() {
-    ArrayList<String> alreadyParsed = new ArrayList<String>();
+    ArrayList<String> alreadyParsed = new ArrayList<>();
     if (importFiles != null && importFiles.length > 0) {
       for (String importFile : importFiles) {
         String file = proj.SOURCE_DIRECTORY.getValue(false, true) + ext.rootOf(importFile, true)
@@ -691,7 +691,7 @@ public class CytoPanel extends JPanel implements ActionListener {
    * Check if the individuals are already present
    */
   private static boolean checkSampleData(Project proj, FileBox[] fileBoxes, Logger log) {
-    ArrayList<String> issues = new ArrayList<String>();
+    ArrayList<String> issues = new ArrayList<>();
     SampleData sampleData = proj.getSampleData(false);
     for (FileBox fileBoxe : fileBoxes) {
       try {
@@ -832,7 +832,7 @@ public class CytoPanel extends JPanel implements ActionListener {
   }
 
   private static FileBox[] getBoxesToUse(FileBox[] fileBoxes) {
-    ArrayList<FileBox> boxesToUse = new ArrayList<FileBox>();
+    ArrayList<FileBox> boxesToUse = new ArrayList<>();
     for (FileBox fileBoxe : fileBoxes) {
       if (fileBoxe.isUsed()) {
         boxesToUse.add(fileBoxe);

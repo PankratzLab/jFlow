@@ -120,7 +120,7 @@ public class ClusterFilter implements Serializable {
         realY = markerData.getYs();
     }
 
-    hash = new Hashtable<String, IntVector>();
+    hash = new Hashtable<>();
     genotypes = markerData.getAbGenotypes();
     // iterate through all samples
     for (int i = 0; i < genotypes.length; i++) {
@@ -253,7 +253,7 @@ public class ClusterFilter implements Serializable {
     genotypes = markerData.getAbGenotypes();
     // genotypes = markerData.getAbGenotypesAfterFilters(clusterFilterCollection, markerName,
     // gcThreshold);
-    indexOfPointsOutsideTheCluster = new Vector<Integer>(genotypes.length);
+    indexOfPointsOutsideTheCluster = new Vector<>(genotypes.length);
     xSum = 0;
     ySum = 0;
     counterGenotypeInsideTheCluster = new int[] {0, 0, 0, 0};

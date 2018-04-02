@@ -105,7 +105,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       new File(bamDir).mkdirs();
       String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
       if (!Files.exists(bam)) {
-        WorkerHive<SRAConversionResult> hive = new WorkerHive<SRAUtils.SRAConversionResult>(1, 10,
+        WorkerHive<SRAConversionResult> hive = new WorkerHive<>(1, 10,
                                                                                             log);
         hive.addCallable(new SRABamWorker(inputSRA, bam, log));
         // String vdbcache = inputSRA + ".vdbcache";
@@ -135,7 +135,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     } else {
 
-      return new ArrayList<Pipeline.PipelinePart>();
+      return new ArrayList<>();
     }
   }
 
@@ -155,7 +155,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
   private static List<SRASample> loadSraSamples(String sraInput, String sraRunTableFile,
                                                 PLATFORM platform, Logger log) {
-    ArrayList<SRASample> samples = new ArrayList<SRASample>();
+    ArrayList<SRASample> samples = new ArrayList<>();
     SRARunTable srRunTable = SRARunTable.load(sraRunTableFile, platform, log);
 
     String[] sraFiles;
@@ -214,8 +214,8 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     Logger log = new Logger(rootOutDir + "compile.log");
 
     List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile, platform, log);
-    ArrayList<SRASample> wgsSamples = new ArrayList<SRASample>();
-    ArrayList<SRASample> wxsSamples = new ArrayList<SRASample>();
+    ArrayList<SRASample> wgsSamples = new ArrayList<>();
+    ArrayList<SRASample> wxsSamples = new ArrayList<>();
     for (SRASample sample : samples) {
       switch (sample.getaType()) {
         case WGS:
@@ -242,15 +242,15 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                              int numBatches, CLI c, boolean cleanup) {
     Logger log = new Logger();
 
-    WorkerHive<List<PipelinePart>> hive = new WorkerHive<List<PipelinePart>>(numThreads, 10, log);
+    WorkerHive<List<PipelinePart>> hive = new WorkerHive<>(numThreads, 10, log);
     boolean prelimGenvisisWGS = false;
     boolean prelimGenvisisWXS = false;
     List<SRASample> samples = loadSraSamples(sraInput, sraRunTableFile,
                                              PLATFORM.valueOf(c.get(PLATFORM_TYPE)), log);
-    ArrayList<String> sampleSummary = new ArrayList<String>();
-    ArrayList<String> sraFiles = new ArrayList<String>();
+    ArrayList<String> sampleSummary = new ArrayList<>();
+    ArrayList<String> sraFiles = new ArrayList<>();
 
-    ArrayList<PIPELINE_PARTS> partsToRun = new ArrayList<Pipeline.PIPELINE_PARTS>();
+    ArrayList<PIPELINE_PARTS> partsToRun = new ArrayList<>();
     if (c.has(ALL_PART)) {
       for (PIPELINE_PARTS part : PIPELINE_PARTS.values()) {
         partsToRun.add(part);
@@ -325,7 +325,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
 
     String processFile = processDir + "process.sh";
 
-    ArrayList<String> sraFilesToAnalyze = new ArrayList<String>();
+    ArrayList<String> sraFilesToAnalyze = new ArrayList<>();
     String[] sraFiles = ArrayUtils.tagOn(srRunTable.getAllRunSFiles(), c.get(SRA_INPUT), ".sra");
     for (int i = 0; i < sraFiles.length; i++) {
       if (!Files.exists(getCompleteFile(c.get(CLI.ARG_OUTDIR), sraFiles[i]))) {
@@ -339,7 +339,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
     String[][] batches = batch(ArrayUtils.toStringArray(sraFilesToAnalyze), c.get(CLI.ARG_OUTDIR),
                                c, log);
 
-    ArrayList<String> process = new ArrayList<String>();
+    ArrayList<String> process = new ArrayList<>();
     int num = 0;
     int processBatch = 0;
     // FIXME
@@ -399,7 +399,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                     + ext.getTimestampForFilename() + ".jar";
     new File(ext.parseDirectoryOfFile(jarRun)).mkdirs();
     Files.copyFileUsingFileChannels(runningJar, jarRun, log);
-    ArrayList<String> baseCommand = new ArrayList<String>();
+    ArrayList<String> baseCommand = new ArrayList<>();
     baseCommand.add("module load gcc/4.8.1\n");
     baseCommand.add("java -Xmx60g -jar " + jarRun + " seq.analysis.genage.SRAPipeline");
     baseCommand.add(CLI.ARG_OUTDIR + "=" + c.get(CLI.ARG_OUTDIR));
@@ -456,7 +456,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       String batch = getBatch(batchDir, i) + ".txt";
       String qsub = getBatch(batchDir, i) + ".qsub";
       Files.writeArray(splits[i], batch);
-      ArrayList<String> currentCommand = new ArrayList<String>();
+      ArrayList<String> currentCommand = new ArrayList<>();
       currentCommand.addAll(baseCommand);
       currentCommand.add(SRA_INPUT + "=" + batch);
       Qsub.qsub(qsub, ArrayUtils.toStr(ArrayUtils.toStringArray(currentCommand), " "), 55000, 55,

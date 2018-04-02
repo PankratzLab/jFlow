@@ -30,12 +30,12 @@ public class permOSA {
     PrintWriter writer = null;
     StringTokenizer st = null;
     String temp, key, data, chrome, last, next;
-    Vector<String> IDs = new Vector<String>();
+    Vector<String> IDs = new Vector<>();
     double[] covars;
     double trav, prev;
     int[] keys, randomKeys;
     int increment, numOfIncrements;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     double lod, maxLod;
     int maxIncrement, pos, maxPos;
     boolean problem;

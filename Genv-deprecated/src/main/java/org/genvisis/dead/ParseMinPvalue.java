@@ -41,8 +41,8 @@ public class ParseMinPvalue {
     BufferedReader reader = null;
     PrintWriter writer = null;
     String[] line, marks;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String> markers = new Vector<String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String> markers = new Vector<>();
     IntVector iv;
     int[] indices, keys;
     double min, d;

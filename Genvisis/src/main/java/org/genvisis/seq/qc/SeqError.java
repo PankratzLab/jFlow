@@ -170,7 +170,7 @@ public class SeqError {
     int index = 0;
     for (int i = 0; i < allSamps.length; i++) {
       for (int j = i + 1; j < allSamps.length; j++) {
-        HashSet<String> curDups = new HashSet<String>();
+        HashSet<String> curDups = new HashSet<>();
         curDups.add(allSamps[i]);
         curDups.add(allSamps[j]);
         dETwos[index] = new DuplicateETwo(curDups, type, mode, vContextFilterSample, filterNGS,
@@ -370,7 +370,7 @@ public class SeqError {
     }
 
     public static HashSet<String> getUniqSamples(DuplicateETwo[] dETwos) {
-      HashSet<String> uniq = new HashSet<String>();
+      HashSet<String> uniq = new HashSet<>();
       for (DuplicateETwo dETwo : dETwos) {
         uniq.addAll(dETwo.getDups());
       }

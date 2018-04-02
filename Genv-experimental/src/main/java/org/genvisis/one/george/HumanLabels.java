@@ -14,7 +14,7 @@ public class HumanLabels {
   // val: lymphocytes, single lymphs, live single lymphs, B cells, T cells, cytotoxic T cells, IgD+
   // mem Bcells
 
-  ArrayList<Integer[]> data = new ArrayList<Integer[]>();
+  ArrayList<Integer[]> data = new ArrayList<>();
 
   public HumanLabels(String filepath) {
     Node[] helperTChildren = new Node[] {new Node(17, null), new Node(27, 38, null),

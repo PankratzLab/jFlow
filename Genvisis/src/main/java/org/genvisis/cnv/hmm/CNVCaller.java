@@ -288,14 +288,14 @@ public class CNVCaller {
 
   private CNVCallResult callCNVS(int[] chrsToCall, boolean callReverse, int minNumMarkers,
                                  double minConf, int numThreads) {
-    ArrayList<CNVariant> allCNVs = new ArrayList<CNVariant>();
-    ArrayList<CNVariant> allReverse = new ArrayList<CNVariant>();
-    ArrayList<CNVariant> allReverseConsensus = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> allCNVs = new ArrayList<>();
+    ArrayList<CNVariant> allReverse = new ArrayList<>();
+    ArrayList<CNVariant> allReverseConsensus = new ArrayList<>();
     if (pennHmm != null) {
-      WorkerHive<CNVCallResult> hive = new WorkerHive<CNVCallResult>(numThreads, 10, proj.getLog());
+      WorkerHive<CNVCallResult> hive = new WorkerHive<>(numThreads, 10, proj.getLog());
       boolean[] finalAnalysisSet = ArrayUtils.booleanArray(markerSet.getMarkerNames().length,
                                                            false);
-      HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<String, ArrayList<Integer>>();
+      HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<>();
       byte[] chrs = markerSet.getChrs();
 
       for (int i = 0; i < analysisProjectIndices.length; i++) {
@@ -529,7 +529,7 @@ public class CNVCaller {
     int[][] tmp = new int[chrPos.length][];
     int projectIndex = 0;
     for (int i = 0; i < chrPos.length; i++) {
-      ArrayList<Integer> updated = new ArrayList<Integer>();
+      ArrayList<Integer> updated = new ArrayList<>();
       for (int j = 0; j < chrPos[i].length; j++) {
         if (projectIndicesToUse[projectIndex]) {
           updated.add(chrPos[i][j]);
@@ -579,7 +579,7 @@ public class CNVCaller {
   public static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, boolean debugMode,
                                    Logger log) {
     double[] adjusted = new double[bafs.length];
-    ArrayList<Double> bafsToMedian = new ArrayList<Double>();
+    ArrayList<Double> bafsToMedian = new ArrayList<>();
     for (int i = 0; i < bafs.length; i++) {
       if (!Double.isNaN(bafs[i]) && bafs[i] > minBaf && bafs[i] < maxBaf) {
         bafsToMedian.add(bafs[i]);
@@ -606,7 +606,7 @@ public class CNVCaller {
    *         gcCorrection
    */
   private static DATA_ADJUSTMENTS[] getPennCNVGCProcessingOrder() {
-    ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
+    ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<>();
     da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
     da.add(DATA_ADJUSTMENTS.GC_ADJUST);
     da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
@@ -621,7 +621,7 @@ public class CNVCaller {
    *         gcCorrection
    */
   private static DATA_ADJUSTMENTS[] getPennCNVProcessingOrder() {
-    ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<CNVCaller.DATA_ADJUSTMENTS>();
+    ArrayList<DATA_ADJUSTMENTS> da = new ArrayList<>();
     da.add(DATA_ADJUSTMENTS.HANDLE_NAN);
     da.add(DATA_ADJUSTMENTS.SUBSET_TO_ANALYSIS_MARKERS);
     da.add(DATA_ADJUSTMENTS.MEDIAN_ADJUST);
@@ -901,8 +901,8 @@ public class CNVCaller {
     String[] samples = proj.getSamples();
     boolean[] inclSampAll = proj.getSamplesToInclude(null);
     int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
-    ArrayList<String> males = new ArrayList<String>();
-    ArrayList<String> females = new ArrayList<String>();
+    ArrayList<String> males = new ArrayList<>();
+    ArrayList<String> females = new ArrayList<>();
 
     for (int i = 0; i < inclSampAll.length; i++) {
       if (sexes[i] == -1) {
@@ -977,7 +977,7 @@ public class CNVCaller {
                                            new int[] {chrToCall}, markersToUse, centroids,
                                            minNumMarkers, minConf, numChrThreads, false,
                                            pManagementType, true);
-    WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2,
+    WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
                                                                       proj.getLog());
     return new CNVCallerIterator(train);
   }
@@ -1027,7 +1027,7 @@ public class CNVCaller {
     CNVProducer producer = new CNVProducer(proj, markerSet, pennHmmOriginal, gcModel, pfb, samples,
                                            chrsToCall, markersToUse, centroids, minNumMarkers,
                                            minConf, numChrThreads, false, pManagementType, true);
-    WorkerTrain<CNVCallResult> train = new WorkerTrain<CNVCallResult>(producer, numSampleThreads, 2,
+    WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
                                                                       proj.getLog());
     return new CNVCallerIterator(train);
   }
@@ -1175,8 +1175,8 @@ public class CNVCaller {
 
         boolean[] inclSampAll = proj.getSamplesToInclude(null);
         int[] sexes = proj.getSampleData(false).getSexForAllIndividuals();
-        ArrayList<String> males = new ArrayList<String>();
-        ArrayList<String> females = new ArrayList<String>();
+        ArrayList<String> males = new ArrayList<>();
+        ArrayList<String> females = new ArrayList<>();
 
         for (int i = 0; i < inclSampAll.length; i++) {
           if (sexes[i] == -1) {

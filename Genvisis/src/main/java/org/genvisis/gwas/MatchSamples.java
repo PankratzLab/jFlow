@@ -474,8 +474,8 @@ public class MatchSamples {
     String[] line, anchors, barnacles, refBarns;
     double[] mdsDists, totalDists;
     long time;
-    Vector<String> anchs = new Vector<String>();
-    Vector<String> barns = new Vector<String>();
+    Vector<String> anchs = new Vector<>();
+    Vector<String> barns = new Vector<>();
     DoubleVector distV = new DoubleVector();
     int ageIndex, genIndex, numRefAnch, iAnch;
     int[][][] data;
@@ -661,8 +661,8 @@ public class MatchSamples {
     BufferedReader reader;
     String[] line, anchors, barnacles;
     double[] dists, totalDists, dataList;
-    Vector<String> anchs = new Vector<String>();
-    Vector<String> barns = new Vector<String>();
+    Vector<String> anchs = new Vector<>();
+    Vector<String> barns = new Vector<>();
     DoubleVector distV = new DoubleVector();
     double[][][] data;
     double[][] sums;

@@ -25,7 +25,7 @@ public class MergeDuplicates {
     PrintWriter writer, log;
     String[] line;
     String temp;
-    Vector<String> v = new Vector<String>(), markers;
+    Vector<String> v = new Vector<>(), markers;
     int count = 0;
     String dir = new File(WINDOWS_DIRECTORY).exists() ? WINDOWS_DIRECTORY : LINUX_DIRECTORY;
     String[][] samples;

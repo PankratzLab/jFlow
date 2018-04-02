@@ -17,18 +17,18 @@ public class sordid {
     BufferedReader map, readers[];
     PrintWriter writers[];
     StringTokenizer st, markerToke;
-    Vector<String> allMarkers = new Vector<String>();
-    Vector<String> orderedMarkers = new Vector<String>();
+    Vector<String> allMarkers = new Vector<>();
+    Vector<String> orderedMarkers = new Vector<>();
     String[] unorderedMarkers;
     int[][] keys;
     int numMarkers;
     // String[] markers;
     String temp, mark, ID;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     int[] chromosomalKey = new int[24];
     int chrome, allele;
     String[] markerdata;
-    Vector<String> chrsPresent = new Vector<String>();
+    Vector<String> chrsPresent = new Vector<>();
     int[] expectedAlleleCounts;
 
     int countFiles = 0;

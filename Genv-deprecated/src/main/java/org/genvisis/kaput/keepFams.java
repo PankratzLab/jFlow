@@ -19,8 +19,8 @@ public class keepFams {
     PrintWriter writer = null;
     StringTokenizer st;
     String temp, trav;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
-    Vector<String> duplicateList = new Vector<String>();
+    Hashtable<String, String> hash = new Hashtable<>();
+    Vector<String> duplicateList = new Vector<>();
     boolean isFirstLine; // workaround for Leah
 
     if (keeps.startsWith("key=")) {

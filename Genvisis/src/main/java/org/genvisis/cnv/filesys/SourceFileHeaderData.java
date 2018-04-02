@@ -279,7 +279,7 @@ public class SourceFileHeaderData implements Serializable {
     HashMap<String, SourceFileHeaderData> headers = null;
     int progCnt = 0;
     try {
-      headers = new HashMap<String, SourceFileHeaderData>();
+      headers = new HashMap<>();
       SourceFileHeaderData exemplar = null;
       for (String possFile : possibleFiles) {
         SourceFileHeaderData frhd;
@@ -323,23 +323,23 @@ public class SourceFileHeaderData implements Serializable {
 
   public static String doFullValidation(HashMap<String, SourceFileHeaderData> headers, Logger log) {
     int cnt = headers.size();
-    HashMap<Integer, ArrayList<String>> totSnpsSet = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> headerLineIndex = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> sampleID = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> snpIndex = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> genoAB1 = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> genoAB2 = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> genoForward1 = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> genoForward2 = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> x = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> y = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> theta = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> r = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> xRaw = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> yRaw = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> baf = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> lrr = new HashMap<Integer, ArrayList<String>>();
-    HashMap<Integer, ArrayList<String>> gc = new HashMap<Integer, ArrayList<String>>();
+    HashMap<Integer, ArrayList<String>> totSnpsSet = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> headerLineIndex = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> sampleID = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> snpIndex = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> genoAB1 = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> genoAB2 = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> genoForward1 = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> genoForward2 = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> x = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> y = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> theta = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> r = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> xRaw = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> yRaw = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> baf = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> lrr = new HashMap<>();
+    HashMap<Integer, ArrayList<String>> gc = new HashMap<>();
     for (java.util.Map.Entry<String, SourceFileHeaderData> entry : headers.entrySet()) {
       SourceFileHeaderData headerData = entry.getValue();
       if (headerData.numFiles == -1) {
@@ -350,109 +350,109 @@ public class SourceFileHeaderData implements Serializable {
       }
       ArrayList<String> files = totSnpsSet.get(headerData.totalSnps);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         totSnpsSet.put(headerData.totalSnps, files);
       }
       files.add(entry.getKey());
       files = headerLineIndex.get(headerData.columnHeaderLineIndex);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         headerLineIndex.put(headerData.columnHeaderLineIndex, files);
       }
       files.add(entry.getKey());
       files = sampleID.get(headerData.colSampleIdent);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         sampleID.put(headerData.colSampleIdent, files);
       }
       files.add(entry.getKey());
       files = snpIndex.get(headerData.colSnpIdent);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         snpIndex.put(headerData.colSnpIdent, files);
       }
       files.add(entry.getKey());
       files = genoAB1.get(headerData.colGenoAB1);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         genoAB1.put(headerData.colGenoAB1, files);
       }
       files.add(entry.getKey());
       files = genoAB2.get(headerData.colGenoAB2);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         genoAB2.put(headerData.colGenoAB2, files);
       }
       files.add(entry.getKey());
       files = genoForward1.get(headerData.colGeno1);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         genoForward1.put(headerData.colGeno1, files);
       }
       files.add(entry.getKey());
       files = genoForward2.get(headerData.colGeno2);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         genoForward2.put(headerData.colGeno2, files);
       }
       files.add(entry.getKey());
       files = x.get(headerData.colX);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         x.put(headerData.colX, files);
       }
       files.add(entry.getKey());
       files = y.get(headerData.colY);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         y.put(headerData.colY, files);
       }
       files.add(entry.getKey());
       files = theta.get(headerData.colTheta);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         theta.put(headerData.colTheta, files);
       }
       files.add(entry.getKey());
       files = r.get(headerData.colR);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         r.put(headerData.colR, files);
       }
       files.add(entry.getKey());
       files = xRaw.get(headerData.colXRaw);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         xRaw.put(headerData.colXRaw, files);
       }
       files.add(entry.getKey());
       files = yRaw.get(headerData.colYRaw);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         yRaw.put(headerData.colYRaw, files);
       }
       files.add(entry.getKey());
       files = baf.get(headerData.colBAF);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         baf.put(headerData.colBAF, files);
       }
       files.add(entry.getKey());
       files = lrr.get(headerData.colLRR);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         lrr.put(headerData.colLRR, files);
       }
       files.add(entry.getKey());
       files = gc.get(headerData.colGC);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         gc.put(headerData.colGC, files);
       }
       files.add(entry.getKey());
     }
     int numErrors = 0;
-    ArrayList<String> errorMsgs = new ArrayList<String>();
+    ArrayList<String> errorMsgs = new ArrayList<>();
 
     String error;
     error = checkErrors(totSnpsSet, "Total SNPs");
@@ -563,7 +563,7 @@ public class SourceFileHeaderData implements Serializable {
                                                         .append(valueMapping.size())
                                                         .append(" sets of values: {");
 
-    ArrayList<Integer> values = new ArrayList<Integer>(valueMapping.keySet());
+    ArrayList<Integer> values = new ArrayList<>(valueMapping.keySet());
     Collections.sort(values);
     Collections.reverse(values);
 

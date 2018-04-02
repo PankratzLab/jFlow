@@ -55,7 +55,7 @@ public class Mosaicism {
     final PrintWriter writer;
     String[] samples;
     int chr;
-    Hashtable<String, String> hash = new Hashtable<String, String>();
+    Hashtable<String, String> hash = new Hashtable<>();
     String[] markerNames;
     byte[] chrs;
     int[] positions;
@@ -111,7 +111,7 @@ public class Mosaicism {
       MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped,
                                                                chrBoundaries, markerSet,
                                                                indicesByChr);
-      try (WorkerTrain<String[]> train = new WorkerTrain<String[]>(producer,
+      try (WorkerTrain<String[]> train = new WorkerTrain<>(producer,
                                                                    numthreads > 0 ? numthreads
                                                                                   : proj.NUM_THREADS.getValue(),
                                                                    2, proj.getLog())) {
@@ -213,7 +213,7 @@ public class Mosaicism {
     float[] lrrs;
     float[] bafs;
     samp = proj.getPartialSampleFromRandomAccessFile(sample);
-    ArrayList<String> results = new ArrayList<String>();
+    ArrayList<String> results = new ArrayList<>();
     if (samp.getFingerprint() != markerSet.getFingerprint()) {
       String error = "Error - cannot estimate mosaics if MarkerSet and Sample (" + sample
                      + ") don't use the same markers";
@@ -247,8 +247,8 @@ public class Mosaicism {
         int startIndex = (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]);
         int stopIndex = (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1);
 
-        ArrayList<Float> lrrAl = new ArrayList<Float>(stopIndex + 10 - startIndex);
-        ArrayList<Float> bafAl = new ArrayList<Float>(stopIndex + 10 - startIndex);
+        ArrayList<Float> lrrAl = new ArrayList<>(stopIndex + 10 - startIndex);
+        ArrayList<Float> bafAl = new ArrayList<>(stopIndex + 10 - startIndex);
         for (int k = startIndex; k < stopIndex; k++) {
           if (!snpDropped[k] && !(md.getUse() != null && !md.getUse()[k])) {
             if (!Float.isNaN(lrrs[k])) {
@@ -451,7 +451,7 @@ public class Mosaicism {
                                                false);
     } else {
       System.err.println("Warning - could not find 'lrr_sd.xln' in project directory; no flags will be generated");
-      lrrsdHash = new Hashtable<String, String>();
+      lrrsdHash = new Hashtable<>();
     }
     if (Files.exists(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false))) {
       mosaicHash = HashVec.loadFileToHashString(proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false,
@@ -462,7 +462,7 @@ public class Mosaicism {
       System.err.println("Warning - could not find "
                          + proj.MOSAIC_COLOR_CODES_FILENAME.getValue(false, false)
                          + "; no annotation possible");
-      mosaicHash = new Hashtable<String, String>();
+      mosaicHash = new Hashtable<>();
     }
 
     if (listOfMosaicArms.toLowerCase().endsWith("/all")) {
@@ -477,7 +477,7 @@ public class Mosaicism {
         }
       }
     } else {
-      list = new Vector<String[]>();
+      list = new Vector<>();
       try {
         reader = new BufferedReader(new FileReader(listOfMosaicArms));
         line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
@@ -503,7 +503,7 @@ public class Mosaicism {
       listOfArms = Matrix.toStringArrays(list);
     }
 
-    v = new Vector<String>();
+    v = new Vector<>();
     try {
       writer = Files.openAppropriateWriter(ext.rootOf(listOfMosaicArms, false) + "_counts.xln");
       writer.println(ArrayUtils.toStr(HEADER));

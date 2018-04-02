@@ -78,7 +78,7 @@ public class CNVFilter {
   private int[][] positions;
   private boolean breakupCentromeres, commonIn;
   private HashSet<String> indHash;
-  private Hashtable<String, String> commandLineFiltersInEffect = new Hashtable<String, String>();
+  private Hashtable<String, String> commandLineFiltersInEffect = new Hashtable<>();
   private Logger log;
 
   public CNVFilter(int minNumMarkers, int maxNumMarkers, int minSize, int maxSize, double minScore,
@@ -234,7 +234,7 @@ public class CNVFilter {
 
   public void addCommandLineFilter(String filter, String value) {
     if (commandLineFiltersInEffect == null) {
-      commandLineFiltersInEffect = new Hashtable<String, String>();
+      commandLineFiltersInEffect = new Hashtable<>();
     }
     commandLineFiltersInEffect.put(filter, value);
   }
@@ -256,7 +256,7 @@ public class CNVFilter {
    */
   public static String[] getDefaultCNVParams() {
 
-    ArrayList<String> params = new ArrayList<String>();
+    ArrayList<String> params = new ArrayList<>();
     params.add("# CNV Specific Filters: ");
 
     params.add("# minimum number of markers");
@@ -613,7 +613,7 @@ public class CNVFilter {
 
   public static LocusSet<CNVariant> filterCNVs(CNVariant[] cnvs, String out, CNVFilter cnvFilter,
                                                Logger log) {
-    ArrayList<CNVariant> cnvsToReturn = new ArrayList<CNVariant>();
+    ArrayList<CNVariant> cnvsToReturn = new ArrayList<>();
     try {
       log.reportTimeInfo("Writing cnvs to " + out);
       PrintWriter writer = Files.openAppropriateWriter(out);

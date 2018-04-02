@@ -87,7 +87,7 @@ public class MarkerDataLoader implements Runnable {
     sampleFingerprint = proj.getSampleList().getFingerprint();
     numberCurrentlyLoaded = 0;
     initiated = false;
-    waitTimesSeen = new HashSet<Integer>();
+    waitTimesSeen = new HashSet<>();
     finalWaitTimeCounts = new CountHash();
 
     markerNamesProj = proj.getMarkerNames();
@@ -124,16 +124,16 @@ public class MarkerDataLoader implements Runnable {
     }
     readAheadLimit = -1;
 
-    missingMarkers = new Vector<String>();
-    filenames = new Hashtable<String, String>();
-    hash = new Hashtable<String, Vector<String>>();
+    missingMarkers = new Vector<>();
+    filenames = new Hashtable<>();
+    hash = new Hashtable<>();
     for (String markerName : markerNames) {
       if (markerLookup.contains(markerName)) {
         line = markerLookup.get(markerName).split(PSF.Regex.GREEDY_WHITESPACE);
         if (hash.containsKey(line[0])) {
           v = hash.get(line[0]);
         } else {
-          hash.put(line[0], v = new Vector<String>(100000));
+          hash.put(line[0], v = new Vector<>(100000));
           filenames.put(line[0], "");
         }
         // if (plinkFormat) {
@@ -340,7 +340,7 @@ public class MarkerDataLoader implements Runnable {
                                                                                                               true)
                                                                           + "outliers.ser");
     } else {
-      outlierHash = new Hashtable<String, Float>();
+      outlierHash = new Hashtable<>();
     }
     time = subtime = new Date().getTime();
     count = 0;
@@ -365,7 +365,7 @@ public class MarkerDataLoader implements Runnable {
 
       allRemaining = hash.get(filename);
 
-      v = new Vector<String>();
+      v = new Vector<>();
       for (int i = 0; allRemaining.size() > 0 && i < maxPerCycle; i++) {
         v.addElement(allRemaining.remove(0));
       }
@@ -427,7 +427,7 @@ public class MarkerDataLoader implements Runnable {
                    + readAheadLimit + "); so waiting");
       }
       if (killed) {
-        filenames = new Hashtable<String, String>();
+        filenames = new Hashtable<>();
       }
 
     }
@@ -460,7 +460,7 @@ public class MarkerDataLoader implements Runnable {
         return buildOutliersFromMDRAFs(proj);
       } catch (ClassNotFoundException | IOException e) {
         proj.getLog().reportException(e);
-        return new Hashtable<String, Float>();
+        return new Hashtable<>();
       }
     }
   }

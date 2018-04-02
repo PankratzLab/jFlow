@@ -16,7 +16,7 @@ public class BaselineUnclusteredMarkers implements Serializable {
   private final Hashtable<String, Float> markerCallrate;
 
   private BaselineUnclusteredMarkers() {
-    markerCallrate = new Hashtable<String, Float>();
+    markerCallrate = new Hashtable<>();
   }
 
   private void serialize(Project proj) {

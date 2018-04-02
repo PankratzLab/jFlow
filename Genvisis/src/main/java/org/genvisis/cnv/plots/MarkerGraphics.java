@@ -43,13 +43,13 @@ public class MarkerGraphics {
   private final int heightBuffer;
 
   // Sorted list of markers for this chromosome
-  private List<MarkerCols> markers = new ArrayList<MarkerCols>();
+  private List<MarkerCols> markers = new ArrayList<>();
   private String markerStatsFile;
 
   // List of components we can render (columns not in MarkerStats.ID_COLUMNS)
-  private List<String> markerComponents = new ArrayList<String>();
-  private Map<String, Color> markerColors = new HashMap<String, Color>();
-  private Map<String, Integer> columnMap = new HashMap<String, Integer>();
+  private List<String> markerComponents = new ArrayList<>();
+  private Map<String, Color> markerColors = new HashMap<>();
+  private Map<String, Integer> columnMap = new HashMap<>();
   private int[][] centromereBoundaries;
   private final Logger log;
 
@@ -105,7 +105,7 @@ public class MarkerGraphics {
    * @return A list of the component names available for this MarkerGraphics
    */
   public List<RenderParams> getParams() {
-    List<RenderParams> params = new ArrayList<RenderParams>();
+    List<RenderParams> params = new ArrayList<>();
     for (String comp : markerComponents) {
       params.add(new RenderParams(comp));
 
@@ -151,7 +151,7 @@ public class MarkerGraphics {
         }
       } else {
         // Smooth using a moving average
-        BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<Double>(p.getMovingWindow(),
+        BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<>(p.getMovingWindow(),
                                                                               p.getMovingStat());
 
         // If pixel smoothing, each bin covers 1 X position
@@ -309,7 +309,7 @@ public class MarkerGraphics {
 
     private String name;
     private int pos;
-    private Map<String, Double> componentValues = new HashMap<String, Double>();
+    private Map<String, Double> componentValues = new HashMap<>();
 
     public MarkerCols(List<String> components, Map<String, Integer> columnMap, String[] line) {
       name = line[columnMap.get(MarkerStats.ID_MARKER_NAME)];

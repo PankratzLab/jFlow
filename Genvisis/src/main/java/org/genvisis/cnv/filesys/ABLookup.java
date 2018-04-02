@@ -786,7 +786,7 @@ public class ABLookup {
 
     lookupMap = generateABLookupHashFromCSV(mapFile, proj.getLog());
 
-    markersWithNoLink = new Vector<String>();
+    markersWithNoLink = new Vector<>();
     try {
       reader = Files.getAppropriateReader(incompleteABlookupFilename);
       writer = Files.getAppropriateWriter(ext.addToRoot(incompleteABlookupFilename, "_filledIn"));

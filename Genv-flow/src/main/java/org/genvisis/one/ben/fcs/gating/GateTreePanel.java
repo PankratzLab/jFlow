@@ -50,8 +50,8 @@ public class GateTreePanel extends JPanel {
   private final JPanel topPanel;
   private final JScrollPane scrollPane;
   private final FCSPlot plot;
-  private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<DefaultMutableTreeNode, Gate>();
-  private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<Gate, DefaultMutableTreeNode>();
+  private final HashMap<DefaultMutableTreeNode, Gate> gateMap = new HashMap<>();
+  private final HashMap<Gate, DefaultMutableTreeNode> nodeMap = new HashMap<>();
   private volatile boolean showing = false;
 
   /**
@@ -227,7 +227,7 @@ public class GateTreePanel extends JPanel {
         breadcrumbPanel.add(lbl, "cell " + index + " 0");
         index++;
 
-        ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<DefaultMutableTreeNode>();
+        ArrayList<DefaultMutableTreeNode> sibs = new ArrayList<>();
         int cnt = tm.getChildCount(obj);
         for (int c = 0; c < cnt; c++) {
           sibs.add(((DefaultMutableTreeNode) tm.getChild(obj, c)));

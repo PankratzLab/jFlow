@@ -34,7 +34,7 @@ public class DeNovoGear {
     // + "~/bin/denovogear/build/src/denovogear dnm auto --ped " + bcfFilesDir + "[%0].ped --bcf " +
     // bcfFilesDir + "[%0].bcf > " + denovogearResultDir + "[%0].txt";
     // iterationsVec = new Vector<String[]>();
-    qsubFilesVec = new Vector<String>();
+    qsubFilesVec = new Vector<>();
     try {
       reader = new Scanner(new File(pedigreeFileFullPath));
       while (reader.hasNext()) {

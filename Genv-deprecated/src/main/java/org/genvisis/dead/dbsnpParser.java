@@ -35,7 +35,7 @@ public class dbsnpParser {
     BufferedReader reader = null;
     String[] line, info = null;
     String temp, trav = "nada";
-    Hashtable<String, String[]> hash = new Hashtable<String, String[]>();
+    Hashtable<String, String[]> hash = new Hashtable<>();
     int offset;
     try {
       reader = new BufferedReader(new FileReader(filename));

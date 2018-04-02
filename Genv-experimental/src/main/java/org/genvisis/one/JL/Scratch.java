@@ -32,7 +32,7 @@ public class Scratch {
 
     int[] pcmarks = ext.indexLargeFactors(pcMarks, markerSet.getMarkerNames(), true, log, true);
     int[][] indices = markerSet.getIndicesByChr();
-    ArrayList<String> outMarks = new ArrayList<String>();
+    ArrayList<String> outMarks = new ArrayList<>();
     outMarks.add("SNP Name\tChr\tPosition");
     for (int pcmark : pcmarks) {
       outMarks.add(markerSet.getMarkerNames()[pcmark] + "\t" + markerSet.getChrs()[pcmark] + "\t"
