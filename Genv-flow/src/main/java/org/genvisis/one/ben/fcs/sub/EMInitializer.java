@@ -166,7 +166,7 @@ public class EMInitializer {
   public static MixtureMultivariateNormalDistribution load(String dir) {
     String[] compFiles = Files.list(dir, ".comp");
 
-    List<Pair<Double, MultivariateNormalDistribution>> ret = new ArrayList<Pair<Double, MultivariateNormalDistribution>>();
+    List<Pair<Double, MultivariateNormalDistribution>> ret = new ArrayList<>();
     double[] means;
     double[][] covars;
 
@@ -190,7 +190,7 @@ public class EMInitializer {
         }
       }
 
-      ret.add(new Pair<Double, MultivariateNormalDistribution>(comps,
+      ret.add(new Pair<>(comps,
                                                                new MultivariateNormalDistribution(means,
                                                                                                   covars)));
     }

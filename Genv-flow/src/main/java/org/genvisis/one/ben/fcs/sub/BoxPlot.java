@@ -68,13 +68,13 @@ public class BoxPlot extends JFrame {
   String testFile = "F:\\Flow\\counts data\\hb hrs P1 sample 12-May-2016.wsp FlowJo table.csv";
   private JPanel scrollContent;
   private BoxCtrlPanel ctrlPanel;
-  private final HashMap<String, OneDPanel> panelMap = new HashMap<String, OneDPanel>();
+  private final HashMap<String, OneDPanel> panelMap = new HashMap<>();
   private String currentFile;
-  private final ArrayList<String> selected = new ArrayList<String>();
+  private final ArrayList<String> selected = new ArrayList<>();
 
   private volatile boolean loadingProps = false;
 
-  private final HashMap<String, ArrayList<String>> hotkeyDefs = new HashMap<String, ArrayList<String>>();
+  private final HashMap<String, ArrayList<String>> hotkeyDefs = new HashMap<>();
 
   public BoxPlot() {
     super(TITLE_STR);
@@ -100,7 +100,7 @@ public class BoxPlot extends JFrame {
         if (e.getNewLeadSelectionPath() == null) {
           return; // extra events
         }
-        ArrayList<String[]> paths = new ArrayList<String[]>();
+        ArrayList<String[]> paths = new ArrayList<>();
         for (TreePath path : ctrlPanel.getSelectedPaths()) {
           Object[] objPath = path.getPath();
           String[] pathStr = new String[objPath.length];
@@ -174,7 +174,7 @@ public class BoxPlot extends JFrame {
     if (keyDef == null) {
       return;
     }
-    ArrayList<TreePath> data = new ArrayList<TreePath>();
+    ArrayList<TreePath> data = new ArrayList<>();
     DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
     for (String s : keyDef) {
       String[] pts = s.split("\\|")[0].trim().split("/");
@@ -239,9 +239,9 @@ public class BoxPlot extends JFrame {
     currentFile = file;
     selected.clear();
     String[][] data = HashVec.loadFileToStringMatrix(file, false, null, ",", 1000, true);
-    final ArrayList<OneDPanel> panels = new ArrayList<OneDPanel>();
-    final ArrayList<String> headers = new ArrayList<String>();
-    ArrayList<String> dataSources = new ArrayList<String>();
+    final ArrayList<OneDPanel> panels = new ArrayList<>();
+    final ArrayList<String> headers = new ArrayList<>();
+    ArrayList<String> dataSources = new ArrayList<>();
     for (int i = 1; i < data.length; i++) {
       if (data[i][0].equals("Mean") || data[i][0].equals("SD") || data[i][0].equals("")) {
         continue;
@@ -252,7 +252,7 @@ public class BoxPlot extends JFrame {
       if (data[0][i].equals("")) {
         continue;
       }
-      ArrayList<Double> panelData = new ArrayList<Double>();
+      ArrayList<Double> panelData = new ArrayList<>();
       for (int r = 1; r < data.length; r++) {
         int ind = ext.indexOfStr(data[r][0], EXCLUDED_ROW_HEADERS, false, false);
         if (data[r][i].equals("") || ind != -1) {
@@ -302,7 +302,7 @@ public class BoxPlot extends JFrame {
       }
       String comp = props.getProperty(PROPKEY_SELECTED, "");
       String[] sel = comp.split(";;");
-      ArrayList<TreePath> data = new ArrayList<TreePath>();
+      ArrayList<TreePath> data = new ArrayList<>();
       DefaultTreeModel dtm = (DefaultTreeModel) ctrlPanel.tree.getModel();
       for (String s : sel) {
         String[] pts = s.split("\\|")[0].trim().split("/");
@@ -316,7 +316,7 @@ public class BoxPlot extends JFrame {
       for (String element : PROPKEY_HOTKEYS) {
         String key = props.getProperty(element, "");
         if (!key.equals("")) {
-          ArrayList<String> keyDef = new ArrayList<String>();
+          ArrayList<String> keyDef = new ArrayList<>();
           for (String s : key.split(";;")) {
             keyDef.add(s);
           }

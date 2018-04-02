@@ -58,25 +58,25 @@ public class FCSDataLoader {
   }
 
   public FCSDataLoader() {
-    paramNamesInOrder = new ArrayList<String>();
-    paramShortNamesInOrder = new ArrayList<String>();
-    paramLongNamesInOrder = new ArrayList<String>();
+    paramNamesInOrder = new ArrayList<>();
+    paramShortNamesInOrder = new ArrayList<>();
+    paramLongNamesInOrder = new ArrayList<>();
     paramScales = new HashMap<>();
-    paramTransforms = new HashMap<String, AxisTransform>();
-    ranges = new ArrayList<Integer>();
-    compensatedNames = new LinkedHashSet<String>();
-    compensatedIndices = new HashMap<String, Integer>();
+    paramTransforms = new HashMap<>();
+    ranges = new ArrayList<>();
+    compensatedNames = new LinkedHashSet<>();
+    compensatedIndices = new HashMap<>();
   }
 
   public void emptyAndReset() {
     setState(LOAD_STATE.UNLOADED);
-    paramNamesInOrder = new ArrayList<String>();
-    paramShortNamesInOrder = new ArrayList<String>();
-    paramLongNamesInOrder = new ArrayList<String>();
+    paramNamesInOrder = new ArrayList<>();
+    paramShortNamesInOrder = new ArrayList<>();
+    paramLongNamesInOrder = new ArrayList<>();
     paramScales = new HashMap<>();
-    paramTransforms = new HashMap<String, AxisTransform>();
-    compensatedNames = new LinkedHashSet<String>();
-    compensatedIndices = new HashMap<String, Integer>();
+    paramTransforms = new HashMap<>();
+    compensatedNames = new LinkedHashSet<>();
+    compensatedIndices = new HashMap<>();
     eventCount = -1;
     loadedCount = 0;
     presetGating = null;
@@ -220,7 +220,7 @@ public class FCSDataLoader {
       presetGating = null;
     }
 
-    HashMap<String, String> names = new HashMap<String, String>();
+    HashMap<String, String> names = new HashMap<>();
     for (int i = 0; i < paramsCount; i++) {
       String name = null;
       String shortName = null;
@@ -405,10 +405,10 @@ public class FCSDataLoader {
   }
 
   public ArrayList<String> getAllDisplayableNames(DATA_SET set) {
-    ArrayList<String> names = new ArrayList<String>();
+    ArrayList<String> names = new ArrayList<>();
     switch (set) {
       case ALL:
-        names = new ArrayList<String>(paramNamesInOrder);
+        names = new ArrayList<>(paramNamesInOrder);
         for (int i = 0; i < names.size(); i++) {
           if (compensatedNames.contains(names.get(i))) {
             names.add(COMPENSATED_PREPEND + names.get(i));
@@ -416,7 +416,7 @@ public class FCSDataLoader {
         }
         break;
       case COMPENSATED:
-        names = new ArrayList<String>(paramNamesInOrder);
+        names = new ArrayList<>(paramNamesInOrder);
         for (int i = 0; i < names.size(); i++) {
           if (compensatedNames.contains(names.get(i))) {
             names.set(i, COMPENSATED_PREPEND + names.get(i));
@@ -424,7 +424,7 @@ public class FCSDataLoader {
         }
         break;
       case UNCOMPENSATED:
-        names = new ArrayList<String>(paramNamesInOrder);
+        names = new ArrayList<>(paramNamesInOrder);
         break;
       default:
         break;

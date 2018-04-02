@@ -81,7 +81,7 @@ public class AnnotationExportDialog extends JDialog {
     for (Annotation a : annotator.getAnnotations()) {
       dlm.addElement(a.annotation);
     }
-    annotationList = new JList<String>(dlm);
+    annotationList = new JList<>(dlm);
     annotationList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     contentPanel.add(new JScrollPane(annotationList), "cell 1 2, grow");
 
@@ -144,7 +144,7 @@ public class AnnotationExportDialog extends JDialog {
       return;
     }
 
-    List<Annotation> annot = new ArrayList<Annotation>();
+    List<Annotation> annot = new ArrayList<>();
     for (Annotation a : annotator.getAnnotations()) {
       if (annots.contains(a.annotation)) {
         annot.add(a);

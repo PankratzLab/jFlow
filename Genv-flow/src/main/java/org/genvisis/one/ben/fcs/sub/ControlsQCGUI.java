@@ -90,14 +90,14 @@ public class ControlsQCGUI extends JFrame {
   private JTable table;
   private JScrollPane scrollPane;
 
-  HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<String, ArrayList<Float>>();
-  HashSet<Integer> boldRows = new HashSet<Integer>();
-  HashSet<Integer> statRows = new HashSet<Integer>();
-  HashMap<String, Float> paramMeans = new HashMap<String, Float>();
-  HashMap<String, Float> paramSDs = new HashMap<String, Float>();
-  HashMap<String, Float> paramCVs = new HashMap<String, Float>();
+  HashMap<String, ArrayList<Float>> paramMeanLists = new HashMap<>();
+  HashSet<Integer> boldRows = new HashSet<>();
+  HashSet<Integer> statRows = new HashSet<>();
+  HashMap<String, Float> paramMeans = new HashMap<>();
+  HashMap<String, Float> paramSDs = new HashMap<>();
+  HashMap<String, Float> paramCVs = new HashMap<>();
 
-  HashSet<String> hiddenCols = new HashSet<String>();
+  HashSet<String> hiddenCols = new HashSet<>();
 
   JFrame meanFrame = new JFrame("Genvisis - Controls QC - Overall Mean/SD");
   OneDPanel meanPanel = new OneDPanel();
@@ -132,13 +132,13 @@ public class ControlsQCGUI extends JFrame {
 
     String currPanel, currCtrl;
     currCtrl = (String) comboControl.getSelectedItem();
-    DefaultComboBoxModel<String> ctrlModel = new DefaultComboBoxModel<String>(ctrls);
+    DefaultComboBoxModel<String> ctrlModel = new DefaultComboBoxModel<>(ctrls);
     int ind = ext.indexOfStr(currCtrl, ctrls);
     comboControl.setModel(ctrlModel);
     comboControl.setSelectedIndex(ind == -1 ? 0 : ind);
 
     currPanel = (String) comboPanel.getSelectedItem();
-    DefaultComboBoxModel<String> pnlModel = new DefaultComboBoxModel<String>(pnls);
+    DefaultComboBoxModel<String> pnlModel = new DefaultComboBoxModel<>(pnls);
     ind = ext.indexOfStr(currPanel, pnls);
     comboPanel.setModel(pnlModel);
     comboPanel.setSelectedIndex(ind == -1 ? 0 : ind);
@@ -450,7 +450,7 @@ public class ControlsQCGUI extends JFrame {
       }
     };
 
-    comboControl = new JComboBox<String>();
+    comboControl = new JComboBox<>();
     comboControl.addActionListener(reCalcListener);
     panel_1.add(comboControl, "cell 3 0,growx");
 
@@ -461,7 +461,7 @@ public class ControlsQCGUI extends JFrame {
     lblPanel = new JLabel("Panel:");
     panel_1.add(lblPanel, "cell 5 0,alignx trailing");
 
-    comboPanel = new JComboBox<String>();
+    comboPanel = new JComboBox<>();
     comboPanel.addActionListener(reCalcListener);
     panel_1.add(comboPanel, "cell 6 0,growx");
 
@@ -642,7 +642,7 @@ public class ControlsQCGUI extends JFrame {
     }
 
     ArrayList<CtrlFileMetaData> metaData = baseData.getMetaDataFor(currCtrl, currPanel);
-    HashMap<CtrlFileMetaData, Integer> metaIndMap = new HashMap<ControlsQCGUI.CtrlFileMetaData, Integer>();
+    HashMap<CtrlFileMetaData, Integer> metaIndMap = new HashMap<>();
     for (int i = 0; i < metaData.size(); i++) {
       metaIndMap.put(metaData.get(i), i);
     }
@@ -658,8 +658,8 @@ public class ControlsQCGUI extends JFrame {
       ind++;
     }
 
-    ArrayList<String> compLbls = new ArrayList<String>();
-    ArrayList<Double> compDbls = new ArrayList<Double>();
+    ArrayList<String> compLbls = new ArrayList<>();
+    ArrayList<Double> compDbls = new ArrayList<>();
     if (compData != null) {
       String[][] sources = compData.getRecentSources();
       float[][][] compDataArr = compData.getRecentData();
@@ -673,7 +673,7 @@ public class ControlsQCGUI extends JFrame {
       }
     }
 
-    ArrayList<String> cols = new ArrayList<String>();
+    ArrayList<String> cols = new ArrayList<>();
     ind = 0;
     for (int i = 2; i < table.getColumnModel().getColumnCount(); i++) {
       String hdr = (String) table.getValueAt(0, i);
@@ -825,7 +825,7 @@ public class ControlsQCGUI extends JFrame {
           String[] pts = drop.split("\\|");
           String lbl = pts[0];
           String[] ptIds = pts[1].split(",");
-          ArrayList<String> ids = new ArrayList<String>();
+          ArrayList<String> ids = new ArrayList<>();
           for (String s : ptIds) {
             ids.add(s);
           }
@@ -956,7 +956,7 @@ public class ControlsQCGUI extends JFrame {
 
   private void resetShownColumns() {
     TableColumnModel tcm = table.getColumnModel();
-    ArrayList<Integer> toRemove = new ArrayList<Integer>();
+    ArrayList<Integer> toRemove = new ArrayList<>();
     for (int i = 0; i < tcm.getColumnCount(); i++) {
       String hdr = (String) tcm.getColumn(i).getHeaderValue();
       if (!hdr.equals("") && hiddenCols.contains(hdr)) {
@@ -971,11 +971,11 @@ public class ControlsQCGUI extends JFrame {
   static class DataFile {
 
     private String fileName;
-    private final ArrayList<String> allParams = new ArrayList<String>();
-    private final ArrayList<String> internalFiles = new ArrayList<String>();
+    private final ArrayList<String> allParams = new ArrayList<>();
+    private final ArrayList<String> internalFiles = new ArrayList<>();
     private float[][] fileData;
-    private final HashMap<String, float[]> paramDataCache = new HashMap<String, float[]>();
-    private final HashMap<String, CtrlFileMetaData> internalMetaData = new HashMap<String, ControlsQCGUI.CtrlFileMetaData>();
+    private final HashMap<String, float[]> paramDataCache = new HashMap<>();
+    private final HashMap<String, CtrlFileMetaData> internalMetaData = new HashMap<>();
 
     private DataFile() {}
 
@@ -990,7 +990,7 @@ public class ControlsQCGUI extends JFrame {
           df.allParams.add(data[0][i].trim().toUpperCase().replaceAll("\\(%\\)", "").trim());
         }
       }
-      HashMap<String, Integer> fileInd = new HashMap<String, Integer>();
+      HashMap<String, Integer> fileInd = new HashMap<>();
       for (int i = 1; i < data.length; i++) {
         int ind = ext.indexOfStr(data[i][0], EXCLUDED_ROW_HEADERS, false, false);
         if ("".equals(data[i][0]) || ind >= 0) {
@@ -1026,7 +1026,7 @@ public class ControlsQCGUI extends JFrame {
     }
 
     public String[] getPanels() {
-      TreeSet<String> panelSet = new TreeSet<String>();
+      TreeSet<String> panelSet = new TreeSet<>();
       for (CtrlFileMetaData cfmd : internalMetaData.values()) {
         panelSet.add(cfmd.getPanel());
       }
@@ -1034,7 +1034,7 @@ public class ControlsQCGUI extends JFrame {
     }
 
     public String[] getControlGroups() {
-      TreeSet<String> ctrlSet = new TreeSet<String>();
+      TreeSet<String> ctrlSet = new TreeSet<>();
       for (CtrlFileMetaData cfmd : internalMetaData.values()) {
         ctrlSet.add(cfmd.ctrlGroup);
       }
@@ -1076,7 +1076,7 @@ public class ControlsQCGUI extends JFrame {
     }
 
     public ArrayList<CtrlFileMetaData> getMetaDataFor(String currCtrl, String currPanel) {
-      ArrayList<CtrlFileMetaData> retList = new ArrayList<ControlsQCGUI.CtrlFileMetaData>();
+      ArrayList<CtrlFileMetaData> retList = new ArrayList<>();
       for (CtrlFileMetaData cfmd : internalMetaData.values()) {
         if ((currCtrl == null || cfmd.isControlGroup(currCtrl))
             && (currPanel == null || cfmd.isPanel(currPanel))) {
@@ -1135,7 +1135,7 @@ public class ControlsQCGUI extends JFrame {
     // }
 
     public CompData(String[] filesToLoad, Logger log) {
-      files = new HashMap<String, ControlsQCGUI.DataFile>();
+      files = new HashMap<>();
       for (String s : filesToLoad) {
         files.put(s, DataFile.construct(s, log));
       }
@@ -1159,8 +1159,8 @@ public class ControlsQCGUI extends JFrame {
 
     public void fetchRecentData(List<String> params, String currCtrl, String currPanel,
                                 int numOfMostRecentToAdd, Logger log) {
-      HashMap<CtrlFileMetaData, DataFile> metaMap = new HashMap<ControlsQCGUI.CtrlFileMetaData, ControlsQCGUI.DataFile>();
-      HashMap<CtrlFileMetaData, float[]> allData = new HashMap<ControlsQCGUI.CtrlFileMetaData, float[]>();
+      HashMap<CtrlFileMetaData, DataFile> metaMap = new HashMap<>();
+      HashMap<CtrlFileMetaData, float[]> allData = new HashMap<>();
       for (DataFile df : files.values()) {
         ArrayList<CtrlFileMetaData> metaData = df.getMetaDataFor(currCtrl, currPanel);
         for (int i = 0; i < metaData.size(); i++) {
@@ -1173,11 +1173,11 @@ public class ControlsQCGUI extends JFrame {
           metaMap.put(metaData.get(i), df);
         }
       }
-      ArrayList<CtrlFileMetaData> sorted = new ArrayList<ControlsQCGUI.CtrlFileMetaData>(allData.keySet());
+      ArrayList<CtrlFileMetaData> sorted = new ArrayList<>(allData.keySet());
       sorted.sort(CtrlFileMetaData.COMPARATOR);
 
-      ArrayList<String[]> sourceLines = new ArrayList<String[]>();
-      ArrayList<float[][]> sourceData = new ArrayList<float[][]>();
+      ArrayList<String[]> sourceLines = new ArrayList<>();
+      ArrayList<float[][]> sourceData = new ArrayList<>();
       String prevSrc = null;
       ArrayList<String> sourceLine = null;
       ArrayList<float[]> dataLines = null;
@@ -1187,10 +1187,10 @@ public class ControlsQCGUI extends JFrame {
         CtrlFileMetaData cfmd = sorted.get(c);
         String src = metaMap.get(cfmd).fileName;
         if (sourceLine == null) {
-          sourceLine = new ArrayList<String>();
+          sourceLine = new ArrayList<>();
           sourceLine.add(src);
           prevSrc = src;
-          dataLines = new ArrayList<float[]>();
+          dataLines = new ArrayList<>();
           dataLines.add(null);
         } else {
           if (src.equals(prevSrc)) {
@@ -1198,10 +1198,10 @@ public class ControlsQCGUI extends JFrame {
           } else {
             sourceLines.add(sourceLine.toArray(new String[sourceLine.size()]));
             sourceData.add(dataLines.toArray(new float[dataLines.size()][]));
-            sourceLine = new ArrayList<String>();
+            sourceLine = new ArrayList<>();
             sourceLine.add(src);
             prevSrc = src;
-            dataLines = new ArrayList<float[]>();
+            dataLines = new ArrayList<>();
             dataLines.add(null);
           }
         }
@@ -1243,7 +1243,7 @@ public class ControlsQCGUI extends JFrame {
       return;
     }
 
-    TreeSet<String> paramSet = new TreeSet<String>();
+    TreeSet<String> paramSet = new TreeSet<>();
 
     paramSet.addAll(baseData.getAllParams()); // don't have to worry about panel/ctrl for params
 
@@ -1378,13 +1378,13 @@ public class ControlsQCGUI extends JFrame {
 
   private void checkWarnings() {
     if (baseData != null && compData != null) {
-      final ArrayList<String> warnings = new ArrayList<String>();
+      final ArrayList<String> warnings = new ArrayList<>();
 
       ArrayList<String> params = baseData.getAllParams();
       float[][][] currData = compData.getRecentData();
 
-      HashMap<String, Integer> paramTrendsAbove1 = new HashMap<String, Integer>();
-      HashMap<String, Integer> paramTrendsAbove2 = new HashMap<String, Integer>();
+      HashMap<String, Integer> paramTrendsAbove1 = new HashMap<>();
+      HashMap<String, Integer> paramTrendsAbove2 = new HashMap<>();
 
       for (int p = 0; p < params.size(); p++) {
         int trendAbove1 = 0;

@@ -41,18 +41,18 @@ public class GateFileUtils {
   }
 
   public static HashMap<String, ArrayList<Gate>> parameterizeGates(HashMap<String, Gate> gateMap) {
-    HashMap<String, ArrayList<Gate>> paramGates = new HashMap<String, ArrayList<Gate>>();
+    HashMap<String, ArrayList<Gate>> paramGates = new HashMap<>();
     for (Gate g : gateMap.values()) {
       ArrayList<Gate> gates = paramGates.get(g.getXDimension().getParam());
       if (gates == null) {
-        gates = new ArrayList<Gate>();
+        gates = new ArrayList<>();
         paramGates.put(g.getXDimension().getParam(), gates);
       }
       gates.add(g);
       if (g.getYDimension() != null) {
         gates = paramGates.get(g.getYDimension().getParam());
         if (gates == null) {
-          gates = new ArrayList<Gate>();
+          gates = new ArrayList<>();
           paramGates.put(g.getYDimension().getParam(), gates);
         }
         gates.add(g);
@@ -62,7 +62,7 @@ public class GateFileUtils {
   }
 
   public static HashMap<String, Gate> buildPopGraph(NodeList allGates, boolean flowJo) {
-    HashMap<String, Gate> gateMap = new HashMap<String, Gate>();
+    HashMap<String, Gate> gateMap = new HashMap<>();
     for (int i = 0, count = allGates.getLength(); i < count; i++) {
       Element popNode = (Element) allGates.item(i);
       String popName = popNode.getAttribute("name");
@@ -124,7 +124,7 @@ public class GateFileUtils {
   }
 
   public static ArrayList<Gate> connectGates(HashMap<String, Gate> gateMap) {
-    HashSet<Gate> rootGates = new HashSet<Gate>();
+    HashSet<Gate> rootGates = new HashSet<>();
     for (Gate g : gateMap.values()) {
       if (null != g.parentID && !"".equals(g.parentID)) {
         g.parentGate = gateMap.get(g.parentID);
@@ -135,7 +135,7 @@ public class GateFileUtils {
         rootGates.add(g);
       }
     }
-    return new ArrayList<Gate>(rootGates);
+    return new ArrayList<>(rootGates);
   }
 
   private static HashSet<String> LIN_PARAMS = new HashSet<>();
@@ -268,7 +268,7 @@ public class GateFileUtils {
   }
 
   private static ArrayList<Node> getChildNodes(Node nd, String name) {
-    ArrayList<Node> retNodes = new ArrayList<Node>();
+    ArrayList<Node> retNodes = new ArrayList<>();
     NodeList children = nd.getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       if (children.item(i).getNodeName().equals(name)) {

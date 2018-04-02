@@ -52,7 +52,7 @@ public class CBCApplicator implements Runnable {
 
   private Logger log = new Logger();
 
-  HashMap<String, String[]> idMap = new HashMap<String, String[]>();
+  HashMap<String, String[]> idMap = new HashMap<>();
 
   private JProgressBar progressBar;
 

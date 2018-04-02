@@ -135,21 +135,21 @@ public class AnnotatedImage {
       if (imageFile != null) {
         if (!imageFile.contains(";")) {
           try {
-            image = new SoftReference<BufferedImage>(ImageIO.read(new File(imageFile)));
+            image = new SoftReference<>(ImageIO.read(new File(imageFile)));
           } catch (IOException e) {
             e.printStackTrace();
-            image = new SoftReference<BufferedImage>(createIOExceptionImage(e));
+            image = new SoftReference<>(createIOExceptionImage(e));
           }
         } else {
           String[] images = imageFile.split(";");
-          image = new SoftReference<BufferedImage>(Images.stitchImages(images, Color.WHITE, false,
+          image = new SoftReference<>(Images.stitchImages(images, Color.WHITE, false,
                                                                        false));
         }
       } else {
         if (imageFile == null) {
-          image = new SoftReference<BufferedImage>(createNoFileImage());
+          image = new SoftReference<>(createNoFileImage());
         } else if (!Files.exists(imageFile)) {
-          image = new SoftReference<BufferedImage>(createMissingFileImage(imageFile));
+          image = new SoftReference<>(createMissingFileImage(imageFile));
         }
       }
     }

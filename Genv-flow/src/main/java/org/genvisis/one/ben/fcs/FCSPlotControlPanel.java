@@ -111,7 +111,7 @@ public class FCSPlotControlPanel extends JPanel {
     panel_1 = new JPanel();
     panel_1.setLayout(new MigLayout("ins 0", "[grow]", "[]0[]0[]0[grow]"));
 
-    ArrayList<JAccordionPanel> bg = new ArrayList<JAccordionPanel>();
+    ArrayList<JAccordionPanel> bg = new ArrayList<>();
 
     plotControlPanel = new JAccordionPanel();
     panel_1.add(plotControlPanel, "cell 0 0,grow");
@@ -133,14 +133,14 @@ public class FCSPlotControlPanel extends JPanel {
     panel.add(lblPlotType, "cell 0 0,alignx trailing");
     lblPlotType.setFont(lblFont);
 
-    cbType = new JComboBox<PLOT_TYPE>(PLOT_TYPE.values());
+    cbType = new JComboBox<>(PLOT_TYPE.values());
     panel.add(cbType, "cell 1 0 3 1,growx");
 
     JLabel lblYaxisData = new JLabel("Y-Axis:");
     panel.add(lblYaxisData, "cell 0 2,alignx trailing");
     lblYaxisData.setFont(lblFont);
 
-    cbYData = new JComboBox<String>();
+    cbYData = new JComboBox<>();
     panel.add(cbYData, "cell 1 2 3 1,growx");
     cbYData.addItemListener(new ItemListener() {
 
@@ -165,7 +165,7 @@ public class FCSPlotControlPanel extends JPanel {
     panel.add(lblScale, "cell 0 3 2 1,alignx trailing");
     lblScale.setFont(lblFont);
 
-    cbYScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+    cbYScale = new JComboBox<>(AXIS_SCALE.values());
     panel.add(cbYScale, "cell 2 3 2 1,growx");
     cbYScale.addItemListener(new ItemListener() {
 
@@ -209,7 +209,7 @@ public class FCSPlotControlPanel extends JPanel {
     panel.add(lblXaxisData, "cell 0 7,alignx trailing");
     lblXaxisData.setFont(lblFont);
 
-    cbXData = new JComboBox<String>();
+    cbXData = new JComboBox<>();
     panel.add(cbXData, "cell 1 7 3 1,growx");
     cbXData.addItemListener(new ItemListener() {
 
@@ -227,7 +227,7 @@ public class FCSPlotControlPanel extends JPanel {
     panel.add(lblScale_1, "cell 0 8 2 1,alignx trailing");
     lblScale_1.setFont(lblFont);
 
-    cbXScale = new JComboBox<AbstractPanel2.AXIS_SCALE>(AXIS_SCALE.values());
+    cbXScale = new JComboBox<>(AXIS_SCALE.values());
     panel.add(cbXScale, "cell 2 8 2 1,growx");
 
     chckbxShowMedianX = new JCheckBox("Show Median", plot.showMedian(false));
@@ -366,7 +366,7 @@ public class FCSPlotControlPanel extends JPanel {
     for (int i = 0; i < GATING_TOOL.values().length; i++) {
       gateTypes[i] = GATING_TOOL.values()[i].getDisplayName();
     }
-    JComboBox<String> gateTypeCmb = new JComboBox<String>(gateTypes);
+    JComboBox<String> gateTypeCmb = new JComboBox<>(gateTypes);
     gateTypeCmb.addItemListener(new ItemListener() {
 
       @Override
@@ -608,10 +608,10 @@ public class FCSPlotControlPanel extends JPanel {
     dataControlsPanel.expand();
   }
 
-  ArrayList<DataControlPanel> filePanels = new ArrayList<DataControlPanel>();
+  ArrayList<DataControlPanel> filePanels = new ArrayList<>();
 
   protected void addFCSFiles(String[] files) {
-    TreeSet<String> fileSet = new TreeSet<String>();
+    TreeSet<String> fileSet = new TreeSet<>();
     for (String f : files) {
       fileSet.add(f.trim());
     }
@@ -645,7 +645,7 @@ public class FCSPlotControlPanel extends JPanel {
   }
 
   protected ArrayList<String> getAddedFiles() {
-    ArrayList<String> files = new ArrayList<String>();
+    ArrayList<String> files = new ArrayList<>();
     for (DataControlPanel dcp : filePanels) {
       files.add(dcp.file);
     }
@@ -885,7 +885,7 @@ public class FCSPlotControlPanel extends JPanel {
   }
 
   public void setColumns(String[] dataNames, boolean x, int selected) {
-    (x ? cbXData : cbYData).setModel(new DefaultComboBoxModel<String>(dataNames));
+    (x ? cbXData : cbYData).setModel(new DefaultComboBoxModel<>(dataNames));
     (x ? cbXData : cbYData).setSelectedIndex(selected);
     (x ? cbXData : cbYData).repaint();
   }

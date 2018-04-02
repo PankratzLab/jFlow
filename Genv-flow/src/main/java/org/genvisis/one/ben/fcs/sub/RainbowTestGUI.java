@@ -99,21 +99,21 @@ public class RainbowTestGUI extends JFrame {
 
   private final String[] gateFileExts = {"wsp", "wspt"};
 
-  private final HashMap<String, FCSDataLoader> baseFiles = new HashMap<String, FCSDataLoader>();
-  private final HashMap<String, FCSDataLoader> compFiles = new HashMap<String, FCSDataLoader>();
+  private final HashMap<String, FCSDataLoader> baseFiles = new HashMap<>();
+  private final HashMap<String, FCSDataLoader> compFiles = new HashMap<>();
 
-  HashMap<String, ArrayList<Double>> paramMeanLists = new HashMap<String, ArrayList<Double>>();
-  HashMap<String, ArrayList<Double>> paramSDLists = new HashMap<String, ArrayList<Double>>();
-  HashMap<String, ArrayList<Double>> paramCVLists = new HashMap<String, ArrayList<Double>>();
-  HashMap<String, HashMap<String, Double>> fileParamMeanMap = new HashMap<String, HashMap<String, Double>>();
-  HashSet<Integer> boldRows = new HashSet<Integer>();
-  HashSet<Integer> statRows = new HashSet<Integer>();
-  HashMap<String, Double> paramMeans = new HashMap<String, Double>();
-  HashMap<String, Double> paramSDs = new HashMap<String, Double>();
-  HashMap<String, Double> paramCVs = new HashMap<String, Double>();
+  HashMap<String, ArrayList<Double>> paramMeanLists = new HashMap<>();
+  HashMap<String, ArrayList<Double>> paramSDLists = new HashMap<>();
+  HashMap<String, ArrayList<Double>> paramCVLists = new HashMap<>();
+  HashMap<String, HashMap<String, Double>> fileParamMeanMap = new HashMap<>();
+  HashSet<Integer> boldRows = new HashSet<>();
+  HashSet<Integer> statRows = new HashSet<>();
+  HashMap<String, Double> paramMeans = new HashMap<>();
+  HashMap<String, Double> paramSDs = new HashMap<>();
+  HashMap<String, Double> paramCVs = new HashMap<>();
 
-  TreeSet<String> paramNames = new TreeSet<String>();
-  HashSet<String> hiddenCols = new HashSet<String>();
+  TreeSet<String> paramNames = new TreeSet<>();
+  HashSet<String> hiddenCols = new HashSet<>();
 
   JFrame meanFrame = new JFrame("Genvisis - FCS Overall Mean/SD");
   OneDPanel meanPanel = new OneDPanel();
@@ -298,8 +298,8 @@ public class RainbowTestGUI extends JFrame {
     scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     contentPane.add(scrollPane, "cell 0 3 3 1,grow");
 
-    final HashSet<String> lessThan4CV = new HashSet<String>();
-    final HashSet<String> lessThan6CV = new HashSet<String>();
+    final HashSet<String> lessThan4CV = new HashSet<>();
+    final HashSet<String> lessThan6CV = new HashSet<>();
 
     String[] lessThan4 = {"BB515", "PE", "PE-CF594", "PE-Cy7", "BV 421", "BV 510", "BV 605",
                           "BV 711"};
@@ -746,8 +746,8 @@ public class RainbowTestGUI extends JFrame {
     double[] yDataBase, yDataComp;
     String[] baseLbls, compLbls;
 
-    TreeMap<Date, ArrayList<Double>> meanMap = new TreeMap<Date, ArrayList<Double>>();
-    TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
+    TreeMap<Date, ArrayList<Double>> meanMap = new TreeMap<>();
+    TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<>();
     int count = 0;
     for (Entry<String, FCSDataLoader> l : baseFiles.entrySet()) {
       Date key;
@@ -759,11 +759,11 @@ public class RainbowTestGUI extends JFrame {
       ArrayList<Double> means = meanMap.get(key);
       ArrayList<String> files = fileMap.get(key);
       if (means == null) {
-        means = new ArrayList<Double>();
+        means = new ArrayList<>();
         meanMap.put(key, means);
       }
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         fileMap.put(key, files);
       }
       means.add(fileParamMeanMap.get(l.getKey()).get(col));
@@ -782,8 +782,8 @@ public class RainbowTestGUI extends JFrame {
       }
     }
 
-    meanMap = new TreeMap<Date, ArrayList<Double>>();
-    fileMap = new TreeMap<Date, ArrayList<String>>();
+    meanMap = new TreeMap<>();
+    fileMap = new TreeMap<>();
     count = 0;
     for (Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
       Date key;
@@ -795,11 +795,11 @@ public class RainbowTestGUI extends JFrame {
       ArrayList<Double> means = meanMap.get(key);
       ArrayList<String> files = fileMap.get(key);
       if (means == null) {
-        means = new ArrayList<Double>();
+        means = new ArrayList<>();
         meanMap.put(key, means);
       }
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         fileMap.put(key, files);
       }
       means.add(fileParamMeanMap.get(l.getKey()).get(col));
@@ -816,7 +816,7 @@ public class RainbowTestGUI extends JFrame {
       }
     }
 
-    ArrayList<String> cols = new ArrayList<String>();
+    ArrayList<String> cols = new ArrayList<>();
     ind = 0;
     for (int i = 1; i < table.getColumnModel().getColumnCount(); i++) {
       String hdr = (String) table.getColumnModel().getColumn(i).getHeaderValue();
@@ -844,7 +844,7 @@ public class RainbowTestGUI extends JFrame {
       cache = (HashMap<String, CacheObject>) SerializedFiles.readSerial(CACHE_FILE, false);
     }
     if (cache == null) {
-      cache = new HashMap<String, RainbowTestGUI.CacheObject>();
+      cache = new HashMap<>();
     }
   }
 
@@ -954,7 +954,7 @@ public class RainbowTestGUI extends JFrame {
           String[] pts = drop.split("\\|");
           String lbl = pts[0];
           String[] ptIds = pts[1].split(",");
-          ArrayList<String> ids = new ArrayList<String>();
+          ArrayList<String> ids = new ArrayList<>();
           for (String s : ptIds) {
             ids.add(s);
           }
@@ -1013,7 +1013,7 @@ public class RainbowTestGUI extends JFrame {
     DirFile[] subDirs;
 
     public String[] getAllFiles() {
-      ArrayList<String> files = new ArrayList<String>();
+      ArrayList<String> files = new ArrayList<>();
       for (String f : this.files) {
         files.add(dir + f);
       }
@@ -1050,7 +1050,7 @@ public class RainbowTestGUI extends JFrame {
 
   private void resetShownColumns() {
     TableColumnModel tcm = table.getColumnModel();
-    ArrayList<Integer> toRemove = new ArrayList<Integer>();
+    ArrayList<Integer> toRemove = new ArrayList<>();
     for (int i = 0; i < tcm.getColumnCount(); i++) {
       String hdr = (String) tcm.getColumn(i).getHeaderValue();
       if (!hdr.equals("") && hiddenCols.contains(hdr)) {
@@ -1066,7 +1066,7 @@ public class RainbowTestGUI extends JFrame {
     if (baseDir == null || dirStruct == null) {
       return;
     }
-    TreeSet<String> paramSet = new TreeSet<String>();
+    TreeSet<String> paramSet = new TreeSet<>();
 
     for (String f : baseFCSFiles) {
       if (!baseFiles.containsKey(f) && !cache.containsKey(f)) {
@@ -1228,18 +1228,18 @@ public class RainbowTestGUI extends JFrame {
     dtmSD.addRow(new Object[colNames.length]);
     dtmCV.addRow(new Object[colNames.length]);
 
-    TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<Date, ArrayList<String>>();
+    TreeMap<Date, ArrayList<String>> fileMap = new TreeMap<>();
     for (Entry<String, FCSDataLoader> l : compFiles.entrySet()) {
       Date key = cache.containsKey(l.getKey()) ? cache.get(l.getKey()).runDate
                                                : l.getValue().getRunDate();
       ArrayList<String> files = fileMap.get(key);
       if (files == null) {
-        files = new ArrayList<String>();
+        files = new ArrayList<>();
         fileMap.put(key, files);
       }
       files.add(l.getKey());
     }
-    ArrayList<String> fileList = new ArrayList<String>();
+    ArrayList<String> fileList = new ArrayList<>();
     for (Entry<Date, ArrayList<String>> entry : fileMap.entrySet()) {
       fileList.addAll(entry.getValue());
     }
@@ -1266,7 +1266,7 @@ public class RainbowTestGUI extends JFrame {
                                                              // will result in file being reported
 
   private ArrayList<String> getFileTrendWarnings(String[] params) {
-    ArrayList<String> warnings = new ArrayList<String>();
+    ArrayList<String> warnings = new ArrayList<>();
 
     for (String f : compFileList) {
       int cnt = 0;
@@ -1292,11 +1292,11 @@ public class RainbowTestGUI extends JFrame {
   }
 
   private ArrayList<String> check(String[] params) {
-    HashMap<String, ArrayList<ArrayList<String>>[]> trendMap = new HashMap<String, ArrayList<ArrayList<String>>[]>();
+    HashMap<String, ArrayList<ArrayList<String>>[]> trendMap = new HashMap<>();
     for (String param : params) {
-      ArrayList<ArrayList<String>> all1TrendsForParam = new ArrayList<ArrayList<String>>();
-      ArrayList<ArrayList<String>> all2TrendsForParam = new ArrayList<ArrayList<String>>();
-      ArrayList<ArrayList<String>> all15TrendsForParam = new ArrayList<ArrayList<String>>();
+      ArrayList<ArrayList<String>> all1TrendsForParam = new ArrayList<>();
+      ArrayList<ArrayList<String>> all2TrendsForParam = new ArrayList<>();
+      ArrayList<ArrayList<String>> all15TrendsForParam = new ArrayList<>();
 
       if (!paramMeans.containsKey(param) || hiddenCols.contains(param)) {
         continue;
@@ -1306,9 +1306,9 @@ public class RainbowTestGUI extends JFrame {
       double mean15 = (float) (mean * .15);
       double sd = paramSDs.get(param);
 
-      ArrayList<String> trend1 = new ArrayList<String>();
-      ArrayList<String> trend2 = new ArrayList<String>();
-      ArrayList<String> any15 = new ArrayList<String>();
+      ArrayList<String> trend1 = new ArrayList<>();
+      ArrayList<String> trend2 = new ArrayList<>();
+      ArrayList<String> any15 = new ArrayList<>();
       for (String f : compFileList) {
         double paramValue = fileParamMeanMap.get(f).get(param);
 
@@ -1323,11 +1323,11 @@ public class RainbowTestGUI extends JFrame {
               all2TrendsForParam.add(trend2);
             }
           } else {
-            trend2 = new ArrayList<String>();
+            trend2 = new ArrayList<>();
           }
         } else {
-          trend1 = new ArrayList<String>();
-          trend2 = new ArrayList<String>();
+          trend1 = new ArrayList<>();
+          trend2 = new ArrayList<>();
         }
         if (paramValue < mean - mean15 || paramValue > mean + mean15) {
           any15.add(f);
@@ -1348,7 +1348,7 @@ public class RainbowTestGUI extends JFrame {
                    new ArrayList[] {all1TrendsForParam, all2TrendsForParam, all15TrendsForParam});
     }
 
-    ArrayList<String> trendWarnings = new ArrayList<String>();
+    ArrayList<String> trendWarnings = new ArrayList<>();
 
     for (Entry<String, ArrayList<ArrayList<String>>[]> entry : trendMap.entrySet()) {
 
@@ -1444,7 +1444,7 @@ public class RainbowTestGUI extends JFrame {
   // }
 
   private void checkWarnings(String[] params) {
-    final ArrayList<String> warnings = new ArrayList<String>();
+    final ArrayList<String> warnings = new ArrayList<>();
 
     warnings.addAll(check(params));
     warnings.addAll(getFileTrendWarnings(params));
@@ -1500,15 +1500,15 @@ public class RainbowTestGUI extends JFrame {
     String[] params;
     Date runDate;
     String gateFileApplied;
-    HashMap<String, Double> paramMeans = new HashMap<String, Double>();
-    HashMap<String, Double> paramSDs = new HashMap<String, Double>();
-    HashMap<String, Double> paramCVs = new HashMap<String, Double>();
+    HashMap<String, Double> paramMeans = new HashMap<>();
+    HashMap<String, Double> paramSDs = new HashMap<>();
+    HashMap<String, Double> paramCVs = new HashMap<>();
   }
 
-  private HashMap<String, CacheObject> cache = new HashMap<String, RainbowTestGUI.CacheObject>();
+  private HashMap<String, CacheObject> cache = new HashMap<>();
 
   private void addBaseToModel(String[] paramNames) {
-    TreeMap<Date, ArrayList<String>> map = new TreeMap<Date, ArrayList<String>>();
+    TreeMap<Date, ArrayList<String>> map = new TreeMap<>();
 
     for (String f : baseFCSFiles) {
       Date runDate;
@@ -1519,7 +1519,7 @@ public class RainbowTestGUI extends JFrame {
       }
       ArrayList<String> fls = map.get(runDate);
       if (fls == null) {
-        fls = new ArrayList<String>();
+        fls = new ArrayList<>();
         map.put(runDate, fls);
       }
       fls.add(f);
@@ -1610,7 +1610,7 @@ public class RainbowTestGUI extends JFrame {
     }
   }
 
-  private ArrayList<String> compFileList = new ArrayList<String>();
+  private ArrayList<String> compFileList = new ArrayList<>();
 
   private void addFilesToModel(List<String> files, String[] paramNames, String removePrep) {
     // int colCnt = dtmMean.getColumnCount();
@@ -1624,7 +1624,7 @@ public class RainbowTestGUI extends JFrame {
     // boldRows.add(rows);
     // rows++;
 
-    compFileList = new ArrayList<String>();
+    compFileList = new ArrayList<>();
     for (String f : files) {
       compFileList.add(f);
       fileParamMeanMap.put(f, new HashMap<String, Double>());

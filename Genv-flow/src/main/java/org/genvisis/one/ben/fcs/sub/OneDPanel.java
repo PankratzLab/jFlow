@@ -103,9 +103,9 @@ public class OneDPanel extends AbstractPanel2 {
   String[][] dataLabels;
   String plotLabel;
 
-  HashMap<String, int[][]> regressionLimits = new HashMap<String, int[][]>();
-  HashMap<String, ArrayList<String>> locallyDroppedPoints = new HashMap<String, ArrayList<String>>();
-  HashSet<String> globallyDroppedPoints = new HashSet<String>();
+  HashMap<String, int[][]> regressionLimits = new HashMap<>();
+  HashMap<String, ArrayList<String>> locallyDroppedPoints = new HashMap<>();
+  HashSet<String> globallyDroppedPoints = new HashSet<>();
 
   public void setShowMean15Line(boolean showMean15Line) {
     this.showMean15Line = showMean15Line;
@@ -202,8 +202,8 @@ public class OneDPanel extends AbstractPanel2 {
       numPoints += dataArr.length;
     }
     points = new PlotPoint[numPoints];
-    ArrayList<GenericLine> lineList = new ArrayList<GenericLine>();
-    ArrayList<GenericRectangle> rects = new ArrayList<GenericRectangle>();
+    ArrayList<GenericLine> lineList = new ArrayList<>();
+    ArrayList<GenericRectangle> rects = new ArrayList<>();
 
     int ind = 0;
     // int lInd = 0;
@@ -345,8 +345,8 @@ public class OneDPanel extends AbstractPanel2 {
 
   private void generateBoxPlot() {
     // points for any data above/below wiskLow/wiskHigh
-    ArrayList<GenericLine> lns = new ArrayList<GenericLine>();
-    ArrayList<PlotPoint> pts = new ArrayList<PlotPoint>();
+    ArrayList<GenericLine> lns = new ArrayList<>();
+    ArrayList<PlotPoint> pts = new ArrayList<>();
 
     double xMin = Double.MAX_VALUE, xMax = Double.MIN_VALUE;
     double min = Double.MAX_VALUE, max = Double.MIN_VALUE;

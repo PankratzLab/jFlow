@@ -31,7 +31,7 @@ public class Workbench {
 
   public Workbench() {
     templateGating = new Gating();
-    samples = new HashMap<String, Workbench.SampleNode>();
+    samples = new HashMap<>();
   }
 
   public Set<String> getAllSamples() {
