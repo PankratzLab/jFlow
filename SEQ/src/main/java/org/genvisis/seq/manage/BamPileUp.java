@@ -200,20 +200,18 @@ public class BamPileUp implements Iterator<BamPile> {
     private Segment nextBin;
     private final Logger log;
     private final Segment samRecordSeg;
-    private final SAMRecord samRecord;
 
     public BamPileInitializer(int binSize, Segment previousBin, SAMRecord samRecord, Logger log) {
       super();
       this.binSize = binSize;
       this.previousBin = previousBin;
-      this.samRecord = samRecord;
       this.log = log;
       samRecordSeg = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
       nextBin = samRecordSeg.overlaps(previousBin) ? getNextBin(previousBin, binSize)
-                                                   : scanToNext();
+                                                   : scanToNext(samRecord);
     }
 
-    private Segment scanToNext() {
+    private Segment scanToNext(SAMRecord samRecord) {
       if (samRecordSeg.getChr() > 0) {
         if (previousBin.getChr() != samRecordSeg.getChr()) {
           previousBin = new Segment(samRecordSeg.getChr(), 1, 1 + binSize);
@@ -311,7 +309,7 @@ public class BamPileUp implements Iterator<BamPile> {
     public TmpBamPile call() throws Exception {
       overlaps = samRecordSegment.overlaps(bamPile.getBin());
       if (overlaps) {
-        bamPile.addRecord(samRecord, null, filterNGS.getPhreadScoreFilter(), log);
+        bamPile.addRecordAtomic(samRecord, null, filterNGS.getPhreadScoreFilter(), log);
       } else {
         bamPile.summarize();
       }

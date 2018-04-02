@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.qc.FilterNGS;
@@ -69,7 +69,7 @@ public class BamSegPileUp {
     this.aName = aName;
     this.log = log;
     referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
-    bamPileMap = Maps.newHashMap();
+    bamPileMap = Maps.newConcurrentMap();
     bamPileArray = new BamPile[intervals.length];
 
     for (Segment i : intervals) {
@@ -83,8 +83,8 @@ public class BamSegPileUp {
     }
     createPileMap();
     this.queryIntervals = queryIntervals;
-    this.segsPiled = Sets.newHashSetWithExpectedSize(intervals.length);
-    this.refSequences = Maps.newHashMap();
+    this.segsPiled = Sets.newConcurrentHashSet();
+    this.refSequences = Maps.newConcurrentMap();
     this.filterNGS = filterNGS;
     filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
   }
@@ -129,14 +129,14 @@ public class BamSegPileUp {
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
          CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(queryIntervals)) {
       log.report("Iterating through reads for " + bam);
-      int readsProcessed = 0;
-      while (samRecordIterator.hasNext()) {
+      AtomicInteger readsProcessed = new AtomicInteger(0);
+      samRecordIterator.stream().parallel().forEach((samRecord) -> {
         process(samRecordIterator.next());
-        readsProcessed++;
-        if (readsProcessed % 10000000 == 0) {
-          log.report("Processed " + readsProcessed + " reads for " + bam);
+        int read;
+        if ((read = readsProcessed.incrementAndGet()) % 10000000 == 0) {
+          log.report("Processed " + read + " reads for " + bam);
         }
-      }
+      });
       log.report("Finalizing bam piles for " + bam);
       summarizeAndFinalize();
       return bamPileArray;
@@ -154,30 +154,31 @@ public class BamSegPileUp {
         chrRangeMap = ImmutableRangeMap.of();
         bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
-      Collection<BamPile> overlappingPiles = chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(),
-                                                                                  samRecordSegment.getStop()))
-                                                        .asMapOfRanges().values().stream()
-                                                        .flatMap(Collection::stream)
-                                                        .collect(Collectors.toSet());
-      for (BamPile bamPile : overlappingPiles) {
-        Segment cs = bamPile.getBin();
-        boolean overlaps = samRecordSegment.overlaps(cs);
-        if (!overlaps) {
-          String error = "non overlapping record returned for query";
-          log.reportError(error);
-          throw new IllegalStateException(error);
-        } else {
-          bamPile.addRecord(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
-                            log);
-        }
-        if (segsPiled.add(cs) && segsPiled.size() % 10000 == 0) {
-          log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
-                             + " for " + bam);
-          log.memoryUsed();
-          log.memoryTotal();
-          log.memoryMax();
-        }
-      }
+      chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
+                 .asMapOfRanges().values().stream().flatMap(Collection::stream)
+                 .forEach((bamPile) -> {
+                   addRecordToPile(bamPile, samRecordSegment, samRecord);
+                 });
+    }
+  }
+
+  private void addRecordToPile(BamPile bamPile, Segment samRecordSegment, SAMRecord samRecord) {
+    Segment cs = bamPile.getBin();
+    boolean overlaps = samRecordSegment.overlaps(cs);
+    if (!overlaps) {
+      String error = "non overlapping record returned for query";
+      log.reportError(error);
+      throw new IllegalStateException(error);
+    } else {
+      bamPile.addRecordAtomic(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
+                              log);
+    }
+    if (segsPiled.add(cs) && segsPiled.size() % 10000 == 0) {
+      log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
+                         + " for " + bam);
+      log.memoryUsed();
+      log.memoryTotal();
+      log.memoryMax();
     }
   }
 
@@ -233,51 +234,25 @@ public class BamSegPileUp {
     }
 
   }
-  /**
-   * @author Kitty Callable for threading pileups across bam files
-   */
-  public static class PileUpWorker implements Callable<BamPileResult> {
 
-    private final String bamFile;
-    private final ASSEMBLY_NAME aName;
-    private final String serDir;
-    private final Logger log;
-    private final Segment[] pileSegs;
-    private final FilterNGS filterNGS;
-    private final String referenceGenomeFasta;
-    private final QueryInterval[] queryIntervals;
-
-    public PileUpWorker(String bamFile, String serDir, String referenceGenomeFasta,
-                        Segment[] pileSegs, QueryInterval[] qi, FilterNGS filterNGS,
-                        ASSEMBLY_NAME aName, Logger log) {
-      super();
-      this.bamFile = bamFile;
-      this.aName = aName;
-      this.serDir = serDir;
-      this.referenceGenomeFasta = referenceGenomeFasta;
-      this.pileSegs = pileSegs;
-      this.filterNGS = filterNGS;
-      this.log = log;
-      this.queryIntervals = qi;
-    }
-
-    @Override
-    public BamPileResult call() throws Exception {
-      String ser = serDir + ext.rootOf(bamFile) + ".ser";
-      if (!Files.exists(ser)) {
-        BamOps.verifyIndex(bamFile, log);
-        BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs,
-                                                     queryIntervals, filterNGS, aName, log);
-        BamPile[] bamPilesFinal = bamSegPileUp.pileup();
-        int numMiss = 0;
-        for (BamPile element : bamPilesFinal) {
-          numMiss += element.getNumBasesWithMismatch();
-        }
-        log.reportTimeInfo(bamFile + " had " + numMiss + " mismatched bases");
-        BamPile.writeSerial(bamPilesFinal, ser);
+  public static BamPileResult processBamFile(String bamFile, String serDir,
+                                             String referenceGenomeFasta, Segment[] pileSegs,
+                                             QueryInterval[] qi, FilterNGS filterNGS,
+                                             ASSEMBLY_NAME aName, Logger log) throws Exception {
+    String ser = serDir + ext.rootOf(bamFile) + ".ser";
+    if (!Files.exists(ser)) {
+      BamOps.verifyIndex(bamFile, log);
+      BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs, qi,
+                                                   filterNGS, aName, log);
+      BamPile[] bamPilesFinal = bamSegPileUp.pileup();
+      int numMiss = 0;
+      for (BamPile element : bamPilesFinal) {
+        numMiss += element.getNumBasesWithMismatch();
       }
-      return new BamPileResult(bamFile, ser);
+      log.reportTimeInfo(bamFile + " had " + numMiss + " mismatched bases");
+      BamPile.writeSerial(bamPilesFinal, ser);
     }
+    return new BamPileResult(bamFile, ser);
   }
 
   public static class PileupProducer extends AbstractProducer<BamPileResult> {
@@ -350,11 +325,16 @@ public class BamSegPileUp {
 
     @Override
     public Callable<BamPileResult> next() {
-      PileUpWorker worker = new PileUpWorker(bamFiles[index], serDir, referenceGenomeFasta,
-                                             pileSegs, qiMap.get(bamFiles[index]), filterNGS, aName,
-                                             log);
+      final String bamFile = bamFiles[index];
       index++;
-      return worker;
+      return new Callable<BamSegPileUp.BamPileResult>() {
+
+        @Override
+        public BamPileResult call() throws Exception {
+          return BamSegPileUp.processBamFile(bamFile, serDir, referenceGenomeFasta, pileSegs,
+                                             qiMap.get(bamFile), filterNGS, aName, log);
+        }
+      };
     }
 
     @Override
