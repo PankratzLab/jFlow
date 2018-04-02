@@ -3,6 +3,8 @@ package org.genvisis.seq.manage;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import javax.annotation.Nonnull;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
@@ -14,6 +16,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.AtomicDoubleArray;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -43,14 +46,8 @@ public class BamPile extends Segment implements Serializable {
   }
 
   private final Segment bin;
-  private final int[] counts;
   private String refAllele;
-  private int numBasesOverlap;
-  private int numBasesWithMismatch;
-  private int numOverlappingReads;
 
-  private final double[] avgMapQ;
-  private final double[] avgPhread;
   private double overallAvgMapQ;
   private double overallAvgDepth;
 
@@ -69,32 +66,38 @@ public class BamPile extends Segment implements Serializable {
     return header;
   }
 
+  private final AtomicInteger numOverlappingReads_A;
+  private final AtomicInteger numBasesOverlap_A;
+  private final AtomicInteger numBasesWithMismatch_A;
+  private final AtomicIntegerArray counts_A;
+  private final AtomicDoubleArray avgMapQ_A;
+  private final AtomicDoubleArray avgPhread_A;
+
   public BamPile(Segment bin) {
     super(bin.getChr(), bin.getStart(), bin.getStop());
     this.bin = bin;
-    counts = new int[Base.values().length]; // Indexed by Base ordinals
-    avgMapQ = new double[counts.length];
-    avgPhread = new double[counts.length];
+    counts_A = new AtomicIntegerArray(Base.values().length);
+    avgMapQ_A = new AtomicDoubleArray(counts_A.length());
+    avgPhread_A = new AtomicDoubleArray(counts_A.length());
+    numOverlappingReads_A = new AtomicInteger(0);
+    numBasesOverlap_A = new AtomicInteger(0);
+    numBasesWithMismatch_A = new AtomicInteger(0);
     overallAvgMapQ = 0;
     overallAvgDepth = 0;
     refAllele = "NA";
-    numBasesOverlap = 0;
-    numBasesWithMismatch = 0;
-    numOverlappingReads = 0;
-
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Arrays.hashCode(avgMapQ);
-    result = prime * result + Arrays.hashCode(avgPhread);
+    result = prime * result + avgMapQ_A.hashCode();
+    result = prime * result + avgPhread_A.hashCode();
     result = prime * result + ((bin == null) ? 0 : bin.hashCode());
-    result = prime * result + Arrays.hashCode(counts);
-    result = prime * result + numBasesOverlap;
-    result = prime * result + numBasesWithMismatch;
-    result = prime * result + numOverlappingReads;
+    result = prime * result + counts_A.hashCode();
+    result = prime * result + numBasesOverlap_A.hashCode();
+    result = prime * result + numBasesWithMismatch_A.hashCode();
+    result = prime * result + numOverlappingReads_A.hashCode();
     long temp;
     temp = Double.doubleToLongBits(overallAvgDepth);
     result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -104,21 +107,43 @@ public class BamPile extends Segment implements Serializable {
     return result;
   }
 
+  private static boolean eq(AtomicDoubleArray a, AtomicDoubleArray b) {
+    if (a == null && b == null) return true;
+    if (a == null && b != null) return false;
+    if (a != null && b == null) return false;
+    if (a.length() != b.length()) return false;
+    for (int i = 0; i < a.length(); i++) {
+      if (a.get(i) != b.get(i)) return false;
+    }
+    return true;
+  }
+
+  private static boolean eq(AtomicIntegerArray a, AtomicIntegerArray b) {
+    if (a == null && b == null) return true;
+    if (a == null && b != null) return false;
+    if (a != null && b == null) return false;
+    if (a.length() != b.length()) return false;
+    for (int i = 0; i < a.length(); i++) {
+      if (a.get(i) != b.get(i)) return false;
+    }
+    return true;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
     if (getClass() != obj.getClass()) return false;
     BamPile other = (BamPile) obj;
-    if (!Arrays.equals(avgMapQ, other.avgMapQ)) return false;
-    if (!Arrays.equals(avgPhread, other.avgPhread)) return false;
+    if (!eq(avgMapQ_A, other.avgMapQ_A)) return false;
+    if (!eq(avgPhread_A, other.avgPhread_A)) return false;
     if (bin == null) {
       if (other.bin != null) return false;
     } else if (!bin.equals(other.bin)) return false;
-    if (!Arrays.equals(counts, other.counts)) return false;
-    if (numBasesOverlap != other.numBasesOverlap) return false;
-    if (numBasesWithMismatch != other.numBasesWithMismatch) return false;
-    if (numOverlappingReads != other.numOverlappingReads) return false;
+    if (!eq(counts_A, other.counts_A)) return false;
+    if (numBasesOverlap_A.get() != other.numBasesOverlap_A.get()) return false;
+    if (numBasesWithMismatch_A.get() != other.numBasesWithMismatch_A.get()) return false;
+    if (numOverlappingReads_A.get() != other.numOverlappingReads_A.get()) return false;
     if (Double.doubleToLongBits(overallAvgDepth) != Double.doubleToLongBits(other.overallAvgDepth)) return false;
     if (Double.doubleToLongBits(overallAvgMapQ) != Double.doubleToLongBits(other.overallAvgMapQ)) return false;
     if (refAllele == null) {
@@ -127,31 +152,20 @@ public class BamPile extends Segment implements Serializable {
     return true;
   }
 
-  public double[] getAvgMapQ() {
-    return avgMapQ;
-  }
-
-  /**
-   * @return int[] of base counts, indexed by ordinal of {@link Base}
-   */
-  public int[] getCounts() {
-    return counts;
-  }
-
   /**
    * @param base
    * @return count of given base
    */
   public int getBaseCount(@Nonnull Base base) {
-    return counts[base.ordinal()];
+    return counts_A.get(base.ordinal());
   }
 
   public int getNumBasesOverlap() {
-    return numBasesOverlap;
+    return numBasesOverlap_A.get();
   }
 
   public int getNumBasesWithMismatch() {
-    return numBasesWithMismatch;
+    return numBasesWithMismatch_A.get();
   }
 
   public int getTotalDepth(boolean includeIndels, boolean includeNs) {
@@ -164,12 +178,16 @@ public class BamPile extends Segment implements Serializable {
       indelmask[Base.N.ordinal()] = false;
     }
 
-    return ArrayUtils.sum(ArrayUtils.subArray(counts, indelmask));
-
+    int sum = 0;
+    for (int i = 0; i < indelmask.length; i++) {
+      if (indelmask[i]) {
+        sum += counts_A.get(i);
+      }
+    }
+    return sum;
   }
 
   public void setReference(ReferenceGenome referenceGenome) {
-
     String[] ref = referenceGenome.getSequenceFor(bin);
     refAllele = ref[0];
     if (ref.length > 1) {
@@ -193,12 +211,20 @@ public class BamPile extends Segment implements Serializable {
     out += "\t" + numAlt;
     out += "\t" + getPropRef(log);
     out += "\t" + getPropAlt(log);
-    for (int i = 0; i < counts.length; i++) {
-      out += "\t" + counts[i];
+    for (int i = 0; i < counts_A.length(); i++) {
+      out += "\t" + counts_A.get(i);
     }
-    out += "\t" + ArrayUtils.toStr(avgMapQ);
-    out += "\t" + ArrayUtils.toStr(avgPhread);
+    out += "\t" + toStr(avgMapQ_A);
+    out += "\t" + toStr(avgPhread_A);
     return out;
+  }
+
+  private String toStr(AtomicDoubleArray arr) {
+    StringBuilder sb = new StringBuilder(Double.toString(arr.get(0)));
+    for (int i = 1; i < arr.length(); i++) {
+      sb.append("\t").append(arr.get(i));
+    }
+    return sb.toString();
   }
 
   public double getPropRef(Logger log) {
@@ -229,7 +255,16 @@ public class BamPile extends Segment implements Serializable {
                       + ArrayUtils.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
 
     }
-    return ArrayUtils.subArray(counts, referenceMask);
+
+    int cnt = 0;
+    int[] altArray = new int[ArrayUtils.booleanArraySum(referenceMask)];
+    for (int i = 0; i < referenceMask.length; i++) {
+      if (referenceMask[i]) {
+        altArray[cnt++] = counts_A.get(i);
+      }
+    }
+
+    return altArray;
   }
 
   public int getNumAlt(Logger log) {
@@ -252,7 +287,13 @@ public class BamPile extends Segment implements Serializable {
     if (ArrayUtils.booleanArraySum(referenceMask) != 1) {
       log.reportError("Invalid number of reference allele possibilities");
     }
-    return (ArrayUtils.sum(ArrayUtils.subArray(counts, referenceMask)));
+    int sum = 0;
+    for (int i = 0; i < referenceMask.length; i++) {
+      if (referenceMask[i]) {
+        sum += counts_A.get(i);
+      }
+    }
+    return sum;
   }
 
   public boolean hasAltAllele(Logger log) {
@@ -260,22 +301,21 @@ public class BamPile extends Segment implements Serializable {
   }
 
   public void summarize() {
-
     int totalDepth = 0;
     double mapQ = 0;
     // TODO count deletions and insertions here?
     for (Base base : NUCLEOTIDES) {
-      totalDepth += counts[base.ordinal()];
-      mapQ += avgMapQ[base.ordinal()];
+      totalDepth += counts_A.get(base.ordinal());
+      mapQ += avgMapQ_A.get(base.ordinal());
     }
     overallAvgDepth = (double) totalDepth / bin.getSize();
     if (totalDepth > 0) {
       overallAvgMapQ = mapQ / totalDepth;
     }
-    for (int i = 0; i < counts.length; i++) {
-      if (counts[i] > 0) {
-        avgMapQ[i] = avgMapQ[i] / counts[i];
-        avgPhread[i] = avgPhread[i] / counts[i];
+    for (int i = 0; i < counts_A.length(); i++) {
+      if (counts_A.get(i) > 0) {
+        avgMapQ_A.set(i, avgMapQ_A.get(i) / counts_A.get(i));
+        avgPhread_A.set(i, avgPhread_A.get(i) / counts_A.get(i));
       }
     }
   }
@@ -293,11 +333,11 @@ public class BamPile extends Segment implements Serializable {
   }
 
   public int getNumOverlappingReads() {
-    return numOverlappingReads;
+    return numOverlappingReads_A.get();
   }
 
-  public void addRecord(SAMRecord samRecord, String[] refMatchedSegment, double phredFilter,
-                        Logger log) {
+  public void addRecordAtomic(SAMRecord samRecord, String[] refMatchedSegment, double phredFilter,
+                              Logger log) {
     Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
     String[] ref = refMatchedSegment;
     Segment toPile = bin.getIntersection(samRecordSegment, log);
@@ -311,14 +351,13 @@ public class BamPile extends Segment implements Serializable {
       String r = samRecord.getReadString();
       double[] p = SamRecordOps.getReadPhred(samRecord);
       // double[] p = new double[r.length()];
-      numOverlappingReads++;
+      numOverlappingReads_A.incrementAndGet();
       int curRefBase = samRecord.getAlignmentStart();
       int curReadBase = 0;
       List<CigarElement> cigarEls = samRecord.getCigar().getCigarElements();
       for (CigarElement cigarEl : cigarEls) {
         if (curRefBase > toPile.getStop()) {
           break;
-
         }
         CigarOperator op = cigarEl.getOperator();
         for (int i = 0; i < cigarEl.getLength(); i++) {
@@ -335,29 +374,35 @@ public class BamPile extends Segment implements Serializable {
 
           if (op.consumesReadBases() && op.consumesReferenceBases()) {
             if (base != null) {
-              addRegBase(base, mapQ, p[curReadBase], log);
-              numBasesOverlap++;// we only count aligned bases
+              addRegBaseAtomic(base, mapQ, p[curReadBase], log);
+              numBasesOverlap_A.incrementAndGet();// we only count aligned bases
               if (ref != null && !base.equals(ref[curRefBase - bin.getStart()])) {
-                numBasesWithMismatch++;
+                numBasesWithMismatch_A.incrementAndGet();
               }
             }
             curRefBase++;
             curReadBase++;
           } else if (op.consumesReadBases()) {
             if (base != null) {
-              addIns(mapQ, p[curReadBase]);
+              addInsAtomic(mapQ, p[curReadBase]);
             }
             curReadBase++;
           } else if (op.consumesReferenceBases()) {
             if (base != null) {
-              addDel(mapQ, p[curReadBase]);
+              addDelAtomic(mapQ, p[curReadBase]);
             }
             curRefBase++;
           }
         }
       }
 
-      if (numBasesWithMismatch > numBasesOverlap) {
+      // TODO concurrency may cause issues here:
+      int currMis, currOver;
+      synchronized (this) {
+        currMis = numBasesWithMismatch_A.get();
+        currOver = numBasesOverlap_A.get();
+      }
+      if (currMis > currOver) {
         String error = "Internal Error: Found more reads with mismatching bases than total reads";
         log.reportError(error);
         throw new IllegalStateException(error);
@@ -365,25 +410,24 @@ public class BamPile extends Segment implements Serializable {
     }
   }
 
-  private void addDel(int mapQ, double p) {
-    counts[Base.DEL.ordinal()]++;
-    avgPhread[Base.DEL.ordinal()] += p;
-    avgMapQ[Base.DEL.ordinal()] += mapQ;
+  private void addDelAtomic(int mapQ, double p) {
+    counts_A.addAndGet(Base.DEL.ordinal(), 1);
+    avgPhread_A.addAndGet(Base.DEL.ordinal(), p);
+    avgMapQ_A.addAndGet(Base.DEL.ordinal(), mapQ);
   }
 
-  private void addIns(int mapQ, double p) {
-    counts[Base.INS.ordinal()]++;
-    avgPhread[Base.INS.ordinal()] += p;
-    avgMapQ[Base.INS.ordinal()] += mapQ;
+  private void addInsAtomic(int mapQ, double p) {
+    avgPhread_A.addAndGet(Base.INS.ordinal(), p);
+    avgMapQ_A.addAndGet(Base.INS.ordinal(), mapQ);
   }
 
-  private void addRegBase(String b, int mapQ, double p, Logger log) {
+  private void addRegBaseAtomic(String b, int mapQ, double p, Logger log) {
     Optional<Base> base = Enums.getIfPresent(Base.class, b);
     if (base.isPresent() && NUCLEOTIDES.contains(base.get())) {
       int i = base.get().ordinal();
-      counts[i]++;
-      avgPhread[i] += p;
-      avgMapQ[i] += mapQ;
+      counts_A.addAndGet(i, 1);
+      avgPhread_A.addAndGet(i, p);
+      avgMapQ_A.addAndGet(i, mapQ);
     } else {
       String error = "Invalid base " + b + " for regular base tracking";
       log.reportError(error);

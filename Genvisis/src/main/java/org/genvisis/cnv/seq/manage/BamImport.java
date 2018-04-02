@@ -347,15 +347,7 @@ public class BamImport {
       Logger log = proj.getLog();
 
       String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
-      if (bamsToImport == null) {
-        if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
-          bamsToImport = Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(),
-                                             proj.SOURCE_FILENAME_EXTENSION.getValue());
-        } else {
-          bamsToImport = HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false,
-                                                       new int[] {0}, true);
-        }
-      }
+
       ReferenceGenome referenceGenome = new ReferenceGenome(refGenome, log);
       log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
       AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
@@ -1134,6 +1126,16 @@ public class BamImport {
 
   }
 
+  private static String[] getBamFiles(Project proj) {
+    if (Files.isDirectory(proj.SOURCE_DIRECTORY.getValue())) {
+      return Files.listFullPaths(proj.SOURCE_DIRECTORY.getValue(),
+                                 proj.SOURCE_FILENAME_EXTENSION.getValue());
+    } else {
+      return HashVec.loadFileToStringArray(proj.SOURCE_DIRECTORY.getValue(), false, new int[] {0},
+                                           true);
+    }
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename = null;
@@ -1224,7 +1226,7 @@ public class BamImport {
     try {
       Project proj = new Project(filename);
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-                               assayType, assembly, normMethod, null,
+                               assayType, assembly, normMethod, getBamFiles(proj),
                                proj.getReferenceGenomeFASTAFilename(), true, createSubsetVCF,
                                numthreads);
     } catch (Exception e) {
