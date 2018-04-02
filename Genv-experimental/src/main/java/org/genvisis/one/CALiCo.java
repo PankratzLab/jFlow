@@ -250,8 +250,8 @@ public class CALiCo {
 
     minimumPvalueHash = new Hashtable<>();
     markerPositionHash = new Hashtable<>(); // key=markerName, values=new int[]
-                                                        // {chr,position,position}
-                                                        // populate both hashtables
+                                           // {chr,position,position}
+                                           // populate both hashtables
     try {
       reader = new BufferedReader(new FileReader(resultDir + "cat_hits.txt"));
       while ((trav = reader.readLine()) != null) {

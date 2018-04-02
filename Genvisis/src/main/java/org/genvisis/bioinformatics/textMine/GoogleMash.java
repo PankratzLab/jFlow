@@ -78,8 +78,7 @@ public class GoogleMash implements Serializable {
   public void queryAll(int numThreads) {
     GQuery[] tmp = new GQuery[queries.length];
     QueryProducer producer = new QueryProducer(queries);
-    try (WorkerTrain<GQuery> train = new WorkerTrain<>(producer, numThreads,
-                                                                        numThreads, log)) {
+    try (WorkerTrain<GQuery> train = new WorkerTrain<>(producer, numThreads, numThreads, log)) {
       int index = 0;
       while (train.hasNext()) {
         tmp[index] = train.next();

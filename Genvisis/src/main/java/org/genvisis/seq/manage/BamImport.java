@@ -493,9 +493,8 @@ public class BamImport {
     Hashtable<String, Float> allOutliers = new Hashtable<>();
 
     try (WorkerTrain<BamPileConversionResults> conversionTrain = new WorkerTrain<>(conversionProducer,
-                                                                                                                     numthreads,
-                                                                                                                     10,
-                                                                                                                     log)) {
+                                                                                   numthreads, 10,
+                                                                                   log)) {
       int convIndex = 0;
       while (conversionTrain.hasNext()) {// normalize read counts
                                          // and dump to sampRAF,
@@ -575,10 +574,8 @@ public class BamImport {
     Hashtable<String, Float> recompallOutliers = new Hashtable<>();
     RecompileProducer producer = new RecompileProducer(proj, proj.getSamples(), newSampleDir,
                                                        proj.getMarkerSet(), correcteds);
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
-                                                                                                 numthreads,
-                                                                                                 10,
-                                                                                                 proj.getLog())) {
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer, numthreads, 10,
+                                                                         proj.getLog())) {
 
       while (train.hasNext()) {// consolidate the pc corrected
                                // projects back into a single

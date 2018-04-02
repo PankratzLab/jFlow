@@ -520,10 +520,8 @@ public class GcAdjustorParameter implements Serializable {
 
       GcAdjustorProducer producer = new GcAdjustorProducer(proj, compute, builders, gcModel,
                                                            samples, verbose, centroids, methods);
-      try (WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<>(producer,
-                                                                                                     numThreads,
-                                                                                                     2,
-                                                                                                     proj.getLog())) {
+      try (WorkerTrain<GcAdjustorParameter[][][]> train = new WorkerTrain<>(producer, numThreads, 2,
+                                                                            proj.getLog())) {
         int sampleIndex = 0;
 
         GcAdjustorParameter[][][][] finalParams = new GcAdjustorParameter[builders.length][centroids == null ? 1

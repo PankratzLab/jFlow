@@ -726,18 +726,18 @@ public class PrincipalComponentsResiduals implements Cloneable, Serializable {
     CrossValidation[][] crossValidations = new CrossValidation[numComponentsIter.length][];
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);// da pool of threads
     ArrayList<Future<CrossValidation[]>> tmpResults = new ArrayList<>();// stores
-                                                                                                 // the
-                                                                                                 // future
-                                                                                                 // CrossValidation[]
-                                                                                                 // that
-                                                                                                 // will
-                                                                                                 // be
-                                                                                                 // actualized
-                                                                                                 // once
-                                                                                                 // the
-                                                                                                 // thread
-                                                                                                 // has
-                                                                                                 // finished
+                                                                        // the
+                                                                        // future
+                                                                        // CrossValidation[]
+                                                                        // that
+                                                                        // will
+                                                                        // be
+                                                                        // actualized
+                                                                        // once
+                                                                        // the
+                                                                        // thread
+                                                                        // has
+                                                                        // finished
     for (int element : numComponentsIter) {// need to submit the jobs first
       WorkerPCThread worker = new WorkerPCThread(assesmentData,
                                                  prepPcs(trimPcBasis(Math.min(element,

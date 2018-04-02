@@ -158,9 +158,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     private void generatePON(int numThreads, int numSampleThreads) throws IllegalStateException {
       NormalProducer producer = new NormalProducer(gatk, normalSamples, ponDir, numSampleThreads,
                                                    log);
-      try (WorkerTrain<Mutect2Normal> train = new WorkerTrain<>(producer,
-                                                                                  numThreads, 2,
-                                                                                  log)) {
+      try (WorkerTrain<Mutect2Normal> train = new WorkerTrain<>(producer, numThreads, 2, log)) {
         ArrayList<String> vcfsToCombine = new ArrayList<>();
 
         while (train.hasNext()) {
@@ -332,9 +330,7 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     ArrayList<MutectTumorNormal> results = new ArrayList<>();
     ArrayList<String> finalTNnoFiltVCfs = new ArrayList<>();
     ArrayList<String> finalTNFiltVCFS = new ArrayList<>();
-    try (WorkerTrain<MutectTumorNormal> train = new WorkerTrain<>(mutect2,
-                                                                                        numThreads,
-                                                                                        2, log)) {
+    try (WorkerTrain<MutectTumorNormal> train = new WorkerTrain<>(mutect2, numThreads, 2, log)) {
       while (train.hasNext()) {
         MutectTumorNormal tmp = train.next();
         results.add(tmp);

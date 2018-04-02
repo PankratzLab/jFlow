@@ -296,8 +296,7 @@ public class Zip {
     files = Files.list(dirin, null);
     if (numThreads > 1) {
       GzipProducer producer = new GzipProducer(Files.toFullPaths(files, dirin), dirout, log);
-      try (WorkerTrain<Boolean> train = new WorkerTrain<>(producer, numThreads, numThreads,
-                                                                 log)) {
+      try (WorkerTrain<Boolean> train = new WorkerTrain<>(producer, numThreads, numThreads, log)) {
         int index = 0;
         while (train.hasNext()) {
           if (!train.next()) {

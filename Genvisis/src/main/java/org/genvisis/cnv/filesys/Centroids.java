@@ -531,10 +531,8 @@ public class Centroids implements Serializable, TextExport {
     samples = proj.getSamples();
     Hashtable<String, Float> outliers = new Hashtable<>();
     RecomputeProducer producer = new RecomputeProducer(proj, samples, centroids, preserveBafs);
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
-                                                                                                 numThreads,
-                                                                                                 10,
-                                                                                                 proj.getLog())) {
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer, numThreads, 10,
+                                                                         proj.getLog())) {
       while (train.hasNext()) {
         Hashtable<String, Float> currentOutliers = train.next();
         outliers.putAll(currentOutliers);

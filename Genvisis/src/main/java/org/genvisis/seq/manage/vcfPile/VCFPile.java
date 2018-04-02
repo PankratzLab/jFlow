@@ -49,7 +49,7 @@ public class VCFPile<T extends Segment> implements Iterator<PiledVcfRegion<T>> {
   @Override
   public PiledVcfRegion<T> next() {
     PiledVcfRegion<T> pRegion = new PiledVcfRegion<>(rIteratorVCF.getCurrentIndex(),
-                                                      referenceGenome, samplesTopile);
+                                                     referenceGenome, samplesTopile);
     VariantContext[] vcs = rIteratorVCF.next();
     for (VariantContext vc : vcs) {
       pRegion.addVariantContext(vc, log);

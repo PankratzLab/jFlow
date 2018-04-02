@@ -345,8 +345,7 @@ public class GCTA {
         fidIID.add(sampleData.lookup(sample)[1]);
       }
 
-      WorkerHive<VarianceResult> hive = new WorkerHive<>(numThreads, 10,
-                                                                            proj.getLog());
+      WorkerHive<VarianceResult> hive = new WorkerHive<>(numThreads, 10, proj.getLog());
       for (int i = 0; i < Math.min(125, parser.getNumericDataTitles().length); i++) {
         final String current = parser.getNumericDataTitles()[i];
         ArrayList<String> pheno = new ArrayList<>();

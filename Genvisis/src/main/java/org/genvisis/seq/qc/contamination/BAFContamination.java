@@ -328,10 +328,8 @@ public class BAFContamination {
       String output = proj.PROJECT_DIRECTORY.getValue() + "contamination.txt";
       ContaminationProducer producer = new ContaminationProducer(proj, pfbs, callRates,
                                                                  proj.getSamples());
-      try (WorkerTrain<BAFContaminationResults> train = new WorkerTrain<>(producer,
-                                                                                                                  numThreads,
-                                                                                                                  1,
-                                                                                                                  proj.getLog());
+      try (WorkerTrain<BAFContaminationResults> train = new WorkerTrain<>(producer, numThreads, 1,
+                                                                          proj.getLog());
            PrintWriter writer = Files.openAppropriateWriter(output)) {
 
         writer.println("Sample\tLRR_SD\tBAF1585_SD\tAB_callrate\tAA_STDEV\tBB_STDEV\tContamBeta");

@@ -361,8 +361,7 @@ public class CushingCnvs {
     String[] cnvRemoveFiles = ArrayUtils.toStringArray(cnvFreqFiles);
     double[] controlFreqFilter = new double[] {0.01, 0.05, 1.1};
     double[] confs = new double[] {10, 20, 0};
-    WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<>(6, 10,
-                                                                                   proj.getLog());
+    WorkerHive<LocusSet<PlinkEmpSeg>> hive = new WorkerHive<>(6, 10, proj.getLog());
 
     if (proj != null) {
       for (String cnvRemoveFile : cnvRemoveFiles) {
@@ -437,7 +436,7 @@ public class CushingCnvs {
       }
     }
     Mappability<CNVariant> cnMappability = new Mappability<>(cLocusSet, mappabilityFile,
-                                                                      callSubsetBed, log);
+                                                             callSubsetBed, log);
     cnMappability.computeMappability();
 
     String output = ext.rootOf(cnvFile, false) + ".qc.summary.txt";

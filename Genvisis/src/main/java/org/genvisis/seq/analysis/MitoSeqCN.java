@@ -101,10 +101,8 @@ public class MitoSeqCN {
 
         ArrayList<MitoCNResult> results = new ArrayList<>();
 
-        try (WorkerTrain<MitoCNResult> train = new WorkerTrain<>(producer,
-                                                                                       numthreads,
-                                                                                       numthreads,
-                                                                                       log);
+        try (WorkerTrain<MitoCNResult> train = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                                 log);
              PrintWriter writer = Files.openAppropriateWriter(output)) {
           writer.println(ArrayUtils.toStr(MitoCNResult.header));
           while (train.hasNext()) {

@@ -112,9 +112,9 @@ public class Mosaicism {
                                                                chrBoundaries, markerSet,
                                                                indicesByChr);
       try (WorkerTrain<String[]> train = new WorkerTrain<>(producer,
-                                                                   numthreads > 0 ? numthreads
-                                                                                  : proj.NUM_THREADS.getValue(),
-                                                                   2, proj.getLog())) {
+                                                           numthreads > 0 ? numthreads
+                                                                          : proj.NUM_THREADS.getValue(),
+                                                           2, proj.getLog())) {
         int index = 0;
         long timePer = System.currentTimeMillis();
         long time = System.currentTimeMillis();

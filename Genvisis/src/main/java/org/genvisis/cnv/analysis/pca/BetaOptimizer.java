@@ -445,9 +445,9 @@ public class BetaOptimizer {
     }
     log.reportTimeInfo(filtered.size() + " markers remaining post QC");
     GeneralHitWindowDetector<MetaBeta> hitWindowDetector = new GeneralHitWindowDetector<>(filtered,
-                                                                                                  125000,
-                                                                                                  pval,
-                                                                                                  pval);
+                                                                                          125000,
+                                                                                          pval,
+                                                                                          pval);
     ArrayList<MetaBeta> windows = new ArrayList<>();
     while (hitWindowDetector.hasNext()) {
       List<MetaBeta> index = hitWindowDetector.next().getIndexHits();
@@ -584,9 +584,9 @@ public class BetaOptimizer {
                                                                    filterGenoResultSecondary.sampleDef,
                                                                    current, parser, maxPCs, 0, log);
                           try (WorkerTrain<BetaCorrelationResult[]> train = new WorkerTrain<>(producer,
-                                                                                                                                   numthreads,
-                                                                                                                                   10,
-                                                                                                                                   log)) {
+                                                                                              numthreads,
+                                                                                              10,
+                                                                                              log)) {
                             while (train.hasNext()) {
                               BetaCorrelationResult[] results = train.next();
                               String method = "_" + oType;

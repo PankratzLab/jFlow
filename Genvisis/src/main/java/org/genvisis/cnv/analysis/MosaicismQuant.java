@@ -290,9 +290,7 @@ public class MosaicismQuant implements Calcfc {
     public void load(int numThreads) {
       if (!loaded) {
         load();
-        WorkerHive<SampleMosiacBase> hive = new WorkerHive<>(numThreads,
-                                                                                            10,
-                                                                                            getProj().getLog());
+        WorkerHive<SampleMosiacBase> hive = new WorkerHive<>(numThreads, 10, getProj().getLog());
         for (SampleMosiacBase control2 : controls) {
           hive.addCallable(control2);
         }
@@ -823,10 +821,8 @@ public class MosaicismQuant implements Calcfc {
       LocusSet<Segment> set = referenceGenome.getBins(bpWindow);
       MosaicQuantProducer mProducer = new MosaicQuantProducer(proj, proj.getSamples(), set,
                                                               MOSAIC_TYPE.values(), numControls);
-      try (WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<>(mProducer,
-                                                                                                          numThreads,
-                                                                                                          1,
-                                                                                                          proj.getLog());
+      try (WorkerTrain<MosaicQuantResults[]> train = new WorkerTrain<>(mProducer, numThreads, 1,
+                                                                       proj.getLog());
            PrintWriter writer = Files.openAppropriateWriter(out)) {
         writer.print("Sample");
         for (int i = 0; i < set.getLoci().length; i++) {

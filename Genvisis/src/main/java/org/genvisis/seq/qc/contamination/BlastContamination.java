@@ -160,10 +160,8 @@ public class BlastContamination {
                                               int blastWordSize, int reportWordSize, Logger log) {
     BlastFastaq bFastaq = new BlastFastaq(fastaq, numReads, fastaDb, blastWordSize, reportWordSize,
                                           numReadsPerThread, log);
-    try (WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<>(bFastaq,
-                                                                                           numSampThreads,
-                                                                                           10,
-                                                                                           log)) {
+    try (WorkerTrain<BlastResultsSummary[]> train = new WorkerTrain<>(bFastaq, numSampThreads, 10,
+                                                                      log)) {
       BlastContamination blastContamination = new BlastContamination(fastaDb, train, new Logger());
       blastContamination.runContam();
       return blastContamination;

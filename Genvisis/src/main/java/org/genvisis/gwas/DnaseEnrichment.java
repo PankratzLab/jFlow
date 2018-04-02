@@ -80,10 +80,10 @@ public class DnaseEnrichment {
   private static ArrayList<HashSet<String>> dhsregionsHashSetList; // global static variable to hold
                                                                   // DHS regions
   private static Hashtable<String, Integer> bedFileChrMapPartCount = new Hashtable<>(); // global
-                                                                                                      // static
-                                                                                                      // variable
-                                                                                                      // for
-                                                                                                      // ChrPositionMap
+                                                                                       // static
+                                                                                       // variable
+                                                                                       // for
+                                                                                       // ChrPositionMap
 
   /**
    * WorkerThreads which process different LD files and create ChrPositionMap concurrently

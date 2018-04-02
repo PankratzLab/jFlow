@@ -20,10 +20,8 @@ import org.genvisis.qsub.Qsub;
 
 public class Rscript {
 
-  public static final HashSet<String> R_INVALID_CHARS = new HashSet<>(Arrays.asList("-", "=",
-                                                                                          " ",
-                                                                                          "\\(",
-                                                                                          "\\)"));
+  public static final HashSet<String> R_INVALID_CHARS = new HashSet<>(Arrays.asList("-", "=", " ",
+                                                                                    "\\(", "\\)"));
   public static final String R_REPLACEMENT = ".";
   public static final String[] RSCRIPT_EXECS = {"/panfs/roc/itascasoft/R/3.3.3/bin/Rscript", // good
                                                 // for

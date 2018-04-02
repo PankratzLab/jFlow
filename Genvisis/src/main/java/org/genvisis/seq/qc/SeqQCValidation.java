@@ -248,9 +248,7 @@ public class SeqQCValidation {
                      + "SET\tAltDepth\tAltDepthRatio\tGQ\tVQSLOD\tDepth");
       SeqQCValidationProducer producer = new SeqQCValidationProducer(setSeqQCValidations,
                                                                      numVariantsToTest, 1, log);
-      try (WorkerTrain<SeqQCValidation> train = new WorkerTrain<>(producer,
-                                                                                 numthreads, 1,
-                                                                                 log)) {
+      try (WorkerTrain<SeqQCValidation> train = new WorkerTrain<>(producer, numthreads, 1, log)) {
         while (train.hasNext()) {
           SeqQCValidation tmp = train.next();
           DuplicateETwo[] dETwos = tmp.getSeqError().getdETwos();

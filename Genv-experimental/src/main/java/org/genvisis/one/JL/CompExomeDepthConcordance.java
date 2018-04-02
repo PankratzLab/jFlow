@@ -125,8 +125,8 @@ public class CompExomeDepthConcordance {
   private static void dumpAndSummarize(LocusSet<CNVariant> out, String outFile,
                                        String mappabilityFile, String callSubsetBed,
                                        String problematicRegionFIle, Logger log) {
-    Mappability<CNVariant> cnMappability = new Mappability<>(out, mappabilityFile,
-                                                                      callSubsetBed, log);
+    Mappability<CNVariant> cnMappability = new Mappability<>(out, mappabilityFile, callSubsetBed,
+                                                             log);
     cnMappability.computeMappability();
     LocusSet<Segment> pSet = LocusSet.loadSegmentSetFromFile(problematicRegionFIle, 0, 1, 2, 0,
                                                              true, true, 0, log);

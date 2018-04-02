@@ -197,8 +197,7 @@ public class HashVec {
   }
 
   public static Hashtable<String, Integer> loadToHashIndices(String[] list, Logger log) {
-    Hashtable<String, Integer> hash = new Hashtable<>((list == null ? 10
-                                                                                   : list.length));
+    Hashtable<String, Integer> hash = new Hashtable<>((list == null ? 10 : list.length));
 
     for (int i = 0; list != null && i < list.length; i++) {
       if (list[i] == null) {

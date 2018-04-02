@@ -167,8 +167,8 @@ public class GeneralHitWindowDetector<T extends Hittable> implements Iterator<Hi
           indexHits.add(hittables.get(minIndex));
         }
         currentWindow = new HitWindow<>(window, indexHits, hittables.get(startIndex),
-                                         hittables.get(stopIndex), numSig, numSuggestive,
-                                         stopIndex - startIndex + 1);
+                                        hittables.get(stopIndex), numSig, numSuggestive,
+                                        stopIndex - startIndex + 1);
 
         currentIndex = stopIndex + offset + 1;// +1 since this is not i
         return true;

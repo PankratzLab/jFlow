@@ -144,9 +144,7 @@ public class Adapter {
         tmps[i] = tmp;
       }
     }
-    WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<>(numThreads,
-                                                                                               10,
-                                                                                               log);
+    WorkerHive<Blast.BlastResultsSummary[]> hive = new WorkerHive<>(numThreads, 10, log);
     hive.addCallables(workers.toArray(new BlastWorker[workers.size()]));
     hive.setReportEvery(1);
     hive.execute(true);

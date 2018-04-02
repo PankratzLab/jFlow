@@ -589,9 +589,8 @@ public class BamOps {
     HashMap<String, String> matched = new HashMap<>();
     HashMap<String, String> bamSamples = new HashMap<>();
     SampleNameProducer producer = new SampleNameProducer(bams);
-    try (WorkerTrain<SampleNameExtractor> train = new WorkerTrain<>(producer,
-                                                                                       numThreads,
-                                                                                       10, log)) {
+    try (WorkerTrain<SampleNameExtractor> train = new WorkerTrain<>(producer, numThreads, 10,
+                                                                    log)) {
 
       while (train.hasNext()) {
         SampleNameExtractor ex = train.next();

@@ -568,26 +568,24 @@ public class Project implements PropertyChangeListener {
                                                                                 true, COPY.NO_COPY,
                                                                                 "", true, false);
   public EnumProperty<SOURCE_FILE_DELIMITERS> SOURCE_FILE_DELIMITER = new EnumProperty<>(this,
-                                                                                                               PropertyKeys.KEY_SOURCE_FILE_DELIMITER,
-                                                                                                               "",
-                                                                                                               GROUP.IMPORT,
-                                                                                                               false,
-                                                                                                               COPY.VALUE,
-                                                                                                               0,
-                                                                                                               SOURCE_FILE_DELIMITERS.class);
-  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<>(this, PropertyKeys.KEY_ARRAY_TYPE,
-                                                                  "", GROUP.IMPORT, false,
-                                                                  COPY.VALUE, 0, ARRAY.class);
+                                                                                         PropertyKeys.KEY_SOURCE_FILE_DELIMITER,
+                                                                                         "",
+                                                                                         GROUP.IMPORT,
+                                                                                         false,
+                                                                                         COPY.VALUE,
+                                                                                         0,
+                                                                                         SOURCE_FILE_DELIMITERS.class);
+  public EnumProperty<ARRAY> ARRAY_TYPE = new EnumProperty<>(this, PropertyKeys.KEY_ARRAY_TYPE, "",
+                                                             GROUP.IMPORT, false, COPY.VALUE, 0,
+                                                             ARRAY.class);
   public EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<>(this,
-                                                                                          PropertyKeys.KEY_GENOME_BUILD_VERSION,
-                                                                                          "The build version of the genome, options are "
-                                                                                                                                 + Arrays.asList(GENOME_BUILD.values())
-                                                                                                                                         .toString(),
-                                                                                          GROUP.IMPORT,
-                                                                                          false,
-                                                                                          COPY.VALUE,
-                                                                                          0,
-                                                                                          GENOME_BUILD.class);
+                                                                              PropertyKeys.KEY_GENOME_BUILD_VERSION,
+                                                                              "The build version of the genome, options are "
+                                                                                                                     + Arrays.asList(GENOME_BUILD.values())
+                                                                                                                             .toString(),
+                                                                              GROUP.IMPORT, false,
+                                                                              COPY.VALUE, 0,
+                                                                              GENOME_BUILD.class);
   public FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
                                                         "Last region file opened in Trailer",
                                                         GROUP.TRAILER, true, COPY.NO_COPY, "",

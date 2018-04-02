@@ -1401,8 +1401,7 @@ public class Sample implements Serializable {
         }
 
       }
-      WorkerHive<HashLoadResult> hive = new WorkerHive<>(numthreads, 10,
-                                                                       proj.getLog());
+      WorkerHive<HashLoadResult> hive = new WorkerHive<>(numthreads, 10, proj.getLog());
 
       for (int i = 0; i < proj.getSamples().length; i++) {
         final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i]

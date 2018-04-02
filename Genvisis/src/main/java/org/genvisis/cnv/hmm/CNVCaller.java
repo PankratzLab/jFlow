@@ -978,7 +978,7 @@ public class CNVCaller {
                                            minNumMarkers, minConf, numChrThreads, false,
                                            pManagementType, true);
     WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
-                                                                      proj.getLog());
+                                                         proj.getLog());
     return new CNVCallerIterator(train);
   }
 
@@ -1028,7 +1028,7 @@ public class CNVCaller {
                                            chrsToCall, markersToUse, centroids, minNumMarkers,
                                            minConf, numChrThreads, false, pManagementType, true);
     WorkerTrain<CNVCallResult> train = new WorkerTrain<>(producer, numSampleThreads, 2,
-                                                                      proj.getLog());
+                                                         proj.getLog());
     return new CNVCallerIterator(train);
   }
 

@@ -323,9 +323,7 @@ public class VCFImporter {
     String[] samples = VCFOps.getSamplesInFile(new VCFFileReader(new File(vcf), true));
 
     List<String[]> sampleChunks = ArrayUtils.splitUpArray(samples, numRounds, proj.getLog());
-    WorkerHive<ConversionResults> hive = new WorkerHive<>(numThreads,
-                                                                                       10,
-                                                                                       proj.getLog());
+    WorkerHive<ConversionResults> hive = new WorkerHive<>(numThreads, 10, proj.getLog());
     proj.SAMPLE_DIRECTORY.getValue(true, false);
     proj.MARKER_DATA_DIRECTORY.getValue(true, false);
     proj.DATA_DIRECTORY.getValue(true, false);
@@ -404,10 +402,8 @@ public class VCFImporter {
                                                                 PREPPED_SAMPLE_TYPE.NORMALIZED_GC_CORRECTED,
                                                                 gcModel);
       Hashtable<String, Float> allNewOutliers = new Hashtable<>();
-      try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(vPrepWorker,
-                                                                                                   numThreads,
-                                                                                                   0,
-                                                                                                   proj.getLog())) {
+      try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(vPrepWorker, numThreads,
+                                                                           0, proj.getLog())) {
 
         int index = 0;
         while (train.hasNext()) {

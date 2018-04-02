@@ -224,10 +224,8 @@ public class GCcorrectionIterator {
     format("LRR_MEAN", plotCombos);
     format("LRR_SD", plotCombos);
     IPloadProducer ipp = new IPloadProducer(finals, proj.getLog());
-    try (WorkerTrain<IterationParameters> train = new WorkerTrain<>(ipp,
-                                                                                                            numthreads,
-                                                                                                            2,
-                                                                                                            proj.getLog())) {
+    try (WorkerTrain<IterationParameters> train = new WorkerTrain<>(ipp, numthreads, 2,
+                                                                    proj.getLog())) {
       if (!Files.exists(outputGZ)) {
         String[] withoutCent = ArrayUtils.tagOn(specificHeader, null, "");
         String[] withCent = ArrayUtils.tagOn(specificHeader, null, CENT_TAG);

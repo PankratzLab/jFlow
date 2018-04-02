@@ -222,8 +222,7 @@ public class PlinkSeq implements Serializable {
     workers.add(generateAWorker(pseqProject, ANALYSIS_TYPES.V_SUMMARY, null, null, null, null, 0,
                                 "0", outputRoot, overwriteExisting, log));
     if (execute) {
-      WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<>(numThreads, 10,
-                                                                                     log);
+      WorkerHive<PlinkSeqWorker> assocHive = new WorkerHive<>(numThreads, 10, log);
       assocHive.addCallables(workers.toArray(new PlinkSeqWorker[workers.size()]));
       assocHive.execute(true);
       ArrayList<PlinkSeqWorker> complete = assocHive.getResults();

@@ -84,9 +84,7 @@ public class ExomeDepthRun {
                                                                  log);
     Hashtable<String, Float> allOutliers = new Hashtable<>();
     ExomeSample[] exomeSamples = new ExomeSample[eDepthAnalysis.length];
-    try (WorkerTrain<ExomeSample> train = new WorkerTrain<>(producer,
-                                                                                     numthreads, 10,
-                                                                                     log)) {
+    try (WorkerTrain<ExomeSample> train = new WorkerTrain<>(producer, numthreads, 10, log)) {
       int index = 0;
       while (train.hasNext()) {
         ExomeSample eSample = train.next();

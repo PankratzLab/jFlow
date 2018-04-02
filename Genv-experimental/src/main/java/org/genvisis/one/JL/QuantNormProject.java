@@ -38,10 +38,8 @@ public class QuantNormProject {
     numthreads = 7;
     Project projNorm = Project.prepareNewProject(proj, "quantNorm");
     QNormProducer producer = new QNormProducer(proj, projNorm, proj.getSamples());
-    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer,
-                                                                                                 numthreads,
-                                                                                                 2,
-                                                                                                 proj.getLog())) {
+    try (WorkerTrain<Hashtable<String, Float>> train = new WorkerTrain<>(producer, numthreads, 2,
+                                                                         proj.getLog())) {
       Hashtable<String, Float> outliers = new Hashtable<>();
       int index = 0;
       long time = System.currentTimeMillis();

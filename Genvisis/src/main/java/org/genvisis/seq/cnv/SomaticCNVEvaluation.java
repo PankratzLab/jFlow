@@ -109,10 +109,8 @@ public class SomaticCNVEvaluation {
     String outFile = outDir + ext.rootOf(cnvFile) + ".somaticEvals.txt";
     if (!Files.exists(outFile)) {
       System.exit(1);
-      try (WorkerTrain<TNCNV> train = new WorkerTrain<>(producer,
-                                                                                  numThreads,
-                                                                                  numThreads,
-                                                                                  proj.getLog());
+      try (WorkerTrain<TNCNV> train = new WorkerTrain<>(producer, numThreads, numThreads,
+                                                        proj.getLog());
            PrintWriter writer = Files.openAppropriateWriter(outFile)) {
         writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER) + "\t"
                        + ArrayUtils.toStr(SomaticEvaluation.HEADER));

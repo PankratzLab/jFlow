@@ -95,9 +95,8 @@ public class PennCNVPrep {
                                                                correctionType, sexStrategy);
       proj.getLog().reportTimeInfo("Using correction type " + correctionType);
       try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
-                                                                                                           numMarkerThreads,
-                                                                                                           10,
-                                                                                                           proj.getLog())) {
+                                                                               numMarkerThreads, 10,
+                                                                               proj.getLog())) {
         ArrayList<String> notCorrected = new ArrayList<>();
         MarkerDataStorage markerDataStorage = new MarkerDataStorage(markers.length);
         int index = 0;

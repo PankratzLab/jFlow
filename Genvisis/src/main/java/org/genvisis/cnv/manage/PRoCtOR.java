@@ -285,9 +285,8 @@ public class PRoCtOR {
                                                              numCorrectionThreads, 1, markers,
                                                              correctionType, sexStrategy);
     try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
-                                                                                                         numMarkerThreads,
-                                                                                                         10,
-                                                                                                         proj.getLog())) {
+                                                                             numMarkerThreads, 10,
+                                                                             proj.getLog())) {
       ArrayList<String> notCorrected = new ArrayList<>();
       int index = 0;
 

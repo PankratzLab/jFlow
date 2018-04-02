@@ -72,8 +72,7 @@ public class DeNovoMatic {
                                                               numThreads, log);
     String[] finalFilesToMerge = new String[resultsMerge.length];
 
-    WorkerHive<MergeFamResult> hive = new WorkerHive<>(numThreads, 10,
-                                                                                 log);
+    WorkerHive<MergeFamResult> hive = new WorkerHive<>(numThreads, 10, log);
     hive.addCallables(resultsMerge);
     hive.execute(true);
     ArrayList<MergeFamResult> resultsDenovo = hive.getResults();

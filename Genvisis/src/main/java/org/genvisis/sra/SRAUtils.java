@@ -126,8 +126,7 @@ public class SRAUtils {
     String bamDir = outDir + "bams/";
     new File(bamDir).mkdirs();
 
-    WorkerHive<SRAConversionResult> hive = new WorkerHive<>(threads, 10,
-                                                                                        log);
+    WorkerHive<SRAConversionResult> hive = new WorkerHive<>(threads, 10, log);
     for (String sraFile : sraFiles) {
       sraFile = sraFile.trim();
       hive.addCallable(new SRABamWorker(sraFile, bamDir + ext.rootOf(sraFile) + ".bam", log));

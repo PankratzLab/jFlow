@@ -76,10 +76,8 @@ public class CNVMosaic {
         MosaicProducer producer = new MosaicProducer(proj, builder,
                                                      ArrayUtils.toStringArray(samples), markerSet,
                                                      segs);
-        try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer,
-                                                                                                 numThreads,
-                                                                                                 2,
-                                                                                                 proj.getLog())) {
+        try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer, numThreads, 2,
+                                                                           proj.getLog())) {
           int index = 0;
           while (train.hasNext()) {
             index++;
@@ -156,9 +154,8 @@ public class CNVMosaic {
                                      + numCNVsRemoved + " cnvs");
         MosaicForceProducer producer = new MosaicForceProducer(proj, indSets);
         try (WorkerTrain<MosaicRegion[]> train = new WorkerTrain<>(producer,
-                                                                                 proj.NUM_THREADS.getValue(),
-                                                                                 2,
-                                                                                 proj.getLog())) {
+                                                                   proj.NUM_THREADS.getValue(), 2,
+                                                                   proj.getLog())) {
 
           try {
             PrintWriter writer = Files.openAppropriateWriter(output);

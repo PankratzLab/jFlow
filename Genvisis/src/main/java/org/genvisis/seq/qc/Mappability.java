@@ -55,7 +55,7 @@ public class Mappability<SEGMENT extends Segment> {
           log.reportTimeInfo(i + " of " + set.getLoci().length);
         }
         mappabilityResults.add(new MappabilityResult<>(mapReader, callSubsetReader,
-                                                              set.getLoci()[i], log));
+                                                       set.getLoci()[i], log));
       }
       mapReader.close();
     }
@@ -111,7 +111,7 @@ public class Mappability<SEGMENT extends Segment> {
     };
 
     Mappability<CNVariant> cnMappability = new Mappability<>(cLocusSet, mappabilityFile,
-                                                                      callSubsetBed, log);
+                                                             callSubsetBed, log);
     cnMappability.computeMappability();
     Hashtable<String, Integer> geneCounts = cnMappability.generateGeneCounts(gLocusSet);
     String outputRoot = ext.rootOf(cnvFile, false) + ".mappability.summary";

@@ -424,8 +424,7 @@ public class ForestPlot {
       }
     }
 
-    return markerReader == null || Thread.interrupted() ? new LinkedHashSet<>()
-                                                        : markerNames;
+    return markerReader == null || Thread.interrupted() ? new LinkedHashSet<>() : markerNames;
   }
 
   private void loadStudyData() throws InterruptedException, RuntimeException {

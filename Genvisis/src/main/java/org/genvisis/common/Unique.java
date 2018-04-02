@@ -82,7 +82,7 @@ public class Unique {
           if (count == 0
               && (double) (new File(filenames[i]).length()) / (double) temp.length() > 1000) {
             hash = new Hashtable<>((int) ((double) (new File(filenames[i]).length())
-                                                        / (double) temp.length() * 1.2));
+                                          / (double) temp.length() * 1.2));
           }
           line = temp.trim().split(delimiters[i]);
 

@@ -59,8 +59,7 @@ public class CaptureQC {
         }
       }
     }
-    LocusSet<BEDFeatureSeg> targetSet = new LocusSet<>(targets, true,
-                                                                                  log);
+    LocusSet<BEDFeatureSeg> targetSet = new LocusSet<>(targets, true, log);
     // for (int i = 0; i < geneNames.length; i++) {
 
     try {

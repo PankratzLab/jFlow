@@ -1920,10 +1920,8 @@ public class VCFOps {
     log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
     VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
     ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<>();
-    try (WorkerTrain<ChrSplitResults> train = new WorkerTrain<>(producer,
-                                                                                      numthreads,
-                                                                                      numthreads,
-                                                                                      log)) {
+    try (WorkerTrain<ChrSplitResults> train = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                                log)) {
       while (train.hasNext()) {
         ChrSplitResults tmp = train.next();
         if (onlyWithVariants) {

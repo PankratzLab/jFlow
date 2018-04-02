@@ -44,9 +44,7 @@ public class SummarizeOSTrioCoverage {
 
       ArrayList<String> famsNotFound = new ArrayList<>();
       SumFamProducer producer = new SumFamProducer(vpop, outDir, log, map);
-      try (WorkerTrain<FamSum> train = new WorkerTrain<>(producer,
-                                                                                       numThreads,
-                                                                                       2, log)) {
+      try (WorkerTrain<FamSum> train = new WorkerTrain<>(producer, numThreads, 2, log)) {
 
         int num = 0;
         ArrayList<FamSum> haveData = new ArrayList<>();

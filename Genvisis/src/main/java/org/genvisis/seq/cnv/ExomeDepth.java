@@ -626,10 +626,8 @@ public class ExomeDepth {
     ExomeDepthAnalysis[] eAnalysis = new ExomeDepthAnalysis[exomeDepth.getAnalysisBamFiles().length];
 
     ExomeDepthAnalysisProducer producer = new ExomeDepthAnalysisProducer(exomeDepth, log);
-    try (WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<>(producer,
-                                                                                                numthreads,
-                                                                                                numthreads,
-                                                                                                log)) {
+    try (WorkerTrain<ExomeDepthAnalysis> train = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                                   log)) {
       int index = 0;
       while (train.hasNext()) {
         eAnalysis[index] = train.next();

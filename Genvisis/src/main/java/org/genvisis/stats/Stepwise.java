@@ -169,9 +169,8 @@ public class Stepwise {
       if (numThreads > 1) {
         RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                              svdRegressionSwitch);
-        try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer,
-                                                                                   numThreads, 2,
-                                                                                   new Logger())) {
+        try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer, numThreads, 2,
+                                                                    new Logger())) {
           int index = 0;
           int currentSize = in.size() + 1;
 
@@ -450,9 +449,8 @@ public class Stepwise {
 
       RegressionProducer producer = new RegressionProducer(in, out, logistic, Ys, Xs, N,
                                                            svdRegressionSwitch);
-      try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer,
-                                                                                 numThreads, 2,
-                                                                                 new Logger())) {
+      try (WorkerTrain<RegressionModel> train = new WorkerTrain<>(producer, numThreads, 2,
+                                                                  new Logger())) {
         int index = 0;
 
         while (train.hasNext()) {

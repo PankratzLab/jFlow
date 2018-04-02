@@ -391,7 +391,7 @@ public class CnvBamQC {
 
     LocusSet<CNVariant> cnLocusSet = CNVariant.loadLocSet(cnvFile, log);
     Mappability<CNVariant> mappability = new Mappability<>(cnLocusSet, mappabilityFile,
-                                                                    callSubsetBed, log);
+                                                           callSubsetBed, log);
     String[] bamFiles = null;
     if (Files.isDirectory(bams)) {
       bamFiles = Files.listFullPaths(bams, ".bam");
@@ -408,8 +408,7 @@ public class CnvBamQC {
                                                  log);
 
     BamPile[][] bamPiles = new BamPile[bamFiles.length][];
-    try (WorkerTrain<BamPileResult> train = new WorkerTrain<>(producer, numThreads, 2,
-                                                                           log)) {
+    try (WorkerTrain<BamPileResult> train = new WorkerTrain<>(producer, numThreads, 2, log)) {
       int index = 0;
       while (train.hasNext()) {
         BamPile[] bPilesTmp = train.next().loadResults(log);

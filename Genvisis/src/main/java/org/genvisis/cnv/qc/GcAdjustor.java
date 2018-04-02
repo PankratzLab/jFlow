@@ -455,26 +455,26 @@ public class GcAdjustor {
       int[] positions = preparedMarkerSet.getPositions();
 
       ArrayList<Double> tmpRegressGcs = new ArrayList<>(3000);// usually around 3K, stores
-                                                                    // info for regression model
+                                                              // info for regression model
       ArrayList<Double> tmpRegressIntensity = new ArrayList<>(3000);// usually around 3K,
-                                                                          // stores info for
-                                                                          // regression model
+                                                                    // stores info for
+                                                                    // regression model
       ArrayList<Double> tmpFullGcs = new ArrayList<>(markers.length);// can't be more than
-                                                                           // this, stores data for
-                                                                           // full correction
+                                                                     // this, stores data for
+                                                                     // full correction
       ArrayList<Double> tmpFullIntensity = new ArrayList<>(markers.length);// can't be more
-                                                                                 // than this,
-                                                                                 // stores data for
-                                                                                 // full correction
+                                                                           // than this,
+                                                                           // stores data for
+                                                                           // full correction
       ArrayList<int[]> tmpQcIndices = new ArrayList<>(3000);// refers to the index matched
-                                                                 // gc/LRR values
+                                                            // gc/LRR values
       ArrayList<int[]> tmpchr11qcIndices = new ArrayList<>(3000);// refers to the index matched
-                                                                      // gc/LRR values on chromosome
-                                                                      // 11 only
+                                                                 // gc/LRR values on chromosome
+                                                                 // 11 only
       ArrayList<Integer> tmpCorrectedIndices = new ArrayList<>(markers.length);// refers to
-                                                                                      // all indices
-                                                                                      // we will
-                                                                                      // correct
+                                                                               // all indices
+                                                                               // we will
+                                                                               // correct
 
       int qcIndex = -1;
       int numPossibleBins = 0;
@@ -483,10 +483,10 @@ public class GcAdjustor {
         int currentBin = 0;
         ArrayList<Integer> tmpCurrentBin = new ArrayList<>(1000);
         ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<>(1000);// only used for
-                                                                             // chromosome 11...for
-                                                                             // defualt pennCNV
-                                                                             // behavior, and track
-                                                                             // even if not needed
+                                                                      // chromosome 11...for
+                                                                      // defualt pennCNV
+                                                                      // behavior, and track
+                                                                      // even if not needed
 
         for (int j = 0; j < indicesByChr[i].length; j++) {
 
@@ -815,16 +815,15 @@ public class GcAdjustor {
                                                        ArrayUtils.stdev(getGcs(), true));
         Color[] colors = ColorExt.generatRGBScale(numBins); // bin gc to 100 bins
         Hashtable<String, String> lookup = new Hashtable<>();// items associated with
-                                                                           // category
-                                                                           // (marker->PoorQualityCategory)
+                                                             // category
+                                                             // (marker->PoorQualityCategory)
         Hashtable<String, ColorItem<String>> manager = new Hashtable<>();
         for (int i = 0; i < gcs.length; i++) {
           int gcColorIndex = (int) Math.round(nd.cumulativeProbability(gcs[i]) * numBins - 1);
           gcColorIndex = Math.max(0, gcColorIndex);
           gcColorIndex = Math.min(numBins, gcColorIndex);
           lookup.put(markers[i], gcColorIndex + "");
-          manager.put(gcColorIndex + "",
-                      new ColorItem<>(gcColorIndex + "", colors[gcColorIndex]));
+          manager.put(gcColorIndex + "", new ColorItem<>(gcColorIndex + "", colors[gcColorIndex]));
         }
         colorManager = new ColorManager<String>(lookup, manager) {
 

@@ -1132,9 +1132,8 @@ public class CorrectionIterator implements Serializable {
     // producer.setSubsetDataHeritability(subsetDataHeritability);
     // }
 
-    try (WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<>(producer, numthreads,
-                                                                              numthreads,
-                                                                              proj.getLog())) {
+    try (WorkerTrain<IterSummary> summaryTrain = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                                   proj.getLog())) {
       while (summaryTrain.hasNext()) {
         IterSummary iterSummary = summaryTrain.next();
         RScatter[] rScattersTmp = iterSummary.getrScatters();

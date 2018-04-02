@@ -142,8 +142,8 @@ public class LocusSet<T extends Segment> implements Serializable {
         }
       }
     }
-    LocusSet<Segment> toReturn = new LocusSet<>(newLoci.toArray(new Segment[newLoci.size()]),
-                                                       true, log);
+    LocusSet<Segment> toReturn = new LocusSet<>(newLoci.toArray(new Segment[newLoci.size()]), true,
+                                                log);
     for (int i = 0; i < operateSet.getLoci().length; i++) {
       if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
         String error = "BUG: found overlapping loci from the removed set in the set to be returned";
@@ -160,8 +160,8 @@ public class LocusSet<T extends Segment> implements Serializable {
       buffered.add(element.getBufferedSegment(bpBuffer));
     }
 
-    LocusSet<Segment> bufSet = new LocusSet<>(buffered.toArray(new Segment[buffered.size()]),
-                                                     true, log);
+    LocusSet<Segment> bufSet = new LocusSet<>(buffered.toArray(new Segment[buffered.size()]), true,
+                                              log);
     return bufSet;
   }
 
@@ -220,8 +220,8 @@ public class LocusSet<T extends Segment> implements Serializable {
       if (verbose) {
         log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
       }
-      LocusSet<Segment> mergedSet = new LocusSet<>(merged.toArray(new Segment[merged.size()]),
-                                                          true, log);
+      LocusSet<Segment> mergedSet = new LocusSet<>(merged.toArray(new Segment[merged.size()]), true,
+                                                   log);
       return mergedSet;
     }
   }

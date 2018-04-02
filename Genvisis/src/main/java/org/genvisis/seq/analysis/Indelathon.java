@@ -83,9 +83,7 @@ public class Indelathon {
     SoftClipResultProducer producer = new SoftClipResultProducer(samps, sampSegs, matchedSamps,
                                                                  indelBamDir, log);
     ArrayList<SoftClipResult> results = new ArrayList<>();
-    try (WorkerTrain<SoftClipResult> train = new WorkerTrain<>(producer,
-                                                                                        numThreads,
-                                                                                        10, log)) {
+    try (WorkerTrain<SoftClipResult> train = new WorkerTrain<>(producer, numThreads, 10, log)) {
       while (train.hasNext()) {
         results.add(train.next());
       }

@@ -48,9 +48,8 @@ public class GcCorrection {
 
     GCProducer producer = new GCProducer(projOriginal, projCorrected, gcModel,
                                          !Files.exists(outliersSer));
-    try (WorkerTrain<GcCorrectedSample> train = new WorkerTrain<>(producer,
-                                                                                   numThreads, 2,
-                                                                                   projOriginal.getLog())) {
+    try (WorkerTrain<GcCorrectedSample> train = new WorkerTrain<>(producer, numThreads, 2,
+                                                                  projOriginal.getLog())) {
       Hashtable<String, Float> outliers = new Hashtable<>();
       String[] samples = projOriginal.getSamples();
       String firstSampleFile = projCorrected.SAMPLE_DIRECTORY.getValue() + samples[0]

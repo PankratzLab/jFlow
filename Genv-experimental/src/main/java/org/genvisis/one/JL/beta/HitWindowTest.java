@@ -46,9 +46,9 @@ public class HitWindowTest {
     // 0.00001 0.0001 500000
 
     GeneralHitWindowDetector<BasicHit> generalHitWindowDetector = new GeneralHitWindowDetector<>(hits,
-                                                                                                         500000,
-                                                                                                         0.0001,
-                                                                                                         0.00001);
+                                                                                                 500000,
+                                                                                                 0.0001,
+                                                                                                 0.00001);
     while (generalHitWindowDetector.hasNext()) {
       HitWindow<BasicHit> hit = generalHitWindowDetector.next();
       System.out.println(hit.toString());

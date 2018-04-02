@@ -152,7 +152,7 @@ public class MarkerGraphics {
       } else {
         // Smooth using a moving average
         BinnedMovingStatistic<Double> bma = new BinnedMovingStatistic<>(p.getMovingWindow(),
-                                                                              p.getMovingStat());
+                                                                        p.getMovingStat());
 
         // If pixel smoothing, each bin covers 1 X position
         // If marker smoothing, each bin covers 1 marker

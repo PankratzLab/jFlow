@@ -211,8 +211,7 @@ public class GATK_Genotyper {
         int[] actualWithinSampleThreads = optimizeThreads(inputBams.length, numBetweenSampleThreads,
                                                           numWithinSampleThreads, log);
         WorkerHive<GATK.SingleSampleHaplotypeCaller> hive = new WorkerHive<>(numBetweenSampleThreads,
-                                                                                                             10,
-                                                                                                             log);
+                                                                             10, log);
         WorkerSingleSampleAllSites[] workers = new WorkerSingleSampleAllSites[inputBams.length];
         for (int i = 0; i < inputBams.length; i++) {
           Logger altLog = new Logger(ext.rootOf(inputBams[i], false) + ".HC_ERC.log");

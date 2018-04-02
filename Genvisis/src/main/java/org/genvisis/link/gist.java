@@ -28,8 +28,7 @@ public class gist {
     PrintWriter writer;
     String[] line = null, alleles;
     String trav, prev, chrome = (chr < 10) ? "0" + chr : "" + chr;
-    Hashtable<String, String> gtypes = new Hashtable<>(),
-        npls = new Hashtable<>();
+    Hashtable<String, String> gtypes = new Hashtable<>(), npls = new Hashtable<>();
     boolean done;
     Vector<String> founders;
     double c1, c2, c3, n;

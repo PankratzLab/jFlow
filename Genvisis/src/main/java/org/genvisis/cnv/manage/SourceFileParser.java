@@ -888,7 +888,7 @@ public class SourceFileParser implements Runnable {
 
       int lines = Files.countLines(proj.SOURCE_DIRECTORY.getValue(false, true) + files[0], count);
       markerNameHash = new Hashtable<>(lines + (lines / 3) + 100); // calc to never
-                                                                                 // re-balance
+                                                                  // re-balance
       log.report(ext.getTime() + "]\tFound " + lines + " rows of data in the first file");
       while (reader.ready()) {
         PSF.checkInterrupted();
@@ -1215,10 +1215,8 @@ public class SourceFileParser implements Runnable {
                                                                    fingerprint, markerIndexMap,
                                                                    abLookup, renamedIDsHash,
                                                                    headers, log);
-      try (WorkerTrain<LongFormatParseResult> train = new WorkerTrain<>(producer,
-                                                                                                              numThreads,
-                                                                                                              10,
-                                                                                                              log)) {
+      try (WorkerTrain<LongFormatParseResult> train = new WorkerTrain<>(producer, numThreads, 10,
+                                                                        log)) {
         while (train.hasNext()) {
           LongFormatParseResult result = train.next();
           if (result.count == 0) {

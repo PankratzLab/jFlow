@@ -190,9 +190,7 @@ public class EMInitializer {
         }
       }
 
-      ret.add(new Pair<>(comps,
-                                                               new MultivariateNormalDistribution(means,
-                                                                                                  covars)));
+      ret.add(new Pair<>(comps, new MultivariateNormalDistribution(means, covars)));
     }
 
     MixtureMultivariateNormalDistribution mmnd = new MixtureMultivariateNormalDistribution(ret);

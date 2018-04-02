@@ -156,10 +156,8 @@ public class PlinkSeqMegs {
     ArrayList<PlinkSeqWorker> workers = new ArrayList<>();
     ImportProducer importer = new ImportProducer(vcfs, vpopFile, resourceDirectory, geneTrackFile,
                                                  keggPathwayFile, maf, loadLoc, log);
-    try (WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<>(importer,
-                                                                                                numthreads,
-                                                                                                numthreads,
-                                                                                                log)) {
+    try (WorkerTrain<PlinkSeqWorker[]> importTrain = new WorkerTrain<>(importer, numthreads,
+                                                                       numthreads, log)) {
       while (importTrain.hasNext()) {
         PlinkSeqWorker[] tmp = importTrain.next();
         for (PlinkSeqWorker element : tmp) {
@@ -169,10 +167,8 @@ public class PlinkSeqMegs {
     }
     PlinkSeqProducer producer = new PlinkSeqProducer(workers.toArray(new PlinkSeqWorker[workers.size()]),
                                                      log);
-    try (WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<>(producer,
-                                                                                      numthreads,
-                                                                                      numthreads,
-                                                                                      log)) {
+    try (WorkerTrain<PlinkSeqWorker> train = new WorkerTrain<>(producer, numthreads, numthreads,
+                                                               log)) {
       while (train.hasNext()) {
         train.next();
       }

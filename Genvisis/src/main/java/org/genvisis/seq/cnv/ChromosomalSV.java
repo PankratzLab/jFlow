@@ -31,7 +31,7 @@ public class ChromosomalSV {
     ChrResult[][][] allResults = new ChrResult[samples.length][][];
     Hashtable<String, ArrayList<Double>> summaryMedian = new Hashtable<>();
     try (WorkerTrain<ChrResult[][]> train = new WorkerTrain<>(producer, numthreads, 10,
-                                                                           proj.getLog())) {
+                                                              proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {
         allResults[index] = train.next();

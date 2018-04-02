@@ -128,8 +128,7 @@ public class ParkinAudit {
     String temp;
     Hashtable<String, Vector<String>> famIDs = new Hashtable<>();
     Hashtable<String, MutationCarrier> indData = new Hashtable<>();
-    Hashtable<String, String> diagnoses = new Hashtable<>(),
-        lods = new Hashtable<>();
+    Hashtable<String, String> diagnoses = new Hashtable<>(), lods = new Hashtable<>();
     ;
     Vector<String> inds = new Vector<>(), fams = new Vector<>(), members;
     CheckIDsAgainstDNAs idCheck = new CheckIDsAgainstDNAs();

@@ -780,10 +780,8 @@ public class CentroidCompute {
     String[] markers = proj.getMarkerNames();
     float[][][][] centroids = new float[builders.length][markers.length][][];
     CentroidProducer producer = new CentroidProducer(proj, markers, builders, numDecompressThreads);
-    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<>(producer,
-                                                                                   numCentThreads,
-                                                                                   10,
-                                                                                   proj.getLog())) {
+    try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<>(producer, numCentThreads, 10,
+                                                                  proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {
         CentroidCompute[] centroidCompute = train.next();
@@ -880,7 +878,7 @@ public class CentroidCompute {
     CentroidProducer producer = new CentroidProducer(proj, markers, new CentroidBuilder[] {builder},
                                                      2);
     try (WorkerTrain<CentroidCompute[]> train = new WorkerTrain<>(producer, 6, 100,
-                                                                                   proj.getLog())) {
+                                                                  proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {
         CentroidCompute[] centroidCompute = train.next();

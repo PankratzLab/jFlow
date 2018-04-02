@@ -203,9 +203,8 @@ public class ShadowRework {
                                                              sexStrategy);
     ArrayList<String> notCorrected = new ArrayList<>();
     try (WorkerTrain<PrincipalComponentsIntensity> train = new WorkerTrain<>(producer,
-                                                                                                         numMarkerThreads,
-                                                                                                         10,
-                                                                                                         proj.getLog())) {
+                                                                             numMarkerThreads, 10,
+                                                                             proj.getLog())) {
       int index = 0;
       while (train.hasNext()) {
         PrincipalComponentsIntensity principalComponentsIntensity = train.next();

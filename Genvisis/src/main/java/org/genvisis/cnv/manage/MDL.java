@@ -93,8 +93,7 @@ public class MDL implements Iterator<MarkerData> {
       e.printStackTrace();
     }
     currentFile = match.fileName;
-    decompTrain = new WorkerTrain<>(producer, numDecompressThreads, markerBuffer,
-                                              proj.getLog());
+    decompTrain = new WorkerTrain<>(producer, numDecompressThreads, markerBuffer, proj.getLog());
   }
 
   @Override

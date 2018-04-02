@@ -105,8 +105,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       new File(bamDir).mkdirs();
       String bam = bamDir + ext.rootOf(inputSRA) + ".bam";
       if (!Files.exists(bam)) {
-        WorkerHive<SRAConversionResult> hive = new WorkerHive<>(1, 10,
-                                                                                            log);
+        WorkerHive<SRAConversionResult> hive = new WorkerHive<>(1, 10, log);
         hive.addCallable(new SRABamWorker(inputSRA, bam, log));
         // String vdbcache = inputSRA + ".vdbcache";
         // if (!Files.exists(vdbcache) && sraSample.getPlatform() != PLATFORM.ABI_SOLID) {
