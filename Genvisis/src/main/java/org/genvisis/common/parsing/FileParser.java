@@ -591,8 +591,8 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return lines;
   }
 
-  public int parseToExcelWorkbook(XSSFSheet sheet, boolean writeHeader,
-                                  List<FileColumn<?>> outputOrder) {
+  public int parseToExcelSheet(XSSFSheet sheet, boolean writeHeader,
+                               List<FileColumn<?>> outputOrder) {
     int lines = 0;
 
     List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
@@ -604,7 +604,11 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
     if (writeHeader) {
       row = sheet.createRow(rowNum++);
-      cell = row.createCell(colNum++);
+
+      for (int i = 0, count = outputColumns.size(); i < count; i++) {
+        cell = row.createCell(colNum++);
+        cell.setCellValue(outputColumns.get(i).getHeader());
+      }
     }
 
     Iterator<DataLine> iter = iterator();
@@ -615,7 +619,16 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
       for (int i = 0, count = outputColumns.size(); i < count; i++) {
         cell = row.createCell(colNum++);
-        cell.setCellValue(line.getString(outputColumns.get(i)));
+        String val = line.getString(outputColumns.get(i));
+        try {
+          if (Double.isNaN(Double.parseDouble(val))) {
+            cell.setCellValue(val);
+          } else {
+            cell.setCellValue(Double.parseDouble(val));
+          }
+        } catch (NumberFormatException nfe) {
+          cell.setCellValue(val);
+        }
       }
 
       lines++;
