@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerSet;
@@ -387,7 +388,8 @@ public class TempFileTranspose {
     final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
     if (preSel != null) {
-      proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + threads);
+      proj.getLog()
+          .reportTime("Checked out " + preSel.length + "; expected (max) " + threads * 1000);
       HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
       for (String file : files) {
         String out = getTempFile(file);
@@ -395,15 +397,18 @@ public class TempFileTranspose {
         readerMap.put(out, new RandomAccessFile(out, "r"));
         markerCountMap.put(out, getMarkerCount(file));
       }
-      for (int t = 0; t < preSel.length; t++) {
-        final int ind = t;
+      AtomicInteger index = new AtomicInteger(0);
+      for (int t = 0; t < threads; t++) {
         Runnable run = () -> {
           String samp;
           try {
-            samp = preSel[ind];
-            processOneSAMPRAF(outliers, files, markerCountMap, numBytesPerSampleMarker,
-                              numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices, readerMap,
-                              samp);
+            int ind = -1;
+            while ((ind = index.getAndIncrement()) < preSel.length) {
+              samp = preSel[ind];
+              processOneSAMPRAF(outliers, files, markerCountMap, numBytesPerSampleMarker,
+                                numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices,
+                                readerMap, samp);
+            }
           } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -448,9 +453,7 @@ public class TempFileTranspose {
     byte[] outBytes = null;
     if (outs.size() > 0) {
       outBytes = Compression.objToBytes(outs);
-
       sampFile.write(Compression.intToBytes(outBytes.length));
-
     } else {
       sampFile.write(Compression.intToBytes(0));
     }
@@ -462,9 +465,9 @@ public class TempFileTranspose {
       long tO = System.nanoTime();
       String out = getTempFile(files[i]);
       buffer = new byte[numBytesPerSampleMarker * markerCountMap.get(out)];
-      synchronized (out) {
-        RandomAccessFile tpRAF = readerMap.get(out);
-        long seekL = sInd * (long) numBytesPerSample;
+      long seekL = sInd * (long) buffer.length;
+      RandomAccessFile tpRAF = readerMap.get(out);
+      synchronized (tpRAF) {
         if (tpRAF.getFilePointer() != seekL) {
           tpRAF.seek(seekL);
         }
