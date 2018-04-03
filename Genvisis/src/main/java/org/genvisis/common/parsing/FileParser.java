@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
@@ -585,6 +588,52 @@ public class FileParser implements Iterable<DataLine>, Closeable {
       }
       close();
     }
+    return lines;
+  }
+
+  public int parseToExcelSheet(XSSFSheet sheet, boolean writeHeader,
+                               List<FileColumn<?>> outputOrder) {
+    int lines = 0;
+
+    List<FileColumn<?>> outputColumns = buildOutputColumns(outputOrder);
+
+    int rowNum = 0;
+    int colNum = 0;
+    Row row;
+    Cell cell;
+
+    if (writeHeader) {
+      row = sheet.createRow(rowNum++);
+
+      for (int i = 0, count = outputColumns.size(); i < count; i++) {
+        cell = row.createCell(colNum++);
+        cell.setCellValue(outputColumns.get(i).getHeader());
+      }
+    }
+
+    Iterator<DataLine> iter = iterator();
+    while (iter.hasNext()) {
+      DataLine line = iter.next();
+      colNum = 0;
+      row = sheet.createRow(rowNum++);
+
+      for (int i = 0, count = outputColumns.size(); i < count; i++) {
+        cell = row.createCell(colNum++);
+        String val = line.getString(outputColumns.get(i));
+        try {
+          if (Double.isNaN(Double.parseDouble(val))) {
+            cell.setCellValue(val);
+          } else {
+            cell.setCellValue(Double.parseDouble(val));
+          }
+        } catch (NumberFormatException nfe) {
+          cell.setCellValue(val);
+        }
+      }
+
+      lines++;
+    }
+
     return lines;
   }
 
