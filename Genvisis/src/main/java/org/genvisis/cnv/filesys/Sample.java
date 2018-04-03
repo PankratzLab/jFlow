@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
+import org.genvisis.CLI;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
@@ -630,10 +631,44 @@ public class Sample implements Serializable {
     updateNullStatus();
   }
 
+  private String getMarkerString(int i, String markerName) {
+    StringBuilder sb;
+    sb = new StringBuilder(markerName == null ? "marker_" + i : markerName).append("\t");
+    sb.append(gcs != null && gcs.length > i ? gcs[i] : ".").append("\t");
+    sb.append(xs != null && xs.length > i ? xs[i] : ".").append("\t");
+    sb.append(ys != null && ys.length > i ? ys[i] : ".").append("\t");
+    sb.append(thetas != null && thetas.length > i ? thetas[i] : ".").append("\t");
+    sb.append(rs != null && rs.length > i ? rs[i] : ".").append("\t");
+    sb.append(lrrs != null && lrrs.length > i ? lrrs[i] : ".").append("\t");
+    sb.append(bafs != null && bafs.length > i ? bafs[i] : ".").append("\t");
+    sb.append(forwardGenotypes != null
+              && forwardGenotypes.length > i ? ALLELE_PAIRS[forwardGenotypes[i]] : ".")
+      .append("\t");
+    sb.append(abGenotypes != null
+              && abGenotypes.length > i ? (abGenotypes[i] == -1 ? "--" : AB_PAIRS[abGenotypes[i]])
+                                        : ".");
+
+    return sb.toString();
+  }
+
+  public void writeToOut(String[] markerNames) {
+    if (markerNames != null && markerNames.length != lrrs.length) {
+      System.err.println("Error - MarkerNames (n=" + markerNames.length
+                         + ") do not match up with the number of LRRs/BAFs/etc (n=" + lrrs.length
+                         + ")");
+      System.exit(1);
+    }
+    System.out.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes\tAB_Genotypes");
+    for (int i = 0; i < getDataLength(); i++) {
+      System.out.println(getMarkerString(i, markerNames == null ? null : markerNames[i]));
+    }
+
+  }
+
   public void writeToFile(String[] markerNames, String filename) {
     PrintWriter writer;
 
-    if (markerNames.length != lrrs.length) {
+    if (markerNames != null && markerNames.length != lrrs.length) {
       System.err.println("Error - MarkerNames (n=" + markerNames.length
                          + ") do not match up with the number of LRRs/BAFs/etc (n=" + lrrs.length
                          + ")");
@@ -642,24 +677,8 @@ public class Sample implements Serializable {
     try {
       writer = Files.openAppropriateWriter(filename);
       writer.println("SNP\tGC Score\tX\tY\tTheta\tR\tLRR\tBAF\tGenotypes\tAB_Genotypes");
-      StringBuilder sb;
-      for (int i = 0; i < markerNames.length; i++) {
-        sb = new StringBuilder(markerNames[i]).append("\t");
-        sb.append(gcs != null && gcs.length > i ? gcs[i] : ".").append("\t");
-        sb.append(xs != null && xs.length > i ? xs[i] : ".").append("\t");
-        sb.append(ys != null && ys.length > i ? ys[i] : ".").append("\t");
-        sb.append(thetas != null && thetas.length > i ? thetas[i] : ".").append("\t");
-        sb.append(rs != null && rs.length > i ? rs[i] : ".").append("\t");
-        sb.append(lrrs != null && lrrs.length > i ? lrrs[i] : ".").append("\t");
-        sb.append(bafs != null && bafs.length > i ? bafs[i] : ".").append("\t");
-        sb.append(forwardGenotypes != null
-                  && forwardGenotypes.length > i ? ALLELE_PAIRS[forwardGenotypes[i]] : ".")
-          .append("\t");
-        sb.append(abGenotypes != null
-                  && abGenotypes.length > i ? (abGenotypes[i] == -1 ? "--" : AB_PAIRS[abGenotypes[i]]) : ".");
-
-        writer.println(sb.toString());
-
+      for (int i = 0; i < getDataLength(); i++) {
+        writer.println(getMarkerString(i, markerNames == null ? null : markerNames[i]));
       }
       writer.close();
     } catch (Exception e) {
@@ -769,7 +788,7 @@ public class Sample implements Serializable {
     bytesPerSampleMarker = getNBytesPerSampleMarker();
     bytesRemained = getDataLength() * bytesPerSampleMarker;
     long time = new Date().getTime();
-    outOfRangeValuesEachSample = new Hashtable<>();
+    outOfRangeValuesEachSample = new Hashtable<String, Float>();
     try {
       rafFile = new RandomAccessFile(filename, "rw");
 
@@ -985,14 +1004,7 @@ public class Sample implements Serializable {
             xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[index],
                                                                      readBuffer[index + 1]});
             if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              if (outOfRangeValues == null || outOfRangeValues.size() == 0
-                  || !outOfRangeValues.containsKey(j + "\tx")) {
-                // slightly possible that the value of this lrr is /actually/ -32.677
-                System.err.println("Missing out-of-range LRR value; sample " + sampleName
-                                   + ", marker " + j);
-              } else {
-                xs[j] = outOfRangeValues.get(j + "\tx");
-              }
+              xs[j] = outOfRangeValues.get(j + "\tx");
             }
             index += bytesPerSampleMarker;
           }
@@ -1373,7 +1385,7 @@ public class Sample implements Serializable {
   @SuppressWarnings("unchecked")
   public static void verifyAndGenerateOutliers(Project proj, int numthreads, boolean verbose) {
     String outlierFileName = proj.SAMPLE_DIRECTORY.getValue() + "outliers.ser";
-    Hashtable<String, Float> outliers = new Hashtable<>();
+    Hashtable<String, Float> outliers = new Hashtable<String, Float>();
 
     if (Files.exists(outlierFileName)) {
       if (verbose) {
@@ -1401,7 +1413,8 @@ public class Sample implements Serializable {
         }
 
       }
-      WorkerHive<HashLoadResult> hive = new WorkerHive<>(numthreads, 10, proj.getLog());
+      WorkerHive<HashLoadResult> hive = new WorkerHive<HashLoadResult>(numthreads, 10,
+                                                                       proj.getLog());
 
       for (int i = 0; i < proj.getSamples().length; i++) {
         final String currentSampleRAF = proj.SAMPLE_DIRECTORY.getValue() + proj.getSamples()[i]
@@ -1492,21 +1505,24 @@ public class Sample implements Serializable {
   }
 
   public static void main(String[] args) {
-    Project proj = new Project(org.genvisis.cnv.Launch.getDefaultDebugProjectFile(true));
-    String[] samples = proj.getSamples();
-    Sample samp = proj.getFullSampleFromRandomAccessFile(samples[0]);
-    samp.writeToFile(proj.getMarkerNames(), "F:/sampleOut.dat");
+    CLI cli = new CLI(Sample.class);
 
-    //
-    // for (int i = 0; i<samples.length; i++) {
-    // samp = proj.getFullSampleFromRandomAccessFile(samples[i]);
-    // samp.compareCalculationsFile(proj, proj.getMarkerNames(),
-    // proj.getProjectDir()+samples[i]+"_comp.xln");
-    // }
+    cli.addArg("file", "SampRAF file");
+    cli.addArg("proj", "Project properties file", false);
+    cli.addFlag("out", "Write to standard out");
 
-    // tests
-    // testLoadTime(new Project("C:/workspace/Genvisis/projects/GEDI_exome.properties", false));
-    // System.out.println(Compression.bytesToLong(Compression.longToBytes(15351532491l), 0));
+    cli.parseWithExit(args);
+
+    Sample samp = Sample.loadFromRandomAccessFile(cli.get("file"), true, true, true, true, true);
+    Project proj = cli.has("proj") ? new Project(cli.get("proj")) : null;
+
+    if (cli.has("out")) {
+      samp.writeToOut(proj == null ? null : proj.getMarkerNames());
+    } else {
+      samp.writeToFile(proj == null ? null : proj.getMarkerNames(),
+                       (proj == null ? "./" : proj.PROJECT_DIRECTORY.getValue()) + cli.get("file")
+                                                                    + ".txt");
+    }
   }
 
 }
