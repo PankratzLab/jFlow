@@ -155,7 +155,7 @@ public class BamSegPileUp {
         bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
-                 .asMapOfRanges().values().stream().flatMap(Collection::stream)
+                 .asMapOfRanges().values().stream().flatMap(Collection::stream).parallel()
                  .forEach((bamPile) -> {
                    addRecordToPile(bamPile, samRecordSegment, samRecord);
                  });
