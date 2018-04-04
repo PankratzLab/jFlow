@@ -1148,6 +1148,8 @@ public class BamImport {
     ASSAY_TYPE assayType = ASSAY_TYPE.WXS;
     ASSEMBLY_NAME assembly = ASSEMBLY_NAME.HG19;
     NORMALIZATON_METHOD normMethod = NORMALIZATON_METHOD.GENOME;
+    String[] files = null;
+    String refFile = null;
     boolean createSubsetVCF = false;
     String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
     usage += "(1) filename (i.e. proj= (no default))\n" + "";
@@ -1213,6 +1215,12 @@ public class BamImport {
       } else if (arg.startsWith("-createSubsetVCF")) {
         createSubsetVCF = true;
         numArgs--;
+      } else if (arg.startsWith("list=")) {
+        files = HashVec.loadFileToStringArray(ext.parseStringArg(arg), false, new int[] {0}, false);
+        numArgs--;
+      } else if (arg.startsWith("ref=")) {
+        refFile = ext.parseStringArg(arg);
+        numArgs--;
       }
 
       else {
@@ -1225,10 +1233,19 @@ public class BamImport {
     }
     try {
       Project proj = new Project(filename);
+      if (assayType.equals(ASSAY_TYPE.WGS)) {
+        captureBed = null;
+        binBed = null;
+      }
+      if (proj.SOURCE_FILENAME_EXTENSION.getValue().equals(".cram")) {
+        System.setProperty("samjdk.reference_fasta",
+                           refFile == null ? proj.getReferenceGenomeFASTAFilename() : refFile);
+      }
       importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-                               assayType, assembly, normMethod, getBamFiles(proj),
-                               proj.getReferenceGenomeFASTAFilename(), true, createSubsetVCF,
-                               numthreads);
+                               assayType, assembly, normMethod,
+                               files == null ? getBamFiles(proj) : files,
+                               refFile == null ? proj.getReferenceGenomeFASTAFilename() : refFile,
+                               true, createSubsetVCF, numthreads);
     } catch (Exception e) {
       new Logger().reportException(e);
     }
