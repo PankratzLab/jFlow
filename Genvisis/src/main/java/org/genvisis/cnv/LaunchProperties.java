@@ -12,8 +12,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -35,6 +38,8 @@ public class LaunchProperties {
   private static String propertiesFile = defaultDir + "launch.properties";
 
   private static String customPropertiesDir = defaultDir;
+
+  private static final String PROJ_PROPERTIES_EXTENSION = ".properties";
 
   public static class LaunchKey {
 
@@ -76,7 +81,7 @@ public class LaunchProperties {
     public static LaunchKey DEBUG_PROJECT_FILENAME = new LaunchKey("DEBUG_PROJECT", false,
                                                                    "DEBUG_PROJECT_FILENAME");
     public static LaunchKey LAST_PROJECT_OPENED = new LaunchKey(Project.EXAMPLE_PROJ
-                                                                + ".properties", false,
+                                                                + PROJ_PROPERTIES_EXTENSION, false,
                                                                 "LAST_PROJECT_OPENED");
     public static LaunchKey RESOURCES_DIR = new LaunchKey("resources/", true, "RESOURCES_DIR");
 
@@ -87,6 +92,16 @@ public class LaunchProperties {
   }
 
   private static Properties props = null;
+
+  private static void initalizeExampleProject() {
+    String projName = "example";
+    if (!Files.exists(formProjectPropertiesFilename(projName))) {
+      Project proj = Project.initializeProject(projName);
+      proj.PROJECT_DIRECTORY.setValue("example/");
+      proj.SOURCE_DIRECTORY.setValue("sourceFiles/");
+      proj.saveProperties();
+    }
+  }
 
   /**
    * Ensure all properties are loaded, filling in default values if needed.
@@ -166,6 +181,7 @@ public class LaunchProperties {
         System.exit(-1);
       }
     }
+    initalizeExampleProject();
   }
 
   /**
@@ -244,22 +260,38 @@ public class LaunchProperties {
   }
 
   /**
-   * @return A list of the short name (no directory or {@code .properties}) for each known project.
+   * @return A list of the short name (no directory or {@value #PROJ_PROPERTIES_EXTENSION}) for each
+   *         known project.
    */
   public static String[] getListOfProjectNames() {
-    String[] projects = getListOfProjectProperties();
-    String[] projectNames = new String[projects == null ? 0 : projects.length];
-    for (int i = 0; i < projectNames.length; i++) {
-      projectNames[i] = ext.rootOf(projects[i], true);
-    }
-    return projectNames;
+    return projectNames().toArray(String[]::new);
   }
 
   /**
-   * @return An array of all known {@code *.properties} files.
+   * @return An array of all known project properties files.
    */
   public static String[] getListOfProjectProperties() {
-    return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), ".properties");
+    return Files.list(get(DefaultLaunchKeys.PROJECTS_DIR), PROJ_PROPERTIES_EXTENSION);
+  }
+
+  private static Stream<String> projectNames() {
+    return Arrays.stream(getListOfProjectProperties()).map(ext::rootOf);
+  }
+
+  /**
+   * @param name project name
+   * @return true if a project with that name already exists
+   */
+  public static boolean projectExists(@Nonnull String name) {
+    return projectNames().anyMatch(name::equals);
+  }
+
+  /**
+   * @param projName name of the project
+   * @return full path to project properties file for projName
+   */
+  public static String formProjectPropertiesFilename(String projName) {
+    return get(DefaultLaunchKeys.PROJECTS_DIR) + projName + PROJ_PROPERTIES_EXTENSION;
   }
 
   /**

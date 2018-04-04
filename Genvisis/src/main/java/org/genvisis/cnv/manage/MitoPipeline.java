@@ -68,7 +68,6 @@ public class MitoPipeline {
 
   public static final String DNA_LINKER = "DNA";
   public static final String PCA_SAMPLES_SUMMARY = ".samples.QC_Summary.txt";
-  public static final String PROJECT_EXT = ".properties";
   private static final String PCA_FINAL_REPORT = ".finalReport.txt";
   private static final String PC_MARKER_COMMAND = "PCmarkers=";
   private static final String MITO_MARKER_COMMAND = "mitochondrialMarkers=";
@@ -79,7 +78,6 @@ public class MitoPipeline {
   private static final long RECOMMENDED_MEMORY = 1000000000;
 
   private final String projectName;
-  private final String filename;
   private Project proj;
   private Logger log;
   private final String projectDirectory, sourceDirectory, dataExtension, defaultLRRSdFilter,
@@ -105,9 +103,7 @@ public class MitoPipeline {
                       String abLookup, String defaultLRRSdFilter, String defaultCallRateFilter,
                       String targetMarkers, String markerPositions, String medianMarkers,
                       String logfile) {
-    String path = initGenvisisProject();
     this.projectName = projectName;
-    filename = path + projectName + PROJECT_EXT;
     this.projectDirectory = projectDirectory;
     this.sourceDirectory = sourceDirectory;
     this.dataExtension = dataExtension;
@@ -120,9 +116,8 @@ public class MitoPipeline {
     this.medianMarkers = medianMarkers;
     log = new Logger(logfile);
     initProjectDir();
-    System.out.println(path);
     if (existingProj == null) {
-      initProject(path);
+      initProject();
     } else {
       proj = existingProj;
     }
@@ -137,59 +132,24 @@ public class MitoPipeline {
   }
 
   /**
-   * Sets up the location for projects
-   */
-  public static String initGenvisisProject() {
-    String launchPropertiesFile = LaunchProperties.propertiesFile();
-    // String path = LaunchProperties.directoryOfLaunchProperties();
-    String path = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
-    // if (!new File(path + "projects/").exists()) {
-    // new File(path + "projects/").mkdirs();
-    // }
-    if (!new File(path).exists()) {
-      new File(path).mkdirs();
-    }
-    if (!new File(launchPropertiesFile).exists()) {
-      new File(path + "example/").mkdirs();
-      Files.writeArray(new String[] {"LAST_PROJECT_OPENED=example.properties",
-                                     "PROJECTS_DIR=" + path},
-                       launchPropertiesFile);
-      if (!new File(path + "example.properties").exists()) {
-        Files.writeArray(new String[] {"PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
-                                       "SOURCE_DIRECTORY=sourceFiles/"},
-                         path + "example.properties");
-      }
-    }
-    return path;
-    // if (!new File(launchPropertiesFile).exists()) {
-    // new File(path + "example/").mkdirs();
-    // Files.writeList(new String[] { "LAST_PROJECT_OPENED=example.properties", "PROJECTS_DIR=" +
-    // path + "projects/" }, launchPropertiesFile);
-    // if (!new File(path + "projects/example.properties").exists()) {
-    // Files.writeList(new String[] { "PROJECT_NAME=Example", "PROJECT_DIRECTORY=example/",
-    // "SOURCE_DIRECTORY=sourceFiles/" }, path + "projects/example.properties");
-    // }
-    // }
-    // return path + "projects/";
-  }
-
-  /**
    * Copies the default project to the project directory if the desired fileName does not already
    * exist
    */
-  public void initProject(String path) {
-    if (Files.exists(filename)) {
-      Files.backup(ext.removeDirectoryInfo(filename), path, path + "backup/", false);
-      log.report("Using project file " + filename
+  public void initProject() {
+    String projFile = LaunchProperties.formProjectPropertiesFilename(projectName);
+    if (LaunchProperties.projectExists(projectName)) {
+      Files.backup(projFile, "", LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR) + "backup/",
+                   false);
+      log.report("Using project file " + projFile
                  + ", you may also specify project filename using the command line argument \"proj=\"");
     } else {
       // if (proj != null) {
       //
       // }
-      log.report("Project properties file can be found at " + filename);
-      Files.write("PROJECT_NAME=" + projectName, filename);
+      log.report("Project properties file can be found at " + projFile);
+      Files.write("PROJECT_NAME=" + projectName, projectName);
     }
-    proj = new Project(filename, null, false);
+    proj = Project.initializeProject(projectName);
   }
 
   public void initProjectDir() {
@@ -1165,7 +1125,6 @@ public class MitoPipeline {
         System.exit(1);
       }
 
-      initGenvisisProject();
       proj = null;
       if (filename == null) {
         proj = initializeProject(proj, projectName, projectDirectory, sourceDirectory,

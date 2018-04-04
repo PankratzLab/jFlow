@@ -28,9 +28,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
-import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
@@ -64,8 +64,6 @@ public class ImportProjectGUI extends JDialog {
   private static final String DEFAULT_PROJ_NAME = "New Project";
 
   volatile boolean cancelled = false;
-
-  private final String propertyFilePath = MitoPipeline.initGenvisisProject();
 
   private final Action fileSelectAction = new AbstractAction() {
 
@@ -360,7 +358,7 @@ public class ImportProjectGUI extends JDialog {
   private boolean checkProjectName() {
     String name = txtFldProjName.getText().trim();
     if (name.isEmpty() || DEFAULT_PROJ_NAME.equals(name) || name.length() > 23
-        || new File(propertyFilePath + name + MitoPipeline.PROJECT_EXT).exists()) {
+        || LaunchProperties.projectExists(name)) {
       JOptionPane.showMessageDialog(null,
                                     "Project name must be 1-23 characters in length, must not be \""
                                           + DEFAULT_PROJ_NAME
@@ -430,22 +428,16 @@ public class ImportProjectGUI extends JDialog {
 
   public String getNewProjectFilename() {
     String name = txtFldProjName.getText().trim();
-    String filename = propertyFilePath + name + MitoPipeline.PROJECT_EXT;
-    return filename;
+    return LaunchProperties.formProjectPropertiesFilename(name);
   }
 
   public boolean run() {
     String name = txtFldProjName.getText().trim();
-    String filename = propertyFilePath + name + MitoPipeline.PROJECT_EXT;
-    if (!checkProjectName() || Files.exists(filename)) {
+    if (!checkProjectName() || LaunchProperties.projectExists(name)) {
       return false;
-    } else {
-      Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
     }
-
     String projDir = txtFldProjDir.getText().trim();
-    Project actualProj = new Project(filename);
-    actualProj.PROJECT_NAME.setValue(name);
+    Project actualProj = Project.initializeProject(name);
     actualProj.PROJECT_DIRECTORY.setValue(projDir);
 
     Map<String, String> importProps = actualProj.loadImportMetaFile();

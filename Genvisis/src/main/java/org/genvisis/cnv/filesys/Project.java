@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -2132,6 +2133,21 @@ public class Project implements PropertyChangeListener {
   public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
     this.sourceFileHeaders = sourceFileHeaders;
     writeHeadersFile();
+  }
+
+  /**
+   * @param name project name
+   * @return Initialized {@link Project}
+   * @throws IllegalArgumentException if a {@link Project} with name already exists
+   */
+  public static Project initializeProject(String name) {
+    String filename = LaunchProperties.formProjectPropertiesFilename(name);
+    if (Files.exists(filename, true)) {
+      throw new IllegalArgumentException(filename + " already exists, cannot initialize project");
+    } else {
+      Files.write(PropertyKeys.KEY_PROJECT_NAME + "=" + name, filename);
+    }
+    return new Project(filename, null, false);
   }
 
   /**

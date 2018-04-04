@@ -2,7 +2,6 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -36,10 +35,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
-import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
 import net.miginfocom.swing.MigLayout;
@@ -471,6 +468,7 @@ public class ProjectCreationGUI extends JDialog {
 
       SwingUtilities.invokeLater(new Runnable() {
 
+        @Override
         public void run() {
           txtFldSrcExt.setText(srcExtFinal);
         }
@@ -573,7 +571,6 @@ public class ProjectCreationGUI extends JDialog {
       d.colYRaw = gui.getSelectedYRaw();
     }
 
-    String path = MitoPipeline.initGenvisisProject();
     File file = new File(projDir);
 
     Project dummy = new Project();
@@ -589,15 +586,12 @@ public class ProjectCreationGUI extends JDialog {
         return false;
       }
     }
-    String filename = path + name + MitoPipeline.PROJECT_EXT;
-    if (Files.exists(filename)) {
+    if (LaunchProperties.projectExists(name)) {
       dummy.getLog().reportError("Project " + name + " already exists");
       dummy.message("Error - Project " + name + " already exists");
       return false;
-    } else {
-      Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
     }
-    Project actualProj = new Project(filename);
+    Project actualProj = Project.initializeProject(name);
     actualProj.PROJECT_NAME.setValue(name);
     actualProj.PROJECT_DIRECTORY.setValue(projDir);
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
