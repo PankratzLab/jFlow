@@ -2270,6 +2270,8 @@ public class lab {
       FCSKeywords keys = FCSReader.readKeywords("F:\\Flow_stage2\\deident\\5287\\537f8aca-d776-4026-89a8-8b169998b4d4.fcs");
       System.out.println(keys.getRaw());
 
+      System.out.println();
+
       // runHRC();
       // QQPlot.main(new String[]
       // {"files=F:/CARDIA 2017/2nd round/results/plots/combined.results"});
