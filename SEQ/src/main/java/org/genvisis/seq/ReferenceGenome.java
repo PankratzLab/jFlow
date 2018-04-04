@@ -3,9 +3,9 @@ package org.genvisis.seq;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
@@ -58,7 +58,7 @@ public class ReferenceGenome {
    * @return
    */
   public LocusSet<Segment> getBins(int bpBinSize) {
-    List<Segment> bins = new ArrayList<>();
+    Set<Segment> bins = new LinkedHashSet<>();
     SAMSequenceDictionary samSequenceDictionary = indexedFastaSequenceFile.getSequenceDictionary();
     log.report(samSequenceDictionary.getSequences().size() + " contigs detected");
     for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {
