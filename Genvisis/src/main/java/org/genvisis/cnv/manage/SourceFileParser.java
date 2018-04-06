@@ -10,8 +10,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Callable;
@@ -101,7 +101,7 @@ public class SourceFileParser implements Runnable {
     byte[][] genotypes;
     boolean ignoreAB;
     Hashtable<String, Float> allOutliers;
-    HashMap<String, SourceFileHeaderData> headers;
+    Map<String, SourceFileHeaderData> headers;
     Logger log;
 
     log = proj.getLog();
@@ -1173,7 +1173,7 @@ public class SourceFileParser implements Runnable {
     char[][] abLookup;
     Hashtable<String, Float> allOutliers;
     Hashtable<String, String> renamedIDsHash;
-    HashMap<String, SourceFileHeaderData> headers;
+    Map<String, SourceFileHeaderData> headers;
     Logger log;
 
     log = proj.getLog();
@@ -1339,7 +1339,7 @@ public class SourceFileParser implements Runnable {
     private final Hashtable<String, Integer> markerIndexMap;
     private final char[][] abLookup;
     private final Hashtable<String, String> renamedIDsHash;
-    private final HashMap<String, SourceFileHeaderData> headers;
+    private final Map<String, SourceFileHeaderData> headers;
     private final Logger log;
     private int fileIndex;
 
@@ -1348,7 +1348,7 @@ public class SourceFileParser implements Runnable {
                                   String[] markerNames, long fingerprint,
                                   Hashtable<String, Integer> markerIndexMap, char[][] abLookup,
                                   Hashtable<String, String> renamedIDsHash,
-                                  HashMap<String, SourceFileHeaderData> headers, Logger log) {
+                                  Map<String, SourceFileHeaderData> headers, Logger log) {
       super();
       this.proj = proj;
       this.files = files;
@@ -1393,7 +1393,7 @@ public class SourceFileParser implements Runnable {
     private final Hashtable<String, Integer> markerIndexMap;
     private final char[][] abLookup;
     private final Hashtable<String, String> renamedIDsHash;
-    private final HashMap<String, SourceFileHeaderData> headers;
+    private final Map<String, SourceFileHeaderData> headers;
     private final Logger log;
     private final int fileIndex;
     private final int numFiles;
@@ -1403,7 +1403,7 @@ public class SourceFileParser implements Runnable {
                                 String[] markerNames, long fingerprint,
                                 Hashtable<String, Integer> markerIndexMap, char[][] abLookup,
                                 Hashtable<String, String> renamedIDsHash,
-                                HashMap<String, SourceFileHeaderData> headers, Logger log,
+                                Map<String, SourceFileHeaderData> headers, Logger log,
                                 int fileIndex, int numFiles) {
       super();
       this.proj = proj;
@@ -1458,7 +1458,7 @@ public class SourceFileParser implements Runnable {
                                                            Hashtable<String, Integer> markerIndexMap,
                                                            char[][] abLookup,
                                                            Hashtable<String, String> renamedIDsHash,
-                                                           HashMap<String, SourceFileHeaderData> headers,
+                                                           Map<String, SourceFileHeaderData> headers,
                                                            Logger log, int fileIndex,
                                                            int numFiles) throws Elision {
     // might have some variable scope issues, but we will see.

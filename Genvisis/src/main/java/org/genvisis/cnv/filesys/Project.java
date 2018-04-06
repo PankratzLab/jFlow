@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -597,7 +598,7 @@ public class Project implements PropertyChangeListener {
   private Reference<SampleList> sampleListRef = new SoftReference<>(null);
   private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
   private HashSet<String> cnvFilesLoadedInSampleData;
-  private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
+  private Map<String, SourceFileHeaderData> sourceFileHeaders;
   private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
   private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
   private Logger log;
@@ -679,7 +680,7 @@ public class Project implements PropertyChangeListener {
       // skip source file headers, sample files already parsed
     } else if (createHeaders && Files.list(SOURCE_DIRECTORY.getValue(),
                                            SOURCE_FILENAME_EXTENSION.getValue()).length > 0) {
-      HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+      Map<String, SourceFileHeaderData> headers = readHeadersFile(false);
       setSourceFileHeaders(headers);
     }
 
@@ -781,7 +782,7 @@ public class Project implements PropertyChangeListener {
   }
 
   @SuppressWarnings("unchecked")
-  private HashMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
+  private Map<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
     String file = PROJECT_DIRECTORY.getValue() + "source.headers";
 
     if (Files.exists(file)) {
@@ -2126,12 +2127,16 @@ public class Project implements PropertyChangeListener {
     Sample.verifyAndGenerateOutliers(this, NUM_THREADS.getValue(), false);
   }
 
-  public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
-    return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-                                     : sourceFileHeaders;
+  private Map<String, SourceFileHeaderData> obtainSourceFileHeaders(boolean readIfNull) {
+    if (sourceFileHeaders == null && readIfNull) return readHeadersFile(true);
+    return sourceFileHeaders;
   }
 
-  public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
+  public Map<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
+    return Collections.unmodifiableMap(obtainSourceFileHeaders(readIfNull));
+  }
+
+  public void setSourceFileHeaders(Map<String, SourceFileHeaderData> sourceFileHeaders) {
     this.sourceFileHeaders = sourceFileHeaders;
     writeHeadersFile();
   }
