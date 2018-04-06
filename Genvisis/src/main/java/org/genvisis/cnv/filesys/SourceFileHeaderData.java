@@ -25,35 +25,35 @@ public class SourceFileHeaderData implements Serializable {
    */
   private static final long serialVersionUID = -6906302109843776908L;
 
-  String gsgtVersion = null;
-  String processingDate = null;
-  String content = null;
-  int numSnps = -1;
-  int totalSnps = -1;
-  int numSamples = -1;
-  int totalSamples = -1;
-  int numFiles = -1;
-  int currFile = -1;
-  public int columnHeaderLineIndex = -1;
+  private String gsgtVersion = null;
+  private String processingDate = null;
+  private String content = null;
+  private int numSnps = -1;
+  private int totalSnps = -1;
+  private int numSamples = -1;
+  private int totalSamples = -1;
+  private int numFiles = -1;
+  private int currFile = -1;
+  private int columnHeaderLineIndex = -1;
 
-  public int colSampleIdent = -1;
-  public int colSnpIdent = -1;
-  public int colGenoAB1 = -1;
-  public int colGenoAB2 = -1;
-  public int colGeno1 = -1;
-  public int colGeno2 = -1;
-  public int colX = -1;
-  public int colY = -1;
-  public int colTheta = -1;
-  public int colR = -1;
-  public int colXRaw = -1;
-  public int colYRaw = -1;
-  public int colBAF = -1;
-  public int colLRR = -1;
-  public int colGC = -1;
-  public String headerString = "";
-  public String delimiter = "";
-  public String[] cols = new String[0];
+  private int colSampleIdent = -1;
+  private int colSnpIdent = -1;
+  private int colGenoAB1 = -1;
+  private int colGenoAB2 = -1;
+  private int colGeno1 = -1;
+  private int colGeno2 = -1;
+  private int colX = -1;
+  private int colY = -1;
+  private int colTheta = -1;
+  private int colR = -1;
+  private int colXRaw = -1;
+  private int colYRaw = -1;
+  private int colBAF = -1;
+  private int colLRR = -1;
+  private int colGC = -1;
+  private String headerString = "";
+  private String delimiter = "";
+  private String[] cols = new String[0];
 
   // Order from ParseIllumina
   // 0 GC
@@ -126,7 +126,7 @@ public class SourceFileHeaderData implements Serializable {
     parseColumnsBestGuess(columnHeaders.split(delim), frhd);
     frhd.setSourceFileDelimiter(delim);
     frhd.setHeaderString(columnHeaders);
-    frhd.columnHeaderLineIndex = lineCnt;
+    frhd.setColumnHeaderLineIndex(lineCnt);
     return frhd;
   }
 
@@ -172,23 +172,23 @@ public class SourceFileHeaderData implements Serializable {
     if (indices[0] == -1) {
       throw new Elision("Error - missing SNP ID column");
     }
-    frhd.cols = parts;
-    frhd.colSnpIdent = indices[0];
-    frhd.colSampleIdent = indices[1];
+    frhd.setCols(parts);
+    frhd.setColSnpIdent(indices[0]);
+    frhd.setColSampleIdent(indices[1]);
     // frhd.col_sampleIndex = indices[2];
-    frhd.colGC = indices[2];
-    frhd.colXRaw = indices[3];
-    frhd.colYRaw = indices[4];
-    frhd.colX = indices[5];
-    frhd.colY = indices[6];
-    frhd.colTheta = indices[7];
-    frhd.colR = indices[8];
-    frhd.colBAF = indices[9];
-    frhd.colLRR = indices[10];
-    frhd.colGeno1 = indices[11];
-    frhd.colGeno2 = indices[12];
-    frhd.colGenoAB1 = indices[13];
-    frhd.colGenoAB2 = indices[14];
+    frhd.setColGC(indices[2]);
+    frhd.setColXRaw(indices[3]);
+    frhd.setColYRaw(indices[4]);
+    frhd.setColX(indices[5]);
+    frhd.setColY(indices[6]);
+    frhd.setColTheta(indices[7]);
+    frhd.setColR(indices[8]);
+    frhd.setColBAF(indices[9]);
+    frhd.setColLRR(indices[10]);
+    frhd.setColGeno1(indices[11]);
+    frhd.setColGeno2(indices[12]);
+    frhd.setColGenoAB1(indices[13]);
+    frhd.setColGenoAB2(indices[14]);
   }
 
   private static void processLine(String[] parts, SourceFileHeaderData frhd) {
@@ -198,52 +198,52 @@ public class SourceFileHeaderData implements Serializable {
     if ("File".equals(parts[0])) {
       String[] fileParts = parts[parts.length - 1].split(" of ");
       if (ext.isValidInteger(fileParts[0])) {
-        frhd.currFile = Integer.parseInt(fileParts[0]);
+        frhd.setCurrFile(Integer.parseInt(fileParts[0]));
       } else {
         // TODO error
       }
       if (ext.isValidInteger(fileParts[1])) {
-        frhd.numFiles = Integer.parseInt(fileParts[1]);
+        frhd.setNumFiles(Integer.parseInt(fileParts[1]));
       } else {
         // TODO error
       }
     }
     if ("Total Samples".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.totalSamples = Integer.parseInt(parts[parts.length - 1]);
+        frhd.setTotalSamples(Integer.parseInt(parts[parts.length - 1]));
       } else {
         // TODO error
       }
     }
     if ("Num Samples".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.numSamples = Integer.parseInt(parts[parts.length - 1]);
+        frhd.setNumSamples(Integer.parseInt(parts[parts.length - 1]));
       } else {
         // TODO error
       }
     }
     if ("Total SNPs".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.totalSnps = Integer.parseInt(parts[parts.length - 1]);
+        frhd.setTotalSnps(Integer.parseInt(parts[parts.length - 1]));
       } else {
         // TODO error
       }
     }
     if ("Num SNPs".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.numSnps = Integer.parseInt(parts[parts.length - 1]);
+        frhd.setNumSnps(Integer.parseInt(parts[parts.length - 1]));
       } else {
         // TODO error
       }
     }
     if ("Content".equals(parts[0])) {
-      frhd.content = parts[parts.length - 1];
+      frhd.setContent(parts[parts.length - 1]);
     }
     if ("Processing Date".equals(parts[0])) {
-      frhd.processingDate = parts[parts.length - 1];
+      frhd.setProcessingDate(parts[parts.length - 1]);
     }
     if ("GSGT Version".equals(parts[0])) {
-      frhd.gsgtVersion = parts[parts.length - 1];
+      frhd.setGsgtVersion(parts[parts.length - 1]);
     }
   }
 
@@ -342,112 +342,112 @@ public class SourceFileHeaderData implements Serializable {
     HashMap<Integer, ArrayList<String>> gc = new HashMap<>();
     for (java.util.Map.Entry<String, SourceFileHeaderData> entry : headers.entrySet()) {
       SourceFileHeaderData headerData = entry.getValue();
-      if (headerData.numFiles == -1) {
-        headerData.numFiles = cnt;
-      } else if (headerData.numFiles != cnt) {
+      if (headerData.getNumFiles() == -1) {
+        headerData.setNumFiles(cnt);
+      } else if (headerData.getNumFiles() != cnt) {
         return "Number of Files listed in Source File {" + entry.getKey()
                + "} does not equal the number of headers needing validation.  Please check source directory and extension and try again.";
       }
-      ArrayList<String> files = totSnpsSet.get(headerData.totalSnps);
+      ArrayList<String> files = totSnpsSet.get(headerData.getTotalSnps());
       if (files == null) {
         files = new ArrayList<>();
-        totSnpsSet.put(headerData.totalSnps, files);
+        totSnpsSet.put(headerData.getTotalSnps(), files);
       }
       files.add(entry.getKey());
-      files = headerLineIndex.get(headerData.columnHeaderLineIndex);
+      files = headerLineIndex.get(headerData.getColumnHeaderLineIndex());
       if (files == null) {
         files = new ArrayList<>();
-        headerLineIndex.put(headerData.columnHeaderLineIndex, files);
+        headerLineIndex.put(headerData.getColumnHeaderLineIndex(), files);
       }
       files.add(entry.getKey());
-      files = sampleID.get(headerData.colSampleIdent);
+      files = sampleID.get(headerData.getColSampleIdent());
       if (files == null) {
         files = new ArrayList<>();
-        sampleID.put(headerData.colSampleIdent, files);
+        sampleID.put(headerData.getColSampleIdent(), files);
       }
       files.add(entry.getKey());
-      files = snpIndex.get(headerData.colSnpIdent);
+      files = snpIndex.get(headerData.getColSnpIdent());
       if (files == null) {
         files = new ArrayList<>();
-        snpIndex.put(headerData.colSnpIdent, files);
+        snpIndex.put(headerData.getColSnpIdent(), files);
       }
       files.add(entry.getKey());
-      files = genoAB1.get(headerData.colGenoAB1);
+      files = genoAB1.get(headerData.getColGenoAB1());
       if (files == null) {
         files = new ArrayList<>();
-        genoAB1.put(headerData.colGenoAB1, files);
+        genoAB1.put(headerData.getColGenoAB1(), files);
       }
       files.add(entry.getKey());
-      files = genoAB2.get(headerData.colGenoAB2);
+      files = genoAB2.get(headerData.getColGenoAB2());
       if (files == null) {
         files = new ArrayList<>();
-        genoAB2.put(headerData.colGenoAB2, files);
+        genoAB2.put(headerData.getColGenoAB2(), files);
       }
       files.add(entry.getKey());
-      files = genoForward1.get(headerData.colGeno1);
+      files = genoForward1.get(headerData.getColGeno1());
       if (files == null) {
         files = new ArrayList<>();
-        genoForward1.put(headerData.colGeno1, files);
+        genoForward1.put(headerData.getColGeno1(), files);
       }
       files.add(entry.getKey());
-      files = genoForward2.get(headerData.colGeno2);
+      files = genoForward2.get(headerData.getColGeno2());
       if (files == null) {
         files = new ArrayList<>();
-        genoForward2.put(headerData.colGeno2, files);
+        genoForward2.put(headerData.getColGeno2(), files);
       }
       files.add(entry.getKey());
-      files = x.get(headerData.colX);
+      files = x.get(headerData.getColX());
       if (files == null) {
         files = new ArrayList<>();
-        x.put(headerData.colX, files);
+        x.put(headerData.getColX(), files);
       }
       files.add(entry.getKey());
-      files = y.get(headerData.colY);
+      files = y.get(headerData.getColY());
       if (files == null) {
         files = new ArrayList<>();
-        y.put(headerData.colY, files);
+        y.put(headerData.getColY(), files);
       }
       files.add(entry.getKey());
-      files = theta.get(headerData.colTheta);
+      files = theta.get(headerData.getColTheta());
       if (files == null) {
         files = new ArrayList<>();
-        theta.put(headerData.colTheta, files);
+        theta.put(headerData.getColTheta(), files);
       }
       files.add(entry.getKey());
-      files = r.get(headerData.colR);
+      files = r.get(headerData.getColR());
       if (files == null) {
         files = new ArrayList<>();
-        r.put(headerData.colR, files);
+        r.put(headerData.getColR(), files);
       }
       files.add(entry.getKey());
-      files = xRaw.get(headerData.colXRaw);
+      files = xRaw.get(headerData.getColXRaw());
       if (files == null) {
         files = new ArrayList<>();
-        xRaw.put(headerData.colXRaw, files);
+        xRaw.put(headerData.getColXRaw(), files);
       }
       files.add(entry.getKey());
-      files = yRaw.get(headerData.colYRaw);
+      files = yRaw.get(headerData.getColYRaw());
       if (files == null) {
         files = new ArrayList<>();
-        yRaw.put(headerData.colYRaw, files);
+        yRaw.put(headerData.getColYRaw(), files);
       }
       files.add(entry.getKey());
-      files = baf.get(headerData.colBAF);
+      files = baf.get(headerData.getColBAF());
       if (files == null) {
         files = new ArrayList<>();
-        baf.put(headerData.colBAF, files);
+        baf.put(headerData.getColBAF(), files);
       }
       files.add(entry.getKey());
-      files = lrr.get(headerData.colLRR);
+      files = lrr.get(headerData.getColLRR());
       if (files == null) {
         files = new ArrayList<>();
-        lrr.put(headerData.colLRR, files);
+        lrr.put(headerData.getColLRR(), files);
       }
       files.add(entry.getKey());
-      files = gc.get(headerData.colGC);
+      files = gc.get(headerData.getColGC());
       if (files == null) {
         files = new ArrayList<>();
-        gc.put(headerData.colGC, files);
+        gc.put(headerData.getColGC(), files);
       }
       files.add(entry.getKey());
     }
@@ -643,10 +643,388 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   private void setSourceFileDelimiter(String delim) {
-    delimiter = delim;
+    setDelimiter(delim);
   }
 
   public String getSourceFileDelimiter() {
+    return getDelimiter();
+  }
+
+  /**
+   * @return the columnHeaderLineIndex
+   */
+  public int getColumnHeaderLineIndex() {
+    return columnHeaderLineIndex;
+  }
+
+  /**
+   * @param columnHeaderLineIndex the columnHeaderLineIndex to set
+   */
+  public void setColumnHeaderLineIndex(int columnHeaderLineIndex) {
+    this.columnHeaderLineIndex = columnHeaderLineIndex;
+  }
+
+  /**
+   * @return the colSampleIdent
+   */
+  public int getColSampleIdent() {
+    return colSampleIdent;
+  }
+
+  /**
+   * @param colSampleIdent the colSampleIdent to set
+   */
+  public void setColSampleIdent(int colSampleIdent) {
+    this.colSampleIdent = colSampleIdent;
+  }
+
+  /**
+   * @return the colSnpIdent
+   */
+  public int getColSnpIdent() {
+    return colSnpIdent;
+  }
+
+  /**
+   * @param colSnpIdent the colSnpIdent to set
+   */
+  public void setColSnpIdent(int colSnpIdent) {
+    this.colSnpIdent = colSnpIdent;
+  }
+
+  /**
+   * @return the colGenoAB1
+   */
+  public int getColGenoAB1() {
+    return colGenoAB1;
+  }
+
+  /**
+   * @param colGenoAB1 the colGenoAB1 to set
+   */
+  public void setColGenoAB1(int colGenoAB1) {
+    this.colGenoAB1 = colGenoAB1;
+  }
+
+  /**
+   * @return the colGenoAB2
+   */
+  public int getColGenoAB2() {
+    return colGenoAB2;
+  }
+
+  /**
+   * @param colGenoAB2 the colGenoAB2 to set
+   */
+  public void setColGenoAB2(int colGenoAB2) {
+    this.colGenoAB2 = colGenoAB2;
+  }
+
+  /**
+   * @return the colGeno1
+   */
+  public int getColGeno1() {
+    return colGeno1;
+  }
+
+  /**
+   * @param colGeno1 the colGeno1 to set
+   */
+  public void setColGeno1(int colGeno1) {
+    this.colGeno1 = colGeno1;
+  }
+
+  /**
+   * @return the colGeno2
+   */
+  public int getColGeno2() {
+    return colGeno2;
+  }
+
+  /**
+   * @param colGeno2 the colGeno2 to set
+   */
+  public void setColGeno2(int colGeno2) {
+    this.colGeno2 = colGeno2;
+  }
+
+  /**
+   * @return the colX
+   */
+  public int getColX() {
+    return colX;
+  }
+
+  /**
+   * @param colX the colX to set
+   */
+  public void setColX(int colX) {
+    this.colX = colX;
+  }
+
+  /**
+   * @return the colY
+   */
+  public int getColY() {
+    return colY;
+  }
+
+  /**
+   * @param colY the colY to set
+   */
+  public void setColY(int colY) {
+    this.colY = colY;
+  }
+
+  /**
+   * @return the colTheta
+   */
+  public int getColTheta() {
+    return colTheta;
+  }
+
+  /**
+   * @param colTheta the colTheta to set
+   */
+  public void setColTheta(int colTheta) {
+    this.colTheta = colTheta;
+  }
+
+  /**
+   * @return the colR
+   */
+  public int getColR() {
+    return colR;
+  }
+
+  /**
+   * @param colR the colR to set
+   */
+  public void setColR(int colR) {
+    this.colR = colR;
+  }
+
+  /**
+   * @return the colXRaw
+   */
+  public int getColXRaw() {
+    return colXRaw;
+  }
+
+  /**
+   * @param colXRaw the colXRaw to set
+   */
+  public void setColXRaw(int colXRaw) {
+    this.colXRaw = colXRaw;
+  }
+
+  /**
+   * @return the colYRaw
+   */
+  public int getColYRaw() {
+    return colYRaw;
+  }
+
+  /**
+   * @param colYRaw the colYRaw to set
+   */
+  public void setColYRaw(int colYRaw) {
+    this.colYRaw = colYRaw;
+  }
+
+  /**
+   * @return the colBAF
+   */
+  public int getColBAF() {
+    return colBAF;
+  }
+
+  /**
+   * @param colBAF the colBAF to set
+   */
+  public void setColBAF(int colBAF) {
+    this.colBAF = colBAF;
+  }
+
+  /**
+   * @return the colLRR
+   */
+  public int getColLRR() {
+    return colLRR;
+  }
+
+  /**
+   * @param colLRR the colLRR to set
+   */
+  public void setColLRR(int colLRR) {
+    this.colLRR = colLRR;
+  }
+
+  /**
+   * @return the colGC
+   */
+  public int getColGC() {
+    return colGC;
+  }
+
+  /**
+   * @param colGC the colGC to set
+   */
+  public void setColGC(int colGC) {
+    this.colGC = colGC;
+  }
+
+  /**
+   * @return the delimiter
+   */
+  public String getDelimiter() {
     return delimiter;
+  }
+
+  /**
+   * @param delimiter the delimiter to set
+   */
+  public void setDelimiter(String delimiter) {
+    this.delimiter = delimiter;
+  }
+
+  /**
+   * @return the cols
+   */
+  public String[] getCols() {
+    return cols;
+  }
+
+  /**
+   * @param cols the cols to set
+   */
+  public void setCols(String[] cols) {
+    this.cols = cols;
+  }
+
+  /**
+   * @return the gsgtVersion
+   */
+  String getGsgtVersion() {
+    return gsgtVersion;
+  }
+
+  /**
+   * @param gsgtVersion the gsgtVersion to set
+   */
+  void setGsgtVersion(String gsgtVersion) {
+    this.gsgtVersion = gsgtVersion;
+  }
+
+  /**
+   * @return the processingDate
+   */
+  String getProcessingDate() {
+    return processingDate;
+  }
+
+  /**
+   * @param processingDate the processingDate to set
+   */
+  void setProcessingDate(String processingDate) {
+    this.processingDate = processingDate;
+  }
+
+  /**
+   * @return the content
+   */
+  String getContent() {
+    return content;
+  }
+
+  /**
+   * @param content the content to set
+   */
+  void setContent(String content) {
+    this.content = content;
+  }
+
+  /**
+   * @return the numSnps
+   */
+  int getNumSnps() {
+    return numSnps;
+  }
+
+  /**
+   * @param numSnps the numSnps to set
+   */
+  void setNumSnps(int numSnps) {
+    this.numSnps = numSnps;
+  }
+
+  /**
+   * @return the totalSnps
+   */
+  int getTotalSnps() {
+    return totalSnps;
+  }
+
+  /**
+   * @param totalSnps the totalSnps to set
+   */
+  void setTotalSnps(int totalSnps) {
+    this.totalSnps = totalSnps;
+  }
+
+  /**
+   * @return the numSamples
+   */
+  int getNumSamples() {
+    return numSamples;
+  }
+
+  /**
+   * @param numSamples the numSamples to set
+   */
+  void setNumSamples(int numSamples) {
+    this.numSamples = numSamples;
+  }
+
+  /**
+   * @return the totalSamples
+   */
+  int getTotalSamples() {
+    return totalSamples;
+  }
+
+  /**
+   * @param totalSamples the totalSamples to set
+   */
+  void setTotalSamples(int totalSamples) {
+    this.totalSamples = totalSamples;
+  }
+
+  /**
+   * @return the numFiles
+   */
+  int getNumFiles() {
+    return numFiles;
+  }
+
+  /**
+   * @param numFiles the numFiles to set
+   */
+  void setNumFiles(int numFiles) {
+    this.numFiles = numFiles;
+  }
+
+  /**
+   * @return the currFile
+   */
+  int getCurrFile() {
+    return currFile;
+  }
+
+  /**
+   * @param currFile the currFile to set
+   */
+  void setCurrFile(int currFile) {
+    this.currFile = currFile;
   }
 }

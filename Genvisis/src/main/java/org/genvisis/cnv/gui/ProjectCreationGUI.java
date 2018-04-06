@@ -550,26 +550,26 @@ public class ProjectCreationGUI extends JDialog {
         sourceDelim = d.getSourceFileDelimiter();
       }
       if (cols == null) {
-        cols = d.cols;
+        cols = d.getCols();
       }
-      d.colSnpIdent = gui.getSelectedSNPIndex();
-      d.colSampleIdent = gui.getSelectedSampleID();
+      d.setColSnpIdent(gui.getSelectedSNPIndex());
+      d.setColSampleIdent(gui.getSelectedSampleID());
       if (sampCol == -100) {
-        sampCol = d.colSampleIdent;
+        sampCol = d.getColSampleIdent();
       }
-      d.colGeno1 = gui.getSelectedGeno1();
-      d.colGeno2 = gui.getSelectedGeno2();
-      d.colGenoAB1 = gui.getSelectedAB1();
-      d.colGenoAB2 = gui.getSelectedAB2();
-      d.colBAF = gui.getSelectedBAF();
-      d.colLRR = gui.getSelectedLRR();
-      d.colGC = gui.getSelectedGC();
-      d.colR = gui.getSelectedR();
-      d.colTheta = gui.getSelectedTheta();
-      d.colX = gui.getSelectedX();
-      d.colY = gui.getSelectedY();
-      d.colXRaw = gui.getSelectedXRaw();
-      d.colYRaw = gui.getSelectedYRaw();
+      d.setColGeno1(gui.getSelectedGeno1());
+      d.setColGeno2(gui.getSelectedGeno2());
+      d.setColGenoAB1(gui.getSelectedAB1());
+      d.setColGenoAB2(gui.getSelectedAB2());
+      d.setColBAF(gui.getSelectedBAF());
+      d.setColLRR(gui.getSelectedLRR());
+      d.setColGC(gui.getSelectedGC());
+      d.setColR(gui.getSelectedR());
+      d.setColTheta(gui.getSelectedTheta());
+      d.setColX(gui.getSelectedX());
+      d.setColY(gui.getSelectedY());
+      d.setColXRaw(gui.getSelectedXRaw());
+      d.setColYRaw(gui.getSelectedYRaw());
     }
 
     File file = new File(projDir);
