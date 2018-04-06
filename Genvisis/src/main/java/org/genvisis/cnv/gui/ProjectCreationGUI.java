@@ -39,6 +39,9 @@ import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+import org.genvisis.common.collect.MultisetUtils;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectCreationGUI extends JDialog {
@@ -414,6 +417,22 @@ public class ProjectCreationGUI extends JDialog {
     lblSrcFileStatus.setVisible(true);
   }
 
+  public static Multiset<String> getSourceExtensionCounts(String srcDir) {
+
+    Multiset<String> extensions = HashMultiset.create();
+    // look for the most likely extension
+    for (String s : (new File(srcDir).list())) {
+      String[] split = s.split("\\.", 2); // only split on the first . to capture things like
+                                         // .tar.gz
+
+      if (split.length <= 1) continue;
+
+      String ext = "." + split[1];
+      extensions.add(ext);
+    }
+    return extensions;
+  }
+
   private int getValidSourceFileCount() {
     String srcDir = txtFldSrcDir.getText().trim();
     String srcExt = txtFldSrcExt.getText().trim();
@@ -428,32 +447,13 @@ public class ProjectCreationGUI extends JDialog {
     if (!validSrcDir) return -1;
 
     if (!currentDir.equals(srcDir)) {
-      HashMap<String, Integer> extensions = new HashMap<>();
-      // look for the most likely extension
-      for (String s : (new File(srcDir).list())) {
-        String[] split = s.split("\\.", 2); // only split on the first . to capture things like
-                                           // .tar.gz
-
-        if (split.length <= 1) continue;
-
-        String ext = "." + split[1];
-
-        if (!extensions.containsKey(ext)) extensions.put(ext, 1);
-        else extensions.replace(ext, extensions.get(ext) + 1);
-      }
+      Multiset<String> extensions = getSourceExtensionCounts(srcDir);
 
       if (extensions.isEmpty()) return -1;
 
-      multipleExts = extensions.size() > 1;
-      int mostCommonExt = -1;
+      multipleExts = extensions.entrySet().size() > 1;
 
-      for (String key : extensions.keySet()) {
-        int freq = extensions.get(key);
-        if (freq > mostCommonExt) {
-          srcExt = key;
-          mostCommonExt = freq;
-        }
-      }
+      srcExt = MultisetUtils.maxCount(extensions).map(Multiset.Entry::getElement).orElse("");
 
       currentDir = srcDir;
     }
