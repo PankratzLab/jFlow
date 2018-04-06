@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import javax.swing.JOptionPane;
@@ -704,7 +705,8 @@ public class SourceFileParser implements Runnable {
         }
         proj.setSourceFileHeaders(SourceFileHeaderData.validate(ext.parseDirectoryOfFile(affyProcess.getCombinedOutputFiles()[0]),
                                                                 "." + proj.getArrayType() + ".tmp.gz",
-                                                                true, proj.getLog(), null));
+                                                                true, proj.getLog(),
+                                                                Optional.empty()));
         break;
       case ILLUMINA:
         break;

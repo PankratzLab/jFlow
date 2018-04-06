@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
@@ -818,7 +819,7 @@ public class Project implements PropertyChangeListener {
             log.report("Parsing source file headers in background thread.");
             setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
                                                                SOURCE_FILENAME_EXTENSION.getValue(),
-                                                               true, log, null));
+                                                               true, log, Optional.empty()));
             log.report("Source file header parsing complete.");
           } catch (Exception e) {
             log.reportException(e);
@@ -831,7 +832,7 @@ public class Project implements PropertyChangeListener {
         log.report("Parsing source file headers in active thread.");
         setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
                                                            SOURCE_FILENAME_EXTENSION.getValue(),
-                                                           true, log, null));
+                                                           true, log, Optional.empty()));
         log.report("Source file header parsing complete.");
         return getSourceFileHeaders(false);
       } catch (Exception e) {

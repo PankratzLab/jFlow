@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -520,7 +521,7 @@ public class ProjectCreationGUI extends JDialog {
     HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
                                                                                   actuallyValidate,
                                                                                   new org.genvisis.common.Logger(),
-                                                                                  progressBar);
+                                                                                  Optional.ofNullable(progressBar));
     if (headers == null) {
       // errors found in headers - check output and retry?
       return false;

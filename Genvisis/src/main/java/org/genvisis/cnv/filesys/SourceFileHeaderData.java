@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.swing.JProgressBar;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.SourceFileParser;
@@ -249,7 +250,7 @@ public class SourceFileHeaderData implements Serializable {
   public static HashMap<String, SourceFileHeaderData> validate(final String rawDir,
                                                                final String ext,
                                                                boolean fullValidation, Logger log,
-                                                               JProgressBar progressBar) {
+                                                               Optional<JProgressBar> progressBar) {
     String dir = rawDir.endsWith("/")
                  || rawDir.endsWith("\\") ? rawDir
                                           : org.genvisis.common.ext.verifyDirFormat(rawDir);
@@ -260,19 +261,18 @@ public class SourceFileHeaderData implements Serializable {
         return name.endsWith(ext);
       }
     });
-
     // No files found - not a valid project
     if (possibleFiles.length == 0) {
       log.report("Project validation failed: no project files found discovered.");
       return null;
     }
 
-    if (progressBar != null) {
-      progressBar.setVisible(true);
-      progressBar.setMinimum(0);
-      progressBar.setMaximum(possibleFiles.length);
-      progressBar.setString(null);
-      progressBar.setStringPainted(true);
+    if (progressBar.isPresent()) {
+      progressBar.get().setVisible(true);
+      progressBar.get().setMinimum(0);
+      progressBar.get().setMaximum(possibleFiles.length);
+      progressBar.get().setString(null);
+      progressBar.get().setStringPainted(true);
     }
 
     boolean valid = false;
@@ -294,22 +294,22 @@ public class SourceFileHeaderData implements Serializable {
           frhd = SourceFileHeaderData.parseHeader(dir + possFile, log);
         }
         headers.put(possFile, frhd);
-        if (progressBar != null) {
-          progressBar.setValue(++progCnt);
+        if (progressBar.isPresent()) {
+          progressBar.get().setValue(++progCnt);
         }
       }
       if (fullValidation) {
-        if (progressBar != null) {
-          progressBar.setIndeterminate(true);
-          progressBar.setString("Verifying...");
+        if (progressBar.isPresent()) {
+          progressBar.get().setIndeterminate(true);
+          progressBar.get().setString("Verifying...");
         }
         String error = doFullValidation(headers, log);
         if (error != null) {
           throw new Elision(error);
         }
       }
-      if (progressBar != null) {
-        progressBar.setVisible(false);
+      if (progressBar.isPresent()) {
+        progressBar.get().setVisible(false);
       }
       valid = true;
     } catch (Elision e) {
@@ -628,7 +628,7 @@ public class SourceFileHeaderData implements Serializable {
       System.exit(1);
     }
     try {
-      validate(dir, ext, true, log == null ? new Logger() : new Logger(log), null);
+      validate(dir, ext, true, log == null ? new Logger() : new Logger(log), Optional.empty());
     } catch (Exception e) {
       e.printStackTrace();
     }
