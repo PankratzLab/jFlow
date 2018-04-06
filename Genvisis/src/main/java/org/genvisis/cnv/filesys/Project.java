@@ -16,7 +16,6 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -598,7 +597,7 @@ public class Project implements PropertyChangeListener {
   private Reference<SampleList> sampleListRef = new SoftReference<>(null);
   private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
   private HashSet<String> cnvFilesLoadedInSampleData;
-  private Map<String, SourceFileHeaderData> sourceFileHeaders;
+  private ImmutableMap<String, SourceFileHeaderData> sourceFileHeaders;
   private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
   private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
   private Logger log;
@@ -782,7 +781,7 @@ public class Project implements PropertyChangeListener {
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
+  private ImmutableMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
     String file = PROJECT_DIRECTORY.getValue() + "source.headers";
 
     if (Files.exists(file)) {
@@ -792,9 +791,9 @@ public class Project implements PropertyChangeListener {
     file = PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME;
 
     if (Files.exists(file)) {
-      HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
-                                                                                                                         getLog(),
-                                                                                                                         false);
+      ImmutableMap<String, SourceFileHeaderData> headers = ImmutableMap.copyOf((Map<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
+                                                                                                                                              getLog(),
+                                                                                                                                              false));
       if (headers != null) {
         return headers;
       } else {
@@ -2127,17 +2126,13 @@ public class Project implements PropertyChangeListener {
     Sample.verifyAndGenerateOutliers(this, NUM_THREADS.getValue(), false);
   }
 
-  private Map<String, SourceFileHeaderData> obtainSourceFileHeaders(boolean readIfNull) {
+  public ImmutableMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
     if (sourceFileHeaders == null && readIfNull) return readHeadersFile(true);
     return sourceFileHeaders;
   }
 
-  public Map<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
-    return Collections.unmodifiableMap(obtainSourceFileHeaders(readIfNull));
-  }
-
   public void setSourceFileHeaders(Map<String, SourceFileHeaderData> sourceFileHeaders) {
-    this.sourceFileHeaders = sourceFileHeaders;
+    this.sourceFileHeaders = ImmutableMap.copyOf(sourceFileHeaders);
     writeHeadersFile();
   }
 
