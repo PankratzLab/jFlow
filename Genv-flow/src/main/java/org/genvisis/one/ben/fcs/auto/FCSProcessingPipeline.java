@@ -86,7 +86,7 @@ public class FCSProcessingPipeline {
 
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
-            return new InclusionProcessor(outDir);
+            return new InclusionProcessor(outDir, ovvrDir, ovvrSuff, ovvrMatch);
           }
         };
         break;

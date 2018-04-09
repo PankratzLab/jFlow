@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -15,9 +17,25 @@ import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 public class InclusionProcessor extends AbstractSampleProcessor {
 
   String outDir;
+  final String ovvrDir;
+  final String ovvrSfx;
+  final String ovvrMatch;
+  static final Map<String, String> dimSwitch = new HashMap<>();
 
-  public InclusionProcessor(String o) {
+  {
+    dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
+    dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
+    dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
+    dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
+    dimSwitch.put("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
+    dimSwitch.put("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
+  }
+
+  public InclusionProcessor(String o, String ovvrDir, String ovvrSuff, String ovvrMatch) {
     outDir = o;
+    this.ovvrDir = ovvrDir;
+    this.ovvrSfx = ovvrSuff;
+    this.ovvrMatch = ovvrMatch;
   }
 
   @Override
@@ -27,6 +45,10 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     }
     loadPopsAndGates(sn);
     loadData(sn);
+
+    if (ovvrDir != null) {
+      d.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
+    }
 
     long t1 = System.nanoTime();
     HashSet<Gate> allGates1 = new HashSet<>(sn.gating.gateMap.values());
@@ -39,7 +61,11 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     for (int i = 0; i < gateList.size(); i++) {
       Gate g = gateList.get(i);
       boolean[] gating = g.gate(d);
-      incl.put(g.getName(), gating);
+      String name = g.getFullNameAndGatingPath();
+      for (Entry<String, String> dim : dimSwitch.entrySet()) {
+        name.replaceAll(dim.getKey(), dim.getValue());
+      }
+      incl.put(name, gating);
     }
 
     String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
@@ -50,7 +76,11 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     writer.print("Index");
     for (int i = 0; i < gateList.size(); i++) {
       Gate g = gateList.get(i);
-      writer.print("\t" + g.getName());
+      String name = g.getFullNameAndGatingPath();
+      for (Entry<String, String> dim : dimSwitch.entrySet()) {
+        name.replaceAll(dim.getKey(), dim.getValue());
+      }
+      writer.print("\t" + name);
     }
     writer.println();
 
@@ -58,7 +88,11 @@ public class InclusionProcessor extends AbstractSampleProcessor {
       writer.print(Integer.toString(i));
       for (int gi = 0; gi < gateList.size(); gi++) {
         Gate g = gateList.get(gi);
-        writer.print("\t" + Boolean.toString(incl.get(g.getName())[i]));
+        String name = g.getFullNameAndGatingPath();
+        for (Entry<String, String> dim : dimSwitch.entrySet()) {
+          name.replaceAll(dim.getKey(), dim.getValue());
+        }
+        writer.print("\t" + Boolean.toString(incl.get(name)[i]));
       }
       writer.println();
     }
