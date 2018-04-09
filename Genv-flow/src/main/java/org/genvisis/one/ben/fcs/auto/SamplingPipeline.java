@@ -370,6 +370,11 @@ public class SamplingPipeline {
           SampleNode sn = wspLoader.getPanel1Nodes().get(s1);
           if (sn != null) {
             sn.fcsFile = fileToPathMap1.get(s1);
+            if (p1Queue.contains(sn)) {
+              log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                         + sn.id);
+              continue;
+            }
             sampWspMatch1.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p1Queue.add(sn);
           } else {
@@ -385,6 +390,11 @@ public class SamplingPipeline {
             sn.fcsFile = fileToPathMap2.get(s1);
             sampWspMatch2.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p2Queue.add(sn);
+            if (p2Queue.contains(sn)) {
+              log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                         + sn.id);
+              continue;
+            }
           } else {
             log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s1);
           }
@@ -405,6 +415,11 @@ public class SamplingPipeline {
       SampleNode sn = wspLoader.getPanel1Nodes().get(s);
       if (sn != null) {
         sn.fcsFile = fileToPathMap1.get(s);
+        if (p1Queue.contains(sn)) {
+          log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                     + sn.id);
+          continue;
+        }
         sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
         p1Queue.add(sn);
       } else {
@@ -423,6 +438,11 @@ public class SamplingPipeline {
       SampleNode sn = wspLoader.panel2Nodes.get(s);
       if (sn != null) {
         sn.fcsFile = fileToPathMap2.get(s);
+        if (p2Queue.contains(sn)) {
+          log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                     + sn.id);
+          continue;
+        }
         sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
         p2Queue.add(sn);
       } else {
@@ -436,6 +456,11 @@ public class SamplingPipeline {
           SampleNode sn = wspLoader.getPanel1Nodes().get(s);
           if (sn != null) {
             sn.fcsFile = fileToPathMap1.get(s);
+            if (p1Queue.contains(sn)) {
+              log.report("Duplicate panel 1 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                         + sn.id);
+              continue;
+            }
             sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p1Queue.add(sn);
           } else {
@@ -448,6 +473,11 @@ public class SamplingPipeline {
           SampleNode sn = wspLoader.panel2Nodes.get(s);
           if (sn != null) {
             sn.fcsFile = fileToPathMap2.get(s);
+            if (p1Queue.contains(sn)) {
+              log.report("Duplicate panel 2 sampleNode: " + sn.fcsFile + " | " + sn.wspFile + " | "
+                         + sn.id);
+              continue;
+            }
             sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p2Queue.add(sn);
           } else {
