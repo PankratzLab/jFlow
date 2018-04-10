@@ -25,16 +25,16 @@ public class SourceFileHeaderData implements Serializable {
    */
   private static final long serialVersionUID = -6906302109843776908L;
 
-  private String gsgtVersion = null;
-  private String processingDate = null;
-  private String content = null;
-  private int numSnps = -1;
-  private int totalSnps = -1;
-  private int numSamples = -1;
-  private int totalSamples = -1;
-  private int numFiles = -1;
-  private int currFile = -1;
-  private int columnHeaderLineIndex = -1;
+  private String gsgtVersion;
+  private String processingDate;
+  private String content;
+  private int numSnps;
+  private int totalSnps;
+  private int numSamples;
+  private int totalSamples;
+  private int numFiles;
+  private int currFile;
+  private final int columnHeaderLineIndex;
 
   private int colSampleIdent = -1;
   private int colSnpIdent = -1;
@@ -51,9 +51,9 @@ public class SourceFileHeaderData implements Serializable {
   private int colBAF = -1;
   private int colLRR = -1;
   private int colGC = -1;
-  private String headerString = "";
-  private String delimiter = "";
-  private String[] cols = new String[0];
+  private final String headerString;
+  private final String delimiter;
+  private final String[] cols;
 
   // Order from ParseIllumina
   // 0 GC
@@ -66,14 +66,10 @@ public class SourceFileHeaderData implements Serializable {
   // 7 B Allele Freq
   // 8 Log R Ratio
 
-  private SourceFileHeaderData() {}
-
-  public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision,
-                                                                          IOException {
+  private SourceFileHeaderData(String file, Logger log) throws Elision, IOException {
     BufferedReader reader = Files.getAppropriateReader(file);
     String line = null;
     int lineCnt = 0;
-    SourceFileHeaderData frhd = new SourceFileHeaderData();
     String delim = ",";
     while ((line = reader.readLine()) != null) {
       delim = ext.determineDelimiter(line, true); // TODO if file ends with .csv [or contains
@@ -88,7 +84,7 @@ public class SourceFileHeaderData implements Serializable {
         break;
       }
       String[] parts = line.trim().split(",");
-      processLine(parts, frhd);
+      processLine(parts);
       lineCnt++;
     }
     if (!"[Data]".equals(line) && !(line.startsWith("rs") || line.toUpperCase().startsWith("SNP")
@@ -123,11 +119,17 @@ public class SourceFileHeaderData implements Serializable {
     // if (",".equals(delim)) {
     // delim = "[\\s]*,[\\s]*";
     // }
-    parseColumnsBestGuess(columnHeaders.split(delim), frhd);
-    frhd.setSourceFileDelimiter(delim);
-    frhd.setHeaderString(columnHeaders);
-    frhd.setColumnHeaderLineIndex(lineCnt);
-    return frhd;
+    cols = columnHeaders.split(delim);
+    parseColumnsBestGuess();
+    delimiter = delim;
+    headerString = columnHeaders;
+    columnHeaderLineIndex = lineCnt;
+
+  }
+
+  public static SourceFileHeaderData parseHeader(String file, Logger log) throws Elision,
+                                                                          IOException {
+    return new SourceFileHeaderData(file, log);
   }
 
   private static final String[] SAMPLE_FIELD_ID = {"Sample ID", "Sample Name"};
@@ -166,84 +168,82 @@ public class SourceFileHeaderData implements Serializable {
                                             /* 13 */ GENOTYPE_FIELDS_A1_AB,
                                             /* 14 */ GENOTYPE_FIELDS_A2_AB,};
 
-  private static void parseColumnsBestGuess(String[] parts,
-                                            SourceFileHeaderData frhd) throws Elision {
-    int[] indices = ext.indexFactors(LOOKUP, parts, false, true, false);
+  private void parseColumnsBestGuess() throws Elision {
+    int[] indices = ext.indexFactors(LOOKUP, getCols(), false, true, false);
     if (indices[0] == -1) {
       throw new Elision("Error - missing SNP ID column");
     }
-    frhd.setCols(parts);
-    frhd.setColSnpIdent(indices[0]);
-    frhd.setColSampleIdent(indices[1]);
-    // frhd.col_sampleIndex = indices[2];
-    frhd.setColGC(indices[2]);
-    frhd.setColXRaw(indices[3]);
-    frhd.setColYRaw(indices[4]);
-    frhd.setColX(indices[5]);
-    frhd.setColY(indices[6]);
-    frhd.setColTheta(indices[7]);
-    frhd.setColR(indices[8]);
-    frhd.setColBAF(indices[9]);
-    frhd.setColLRR(indices[10]);
-    frhd.setColGeno1(indices[11]);
-    frhd.setColGeno2(indices[12]);
-    frhd.setColGenoAB1(indices[13]);
-    frhd.setColGenoAB2(indices[14]);
+    setColSnpIdent(indices[0]);
+    setColSampleIdent(indices[1]);
+    // col_sampleIndex = indices[2];
+    setColGC(indices[2]);
+    setColXRaw(indices[3]);
+    setColYRaw(indices[4]);
+    setColX(indices[5]);
+    setColY(indices[6]);
+    setColTheta(indices[7]);
+    setColR(indices[8]);
+    setColBAF(indices[9]);
+    setColLRR(indices[10]);
+    setColGeno1(indices[11]);
+    setColGeno2(indices[12]);
+    setColGenoAB1(indices[13]);
+    setColGenoAB2(indices[14]);
   }
 
-  private static void processLine(String[] parts, SourceFileHeaderData frhd) {
+  private void processLine(String[] parts) {
     if ("[Header]".equals(parts[0])) {
       return;
     }
     if ("File".equals(parts[0])) {
       String[] fileParts = parts[parts.length - 1].split(" of ");
       if (ext.isValidInteger(fileParts[0])) {
-        frhd.setCurrFile(Integer.parseInt(fileParts[0]));
+        currFile = Integer.parseInt(fileParts[0]);
       } else {
         // TODO error
       }
       if (ext.isValidInteger(fileParts[1])) {
-        frhd.setNumFiles(Integer.parseInt(fileParts[1]));
+        numFiles = Integer.parseInt(fileParts[1]);
       } else {
         // TODO error
       }
     }
     if ("Total Samples".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.setTotalSamples(Integer.parseInt(parts[parts.length - 1]));
+        totalSamples = Integer.parseInt(parts[parts.length - 1]);
       } else {
         // TODO error
       }
     }
     if ("Num Samples".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.setNumSamples(Integer.parseInt(parts[parts.length - 1]));
+        numSamples = Integer.parseInt(parts[parts.length - 1]);
       } else {
         // TODO error
       }
     }
     if ("Total SNPs".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.setTotalSnps(Integer.parseInt(parts[parts.length - 1]));
+        totalSnps = Integer.parseInt(parts[parts.length - 1]);
       } else {
         // TODO error
       }
     }
     if ("Num SNPs".equals(parts[0])) {
       if (ext.isValidInteger(parts[parts.length - 1])) {
-        frhd.setNumSnps(Integer.parseInt(parts[parts.length - 1]));
+        numSnps = Integer.parseInt(parts[parts.length - 1]);
       } else {
         // TODO error
       }
     }
     if ("Content".equals(parts[0])) {
-      frhd.setContent(parts[parts.length - 1]);
+      content = parts[parts.length - 1];
     }
     if ("Processing Date".equals(parts[0])) {
-      frhd.setProcessingDate(parts[parts.length - 1]);
+      processingDate = parts[parts.length - 1];
     }
     if ("GSGT Version".equals(parts[0])) {
-      frhd.setGsgtVersion(parts[parts.length - 1]);
+      gsgtVersion = parts[parts.length - 1];
     }
   }
 
@@ -634,20 +634,8 @@ public class SourceFileHeaderData implements Serializable {
     }
   }
 
-  public String getHeaderString() {
-    return headerString;
-  }
-
-  public void setHeaderString(String headerString) {
-    this.headerString = headerString;
-  }
-
-  private void setSourceFileDelimiter(String delim) {
-    setDelimiter(delim);
-  }
-
   public String getSourceFileDelimiter() {
-    return getDelimiter();
+    return delimiter;
   }
 
   /**
@@ -655,13 +643,6 @@ public class SourceFileHeaderData implements Serializable {
    */
   public int getColumnHeaderLineIndex() {
     return columnHeaderLineIndex;
-  }
-
-  /**
-   * @param columnHeaderLineIndex the columnHeaderLineIndex to set
-   */
-  public void setColumnHeaderLineIndex(int columnHeaderLineIndex) {
-    this.columnHeaderLineIndex = columnHeaderLineIndex;
   }
 
   /**
@@ -875,31 +856,10 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   /**
-   * @return the delimiter
-   */
-  public String getDelimiter() {
-    return delimiter;
-  }
-
-  /**
-   * @param delimiter the delimiter to set
-   */
-  public void setDelimiter(String delimiter) {
-    this.delimiter = delimiter;
-  }
-
-  /**
    * @return the cols
    */
   public String[] getCols() {
     return cols;
-  }
-
-  /**
-   * @param cols the cols to set
-   */
-  public void setCols(String[] cols) {
-    this.cols = cols;
   }
 
   /**
@@ -910,24 +870,10 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   /**
-   * @param gsgtVersion the gsgtVersion to set
-   */
-  void setGsgtVersion(String gsgtVersion) {
-    this.gsgtVersion = gsgtVersion;
-  }
-
-  /**
    * @return the processingDate
    */
   String getProcessingDate() {
     return processingDate;
-  }
-
-  /**
-   * @param processingDate the processingDate to set
-   */
-  void setProcessingDate(String processingDate) {
-    this.processingDate = processingDate;
   }
 
   /**
@@ -938,24 +884,10 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   /**
-   * @param content the content to set
-   */
-  void setContent(String content) {
-    this.content = content;
-  }
-
-  /**
    * @return the numSnps
    */
   int getNumSnps() {
     return numSnps;
-  }
-
-  /**
-   * @param numSnps the numSnps to set
-   */
-  void setNumSnps(int numSnps) {
-    this.numSnps = numSnps;
   }
 
   /**
@@ -966,13 +898,6 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   /**
-   * @param totalSnps the totalSnps to set
-   */
-  void setTotalSnps(int totalSnps) {
-    this.totalSnps = totalSnps;
-  }
-
-  /**
    * @return the numSamples
    */
   int getNumSamples() {
@@ -980,24 +905,10 @@ public class SourceFileHeaderData implements Serializable {
   }
 
   /**
-   * @param numSamples the numSamples to set
-   */
-  void setNumSamples(int numSamples) {
-    this.numSamples = numSamples;
-  }
-
-  /**
    * @return the totalSamples
    */
   int getTotalSamples() {
     return totalSamples;
-  }
-
-  /**
-   * @param totalSamples the totalSamples to set
-   */
-  void setTotalSamples(int totalSamples) {
-    this.totalSamples = totalSamples;
   }
 
   /**
@@ -1010,7 +921,7 @@ public class SourceFileHeaderData implements Serializable {
   /**
    * @param numFiles the numFiles to set
    */
-  void setNumFiles(int numFiles) {
+  private void setNumFiles(int numFiles) {
     this.numFiles = numFiles;
   }
 
@@ -1019,12 +930,5 @@ public class SourceFileHeaderData implements Serializable {
    */
   int getCurrFile() {
     return currFile;
-  }
-
-  /**
-   * @param currFile the currFile to set
-   */
-  void setCurrFile(int currFile) {
-    this.currFile = currFile;
   }
 }
