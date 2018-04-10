@@ -8,6 +8,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.seq.manage.BamImport.AnalysisSets;
+import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.NGSSample;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
@@ -191,7 +192,8 @@ public class Pipeline {
                                                                ngsSample.getaType(), true,
                                                                proj.getLog(), referenceGenome);
       BamImport.importTheWholeBamProject(proj, ngsSample.getaName(), new String[] {bamFile},
-                                         referenceGenome, analysisSet, 1);
+                                         referenceGenome, analysisSet, NORMALIZATON_METHOD.GENOME,
+                                         1);
 
       ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);

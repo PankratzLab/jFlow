@@ -344,7 +344,9 @@ public class BamImport {
   public static BamPileResult[] importTheWholeBamProject(Project proj, ASSEMBLY_NAME aName,
                                                          String[] bamsToImport,
                                                          ReferenceGenome refGenome,
-                                                         AnalysisSets analysisSet, int numthreads) {
+                                                         AnalysisSets analysisSet,
+                                                         NORMALIZATON_METHOD normMethod,
+                                                         int numThreads) {
 
     if (proj.getArrayType() == ARRAY.NGS) {
       Logger log = proj.getLog();
@@ -354,15 +356,21 @@ public class BamImport {
       log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
 
       FilterNGS filterNGS = new FilterNGS(20, 20, null);
-      PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, refGenome, filterNGS,
+      PileupProducer pileProducer = new PileupProducer(proj, bamsToImport, serDir, refGenome,
+                                                       filterNGS,
                                                        analysisSet.getAnalysisSet()
                                                                   .getStrictSegments(),
-                                                       aName, log);
+                                                       aName, false, true, normMethod, log);
       proj.SAMPLE_DIRECTORY.getValue(true, false);
       proj.XY_SCALE_FACTOR.setValue((double) 10);
 
+      // TODO compile BamIndexStats for all bams and write to samp.readCounts.txt
+      // BamIndexStats bamIndexStats = BamOps.getBamIndexStats(bamFile);
+
+      // TODO compile outliers.ser after creating all sampRAFs
+
       BamPileResult[] results = new BamPileResult[bamsToImport.length];
-      try (WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<>(pileProducer, numthreads, 2,
+      try (WorkerTrain<BamPileResult> pileTrain = new WorkerTrain<>(pileProducer, numThreads, 2,
                                                                     log)) {
         int index = 0;
         while (pileTrain.hasNext()) {// creating temporary bam
@@ -594,6 +602,7 @@ public class BamImport {
                              + " exists, and currently is the proxy for LRR computation being completed");
     }
     proj.saveProperties();
+
     // All below stuff is just for fun...
 
     SampleData.createMinimalSampleData(proj);
@@ -604,15 +613,7 @@ public class BamImport {
     }
     ArrayList<ProjectCorrected> correcteds = correctifyProject(proj, markerTypes, offTargetsToUse,
                                                                doCorrection, correctionPCs,
-                                                               numthreads);// Generates
-                                                                                                                                                                                                       // and
-                                                                                                                                                                                                       // corrects
-                                                                                                                                                                                                       // the
-                                                                                                                                                                                                       // project
-                                                                                                                                                                                                       // for
-                                                                                                                                                                                                       // each
-                                                                                                                                                                                                       // marker
-                                                                                                                                                                                                       // type
+                                                               numthreads);// Generates and corrects the project for each marker type
 
     String newSampleDir = proj.PROJECT_DIRECTORY.getValue() + "samplesCorrected/";
     String newtransposedDir = proj.PROJECT_DIRECTORY.getValue() + "transposedCorrected/";
@@ -1272,7 +1273,7 @@ public class BamImport {
                                                      assayType, createSubsetVCF, proj.getLog(),
                                                      referenceGenome);
       BamPileResult[] results = importTheWholeBamProject(proj, assembly, files, referenceGenome,
-                                                         analysisSet, numthreads);
+                                                         analysisSet, normMethod, numthreads);
 
       if (compileProject) {
         compileProject(proj, correctionPCs, numthreads, proj.getLog(), files, referenceGenome,

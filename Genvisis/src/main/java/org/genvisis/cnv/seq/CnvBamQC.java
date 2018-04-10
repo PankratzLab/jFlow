@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.cnv.seq.qc.Mappability;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -403,9 +404,9 @@ public class CnvBamQC {
     callSplit.matchAndSplit();
 
     String serToReport = serDir + ext.rootOf(cnvFile) + "_QC/";
-    PileupProducer producer = new PileupProducer(bamFiles, serToReport, null, null,
+    PileupProducer producer = new PileupProducer(null, bamFiles, serToReport, null, null,
                                                  callSplit.getSegsToSearch(), ASSEMBLY_NAME.HG19,
-                                                 log);
+                                                 true, false, NORMALIZATON_METHOD.CHROMOSOME, log);
 
     BamPile[][] bamPiles = new BamPile[bamFiles.length][];
     try (WorkerTrain<BamPileResult> train = new WorkerTrain<>(producer, numThreads, 2, log)) {

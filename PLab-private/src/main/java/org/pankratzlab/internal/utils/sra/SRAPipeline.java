@@ -207,6 +207,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
                                                              proj.getLog(), referenceGenome);
     BamPileResult[] results = BamImport.importTheWholeBamProject(proj, aName, fakeBams,
                                                                  referenceGenome, analysisSet,
+                                                                 NORMALIZATON_METHOD.GENOME,
                                                                  numThreads);
     BamImport.compileProject(proj, 4, numThreads, log, fakeBams, referenceGenome,
                              analysisSet.getMarkerTypes(), analysisSet.getAnalysisSet(),
