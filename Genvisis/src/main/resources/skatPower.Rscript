@@ -1,0 +1,47 @@
+library(SKAT)
+
+
+out.b = Power_Logistic(
+  Haplotypes = Haplotypes,
+  SNP.Location = SNP.Location,
+  SubRegion.Length = SubRegion.Length ,
+  Prevalence = Prevalence,
+  Case.Prop = Case.Prop,
+  Causal.Percent = Causal.Percent,
+  Causal.MAF.Cutoff = Causal.MAF.Cutoff ,
+  alpha = alpha,
+  N.Sample.ALL = N.Sample.ALL ,
+  Weight.Param = Weight.Param,
+  N.Sim = N.Sim,
+  OR.Type = OR.Type,
+  MaxOR = MaxOR,
+  Negative.Percent = Negative.Percent
+)
+
+results = data.frame(
+  Haplotypes = "NULL",
+  SNP.Location = "NULL",
+  SubRegion.Length = SubRegion.Length,
+  Prevalence = Prevalence,
+  Case.Prop = Case.Prop,
+  Causal.Percent = Causal.Percent,
+  Causal.MAF.Cutoff = Causal.MAF.Cutoff ,
+  alpha = alpha,
+  N.Sample.ALL = N.Sample.ALL,
+  Weight.Param = paste0(Weight.Param, collapse = ","),
+  N.Sim = N.Sim,
+  OR.Type = OR.Type,
+  MaxOR = MaxOR,
+  Negative.Percent = Negative.Percent,
+  Power = out.b$Power[[1]],
+  cases = cases,
+  controls = controls
+)
+
+write.table(
+  results,
+  file = outFile ,
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
