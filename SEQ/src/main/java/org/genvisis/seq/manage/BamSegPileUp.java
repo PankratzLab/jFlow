@@ -61,14 +61,14 @@ public class BamSegPileUp {
    * @param aName corresponding {@link ASSEMBLY_NAME} to determine proper contig searching
    * @param log
    */
-  public BamSegPileUp(String bam, String referenceGenomeFasta, Segment[] intervals,
+  public BamSegPileUp(String bam, ReferenceGenome referenceGenome, Segment[] intervals,
                       QueryInterval[] queryIntervals, FilterNGS filterNGS, ASSEMBLY_NAME aName,
                       Logger log) {
     super();
     this.bam = bam;
     this.aName = aName;
     this.log = log;
-    referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+    this.referenceGenome = referenceGenome;
     bamPileMap = Maps.newConcurrentMap();
     bamPileArray = new BamPile[intervals.length];
 
@@ -130,8 +130,9 @@ public class BamSegPileUp {
          CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(queryIntervals)) {
       log.report("Iterating through reads for " + bam);
       AtomicInteger readsProcessed = new AtomicInteger(0);
+
       samRecordIterator.stream().parallel().forEach((samRecord) -> {
-        process(samRecordIterator.next());
+        process(samRecord);
         int read;
         if ((read = readsProcessed.incrementAndGet()) % 10000000 == 0) {
           log.report("Processed " + read + " reads for " + bam);
@@ -173,8 +174,10 @@ public class BamSegPileUp {
       bamPile.addRecordAtomic(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
                               log);
     }
-    if (segsPiled.add(cs) && segsPiled.size() % 10000 == 0) {
-      log.reportTimeInfo(segsPiled.size() + " bam piles added to of " + bamPileArray.length
+    int logPer = bamPileArray.length / 10;
+    if (segsPiled.add(cs) && segsPiled.size() % logPer == 0) {
+      log.reportTimeInfo(segsPiled.size() + " bam piles added to "
+                         + bamPile.getBin().getUCSClocation() + " of " + bamPileArray.length
                          + " for " + bam);
       log.memoryUsed();
       log.memoryTotal();
@@ -236,13 +239,13 @@ public class BamSegPileUp {
   }
 
   public static BamPileResult processBamFile(String bamFile, String serDir,
-                                             String referenceGenomeFasta, Segment[] pileSegs,
+                                             ReferenceGenome referenceGenome, Segment[] pileSegs,
                                              QueryInterval[] qi, FilterNGS filterNGS,
                                              ASSEMBLY_NAME aName, Logger log) throws Exception {
     String ser = serDir + ext.rootOf(bamFile) + ".ser";
     if (!Files.exists(ser)) {
       BamOps.verifyIndex(bamFile, log);
-      BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenomeFasta, pileSegs, qi,
+      BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenome, pileSegs, qi,
                                                    filterNGS, aName, log);
       BamPile[] bamPilesFinal = bamSegPileUp.pileup();
       int numMiss = 0;
@@ -264,17 +267,17 @@ public class BamSegPileUp {
     private final Logger log;
     private final Segment[] pileSegs;
     private final FilterNGS filterNGS;
-    private final String referenceGenomeFasta;
+    private final ReferenceGenome referenceGenome;
     private final Map<String, QueryInterval[]> qiMap;
 
-    public PileupProducer(String[] bamFiles, String serDir, String referenceGenomeFasta,
+    public PileupProducer(String[] bamFiles, String serDir, ReferenceGenome referenceGenome,
                           FilterNGS filterNGS, Segment[] pileSegs, ASSEMBLY_NAME aName,
                           Logger log) {
       super();
       this.bamFiles = bamFiles;
       this.aName = aName;
       this.serDir = serDir;
-      this.referenceGenomeFasta = referenceGenomeFasta;
+      this.referenceGenome = referenceGenome;
       this.log = log;
       this.pileSegs = pileSegs;
       this.filterNGS = filterNGS;
@@ -331,7 +334,7 @@ public class BamSegPileUp {
 
         @Override
         public BamPileResult call() throws Exception {
-          return BamSegPileUp.processBamFile(bamFile, serDir, referenceGenomeFasta, pileSegs,
+          return BamSegPileUp.processBamFile(bamFile, serDir, referenceGenome, pileSegs,
                                              qiMap.get(bamFile), filterNGS, aName, log);
         }
       };

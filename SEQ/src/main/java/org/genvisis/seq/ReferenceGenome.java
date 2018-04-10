@@ -58,12 +58,21 @@ public class ReferenceGenome {
    * @return
    */
   public LocusSet<Segment> getBins(int bpBinSize) {
+    return getBins(bpBinSize, null);
+  }
+
+  /**
+   * @param bpBinSize the bin size (non-sliding) to break the reference genome into;
+   * @return
+   */
+  public LocusSet<Segment> getBins(int bpBinSize, Set<Integer> chrsToReturn) {
     Set<Segment> bins = new LinkedHashSet<>();
     SAMSequenceDictionary samSequenceDictionary = indexedFastaSequenceFile.getSequenceDictionary();
     log.report(samSequenceDictionary.getSequences().size() + " contigs detected");
     for (SAMSequenceRecord samSequenceRecord : samSequenceDictionary.getSequences()) {
       int length = samSequenceRecord.getSequenceLength();
       byte chr = Positions.chromosomeNumber(samSequenceRecord.getSequenceName());
+      if (chrsToReturn != null && !chrsToReturn.contains((int) chr)) continue;
       int currentStart = 1;
       int currentStop = Math.min(length, bpBinSize);
       int binsAdded = 0;
