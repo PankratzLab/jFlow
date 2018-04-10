@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.manage.BamExtractor.BamSample;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Files;
@@ -238,10 +240,12 @@ public class BamSegPileUp {
 
   }
 
-  public static BamPileResult processBamFile(String bamFile, String serDir,
+  public static BamPileResult processBamFile(Project proj, String bamFile, String serDir,
                                              ReferenceGenome referenceGenome, Segment[] pileSegs,
                                              QueryInterval[] qi, FilterNGS filterNGS,
-                                             ASSEMBLY_NAME aName, Logger log) throws Exception {
+                                             ASSEMBLY_NAME aName, Logger log, boolean writeSerial,
+                                             boolean compileSample,
+                                             NORMALIZATON_METHOD normMethod) throws Exception {
     String ser = serDir + ext.rootOf(bamFile) + ".ser";
     if (!Files.exists(ser)) {
       BamOps.verifyIndex(bamFile, log);
@@ -253,14 +257,20 @@ public class BamSegPileUp {
         numMiss += element.getNumBasesWithMismatch();
       }
       log.reportTimeInfo(bamFile + " had " + numMiss + " mismatched bases");
-      BamPile.writeSerial(bamPilesFinal, ser);
+      if (writeSerial) {
+        BamPile.writeSerial(bamPilesFinal, ser);
+      }
+      if (compileSample) {
+        BamSample bamSample = new BamSample(proj, bamFile, bamPilesFinal, normMethod);
+        bamSample.writeSample(proj.getMarkerSet().getFingerprint());
+      }
     }
     return new BamPileResult(bamFile, ser);
   }
 
   public static class PileupProducer extends AbstractProducer<BamPileResult> {
 
-    private int index;
+    private final AtomicInteger index;
     private final String[] bamFiles;
     private final ASSEMBLY_NAME aName;
     private final String serDir;
@@ -269,11 +279,21 @@ public class BamSegPileUp {
     private final FilterNGS filterNGS;
     private final ReferenceGenome referenceGenome;
     private final Map<String, QueryInterval[]> qiMap;
+    private final Project proj;
+    private final boolean writeSer;
+    private final boolean compileSamp;
+    private final NORMALIZATON_METHOD normMethod;
 
-    public PileupProducer(String[] bamFiles, String serDir, ReferenceGenome referenceGenome,
-                          FilterNGS filterNGS, Segment[] pileSegs, ASSEMBLY_NAME aName,
-                          Logger log) {
+    public PileupProducer(Project proj, String[] bamFiles, String serDir,
+                          ReferenceGenome referenceGenome, FilterNGS filterNGS, Segment[] pileSegs,
+                          ASSEMBLY_NAME aName, boolean writeSerial, boolean compileSample,
+                          NORMALIZATON_METHOD normMethod, Logger log) {
       super();
+      this.proj = proj;
+      this.writeSer = writeSerial;
+      this.compileSamp = compileSample;
+      this.normMethod = normMethod;
+      this.index = new AtomicInteger(0);
       this.bamFiles = bamFiles;
       this.aName = aName;
       this.serDir = serDir;
@@ -323,19 +343,19 @@ public class BamSegPileUp {
 
     @Override
     public boolean hasNext() {
-      return index < bamFiles.length;
+      return index.get() < bamFiles.length;
     }
 
     @Override
     public Callable<BamPileResult> next() {
-      final String bamFile = bamFiles[index];
-      index++;
+      final String bamFile = bamFiles[index.getAndIncrement()];
       return new Callable<BamSegPileUp.BamPileResult>() {
 
         @Override
         public BamPileResult call() throws Exception {
-          return BamSegPileUp.processBamFile(bamFile, serDir, referenceGenome, pileSegs,
-                                             qiMap.get(bamFile), filterNGS, aName, log);
+          return BamSegPileUp.processBamFile(proj, bamFile, serDir, referenceGenome, pileSegs,
+                                             qiMap.get(bamFile), filterNGS, aName, log, writeSer,
+                                             compileSamp, normMethod);
         }
       };
     }
