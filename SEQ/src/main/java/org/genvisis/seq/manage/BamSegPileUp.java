@@ -6,8 +6,12 @@ import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.ReferenceGenome;
@@ -133,14 +137,39 @@ public class BamSegPileUp {
       log.report("Iterating through reads for " + bam);
       AtomicInteger readsProcessed = new AtomicInteger(0);
 
-      samRecordIterator.stream().parallel().forEach((samRecord) -> {
-        process(samRecord);
-        int read;
-        if ((read = readsProcessed.incrementAndGet()) % 10000000 == 0) {
-          log.report("Processed " + read + " reads for " + bam);
-        }
-      });
-      log.report("Finalizing bam piles for " + bam);
+      int numThreads = Runtime.getRuntime().availableProcessors();
+      log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
+      long t = System.nanoTime();
+
+      ExecutorService exec = Executors.newFixedThreadPool(numThreads);
+      for (int i = 0; i < numThreads; i++) {
+        exec.submit(new Runnable() {
+
+          @Override
+          public void run() {
+            SAMRecord record = null;
+            try {
+              while ((record = samRecordIterator.next()) != null) {
+                process(record);
+                int read;
+                if ((read = readsProcessed.incrementAndGet()) % 10000000 == 0) {
+                  log.report("Processed " + read + " reads for " + bam);
+                }
+              }
+            } catch (NoSuchElementException e) {
+              // done!
+            }
+          }
+        });
+      }
+      exec.shutdown();
+      try {
+        exec.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+      } catch (InterruptedException e) {
+        log.reportTimeWarning("Possible problem: " + e.getMessage());
+      }
+
+      log.report("Finalizing bam piles for " + bam + " after " + ext.getTimeElapsedNanos(t));
       summarizeAndFinalize();
       return bamPileArray;
     }
