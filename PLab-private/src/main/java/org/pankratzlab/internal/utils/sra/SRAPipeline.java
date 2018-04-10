@@ -6,11 +6,13 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.seq.manage.BamImport;
+import org.genvisis.cnv.seq.manage.BamImport.AnalysisSets;
 import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
+import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
@@ -199,9 +201,17 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
       fakeBams[i] = ext.rootOf(serFiles[i], false) + ".bam";
     }
 
-    BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, 4,
-                                       true, atType, aName, NORMALIZATON_METHOD.GENOME, fakeBams,
-                                       referenceGenomeFasta, false, true, numThreads);
+    ReferenceGenome referenceGenome = new ReferenceGenome(referenceGenomeFasta, log);
+    AnalysisSets analysisSet = BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf,
+                                                             BamImport.CAPTURE_BUFFER, atType, true,
+                                                             proj.getLog(), referenceGenome);
+    BamPileResult[] results = BamImport.importTheWholeBamProject(proj, aName, fakeBams,
+                                                                 referenceGenome, analysisSet,
+                                                                 numThreads);
+    BamImport.compileProject(proj, 4, numThreads, log, fakeBams, referenceGenome,
+                             analysisSet.getMarkerTypes(), analysisSet.getAnalysisSet(),
+                             analysisSet.getOffTargetsToUse(), results, aName,
+                             NORMALIZATON_METHOD.GENOME, false);
   }
 
   private static void compilePrep(String sraInput, String sraRunTableFile, String rootOutDir,

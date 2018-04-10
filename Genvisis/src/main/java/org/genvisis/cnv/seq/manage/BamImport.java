@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.genvisis.cnv.analysis.CentroidCompute;
@@ -335,30 +337,26 @@ public class BamImport {
 
   }
 
-  public static void importTheWholeBamProject(Project proj, String binBed, String captureBed,
-                                              String optionalVCF, int captureBuffer,
-                                              int correctionPCs, boolean compileProject,
-                                              ASSAY_TYPE atType, ASSEMBLY_NAME aName,
-                                              NORMALIZATON_METHOD normMethod, String[] bamsToImport,
-                                              String refGenome, boolean doCorrection,
-                                              boolean createSubsetVCF, int numthreads) {
+  private static String getSerDir(Project proj) {
+    return proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
+  }
+
+  public static BamPileResult[] importTheWholeBamProject(Project proj, ASSEMBLY_NAME aName,
+                                                         String[] bamsToImport,
+                                                         ReferenceGenome refGenome,
+                                                         AnalysisSets analysisSet, int numthreads) {
 
     if (proj.getArrayType() == ARRAY.NGS) {
       Logger log = proj.getLog();
 
-      String serDir = proj.PROJECT_DIRECTORY.getValue() + "tmpBamSer/";
+      String serDir = getSerDir(proj);
 
-      ReferenceGenome referenceGenome = new ReferenceGenome(refGenome, log);
       log.reportTimeInfo("Found " + bamsToImport.length + " bam files to import");
-      AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, optionalVCF,
-                                                     captureBuffer, atType, createSubsetVCF, log,
-                                                     referenceGenome);
 
       FilterNGS filterNGS = new FilterNGS(20, 20, null);
-      PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir,
-                                                       referenceGenome.getReferenceFasta(),
-                                                       filterNGS,
-                                                       analysisSet.analysisSet.getStrictSegments(),
+      PileupProducer pileProducer = new PileupProducer(bamsToImport, serDir, refGenome, filterNGS,
+                                                       analysisSet.getAnalysisSet()
+                                                                  .getStrictSegments(),
                                                        aName, log);
       proj.SAMPLE_DIRECTORY.getValue(true, false);
       proj.XY_SCALE_FACTOR.setValue((double) 10);
@@ -375,15 +373,20 @@ public class BamImport {
           index++;
         }
       }
-      if (compileProject) {
-        compileProject(proj, correctionPCs, numthreads, log, bamsToImport, referenceGenome,
-                       analysisSet.markerTypes, analysisSet.analysisSet,
-                       analysisSet.offTargetsToUse, results, aName, normMethod, doCorrection);
-      }
+      return results;
 
     } else {
       proj.getLog().reportError(proj.ARRAY_TYPE.getName() + " must be set to " + ARRAY.NGS);
     }
+    return null;
+  }
+
+  private static Set<Integer> getChrsToLoad() {
+    Set<Integer> chrSet = new HashSet<>();
+    for (int i = 1; i <= 26; i++) {
+      chrSet.add(i);
+    }
+    return chrSet;
   }
 
   /**
@@ -403,9 +406,9 @@ public class BamImport {
                                                   ReferenceGenome referenceGenome, Logger log) {
     switch (atype) {
       case WGS:
-        return referenceGenome.getBins(BIN_SIZE.get(atype));
+        return referenceGenome.getBins(BIN_SIZE.get(atype), getChrsToLoad());
       case WXS:
-        return referenceGenome.getBins(BIN_SIZE.get(atype))
+        return referenceGenome.getBins(BIN_SIZE.get(atype), getChrsToLoad())
                               .removeThese(LocusSet.combine(bLocusSet, captureSet, true, log)
                                                    .mergeOverlapping(true),
                                            captureBuffer);
@@ -492,7 +495,7 @@ public class BamImport {
     return new AnalysisSets(analysisSet, offTargetsToUse, markerTypes);
   }
 
-  private static class AnalysisSets {
+  public static class AnalysisSets {
 
     private final LocusSet<Segment> analysisSet;
     private final String[] offTargetsToUse;
@@ -504,6 +507,18 @@ public class BamImport {
       this.analysisSet = analysisSet;
       this.offTargetsToUse = offTargetsToUse;
       this.markerTypes = markerTypes;
+    }
+
+    public List<MarkerFileType> getMarkerTypes() {
+      return markerTypes;
+    }
+
+    public String[] getOffTargetsToUse() {
+      return offTargetsToUse;
+    }
+
+    public LocusSet<Segment> getAnalysisSet() {
+      return analysisSet;
     }
 
   }
@@ -1151,6 +1166,7 @@ public class BamImport {
     String[] files = null;
     String refFile = null;
     boolean createSubsetVCF = false;
+    boolean compileProject = false;
     String usage = "\n" + "seq.manage.BamImport requires 0-1 arguments\n";
     usage += "(1) filename (i.e. proj= (no default))\n" + "";
     usage += "(2) bed file to import  (i.e. importBed=" + binBed + " (default))\n" + "";
@@ -1221,6 +1237,9 @@ public class BamImport {
       } else if (arg.startsWith("ref=")) {
         refFile = ext.parseStringArg(arg);
         numArgs--;
+      } else if (arg.startsWith("compile=")) {
+        compileProject = ext.parseBooleanArg(arg);
+        numArgs--;
       }
 
       else {
@@ -1241,11 +1260,25 @@ public class BamImport {
         System.setProperty("samjdk.reference_fasta",
                            refFile == null ? proj.getReferenceGenomeFASTAFilename() : refFile);
       }
-      importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBuffer, correctionPCs, true,
-                               assayType, assembly, normMethod,
-                               files == null ? getBamFiles(proj) : files,
-                               refFile == null ? proj.getReferenceGenomeFASTAFilename() : refFile,
-                               true, createSubsetVCF, numthreads);
+      if (files == null) {
+        files = getBamFiles(proj);
+      }
+      if (refFile == null) {
+        refFile = proj.getReferenceGenomeFASTAFilename();
+      }
+
+      ReferenceGenome referenceGenome = new ReferenceGenome(refFile, proj.getLog());
+      AnalysisSets analysisSet = generateAnalysisSet(proj, binBed, captureBed, vcf, captureBuffer,
+                                                     assayType, createSubsetVCF, proj.getLog(),
+                                                     referenceGenome);
+      BamPileResult[] results = importTheWholeBamProject(proj, assembly, files, referenceGenome,
+                                                         analysisSet, numthreads);
+
+      if (compileProject) {
+        compileProject(proj, correctionPCs, numthreads, proj.getLog(), files, referenceGenome,
+                       analysisSet.getMarkerTypes(), analysisSet.getAnalysisSet(),
+                       analysisSet.getOffTargetsToUse(), results, assembly, normMethod, true);
+      }
     } catch (Exception e) {
       new Logger().reportException(e);
     }

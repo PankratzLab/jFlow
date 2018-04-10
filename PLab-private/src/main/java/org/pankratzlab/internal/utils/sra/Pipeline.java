@@ -7,8 +7,9 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.seq.manage.BamImport;
-import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
+import org.genvisis.cnv.seq.manage.BamImport.AnalysisSets;
 import org.genvisis.seq.NGSSample;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
 import org.genvisis.seq.manage.BamOps;
@@ -183,10 +184,14 @@ public class Pipeline {
     @Override
     public PipelinePart call() throws Exception {
       Project proj = getProjectFor(ngsSample.getaType(), rootOutDir);
-      BamImport.importTheWholeBamProject(proj, binBed, captureBed, vcf, captureBufferSize, -1,
-                                         false, ngsSample.getaType(), ngsSample.getaName(),
-                                         NORMALIZATON_METHOD.GENOME, new String[] {bamFile},
-                                         refGenome, false, true, 1);
+
+      ReferenceGenome referenceGenome = new ReferenceGenome(refGenome, proj.getLog());
+      AnalysisSets analysisSet = BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf,
+                                                               BamImport.CAPTURE_BUFFER,
+                                                               ngsSample.getaType(), true,
+                                                               proj.getLog(), referenceGenome);
+      BamImport.importTheWholeBamProject(proj, ngsSample.getaName(), new String[] {bamFile},
+                                         referenceGenome, analysisSet, 1);
 
       ArrayList<String> input = new ArrayList<>();
       input.add(bamFile);
