@@ -953,7 +953,7 @@ public class lab {
     }
   }
 
-  private static void createBAMProject(String srcDir, String projFile) {
+  private static void createBAMProject(String srcDir, String projFile, String exten) {
     new File(ext.parseDirectoryOfFile(projFile)).mkdirs();
     Files.write((new Project()).PROJECT_NAME.getName() + "=" + ext.rootOf(projFile, true),
                 projFile);
@@ -961,7 +961,7 @@ public class lab {
     actualProj.PROJECT_NAME.setValue(ext.rootOf(projFile, true));
     actualProj.PROJECT_DIRECTORY.setValue(ext.parseDirectoryOfFile(projFile));
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
-    actualProj.SOURCE_FILENAME_EXTENSION.setValue(".bam");
+    actualProj.SOURCE_FILENAME_EXTENSION.setValue(exten);
     actualProj.ARRAY_TYPE.setValue(ARRAY.NGS);
     actualProj.saveProperties();
   }
@@ -971,8 +971,18 @@ public class lab {
     String projDir = dir + "project\\";
     String srcDir = dir + "00src\\";
     String projFile = projDir + "EwingWGS_1.properties";
-    createBAMProject(srcDir, projFile);
+    createBAMProject(srcDir, projFile, ".bam");
     BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",});
+  }
+
+  static void runCRAMImport() {
+    String dir = "/scratch.global/cole0482/CRAM/";
+    String projDir = dir + "project/";
+    String srcDir = "/scratch.global/cole0482/CRAM/00src/";
+    String projFile = projDir + "CRAMTesting.properties";
+    createBAMProject(srcDir, projFile, ".cram");
+    BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",
+                                 "ref=" + srcDir + "hs38DH.fa"});
   }
 
   private static void processAnnotationFilesAll() throws IOException {
@@ -2271,6 +2281,8 @@ public class lab {
       System.out.println(keys.getRaw());
 
       System.out.println();
+
+      runCRAMImport();
 
       // runHRC();
       // QQPlot.main(new String[]
