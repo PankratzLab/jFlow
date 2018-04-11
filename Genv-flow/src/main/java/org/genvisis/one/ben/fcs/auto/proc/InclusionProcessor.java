@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -20,16 +19,6 @@ public class InclusionProcessor extends AbstractSampleProcessor {
   final String ovvrDir;
   final String ovvrSfx;
   final String ovvrMatch;
-  static final Map<String, String> dimSwitch = new HashMap<>();
-
-  {
-    dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
-    dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
-    dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
-    dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
-    dimSwitch.put("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
-    dimSwitch.put("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
-  }
 
   public InclusionProcessor(String o, String ovvrDir, String ovvrSuff, String ovvrMatch) {
     outDir = o;
