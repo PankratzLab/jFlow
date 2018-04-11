@@ -377,8 +377,6 @@ public class SamplingPipeline {
             }
             sampWspMatch1.println(s1 + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p1Queue.add(sn);
-          } else {
-            log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s1);
           }
           break;
         }
@@ -395,8 +393,6 @@ public class SamplingPipeline {
                          + sn.id);
               continue;
             }
-          } else {
-            log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s1);
           }
           break;
         }
@@ -422,8 +418,6 @@ public class SamplingPipeline {
         }
         sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
         p1Queue.add(sn);
-      } else {
-        log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
       }
     }
     for (String s : p2Sampling) {
@@ -445,8 +439,6 @@ public class SamplingPipeline {
         }
         sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
         p2Queue.add(sn);
-      } else {
-        log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
       }
     }
 
@@ -463,8 +455,6 @@ public class SamplingPipeline {
             }
             sampWspMatch1.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p1Queue.add(sn);
-          } else {
-            log.reportError("Couldn't find WSP node for panel 1 fcs file: " + s);
           }
         }
       }
@@ -480,8 +470,6 @@ public class SamplingPipeline {
             }
             sampWspMatch2.println(s + "\t" + sn.wspFile + "\t" + sn.fcsFile);
             p2Queue.add(sn);
-          } else {
-            log.reportError("Couldn't find WSP node for panel 2 fcs file: " + s);
           }
         }
       }
