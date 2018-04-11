@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,16 +34,6 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
   final String ovvrDir;
   final String ovvrSfx;
   final String ovvrMatch;
-  static final Map<String, String> dimSwitch = new HashMap<>();
-
-  {
-    dimSwitch.put("Comp-BV 605-A (CD95)", "Comp-BV605-A (CD95)");
-    dimSwitch.put("Comp-BV 510-A (CD28)", "Comp-BV510-A (CD28)");
-    dimSwitch.put("Comp-BB 515-A (CD27)", "Comp-BB515-A (CD27)");
-    dimSwitch.put("Comp-BB515-A (CD27)", "Comp-FITC-A (CD27)");
-    dimSwitch.put("Comp-BV 421-A (CCR7)", "Comp-BV421-A (CCR7)");
-    dimSwitch.put("Comp-BV 711-A (CD45RA)", "Comp-BV711-A (CD45RA)");
-  }
 
   public PercentageAndCountWriter(Map<String, Map<String, Double>> pctMap,
                                   Map<String, Map<String, Integer>> cntMap, String ovvrDir,
@@ -64,7 +53,7 @@ class PercentageAndCountWriter extends AbstractSampleProcessor {
     loadPopsAndGates(sn);
     loadData(sn);
 
-    if (ovvrDir != null) {
+    if (ovvrDir != null && Files.exists(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx)) {
       d.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
     }
 
