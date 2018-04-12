@@ -2149,8 +2149,7 @@ public class GenvisisWorkflow {
     }
   }
 
-  public static void setupImputation(String projectProperties) {
-    Project proj = new Project(projectProperties);
+  public static void setupImputation(Project proj) {
     StepBuilder sb = (new GenvisisWorkflow(proj, null)).new StepBuilder();
 
     Step parseSamples = sb.generateParseSamplesStep();

@@ -12,12 +12,22 @@ import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.Logger;
 import org.genvisis.common.collect.MultisetUtils;
+import org.genvisis.gwas.FurtherAnalysisQc;
 import com.google.common.collect.Multiset;
 
 public class VcfExportShortcut {
 
   private final Project proj;
   private final Logger log;
+
+  private int numThreads;
+  private String pedigreeFile;
+  private String putativeWhtFile;
+  private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
+  private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
+  private double generalQcThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
+  private String sampleDropsFile = FurtherAnalysisQc.SAMPLE_QC_DROPS;
+  private String markerDropsFile = FurtherAnalysisQc.MARKER_QC_DROPS;
 
   public VcfExportShortcut(String projName, String sourceDir, String outDir, Logger log) {
     proj = createOrGetProject(projName, sourceDir, outDir, log);
@@ -57,7 +67,19 @@ public class VcfExportShortcut {
   }
 
   public void runPipeline() {
+    // TODO set options / variables
     GenvisisWorkflow.setupImputation(proj);
   }
+
+  //  public void runVCFExport() {
+  //    String refFile;
+  //    String dropSamp, keepSamp, dropMark, keepMark;
+  //    String outputDirAndRoot;
+  //    int[] chrs;
+  //    boolean useGRC;
+  //    KeepDrops kd = new KeepDrops(dropSamp, keepSamp, dropMark, keepMark);
+  //    ImputationPipeline exportPipe = new ImputationPipeline(proj, refFile, kd);
+  //    exportPipe.exportToVCF(outputDirAndRoot, chrs, useGRC);
+  //  }
 
 }

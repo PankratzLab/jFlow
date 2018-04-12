@@ -362,7 +362,7 @@ public class MitoPipeline {
         // case previous steps have already failed, and this should catch it
         if (verifyAllProjectMarkersAreAvailable(proj)) {
           if (prepImputation) {
-            GenvisisWorkflow.setupImputation(proj.getPropertyFilename());
+            GenvisisWorkflow.setupImputation(proj);
           }
           // check that all target markers are available
           if (verifyAuxMarkers(proj, proj.INTENSITY_PC_MARKERS_FILENAME.getValue(),
