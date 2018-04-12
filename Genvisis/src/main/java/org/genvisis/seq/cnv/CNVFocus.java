@@ -150,32 +150,34 @@ public class CNVFocus {
   }
 
   public static void main(String[] args) {
-    Project proj = new Project("/Users/Kitty/workspace.other/Genvisis/Genvisis/projects/cushings_corrected.properties");
+    Project proj = new Project("/Users/Kitty/.genvisis/projects/Cushing_GenomeCorrected.properties");
     proj.verifyAndGenerateOutliers(true);
-    Segment cables1Loc = new Segment("chr18:20,714,528-20,840,434");
-    Segment alk = new Segment("chr2:28,961,923-31,735,067");
-    Segment test = new Segment("chr6:306,447-338,866");
-    Segment test2 = new Segment("chr3:141,874,465-142,094,208");
-    Segment bai1 = new Segment("chr8:143,545,377-143,626,368");
-    Segment usp8 = new Segment("chr15:50,716,579-50,793,277");
+    //    Segment cables1Loc = new Segment("chr18:20,714,528-20,840,434");
+    //    Segment alk = new Segment("chr2:28,961,923-31,735,067");
+    //    Segment test = new Segment("chr6:306,447-338,866");
+    //    Segment test2 = new Segment("chr3:141,874,465-142,094,208");
+    //    Segment bai1 = new Segment("chr8:143,545,377-143,626,368");
+    //    Segment usp8 = new Segment("chr15:50,716,579-50,793,277");
+    Segment cdkn1b = new Segment("chr12:12870203-12875316");
 
     ArrayList<Segment> segs = new ArrayList<>();
-    segs.add(cables1Loc);
-    segs.add(alk);
-    segs.add(test);
-    segs.add(test2);
-    segs.add(bai1);
-    segs.add(usp8);
+    //    segs.add(cables1Loc);
+    //    segs.add(alk);
+    //    segs.add(test);
+    //    segs.add(test2);
+    //    segs.add(bai1);
+    //    segs.add(usp8);
+    segs.add(cdkn1b);
 
     String outDir = proj.PROJECT_DIRECTORY.getValue() + "CUSHING_FOCUS_CNVs/";
-
+    proj.getLog().reportTimeInfo("Reporting to " + outDir);
     new File(outDir).mkdirs();
     PreparedMarkerSet preparedMarkerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
-
+    String[] excludeTypes = new String[] {"OFF_TARGET"};
+    //    String[] excludeTypes = new String[] {"OFF_TARGET"};
     for (Segment seg : segs) {
       SampleDistParams[] sampleDistParams = generateSampleParams(proj, preparedMarkerSet, outDir,
-                                                                 new String[] {"VARIANT_SITE",
-                                                                               "OFF_TARGET"});
+                                                                 excludeTypes);
       String[] markersInSeg = preparedMarkerSet.getMarkersIn(seg,
                                                              preparedMarkerSet.getIndicesByChr());
 
@@ -191,8 +193,13 @@ public class CNVFocus {
 
       while (mdl.hasNext()) {
         MarkerData md = mdl.next();
-        if (!md.getMarkerName().contains("VARIANT_SITE")
-            && !md.getMarkerName().contains("OFF_TARGET")) {
+        boolean use = true;
+        for (String eType : excludeTypes) {
+          if (md.getMarkerName().contains(eType)) {
+            use = false;
+          }
+        }
+        if (use) {
           proj.getLog().reportTimeInfo("Marker " + md.getMarkerName());
 
           NormalDistribution nd = new NormalDistribution(ArrayUtils.mean(md.getLRRs(), true),
