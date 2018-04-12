@@ -492,7 +492,9 @@ public class FCSDataLoader {
     if (gateOverrideMatch.containsKey(key)) {
       List<String> ovvr = gateOverrideMatch.get(key);
       boolean[] start = Arrays.copyOf(gateOverride.get(ovvr.get(0)), getCount());
+      if (start == null) return null;
       for (int i = 1; i < ovvr.size(); i++) {
+        if (gateOverride.get(ovvr.get(i)) == null) return null;
         start = ArrayUtils.booleanArrayAnd(start, gateOverride.get(ovvr.get(i)));
       }
       return start;

@@ -35,7 +35,7 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     loadPopsAndGates(sn);
     loadData(sn);
 
-    if (ovvrDir != null) {
+    if (ovvrDir != null && Files.exists(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx)) {
       d.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
     }
 

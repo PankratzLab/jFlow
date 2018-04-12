@@ -139,6 +139,9 @@ public class WSPLoader {
       //      } catch (UnsupportedEncodingException e2) {
       //        log.reportError(e2.getMessage());
       sn.fcsFile = fcsFile;
+      if (sn.fcsFile.contains("%20")) {
+        sn.fcsFile = sn.fcsFile.replaceAll("%20", " ");
+      }
       //      }
       sn.sampleNode = sampleNode;
       sn.doc = doc;
