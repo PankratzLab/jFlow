@@ -964,8 +964,8 @@ public class Launch extends JFrame implements ActionListener {
         proj.GC_THRESHOLD.setValue(veo.getGC());
         proj.saveProperties(new Property<?>[] {proj.GC_THRESHOLD});
 
-        VCFData.exportGenvisisToVCF(proj, sampFile, markFile, splitChrs, useGRCRefGen, chrsToWrite,
-                                    root);
+        VCFData.exportGenvisisToVCF(proj, sampFile, false, markFile, splitChrs, useGRCRefGen,
+                                    chrsToWrite, root);
       } else if (command.equals(EXPORT_FOR_IMPUTE)) {
         ImputationGUI dialog = new ImputationGUI(proj);
         dialog.setVisible(true);

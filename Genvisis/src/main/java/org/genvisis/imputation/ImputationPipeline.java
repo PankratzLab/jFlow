@@ -56,6 +56,7 @@ public class ImputationPipeline {
   public static final String CHRS_ARG = "chrs=";
   public static final String RUN_TYPE_ARG = "type=";
   public static final String USE_GRC_ARG = "useGRC=";
+  public static final String EXPORT_IIDS = "exportIIDS=";
 
   private final Project proj;
   private final Set<String> dropMarkers;
@@ -236,20 +237,20 @@ public class ImputationPipeline {
     }
   }
 
-  public void exportToVCF(String vcfDirAndRoot, int[] chrs, boolean useGRC) {
+  public void exportToVCF(String vcfDirAndRoot, int[] chrs, boolean useGRC, boolean exportIIDs) {
     String[] samplesToExport = getSamplesToExport().toArray(new String[0]);
     String[] markersToExport = getMarkersToExport().toArray(new String[0]);
 
-    VCFData.exportGenvisisToVCF(proj, samplesToExport, markersToExport, true, useGRC, chrs,
-                                vcfDirAndRoot);
+    VCFData.exportGenvisisToVCF(proj, samplesToExport, exportIIDs, markersToExport, true, useGRC,
+                                chrs, vcfDirAndRoot);
   }
 
   protected static class ImputationPipeRunner {
 
     public static void runVCF(String projPropFile, int[] chrs, String refFile, KeepDrops keepDrops,
-                              String vcfDirAndRoot, boolean useGRC) {
+                              boolean exportIIDs, String vcfDirAndRoot, boolean useGRC) {
       ImputationPipeline ip = setupPipe(projPropFile, refFile, keepDrops);
-      ip.exportToVCF(vcfDirAndRoot, chrs, useGRC);
+      ip.exportToVCF(vcfDirAndRoot, chrs, useGRC, exportIIDs);
     }
 
     public static void runPlink(String projPropFile, int[] chrs, String refFile,
@@ -389,6 +390,7 @@ public class ImputationPipeline {
     String plinkPrefix = null;
     int[] chrs = null;
     boolean useGRC = true;
+    boolean exportIIDs = false;
     IMPUTATION_PIPELINE_PATH path = null;
 
     String usage = "\n" + "org.genvisis.imputation.ImputationPipeline requires 3+ arguments\n"
@@ -472,6 +474,9 @@ public class ImputationPipeline {
       } else if (args[i].startsWith(USE_GRC_ARG)) {
         useGRC = ext.parseBooleanArg(args[i]);
         numArgs--;
+      } else if (args[i].startsWith(EXPORT_IIDS)) {
+        exportIIDs = ext.parseBooleanArg(args[i]);
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + args[i]);
       }
@@ -487,7 +492,7 @@ public class ImputationPipeline {
           ImputationPipeRunner.runVCF(projFile, chrs, refFile,
                                       new KeepDrops(dropSamples, keepSamples, dropMarkers,
                                                     keepMarkers),
-                                      outDirAndRoot, useGRC);
+                                      exportIIDs, outDirAndRoot, useGRC);
           break;
         case PLINK_ONLY:
           ImputationPipeRunner.runPlink(projFile, chrs, refFile,

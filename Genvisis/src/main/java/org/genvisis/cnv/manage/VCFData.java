@@ -52,9 +52,9 @@ public final class VCFData {
   }
 
   public static void exportGenvisisToVCF(Project proj, String fileOfSamplesToExport,
-                                         String fileOfMarkersToExport, boolean splitChrs,
-                                         boolean useGRCRefGen, int[] chrsToExport,
-                                         String outputDirAndRoot) {
+                                         boolean exportIIDs, String fileOfMarkersToExport,
+                                         boolean splitChrs, boolean useGRCRefGen,
+                                         int[] chrsToExport, String outputDirAndRoot) {
     String[] samples = null;
     String[] markers = null;
 
@@ -80,11 +80,11 @@ public final class VCFData {
       return;
     }
 
-    exportGenvisisToVCF(proj, samples, markers, splitChrs, useGRCRefGen, chrsToExport,
+    exportGenvisisToVCF(proj, samples, exportIIDs, markers, splitChrs, useGRCRefGen, chrsToExport,
                         outputDirAndRoot);
   }
 
-  public static void exportGenvisisToVCF(Project proj, String[] samplesToExport,
+  public static void exportGenvisisToVCF(Project proj, String[] samplesToExport, boolean exportIIDs,
                                          String[] markersToExport, boolean splitChrs,
                                          boolean useGRCContigs, int[] chrsToExport,
                                          String outputDirAndRoot) {
@@ -103,8 +103,13 @@ public final class VCFData {
         System.out.println("No SampleData lookup for " + s);
       } else {
         if (idsSet.contains(s) || idsSet.contains(sd.lookup(s)[1])) {
-          idsToInclude.add(s);
-          idIndexMap.put(s, i);
+          if (exportIIDs) {
+            idsToInclude.add(sd.lookupIID(s));
+            idIndexMap.put(sd.lookupIID(s), i);
+          } else {
+            idsToInclude.add(s);
+            idIndexMap.put(s, i);
+          }
         }
       }
     }
@@ -551,6 +556,7 @@ public final class VCFData {
     boolean split = true;
     int[] chrs = null;
     boolean grc = true;
+    boolean exportIIDs = false;
     String out = null;
 
     Object[][] argSet = {{CLI.ARG_PROJ, CLI.DESC_PROJ, "example.properties", Arg.STRING},
@@ -594,6 +600,6 @@ public final class VCFData {
       out = proj.PROJECT_NAME.getValue();
     }
 
-    VCFData.exportGenvisisToVCF(proj, samp, mark, split, grc, chrs, out);
+    VCFData.exportGenvisisToVCF(proj, samp, exportIIDs, mark, split, grc, chrs, out);
   }
 }

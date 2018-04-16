@@ -79,7 +79,7 @@ public class Files {
 
   public static String getRunString(int memInMeg, boolean interpretAsGig) {
     int mem = memInMeg == -1 ? -1 : interpretAsGig ? memInMeg / 1024 : memInMeg;
-    return "java " + (memInMeg == -1 ? "" : "-Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar "
+    return "java" + (memInMeg == -1 ? "" : " -Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar "
            + Launch.getJarLocation();
   }
 

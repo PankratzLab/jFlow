@@ -555,7 +555,7 @@ public class AffyPipeline {
             Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), false, numThreads);
             TransposeData.transposeData(proj, 2000000000, false);
             SampleData.createMinimalSampleData(proj);
-            GenvisisWorkflow.setupImputation(proj);
+            GenvisisWorkflow.setupImputationDefaults(proj);
           } else {
             log.reportTimeWarning("Missing file " + markerPositions);
             log.reportTimeWarning("Please provide the marker position at the command line, or use the Genvisis gui to finish parsing your affy project");

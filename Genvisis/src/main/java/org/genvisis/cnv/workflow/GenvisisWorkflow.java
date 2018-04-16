@@ -74,7 +74,7 @@ public class GenvisisWorkflow {
 
   private static final String NUM_THREADS_DESC = "Number of Threads to Use";
   private static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
-  private static final String PLINK_SUBDIR = "plink/";
+  public static final String PLINK_SUBDIR = "plink/";
   private static final String PLINKROOT = "plink";
   final Project proj;
   private final SortedSet<Step> steps;
@@ -1000,9 +1000,11 @@ public class GenvisisWorkflow {
       });
     }
 
+    public static final String PUTATIVE_WHITE_FILE_DESCRIPTION = "File with FID/IID pairs of putative white samples";
+
     private Step generateAncestryStep(final Step gwasQCStep) {
       final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-      final Requirement putativeWhitesReq = new Requirement.FileRequirement("File with FID/IID pairs of putative white samples",
+      final Requirement putativeWhitesReq = new Requirement.FileRequirement(PUTATIVE_WHITE_FILE_DESCRIPTION,
                                                                             "");
       final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
                                                                                                     Resources.hapMap(log)
@@ -1075,8 +1077,8 @@ public class GenvisisWorkflow {
                                                                                    .add(ancestryStepReq)
                                                                                    .add(europeansFilesReq));
       final Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
+      Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       for (QC_METRIC metric : QC_METRIC.values()) {
-        Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
         String defaultVal = defaultThresholds.get(metric);
         final Requirement metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
                                                                            defaultVal);
@@ -2149,9 +2151,16 @@ public class GenvisisWorkflow {
     }
   }
 
-  public static void setupImputation(Project proj) {
-    StepBuilder sb = (new GenvisisWorkflow(proj, null)).new StepBuilder();
+  public static String setupImputationDefaults(Project proj) {
+    return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null);
+  }
 
+  public static String setupImputation(Project proj, int numThreads, String putativeWhitesFile,
+                                       Map<QC_METRIC, String> faqcThreshs) {
+    GenvisisWorkflow workflow = new GenvisisWorkflow(proj, null);
+    StepBuilder sb = workflow.new StepBuilder();
+
+    Requirement threadsReq = workflow.getNumThreadsReq();
     Step parseSamples = sb.generateParseSamplesStep();
     Step transpose = sb.generateTransposeStep(parseSamples);
     Step sampleData = sb.generateCreateSampleDataStep(parseSamples);
@@ -2164,14 +2173,50 @@ public class GenvisisWorkflow {
     Step ancestry = sb.generateAncestryStep(gwasQc);
     Step faqcStep = sb.generateFurtherAnalysisQCStep(exportPlink, gwasQc, ancestry);
 
+    Map<Requirement, String> stepReqs;
     Map<Step, Map<Requirement, String>> varMap = new HashMap<>();
+
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
     varMap.put(sexChecks, sexChecks.getDefaultRequirementValues());
     varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
-    varMap.put(gwasQc, gwasQc.getDefaultRequirementValues());
-    varMap.put(ancestry, ancestry.getDefaultRequirementValues());
-    varMap.put(faqcStep, faqcStep.getDefaultRequirementValues());
+
+    stepReqs = gwasQc.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(gwasQc, stepReqs);
+
+    stepReqs = ancestry.getDefaultRequirementValues();
+    if (putativeWhitesFile != null) {
+      Requirement r = null;
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
+          r = r1;
+          break;
+        }
+      }
+      if (r == null) {
+        throw new IllegalStateException();
+      }
+      stepReqs.put(r, putativeWhitesFile);
+    }
+    varMap.put(ancestry, stepReqs);
+
+    stepReqs = faqcStep.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(faqcStep, stepReqs);
+
+    // override threads defaults
+    if (numThreads > 0) {
+      for (Step s : varMap.keySet()) {
+        if (varMap.get(s).containsKey(threadsReq)) {
+          varMap.get(s).put(threadsReq, Integer.toString(numThreads));
+        }
+      }
+    }
 
     String s1 = sampleQc.getCommandLine(proj, varMap);
     String s2 = markerQc.getCommandLine(proj, varMap);
@@ -2181,9 +2226,8 @@ public class GenvisisWorkflow {
     String s6 = ancestry.getCommandLine(proj, varMap);
     String s7 = faqcStep.getCommandLine(proj, varMap);
 
-    String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline.";
-    String suggFile = file + ext.getTimestampForFilename() + ".pbs";
-    String runFile = file + ext.getTimestampForFilename() + ".run";
+    String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.";
+    String suggFile = file + ext.getTimestampForFilename() + ".qsub";
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
@@ -2196,7 +2240,20 @@ public class GenvisisWorkflow {
     addStepInfo(output, faqcStep, s7);
 
     Qsub.qsubDefaults(suggFile, output.toString());
-    Files.write(output.toString(), runFile);
+    return suggFile;
+  }
+
+  private static void fixQCThreshs(Map<Requirement, String> reqMap,
+                                   Map<QC_METRIC, String> threshMap) {
+    Map<String, String> qc = new HashMap<>();
+    for (QC_METRIC met : threshMap.keySet()) {
+      qc.put(met.getUserDescription(), threshMap.get(met));
+    }
+    for (Requirement r1 : reqMap.keySet()) {
+      if (qc.containsKey(r1.getDescription())) {
+        reqMap.put(r1, qc.get(r1.getDescription()));
+      }
+    }
   }
 
   public static void setupCNVCalling(String projectProperties) {
