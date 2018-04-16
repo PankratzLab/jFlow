@@ -2266,7 +2266,7 @@ public class GenvisisWorkflow {
     addStepInfo(output, ancestry, s6);
     addStepInfo(output, faqcStep, s7);
 
-    Qsub.qsub(suggFile, output.toString(), 22 * 1024, 24, 24);
+    Qsub.qsub(suggFile, output.toString(), 22 * 1024, 150, 16);
     return suggFile;
   }
 
@@ -2328,9 +2328,10 @@ public class GenvisisWorkflow {
 
   public static void addStepInfo(StringBuilder output, Step step, String stepCmd) {
     output.append("## ").append(step.getName()).append("\n");
-    output.append("echo \" start ").append(step.getName()).append(" at: \" `date`").append("\n");
+    output.append("echo \">>>> start ").append(step.getName()).append(" at: \" `date`")
+          .append("\n");
     output.append(stepCmd).append("\n");
-    output.append("echo \" end ").append(step.getName()).append(" at: \" `date`").append("\n");
+    output.append("echo \"<<<< end ").append(step.getName()).append(" at: \" `date`").append("\n");
     output.append("\n\n");
   }
 

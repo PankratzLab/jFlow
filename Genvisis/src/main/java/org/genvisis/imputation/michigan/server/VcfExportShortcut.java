@@ -196,7 +196,7 @@ public class VcfExportShortcut {
     String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationExport.";
     String suggFile = file + ext.getTimestampForFilename() + ".qsub";
 
-    Qsub.qsub(suggFile, exportSB.toString(), 22 * 1024, 24, 24);
+    Qsub.qsub(suggFile, exportSB.toString(), 22 * 1024, 150, 16);
 
     log.reportTime("Created Imputation Export script at " + suggFile);
   }
