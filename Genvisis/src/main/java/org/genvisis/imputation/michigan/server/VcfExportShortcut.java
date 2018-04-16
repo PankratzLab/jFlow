@@ -3,6 +3,7 @@ package org.genvisis.imputation.michigan.server;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -32,8 +33,6 @@ public class VcfExportShortcut {
   private final Project proj;
   private final Logger log;
 
-  private int numThreads;
-  private String putativeWhtFile;
   private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
   private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
   private double generalQcThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
@@ -44,6 +43,18 @@ public class VcfExportShortcut {
                             Logger log) {
     proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, log);
     this.log = log;
+  }
+
+  private void setQCThreshold(double d) {
+    this.generalQcThresh = d;
+  }
+
+  private void setHWEThreshold(double d) {
+    this.hweThresh = d;
+  }
+
+  private void setCallrateThreshold(double d) {
+    this.callrateThresh = d;
   }
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
@@ -110,7 +121,7 @@ public class VcfExportShortcut {
     proj.PEDIGREE_FILENAME.setValue(pedigreeFile);
   }
 
-  public void runPipeline() {
+  public void runPipeline(int numThreads, String putativeWhtFile) {
     // TODO set options / variables
     Map<QC_METRIC, String> qcMap = new HashMap<>();
     qcMap.put(QC_METRIC.CALLRATE, "<" + callrateThresh);
@@ -151,7 +162,7 @@ public class VcfExportShortcut {
 
     StringBuilder exportSB = new StringBuilder();
     exportSB.append(Files.getRunString());
-    exportSB.append(ImputationPipeline.class.getName());
+    exportSB.append(" ").append(ImputationPipeline.class.getName());
     exportSB.append(" ").append(ImputationPipeline.PROJ_ARG).append(proj.getPropertyFilename());
     exportSB.append(" ").append(ImputationPipeline.REF_ARG).append(refFile);
     exportSB.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
@@ -165,19 +176,82 @@ public class VcfExportShortcut {
     String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationExport.";
     String suggFile = file + ext.getTimestampForFilename() + ".qsub";
 
-    Qsub.qsubDefaults(suggFile, exportSB.toString());
+    Qsub.qsub(suggFile, exportSB.toString(), 22 * 1024, 24, 24);
 
     log.reportTime("Created Imputation Export script at " + suggFile);
   }
 
-  /*-
-   * TODO:
-   *  VcFExportShortcut export = new VcfExportShortcut(...);
-   *  export.runPipeline();
-   *  "Run/Submit Genvisis Workflow script first"
-   *  export.setupVCFExport();
-   *  "Run/Submit Imputation Export script second"
-   *  "Can set or edit sample/marker drops files"
-   */
+  private static final String ARG_PROJ_NAME = "projName";
+  private static final String ARG_SRC_DIR = "sourceDir";
+  private static final String ARG_PROJ_DIR = "projDir";
+  private static final String ARG_PED = "pedFile";
+  private static final String ARG_THREADS = "numThreads";
+  private static final String ARG_PUT_WHT = "putativeWhiteFile";
+  private static final String ARG_VCF_OUT = "vcfDirRoot";
+  private static final String ARG_GRC_OUT = "useGRC";
+  private static final String ARG_CALLRATE = "callrate";
+  private static final String ARG_HWE = "hwe";
+  private static final String ARG_QC = "qc";
+
+  private static final String DESC_PROJ_NAME = "Project Name";
+  private static final String DESC_SRC_DIR = "Source File Directory";
+  private static final String DESC_PROJ_DIR = "Directory for project files";
+  private static final String DESC_PED = "Pedigree File";
+  private static final String DESC_THREADS = "Number of threads";
+  private static final String DESC_PUT_WHT = "Putative Whites File";
+  private static final String DESC_VCF_OUT = "VCF output directory and file root";
+  private static final String DESC_GRC_OUT = "Export contigs with \"chr\" prepend (defaults to true)";
+  private static final String DESC_CALLRATE = "Callrate Threshold";
+  private static final String DESC_HWE = "HWE Threshold";
+  private static final String DESC_QC = "General QC Threshold";
+
+  public static void main(String[] args) {
+    CLI cli = new CLI(VcfExportShortcut.class);
+
+    cli.addArg(ARG_PROJ_NAME, DESC_PROJ_NAME);
+    cli.addArg(ARG_SRC_DIR, DESC_SRC_DIR);
+    cli.addArg(ARG_PROJ_DIR, DESC_PROJ_DIR);
+    cli.addArg(ARG_VCF_OUT, DESC_VCF_OUT);
+    cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT);
+    cli.addArg(ARG_PED, DESC_PED, false);
+    cli.addArg(ARG_THREADS, DESC_THREADS, false);
+    cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, false);
+    cli.addArg(ARG_CALLRATE, DESC_CALLRATE, false);
+    cli.addArg(ARG_HWE, DESC_HWE, false);
+    cli.addArg(ARG_QC, DESC_QC, false);
+
+    cli.parseWithExit(args);
+
+    String projName = cli.get(ARG_PROJ_NAME);
+    String srcDir = cli.get(ARG_SRC_DIR);
+    String projDir = cli.get(ARG_PROJ_DIR);
+    String pedFile = cli.get(ARG_PED);
+    String putWht = cli.get(ARG_PUT_WHT);
+    String vcfOut = cli.get(ARG_VCF_OUT);
+
+    int numThreads = cli.has(ARG_THREADS) ? cli.getI(ARG_THREADS)
+                                          : Runtime.getRuntime().availableProcessors();
+    boolean useGRC = cli.has(ARG_GRC_OUT) ? Boolean.parseBoolean(cli.get(ARG_GRC_OUT)) : true;
+
+    // TODO logger?
+    Logger log = new Logger();
+    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, log);
+    export.runPipeline(numThreads, putWht);
+    if (cli.has(ARG_CALLRATE)) {
+      export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
+    }
+    if (cli.has(ARG_HWE)) {
+      export.setHWEThreshold(cli.getD(ARG_HWE));
+    }
+    if (cli.has(ARG_QC)) {
+      export.setQCThreshold(cli.getD(ARG_QC));
+    }
+    export.setupVCFExport(vcfOut, useGRC);
+
+    log.reportTime("Please check (and, if necessary, adjust) qsub parameters (memory, walltime, nodes) prior to submitting to queue.");
+    log.reportTime("Submit GenvisisWorkflow script first, and when completed successfully, ImputationExport script second.");
+    log.reportTime("Sample and Marker \"keep\" files can be set in the ImputationExport script - the default files are created during the GenvisisWorkflow and can be edited or used as-is.");
+
+  }
 
 }

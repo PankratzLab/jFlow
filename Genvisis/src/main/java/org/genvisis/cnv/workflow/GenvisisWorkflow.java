@@ -2239,7 +2239,7 @@ public class GenvisisWorkflow {
     addStepInfo(output, ancestry, s6);
     addStepInfo(output, faqcStep, s7);
 
-    Qsub.qsubDefaults(suggFile, output.toString());
+    Qsub.qsub(suggFile, output.toString(), 22 * 1024, 24, 24);
     return suggFile;
   }
 
