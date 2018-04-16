@@ -33,6 +33,9 @@ public class VcfExportShortcut {
   private final Project proj;
   private final Logger log;
 
+  private String snpMap = null;
+  private String manifest = null;
+
   private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
   private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
   private double generalQcThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
@@ -40,9 +43,17 @@ public class VcfExportShortcut {
   private String markerDropsFile = null;
 
   private VcfExportShortcut(String projName, String sourceDir, String projDir, String pedigreeFile,
-                            Logger log) {
-    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, log);
+                            String mkrPos, Logger log) {
+    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, mkrPos, log);
     this.log = log;
+  }
+
+  private void setSnpMap(String string) {
+    this.snpMap = string;
+  }
+
+  private void setIlluminaManifest(String string) {
+    this.manifest = string;
   }
 
   private void setQCThreshold(double d) {
@@ -58,7 +69,7 @@ public class VcfExportShortcut {
   }
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
-                                            String pedigreeFile, Logger log) {
+                                            String pedigreeFile, String mkrPos, Logger log) {
     final Project proj;
     if (LaunchProperties.projectExists(projName)) {
       String projFile = LaunchProperties.formProjectPropertiesFilename(projName);
@@ -89,6 +100,14 @@ public class VcfExportShortcut {
       proj.setSourceFileHeaders(headers);
       proj.setLog(log);
       checkAndSetPed(proj, pedigreeFile);
+      if (mkrPos != null) {
+        if (Files.exists(mkrPos)) {
+          proj.MARKER_POSITION_FILENAME.setValue(mkrPos);
+        } else {
+          throw new IllegalArgumentException("Error - specified marker position file (" + mkrPos
+                                             + ") could not be found.");
+        }
+      }
       log.reportTime("Created Genvisis project at " + proj.getPropertyFilename());
     }
     return proj;
@@ -132,7 +151,8 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_MISS, generalQc);
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
-    String outputFile = GenvisisWorkflow.setupImputation(proj, numThreads, putativeWhtFile, qcMap);
+    String outputFile = GenvisisWorkflow.setupImputation(proj, numThreads, putativeWhtFile, qcMap,
+                                                         true, manifest, snpMap);
 
     log.reportTime("Created Genvisis Workflow script at " + outputFile);
   }
@@ -184,6 +204,11 @@ public class VcfExportShortcut {
   private static final String ARG_PROJ_NAME = "projName";
   private static final String ARG_SRC_DIR = "sourceDir";
   private static final String ARG_PROJ_DIR = "projDir";
+
+  private static final String ARG_MKR_POS = "markerPositionFile";
+  private static final String ARG_ILL_MAN = "manifest";
+  private static final String ARG_SNP_MAP = "snpMap";
+
   private static final String ARG_PED = "pedFile";
   private static final String ARG_THREADS = "numThreads";
   private static final String ARG_PUT_WHT = "putativeWhiteFile";
@@ -196,6 +221,11 @@ public class VcfExportShortcut {
   private static final String DESC_PROJ_NAME = "Project Name";
   private static final String DESC_SRC_DIR = "Source File Directory";
   private static final String DESC_PROJ_DIR = "Directory for project files";
+
+  private static final String DESC_MKR_POS = "File with marker positions";
+  private static final String DESC_ILL_MAN = "Illumina manifest file";
+  private static final String DESC_SNP_MAP = "GenomeStudio Snp_Map file";
+
   private static final String DESC_PED = "Pedigree File";
   private static final String DESC_THREADS = "Number of threads";
   private static final String DESC_PUT_WHT = "Putative Whites File";
@@ -214,6 +244,13 @@ public class VcfExportShortcut {
     cli.addArg(ARG_VCF_OUT, DESC_VCF_OUT);
     cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT);
     cli.addArg(ARG_PED, DESC_PED, false);
+
+    cli.addArg(ARG_MKR_POS, DESC_MKR_POS);
+    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN);
+    cli.addArg(ARG_SNP_MAP, DESC_SNP_MAP);
+
+    cli.addGroup(ARG_MKR_POS, ARG_ILL_MAN, ARG_SNP_MAP);
+
     cli.addArg(ARG_THREADS, DESC_THREADS, false);
     cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, false);
     cli.addArg(ARG_CALLRATE, DESC_CALLRATE, false);
@@ -235,7 +272,17 @@ public class VcfExportShortcut {
 
     // TODO logger?
     Logger log = new Logger();
-    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, log);
+    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile,
+                                                     cli.has(ARG_MKR_POS) ? cli.get(ARG_MKR_POS)
+                                                                          : null,
+                                                     log);
+
+    if (cli.has(ARG_ILL_MAN)) {
+      export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
+    } else if (cli.has(ARG_SNP_MAP)) {
+      export.setSnpMap(cli.get(ARG_SNP_MAP));
+    }
+
     export.runPipeline(numThreads, putWht);
     if (cli.has(ARG_CALLRATE)) {
       export.setCallrateThreshold(cli.getD(ARG_CALLRATE));

@@ -2152,16 +2152,20 @@ public class GenvisisWorkflow {
   }
 
   public static String setupImputationDefaults(Project proj) {
-    return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null);
+    return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null, false,
+                           null, null);
   }
 
   public static String setupImputation(Project proj, int numThreads, String putativeWhitesFile,
-                                       Map<QC_METRIC, String> faqcThreshs) {
+                                       Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
+                                       String man, String snp) {
     GenvisisWorkflow workflow = new GenvisisWorkflow(proj, null);
     StepBuilder sb = workflow.new StepBuilder();
 
     Requirement threadsReq = workflow.getNumThreadsReq();
-    Step parseSamples = sb.generateParseSamplesStep();
+    Step createMkrPos = (man != null || snp != null) ? sb.generateIlluminaMarkerPositionsStep()
+                                                     : null;
+    Step parseSamples = sb.generateParseSamplesStep(createMkrPos);
     Step transpose = sb.generateTransposeStep(parseSamples);
     Step sampleData = sb.generateCreateSampleDataStep(parseSamples);
     Step blast = sb.generateAffyMarkerBlastAnnotationStep(parseSamples);
@@ -2176,6 +2180,21 @@ public class GenvisisWorkflow {
     Map<Requirement, String> stepReqs;
     Map<Step, Map<Requirement, String>> varMap = new HashMap<>();
 
+    if (createMkrPos != null) {
+      stepReqs = createMkrPos.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (man != null && r1.getDescription().contains("Manifest")) {
+          stepReqs.put(r1, man);
+        }
+        if (snp != null && r1.getDescription().contains("SNP_map")) {
+          stepReqs.put(r1, snp);
+        }
+      }
+      varMap.put(createMkrPos, stepReqs);
+    }
+    if (parseSource) {
+      varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
+    }
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
     varMap.put(sexChecks, sexChecks.getDefaultRequirementValues());
@@ -2218,6 +2237,8 @@ public class GenvisisWorkflow {
       }
     }
 
+    String s00 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
+    String s0 = parseSamples.getCommandLine(proj, varMap);
     String s1 = sampleQc.getCommandLine(proj, varMap);
     String s2 = markerQc.getCommandLine(proj, varMap);
     String s3 = sexChecks.getCommandLine(proj, varMap);
@@ -2231,6 +2252,12 @@ public class GenvisisWorkflow {
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
+    if (createMkrPos != null) {
+      addStepInfo(output, createMkrPos, s00);
+    }
+    if (parseSource) {
+      addStepInfo(output, parseSamples, s0);
+    }
     addStepInfo(output, sampleQc, s1);
     addStepInfo(output, markerQc, s2);
     addStepInfo(output, sexChecks, s3);
