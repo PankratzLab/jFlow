@@ -35,6 +35,14 @@ public class InclusionProcessor extends AbstractSampleProcessor {
     loadPopsAndGates(sn);
     loadData(sn);
 
+    String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+    String outFile = outDir + cleanedName + "/" + cleanedName + ".incl.xln.gz";
+
+    if (Files.exists(outFile) && Files.countLines(outFile, 1) == d.getCount()) {
+      log.reportTime("Found full output for sample " + sn.fcsFile);
+      return;
+    }
+
     if (ovvrDir != null && Files.exists(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx)) {
       d.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
     }
@@ -57,8 +65,6 @@ public class InclusionProcessor extends AbstractSampleProcessor {
       incl.put(name, gating);
     }
 
-    String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-    String outFile = outDir + cleanedName + "/" + cleanedName + ".incl.xln.gz";
     new File(outDir + cleanedName + "/").mkdirs();
 
     PrintWriter writer = Files.getAppropriateWriter(outFile);
