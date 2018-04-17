@@ -22,15 +22,19 @@ Genvisis is structured as a [multi-module](https://maven.apache.org/guides/intro
 | pom-genvisis  
 | '-- Logicle  
 | '-- CFCS  
+| '-- Meta  
 | '-- Genvisis  
 | '-- Genv-experimental  
 | '-- Genv-deprecated  
 | '-- Assembly  
+| '-- App  
 
 The key things to know about this structure are:
 
 * The top-level `pom-genvisis` pom.xml manages the build order of submodules and all dependency versions.
-* The `Assembly` project controls how the bundled `Genvisis.jar` is created. Any dependencies to this project will be included in the final .jar, and the pom.xml version number is used as the overall application version.
+* The `App` project controlls how the updating native launcher is built.
+* The `Assembly` project controls how the `genvisis.jar` is created. Any dependencies to this project will be included in the final .jar, and the pom.xml version number is used as the overall application version.
+* The `Meta` project contains shared information between the `Assembly` projects and the `App` launcher.
 * Each individual project is laid out according to the [standard Maven directory layout](https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html).
 
 ## Getting started
@@ -51,11 +55,18 @@ When importing, Eclipse will recognize that Genvisis is a multi-module build and
 
 So if you know a new module has been added, or are seeing odd missing dependency errors, try re-importing Maven projects from the `pom-genvisis` directory.
 
-#### Building the Genvisis application
+#### Building the Genvisis jar
 
-Just like on the command line, to build the `genvisis.jar`, run the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), and select the **install** goal.
+Just like on the command line, to build the `genvisis.jar`, run the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), with the following settings:
+
+* goal: **install**
+* profiles: **fastTests** **genv** 
 
 All Maven output will print in the `Console` tab. When complete, your `genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
+
+Notes:
+- Without the `fastTests` profile enabled, the unit tests will be prohibitively slow when building.
+- Without the `genv` profile enabled, the `genvisis.jar` profile will not be built (but this will speed up the Maven build time)
 
 #### Error: Project configuration is not up-to-date with pom.xml
 
@@ -81,10 +92,6 @@ These parameters can be overridden [the standard Maven way](http://books.sonatyp
 Additionally, when creating a run configuration in Eclipse there is a section to override parameters, so you can use multiple run configurations to manage your different views of the Genvisis codebase.
 
 A final option is to create a `pom.xml` that uses the `Assembly` pom as its parent and overrides these parameters. The advantage to this method is that it provides a tangible `pom.xml` that implicitly documents the parameters, and can be shared with the community
-
-#### Building a unified jar
-
-Performing application assembly (merging all classes into a single unified jar) is costly, therefore this behavior must be explicitly enabled by turning profiles on. For example, the `genv` profile turns on 
 
 #### Running tests
 
@@ -114,18 +121,18 @@ You should not store your password in plaintext in this settings file. The best 
 
 ## Creating a native application
 
-Genvisis uses the [JavaFX-maven-plugin](https://github.com/javafx-maven-plugin/javafx-maven-plugin) to create native bundles. This configuration is stored in the `Assembly` project's `pom.xml`, in the `jfx` profile. It can be activated by running:
+Genvisis uses the [JavaFX-maven-plugin](https://github.com/javafx-maven-plugin/javafx-maven-plugin) to create native bundles. This configuration is stored in the `App` project's `pom.xml`, in the `jfx` profile. It can be activated by running:
 
 ```bash
 mvn clean package -P jfx
 ```
 
-from either the `/Assembly/` directory or the project base directory (containing Genvisis' top-level `pom.xml`).
+from either the `/App/` directory or the project base directory (containing Genvisis' top-level `pom.xml`).
 
 This will create several outputs of interest:
 
 Genvisis.git</br>
-|&nbsp;&nbsp;'-- _Assembly_</br>
+|&nbsp;&nbsp;'-- _App_</br>
 |&nbsp;&nbsp;&nbsp;&nbsp;'-- _target_</br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- **genvisis.tar.gz** (compressed native app w/ runtime)</br>
 |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'-- _jfx_</br>
