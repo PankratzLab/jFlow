@@ -47,6 +47,7 @@ import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.cnv.workflow.Requirement.BoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -2194,10 +2195,21 @@ public class GenvisisWorkflow {
     }
     if (parseSource) {
       varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
+      varMap.put(transpose, transpose.getDefaultRequirementValues());
     }
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
-    varMap.put(sexChecks, sexChecks.getDefaultRequirementValues());
+
+    stepReqs = sexChecks.getDefaultRequirementValues();
+    for (Requirement r1 : stepReqs.keySet()) {
+      if (r1 instanceof BoolRequirement
+          && r1.getDescription().contains("sex discriminating markers")) {
+        stepReqs.put(r1, "true");
+        break;
+      }
+    }
+
+    varMap.put(sexChecks, stepReqs);
     varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
 
     stepReqs = gwasQc.getDefaultRequirementValues();
@@ -2237,15 +2249,16 @@ public class GenvisisWorkflow {
       }
     }
 
-    String s00 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
-    String s0 = parseSamples.getCommandLine(proj, varMap);
-    String s1 = sampleQc.getCommandLine(proj, varMap);
-    String s2 = markerQc.getCommandLine(proj, varMap);
-    String s3 = sexChecks.getCommandLine(proj, varMap);
-    String s4 = exportPlink.getCommandLine(proj, varMap);
-    String s5 = gwasQc.getCommandLine(proj, varMap);
-    String s6 = ancestry.getCommandLine(proj, varMap);
-    String s7 = faqcStep.getCommandLine(proj, varMap);
+    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
+    String s1 = parseSamples.getCommandLine(proj, varMap);
+    String s2 = transpose.getCommandLine(proj, varMap);
+    String s3 = sampleQc.getCommandLine(proj, varMap);
+    String s4 = markerQc.getCommandLine(proj, varMap);
+    String s5 = sexChecks.getCommandLine(proj, varMap);
+    String s6 = exportPlink.getCommandLine(proj, varMap);
+    String s7 = gwasQc.getCommandLine(proj, varMap);
+    String s8 = ancestry.getCommandLine(proj, varMap);
+    String s9 = faqcStep.getCommandLine(proj, varMap);
 
     String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.";
     String suggFile = file + ext.getTimestampForFilename() + ".qsub";
@@ -2253,18 +2266,19 @@ public class GenvisisWorkflow {
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
     if (createMkrPos != null) {
-      addStepInfo(output, createMkrPos, s00);
+      addStepInfo(output, createMkrPos, s0);
     }
     if (parseSource) {
-      addStepInfo(output, parseSamples, s0);
+      addStepInfo(output, parseSamples, s1);
+      addStepInfo(output, transpose, s2);
     }
-    addStepInfo(output, sampleQc, s1);
-    addStepInfo(output, markerQc, s2);
-    addStepInfo(output, sexChecks, s3);
-    addStepInfo(output, exportPlink, s4);
-    addStepInfo(output, gwasQc, s5);
-    addStepInfo(output, ancestry, s6);
-    addStepInfo(output, faqcStep, s7);
+    addStepInfo(output, sampleQc, s3);
+    addStepInfo(output, markerQc, s4);
+    addStepInfo(output, sexChecks, s5);
+    addStepInfo(output, exportPlink, s6);
+    addStepInfo(output, gwasQc, s7);
+    addStepInfo(output, ancestry, s8);
+    addStepInfo(output, faqcStep, s9);
 
     Qsub.qsub(suggFile, output.toString(), 22 * 1024, 150, 16);
     return suggFile;
