@@ -35,6 +35,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -3089,7 +3091,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   public void createSampleList() {
     long time;
-    String[] filesPresent;
+    List<String> filesPresent;
     FontMetrics fontMetrics;
     String refresh;
     int maxWidth;
@@ -3101,8 +3103,16 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     mess = new MessageOfEncouragment("Getting a list of all sample files is taking longer than usual and probably means that your recently created files are still being indexed on the hard drive. Please be patient...",
                                      proj);
     new Thread(mess).start();
-    filesPresent = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true),
-                              Sample.SAMPLE_FILE_EXTENSION);
+    try {
+      filesPresent = java.nio.file.Files.list(Paths.get(proj.SAMPLE_DIRECTORY.getValue(false,
+                                                                                       true)))
+                                        .filter(p -> p.toString()
+                                                      .endsWith(Sample.SAMPLE_FILE_EXTENSION))
+                                        .map(Path::toString).collect(Collectors.toList());
+    } catch (IOException e) {
+      filesPresent = Arrays.asList(Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true),
+                                              Sample.SAMPLE_FILE_EXTENSION));
+    }
     log.report("Getting list of files took " + ext.getTimeElapsed(time));
     time = new Date().getTime();
     fontMetrics = sampleList.getFontMetrics(sampleList.getFont());
@@ -3112,19 +3122,21 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     System.out.println("Determined sample list in " + ext.getTimeElapsed(time));
     mess.disregard();
 
-    if (filesPresent == null || filesPresent.length == 0) {
+    if (filesPresent == null || filesPresent.size() == 0) {
       // samplesPresent = new String[] {proj.get(Project.SAMPLE_DIRECTORY)+" directory is empty",
       // refresh};
       samplesPresent = new String[] {proj.SAMPLE_DIRECTORY.getValue(false, true)
                                      + " directory is empty", refresh};
       maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(samplesPresent[0]));
     } else {
-      samplesPresent = new String[filesPresent.length + 1];
-      for (int i = 0; i < filesPresent.length; i++) {
-        samplesPresent[i] = filesPresent[i].substring(0, filesPresent[i].lastIndexOf("."));
+      samplesPresent = new String[filesPresent.size() + 1];
+      String s;
+      for (int i = 0; i < filesPresent.size(); i++) {
+        s = ext.removeDirectoryInfo(filesPresent.get(i));
+        samplesPresent[i] = s.substring(0, s.lastIndexOf("."));
         maxWidth = Math.max(maxWidth, fontMetrics.stringWidth(samplesPresent[i]));
       }
-      samplesPresent[filesPresent.length] = refresh;
+      samplesPresent[filesPresent.size()] = refresh;
     }
 
     Arrays.sort(samplesPresent);
