@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -138,8 +139,8 @@ public class LauncherManifest {
       return "Genvisis, " + manifest.getVersion().getNormalVersion() + "\n"
              + manifest.getCopyright() + "\n\n" + (new Date());
     } catch (Exception e) {
-      return "Genvisis, v0.0.0\n(c)2009-2015 Nathan Pankratz, GNU General Public License, v2\n\n"
-             + (new Date());
+      return "Genvisis, v0.0.0\n(c)2009-" + Calendar.getInstance().get(Calendar.YEAR)
+             + " Nathan Pankratz, GNU General Public License, v2\n\n" + (new Date());
     }
   }
 
