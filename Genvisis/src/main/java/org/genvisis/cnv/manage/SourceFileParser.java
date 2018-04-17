@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -143,7 +146,8 @@ public class SourceFileParser implements Runnable {
                             + ArrayUtils.toStr(Sample.DATA_FIELDS[4], "/"));
             return;
           }
-          if ((headerData.getColGenoAB1() == -1 || headerData.getColGenoAB2() == -1) && abLookup == null) {
+          if ((headerData.getColGenoAB1() == -1 || headerData.getColGenoAB2() == -1)
+              && abLookup == null) {
             log.reportTimeWarning("Setting IGNORE_AB to TRUE");
             ignoreAB = true;
           } else {
@@ -153,14 +157,18 @@ public class SourceFileParser implements Runnable {
 
           sampleName = "";
           data = new float[][] {headerData.getColGC() == -1 ? null : new float[markerNames.length],
-                                headerData.getColXRaw() == -1 ? null : new float[markerNames.length],
-                                headerData.getColYRaw() == -1 ? null : new float[markerNames.length],
+                                headerData.getColXRaw() == -1 ? null
+                                                              : new float[markerNames.length],
+                                headerData.getColYRaw() == -1 ? null
+                                                              : new float[markerNames.length],
                                 headerData.getColX() == -1 ? null : new float[markerNames.length],
                                 headerData.getColY() == -1 ? null : new float[markerNames.length],
-                                headerData.getColTheta() == -1 ? null : new float[markerNames.length],
+                                headerData.getColTheta() == -1 ? null
+                                                               : new float[markerNames.length],
                                 headerData.getColR() == -1 ? null : new float[markerNames.length],
                                 headerData.getColBAF() == -1 ? null : new float[markerNames.length],
-                                headerData.getColLRR() == -1 ? null : new float[markerNames.length],};
+                                headerData.getColLRR() == -1 ? null
+                                                             : new float[markerNames.length],};
           genotypes = new byte[][] {ArrayUtils.byteArray(markerNames.length, (byte) 0),
                                     ignoreAB ? null
                                              : ArrayUtils.byteArray(markerNames.length, (byte) -1)};
@@ -205,9 +213,10 @@ public class SourceFileParser implements Runnable {
             }
             key = keysKeys[count];
 
-            int[] indCols = {headerData.getColGC(), headerData.getColXRaw(), headerData.getColYRaw(),
-                             headerData.getColX(), headerData.getColY(), headerData.getColTheta(), headerData.getColR(),
-                             headerData.getColBAF(), headerData.getColLRR(),};
+            int[] indCols = {headerData.getColGC(), headerData.getColXRaw(),
+                             headerData.getColYRaw(), headerData.getColX(), headerData.getColY(),
+                             headerData.getColTheta(), headerData.getColR(), headerData.getColBAF(),
+                             headerData.getColLRR(),};
 
             int ind = 0;
             try {
@@ -264,8 +273,8 @@ public class SourceFileParser implements Runnable {
               if (genotypes[0][key] == -1) {
                 if (proj.getArrayType() == ARRAY.ILLUMINA) {
 
-                  if (ext.indexOfStr(line[headerData.getColGeno1()] + line[headerData.getColGeno2()],
-                                     Sample.ALT_NULLS) == -1) {
+                  if (ext.indexOfStr(line[headerData.getColGeno1()]
+                                     + line[headerData.getColGeno2()], Sample.ALT_NULLS) == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + " for marker "
                                     + markerNames[count] + " of sample " + files[i]
@@ -293,7 +302,8 @@ public class SourceFileParser implements Runnable {
             if (headerData.getColGenoAB1() != -1 && headerData.getColGenoAB2() != -1) {
               if (ignoreAB) {
                 // do nothing, will need to use these files to determine AB lookup table
-              } else if (abLookup == null || headerData.getColGeno1() == -1 || headerData.getColGeno2() == -1
+              } else if (abLookup == null || headerData.getColGeno1() == -1
+                         || headerData.getColGeno2() == -1
                          || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
                          || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {// FORCE AFFY HERE
                 if (abLookup != null) {
@@ -317,7 +327,8 @@ public class SourceFileParser implements Runnable {
                   } else if (line[headerData.getColGeno1()].charAt(0) != abLookup[count][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? trav : line[sampIndex]) + "' ("
-                                    + line[headerData.getColGeno1()] + "/" + line[headerData.getColGeno2()]
+                                    + line[headerData.getColGeno1()] + "/"
+                                    + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
                                     + abLookup[count][0] + "/" + abLookup[count][1]
                                     + ") for marker " + markerNames[count]);
@@ -327,7 +338,8 @@ public class SourceFileParser implements Runnable {
                   } else if (line[headerData.getColGeno2()].charAt(0) != abLookup[count][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? trav : line[sampIndex]) + "' ("
-                                    + line[headerData.getColGeno1()] + "/" + line[headerData.getColGeno2()]
+                                    + line[headerData.getColGeno1()] + "/"
+                                    + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
                                     + abLookup[count][0] + "/" + abLookup[count][1]
                                     + ") for marker " + markerNames[count]);
@@ -423,45 +435,56 @@ public class SourceFileParser implements Runnable {
     StringBuilder logOutput = new StringBuilder();
     logOutput.append("Column name assignments for data import:\n");
     logOutput.append("GC: ")
-             .append(headerData.getColGC() == -1 ? "[missing]" : headerData.getCols()[headerData.getColGC()])
+             .append(headerData.getColGC() == -1 ? "[missing]"
+                                                 : headerData.getCols()[headerData.getColGC()])
              .append("\n");
     logOutput.append("XRaw: ")
-             .append(headerData.getColXRaw() == -1 ? "[missing]" : headerData.getCols()[headerData.getColXRaw()])
+             .append(headerData.getColXRaw() == -1 ? "[missing]"
+                                                   : headerData.getCols()[headerData.getColXRaw()])
              .append("\n");
     logOutput.append("YRaw: ")
-             .append(headerData.getColYRaw() == -1 ? "[missing]" : headerData.getCols()[headerData.getColYRaw()])
+             .append(headerData.getColYRaw() == -1 ? "[missing]"
+                                                   : headerData.getCols()[headerData.getColYRaw()])
              .append("\n");
     logOutput.append("X: ")
-             .append(headerData.getColX() == -1 ? "[missing]" : headerData.getCols()[headerData.getColX()])
+             .append(headerData.getColX() == -1 ? "[missing]"
+                                                : headerData.getCols()[headerData.getColX()])
              .append("\n");
     logOutput.append("Y: ")
-             .append(headerData.getColY() == -1 ? "[missing]" : headerData.getCols()[headerData.getColY()])
+             .append(headerData.getColY() == -1 ? "[missing]"
+                                                : headerData.getCols()[headerData.getColY()])
              .append("\n");
     logOutput.append("Theta: ")
-             .append(headerData.getColTheta() == -1 ? "[missing]" : headerData.getCols()[headerData.getColTheta()])
+             .append(headerData.getColTheta() == -1 ? "[missing]"
+                                                    : headerData.getCols()[headerData.getColTheta()])
              .append("\n");
     logOutput.append("R: ")
-             .append(headerData.getColR() == -1 ? "[missing]" : headerData.getCols()[headerData.getColR()])
+             .append(headerData.getColR() == -1 ? "[missing]"
+                                                : headerData.getCols()[headerData.getColR()])
              .append("\n");
     logOutput.append("BAF: ")
-             .append(headerData.getColBAF() == -1 ? "[missing]" : headerData.getCols()[headerData.getColBAF()])
+             .append(headerData.getColBAF() == -1 ? "[missing]"
+                                                  : headerData.getCols()[headerData.getColBAF()])
              .append("\n");
     logOutput.append("LRR: ")
-             .append(headerData.getColLRR() == -1 ? "[missing]" : headerData.getCols()[headerData.getColLRR()])
+             .append(headerData.getColLRR() == -1 ? "[missing]"
+                                                  : headerData.getCols()[headerData.getColLRR()])
              .append("\n");
     logOutput.append("Geno1: ")
-             .append(headerData.getColGeno1() == -1 ? "[missing]" : headerData.getCols()[headerData.getColGeno1()])
+             .append(headerData.getColGeno1() == -1 ? "[missing]"
+                                                    : headerData.getCols()[headerData.getColGeno1()])
              .append("\n");
     logOutput.append("Geno2: ")
-             .append(headerData.getColGeno2() == -1 ? "[missing]" : headerData.getCols()[headerData.getColGeno2()])
+             .append(headerData.getColGeno2() == -1 ? "[missing]"
+                                                    : headerData.getCols()[headerData.getColGeno2()])
              .append("\n");
     logOutput.append("AB1: ")
              .append(headerData.getColGenoAB1() == -1 ? "[missing]"
-                                                 : headerData.getCols()[headerData.getColGenoAB1()])
+                                                      : headerData.getCols()[headerData.getColGenoAB1()])
              .append("\n");
     logOutput.append("AB2: ")
              .append(headerData.getColGenoAB2() == -1 ? "[missing]"
-                                                 : headerData.getCols()[headerData.getColGenoAB2()])
+                                                      : headerData.getCols()[headerData.getColGenoAB2()])
              .append("\n");
     return logOutput.toString();
   }
@@ -632,7 +655,6 @@ public class SourceFileParser implements Runnable {
     int[] keys, keysKeys, indices;
     int snpIndex, code, count, sampIndex, foundIDon, foundSNPon;
     long fingerprint;
-    Thread[] threads;
     Vector<Vector<String>> fileCabinet;
     boolean abLookupRequired, complete, parseAtAt;
     long timeBegan;
@@ -995,35 +1017,21 @@ public class SourceFileParser implements Runnable {
     for (int i = 0; i < files.length; i++) {
       fileCabinet.elementAt(i % numThreads).add(files[i]);
     }
-    threads = new Thread[numThreads];
+
+    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      threads[i] = new Thread(new SourceFileParser(proj,
-                                                   fileCabinet.elementAt(i)
-                                                              .toArray(new String[fileCabinet.elementAt(i)
-                                                                                             .size()]),
-                                                   markerNames, keysKeys, lookup, delimiter,
-                                                   fingerprint, fixes, timeBegan, i));
-      threads[i].start();
-      try {
-        Thread.sleep(100L);
-      } catch (InterruptedException ex) {}
+      executor.submit(new SourceFileParser(proj,
+                                           fileCabinet.elementAt(i)
+                                                      .toArray(new String[fileCabinet.elementAt(i)
+                                                                                     .size()]),
+                                           markerNames, keysKeys, lookup, delimiter, fingerprint,
+                                           fixes, timeBegan, i));
     }
-
-    complete = false;
-    while (!complete) {
-
-      PSF.checkInterrupted();
-      complete = true;
-      for (int i = 0; i < numThreads; i++) {
-        if (threads[i].isAlive()) {
-          complete = false;
-        }
-      }
-      if (!complete) {
-        try {
-          Thread.sleep(1000L);
-        } catch (InterruptedException ex) {}
-      }
+    executor.shutdown();
+    try {
+      executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+    } catch (InterruptedException e) {
+      //  ignore, TODO check if properly complete  
     }
 
     log.report(ext.getTime() + "]\tWriting sample list...");
@@ -1531,7 +1539,8 @@ public class SourceFileParser implements Runnable {
       }
 
       PSF.checkInterrupted();
-      if ((headerData.getColGenoAB1() == -1 || headerData.getColGenoAB2() == -1) && abLookup == null) {
+      if ((headerData.getColGenoAB1() == -1 || headerData.getColGenoAB2() == -1)
+          && abLookup == null) {
         ignoreAB = true;
       } else {
         ignoreAB = false;
@@ -1633,17 +1642,24 @@ public class SourceFileParser implements Runnable {
               data = samp.getAllData();
               genotypes = samp.getAllGenotypes();
             } else {
-              data = new float[][] {headerData.getColGC() == -1 ? null : new float[markerNames.length],
-                                    headerData.getColXRaw() == -1 ? null : new float[markerNames.length],
-                                    headerData.getColYRaw() == -1 ? null : new float[markerNames.length],
-                                    headerData.getColX() == -1 ? null : new float[markerNames.length],
-                                    headerData.getColY() == -1 ? null : new float[markerNames.length],
+              data = new float[][] {headerData.getColGC() == -1 ? null
+                                                                : new float[markerNames.length],
+                                    headerData.getColXRaw() == -1 ? null
+                                                                  : new float[markerNames.length],
+                                    headerData.getColYRaw() == -1 ? null
+                                                                  : new float[markerNames.length],
+                                    headerData.getColX() == -1 ? null
+                                                               : new float[markerNames.length],
+                                    headerData.getColY() == -1 ? null
+                                                               : new float[markerNames.length],
                                     headerData.getColTheta() == -1 ? null
-                                                              : new float[markerNames.length],
-                                    headerData.getColR() == -1 ? null : new float[markerNames.length],
-                                    headerData.getColBAF() == -1 ? null : new float[markerNames.length],
+                                                                   : new float[markerNames.length],
+                                    headerData.getColR() == -1 ? null
+                                                               : new float[markerNames.length],
+                                    headerData.getColBAF() == -1 ? null
+                                                                 : new float[markerNames.length],
                                     headerData.getColLRR() == -1 ? null
-                                                            : new float[markerNames.length],};
+                                                                 : new float[markerNames.length],};
               genotypes = new byte[2][];
               genotypes[0] = ArrayUtils.byteArray(markerNames.length, (byte) 0);
               if (!ignoreAB) {
@@ -1658,9 +1674,10 @@ public class SourceFileParser implements Runnable {
           if (markerIndexMap.containsKey(line[snpIndex])) {
             key = markerIndexMap.get(line[snpIndex]);
 
-            int[] indCols = {headerData.getColGC(), headerData.getColXRaw(), headerData.getColYRaw(),
-                             headerData.getColX(), headerData.getColY(), headerData.getColTheta(), headerData.getColR(),
-                             headerData.getColBAF(), headerData.getColLRR(),};
+            int[] indCols = {headerData.getColGC(), headerData.getColXRaw(),
+                             headerData.getColYRaw(), headerData.getColX(), headerData.getColY(),
+                             headerData.getColTheta(), headerData.getColR(), headerData.getColBAF(),
+                             headerData.getColLRR(),};
 
             int ind = 0;
             try {
@@ -1719,8 +1736,8 @@ public class SourceFileParser implements Runnable {
                 if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use
                                                             // ALLELE_PAIRS
 
-                  if (ext.indexOfStr(line[headerData.getColGeno1()] + line[headerData.getColGeno2()],
-                                     Sample.ALT_NULLS) == -1) {
+                  if (ext.indexOfStr(line[headerData.getColGeno1()]
+                                     + line[headerData.getColGeno2()], Sample.ALT_NULLS) == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + " for marker "
                                     + markerNames[count] + " of sample " + file
@@ -1757,7 +1774,8 @@ public class SourceFileParser implements Runnable {
                   } else if (line[headerData.getColGeno1()].charAt(0) != abLookup[count][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? sampleIdent : line[sampIndex]) + "' ("
-                                    + line[headerData.getColGeno1()] + "/" + line[headerData.getColGeno2()]
+                                    + line[headerData.getColGeno1()] + "/"
+                                    + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
                                     + abLookup[count][0] + "/" + abLookup[count][1]
                                     + ") for marker " + markerNames[count]);
@@ -1767,7 +1785,8 @@ public class SourceFileParser implements Runnable {
                   } else if (line[headerData.getColGeno2()].charAt(0) != abLookup[count][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? sampleIdent : line[sampIndex]) + "' ("
-                                    + line[headerData.getColGeno1()] + "/" + line[headerData.getColGeno2()]
+                                    + line[headerData.getColGeno1()] + "/"
+                                    + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
                                     + abLookup[count][0] + "/" + abLookup[count][1]
                                     + ") for marker " + markerNames[count]);
