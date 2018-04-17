@@ -2154,22 +2154,21 @@ public class GenvisisWorkflow {
 
   public static String setupImputationDefaults(Project proj) {
     return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null, false,
-                           null, null);
+                           null);
   }
 
   public static String setupImputation(Project proj, int numThreads, String putativeWhitesFile,
                                        Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
-                                       String man, String snp) {
+                                       String man) {
     GenvisisWorkflow workflow = new GenvisisWorkflow(proj, null);
     StepBuilder sb = workflow.new StepBuilder();
 
     Requirement threadsReq = workflow.getNumThreadsReq();
-    Step createMkrPos = (man != null || snp != null) ? sb.generateIlluminaMarkerPositionsStep()
-                                                     : null;
+    Step createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep() : null;
     Step parseSamples = sb.generateParseSamplesStep(createMkrPos);
     Step transpose = sb.generateTransposeStep(parseSamples);
     Step sampleData = sb.generateCreateSampleDataStep(parseSamples);
-    Step blast = sb.generateAffyMarkerBlastAnnotationStep(parseSamples);
+    Step blast = sb.generateIlluminaMarkerBlastAnnotationStep(parseSamples);
     Step sampleQc = sb.generateSampleQCStep(parseSamples);
     Step markerQc = sb.generateMarkerQCStep(parseSamples);
     Step sexChecks = sb.generateSexChecksStep(parseSamples, blast, sampleData, transpose, sampleQc);
@@ -2184,11 +2183,8 @@ public class GenvisisWorkflow {
     if (createMkrPos != null) {
       stepReqs = createMkrPos.getDefaultRequirementValues();
       for (Requirement r1 : stepReqs.keySet()) {
-        if (man != null && r1.getDescription().contains("Manifest")) {
+        if (r1.getDescription().contains("Manifest")) {
           stepReqs.put(r1, man);
-        }
-        if (snp != null && r1.getDescription().contains("SNP_map")) {
-          stepReqs.put(r1, snp);
         }
       }
       varMap.put(createMkrPos, stepReqs);
@@ -2196,6 +2192,15 @@ public class GenvisisWorkflow {
     if (parseSource) {
       varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
       varMap.put(transpose, transpose.getDefaultRequirementValues());
+      stepReqs = blast.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equalsIgnoreCase(IlluminaMarkerBlast.DESC_MANIFEST)) {
+          stepReqs.put(r1, man);
+          break;
+        }
+      }
+      varMap.put(blast, stepReqs);
+      varMap.put(sampleData, sampleData.getDefaultRequirementValues());
     }
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
@@ -2252,13 +2257,15 @@ public class GenvisisWorkflow {
     String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
     String s1 = parseSamples.getCommandLine(proj, varMap);
     String s2 = transpose.getCommandLine(proj, varMap);
-    String s3 = sampleQc.getCommandLine(proj, varMap);
-    String s4 = markerQc.getCommandLine(proj, varMap);
-    String s5 = sexChecks.getCommandLine(proj, varMap);
-    String s6 = exportPlink.getCommandLine(proj, varMap);
-    String s7 = gwasQc.getCommandLine(proj, varMap);
-    String s8 = ancestry.getCommandLine(proj, varMap);
-    String s9 = faqcStep.getCommandLine(proj, varMap);
+    String s3 = sampleData.getCommandLine(proj, varMap);
+    String s4 = blast.getCommandLine(proj, varMap);
+    String s5 = sampleQc.getCommandLine(proj, varMap);
+    String s6 = markerQc.getCommandLine(proj, varMap);
+    String s7 = sexChecks.getCommandLine(proj, varMap);
+    String s8 = exportPlink.getCommandLine(proj, varMap);
+    String s9 = gwasQc.getCommandLine(proj, varMap);
+    String s10 = ancestry.getCommandLine(proj, varMap);
+    String s11 = faqcStep.getCommandLine(proj, varMap);
 
     String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.";
     String suggFile = file + ext.getTimestampForFilename() + ".qsub";
@@ -2271,14 +2278,16 @@ public class GenvisisWorkflow {
     if (parseSource) {
       addStepInfo(output, parseSamples, s1);
       addStepInfo(output, transpose, s2);
+      addStepInfo(output, sampleData, s3);
+      addStepInfo(output, blast, s4);
     }
-    addStepInfo(output, sampleQc, s3);
-    addStepInfo(output, markerQc, s4);
-    addStepInfo(output, sexChecks, s5);
-    addStepInfo(output, exportPlink, s6);
-    addStepInfo(output, gwasQc, s7);
-    addStepInfo(output, ancestry, s8);
-    addStepInfo(output, faqcStep, s9);
+    addStepInfo(output, sampleQc, s5);
+    addStepInfo(output, markerQc, s6);
+    addStepInfo(output, sexChecks, s7);
+    addStepInfo(output, exportPlink, s8);
+    addStepInfo(output, gwasQc, s9);
+    addStepInfo(output, ancestry, s10);
+    addStepInfo(output, faqcStep, s11);
 
     Qsub.qsub(suggFile, output.toString(), 22 * 1024, 150, 16);
     return suggFile;

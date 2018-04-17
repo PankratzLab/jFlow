@@ -33,7 +33,6 @@ public class VcfExportShortcut {
   private final Project proj;
   private final Logger log;
 
-  private String snpMap = null;
   private String manifest = null;
 
   private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
@@ -46,10 +45,6 @@ public class VcfExportShortcut {
                             String mkrPos, Logger log) {
     proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, mkrPos, log);
     this.log = log;
-  }
-
-  private void setSnpMap(String string) {
-    this.snpMap = string;
   }
 
   private void setIlluminaManifest(String string) {
@@ -152,7 +147,7 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
     String outputFile = GenvisisWorkflow.setupImputation(proj, numThreads, putativeWhtFile, qcMap,
-                                                         true, manifest, snpMap);
+                                                         true, manifest);
 
     log.reportTime("Created Genvisis Workflow script at " + outputFile);
   }
@@ -207,7 +202,6 @@ public class VcfExportShortcut {
 
   private static final String ARG_MKR_POS = "markerPositionFile";
   private static final String ARG_ILL_MAN = "manifest";
-  private static final String ARG_SNP_MAP = "snpMap";
 
   private static final String ARG_PED = "pedFile";
   private static final String ARG_THREADS = "numThreads";
@@ -224,11 +218,10 @@ public class VcfExportShortcut {
 
   private static final String DESC_MKR_POS = "File with marker positions";
   private static final String DESC_ILL_MAN = "Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv)";
-  private static final String DESC_SNP_MAP = "GenomeStudio Snp_Map file";
 
   private static final String DESC_PED = "Pedigree File";
   private static final String DESC_THREADS = "Number of threads";
-  private static final String DESC_PUT_WHT = "Putative Whites File";
+  private static final String DESC_PUT_WHT = "Putative whites file (file with two columns of FID/IID and no header)";
   private static final String DESC_VCF_OUT = "VCF output directory and file root";
   private static final String DESC_GRC_OUT = "Export contigs with \"chr\" prepend (defaults to true)";
   private static final String DESC_CALLRATE = "Callrate Threshold";
@@ -247,9 +240,8 @@ public class VcfExportShortcut {
 
     cli.addArg(ARG_MKR_POS, DESC_MKR_POS);
     cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN);
-    cli.addArg(ARG_SNP_MAP, DESC_SNP_MAP);
 
-    cli.addGroup(ARG_MKR_POS, ARG_ILL_MAN, ARG_SNP_MAP);
+    cli.addGroup(ARG_MKR_POS, ARG_ILL_MAN);
 
     cli.addArg(ARG_THREADS, DESC_THREADS, false);
     cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, false);
@@ -279,10 +271,7 @@ public class VcfExportShortcut {
 
     if (cli.has(ARG_ILL_MAN)) {
       export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
-    } else if (cli.has(ARG_SNP_MAP)) {
-      export.setSnpMap(cli.get(ARG_SNP_MAP));
     }
-
     export.runPipeline(numThreads, putWht);
     if (cli.has(ARG_CALLRATE)) {
       export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
