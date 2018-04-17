@@ -121,7 +121,8 @@ public class SourceFileParser implements Runnable {
           return;
         }
         try {
-          log.report(ext.getTime() + "\t" + (i + 1) + " of " + files.length + " -- " + files[i]);
+          log.reportTime("\tSource file parsing thread " + threadId + ": processing " + (i + 1)
+                         + " of " + files.length + " -- " + files[i]);
 
           SourceFileHeaderData headerData = headers.get(files[i]);
           if (headerData == null) {
@@ -141,7 +142,8 @@ public class SourceFileParser implements Runnable {
           snpIndex = headerData.getColSnpIdent();
 
           if (headerData.getColX() == -1 || headerData.getColY() == -1) {
-            log.reportError("Error - File format not consistent! At the very least the files need to contain "
+            log.reportError("Error - source file " + files[i]
+                            + " format was not consistent! At the very least the files need to contain "
                             + ArrayUtils.toStr(Sample.DATA_FIELDS[3], "/") + " and "
                             + ArrayUtils.toStr(Sample.DATA_FIELDS[4], "/"));
             return;
@@ -188,8 +190,8 @@ public class SourceFileParser implements Runnable {
                                         files[i].indexOf(proj.SOURCE_FILENAME_EXTENSION.getValue()));
             } else {
               if (parseAtAt && line[sampIndex].indexOf("@") == -1) {
-                log.reportError("Error - " + idHeader + " '" + line[sampIndex]
-                                + "' did not contain an @ sample");
+                log.reportError("Error - source file " + files[i] + " header " + idHeader + " '"
+                                + line[sampIndex] + "' did not contain an @ sample");
                 parseAtAt = false;
               }
               trav = parseAtAt ? line[sampIndex].substring(0, line[sampIndex].indexOf("@"))
@@ -228,11 +230,12 @@ public class SourceFileParser implements Runnable {
                 }
               }
             } catch (NumberFormatException nfe) {
-              log.reportError("Error - failed at line " + key + " to parse '" + line[indCols[ind]]
-                              + "' into a valid " + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
+              log.reportError("Error - failed in file " + files[i] + " at line " + key
+                              + " to parse '" + line[indCols[ind]] + "' into a valid "
+                              + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
               return;
             } catch (Exception e) {
-              log.reportError("Some other exception:");
+              log.reportError("Some other exception in file " + files[i] + ":");
               log.reportException(e);
               return;
             }
@@ -257,7 +260,7 @@ public class SourceFileParser implements Runnable {
               } else if (splitAB) {
                 log.reportError("Detected previously that genotype calls should be split, but the calls on line "
                                 + key + " --> {" + ArrayUtils.toStr(line)
-                                + "} did not.  Parsing will fail for this file.");
+                                + "} did not.  Parsing will fail for file " + files[i] + ".");
                 return;
               }
 
