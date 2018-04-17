@@ -424,13 +424,12 @@ public class SourceFileParser implements Runnable {
         }
       }
 
-      log.report(ext.getTime() + "\tfinished");
     } catch (Exception e) {
       log.reportException(e);
     }
 
     // request release of resources
-    log.report(ext.getTime() + "\tCleaning up...");
+    log.reportTime("\tThread " + threadId + " cleaning up...");
     System.gc();
   }
 

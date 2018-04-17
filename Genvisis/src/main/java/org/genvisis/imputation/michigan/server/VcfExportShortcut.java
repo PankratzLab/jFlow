@@ -223,7 +223,7 @@ public class VcfExportShortcut {
   private static final String DESC_PROJ_DIR = "Directory for project files";
 
   private static final String DESC_MKR_POS = "File with marker positions";
-  private static final String DESC_ILL_MAN = "Illumina manifest file";
+  private static final String DESC_ILL_MAN = "Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv)";
   private static final String DESC_SNP_MAP = "GenomeStudio Snp_Map file";
 
   private static final String DESC_PED = "Pedigree File";
