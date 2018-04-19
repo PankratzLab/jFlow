@@ -199,7 +199,7 @@ public class FCSBooleanComparator {
     Map<String, Integer> hdr2Map = new HashMap<>();
     for (int i = 0; i < hdr1.length; i++) {
       arr = hdr1[i].split(" / ");
-      sub = arr[arr.length];
+      sub = arr[arr.length - 1];
       ind = sub.indexOf(") (");
       if (ind > 0) {
         sub = sub.substring(0, ind + 1).trim();
@@ -216,7 +216,7 @@ public class FCSBooleanComparator {
     }
     for (int i = 0; i < hdr2.length; i++) {
       arr = hdr2[i].split(" / ");
-      sub = arr[arr.length];
+      sub = arr[arr.length - 1];
       ind = sub.indexOf(") (");
       if (ind > 0) {
         sub = sub.substring(0, ind + 1).trim();
