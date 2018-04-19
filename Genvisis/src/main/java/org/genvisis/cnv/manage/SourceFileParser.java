@@ -87,7 +87,6 @@ public class SourceFileParser implements Runnable {
     this.timeBegan = timeBegan;
     this.threadId = threadId;
     splitAB = false;
-
   }
 
   @Override
@@ -387,6 +386,7 @@ public class SourceFileParser implements Runnable {
           filename = SourceFileParser.determineFilename(proj.SAMPLE_DIRECTORY.getValue(true, true),
                                                         sampleName, timeBegan, log);
           if (filename == null) {
+            log.reportError("Could not determine file name for sample " + files[i]);
             return;
           }
 
@@ -1022,13 +1022,18 @@ public class SourceFileParser implements Runnable {
 
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      executor.submit(new SourceFileParser(proj,
-                                           fileCabinet.elementAt(i)
-                                                      .toArray(new String[fileCabinet.elementAt(i)
-                                                                                     .size()]),
-                                           markerNames, keysKeys, lookup, delimiter, fingerprint,
-                                           fixes, timeBegan, i));
+      String[] threadFiles = fileCabinet.elementAt(i)
+                                        .toArray(new String[fileCabinet.elementAt(i).size()]);
+      if (threadFiles.length == 0) continue;
+      executor.submit(new SourceFileParser(proj, threadFiles, markerNames, keysKeys, lookup,
+                                           delimiter, fingerprint, fixes, timeBegan, i));
     }
+    try {
+      Thread.sleep(100);
+    } catch (InterruptedException e1) {
+      // 
+    }
+    Thread.yield();
     executor.shutdown();
     try {
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
