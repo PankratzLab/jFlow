@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -173,6 +174,13 @@ public class FCSBooleanComparator {
                 + (subDir.endsWith("/") ? subDir.substring(0, subDir.length() - 1) : subDir)
                 + ".incl.xln";
 
+    if (!Files.exists(f1) && Files.exists(f1 + ".gz")) {
+      f1 = f1 + ".gz";
+    }
+    if (!Files.exists(f2) && Files.exists(f2 + ".gz")) {
+      f2 = f2 + ".gz";
+    }
+
     int cnt1 = Files.countLines(f1, 0);
     int cnt2 = Files.countLines(f2, 0);
 
@@ -184,26 +192,52 @@ public class FCSBooleanComparator {
 
     String[] hdr1 = Files.getHeaderOfFile(f1, log);
     String[] hdr2 = Files.getHeaderOfFile(f2, log);
-
     int ind;
-    String h1, h2;
+    String sub;
+    String[] arr;
+    Map<String, Integer> hdr1Map = new HashMap<>();
+    Map<String, Integer> hdr2Map = new HashMap<>();
+    for (int i = 0; i < hdr1.length; i++) {
+      arr = hdr1[i].split(" / ");
+      sub = arr[arr.length];
+      ind = sub.indexOf(") (");
+      if (ind > 0) {
+        sub = sub.substring(0, ind + 1).trim();
+      } else {
+        ind = sub.indexOf('(');
+        if (ind > 0) {
+          sub = sub.substring(0, ind + 1).trim();
+        }
+      }
+      if (REPLS.containsKey(sub)) {
+        sub = REPLS.get(sub);
+      }
+      hdr1Map.put(sub, i);
+    }
+    for (int i = 0; i < hdr2.length; i++) {
+      arr = hdr2[i].split(" / ");
+      sub = arr[arr.length];
+      ind = sub.indexOf(") (");
+      if (ind > 0) {
+        sub = sub.substring(0, ind + 1).trim();
+      } else {
+        ind = sub.indexOf('(');
+        if (ind > 0) {
+          sub = sub.substring(0, ind + 1).trim();
+        }
+      }
+      if (REPLS.containsKey(sub)) {
+        sub = REPLS.get(sub);
+      }
+      hdr2Map.put(sub, i);
+    }
+
+    Set<String> shared = new HashSet<>(hdr1Map.keySet());
+    shared.retainAll(hdr2Map.keySet());
+
     HashMap<String, int[]> columnInds = new HashMap<>();
-    for (int i1 = 0; i1 < hdr1.length; i1++) {
-      h1 = (ind = hdr1[i1].indexOf('(')) > 0 ? hdr1[i1].substring(0, ind).trim() : hdr1[i1].trim();
-      if (REPLS.containsKey(h1)) {
-        h1 = REPLS.get(h1);
-      }
-      for (int i2 = 0; i2 < hdr2.length; i2++) {
-        h2 = (ind = hdr2[i2].indexOf('(')) > 0 ? hdr2[i2].substring(0, ind).trim()
-                                               : hdr2[i2].trim();
-        if (REPLS.containsKey(h2)) {
-          h2 = REPLS.get(h2);
-        }
-        if (h1.equals(h2)) {
-          columnInds.put(h2, new int[] {i1, i2});
-          break;
-        }
-      }
+    for (String s : shared) {
+      columnInds.put(s, new int[] {hdr1Map.get(s), hdr2Map.get(s)});
     }
 
     log.reportTime("Found " + columnInds.size() + " shared columns for " + subDir);
