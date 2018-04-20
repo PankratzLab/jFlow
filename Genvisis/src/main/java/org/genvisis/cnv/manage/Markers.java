@@ -520,16 +520,23 @@ public class Markers {
 
     try {
       if (!snpTable.equals("")) {
-        if (manifestFlag) {
-          MarkerBlast.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
-                                                         FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-                                                         proj.MARKER_POSITION_FILENAME.getValue(false,
-                                                                                                false),
-                                                         Files.determineDelimiter(snpTable,
-                                                                                  proj.getLog()),
-                                                         proj.getLog());
+        if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
+          if (manifestFlag) {
+            MarkerBlast.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
+                                                           FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+                                                           proj.MARKER_POSITION_FILENAME.getValue(false,
+                                                                                                  false),
+                                                           Files.determineDelimiter(snpTable,
+                                                                                    proj.getLog()),
+                                                           proj.getLog());
+          } else {
+            Markers.generateMarkerPositions(proj, snpTable);
+          }
         } else {
-          Markers.generateMarkerPositions(proj, snpTable);
+          proj.getLog()
+              .reportTime("Existing marker positions file already found at "
+                          + proj.MARKER_POSITION_FILENAME.getValue(false, false)
+                          + "; to reparse marker positions, please remove or rename this file.");
         }
       } else if (!fileToConvert.equals("")) {
         Markers.useAlleleLookup(fileToConvert, alleleCol, lookupFile, setFrom, setTo);
