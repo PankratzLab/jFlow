@@ -272,7 +272,6 @@ public class VcfExportShortcut {
     if (cli.has(ARG_ILL_MAN)) {
       export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
     }
-    export.runPipeline(numThreads, putWht);
     if (cli.has(ARG_CALLRATE)) {
       export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
     }
@@ -282,6 +281,8 @@ public class VcfExportShortcut {
     if (cli.has(ARG_QC)) {
       export.setQCThreshold(cli.getD(ARG_QC));
     }
+
+    export.runPipeline(numThreads, putWht);
     export.setupVCFExport(vcfOut, useGRC);
 
     log.reportTime("Please check (and, if necessary, adjust) qsub parameters (memory, walltime, nodes) prior to submitting to queue.");
