@@ -13,7 +13,7 @@ public class TestAffyBlast {
     proj.BLAST_ANNOTATION_FILENAME.setValue(proj.DATA_DIRECTORY.getValue() + "STKblastTest.vcf.gz");
 
     new AffyMarkerBlast(proj, 20, 20, 20, true, true, true, proj.NUM_THREADS.getValue(), probeFile,
-                        annotFile).blastEm();
+                        annotFile, true).blastEm();
     new ABLookup().parseFromAnnotationVCF(proj);
   }
 

@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.ABLookup;
-import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -893,13 +892,11 @@ public class SourceFileParser implements Runnable {
       }
 
       PSF.checkInterrupted();
-      code = checkForExistingFiles(proj, proj.MARKER_DATA_DIRECTORY.getValue(true, true),
-                                   MarkerData.MARKER_DATA_FILE_EXTENSION);
+      code = checkForExistingFiles(proj, proj.SAMPLE_DIRECTORY.getValue(true, true),
+                                   Sample.SAMPLE_FILE_EXTENSION);
       if (code == JOptionPane.NO_OPTION) {
         return code;
       }
-      code = checkForExistingFiles(proj, proj.SAMPLE_DIRECTORY.getValue(),
-                                   Sample.SAMPLE_FILE_EXTENSION);
 
       PSF.checkInterrupted();
       // log.report(ext.getTime() + "]\tCleaning up before continuing...");

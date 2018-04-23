@@ -51,7 +51,7 @@ public class AffyMarkerBlast extends MarkerBlast {
   public AffyMarkerBlast(Project proj, int numThreads, String probeFile, String annotFile) {
     this(proj, getDefaultWordSize(proj), getDefaultWordSize(proj), DEFAULT_MAX_ALIGNMENTS,
          DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT, DEFAULT_DO_BLAST,
-         numThreads, probeFile, annotFile);
+         numThreads, probeFile, annotFile, true);
   }
 
   /**
@@ -68,9 +68,10 @@ public class AffyMarkerBlast extends MarkerBlast {
    */
   public AffyMarkerBlast(Project proj, int blastWordSize, int reportWordSize,
                          int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
-                         boolean doBlast, int numThreads, String probeFile, String annotFile) {
+                         boolean doBlast, int numThreads, String probeFile, String annotFile,
+                         boolean parseAlleles) {
     super(proj, blastWordSize, reportWordSize, maxAlignmentsReported, reportToTmp,
-          annotateGCContent, doBlast, numThreads);
+          annotateGCContent, doBlast, numThreads, parseAlleles);
     if (proj.getArrayType() != ARRAY.AFFY_GW6 && proj.getArrayType() != ARRAY.AFFY_GW6_CN) {
       log.reportError("Array type was set to " + proj.getArrayType() + " and this file is for "
                       + ARRAY.AFFY_GW6 + " or " + ARRAY.AFFY_GW6_CN);
@@ -235,6 +236,7 @@ public class AffyMarkerBlast extends MarkerBlast {
     c.addArgWithDefault(ARG_MAX_ALIGNMENTS, DESC_MAX_ALIGNMENTS, DEFAULT_MAX_ALIGNMENTS);
     c.addArg(ARG_MARKER_POSITIONS_OVERRIDE, DESC_MARKER_POSITIONS_OVERRIDE,
              EXAMPLE_MARKER_POSITIONS_OVERRID, CLI.Arg.FILE);
+    c.addArg(ARG_PARSE_ALLELES, DESC_PARSE_ALLELES, DEFAULT_PARSE_ALLELES);
     c.addFlag(FLAG_SKIP_GC_ANNOTATION, DESC_SKIP_GC_ANNOTATION);
     c.addFlag(FLAG_SKIP_BLAST, DESC_SKIP_BLAST);
 
@@ -250,13 +252,14 @@ public class AffyMarkerBlast extends MarkerBlast {
     String markerPositionsOverride = c.get(ARG_MARKER_POSITIONS_OVERRIDE);
     boolean annotateGCContent = !c.has(FLAG_SKIP_GC_ANNOTATION);
     boolean doBlast = !c.has(FLAG_SKIP_BLAST);
+    boolean parseAlleles = Boolean.parseBoolean(c.get(ARG_PARSE_ALLELES));
 
     try {
       MarkerBlast markerBlast = new AffyMarkerBlast(proj, blastWordSize, reportWordSize,
                                                     maxAlignmentsReported,
                                                     MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE,
                                                     annotateGCContent, doBlast, numThreads,
-                                                    probeFile, annotFile);
+                                                    probeFile, annotFile, parseAlleles);
       if (markerPositionsOverride != null) {
         markerBlast.overrideMarkerPositions(markerPositionsOverride);
       }
