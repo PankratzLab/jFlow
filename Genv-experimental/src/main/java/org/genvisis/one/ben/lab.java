@@ -975,14 +975,15 @@ public class lab {
     BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",});
   }
 
-  static void runCRAMImport() {
+  static void runCRAMImport(boolean full) {
     String dir = "/scratch.global/cole0482/CRAM/";
     String projDir = dir + "project/";
-    String srcDir = "/scratch.global/cole0482/CRAM/00src/";
+    String srcDir = full ? "/scratch.global/topmed/bakeoff/group1/"
+                         : "/scratch.global/cole0482/CRAM/00src/";
     String projFile = projDir + "CRAMTesting.properties";
     createBAMProject(srcDir, projFile, ".cram");
     BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",
-                                 "ref=" + srcDir + "hs38DH.fa"});
+                                 "ref=" + dir + "00src/hs38DH.fa"});
   }
 
   private static void processAnnotationFilesAll() throws IOException {
@@ -2282,7 +2283,7 @@ public class lab {
 
       System.out.println();
 
-      runCRAMImport();
+      runCRAMImport(ext.indexOfStr("-full", args) >= 0);
 
       // runHRC();
       // QQPlot.main(new String[]
