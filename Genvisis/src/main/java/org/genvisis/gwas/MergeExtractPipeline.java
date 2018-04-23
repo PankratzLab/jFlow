@@ -536,9 +536,11 @@ public class MergeExtractPipeline {
     DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
                                     dataSources.get(0).mapFile, regionsFile, markersFile,
                                     renameMarkers ? dataSources.get(0).label : "", verbose, log);
-    HashMap<String, HashMap<String, Annotation>> annotations = getAnnotations(dd1,
-                                                                              getAnnotationLabels(dataSources.get(0).mapFile,
-                                                                                                  dataSources.get(0).label));
+    HashMap<String, HashMap<String, Annotation>> annotations = null;
+    if (!ext.isMissingValue(dataSources.get(0).mapFile)) {
+      annotations = getAnnotations(dd1, getAnnotationLabels(dataSources.get(0).mapFile,
+                                                            dataSources.get(0).label));
+    }
     for (int i = 1; i < dataSources.size(); i++) {
       System.gc();
       log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
@@ -546,12 +548,14 @@ public class MergeExtractPipeline {
                                       dataSources.get(i).mapFile, regionsFile, markersFile,
                                       renameMarkers ? dataSources.get(i).label : "", verbose, log);
       if (!dd2.isEmpty()) {
-        String[] dd2Annots = getAnnotationLabels(dataSources.get(i).mapFile,
-                                                 dataSources.get(i).label);
-        if (dd2Annots != null && dd2Annots.length > 0
-            && dd2.getMarkerSet().getAnnotation() != null) {
-          combineAnnotations(annotations, dd2Annots, dd2.getMarkerSet().getAnnotation(),
-                             dd2.getMarkerSet().getMarkerNames());
+        if (annotations != null && !ext.isMissingValue(dataSources.get(i).mapFile)) {
+          String[] dd2Annots = getAnnotationLabels(dataSources.get(i).mapFile,
+                                                   dataSources.get(i).label);
+          if (dd2Annots != null && dd2Annots.length > 0
+              && dd2.getMarkerSet().getAnnotation() != null) {
+            combineAnnotations(annotations, dd2Annots, dd2.getMarkerSet().getAnnotation(),
+                               dd2.getMarkerSet().getMarkerNames());
+          }
         }
         dd1 = DosageData.combine(dd1, dd2, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING,
                                  bestGuessOutput, bestGuessThreshold, log);
