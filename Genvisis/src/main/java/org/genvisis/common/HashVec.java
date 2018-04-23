@@ -278,8 +278,8 @@ public class HashVec {
         reader.readLine();
       }
       count = 1;
-      while (reader.ready()) {
-        final String readLine = reader.readLine();
+      String readLine = null;
+      while ((readLine = reader.readLine()) != null) {
         if (!commentIndicators.stream().anyMatch(readLine::startsWith)) {
           String trav = readLine;
           if (cols != null) {
