@@ -153,10 +153,8 @@ public class VcfExportShortcut {
   }
 
   public void setupVCFExport(String outputDirAndRoot, boolean useGRC) {
-    String refFile = useGRC ? Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
-                                       .getGRCFASTA().getAbsolute()
-                            : Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
-                                       .getFASTA().getAbsolute();
+    String refFile = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
+                              .getDBSNP().get();
 
     String sampDrop = null;
     if (sampleDropsFile != null) {

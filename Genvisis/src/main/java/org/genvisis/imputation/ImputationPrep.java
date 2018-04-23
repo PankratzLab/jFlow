@@ -1,7 +1,5 @@
 package org.genvisis.imputation;
 
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,6 +26,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
 
 public class ImputationPrep {
 
@@ -127,11 +127,14 @@ public class ImputationPrep {
     BufferedReader reader = null;
     try {
       reader = Files.getAppropriateReader(referenceFile);
-      String header = reader.readLine();
-      if (header == null) {
-        log.reportError("Reference file is empty");
-        throw new IllegalArgumentException("Reference file is empty");
-      }
+      String header = null;
+      do {
+        header = reader.readLine();
+        if (header == null) {
+          log.reportError("Reference file is empty");
+          throw new IllegalArgumentException("Reference file is empty");
+        }
+      } while (header.startsWith("##"));
       String delim = ext.determineDelimiter(header);
       int[] cols = ext.indexFactors(REF_COLS, header.split(delim), false, true, false);
       for (int index : cols) {
