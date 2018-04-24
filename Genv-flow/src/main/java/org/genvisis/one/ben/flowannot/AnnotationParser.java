@@ -18,6 +18,25 @@ public class AnnotationParser {
     return Files.listFullPaths(dir, "");
   }
 
+  private Set<String> loadSamples(String[] filesPaths) {
+    Set<String> files = new HashSet<>();
+    for (String f : filesPaths) {
+      Annotator annotator = new Annotator();
+      try {
+        annotator.loadAnnotations(f);
+      } catch (IOException e) {
+        log.reportError("Failed to load file " + f + " -- " + e.getMessage());
+        continue;
+      }
+      for (Entry<String, HashMap<String, AnnotatedImage>> en : annotator.getAnnotationMap()
+                                                                        .entrySet()) {
+        String fi = en.getKey();
+        files.add(fi);
+      }
+    }
+    return files;
+  }
+
   private Set<String> loadAll(String[] filesPaths, String... caseInsensTags) {
     Set<String> anns = new HashSet<>();
     for (String f : filesPaths) {
@@ -61,11 +80,14 @@ public class AnnotationParser {
   }
 
   public static void main(String[] args) {
-    String d = "F:\\Flow\\boolGating\\annotation\\";
+    String d = "F:\\Flow\\boolGating\\annotation_v8\\bcell\\";
     AnnotationParser ap = new AnnotationParser();
     ap.dir = d;
     ap.log = new Logger();
-    for (String a : ap.loadAll(ap.discover(), "manual")) {
+    //    for (String a : ap.loadAll(ap.discover(), "manual")) {
+    //      System.out.println(a);
+    //    }
+    for (String a : ap.loadSamples(ap.discover())) {
       System.out.println(a);
     }
   }
