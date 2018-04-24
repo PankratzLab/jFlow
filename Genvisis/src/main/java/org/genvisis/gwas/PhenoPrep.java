@@ -213,7 +213,13 @@ public class PhenoPrep {
     if (histogram) {
       String[] parts = Files.getHeaderOfFile(dir + outFile, log);
       // int idIndex = ext.indexOfStr(idColName, parts);
-      int dataIndex = ext.indexOfStr(pheno, parts);
+      int dataIndex = ext.indexOfStr(fastFormat ? "Phenotype" : pheno, parts);
+      if (dataIndex < 0) {
+        log.reportError("Couldn't file pheno column identifier \""
+                        + (fastFormat ? "Phenotype" : pheno) + "\" in header: "
+                        + ArrayUtils.toStr(parts, ", "));
+        return;
+      }
 
       String[] dataStrs = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {dataIndex},
                                                         false);
