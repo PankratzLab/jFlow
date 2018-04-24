@@ -116,6 +116,11 @@ public class PhenoPrep {
       return;
     }
 
+    if (fastFormat && !matchIdOrder) {
+      log.reportError("Error - you have selected FAST format which requires the phenotype file to match the order of the ids; setting match=true for you now");
+      matchIdOrder = true;
+    }
+
     if ((plinkFormat || fastFormat) && (idFile == null || !idFile.toLowerCase().endsWith(".fam"))) {
       log.reportError("Error - you have selected to make a PLINK or FAST formatted file with FID/IID, but have not provided a .fam file");
       return;
