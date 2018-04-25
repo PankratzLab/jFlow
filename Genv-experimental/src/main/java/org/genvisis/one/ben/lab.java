@@ -954,6 +954,10 @@ public class lab {
   }
 
   private static void createBAMProject(String srcDir, String projFile, String exten) {
+    if (Files.exists(projFile)) {
+      System.err.println("Error - found existing project file: " + projFile);
+      return;
+    }
     new File(ext.parseDirectoryOfFile(projFile)).mkdirs();
     Files.write((new Project()).PROJECT_NAME.getName() + "=" + ext.rootOf(projFile, true),
                 projFile);
@@ -966,13 +970,34 @@ public class lab {
     actualProj.saveProperties();
   }
 
+  private static class BamProj {
+
+    String srcDir;
+    String projFile;
+    String ext;
+    String ref;
+
+    public BamProj(String srcDir, String projFile, String ext, String ref) {
+      this.srcDir = srcDir;
+      this.projFile = projFile;
+      this.ext = ext;
+      this.ref = ref;
+    }
+
+  }
+
+  static void runSAMImport(BamProj proj) {
+    createBAMProject(proj.srcDir, proj.projFile, proj.ext);
+    BamImport.main(new String[] {"proj=" + proj.projFile, "assayType=WGS", "ref=" + proj.ref});
+  }
+
   static void runBAMImport() {
     String dir = "G:\\bamTesting\\EwingWGS\\";
     String projDir = dir + "project\\";
     String srcDir = dir + "00src\\";
     String projFile = projDir + "EwingWGS_1.properties";
-    createBAMProject(srcDir, projFile, ".bam");
-    BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",});
+    BamProj pp = new BamProj(srcDir, projFile, ".bam", dir + "00src/hs38DH.fa");
+    runSAMImport(pp);
   }
 
   static void runCRAMImport(boolean full) {
@@ -981,9 +1006,8 @@ public class lab {
     String srcDir = full ? "/scratch.global/topmed/bakeoff/group1/"
                          : "/scratch.global/cole0482/CRAM/00src/";
     String projFile = projDir + "CRAMTesting.properties";
-    createBAMProject(srcDir, projFile, ".cram");
-    BamImport.main(new String[] {"proj=" + projFile, "assayType=WGS",
-                                 "ref=" + dir + "00src/hs38DH.fa"});
+    BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
+    runSAMImport(pp);
   }
 
   private static void processAnnotationFilesAll() throws IOException {
@@ -2283,7 +2307,15 @@ public class lab {
 
       System.out.println();
 
-      runCRAMImport(ext.indexOfStr("-full", args) >= 0);
+      String dir = "/scratch.global/cole0482/CRAM_TEST/multiMax/";
+      String projDir = dir + "project/";
+      String srcDir = /*
+                       * ext.indexOfStr("-full", args) >= 0 ?
+                       * "/scratch.global/topmed/bakeoff/group1/" :
+                       */ "/scratch.global/cole0482/CRAM/00src/";
+      String projFile = projDir + "CRAMTesting_multiMax.properties";
+      BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
+      runSAMImport(pp);
 
       // runHRC();
       // QQPlot.main(new String[]
