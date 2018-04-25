@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
@@ -130,16 +131,14 @@ public class BamSegPileUp {
    * @throws IOException when thrown by {@link SamReader}
    */
   public BamPile[] pileup() throws IOException {
-    log.report("Initializing bam reading for " + bam);
+    int numThreads = Runtime.getRuntime().availableProcessors();
+    log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
          CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(queryIntervals)) {
-      log.report("Iterating through reads for " + bam);
-      AtomicInteger readsProcessed = new AtomicInteger(0);
 
-      int numThreads = Runtime.getRuntime().availableProcessors();
-      log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
       long t = System.nanoTime();
+      AtomicLong count = new AtomicLong(0);
 
       ExecutorService exec = Executors.newFixedThreadPool(numThreads);
       for (int i = 0; i < numThreads; i++) {
@@ -151,10 +150,7 @@ public class BamSegPileUp {
             try {
               while ((record = samRecordIterator.next()) != null) {
                 process(record);
-                int read;
-                if ((read = readsProcessed.incrementAndGet()) % 10000000 == 0) {
-                  log.report("Processed " + read + " reads for " + bam);
-                }
+                count.incrementAndGet();
               }
             } catch (NoSuchElementException e) {
               // done!
@@ -169,8 +165,9 @@ public class BamSegPileUp {
         log.reportTimeWarning("Possible problem: " + e.getMessage());
       }
 
-      log.report("Finalizing bam piles for " + bam + " after " + ext.getTimeElapsedNanos(t));
       summarizeAndFinalize();
+      log.reportTime("Finalized bam piles (" + count.get() + " reads total) for " + bam + " after "
+                     + ext.getTimeElapsedNanos(t));
       return bamPileArray;
     }
   }
@@ -186,11 +183,26 @@ public class BamSegPileUp {
         chrRangeMap = ImmutableRangeMap.of();
         bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
+      AtomicLong processTime = new AtomicLong(0);
+      AtomicInteger count = new AtomicInteger(0);
+
+      long t1 = System.nanoTime();
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
-                 .asMapOfRanges().values().stream().flatMap(Collection::stream).parallel()
+                 .asMapOfRanges().values().stream().flatMap(Collection::stream) //
+                 .parallel() //
                  .forEach((bamPile) -> {
+                   count.incrementAndGet();
+                   long t11 = System.nanoTime();
                    addRecordToPile(bamPile, samRecordSegment, samRecord);
+                   long t21 = System.nanoTime();
+                   processTime.addAndGet(t21 - t11);
                  });
+      long t2 = System.nanoTime();
+      long elaps = t2 - t1;
+      long ave = processTime.get() / count.get();
+      System.out.println("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS)
+                         + " to process " + count.get() + " with an average processing time of "
+                         + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
     }
   }
 
@@ -204,15 +216,6 @@ public class BamSegPileUp {
     } else {
       bamPile.addRecordAtomic(samRecord, getReferenceSequence(cs), filterNGS.getPhreadScoreFilter(),
                               log);
-    }
-    int logPer = bamPileArray.length / 10;
-    if (segsPiled.add(cs) && segsPiled.size() % logPer == 0) {
-      log.reportTimeInfo(segsPiled.size() + " bam piles added to "
-                         + bamPile.getBin().getUCSClocation() + " of " + bamPileArray.length
-                         + " for " + bam);
-      log.memoryUsed();
-      log.memoryTotal();
-      log.memoryMax();
     }
   }
 
