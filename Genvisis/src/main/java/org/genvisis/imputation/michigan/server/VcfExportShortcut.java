@@ -136,7 +136,6 @@ public class VcfExportShortcut {
   }
 
   public void runPipeline(int numThreads, String putativeWhtFile) {
-    // TODO set options / variables
     Map<QC_METRIC, String> qcMap = new HashMap<>();
     qcMap.put(QC_METRIC.CALLRATE, "<" + callrateThresh);
     qcMap.put(QC_METRIC.HWE, "<" + hweThresh);

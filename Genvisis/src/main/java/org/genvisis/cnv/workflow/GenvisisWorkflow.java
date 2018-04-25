@@ -47,7 +47,6 @@ import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.cnv.workflow.Requirement.BoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
@@ -413,10 +412,12 @@ public class GenvisisWorkflow {
       });
     }
 
+    private static final String CREATE_MINIMAL_SAMPDATA_REQUIREMENT = "Create a minimal SampleData.txt file from sample files";
+
     private Step generateCreateSampleDataStep(final Step parseSamplesStep) {
       final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-      final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement("Create a minimal SampleData.txt file from sample files",
+      final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement(CREATE_MINIMAL_SAMPDATA_REQUIREMENT,
                                                                                      true);
 
       final String pedPreset = proj.PEDIGREE_FILENAME.getValue();
@@ -724,6 +725,9 @@ public class GenvisisWorkflow {
       });
     }
 
+    private static final String ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT = "Add Estimated Sex to Sample Data";
+    private static final String NO_CROSS_HYBE_REQUIREMENT = "Use only X and Y chromosome R values to identify sex discriminating markers";
+
     private Step generateSexChecksStep(final Step parseSamplesStep, final Step markerBlastStep,
                                        final Step sampleDataStep, final Step transposeStep,
                                        final Step sampleQCStep) {
@@ -731,13 +735,13 @@ public class GenvisisWorkflow {
       final Requirement sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
       final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
       final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-      final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement("Add Estimated Sex to Sample Data",
+      final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement(ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                      true);
 
       final Requirement oneHittersReq = new Requirement.FileRequirement("List of markers that do not cross hybridize",
                                                                         MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
       final Requirement markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
-      final Requirement noCrossHybeReq = new Requirement.BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
+      final Requirement noCrossHybeReq = new Requirement.BoolRequirement(NO_CROSS_HYBE_REQUIREMENT,
                                                                          false);
 
       final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
@@ -746,7 +750,8 @@ public class GenvisisWorkflow {
                                                          .add(RequirementSetBuilder.or()
                                                                                    .add(oneHittersReq)
                                                                                    .add(markerBlastStepReq)
-                                                                                   .add(noCrossHybeReq));
+                                                                                   .add(noCrossHybeReq))
+                                                         .add(addToSampleDataReq);
 
       return register(new Step("Run Sex Checks", "", reqSet, EnumSet.noneOf(Requirement.Flag.class),
                                priority()) {
@@ -2200,17 +2205,25 @@ public class GenvisisWorkflow {
         }
       }
       varMap.put(blast, stepReqs);
-      varMap.put(sampleData, sampleData.getDefaultRequirementValues());
+
+      stepReqs = sampleData.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equalsIgnoreCase(StepBuilder.CREATE_MINIMAL_SAMPDATA_REQUIREMENT)) {
+          stepReqs.put(r1, "false");
+          break;
+        }
+      }
+      varMap.put(sampleData, stepReqs);
     }
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
     stepReqs = sexChecks.getDefaultRequirementValues();
     for (Requirement r1 : stepReqs.keySet()) {
-      if (r1 instanceof BoolRequirement
-          && r1.getDescription().contains("sex discriminating markers")) {
+      if (r1.getDescription().equals(StepBuilder.NO_CROSS_HYBE_REQUIREMENT)) {
         stepReqs.put(r1, "true");
-        break;
+      } else if (r1.getDescription().equals(StepBuilder.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+        stepReqs.put(r1, "true");
       }
     }
 
