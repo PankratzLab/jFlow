@@ -123,11 +123,11 @@ public class BamContamination {
     String referenceGenomeFasta = "hg19_canonical.fa";
     String bams = null;
     String pfbFile = null;
-    double minPhred = 30;
-    double minMapQ = 30;
+    double minPhred = 20;
+    double minMapQ = 60;
 
     int minDepth = 20;
-    int minAltDepth = -1;
+    int minAltDepth = 3;
 
     int numthreads = 4;
     String logfile = null;
