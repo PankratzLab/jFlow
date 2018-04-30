@@ -25,7 +25,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import com.google.common.collect.ImmutableRangeMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
@@ -36,12 +35,12 @@ import com.google.common.collect.TreeRangeMap;
 import com.google.common.collect.TreeRangeSet;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.filter.AggregateFilter;
-import htsjdk.samtools.util.CloseableIterator;
 
 /**
  * @author lane0212 New version of the pileup, geared toward segments
@@ -135,7 +134,7 @@ public class BamSegPileUp {
     log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
-         CloseableIterator<SAMRecord> samRecordIterator = reader.queryOverlapping(queryIntervals)) {
+         SAMRecordIterator iter = reader.iterator()) {
 
       long t = System.nanoTime();
       AtomicLong count = new AtomicLong(0);
@@ -148,9 +147,11 @@ public class BamSegPileUp {
           public void run() {
             SAMRecord record = null;
             try {
-              while ((record = samRecordIterator.next()) != null) {
-                process(record);
-                count.incrementAndGet();
+              while ((record = iter.next()) != null) {
+                boolean added = process(record);
+                if (added) {
+                  count.incrementAndGet();
+                }
               }
             } catch (NoSuchElementException e) {
               // done!
@@ -172,16 +173,17 @@ public class BamSegPileUp {
     }
   }
 
-  private void process(SAMRecord samRecord) {
+  private boolean process(SAMRecord samRecord) {
     if (!filter.filterOut(samRecord)) {
       Segment samRecordSegment = SamRecordOps.getReferenceSegmentForRecord(samRecord, log);
-      if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return;
+      if (samRecordSegment.getStart() == 0 || samRecordSegment.getStop() == 0) return false;
       RangeMap<Integer, Set<BamPile>> chrRangeMap = bamPileMap.get(samRecordSegment.getChr());
       if (chrRangeMap == null) {
         log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
-                              + " returned from BAM query but not found in requested intervals");
-        chrRangeMap = ImmutableRangeMap.of();
-        bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
+                              + " returned from BAM query but not found in requested intervals - skipping read");
+        return false;
+        //        chrRangeMap = ImmutableRangeMap.of();
+        //        bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
       AtomicLong processTime = new AtomicLong(0);
       AtomicInteger count = new AtomicInteger(0);
@@ -193,7 +195,7 @@ public class BamSegPileUp {
                  .forEach((bamPile) -> {
                    count.incrementAndGet();
                    long t11 = System.nanoTime();
-                   addRecordToPile(bamPile, samRecordSegment, samRecord);
+                   //                   addRecordToPile(bamPile, samRecordSegment, samRecord);
                    long t21 = System.nanoTime();
                    processTime.addAndGet(t21 - t11);
                  });
@@ -203,7 +205,9 @@ public class BamSegPileUp {
       System.out.println("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS)
                          + " to process " + count.get() + " with an average processing time of "
                          + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
+      return true;
     }
+    return false;
   }
 
   private void addRecordToPile(BamPile bamPile, Segment samRecordSegment, SAMRecord samRecord) {
