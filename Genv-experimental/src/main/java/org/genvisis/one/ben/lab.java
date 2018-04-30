@@ -2307,13 +2307,13 @@ public class lab {
 
       System.out.println();
 
-      String dir = "/scratch.global/cole0482/CRAM_TEST/multiMax/";
+      String dir = "/scratch.global/cole0482/CRAM_TEST/full/multiMax/";
       String projDir = dir + "project/";
       String srcDir = /*
                        * ext.indexOfStr("-full", args) >= 0 ?
                        * "/scratch.global/topmed/bakeoff/group1/" :
                        */ "/scratch.global/cole0482/CRAM/00src/";
-      String projFile = projDir + "CRAMTesting_multiMax.properties";
+      String projFile = projDir + "CRAMTesting_full_multiMax.properties";
       BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
       runSAMImport(pp);
 
