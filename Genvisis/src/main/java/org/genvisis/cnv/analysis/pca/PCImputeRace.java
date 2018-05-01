@@ -343,13 +343,15 @@ public class PCImputeRace {
 
     if (Math.abs(africanMeanPC1) > Math.abs(asianMeanPC1)
         && Math.abs(asianMeanPC2) > Math.abs(africanMeanPC2)
-        && Math.abs(africanMeanPC1) > Math.abs(europeanMeanPC1)
-        && Math.abs(asianMeanPC2) > Math.abs(europeanMeanPC2)) {
+        && Math.abs(europeanMeanPC1 - africanMeanPC1) > Math.abs(europeanMeanPC1 - asianMeanPC1)
+        && Math.abs(europeanMeanPC2 - asianMeanPC2) > Math.abs(europeanMeanPC2 - africanMeanPC2)) {
       // PC1 = African, PC2 = Asian
     } else if (Math.abs(asianMeanPC1) > Math.abs(africanMeanPC1)
                && Math.abs(africanMeanPC2) > Math.abs(asianMeanPC2)
-               && Math.abs(asianMeanPC1) > Math.abs(europeanMeanPC1)
-               && Math.abs(africanMeanPC2) > Math.abs(europeanMeanPC2)) {
+               && Math.abs(europeanMeanPC1 - asianMeanPC1) > Math.abs(europeanMeanPC1
+                                                                      - africanMeanPC1)
+               && Math.abs(europeanMeanPC2 - africanMeanPC2) > Math.abs(europeanMeanPC2
+                                                                        - asianMeanPC2)) {
       // PC1 = Asian, PC2 = African
       for (Sample sample : samples) {
         double pc1 = sample.getPc1();
