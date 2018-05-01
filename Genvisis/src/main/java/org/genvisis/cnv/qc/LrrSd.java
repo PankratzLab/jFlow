@@ -184,7 +184,7 @@ public class LrrSd extends Parallelizable {
       }
       writer.close();
       log.report("LRR SD calculation complete. Wrote output to: "
-                 + proj.SAMPLE_QC_FILENAME.getValue());
+                 + proj.SAMPLE_QC_FILENAME.getValue() + "." + threadNumber);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -391,6 +391,8 @@ public class LrrSd extends Parallelizable {
     for (String file : files) {
       new File(file).delete();
     }
+    proj.getLog().reportTime("Combined " + files.length + " temp LRRSD files into "
+                             + proj.SAMPLE_QC_FILENAME.getValue());
   }
 
   /**
