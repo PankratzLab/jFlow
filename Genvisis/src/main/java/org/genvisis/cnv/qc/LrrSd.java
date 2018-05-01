@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
@@ -29,6 +30,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Parallelizable;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import com.google.common.collect.Lists;
 
 public class LrrSd extends Parallelizable {
 
@@ -372,17 +374,20 @@ public class LrrSd extends Parallelizable {
 
   @Override
   public void finalAction() {
+    List<String> fileList = Lists.newArrayList();
     String[] files;
 
-    // files = Array.stringArraySequence(numThreads,
-    // ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + ".");
-    // Files.cat(files, proj.getFilename(proj.SAMPLE_QC_FILENAME), Array.intArray(files.length, 0),
-    // proj.getLog());
-    files = ArrayUtils.stringArraySequence(numThreads,
-                                           ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
-                                                       + ".");
-    Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), ArrayUtils.intArray(files.length, 0),
-              proj.getLog());
+    for (int i = 0; i < numThreads; i++) {
+      String f = ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false) + "." + (i + 1);
+      if (Files.exists(f)) {
+        fileList.add(f);
+      }
+    }
+
+    files = fileList.toArray(new String[fileList.size()]);
+    int[] skips = ArrayUtils.intArray(files.length, 1);
+    skips[0] = 0;
+    Files.cat(files, proj.SAMPLE_QC_FILENAME.getValue(), skips, proj.getLog());
     for (String file : files) {
       new File(file).delete();
     }
@@ -866,8 +871,10 @@ public class LrrSd extends Parallelizable {
     threadSeeds = Parallelizable.splitList(samples, numThreads, false);
     runables = new LrrSd[numThreads];
     for (int i = 0; i < numThreads; i++) {
-      runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse,
-                              centroidsFile, gcModel, i + 1, numThreads);
+      if (threadSeeds[i].length > 0) {
+        runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse,
+                                centroidsFile, gcModel, i + 1, numThreads);
+      }
     }
 
     Parallelizable.launch(runables, log);
