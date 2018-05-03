@@ -171,7 +171,7 @@
 		<htsjdk.version>2.9.1</htsjdk.version>
 
 		<!-- Takari -->
-		<takari.version>1.13.3</takari.version>
+		<takari.version>1.13.4</takari.version>
 
 		<!-- Additional configuration -->
 
