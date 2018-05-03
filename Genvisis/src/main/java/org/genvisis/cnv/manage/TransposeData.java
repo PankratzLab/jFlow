@@ -177,6 +177,7 @@ public class TransposeData {
                                                  / (double) numMarkers_WriteBuffer);
         numMarkers_LastRound = allMarkerNamesInProj.length % numMarkers_WriteBuffer;
         numFiles = (int) Math.ceil((double) allMarkerNamesInProj.length / (double) numMarkers_File);
+
         countTotalChunks_MarkerFile = (int) Math.ceil((double) allMarkerNamesInProj.length
                                                       / (double) numMarkers_Chunk);
         countTotalChunks_writeBuffer = countTotalChunks_MarkerFile;

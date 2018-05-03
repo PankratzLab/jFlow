@@ -2,7 +2,6 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -12,6 +11,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -36,12 +36,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
-import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.ext;
+import org.genvisis.common.collect.MultisetUtils;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import net.miginfocom.swing.MigLayout;
 
 public class ProjectCreationGUI extends JDialog {
@@ -417,6 +418,22 @@ public class ProjectCreationGUI extends JDialog {
     lblSrcFileStatus.setVisible(true);
   }
 
+  public static Multiset<String> getSourceExtensionCounts(String srcDir) {
+
+    Multiset<String> extensions = HashMultiset.create();
+    // look for the most likely extension
+    for (String s : (new File(srcDir).list())) {
+      String[] split = s.split("\\.", 2); // only split on the first . to capture things like
+                                         // .tar.gz
+
+      if (split.length <= 1) continue;
+
+      String ext = "." + split[1];
+      extensions.add(ext);
+    }
+    return extensions;
+  }
+
   private int getValidSourceFileCount() {
     String srcDir = txtFldSrcDir.getText().trim();
     String srcExt = txtFldSrcExt.getText().trim();
@@ -431,32 +448,13 @@ public class ProjectCreationGUI extends JDialog {
     if (!validSrcDir) return -1;
 
     if (!currentDir.equals(srcDir)) {
-      HashMap<String, Integer> extensions = new HashMap<>();
-      // look for the most likely extension
-      for (String s : (new File(srcDir).list())) {
-        String[] split = s.split("\\.", 2); // only split on the first . to capture things like
-                                           // .tar.gz
-
-        if (split.length <= 1) continue;
-
-        String ext = "." + split[1];
-
-        if (!extensions.containsKey(ext)) extensions.put(ext, 1);
-        else extensions.replace(ext, extensions.get(ext) + 1);
-      }
+      Multiset<String> extensions = getSourceExtensionCounts(srcDir);
 
       if (extensions.isEmpty()) return -1;
 
-      multipleExts = extensions.size() > 1;
-      int mostCommonExt = -1;
+      multipleExts = extensions.entrySet().size() > 1;
 
-      for (String key : extensions.keySet()) {
-        int freq = extensions.get(key);
-        if (freq > mostCommonExt) {
-          srcExt = key;
-          mostCommonExt = freq;
-        }
-      }
+      srcExt = MultisetUtils.maxCount(extensions).map(Multiset.Entry::getElement).orElse("");
 
       currentDir = srcDir;
     }
@@ -471,6 +469,7 @@ public class ProjectCreationGUI extends JDialog {
 
       SwingUtilities.invokeLater(new Runnable() {
 
+        @Override
         public void run() {
           txtFldSrcExt.setText(srcExtFinal);
         }
@@ -522,7 +521,7 @@ public class ProjectCreationGUI extends JDialog {
     HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
                                                                                   actuallyValidate,
                                                                                   new org.genvisis.common.Logger(),
-                                                                                  progressBar);
+                                                                                  Optional.ofNullable(progressBar));
     if (headers == null) {
       // errors found in headers - check output and retry?
       return false;
@@ -551,29 +550,28 @@ public class ProjectCreationGUI extends JDialog {
         sourceDelim = d.getSourceFileDelimiter();
       }
       if (cols == null) {
-        cols = d.cols;
+        cols = d.getCols();
       }
-      d.colSnpIdent = gui.getSelectedSNPIndex();
-      d.colSampleIdent = gui.getSelectedSampleID();
+      d.setColSnpIdent(gui.getSelectedSNPIndex());
+      d.setColSampleIdent(gui.getSelectedSampleID());
       if (sampCol == -100) {
-        sampCol = d.colSampleIdent;
+        sampCol = d.getColSampleIdent();
       }
-      d.colGeno1 = gui.getSelectedGeno1();
-      d.colGeno2 = gui.getSelectedGeno2();
-      d.colGenoAB1 = gui.getSelectedAB1();
-      d.colGenoAB2 = gui.getSelectedAB2();
-      d.colBAF = gui.getSelectedBAF();
-      d.colLRR = gui.getSelectedLRR();
-      d.colGC = gui.getSelectedGC();
-      d.colR = gui.getSelectedR();
-      d.colTheta = gui.getSelectedTheta();
-      d.colX = gui.getSelectedX();
-      d.colY = gui.getSelectedY();
-      d.colXRaw = gui.getSelectedXRaw();
-      d.colYRaw = gui.getSelectedYRaw();
+      d.setColGeno1(gui.getSelectedGeno1());
+      d.setColGeno2(gui.getSelectedGeno2());
+      d.setColGenoAB1(gui.getSelectedAB1());
+      d.setColGenoAB2(gui.getSelectedAB2());
+      d.setColBAF(gui.getSelectedBAF());
+      d.setColLRR(gui.getSelectedLRR());
+      d.setColGC(gui.getSelectedGC());
+      d.setColR(gui.getSelectedR());
+      d.setColTheta(gui.getSelectedTheta());
+      d.setColX(gui.getSelectedX());
+      d.setColY(gui.getSelectedY());
+      d.setColXRaw(gui.getSelectedXRaw());
+      d.setColYRaw(gui.getSelectedYRaw());
     }
 
-    String path = MitoPipeline.initGenvisisProject();
     File file = new File(projDir);
 
     Project dummy = new Project();
@@ -589,15 +587,12 @@ public class ProjectCreationGUI extends JDialog {
         return false;
       }
     }
-    String filename = path + name + MitoPipeline.PROJECT_EXT;
-    if (Files.exists(filename)) {
+    if (LaunchProperties.projectExists(name)) {
       dummy.getLog().reportError("Project " + name + " already exists");
       dummy.message("Error - Project " + name + " already exists");
       return false;
-    } else {
-      Files.write((new Project()).PROJECT_NAME.getName() + "=" + name, filename);
     }
-    Project actualProj = new Project(filename);
+    Project actualProj = Project.initializeProject(name);
     actualProj.PROJECT_NAME.setValue(name);
     actualProj.PROJECT_DIRECTORY.setValue(projDir);
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);

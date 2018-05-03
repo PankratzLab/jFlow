@@ -74,7 +74,7 @@ public class GenvisisWorkflow {
 
   private static final String NUM_THREADS_DESC = "Number of Threads to Use";
   private static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
-  private static final String PLINK_SUBDIR = "plink/";
+  public static final String PLINK_SUBDIR = "plink/";
   private static final String PLINKROOT = "plink";
   final Project proj;
   private final SortedSet<Step> steps;
@@ -412,10 +412,12 @@ public class GenvisisWorkflow {
       });
     }
 
+    private static final String CREATE_MINIMAL_SAMPDATA_REQUIREMENT = "Create a minimal SampleData.txt file from sample files";
+
     private Step generateCreateSampleDataStep(final Step parseSamplesStep) {
       final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-      final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement("Create a minimal SampleData.txt file from sample files",
+      final Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement(CREATE_MINIMAL_SAMPDATA_REQUIREMENT,
                                                                                      true);
 
       final String pedPreset = proj.PEDIGREE_FILENAME.getValue();
@@ -723,6 +725,9 @@ public class GenvisisWorkflow {
       });
     }
 
+    private static final String ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT = "Add Estimated Sex to Sample Data";
+    private static final String NO_CROSS_HYBE_REQUIREMENT = "Use only X and Y chromosome R values to identify sex discriminating markers";
+
     private Step generateSexChecksStep(final Step parseSamplesStep, final Step markerBlastStep,
                                        final Step sampleDataStep, final Step transposeStep,
                                        final Step sampleQCStep) {
@@ -730,13 +735,13 @@ public class GenvisisWorkflow {
       final Requirement sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
       final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
       final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-      final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement("Add Estimated Sex to Sample Data",
+      final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement(ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                      true);
 
       final Requirement oneHittersReq = new Requirement.FileRequirement("List of markers that do not cross hybridize",
                                                                         MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
       final Requirement markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
-      final Requirement noCrossHybeReq = new Requirement.BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
+      final Requirement noCrossHybeReq = new Requirement.BoolRequirement(NO_CROSS_HYBE_REQUIREMENT,
                                                                          false);
 
       final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
@@ -745,7 +750,8 @@ public class GenvisisWorkflow {
                                                          .add(RequirementSetBuilder.or()
                                                                                    .add(oneHittersReq)
                                                                                    .add(markerBlastStepReq)
-                                                                                   .add(noCrossHybeReq));
+                                                                                   .add(noCrossHybeReq))
+                                                         .add(addToSampleDataReq);
 
       return register(new Step("Run Sex Checks", "", reqSet, EnumSet.noneOf(Requirement.Flag.class),
                                priority()) {
@@ -1000,9 +1006,11 @@ public class GenvisisWorkflow {
       });
     }
 
+    public static final String PUTATIVE_WHITE_FILE_DESCRIPTION = "File with FID/IID pairs of putative white samples";
+
     private Step generateAncestryStep(final Step gwasQCStep) {
       final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-      final Requirement putativeWhitesReq = new Requirement.FileRequirement("File with FID/IID pairs of putative white samples",
+      final Requirement putativeWhitesReq = new Requirement.FileRequirement(PUTATIVE_WHITE_FILE_DESCRIPTION,
                                                                             "");
       final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
                                                                                                     Resources.hapMap(log)
@@ -1075,8 +1083,8 @@ public class GenvisisWorkflow {
                                                                                    .add(ancestryStepReq)
                                                                                    .add(europeansFilesReq));
       final Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
+      Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       for (QC_METRIC metric : QC_METRIC.values()) {
-        Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
         String defaultVal = defaultThresholds.get(metric);
         final Requirement metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
                                                                            defaultVal);
@@ -2149,14 +2157,23 @@ public class GenvisisWorkflow {
     }
   }
 
-  public static void setupImputation(String projectProperties) {
-    Project proj = new Project(projectProperties);
-    StepBuilder sb = (new GenvisisWorkflow(proj, null)).new StepBuilder();
+  public static String setupImputationDefaults(Project proj) {
+    return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null, false,
+                           null);
+  }
 
-    Step parseSamples = sb.generateParseSamplesStep();
+  public static String setupImputation(Project proj, int numThreads, String putativeWhitesFile,
+                                       Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
+                                       String man) {
+    GenvisisWorkflow workflow = new GenvisisWorkflow(proj, null);
+    StepBuilder sb = workflow.new StepBuilder();
+
+    Requirement threadsReq = workflow.getNumThreadsReq();
+    Step createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep() : null;
+    Step parseSamples = sb.generateParseSamplesStep(createMkrPos);
     Step transpose = sb.generateTransposeStep(parseSamples);
     Step sampleData = sb.generateCreateSampleDataStep(parseSamples);
-    Step blast = sb.generateAffyMarkerBlastAnnotationStep(parseSamples);
+    Step blast = sb.generateIlluminaMarkerBlastAnnotationStep(parseSamples);
     Step sampleQc = sb.generateSampleQCStep(parseSamples);
     Step markerQc = sb.generateMarkerQCStep(parseSamples);
     Step sexChecks = sb.generateSexChecksStep(parseSamples, blast, sampleData, transpose, sampleQc);
@@ -2165,39 +2182,137 @@ public class GenvisisWorkflow {
     Step ancestry = sb.generateAncestryStep(gwasQc);
     Step faqcStep = sb.generateFurtherAnalysisQCStep(exportPlink, gwasQc, ancestry);
 
+    Map<Requirement, String> stepReqs;
     Map<Step, Map<Requirement, String>> varMap = new HashMap<>();
+
+    if (createMkrPos != null) {
+      stepReqs = createMkrPos.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().contains("Manifest")) {
+          stepReqs.put(r1, man);
+        }
+      }
+      varMap.put(createMkrPos, stepReqs);
+    }
+    if (parseSource) {
+      varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
+      varMap.put(transpose, transpose.getDefaultRequirementValues());
+      stepReqs = blast.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equalsIgnoreCase(IlluminaMarkerBlast.DESC_MANIFEST)) {
+          stepReqs.put(r1, man);
+          break;
+        }
+      }
+      varMap.put(blast, stepReqs);
+
+      stepReqs = sampleData.getDefaultRequirementValues();
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equalsIgnoreCase(StepBuilder.CREATE_MINIMAL_SAMPDATA_REQUIREMENT)) {
+          stepReqs.put(r1, "false");
+          break;
+        }
+      }
+      varMap.put(sampleData, stepReqs);
+    }
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
-    varMap.put(sexChecks, sexChecks.getDefaultRequirementValues());
+
+    stepReqs = sexChecks.getDefaultRequirementValues();
+    for (Requirement r1 : stepReqs.keySet()) {
+      if (r1.getDescription().equals(StepBuilder.NO_CROSS_HYBE_REQUIREMENT)) {
+        stepReqs.put(r1, "true");
+      } else if (r1.getDescription().equals(StepBuilder.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+        stepReqs.put(r1, "true");
+      }
+    }
+
+    varMap.put(sexChecks, stepReqs);
     varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
-    varMap.put(gwasQc, gwasQc.getDefaultRequirementValues());
-    varMap.put(ancestry, ancestry.getDefaultRequirementValues());
-    varMap.put(faqcStep, faqcStep.getDefaultRequirementValues());
 
-    String s1 = sampleQc.getCommandLine(proj, varMap);
-    String s2 = markerQc.getCommandLine(proj, varMap);
-    String s3 = sexChecks.getCommandLine(proj, varMap);
-    String s4 = exportPlink.getCommandLine(proj, varMap);
-    String s5 = gwasQc.getCommandLine(proj, varMap);
-    String s6 = ancestry.getCommandLine(proj, varMap);
-    String s7 = faqcStep.getCommandLine(proj, varMap);
+    stepReqs = gwasQc.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(gwasQc, stepReqs);
 
-    String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationPipeline.";
-    String suggFile = file + ext.getTimestampForFilename() + ".pbs";
-    String runFile = file + ext.getTimestampForFilename() + ".run";
+    stepReqs = ancestry.getDefaultRequirementValues();
+    if (putativeWhitesFile != null) {
+      Requirement r = null;
+      for (Requirement r1 : stepReqs.keySet()) {
+        if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
+          r = r1;
+          break;
+        }
+      }
+      if (r == null) {
+        throw new IllegalStateException();
+      }
+      stepReqs.put(r, putativeWhitesFile);
+    }
+    varMap.put(ancestry, stepReqs);
+
+    stepReqs = faqcStep.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(faqcStep, stepReqs);
+
+    // override threads defaults
+    if (numThreads > 0) {
+      for (Step s : varMap.keySet()) {
+        if (varMap.get(s).containsKey(threadsReq)) {
+          varMap.get(s).put(threadsReq, Integer.toString(numThreads));
+        }
+      }
+    }
+
+    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
+    String s1 = parseSamples.getCommandLine(proj, varMap);
+    String s2 = transpose.getCommandLine(proj, varMap);
+    String s3 = sampleData.getCommandLine(proj, varMap);
+    String s4 = blast.getCommandLine(proj, varMap);
+    String s5 = sampleQc.getCommandLine(proj, varMap);
+    String s6 = markerQc.getCommandLine(proj, varMap);
+    String s7 = sexChecks.getCommandLine(proj, varMap);
+    String s8 = exportPlink.getCommandLine(proj, varMap);
+    String s9 = gwasQc.getCommandLine(proj, varMap);
+    String s10 = ancestry.getCommandLine(proj, varMap);
+    String s11 = faqcStep.getCommandLine(proj, varMap);
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
-    addStepInfo(output, sampleQc, s1);
-    addStepInfo(output, markerQc, s2);
-    addStepInfo(output, sexChecks, s3);
-    addStepInfo(output, exportPlink, s4);
-    addStepInfo(output, gwasQc, s5);
-    addStepInfo(output, ancestry, s6);
-    addStepInfo(output, faqcStep, s7);
+    if (createMkrPos != null) {
+      addStepInfo(output, createMkrPos, s0);
+    }
+    if (parseSource) {
+      addStepInfo(output, parseSamples, s1);
+      addStepInfo(output, transpose, s2);
+      addStepInfo(output, sampleData, s3);
+      addStepInfo(output, blast, s4);
+    }
+    addStepInfo(output, sampleQc, s5);
+    addStepInfo(output, markerQc, s6);
+    addStepInfo(output, sexChecks, s7);
+    addStepInfo(output, exportPlink, s8);
+    addStepInfo(output, gwasQc, s9);
+    addStepInfo(output, ancestry, s10);
+    addStepInfo(output, faqcStep, s11);
 
-    Qsub.qsubDefaults(suggFile, output.toString());
-    Files.write(output.toString(), runFile);
+    return output.toString();
+  }
+
+  private static void fixQCThreshs(Map<Requirement, String> reqMap,
+                                   Map<QC_METRIC, String> threshMap) {
+    Map<String, String> qc = new HashMap<>();
+    for (QC_METRIC met : threshMap.keySet()) {
+      qc.put(met.getUserDescription(), threshMap.get(met));
+    }
+    for (Requirement r1 : reqMap.keySet()) {
+      if (qc.containsKey(r1.getDescription())) {
+        reqMap.put(r1, qc.get(r1.getDescription()));
+      }
+    }
   }
 
   public static void setupCNVCalling(String projectProperties) {
@@ -2245,9 +2360,10 @@ public class GenvisisWorkflow {
 
   public static void addStepInfo(StringBuilder output, Step step, String stepCmd) {
     output.append("## ").append(step.getName()).append("\n");
-    output.append("echo \" start ").append(step.getName()).append(" at: \" `date`").append("\n");
+    output.append("echo \">>>> start ").append(step.getName()).append(" at: \" `date`")
+          .append("\n");
     output.append(stepCmd).append("\n");
-    output.append("echo \" end ").append(step.getName()).append(" at: \" `date`").append("\n");
+    output.append("echo \"<<<< end ").append(step.getName()).append(" at: \" `date`").append("\n");
     output.append("\n\n");
   }
 

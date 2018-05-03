@@ -208,8 +208,9 @@ public class CmdLineProcess implements Iterator<String> {
 
       int retVal = proc.waitFor(); // wait for process to complete
       if (retVal != 0) {
-        log.reportError(" Irregular termination in process: " + ArrayUtils.toStr(commandArray, " ")
-                        + " | " + proc.toString());
+        log.reportError(" Irregular termination (exit code: " + retVal + ") in process: "
+                        + ArrayUtils.toStr(commandArray, " ") + " | " + proc.toString() + " | "
+                        + ArrayUtils.toStr(commandArray, " "));
         error = true;
       }
       // System.err.println("finished Wait");

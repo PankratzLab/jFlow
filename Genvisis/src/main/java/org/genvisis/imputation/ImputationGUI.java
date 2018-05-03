@@ -480,7 +480,7 @@ public class ImputationGUI extends JDialog {
 
     switch (getImputationPipeline()) {
       case VCF_ONLY:
-        ImputationPipeRunner.runVCF(propFile, chrs, ref, getKeepDropFiles(),
+        ImputationPipeRunner.runVCF(propFile, chrs, ref, getKeepDropFiles(), false,
                                     outputDir + "vcf/" + ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()),
                                     getUseGRC());
         break;

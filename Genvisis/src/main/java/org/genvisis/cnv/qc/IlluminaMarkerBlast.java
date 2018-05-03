@@ -30,7 +30,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
   public IlluminaMarkerBlast(Project proj, int numThreads, String manifestFile) {
     this(proj, getDefaultWordSize(proj), getDefaultWordSize(proj), DEFAULT_MAX_ALIGNMENTS,
          DEFAULT_REPORT_TO_TEMPORARY_FILE, DEFAULT_ANNOTATE_GC_CONTENT, DEFAULT_DO_BLAST,
-         numThreads, manifestFile);
+         numThreads, manifestFile, true);
 
   }
 
@@ -48,9 +48,9 @@ public class IlluminaMarkerBlast extends MarkerBlast {
   public IlluminaMarkerBlast(Project proj, int blastWordSize, int reportWordSize,
                              int maxAlignmentsReported, boolean reportToTmp,
                              boolean annotateGCContent, boolean doBlast, int numThreads,
-                             String manifestFile) {
+                             String manifestFile, boolean parseAlleles) {
     super(proj, blastWordSize, reportWordSize, maxAlignmentsReported, reportToTmp,
-          annotateGCContent, doBlast, numThreads);
+          annotateGCContent, doBlast, numThreads, parseAlleles);
     this.manifestFile = manifestFile;
   }
 
@@ -222,6 +222,7 @@ public class IlluminaMarkerBlast extends MarkerBlast {
     c.addArgWithDefault(ARG_MAX_ALIGNMENTS, DESC_MAX_ALIGNMENTS, DEFAULT_MAX_ALIGNMENTS);
     c.addArg(ARG_MARKER_POSITIONS_OVERRIDE, DESC_MARKER_POSITIONS_OVERRIDE,
              EXAMPLE_MARKER_POSITIONS_OVERRID, CLI.Arg.FILE);
+    c.addArg(ARG_PARSE_ALLELES, DESC_PARSE_ALLELES, DEFAULT_PARSE_ALLELES);
     c.addFlag(FLAG_SKIP_GC_ANNOTATION, DESC_SKIP_GC_ANNOTATION);
     c.addFlag(FLAG_SKIP_BLAST, DESC_SKIP_BLAST);
 
@@ -236,13 +237,14 @@ public class IlluminaMarkerBlast extends MarkerBlast {
     String markerPositionsOverride = c.get(ARG_MARKER_POSITIONS_OVERRIDE);
     boolean annotateGCContent = !c.has(FLAG_SKIP_GC_ANNOTATION);
     boolean doBlast = !c.has(FLAG_SKIP_BLAST);
+    boolean parseAlleles = Boolean.parseBoolean(c.get(ARG_PARSE_ALLELES));
 
     try {
       MarkerBlast markerBlast = new IlluminaMarkerBlast(proj, blastWordSize, reportWordSize,
                                                         maxAlignmentsReported,
                                                         MarkerBlast.DEFAULT_REPORT_TO_TEMPORARY_FILE,
                                                         annotateGCContent, doBlast, numThreads,
-                                                        fileSeq);
+                                                        fileSeq, parseAlleles);
       if (markerPositionsOverride != null) {
         markerBlast.overrideMarkerPositions(markerPositionsOverride);
       }

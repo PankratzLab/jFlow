@@ -14,7 +14,6 @@ import javax.annotation.Nullable;
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.var.SampleData;
@@ -55,11 +54,7 @@ public class Ancestry {
   private static Project createDummyProject(String dir, String dummyProjectPrefix,
                                             String putativeWhitesFile, Logger log) {
     String projectName = dummyProjectPrefix + "_AncestryResults";
-    String projFilename = MitoPipeline.initGenvisisProject() + projectName
-                          + MitoPipeline.PROJECT_EXT;
-    Files.write((new Project()).PROJECT_NAME.getName() + "=" + projectName, projFilename);
-    Project dummyProject = new Project(projFilename, null, false);
-    dummyProject.PROJECT_NAME.setValue(projectName);
+    Project dummyProject = Project.initializeProject(projectName);
     dummyProject.PROJECT_DIRECTORY.setValue(dir);
     dummyProject.saveProperties();
 

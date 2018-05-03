@@ -1,8 +1,5 @@
 package org.genvisis.cnv.manage;
 
-import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +15,9 @@ import java.util.Map;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -31,6 +31,9 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFFileReader;
 
 public class Markers {
 
@@ -478,6 +481,7 @@ public class Markers {
     int alleleCol = 6;
     int setFrom = 1;
     int setTo = 2;
+    boolean manifestFlag = false;
 
     String usage = "\n" + "cnv.manage.Markers requires 0-1 arguments\n"
                    + "   (1) project properties filename (i.e. proj="
@@ -500,6 +504,9 @@ public class Markers {
       } else if (arg.startsWith("snps=")) {
         snpTable = arg.split("=")[1];
         numArgs--;
+      } else if (arg.equals("-manifest")) {
+        manifestFlag = true;
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -513,7 +520,24 @@ public class Markers {
 
     try {
       if (!snpTable.equals("")) {
-        Markers.generateMarkerPositions(proj, snpTable);
+        if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
+          if (manifestFlag) {
+            MarkerBlast.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
+                                                           FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+                                                           proj.MARKER_POSITION_FILENAME.getValue(false,
+                                                                                                  false),
+                                                           Files.determineDelimiter(snpTable,
+                                                                                    proj.getLog()),
+                                                           proj.getLog());
+          } else {
+            Markers.generateMarkerPositions(proj, snpTable);
+          }
+        } else {
+          proj.getLog()
+              .reportTime("Existing marker positions file already found at "
+                          + proj.MARKER_POSITION_FILENAME.getValue(false, false)
+                          + "; to reparse marker positions, please remove or rename this file.");
+        }
       } else if (!fileToConvert.equals("")) {
         Markers.useAlleleLookup(fileToConvert, alleleCol, lookupFile, setFrom, setTo);
       }

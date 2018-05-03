@@ -23,9 +23,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
@@ -595,7 +597,7 @@ public class Project implements PropertyChangeListener {
   private Reference<SampleList> sampleListRef = new SoftReference<>(null);
   private Reference<SampleData> sampleDataRef = new SoftReference<>(null);
   private HashSet<String> cnvFilesLoadedInSampleData;
-  private HashMap<String, SourceFileHeaderData> sourceFileHeaders;
+  private ImmutableMap<String, SourceFileHeaderData> sourceFileHeaders;
   private Reference<MarkerLookup> markerLookupRef = new SoftReference<>(null);
   private Reference<MarkerDetailSet> markerSetRef = new SoftReference<>(null);
   private Logger log;
@@ -677,7 +679,7 @@ public class Project implements PropertyChangeListener {
       // skip source file headers, sample files already parsed
     } else if (createHeaders && Files.list(SOURCE_DIRECTORY.getValue(),
                                            SOURCE_FILENAME_EXTENSION.getValue()).length > 0) {
-      HashMap<String, SourceFileHeaderData> headers = readHeadersFile(false);
+      Map<String, SourceFileHeaderData> headers = readHeadersFile(false);
       setSourceFileHeaders(headers);
     }
 
@@ -779,7 +781,7 @@ public class Project implements PropertyChangeListener {
   }
 
   @SuppressWarnings("unchecked")
-  private HashMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
+  private ImmutableMap<String, SourceFileHeaderData> readHeadersFile(boolean waitIfMissing) {
     String file = PROJECT_DIRECTORY.getValue() + "source.headers";
 
     if (Files.exists(file)) {
@@ -789,9 +791,9 @@ public class Project implements PropertyChangeListener {
     file = PROJECT_DIRECTORY.getValue() + HEADERS_FILENAME;
 
     if (Files.exists(file)) {
-      HashMap<String, SourceFileHeaderData> headers = (HashMap<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
-                                                                                                                         getLog(),
-                                                                                                                         false);
+      ImmutableMap<String, SourceFileHeaderData> headers = ImmutableMap.copyOf((Map<String, SourceFileHeaderData>) SerializedFiles.readSerial(file,
+                                                                                                                                              getLog(),
+                                                                                                                                              false));
       if (headers != null) {
         return headers;
       } else {
@@ -817,7 +819,7 @@ public class Project implements PropertyChangeListener {
             log.report("Parsing source file headers in background thread.");
             setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
                                                                SOURCE_FILENAME_EXTENSION.getValue(),
-                                                               true, log, null));
+                                                               true, log, Optional.empty()));
             log.report("Source file header parsing complete.");
           } catch (Exception e) {
             log.reportException(e);
@@ -830,7 +832,7 @@ public class Project implements PropertyChangeListener {
         log.report("Parsing source file headers in active thread.");
         setSourceFileHeaders(SourceFileHeaderData.validate(SOURCE_DIRECTORY.getValue(),
                                                            SOURCE_FILENAME_EXTENSION.getValue(),
-                                                           true, log, null));
+                                                           true, log, Optional.empty()));
         log.report("Source file header parsing complete.");
         return getSourceFileHeaders(false);
       } catch (Exception e) {
@@ -2124,14 +2126,29 @@ public class Project implements PropertyChangeListener {
     Sample.verifyAndGenerateOutliers(this, NUM_THREADS.getValue(), false);
   }
 
-  public HashMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
-    return sourceFileHeaders == null ? readIfNull ? readHeadersFile(true) : null
-                                     : sourceFileHeaders;
+  public ImmutableMap<String, SourceFileHeaderData> getSourceFileHeaders(boolean readIfNull) {
+    if (sourceFileHeaders == null && readIfNull) return readHeadersFile(true);
+    return sourceFileHeaders;
   }
 
-  public void setSourceFileHeaders(HashMap<String, SourceFileHeaderData> sourceFileHeaders) {
-    this.sourceFileHeaders = sourceFileHeaders;
+  public void setSourceFileHeaders(Map<String, SourceFileHeaderData> sourceFileHeaders) {
+    this.sourceFileHeaders = ImmutableMap.copyOf(sourceFileHeaders);
     writeHeadersFile();
+  }
+
+  /**
+   * @param name project name
+   * @return Initialized {@link Project}
+   * @throws IllegalArgumentException if a {@link Project} with name already exists
+   */
+  public static Project initializeProject(String name) {
+    String filename = LaunchProperties.formProjectPropertiesFilename(name);
+    if (Files.exists(filename, true)) {
+      throw new IllegalArgumentException(filename + " already exists, cannot initialize project");
+    } else {
+      Files.write(PropertyKeys.KEY_PROJECT_NAME + "=" + name, filename);
+    }
+    return new Project(filename, null, false);
   }
 
   /**
