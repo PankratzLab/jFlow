@@ -28,7 +28,7 @@ public class FurtherAnalysisQc extends Qc {
   public static final String ARG_UNRELATEDS = "unrelateds";
   public static final String ARG_EUROPEANS = "europeans";
 
-  private static final String BONFERRONI_CORRECTED_P_THRESHOLD = "<1E-7";
+  public static final String BONFERRONI_CORRECTED_P_THRESHOLD = "<1E-7";
 
   static {
     Map<QC_METRIC, String> defaultIlluminaMetricThresholds = Maps.newEnumMap(QC_METRIC.class);

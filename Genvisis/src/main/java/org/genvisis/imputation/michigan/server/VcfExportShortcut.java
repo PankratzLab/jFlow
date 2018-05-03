@@ -10,7 +10,6 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
-import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.ArrayUtils;
@@ -20,11 +19,11 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.common.collect.MultisetUtils;
 import org.genvisis.gwas.FurtherAnalysisQc;
+import org.genvisis.gwas.MarkerQC;
 import org.genvisis.gwas.MarkerQC.QC_METRIC;
 import org.genvisis.gwas.Qc;
 import org.genvisis.imputation.ImputationPipeline;
 import org.genvisis.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
-import org.genvisis.qsub.Qsub;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
@@ -42,8 +41,8 @@ public class VcfExportShortcut {
   private String markerDropsFile = null;
 
   private VcfExportShortcut(String projName, String sourceDir, String projDir, String pedigreeFile,
-                            String mkrPos, Logger log) {
-    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, mkrPos, log);
+                            Logger log) {
+    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, log);
     this.log = log;
   }
 
@@ -64,7 +63,7 @@ public class VcfExportShortcut {
   }
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
-                                            String pedigreeFile, String mkrPos, Logger log) {
+                                            String pedigreeFile, Logger log) {
     final Project proj;
     if (LaunchProperties.projectExists(projName)) {
       String projFile = LaunchProperties.formProjectPropertiesFilename(projName);
@@ -95,14 +94,6 @@ public class VcfExportShortcut {
       proj.setSourceFileHeaders(headers);
       proj.setLog(log);
       checkAndSetPed(proj, pedigreeFile);
-      if (mkrPos != null) {
-        if (Files.exists(mkrPos)) {
-          proj.MARKER_POSITION_FILENAME.setValue(mkrPos);
-        } else {
-          throw new IllegalArgumentException("Error - specified marker position file (" + mkrPos
-                                             + ") could not be found.");
-        }
-      }
       log.reportTime("Created Genvisis project at " + proj.getPropertyFilename());
     }
     return proj;
@@ -135,7 +126,8 @@ public class VcfExportShortcut {
     proj.PEDIGREE_FILENAME.setValue(pedigreeFile);
   }
 
-  public void runPipeline(int numThreads, String putativeWhtFile) {
+  public void runPipeline(int numThreads, String putativeWhtFile, String outputDirAndRoot,
+                          String imputationReferenceFile, boolean useGRC) {
     Map<QC_METRIC, String> qcMap = new HashMap<>();
     qcMap.put(QC_METRIC.CALLRATE, "<" + callrateThresh);
     qcMap.put(QC_METRIC.HWE, "<" + hweThresh);
@@ -145,15 +137,11 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_MISS, generalQc);
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
-    String outputFile = GenvisisWorkflow.setupImputation(proj, numThreads, putativeWhtFile, qcMap,
-                                                         true, manifest);
-
-    log.reportTime("Created Genvisis Workflow script at " + outputFile);
-  }
-
-  public void setupVCFExport(String outputDirAndRoot, boolean useGRC) {
-    String refFile = Resources.genome(proj.GENOME_BUILD_VERSION.getValue(), proj.getLog())
-                              .getDBSNP().get();
+    StringBuilder outputScript = new StringBuilder(GenvisisWorkflow.setupImputation(proj,
+                                                                                    numThreads,
+                                                                                    putativeWhtFile,
+                                                                                    qcMap, true,
+                                                                                    manifest));
 
     String sampDrop = null;
     if (sampleDropsFile != null) {
@@ -163,7 +151,6 @@ public class VcfExportShortcut {
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + FurtherAnalysisQc.SAMPLE_QC_DROPS;
     }
 
-    // TODO WHERE ARE THESE FILES ANYWAY!?!?!  MUST TEST!
     String markDrop = null;
     if (markerDropsFile != null) {
       markDrop = markerDropsFile;
@@ -172,23 +159,30 @@ public class VcfExportShortcut {
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + FurtherAnalysisQc.MARKER_QC_DROPS;
     }
 
-    StringBuilder exportSB = new StringBuilder();
-    exportSB.append(Files.getRunString());
-    exportSB.append(" ").append(ImputationPipeline.class.getName());
-    exportSB.append(" ").append(ImputationPipeline.PROJ_ARG).append(proj.getPropertyFilename());
-    exportSB.append(" ").append(ImputationPipeline.REF_ARG).append(refFile);
-    exportSB.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
-    exportSB.append(" ").append(ImputationPipeline.DROP_MARKERS_ARG).append(markDrop);
-    exportSB.append(" ").append(ImputationPipeline.EXPORT_IIDS).append("TRUE");
-    exportSB.append(" ").append(ImputationPipeline.USE_GRC_ARG).append(Boolean.toString(useGRC));
-    exportSB.append(" ").append(ImputationPipeline.OUT_DIR_AND_ROOT_ARG).append(outputDirAndRoot);
-    exportSB.append(" ").append(ImputationPipeline.RUN_TYPE_ARG)
-            .append(IMPUTATION_PIPELINE_PATH.VCF_ONLY);
+    outputScript.append("## Imputation VCF Export\n");
+    outputScript.append("echo \">>>> start Imputation VCF Export at: \" `date`").append("\n");
+
+    outputScript.append(Files.getRunString());
+    outputScript.append(" ").append(ImputationPipeline.class.getName());
+    outputScript.append(" ").append(ImputationPipeline.PROJ_ARG).append(proj.getPropertyFilename());
+    outputScript.append(" ").append(ImputationPipeline.REF_ARG).append(imputationReferenceFile);
+    outputScript.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
+    outputScript.append(" ").append(ImputationPipeline.DROP_MARKERS_ARG).append(markDrop);
+    outputScript.append(" ").append(ImputationPipeline.EXPORT_IIDS).append("TRUE");
+    outputScript.append(" ").append(ImputationPipeline.USE_GRC_ARG)
+                .append(Boolean.toString(useGRC));
+    outputScript.append(" ").append(ImputationPipeline.OUT_DIR_AND_ROOT_ARG)
+                .append(outputDirAndRoot);
+    outputScript.append(" ").append(ImputationPipeline.RUN_TYPE_ARG)
+                .append(IMPUTATION_PIPELINE_PATH.VCF_ONLY);
+    outputScript.append("\n").append("echo \"<<<< end Imputation VCF Export at: \" `date`")
+                .append("\n");
+    outputScript.append("\n\n");
 
     String file = proj.PROJECT_DIRECTORY.getValue() + "ImputationExport.";
-    String suggFile = file + ext.getTimestampForFilename() + ".qsub";
+    String suggFile = file + ext.getTimestampForFilename() + ".run";
 
-    Qsub.qsub(suggFile, exportSB.toString(), 22 * 1024, 150, 16);
+    Files.write(outputScript.toString(), suggFile);
 
     log.reportTime("Created Imputation Export script at " + suggFile);
   }
@@ -197,13 +191,12 @@ public class VcfExportShortcut {
   private static final String ARG_SRC_DIR = "sourceDir";
   private static final String ARG_PROJ_DIR = "projDir";
 
-  private static final String ARG_MKR_POS = "markerPositionFile";
   private static final String ARG_ILL_MAN = "manifest";
 
   private static final String ARG_PED = "pedFile";
-  private static final String ARG_THREADS = "numThreads";
   private static final String ARG_PUT_WHT = "putativeWhiteFile";
   private static final String ARG_VCF_OUT = "vcfDirRoot";
+  private static final String ARG_IMP_REF = "imputationReference";
   private static final String ARG_GRC_OUT = "useGRC";
   private static final String ARG_CALLRATE = "callrate";
   private static final String ARG_HWE = "hwe";
@@ -213,13 +206,12 @@ public class VcfExportShortcut {
   private static final String DESC_SRC_DIR = "Source File Directory";
   private static final String DESC_PROJ_DIR = "Directory for project files";
 
-  private static final String DESC_MKR_POS = "File with marker positions";
   private static final String DESC_ILL_MAN = "Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv)";
 
   private static final String DESC_PED = "Pedigree File";
-  private static final String DESC_THREADS = "Number of threads";
   private static final String DESC_PUT_WHT = "Putative whites file (file with two columns of FID/IID and no header)";
   private static final String DESC_VCF_OUT = "VCF output directory and file root";
+  private static final String DESC_IMP_REF = "Imputation marker reference file";
   private static final String DESC_GRC_OUT = "Export contigs with \"chr\" prepend (defaults to true)";
   private static final String DESC_CALLRATE = "Callrate Threshold";
   private static final String DESC_HWE = "HWE Threshold";
@@ -228,23 +220,25 @@ public class VcfExportShortcut {
   public static void main(String[] args) {
     CLI cli = new CLI(VcfExportShortcut.class);
 
-    cli.addArg(ARG_PROJ_NAME, DESC_PROJ_NAME);
-    cli.addArg(ARG_SRC_DIR, DESC_SRC_DIR);
-    cli.addArg(ARG_PROJ_DIR, DESC_PROJ_DIR);
-    cli.addArg(ARG_VCF_OUT, DESC_VCF_OUT);
-    cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT);
+    cli.addArg(ARG_PROJ_NAME, DESC_PROJ_NAME, true);
+    cli.addArg(ARG_SRC_DIR, DESC_SRC_DIR, true);
+    cli.addArg(ARG_PROJ_DIR, DESC_PROJ_DIR, true);
+    cli.addArg(ARG_VCF_OUT, DESC_VCF_OUT, true);
+    cli.addArg(ARG_IMP_REF, DESC_IMP_REF, true);
+    cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT, true);
     cli.addArg(ARG_PED, DESC_PED, false);
 
-    cli.addArg(ARG_MKR_POS, DESC_MKR_POS);
-    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN);
+    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN, true);
 
-    cli.addGroup(ARG_MKR_POS, ARG_ILL_MAN);
-
-    cli.addArg(ARG_THREADS, DESC_THREADS, false);
-    cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, false);
-    cli.addArg(ARG_CALLRATE, DESC_CALLRATE, false);
-    cli.addArg(ARG_HWE, DESC_HWE, false);
-    cli.addArg(ARG_QC, DESC_QC, false);
+    cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS,
+               Integer.toString(Runtime.getRuntime().availableProcessors()), false);
+    cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, "true", false);
+    cli.addArg(ARG_CALLRATE, DESC_CALLRATE,
+               MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD.substring(1), false);
+    cli.addArg(ARG_HWE, DESC_HWE, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1),
+               false);
+    cli.addArg(ARG_QC, DESC_QC, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1),
+               false);
 
     cli.parseWithExit(args);
 
@@ -254,37 +248,23 @@ public class VcfExportShortcut {
     String pedFile = cli.get(ARG_PED);
     String putWht = cli.get(ARG_PUT_WHT);
     String vcfOut = cli.get(ARG_VCF_OUT);
+    String impRef = cli.get(ARG_IMP_REF);
 
-    int numThreads = cli.has(ARG_THREADS) ? cli.getI(ARG_THREADS)
-                                          : Runtime.getRuntime().availableProcessors();
-    boolean useGRC = cli.has(ARG_GRC_OUT) ? Boolean.parseBoolean(cli.get(ARG_GRC_OUT)) : true;
+    int numThreads = cli.getI(CLI.ARG_THREADS);
+    boolean useGRC = Boolean.parseBoolean(cli.get(ARG_GRC_OUT));
 
-    // TODO logger?
     Logger log = new Logger();
-    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile,
-                                                     cli.has(ARG_MKR_POS) ? cli.get(ARG_MKR_POS)
-                                                                          : null,
-                                                     log);
+    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, log);
 
-    if (cli.has(ARG_ILL_MAN)) {
-      export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
-    }
-    if (cli.has(ARG_CALLRATE)) {
-      export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
-    }
-    if (cli.has(ARG_HWE)) {
-      export.setHWEThreshold(cli.getD(ARG_HWE));
-    }
-    if (cli.has(ARG_QC)) {
-      export.setQCThreshold(cli.getD(ARG_QC));
-    }
+    export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
+    export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
+    export.setHWEThreshold(cli.getD(ARG_HWE));
+    export.setQCThreshold(cli.getD(ARG_QC));
 
-    export.runPipeline(numThreads, putWht);
-    export.setupVCFExport(vcfOut, useGRC);
+    export.runPipeline(numThreads, putWht, vcfOut, impRef, useGRC);
 
-    log.reportTime("Please check (and, if necessary, adjust) qsub parameters (memory, walltime, nodes) prior to submitting to queue.");
-    log.reportTime("Submit GenvisisWorkflow script first, and when completed successfully, ImputationExport script second.");
-    log.reportTime("Sample and Marker \"keep\" files can be set in the ImputationExport script - the default files are created during the GenvisisWorkflow and can be edited or used as-is.");
+    log.reportTime("Please check (and, if necessary, adjust) parameters (memory, threads, arguemnts) prior to submitting to queue.");
+    log.reportTime("Sample and Marker \"keep\" files can be set in the ImputationExport script - the default files are created automatically and can be edited or used as-is.");
 
   }
 

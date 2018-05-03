@@ -2280,9 +2280,6 @@ public class GenvisisWorkflow {
     String s10 = ancestry.getCommandLine(proj, varMap);
     String s11 = faqcStep.getCommandLine(proj, varMap);
 
-    String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline.";
-    String suggFile = file + ext.getTimestampForFilename() + ".qsub";
-
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
     if (createMkrPos != null) {
@@ -2302,8 +2299,7 @@ public class GenvisisWorkflow {
     addStepInfo(output, ancestry, s10);
     addStepInfo(output, faqcStep, s11);
 
-    Qsub.qsub(suggFile, output.toString(), 22 * 1024, 150, 16);
-    return suggFile;
+    return output.toString();
   }
 
   private static void fixQCThreshs(Map<Requirement, String> reqMap,
