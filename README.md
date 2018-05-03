@@ -55,19 +55,6 @@ When importing, Eclipse will recognize that Genvisis is a multi-module build and
 
 So if you know a new module has been added, or are seeing odd missing dependency errors, try re-importing Maven projects from the `pom-genvisis` directory.
 
-#### Building the Genvisis jar
-
-Just like on the command line, to build the `genvisis.jar`, run the `pom-genvisis` project [as a Maven build](https://books.sonatype.com/m2eclipse-book/reference/running-sect-running-maven-builds.html), with the following settings:
-
-* goal: **install**
-* profiles: **fastTests** **genv** 
-
-All Maven output will print in the `Console` tab. When complete, your `genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
-
-Notes:
-- Without the `fastTests` profile enabled, the unit tests will be prohibitively slow when building.
-- Without the `genv` profile enabled, the `genvisis.jar` profile will not be built (but this will speed up the Maven build time)
-
 #### Error: Project configuration is not up-to-date with pom.xml
 
 Maven `pom.xml`s are translated to Eclipse projects via the M2Eclipse plugin. Unfortunately, by default it does not automatically update settings when the `pom.xml` changes, resulting in these annoying errors popping up from time to time.
@@ -80,23 +67,6 @@ For convenience, you can also [create a dedicated run configuration](https://www
 
 Creating a run configuration will allow you to select the Maven build from the [Run toolbar button](https://developers.google.com/eclipse/docs/running_and_debugging_2_0), and also allows customization of properties (in contrast to the global properties declared in your `settings.xml`).
 
-#### Changing main class or jar name
-
-The Assembly project uses two parameters to determine how to build the final `.jar`:
-
-* `outname`  - name of the .jar, default: "genvisis"
-* `mainClass` - fully qualified main class to run when executing the .jar, default: org.genvisis.cnv.Launch
-
-These parameters can be overridden [the standard Maven way](http://books.sonatype.com/mvnref-book/reference/running-sect-options.html) to customize the output .jar.
-
-Additionally, when creating a run configuration in Eclipse there is a section to override parameters, so you can use multiple run configurations to manage your different views of the Genvisis codebase.
-
-A final option is to create a `pom.xml` that uses the `Assembly` pom as its parent and overrides these parameters. The advantage to this method is that it provides a tangible `pom.xml` that implicitly documents the parameters, and can be shared with the community
-
-#### Running tests
-
-The default when a maven install is executed is to run every test. In order to have a faster build that skips lengthy tests, the `fastTests` profile can be activated by setting the `fastTests` property to `true`. (`-DfastTests=true` from the command line or added as a property in an eclipse run conifguration)
-
 #### Style templates
 
 This repository includes Eclipse style templates, located in `Genvisis.git/config`. Before committing changes to Genvisis, please import these templates to your [Clean Up](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-cleanup.htm) and [Formatter](https://help.eclipse.org/neon/index.jsp?topic=%2Forg.eclipse.jdt.doc.user%2Freference%2Fpreferences%2Fjava%2Fcodestyle%2Fref-preferences-formatter.htm) code style preferences.
@@ -107,13 +77,43 @@ Synchronizing code styles across all developers makes reviewing code changes muc
 
 In the event that the style templates themselves require updating, such a commit should also the new templates to the complete code base (ensuring a fresh starting point).
 
-## Automatic upload and copy
+## Building the Genvisis jar
 
-The following properties are available when the `genv` profile is activated:
+Whether from Eclipse or the command line, to build the `genvisis.jar`, we need to run Maven with the parameters:
+
+* project: **pom-genvisis** (or top directory of git repo)
+* goal: **install**
+* profile: **genv** 
+
+When complete, your `genvisis.jar` will be built in the `Assembly/target/` directory, per the standard directory layout.
+
+Notes:
+- Without the `fastTests` profile enabled, the unit tests will be prohibitively slow when building.
+- Without the `genv` profile enabled, the `genvisis.jar` will not be built (but this will speed up the Maven build time)
+
+These parameters can be overridden [the standard Maven way](http://books.sonatype.com/mvnref-book/reference/running-sect-options.html) from the command line to customize the output .jar.
+
+Additionally, when creating a run configuration in Eclipse there is a section to override parameters, so you can use multiple run configurations to manage your different views of the Genvisis codebase.
+
+### Automatic upload and copy
+
+The following maven properties can be set when the `genv` profile is activated:
 
 * `genv.copy.path` - the output `genvisis.jar` will be copied to this location
 * `genv.upload.exe` - this application (e.g. `scp`, `pscp`) will be used to upload the output `genvisis.jar`
 * `genv.upload.path` - the remote location to send the `genvisis.jar`, e.g. `user@host:/path/`
+
+### Changing main class or jar name
+
+The following maven properties can also be set when building the `.jar`:
+
+* `outname`  - name of the .jar, default: "genvisis"
+* `mainClass` - fully qualified main class to run when executing the .jar, default: org.genvisis.cnv.Launch
+
+## Running tests
+
+The default when a maven install is executed is to run every test. In order to have a faster build that skips lengthy tests, the `fastTests` profile can be activated by setting the `fastTests` property to `true`. (`-DfastTests=true` from the command line or added as a property in an eclipse run conifguration)
+
 
 ### Note on passwords
 
