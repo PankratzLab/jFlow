@@ -1,7 +1,5 @@
 package org.genvisis.cnv.filesys;
 
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.variant.variantcontext.Allele;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.ref.Reference;
@@ -40,6 +38,8 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
+import htsjdk.tribble.annotation.Strand;
+import htsjdk.variant.variantcontext.Allele;
 
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
