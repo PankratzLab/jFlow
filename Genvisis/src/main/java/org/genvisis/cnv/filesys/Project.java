@@ -54,6 +54,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.seq.manage.ReferenceGenome;
 import com.google.common.collect.ImmutableMap;
 
 public class Project implements PropertyChangeListener {
@@ -1815,6 +1816,14 @@ public class Project implements PropertyChangeListener {
    */
   public String getReferenceGenomeFASTAFilename() {
     return Resources.genome(GENOME_BUILD_VERSION.getValue(), log).getFASTA().get();
+  }
+
+  /**
+   * @return {@link ReferenceGenome} for the genome build version of this project. May cause the
+   *         reference to be downloaded if not locally available
+   */
+  public ReferenceGenome getReferenceGenome() {
+    return new ReferenceGenome(GENOME_BUILD_VERSION.getValue(), log);
   }
 
   /**
