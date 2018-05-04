@@ -3,10 +3,11 @@ package org.genvisis.cnv.workflow;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.genvisis.cnv.filesys.Project;
 
 public abstract class RequirementSet {
 
-  static class RequirementSetBuilder {
+  public static class RequirementSetBuilder {
 
     private RequirementSetBuilder() {}
 
@@ -23,13 +24,13 @@ public abstract class RequirementSet {
   protected List<Requirement> reqs = new java.util.ArrayList<>();
   protected List<RequirementSet> reqSets = new java.util.ArrayList<>();
 
-  RequirementSet add(Requirement r) {
+  public RequirementSet add(Requirement r) {
     // UnitaryRequirementSet is used to preserve the order of added requirements
     reqSets.add(new UnitaryRequirementSet().add(r));
     return this;
   }
 
-  RequirementSet add(RequirementSet rs) {
+  public RequirementSet add(RequirementSet rs) {
     reqSets.add(rs);
     return this;
   }
@@ -49,7 +50,7 @@ public abstract class RequirementSet {
     return getFlatRequirementsList().size();
   }
 
-  abstract boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+  abstract boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
                                          Map<Step, Map<Requirement, String>> variables);
 
   @Override
@@ -81,7 +82,7 @@ public abstract class RequirementSet {
     private UnitaryRequirementSet() {}
 
     @Override
-    RequirementSet add(Requirement r) {
+    public RequirementSet add(Requirement r) {
       if (this.reqs.size() > 0) {
         throw new RuntimeException("UnitaryRequirementSet can only take one Requirement object.");
       }
@@ -95,9 +96,9 @@ public abstract class RequirementSet {
     }
 
     @Override
-    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+    boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
                                   Map<Step, Map<Requirement, String>> variables) {
-      return this.reqs.get(0).checkRequirement(variables.get(step).get(this.reqs.get(0)),
+      return this.reqs.get(0).checkRequirement(proj, variables.get(step).get(this.reqs.get(0)),
                                                stepSelections, variables);
     }
 
@@ -113,15 +114,15 @@ public abstract class RequirementSet {
     private OrRequirementSet() {}
 
     @Override
-    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+    boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
                                   Map<Step, Map<Requirement, String>> variables) {
       for (Requirement r : reqs) {
-        if (r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
+        if (r.checkRequirement(proj, variables.get(step).get(r), stepSelections, variables)) {
           return true;
         }
       }
       for (RequirementSet rs : reqSets) {
-        if (rs.satisfiesRequirements(step, stepSelections, variables)) {
+        if (rs.satisfiesRequirements(proj, step, stepSelections, variables)) {
           return true;
         }
       }
@@ -145,15 +146,15 @@ public abstract class RequirementSet {
     private AndRequirementSet() {}
 
     @Override
-    boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
+    boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
                                   Map<Step, Map<Requirement, String>> variables) {
       for (Requirement r : reqs) {
-        if (!r.checkRequirement(variables.get(step).get(r), stepSelections, variables)) {
+        if (!r.checkRequirement(proj, variables.get(step).get(r), stepSelections, variables)) {
           return false;
         }
       }
       for (RequirementSet rs : reqSets) {
-        if (!rs.satisfiesRequirements(step, stepSelections, variables)) {
+        if (!rs.satisfiesRequirements(proj, step, stepSelections, variables)) {
           return false;
         }
       }

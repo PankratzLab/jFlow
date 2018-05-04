@@ -54,7 +54,7 @@ public class StepTask extends Task<Void, Void> {
       e = e1;
     }
     if (code != Step.FINAL_CODE.CANCELLED
-        && (e != null || getFailed() || !this.step.checkIfOutputExists(variables))) {
+        && (e != null || getFailed() || !this.step.checkIfOutputExists(proj, variables))) {
       code = Step.FINAL_CODE.FAILED;
     }
     failureException = e;

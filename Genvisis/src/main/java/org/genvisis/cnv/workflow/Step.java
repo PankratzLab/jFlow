@@ -92,7 +92,7 @@ public abstract class Step implements Comparable<Step> {
     if (variables.get(this) == null) {
       return false;
     }
-    return this.requirements.satisfiesRequirements(this, stepSelections, variables);
+    return this.requirements.satisfiesRequirements(proj, this, stepSelections, variables);
   }
 
   /**
@@ -104,7 +104,8 @@ public abstract class Step implements Comparable<Step> {
     return requirements;
   }
 
-  public abstract boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables);
+  public abstract boolean checkIfOutputExists(Project proj,
+                                              Map<Step, Map<Requirement, String>> variables);
 
   public abstract String getCommandLine(Project proj,
                                         Map<Step, Map<Requirement, String>> variables);
