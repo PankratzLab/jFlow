@@ -333,6 +333,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
     private int missingPositionCount;
     private int ambiguousPositionCount;
+    private List<String> missingSeqMkrs;
 
     /**
      * @param proj Project to parse MarkerDetailSet from
@@ -456,6 +457,35 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
     }
 
+    private AllelePair parseAllelePair(MarkerBlastAnnotation markerBlastAnnotation) {
+      Allele a;
+      Allele b;
+      if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
+        missingSeqMkrs.add(markerBlastAnnotation.getMarkerName());
+        a = Allele.NO_CALL;
+        b = Allele.NO_CALL;
+      } else {
+        MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+        Strand strand = markerSeqAnnotation.getStrand();
+        a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
+        b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
+        Allele ref = markerSeqAnnotation.getRef();
+        // ensure that only ref Allele is set as reference status
+        if (ref.basesMatch(a)) {
+          a = ref;
+          b = Allele.create(b, true);
+        } else if (ref.basesMatch(b)) {
+          a = Allele.create(a, true);
+          b = ref;
+        } else {
+          a = Allele.create(a, true);
+          b = Allele.create(b, true);
+        }
+      }
+
+      return AllelePair.of(a, b);
+    }
+
     /**
      * @return a MarkerDetailSet generated using this BLAST annotation and the order of the
      *         naiveMarkerSet
@@ -480,43 +510,18 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
       missingPositionCount = 0;
       ambiguousPositionCount = 0;
-      ArrayList<String> missingSeqMkrs = new ArrayList<>();
+      missingSeqMkrs = new ArrayList<>();
       try (PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
                                                                  + "MarkerPositionBLASTIssues.txt")) {
         issuesWriter.println(TAB_JOINER.join(MARKER_POSITIONS_ISSUES_HEADER));
         for (int i = 0; i < markerNames.length; i++) {
-
           MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
-          Allele a;
-          Allele b;
-          if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
-            missingSeqMkrs.add(markerNames[i]);
-            a = Allele.NO_CALL;
-            b = Allele.NO_CALL;
-          } else {
-            MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
-            Strand strand = markerSeqAnnotation.getStrand();
-            a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
-            b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
-            Allele ref = markerSeqAnnotation.getRef();
-            // ensure that only ref Allele is set as reference status
-            if (ref.basesMatch(a)) {
-              a = ref;
-              b = Allele.create(b, true);
-            } else if (ref.basesMatch(b)) {
-              a = Allele.create(a, true);
-              b = ref;
-            } else {
-              a = Allele.create(a, true);
-              b = Allele.create(b, true);
-            }
-          }
-
+          AllelePair allelePair = parseAllelePair(markerBlastAnnotation);
           GenomicPosition genomicPosition = parseGenomicPosition(markerBlastAnnotation,
                                                                  new GenomicPosition(naiveMarkerSet.getChrs()[i],
                                                                                      naiveMarkerSet.getPositions()[i]),
                                                                  issuesWriter);
-          markers.add(new Marker(markerNames[i], genomicPosition, AllelePair.of(a, b)));
+          markers.add(new Marker(markerNames[i], genomicPosition, allelePair));
         }
       }
       if (ambiguousPositionCount > 0) {
