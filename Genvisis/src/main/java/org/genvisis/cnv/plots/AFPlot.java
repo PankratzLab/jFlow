@@ -28,6 +28,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import org.genvisis.CLI;
+import org.genvisis.cnv.filesys.MarkerDetailSet.AllelePair;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
@@ -200,8 +201,8 @@ public class AFPlot {
             Marker m = new Marker(line.getString(snpCol),
                                   new GenomicPosition(line.getUnsafe(chrCol),
                                                       line.getUnsafe(posCol)),
-                                  Allele.create(line.getString(refCol), true),
-                                  Allele.create(line.getString(altCol), false));
+                                  AllelePair.of(Allele.create(line.getString(refCol), true),
+                                                Allele.create(line.getString(altCol), false)));
             dataMap = new HashMap<>();
             dataMap.put(POPULATION.ALL, line.getUnsafe(afAll));
             dataMap.put(POPULATION.EAS, line.getUnsafe(afEas));

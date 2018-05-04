@@ -55,11 +55,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     private final char charB;
     private final RefAllele refAllele;
 
-    /**
-     * @param a Allele for A (reference status is used to set ref allele)
-     * @param b Allele for B (reference status is used to set ref allele)
-     */
-    public AllelePair(Allele a, Allele b) {
+    private AllelePair(Allele a, Allele b) {
       this.alleleA = a;
       this.alleleB = b;
       if (a.isReference()) {
@@ -77,12 +73,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       this.charB = ab[1];
     }
 
-    /**
-     * @param a char for allele A
-     * @param b char for allele B
-     * @param refAllele identifies which allele is ref
-     */
-    public AllelePair(char a, char b, @Nullable RefAllele refAllele) {
+    private AllelePair(char a, char b, @Nullable RefAllele refAllele) {
       this.alleleA = parseAllele(a, RefAllele.A.equals(refAllele));
       this.alleleB = parseAllele(b, RefAllele.B.equals(refAllele));
       this.charA = a;
@@ -96,6 +87,34 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       } catch (IllegalArgumentException iae) {
         return Allele.NO_CALL;
       }
+    }
+
+    /**
+     * @param a Allele for A (reference status is used to set ref allele)
+     * @param b Allele for B (reference status is used to set ref allele)
+     * @return {@link AllelePair} of a and b
+     */
+    public static AllelePair of(Allele a, Allele b) {
+      return new AllelePair(a, b);
+    }
+
+    /**
+     * @param a char for allele A
+     * @param b char for allele B
+     * @param refAllele identifies which allele is ref
+     * @return {@link AllelePair} of a and b with refAllele
+     */
+    public static AllelePair of(char a, char b, RefAllele refAllele) {
+      return new AllelePair(a, b, refAllele);
+    }
+
+    /**
+     * @param a char for allele A
+     * @param b char for allele B
+     * @return {@link AllelePair} of a and b with no ref allele
+     */
+    public static AllelePair of(char a, char b) {
+      return new AllelePair(a, b, null);
     }
 
     public Allele getAlleleA() {
@@ -209,30 +228,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     /**
      * @param name marker name
      * @param genomicPosition marker's position in the genome
-     * @param a Allele for A (reference status is used to set ref allele)
-     * @param b Allele for B (reference status is used to set ref allele)
+     * @param allelePair marker's pair of alleles
      */
-    public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b) {
+    public Marker(String name, GenomicPosition genomicPosition, AllelePair allelePair) {
       super();
       this.name = name;
       this.genomicPosition = genomicPosition;
-      this.allelePair = new AllelePair(a, b);
+      this.allelePair = allelePair;
     }
 
     public Marker(String name, GenomicPosition genomicPosition) {
-      this(name, genomicPosition, 'A', 'B');
-    }
-
-    public Marker(String name, GenomicPosition genomicPosition, char a, char b) {
-      this(name, genomicPosition, a, b, null);
-    }
-
-    public Marker(String name, GenomicPosition genomicPosition, char a, char b,
-                  RefAllele refAllele) {
-      super();
-      this.name = name;
-      this.genomicPosition = genomicPosition;
-      this.allelePair = new AllelePair(a, b, refAllele);
+      this(name, genomicPosition, AllelePair.of('A', 'B'));
     }
 
     public String getName() {
@@ -384,7 +390,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       GenomicPosition genomicPosition = new GenomicPosition(chrs[i], positions[i]);
       Marker marker;
       if (abAlleles != null) {
-        marker = new Marker(name, genomicPosition, abAlleles[i][0], abAlleles[i][1]);
+        marker = new Marker(name, genomicPosition, AllelePair.of(abAlleles[i][0], abAlleles[i][1]));
       } else {
         marker = new Marker(name, genomicPosition);
       }
@@ -683,7 +689,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                                                  new GenomicPosition(naiveMarkerSet.getChrs()[i],
                                                                                      naiveMarkerSet.getPositions()[i]),
                                                                  issuesWriter);
-          markers.add(new Marker(markerNames[i], genomicPosition, a, b));
+          markers.add(new Marker(markerNames[i], genomicPosition, AllelePair.of(a, b)));
         }
       }
       if (ambiguousPositionCount > 0) {
