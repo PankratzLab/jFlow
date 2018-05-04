@@ -477,7 +477,9 @@ public class Project implements PropertyChangeListener {
                                                              false);
   public FileProperty HMM_FILENAME = new FileProperty(this, PropertyKeys.KEY_HMM_FILENAME, "",
                                                       GROUP.CNV_FILES, true, COPY.REFERENCE,
-                                                      "data/hhall.hmm", false);
+                                                      Resources.cnv(null).getAllHmm()
+                                                               .getLocalPath(),
+                                                      false);
   public FileProperty INTENSITY_PC_MARKERS_FILENAME = new FileProperty(this,
                                                                        PropertyKeys.KEY_INTENSITY_PC_MARKERS_FILENAME,
                                                                        "",

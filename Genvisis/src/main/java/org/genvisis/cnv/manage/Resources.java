@@ -603,7 +603,7 @@ public final class Resources {
     /**
      * @return pfb file
      */
-    public Resource getHmm() {
+    public Resource getPFB() {
       return getResource("affygw6." + build.getBuild() + ".pfb");
     }
   }

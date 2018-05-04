@@ -5,6 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.ResourceVersionCheck;
 import org.genvisis.common.HttpUpdate.RemoteVersionCheck;
 
@@ -42,7 +43,7 @@ public final class StartupValidation {
    */
   public static boolean passed() {
     if (status == NOT_STARTED) {
-      doValidation();
+      startValidation();
     }
     if (status == IN_PROGRESS) {
       System.out.println("Waiting for startup validation to complete");
@@ -96,15 +97,15 @@ public final class StartupValidation {
         public void run() {
           doValidation();
         }
+
       }).start();
     }
   }
 
   /**
-   * Perform validation checks
+   * @return True if we have internet access
    */
-  private static void doValidation() {
-    List<String> warnings = new ArrayList<>();
+  private static boolean netCheck() {
     boolean haveInternet = true;
 
     // Check for internet connection, which will determine which checks we perform
@@ -117,6 +118,15 @@ public final class StartupValidation {
     } catch (IOException e) {
       haveInternet = false;
     }
+    return haveInternet;
+  }
+
+  /**
+   * Perform validation checks
+   */
+  private static void doValidation() {
+    List<String> warnings = new ArrayList<>();
+    boolean haveInternet = netCheck();
 
     // Run all checks
     for (StartupCheck check : toCheck) {
@@ -142,6 +152,20 @@ public final class StartupValidation {
     synchronized (LOCK) {
       // Wake up any threads waiting for #passed() checks.
       LOCK.notifyAll();
+    }
+    doPreload(haveInternet);
+  }
+
+  /**
+   * Preload {@link Resources} we may want
+   */
+  private static void doPreload(boolean haveInternet) {
+    if (haveInternet) {
+      // Pre-load critical resources
+      Logger resourceLog = new Logger();
+      Resources.cnv(resourceLog).getAllHmm().get();
+      Resources.cnv(resourceLog).get550Hmm().get();
+      Resources.affy(resourceLog).getHMM().get();
     }
   }
 
