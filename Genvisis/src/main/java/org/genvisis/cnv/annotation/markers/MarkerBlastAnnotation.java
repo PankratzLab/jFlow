@@ -83,6 +83,13 @@ public class MarkerBlastAnnotation implements AnnotationParser {
     return markerEvalueHistogramAnnotation.formatHistogram();
   }
 
+  /**
+   * @return the markerName
+   */
+  public String getMarkerName() {
+    return markerName;
+  }
+
   @Override
   public void parseAnnotation(VariantContext vc, Logger log) {
     for (Entry<BLAST_ANNOTATION_TYPES, ArrayBlastAnnotationList> bTypeEntry : annotationLists.entrySet()) {// each
