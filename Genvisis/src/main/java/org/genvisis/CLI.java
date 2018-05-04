@@ -149,7 +149,11 @@ public class CLI {
    */
   public String get(String key) {
     checkParse();
-    return parsed.get(key);
+    String val = parsed.get(key);
+    if (val != null && val.equals("null")) {
+      return null;
+    }
+    return val;
   }
 
   /**
@@ -158,7 +162,11 @@ public class CLI {
    * @throws IllegalStateException if a {@link #parse} method has not been called yet.
    */
   public File getF(String key) {
-    return new File(get(key));
+    String val = get(key);
+    if (val == null) {
+      return null;
+    }
+    return new File(val);
   }
 
   /**
