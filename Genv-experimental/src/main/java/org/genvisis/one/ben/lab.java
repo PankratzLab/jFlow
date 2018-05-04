@@ -1649,7 +1649,7 @@ public class lab {
       // fixBCXResults();
       // fixBCXResultsAlleleFreq();
 
-      combineAllWithSelect();
+      //      combineAllWithSelect();
 
       // runHRC();
       // QQPlot.main(new String[]
