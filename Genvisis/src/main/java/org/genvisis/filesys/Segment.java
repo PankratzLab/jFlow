@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
@@ -67,6 +68,25 @@ public class Segment implements Serializable, Comparable<Segment> {
     this.chr = chr;
     this.start = start;
     this.stop = stop;
+  }
+
+  /**
+   * Construct a {@link Segment} for a single base
+   * 
+   * @param chr
+   * @param position
+   */
+  public Segment(byte chr, int position) {
+    this(chr, position, position);
+  }
+
+  /**
+   * Construct a {@link Segment} for a single {@link GenomicPosition}
+   * 
+   * @param genomicPosition
+   */
+  public Segment(GenomicPosition genomicPosition) {
+    this(genomicPosition.getChr(), genomicPosition.getPosition());
   }
 
   public Segment(int start, int stop) {
