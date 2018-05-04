@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -26,11 +27,13 @@ import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
@@ -157,7 +160,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     }
   }
 
-  public static final long serialVersionUID = 8L;
+  public static final long serialVersionUID = 9L;
 
   public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
                                                                                        "DefinedChr",
@@ -329,6 +332,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     private final Project proj;
     private final MarkerSetInfo naiveMarkerSet;
     private final String blastAnnotation;
+    private final ReferenceGenome referenceGenome;
     private final Logger log;
 
     private int missingPositionCount;
@@ -348,6 +352,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       this.proj = proj;
       this.naiveMarkerSet = naiveMarkerSet;
       this.blastAnnotation = blastAnnotation;
+      this.referenceGenome = proj.getReferenceGenome();
       this.log = log;
     }
 
@@ -450,16 +455,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       if (bestMatchPosition != naivePosition.getPosition()
           || bestMatchChr != naivePosition.getChr()) {
         issuesWriter.println(TAB_JOINER.join(markerBlastAnnotation.getMarkerName(),
-                                            naivePosition.getChr(), naivePosition.getPosition(),
-                                            bestMatchChr, bestMatchPosition));
+                                             naivePosition.getChr(), naivePosition.getPosition(),
+                                             bestMatchChr, bestMatchPosition));
       }
       return naivePosition;
 
     }
 
-    private AllelePair parseAllelePair(MarkerBlastAnnotation markerBlastAnnotation) {
+    private Allele determineReferenceAllele(GenomicPosition genomicPosition) {
+      String[] refSequence = referenceGenome.getSequenceFor(new Segment(genomicPosition), true);
+      if (refSequence == null) return null;
+      return Allele.create(Iterables.getOnlyElement(Arrays.asList(refSequence)), true);
+    }
+
+    private AllelePair parseAllelePair(MarkerBlastAnnotation markerBlastAnnotation,
+                                       GenomicPosition genomicPosition) {
       Allele a;
       Allele b;
+
       if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
         missingSeqMkrs.add(markerBlastAnnotation.getMarkerName());
         a = Allele.NO_CALL;
@@ -469,12 +482,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
         Strand strand = markerSeqAnnotation.getStrand();
         a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
         b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
-        Allele ref = markerSeqAnnotation.getRef();
+        Allele ref = determineReferenceAllele(genomicPosition);
         // ensure that only ref Allele is set as reference status
-        if (ref.basesMatch(a)) {
+        if (ref != null && ref.basesMatch(a)) {
           a = ref;
           b = Allele.create(b, true);
-        } else if (ref.basesMatch(b)) {
+        } else if (ref != null && ref.basesMatch(b)) {
           a = Allele.create(a, true);
           b = ref;
         } else {
@@ -516,11 +529,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
         issuesWriter.println(TAB_JOINER.join(MARKER_POSITIONS_ISSUES_HEADER));
         for (int i = 0; i < markerNames.length; i++) {
           MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
-          AllelePair allelePair = parseAllelePair(markerBlastAnnotation);
           GenomicPosition genomicPosition = parseGenomicPosition(markerBlastAnnotation,
                                                                  new GenomicPosition(naiveMarkerSet.getChrs()[i],
                                                                                      naiveMarkerSet.getPositions()[i]),
                                                                  issuesWriter);
+          AllelePair allelePair = parseAllelePair(markerBlastAnnotation, genomicPosition);
           markers.add(new Marker(markerNames[i], genomicPosition, allelePair));
         }
       }
