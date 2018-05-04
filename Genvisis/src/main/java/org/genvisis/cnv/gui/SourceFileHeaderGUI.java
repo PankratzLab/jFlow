@@ -110,17 +110,19 @@ public class SourceFileHeaderGUI extends JDialog {
 
     cbSnpInd = new JComboBox(headerParts);
     cbSnpInd.setSelectedIndex(reportHdr.getColSnpIdent() == -1 ? 0 : reportHdr.getColSnpIdent()); // TODO SNP
-                                                                                       // INDEX
-                                                                                       // shouldn't
-                                                                                       // ever be
-                                                                                       // -1
+    // INDEX
+    // shouldn't
+    // ever be
+    // -1
     panel.add(cbSnpInd, "cell 2 2,growx");
 
     JLabel lblSampleId = new JLabel("Sample ID:");
     panel.add(lblSampleId, "cell 1 3");
 
     cbSampInd = new JComboBox(sampOptions);
-    cbSampInd.setSelectedIndex(reportHdr.getColSampleIdent() == -1 ? 0 : 1 + reportHdr.getColSampleIdent());
+    cbSampInd.setSelectedIndex(reportHdr.getColSampleIdent() == -1 ? 0
+                                                                   : 1
+                                                                     + reportHdr.getColSampleIdent());
     panel.add(cbSampInd, "cell 2 3,growx");
 
     JLabel lblRecommended = new JLabel("Recommended:");
