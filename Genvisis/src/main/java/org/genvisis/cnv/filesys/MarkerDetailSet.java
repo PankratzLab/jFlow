@@ -20,7 +20,6 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.RefAllele;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
@@ -46,6 +45,10 @@ import htsjdk.variant.variantcontext.Allele;
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
   public static class AllelePair implements Serializable, Comparable<AllelePair> {
+
+    public enum RefAllele {
+      A, B
+    }
 
     private static final long serialVersionUID = 1L;
 
@@ -215,10 +218,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
   public static class Marker implements Serializable, Comparable<Marker> {
 
-    public enum RefAllele {
-      A, B
-    }
-
     private static final long serialVersionUID = 4L;
 
     private final String name;
@@ -277,7 +276,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       return allelePair.getAlleleB();
     }
 
-    public RefAllele getRefAllele() {
+    public AllelePair.RefAllele getRefAllele() {
       return allelePair.getRefAllele();
     }
 

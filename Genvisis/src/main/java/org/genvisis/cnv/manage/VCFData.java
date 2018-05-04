@@ -19,8 +19,8 @@ import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.AllelePair;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.RefAllele;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.Files;
@@ -473,7 +473,7 @@ public final class VCFData {
           List<Allele> all;
           byte indGeno = genotypes[idInd];
           // 0 for A/A, 1 for A/B, 2 for B/B, and -1 for null
-          boolean aIsRef = mkr.getRefAllele().equals(RefAllele.A);
+          boolean aIsRef = mkr.getRefAllele().equals(AllelePair.RefAllele.A);
           switch (indGeno) {
             case 0:
               all = aIsRef ? Arrays.asList(aR, aR) : Arrays.asList(aA, aA);
