@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import javax.annotation.Nullable;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
@@ -19,6 +20,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker.RefAllele;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
@@ -43,62 +45,44 @@ import htsjdk.variant.variantcontext.Allele;
 
 public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport {
 
-  public static class Marker implements Serializable, Comparable<Marker> {
+  public static class AllelePair implements Serializable, Comparable<AllelePair> {
 
-    public enum RefAllele {
-      A, B
-    }
+    private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = 3L;
-
-    private final String name;
-    private final GenomicPosition genomicPosition;
     private final Allele alleleA;
     private final Allele alleleB;
-    private final RefAllele refAllele;
     private final char charA;
     private final char charB;
+    private final RefAllele refAllele;
 
     /**
-     * @param name marker name
-     * @param genomicPosition marker's position in the genome
      * @param a Allele for A (reference status is used to set ref allele)
      * @param b Allele for B (reference status is used to set ref allele)
      */
-    public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b) {
-      super();
-      this.name = name;
-      this.genomicPosition = genomicPosition;
+    public AllelePair(Allele a, Allele b) {
       this.alleleA = a;
       this.alleleB = b;
+      if (a.isReference()) {
+        if (b.isNonReference()) {
+          refAllele = RefAllele.A;
+        } else throw new IllegalArgumentException("Cannot construct " + this.getClass().getName()
+                                                  + " with two reference alleles");
+      } else if (b.isReference()) {
+        refAllele = RefAllele.B;
+      } else {
+        refAllele = null;
+      }
       char[] ab = ABLookup.parseABFromAlleles(a, b);
       this.charA = ab[0];
       this.charB = ab[1];
-      if (a.isReference()) {
-        this.refAllele = RefAllele.A;
-        if (b.isReference()) {
-          throw new IllegalArgumentException("Both alleles cannot be reference");
-        }
-      } else if (b.isReference()) {
-        this.refAllele = RefAllele.B;
-      } else {
-        this.refAllele = null;
-      }
     }
 
-    public Marker(String name, GenomicPosition genomicPosition) {
-      this(name, genomicPosition, 'A', 'B');
-    }
-
-    public Marker(String name, GenomicPosition genomicPosition, char a, char b) {
-      this(name, genomicPosition, a, b, null);
-    }
-
-    public Marker(String name, GenomicPosition genomicPosition, char a, char b,
-                  RefAllele refAllele) {
-      super();
-      this.name = name;
-      this.genomicPosition = genomicPosition;
+    /**
+     * @param a char for allele A
+     * @param b char for allele B
+     * @param refAllele identifies which allele is ref
+     */
+    public AllelePair(char a, char b, @Nullable RefAllele refAllele) {
       this.alleleA = parseAllele(a, RefAllele.A.equals(refAllele));
       this.alleleB = parseAllele(b, RefAllele.B.equals(refAllele));
       this.charA = a;
@@ -114,40 +98,20 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       }
     }
 
-    public String getName() {
-      return name;
-    }
-
-    public byte getChr() {
-      return genomicPosition.getChr();
-    }
-
-    public int getPosition() {
-      return genomicPosition.getPosition();
-    }
-
-    public GenomicPosition getGenomicPosition() {
-      return genomicPosition;
-    }
-
-    public char getA() {
-      return getAB()[0];
-    }
-
-    public char getB() {
-      return getAB()[1];
-    }
-
-    public char[] getAB() {
-      return new char[] {charA, charB};
-    }
-
     public Allele getAlleleA() {
       return alleleA;
     }
 
     public Allele getAlleleB() {
       return alleleB;
+    }
+
+    public char getA() {
+      return charA;
+    }
+
+    public char getB() {
+      return charB;
     }
 
     public RefAllele getRefAllele() {
@@ -180,7 +144,6 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
           return alleleA;
         default:
           throw new IllegalStateException("Undefined refAllele instance:" + refAllele.toString());
-
       }
     }
 
@@ -190,8 +153,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       int result = 1;
       result = prime * result + ((alleleA == null) ? 0 : alleleA.hashCode());
       result = prime * result + ((alleleB == null) ? 0 : alleleB.hashCode());
-      result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
-      result = prime * result + ((name == null) ? 0 : name.hashCode());
+      result = prime * result + charA;
+      result = prime * result + charB;
       result = prime * result + ((refAllele == null) ? 0 : refAllele.hashCode());
       return result;
     }
@@ -200,21 +163,151 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     public boolean equals(Object obj) {
       if (this == obj) return true;
       if (obj == null) return false;
-      if (getClass() != obj.getClass()) return false;
-      Marker other = (Marker) obj;
+      if (!(obj instanceof AllelePair)) return false;
+      AllelePair other = (AllelePair) obj;
       if (alleleA == null) {
         if (other.alleleA != null) return false;
       } else if (!alleleA.equals(other.alleleA)) return false;
       if (alleleB == null) {
         if (other.alleleB != null) return false;
       } else if (!alleleB.equals(other.alleleB)) return false;
+      if (charA != other.charA) return false;
+      if (charB != other.charB) return false;
+      if (refAllele != other.refAllele) return false;
+      return true;
+    }
+
+    @Override
+    public int compareTo(AllelePair o) {
+      int cmp = alleleA.compareTo(o.alleleA);
+      if (cmp != 0) return cmp;
+      cmp = alleleB.compareTo(o.alleleB);
+      if (cmp != 0) return cmp;
+      if (refAllele != null && o.refAllele != null) {
+        cmp = refAllele.compareTo(o.refAllele);
+        return cmp;
+      } else {
+        if (refAllele == null && o.refAllele != null) return -1;
+        if (refAllele != null && o.refAllele == null) return 1;
+        return 0;
+      }
+    }
+  }
+
+  public static class Marker implements Serializable, Comparable<Marker> {
+
+    public enum RefAllele {
+      A, B
+    }
+
+    private static final long serialVersionUID = 4L;
+
+    private final String name;
+    private final GenomicPosition genomicPosition;
+    private final AllelePair allelePair;
+
+    /**
+     * @param name marker name
+     * @param genomicPosition marker's position in the genome
+     * @param a Allele for A (reference status is used to set ref allele)
+     * @param b Allele for B (reference status is used to set ref allele)
+     */
+    public Marker(String name, GenomicPosition genomicPosition, Allele a, Allele b) {
+      super();
+      this.name = name;
+      this.genomicPosition = genomicPosition;
+      this.allelePair = new AllelePair(a, b);
+    }
+
+    public Marker(String name, GenomicPosition genomicPosition) {
+      this(name, genomicPosition, 'A', 'B');
+    }
+
+    public Marker(String name, GenomicPosition genomicPosition, char a, char b) {
+      this(name, genomicPosition, a, b, null);
+    }
+
+    public Marker(String name, GenomicPosition genomicPosition, char a, char b,
+                  RefAllele refAllele) {
+      super();
+      this.name = name;
+      this.genomicPosition = genomicPosition;
+      this.allelePair = new AllelePair(a, b, refAllele);
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public byte getChr() {
+      return genomicPosition.getChr();
+    }
+
+    public int getPosition() {
+      return genomicPosition.getPosition();
+    }
+
+    public GenomicPosition getGenomicPosition() {
+      return genomicPosition;
+    }
+
+    public char getA() {
+      return getAB()[0];
+    }
+
+    public char getB() {
+      return getAB()[1];
+    }
+
+    public char[] getAB() {
+      return new char[] {allelePair.getA(), allelePair.getB()};
+    }
+
+    public Allele getAlleleA() {
+      return allelePair.getAlleleA();
+    }
+
+    public Allele getAlleleB() {
+      return allelePair.getAlleleB();
+    }
+
+    public RefAllele getRefAllele() {
+      return allelePair.getRefAllele();
+    }
+
+    public Allele getRef() {
+      return allelePair.getRef();
+    }
+
+    public Allele getAlt() {
+      return allelePair.getAlt();
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((allelePair == null) ? 0 : allelePair.hashCode());
+      result = prime * result + ((genomicPosition == null) ? 0 : genomicPosition.hashCode());
+      result = prime * result + ((name == null) ? 0 : name.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (!(obj instanceof Marker)) return false;
+      Marker other = (Marker) obj;
+      if (allelePair == null) {
+        if (other.allelePair != null) return false;
+      } else if (!allelePair.equals(other.allelePair)) return false;
       if (genomicPosition == null) {
         if (other.genomicPosition != null) return false;
       } else if (!genomicPosition.equals(other.genomicPosition)) return false;
       if (name == null) {
         if (other.name != null) return false;
       } else if (!name.equals(other.name)) return false;
-      if (refAllele != other.refAllele) return false;
       return true;
     }
 
@@ -224,19 +317,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       if (cmp != 0) return cmp;
       cmp = name.compareTo(o.name);
       if (cmp != 0) return cmp;
-      cmp = alleleA.compareTo(o.alleleA);
+      cmp = allelePair.compareTo(o.allelePair);
       if (cmp != 0) return cmp;
-      cmp = alleleB.compareTo(o.alleleB);
-      if (cmp != 0) return cmp;
-      if (refAllele != null && o.refAllele != null) {
-        cmp = refAllele.compareTo(o.refAllele);
-        if (cmp != 0) return cmp;
-      } else {
-        if (refAllele == null && o.refAllele != null) return -1;
-        if (refAllele != null && o.refAllele == null) {
-          return 1;
-        }
-      }
       cmp = name.compareTo(o.name);
       return cmp;
     }
