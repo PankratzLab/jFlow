@@ -154,5 +154,28 @@
 		</dependency>
 
 	</dependencies>
+	
+	<profiles>
+        <profile>
+            <id>fastTests</id>
+            <activation>
+                <property>
+                    <name>fastTests</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- skip the exhaustive unit tests -->
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludedGroups>org.genvisis.ExhaustiveUnitTests</excludedGroups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
