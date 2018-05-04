@@ -83,8 +83,7 @@ import com.google.common.primitives.Ints;
 public class GcAdjustor {
 
   public static final String[] GC_ADJUSTOR_TITLE = {"Adjust by GC content"};
-  // private static final int DEFUALT_GC_MODEL_WINDOW_SNP = 100 * 5120;
-  // private static final int DEFUALT_GC_MODEL_WINDOW_GC = 5120;
+  public static final String GC_BASE_FILE = "gc5base";
 
   /**
    * These defaults are also used by PennCNV - detect_cnv.pl, but might be worth adjusting sometime,
@@ -96,8 +95,8 @@ public class GcAdjustor {
   public static final double DEFAULT_MAX_DATA_VALUE = 1d;
   public static final int[] DEFAULT_REGRESSION_DISTANCE = {1000000};
   public static final int[] DEFAULT_SKIP_PER_CHR = {0};
-  public static final int DEFUALT_NUM_SNP_MAD = 10;// not available as command line option currently
-  public static final double[] DEFUALT_PENNCNV_CHR11_GC_BINS = {54.8207535282258, 56.8381472081218,
+  public static final int DEFAULT_NUM_SNP_MAD = 10;// not available as command line option currently
+  public static final double[] DEFAULT_PENNCNV_CHR11_GC_BINS = {54.8207535282258, 56.8381472081218,
                                                                 53.1218950320513, 46.9484174679487,
                                                                 39.9367227359694, 38.3365384615385,
                                                                 41.9867788461538, 40.4431401466837,
@@ -484,7 +483,7 @@ public class GcAdjustor {
         ArrayList<Integer> tmpCurrentBin = new ArrayList<>(1000);
         ArrayList<Integer> tmpCurrentBinChr11 = new ArrayList<>(1000);// only used for
                                                                       // chromosome 11...for
-                                                                      // defualt pennCNV
+                                                                      // default pennCNV
                                                                       // behavior, and track
                                                                       // even if not needed
 
@@ -699,9 +698,9 @@ public class GcAdjustor {
 
     double wf = ArrayUtils.mad(Doubles.toArray(medianIntensity));
     if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
-      if (pennCNVGCBins.length != DEFUALT_PENNCNV_CHR11_GC_BINS.length) {
+      if (pennCNVGCBins.length != DEFAULT_PENNCNV_CHR11_GC_BINS.length) {
         log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
-        log.reportError("Error - should have " + DEFUALT_PENNCNV_CHR11_GC_BINS.length
+        log.reportError("Error - should have " + DEFAULT_PENNCNV_CHR11_GC_BINS.length
                         + " bins, but found " + pennCNVGCBins.length + " bins instead");
 
       } else {
@@ -709,7 +708,7 @@ public class GcAdjustor {
         medianGc = new ArrayList<>();
         for (int i = 0; i < pennCNVGCBins.length; i++) {
           if (pennCNVGCBins[i] != null) {
-            medianGc.add(DEFUALT_PENNCNV_CHR11_GC_BINS[i]);
+            medianGc.add(DEFAULT_PENNCNV_CHR11_GC_BINS[i]);
             medianIntensity.add(ArrayUtils.median(ArrayUtils.subArray(intensities,
                                                                       pennCNVGCBins[i])));
           }
@@ -1124,104 +1123,6 @@ public class GcAdjustor {
 
     }
 
-    // /**
-    // * uses {@link GcModel#generateFromReferenceGenome(Project, String, String, int)} but with the
-    // default gc model window size of 100*5120
-    // */
-    // public static boolean generateFromReferenceGenome(Project proj, String
-    // fullPathToReferenceGenome, String fullPathToOutputModel) {
-    // return generateFromReferenceGenome(proj, fullPathToReferenceGenome, fullPathToOutputModel,
-    // DEFUALT_GC_MODEL_WINDOW_SNP, DEFUALT_GC_MODEL_WINDOW_GC);
-    // }
-
-    // /**
-    // * @param proj
-    // * @param fullPathToReferenceGenome
-    // * reference fasta
-    // * @param fullPathToOutputModel
-    // * the output gc model file
-    // * @param windowPerSNP
-    // * bp window around each marker to compute gc content in
-    // * @return
-    // */
-    // public static boolean generateFromReferenceGenome(Project proj, String
-    // fullPathToReferenceGenome, String fullPathToOutputModel, int windowPerSNP, int windowPerGC) {
-    // Sys
-    // if (!Files.exists(fullPathToReferenceGenome)) {
-    // proj.getLog().reportFileNotFound(fullPathToReferenceGenome);
-    // return false;
-    // } else if (Files.exists(fullPathToOutputModel)) {
-    // proj.getLog().reportTimeWarning(fullPathToOutputModel + " exists, will not create again...");
-    // return false;
-    // } else {
-    // proj.getLog().reportTimeInfo("Generating gc model file at " + fullPathToOutputModel);
-    // ReferenceGenome referenceGenome = new ReferenceGenome(fullPathToReferenceGenome,
-    // proj.getLog());
-    // LocusSet<Segment> bins = referenceGenome.getBins(windowPerGC);
-    // proj.getLog().reportTimeInfo("Computing gc content for " + bins.getLoci().length + " bins of
-    // " + windowPerGC + " bp");
-    // double[] gcContents = new double[bins.getLoci().length];
-    // for (int i = 0; i < bins.getLoci().length; i++) {
-    // if (i % 1000 == 0) {
-    // proj.getLog().reportTimeInfo("Queried " + (i + 1) + " bins for gc content");
-    // }
-    // gcContents[i] = referenceGenome.getGCContentFor(bins.getLoci()[i]);
-    // }
-    //
-    // MarkerSet markerSet = proj.getMarkerSet();
-    // String[] markerNames = markerSet.getMarkerNames();
-    // int[] positions = markerSet.getPositions();
-    // byte[] chrs = markerSet.getChrs();
-    // try {
-    // PrintWriter writer = Files.openAppropriateWriter(fullPathToOutputModel);
-    // writer.println("Name\tChr\tPosition\tGC");
-    // for (int i = 0; i < markerNames.length; i++) {
-    // Segment bufferedMarkerSeg = new Segment(chrs[i], positions[i],
-    // positions[i]).getBufferedSegment(windowPerSNP);
-    // String chr = chrs[i] + "";
-    // if (chrs[i] == 23) {
-    // chr = "X";
-    // } else if (chrs[i] == 24) {
-    // chr = "Y";
-    // } else if (chrs[i] == 25) {
-    // chr = "XY";
-    // } else if (chrs[i] == 26) {
-    // chr = "Un";
-    // }
-    // double gcContent = Double.NaN;
-    // int[] overlapping = bins.getOverlappingIndices(bufferedMarkerSeg);
-    //
-    // if (overlapping != null && overlapping.length > 0) {
-    // Segment[] binOverlap = Array.subArray(bins.getLoci(), overlapping);
-    // double gcs = 0;
-    // int bps = 0;
-    // for (int j = 0; j < overlapping.length; j++) {
-    // bps += binOverlap[j].getSize();
-    // gcs += gcContents[overlapping[j]] * binOverlap[j].getSize();
-    // }
-    // gcContent = (double) gcs / bps;
-    // } else if (chrs[i] > 0) {
-    // String error = "BUG: Did not find any overlapping bins for marker " + markerNames[i] + " for
-    // window search " + bufferedMarkerSeg.getUCSClocation();
-    // proj.getLog().reportTimeError(error);
-    // writer.close();
-    // throw new IllegalStateException(error);
-    // }
-    //
-    // writer.println(markerNames[i] + "\t" + chr + "\t" + positions[i] + "\t" + gcContent);
-    // }
-    // writer.close();
-    // return true;
-    //
-    // } catch (Exception e) {
-    // proj.getLog().reportError("Error writing to " + fullPathToOutputModel);
-    // proj.getLog().reportException(e);
-    // return false;
-    // }
-    //
-    // }
-    // }
-
     public static GcModel populateFromFile(String fullPathToGcModel, boolean verbose, Logger log) {
       ArrayList<String> markers = new ArrayList<>();
       ArrayList<Byte> chrs = new ArrayList<>();
@@ -1336,7 +1237,7 @@ public class GcAdjustor {
    * @param preparedMarkerSet can be null and will be autogenerated if is
    * @param markerIntensities float[] that is converted to double[] for correction
    * @param gcModel a valid model
-   * @param pennCNVGCWF use the PennCNV defualt chr 11 bins for GCWF calculation
+   * @param pennCNVGCWF use the PennCNV default chr 11 bins for GCWF calculation
    * @param computePrior compute WF and GCWF prior to gc correction
    * @param computePost compute WF and GCWF post gc correction
    * @param verbose reports things akin to PennCNV
@@ -1399,15 +1300,15 @@ public class GcAdjustor {
   public static void main(String[] args) {
     CLI cli = new CLI(GcModel.class);
 
-    cli.addArg("filename", "Project properties file");
-    cli.addArg("logfile", "Project log file", false);
-    cli.addArg("gc5base", "GC5Base file");
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ);
+    cli.addArg(CLI.ARG_LOG, CLI.DESC_LOG, false);
+    cli.addArg(GC_BASE_FILE, "GC5Base file");
 
     cli.parseWithExit(args);
 
-    String filename = cli.get("filename");
-    String logfile = cli.has("logfile") ? cli.get("logfile") : null;
-    String gc5base = cli.get("gc5base");
+    String filename = cli.get(CLI.ARG_PROJ);
+    String logfile = cli.has(CLI.ARG_LOG) ? cli.get(CLI.ARG_LOG) : null;
+    String gc5base = cli.get(GC_BASE_FILE);
 
     Project proj = new Project(filename, logfile);
     GcModel.gcModel(proj, gc5base, proj.GC_MODEL_FILENAME.getValue(), 100);
@@ -1420,7 +1321,7 @@ public class GcAdjustor {
     private double minIntensity = DEFAULT_MIN_DATA_VALUE;
     private double maxIntensity = DEFAULT_MAX_DATA_VALUE;
     private int regressionDistance = DEFAULT_REGRESSION_DISTANCE[0];
-    private int numSnpMAD = DEFUALT_NUM_SNP_MAD;
+    private int numSnpMAD = DEFAULT_NUM_SNP_MAD;
     private int skipPerChr = DEFAULT_SKIP_PER_CHR[0];
     private boolean[] markerMask = null;
     private boolean verbose = false;

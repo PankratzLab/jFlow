@@ -594,8 +594,10 @@ public class GenvisisWorkflow {
           }
           String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
           return cmd.append(Files.getRunString())
-                    .append(" " + GcAdjustor.class.getName() + " proj=" + proj.getPropertyFilename()
-                            + " log=" + proj.getLog().getFilename() + " gc5base=" + gcBaseFile)
+                    .append(" " + GcAdjustor.class.getName() + " " + CLI.ARG_PROJ + "="
+                            + proj.getPropertyFilename() + " " + CLI.ARG_LOG + "="
+                            + proj.getLog().getFilename() + " " + GcAdjustor.GC_BASE_FILE + "="
+                            + gcBaseFile)
                     .toString();
         }
 
