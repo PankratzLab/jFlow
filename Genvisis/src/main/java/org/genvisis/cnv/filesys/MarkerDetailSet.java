@@ -496,122 +496,123 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       int missingPositionCount = 0;
       int ambiguousPositionCount = 0;
       ArrayList<String> missingSeqMkrs = new ArrayList<>();
-      PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-                                                            + "MarkerPositionBLASTIssues.txt");
-      issuesWriter.println(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
-      for (int i = 0; i < markerNames.length; i++) {
+      try (PrintWriter issuesWriter = Files.getAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                                 + "MarkerPositionBLASTIssues.txt")) {
+        issuesWriter.println(tabJoiner.join(MARKER_POSITIONS_ISSUES_HEADER));
+        for (int i = 0; i < markerNames.length; i++) {
 
-        MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
-        int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
-                                                         .getInterrogationPosition();
-        int positionOffset;
-        Allele a;
-        Allele b;
-        if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
-          missingSeqMkrs.add(markerNames[i]);
-          positionOffset = 0;
-          a = Allele.NO_CALL;
-          b = Allele.NO_CALL;
-        } else {
-          int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
-          positionOffset = interrogationPosition - probeLength + 1;
-          MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
-          Strand strand = markerSeqAnnotation.getStrand();
-          a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
-          b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
-          Allele ref = markerSeqAnnotation.getRef();
-          // ensure that only ref Allele is set as reference status
-          if (ref.basesMatch(a)) {
-            a = ref;
-            b = Allele.create(b, true);
-          } else if (ref.basesMatch(b)) {
-            a = Allele.create(a, true);
-            b = ref;
+          MarkerBlastAnnotation markerBlastAnnotation = masterMarkerList.get(markerNames[i]);
+          int interrogationPosition = markerBlastAnnotation.getMarkerSeqAnnotation()
+                                                           .getInterrogationPosition();
+          int positionOffset;
+          Allele a;
+          Allele b;
+          if (markerBlastAnnotation.getMarkerSeqAnnotation().getSequence() == null) {
+            missingSeqMkrs.add(markerNames[i]);
+            positionOffset = 0;
+            a = Allele.NO_CALL;
+            b = Allele.NO_CALL;
           } else {
-            a = Allele.create(a, true);
-            b = Allele.create(b, true);
-          }
-        }
-        boolean ambiguousPosition = false;
-        List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
-                                                                                       log);
-        BlastAnnotation bestMatch = null;
-        if (perfectMatches.size() == 1) {
-          bestMatch = perfectMatches.get(0);
-        } else if (!perfectMatches.isEmpty()) {
-          // TODO implement liftOver here to check which match is actually in naiveMarkerSet
-          ambiguousPosition = true;
-          bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i], naiveMarkerSet.getPositions()[i],
-                                      perfectMatches);
-          if (bestMatch == null) {
-            log.reportTimeWarning("Arbitrarily selecting first of " + perfectMatches.size()
-                                  + " perfect matches for " + markerNames[i]
-                                  + ", none of which are on the same chromosome as indicated by the array");
-            bestMatch = perfectMatches.get(0);
-          }
-        } else {
-          // Otherwise, choose lowest e-value match from non-perfect matches
-          List<BlastAnnotation> onTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
-                                                                                          log);
-          List<BlastAnnotation> offTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
-                                                                                           log);
-          Set<BlastAnnotation> nonPerfectMatches = Sets.newHashSet();
-          nonPerfectMatches.addAll(onTargetMatches);
-          nonPerfectMatches.addAll(offTargetMatches);
-          List<BlastAnnotation> bestMatches = Lists.newArrayList();
-          double bestMatchEVal = Double.MAX_VALUE;
-          for (BlastAnnotation annotation : nonPerfectMatches) {
-            double eVal = annotation.geteValue();
-            if (eVal < bestMatchEVal) {
-              bestMatches = Lists.newArrayList(annotation);
-              bestMatchEVal = eVal;
-            } else if (eVal == bestMatchEVal) {
-              bestMatches.add(annotation);
+            int probeLength = markerBlastAnnotation.getMarkerSeqAnnotation().getSequence().length();
+            positionOffset = interrogationPosition - probeLength + 1;
+            MarkerSeqAnnotation markerSeqAnnotation = markerBlastAnnotation.getMarkerSeqAnnotation();
+            Strand strand = markerSeqAnnotation.getStrand();
+            a = StrandOps.flipIfNeeded(markerSeqAnnotation.getA(), strand);
+            b = StrandOps.flipIfNeeded(markerSeqAnnotation.getB(), strand);
+            Allele ref = markerSeqAnnotation.getRef();
+            // ensure that only ref Allele is set as reference status
+            if (ref.basesMatch(a)) {
+              a = ref;
+              b = Allele.create(b, true);
+            } else if (ref.basesMatch(b)) {
+              a = Allele.create(a, true);
+              b = ref;
+            } else {
+              a = Allele.create(a, true);
+              b = Allele.create(b, true);
             }
           }
-          if (bestMatches.size() == 1) {
-            bestMatch = bestMatches.get(0);
-          } else if (!bestMatches.isEmpty()) {
-            //
+          boolean ambiguousPosition = false;
+          List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+                                                                                         log);
+          BlastAnnotation bestMatch = null;
+          if (perfectMatches.size() == 1) {
+            bestMatch = perfectMatches.get(0);
+          } else if (!perfectMatches.isEmpty()) {
+            // TODO implement liftOver here to check which match is actually in naiveMarkerSet
             ambiguousPosition = true;
             bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i],
-                                        naiveMarkerSet.getPositions()[i], bestMatches);
+                                        naiveMarkerSet.getPositions()[i], perfectMatches);
             if (bestMatch == null) {
-              log.reportTimeWarning("Arbitrarily selecting first of " + bestMatches.size()
-                                    + " best matches with identical E-values for " + markerNames[i]
+              log.reportTimeWarning("Arbitrarily selecting first of " + perfectMatches.size()
+                                    + " perfect matches for " + markerNames[i]
                                     + ", none of which are on the same chromosome as indicated by the array");
+              bestMatch = perfectMatches.get(0);
+            }
+          } else {
+            // Otherwise, choose lowest e-value match from non-perfect matches
+            List<BlastAnnotation> onTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.ON_T_ALIGNMENTS_NON_PERFECT,
+                                                                                            log);
+            List<BlastAnnotation> offTargetMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.OFF_T_ALIGNMENTS,
+                                                                                             log);
+            Set<BlastAnnotation> nonPerfectMatches = Sets.newHashSet();
+            nonPerfectMatches.addAll(onTargetMatches);
+            nonPerfectMatches.addAll(offTargetMatches);
+            List<BlastAnnotation> bestMatches = Lists.newArrayList();
+            double bestMatchEVal = Double.MAX_VALUE;
+            for (BlastAnnotation annotation : nonPerfectMatches) {
+              double eVal = annotation.geteValue();
+              if (eVal < bestMatchEVal) {
+                bestMatches = Lists.newArrayList(annotation);
+                bestMatchEVal = eVal;
+              } else if (eVal == bestMatchEVal) {
+                bestMatches.add(annotation);
+              }
+            }
+            if (bestMatches.size() == 1) {
               bestMatch = bestMatches.get(0);
+            } else if (!bestMatches.isEmpty()) {
+              //
+              ambiguousPosition = true;
+              bestMatch = closestChrMatch(naiveMarkerSet.getChrs()[i],
+                                          naiveMarkerSet.getPositions()[i], bestMatches);
+              if (bestMatch == null) {
+                log.reportTimeWarning("Arbitrarily selecting first of " + bestMatches.size()
+                                      + " best matches with identical E-values for "
+                                      + markerNames[i]
+                                      + ", none of which are on the same chromosome as indicated by the array");
+                bestMatch = bestMatches.get(0);
+              }
             }
           }
+          byte bestMatchChr;
+          int bestMatchPosition;
+          if (bestMatch == null) {
+            missingPositionCount++;
+            bestMatchChr = 0;
+            bestMatchPosition = 0;
+          } else {
+            Segment seg = bestMatch.getRefLoc();
+            bestMatchChr = seg.getChr();
+            bestMatchPosition = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
+          }
+          if (ambiguousPosition) {
+            ambiguousPositionCount++;
+          }
+          if (bestMatchPosition != naiveMarkerSet.getPositions()[i]
+              || bestMatchChr != naiveMarkerSet.getChrs()[i]) {
+            issuesWriter.println(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
+                                                naiveMarkerSet.getPositions()[i], bestMatchChr,
+                                                bestMatchPosition));
+          }
+          // Until assumption of chr-pos order is resolved and a method to choose best hit is
+          // implemented, the naive marker positions will always be used.
+          markers.add(new Marker(markerNames[i],
+                                 new GenomicPosition(naiveMarkerSet.getChrs()[i],
+                                                     naiveMarkerSet.getPositions()[i]),
+                                 a, b));
         }
-        byte bestMatchChr;
-        int bestMatchPosition;
-        if (bestMatch == null) {
-          missingPositionCount++;
-          bestMatchChr = 0;
-          bestMatchPosition = 0;
-        } else {
-          Segment seg = bestMatch.getRefLoc();
-          bestMatchChr = seg.getChr();
-          bestMatchPosition = bestMatch.getEffectiveInterrogationPosition(positionOffset, log);
-        }
-        if (ambiguousPosition) {
-          ambiguousPositionCount++;
-        }
-        if (bestMatchPosition != naiveMarkerSet.getPositions()[i]
-            || bestMatchChr != naiveMarkerSet.getChrs()[i]) {
-          issuesWriter.println(tabJoiner.join(markerNames[i], naiveMarkerSet.getChrs()[i],
-                                              naiveMarkerSet.getPositions()[i], bestMatchChr,
-                                              bestMatchPosition));
-        }
-        // Until assumption of chr-pos order is resolved and a method to choose best hit is
-        // implemented, the naive marker positions will always be used.
-        markers.add(new Marker(markerNames[i],
-                               new GenomicPosition(naiveMarkerSet.getChrs()[i],
-                                                   naiveMarkerSet.getPositions()[i]),
-                               a, b));
       }
-      issuesWriter.close();
       if (ambiguousPositionCount > 0) {
         log.reportError("Warning - there " + (ambiguousPositionCount > 1 ? "were " : "was ")
                         + ambiguousPositionCount + " marker"
