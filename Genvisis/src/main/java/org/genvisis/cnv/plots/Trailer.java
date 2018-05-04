@@ -114,6 +114,7 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.cnv.plots.MarkerGraphics.RenderParams;
 import org.genvisis.cnv.plots.MarkerGraphics.Smoothing;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
@@ -1423,6 +1424,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     regionFileNameBtn.put(name, item);
     regionButtonGroup.add(item);
     loadRecentFileMenu.add(item);
+
+    proj.INDIVIDUAL_CNV_LIST_FILENAMES.addValue(file);
+    proj.saveProperties(new Property[] {proj.INDIVIDUAL_CNV_LIST_FILENAMES});
+
     return true;
   }
 
@@ -2837,13 +2842,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
     if (editor.getReturnCode() == JOptionPane.YES_OPTION) {
       String fil = editor.getFileName();
-      regionFileName = fil;
-      loadRegions();
-      showRegion(0);
       String file1 = ext.verifyDirFormat(fil);
       file1 = file1.substring(0, file1.length() - 1);
-      String name = ext.rootOf(file1);
-      regionFileNameBtn.get(name).setSelected(true);
+      addFileToList(file1, true);
     }
 
   }

@@ -827,6 +827,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       if (le.getReturnCode() == JOptionPane.YES_OPTION) {
         String mkrFile = le.getFileName();
         proj.DISPLAY_MARKERS_FILENAMES.addValue(mkrFile);
+        proj.saveProperties(new Property[] {proj.DISPLAY_MARKERS_FILENAMES});
         loadMarkerFile(mkrFile);
       }
     } else if (command.equals(LOAD_LIST_COMMAND)) {
@@ -4061,6 +4062,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     if (editor.getReturnCode() == JOptionPane.YES_OPTION) {
       String fil = editor.getFileName();
+      proj.DISPLAY_MARKERS_FILENAMES.addValue(fil);
+      proj.saveProperties(new Property[] {proj.DISPLAY_MARKERS_FILENAMES});
       loadMarkerFile(fil);
     }
   }

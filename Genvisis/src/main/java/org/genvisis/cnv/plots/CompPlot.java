@@ -50,6 +50,7 @@ import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.manage.UCSCtrack;
+import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.cnv.var.Region;
 import org.genvisis.cnv.var.SampleData;
@@ -679,6 +680,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
     delRegionFileMenu.add(remove);
 
     proj.REGION_LIST_FILENAMES.addValue(file);
+    proj.saveProperties(new Property[] {proj.REGION_LIST_FILENAMES});
   }
 
   private final AbstractAction editFileAction = new AbstractAction() {
@@ -699,6 +701,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
         file1 = file1.substring(0, file1.length() - 1);
         String name = ext.rootOf(file1);
         regionFileNameBtn.get(name).setSelected(true);
+        addFileToList(file1);
       }
 
     }
