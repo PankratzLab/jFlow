@@ -893,10 +893,9 @@ public class Project implements PropertyChangeListener {
       if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
         log.report("Attempting to generate MarkerDetails from "
                    + BLAST_ANNOTATION_FILENAME.getValue());
-        MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(this,
-                                                                                      naiveMarkerSet,
-                                                                                      BLAST_ANNOTATION_FILENAME.getValue(),
-                                                                                      log);
+        MarkerDetailSet generatedMarkerSet = new MarkerDetailSet.BlastParser(this, naiveMarkerSet,
+                                                                             BLAST_ANNOTATION_FILENAME.getValue(),
+                                                                             log).parse();
         if (generatedMarkerSet != null) {
           // For now, only serialize a properly generated MarkerDetailSet from a blast.vcf
           // Once hashcode checking is fully implemented, we can serialize lesser MarkerDetailSets
