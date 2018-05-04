@@ -31,6 +31,7 @@ import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.hmm.CNVCaller.CALLING_SCOPE;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
+import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.PRoCtOR;
 import org.genvisis.cnv.manage.PlinkData;
@@ -1628,10 +1629,9 @@ public class GenvisisWorkflow {
             cmd.append(Files.getRunString()).append(PROJ_PROP_UPDATE_STR + projPropFile)
                .append(kvCmd).append("\n");
           }
-          return cmd.append(Files.getRunString())
-                    .append(" org.genvisis.cnv.hmm.PFB proj=" + proj.getPropertyFilename() + " log="
-                            + proj.getLog().getFilename())
-                    .toString();
+          return cmd.append(Files.getRunString()).append(" ").append(PFB.class.getName())
+                    .append(" ").append(CLI.ARG_PROJ).append("=").append(proj.getPropertyFilename())
+                    .append(" ").append(CLI.ARG_LOG).append(proj.getLog().getFilename()).toString();
         }
 
         @Override

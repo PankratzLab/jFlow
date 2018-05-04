@@ -203,13 +203,13 @@ public class PFB {
   public static void main(String[] args) {
     CLI cli = new CLI(PFB.class);
 
-    cli.addArg("filename", "Project properties file");
-    cli.addArg("logfile", "Project log file", false);
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ);
+    cli.addArg(CLI.ARG_LOG, CLI.DESC_LOG, false);
 
     cli.parseWithExit(args);
 
-    String filename = cli.get("filename");
-    String logfile = cli.has("logfile") ? cli.get("logfile") : null;
+    String filename = cli.get(CLI.ARG_PROJ);
+    String logfile = cli.get(CLI.ARG_LOG);
 
     Project proj = new Project(filename, logfile);
 
