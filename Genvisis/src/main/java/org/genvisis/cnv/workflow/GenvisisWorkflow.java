@@ -5,23 +5,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
-import org.genvisis.cnv.hmm.CNVCaller;<<<<<<<Upstream,based on origin/master
-import org.genvisis.cnv.hmm.CNVCaller.CALLING_SCOPE;
-import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
-import org.genvisis.cnv.hmm.PFB;
-import org.genvisis.cnv.manage.MitoPipeline;
-import org.genvisis.cnv.manage.PRoCtOR;
-import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.cnv.prop.Property;
-import org.genvisis.cnv.qc.AffyMarkerBlast;
-import org.genvisis.cnv.qc.GcAdjustor;=======>>>>>>>7d 6642e  Begin extracting steps into classes
+import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
+import org.genvisis.cnv.workflow.steps.SampleDataStep;
+import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -33,9 +25,10 @@ import org.genvisis.qsub.Qsub;
 public class GenvisisWorkflow {
 
   private static final String NUM_THREADS_DESC = "Number of Threads to Use";
-  static final String PROJ_PROP_UPDATE_STR = " org.genvisis.cnv.filesys.Project proj=";
+  public static final String PROJ_PROP_UPDATE_STR = " " + Project.class.getName() + " "
+                                                    + CLI.ARG_PROJ + "=";
   public static final String PLINK_SUBDIR = "plink/";
-  static final String PLINKROOT = "plink";
+  public static final String PLINKROOT = "plink";
   final Project proj;
   private final SortedSet<Step> steps;
   Logger log;
@@ -202,7 +195,7 @@ public class GenvisisWorkflow {
 
       stepReqs = sampleData.getDefaultRequirementValues();
       for (Requirement r1 : stepReqs.keySet()) {
-        if (r1.getDescription().equalsIgnoreCase(StepBuilder.CREATE_MINIMAL_SAMPDATA_REQUIREMENT)) {
+        if (r1.getDescription().equalsIgnoreCase(SampleDataStep.REQ_CREATE_MINIMAL)) {
           stepReqs.put(r1, "false");
           break;
         }
@@ -214,9 +207,9 @@ public class GenvisisWorkflow {
 
     stepReqs = sexChecks.getDefaultRequirementValues();
     for (Requirement r1 : stepReqs.keySet()) {
-      if (r1.getDescription().equals(StepBuilder.NO_CROSS_HYBE_REQUIREMENT)) {
+      if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
         stepReqs.put(r1, "true");
-      } else if (r1.getDescription().equals(StepBuilder.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+      } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
         stepReqs.put(r1, "true");
       }
     }

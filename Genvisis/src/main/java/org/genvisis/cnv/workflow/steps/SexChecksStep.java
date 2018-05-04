@@ -14,6 +14,8 @@ public class SexChecksStep extends Step {
 
   public static final String NAME = "";
   public static final String DESC = "";
+  public static final String NO_CROSS_HYBE_REQUIREMENT = "Use only X and Y chromosome R values to identify sex discriminating markers";
+  public static final String ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT = "Add Estimated Sex to Sample Data";
 
   public static SexChecksStep create(final Project proj, final Step parseSamplesStep,
                                      final Step markerBlastStep, final Step sampleDataStep,
@@ -23,13 +25,13 @@ public class SexChecksStep extends Step {
     final Requirement sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
     final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-    final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement("Add Estimated Sex to Sample Data",
+    final Requirement addToSampleDataReq = new Requirement.OptionalBoolRequirement(ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT,
                                                                                    true);
 
     final Requirement oneHittersReq = new Requirement.FileRequirement("List of markers that do not cross hybridize",
                                                                       MarkerBlastQC.defaultOneHitWondersFilename(proj.BLAST_ANNOTATION_FILENAME.getValue()));
     final Requirement markerBlastStepReq = new Requirement.StepRequirement(markerBlastStep);
-    final Requirement noCrossHybeReq = new Requirement.BoolRequirement("Use only X and Y chromosome R values to identify sex discriminating markers",
+    final Requirement noCrossHybeReq = new Requirement.BoolRequirement(NO_CROSS_HYBE_REQUIREMENT,
                                                                        false);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
