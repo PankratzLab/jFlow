@@ -344,7 +344,7 @@ public class FAST {
                                       .getPath();
               String decodedPath = path;
               try {
-                decodedPath = URLDecoder.decode(path, "UTF-8");
+                decodedPath = URLDecoder.decode(path, ext.UTF_8);
               } catch (UnsupportedEncodingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

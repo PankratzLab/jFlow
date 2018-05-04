@@ -209,7 +209,7 @@ public class Internat {
       if (i != 0) {
         content += "&";
       }
-      content += key + "=" + URLEncoder.encode(data.get(key), "UTF-8");
+      content += key + "=" + URLEncoder.encode(data.get(key), ext.UTF_8);
     }
     // System.out.println(content);
     out.writeBytes(content);

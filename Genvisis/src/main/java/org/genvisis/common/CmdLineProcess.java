@@ -120,14 +120,14 @@ public class CmdLineProcess implements Iterator<String> {
         if (verbose) {
           log.reportTimeInfo("Preparing standard out");
         }
-        stOut = new BufferedReader(new InputStreamReader(proc.getInputStream(), "UTF-8"));
+        stOut = new BufferedReader(new InputStreamReader(proc.getInputStream(), ext.UTF_8));
 
         if (verbose) {
           log.reportTimeInfo("Finished preparing standard out");
         }
       }
       if (errorMode == ERR_Mode.STERR_CAPTURE_BY_LOG) {
-        stErr = new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
+        stErr = new BufferedReader(new InputStreamReader(proc.getErrorStream(), ext.UTF_8));
       }
 
     } catch (IOException e) {

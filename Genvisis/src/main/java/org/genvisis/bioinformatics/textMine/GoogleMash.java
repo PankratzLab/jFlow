@@ -33,7 +33,7 @@ public class GoogleMash implements Serializable {
   // "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=";
   public static String DEFAULT_GOOGLE = "https://www.google.com/search?q=";
   public static String DEFAULT_GOOGLE_SCHOLAR = "https://scholar.google.com/scholar?hl=en&q=";
-  public static String CHAR_SET = "UTF-8";
+  public static String CHAR_SET = ext.UTF_8;
   private GQuery[] queries;
   private final Logger log;
 

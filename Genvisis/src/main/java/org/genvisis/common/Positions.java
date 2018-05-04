@@ -282,8 +282,8 @@ public class Positions {
       }
 
       // URL encode the UCSC string, then plug it into the UCSC upload link
-      String encodedUCSC = URLEncoder.encode(getUCSCformat(pos), "UTF-8");
-      String encodedFilename = URLEncoder.encode(filename, "UTF-8");
+      String encodedUCSC = URLEncoder.encode(getUCSCformat(pos), ext.UTF_8);
+      String encodedFilename = URLEncoder.encode(filename, ext.UTF_8);
       String uploadURL = "http://genome.ucsc.edu/cgi-bin/hgCustom?hgHubConnect.destUrl=..%2Fcgi-bin%2FhgTracks&clade=mammal&org=Human&db=hg18&"
                          + encodedUCSC + "&hgt.customFile=" + encodedFilename
                          + "&hgt.positionInput=enter+position%2C+gene+symbol+or+search+terms&hgt.suggestTrack=knownGene&hgsid=366816683&pix=1499";

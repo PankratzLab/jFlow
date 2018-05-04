@@ -350,7 +350,7 @@ public class ReferenceGenome {
     String[] requestedSeq = new String[subTmp.length];
     try {
       for (int i = 0; i < requestedSeq.length; i++) {
-        requestedSeq[i] = new String(new byte[] {subTmp[i]}, "UTF-8").toUpperCase();
+        requestedSeq[i] = new String(new byte[] {subTmp[i]}, ext.UTF_8).toUpperCase();
       }
     } catch (UnsupportedEncodingException e) {
       log.reportError("Could not convert reference byte to string");
