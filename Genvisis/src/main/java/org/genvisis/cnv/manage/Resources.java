@@ -769,7 +769,7 @@ public final class Resources {
      *          directory) and remote (where resources are hosted) locations.
      */
     public AbstractResourceFactory(String subPath, Logger log, Class<?>... classes) {
-      this(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + File.separator,
+      this(LaunchProperties.get(DefaultLaunchKeys.RESOURCES_DIR) + subPath + "/",
            DEFAULT_URL + subPath + "/", log, classes);
     }
 
@@ -979,7 +979,8 @@ public final class Resources {
       boolean available = true;
       for (String unzippedPath : unzippedPaths) {
         if (!Files.exists(unzippedPath)) {
-          available = false;
+          // Files haven't been unzipped, check if the zipped file exists
+          available = super.isLocallyAvailable();
           break;
         }
       }
@@ -1244,7 +1245,12 @@ public final class Resources {
             log.reportTimeWarning("Remote MD5 not available.");
             return true;
           }
-          if (getMD5Local().equals(getMD5Remote())) {
+          String md5Local = getMD5Local();
+          if (md5Local == null) {
+            log.reportTimeWarning("Failed to compute md5 for resource: " + rsrc);
+            return false;
+          }
+          if (md5Local.equals(md5Remote)) {
             return true;
           }
 
@@ -1375,6 +1381,16 @@ public final class Resources {
      *         connectivity.
      */
     String getMD5Remote();
+
+    /**
+     * @return The logger instance attached to this resource
+     */
+    Logger log();
+
+    /**
+     * @return A shorthand name for this resource
+     */
+    String getName();
   }
 
   /**
