@@ -28,7 +28,7 @@ public class ReferenceGenome {
   private final String referenceFasta;
   private IndexedFastaSequenceFile indexedFastaSequenceFile;
   private byte[] currentSeq;
-  private String[] inMemoryContig;
+  private byte[] inMemoryContig;
   private int defaultBuffer;
   private ReferenceSequence referenceSequence;
   private final Logger log;
@@ -270,18 +270,20 @@ public class ReferenceGenome {
         if (referenceSequence == null || !referenceSequence.getName().equals(requestedContig)) {
           log.reportTimeInfo("loading reference sequence for " + requestedContig);
           referenceSequence = indexedFastaSequenceFile.getSequence(requestedContig);
-          log.reportTimeInfo("Converting reference sequence to String for " + requestedContig);
-
-          inMemoryContig = ArrayUtils.decodeByteArray(referenceSequence.getBases(),
-                                                      BYTE_DECODE_FORMAT.UPPER_CASE, log);
+          inMemoryContig = referenceSequence.getBases();
           log.reportTimeInfo("reference sequence in memory for " + requestedContig);
 
         } else {
           // log.reportTimeInfo("Memory works");
         }
         try {
-          requestedSeq = ArrayUtils.subArray(inMemoryContig, Math.max(0, start - 1),
-                                             Math.min(inMemoryContig.length - 1, stop));
+          int startIndex = Math.max(0, start - 1);
+          int stopIndex = Math.min(inMemoryContig.length - 1, stop);
+          requestedSeq = new String[stopIndex - startIndex];
+          for (int i = 0; i < requestedSeq.length; i++) {
+            requestedSeq[i] = new String(new byte[] {inMemoryContig[startIndex + i]},
+                                         ext.UTF_8).toUpperCase();
+          }
         } catch (Exception e) {
           log.reportError("Invalid query " + segment.getUCSClocation() + "; buffer " + defaultBuffer
                           + "; current contig " + referenceSequence.getName());
