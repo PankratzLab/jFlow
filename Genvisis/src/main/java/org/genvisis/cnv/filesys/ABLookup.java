@@ -350,7 +350,7 @@ public class ABLookup {
                        + "' already exists; use that instead of the Illumina Manifest file to parse AB values (or rename that file to get around this check)");
       return;
     }
-    new IlluminaMarkerBlast(proj, -1, -1, -1, false, false, false, 1, manifestFile, true).blastEm();
+    new IlluminaMarkerBlast(proj, -1, -1, -1, false, false, false, 1, manifestFile).blastEm();
     parseFromAnnotationVCF(proj);
   }
 

@@ -126,8 +126,8 @@ public class MarkerBlastIterator {
     for (int blastWordSize2 : blastWordSizes) {
       for (int reportWordSize : reportWordSizes) {
         results[index] = new IlluminaMarkerBlast(proj, blastWordSize2, reportWordSize, 100,
-                                                 reportToTmp, true, true, numThreads, fileSeq, true)
-                                                                                                    .blastEm();
+                                                 reportToTmp, true, true, numThreads, fileSeq)
+                                                                                              .blastEm();
         index++;
       }
     }
@@ -546,7 +546,7 @@ public class MarkerBlastIterator {
       for (int reportWordSize : reportWordSizes) {
         results[index] = new IlluminaMarkerBlast(proj, blastWordSize2, reportWordSize,
                                                  Integer.MAX_VALUE, reportToTmp, true, true,
-                                                 numThreads, fileSeq, true).blastEm();
+                                                 numThreads, fileSeq).blastEm();
         index++;
       }
     }

@@ -72,10 +72,6 @@ public abstract class MarkerBlast {
   protected static final String DESC_SKIP_BLAST = "skip the blast analysis and simply add the probe annotations";
   protected static final boolean DEFAULT_DO_BLAST = true;
 
-  protected static final String ARG_PARSE_ALLELES = "parseAlleles";
-  protected static final String DESC_PARSE_ALLELES = "Parse allele assignments from the manifest file";
-  protected static final boolean DEFAULT_PARSE_ALLELES = true;
-
   protected static final boolean DEFAULT_REPORT_TO_TEMPORARY_FILE = true;
 
   public enum FILE_SEQUENCE_TYPE {
@@ -104,7 +100,6 @@ public abstract class MarkerBlast {
   protected final Logger log;
   private final Map<String, GenomicPosition> overrideMarkerPositions;
   private MarkerDetailSet naiveMarkerSet = null;
-  private final boolean parseAlleles;
 
   /**
    * @param proj
@@ -115,11 +110,10 @@ public abstract class MarkerBlast {
    * @param annotateGCContent
    * @param doBlast
    * @param numThreads
-   * @param parseAlleles
    */
   protected MarkerBlast(Project proj, int blastWordSize, int reportWordSize,
                         int maxAlignmentsReported, boolean reportToTmp, boolean annotateGCContent,
-                        boolean doBlast, int numThreads, boolean parseAlleles) {
+                        boolean doBlast, int numThreads) {
     super();
     this.proj = new Project(proj.getPropertyFilename()) {
 
@@ -140,7 +134,6 @@ public abstract class MarkerBlast {
     this.numThreads = numThreads;
     this.log = proj.getLog();
     this.overrideMarkerPositions = Maps.newHashMap();
-    this.parseAlleles = parseAlleles;
   }
 
   protected abstract String getSourceString();
@@ -235,7 +228,7 @@ public abstract class MarkerBlast {
       }
 
       if (doBlast && !Files.exists("", tmps)) {
-        MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(blastParams, true);
+        MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(blastParams, false);
         List<MarkerFastaEntry[]> splits = ArrayUtils.splitUpArray(fastaEntries, numThreads, log);
 
         ArrayList<BlastWorker> workers = new ArrayList<>();
@@ -276,7 +269,7 @@ public abstract class MarkerBlast {
         Files.backup(ext.removeDirectoryInfo(blastAnnotationFile), blastAnnotationDir,
                      blastAnnotationDir, true);
       }
-      MarkerFastaEntry[] entries = getMarkerFastaEntries(blastParams, parseAlleles);
+      MarkerFastaEntry[] entries = getMarkerFastaEntries(blastParams, true);
 
       log.reportTimeInfo("Summarizing blast results to " + blastAnnotationFile);
       BlastAnnotationWriter blastAnnotationWriter = new BlastAnnotationWriter(proj,
