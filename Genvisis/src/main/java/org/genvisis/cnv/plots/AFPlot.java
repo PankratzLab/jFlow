@@ -35,6 +35,7 @@ import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.CHROMOSOME;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Aliases;
+import org.genvisis.common.AllelePair;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
@@ -200,8 +201,8 @@ public class AFPlot {
             Marker m = new Marker(line.getString(snpCol),
                                   new GenomicPosition(line.getUnsafe(chrCol),
                                                       line.getUnsafe(posCol)),
-                                  Allele.create(line.getString(refCol), true),
-                                  Allele.create(line.getString(altCol), false));
+                                  AllelePair.of(Allele.create(line.getString(refCol), true),
+                                                Allele.create(line.getString(altCol), false)));
             dataMap = new HashMap<>();
             dataMap.put(POPULATION.ALL, line.getUnsafe(afAll));
             dataMap.put(POPULATION.EAS, line.getUnsafe(afEas));

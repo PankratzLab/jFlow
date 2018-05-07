@@ -615,7 +615,7 @@ public class Files {
 
     if (filename.contains(".utf8.")) {
       try {
-        isReader = new InputStreamReader(is, "UTF-8");
+        isReader = new InputStreamReader(is, ext.UTF_8);
       } catch (UnsupportedEncodingException e) {
         e.printStackTrace();
       }

@@ -675,11 +675,11 @@ public class ArrayUtils {
   }
 
   public static String[] decodeByteArray(byte[] b, BYTE_DECODE_FORMAT format, Logger log) {
-    return decodeByteArray(b, "UTF-8", format, log);
+    return decodeByteArray(b, ext.UTF_8, format, log);
   }
 
   public static String[] decodeByteArray(byte[] b, Logger log) {
-    return decodeByteArray(b, "UTF-8", BYTE_DECODE_FORMAT.AS_IS, log);
+    return decodeByteArray(b, ext.UTF_8, BYTE_DECODE_FORMAT.AS_IS, log);
   }
 
   /**

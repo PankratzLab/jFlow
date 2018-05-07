@@ -46,6 +46,7 @@ import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.common.AllelePair;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Elision;
@@ -553,8 +554,9 @@ public class UKBBParsingPipeline {
           throw new IllegalStateException("B allele is an unexpected indel for marker " + mkrName);
         }
 
-        markers[markerIndices.get(mkrName)] = new Marker(mkrName, gPos, Allele.create(a, aRef),
-                                                         Allele.create(b, !aRef));
+        markers[markerIndices.get(mkrName)] = new Marker(mkrName, gPos,
+                                                         AllelePair.of(Allele.create(a, aRef),
+                                                                       Allele.create(b, !aRef)));
       }
     }
     if (inAnnotNotProj > 0) {
@@ -575,7 +577,7 @@ public class UKBBParsingPipeline {
             String[] bimD = fs.bimData[fs.bimMap.get(snp)];
             markers[i] = new Marker(snp,
                                     new GenomicPosition((byte) fs.chr, Integer.parseInt(bimD[2])),
-                                    'N', 'N');
+                                    AllelePair.of('N', 'N'));
             missing.println(bimD[1] + "\t" + bimD[0] + "\t" + bimD[2] + "\t" + bimD[3] + "\t"
                             + bimD[4]);
             break;
@@ -905,8 +907,8 @@ public class UKBBParsingPipeline {
 
         a = BGENBitMath.bytesToFloat(true, intA);
         b = BGENBitMath.bytesToFloat(true, intB);
-        x = (float) (a / scaleFactor);
-        y = (float) (b / scaleFactor);
+        x = a / scaleFactor;
+        y = b / scaleFactor;
         // x = (float) Maths.log2(a / b);
         // y = (float) (Maths.log2(a * b) / 2);
 

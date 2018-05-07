@@ -251,7 +251,7 @@ public class CmdLine {
     InputStream in, err;
     boolean finish;
     boolean noError;
-    String charSet = "UTF-8";
+    String charSet = ext.UTF_8;
 
     noError = true;
     String dir = command.getDir();

@@ -288,7 +288,7 @@ public class FastQC {
         ZipEntry entry = entries.nextElement();
         if (ext.removeDirectoryInfo(entry.getName()).equals(FAST_QC_RESULTS_FILE)) {
           InputStream stream = zipFile.getInputStream(entry);
-          BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+          BufferedReader reader = new BufferedReader(new InputStreamReader(stream, ext.UTF_8));
           boolean scanningToModule = true;
           boolean scanningToHeader = true;
           String inputFileName = "NA";

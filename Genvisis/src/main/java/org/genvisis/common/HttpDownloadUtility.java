@@ -117,7 +117,7 @@ public class HttpDownloadUtility {
       bytesRead = inputStream.read(md5, bytesRead, buffer);
     }
 
-    return new String(md5, "UTF-8").trim();
+    return new String(md5, ext.UTF_8).trim();
   }
 }
 

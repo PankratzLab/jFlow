@@ -183,7 +183,7 @@ public class LauncherManifest {
   private static File getCurrentFile() {
     String jarPath = getLaunchClass().getProtectionDomain().getCodeSource().getLocation().getFile();
     try {
-      jarPath = URLDecoder.decode(jarPath, "UTF-8");
+      jarPath = URLDecoder.decode(jarPath, ext.UTF_8);
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }

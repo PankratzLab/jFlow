@@ -54,6 +54,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.seq.manage.ReferenceGenome;
 import com.google.common.collect.ImmutableMap;
 
 public class Project implements PropertyChangeListener {
@@ -894,10 +895,9 @@ public class Project implements PropertyChangeListener {
       if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
         log.report("Attempting to generate MarkerDetails from "
                    + BLAST_ANNOTATION_FILENAME.getValue());
-        MarkerDetailSet generatedMarkerSet = MarkerDetailSet.parseFromBLASTAnnotation(this,
-                                                                                      naiveMarkerSet,
-                                                                                      BLAST_ANNOTATION_FILENAME.getValue(),
-                                                                                      log);
+        MarkerDetailSet generatedMarkerSet = new MarkerDetailSet.BlastParser(this, naiveMarkerSet,
+                                                                             BLAST_ANNOTATION_FILENAME.getValue(),
+                                                                             log).parse();
         if (generatedMarkerSet != null) {
           // For now, only serialize a properly generated MarkerDetailSet from a blast.vcf
           // Once hashcode checking is fully implemented, we can serialize lesser MarkerDetailSets
@@ -1817,6 +1817,14 @@ public class Project implements PropertyChangeListener {
    */
   public String getReferenceGenomeFASTAFilename() {
     return Resources.genome(GENOME_BUILD_VERSION.getValue(), log).getFASTA().get();
+  }
+
+  /**
+   * @return {@link ReferenceGenome} for the genome build version of this project. May cause the
+   *         reference to be downloaded if not locally available
+   */
+  public ReferenceGenome getReferenceGenome() {
+    return new ReferenceGenome(GENOME_BUILD_VERSION.getValue(), log);
   }
 
   /**
