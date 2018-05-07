@@ -17,15 +17,15 @@ public class SexCentroidsStep extends Step {
   public static final String NAME = "Create Sex-Specific Centroids; Filter PFB file";
   public static final String DESC = "";
 
-  public static SexCentroidsStep create(Requirement numThreadsReq, double priority) {
-    return new SexCentroidsStep(numThreadsReq, priority);
+  public static SexCentroidsStep create(Requirement numThreadsReq) {
+    return new SexCentroidsStep(numThreadsReq);
   }
 
   private final Requirement numThreadsReq;
 
-  private SexCentroidsStep(Requirement numThreadsReq, double priority) {
+  private SexCentroidsStep(Requirement numThreadsReq) {
     super(NAME, DESC, RequirementSetBuilder.and().add(numThreadsReq),
-          EnumSet.of(Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED), priority);
+          EnumSet.of(Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED));
     this.numThreadsReq = numThreadsReq;
   }
 

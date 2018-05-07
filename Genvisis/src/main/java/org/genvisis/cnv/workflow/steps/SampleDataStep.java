@@ -24,7 +24,7 @@ public class SampleDataStep extends Step {
                                               + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \""
                                               + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"";
 
-  public static SampleDataStep create(Step parseSamplesStep, Project proj, double priority) {
+  public static SampleDataStep create(Step parseSamplesStep, Project proj) {
     Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     Requirement createMinimalSampleDataReq = new Requirement.BoolRequirement(REQ_CREATE_MINIMAL,
                                                                              true);
@@ -42,8 +42,7 @@ public class SampleDataStep extends Step {
                                                                                  .add(createMinimalSampleDataReq)
                                                                                  .add(pedigreeReq)
                                                                                  .add(sampMapReq));
-    return new SampleDataStep(createMinimalSampleDataReq, pedigreeReq, sampMapReq, reqSet,
-                              priority);
+    return new SampleDataStep(createMinimalSampleDataReq, pedigreeReq, sampMapReq, reqSet);
   }
 
   public static final String NAME = "Create SampleData.txt File";
@@ -54,8 +53,8 @@ public class SampleDataStep extends Step {
   final Requirement sampMapReq;
 
   public SampleDataStep(Requirement createMin, Requirement pedReq, Requirement sampMap,
-                        RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+                        RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.createMinimalSampleDataReq = createMin;
     this.pedigreeReq = pedReq;
     this.sampMapReq = sampMap;

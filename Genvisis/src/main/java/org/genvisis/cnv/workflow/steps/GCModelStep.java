@@ -20,7 +20,7 @@ public class GCModelStep extends Step {
   public static final String NAME = "Compute GCMODEL File";
   public static final String DESC = "";
 
-  public static GCModelStep create(Project proj, double priority) {
+  public static GCModelStep create(Project proj) {
     final ResourceRequirement gcBaseResourceReq = new ResourceRequirement("GC Base file",
                                                                           Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
                                                                                            proj.getLog())
@@ -29,15 +29,14 @@ public class GCModelStep extends Step {
                                                                                proj.GC_MODEL_FILENAME.getValue());
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gcBaseResourceReq)
                                                        .add(gcModelOutputReq);
-    return new GCModelStep(gcBaseResourceReq, gcModelOutputReq, reqSet, priority);
+    return new GCModelStep(gcBaseResourceReq, gcModelOutputReq, reqSet);
   }
 
   final Requirement.ResourceRequirement gcBaseResourceReq;
   final Requirement gcModelOutputReq;
 
-  private GCModelStep(ResourceRequirement gcBase, Requirement output, RequirementSet reqSet,
-                      double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+  private GCModelStep(ResourceRequirement gcBase, Requirement output, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.gcBaseResourceReq = gcBase;
     this.gcModelOutputReq = output;
   }

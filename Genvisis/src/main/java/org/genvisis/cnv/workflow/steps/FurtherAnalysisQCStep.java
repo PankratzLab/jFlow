@@ -31,7 +31,7 @@ public class FurtherAnalysisQCStep extends Step {
   final Map<QC_METRIC, Requirement> metricRequirements;
 
   public static FurtherAnalysisQCStep create(Project proj, Step plinkExportStep, Step gwasQCStep,
-                                             Step ancestryStep, double priority) {
+                                             Step ancestryStep) {
     final Requirement plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
     final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
@@ -58,15 +58,15 @@ public class FurtherAnalysisQCStep extends Step {
     }
 
     return new FurtherAnalysisQCStep(metricRequirements, unrelatedsFileReq, europeansFilesReq,
-                                     reqSet, priority);
+                                     reqSet);
   }
 
   final Requirement unrelatedsFileReq;
   final Requirement europeansFilesReq;
 
   private FurtherAnalysisQCStep(Map<QC_METRIC, Requirement> metricReqs, Requirement unrelReq,
-                                Requirement euroReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+                                Requirement euroReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.unrelatedsFileReq = unrelReq;
     this.europeansFilesReq = euroReq;
     this.metricRequirements = metricReqs;

@@ -18,14 +18,14 @@ import com.google.common.collect.Lists;
 
 public class ABLookupStep extends Step {
 
-  public static ABLookupStep create(Step parseSamplesStep, double priority) {
+  public static ABLookupStep create(Step parseSamplesStep) {
     Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    return new ABLookupStep(parseSamplesStepReq, priority);
+    return new ABLookupStep(parseSamplesStepReq);
   }
 
-  private ABLookupStep(Requirement parseSamplesReq, double priority) {
+  private ABLookupStep(Requirement parseSamplesReq) {
     super("Generate AB Lookup File", "", RequirementSetBuilder.and().add(parseSamplesReq),
-          EnumSet.of(Requirement.Flag.RUNTIME), priority);
+          EnumSet.of(Requirement.Flag.RUNTIME));
   }
 
   @Override

@@ -16,7 +16,7 @@ import org.genvisis.common.PSF;
 
 public class PlinkExportStep extends Step {
 
-  public static PlinkExportStep create(Project proj, final Step parseSamplesStep, double priority) {
+  public static PlinkExportStep create(Project proj, final Step parseSamplesStep) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement pedigreeRequirement = new Requirement.FileRequirement("A pedigree.dat file must exist.",
                                                                             proj.PEDIGREE_FILENAME.getValue(false,
@@ -28,7 +28,7 @@ public class PlinkExportStep extends Step {
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(pedigreeRequirement)
                                                                                  .add(createPedigreeRequirement));
-    return new PlinkExportStep(pedigreeRequirement, createPedigreeRequirement, reqSet, priority);
+    return new PlinkExportStep(pedigreeRequirement, createPedigreeRequirement, reqSet);
   }
 
   final Requirement pedigreeRequirement;
@@ -38,8 +38,8 @@ public class PlinkExportStep extends Step {
   public static final String DESC = "";
 
   private PlinkExportStep(Requirement pedigreeRequirement, Requirement createPedigreeRequirement,
-                          RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY), priority);
+                          RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY));
     this.pedigreeRequirement = pedigreeRequirement;
     this.createPedigreeRequirement = createPedigreeRequirement;
   }

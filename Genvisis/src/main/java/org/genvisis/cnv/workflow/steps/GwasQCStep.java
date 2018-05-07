@@ -26,7 +26,7 @@ public class GwasQCStep extends Step {
   public static final String NAME = "Run GWAS QC";
   public static final String DESC = "";
 
-  public static GwasQCStep create(Project proj, Step plinkExportStep, double priority) {
+  public static GwasQCStep create(Project proj, Step plinkExportStep) {
     final Requirement plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
     String defaultCallrate;
     switch (proj.getArrayType()) {
@@ -47,13 +47,13 @@ public class GwasQCStep extends Step {
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(callrateReq);
 
-    return new GwasQCStep(callrateReq, reqSet, priority);
+    return new GwasQCStep(callrateReq, reqSet);
   }
 
   final Requirement callrateReq;
 
-  private GwasQCStep(Requirement callrateReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+  private GwasQCStep(Requirement callrateReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.callrateReq = callrateReq;
   }
 

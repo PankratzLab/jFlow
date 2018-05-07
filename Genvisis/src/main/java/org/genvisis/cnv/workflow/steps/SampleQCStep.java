@@ -21,15 +21,14 @@ public class SampleQCStep extends Step {
 
   private Requirement numThreadsReq;
 
-  public static SampleQCStep create(Step parseSamplesStep, Requirement numThreadsReq,
-                                    double priority) {
+  public static SampleQCStep create(Step parseSamplesStep, Requirement numThreadsReq) {
     RequirementSet reqSet = RequirementSetBuilder.and().add(new StepRequirement(parseSamplesStep))
                                                  .add(numThreadsReq);
-    return new SampleQCStep(reqSet, priority);
+    return new SampleQCStep(reqSet);
   }
 
-  private SampleQCStep(RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED), priority);
+  private SampleQCStep(RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
   }
 
   @Override

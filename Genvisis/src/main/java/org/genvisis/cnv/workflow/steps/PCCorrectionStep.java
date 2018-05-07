@@ -31,8 +31,7 @@ public class PCCorrectionStep extends Step {
   final Requirement setupCNVCalling;
   final Requirement numThreadsReq;
 
-  public static PCCorrectionStep create(Step parseSamplesStep, Requirement numThreadsReq,
-                                        double priority) {
+  public static PCCorrectionStep create(Step parseSamplesStep, Requirement numThreadsReq) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement numPCsReq = new Requirement.PosIntRequirement("Number of principal components for correction.",
                                                                     MitoPipeline.DEFAULT_NUM_COMPONENTS);
@@ -61,27 +60,35 @@ public class PCCorrectionStep extends Step {
     final Requirement setupCNVCalling = new Requirement.OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?",
                                                                                 false);
 
-    final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
-                                                       .add(numPCsReq).add(outputBaseReq)
-                                                       .add(callrateReq).add(recomputeLrrReq)
-                                                       .add(tempDirReq).add(correctionStrategyReq)
-                                                       .add(sexChromosomeStrategyReq)
-                                                       .add(numThreadsReq).add(setupCNVCalling);
-
-    return new PCCorrectionStep(numPCsReq, outputBaseReq, callrateReq, recomputeLrrReq, tempDirReq,
-                                correctionStrategyReq, sexChromosomeStrategyReq, setupCNVCalling,
-                                numThreadsReq, reqSet, priority);
-
+    return new PCCorrectionStep(parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq,
+                                recomputeLrrReq, tempDirReq, correctionStrategyReq,
+                                sexChromosomeStrategyReq, setupCNVCalling, numThreadsReq);
   }
 
-  private PCCorrectionStep(Requirement numPCsReq, Requirement outputBaseReq,
-                           Requirement callrateReq, Requirement recomputeLrrReq,
-                           Requirement tempDirReq, Requirement correctionStrategyReq,
-                           Requirement sexChromosomeStrategyReq, Requirement setupCNVCalling,
-                           Requirement numThreadsReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-                                         Requirement.Flag.MULTITHREADED),
-          priority);
+  private static RequirementSet createReqSet(Requirement parseSamplesStepReq, Requirement numPCsReq,
+                                             Requirement outputBaseReq, Requirement callrateReq,
+                                             Requirement recomputeLrrReq, Requirement tempDirReq,
+                                             Requirement correctionStrategyReq,
+                                             Requirement sexChromosomeStrategyReq,
+                                             Requirement setupCNVCalling,
+                                             Requirement numThreadsReq) {
+    return RequirementSetBuilder.and().add(parseSamplesStepReq).add(numPCsReq).add(outputBaseReq)
+                                .add(callrateReq).add(recomputeLrrReq).add(tempDirReq)
+                                .add(correctionStrategyReq).add(sexChromosomeStrategyReq)
+                                .add(numThreadsReq).add(setupCNVCalling);
+  }
+
+  private PCCorrectionStep(Requirement parseSamplesStepReq, Requirement numPCsReq,
+                           Requirement outputBaseReq, Requirement callrateReq,
+                           Requirement recomputeLrrReq, Requirement tempDirReq,
+                           Requirement correctionStrategyReq, Requirement sexChromosomeStrategyReq,
+                           Requirement setupCNVCalling, Requirement numThreadsReq) {
+    super(NAME, DESC,
+          createReqSet(parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq, recomputeLrrReq,
+                       tempDirReq, correctionStrategyReq, sexChromosomeStrategyReq, setupCNVCalling,
+                       numThreadsReq),
+          EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
+                     Requirement.Flag.MULTITHREADED));
     this.numPCsReq = numPCsReq;
     this.outputBaseReq = outputBaseReq;
     this.callrateReq = callrateReq;

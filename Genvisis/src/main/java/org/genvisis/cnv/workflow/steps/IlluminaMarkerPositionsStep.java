@@ -7,7 +7,6 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.MarkerBlast;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.workflow.Requirement;
-import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.common.Files;
@@ -17,25 +16,23 @@ public class IlluminaMarkerPositionsStep extends Step {
   public static final String NAME = "Create Marker Positions (if not already exists)";
   public static final String DESC = "";
 
-  public static IlluminaMarkerPositionsStep create(Project proj, double priority) {
+  public static IlluminaMarkerPositionsStep create(Project proj) {
     final Requirement snpMapReq = new Requirement.FileRequirement("An Illumina SNP_map file.",
                                                                   proj.getLocationOfSNP_Map(false));
     final Requirement manifestReq = new Requirement.FileRequirement("An Illumina Manifest file.",
                                                                     proj.getLocationOfSNP_Map(false));
 
-    final RequirementSet reqSet = RequirementSetBuilder.and()
-                                                       .add(RequirementSetBuilder.or()
-                                                                                 .add(snpMapReq)
-                                                                                 .add(manifestReq));
-    return new IlluminaMarkerPositionsStep(snpMapReq, manifestReq, reqSet, priority);
+    return new IlluminaMarkerPositionsStep(snpMapReq, manifestReq);
   }
 
   final Requirement snpMapReq;
   final Requirement manifestReq;
 
-  private IlluminaMarkerPositionsStep(Requirement snpMapReq, Requirement manifestReq,
-                                      RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+  private IlluminaMarkerPositionsStep(Requirement snpMapReq, Requirement manifestReq) {
+    super(NAME, DESC,
+          RequirementSetBuilder.and()
+                               .add(RequirementSetBuilder.or().add(snpMapReq).add(manifestReq)),
+          EnumSet.noneOf(Requirement.Flag.class));
     this.snpMapReq = snpMapReq;
     this.manifestReq = manifestReq;
   }

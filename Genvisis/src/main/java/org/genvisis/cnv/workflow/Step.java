@@ -11,7 +11,7 @@ import org.genvisis.common.gui.Task;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public abstract class Step implements Comparable<Step> {
+public abstract class Step {
 
   public static enum FINAL_CODE {
     COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
@@ -32,7 +32,6 @@ public abstract class Step implements Comparable<Step> {
   private RequirementSet requirements;
   private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
   private Set<Requirement.Flag> stepFlags;
-  private final double priority;
 
   /**
    * @param name displayed in the workflow
@@ -44,7 +43,7 @@ public abstract class Step implements Comparable<Step> {
    * @param priority determines order in the workflow
    */
   public Step(String name, String desc, RequirementSet requirements,
-              Collection<Requirement.Flag> flags, double priority) {
+              Collection<Requirement.Flag> flags) {
     this.name = name;
     this.desc = desc;
     this.requirements = requirements;
@@ -62,7 +61,6 @@ public abstract class Step implements Comparable<Step> {
     }
     this.relatedSteps = relatedStepsBuilder.build();
     this.stepFlags = Sets.immutableEnumSet(flags);
-    this.priority = priority;
   }
 
   public String getName() {
@@ -130,27 +128,12 @@ public abstract class Step implements Comparable<Step> {
     return stepFlags;
   }
 
-  public double getPriority() {
-    return priority;
-  }
-
-  @Override
-  public int compareTo(Step o) {
-    // Preferably, just compare on priority. Otherwise, compare hash to prevent collisions
-    int priorityCmp = Double.compare(getPriority(), o.getPriority());
-    if (priorityCmp != 0) return priorityCmp;
-    return Integer.compare(hashCode(), o.hashCode());
-  }
-
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((desc == null) ? 0 : desc.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
-    long temp;
-    temp = Double.doubleToLongBits(priority);
-    result = prime * result + (int) (temp ^ (temp >>> 32));
     result = prime * result + requirements.hashCode();
     result = prime * result + ((stepFlags == null) ? 0 : stepFlags.hashCode());
     return result;
@@ -168,7 +151,6 @@ public abstract class Step implements Comparable<Step> {
     if (name == null) {
       if (other.name != null) return false;
     } else if (!name.equals(other.name)) return false;
-    if (Double.doubleToLongBits(priority) != Double.doubleToLongBits(other.priority)) return false;
     if (!requirements.equals(other.requirements)) return false;
     if (stepFlags == null) {
       if (other.stepFlags != null) return false;

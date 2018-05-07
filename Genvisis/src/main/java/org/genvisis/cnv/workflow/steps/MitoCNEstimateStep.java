@@ -22,7 +22,7 @@ public class MitoCNEstimateStep extends Step {
   public static final String DESC = "";
 
   public static MitoCNEstimateStep create(Project proj, Step transposeStep,
-                                          Requirement numThreadsReq, double priority) {
+                                          Requirement numThreadsReq) {
     // FIXME http://genvisis.org/MitoPipeline/#illumina_marker_lists has illumina markers.. this
     // should be linked to, or
     // these steps split or something...
@@ -68,7 +68,7 @@ public class MitoCNEstimateStep extends Step {
                                   qcPassingOnlyReq, imputeNaNs, recomputeLrrPCMarkersReq,
                                   recomputeLrrMedianMarkersReq, homozygousOnlyReq,
                                   gcRegressionDistanceReq, pcSelectionSamplesReq,
-                                  externalBetaFileReq, numThreadsReq, reqSet, priority);
+                                  externalBetaFileReq, numThreadsReq, reqSet);
   }
 
   final Requirement medianMarkersReq;
@@ -90,8 +90,8 @@ public class MitoCNEstimateStep extends Step {
                              Requirement recomputeLrrMedianMarkersReq,
                              Requirement homozygousOnlyReq, Requirement gcRegressionDistanceReq,
                              Requirement pcSelectionSamplesReq, Requirement externalBetaFileReq,
-                             Requirement numThreadsReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED), priority);
+                             Requirement numThreadsReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.medianMarkersReq = medianMarkersReq;
     this.lrrSdThresholdReq = lrrSdThresholdReq;
     this.callrateThresholdReq = callrateThresholdReq;

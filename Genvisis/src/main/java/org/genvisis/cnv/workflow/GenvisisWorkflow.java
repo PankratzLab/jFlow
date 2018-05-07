@@ -1,10 +1,10 @@
 package org.genvisis.cnv.workflow;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
+import org.apache.commons.collections4.SortedBidiMap;
+import org.apache.commons.collections4.bidimap.UnmodifiableSortedBidiMap;
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
@@ -30,7 +30,7 @@ public class GenvisisWorkflow {
   public static final String PLINK_SUBDIR = "plink/";
   public static final String PLINKROOT = "plink";
   final Project proj;
-  private final SortedSet<Step> steps;
+  private final SortedBidiMap<Double, Step> steps;
   Logger log;
   private final Launch launch;
 
@@ -44,7 +44,7 @@ public class GenvisisWorkflow {
     log = project.getLog();
     this.launch = launch;
 
-    steps = Collections.unmodifiableSortedSet(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
+    steps = UnmodifiableSortedBidiMap.unmodifiableSortedBidiMap(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
   }
 
   public void showDialogAndRun() {
@@ -60,7 +60,7 @@ public class GenvisisWorkflow {
     }
   }
 
-  private SortedSet<Step> generateSteps(boolean allowCorrectionStep) {
+  private SortedBidiMap<Double, Step> generateSteps(boolean allowCorrectionStep) {
     StepBuilder sb = new StepBuilder(proj);
 
     Step parseSamplesStep;

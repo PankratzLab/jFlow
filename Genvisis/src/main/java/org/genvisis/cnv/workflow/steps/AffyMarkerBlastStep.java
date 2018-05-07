@@ -19,8 +19,7 @@ public class AffyMarkerBlastStep extends Step {
   public static final String NAME = "Run Marker BLAST Annotation";
   public static final String DESC = "";
 
-  public static AffyMarkerBlastStep create(final Step parseSamplesStep, Requirement numThreadsReq,
-                                           double priority) {
+  public static AffyMarkerBlastStep create(final Step parseSamplesStep, Requirement numThreadsReq) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
     final Requirement probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
@@ -31,7 +30,7 @@ public class AffyMarkerBlastStep extends Step {
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(probeFileReq).add(annotFileReq)
                                                        .add(numThreadsReq);
-    return new AffyMarkerBlastStep(probeFileReq, annotFileReq, numThreadsReq, reqSet, priority);
+    return new AffyMarkerBlastStep(probeFileReq, annotFileReq, numThreadsReq, reqSet);
   }
 
   final Requirement probeFileReq;
@@ -39,10 +38,9 @@ public class AffyMarkerBlastStep extends Step {
   final Requirement numThreadsReq;
 
   private AffyMarkerBlastStep(Requirement probeFileReq, Requirement annotFileReq,
-                              Requirement numThreadsReq, RequirementSet reqSet, double priority) {
+                              Requirement numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-                                         Requirement.Flag.MULTITHREADED),
-          priority);
+                                         Requirement.Flag.MULTITHREADED));
     this.probeFileReq = probeFileReq;
     this.annotFileReq = annotFileReq;
     this.numThreadsReq = numThreadsReq;

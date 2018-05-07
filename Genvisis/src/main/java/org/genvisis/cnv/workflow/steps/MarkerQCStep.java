@@ -23,11 +23,8 @@ public class MarkerQCStep extends Step {
   public static final String NAME = "Run Marker QC Metrics";
   public static final String DESC = "";
 
-  private static final Requirement exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
-                                                                                          true);
-
-  public static MarkerQCStep create(Project proj, Step parseSamplesStep, Requirement numThreadsReq,
-                                    double priority) {
+  public static MarkerQCStep create(Project proj, Step parseSamplesStep,
+                                    Requirement numThreadsReq) {
     String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
     final Requirement targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
                                                                          tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? tgtMkrFiles[0]
@@ -44,24 +41,27 @@ public class MarkerQCStep extends Step {
                                                                                   sampleDataHeaders,
                                                                                   defaultBatchHeaders,
                                                                                   true);
-
+    final Requirement exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
+                                                                             true);
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(exportAllReq)
                                                                                  .add(targetMarkersReq))
                                                        .add(batchHeadersReq).add(numThreadsReq);
-    return new MarkerQCStep(reqSet, targetMarkersReq, batchHeadersReq, numThreadsReq, priority);
+    return new MarkerQCStep(reqSet, exportAllReq, targetMarkersReq, batchHeadersReq, numThreadsReq);
   }
 
+  Requirement exportAllReq;
   Requirement targetMarkersReq;
   Requirement numThreadsReq;
   ListSelectionRequirement batchHeadersReq;
 
-  private MarkerQCStep(RequirementSet reqSet, Requirement targetMarkersReq,
-                       ListSelectionRequirement batchHeadersReq, Requirement numThreadsReq,
-                       double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED), priority);
+  private MarkerQCStep(RequirementSet reqSet, Requirement exportAllReq,
+                       Requirement targetMarkersReq, ListSelectionRequirement batchHeadersReq,
+                       Requirement numThreadsReq) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
+    this.exportAllReq = exportAllReq;
     this.targetMarkersReq = targetMarkersReq;
     this.batchHeadersReq = batchHeadersReq;
     this.numThreadsReq = numThreadsReq;

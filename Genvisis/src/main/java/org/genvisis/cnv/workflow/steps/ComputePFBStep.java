@@ -18,7 +18,7 @@ public class ComputePFBStep extends Step {
   public static final String NAME = "Compute Population BAF files";
   public static final String DESC = "";
 
-  public static ComputePFBStep create(Project proj, final Step parseSamplesStep, double priority) {
+  public static ComputePFBStep create(Project proj, final Step parseSamplesStep) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement sampleSubsetReq = new Requirement.FileRequirement("A Sample subset file must exist.",
                                                                         proj.SAMPLE_SUBSET_FILENAME.getValue());
@@ -36,15 +36,14 @@ public class ComputePFBStep extends Step {
                                                                                  .add(parseSamplesStepReq)
                                                                                  .add(sampleSubsetReq))
                                                        .add(outputFileReq);
-    return new ComputePFBStep(sampleSubsetReq, outputFileReq, reqSet, priority);
+    return new ComputePFBStep(sampleSubsetReq, outputFileReq, reqSet);
   }
 
   final Requirement sampleSubsetReq;
   final Requirement outputFileReq;
 
-  private ComputePFBStep(Requirement sampleSubReq, Requirement outReq, RequirementSet reqSet,
-                         double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+  private ComputePFBStep(Requirement sampleSubReq, Requirement outReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.sampleSubsetReq = sampleSubReq;
     this.outputFileReq = outReq;
   }

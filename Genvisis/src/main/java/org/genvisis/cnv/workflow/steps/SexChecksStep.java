@@ -19,8 +19,7 @@ public class SexChecksStep extends Step {
 
   public static SexChecksStep create(final Project proj, final Step parseSamplesStep,
                                      final Step markerBlastStep, final Step sampleDataStep,
-                                     final Step transposeStep, final Step sampleQCStep,
-                                     final double priority) {
+                                     final Step transposeStep, final Step sampleQCStep) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
@@ -41,7 +40,7 @@ public class SexChecksStep extends Step {
                                                                                  .add(oneHittersReq)
                                                                                  .add(markerBlastStepReq)
                                                                                  .add(noCrossHybeReq));
-    return new SexChecksStep(addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet, priority);
+    return new SexChecksStep(addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet);
   }
 
   final Requirement addToSampleDataReq;
@@ -49,8 +48,8 @@ public class SexChecksStep extends Step {
   final Requirement noCrossHybeReq;
 
   public SexChecksStep(Requirement addToSD, Requirement noCross, Requirement oneHit,
-                       RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+                       RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.addToSampleDataReq = addToSD;
     this.noCrossHybeReq = noCross;
     this.oneHittersReq = oneHit;

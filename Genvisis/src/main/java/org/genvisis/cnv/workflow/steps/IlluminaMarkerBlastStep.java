@@ -7,9 +7,9 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
+import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
-import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableMap;
@@ -20,21 +20,20 @@ public class IlluminaMarkerBlastStep extends Step {
   public static final String DESC = "";
 
   public static IlluminaMarkerBlastStep create(Project proj, final Step parseSamplesStep,
-                                               Requirement numThreadsReq, double priority) {
+                                               Requirement numThreadsReq) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
                                                                         IlluminaMarkerBlast.EXAMPLE_MANIFEST);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(manifestFileReq).add(numThreadsReq);
-    return new IlluminaMarkerBlastStep(manifestFileReq, numThreadsReq, reqSet, priority);
+    return new IlluminaMarkerBlastStep(manifestFileReq, numThreadsReq, reqSet);
   }
 
   private IlluminaMarkerBlastStep(Requirement manifestFileReq, Requirement numThreadsReq,
-                                  RequirementSet reqSet, double priority) {
+                                  RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-                                         Requirement.Flag.MULTITHREADED),
-          priority);
+                                         Requirement.Flag.MULTITHREADED));
     this.manifestFileReq = manifestFileReq;
     this.numThreadsReq = numThreadsReq;
   }

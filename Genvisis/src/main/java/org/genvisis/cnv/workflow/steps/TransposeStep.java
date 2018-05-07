@@ -6,7 +6,6 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.workflow.Requirement;
-import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.common.Files;
@@ -16,14 +15,14 @@ public class TransposeStep extends Step {
   public static final String NAME = "Transpose Data into Marker-Dominant Files";
   public static final String DESC = "";
 
-  public static TransposeStep create(Step parseSamplesStep, double priority) {
-    RequirementSet reqSet = RequirementSetBuilder.and()
-                                                 .add(new Requirement.StepRequirement(parseSamplesStep));
-    return new TransposeStep(parseSamplesStep, reqSet, priority);
+  public static TransposeStep create(Step parseSamplesStep) {
+    return new TransposeStep(parseSamplesStep);
   }
 
-  private TransposeStep(Step parseSamplesStep, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY), priority);
+  private TransposeStep(Step parseSamplesStep) {
+    super(NAME, DESC,
+          RequirementSetBuilder.and().add(new Requirement.StepRequirement(parseSamplesStep)),
+          EnumSet.of(Requirement.Flag.MEMORY));
   }
 
   @Override

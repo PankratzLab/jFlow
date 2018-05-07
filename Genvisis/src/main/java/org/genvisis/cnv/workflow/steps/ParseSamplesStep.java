@@ -20,7 +20,7 @@ public class ParseSamplesStep extends Step {
   public static final String DESC = "";
 
   public static ParseSamplesStep create(Project proj, final Step markerPositionsStep,
-                                        Requirement numThreadsReq, double priority) {
+                                        Requirement numThreadsReq) {
     final Requirement markerPositionsReq = new Requirement.FileRequirement("Marker Positions file must already exist.",
                                                                            proj.MARKER_POSITION_FILENAME.getValue(false,
                                                                                                                   false));
@@ -32,17 +32,16 @@ public class ParseSamplesStep extends Step {
       reqSet.add(RequirementSetBuilder.or().add(markerPositionsReq).add(markerPositionsStepReq))
             .add(numThreadsReq);
     }
-    return new ParseSamplesStep(markerPositionsReq, numThreadsReq, reqSet, priority);
+    return new ParseSamplesStep(markerPositionsReq, numThreadsReq, reqSet);
   }
 
   final Requirement markerPositionsReq;
   final Requirement numThreadsReq;
 
   private ParseSamplesStep(Requirement markerPosReq, Requirement numThreadsReq,
-                           RequirementSet reqSet, double priority) {
+                           RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
-                                         Requirement.Flag.MULTITHREADED),
-          priority);
+                                         Requirement.Flag.MULTITHREADED));
     this.markerPositionsReq = markerPosReq;
     this.numThreadsReq = numThreadsReq;
   }

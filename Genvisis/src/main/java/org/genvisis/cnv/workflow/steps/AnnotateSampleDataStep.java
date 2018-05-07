@@ -22,7 +22,7 @@ public class AnnotateSampleDataStep extends Step {
 
   public static AnnotateSampleDataStep create(Project proj, final Step sampleQCStep,
                                               final Step createSampleDataStep,
-                                              final Step gwasQCStep, double priority) {
+                                              final Step gwasQCStep) {
     final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
     final Requirement createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
     final Requirement skipIDingDuplicatesReq = new Requirement.BoolRequirement("Skip identifying duplicates",
@@ -70,7 +70,7 @@ public class AnnotateSampleDataStep extends Step {
                                                        .add(replaceFIDIIDReq);
     return new AnnotateSampleDataStep(replaceFIDIIDReq, numQReq, notGcCorrectedLrrSdReq,
                                       skipIDingDuplicatesReq, lrrSdThresholdReq,
-                                      callrateThresholdReq, reqSet, priority);
+                                      callrateThresholdReq, reqSet);
   }
 
   final Requirement skipIDingDuplicatesReq;
@@ -82,8 +82,8 @@ public class AnnotateSampleDataStep extends Step {
 
   public AnnotateSampleDataStep(Requirement replaceIDReq, Requirement numQReq, Requirement notGCReq,
                                 Requirement skipIDingDupReq, Requirement lrrSdReq,
-                                Requirement callrateReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+                                Requirement callrateReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.skipIDingDuplicatesReq = skipIDingDupReq;
     this.lrrSdThresholdReq = lrrSdReq;
     this.callrateThresholdReq = callrateReq;

@@ -1,6 +1,7 @@
 package org.genvisis.cnv.workflow;
 
-import java.util.SortedSet;
+import org.apache.commons.collections4.SortedBidiMap;
+import org.apache.commons.collections4.bidimap.DualTreeBidiMap;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.steps.ABLookupStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
@@ -24,7 +25,6 @@ import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.cnv.workflow.steps.TransposeStep;
-import com.google.common.collect.Sets;
 
 /**
  * Helper class to minimize manual bookkeeping when instantiating steps. Each
@@ -37,7 +37,7 @@ import com.google.common.collect.Sets;
  */
 public class StepBuilder {
 
-  private SortedSet<Step> buildSteps;
+  private SortedBidiMap<Double, Step> buildSteps;
   private double p;
   private final Requirement numThreadsReq;
   public static final String NUM_THREADS_DESC = "Number of threads";
@@ -46,7 +46,7 @@ public class StepBuilder {
   public StepBuilder(Project proj) {
     numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC,
                                                       proj.NUM_THREADS.getValue());
-    buildSteps = Sets.newTreeSet();
+    buildSteps = new DualTreeBidiMap<>();
     p = 0.0;
   }
 
@@ -57,14 +57,14 @@ public class StepBuilder {
   /**
    * @return All steps {@link #register(Step)}ed by this step builder thus far
    */
-  public SortedSet<Step> getSortedSteps() {
+  public SortedBidiMap<Double, Step> getSortedSteps() {
     return buildSteps;
   }
 
   /**
    * @return The next step priority
    */
-  double priority() {
+  private double priority() {
     return ++p;
   }
 
@@ -72,21 +72,20 @@ public class StepBuilder {
    * Register the given step in the list returned by {@link #getSortedSteps()}
    */
   Step register(Step s) {
-    buildSteps.add(s);
+    buildSteps.put(priority(), s);
     return s;
   }
 
   Step generateIlluminaMarkerPositionsStep(Project proj) {
-    return register(IlluminaMarkerPositionsStep.create(proj, priority()));
+    return register(IlluminaMarkerPositionsStep.create(proj));
   }
 
   Step generateIlluminaMarkerBlastAnnotationStep(Project proj, final Step parseSamplesStep) {
-    return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq,
-                                                   priority()));
+    return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateAffyMarkerBlastAnnotationStep(final Step parseSamplesStep) {
-    return register(AffyMarkerBlastStep.create(parseSamplesStep, numThreadsReq, priority()));
+    return register(AffyMarkerBlastStep.create(parseSamplesStep, numThreadsReq));
   }
 
   Step generateParseSamplesStep(Project proj) {
@@ -94,86 +93,85 @@ public class StepBuilder {
   }
 
   Step generateParseSamplesStep(Project proj, final Step markerPositionsStep) {
-    return register(ParseSamplesStep.create(proj, markerPositionsStep, numThreadsReq, priority()));
+    return register(ParseSamplesStep.create(proj, markerPositionsStep, numThreadsReq));
   }
 
   Step generateCreateSampleDataStep(Project proj, final Step parseSamplesStep) {
-    return register(SampleDataStep.create(parseSamplesStep, proj, priority()));
+    return register(SampleDataStep.create(parseSamplesStep, proj));
   }
 
   Step generateTransposeStep(Project proj, final Step parseSamplesStep) {
-    return register(TransposeStep.create(parseSamplesStep, priority()));
+    return register(TransposeStep.create(parseSamplesStep));
   }
 
   Step generateGCModelStep(Project proj) {
-    return register(GCModelStep.create(proj, priority()));
+    return register(GCModelStep.create(proj));
   }
 
   Step generateSampleQCStep(Project proj, final Step parseSamplesStep) {
-    return register(SampleQCStep.create(parseSamplesStep, numThreadsReq, priority()));
+    return register(SampleQCStep.create(parseSamplesStep, numThreadsReq));
   }
 
   Step generateMarkerQCStep(Project proj, final Step parseSamplesStep) {
-    return register(MarkerQCStep.create(proj, parseSamplesStep, numThreadsReq, priority()));
+    return register(MarkerQCStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateSexChecksStep(Project proj, final Step parseSamplesStep, final Step markerBlastStep,
                              final Step sampleDataStep, final Step transposeStep,
                              final Step sampleQCStep) {
     return register(SexChecksStep.create(proj, parseSamplesStep, markerBlastStep, sampleDataStep,
-                                         transposeStep, sampleQCStep, priority()));
+                                         transposeStep, sampleQCStep));
   }
 
   Step generatePlinkExportStep(Project proj, final Step parseSamplesStep) {
-    return register(PlinkExportStep.create(proj, parseSamplesStep, priority()));
+    return register(PlinkExportStep.create(proj, parseSamplesStep));
   }
 
   Step generateGwasQCStep(Project proj, Step plinkExportStep) {
-    return register(GwasQCStep.create(proj, plinkExportStep, priority()));
+    return register(GwasQCStep.create(proj, plinkExportStep));
   }
 
   Step generateAncestryStep(Project proj, final Step gwasQCStep) {
-    return register(AncestryStep.create(proj, gwasQCStep, priority()));
+    return register(AncestryStep.create(proj, gwasQCStep));
   }
 
   Step generateFurtherAnalysisQCStep(Project proj, Step plinkExportStep, Step gwasQCStep,
                                      Step ancestryStep) {
-    return register(FurtherAnalysisQCStep.create(proj, plinkExportStep, gwasQCStep, ancestryStep,
-                                                 priority()));
+    return register(FurtherAnalysisQCStep.create(proj, plinkExportStep, gwasQCStep, ancestryStep));
   }
 
   Step generateMosaicArmsStep(Project proj, final Step parseSamplesStep) {
-    return register(MosaicArmsStep.create(proj, parseSamplesStep, numThreadsReq, priority()));
+    return register(MosaicArmsStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateAnnotateSampleDataStep(Project proj, final Step sampleQCStep,
                                       final Step createSampleDataStep, final Step gwasQCStep) {
     return register(AnnotateSampleDataStep.create(proj, sampleQCStep, createSampleDataStep,
-                                                  gwasQCStep, priority()));
+                                                  gwasQCStep));
   }
 
   Step generateMitoCNEstimateStep(Project proj, Step transposeStep) {
-    return register(MitoCNEstimateStep.create(proj, transposeStep, numThreadsReq, priority()));
+    return register(MitoCNEstimateStep.create(proj, transposeStep, numThreadsReq));
   }
 
   Step generatePFBStep(Project proj, final Step parseSamplesStep) {
-    return register(ComputePFBStep.create(proj, parseSamplesStep, priority()));
+    return register(ComputePFBStep.create(proj, parseSamplesStep));
   }
 
   Step generateSexCentroidsStep() {
-    return register(SexCentroidsStep.create(numThreadsReq, priority()));
+    return register(SexCentroidsStep.create(numThreadsReq));
   }
 
   Step generateCNVStep(Project proj, Step pfbStep, Step gcModelStep) {
-    return register(CallCNVsStep.create(proj, pfbStep, gcModelStep, numThreadsReq, priority()));
+    return register(CallCNVsStep.create(proj, pfbStep, gcModelStep, numThreadsReq));
   }
 
   Step generatePCCorrectedProjectStep(Project proj, final Step parseSamplesStep) {
-    return register(PCCorrectionStep.create(parseSamplesStep, numThreadsReq, priority()));
+    return register(PCCorrectionStep.create(parseSamplesStep, numThreadsReq));
   }
 
   Step generateABLookupStep(final Step parseSamplesStep) {
-    return register(ABLookupStep.create(parseSamplesStep, priority()));
+    return register(ABLookupStep.create(parseSamplesStep));
   }
 
   public static int resolveThreads(Project proj, String arg) {

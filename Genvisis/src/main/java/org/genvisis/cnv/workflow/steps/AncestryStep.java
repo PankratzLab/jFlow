@@ -20,7 +20,7 @@ public class AncestryStep extends Step {
   public static final String NAME = "Run Ancestry Checks";
   public static final String DESC = "";
 
-  public static AncestryStep create(Project proj, Step gwasQCStep, double priority) {
+  public static AncestryStep create(Project proj, Step gwasQCStep) {
     final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
                                                                                                   Resources.hapMap(proj.getLog())
@@ -32,7 +32,7 @@ public class AncestryStep extends Step {
     final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
-    return new AncestryStep(hapMapFoundersReq, hapMapAncestryReq, reqSet, priority);
+    return new AncestryStep(hapMapFoundersReq, hapMapAncestryReq, reqSet);
   }
 
   private final static Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
@@ -42,8 +42,8 @@ public class AncestryStep extends Step {
   final ResourceRequirement hapMapAncestryReq;
 
   private AncestryStep(ResourceRequirement hapFound, ResourceRequirement hapAnc,
-                       RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class), priority);
+                       RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.hapMapFoundersReq = hapFound;
     this.hapMapAncestryReq = hapAnc;
   }

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentMap;
 import javax.swing.AbstractAction;
@@ -51,6 +50,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import org.apache.commons.collections4.SortedBidiMap;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.Resource;
@@ -97,7 +97,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
   volatile boolean cancelled = false;
   volatile Set<Step> selected;
-  SortedSet<Step> steps;
+  SortedBidiMap<Double, Step> steps;
   int DEFAULT_SCROLL_SPEED = 16;
 
   /**
@@ -105,7 +105,8 @@ public class GenvisisWorkflowGUI extends JDialog {
    * 
    * @param steps TODO
    */
-  public GenvisisWorkflowGUI(Project proj2, final Launch launch, final SortedSet<Step> steps) {
+  public GenvisisWorkflowGUI(Project proj2, final Launch launch,
+                             final SortedBidiMap<Double, Step> steps) {
     proj = proj2;
     if (proj == null) {
       doClose();
@@ -117,7 +118,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
     proj.getLog().report("Launching Genvisis Project Pipeline");
     this.steps = steps;
-    selected = Sets.newTreeSet(steps);
+    selected = Sets.newHashSet(steps.values());
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     JPanel optionPanel = new JPanel();
@@ -136,7 +137,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
     {
       int i = 1;
-      for (Step step : steps) {
+      for (Step step : steps.values()) {
         final int index = i++;
         JAccordionPanel panel = createPanel(step, index);
         optionPanel.add(panel, "cell 0 " + (i) + ", alignx left, growx");
@@ -160,8 +161,8 @@ public class GenvisisWorkflowGUI extends JDialog {
           for (Entry<Step, JCheckBox> entry : checkBoxes.entrySet()) {
             entry.getValue().setSelected(true);
           }
-          selected.addAll(steps);
-          refreshLabels(GenvisisWorkflowGUI.this, steps);
+          selected.addAll(steps.values());
+          refreshLabels(GenvisisWorkflowGUI.this, steps.values());
         }
       });
       btnSelectAll.setMargin(btnInsets);
@@ -176,7 +177,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             entry.getValue().setSelected(false);
           }
           selected.clear();
-          refreshLabels(GenvisisWorkflowGUI.this, steps);
+          refreshLabels(GenvisisWorkflowGUI.this, steps.values());
         }
       });
       btnDeselectAll.setMargin(btnInsets);
@@ -192,7 +193,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             selectedSteps.add(entry.getKey()); // pretend everything is selected
           }
           Map<Step, Map<Requirement, String>> variables = getVariables();
-          for (final Step step : steps) {
+          for (final Step step : steps.values()) {
             if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
               continue;
             }
@@ -212,7 +213,7 @@ public class GenvisisWorkflowGUI extends JDialog {
               checkBoxes.get(step).setSelected(false);
             }
           }
-          refreshLabels(GenvisisWorkflowGUI.this, steps);
+          refreshLabels(GenvisisWorkflowGUI.this, steps.values());
         }
       });
       btnSelectValid.setMargin(btnInsets);
@@ -328,7 +329,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       @Override
       public void run() {
         Map<Step, Map<Requirement, String>> variables = getVariables();
-        for (Step step : steps) {
+        for (Step step : steps.values()) {
           if (step.checkIfOutputExists(proj, variables)) {
             checkBoxes.get(step).setSelected(false);
             alreadyRunLbls.get(step).setVisible(true);
@@ -338,7 +339,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         }
       }
     });
-    refreshLabels(this, steps);
+    refreshLabels(this, steps.values());
     setMinimumSize(new Dimension(100, 100));
     UITools.setSize(this, new Dimension(750, 850));
     setTitle(TOP_LABEL);
@@ -751,7 +752,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     boolean go = true;
     while (go) {
       int stepCnt = allSteps.size();
-      for (Step s : this.steps) {
+      for (Step s : this.steps.values()) {
         if (!Collections.disjoint(refreshSteps, s.getRelatedSteps())) {
           allSteps.add(s);
         }
@@ -1050,7 +1051,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                                   "Error - cleanup of cancelled steps is not implemented.  Please clean or remove any generated files and try again.",
                                   "Error", JOptionPane.ERROR_MESSAGE);
     boolean foundMore = false;
-    for (Step step2 : steps.tailSet(step)) {
+    for (Step step2 : steps.tailMap(steps.getKey(step)).values()) {
       if (options.contains(step2)) {
         foundMore = true;
         break;

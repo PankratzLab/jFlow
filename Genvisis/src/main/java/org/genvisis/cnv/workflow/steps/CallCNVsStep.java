@@ -26,7 +26,7 @@ public class CallCNVsStep extends Step {
   public static final String DESC = "";
 
   public static CallCNVsStep create(Project proj, Step pfbStep, Step gcModelStep,
-                                    Requirement numThreadsReq, double priority) {
+                                    Requirement numThreadsReq) {
     final Requirement hmmFile = new Requirement.FileRequirement("Hidden Markov Model File Must Exist",
                                                                 proj.HMM_FILENAME.getValue());
     final Requirement pfbStepReq = new Requirement.StepRequirement(pfbStep);
@@ -60,7 +60,7 @@ public class CallCNVsStep extends Step {
                                                        .add(callingTypeReq).add(useCentroidsReq)
                                                        .add(numThreadsReq).add(outputFileReq);
     return new CallCNVsStep(hmmFile, pfbFileReq, gcModelFileReq, callingTypeReq, useCentroidsReq,
-                            outputFileReq, numThreadsReq, reqSet, priority);
+                            outputFileReq, numThreadsReq, reqSet);
   }
 
   final Requirement hmmFile;
@@ -73,10 +73,9 @@ public class CallCNVsStep extends Step {
 
   private CallCNVsStep(Requirement hmmFile, Requirement pfbFileReq, Requirement gcModelFileReq,
                        Requirement callingTypeReq, Requirement useCentroidsReq,
-                       Requirement outputFileReq, Requirement numThreadsReq, RequirementSet reqSet,
-                       double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.MULTITHREADED),
-          priority);
+                       Requirement outputFileReq, Requirement numThreadsReq,
+                       RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.MULTITHREADED));
     this.hmmFile = hmmFile;
     this.pfbFileReq = pfbFileReq;
     this.gcModelFileReq = gcModelFileReq;

@@ -17,18 +17,18 @@ public class MosaicArmsStep extends Step {
   private final Requirement numThreadsReq;
 
   public static MosaicArmsStep create(Project proj, final Step parseSamplesStep,
-                                      Requirement numThreadsReq, double priority) {
+                                      Requirement numThreadsReq) {
     final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(numThreadsReq);
-    return new MosaicArmsStep(numThreadsReq, reqSet, priority);
+    return new MosaicArmsStep(numThreadsReq, reqSet);
   }
 
   public static final String NAME = "Create Mosaic Arms File";
   public static final String DESC = "";
 
-  private MosaicArmsStep(Requirement numThreadsReq, RequirementSet reqSet, double priority) {
-    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED), priority);
+  private MosaicArmsStep(Requirement numThreadsReq, RequirementSet reqSet) {
+    super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.numThreadsReq = numThreadsReq;
   }
 
