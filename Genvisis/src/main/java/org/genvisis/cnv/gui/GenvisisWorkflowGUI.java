@@ -51,7 +51,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import net.miginfocom.swing.MigLayout;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.Resource;
@@ -72,6 +71,7 @@ import org.genvisis.qsub.Qsub;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import net.miginfocom.swing.MigLayout;
 
 public class GenvisisWorkflowGUI extends JDialog {
 
@@ -196,7 +196,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
               continue;
             }
-            if (!step.checkIfOutputExists(variables)) {
+            if (!step.checkIfOutputExists(proj, variables)) {
               boolean check = step.hasRequirements(proj, selectedSteps, variables);
               checkBoxes.get(step).setSelected(check);
               selected.add(step);
@@ -329,7 +329,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       public void run() {
         Map<Step, Map<Requirement, String>> variables = getVariables();
         for (Step step : steps) {
-          if (step.checkIfOutputExists(variables)) {
+          if (step.checkIfOutputExists(proj, variables)) {
             checkBoxes.get(step).setSelected(false);
             alreadyRunLbls.get(step).setVisible(true);
             panels.get(step).shrink();
@@ -799,7 +799,8 @@ public class GenvisisWorkflowGUI extends JDialog {
           }
           final Map<Step, Map<Requirement, String>> variables = gui.getVariables();
           final int update = ++i;
-          if (!step.checkIfOutputExists(variables) || gui.checkBoxes.get(step).isSelected()) {
+          if (!step.checkIfOutputExists(gui.proj, variables)
+              || gui.checkBoxes.get(step).isSelected()) {
             boolean check = step.hasRequirements(gui.proj, selectedSteps, variables);
             gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
             gui.checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
@@ -810,8 +811,8 @@ public class GenvisisWorkflowGUI extends JDialog {
                 @Override
                 public void run() {
                   for (Requirement req : step.getRequirements().getFlatRequirementsList()) {
-                    boolean met = req.checkRequirement(variables.get(step).get(req), selectedSteps,
-                                                       variables);
+                    boolean met = req.checkRequirement(gui.proj, variables.get(step).get(req),
+                                                       selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
                   }
                   gui.progVal.setValue(update);
@@ -964,7 +965,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         for (String msg : currentTask.getFailureMessages()) {
           failureMessage.append("\n").append(msg);
         }
-      } else if (!currentStep.checkIfOutputExists(variables)) {
+      } else if (!currentStep.checkIfOutputExists(proj, variables)) {
         failureMessage.append("\nUnknown error occurred.");
       }
       failureMessage.append("\nPlease check project log for more details.");
