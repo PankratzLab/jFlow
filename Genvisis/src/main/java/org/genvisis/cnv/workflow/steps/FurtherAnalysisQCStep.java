@@ -73,23 +73,21 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    Map<Requirement, String> stepVars = variables.get(this);
+  public void run(Project proj, Map<Requirement, String> variables) {
 
-    String unrelatedsFile = resolveUnrelatedsFile(proj, stepVars);
+    String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
 
-    String europeansFile = resolveEuropeansFile(proj, stepVars);
+    String europeansFile = resolveEuropeansFile(proj, variables);
 
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
     for (QC_METRIC metric : QC_METRIC.values()) {
       Requirement req = metricRequirements.get(metric);
-      markerQCThresholds.put(metric, stepVars.get(req));
+      markerQCThresholds.put(metric, variables.get(req));
     }
     new FurtherAnalysisQc(GenvisisWorkflow.getPlinkDir(proj), GenvisisWorkflow.PLINKROOT,
                           markerQCThresholds, unrelatedsFile, europeansFile, proj.getLog())
@@ -97,12 +95,10 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    Map<Requirement, String> stepVars = variables.get(this);
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
 
-    String unrelatedsFile = resolveUnrelatedsFile(proj, stepVars);
-
-    String europeansFile = resolveEuropeansFile(proj, stepVars);
+    String europeansFile = resolveEuropeansFile(proj, variables);
 
     List<String> commandChunks = Lists.newArrayList();
     commandChunks.add(Files.getRunString());
@@ -113,13 +109,13 @@ public class FurtherAnalysisQCStep extends Step {
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
     for (QC_METRIC metric : QC_METRIC.values()) {
       Requirement req = metricRequirements.get(metric);
-      commandChunks.add(CLI.formCmdLineArg(metric.getKey(), stepVars.get(req)));
+      commandChunks.add(CLI.formCmdLineArg(metric.getKey(), variables.get(req)));
     }
     return Joiner.on(' ').join(commandChunks);
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
     String qcdPlinkroot = GenvisisWorkflow.PLINKROOT

@@ -32,22 +32,21 @@ public class SampleQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     proj.getLog().report("Running LrrSd");
     int numThreads = proj.NUM_THREADS.getValue();
     LrrSd.init(proj, null, null, numThreads, false);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString()).append(" cnv.qc.LrrSd").append(" proj=").append(projPropFile)
@@ -57,7 +56,7 @@ public class SampleQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false));
   }
 }

@@ -1,7 +1,6 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +27,11 @@ public abstract class Step {
     }
   }
 
-  private String name;
-  private String desc;
-  private RequirementSet requirements;
+  private final String name;
+  private final String desc;
+  private final RequirementSet requirements;
   private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
-  private Set<Requirement.Flag> stepFlags;
+  private final Set<Requirement.Flag> stepFlags;
 
   /**
    * @param name displayed in the workflow
@@ -48,7 +47,7 @@ public abstract class Step {
     this.name = name;
     this.desc = desc;
     this.requirements = requirements;
-    this.stepFlags = EnumSet.copyOf(flags);
+    this.stepFlags = Sets.immutableEnumSet(flags);
     ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
     relatedStepsBuilder.add(this);
     for (Requirement req : requirements.getFlatRequirementsList()) {
@@ -61,7 +60,6 @@ public abstract class Step {
       }
     }
     this.relatedSteps = relatedStepsBuilder.build();
-    this.stepFlags = Sets.immutableEnumSet(flags);
   }
 
   public String getName() {
@@ -72,20 +70,51 @@ public abstract class Step {
     return this.desc;
   }
 
+  /**
+   * Set any Project Property values, if necessary.
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   */
   public abstract void setNecessaryPreRunProperties(Project proj,
-                                                    Map<Step, Map<Requirement, String>> variables);
+                                                    Map<Requirement, String> variables);
 
-  public abstract void run(Project proj, Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Run this Step
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   */
+  public abstract void run(Project proj, Map<Requirement, String> variables);
 
   /**
    * Used to cancel a step
    * 
-   * @param proj
+   * @param proj {@link Project}
    */
   public void gracefulDeath(Project proj) {
+    cleanupAfterFailure(proj);
     return;
   }
 
+  /**
+   * Removes incomplete files from a failed or cancelled execution
+   * 
+   * @param proj {@link Project}
+   */
+  public void cleanupAfterFailure(Project proj) {
+    return;
+  }
+
+  /**
+   * Check if the requirements for this step are satisfied. These requirements possibly include
+   * other steps, which requires the full Step-to-variables map.
+   * 
+   * @param proj Project
+   * @param stepSelections Set of selected steps
+   * @param variables Full map of each selected step to Requirement values
+   * @return
+   */
   public boolean hasRequirements(Project proj, Set<Step> stepSelections,
                                  Map<Step, Map<Requirement, String>> variables) {
     if (variables.get(this) == null) {
@@ -103,11 +132,23 @@ public abstract class Step {
     return requirements;
   }
 
-  public abstract boolean checkIfOutputExists(Project proj,
-                                              Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Check if the output from this step already exists
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   * @return
+   */
+  public abstract boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables);
 
-  public abstract String getCommandLine(Project proj,
-                                        Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Get the command line invocation for this Step, based on the applied variables.
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   * @return
+   */
+  public abstract String getCommandLine(Project proj, Map<Requirement, String> variables);
 
   public Map<Requirement, String> getDefaultRequirementValues() {
     Map<Requirement, String> varMap = new HashMap<>();
@@ -160,8 +201,7 @@ public abstract class Step {
   }
 
   public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj,
-                                     Map<Step, Map<Requirement, String>> variables,
-                                     List<Step> selectedSteps) {
+                                     Map<Requirement, String> variables, List<Step> selectedSteps) {
     StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
     return st;
   }

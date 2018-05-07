@@ -68,29 +68,26 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    boolean allMarkers = Boolean.parseBoolean(variables.get(this).get(exportAllReq));
-    String tgtFile = allMarkers ? null : variables.get(this).get(targetMarkersReq);
+  public void run(Project proj, Map<Requirement, String> variables) {
+    boolean allMarkers = Boolean.parseBoolean(variables.get(exportAllReq));
+    String tgtFile = allMarkers ? null : variables.get(targetMarkersReq);
     boolean[] samplesToExclude = proj.getSamplesToExclude();
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
-    Set<String> batchHeaders = ImmutableSet.copyOf(Requirement.ListSelectionRequirement.parseArgValString(variables.get(this)
-                                                                                                                   .get(batchHeadersReq)));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
+    Set<String> batchHeaders = ImmutableSet.copyOf(Requirement.ListSelectionRequirement.parseArgValString(variables.get(batchHeadersReq)));
     MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    boolean allMarkers = Boolean.parseBoolean(variables.get(this).get(exportAllReq));
-    String tgtFile = variables.get(this).get(targetMarkersReq);
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
-    List<String> batchHeaders = Requirement.ListSelectionRequirement.parseArgValString(variables.get(this)
-                                                                                                .get(batchHeadersReq));
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    boolean allMarkers = Boolean.parseBoolean(variables.get(exportAllReq));
+    String tgtFile = variables.get(targetMarkersReq);
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
+    List<String> batchHeaders = Requirement.ListSelectionRequirement.parseArgValString(variables.get(batchHeadersReq));
     StringJoiner args = new StringJoiner(" ");
     args.add(Files.getRunString());
     args.add(MarkerMetrics.class.getCanonicalName());
@@ -104,7 +101,7 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String markerMetricsFile = proj.MARKER_METRICS_FILENAME.getValue();
     return Files.exists(markerMetricsFile);
   }

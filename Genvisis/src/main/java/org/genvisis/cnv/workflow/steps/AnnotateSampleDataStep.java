@@ -93,12 +93,11 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    double lrrSdThreshold = Double.parseDouble(variables.get(this).get(lrrSdThresholdReq));
+    double lrrSdThreshold = Double.parseDouble(variables.get(lrrSdThresholdReq));
     double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    double callrateThreshold = Double.parseDouble(variables.get(this).get(callrateThresholdReq));
+    double callrateThreshold = Double.parseDouble(variables.get(callrateThresholdReq));
 
     if (projLrrSdThreshold != lrrSdThreshold) {
       proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
@@ -109,45 +108,41 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this)
-                                                             .get(skipIDingDuplicatesReq));
+  public void run(Project proj, Map<Requirement, String> variables) {
+    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
     String duplicatesSetFile = null;
     if (checkDuplicates) {
       duplicatesSetFile = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                           + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
                           + ".genome_duplicatesSet.dat";
     }
-    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
-                                                              .get(notGcCorrectedLrrSdReq));
-    int numQ = Integer.parseInt(variables.get(this).get(numQReq));
-    boolean correctFidIids = Boolean.parseBoolean(variables.get(this).get(replaceFIDIIDReq));
+    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(notGcCorrectedLrrSdReq));
+    int numQ = Integer.parseInt(variables.get(numQReq));
+    boolean correctFidIids = Boolean.parseBoolean(variables.get(replaceFIDIIDReq));
     SampleQC.parseAndAddToSampleData(proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile,
                                      correctFidIids);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
 
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    double lrrSdThreshold = Double.parseDouble(variables.get(this).get(lrrSdThresholdReq));
+    double lrrSdThreshold = Double.parseDouble(variables.get(lrrSdThresholdReq));
     double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    double callrateThreshold = Double.parseDouble(variables.get(this).get(callrateThresholdReq));
+    double callrateThreshold = Double.parseDouble(variables.get(callrateThresholdReq));
 
     String projPropFile = proj.getPropertyFilename();
 
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this)
-                                                             .get(skipIDingDuplicatesReq));
+    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
     String duplicatesSetFile = null;
     if (checkDuplicates) {
       duplicatesSetFile = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                           + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
                           + ".genome_duplicatesSet.dat";
     }
-    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(this)
-                                                              .get(notGcCorrectedLrrSdReq));
-    int numQ = Integer.parseInt(variables.get(this).get(numQReq));
-    boolean correctFidIids = Boolean.parseBoolean(variables.get(this).get(replaceFIDIIDReq));
+    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(notGcCorrectedLrrSdReq));
+    int numQ = Integer.parseInt(variables.get(numQReq));
+    boolean correctFidIids = Boolean.parseBoolean(variables.get(replaceFIDIIDReq));
 
     String kvCmd = "";
 
@@ -171,13 +166,12 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
     if (!Files.exists(sampleDataFile)) {
       return false;
     }
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(this)
-                                                             .get(skipIDingDuplicatesReq));
+    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
     if (checkDuplicates
         && ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header, false, true) == -1) {

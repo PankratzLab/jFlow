@@ -33,23 +33,22 @@ public class MosaicArmsStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
 
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     Mosaicism.findOutliers(proj);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String kvCmd = "";
 
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     if (numThreads != proj.NUM_THREADS.getValue()) {
       kvCmd += " " + proj.NUM_THREADS.getName() + "=" + numThreads;
     }
@@ -65,7 +64,7 @@ public class MosaicArmsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false) + "Mosaicism.xln");
   }
 }

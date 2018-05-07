@@ -29,13 +29,12 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     ABLookup.parseABLookup(proj, ABSource.VCF, filename);
@@ -48,7 +47,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     String projFile = proj.getPropertyFilename();
@@ -84,7 +83,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
   }
 }

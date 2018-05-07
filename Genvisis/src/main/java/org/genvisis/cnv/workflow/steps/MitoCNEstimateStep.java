@@ -107,9 +107,8 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
-    double sampleLRRSdFilter = Double.parseDouble(variables.get(this).get(lrrSdThresholdReq));
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+    double sampleLRRSdFilter = Double.parseDouble(variables.get(lrrSdThresholdReq));
     if (sampleLRRSdFilter < 0) {
       switch (proj.ARRAY_TYPE.getValue()) {
         case AFFY_GW6:
@@ -134,26 +133,24 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String medianMarkers = variables.get(this).get(medianMarkersReq);
-    double markerCallRateFilter = Double.parseDouble(variables.get(this).get(callrateThresholdReq));
+  public void run(Project proj, Map<Requirement, String> variables) {
+    String medianMarkers = variables.get(medianMarkersReq);
+    double markerCallRateFilter = Double.parseDouble(variables.get(callrateThresholdReq));
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
-    boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(qcPassingOnlyReq));
-    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(imputeNaNs));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this)
-                                                            .get(recomputeLrrPCMarkersReq));
-    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(this)
-                                                               .get(recomputeLrrMedianMarkersReq));
-    boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(homozygousOnlyReq));
+    boolean gcCorrect = Boolean.parseBoolean(variables.get(qcPassingOnlyReq));
+    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(imputeNaNs));
+    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrPCMarkersReq));
+    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(recomputeLrrMedianMarkersReq));
+    boolean homozygousOnly = Boolean.parseBoolean(variables.get(homozygousOnlyReq));
     int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
-    int regressionDistance = Integer.parseInt(variables.get(this).get(gcRegressionDistanceReq));
+    int regressionDistance = Integer.parseInt(variables.get(gcRegressionDistanceReq));
     int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String outputBase = MitoPipeline.FILE_BASE;
 
-    String betaOptFile = variables.get(this).get(pcSelectionSamplesReq);
-    String betaFile = variables.get(this).get(externalBetaFileReq);
+    String betaOptFile = variables.get(pcSelectionSamplesReq);
+    String betaFile = variables.get(externalBetaFileReq);
 
     boolean markerQC = true;
     double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
@@ -176,27 +173,25 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String medianMarkers = variables.get(this).get(medianMarkersReq);
-    double lrrSD = Double.parseDouble(variables.get(this).get(lrrSdThresholdReq));
-    double markerCallRateFilter = Double.parseDouble(variables.get(this).get(callrateThresholdReq));
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    String medianMarkers = variables.get(medianMarkersReq);
+    double lrrSD = Double.parseDouble(variables.get(lrrSdThresholdReq));
+    double markerCallRateFilter = Double.parseDouble(variables.get(callrateThresholdReq));
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
-    boolean gcCorrect = Boolean.parseBoolean(variables.get(this).get(qcPassingOnlyReq));
-    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(this).get(imputeNaNs));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this)
-                                                            .get(recomputeLrrPCMarkersReq));
-    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(this)
-                                                               .get(recomputeLrrMedianMarkersReq));
-    boolean homozygousOnly = Boolean.parseBoolean(variables.get(this).get(homozygousOnlyReq));
+    boolean gcCorrect = Boolean.parseBoolean(variables.get(qcPassingOnlyReq));
+    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(imputeNaNs));
+    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrPCMarkersReq));
+    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(recomputeLrrMedianMarkersReq));
+    boolean homozygousOnly = Boolean.parseBoolean(variables.get(homozygousOnlyReq));
     int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
-    int regressionDistance = Integer.parseInt(variables.get(this).get(gcRegressionDistanceReq));
+    int regressionDistance = Integer.parseInt(variables.get(gcRegressionDistanceReq));
     int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String outputBase = MitoPipeline.FILE_BASE;
 
-    String betaOptFile = variables.get(this).get(pcSelectionSamplesReq);
-    String betaFile = variables.get(this).get(externalBetaFileReq);
+    String betaOptFile = variables.get(pcSelectionSamplesReq);
+    String betaFile = variables.get(externalBetaFileReq);
     boolean sampLrr = true;
 
     String projPropFile = proj.getPropertyFilename();
@@ -227,7 +222,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);

@@ -47,25 +47,24 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String annotFile = variables.get(this).get(annotFileReq);
-    String probeFile = variables.get(this).get(probeFileReq);
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public void run(Project proj, Map<Requirement, String> variables) {
+    String annotFile = variables.get(annotFileReq);
+    String probeFile = variables.get(probeFileReq);
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     new AffyMarkerBlast(proj, numThreads, probeFile, annotFile).blastEm();
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String annotFile = variables.get(this).get(annotFileReq);
-    String probeFile = variables.get(this).get(probeFileReq);
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    String annotFile = variables.get(annotFileReq);
+    String probeFile = variables.get(probeFileReq);
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
     argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
     argsBuilder.put(AffyMarkerBlast.ARG_PROBE_FILE, probeFile);
@@ -75,7 +74,7 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 

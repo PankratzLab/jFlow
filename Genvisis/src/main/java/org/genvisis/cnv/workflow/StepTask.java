@@ -17,16 +17,16 @@ public class StepTask extends Task<Void, Void> {
   private Project proj;
   private Step step;
   private List<Step> selectedSteps;
-  private Map<Step, Map<Requirement, String>> variables;
+  private Map<Requirement, String> variables;
   private Thread bgThread;
 
   public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, List<Step> selectedSteps,
-                  Map<Step, Map<Requirement, String>> variables) {
+                  Map<Requirement, String> variables) {
     this(gui, step, proj, selectedSteps, variables, 0);
   }
 
   public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, List<Step> selectedSteps,
-                  Map<Step, Map<Requirement, String>> variables, int numUpdates) {
+                  Map<Requirement, String> variables, int numUpdates) {
     super(step.getName(), numUpdates);
     this.proj = proj;
     this.gui = gui;

@@ -47,21 +47,20 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-    String mkrFile = variables.get(this).get(markerPositionsReq);
+    String mkrFile = variables.get(markerPositionsReq);
     mkrFile = ext.verifyDirFormat(mkrFile);
     mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
     if (!mkrFile.equals(projFile)) {
       proj.MARKER_POSITION_FILENAME.setValue(mkrFile);
     }
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     int numThreads = proj.NUM_THREADS.getValue();
     proj.getLog().report("Parsing sample files");
     int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
@@ -76,7 +75,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
     boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
     boolean returnValue = mkrSetFile;
@@ -93,19 +92,19 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(GenvisisWorkflow.PROJ_PROP_UPDATE_STR)
                                                                  .append(projPropFile);
     StringBuilder kvPairs = new StringBuilder();
     String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-    String mkrFile = variables.get(this).get(markerPositionsReq);
+    String mkrFile = variables.get(markerPositionsReq);
     mkrFile = ext.verifyDirFormat(mkrFile);
     mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
     if (!mkrFile.equals(projFile)) {
       kvPairs.append(" MARKER_POSITION_FILENAME=").append(mkrFile);
     }
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     if (numThreads != proj.NUM_THREADS.getValue()) {
       kvPairs.append(" ").append(proj.NUM_THREADS.getName()).append("=").append(numThreads);
     }

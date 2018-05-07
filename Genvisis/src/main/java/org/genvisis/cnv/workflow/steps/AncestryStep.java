@@ -49,14 +49,13 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String putativeWhites = variables.get(this).get(putativeWhitesReq);
+  public void run(Project proj, Map<Requirement, String> variables) {
+    String putativeWhites = variables.get(putativeWhitesReq);
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
@@ -65,8 +64,8 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String putativeWhites = variables.get(this).get(putativeWhitesReq);
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    String putativeWhites = variables.get(putativeWhitesReq);
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
@@ -79,7 +78,7 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     return Files.exists(ancestryDir + Ancestry.RACE_FREQS_FILENAME)
            && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONAS_FILENAME);

@@ -38,16 +38,15 @@ public class IlluminaMarkerPositionsStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     proj.getLog().report("Generating marker positions file");
-    String snpMap = variables.get(this).get(snpMapReq);
-    String manifest = variables.get(this).get(manifestReq);
+    String snpMap = variables.get(snpMapReq);
+    String manifest = variables.get(manifestReq);
     if (Files.exists(snpMap)) {
       org.genvisis.cnv.manage.Markers.generateMarkerPositions(proj, snpMap);
     } else if (Files.exists(manifest)) {
@@ -62,15 +61,15 @@ public class IlluminaMarkerPositionsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String projFile = proj.getPropertyFilename();
-    String snpMap = variables.get(this).get(snpMapReq);
-    String manifest = variables.get(this).get(manifestReq);
+    String snpMap = variables.get(snpMapReq);
+    String manifest = variables.get(manifestReq);
     String baseCommand = Files.getRunString() + " cnv.manage.Markers proj=" + projFile;
     if (Files.exists(snpMap)) {
       return baseCommand + " snps=" + snpMap;

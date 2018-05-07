@@ -26,19 +26,18 @@ public class TransposeStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     proj.getLog().report("Transposing data");
     TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
     return cmd.append(Files.getRunString()).append(" cnv.manage.TransposeData -transpose proj="
@@ -47,7 +46,7 @@ public class TransposeStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
                             MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
   }

@@ -42,28 +42,27 @@ public class GCModelStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-    String gcOutputFile = variables.get(this).get(gcModelOutputReq);
+    String gcOutputFile = variables.get(gcModelOutputReq);
     if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
       proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
     }
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
-    String gcOutputFile = variables.get(this).get(gcModelOutputReq);
+    String gcOutputFile = variables.get(gcModelOutputReq);
     org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj, gcBaseFile, gcOutputFile, 100);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String kvCmd = "";
 
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-    String gcOutputFile = variables == null ? null : variables.get(this).get(gcModelOutputReq);
+    String gcOutputFile = variables == null ? null : variables.get(gcModelOutputReq);
     if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
       kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
     }
@@ -84,8 +83,8 @@ public class GCModelStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String gcOutputFile = variables.get(this).get(gcModelOutputReq);
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+    String gcOutputFile = variables.get(gcModelOutputReq);
     return Files.exists(gcOutputFile);
   }
 

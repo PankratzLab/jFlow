@@ -55,11 +55,10 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
-    if (!Boolean.parseBoolean(variables.get(this).get(createPedigreeRequirement))) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+    if (!Boolean.parseBoolean(variables.get(createPedigreeRequirement))) {
       String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
-      String pedFile = variables.get(this).get(pedigreeRequirement);
+      String pedFile = variables.get(pedigreeRequirement);
       if (!pedFile.equals(projPedFile)) {
         proj.PEDIGREE_FILENAME.setValue(pedFile);
       }
@@ -67,8 +66,8 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    if (Boolean.parseBoolean(variables.get(this).get(createPedigreeRequirement))) {
+  public void run(Project proj, Map<Requirement, String> variables) {
+    if (Boolean.parseBoolean(variables.get(createPedigreeRequirement))) {
       proj.getLog().report("Creating Pedigree File");
       Pedigree.build(proj, null, null, false);
     }
@@ -91,12 +90,12 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String kvCmd = "";
 
-    if (!Boolean.parseBoolean(variables.get(this).get(createPedigreeRequirement))) {
+    if (!Boolean.parseBoolean(variables.get(createPedigreeRequirement))) {
       String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
-      String pedFile = variables.get(this).get(pedigreeRequirement);
+      String pedFile = variables.get(pedigreeRequirement);
       if (!pedFile.equals(projPedFile)) {
         kvCmd += " PEDIGREE_FILENAME=" + pedFile;
       }
@@ -108,7 +107,7 @@ public class PlinkExportStep extends Step {
       cmd.append(Files.getRunString()).append(GenvisisWorkflow.PROJ_PROP_UPDATE_STR)
          .append(projPropFile).append(kvCmd).append("\n");
     }
-    if (Boolean.parseBoolean(variables.get(this).get(createPedigreeRequirement))) {
+    if (Boolean.parseBoolean(variables.get(createPedigreeRequirement))) {
       cmd.append(Files.getRunString()).append(" cnv.filesys.Pedigree proj=").append(projPropFile)
          .append("\n");
     }
@@ -123,11 +122,11 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     boolean plinkFilesExist = Files.checkAllFiles(GenvisisWorkflow.getPlinkDir(proj),
                                                   PSF.Plink.getPlinkBedBimFamSet(GenvisisWorkflow.PLINKROOT),
                                                   false, proj.getLog());
-    boolean pedGenerated = Boolean.parseBoolean(variables.get(this).get(createPedigreeRequirement));
+    boolean pedGenerated = Boolean.parseBoolean(variables.get(createPedigreeRequirement));
     boolean pedCheck = pedGenerated ? Files.exists(proj.PEDIGREE_FILENAME.getValue()) : true;
     return plinkFilesExist && pedCheck;
   }

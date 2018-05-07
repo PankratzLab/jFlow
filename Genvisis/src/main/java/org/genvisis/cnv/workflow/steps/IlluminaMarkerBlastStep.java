@@ -42,23 +42,22 @@ public class IlluminaMarkerBlastStep extends Step {
   final Requirement numThreadsReq;
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String manifestFile = variables.get(this).get(manifestFileReq);
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public void run(Project proj, Map<Requirement, String> variables) {
+    String manifestFile = variables.get(manifestFileReq);
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     new IlluminaMarkerBlast(proj, numThreads, manifestFile).blastEm();
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String manifestFile = variables.get(this).get(manifestFileReq);
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    String manifestFile = variables.get(manifestFileReq);
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
     argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
     argsBuilder.put(IlluminaMarkerBlast.ARG_MANIFEST, manifestFile);
@@ -68,7 +67,7 @@ public class IlluminaMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 }

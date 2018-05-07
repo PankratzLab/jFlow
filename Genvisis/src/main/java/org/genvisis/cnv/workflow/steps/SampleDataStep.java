@@ -61,16 +61,15 @@ public class SampleDataStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Nothing to do
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    Boolean minimal = Boolean.parseBoolean(variables.get(this).get(createMinimalSampleDataReq));
-    String pedFile = minimal ? null : variables.get(this).get(pedigreeReq);
-    String sampleMapCsv = minimal ? null : variables.get(this).get(sampMapReq);
+  public void run(Project proj, Map<Requirement, String> variables) {
+    Boolean minimal = Boolean.parseBoolean(variables.get(createMinimalSampleDataReq));
+    String pedFile = minimal ? null : variables.get(pedigreeReq);
+    String sampleMapCsv = minimal ? null : variables.get(sampMapReq);
 
     proj.getLog().report("Creating SampleData.txt");
     try {
@@ -84,16 +83,16 @@ public class SampleDataStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false));
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String projPropFile = proj.getPropertyFilename();
-    Boolean minimal = Boolean.parseBoolean(variables.get(this).get(createMinimalSampleDataReq));
-    String pedFile = minimal ? "" : variables.get(this).get(pedigreeReq);
-    String sampleMapCsv = minimal ? "" : variables.get(this).get(sampMapReq);
+    Boolean minimal = Boolean.parseBoolean(variables.get(createMinimalSampleDataReq));
+    String pedFile = minimal ? "" : variables.get(pedigreeReq);
+    String sampleMapCsv = minimal ? "" : variables.get(sampMapReq);
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString()).append(" cnv.var.SampleData proj=").append(projPropFile);
     if (!"".equals(pedFile)) {

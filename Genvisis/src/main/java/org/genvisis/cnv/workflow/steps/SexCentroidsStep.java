@@ -30,15 +30,14 @@ public class SexCentroidsStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
 
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     String malePFB;
     String femalePFB;
     String centFilePathM;
@@ -49,18 +48,17 @@ public class SexCentroidsStep extends Step {
     centFilePathM = outputDir + "sexSpecific_Male.cent";
     centFilePathF = outputDir + "sexSpecific_Female.cent";
 
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     Centroids.computeSexSpecificCentroids(proj, new String[] {malePFB, femalePFB},
                                           new String[] {centFilePathM, centFilePathF}, numThreads);
 
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     int numThreads = StepBuilder.resolveThreads(proj,
                                                 variables == null ? "-1"
-                                                                  : variables.get(this)
-                                                                             .get(numThreadsReq));
+                                                                  : variables.get(numThreadsReq));
     String mainCmd = Files.getRunString() + " cnv.filesys.Centroids proj="
                      + proj.getPropertyFilename() + " -sexSpecific " + PSF.Ext.NUM_THREADS_COMMAND
                      + numThreads;
@@ -68,7 +66,7 @@ public class SexCentroidsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     String malePFB;
     String femalePFB;
     String centFilePathM;

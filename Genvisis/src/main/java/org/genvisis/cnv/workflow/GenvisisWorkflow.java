@@ -254,18 +254,19 @@ public class GenvisisWorkflow {
       }
     }
 
-    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(proj, varMap);
-    String s1 = parseSamples.getCommandLine(proj, varMap);
-    String s2 = transpose.getCommandLine(proj, varMap);
-    String s3 = sampleData.getCommandLine(proj, varMap);
-    String s4 = blast.getCommandLine(proj, varMap);
-    String s5 = sampleQc.getCommandLine(proj, varMap);
-    String s6 = markerQc.getCommandLine(proj, varMap);
-    String s7 = sexChecks.getCommandLine(proj, varMap);
-    String s8 = exportPlink.getCommandLine(proj, varMap);
-    String s9 = gwasQc.getCommandLine(proj, varMap);
-    String s10 = ancestry.getCommandLine(proj, varMap);
-    String s11 = faqcStep.getCommandLine(proj, varMap);
+    String s0 = createMkrPos == null ? ""
+                                     : createMkrPos.getCommandLine(proj, varMap.get(createMkrPos));
+    String s1 = parseSamples.getCommandLine(proj, varMap.get(parseSamples));
+    String s2 = transpose.getCommandLine(proj, varMap.get(transpose));
+    String s3 = sampleData.getCommandLine(proj, varMap.get(sampleData));
+    String s4 = blast.getCommandLine(proj, varMap.get(blast));
+    String s5 = sampleQc.getCommandLine(proj, varMap.get(sampleQc));
+    String s6 = markerQc.getCommandLine(proj, varMap.get(markerQc));
+    String s7 = sexChecks.getCommandLine(proj, varMap.get(sexChecks));
+    String s8 = exportPlink.getCommandLine(proj, varMap.get(exportPlink));
+    String s9 = gwasQc.getCommandLine(proj, varMap.get(gwasQc));
+    String s10 = ancestry.getCommandLine(proj, varMap.get(ancestry));
+    String s11 = faqcStep.getCommandLine(proj, varMap.get(faqcStep));
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
@@ -327,7 +328,7 @@ public class GenvisisWorkflow {
     String s2 = gc.getCommandLine(pcProj, null);
     String s3 = pfb.getCommandLine(pcProj, null);
     String s4 = cent.getCommandLine(pcProj, null);
-    String s5 = cnv.getCommandLine(pcProj, stepOpts);
+    String s5 = cnv.getCommandLine(pcProj, stepOpts.get(cnv));
 
     String file = pcProj.PROJECT_DIRECTORY.getValue() + "CNVCallingPipeline.";
     String suggFile = file + ext.getTimestampForFilename() + ".pbs";

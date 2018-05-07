@@ -101,27 +101,25 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    int numComponents = Integer.parseInt(variables.get(this).get(numPCsReq));
-    String outputBase = variables.get(this).get(outputBaseReq);
-    double markerCallRateFilter = Double.parseDouble(variables.get(this).get(callrateReq));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(recomputeLrrReq));
-    String tmpDir = variables.get(this).get(tempDirReq);
+  public void run(Project proj, Map<Requirement, String> variables) {
+    int numComponents = Integer.parseInt(variables.get(numPCsReq));
+    String outputBase = variables.get(outputBaseReq);
+    double markerCallRateFilter = Double.parseDouble(variables.get(callrateReq));
+    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrReq));
+    String tmpDir = variables.get(tempDirReq);
     if ("".equals(tmpDir.trim())) {
       tmpDir = null;
     }
-    CORRECTION_TYPE type = CORRECTION_TYPE.valueOf(variables.get(this).get(correctionStrategyReq));
-    CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.valueOf(variables.get(this)
-                                                                            .get(sexChromosomeStrategyReq));
+    CORRECTION_TYPE type = CORRECTION_TYPE.valueOf(variables.get(correctionStrategyReq));
+    CHROMOSOME_X_STRATEGY strategy = CHROMOSOME_X_STRATEGY.valueOf(variables.get(sexChromosomeStrategyReq));
 
-    int totalThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
-    boolean cnvCalling = Boolean.parseBoolean(variables.get(this).get(setupCNVCalling));
+    int totalThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
+    boolean cnvCalling = Boolean.parseBoolean(variables.get(setupCNVCalling));
     String retMsg = PRoCtOR.shadow(proj, tmpDir, outputBase, markerCallRateFilter, recomputeLRRPCs,
                                    type, strategy, numComponents, totalThreads, cnvCalling);
     if (retMsg != null && !"".equals(retMsg)) {
@@ -130,21 +128,21 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    int numComponents = Integer.parseInt(variables.get(this).get(numPCsReq));
-    String outputBase = variables.get(this).get(outputBaseReq);
-    double markerCallRateFilter = Double.parseDouble(variables.get(this).get(callrateReq));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(this).get(recomputeLrrReq));
-    String tmpDir = variables.get(this).get(tempDirReq);
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+    int numComponents = Integer.parseInt(variables.get(numPCsReq));
+    String outputBase = variables.get(outputBaseReq);
+    double markerCallRateFilter = Double.parseDouble(variables.get(callrateReq));
+    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrReq));
+    String tmpDir = variables.get(tempDirReq);
     if ("".equals(tmpDir.trim())) {
       tmpDir = null;
     }
-    String correctionType = variables.get(this).get(correctionStrategyReq);
-    String strategy = variables.get(this).get(sexChromosomeStrategyReq);
+    String correctionType = variables.get(correctionStrategyReq);
+    String strategy = variables.get(sexChromosomeStrategyReq);
 
-    int totalThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int totalThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
 
-    boolean cnvCalling = Boolean.parseBoolean(variables.get(this).get(setupCNVCalling));
+    boolean cnvCalling = Boolean.parseBoolean(variables.get(setupCNVCalling));
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString()).append(" org.genvisis.cnv.manage.PRoCtOR").append(" proj=")
@@ -163,8 +161,8 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String outputBase = proj.PROJECT_DIRECTORY.getValue() + variables.get(this).get(outputBaseReq);
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+    String outputBase = proj.PROJECT_DIRECTORY.getValue() + variables.get(outputBaseReq);
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);
   }

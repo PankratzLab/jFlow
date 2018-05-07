@@ -197,7 +197,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
               continue;
             }
-            if (!step.checkIfOutputExists(proj, variables)) {
+            if (!step.checkIfOutputExists(proj, variables.get(step))) {
               boolean check = step.hasRequirements(proj, selectedSteps, variables);
               checkBoxes.get(step).setSelected(check);
               selected.add(step);
@@ -330,7 +330,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       public void run() {
         Map<Step, Map<Requirement, String>> variables = getVariables();
         for (Step step : steps.values()) {
-          if (step.checkIfOutputExists(proj, variables)) {
+          if (step.checkIfOutputExists(proj, variables.get(step))) {
             checkBoxes.get(step).setSelected(false);
             alreadyRunLbls.get(step).setVisible(true);
             panels.get(step).shrink();
@@ -794,13 +794,13 @@ public class GenvisisWorkflowGUI extends JDialog {
           }
         }
         int i = 0;
+        final Map<Step, Map<Requirement, String>> variables = gui.getVariables();
         for (final Step step : stepsToRefresh) {
           if (step == null || gui.checkBoxes.get(step) == null || gui.varFields.get(step) == null) {
             continue;
           }
-          final Map<Step, Map<Requirement, String>> variables = gui.getVariables();
           final int update = ++i;
-          if (!step.checkIfOutputExists(gui.proj, variables)
+          if (!step.checkIfOutputExists(gui.proj, variables.get(step))
               || gui.checkBoxes.get(step).isSelected()) {
             boolean check = step.hasRequirements(gui.proj, selectedSteps, variables);
             gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
@@ -913,7 +913,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             Set<Requirement.Flag> flags = EnumSet.noneOf(Requirement.Flag.class);
             for (Step step : selectedSteps) {
               flags.addAll(step.getFlags());
-              String cmd = step.getCommandLine(proj, variables);
+              String cmd = step.getCommandLine(proj, variables.get(step));
               GenvisisWorkflow.addStepInfo(output, step, cmd);
             }
             boolean hasQsub = Files.programExists("qsub");
@@ -949,7 +949,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   }
 
   public void nextStep(StepTask currentTask, FINAL_CODE returnCode, List<Step> selectedSteps,
-                       Map<Step, Map<Requirement, String>> variables) {
+                       Map<Requirement, String> variables) {
     Throwable e;
     Step currentStep = currentTask.getStep();
     progTasks.remove(currentStep);
@@ -1016,8 +1016,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     running = false;
   }
 
-  private void runStep(Step step, List<Step> options,
-                       Map<Step, Map<Requirement, String>> variables) {
+  private void runStep(Step step, List<Step> options, Map<Requirement, String> variables) {
     Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables, options);
     progTasks.put(step, stepTask);
     stepTask.execute();
@@ -1036,7 +1035,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         Map<Step, Map<Requirement, String>> variables = getVariables();
         if (checkRequirementsAndNotify(variables)) {
           Step first = options.iterator().next();
-          runStep(first, options, variables);
+          runStep(first, options, variables.get(first));
         } else {
           end();
         }

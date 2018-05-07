@@ -86,40 +86,39 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     String hmmP = proj.HMM_FILENAME.getValue();
-    String hmmG = variables.get(this).get(hmmFile);
+    String hmmG = variables.get(hmmFile);
     if (!hmmP.equals(hmmG)) {
       proj.HMM_FILENAME.setValue(hmmG);
     }
     String pfbP = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbG = variables.get(this).get(pfbFileReq);
+    String pfbG = variables.get(pfbFileReq);
     if (!pfbP.equals(pfbG)) {
       proj.CUSTOM_PFB_FILENAME.setValue(pfbG);
     }
     String gcmP = proj.GC_MODEL_FILENAME.getValue();
-    String gcmG = variables.get(this).get(gcModelFileReq);
+    String gcmG = variables.get(gcModelFileReq);
     if (!gcmP.equals(gcmG)) {
       proj.GC_MODEL_FILENAME.setValue(gcmG);
     }
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+  public void run(Project proj, Map<Requirement, String> variables) {
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
-    String output = variables.get(this).get(outputFileReq); // gets PROJ_DIR prepended, so NOT
-                                                           // ABSOLUTE
+    String output = variables.get(outputFileReq); // gets PROJ_DIR prepended, so NOT
+                                                 // ABSOLUTE
 
-    CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
+    CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(callingTypeReq));
 
     (new File(ext.parseDirectoryOfFile(proj.PROJECT_DIRECTORY.getValue() + output))).mkdirs();
 
     String[] samples = proj.getSamples();
-    boolean useCentroids = Boolean.valueOf(variables.get(this).get(useCentroidsReq));
+    boolean useCentroids = Boolean.valueOf(variables.get(useCentroidsReq));
     Centroids[] cents = new Centroids[] {null, null};
     if (useCentroids) {
       if (Files.exists(proj.SEX_CENTROIDS_FEMALE_FILENAME.getValue())
@@ -156,26 +155,26 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String kvCmd = "";
 
     String hmmP = proj.HMM_FILENAME.getValue();
-    String hmmG = variables.get(this).get(hmmFile);
+    String hmmG = variables.get(hmmFile);
     if (hmmG != null && !hmmP.equals(hmmG)) {
       kvCmd += " HMM_FILENAME=" + hmmG;
     }
     String pfbP = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbG = variables.get(this).get(pfbFileReq);
+    String pfbG = variables.get(pfbFileReq);
     if (pfbG != null && !pfbP.equals(pfbG)) {
       kvCmd += " CUSTOM_PFB_FILENAME=" + pfbG;
     }
     String gcmP = proj.GC_MODEL_FILENAME.getValue();
-    String gcmG = variables.get(this).get(gcModelFileReq);
+    String gcmG = variables.get(gcModelFileReq);
     if (gcmG != null && !gcmP.equals(gcmG)) {
       kvCmd += " GC_MODEL_FILENAME=" + gcmG;
     }
 
-    int numThreads = StepBuilder.resolveThreads(proj, variables.get(this).get(numThreadsReq));
+    int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     if (numThreads != proj.NUM_THREADS.getValue()) {
       kvCmd += " " + proj.NUM_THREADS.getName() + "=" + numThreads;
     }
@@ -186,12 +185,12 @@ public class CallCNVsStep extends Step {
          .append(kvCmd).append("\n");
     }
 
-    boolean useCentroids = Boolean.valueOf(variables.get(this).get(useCentroidsReq));
-    CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(this).get(callingTypeReq));
+    boolean useCentroids = Boolean.valueOf(variables.get(useCentroidsReq));
+    CALLING_SCOPE scope = CALLING_SCOPE.valueOf(variables.get(callingTypeReq));
 
     String autoCmd = cmd.append(Files.getRunString())
                         .append(" cnv.hmm.CNVCaller proj=" + projPropFile)
-                        .append(" out=" + variables.get(this).get(outputFileReq)).append(" ")
+                        .append(" out=" + variables.get(outputFileReq)).append(" ")
                         .append(PSF.Ext.NUM_THREADS_COMMAND).append(numThreads).toString();
     String genomeCmd = autoCmd + " -genome";
     if (!useCentroids) {
@@ -210,8 +209,8 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String output = variables.get(this).get(outputFileReq);
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+    String output = variables.get(outputFileReq);
     return Files.exists(proj.PROJECT_DIRECTORY.getValue() + output);
   }
 

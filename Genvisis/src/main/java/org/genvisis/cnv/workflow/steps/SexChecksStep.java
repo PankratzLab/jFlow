@@ -56,20 +56,19 @@ public class SexChecksStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     proj.getLog().report("Running SexCheck");
-    boolean addToSampleData = Boolean.parseBoolean(variables.get(this).get(addToSampleDataReq));
+    boolean addToSampleData = Boolean.parseBoolean(variables.get(addToSampleDataReq));
     String discriminatingMarkersFile;
-    if (Boolean.parseBoolean(variables.get(this).get(noCrossHybeReq))) {
+    if (Boolean.parseBoolean(variables.get(noCrossHybeReq))) {
       discriminatingMarkersFile = null;
     } else {
-      discriminatingMarkersFile = variables.get(this).get(oneHittersReq);
+      discriminatingMarkersFile = variables.get(oneHittersReq);
       if (!Files.exists(discriminatingMarkersFile)) {
         MarkerBlastQC.getOneHitWonders(proj, proj.BLAST_ANNOTATION_FILENAME.getValue(),
                                        discriminatingMarkersFile, 0.8, proj.getLog());
@@ -79,15 +78,15 @@ public class SexChecksStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
-    boolean addToSampleData = Boolean.parseBoolean(variables.get(this).get(addToSampleDataReq));
+    boolean addToSampleData = Boolean.parseBoolean(variables.get(addToSampleDataReq));
     String discriminatingMarkersFile;
-    if (Boolean.parseBoolean(variables.get(this).get(noCrossHybeReq))) {
+    if (Boolean.parseBoolean(variables.get(noCrossHybeReq))) {
       discriminatingMarkersFile = null;
     } else {
-      discriminatingMarkersFile = variables.get(this).get(oneHittersReq);
+      discriminatingMarkersFile = variables.get(oneHittersReq);
       if (!Files.exists(discriminatingMarkersFile)) {
         cmd.append(Files.getRunString())
            .append(" cnv.qc.MarkerBlastQC proj=" + projPropFile + " blastVCF="
@@ -102,7 +101,7 @@ public class SexChecksStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
     return Files.exists(proj.SEXCHECK_RESULTS_FILENAME.getValue());
   }
 

@@ -49,12 +49,11 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj,
-                                           Map<Step, Map<Requirement, String>> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-    String subSampFile = variables.get(this).get(sampleSubsetReq);
+    String subSampFile = variables.get(sampleSubsetReq);
     String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbOutputFile = variables.get(this).get(outputFileReq);
+    String pfbOutputFile = variables.get(outputFileReq);
 
     if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
       proj.SAMPLE_SUBSET_FILENAME.setValue(subSampFile);
@@ -65,18 +64,18 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public void run(Project proj, Map<Requirement, String> variables) {
     org.genvisis.cnv.hmm.PFB.populationBAF(proj);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Step, Map<Requirement, String>> variables) {
+  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
     String kvCmd = "";
 
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-    String subSampFile = variables == null ? null : variables.get(this).get(sampleSubsetReq);
+    String subSampFile = variables == null ? null : variables.get(sampleSubsetReq);
     String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbOutputFile = variables == null ? null : variables.get(this).get(outputFileReq);
+    String pfbOutputFile = variables == null ? null : variables.get(outputFileReq);
 
     if (subSampFile != null && !ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
       kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
@@ -97,9 +96,9 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Step, Map<Requirement, String>> variables) {
-    String subSampFile = variables.get(this).get(sampleSubsetReq);
-    String pfbOutputFile = variables.get(this).get(outputFileReq);
+  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+    String subSampFile = variables.get(sampleSubsetReq);
+    String pfbOutputFile = variables.get(outputFileReq);
     return Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");
   }
 }

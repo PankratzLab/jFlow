@@ -27,7 +27,7 @@ public abstract class Requirement {
     public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
                                     Map<Step, Map<Requirement, String>> variables) {
       return stepSelections.contains(requiredStep)
-             || requiredStep.checkIfOutputExists(proj, variables);
+             || requiredStep.checkIfOutputExists(proj, variables.get(requiredStep));
     }
 
     public Step getRequiredStep() {
