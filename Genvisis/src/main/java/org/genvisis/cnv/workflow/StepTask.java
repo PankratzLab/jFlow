@@ -3,7 +3,6 @@ package org.genvisis.cnv.workflow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.common.gui.Task;
@@ -17,16 +16,16 @@ public class StepTask extends Task<Void, Void> {
   private boolean failed = false;
   private Project proj;
   private Step step;
-  private Set<Step> selectedSteps;
+  private List<Step> selectedSteps;
   private Map<Step, Map<Requirement, String>> variables;
   private Thread bgThread;
 
-  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, Set<Step> selectedSteps,
+  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, List<Step> selectedSteps,
                   Map<Step, Map<Requirement, String>> variables) {
     this(gui, step, proj, selectedSteps, variables, 0);
   }
 
-  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, Set<Step> selectedSteps,
+  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, List<Step> selectedSteps,
                   Map<Step, Map<Requirement, String>> variables, int numUpdates) {
     super(step.getName(), numUpdates);
     this.proj = proj;

@@ -948,7 +948,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     }).start();
   }
 
-  public void nextStep(StepTask currentTask, FINAL_CODE returnCode, Set<Step> selectedSteps,
+  public void nextStep(StepTask currentTask, FINAL_CODE returnCode, List<Step> selectedSteps,
                        Map<Step, Map<Requirement, String>> variables) {
     Throwable e;
     Step currentStep = currentTask.getStep();
@@ -1001,7 +1001,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
   }
 
-  private Step findNext(Step step, Set<Step> selectedSteps) {
+  private Step findNext(Step step, List<Step> selectedSteps) {
     Iterator<Step> iter = selectedSteps.iterator();
     while (iter.hasNext()) {
       if (step.equals(iter.next()) && iter.hasNext()) {
@@ -1016,7 +1016,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     running = false;
   }
 
-  private void runStep(Step step, Set<Step> options,
+  private void runStep(Step step, List<Step> options,
                        Map<Step, Map<Requirement, String>> variables) {
     Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables, options);
     progTasks.put(step, stepTask);
@@ -1031,7 +1031,8 @@ public class GenvisisWorkflowGUI extends JDialog {
       public void run() {
         lockup(true);
 
-        Set<Step> options = getSelectedOptions();
+        List<Step> options = new ArrayList<>(getSelectedOptions());
+        options.sort(steps.valueComparator());
         Map<Step, Map<Requirement, String>> variables = getVariables();
         if (checkRequirementsAndNotify(variables)) {
           Step first = options.iterator().next();
@@ -1044,7 +1045,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     runThread.start();
   }
 
-  protected boolean death(Step step, Set<Step> options) {
+  protected boolean death(Step step, List<Step> options) {
     step.gracefulDeath(proj);
     // TODO remove message when gracefulDeath is implemented for each step
     JOptionPane.showMessageDialog(GenvisisWorkflowGUI.this,

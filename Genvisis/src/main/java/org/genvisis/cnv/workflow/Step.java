@@ -3,6 +3,7 @@ package org.genvisis.cnv.workflow;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
@@ -160,7 +161,7 @@ public abstract class Step {
 
   public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj,
                                      Map<Step, Map<Requirement, String>> variables,
-                                     Set<Step> selectedSteps) {
+                                     List<Step> selectedSteps) {
     StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
     return st;
   }
