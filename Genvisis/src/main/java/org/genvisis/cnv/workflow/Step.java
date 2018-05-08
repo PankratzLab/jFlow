@@ -1,8 +1,7 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
@@ -11,7 +10,7 @@ import org.genvisis.common.gui.Task;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public abstract class Step implements Comparable<Step> {
+public abstract class Step {
 
   public static enum FINAL_CODE {
     COMPLETE("Complete"), FAILED("Failed"), CANCELLED("Cancelled");
@@ -27,12 +26,11 @@ public abstract class Step implements Comparable<Step> {
     }
   }
 
-  private String name;
-  private String desc;
-  private RequirementSet requirements;
+  private final String name;
+  private final String desc;
+  private final RequirementSet requirements;
   private final Set<Step> relatedSteps; // Not included in equality to prevent infinite recursion
-  private Set<Requirement.Flag> stepFlags;
-  private final double priority;
+  private final Set<Requirement.Flag> stepFlags;
 
   /**
    * @param name displayed in the workflow
@@ -44,14 +42,14 @@ public abstract class Step implements Comparable<Step> {
    * @param priority determines order in the workflow
    */
   public Step(String name, String desc, RequirementSet requirements,
-              Collection<Requirement.Flag> flags, double priority) {
+              Collection<Requirement.Flag> flags) {
     this.name = name;
     this.desc = desc;
     this.requirements = requirements;
-    this.stepFlags = EnumSet.copyOf(flags);
+    this.stepFlags = Sets.immutableEnumSet(flags);
     ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
     relatedStepsBuilder.add(this);
-    for (Requirement req : requirements.getFlatRequirementsList()) {
+    for (Requirement<?> req : requirements.getFlatRequirementsList()) {
       if (req instanceof Requirement.StepRequirement && req != null) {
         Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
         if (requiredStep != null) {
@@ -61,8 +59,6 @@ public abstract class Step implements Comparable<Step> {
       }
     }
     this.relatedSteps = relatedStepsBuilder.build();
-    this.stepFlags = Sets.immutableEnumSet(flags);
-    this.priority = priority;
   }
 
   public String getName() {
@@ -73,22 +69,51 @@ public abstract class Step implements Comparable<Step> {
     return this.desc;
   }
 
-  public abstract void setNecessaryPreRunProperties(Project proj,
-                                                    Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Set any Project Property values, if necessary.
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   */
+  public abstract void setNecessaryPreRunProperties(Variables variables);
 
-  public abstract void run(Project proj, Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Run this Step
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   */
+  public abstract void run(Variables variables);
 
   /**
    * Used to cancel a step
    * 
-   * @param proj
+   * @param proj {@link Project}
    */
   public void gracefulDeath(Project proj) {
+    cleanupAfterFailure(proj);
     return;
   }
 
-  public boolean hasRequirements(Project proj, Set<Step> stepSelections,
-                                 Map<Step, Map<Requirement, String>> variables) {
+  /**
+   * Removes incomplete files from a failed or cancelled execution
+   * 
+   * @param proj {@link Project}
+   */
+  public void cleanupAfterFailure(Project proj) {
+    return;
+  }
+
+  /**
+   * Check if the requirements for this step are satisfied. These requirements possibly include
+   * other steps, which requires the full Step-to-variables map.
+   * 
+   * @param proj Project
+   * @param stepSelections Set of selected steps
+   * @param variables Full map of each selected step to Requirement values
+   * @return
+   */
+  public boolean hasRequirements(Set<Step> stepSelections, Map<Step, Variables> variables) {
     if (variables.get(this) == null) {
       return false;
     }
@@ -104,15 +129,30 @@ public abstract class Step implements Comparable<Step> {
     return requirements;
   }
 
-  public abstract boolean checkIfOutputExists(Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Check if the output from this step already exists
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   * @return
+   */
+  public abstract boolean checkIfOutputExists(Variables variables);
 
-  public abstract String getCommandLine(Project proj,
-                                        Map<Step, Map<Requirement, String>> variables);
+  /**
+   * Get the command line invocation for this Step, based on the applied variables.
+   * 
+   * @param proj
+   * @param variables Map of Requirement to String value for this Step only
+   * @return
+   */
+  public abstract String getCommandLine(Variables variables);
 
-  public Map<Requirement, String> getDefaultRequirementValues() {
-    Map<Requirement, String> varMap = new HashMap<>();
-    for (Requirement r : this.requirements.getFlatRequirementsList()) {
-      varMap.put(r, r.getDefaultValue().toString());
+  @SuppressWarnings("unchecked")
+  public Variables getDefaultRequirementValues() {
+    Variables varMap = new Variables();
+    for (@SuppressWarnings("rawtypes")
+    Requirement r : this.requirements.getFlatRequirementsList()) {
+      varMap.put(r, r.getDefaultValue());
     }
     return varMap;
   }
@@ -129,27 +169,12 @@ public abstract class Step implements Comparable<Step> {
     return stepFlags;
   }
 
-  public double getPriority() {
-    return priority;
-  }
-
-  @Override
-  public int compareTo(Step o) {
-    // Preferably, just compare on priority. Otherwise, compare hash to prevent collisions
-    int priorityCmp = Double.compare(getPriority(), o.getPriority());
-    if (priorityCmp != 0) return priorityCmp;
-    return Integer.compare(hashCode(), o.hashCode());
-  }
-
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((desc == null) ? 0 : desc.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
-    long temp;
-    temp = Double.doubleToLongBits(priority);
-    result = prime * result + (int) (temp ^ (temp >>> 32));
     result = prime * result + requirements.hashCode();
     result = prime * result + ((stepFlags == null) ? 0 : stepFlags.hashCode());
     return result;
@@ -167,7 +192,6 @@ public abstract class Step implements Comparable<Step> {
     if (name == null) {
       if (other.name != null) return false;
     } else if (!name.equals(other.name)) return false;
-    if (Double.doubleToLongBits(priority) != Double.doubleToLongBits(other.priority)) return false;
     if (!requirements.equals(other.requirements)) return false;
     if (stepFlags == null) {
       if (other.stepFlags != null) return false;
@@ -175,10 +199,9 @@ public abstract class Step implements Comparable<Step> {
     return true;
   }
 
-  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj,
-                                     Map<Step, Map<Requirement, String>> variables,
-                                     Set<Step> selectedSteps) {
-    StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
+  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Variables variables,
+                                     List<Step> selectedSteps) {
+    StepTask st = new StepTask(gui, this, selectedSteps, variables);
     return st;
   }
 

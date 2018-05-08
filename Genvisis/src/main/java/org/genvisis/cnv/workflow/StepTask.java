@@ -2,9 +2,6 @@ package org.genvisis.cnv.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.common.gui.Task;
 
@@ -15,21 +12,19 @@ public class StepTask extends Task<Void, Void> {
   private ArrayList<String> failReasons = new ArrayList<>();
   protected Step.FINAL_CODE returnCode = Step.FINAL_CODE.CANCELLED;
   private boolean failed = false;
-  private Project proj;
   private Step step;
-  private Set<Step> selectedSteps;
-  private Map<Step, Map<Requirement, String>> variables;
+  private List<Step> selectedSteps;
+  private Variables variables;
   private Thread bgThread;
 
-  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, Set<Step> selectedSteps,
-                  Map<Step, Map<Requirement, String>> variables) {
-    this(gui, step, proj, selectedSteps, variables, 0);
+  public StepTask(GenvisisWorkflowGUI gui, Step step, List<Step> selectedSteps,
+                  Variables variables) {
+    this(gui, step, selectedSteps, variables, 0);
   }
 
-  public StepTask(GenvisisWorkflowGUI gui, Step step, Project proj, Set<Step> selectedSteps,
-                  Map<Step, Map<Requirement, String>> variables, int numUpdates) {
+  public StepTask(GenvisisWorkflowGUI gui, Step step, List<Step> selectedSteps, Variables variables,
+                  int numUpdates) {
     super(step.getName(), numUpdates);
-    this.proj = proj;
     this.gui = gui;
     this.step = step;
     this.selectedSteps = selectedSteps;
@@ -43,8 +38,8 @@ public class StepTask extends Task<Void, Void> {
     Exception e = null;
     Step.FINAL_CODE code = Step.FINAL_CODE.COMPLETE;
     try {
-      this.step.setNecessaryPreRunProperties(proj, variables);
-      this.step.run(proj, variables);
+      this.step.setNecessaryPreRunProperties(variables);
+      this.step.run(variables);
     } catch (RuntimeException e1) {
       if (e1.getCause() instanceof InterruptedException) {
         code = Step.FINAL_CODE.CANCELLED;

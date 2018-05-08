@@ -1,5 +1,6 @@
 package org.genvisis.cnv.workflow;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,9 @@ import org.genvisis.stats.Maths;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
-public abstract class Requirement {
+public abstract class Requirement<T> {
 
-  public static class StepRequirement extends Requirement {
+  public static class StepRequirement extends Requirement<Step> {
 
     private final Step requiredStep;
 
@@ -24,8 +25,9 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
-      return stepSelections.contains(requiredStep) || requiredStep.checkIfOutputExists(variables);
+                                    Map<Step, Variables> variables) {
+      return stepSelections.contains(requiredStep)
+             || requiredStep.checkIfOutputExists(variables.get(requiredStep));
     }
 
     public Step getRequiredStep() {
@@ -38,52 +40,64 @@ public abstract class Requirement {
       return msg;
     }
 
+    @Override
+    public Step parseValue(String raw) {
+      //      return null;
+      throw new RuntimeException("Error - step parsing isn't implemented.");
+    }
+
   }
 
-  public static class FileRequirement extends Requirement {
+  public static class FileRequirement extends Requirement<File> {
 
-    public FileRequirement(String description, String defaultValue) {
+    public FileRequirement(String description, File defaultValue) {
       super(description, Requirement.RequirementInputType.FILE, defaultValue);
     }
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return exists(arg);
     }
 
     protected boolean exists(String arg) {
       return Files.exists(arg);
     }
+
+    @Override
+    public File parseValue(String raw) {
+      return new File(raw);
+    }
+
   }
 
   public static class OutputFileRequirement extends FileRequirement {
 
-    public OutputFileRequirement(String description, String defaultValue) {
+    public OutputFileRequirement(String description, File defaultValue) {
       super(description, defaultValue);
     }
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return !exists(arg);
     }
   }
 
   public static class OptionalFileRequirement extends FileRequirement {
 
-    public OptionalFileRequirement(String description, String defaultValue) {
+    public OptionalFileRequirement(String description, File defaultValue) {
       super(description, defaultValue);
     }
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return "".equals(arg) || super.checkRequirement(arg, stepSelections, variables);
     }
   }
 
-  public static class ResourceRequirement extends Requirement {
+  public static class ResourceRequirement extends Requirement<Resource> {
 
     private final Resource resource;
 
@@ -111,7 +125,7 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return true;
     }
 
@@ -119,9 +133,17 @@ public abstract class Requirement {
       return resource;
     }
 
+    @Override
+    public Resource parseValue(String raw) {
+      if (!resource.getName().equals(raw)) {
+        System.err.println("Requested Resource " + raw + "; got Resource " + resource.getName());
+      }
+      return resource;
+    }
+
   }
 
-  public static class BoolRequirement extends Requirement {
+  public static class BoolRequirement extends Requirement<Boolean> {
 
     public BoolRequirement(String description, boolean defaultValue) {
       super(description, Requirement.RequirementInputType.BOOL, defaultValue);
@@ -129,8 +151,13 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return Boolean.parseBoolean(arg);
+    }
+
+    @Override
+    public Boolean parseValue(String raw) {
+      return Boolean.parseBoolean(raw);
     }
 
   }
@@ -143,12 +170,12 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return true;
     }
   }
 
-  public static class DoubleRequirement extends Requirement {
+  public static class DoubleRequirement extends Requirement<Double> {
 
     private final double min;
     private final double max;
@@ -161,7 +188,7 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       double value;
       try {
         value = Double.parseDouble(arg);
@@ -171,9 +198,14 @@ public abstract class Requirement {
       return value >= min && value <= max;
     }
 
+    @Override
+    public Double parseValue(String raw) {
+      return Double.parseDouble(raw);
+    }
+
   }
 
-  public static class IntRequirement extends Requirement {
+  public static class IntRequirement extends Requirement<Integer> {
 
     private final int min;
     private final int max;
@@ -186,7 +218,7 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       int value;
       try {
         value = Integer.parseInt(arg);
@@ -194,6 +226,11 @@ public abstract class Requirement {
         return false;
       }
       return value >= min && value <= max;
+    }
+
+    @Override
+    public Integer parseValue(String raw) {
+      return Integer.parseInt(raw);
     }
 
   }
@@ -206,7 +243,7 @@ public abstract class Requirement {
 
   }
 
-  public static class ListSelectionRequirement extends Requirement {
+  public static class ListSelectionRequirement extends Requirement<Collection<String>> {
 
     private static final char SELECTION_LIST_DELIM = ',';
     private static final Joiner SELECTION_LIST_JOINER = Joiner.on(SELECTION_LIST_DELIM);
@@ -225,17 +262,12 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return allowNone || !arg.isEmpty();
     }
 
     public Collection<String> getOptions() {
       return options;
-    }
-
-    @SuppressWarnings("unchecked")
-    public Collection<String> getDefaultOptions() {
-      return (Collection<String>) getDefaultValue();
     }
 
     public static String createArgValString(Iterable<?> selections) {
@@ -246,23 +278,34 @@ public abstract class Requirement {
       return SELECTION_LIST_SPLITTER.splitToList(arg);
     }
 
+    @Override
+    public Collection<String> parseValue(String raw) {
+      return parseArgValString(raw);
+    }
+
   }
 
-  public static class EnumRequirement extends Requirement {
+  public static class EnumRequirement<Y extends Enum<Y>> extends Requirement<Y> {
 
-    public EnumRequirement(String description, Enum<?> defaultValue) {
+    public EnumRequirement(String description, Y defaultValue) {
       super(description, RequirementInputType.ENUM, defaultValue);
     }
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       return true;
+    }
+
+    @Override
+    public Y parseValue(String raw) {
+      Y v = this.getDefaultValue();
+      return Enum.valueOf(v.getDeclaringClass(), raw);
     }
 
   }
 
-  public static class ThresholdRequirement extends Requirement {
+  public static class ThresholdRequirement extends Requirement<String> {
 
     public ThresholdRequirement(String description, String defaultValue) {
       super(description, RequirementInputType.STRING, defaultValue);
@@ -270,7 +313,7 @@ public abstract class Requirement {
 
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                    Map<Step, Map<Requirement, String>> variables) {
+                                    Map<Step, Variables> variables) {
       Maths.COMPARISON op = MarkerQC.findOperator(arg);
       if (op == null) return false;
       try {
@@ -279,6 +322,11 @@ public abstract class Requirement {
         return false;
       }
       return true;
+    }
+
+    @Override
+    public String parseValue(String raw) {
+      return raw;
     }
 
   }
@@ -293,7 +341,7 @@ public abstract class Requirement {
 
   private final String description;
   private final Requirement.RequirementInputType type;
-  private final Object defaultValue;
+  private final T defaultValue;
 
   /**
    * @param description
@@ -308,12 +356,11 @@ public abstract class Requirement {
    * @param type
    * @param defaultValue
    */
-  public Requirement(String description, Requirement.RequirementInputType type,
-                     Object defaultValue) {
+  public Requirement(String description, Requirement.RequirementInputType type, T defaultValue) {
     super();
     this.description = description;
     this.type = type;
-    this.defaultValue = defaultValue != null ? defaultValue : "";
+    this.defaultValue = defaultValue != null ? defaultValue : null;
   }
 
   public static int checkIntArgOrNeg1(String val) {
@@ -344,12 +391,14 @@ public abstract class Requirement {
     return type;
   }
 
-  public Object getDefaultValue() {
+  public T getDefaultValue() {
     return defaultValue;
   }
 
   public abstract boolean checkRequirement(String arg, Set<Step> stepSelections,
-                                           Map<Step, Map<Requirement, String>> variables);
+                                           Map<Step, Variables> variables);
+
+  public abstract T parseValue(String raw);
 
   @Override
   public int hashCode() {
@@ -366,7 +415,7 @@ public abstract class Requirement {
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
-    Requirement other = (Requirement) obj;
+    Requirement<?> other = (Requirement<?>) obj;
     if (defaultValue == null) {
       if (other.defaultValue != null) return false;
     } else if (!defaultValue.equals(other.defaultValue)) return false;
