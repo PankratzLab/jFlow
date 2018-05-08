@@ -156,9 +156,7 @@ public class VCFImporter {
       log.reportError("Error writing to " + proj.MARKER_POSITION_FILENAME.getValue());
       log.reportException(e);
     }
-    new File(ext.parseDirectoryOfFile(proj.MARKERSET_FILENAME.getValue())).mkdirs();
-    Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
-                         proj.MARKERSET_FILENAME.getValue(), proj.getLog());
+    Markers.orderMarkers(null, proj);
   }
 
   /**
@@ -460,9 +458,8 @@ public class VCFImporter {
     if (!Files.exists(proj.SAMPLE_DATA_FILENAME.getValue())) {
       SampleData.createMinimalSampleData(proj);
     }
-    if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
-      Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
-                           proj.MARKERSET_FILENAME.getValue(), proj.getLog());
+    if (!proj.MARKERSET_FILENAME.exists()) {
+      Markers.orderMarkers(null, proj);
     }
     if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
       TransposeData.transposeData(proj, 2000000000, false);

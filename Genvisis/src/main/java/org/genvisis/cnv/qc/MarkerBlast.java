@@ -814,8 +814,7 @@ public abstract class MarkerBlast {
           String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type,
                                                                     proj.MARKER_POSITION_FILENAME.getValue(),
                                                                     ",", log);
-          Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                               proj.MARKERSET_FILENAME.getValue(true, true), log);
+          Markers.orderMarkers(markerNames, proj);
 
           break;
         default:

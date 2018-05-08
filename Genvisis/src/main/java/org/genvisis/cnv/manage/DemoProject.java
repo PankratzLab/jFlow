@@ -235,7 +235,6 @@ public class DemoProject extends Project {
 
   public boolean createProjectDemo(String markersFile, String samplesFile, int numThreads) {
     if (!fail) {
-      System.out.println(proj.MARKERSET_FILENAME.getValue());
       return createProjectDemo(loadMarkers(proj, markersFile, dType),
                                loadSamples(proj, samplesFile, dType), numThreads);
     } else {
@@ -267,8 +266,7 @@ public class DemoProject extends Project {
       } else {
         // Markers.orderMarkers(markersToExport, getFilename(proj.MARKER_POSITION_FILENAME),
         // getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-        Markers.orderMarkers(markersToExport, proj.MARKER_POSITION_FILENAME.getValue(),
-                             MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+        Markers.orderMarkers(markersToExport, proj);
         long fingerPrint = getMarkerSet().getFingerprint();
         proj.getLog().reportTimeInfo("Attempting to subset the samples...");
         new File(SAMPLELIST_FILENAME.getValue(false, false)).delete();

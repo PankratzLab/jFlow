@@ -838,8 +838,7 @@ public class ParseKcol implements Runnable {
     markerNames = ArrayUtils.toStringArray(alNames);
     // keys = Markers.orderMarkers(markerNames, proj.getFilename(proj.MARKER_POSITION_FILENAME),
     // proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-    keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                                proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    keys = Markers.orderMarkers(markerNames, proj);
     if (keys == null) {
       return;
     }
@@ -948,8 +947,7 @@ public class ParseKcol implements Runnable {
 
     // Markers.orderMarkers(null, proj.getFilename(proj.MARKER_POSITION_FILENAME),
     // proj.getFilename(proj.MARKERSET_FILENAME, true, true), proj.getLog());
-    Markers.orderMarkers(null, proj.MARKER_POSITION_FILENAME.getValue(),
-                         proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    Markers.orderMarkers(null, proj);
     markerSet = proj.getMarkerSet();
     markerNames = markerSet.getMarkerNames();
     fingerprint = proj.getMarkerSet().getFingerprint();
@@ -961,9 +959,8 @@ public class ParseKcol implements Runnable {
       markerIndices.put(markerNames[i], new Integer(i));
     }
 
-    System.out.println("There were " + markerNames.length + " markers present in '"
-                       + proj.MARKERSET_FILENAME.getValue(true, true)
-                       + "' that will be processed from the source files (fingerprint: "
+    System.out.println("There were " + markerNames.length
+                       + " markers present in the project that will be processed from the source files (fingerprint: "
                        + fingerprint + ")");
 
     int snpIndex, sampIndex, key;

@@ -1066,11 +1066,10 @@ public class BamImport {
                      allMarkerFile);
     markerTypes.add(new MarkerFileType(null, allMarkerFile));
 
-    if (!Files.exists(proj.MARKERSET_FILENAME.getValue(true, true))) {
-      Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                           proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    if (!proj.MARKERSET_FILENAME.exists()) {
+      Markers.orderMarkers(markerNames, proj);
     } else {
-      proj.getLog().reportFileExists(proj.MARKERSET_FILENAME.getValue(true, true));
+      proj.getLog().report("MarkerSet already exists, not regenerating");
     }
     return markerTypes;
   }

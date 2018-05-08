@@ -90,8 +90,7 @@ public class CytoAgilentParse {
         // if ((!Files.exists(proj.getFilename(proj.MARKERSET_FILENAME, null, false, false)) &&
         // !Files.exists(proj.getFilename(proj.MARKER_POSITION_FILENAME, null, false, false))) ||
         // !createdMarkerPostions) {
-        if ((!Files.exists(proj.MARKERSET_FILENAME.getValue(false, false))
-             && !Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false)))
+        if ((!proj.MARKERSET_FILENAME.exists() && !proj.MARKER_POSITION_FILENAME.exists())
             || !createdMarkerPostions) {
           // generateMarkerPositions(filesToParse[i],
           // proj.getFilename(proj.MARKER_POSITION_FILENAME), log);
