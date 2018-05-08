@@ -1429,52 +1429,6 @@ public class FilterCalls {
 
   }
 
-  public static CNVariant[] breakCentromereCNVs(CNVariant[] cnvs,
-                                                String markerSetFilenameToBreakUpCentromeres) {
-    CNVFilter filter = new CNVFilter(null);
-    filter.setBreakupCentromeres(true);
-    filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
-    filter.computeCentromereMidPoints();
-
-    ArrayList<CNVariant> newCNVList = new ArrayList<>();
-    for (CNVariant cnv : cnvs) {
-      CNVFilterPass fp = filter.getCNVFilterPass(cnv);
-      CNVariant[] broken = filter.breakUpCentromere(fp, cnv);
-      for (CNVariant newcnv : broken) {
-        newCNVList.add(newcnv);
-      }
-    }
-
-    return newCNVList.toArray(new CNVariant[] {});
-  }
-
-  public static void breakCentromereCNVs(String dir, String in, String out,
-                                         String markerSetFilenameToBreakUpCentromeres) {
-    CNVFilter filter = new CNVFilter(null);
-    filter.setBreakupCentromeres(true);
-    filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
-    filter.computeCentromereMidPoints();
-
-    CNVariant[] centromeric = CNVariant.loadPlinkFile(dir + in);
-
-    try {
-      PrintWriter writer = Files.openAppropriateWriter(dir + out);
-      writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
-
-      for (CNVariant cnv : centromeric) {
-        CNVFilterPass fp = filter.getCNVFilterPass(cnv);
-        CNVariant[] broken = filter.breakUpCentromere(fp, cnv);
-        for (CNVariant newcnv : broken) {
-          writer.println(newcnv.toPlinkFormat());
-        }
-      }
-      writer.flush();
-      writer.close();
-    } catch (IOException e) {
-      System.err.println("Error writing file \"" + dir + out + "\" - " + e.getMessage());
-    }
-  }
-
   private static void configureFilterBasics(CNVFilter filter, String filenameOfProblematicRegions,
                                             int commonInOutOrIgnore, String individualsToKeepFile,
                                             int[][] pos, int[][] bnds, boolean makeUCSCtrack,
