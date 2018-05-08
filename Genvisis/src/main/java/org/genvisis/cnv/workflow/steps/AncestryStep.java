@@ -33,29 +33,31 @@ public class AncestryStep extends Step {
     final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
-    return new AncestryStep(hapMapFoundersReq, hapMapAncestryReq, reqSet);
+    return new AncestryStep(proj, hapMapFoundersReq, hapMapAncestryReq, reqSet);
   }
 
   private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
                                                                                  null);
 
+  final Project proj;
   final ResourceRequirement hapMapFoundersReq;
   final ResourceRequirement hapMapAncestryReq;
 
-  private AncestryStep(ResourceRequirement hapFound, ResourceRequirement hapAnc,
+  private AncestryStep(Project proj, ResourceRequirement hapFound, ResourceRequirement hapAnc,
                        RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.hapMapFoundersReq = hapFound;
     this.hapMapAncestryReq = hapAnc;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String putativeWhites = variables.get(putativeWhitesReq) == null ? null
                                                                      : variables.get(putativeWhitesReq)
                                                                                 .getAbsolutePath();
@@ -67,7 +69,7 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String putativeWhites = variables.get(putativeWhitesReq) == null ? null
                                                                      : variables.get(putativeWhitesReq)
                                                                                 .getAbsolutePath();
@@ -83,7 +85,7 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     return Files.exists(ancestryDir + Ancestry.RACE_FREQS_FILENAME)
            && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONAS_FILENAME);

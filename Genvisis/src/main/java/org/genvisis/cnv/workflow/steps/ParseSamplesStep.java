@@ -33,22 +33,24 @@ public class ParseSamplesStep extends Step {
       reqSet.add(RequirementSetBuilder.or().add(markerPositionsReq).add(markerPositionsStepReq))
             .add(numThreadsReq);
     }
-    return new ParseSamplesStep(markerPositionsReq, numThreadsReq, reqSet);
+    return new ParseSamplesStep(proj, markerPositionsReq, numThreadsReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<File> markerPositionsReq;
   final Requirement<Integer> numThreadsReq;
 
-  private ParseSamplesStep(Requirement<File> markerPosReq, Requirement<Integer> numThreadsReq,
-                           RequirementSet reqSet) {
+  private ParseSamplesStep(Project proj, Requirement<File> markerPosReq,
+                           Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.markerPositionsReq = markerPosReq;
     this.numThreadsReq = numThreadsReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
     String mkrFile = variables.get(markerPositionsReq).getAbsolutePath();
     mkrFile = ext.verifyDirFormat(mkrFile);
@@ -61,7 +63,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     int numThreads = proj.NUM_THREADS.getValue();
     proj.getLog().report("Parsing sample files");
     int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
@@ -76,7 +78,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
     boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
     boolean returnValue = mkrSetFile;
@@ -93,7 +95,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(GenvisisWorkflow.PROJ_PROP_UPDATE_STR)
                                                                  .append(projPropFile);

@@ -20,7 +20,8 @@ public class AffyMarkerBlastStep extends Step {
   public static final String NAME = "Run Marker BLAST Annotation";
   public static final String DESC = "";
 
-  public static AffyMarkerBlastStep create(final Step parseSamplesStep, Requirement<Integer> numThreadsReq) {
+  public static AffyMarkerBlastStep create(Project proj, final Step parseSamplesStep,
+                                           Requirement<Integer> numThreadsReq) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
     final Requirement<File> probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
@@ -31,30 +32,33 @@ public class AffyMarkerBlastStep extends Step {
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(probeFileReq).add(annotFileReq)
                                                        .add(numThreadsReq);
-    return new AffyMarkerBlastStep(probeFileReq, annotFileReq, numThreadsReq, reqSet);
+    return new AffyMarkerBlastStep(proj, probeFileReq, annotFileReq, numThreadsReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<File> probeFileReq;
   final Requirement<File> annotFileReq;
   final Requirement<Integer> numThreadsReq;
 
-  private AffyMarkerBlastStep(Requirement<File> probeFileReq, Requirement<File> annotFileReq,
-                              Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
+  private AffyMarkerBlastStep(Project proj, Requirement<File> probeFileReq,
+                              Requirement<File> annotFileReq, Requirement<Integer> numThreadsReq,
+                              RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.probeFileReq = probeFileReq;
     this.annotFileReq = annotFileReq;
     this.numThreadsReq = numThreadsReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String annotFile = variables.get(annotFileReq).getPath();
     String probeFile = variables.get(probeFileReq).getPath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
@@ -62,7 +66,7 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String annotFile = variables.get(annotFileReq).getPath();
     String probeFile = variables.get(probeFileReq).getPath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
@@ -75,7 +79,7 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 

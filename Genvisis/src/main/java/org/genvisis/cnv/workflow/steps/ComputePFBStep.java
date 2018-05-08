@@ -37,21 +37,23 @@ public class ComputePFBStep extends Step {
                                                                                  .add(parseSamplesStepReq)
                                                                                  .add(sampleSubsetReq))
                                                        .add(outputFileReq);
-    return new ComputePFBStep(sampleSubsetReq, outputFileReq, reqSet);
+    return new ComputePFBStep(proj, sampleSubsetReq, outputFileReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<File> sampleSubsetReq;
   final Requirement<File> outputFileReq;
 
-  private ComputePFBStep(Requirement<File> sampleSubReq, Requirement<File> outReq,
+  private ComputePFBStep(Project proj, Requirement<File> sampleSubReq, Requirement<File> outReq,
                          RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.sampleSubsetReq = sampleSubReq;
     this.outputFileReq = outReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
     String subSampFile = variables.get(sampleSubsetReq).getAbsolutePath();
     String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
@@ -66,12 +68,12 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     org.genvisis.cnv.hmm.PFB.populationBAF(proj);
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String kvCmd = "";
 
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
@@ -100,7 +102,7 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String subSampFile = variables.get(sampleSubsetReq).getAbsolutePath();
     String pfbOutputFile = variables.get(outputFileReq).getAbsolutePath();
     return Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");

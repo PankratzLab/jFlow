@@ -50,18 +50,21 @@ public class MarkerQCStep extends Step {
                                                                                  .add(exportAllReq)
                                                                                  .add(targetMarkersReq))
                                                        .add(batchHeadersReq).add(numThreadsReq);
-    return new MarkerQCStep(reqSet, exportAllReq, targetMarkersReq, batchHeadersReq, numThreadsReq);
+    return new MarkerQCStep(proj, reqSet, exportAllReq, targetMarkersReq, batchHeadersReq,
+                            numThreadsReq);
   }
 
+  final Project proj;
   Requirement<Boolean> exportAllReq;
   Requirement<File> targetMarkersReq;
   Requirement<Integer> numThreadsReq;
   ListSelectionRequirement batchHeadersReq;
 
-  private MarkerQCStep(RequirementSet reqSet, Requirement<Boolean> exportAllReq,
+  private MarkerQCStep(Project proj, RequirementSet reqSet, Requirement<Boolean> exportAllReq,
                        Requirement<File> targetMarkersReq, ListSelectionRequirement batchHeadersReq,
                        Requirement<Integer> numThreadsReq) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.exportAllReq = exportAllReq;
     this.targetMarkersReq = targetMarkersReq;
     this.batchHeadersReq = batchHeadersReq;
@@ -69,12 +72,12 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     boolean allMarkers = variables.get(exportAllReq);
     String tgtFile = allMarkers ? null : variables.get(targetMarkersReq).getAbsolutePath();
     boolean[] samplesToExclude = proj.getSamplesToExclude();
@@ -84,7 +87,7 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     boolean allMarkers = variables.get(exportAllReq);
     File tgtFile = variables.get(targetMarkersReq);
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
@@ -102,7 +105,7 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String markerMetricsFile = proj.MARKER_METRICS_FILENAME.getValue();
     return Files.exists(markerMetricsFile);
   }

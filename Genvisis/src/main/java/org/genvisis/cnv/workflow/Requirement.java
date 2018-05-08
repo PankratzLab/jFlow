@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.common.Files;
 import org.genvisis.gwas.MarkerQC;
@@ -14,25 +13,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
 public abstract class Requirement<T> {
-
-  public static final class ProjectRequirement extends Requirement<Project> {
-
-    public ProjectRequirement() {
-      super("A Genvisis Project", RequirementInputType.NONE);
-    }
-
-    @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
-                                    Map<Step, Variables> variables) {
-      return proj != null;
-    }
-
-    @Override
-    public Project parseValue(String raw) {
-      return new Project(raw);
-    }
-
-  }
 
   public static class StepRequirement extends Requirement<Step> {
 
@@ -44,10 +24,10 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return stepSelections.contains(requiredStep)
-             || requiredStep.checkIfOutputExists(proj, variables.get(requiredStep));
+             || requiredStep.checkIfOutputExists(variables.get(requiredStep));
     }
 
     public Step getRequiredStep() {
@@ -75,7 +55,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return exists(arg);
     }
@@ -98,7 +78,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return !exists(arg);
     }
@@ -111,9 +91,9 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
-      return "".equals(arg) || super.checkRequirement(proj, arg, stepSelections, variables);
+      return "".equals(arg) || super.checkRequirement(arg, stepSelections, variables);
     }
   }
 
@@ -144,7 +124,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return true;
     }
@@ -170,7 +150,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return Boolean.parseBoolean(arg);
     }
@@ -189,7 +169,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return true;
     }
@@ -207,7 +187,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       double value;
       try {
@@ -237,7 +217,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       int value;
       try {
@@ -281,7 +261,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return allowNone || !arg.isEmpty();
     }
@@ -312,7 +292,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       return true;
     }
@@ -332,7 +312,7 @@ public abstract class Requirement<T> {
     }
 
     @Override
-    public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
       Maths.COMPARISON op = MarkerQC.findOperator(arg);
       if (op == null) return false;
@@ -415,7 +395,7 @@ public abstract class Requirement<T> {
     return defaultValue;
   }
 
-  public abstract boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+  public abstract boolean checkRequirement(String arg, Set<Step> stepSelections,
                                            Map<Step, Variables> variables);
 
   public abstract T parseValue(String raw);

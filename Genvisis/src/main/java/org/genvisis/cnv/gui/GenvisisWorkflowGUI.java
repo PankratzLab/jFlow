@@ -198,8 +198,8 @@ public class GenvisisWorkflowGUI extends JDialog {
             if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
               continue;
             }
-            if (!step.checkIfOutputExists(proj, variables.get(step))) {
-              boolean check = step.hasRequirements(proj, selectedSteps, variables);
+            if (!step.checkIfOutputExists(variables.get(step))) {
+              boolean check = step.hasRequirements(selectedSteps, variables);
               checkBoxes.get(step).setSelected(check);
               selected.add(step);
               if (check) {
@@ -331,7 +331,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       public void run() {
         Map<Step, Variables> variables = getVariables();
         for (Step step : steps.values()) {
-          if (step.checkIfOutputExists(proj, variables.get(step))) {
+          if (step.checkIfOutputExists(variables.get(step))) {
             checkBoxes.get(step).setSelected(false);
             alreadyRunLbls.get(step).setVisible(true);
             panels.get(step).shrink();
@@ -801,9 +801,9 @@ public class GenvisisWorkflowGUI extends JDialog {
             continue;
           }
           final int update = ++i;
-          if (!step.checkIfOutputExists(gui.proj, variables.get(step))
+          if (!step.checkIfOutputExists(variables.get(step))
               || gui.checkBoxes.get(step).isSelected()) {
-            boolean check = step.hasRequirements(gui.proj, selectedSteps, variables);
+            boolean check = step.hasRequirements(selectedSteps, variables);
             gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
             gui.checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
             final Map<Requirement<?>, JLabel> reqLbls = gui.requirementsLabels.get(step);
@@ -813,8 +813,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                 @Override
                 public void run() {
                   for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
-                    boolean met = req.checkRequirement(gui.proj,
-                                                       variables.get(step).get(req).toString(),
+                    boolean met = req.checkRequirement(variables.get(step).get(req).toString(),
                                                        selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
                   }
@@ -915,7 +914,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             Set<Requirement.Flag> flags = EnumSet.noneOf(Requirement.Flag.class);
             for (Step step : selectedSteps) {
               flags.addAll(step.getFlags());
-              String cmd = step.getCommandLine(proj, variables.get(step));
+              String cmd = step.getCommandLine(variables.get(step));
               GenvisisWorkflow.addStepInfo(output, step, cmd);
             }
             boolean hasQsub = Files.programExists("qsub");
@@ -968,7 +967,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         for (String msg : currentTask.getFailureMessages()) {
           failureMessage.append("\n").append(msg);
         }
-      } else if (!currentStep.checkIfOutputExists(proj, variables)) {
+      } else if (!currentStep.checkIfOutputExists(variables)) {
         failureMessage.append("\nUnknown error occurred.");
       }
       failureMessage.append("\nPlease check project log for more details.");
@@ -1019,7 +1018,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   }
 
   private void runStep(Step step, List<Step> options, Variables variables) {
-    Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables, options);
+    Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, variables, options);
     progTasks.put(step, stepTask);
     stepTask.execute();
   }
@@ -1077,8 +1076,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     boolean passesChecks = true;
     List<String> reqMsgs = Lists.newArrayList();
     for (Step step : options) {
-      if (!getResources(step.getRequirements())
-          || !step.hasRequirements(proj, options, variables)) {
+      if (!getResources(step.getRequirements()) || !step.hasRequirements(options, variables)) {
         reqMsgs.add(checkBoxes.get(step).getText());
         passesChecks = false;
       }

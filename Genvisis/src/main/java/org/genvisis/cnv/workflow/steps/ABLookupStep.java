@@ -18,23 +18,26 @@ import com.google.common.collect.Lists;
 
 public class ABLookupStep extends Step {
 
-  public static ABLookupStep create(Step parseSamplesStep) {
+  final Project proj;
+
+  public static ABLookupStep create(Project proj, Step parseSamplesStep) {
     Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    return new ABLookupStep(parseSamplesStepReq);
+    return new ABLookupStep(proj, parseSamplesStepReq);
   }
 
-  private ABLookupStep(Requirement<Step> parseSamplesReq) {
+  private ABLookupStep(Project proj, Requirement<Step> parseSamplesReq) {
     super("Generate AB Lookup File", "", RequirementSetBuilder.and().add(parseSamplesReq),
           EnumSet.of(Requirement.Flag.RUNTIME));
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     ABLookup.parseABLookup(proj, ABSource.VCF, filename);
@@ -47,7 +50,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     String projFile = proj.getPropertyFilename();
@@ -83,7 +86,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
   }
 }

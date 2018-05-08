@@ -21,24 +21,26 @@ public class IlluminaMarkerPositionsStep extends Step {
     final Requirement<File> manifestReq = new Requirement.FileRequirement("An Illumina Manifest file.",
                                                                           new File(proj.getLocationOfSNP_Map(false)));
 
-    return new IlluminaMarkerPositionsStep(manifestReq);
+    return new IlluminaMarkerPositionsStep(proj, manifestReq);
   }
 
+  final Project proj;
   final Requirement<File> manifestReq;
 
-  private IlluminaMarkerPositionsStep(Requirement<File> manifestReq) {
+  private IlluminaMarkerPositionsStep(Project proj, Requirement<File> manifestReq) {
     super(NAME, DESC, RequirementSetBuilder.and().add(manifestReq),
           EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.manifestReq = manifestReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     proj.getLog().report("Generating marker positions file");
     String manifest = variables.get(manifestReq).getAbsolutePath();
     if (Files.exists(manifest)) {
@@ -53,12 +55,12 @@ public class IlluminaMarkerPositionsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false));
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String projFile = proj.getPropertyFilename();
     File manifest = variables.get(manifestReq);
     String baseCommand = Files.getRunString() + " cnv.manage.Markers proj=" + projFile;

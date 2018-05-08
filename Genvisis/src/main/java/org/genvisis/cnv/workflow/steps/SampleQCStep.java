@@ -19,33 +19,36 @@ public class SampleQCStep extends Step {
   public static final String NAME = "Run Sample QC Metrics";
   public static final String DESC = "";
 
+  private final Project proj;
   private Requirement<Integer> numThreadsReq;
 
-  public static SampleQCStep create(Step parseSamplesStep, Requirement<Integer> numThreadsReq) {
+  public static SampleQCStep create(Project proj, Step parseSamplesStep,
+                                    Requirement<Integer> numThreadsReq) {
     RequirementSet reqSet = RequirementSetBuilder.and().add(new StepRequirement(parseSamplesStep))
                                                  .add(numThreadsReq);
-    return new SampleQCStep(reqSet);
+    return new SampleQCStep(proj, reqSet);
   }
 
-  private SampleQCStep(RequirementSet reqSet) {
+  private SampleQCStep(Project proj, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     proj.getLog().report("Running LrrSd");
     int numThreads = proj.NUM_THREADS.getValue();
     LrrSd.init(proj, null, null, numThreads, false);
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
@@ -56,7 +59,7 @@ public class SampleQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false));
   }
 }

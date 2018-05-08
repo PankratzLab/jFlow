@@ -30,20 +30,23 @@ public class GCModelStep extends Step {
                                                                                      new File(proj.GC_MODEL_FILENAME.getValue()));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gcBaseResourceReq)
                                                        .add(gcModelOutputReq);
-    return new GCModelStep(gcBaseResourceReq, gcModelOutputReq, reqSet);
+    return new GCModelStep(proj, gcBaseResourceReq, gcModelOutputReq, reqSet);
   }
 
+  final Project proj;
   final Requirement.ResourceRequirement gcBaseResourceReq;
   final Requirement<File> gcModelOutputReq;
 
-  private GCModelStep(ResourceRequirement gcBase, Requirement<File> output, RequirementSet reqSet) {
+  private GCModelStep(Project proj, ResourceRequirement gcBase, Requirement<File> output,
+                      RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.gcBaseResourceReq = gcBase;
     this.gcModelOutputReq = output;
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
     String gcOutputFile = variables.get(gcModelOutputReq).getAbsolutePath();
     if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
@@ -52,14 +55,14 @@ public class GCModelStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
     String gcOutputFile = variables.get(gcModelOutputReq).getAbsolutePath();
     org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj, gcBaseFile, gcOutputFile, 100);
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String kvCmd = "";
 
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
@@ -85,7 +88,7 @@ public class GCModelStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(variables.get(gcModelOutputReq));
   }
 

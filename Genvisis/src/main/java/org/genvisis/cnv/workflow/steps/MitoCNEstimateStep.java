@@ -65,13 +65,14 @@ public class MitoCNEstimateStep extends Step {
                                                        .add(numThreadsReq)
                                                        .add(pcSelectionSamplesReq)
                                                        .add(externalBetaFileReq);
-    return new MitoCNEstimateStep(medianMarkersReq, lrrSdThresholdReq, callrateThresholdReq,
+    return new MitoCNEstimateStep(proj, medianMarkersReq, lrrSdThresholdReq, callrateThresholdReq,
                                   qcPassingOnlyReq, imputeNaNs, recomputeLrrPCMarkersReq,
                                   recomputeLrrMedianMarkersReq, homozygousOnlyReq,
                                   gcRegressionDistanceReq, pcSelectionSamplesReq,
                                   externalBetaFileReq, numThreadsReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<File> medianMarkersReq;
   final Requirement<Double> lrrSdThresholdReq;
   final Requirement<Double> callrateThresholdReq;
@@ -85,7 +86,7 @@ public class MitoCNEstimateStep extends Step {
   final Requirement<File> externalBetaFileReq;
   final Requirement<Integer> numThreadsReq;
 
-  private MitoCNEstimateStep(Requirement<File> medianMarkersReq,
+  private MitoCNEstimateStep(Project proj, Requirement<File> medianMarkersReq,
                              Requirement<Double> lrrSdThresholdReq,
                              Requirement<Double> callrateThresholdReq,
                              Requirement<Boolean> qcPassingOnlyReq, Requirement<Boolean> imputeNaNs,
@@ -97,6 +98,7 @@ public class MitoCNEstimateStep extends Step {
                              Requirement<File> externalBetaFileReq,
                              Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.medianMarkersReq = medianMarkersReq;
     this.lrrSdThresholdReq = lrrSdThresholdReq;
     this.callrateThresholdReq = callrateThresholdReq;
@@ -112,7 +114,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     double sampleLRRSdFilter = variables.get(lrrSdThresholdReq);
     if (sampleLRRSdFilter < 0) {
       switch (proj.ARRAY_TYPE.getValue()) {
@@ -138,7 +140,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String medianMarkers = variables.has(medianMarkersReq) ? variables.get(medianMarkersReq)
                                                                       .getPath()
                                                            : null;
@@ -180,7 +182,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String medianMarkers = variables.get(medianMarkersReq).getPath();
     double lrrSD = variables.get(lrrSdThresholdReq);
     double markerCallRateFilter = variables.get(callrateThresholdReq);
@@ -229,7 +231,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);

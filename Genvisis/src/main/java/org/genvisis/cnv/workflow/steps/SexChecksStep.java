@@ -41,28 +41,30 @@ public class SexChecksStep extends Step {
                                                                                  .add(oneHittersReq)
                                                                                  .add(markerBlastStepReq)
                                                                                  .add(noCrossHybeReq));
-    return new SexChecksStep(addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet);
+    return new SexChecksStep(proj, addToSampleDataReq, noCrossHybeReq, oneHittersReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<Boolean> addToSampleDataReq;
   final Requirement<File> oneHittersReq;
   final Requirement<Boolean> noCrossHybeReq;
 
-  public SexChecksStep(Requirement<Boolean> addToSD, Requirement<Boolean> noCross,
+  public SexChecksStep(Project proj, Requirement<Boolean> addToSD, Requirement<Boolean> noCross,
                        Requirement<File> oneHit, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.addToSampleDataReq = addToSD;
     this.noCrossHybeReq = noCross;
     this.oneHittersReq = oneHit;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     proj.getLog().report("Running SexCheck");
     boolean addToSampleData = variables.get(addToSampleDataReq);
     String discriminatingMarkersFile;
@@ -79,7 +81,7 @@ public class SexChecksStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
     boolean addToSampleData = variables.get(addToSampleDataReq);
@@ -102,7 +104,7 @@ public class SexChecksStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.SEXCHECK_RESULTS_FILENAME.getValue());
   }
 

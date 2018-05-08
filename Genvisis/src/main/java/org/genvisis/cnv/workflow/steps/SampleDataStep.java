@@ -20,11 +20,8 @@ public class SampleDataStep extends Step {
   public static final String REQ_CREATE_MINIMAL = "Create a minimal SampleData.txt file from sample files";
   public static final String REQ_PEDIGREE = "Either a Pedigree.dat file, or any file with a header containing all of the following elements (in any order):  \""
                                             + ArrayUtils.toStr(MitoPipeline.PED_INPUT, ", ") + "\"";
-  public static final String REQ_SAMPLE_MAP = "A Sample_Map.csv file, with at least two columns having headers \""
-                                              + MitoPipeline.SAMPLEMAP_INPUT[1] + "\" and \""
-                                              + MitoPipeline.SAMPLEMAP_INPUT[2] + "\"";
 
-  public static SampleDataStep create(Step parseSamplesStep, Project proj) {
+  public static SampleDataStep create(Project proj, Step parseSamplesStep) {
     Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     Requirement<Boolean> createMinimalSampleDataReq = new Requirement.BoolRequirement(REQ_CREATE_MINIMAL,
                                                                                       true);
@@ -36,29 +33,31 @@ public class SampleDataStep extends Step {
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(createMinimalSampleDataReq)
                                                                                  .add(pedigreeReq));
-    return new SampleDataStep(createMinimalSampleDataReq, pedigreeReq, reqSet);
+    return new SampleDataStep(proj, createMinimalSampleDataReq, pedigreeReq, reqSet);
   }
 
   public static final String NAME = "Create SampleData.txt File";
   public static final String DESC = "";
 
+  final Project proj;
   final Requirement<Boolean> createMinimalSampleDataReq;
   final Requirement<File> pedigreeReq;
 
-  public SampleDataStep(Requirement<Boolean> createMin, Requirement<File> pedReq,
+  public SampleDataStep(Project proj, Requirement<Boolean> createMin, Requirement<File> pedReq,
                         RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.createMinimalSampleDataReq = createMin;
     this.pedigreeReq = pedReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Nothing to do
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     Boolean minimal = variables.get(createMinimalSampleDataReq);
     File pedFile = minimal ? null : variables.get(pedigreeReq);
 
@@ -74,12 +73,12 @@ public class SampleDataStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.SAMPLE_DATA_FILENAME.getValue(false, false));
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String projPropFile = proj.getPropertyFilename();
     boolean minimal = variables.get(createMinimalSampleDataReq);
     File pedFile = minimal ? null : variables.get(pedigreeReq);

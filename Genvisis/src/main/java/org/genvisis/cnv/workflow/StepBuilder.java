@@ -84,8 +84,8 @@ public class StepBuilder {
     return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
-  Step generateAffyMarkerBlastAnnotationStep(final Step parseSamplesStep) {
-    return register(AffyMarkerBlastStep.create(parseSamplesStep, numThreadsReq));
+  Step generateAffyMarkerBlastAnnotationStep(final Project proj, final Step parseSamplesStep) {
+    return register(AffyMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateParseSamplesStep(Project proj) {
@@ -97,11 +97,11 @@ public class StepBuilder {
   }
 
   Step generateCreateSampleDataStep(Project proj, final Step parseSamplesStep) {
-    return register(SampleDataStep.create(parseSamplesStep, proj));
+    return register(SampleDataStep.create(proj, parseSamplesStep));
   }
 
   Step generateTransposeStep(Project proj, final Step parseSamplesStep) {
-    return register(TransposeStep.create(parseSamplesStep));
+    return register(TransposeStep.create(proj, parseSamplesStep));
   }
 
   Step generateGCModelStep(Project proj) {
@@ -109,7 +109,7 @@ public class StepBuilder {
   }
 
   Step generateSampleQCStep(Project proj, final Step parseSamplesStep) {
-    return register(SampleQCStep.create(parseSamplesStep, numThreadsReq));
+    return register(SampleQCStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateMarkerQCStep(Project proj, final Step parseSamplesStep) {
@@ -158,8 +158,8 @@ public class StepBuilder {
     return register(ComputePFBStep.create(proj, parseSamplesStep));
   }
 
-  Step generateSexCentroidsStep() {
-    return register(SexCentroidsStep.create(numThreadsReq));
+  Step generateSexCentroidsStep(Project proj) {
+    return register(SexCentroidsStep.create(proj, numThreadsReq));
   }
 
   Step generateCNVStep(Project proj, Step pfbStep, Step gcModelStep) {
@@ -170,16 +170,8 @@ public class StepBuilder {
     return register(PCCorrectionStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
-  Step generateABLookupStep(final Step parseSamplesStep) {
-    return register(ABLookupStep.create(parseSamplesStep));
-  }
-
-  public static int resolveThreads(Project proj, String arg) {
-    int numThreads = Requirement.checkIntArgOrNeg1(arg);
-    if (numThreads <= 0) {
-      numThreads = proj.NUM_THREADS.getValue();
-    }
-    return numThreads;
+  Step generateABLookupStep(Project proj, final Step parseSamplesStep) {
+    return register(ABLookupStep.create(proj, parseSamplesStep));
   }
 
   public static int resolveThreads(Project proj, int numThreads) {

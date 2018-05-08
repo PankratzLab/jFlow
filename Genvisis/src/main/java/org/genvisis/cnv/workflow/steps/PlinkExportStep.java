@@ -29,18 +29,20 @@ public class PlinkExportStep extends Step {
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(pedigreeRequirement)
                                                                                  .add(createPedigreeRequirement));
-    return new PlinkExportStep(pedigreeRequirement, createPedigreeRequirement, reqSet);
+    return new PlinkExportStep(proj, pedigreeRequirement, createPedigreeRequirement, reqSet);
   }
 
   final Requirement<File> pedigreeRequirement;
   final Requirement<Boolean> createPedigreeRequirement;
+  final Project proj;
 
   public static final String NAME = "";
   public static final String DESC = "";
 
-  private PlinkExportStep(Requirement<File> pedigreeRequirement,
+  private PlinkExportStep(Project proj, Requirement<File> pedigreeRequirement,
                           Requirement<Boolean> createPedigreeRequirement, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY));
+    this.proj = proj;
     this.pedigreeRequirement = pedigreeRequirement;
     this.createPedigreeRequirement = createPedigreeRequirement;
   }
@@ -56,7 +58,7 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     if (!variables.get(createPedigreeRequirement)) {
       String projPedFile = proj.PEDIGREE_FILENAME.getValue(false, false);
       File pedFile = variables.get(pedigreeRequirement);
@@ -67,7 +69,7 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     if (variables.get(createPedigreeRequirement)) {
       proj.getLog().report("Creating Pedigree File");
       Pedigree.build(proj, null, null, false);
@@ -91,7 +93,7 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String kvCmd = "";
 
     if (!variables.get(createPedigreeRequirement)) {
@@ -123,7 +125,7 @@ public class PlinkExportStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     boolean plinkFilesExist = Files.checkAllFiles(GenvisisWorkflow.getPlinkDir(proj),
                                                   PSF.Plink.getPlinkBedBimFamSet(GenvisisWorkflow.PLINKROOT),
                                                   false, proj.getLog());

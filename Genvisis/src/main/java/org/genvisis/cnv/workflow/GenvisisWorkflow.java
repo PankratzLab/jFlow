@@ -68,7 +68,7 @@ public class GenvisisWorkflow {
     if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
         || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
       parseSamplesStep = sb.generateParseSamplesStep(proj);
-      markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(parseSamplesStep);
+      markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamplesStep);
     } else {
       Step markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
       parseSamplesStep = sb.generateParseSamplesStep(proj, markerPositions);
@@ -81,7 +81,7 @@ public class GenvisisWorkflow {
     sb.generateMarkerQCStep(proj, parseSamplesStep);
     sb.generateSexChecksStep(proj, parseSamplesStep, markerBlastStep, createSampleDataStep,
                              transposeStep, sampleQCStep);
-    sb.generateABLookupStep(parseSamplesStep);
+    sb.generateABLookupStep(proj, parseSamplesStep);
     Step plinkExportStep = sb.generatePlinkExportStep(proj, parseSamplesStep);
     Step gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
     Step ancestryStep = sb.generateAncestryStep(proj, gwasQCStep);
@@ -90,7 +90,7 @@ public class GenvisisWorkflow {
     sb.generateAnnotateSampleDataStep(proj, sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(proj, transposeStep);
     Step pfbStep = sb.generatePFBStep(proj, parseSamplesStep);
-    sb.generateSexCentroidsStep();
+    sb.generateSexCentroidsStep(proj);
     sb.generateCNVStep(proj, pfbStep, gcModelStep);
     if (allowCorrectionStep) {
       sb.generatePCCorrectedProjectStep(proj, parseSamplesStep);
@@ -128,14 +128,6 @@ public class GenvisisWorkflow {
 
   public static String getAncestryDir(Project proj) {
     return getPlinkDir(proj) + Qc.QC_SUBDIR + RelationAncestryQc.ANCESTRY_DIR;
-  }
-
-  public static int resolveThreads(Project proj, String arg) {
-    int numThreads = Requirement.checkIntArgOrNeg1(arg);
-    if (numThreads <= 0) {
-      numThreads = proj.NUM_THREADS.getValue();
-    }
-    return numThreads;
   }
 
   public static void maybeSetProjNumThreads(Project proj, int numThreads) {
@@ -254,19 +246,18 @@ public class GenvisisWorkflow {
       }
     }
 
-    String s0 = createMkrPos == null ? ""
-                                     : createMkrPos.getCommandLine(proj, varMap.get(createMkrPos));
-    String s1 = parseSamples.getCommandLine(proj, varMap.get(parseSamples));
-    String s2 = transpose.getCommandLine(proj, varMap.get(transpose));
-    String s3 = sampleData.getCommandLine(proj, varMap.get(sampleData));
-    String s4 = blast.getCommandLine(proj, varMap.get(blast));
-    String s5 = sampleQc.getCommandLine(proj, varMap.get(sampleQc));
-    String s6 = markerQc.getCommandLine(proj, varMap.get(markerQc));
-    String s7 = sexChecks.getCommandLine(proj, varMap.get(sexChecks));
-    String s8 = exportPlink.getCommandLine(proj, varMap.get(exportPlink));
-    String s9 = gwasQc.getCommandLine(proj, varMap.get(gwasQc));
-    String s10 = ancestry.getCommandLine(proj, varMap.get(ancestry));
-    String s11 = faqcStep.getCommandLine(proj, varMap.get(faqcStep));
+    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(varMap.get(createMkrPos));
+    String s1 = parseSamples.getCommandLine(varMap.get(parseSamples));
+    String s2 = transpose.getCommandLine(varMap.get(transpose));
+    String s3 = sampleData.getCommandLine(varMap.get(sampleData));
+    String s4 = blast.getCommandLine(varMap.get(blast));
+    String s5 = sampleQc.getCommandLine(varMap.get(sampleQc));
+    String s6 = markerQc.getCommandLine(varMap.get(markerQc));
+    String s7 = sexChecks.getCommandLine(varMap.get(sexChecks));
+    String s8 = exportPlink.getCommandLine(varMap.get(exportPlink));
+    String s9 = gwasQc.getCommandLine(varMap.get(gwasQc));
+    String s10 = ancestry.getCommandLine(varMap.get(ancestry));
+    String s11 = faqcStep.getCommandLine(varMap.get(faqcStep));
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
@@ -309,9 +300,8 @@ public class GenvisisWorkflow {
     // Create new sample data, run sex checks?
     Step gc = sb.generateGCModelStep(pcProj);
     Step pfb = sb.generatePFBStep(pcProj, null);
-    Step cent = sb.generateSexCentroidsStep();
+    Step cent = sb.generateSexCentroidsStep(pcProj);
     Step cnv = sb.generateCNVStep(pcProj, pfb, gc);
-    Map<Step, Variables> stepOpts = new HashMap<>();
     Variables cnvOpts = new Variables();
     List<Requirement<?>> reqs = cnv.getRequirements().getFlatRequirementsList();
     for (Requirement<?> req : reqs) {
@@ -321,13 +311,12 @@ public class GenvisisWorkflow {
         cnvOpts.parseOrFail(req, "" + (Runtime.getRuntime().availableProcessors() - 1));
       }
     }
-    stepOpts.put(cnv, cnvOpts);
 
-    String s1 = transpose.getCommandLine(pcProj, null);
-    String s2 = gc.getCommandLine(pcProj, null);
-    String s3 = pfb.getCommandLine(pcProj, null);
-    String s4 = cent.getCommandLine(pcProj, null);
-    String s5 = cnv.getCommandLine(pcProj, stepOpts.get(cnv));
+    String s1 = transpose.getCommandLine(null);
+    String s2 = gc.getCommandLine(null);
+    String s3 = pfb.getCommandLine(null);
+    String s4 = cent.getCommandLine(null);
+    String s5 = cnv.getCommandLine(cnvOpts);
 
     String file = pcProj.PROJECT_DIRECTORY.getValue() + "CNVCallingPipeline.";
     String suggFile = file + ext.getTimestampForFilename() + ".pbs";

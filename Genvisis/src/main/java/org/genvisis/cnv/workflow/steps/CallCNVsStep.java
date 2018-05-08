@@ -44,9 +44,9 @@ public class CallCNVsStep extends Step {
                                                                                   new File("cnvs/genvisis.cnv")) {
 
       @Override
-      public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+      public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                       Map<Step, Variables> variables) {
-        return super.checkRequirement(proj, proj.PROJECT_DIRECTORY.getValue() + arg, stepSelections,
+        return super.checkRequirement(proj.PROJECT_DIRECTORY.getValue() + arg, stepSelections,
                                       variables);
       }
     };
@@ -60,10 +60,11 @@ public class CallCNVsStep extends Step {
                                                                                  .add(gcModelFileReq))
                                                        .add(callingTypeReq).add(useCentroidsReq)
                                                        .add(numThreadsReq).add(outputFileReq);
-    return new CallCNVsStep(hmmFile, pfbFileReq, gcModelFileReq, callingTypeReq, useCentroidsReq,
-                            outputFileReq, numThreadsReq, reqSet);
+    return new CallCNVsStep(proj, hmmFile, pfbFileReq, gcModelFileReq, callingTypeReq,
+                            useCentroidsReq, outputFileReq, numThreadsReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<File> hmmFile;
   final Requirement<File> pfbFileReq;
   final Requirement<File> gcModelFileReq;
@@ -72,11 +73,12 @@ public class CallCNVsStep extends Step {
   final Requirement<File> outputFileReq;
   final Requirement<Integer> numThreadsReq;
 
-  private CallCNVsStep(Requirement<File> hmmFile, Requirement<File> pfbFileReq,
+  private CallCNVsStep(Project proj, Requirement<File> hmmFile, Requirement<File> pfbFileReq,
                        Requirement<File> gcModelFileReq, Requirement<CALLING_SCOPE> callingTypeReq,
                        Requirement<Boolean> useCentroidsReq, Requirement<File> outputFileReq,
                        Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.hmmFile = hmmFile;
     this.pfbFileReq = pfbFileReq;
     this.gcModelFileReq = gcModelFileReq;
@@ -87,7 +89,7 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     String hmmP = proj.HMM_FILENAME.getValue();
     String hmmG = variables.get(hmmFile).getAbsolutePath();
     if (!hmmP.equals(hmmG)) {
@@ -108,7 +110,7 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
     String output = variables.get(outputFileReq).getPath(); // gets PROJ_DIR prepended, so NOT ABSOLUTE
@@ -155,7 +157,7 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String kvCmd = "";
 
     String hmmP = proj.HMM_FILENAME.getValue();
@@ -209,7 +211,7 @@ public class CallCNVsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String output = variables.get(outputFileReq).getPath();
     return Files.exists(proj.PROJECT_DIRECTORY.getValue() + output);
   }

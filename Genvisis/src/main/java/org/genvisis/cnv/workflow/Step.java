@@ -75,7 +75,7 @@ public abstract class Step {
    * @param proj
    * @param variables Map of Requirement to String value for this Step only
    */
-  public abstract void setNecessaryPreRunProperties(Project proj, Variables variables);
+  public abstract void setNecessaryPreRunProperties(Variables variables);
 
   /**
    * Run this Step
@@ -83,7 +83,7 @@ public abstract class Step {
    * @param proj
    * @param variables Map of Requirement to String value for this Step only
    */
-  public abstract void run(Project proj, Variables variables);
+  public abstract void run(Variables variables);
 
   /**
    * Used to cancel a step
@@ -113,12 +113,11 @@ public abstract class Step {
    * @param variables Full map of each selected step to Requirement values
    * @return
    */
-  public boolean hasRequirements(Project proj, Set<Step> stepSelections,
-                                 Map<Step, Variables> variables) {
+  public boolean hasRequirements(Set<Step> stepSelections, Map<Step, Variables> variables) {
     if (variables.get(this) == null) {
       return false;
     }
-    return this.requirements.satisfiesRequirements(proj, this, stepSelections, variables);
+    return this.requirements.satisfiesRequirements(this, stepSelections, variables);
   }
 
   /**
@@ -137,7 +136,7 @@ public abstract class Step {
    * @param variables Map of Requirement to String value for this Step only
    * @return
    */
-  public abstract boolean checkIfOutputExists(Project proj, Variables variables);
+  public abstract boolean checkIfOutputExists(Variables variables);
 
   /**
    * Get the command line invocation for this Step, based on the applied variables.
@@ -146,7 +145,7 @@ public abstract class Step {
    * @param variables Map of Requirement to String value for this Step only
    * @return
    */
-  public abstract String getCommandLine(Project proj, Variables variables);
+  public abstract String getCommandLine(Variables variables);
 
   @SuppressWarnings("unchecked")
   public Variables getDefaultRequirementValues() {
@@ -200,9 +199,9 @@ public abstract class Step {
     return true;
   }
 
-  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj, Variables variables,
+  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Variables variables,
                                      List<Step> selectedSteps) {
-    StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
+    StepTask st = new StepTask(gui, this, selectedSteps, variables);
     return st;
   }
 

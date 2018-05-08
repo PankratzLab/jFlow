@@ -59,33 +59,35 @@ public class FurtherAnalysisQCStep extends Step {
       metricRequirements.put(metric, metricReq);
     }
 
-    return new FurtherAnalysisQCStep(metricRequirements, unrelatedsFileReq, europeansFilesReq,
+    return new FurtherAnalysisQCStep(proj, metricRequirements, unrelatedsFileReq, europeansFilesReq,
                                      reqSet);
   }
 
+  final Project proj;
   final Requirement<File> unrelatedsFileReq;
   final Requirement<File> europeansFilesReq;
 
-  private FurtherAnalysisQCStep(Map<QC_METRIC, Requirement<String>> metricReqs,
+  private FurtherAnalysisQCStep(Project proj, Map<QC_METRIC, Requirement<String>> metricReqs,
                                 Requirement<File> unrelReq, Requirement<File> euroReq,
                                 RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.unrelatedsFileReq = unrelReq;
     this.europeansFilesReq = euroReq;
     this.metricRequirements = metricReqs;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
 
-    String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
+    String unrelatedsFile = resolveUnrelatedsFile(variables);
 
-    String europeansFile = resolveEuropeansFile(proj, variables);
+    String europeansFile = resolveEuropeansFile(variables);
 
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
     for (QC_METRIC metric : QC_METRIC.values()) {
@@ -98,10 +100,10 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
-    String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
+  public String getCommandLine(Variables variables) {
+    String unrelatedsFile = resolveUnrelatedsFile(variables);
 
-    String europeansFile = resolveEuropeansFile(proj, variables);
+    String europeansFile = resolveEuropeansFile(variables);
 
     List<String> commandChunks = Lists.newArrayList();
     commandChunks.add(Files.getRunString());
@@ -118,7 +120,7 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
     String qcdPlinkroot = GenvisisWorkflow.PLINKROOT
@@ -128,7 +130,7 @@ public class FurtherAnalysisQCStep extends Step {
            && Files.exists(dir + FurtherAnalysisQc.MARKER_QC_DROPS, false);
   }
 
-  private String resolveUnrelatedsFile(Project proj, Variables stepVars) {
+  private String resolveUnrelatedsFile(Variables stepVars) {
     String unrelatedsFile = stepVars.get(unrelatedsFileReq).getAbsolutePath();
     if (!Files.exists(unrelatedsFile)) {
       unrelatedsFile = GenvisisWorkflow.getAncestryDir(proj)
@@ -137,7 +139,7 @@ public class FurtherAnalysisQCStep extends Step {
     return unrelatedsFile;
   }
 
-  private String resolveEuropeansFile(Project proj, Variables stepVars) {
+  private String resolveEuropeansFile(Variables stepVars) {
     String europeansFile = stepVars.get(europeansFilesReq).getAbsolutePath();
     if (europeansFile == null || "".equals(europeansFile)) {
       String raceImputationFilename = GenvisisWorkflow.getAncestryDir(proj)

@@ -28,35 +28,37 @@ public class IlluminaMarkerBlastStep extends Step {
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(manifestFileReq).add(numThreadsReq);
-    return new IlluminaMarkerBlastStep(manifestFileReq, numThreadsReq, reqSet);
+    return new IlluminaMarkerBlastStep(proj, manifestFileReq, numThreadsReq, reqSet);
   }
 
-  private IlluminaMarkerBlastStep(Requirement<File> manifestFileReq,
+  private IlluminaMarkerBlastStep(Project proj, Requirement<File> manifestFileReq,
                                   Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.manifestFileReq = manifestFileReq;
     this.numThreadsReq = numThreadsReq;
   }
 
+  final Project proj;
   final Requirement<File> manifestFileReq;
   final Requirement<Integer> numThreadsReq;
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String manifestFile = variables.get(manifestFileReq).getAbsolutePath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     new IlluminaMarkerBlast(proj, numThreads, manifestFile).blastEm();
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String manifestFile = variables.get(manifestFileReq).getAbsolutePath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
@@ -68,7 +70,7 @@ public class IlluminaMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 }

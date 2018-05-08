@@ -17,27 +17,28 @@ public class SexCentroidsStep extends Step {
   public static final String NAME = "Create Sex-Specific Centroids; Filter PFB file";
   public static final String DESC = "";
 
-  public static SexCentroidsStep create(Requirement<Integer> numThreadsReq) {
-    return new SexCentroidsStep(numThreadsReq);
+  public static SexCentroidsStep create(Project proj, Requirement<Integer> numThreadsReq) {
+    return new SexCentroidsStep(proj, numThreadsReq);
   }
 
+  private final Project proj;
   private final Requirement<Integer> numThreadsReq;
 
-  private SexCentroidsStep(Requirement<Integer> numThreadsReq) {
+  private SexCentroidsStep(Project proj, Requirement<Integer> numThreadsReq) {
     super(NAME, DESC, RequirementSetBuilder.and().add(numThreadsReq),
           EnumSet.of(Requirement.Flag.RUNTIME, Requirement.Flag.MULTITHREADED));
     this.numThreadsReq = numThreadsReq;
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
-
+  public void setNecessaryPreRunProperties(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String malePFB;
     String femalePFB;
     String centFilePathM;
@@ -55,7 +56,7 @@ public class SexCentroidsStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj,
                                                 variables == null ? -1
                                                                   : variables.get(numThreadsReq));
@@ -66,7 +67,7 @@ public class SexCentroidsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String malePFB;
     String femalePFB;
     String centFilePathM;

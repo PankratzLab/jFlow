@@ -21,31 +21,32 @@ public class MosaicArmsStep extends Step {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(numThreadsReq);
-    return new MosaicArmsStep(numThreadsReq, reqSet);
+    return new MosaicArmsStep(proj, numThreadsReq, reqSet);
   }
 
+  final Project proj;
   public static final String NAME = "Create Mosaic Arms File";
   public static final String DESC = "";
 
-  private MosaicArmsStep(Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
+  private MosaicArmsStep(Project proj, Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.numThreadsReq = numThreadsReq;
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
-
+  public void setNecessaryPreRunProperties(Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     Mosaicism.findOutliers(proj);
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String kvCmd = "";
 
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
@@ -64,7 +65,7 @@ public class MosaicArmsStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.exists(proj.RESULTS_DIRECTORY.getValue(false, false) + "Mosaicism.xln");
   }
 }

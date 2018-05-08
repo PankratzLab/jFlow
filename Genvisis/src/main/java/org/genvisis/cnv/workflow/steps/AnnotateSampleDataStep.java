@@ -35,7 +35,7 @@ public class AnnotateSampleDataStep extends Step {
                                                                             Requirement.RequirementInputType.NONE) {
 
       @Override
-      public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+      public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                       Map<Step, Variables> variables) {
         String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
         return Files.exists(sampleQCFile)
@@ -74,11 +74,12 @@ public class AnnotateSampleDataStep extends Step {
                                                        .add(lrrSdThresholdReq)
                                                        .add(callrateThresholdReq).add(numQReq)
                                                        .add(replaceFIDIIDReq);
-    return new AnnotateSampleDataStep(replaceFIDIIDReq, numQReq, notGcCorrectedLrrSdReq,
+    return new AnnotateSampleDataStep(proj, replaceFIDIIDReq, numQReq, notGcCorrectedLrrSdReq,
                                       skipIDingDuplicatesReq, lrrSdThresholdReq,
                                       callrateThresholdReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<Boolean> skipIDingDuplicatesReq;
   final Requirement<Double> callrateThresholdReq;
   final Requirement<Double> lrrSdThresholdReq;
@@ -86,11 +87,12 @@ public class AnnotateSampleDataStep extends Step {
   final Requirement<Integer> numQReq;
   final Requirement<Boolean> notGcCorrectedLrrSdReq;
 
-  public AnnotateSampleDataStep(Requirement<Boolean> replaceIDReq, Requirement<Integer> numQReq,
-                                Requirement<Boolean> notGCReq, Requirement<Boolean> skipIDingDupReq,
-                                Requirement<Double> lrrSdReq, Requirement<Double> callrateReq,
-                                RequirementSet reqSet) {
+  public AnnotateSampleDataStep(Project proj, Requirement<Boolean> replaceIDReq,
+                                Requirement<Integer> numQReq, Requirement<Boolean> notGCReq,
+                                Requirement<Boolean> skipIDingDupReq, Requirement<Double> lrrSdReq,
+                                Requirement<Double> callrateReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.skipIDingDuplicatesReq = skipIDingDupReq;
     this.lrrSdThresholdReq = lrrSdReq;
     this.callrateThresholdReq = callrateReq;
@@ -100,7 +102,7 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
     double lrrSdThreshold = variables.get(lrrSdThresholdReq);
     double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
@@ -115,7 +117,7 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     String duplicatesSetFile = null;
     if (checkDuplicates) {
@@ -131,7 +133,7 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
 
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
     double lrrSdThreshold = variables.get(lrrSdThresholdReq);
@@ -173,7 +175,7 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
     if (!Files.exists(sampleDataFile)) {
       return false;

@@ -24,6 +24,7 @@ public class PCCorrectionStep extends Step {
   public static final String NAME = "Create PC-Corrected Project";
   public static final String DESC = "";
 
+  final Project proj;
   final Requirement<Integer> numPCsReq;
   final Requirement<File> outputBaseReq;
   final Requirement<Double> callrateReq;
@@ -44,11 +45,11 @@ public class PCCorrectionStep extends Step {
                                                                                  + MitoPipeline.FILE_BASE)) {
 
       @Override
-      public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
+      public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                       Map<Step, Variables> variables) {
         String outputBase = proj.PROJECT_DIRECTORY.getValue() + arg;
         String finalReport = outputBase + PCA.FILE_EXTs[0];
-        return super.checkRequirement(proj, finalReport, stepSelections, variables);
+        return super.checkRequirement(finalReport, stepSelections, variables);
       }
     };
     final Requirement<Double> callrateReq = new Requirement.DoubleRequirement("Call-rate filter for determining high-quality markers",
@@ -65,7 +66,7 @@ public class PCCorrectionStep extends Step {
     final Requirement<Boolean> setupCNVCalling = new Requirement.OptionalBoolRequirement("Create script with steps to process corrected data and call CNVs?",
                                                                                          false);
 
-    return new PCCorrectionStep(parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq,
+    return new PCCorrectionStep(proj, parseSamplesStepReq, numPCsReq, outputBaseReq, callrateReq,
                                 recomputeLrrReq, tempDirReq, correctionStrategyReq,
                                 sexChromosomeStrategyReq, setupCNVCalling, numThreadsReq);
   }
@@ -86,9 +87,10 @@ public class PCCorrectionStep extends Step {
                                 .add(numThreadsReq).add(setupCNVCalling);
   }
 
-  private PCCorrectionStep(Requirement<Step> parseSamplesStepReq, Requirement<Integer> numPCsReq,
-                           Requirement<File> outputBaseReq, Requirement<Double> callrateReq,
-                           Requirement<Boolean> recomputeLrrReq, Requirement<File> tempDirReq,
+  private PCCorrectionStep(Project proj, Requirement<Step> parseSamplesStepReq,
+                           Requirement<Integer> numPCsReq, Requirement<File> outputBaseReq,
+                           Requirement<Double> callrateReq, Requirement<Boolean> recomputeLrrReq,
+                           Requirement<File> tempDirReq,
                            Requirement<CORRECTION_TYPE> correctionStrategyReq,
                            Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq,
                            Requirement<Boolean> setupCNVCalling,
@@ -99,6 +101,7 @@ public class PCCorrectionStep extends Step {
                        numThreadsReq),
           EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                      Requirement.Flag.MULTITHREADED));
+    this.proj = proj;
     this.numPCsReq = numPCsReq;
     this.outputBaseReq = outputBaseReq;
     this.callrateReq = callrateReq;
@@ -111,12 +114,12 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     int numComponents = variables.get(numPCsReq);
     File outputBase = variables.get(outputBaseReq);
     double markerCallRateFilter = variables.get(callrateReq);
@@ -136,7 +139,7 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     int numComponents = variables.get(numPCsReq);
     String outputBase = variables.get(outputBaseReq).getPath();
     double markerCallRateFilter = variables.get(callrateReq);
@@ -166,7 +169,7 @@ public class PCCorrectionStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + variables.get(outputBaseReq).getPath();
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);

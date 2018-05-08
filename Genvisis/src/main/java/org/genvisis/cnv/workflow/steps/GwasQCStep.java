@@ -48,23 +48,25 @@ public class GwasQCStep extends Step {
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(callrateReq);
 
-    return new GwasQCStep(callrateReq, reqSet);
+    return new GwasQCStep(proj, callrateReq, reqSet);
   }
 
+  final Project proj;
   final Requirement<String> callrateReq;
 
-  private GwasQCStep(Requirement<String> callrateReq, RequirementSet reqSet) {
+  private GwasQCStep(Project proj, Requirement<String> callrateReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
+    this.proj = proj;
     this.callrateReq = callrateReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
     markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
@@ -80,7 +82,7 @@ public class GwasQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
     markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
@@ -103,7 +105,7 @@ public class GwasQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
       for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {

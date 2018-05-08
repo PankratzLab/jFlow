@@ -15,29 +15,32 @@ public class TransposeStep extends Step {
   public static final String NAME = "Transpose Data into Marker-Dominant Files";
   public static final String DESC = "";
 
-  public static TransposeStep create(Step parseSamplesStep) {
-    return new TransposeStep(parseSamplesStep);
+  public static TransposeStep create(Project proj, Step parseSamplesStep) {
+    return new TransposeStep(proj, parseSamplesStep);
   }
 
-  private TransposeStep(Step parseSamplesStep) {
+  final Project proj;
+
+  private TransposeStep(Project proj, Step parseSamplesStep) {
     super(NAME, DESC,
           RequirementSetBuilder.and().add(new Requirement.StepRequirement(parseSamplesStep)),
           EnumSet.of(Requirement.Flag.MEMORY));
+    this.proj = proj;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+  public void setNecessaryPreRunProperties(Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Variables variables) {
+  public void run(Variables variables) {
     proj.getLog().report("Transposing data");
     TransposeData.transposeData(proj, 2000000000, false); // compact if no LRR was provided
   }
 
   @Override
-  public String getCommandLine(Project proj, Variables variables) {
+  public String getCommandLine(Variables variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
     return cmd.append(Files.getRunString()).append(" cnv.manage.TransposeData -transpose proj="
@@ -46,7 +49,7 @@ public class TransposeStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Variables variables) {
+  public boolean checkIfOutputExists(Variables variables) {
     return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
                             MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
   }
