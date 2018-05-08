@@ -10,8 +10,8 @@ import java.util.Iterator;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -26,7 +26,6 @@ public class MDL implements Iterator<MarkerData> {
 
   private final Project proj;
   private final String[] markerNames;
-  private final MarkerSetInfo markerSet;
   private final int numDecompressThreads;
   private WorkerTrain<MarkerData> decompTrain;
   private final MarkerLookup markerLookup;
@@ -42,26 +41,22 @@ public class MDL implements Iterator<MarkerData> {
 
   /**
    * @param proj
-   * @param markerSet if null, will be loaded
    * @param markerNames them to load
    */
-  public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames) {
-    this(proj, markerSet, markerNames, 2, 100);
+  public MDL(Project proj, String[] markerNames) {
+    this(proj, markerNames, 2, 100);
   }
 
   /**
    * @param proj
-   * @param markerSet if null, will be loaded
    * @param markerNames them to load
    * @param numDecompressThreads number of threads used to decompress the marker
    * @param markerBuffer number of markers to hold in the queue for processing
    */
-  public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames, int numDecompressThreads,
-             int markerBuffer) {
+  public MDL(Project proj, String[] markerNames, int numDecompressThreads, int markerBuffer) {
     this.proj = proj;
     missing = new Hashtable<>();
     this.markerNames = markerNames;
-    this.markerSet = markerSet == null ? proj.getMarkerSet() : markerSet;
     this.numDecompressThreads = numDecompressThreads;
     markerLookup = proj.getMarkerLookup();
     files = matchFileNames();
@@ -80,8 +75,7 @@ public class MDL implements Iterator<MarkerData> {
     if (decompTrain != null) {
       decompTrain.close();
     }
-    producer = new BufferReader(proj, markerSet, match.getFileName(),
-                                Ints.toArray(match.getFileIndices()),
+    producer = new BufferReader(proj, match.getFileName(), Ints.toArray(match.getFileIndices()),
                                 Ints.toArray(match.getProjIndices()), debugMode);
     try {
       producer.init();
@@ -265,14 +259,13 @@ public class MDL implements Iterator<MarkerData> {
         isNegativeXYAllowed;
     private final boolean debugMode;
     private Hashtable<String, Float> outlierHash;
-    private final MarkerSetInfo markerSet;
+    private final MarkerDetailSet markerSet;
 
-    private BufferReader(Project proj, MarkerSetInfo markerSet, String currentMarkFilename,
-                         int[] markersIndicesInFile, int[] markerIndicesInProject,
-                         boolean debugMode) {
+    private BufferReader(Project proj, String currentMarkFilename, int[] markersIndicesInFile,
+                         int[] markerIndicesInProject, boolean debugMode) {
       super();
       this.proj = proj;
-      this.markerSet = markerSet;
+      this.markerSet = proj.getMarkerSet();
       this.currentMarkFilename = currentMarkFilename;
       this.markersIndicesInFile = markersIndicesInFile;
       this.markerIndicesInProject = markerIndicesInProject;
@@ -559,7 +552,7 @@ public class MDL implements Iterator<MarkerData> {
 
     for (int i = 0; i < iter; i++) {
       int index = 0;
-      MDL mdl = new MDL(proj, null, proj.getMarkerNames(), 3, 10);
+      MDL mdl = new MDL(proj, proj.getMarkerNames(), 3, 10);
       while (mdl.hasNext()) {
         try {
           MarkerData markerData = mdl.next();

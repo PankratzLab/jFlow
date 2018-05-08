@@ -129,7 +129,7 @@ public class PrincipalComponentsApply {
       }
       Map<String, Integer> projectIndices = proj.getMarkerIndices();
 
-      MDL mdl = new MDL(proj, proj.getMarkerSet(), markers, 2, 100);
+      MDL mdl = new MDL(proj, markers, 2, 100);
       // MarkerDataLoader markerDataLoader =
       // MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
       int index = 0;

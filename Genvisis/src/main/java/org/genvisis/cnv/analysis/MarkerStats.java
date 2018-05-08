@@ -75,7 +75,7 @@ public final class MarkerStats {
     PrintWriter writer = Files.getAppropriateWriter(outFile);
     writer.println(ArrayUtils.toStr(outHeader, DELIM));
 
-    MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
+    MDL mdl = new MDL(proj, proj.getMarkerNames());
     boolean[] samplesToInclude = proj.getSamplesToInclude();
 
     try {

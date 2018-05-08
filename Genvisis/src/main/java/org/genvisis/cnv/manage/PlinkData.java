@@ -1475,7 +1475,7 @@ public class PlinkData {
 
       subTime = new Date().getTime();
 
-      MDL mdl = new MDL(proj, proj.getMarkerSet(), targetMarkers);
+      MDL mdl = new MDL(proj, targetMarkers);
 
       while (mdl.hasNext()) {
         MarkerData markerData = mdl.next();

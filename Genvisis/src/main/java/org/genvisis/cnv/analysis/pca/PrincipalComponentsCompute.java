@@ -593,7 +593,7 @@ public class PrincipalComponentsCompute {
                                    boolean dealWithNaN, boolean recomputeLRR, String output,
                                    GcAdjustorParameters parameters) {
     double[][] dataToUse = getAppropriateArray(markers.length, samplesToUse);
-    MDL mdl = new MDL(proj, proj.getMarkerSet(), markers, 2, 1);
+    MDL mdl = new MDL(proj, markers, 2, 1);
     // MarkerDataLoader markerDataLoader =
     // MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj, markers);
     boolean[] markerUsed = new boolean[markers.length];

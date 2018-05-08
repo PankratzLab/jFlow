@@ -247,7 +247,7 @@ public class SexChecks {
   }
 
   private void gatherMarkerStats() {
-    MDL mdl = new MDL(proj, markerSet, xMarkers, Math.max(proj.NUM_THREADS.getValue() - 1, 1), 100);
+    MDL mdl = new MDL(proj, xMarkers, Math.max(proj.NUM_THREADS.getValue() - 1, 1), 100);
 
     float[][] elrrs;
 
@@ -276,7 +276,7 @@ public class SexChecks {
       elrrMedX[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(elrrs[i]));
     }
 
-    mdl = new MDL(proj, markerSet, yMarkers, 1, 100);
+    mdl = new MDL(proj, yMarkers, 1, 100);
 
     lrrsY = new float[yMarkers.length][sampleNames.length];
     elrrs = new float[sampleNames.length][yMarkers.length];

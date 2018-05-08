@@ -804,7 +804,7 @@ public class BetaOptimizer {
     for (int i = 0; i < genos.length; i++) {
       markerNames[i] = metaBetas.get(i).getMarkerRsFormat().getMarkerName();
     }
-    MDL mdl = new MDL(proj, markerSet, markerNames, 2, 100);
+    MDL mdl = new MDL(proj, markerNames, 2, 100);
     int index = 0;
     proj.getLog().reportTimeInfo("Loading genotypes...");
     while (mdl.hasNext()) {
