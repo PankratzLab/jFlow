@@ -65,7 +65,7 @@ public class SampleDataStep extends Step {
     try {
       int retStat = SampleData.createSampleData(pedFile.getAbsolutePath(), null, proj);
       if (retStat == -1) {
-        throw new RuntimeException("SampleData already exists - please delete and try again.");
+        throw new RuntimeException("Error during SampleData creation - please check log and try again.");
       }
     } catch (Elision e) {
       throw new RuntimeException(e.getMessage());

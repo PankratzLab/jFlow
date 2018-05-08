@@ -602,6 +602,7 @@ public class SampleData {
           loadedCNVs = true;
         }
       };
+
       Thread cnvLoadingThread = new Thread(cnvLoadingRunnable);
       cnvLoadingThread.setName("CNVLoadingThread");
       cnvLoadingThread.setDaemon(true);
@@ -614,8 +615,11 @@ public class SampleData {
 
     String[] plinkFilenames = proj.PLINK_DIR_FILEROOTS.getValue();
     if (plinkFilenames.length > 0) {
+
       loadPlinkFiles(plinkFilenames);
-    } else {
+    } else
+
+    {
       plinkClasses = new String[0];
     }
 
@@ -1877,26 +1881,32 @@ public class SampleData {
   public static int createSampleData(String pedFile, String sampleMapCsv,
                                      Project proj) throws Elision {
     String sampleDataFilename = proj.SAMPLE_DATA_FILENAME.getValue(false, false);
-    if ((sampleMapCsv == null || "".equals(sampleMapCsv) || !Files.exists(sampleMapCsv))
-        && (pedFile == null || "".equals(pedFile) || !Files.exists(pedFile))
-        && !Files.exists(sampleDataFilename)) {
-      proj.getLog()
-          .report("Neither a sample manifest nor a sample map file was provided; generating sample data file at: "
-                  + sampleDataFilename);
-      createMinimalSampleData(proj);
-      return 0;
-    } else if (!Files.exists(sampleDataFilename)) {
-      if (pedFile != null && !"".equals(pedFile) && Files.exists(pedFile)) {
-        generateSampleDataPed(proj, pedFile);
+    if (!Files.exists(sampleDataFilename)) {
+      if ((sampleMapCsv == null || "".equals(sampleMapCsv))
+          && (pedFile == null || "".equals(pedFile))) {
+        proj.getLog()
+            .reportTime("Neither a pedigree file nor a sample map file were provided; generating a minimal sample data file at: "
+                        + sampleDataFilename);
+        createMinimalSampleData(proj);
         return 0;
       } else {
-        generateSampleDataMap(proj, sampleMapCsv);
-        return 0;
+        if (pedFile != null && !"".equals(pedFile)) {
+          if (!Files.exists(pedFile)) {
+            proj.getLog()
+                .reportError("Specified pedigree file couldn't be found, aborting: " + pedFile);
+            return -1;
+          }
+          generateSampleDataPed(proj, pedFile);
+          return 0;
+        } else {
+          generateSampleDataMap(proj, sampleMapCsv);
+          return 0;
+        }
       }
     } else {
-      proj.getLog().report("Detected that a sampleData file already exists at " + sampleDataFilename
-                           + ", skipping sampleData creation");
-      return -1;
+      proj.getLog().reportTime("Detected that a SampleData file already exists at "
+                               + sampleDataFilename + ", skipping SampleData creation.");
+      return 0;
     }
   }
 
