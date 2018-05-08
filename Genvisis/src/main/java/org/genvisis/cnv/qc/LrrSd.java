@@ -112,8 +112,7 @@ public class LrrSd extends Parallelizable {
         // proj.getLog().reportError("Error - was not able to detect any autosomal markers for
         // sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
         proj.getLog()
-            .reportError("Error - was not able to detect any autosomal markers for sample QC in "
-                         + proj.MARKERSET_FILENAME.getValue());
+            .reportError("Error - was not able to detect any autosomal markers for sample QC in project");
         return;
       }
       if (chrs[subIndex] != 23) {
