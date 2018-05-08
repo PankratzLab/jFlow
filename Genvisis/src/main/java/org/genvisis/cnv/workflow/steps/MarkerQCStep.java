@@ -1,8 +1,8 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import org.genvisis.cnv.filesys.Project;
@@ -13,6 +13,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import com.google.common.collect.ImmutableSet;
@@ -24,11 +25,11 @@ public class MarkerQCStep extends Step {
   public static final String DESC = "";
 
   public static MarkerQCStep create(Project proj, Step parseSamplesStep,
-                                    Requirement numThreadsReq) {
+                                    Requirement<Integer> numThreadsReq) {
     String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
-    final Requirement targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
-                                                                         tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? tgtMkrFiles[0]
-                                                                                                                        : "");
+    final Requirement<File> targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
+                                                                               tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? new File(tgtMkrFiles[0])
+                                                                                                                              : null);
     final Set<String> sampleDataHeaders;
     if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
       sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();
@@ -41,9 +42,9 @@ public class MarkerQCStep extends Step {
                                                                                   sampleDataHeaders,
                                                                                   defaultBatchHeaders,
                                                                                   true);
-    final Requirement exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
-                                                                             true);
-    final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+    final Requirement<Boolean> exportAllReq = new Requirement.OptionalBoolRequirement("Export all markers in project.",
+                                                                                      true);
+    final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(exportAllReq)
@@ -52,14 +53,14 @@ public class MarkerQCStep extends Step {
     return new MarkerQCStep(reqSet, exportAllReq, targetMarkersReq, batchHeadersReq, numThreadsReq);
   }
 
-  Requirement exportAllReq;
-  Requirement targetMarkersReq;
-  Requirement numThreadsReq;
+  Requirement<Boolean> exportAllReq;
+  Requirement<File> targetMarkersReq;
+  Requirement<Integer> numThreadsReq;
   ListSelectionRequirement batchHeadersReq;
 
-  private MarkerQCStep(RequirementSet reqSet, Requirement exportAllReq,
-                       Requirement targetMarkersReq, ListSelectionRequirement batchHeadersReq,
-                       Requirement numThreadsReq) {
+  private MarkerQCStep(RequirementSet reqSet, Requirement<Boolean> exportAllReq,
+                       Requirement<File> targetMarkersReq, ListSelectionRequirement batchHeadersReq,
+                       Requirement<Integer> numThreadsReq) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.exportAllReq = exportAllReq;
     this.targetMarkersReq = targetMarkersReq;
@@ -68,32 +69,32 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    boolean allMarkers = Boolean.parseBoolean(variables.get(exportAllReq));
-    String tgtFile = allMarkers ? null : variables.get(targetMarkersReq);
+  public void run(Project proj, Variables variables) {
+    boolean allMarkers = variables.get(exportAllReq);
+    String tgtFile = allMarkers ? null : variables.get(targetMarkersReq).getAbsolutePath();
     boolean[] samplesToExclude = proj.getSamplesToExclude();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
-    Set<String> batchHeaders = ImmutableSet.copyOf(Requirement.ListSelectionRequirement.parseArgValString(variables.get(batchHeadersReq)));
+    Set<String> batchHeaders = ImmutableSet.copyOf(variables.get(batchHeadersReq));
     MarkerMetrics.fullQC(proj, samplesToExclude, tgtFile, true, batchHeaders, numThreads);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
-    boolean allMarkers = Boolean.parseBoolean(variables.get(exportAllReq));
-    String tgtFile = variables.get(targetMarkersReq);
+  public String getCommandLine(Project proj, Variables variables) {
+    boolean allMarkers = variables.get(exportAllReq);
+    File tgtFile = variables.get(targetMarkersReq);
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
-    List<String> batchHeaders = Requirement.ListSelectionRequirement.parseArgValString(variables.get(batchHeadersReq));
+    Collection<String> batchHeaders = variables.get(batchHeadersReq);
     StringJoiner args = new StringJoiner(" ");
     args.add(Files.getRunString());
     args.add(MarkerMetrics.class.getCanonicalName());
     args.add("-fullQC");
     args.add("proj=" + proj.getPropertyFilename());
-    if (!allMarkers) args.add("markers=" + tgtFile);
+    if (!allMarkers && tgtFile != null) args.add("markers=" + tgtFile.getAbsolutePath());
     String batchHeadersArg = String.join(",", batchHeaders);
     args.add(MarkerMetrics.BATCH_HEADERS_ARG + "=" + batchHeadersArg);
     args.add(PSF.Ext.NUM_THREADS_COMMAND + numThreads);
@@ -101,7 +102,7 @@ public class MarkerQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String markerMetricsFile = proj.MARKER_METRICS_FILENAME.getValue();
     return Files.exists(markerMetricsFile);
   }

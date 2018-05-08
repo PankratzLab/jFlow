@@ -39,7 +39,7 @@ public class StepBuilder {
 
   private SortedBidiMap<Double, Step> buildSteps;
   private double p;
-  private final Requirement numThreadsReq;
+  private final Requirement<Integer> numThreadsReq;
   public static final String NUM_THREADS_DESC = "Number of threads";
   public static final String PUTATIVE_WHITE_FILE_DESCRIPTION = "File with FID/IID pairs of putative white samples";
 
@@ -50,7 +50,7 @@ public class StepBuilder {
     p = 0.0;
   }
 
-  public Requirement getNumThreadsReq() {
+  public Requirement<Integer> getNumThreadsReq() {
     return numThreadsReq;
   }
 
@@ -167,7 +167,7 @@ public class StepBuilder {
   }
 
   Step generatePCCorrectedProjectStep(Project proj, final Step parseSamplesStep) {
-    return register(PCCorrectionStep.create(parseSamplesStep, numThreadsReq));
+    return register(PCCorrectionStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
   Step generateABLookupStep(final Step parseSamplesStep) {
@@ -176,6 +176,13 @@ public class StepBuilder {
 
   public static int resolveThreads(Project proj, String arg) {
     int numThreads = Requirement.checkIntArgOrNeg1(arg);
+    if (numThreads <= 0) {
+      numThreads = proj.NUM_THREADS.getValue();
+    }
+    return numThreads;
+  }
+
+  public static int resolveThreads(Project proj, int numThreads) {
     if (numThreads <= 0) {
       numThreads = proj.NUM_THREADS.getValue();
     }

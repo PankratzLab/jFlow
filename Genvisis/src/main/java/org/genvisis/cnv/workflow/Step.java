@@ -1,7 +1,6 @@
 package org.genvisis.cnv.workflow;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +49,7 @@ public abstract class Step {
     this.stepFlags = Sets.immutableEnumSet(flags);
     ImmutableSet.Builder<Step> relatedStepsBuilder = ImmutableSet.builder();
     relatedStepsBuilder.add(this);
-    for (Requirement req : requirements.getFlatRequirementsList()) {
+    for (Requirement<?> req : requirements.getFlatRequirementsList()) {
       if (req instanceof Requirement.StepRequirement && req != null) {
         Step requiredStep = ((Requirement.StepRequirement) req).getRequiredStep();
         if (requiredStep != null) {
@@ -76,8 +75,7 @@ public abstract class Step {
    * @param proj
    * @param variables Map of Requirement to String value for this Step only
    */
-  public abstract void setNecessaryPreRunProperties(Project proj,
-                                                    Map<Requirement, String> variables);
+  public abstract void setNecessaryPreRunProperties(Project proj, Variables variables);
 
   /**
    * Run this Step
@@ -85,7 +83,7 @@ public abstract class Step {
    * @param proj
    * @param variables Map of Requirement to String value for this Step only
    */
-  public abstract void run(Project proj, Map<Requirement, String> variables);
+  public abstract void run(Project proj, Variables variables);
 
   /**
    * Used to cancel a step
@@ -116,7 +114,7 @@ public abstract class Step {
    * @return
    */
   public boolean hasRequirements(Project proj, Set<Step> stepSelections,
-                                 Map<Step, Map<Requirement, String>> variables) {
+                                 Map<Step, Variables> variables) {
     if (variables.get(this) == null) {
       return false;
     }
@@ -139,7 +137,7 @@ public abstract class Step {
    * @param variables Map of Requirement to String value for this Step only
    * @return
    */
-  public abstract boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables);
+  public abstract boolean checkIfOutputExists(Project proj, Variables variables);
 
   /**
    * Get the command line invocation for this Step, based on the applied variables.
@@ -148,12 +146,14 @@ public abstract class Step {
    * @param variables Map of Requirement to String value for this Step only
    * @return
    */
-  public abstract String getCommandLine(Project proj, Map<Requirement, String> variables);
+  public abstract String getCommandLine(Project proj, Variables variables);
 
-  public Map<Requirement, String> getDefaultRequirementValues() {
-    Map<Requirement, String> varMap = new HashMap<>();
-    for (Requirement r : this.requirements.getFlatRequirementsList()) {
-      varMap.put(r, r.getDefaultValue().toString());
+  @SuppressWarnings("unchecked")
+  public Variables getDefaultRequirementValues() {
+    Variables varMap = new Variables();
+    for (@SuppressWarnings("rawtypes")
+    Requirement r : this.requirements.getFlatRequirementsList()) {
+      varMap.put(r, r.getDefaultValue());
     }
     return varMap;
   }
@@ -200,8 +200,8 @@ public abstract class Step {
     return true;
   }
 
-  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj,
-                                     Map<Requirement, String> variables, List<Step> selectedSteps) {
+  public Task<Void, Void> createTask(GenvisisWorkflowGUI gui, Project proj, Variables variables,
+                                     List<Step> selectedSteps) {
     StepTask st = new StepTask(gui, this, proj, selectedSteps, variables);
     return st;
   }

@@ -11,6 +11,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.gwas.MarkerQC;
 import org.genvisis.gwas.MarkerQC.QC_METRIC;
@@ -27,7 +28,7 @@ public class GwasQCStep extends Step {
   public static final String DESC = "";
 
   public static GwasQCStep create(Project proj, Step plinkExportStep) {
-    final Requirement plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
+    final Requirement<Step> plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
     String defaultCallrate;
     switch (proj.getArrayType()) {
       case AFFY_GW6:
@@ -42,28 +43,28 @@ public class GwasQCStep extends Step {
         throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
                                            + ": " + proj.getArrayType().toString());
     }
-    final Requirement callrateReq = new Requirement.ThresholdRequirement(QC_METRIC.CALLRATE.getUserDescription(),
-                                                                         defaultCallrate);
+    final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QC_METRIC.CALLRATE.getUserDescription(),
+                                                                                 defaultCallrate);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(callrateReq);
 
     return new GwasQCStep(callrateReq, reqSet);
   }
 
-  final Requirement callrateReq;
+  final Requirement<String> callrateReq;
 
-  private GwasQCStep(Requirement callrateReq, RequirementSet reqSet) {
+  private GwasQCStep(Requirement<String> callrateReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.callrateReq = callrateReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
     markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
@@ -79,7 +80,7 @@ public class GwasQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
     markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
@@ -102,7 +103,7 @@ public class GwasQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
     for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
       for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {

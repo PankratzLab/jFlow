@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.AffyMarkerBlast;
@@ -10,6 +10,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableMap;
@@ -19,13 +20,13 @@ public class AffyMarkerBlastStep extends Step {
   public static final String NAME = "Run Marker BLAST Annotation";
   public static final String DESC = "";
 
-  public static AffyMarkerBlastStep create(final Step parseSamplesStep, Requirement numThreadsReq) {
-    final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+  public static AffyMarkerBlastStep create(final Step parseSamplesStep, Requirement<Integer> numThreadsReq) {
+    final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
 
-    final Requirement probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
-                                                                     AffyMarkerBlast.EXAMPLE_PROBE_FILE);
-    final Requirement annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
-                                                                     AffyMarkerBlast.EXAMPLE_ANNOT_FILE);
+    final Requirement<File> probeFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_PROBE_FILE),
+                                                                           new File(AffyMarkerBlast.EXAMPLE_PROBE_FILE));
+    final Requirement<File> annotFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(AffyMarkerBlast.DESC_ANNOT_FILE),
+                                                                           new File(AffyMarkerBlast.EXAMPLE_ANNOT_FILE));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(probeFileReq).add(annotFileReq)
@@ -33,12 +34,12 @@ public class AffyMarkerBlastStep extends Step {
     return new AffyMarkerBlastStep(probeFileReq, annotFileReq, numThreadsReq, reqSet);
   }
 
-  final Requirement probeFileReq;
-  final Requirement annotFileReq;
-  final Requirement numThreadsReq;
+  final Requirement<File> probeFileReq;
+  final Requirement<File> annotFileReq;
+  final Requirement<Integer> numThreadsReq;
 
-  private AffyMarkerBlastStep(Requirement probeFileReq, Requirement annotFileReq,
-                              Requirement numThreadsReq, RequirementSet reqSet) {
+  private AffyMarkerBlastStep(Requirement<File> probeFileReq, Requirement<File> annotFileReq,
+                              Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
     this.probeFileReq = probeFileReq;
@@ -47,23 +48,23 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    String annotFile = variables.get(annotFileReq);
-    String probeFile = variables.get(probeFileReq);
+  public void run(Project proj, Variables variables) {
+    String annotFile = variables.get(annotFileReq).getPath();
+    String probeFile = variables.get(probeFileReq).getPath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     new AffyMarkerBlast(proj, numThreads, probeFile, annotFile).blastEm();
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
-    String annotFile = variables.get(annotFileReq);
-    String probeFile = variables.get(probeFileReq);
+  public String getCommandLine(Project proj, Variables variables) {
+    String annotFile = variables.get(annotFileReq).getPath();
+    String probeFile = variables.get(probeFileReq).getPath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
     argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
@@ -74,7 +75,7 @@ public class AffyMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 

@@ -154,7 +154,7 @@ public class GenvisisWorkflow {
                                        String man) {
     StepBuilder sb = new StepBuilder(proj);
 
-    Requirement numThreadsReq = sb.getNumThreadsReq();
+    Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
     Step createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep(proj) : null;
     Step parseSamples = sb.generateParseSamplesStep(proj, createMkrPos);
     Step transpose = sb.generateTransposeStep(proj, parseSamples);
@@ -169,14 +169,14 @@ public class GenvisisWorkflow {
     Step ancestry = sb.generateAncestryStep(proj, gwasQc);
     Step faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc, ancestry);
 
-    Map<Requirement, String> stepReqs;
-    Map<Step, Map<Requirement, String>> varMap = new HashMap<>();
+    Variables stepReqs;
+    Map<Step, Variables> varMap = new HashMap<>();
 
     if (createMkrPos != null) {
       stepReqs = createMkrPos.getDefaultRequirementValues();
-      for (Requirement r1 : stepReqs.keySet()) {
+      for (Requirement<?> r1 : stepReqs.keys()) {
         if (r1.getDescription().contains("Manifest")) {
-          stepReqs.put(r1, man);
+          stepReqs.parseOrFail(r1, man);
         }
       }
       varMap.put(createMkrPos, stepReqs);
@@ -185,18 +185,18 @@ public class GenvisisWorkflow {
       varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
       varMap.put(transpose, transpose.getDefaultRequirementValues());
       stepReqs = blast.getDefaultRequirementValues();
-      for (Requirement r1 : stepReqs.keySet()) {
+      for (Requirement<?> r1 : stepReqs.keys()) {
         if (r1.getDescription().equalsIgnoreCase(IlluminaMarkerBlast.DESC_MANIFEST)) {
-          stepReqs.put(r1, man);
+          stepReqs.parseOrFail(r1, man);
           break;
         }
       }
       varMap.put(blast, stepReqs);
 
       stepReqs = sampleData.getDefaultRequirementValues();
-      for (Requirement r1 : stepReqs.keySet()) {
+      for (Requirement<?> r1 : stepReqs.keys()) {
         if (r1.getDescription().equalsIgnoreCase(SampleDataStep.REQ_CREATE_MINIMAL)) {
-          stepReqs.put(r1, "false");
+          stepReqs.parseOrFail(r1, "false");
           break;
         }
       }
@@ -206,11 +206,11 @@ public class GenvisisWorkflow {
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
     stepReqs = sexChecks.getDefaultRequirementValues();
-    for (Requirement r1 : stepReqs.keySet()) {
+    for (Requirement<?> r1 : stepReqs.keys()) {
       if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
-        stepReqs.put(r1, "true");
+        stepReqs.parseOrFail(r1, "true");
       } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
-        stepReqs.put(r1, "true");
+        stepReqs.parseOrFail(r1, "true");
       }
     }
 
@@ -225,8 +225,8 @@ public class GenvisisWorkflow {
 
     stepReqs = ancestry.getDefaultRequirementValues();
     if (putativeWhitesFile != null) {
-      Requirement r = null;
-      for (Requirement r1 : stepReqs.keySet()) {
+      Requirement<?> r = null;
+      for (Requirement<?> r1 : stepReqs.keys()) {
         if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
           r = r1;
           break;
@@ -235,7 +235,7 @@ public class GenvisisWorkflow {
       if (r == null) {
         throw new IllegalStateException();
       }
-      stepReqs.put(r, putativeWhitesFile);
+      stepReqs.parseOrFail(r, putativeWhitesFile);
     }
     varMap.put(ancestry, stepReqs);
 
@@ -248,8 +248,8 @@ public class GenvisisWorkflow {
     // override threads defaults
     if (numThreads > 0) {
       for (Step s : varMap.keySet()) {
-        if (varMap.get(s).containsKey(numThreadsReq)) {
-          varMap.get(s).put(numThreadsReq, Integer.toString(numThreads));
+        if (varMap.get(s).has(numThreadsReq)) {
+          varMap.get(s).put(numThreadsReq, numThreads);
         }
       }
     }
@@ -290,15 +290,14 @@ public class GenvisisWorkflow {
     return output.toString();
   }
 
-  private static void fixQCThreshs(Map<Requirement, String> reqMap,
-                                   Map<QC_METRIC, String> threshMap) {
+  private static void fixQCThreshs(Variables reqMap, Map<QC_METRIC, String> threshMap) {
     Map<String, String> qc = new HashMap<>();
     for (QC_METRIC met : threshMap.keySet()) {
       qc.put(met.getUserDescription(), threshMap.get(met));
     }
-    for (Requirement r1 : reqMap.keySet()) {
+    for (Requirement<?> r1 : reqMap.keys()) {
       if (qc.containsKey(r1.getDescription())) {
-        reqMap.put(r1, qc.get(r1.getDescription()));
+        reqMap.parseOrFail(r1, qc.get(r1.getDescription()));
       }
     }
   }
@@ -312,14 +311,14 @@ public class GenvisisWorkflow {
     Step pfb = sb.generatePFBStep(pcProj, null);
     Step cent = sb.generateSexCentroidsStep();
     Step cnv = sb.generateCNVStep(pcProj, pfb, gc);
-    Map<Step, Map<Requirement, String>> stepOpts = new HashMap<>();
-    HashMap<Requirement, String> cnvOpts = new HashMap<>();
-    List<Requirement> reqs = cnv.getRequirements().getFlatRequirementsList();
-    for (Requirement req : reqs) {
+    Map<Step, Variables> stepOpts = new HashMap<>();
+    Variables cnvOpts = new Variables();
+    List<Requirement<?>> reqs = cnv.getRequirements().getFlatRequirementsList();
+    for (Requirement<?> req : reqs) {
       if (req.getDescription().equals(CNVCaller.CNV_SCOPE_DESC)) {
-        cnvOpts.put(req, CNVCaller.CALLING_SCOPE.BOTH.toString());
+        cnvOpts.parseOrFail(req, CNVCaller.CALLING_SCOPE.BOTH.toString());
       } else if (req.getDescription().equals(NUM_THREADS_DESC)) {
-        cnvOpts.put(req, "" + (Runtime.getRuntime().availableProcessors() - 1));
+        cnvOpts.parseOrFail(req, "" + (Runtime.getRuntime().availableProcessors() - 1));
       }
     }
     stepOpts.put(cnv, cnvOpts);

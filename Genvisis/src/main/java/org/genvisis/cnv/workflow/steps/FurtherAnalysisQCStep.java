@@ -1,5 +1,6 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.gwas.Ancestry;
@@ -28,17 +30,17 @@ public class FurtherAnalysisQCStep extends Step {
   public static final String NAME = "Run Further Analysis QC";
   public static final String DESC = "";
 
-  final Map<QC_METRIC, Requirement> metricRequirements;
+  final Map<QC_METRIC, Requirement<String>> metricRequirements;
 
   public static FurtherAnalysisQCStep create(Project proj, Step plinkExportStep, Step gwasQCStep,
                                              Step ancestryStep) {
-    final Requirement plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
-    final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-    final Requirement ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
-    final Requirement unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
-                                                                          "");
-    final Requirement europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
-                                                                          "");
+    final Requirement<Step> plinkExportStepReq = new Requirement.StepRequirement(plinkExportStep);
+    final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
+    final Requirement<Step> ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
+    final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
+                                                                                null);
+    final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
+                                                                                null);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(gwasQCStepReq)
@@ -47,12 +49,12 @@ public class FurtherAnalysisQCStep extends Step {
                                                                                  .add(ancestryStepReq)
                                                                                  .add(europeansFilesReq));
 
-    Map<QC_METRIC, Requirement> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
+    Map<QC_METRIC, Requirement<String>> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
     for (QC_METRIC metric : QC_METRIC.values()) {
       Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       String defaultVal = defaultThresholds.get(metric);
-      final Requirement metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
-                                                                         defaultVal);
+      final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
+                                                                                 defaultVal);
       reqSet.add(metricReq);
       metricRequirements.put(metric, metricReq);
     }
@@ -61,11 +63,12 @@ public class FurtherAnalysisQCStep extends Step {
                                      reqSet);
   }
 
-  final Requirement unrelatedsFileReq;
-  final Requirement europeansFilesReq;
+  final Requirement<File> unrelatedsFileReq;
+  final Requirement<File> europeansFilesReq;
 
-  private FurtherAnalysisQCStep(Map<QC_METRIC, Requirement> metricReqs, Requirement unrelReq,
-                                Requirement euroReq, RequirementSet reqSet) {
+  private FurtherAnalysisQCStep(Map<QC_METRIC, Requirement<String>> metricReqs,
+                                Requirement<File> unrelReq, Requirement<File> euroReq,
+                                RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.unrelatedsFileReq = unrelReq;
     this.europeansFilesReq = euroReq;
@@ -73,12 +76,12 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
 
     String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
 
@@ -86,7 +89,7 @@ public class FurtherAnalysisQCStep extends Step {
 
     Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
     for (QC_METRIC metric : QC_METRIC.values()) {
-      Requirement req = metricRequirements.get(metric);
+      Requirement<String> req = metricRequirements.get(metric);
       markerQCThresholds.put(metric, variables.get(req));
     }
     new FurtherAnalysisQc(GenvisisWorkflow.getPlinkDir(proj), GenvisisWorkflow.PLINKROOT,
@@ -95,7 +98,7 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String unrelatedsFile = resolveUnrelatedsFile(proj, variables);
 
     String europeansFile = resolveEuropeansFile(proj, variables);
@@ -108,14 +111,14 @@ public class FurtherAnalysisQCStep extends Step {
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, GenvisisWorkflow.getPlinkDir(proj)));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
     for (QC_METRIC metric : QC_METRIC.values()) {
-      Requirement req = metricRequirements.get(metric);
+      Requirement<String> req = metricRequirements.get(metric);
       commandChunks.add(CLI.formCmdLineArg(metric.getKey(), variables.get(req)));
     }
     return Joiner.on(' ').join(commandChunks);
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR;
     String qcdPlinkroot = GenvisisWorkflow.PLINKROOT
@@ -125,8 +128,8 @@ public class FurtherAnalysisQCStep extends Step {
            && Files.exists(dir + FurtherAnalysisQc.MARKER_QC_DROPS, false);
   }
 
-  private String resolveUnrelatedsFile(Project proj, Map<Requirement, String> stepVars) {
-    String unrelatedsFile = stepVars.get(unrelatedsFileReq);
+  private String resolveUnrelatedsFile(Project proj, Variables stepVars) {
+    String unrelatedsFile = stepVars.get(unrelatedsFileReq).getAbsolutePath();
     if (!Files.exists(unrelatedsFile)) {
       unrelatedsFile = GenvisisWorkflow.getAncestryDir(proj)
                        + RelationAncestryQc.UNRELATEDS_FILENAME;
@@ -134,8 +137,8 @@ public class FurtherAnalysisQCStep extends Step {
     return unrelatedsFile;
   }
 
-  private String resolveEuropeansFile(Project proj, Map<Requirement, String> stepVars) {
-    String europeansFile = stepVars.get(europeansFilesReq);
+  private String resolveEuropeansFile(Project proj, Variables stepVars) {
+    String europeansFile = stepVars.get(europeansFilesReq).getAbsolutePath();
     if (europeansFile == null || "".equals(europeansFile)) {
       String raceImputationFilename = GenvisisWorkflow.getAncestryDir(proj)
                                       + Ancestry.RACE_IMPUTATIONAS_FILENAME;

@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -11,6 +11,7 @@ import org.genvisis.cnv.workflow.Requirement.ResourceRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.gwas.Ancestry;
@@ -21,7 +22,7 @@ public class AncestryStep extends Step {
   public static final String DESC = "";
 
   public static AncestryStep create(Project proj, Step gwasQCStep) {
-    final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
+    final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement.ResourceRequirement hapMapFoundersReq = new Requirement.ResourceRequirement("PLINK root of HapMap founders",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getUnambiguousHapMapFounders());
@@ -35,8 +36,8 @@ public class AncestryStep extends Step {
     return new AncestryStep(hapMapFoundersReq, hapMapAncestryReq, reqSet);
   }
 
-  private final static Requirement putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
-                                                                           "");
+  private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
+                                                                                 null);
 
   final ResourceRequirement hapMapFoundersReq;
   final ResourceRequirement hapMapAncestryReq;
@@ -49,13 +50,15 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // not needed for step
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    String putativeWhites = variables.get(putativeWhitesReq);
+  public void run(Project proj, Variables variables) {
+    String putativeWhites = variables.get(putativeWhitesReq) == null ? null
+                                                                     : variables.get(putativeWhitesReq)
+                                                                                .getAbsolutePath();
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
@@ -64,8 +67,10 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
-    String putativeWhites = variables.get(putativeWhitesReq);
+  public String getCommandLine(Project proj, Variables variables) {
+    String putativeWhites = variables.get(putativeWhitesReq) == null ? null
+                                                                     : variables.get(putativeWhitesReq)
+                                                                                .getAbsolutePath();
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
@@ -78,7 +83,7 @@ public class AncestryStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     return Files.exists(ancestryDir + Ancestry.RACE_FREQS_FILENAME)
            && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONAS_FILENAME);

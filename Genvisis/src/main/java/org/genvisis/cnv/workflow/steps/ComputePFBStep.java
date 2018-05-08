@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PFB;
@@ -10,6 +10,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -19,17 +20,17 @@ public class ComputePFBStep extends Step {
   public static final String DESC = "";
 
   public static ComputePFBStep create(Project proj, final Step parseSamplesStep) {
-    final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement sampleSubsetReq = new Requirement.FileRequirement("A Sample subset file must exist.",
-                                                                        proj.SAMPLE_SUBSET_FILENAME.getValue());
+    final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+    final Requirement<File> sampleSubsetReq = new Requirement.FileRequirement("A Sample subset file must exist.",
+                                                                              new File(proj.SAMPLE_SUBSET_FILENAME.getValue()));
     String defaultOutputFile;
     if (Files.exists(proj.SAMPLE_SUBSET_FILENAME.getValue())) {
       defaultOutputFile = ext.rootOf(proj.SAMPLE_SUBSET_FILENAME.getValue()) + ".pfb";
     } else {
       defaultOutputFile = proj.CUSTOM_PFB_FILENAME.getValue();
     }
-    final Requirement outputFileReq = new Requirement.OutputFileRequirement("PFB (population BAF) output file must be specified.",
-                                                                            defaultOutputFile);
+    final Requirement<File> outputFileReq = new Requirement.OutputFileRequirement("PFB (population BAF) output file must be specified.",
+                                                                                  new File(defaultOutputFile));
 
     final RequirementSet reqSet = RequirementSetBuilder.and()
                                                        .add(RequirementSetBuilder.or()
@@ -39,21 +40,22 @@ public class ComputePFBStep extends Step {
     return new ComputePFBStep(sampleSubsetReq, outputFileReq, reqSet);
   }
 
-  final Requirement sampleSubsetReq;
-  final Requirement outputFileReq;
+  final Requirement<File> sampleSubsetReq;
+  final Requirement<File> outputFileReq;
 
-  private ComputePFBStep(Requirement sampleSubReq, Requirement outReq, RequirementSet reqSet) {
+  private ComputePFBStep(Requirement<File> sampleSubReq, Requirement<File> outReq,
+                         RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.sampleSubsetReq = sampleSubReq;
     this.outputFileReq = outReq;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-    String subSampFile = variables.get(sampleSubsetReq);
+    String subSampFile = variables.get(sampleSubsetReq).getAbsolutePath();
     String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbOutputFile = variables.get(outputFileReq);
+    String pfbOutputFile = variables.get(outputFileReq).getAbsolutePath();
 
     if (!ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
       proj.SAMPLE_SUBSET_FILENAME.setValue(subSampFile);
@@ -64,18 +66,20 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     org.genvisis.cnv.hmm.PFB.populationBAF(proj);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String kvCmd = "";
 
     String setSubSampFile = proj.SAMPLE_SUBSET_FILENAME.getValue();
-    String subSampFile = variables == null ? null : variables.get(sampleSubsetReq);
+    String subSampFile = variables == null ? null
+                                           : variables.get(sampleSubsetReq).getAbsolutePath();
     String setPFBFile = proj.CUSTOM_PFB_FILENAME.getValue();
-    String pfbOutputFile = variables == null ? null : variables.get(outputFileReq);
+    String pfbOutputFile = variables == null ? null
+                                             : variables.get(outputFileReq).getAbsolutePath();
 
     if (subSampFile != null && !ext.verifyDirFormat(setSubSampFile).equals(subSampFile)) {
       kvCmd += " SAMPLE_SUBSET_FILENAME=" + subSampFile;
@@ -96,9 +100,9 @@ public class ComputePFBStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
-    String subSampFile = variables.get(sampleSubsetReq);
-    String pfbOutputFile = variables.get(outputFileReq);
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
+    String subSampFile = variables.get(sampleSubsetReq).getAbsolutePath();
+    String pfbOutputFile = variables.get(outputFileReq).getAbsolutePath();
     return Files.exists(pfbOutputFile) || Files.exists(ext.rootOf(subSampFile) + ".pfb");
   }
 }

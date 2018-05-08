@@ -61,6 +61,7 @@ import org.genvisis.cnv.workflow.RequirementSet.AndRequirementSet;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Step.FINAL_CODE;
 import org.genvisis.cnv.workflow.StepTask;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Grafik;
@@ -81,9 +82,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 
   private final ConcurrentMap<Step, JCheckBox> checkBoxes = Maps.newConcurrentMap();
   private final ConcurrentMap<Step, JLabel> descLabels = Maps.newConcurrentMap();
-  private final ConcurrentMap<Step, Map<Requirement, JLabel>> requirementsLabels = Maps.newConcurrentMap();
+  private final ConcurrentMap<Step, Map<Requirement<?>, JLabel>> requirementsLabels = Maps.newConcurrentMap();
   private final ConcurrentMap<Step, JAccordionPanel> panels = Maps.newConcurrentMap();
-  public ConcurrentMap<Step, Map<Requirement, JComponent>> varFields = Maps.newConcurrentMap();
+  public ConcurrentMap<Step, Map<Requirement<?>, JComponent>> varFields = Maps.newConcurrentMap();
   public ConcurrentMap<Step, JProgressBar> progBars = Maps.newConcurrentMap();
   public ConcurrentMap<Step, JProgressBarListener> progListeners = Maps.newConcurrentMap();
   public ConcurrentMap<Step, Task<Void, Void>> progTasks = Maps.newConcurrentMap();
@@ -192,7 +193,7 @@ public class GenvisisWorkflowGUI extends JDialog {
           for (Entry<Step, JCheckBox> entry : checkBoxes.entrySet()) {
             selectedSteps.add(entry.getKey()); // pretend everything is selected
           }
-          Map<Step, Map<Requirement, String>> variables = getVariables();
+          Map<Step, Variables> variables = getVariables();
           for (final Step step : steps.values()) {
             if (step == null || checkBoxes.get(step) == null || varFields.get(step) == null) {
               continue;
@@ -328,7 +329,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
       @Override
       public void run() {
-        Map<Step, Map<Requirement, String>> variables = getVariables();
+        Map<Step, Variables> variables = getVariables();
         for (Step step : steps.values()) {
           if (step.checkIfOutputExists(proj, variables.get(step))) {
             checkBoxes.get(step).setSelected(false);
@@ -456,12 +457,12 @@ public class GenvisisWorkflowGUI extends JDialog {
       JLabel reqLbl = new JLabel("Requires:");
       panel.contentPanel.add(reqLbl, "cell 0 1");
 
-      Map<Requirement, JLabel> reqLbls = new java.util.HashMap<>();
+      Map<Requirement<?>, JLabel> reqLbls = new java.util.HashMap<>();
       requirementsLabels.put(step, reqLbls);
       int rowIndex = 2;
       addLabels(step, reqs, panel.contentPanel, rowIndex, new ArrayList<Integer>());
 
-      Map<Requirement, JComponent> reqInputFields = Maps.newLinkedHashMap();
+      Map<Requirement<?>, JComponent> reqInputFields = Maps.newLinkedHashMap();
       varFields.put(step, reqInputFields);
       rowIndex = 2;
       addReqFields(step, reqs, panel.contentPanel, rowIndex);
@@ -471,9 +472,9 @@ public class GenvisisWorkflowGUI extends JDialog {
 
   }
 
-  private Map<Requirement, JComponent> addToPanel(Step step, Requirement req, JPanel panel,
-                                                  int rowIndex) {
-    Map<Requirement, JComponent> reqInputFields = Maps.newLinkedHashMap();
+  private Map<Requirement<?>, JComponent> addToPanel(Step step, Requirement<?> req, JPanel panel,
+                                                     int rowIndex) {
+    Map<Requirement<?>, JComponent> reqInputFields = Maps.newLinkedHashMap();
     if (req.getType() == Requirement.RequirementInputType.BOOL) {
       JCheckBox checkBox = new JCheckBox();
       checkBox.setAction(new StepRefresher(GenvisisWorkflowGUI.this, step));
@@ -498,7 +499,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       Requirement.ListSelectionRequirement listSelectionReq = (Requirement.ListSelectionRequirement) req;
       JList<String> jList = new JList<>(new Vector<>(listSelectionReq.getOptions()));
       jList.setFont(jList.getFont().deriveFont(14));
-      for (String defaultOption : listSelectionReq.getDefaultOptions()) {
+      for (String defaultOption : listSelectionReq.getDefaultValue()) {
         jList.setSelectedValue(defaultOption, false);
       }
       reqInputFields.put(req, jList);
@@ -582,7 +583,7 @@ public class GenvisisWorkflowGUI extends JDialog {
    * @return last used row index
    */
   private int addReqFields(Step step, RequirementSet rs, JPanel panel, int rowIndex) {
-    List<Requirement> levelReqs = rs.getRequirements();
+    List<Requirement<?>> levelReqs = rs.getRequirements();
     List<RequirementSet> levelReqSets = rs.getRequirementSets();
 
     for (int i = 0; i < levelReqs.size(); i++) {
@@ -612,7 +613,7 @@ public class GenvisisWorkflowGUI extends JDialog {
    */
   private int addLabels(Step step, RequirementSet rs, JPanel panel, int rowIndex,
                         List<Integer> argSetNums) {
-    List<Requirement> levelReqs = rs.getRequirements();
+    List<Requirement<?>> levelReqs = rs.getRequirements();
     List<RequirementSet> levelReqSets = rs.getRequirementSets();
     String join = rs.getJoinString();
 
@@ -794,7 +795,7 @@ public class GenvisisWorkflowGUI extends JDialog {
           }
         }
         int i = 0;
-        final Map<Step, Map<Requirement, String>> variables = gui.getVariables();
+        final Map<Step, Variables> variables = gui.getVariables();
         for (final Step step : stepsToRefresh) {
           if (step == null || gui.checkBoxes.get(step) == null || gui.varFields.get(step) == null) {
             continue;
@@ -805,14 +806,15 @@ public class GenvisisWorkflowGUI extends JDialog {
             boolean check = step.hasRequirements(gui.proj, selectedSteps, variables);
             gui.descLabels.get(step).setForeground(check ? greenDark : Color.RED);
             gui.checkBoxes.get(step).setForeground(check ? greenDark : Color.RED);
-            final Map<Requirement, JLabel> reqLbls = gui.requirementsLabels.get(step);
+            final Map<Requirement<?>, JLabel> reqLbls = gui.requirementsLabels.get(step);
             try {
               SwingUtilities.invokeAndWait(new Runnable() {
 
                 @Override
                 public void run() {
-                  for (Requirement req : step.getRequirements().getFlatRequirementsList()) {
-                    boolean met = req.checkRequirement(gui.proj, variables.get(step).get(req),
+                  for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
+                    boolean met = req.checkRequirement(gui.proj,
+                                                       variables.get(step).get(req).toString(),
                                                        selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
                   }
@@ -821,7 +823,7 @@ public class GenvisisWorkflowGUI extends JDialog {
               });
             } catch (InvocationTargetException e) {} catch (InterruptedException e) {}
           } else {
-            final Map<Requirement, JLabel> reqLbls = gui.requirementsLabels.get(step);
+            final Map<Requirement<?>, JLabel> reqLbls = gui.requirementsLabels.get(step);
             try {
               SwingUtilities.invokeAndWait(new Runnable() {
 
@@ -831,7 +833,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                   gui.alreadyRunLbls.get(step).setVisible(true);
                   gui.descLabels.get(step).setForeground(dark);
                   gui.checkBoxes.get(step).setForeground(dark);
-                  for (Requirement req : step.getRequirements().getFlatRequirementsList()) {
+                  for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
                     reqLbls.get(req).setForeground(dark);
                   }
                   gui.progVal.setValue(update);
@@ -877,7 +879,7 @@ public class GenvisisWorkflowGUI extends JDialog {
       for (JCheckBox box : checkBoxes.values()) {
         box.setEnabled(!lock);
       }
-      for (Map<Requirement, ? extends JComponent> flds : varFields.values()) {
+      for (Map<Requirement<?>, ? extends JComponent> flds : varFields.values()) {
         for (JComponent fld : flds.values()) {
           fld.setEnabled(!lock);
         }
@@ -907,7 +909,7 @@ public class GenvisisWorkflowGUI extends JDialog {
 
         try {
           Set<Step> selectedSteps = getSelectedOptions();
-          Map<Step, Map<Requirement, String>> variables = getVariables();
+          Map<Step, Variables> variables = getVariables();
           if (checkRequirementsAndNotify(variables)) {
             StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
             Set<Requirement.Flag> flags = EnumSet.noneOf(Requirement.Flag.class);
@@ -949,7 +951,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   }
 
   public void nextStep(StepTask currentTask, FINAL_CODE returnCode, List<Step> selectedSteps,
-                       Map<Requirement, String> variables) {
+                       Variables variables) {
     Throwable e;
     Step currentStep = currentTask.getStep();
     progTasks.remove(currentStep);
@@ -1016,7 +1018,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     running = false;
   }
 
-  private void runStep(Step step, List<Step> options, Map<Requirement, String> variables) {
+  private void runStep(Step step, List<Step> options, Variables variables) {
     Task<Void, Void> stepTask = step.createTask(GenvisisWorkflowGUI.this, proj, variables, options);
     progTasks.put(step, stepTask);
     stepTask.execute();
@@ -1032,10 +1034,10 @@ public class GenvisisWorkflowGUI extends JDialog {
 
         List<Step> options = new ArrayList<>(getSelectedOptions());
         options.sort(steps.valueComparator());
-        Map<Step, Map<Requirement, String>> variables = getVariables();
-        if (checkRequirementsAndNotify(variables)) {
+        Map<Step, Variables> stepVariables = getVariables();
+        if (checkRequirementsAndNotify(stepVariables)) {
           Step first = options.iterator().next();
-          runStep(first, options, variables.get(first));
+          runStep(first, options, stepVariables.get(first));
         } else {
           end();
         }
@@ -1069,7 +1071,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     return continueExec;
   }
 
-  private boolean checkRequirementsAndNotify(Map<Step, Map<Requirement, String>> variables) {
+  private boolean checkRequirementsAndNotify(Map<Step, Variables> variables) {
     Set<Step> options = getSelectedOptions();
 
     boolean passesChecks = true;
@@ -1096,7 +1098,7 @@ public class GenvisisWorkflowGUI extends JDialog {
    */
   private boolean getResources(RequirementSet requirements) {
     boolean allAvailable = true;
-    for (Requirement requirement : requirements.getFlatRequirementsList()) {
+    for (Requirement<?> requirement : requirements.getFlatRequirementsList()) {
       if (requirement instanceof Requirement.ResourceRequirement) {
         Requirement.ResourceRequirement resReq = (Requirement.ResourceRequirement) requirement;
         Resource resource = resReq.getResource();
@@ -1110,15 +1112,14 @@ public class GenvisisWorkflowGUI extends JDialog {
     return allAvailable;
   }
 
-  private Map<Step, Map<Requirement, String>> getVariables() {
-
-    Map<Step, Map<Requirement, String>> returnVars = Maps.newHashMap();
-    for (Entry<Step, Map<Requirement, JComponent>> entry : varFields.entrySet()) {
-      Map<Requirement, String> values = Maps.newHashMap();
-      returnVars.put(entry.getKey(), values);
-      for (Entry<Requirement, JComponent> reqComp : entry.getValue().entrySet()) {
+  private Map<Step, Variables> getVariables() {
+    Map<Step, Variables> returnVars = Maps.newHashMap();
+    for (Entry<Step, Map<Requirement<?>, JComponent>> entry : varFields.entrySet()) {
+      Variables vars = new Variables();
+      returnVars.put(entry.getKey(), vars);
+      for (Entry<Requirement<?>, JComponent> reqComp : entry.getValue().entrySet()) {
         String val = "";
-        Requirement req = reqComp.getKey();
+        Requirement<?> req = reqComp.getKey();
         JComponent j = reqComp.getValue();
         if (j instanceof JTextField) {
           val = ((JTextField) j).getText().trim();
@@ -1131,7 +1132,7 @@ public class GenvisisWorkflowGUI extends JDialog {
         } else if (j instanceof JList<?>) {
           val = Requirement.ListSelectionRequirement.createArgValString(((JList<?>) j).getSelectedValuesList());
         }
-        values.put(req, val);
+        vars.parseOrFail(req, val);
       }
     }
     return returnVars;

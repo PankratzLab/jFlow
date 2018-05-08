@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
@@ -10,6 +10,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableMap;
@@ -20,43 +21,43 @@ public class IlluminaMarkerBlastStep extends Step {
   public static final String DESC = "";
 
   public static IlluminaMarkerBlastStep create(Project proj, final Step parseSamplesStep,
-                                               Requirement numThreadsReq) {
-    final Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
-                                                                        IlluminaMarkerBlast.EXAMPLE_MANIFEST);
+                                               Requirement<Integer> numThreadsReq) {
+    final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+    final Requirement<File> manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
+                                                                              new File(IlluminaMarkerBlast.EXAMPLE_MANIFEST));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(manifestFileReq).add(numThreadsReq);
     return new IlluminaMarkerBlastStep(manifestFileReq, numThreadsReq, reqSet);
   }
 
-  private IlluminaMarkerBlastStep(Requirement manifestFileReq, Requirement numThreadsReq,
-                                  RequirementSet reqSet) {
+  private IlluminaMarkerBlastStep(Requirement<File> manifestFileReq,
+                                  Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
     this.manifestFileReq = manifestFileReq;
     this.numThreadsReq = numThreadsReq;
   }
 
-  final Requirement manifestFileReq;
-  final Requirement numThreadsReq;
+  final Requirement<File> manifestFileReq;
+  final Requirement<Integer> numThreadsReq;
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // Not necessary for this step
 
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    String manifestFile = variables.get(manifestFileReq);
+  public void run(Project proj, Variables variables) {
+    String manifestFile = variables.get(manifestFileReq).getAbsolutePath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     new IlluminaMarkerBlast(proj, numThreads, manifestFile).blastEm();
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
-    String manifestFile = variables.get(manifestFileReq);
+  public String getCommandLine(Project proj, Variables variables) {
+    String manifestFile = variables.get(manifestFileReq).getAbsolutePath();
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     ImmutableMap.Builder<String, String> argsBuilder = ImmutableMap.builder();
     argsBuilder.put(CLI.ARG_PROJ, proj.getPropertyFilename());
@@ -67,7 +68,7 @@ public class IlluminaMarkerBlastStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     return Files.exists(proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 }

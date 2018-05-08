@@ -2047,6 +2047,20 @@ public class Files {
     return size;
   }
 
+  public static long getSize(File file) {
+    long size = -1;
+
+    try {
+      if (Files.exists(file)) {
+        size = file.length();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return size;
+  }
+
   public static int getSizeInJar(String filename) {
     int size = -1;
 
@@ -2137,6 +2151,17 @@ public class Files {
     }
     File f = new File(filename);
     return f.exists() && (!treatEmptyAsMissing || getSize(filename) != 0);
+  }
+
+  public static boolean exists(File file) {
+    return exists(file, false);
+  }
+
+  public static boolean exists(File file, boolean treatEmptyAsMissing) {
+    if (file == null) {
+      return false;
+    }
+    return file.exists() && (!treatEmptyAsMissing || getSize(file) != 0);
   }
 
   public static boolean existsInJar(String filename, boolean treatEmptyAsMissing) {

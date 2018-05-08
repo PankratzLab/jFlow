@@ -21,10 +21,10 @@ public abstract class RequirementSet {
 
   }
 
-  protected List<Requirement> reqs = new java.util.ArrayList<>();
+  protected List<Requirement<?>> reqs = new java.util.ArrayList<>();
   protected List<RequirementSet> reqSets = new java.util.ArrayList<>();
 
-  public RequirementSet add(Requirement r) {
+  public RequirementSet add(Requirement<?> r) {
     // UnitaryRequirementSet is used to preserve the order of added requirements
     reqSets.add(new UnitaryRequirementSet().add(r));
     return this;
@@ -35,9 +35,9 @@ public abstract class RequirementSet {
     return this;
   }
 
-  public List<Requirement> getFlatRequirementsList() {
-    List<Requirement> reqList = new java.util.ArrayList<>();
-    for (Requirement r : reqs) {
+  public List<Requirement<?>> getFlatRequirementsList() {
+    List<Requirement<?>> reqList = new java.util.ArrayList<>();
+    for (Requirement<?> r : reqs) {
       reqList.add(r);
     }
     for (RequirementSet rs : reqSets) {
@@ -51,7 +51,7 @@ public abstract class RequirementSet {
   }
 
   abstract boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
-                                         Map<Step, Map<Requirement, String>> variables);
+                                         Map<Step, Variables> variables);
 
   @Override
   public int hashCode() {
@@ -82,7 +82,7 @@ public abstract class RequirementSet {
     private UnitaryRequirementSet() {}
 
     @Override
-    public RequirementSet add(Requirement r) {
+    public RequirementSet add(Requirement<?> r) {
       if (this.reqs.size() > 0) {
         throw new RuntimeException("UnitaryRequirementSet can only take one Requirement object.");
       }
@@ -97,8 +97,9 @@ public abstract class RequirementSet {
 
     @Override
     boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
-                                  Map<Step, Map<Requirement, String>> variables) {
-      return this.reqs.get(0).checkRequirement(proj, variables.get(step).get(this.reqs.get(0)),
+                                  Map<Step, Variables> variables) {
+      return this.reqs.get(0).checkRequirement(proj,
+                                               variables.get(step).get(this.reqs.get(0)).toString(),
                                                stepSelections, variables);
     }
 
@@ -115,9 +116,10 @@ public abstract class RequirementSet {
 
     @Override
     boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
-                                  Map<Step, Map<Requirement, String>> variables) {
-      for (Requirement r : reqs) {
-        if (r.checkRequirement(proj, variables.get(step).get(r), stepSelections, variables)) {
+                                  Map<Step, Variables> variables) {
+      for (Requirement<?> r : reqs) {
+        if (r.checkRequirement(proj, variables.get(step).get(r).toString(), stepSelections,
+                               variables)) {
           return true;
         }
       }
@@ -135,7 +137,7 @@ public abstract class RequirementSet {
     }
 
     @Override
-    public List<Requirement> getRequirements() {
+    public List<Requirement<?>> getRequirements() {
       return new java.util.ArrayList<>();
     }
 
@@ -147,9 +149,10 @@ public abstract class RequirementSet {
 
     @Override
     boolean satisfiesRequirements(Project proj, Step step, Set<Step> stepSelections,
-                                  Map<Step, Map<Requirement, String>> variables) {
-      for (Requirement r : reqs) {
-        if (!r.checkRequirement(proj, variables.get(step).get(r), stepSelections, variables)) {
+                                  Map<Step, Variables> variables) {
+      for (Requirement<?> r : reqs) {
+        if (!r.checkRequirement(proj, variables.get(step).get(r).toString(), stepSelections,
+                                variables)) {
           return false;
         }
       }
@@ -167,12 +170,12 @@ public abstract class RequirementSet {
     }
 
     @Override
-    public List<Requirement> getRequirements() {
+    public List<Requirement<?>> getRequirements() {
       return new java.util.ArrayList<>();
     }
   }
 
-  public List<Requirement> getRequirements() {
+  public List<Requirement<?>> getRequirements() {
     return reqs;
   }
 

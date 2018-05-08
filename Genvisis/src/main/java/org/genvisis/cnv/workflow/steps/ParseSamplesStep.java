@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -10,6 +10,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -20,25 +21,25 @@ public class ParseSamplesStep extends Step {
   public static final String DESC = "";
 
   public static ParseSamplesStep create(Project proj, final Step markerPositionsStep,
-                                        Requirement numThreadsReq) {
-    final Requirement markerPositionsReq = new Requirement.FileRequirement("Marker Positions file must already exist.",
-                                                                           proj.MARKER_POSITION_FILENAME.getValue(false,
-                                                                                                                  false));
+                                        Requirement<Integer> numThreadsReq) {
+    final Requirement<File> markerPositionsReq = new Requirement.FileRequirement("Marker Positions file must already exist.",
+                                                                                 new File(proj.MARKER_POSITION_FILENAME.getValue(false,
+                                                                                                                                 false)));
     final RequirementSet reqSet = RequirementSetBuilder.and();
     if (markerPositionsStep == null) {
       reqSet.add(markerPositionsReq).add(numThreadsReq);
     } else {
-      final Requirement markerPositionsStepReq = new Requirement.StepRequirement(markerPositionsStep);
+      final Requirement<Step> markerPositionsStepReq = new Requirement.StepRequirement(markerPositionsStep);
       reqSet.add(RequirementSetBuilder.or().add(markerPositionsReq).add(markerPositionsStepReq))
             .add(numThreadsReq);
     }
     return new ParseSamplesStep(markerPositionsReq, numThreadsReq, reqSet);
   }
 
-  final Requirement markerPositionsReq;
-  final Requirement numThreadsReq;
+  final Requirement<File> markerPositionsReq;
+  final Requirement<Integer> numThreadsReq;
 
-  private ParseSamplesStep(Requirement markerPosReq, Requirement numThreadsReq,
+  private ParseSamplesStep(Requirement<File> markerPosReq, Requirement<Integer> numThreadsReq,
                            RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MEMORY, Requirement.Flag.RUNTIME,
                                          Requirement.Flag.MULTITHREADED));
@@ -47,9 +48,9 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-    String mkrFile = variables.get(markerPositionsReq);
+    String mkrFile = variables.get(markerPositionsReq).getAbsolutePath();
     mkrFile = ext.verifyDirFormat(mkrFile);
     mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
     if (!mkrFile.equals(projFile)) {
@@ -60,7 +61,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     int numThreads = proj.NUM_THREADS.getValue();
     proj.getLog().report("Parsing sample files");
     int retCode = org.genvisis.cnv.manage.SourceFileParser.createFiles(proj, numThreads);
@@ -75,7 +76,7 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
     boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
     boolean returnValue = mkrSetFile;
@@ -92,13 +93,13 @@ public class ParseSamplesStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String projPropFile = proj.getPropertyFilename();
     StringBuilder kvCmd = new StringBuilder(Files.getRunString()).append(GenvisisWorkflow.PROJ_PROP_UPDATE_STR)
                                                                  .append(projPropFile);
     StringBuilder kvPairs = new StringBuilder();
     String projFile = proj.MARKER_POSITION_FILENAME.getValue(false, false);
-    String mkrFile = variables.get(markerPositionsReq);
+    String mkrFile = variables.get(markerPositionsReq).getAbsolutePath();
     mkrFile = ext.verifyDirFormat(mkrFile);
     mkrFile = mkrFile.substring(0, mkrFile.length() - 1);
     if (!mkrFile.equals(projFile)) {

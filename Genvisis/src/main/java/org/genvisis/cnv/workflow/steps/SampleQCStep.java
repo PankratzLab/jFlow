@@ -1,7 +1,6 @@
 package org.genvisis.cnv.workflow.steps;
 
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -11,6 +10,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
@@ -19,9 +19,9 @@ public class SampleQCStep extends Step {
   public static final String NAME = "Run Sample QC Metrics";
   public static final String DESC = "";
 
-  private Requirement numThreadsReq;
+  private Requirement<Integer> numThreadsReq;
 
-  public static SampleQCStep create(Step parseSamplesStep, Requirement numThreadsReq) {
+  public static SampleQCStep create(Step parseSamplesStep, Requirement<Integer> numThreadsReq) {
     RequirementSet reqSet = RequirementSetBuilder.and().add(new StepRequirement(parseSamplesStep))
                                                  .add(numThreadsReq);
     return new SampleQCStep(reqSet);
@@ -32,20 +32,20 @@ public class SampleQCStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     GenvisisWorkflow.maybeSetProjNumThreads(proj, numThreads);
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     proj.getLog().report("Running LrrSd");
     int numThreads = proj.NUM_THREADS.getValue();
     LrrSd.init(proj, null, null, numThreads, false);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String projPropFile = proj.getPropertyFilename();
     StringBuilder cmd = new StringBuilder();
@@ -56,7 +56,7 @@ public class SampleQCStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     return Files.exists(proj.SAMPLE_QC_FILENAME.getValue(false, false));
   }
 }

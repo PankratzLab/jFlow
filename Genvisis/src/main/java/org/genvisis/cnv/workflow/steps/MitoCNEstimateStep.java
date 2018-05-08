@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
@@ -13,6 +13,7 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 
@@ -22,36 +23,36 @@ public class MitoCNEstimateStep extends Step {
   public static final String DESC = "";
 
   public static MitoCNEstimateStep create(Project proj, Step transposeStep,
-                                          Requirement numThreadsReq) {
+                                          Requirement<Integer> numThreadsReq) {
     // FIXME http://genvisis.org/MitoPipeline/#illumina_marker_lists has illumina markers.. this
     // should be linked to, or
     // these steps split or something...
-    final Requirement transposeStepReq = new Requirement.StepRequirement(transposeStep);
-    final Requirement medianMarkersReq = new Requirement.FileRequirement("MedianMarkers file must exist.",
-                                                                         "");
-    final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD threshold to filter samples.",
-                                                                            proj.LRRSD_CUTOFF.getValue(),
-                                                                            proj.LRRSD_CUTOFF.getMinValue(),
-                                                                            proj.LRRSD_CUTOFF.getMaxValue());
-    final Requirement callrateThresholdReq = new Requirement.DoubleRequirement("Call rate threshold to filter markers.",
-                                                                               MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
-                                                                               0.0, 1.0);
-    final Requirement qcPassingOnlyReq = new Requirement.OptionalBoolRequirement("Compute PCs with samples passing QC only",
-                                                                                 true);
-    final Requirement imputeNaNs = new Requirement.OptionalBoolRequirement("Impute mean value for NaN",
-                                                                           true);
-    final Requirement recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for PC markers?",
-                                                                                         true);
-    final Requirement recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for median markers?",
-                                                                                             true);
-    final Requirement homozygousOnlyReq = new Requirement.OptionalBoolRequirement("Homozygous only?",
-                                                                                  true);
-    final Requirement gcRegressionDistanceReq = new Requirement.PosIntRequirement("Regression distance for the GC adjustment",
-                                                                                  GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
-    final Requirement pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
-                                                                                      "");
-    final Requirement externalBetaFileReq = new Requirement.OptionalFileRequirement("An external beta file to optimize PC selection.",
-                                                                                    "");
+    final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
+    final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("MedianMarkers file must exist.",
+                                                                               null);
+    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD threshold to filter samples.",
+                                                                                    proj.LRRSD_CUTOFF.getValue(),
+                                                                                    proj.LRRSD_CUTOFF.getMinValue(),
+                                                                                    proj.LRRSD_CUTOFF.getMaxValue());
+    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("Call rate threshold to filter markers.",
+                                                                                       MitoPipeline.DEFAULT_MKR_CALLRATE_FILTER,
+                                                                                       0.0, 1.0);
+    final Requirement<Boolean> qcPassingOnlyReq = new Requirement.OptionalBoolRequirement("Compute PCs with samples passing QC only",
+                                                                                          true);
+    final Requirement<Boolean> imputeNaNs = new Requirement.OptionalBoolRequirement("Impute mean value for NaN",
+                                                                                    true);
+    final Requirement<Boolean> recomputeLrrPCMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for PC markers?",
+                                                                                                  true);
+    final Requirement<Boolean> recomputeLrrMedianMarkersReq = new Requirement.OptionalBoolRequirement("Should recompute Log-R ratio for median markers?",
+                                                                                                      true);
+    final Requirement<Boolean> homozygousOnlyReq = new Requirement.OptionalBoolRequirement("Homozygous only?",
+                                                                                           true);
+    final Requirement<Integer> gcRegressionDistanceReq = new Requirement.PosIntRequirement("Regression distance for the GC adjustment",
+                                                                                           GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
+    final Requirement<File> pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
+                                                                                            null);
+    final Requirement<File> externalBetaFileReq = new Requirement.OptionalFileRequirement("An external beta file to optimize PC selection.",
+                                                                                          null);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(transposeStepReq)
                                                        .add(medianMarkersReq).add(lrrSdThresholdReq)
@@ -71,26 +72,30 @@ public class MitoCNEstimateStep extends Step {
                                   externalBetaFileReq, numThreadsReq, reqSet);
   }
 
-  final Requirement medianMarkersReq;
-  final Requirement lrrSdThresholdReq;
-  final Requirement callrateThresholdReq;
-  final Requirement qcPassingOnlyReq;
-  final Requirement imputeNaNs;
-  final Requirement recomputeLrrPCMarkersReq;
-  final Requirement recomputeLrrMedianMarkersReq;
-  final Requirement homozygousOnlyReq;
-  final Requirement gcRegressionDistanceReq;
-  final Requirement pcSelectionSamplesReq;
-  final Requirement externalBetaFileReq;
-  final Requirement numThreadsReq;
+  final Requirement<File> medianMarkersReq;
+  final Requirement<Double> lrrSdThresholdReq;
+  final Requirement<Double> callrateThresholdReq;
+  final Requirement<Boolean> qcPassingOnlyReq;
+  final Requirement<Boolean> imputeNaNs;
+  final Requirement<Boolean> recomputeLrrPCMarkersReq;
+  final Requirement<Boolean> recomputeLrrMedianMarkersReq;
+  final Requirement<Boolean> homozygousOnlyReq;
+  final Requirement<Integer> gcRegressionDistanceReq;
+  final Requirement<File> pcSelectionSamplesReq;
+  final Requirement<File> externalBetaFileReq;
+  final Requirement<Integer> numThreadsReq;
 
-  private MitoCNEstimateStep(Requirement medianMarkersReq, Requirement lrrSdThresholdReq,
-                             Requirement callrateThresholdReq, Requirement qcPassingOnlyReq,
-                             Requirement imputeNaNs, Requirement recomputeLrrPCMarkersReq,
-                             Requirement recomputeLrrMedianMarkersReq,
-                             Requirement homozygousOnlyReq, Requirement gcRegressionDistanceReq,
-                             Requirement pcSelectionSamplesReq, Requirement externalBetaFileReq,
-                             Requirement numThreadsReq, RequirementSet reqSet) {
+  private MitoCNEstimateStep(Requirement<File> medianMarkersReq,
+                             Requirement<Double> lrrSdThresholdReq,
+                             Requirement<Double> callrateThresholdReq,
+                             Requirement<Boolean> qcPassingOnlyReq, Requirement<Boolean> imputeNaNs,
+                             Requirement<Boolean> recomputeLrrPCMarkersReq,
+                             Requirement<Boolean> recomputeLrrMedianMarkersReq,
+                             Requirement<Boolean> homozygousOnlyReq,
+                             Requirement<Integer> gcRegressionDistanceReq,
+                             Requirement<File> pcSelectionSamplesReq,
+                             Requirement<File> externalBetaFileReq,
+                             Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
     this.medianMarkersReq = medianMarkersReq;
     this.lrrSdThresholdReq = lrrSdThresholdReq;
@@ -107,8 +112,8 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
-    double sampleLRRSdFilter = Double.parseDouble(variables.get(lrrSdThresholdReq));
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
+    double sampleLRRSdFilter = variables.get(lrrSdThresholdReq);
     if (sampleLRRSdFilter < 0) {
       switch (proj.ARRAY_TYPE.getValue()) {
         case AFFY_GW6:
@@ -133,24 +138,26 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    String medianMarkers = variables.get(medianMarkersReq);
-    double markerCallRateFilter = Double.parseDouble(variables.get(callrateThresholdReq));
+  public void run(Project proj, Variables variables) {
+    String medianMarkers = variables.has(medianMarkersReq) ? variables.get(medianMarkersReq)
+                                                                      .getPath()
+                                                           : null;
+    double markerCallRateFilter = variables.get(callrateThresholdReq);
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
-    boolean gcCorrect = Boolean.parseBoolean(variables.get(qcPassingOnlyReq));
-    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(imputeNaNs));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrPCMarkersReq));
-    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(recomputeLrrMedianMarkersReq));
-    boolean homozygousOnly = Boolean.parseBoolean(variables.get(homozygousOnlyReq));
+    boolean gcCorrect = variables.get(qcPassingOnlyReq);
+    boolean imputeMeanForNaN = variables.get(imputeNaNs);
+    boolean recomputeLRRPCs = variables.get(recomputeLrrPCMarkersReq);
+    boolean recomputeLRRMedian = variables.get(recomputeLrrMedianMarkersReq);
+    boolean homozygousOnly = variables.get(homozygousOnlyReq);
     int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
-    int regressionDistance = Integer.parseInt(variables.get(gcRegressionDistanceReq));
+    int regressionDistance = variables.get(gcRegressionDistanceReq);
     int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String outputBase = MitoPipeline.FILE_BASE;
 
-    String betaOptFile = variables.get(pcSelectionSamplesReq);
-    String betaFile = variables.get(externalBetaFileReq);
+    String betaOptFile = variables.get(pcSelectionSamplesReq).getAbsolutePath();
+    String betaFile = variables.get(externalBetaFileReq).getAbsolutePath();
 
     boolean markerQC = true;
     double[] pvalOpt = MitoPipeline.DEFAULT_PVAL_OPTS;
@@ -173,25 +180,25 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
-    String medianMarkers = variables.get(medianMarkersReq);
-    double lrrSD = Double.parseDouble(variables.get(lrrSdThresholdReq));
-    double markerCallRateFilter = Double.parseDouble(variables.get(callrateThresholdReq));
+  public String getCommandLine(Project proj, Variables variables) {
+    String medianMarkers = variables.get(medianMarkersReq).getPath();
+    double lrrSD = variables.get(lrrSdThresholdReq);
+    double markerCallRateFilter = variables.get(callrateThresholdReq);
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
-    boolean gcCorrect = Boolean.parseBoolean(variables.get(qcPassingOnlyReq));
-    boolean imputeMeanForNaN = Boolean.parseBoolean(variables.get(imputeNaNs));
-    boolean recomputeLRRPCs = Boolean.parseBoolean(variables.get(recomputeLrrPCMarkersReq));
-    boolean recomputeLRRMedian = Boolean.parseBoolean(variables.get(recomputeLrrMedianMarkersReq));
-    boolean homozygousOnly = Boolean.parseBoolean(variables.get(homozygousOnlyReq));
+    boolean gcCorrect = variables.get(qcPassingOnlyReq);
+    boolean imputeMeanForNaN = variables.get(imputeNaNs);
+    boolean recomputeLRRPCs = variables.get(recomputeLrrPCMarkersReq);
+    boolean recomputeLRRMedian = variables.get(recomputeLrrMedianMarkersReq);
+    boolean homozygousOnly = variables.get(homozygousOnlyReq);
     int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
-    int regressionDistance = Integer.parseInt(variables.get(gcRegressionDistanceReq));
+    int regressionDistance = variables.get(gcRegressionDistanceReq);
     int numComponents = MitoPipeline.DEFAULT_NUM_COMPONENTS;
     int numThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
     String outputBase = MitoPipeline.FILE_BASE;
 
-    String betaOptFile = variables.get(pcSelectionSamplesReq);
-    String betaFile = variables.get(externalBetaFileReq);
+    String betaOptFile = variables.get(pcSelectionSamplesReq).getAbsolutePath();
+    String betaFile = variables.get(externalBetaFileReq).getAbsolutePath();
     boolean sampLrr = true;
 
     String projPropFile = proj.getPropertyFilename();
@@ -222,7 +229,7 @@ public class MitoCNEstimateStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String outputBase = proj.PROJECT_DIRECTORY.getValue() + MitoPipeline.FILE_BASE;
     String finalReport = outputBase + PCA.FILE_EXTs[0];
     return Files.exists(finalReport);

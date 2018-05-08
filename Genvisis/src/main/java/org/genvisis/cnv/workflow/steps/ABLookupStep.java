@@ -2,7 +2,6 @@ package org.genvisis.cnv.workflow.steps;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ABLookup.ABSource;
@@ -10,6 +9,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import com.google.common.base.Joiner;
@@ -19,22 +19,22 @@ import com.google.common.collect.Lists;
 public class ABLookupStep extends Step {
 
   public static ABLookupStep create(Step parseSamplesStep) {
-    Requirement parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+    Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     return new ABLookupStep(parseSamplesStepReq);
   }
 
-  private ABLookupStep(Requirement parseSamplesReq) {
+  private ABLookupStep(Requirement<Step> parseSamplesReq) {
     super("Generate AB Lookup File", "", RequirementSetBuilder.and().add(parseSamplesReq),
           EnumSet.of(Requirement.Flag.RUNTIME));
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     // Nothing to do here
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     ABLookup.parseABLookup(proj, ABSource.VCF, filename);
@@ -47,7 +47,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String filename = proj.PROJECT_DIRECTORY.getValue()
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     String projFile = proj.getPropertyFilename();
@@ -83,7 +83,7 @@ public class ABLookupStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     return Files.exists(proj.AB_LOOKUP_FILENAME.getValue(false, false));
   }
 }

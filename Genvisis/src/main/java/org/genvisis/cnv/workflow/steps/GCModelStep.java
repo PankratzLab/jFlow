@@ -1,7 +1,7 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
-import java.util.Map;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources;
@@ -12,6 +12,7 @@ import org.genvisis.cnv.workflow.Requirement.ResourceRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 
@@ -25,44 +26,45 @@ public class GCModelStep extends Step {
                                                                           Resources.genome(proj.GENOME_BUILD_VERSION.getValue(),
                                                                                            proj.getLog())
                                                                                    .getModelBase());
-    final Requirement gcModelOutputReq = new Requirement.OutputFileRequirement("GCModel output file must be specified.",
-                                                                               proj.GC_MODEL_FILENAME.getValue());
+    final Requirement<File> gcModelOutputReq = new Requirement.OutputFileRequirement("GCModel output file must be specified.",
+                                                                                     new File(proj.GC_MODEL_FILENAME.getValue()));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gcBaseResourceReq)
                                                        .add(gcModelOutputReq);
     return new GCModelStep(gcBaseResourceReq, gcModelOutputReq, reqSet);
   }
 
   final Requirement.ResourceRequirement gcBaseResourceReq;
-  final Requirement gcModelOutputReq;
+  final Requirement<File> gcModelOutputReq;
 
-  private GCModelStep(ResourceRequirement gcBase, Requirement output, RequirementSet reqSet) {
+  private GCModelStep(ResourceRequirement gcBase, Requirement<File> output, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.gcBaseResourceReq = gcBase;
     this.gcModelOutputReq = output;
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-    String gcOutputFile = variables.get(gcModelOutputReq);
+    String gcOutputFile = variables.get(gcModelOutputReq).getAbsolutePath();
     if (!ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
       proj.GC_MODEL_FILENAME.setValue(gcOutputFile);
     }
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
+  public void run(Project proj, Variables variables) {
     String gcBaseFile = gcBaseResourceReq.getResource().getAbsolute();
-    String gcOutputFile = variables.get(gcModelOutputReq);
+    String gcOutputFile = variables.get(gcModelOutputReq).getAbsolutePath();
     org.genvisis.cnv.qc.GcAdjustor.GcModel.gcModel(proj, gcBaseFile, gcOutputFile, 100);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
     String kvCmd = "";
 
     String setGCOutputFile = proj.GC_MODEL_FILENAME.getValue();
-    String gcOutputFile = variables == null ? null : variables.get(gcModelOutputReq);
+    String gcOutputFile = variables == null ? null
+                                            : variables.get(gcModelOutputReq).getAbsolutePath();
     if (gcOutputFile != null && !ext.verifyDirFormat(setGCOutputFile).equals(gcOutputFile)) {
       kvCmd += " GC_MODEL_FILENAME=" + gcOutputFile;
     }
@@ -83,9 +85,8 @@ public class GCModelStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
-    String gcOutputFile = variables.get(gcModelOutputReq);
-    return Files.exists(gcOutputFile);
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
+    return Files.exists(variables.get(gcModelOutputReq));
   }
 
 }

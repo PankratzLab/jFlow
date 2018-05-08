@@ -10,6 +10,7 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
+import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.gwas.Qc;
@@ -23,39 +24,44 @@ public class AnnotateSampleDataStep extends Step {
   public static AnnotateSampleDataStep create(Project proj, final Step sampleQCStep,
                                               final Step createSampleDataStep,
                                               final Step gwasQCStep) {
-    final Requirement sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
-    final Requirement createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
-    final Requirement skipIDingDuplicatesReq = new Requirement.BoolRequirement("Skip identifying duplicates",
-                                                                               false);
-    final Requirement gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
-    final Requirement notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("Do not use GC corrected LRR SD?",
-                                                                               false);
-    final Requirement gcCorrectedLrrSdReq = new Requirement("GC Corrected LRR SD must exist in Sample QC File",
-                                                            Requirement.RequirementInputType.NONE) {
+    final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
+    final Requirement<Step> createSampleDataStepReq = new Requirement.StepRequirement(createSampleDataStep);
+    final Requirement<Boolean> skipIDingDuplicatesReq = new Requirement.BoolRequirement("Skip identifying duplicates",
+                                                                                        false);
+    final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
+    final Requirement<Boolean> notGcCorrectedLrrSdReq = new Requirement.BoolRequirement("Do not use GC corrected LRR SD?",
+                                                                                        false);
+    final Requirement<String> gcCorrectedLrrSdReq = new Requirement<String>("GC Corrected LRR SD must exist in Sample QC File",
+                                                                            Requirement.RequirementInputType.NONE) {
 
       @Override
       public boolean checkRequirement(Project proj, String arg, Set<Step> stepSelections,
-                                      Map<Step, Map<Requirement, String>> variables) {
+                                      Map<Step, Variables> variables) {
         String sampleQCFile = proj.SAMPLE_QC_FILENAME.getValue();
         return Files.exists(sampleQCFile)
                && ext.indexOfStr("LRR_SD_Post_Correction",
                                  Files.getHeaderOfFile(sampleQCFile, proj.getLog())) != -1;
       }
 
-    };
-    final Requirement lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD Threshold",
-                                                                            proj.LRRSD_CUTOFF.getValue(),
-                                                                            proj.LRRSD_CUTOFF.getMinValue(),
-                                                                            proj.LRRSD_CUTOFF.getMaxValue());
+      @Override
+      public String parseValue(String raw) {
+        return raw;
+      }
 
-    final Requirement callrateThresholdReq = new Requirement.DoubleRequirement("Callrate Threshold",
-                                                                               proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
-                                                                               proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
-                                                                               proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
-    final Requirement numQReq = new Requirement.PosIntRequirement("Number of Quantiles to Generate",
-                                                                  10);
-    final Requirement replaceFIDIIDReq = new Requirement.OptionalBoolRequirement("Replace FID and IID with data from Pedigree",
-                                                                                 false);
+    };
+    final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD Threshold",
+                                                                                    proj.LRRSD_CUTOFF.getValue(),
+                                                                                    proj.LRRSD_CUTOFF.getMinValue(),
+                                                                                    proj.LRRSD_CUTOFF.getMaxValue());
+
+    final Requirement<Double> callrateThresholdReq = new Requirement.DoubleRequirement("Callrate Threshold",
+                                                                                       proj.SAMPLE_CALLRATE_THRESHOLD.getValue(),
+                                                                                       proj.SAMPLE_CALLRATE_THRESHOLD.getMinValue(),
+                                                                                       proj.SAMPLE_CALLRATE_THRESHOLD.getMaxValue());
+    final Requirement<Integer> numQReq = new Requirement.PosIntRequirement("Number of Quantiles to Generate",
+                                                                           10);
+    final Requirement<Boolean> replaceFIDIIDReq = new Requirement.OptionalBoolRequirement("Replace FID and IID with data from Pedigree",
+                                                                                          false);
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleQCStepReq)
                                                        .add(createSampleDataStepReq)
@@ -73,16 +79,17 @@ public class AnnotateSampleDataStep extends Step {
                                       callrateThresholdReq, reqSet);
   }
 
-  final Requirement skipIDingDuplicatesReq;
-  final Requirement callrateThresholdReq;
-  final Requirement lrrSdThresholdReq;
-  final Requirement replaceFIDIIDReq;
-  final Requirement numQReq;
-  final Requirement notGcCorrectedLrrSdReq;
+  final Requirement<Boolean> skipIDingDuplicatesReq;
+  final Requirement<Double> callrateThresholdReq;
+  final Requirement<Double> lrrSdThresholdReq;
+  final Requirement<Boolean> replaceFIDIIDReq;
+  final Requirement<Integer> numQReq;
+  final Requirement<Boolean> notGcCorrectedLrrSdReq;
 
-  public AnnotateSampleDataStep(Requirement replaceIDReq, Requirement numQReq, Requirement notGCReq,
-                                Requirement skipIDingDupReq, Requirement lrrSdReq,
-                                Requirement callrateReq, RequirementSet reqSet) {
+  public AnnotateSampleDataStep(Requirement<Boolean> replaceIDReq, Requirement<Integer> numQReq,
+                                Requirement<Boolean> notGCReq, Requirement<Boolean> skipIDingDupReq,
+                                Requirement<Double> lrrSdReq, Requirement<Double> callrateReq,
+                                RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.skipIDingDuplicatesReq = skipIDingDupReq;
     this.lrrSdThresholdReq = lrrSdReq;
@@ -93,11 +100,11 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void setNecessaryPreRunProperties(Project proj, Map<Requirement, String> variables) {
+  public void setNecessaryPreRunProperties(Project proj, Variables variables) {
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    double lrrSdThreshold = Double.parseDouble(variables.get(lrrSdThresholdReq));
+    double lrrSdThreshold = variables.get(lrrSdThresholdReq);
     double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    double callrateThreshold = Double.parseDouble(variables.get(callrateThresholdReq));
+    double callrateThreshold = variables.get(callrateThresholdReq);
 
     if (projLrrSdThreshold != lrrSdThreshold) {
       proj.LRRSD_CUTOFF.setValue(lrrSdThreshold);
@@ -108,41 +115,41 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public void run(Project proj, Map<Requirement, String> variables) {
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
+  public void run(Project proj, Variables variables) {
+    boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     String duplicatesSetFile = null;
     if (checkDuplicates) {
       duplicatesSetFile = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                           + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
                           + ".genome_duplicatesSet.dat";
     }
-    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(notGcCorrectedLrrSdReq));
-    int numQ = Integer.parseInt(variables.get(numQReq));
-    boolean correctFidIids = Boolean.parseBoolean(variables.get(replaceFIDIIDReq));
+    boolean gcCorrectedLrrSd = !variables.get(notGcCorrectedLrrSdReq).booleanValue();
+    int numQ = variables.get(numQReq);
+    boolean correctFidIids = variables.get(replaceFIDIIDReq);
     SampleQC.parseAndAddToSampleData(proj, numQ, 0, false, gcCorrectedLrrSd, duplicatesSetFile,
                                      correctFidIids);
   }
 
   @Override
-  public String getCommandLine(Project proj, Map<Requirement, String> variables) {
+  public String getCommandLine(Project proj, Variables variables) {
 
     double projLrrSdThreshold = proj.LRRSD_CUTOFF.getValue();
-    double lrrSdThreshold = Double.parseDouble(variables.get(lrrSdThresholdReq));
+    double lrrSdThreshold = variables.get(lrrSdThresholdReq);
     double projCallrateThreshold = proj.SAMPLE_CALLRATE_THRESHOLD.getValue();
-    double callrateThreshold = Double.parseDouble(variables.get(callrateThresholdReq));
+    double callrateThreshold = variables.get(callrateThresholdReq);
 
     String projPropFile = proj.getPropertyFilename();
 
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
+    boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     String duplicatesSetFile = null;
     if (checkDuplicates) {
       duplicatesSetFile = GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
                           + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
                           + ".genome_duplicatesSet.dat";
     }
-    boolean gcCorrectedLrrSd = !Boolean.parseBoolean(variables.get(notGcCorrectedLrrSdReq));
-    int numQ = Integer.parseInt(variables.get(numQReq));
-    boolean correctFidIids = Boolean.parseBoolean(variables.get(replaceFIDIIDReq));
+    boolean gcCorrectedLrrSd = !variables.get(notGcCorrectedLrrSdReq).booleanValue();
+    int numQ = variables.get(numQReq);
+    boolean correctFidIids = variables.get(replaceFIDIIDReq);
 
     String kvCmd = "";
 
@@ -166,12 +173,12 @@ public class AnnotateSampleDataStep extends Step {
   }
 
   @Override
-  public boolean checkIfOutputExists(Project proj, Map<Requirement, String> variables) {
+  public boolean checkIfOutputExists(Project proj, Variables variables) {
     String sampleDataFile = proj.SAMPLE_DATA_FILENAME.getValue();
     if (!Files.exists(sampleDataFile)) {
       return false;
     }
-    boolean checkDuplicates = !Boolean.parseBoolean(variables.get(skipIDingDuplicatesReq));
+    boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
     if (checkDuplicates
         && ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header, false, true) == -1) {
