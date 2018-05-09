@@ -26,11 +26,12 @@ public class SampleQCStep extends Step {
                                     Requirement<Integer> numThreadsReq) {
     RequirementSet reqSet = RequirementSetBuilder.and().add(new StepRequirement(parseSamplesStep))
                                                  .add(numThreadsReq);
-    return new SampleQCStep(proj, reqSet);
+    return new SampleQCStep(proj, numThreadsReq, reqSet);
   }
 
-  private SampleQCStep(Project proj, RequirementSet reqSet) {
+  private SampleQCStep(Project proj, Requirement<Integer> numThreadsReq, RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.of(Requirement.Flag.MULTITHREADED));
+    this.numThreadsReq = numThreadsReq;
     this.proj = proj;
   }
 
