@@ -11,8 +11,22 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
+import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
+import org.genvisis.cnv.workflow.steps.AncestryStep;
+import org.genvisis.cnv.workflow.steps.ComputePFBStep;
+import org.genvisis.cnv.workflow.steps.FurtherAnalysisQCStep;
+import org.genvisis.cnv.workflow.steps.GCModelStep;
+import org.genvisis.cnv.workflow.steps.GwasQCStep;
+import org.genvisis.cnv.workflow.steps.IlluminaMarkerBlastStep;
+import org.genvisis.cnv.workflow.steps.IlluminaMarkerPositionsStep;
+import org.genvisis.cnv.workflow.steps.MarkerQCStep;
+import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
+import org.genvisis.cnv.workflow.steps.PlinkExportStep;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
+import org.genvisis.cnv.workflow.steps.SampleQCStep;
+import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
+import org.genvisis.cnv.workflow.steps.TransposeStep;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -62,33 +76,40 @@ public class GenvisisWorkflow {
   private List<Step> generateSteps(boolean allowCorrectionStep) {
     StepBuilder sb = new StepBuilder(proj);
 
-    Step parseSamplesStep;
-    Step markerBlastStep;
+    ParseSamplesStep parseSamplesStep;
+    IlluminaMarkerBlastStep illumMarkerBlastStep = null;
+    AffyMarkerBlastStep affyMarkerBlastStep = null;
     if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
         || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
       parseSamplesStep = sb.generateParseSamplesStep(proj);
-      markerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamplesStep);
+      affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamplesStep);
     } else {
-      Step markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
+      IlluminaMarkerPositionsStep markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
       parseSamplesStep = sb.generateParseSamplesStep(proj, markerPositions);
-      markerBlastStep = sb.generateIlluminaMarkerBlastAnnotationStep(proj, parseSamplesStep);
+      illumMarkerBlastStep = sb.generateIlluminaMarkerBlastAnnotationStep(proj, parseSamplesStep);
     }
-    Step createSampleDataStep = sb.generateCreateSampleDataStep(proj, parseSamplesStep);
-    Step transposeStep = sb.generateTransposeStep(proj, parseSamplesStep);
-    Step gcModelStep = sb.generateGCModelStep(proj);
-    Step sampleQCStep = sb.generateSampleQCStep(proj, parseSamplesStep);
+    SampleDataStep createSampleDataStep = sb.generateCreateSampleDataStep(proj, parseSamplesStep);
+    TransposeStep transposeStep = sb.generateTransposeStep(proj, parseSamplesStep);
+    GCModelStep gcModelStep = sb.generateGCModelStep(proj);
+    SampleQCStep sampleQCStep = sb.generateSampleQCStep(proj, parseSamplesStep);
     sb.generateMarkerQCStep(proj, parseSamplesStep);
-    sb.generateSexChecksStep(proj, parseSamplesStep, markerBlastStep, createSampleDataStep,
-                             transposeStep, sampleQCStep);
+    if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
+        || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
+      sb.generateSexChecksStep(proj, parseSamplesStep, affyMarkerBlastStep, createSampleDataStep,
+                               transposeStep, sampleQCStep);
+    } else {
+      sb.generateSexChecksStep(proj, parseSamplesStep, illumMarkerBlastStep, createSampleDataStep,
+                               transposeStep, sampleQCStep);
+    }
     sb.generateABLookupStep(proj, parseSamplesStep);
-    Step plinkExportStep = sb.generatePlinkExportStep(proj, parseSamplesStep);
-    Step gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
-    Step ancestryStep = sb.generateAncestryStep(proj, gwasQCStep);
+    PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(proj, parseSamplesStep);
+    GwasQCStep gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
+    AncestryStep ancestryStep = sb.generateAncestryStep(proj, gwasQCStep);
     sb.generateFurtherAnalysisQCStep(proj, plinkExportStep, gwasQCStep, ancestryStep);
     sb.generateMosaicArmsStep(proj, parseSamplesStep);
     sb.generateAnnotateSampleDataStep(proj, sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(proj, transposeStep);
-    Step pfbStep = sb.generatePFBStep(proj, parseSamplesStep);
+    ComputePFBStep pfbStep = sb.generatePFBStep(proj, parseSamplesStep);
     sb.generateSexCentroidsStep(proj, pfbStep);
     sb.generateCNVStep(proj, pfbStep, gcModelStep);
     if (allowCorrectionStep) {
@@ -146,19 +167,22 @@ public class GenvisisWorkflow {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
-    Step createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep(proj) : null;
-    Step parseSamples = sb.generateParseSamplesStep(proj, createMkrPos);
-    Step transpose = sb.generateTransposeStep(proj, parseSamples);
-    Step sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
-    Step blast = sb.generateIlluminaMarkerBlastAnnotationStep(proj, parseSamples);
-    Step sampleQc = sb.generateSampleQCStep(proj, parseSamples);
-    Step markerQc = sb.generateMarkerQCStep(proj, parseSamples);
-    Step sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData, transpose,
-                                              sampleQc);
-    Step exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
-    Step gwasQc = sb.generateGwasQCStep(proj, exportPlink);
-    Step ancestry = sb.generateAncestryStep(proj, gwasQc);
-    Step faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc, ancestry);
+    IlluminaMarkerPositionsStep createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep(proj)
+                                                           : null;
+    ParseSamplesStep parseSamples = sb.generateParseSamplesStep(proj, createMkrPos);
+    TransposeStep transpose = sb.generateTransposeStep(proj, parseSamples);
+    SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
+    IlluminaMarkerBlastStep blast = sb.generateIlluminaMarkerBlastAnnotationStep(proj,
+                                                                                 parseSamples);
+    SampleQCStep sampleQc = sb.generateSampleQCStep(proj, parseSamples);
+    MarkerQCStep markerQc = sb.generateMarkerQCStep(proj, parseSamples);
+    SexChecksStep sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData,
+                                                       transpose, sampleQc);
+    PlinkExportStep exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
+    GwasQCStep gwasQc = sb.generateGwasQCStep(proj, exportPlink);
+    AncestryStep ancestry = sb.generateAncestryStep(proj, gwasQc);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc,
+                                                                      ancestry);
 
     Variables stepReqs;
     Map<Step, Variables> varMap = new HashMap<>();
@@ -297,9 +321,9 @@ public class GenvisisWorkflow {
     StepBuilder sb = new StepBuilder(pcProj);
     Step transpose = sb.generateTransposeStep(pcProj, null);
     // Create new sample data, run sex checks?
-    Step gc = sb.generateGCModelStep(pcProj);
-    Step pfb = sb.generatePFBStep(pcProj, null);
-    Step cent = sb.generateSexCentroidsStep(pcProj, pfb);
+    GCModelStep gc = sb.generateGCModelStep(pcProj);
+    ComputePFBStep pfb = sb.generatePFBStep(pcProj, null);
+    SexCentroidsStep cent = sb.generateSexCentroidsStep(pcProj, pfb);
     Step cnv = sb.generateCNVStep(pcProj, pfb, gc);
     Variables cnvOpts = new Variables();
     List<Requirement<?>> reqs = cnv.getRequirements().getFlatRequirementsList();
