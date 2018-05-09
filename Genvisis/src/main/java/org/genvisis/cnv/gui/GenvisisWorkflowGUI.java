@@ -119,6 +119,7 @@ public class GenvisisWorkflowGUI extends JDialog {
     proj.getLog().report("Launching Genvisis Project Pipeline");
     this.steps = steps;
     selected = Sets.newTreeSet(new Comparator<Step>() {
+
       @Override
       public int compare(Step o1, Step o2) {
         return Integer.compare(GenvisisWorkflowGUI.this.steps.indexOf(o1),
