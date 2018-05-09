@@ -26,7 +26,8 @@ public abstract class Requirement<T> {
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
-      return stepSelections.contains(requiredStep)
+      return (stepSelections.contains(requiredStep)
+              && requiredStep.hasRequirements(stepSelections, variables))
              || requiredStep.checkIfOutputExists(variables.get(requiredStep));
     }
 
