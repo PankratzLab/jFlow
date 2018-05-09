@@ -24,8 +24,10 @@ public class IlluminaMarkerBlastStep extends Step {
                                                final ParseSamplesStep parseSamplesStep,
                                                Requirement<Integer> numThreadsReq) {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
-    final Requirement<File> manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST),
-                                                                              new File(IlluminaMarkerBlast.EXAMPLE_MANIFEST));
+    final Requirement<File> manifestFileReq = new Requirement.FileRequirement(ext.capitalizeFirst(IlluminaMarkerBlast.DESC_MANIFEST)
+                                                                              + "  (e.g. "
+                                                                              + IlluminaMarkerBlast.EXAMPLE_MANIFEST
+                                                                              + ")", new File(""));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
                                                        .add(manifestFileReq).add(numThreadsReq);
