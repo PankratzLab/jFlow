@@ -98,7 +98,7 @@ public class ComputePFBStep extends Step {
     }
     return cmd.append(Files.getRunString()).append(" ").append(PFB.class.getName()).append(" ")
               .append(CLI.ARG_PROJ).append("=").append(proj.getPropertyFilename()).append(" ")
-              .append(CLI.ARG_LOG).append(proj.getLog().getFilename()).toString();
+              .append(CLI.ARG_LOG).append("=").append(proj.getLog().getFilename()).toString();
   }
 
   @Override
