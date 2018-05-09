@@ -118,7 +118,14 @@ public class GenvisisWorkflowGUI extends JDialog {
     }
     proj.getLog().report("Launching Genvisis Project Pipeline");
     this.steps = steps;
-    selected = Sets.newHashSet(steps);
+    selected = Sets.newTreeSet(new Comparator<Step>() {
+      @Override
+      public int compare(Step o1, Step o2) {
+        return Integer.compare(GenvisisWorkflowGUI.this.steps.indexOf(o1),
+                               GenvisisWorkflowGUI.this.steps.indexOf(o2));
+      }
+    });
+
     getContentPane().setLayout(new BorderLayout());
     contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
     JPanel optionPanel = new JPanel();
@@ -1036,13 +1043,6 @@ public class GenvisisWorkflowGUI extends JDialog {
         lockup(true);
 
         List<Step> options = new ArrayList<>(getSelectedOptions());
-        options.sort(new Comparator<Step>() {
-
-          @Override
-          public int compare(Step o1, Step o2) {
-            return Integer.compare(steps.indexOf(o1), steps.indexOf(o2));
-          }
-        });
         Map<Step, Variables> stepVariables = getVariables();
         if (checkRequirementsAndNotify(stepVariables)) {
           Step first = options.iterator().next();
