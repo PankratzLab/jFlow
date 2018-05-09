@@ -815,8 +815,10 @@ public class GenvisisWorkflowGUI extends JDialog {
                 @Override
                 public void run() {
                   for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
-                    boolean met = req.checkRequirement(variables.get(step).get(req).toString(),
-                                                       selectedSteps, variables);
+                    Variables vars = variables.get(step);
+                    Object o = vars.get(req);
+                    String arg = o == null ? null : o.toString();
+                    boolean met = req.checkRequirement(arg, selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
                   }
                   gui.progVal.setValue(update);
