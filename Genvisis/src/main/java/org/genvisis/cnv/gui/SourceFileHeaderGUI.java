@@ -2,7 +2,6 @@ package org.genvisis.cnv.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -18,27 +17,28 @@ import javax.swing.JSeparator;
 import javax.swing.border.EmptyBorder;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Grafik;
 import net.miginfocom.swing.MigLayout;
 
 public class SourceFileHeaderGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
   private final JPanel contentPane;
-  private final JComboBox cbSnpInd;
-  private final JComboBox cbSampInd;
-  private final JComboBox cbA1Geno;
-  private final JComboBox cbA2Geno;
-  private final JComboBox cbA1AB;
-  private final JComboBox cbA2AB;
-  private final JComboBox cbX;
-  private final JComboBox cbY;
-  private final JComboBox cbBAF;
-  private final JComboBox cbLRR;
-  private final JComboBox cbGC;
-  private final JComboBox cbXRaw;
-  private final JComboBox cbYRaw;
-  private final JComboBox cbR;
-  private final JComboBox cbTheta;
+  private final JComboBox<String> cbSnpInd;
+  private final JComboBox<String> cbSampInd;
+  private final JComboBox<String> cbA1Geno;
+  private final JComboBox<String> cbA2Geno;
+  private final JComboBox<String> cbA1AB;
+  private final JComboBox<String> cbA2AB;
+  private final JComboBox<String> cbX;
+  private final JComboBox<String> cbY;
+  private final JComboBox<String> cbBAF;
+  private final JComboBox<String> cbLRR;
+  private final JComboBox<String> cbGC;
+  private final JComboBox<String> cbXRaw;
+  private final JComboBox<String> cbYRaw;
+  private final JComboBox<String> cbR;
+  private final JComboBox<String> cbTheta;
 
   private boolean cancelled = false;
 
@@ -47,25 +47,6 @@ public class SourceFileHeaderGUI extends JDialog {
 
   public static int MISSING_IND = -1;
   public static int FILENAME_IND = -99;
-
-  /**
-   * Launch the application.
-   */
-  public static void main(String[] args) {
-    EventQueue.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        try {
-          // FIXME this is guaranteed to cause an NPE.
-          SourceFileHeaderGUI frame = new SourceFileHeaderGUI(null);
-          frame.setVisible(true);
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-    });
-  }
 
   private void doClose(boolean cancel) {
     cancelled = cancel;
@@ -94,32 +75,36 @@ public class SourceFileHeaderGUI extends JDialog {
     JPanel panel = new JPanel();
     contentPane.add(panel, BorderLayout.CENTER);
     panel.setLayout(new MigLayout("", "[grow][][grow 200][grow]",
-                                  "[][][][][][][][][][][][][][][][][][][][][][grow]"));
+                                  "[][][][][][][][][][][][][][][][][][][][][][][grow]"));
+
+    JLabel titleLbl = new JLabel("Validation Review");
+    titleLbl.setFont(new Font("Tahoma", Font.BOLD, 16));
+    panel.add(titleLbl, "span 4, alignx center, split 2, cell 0 0");
+    panel.add(Grafik.getToolTipIconLabel("<html>Genvisis found the following columns in the first file and has<br />guessed what they are. Please review that they match up<br />properly to the variables that Genvisis will store in its internal<br />database."),
+              "alignx right");
 
     JLabel lblRequired = new JLabel("Required:");
     Font fontHeaderLabels = new Font("Tahoma", Font.BOLD, 12);
     lblRequired.setFont(fontHeaderLabels);
     panel.add(lblRequired, "pad 0 -15 0 0,cell 1 1");
 
-    JLabel lblSnpIndex = new JLabel("SNP Index:");
+    JLabel lblSnpIndex = new JLabel("Marker Name:");
     panel.add(lblSnpIndex, "cell 1 2");
 
     String[] headerParts = reportHdr.getCols();
     String[] headerOptions = ArrayUtils.addStrToArray(MISSING_STR, headerParts, 0);
     String[] sampOptions = ArrayUtils.addStrToArray(FILENAME_STR, headerParts, 0);
 
-    cbSnpInd = new JComboBox(headerParts);
-    cbSnpInd.setSelectedIndex(reportHdr.getColSnpIdent() == -1 ? 0 : reportHdr.getColSnpIdent()); // TODO SNP
-    // INDEX
-    // shouldn't
-    // ever be
-    // -1
+    cbSnpInd = new JComboBox<String>(headerParts);
+
+    // TODO SNP INDEX shouldn't ever be -1
+    cbSnpInd.setSelectedIndex(reportHdr.getColSnpIdent() == -1 ? 0 : reportHdr.getColSnpIdent());
     panel.add(cbSnpInd, "cell 2 2,growx");
 
     JLabel lblSampleId = new JLabel("Sample ID:");
     panel.add(lblSampleId, "cell 1 3");
 
-    cbSampInd = new JComboBox(sampOptions);
+    cbSampInd = new JComboBox<String>(sampOptions);
     cbSampInd.setSelectedIndex(reportHdr.getColSampleIdent() == -1 ? 0
                                                                    : 1
                                                                      + reportHdr.getColSampleIdent());
@@ -132,63 +117,63 @@ public class SourceFileHeaderGUI extends JDialog {
     JLabel lblAllele_2 = new JLabel("Allele 1 - Genotype:");
     panel.add(lblAllele_2, "cell 1 5");
 
-    cbA1Geno = new JComboBox(headerOptions);
+    cbA1Geno = new JComboBox<String>(headerOptions);
     cbA1Geno.setSelectedIndex(reportHdr.getColGeno1() == -1 ? 0 : 1 + reportHdr.getColGeno1());
     panel.add(cbA1Geno, "cell 2 5,growx");
 
     JLabel lblAllele_3 = new JLabel("Allele 2 - Genotype:");
     panel.add(lblAllele_3, "cell 1 6");
 
-    cbA2Geno = new JComboBox(headerOptions);
+    cbA2Geno = new JComboBox<String>(headerOptions);
     cbA2Geno.setSelectedIndex(reportHdr.getColGeno2() == -1 ? 0 : 1 + reportHdr.getColGeno2());
     panel.add(cbA2Geno, "cell 2 6,growx");
 
     JLabel lblAllele = new JLabel("Allele 1 - AB:");
     panel.add(lblAllele, "cell 1 7");
 
-    cbA1AB = new JComboBox(headerOptions);
+    cbA1AB = new JComboBox<String>(headerOptions);
     cbA1AB.setSelectedIndex(reportHdr.getColGenoAB1() == -1 ? 0 : 1 + reportHdr.getColGenoAB1());
     panel.add(cbA1AB, "cell 2 7,growx");
 
     JLabel lblAllele_1 = new JLabel("Allele 2 - AB:");
     panel.add(lblAllele_1, "cell 1 8");
 
-    cbA2AB = new JComboBox(headerOptions);
+    cbA2AB = new JComboBox<String>(headerOptions);
     cbA2AB.setSelectedIndex(reportHdr.getColGenoAB2() == -1 ? 0 : 1 + reportHdr.getColGenoAB2());
     panel.add(cbA2AB, "cell 2 8,growx");
 
     JLabel lblX = new JLabel("X:");
     panel.add(lblX, "cell 1 9");
 
-    cbX = new JComboBox(headerOptions);
+    cbX = new JComboBox<String>(headerOptions);
     cbX.setSelectedIndex(reportHdr.getColX() == -1 ? 0 : 1 + reportHdr.getColX());
     panel.add(cbX, "cell 2 9,growx");
 
     JLabel lblY = new JLabel("Y:");
     panel.add(lblY, "cell 1 10");
 
-    cbY = new JComboBox(headerOptions);
+    cbY = new JComboBox<String>(headerOptions);
     cbY.setSelectedIndex(reportHdr.getColY() == -1 ? 0 : 1 + reportHdr.getColY());
     panel.add(cbY, "cell 2 10,growx");
 
     JLabel lblBAlleleFreq = new JLabel("B Allele Freq.:");
     panel.add(lblBAlleleFreq, "cell 1 11");
 
-    cbBAF = new JComboBox(headerOptions);
+    cbBAF = new JComboBox<String>(headerOptions);
     cbBAF.setSelectedIndex(reportHdr.getColBAF() == -1 ? 0 : 1 + reportHdr.getColBAF());
     panel.add(cbBAF, "cell 2 11,growx");
 
     JLabel lblLogrRatio = new JLabel("Log-R Ratio:");
     panel.add(lblLogrRatio, "cell 1 12");
 
-    cbLRR = new JComboBox(headerOptions);
+    cbLRR = new JComboBox<String>(headerOptions);
     cbLRR.setSelectedIndex(reportHdr.getColLRR() == -1 ? 0 : 1 + reportHdr.getColLRR());
     panel.add(cbLRR, "cell 2 12,growx");
 
     JLabel lblConfidence = new JLabel("Confidence:");
     panel.add(lblConfidence, "cell 1 13");
 
-    cbGC = new JComboBox(headerOptions);
+    cbGC = new JComboBox<String>(headerOptions);
     cbGC.setSelectedIndex(reportHdr.getColGC() == -1 ? 0 : 1 + reportHdr.getColGC());
     panel.add(cbGC, "cell 2 13,growx");
 
@@ -199,28 +184,28 @@ public class SourceFileHeaderGUI extends JDialog {
     JLabel lblXRaw = new JLabel("X Raw:");
     panel.add(lblXRaw, "cell 1 15");
 
-    cbXRaw = new JComboBox(headerOptions);
+    cbXRaw = new JComboBox<String>(headerOptions);
     cbXRaw.setSelectedIndex(reportHdr.getColXRaw() == -1 ? 0 : 1 + reportHdr.getColXRaw());
     panel.add(cbXRaw, "cell 2 15,growx");
 
     JLabel lblYRaw = new JLabel("Y Raw:");
     panel.add(lblYRaw, "cell 1 16");
 
-    cbYRaw = new JComboBox(headerOptions);
+    cbYRaw = new JComboBox<String>(headerOptions);
     cbYRaw.setSelectedIndex(reportHdr.getColYRaw() == -1 ? 0 : 1 + reportHdr.getColYRaw());
     panel.add(cbYRaw, "cell 2 16,growx");
 
     JLabel lblR = new JLabel("R:");
     panel.add(lblR, "cell 1 17");
 
-    cbR = new JComboBox(headerOptions);
+    cbR = new JComboBox<String>(headerOptions);
     cbR.setSelectedIndex(reportHdr.getColR() == -1 ? 0 : 1 + reportHdr.getColR());
     panel.add(cbR, "cell 2 17,growx");
 
     JLabel lblTheta = new JLabel("Theta:");
     panel.add(lblTheta, "cell 1 18");
 
-    cbTheta = new JComboBox(headerOptions);
+    cbTheta = new JComboBox<String>(headerOptions);
     cbTheta.setSelectedIndex(reportHdr.getColTheta() == -1 ? 0 : 1 + reportHdr.getColTheta());
     panel.add(cbTheta, "cell 2 18,growx");
 
@@ -265,7 +250,7 @@ public class SourceFileHeaderGUI extends JDialog {
     return cbSampInd.getSelectedIndex() == 0 ? FILENAME_IND : cbSampInd.getSelectedIndex() - 1;
   }
 
-  private int getValue(JComboBox cb) {
+  private int getValue(JComboBox<String> cb) {
     return MISSING_STR.equals(cb.getSelectedItem()) ? MISSING_IND : cb.getSelectedIndex() - 1;
   }
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.SourceFileParser;
@@ -32,7 +33,7 @@ public class SourceFileHeaderData implements Serializable {
   private int totalSnps;
   private int numSamples;
   private int totalSamples;
-  private int numFiles;
+  private int numFiles = -1;
   private int currFile;
   private final int columnHeaderLineIndex;
 
@@ -305,6 +306,7 @@ public class SourceFileHeaderData implements Serializable {
         }
         String error = doFullValidation(headers, log);
         if (error != null) {
+          JOptionPane.showMessageDialog(null, error, "Error", JOptionPane.ERROR_MESSAGE);
           throw new Elision(error);
         }
       }

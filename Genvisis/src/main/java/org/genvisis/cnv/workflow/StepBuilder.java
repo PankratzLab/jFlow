@@ -91,12 +91,10 @@ public class StepBuilder {
 
   IlluminaMarkerPositionsStep generateIlluminaMarkerPositionsStep(Project proj) {
     return register(IlluminaMarkerPositionsStep.create(proj));
-    //    return register(create(IlluminaMarkerPositionsStep.class, proj));
   }
 
   IlluminaMarkerBlastStep generateIlluminaMarkerBlastAnnotationStep(Project proj,
                                                                     ParseSamplesStep parseSamplesStep) {
-    //    return register(create(IlluminaMarkerBlastStep.class, proj, parseSamplesStep, numThreadsReq));
     return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 

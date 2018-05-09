@@ -539,7 +539,7 @@ public class GenvisisWorkflowGUI extends JDialog {
           public void actionPerformed(ActionEvent e) {
             JTextField fileField = (JTextField) varFields.get(step).get(req);
 
-            String current = fileField.getText();
+            String current = fileField.getText().trim();
 
             String dir = "".equals(current) ? proj.PROJECT_DIRECTORY.getValue(false, false)
                                             : ext.parseDirectoryOfFile(current);

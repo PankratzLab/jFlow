@@ -49,10 +49,12 @@ public class ProjectCreationGUI extends JDialog {
 
   private static final long serialVersionUID = 1L;
 
+  private static final String PROJECT_NAME_TOOLTIP = "<html>Project name be unique.</html>";
   private static final String PROJECT_DIR_TOOLTIP = "<html>Directory in which to create, store, and manage all project files.</html>";
   private static final String SOURCE_DIR_TOOLTIP = "<html>Directory of source (e.g. FinalReport.txt.gz) files; this can be different than the Project Directory.</html>";
   private static final String SOURCE_EXT_TOOLTIP = "<html>Extension of source files (e.g. for \"FinalReport.txt.gz\", the extension would be \".txt.gz\".</html>";
-  private static final String XY_TOOLTIP = "<html>Suggested values for X/Y correction:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
+  private static final String XY_TOOLTIP = "<html>The raw probe intensity / bin counts are divided by this number to get a transformed<br />value between -32 and +32). Suggested values for scale factor based on array:<br />Illumina: use the default of 1.<br />Affymetrix: use 100.<br />DBGAP: use 2000.</html>";
+  private static final String MKR_SUBSET_TOOLTIP = "<html>If you only want to import a subset of markers, then provide a text file with one marker name per line.</html>";
   private final JPanel contentPane;
   private final JTextField txtFldProjName;
   private final JTextField txtFldProjDir;
@@ -127,7 +129,7 @@ public class ProjectCreationGUI extends JDialog {
     }
   };
 
-  private final JComboBox comboBoxArrayType;
+  private final JComboBox<Project.ARRAY> comboBoxArrayType;
   // private JComboBox<String> comboBoxArrayType;
   private final JLabel lblSrcFileStatus;
   private final JSpinner spinnerXY;
@@ -174,7 +176,8 @@ public class ProjectCreationGUI extends JDialog {
     contentPane.add(separator, "cell 0 1 4 1,growx");
 
     JLabel lblProjectName = new JLabel("Project Name:");
-    contentPane.add(lblProjectName, "cell 0 3,alignx trailing");
+    contentPane.add(lblProjectName, "cell 0 3,split 2,alignx trailing");
+    contentPane.add(Grafik.getToolTipIconLabel(PROJECT_NAME_TOOLTIP), "cell 0 3,alignx right");
 
     txtFldProjName = new JTextField(proj.PROJECT_NAME.getDefaultValueString());
     contentPane.add(txtFldProjName, "cell 2 3,growx");
@@ -217,7 +220,7 @@ public class ProjectCreationGUI extends JDialog {
     JLabel lblArrayType = new JLabel("Array Type:");
     contentPane.add(lblArrayType, "cell 0 8,alignx trailing");
 
-    comboBoxArrayType = new JComboBox(Project.ARRAY.values());
+    comboBoxArrayType = new JComboBox<Project.ARRAY>(Project.ARRAY.values());
     // comboBoxArrayType = new JComboBox<String>();
     comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
     contentPane.add(comboBoxArrayType, "cell 2 8,growx");
@@ -225,7 +228,7 @@ public class ProjectCreationGUI extends JDialog {
     lblSrcFileStatus = new JLabel("");
     contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
 
-    JLabel lblXyCorrectionRatio = new JLabel("X/Y Correction Ratio:");
+    JLabel lblXyCorrectionRatio = new JLabel("Scale Factor for X and Y:");
     contentPane.add(lblXyCorrectionRatio, "cell 0 11,split 2, alignx right");
     contentPane.add(Grafik.getToolTipIconLabel(XY_TOOLTIP), "cell 0 11, alignx right");
 
@@ -242,10 +245,11 @@ public class ProjectCreationGUI extends JDialog {
     // SpinnerNumberModel(proj.LRRSD_CUTOFF.getDefaultValue().doubleValue(), 0.0, 3.0, 0.1));
     // contentPane.add(spinnerLrrSd, "cell 2 12,growx");
 
-    JLabel lblTargetMarkersFile = new JLabel("[Optional] Target Markers File:");
-    contentPane.add(lblTargetMarkersFile, "cell 0 12,alignx trailing");
+    JLabel lblTargetMarkersFile = new JLabel("[Optional] Marker Subset File:");
+    contentPane.add(lblTargetMarkersFile, "cell 0 12,split 2, alignx trailing");
+    contentPane.add(Grafik.getToolTipIconLabel(MKR_SUBSET_TOOLTIP), "cell 0 12, alignx right");
 
-    txtFldTgtMkrs = new JTextField(proj.TARGET_MARKERS_FILENAMES.getDefaultValueString());
+    txtFldTgtMkrs = new JTextField("");
     contentPane.add(txtFldTgtMkrs, "flowx,cell 2 12,growx");
     txtFldTgtMkrs.setColumns(10);
 
@@ -308,6 +312,7 @@ public class ProjectCreationGUI extends JDialog {
     panel.add(btnCreate, "flowx,cell 1 0");
 
     JButton btnCreateAndValidate = new JButton("Validate and Create");
+    btnCreateAndValidate.setToolTipText("<html>During validation, Genvisis will scan the header of each source file to ensure <br /> that the column names are the same and in the same order in each file.<br />If there are a lot of files and/or you are confident that they all have the same<br />header (e.g. you know these are from the same source and have not been<br />edited,  or Genvisis has validated them before) then you can skip validation.</html>");
     btnCreateAndValidate.addActionListener(new ActionListener() {
 
       @Override
@@ -348,9 +353,6 @@ public class ProjectCreationGUI extends JDialog {
     String projDir = txtFldProjDir.getText().trim();
     String srcDir = txtFldSrcDir.getText().trim();
     String srcExt = txtFldSrcExt.getText().trim();
-    // String idHdr = txtFldIDHdr.getText().trim();
-    // double lrrSd = ((Double)spinnerLrrSd.getValue()).doubleValue();
-    // double xy = ((Double)spinnerXY.getValue()).doubleValue();
     String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
     boolean validProjDir = false;
@@ -383,15 +385,15 @@ public class ProjectCreationGUI extends JDialog {
       }
     }
 
-    boolean[] checks = {nameCheck, validProjDir, validSrcDir, !srcExt.equals(""),
-                        // !idHdr.equals("") ,
-                        validTgtMkrs};// Files.exists(tgtMkrs)};
+    int[] checkCodes = {ERROR_PROJ_NAME, ERROR_PROJ_DIR, ERROR_SRC_DIR, ERROR_SRC_EXT,
+                        ERROR_MKR_SUB};
+    boolean[] checks = {nameCheck, validProjDir, validSrcDir, !srcExt.equals(""), validTgtMkrs};
 
     if (ArrayUtils.booleanArraySum(checks) < checks.length) {
       StringBuilder errorMsg = new StringBuilder();
       for (int i = 0; i < checks.length; i++) {
         if (!checks[i]) {
-          errorMsg.append("\n").append(getErrorFor(i));
+          errorMsg.append("\n").append(getErrorFor(checkCodes[i]));
         }
       }
 
@@ -481,6 +483,7 @@ public class ProjectCreationGUI extends JDialog {
       public boolean accept(File arg0, String arg1) {
         return arg1.endsWith(srcExtFinal);
       }
+
     });
 
     return files.length;
@@ -489,20 +492,27 @@ public class ProjectCreationGUI extends JDialog {
     // TODO use FinalReport header class (to be constructed)
   }
 
+  private static final int ERROR_PROJ_NAME = 0;
+  private static final int ERROR_PROJ_DIR = 1;
+  private static final int ERROR_SRC_DIR = 2;
+  private static final int ERROR_SRC_EXT = 3;
+  private static final int ERROR_ID_HDR = 4;
+  private static final int ERROR_MKR_SUB = 5;
+
   private String getErrorFor(int index) {
     switch (index) {
-      case 0: // Project Name
+      case ERROR_PROJ_NAME: // Project Name
         return "Project name must have a value, must not be 'New Project', and may not already exist";
-      case 1: // Project dir
+      case ERROR_PROJ_DIR: // Project dir
         return "Project directory must be a valid directory path";
-      case 2: // src dir
+      case ERROR_SRC_DIR: // src dir
         return "Source directory must be a valid and existing directory path";
-      case 3: // src ext
+      case ERROR_SRC_EXT: // src ext
         return "Source file extension cannot be empty";
-      case 4: // id hdr
+      case ERROR_ID_HDR: // id hdr
         return "ID header cannot be empty";
-      case 5: // tgt mkrs
-        return "Target markers must be a valid file";
+      case ERROR_MKR_SUB: // tgt mkrs
+        return "Marker subset file must be a valid file";
       default:
         return "Unknown error - please check all options and try again";
     }
@@ -533,7 +543,6 @@ public class ProjectCreationGUI extends JDialog {
         break;
       }
     }
-    // TODO do column assignment
     SourceFileHeaderGUI gui = new SourceFileHeaderGUI(reportHdr);
     if (actuallyValidate) {
       gui.setModal(true);
@@ -572,6 +581,9 @@ public class ProjectCreationGUI extends JDialog {
       d.setColYRaw(gui.getSelectedYRaw());
     }
 
+    JOptionPane.showMessageDialog(this,
+                                  "The input files for this project have sucessfully passed all Genvisis validation steps.",
+                                  "Validation Successful", JOptionPane.INFORMATION_MESSAGE);
     File file = new File(projDir);
 
     Project dummy = new Project();
