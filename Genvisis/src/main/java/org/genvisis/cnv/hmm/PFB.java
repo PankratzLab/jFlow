@@ -104,7 +104,8 @@ public class PFB {
     double[] bafSum = new double[chrs.length];
     int[] bafCounts = new int[chrs.length];
     int[] genoCounts = new int[chrs.length];
-    int logPer = new Double(sampleList.length / 100.00).intValue(); // Write one log per this number of samples, max 100
+    // Write one log per this number of samples, max 100
+    int logPer = new Double(Math.ceil(sampleList.length / 100.00)).intValue();
     for (int i = 0; i < sampleList.length; i++) {
       if (i % logPer == 0) {
         log.reportTime("Loading file " + (i + 1) + " of " + sampleList.length);
