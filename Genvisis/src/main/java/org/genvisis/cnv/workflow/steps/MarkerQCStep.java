@@ -29,7 +29,7 @@ public class MarkerQCStep extends Step {
     String[] tgtMkrFiles = proj.TARGET_MARKERS_FILENAMES.getValue();
     final Requirement<File> targetMarkersReq = new Requirement.FileRequirement("A targetMarkers files listing the markers to QC.",
                                                                                tgtMkrFiles != null && tgtMkrFiles.length >= 1 ? new File(tgtMkrFiles[0])
-                                                                                                                              : null);
+                                                                                                                              : new File(""));
     final Set<String> sampleDataHeaders;
     if (Files.exists(proj.SAMPLE_DATA_FILENAME.getValue()) && proj.getSampleData(false) != null) {
       sampleDataHeaders = proj.getSampleData(false).getMetaHeaders();

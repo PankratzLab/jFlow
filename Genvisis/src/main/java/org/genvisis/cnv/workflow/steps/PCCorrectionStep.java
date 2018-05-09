@@ -58,7 +58,7 @@ public class PCCorrectionStep extends Step {
     final Requirement<Boolean> recomputeLrrReq = new Requirement.OptionalBoolRequirement("Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
                                                                                          false);
     final Requirement<File> tempDirReq = new Requirement.OptionalFileRequirement("Temporary directory for intermediate files (which tend to be very large)",
-                                                                                 null);
+                                                                                 new File(""));
     final Requirement<CORRECTION_TYPE> correctionStrategyReq = new Requirement.EnumRequirement<CORRECTION_TYPE>("Correction Type",
                                                                                                                 CORRECTION_TYPE.XY);
     final Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq = new Requirement.EnumRequirement<CHROMOSOME_X_STRATEGY>("Sex Chromosome Strategy",

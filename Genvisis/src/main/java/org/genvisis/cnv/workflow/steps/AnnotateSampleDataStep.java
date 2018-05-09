@@ -18,7 +18,7 @@ import org.genvisis.gwas.RelationAncestryQc;
 
 public class AnnotateSampleDataStep extends Step {
 
-  public static final String NAME = "";
+  public static final String NAME = "Annotate Sample Data File";
   public static final String DESC = "";
 
   public static AnnotateSampleDataStep create(Project proj, final Step sampleQCStep,

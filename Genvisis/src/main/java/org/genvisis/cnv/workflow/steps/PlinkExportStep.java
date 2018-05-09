@@ -36,7 +36,7 @@ public class PlinkExportStep extends Step {
   final Requirement<Boolean> createPedigreeRequirement;
   final Project proj;
 
-  public static final String NAME = "";
+  public static final String NAME = "Create PLINK Files";
   public static final String DESC = "";
 
   private PlinkExportStep(Project proj, Requirement<File> pedigreeRequirement,

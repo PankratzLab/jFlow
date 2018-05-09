@@ -29,7 +29,7 @@ public class MitoCNEstimateStep extends Step {
     // these steps split or something...
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
     final Requirement<File> medianMarkersReq = new Requirement.FileRequirement("MedianMarkers file must exist.",
-                                                                               null);
+                                                                               new File(""));
     final Requirement<Double> lrrSdThresholdReq = new Requirement.DoubleRequirement("LRR SD threshold to filter samples.",
                                                                                     proj.LRRSD_CUTOFF.getValue(),
                                                                                     proj.LRRSD_CUTOFF.getMinValue(),
@@ -50,9 +50,9 @@ public class MitoCNEstimateStep extends Step {
     final Requirement<Integer> gcRegressionDistanceReq = new Requirement.PosIntRequirement("Regression distance for the GC adjustment",
                                                                                            GcAdjustor.DEFAULT_REGRESSION_DISTANCE[0]);
     final Requirement<File> pcSelectionSamplesReq = new Requirement.OptionalFileRequirement("A file listing a subset of samples (DNA ID) to use for determining optimal PC selection, typically a list of unrelated and single race samples. If a list is not provided, only samples passing sample qc thresholds will be used.",
-                                                                                            null);
+                                                                                            new File(""));
     final Requirement<File> externalBetaFileReq = new Requirement.OptionalFileRequirement("An external beta file to optimize PC selection.",
-                                                                                          null);
+                                                                                          new File(""));
 
     final RequirementSet reqSet = RequirementSetBuilder.and().add(transposeStepReq)
                                                        .add(medianMarkersReq).add(lrrSdThresholdReq)

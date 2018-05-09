@@ -97,8 +97,9 @@ public abstract class RequirementSet {
     @Override
     boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
                                   Map<Step, Variables> variables) {
-      return this.reqs.get(0).checkRequirement(variables.get(step).get(this.reqs.get(0)).toString(),
-                                               stepSelections, variables);
+      Requirement<?> req = this.reqs.get(0);
+      Object def = variables.get(step).get(this.reqs.get(0));
+      return req.checkRequirement(def == null ? null : def.toString(), stepSelections, variables);
     }
 
     @Override

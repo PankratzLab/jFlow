@@ -37,7 +37,7 @@ public class AncestryStep extends Step {
   }
 
   private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
-                                                                                 null);
+                                                                                 new File(""));
 
   final Project proj;
   final ResourceRequirement hapMapFoundersReq;

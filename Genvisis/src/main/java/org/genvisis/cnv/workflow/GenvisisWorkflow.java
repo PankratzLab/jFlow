@@ -1,10 +1,9 @@
 package org.genvisis.cnv.workflow;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.collections4.SortedBidiMap;
-import org.apache.commons.collections4.bidimap.UnmodifiableSortedBidiMap;
 import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
@@ -30,7 +29,7 @@ public class GenvisisWorkflow {
   public static final String PLINK_SUBDIR = "plink/";
   public static final String PLINKROOT = "plink";
   final Project proj;
-  private final SortedBidiMap<Double, Step> steps;
+  private final List<Step> steps;
   Logger log;
   private final Launch launch;
 
@@ -44,7 +43,7 @@ public class GenvisisWorkflow {
     log = project.getLog();
     this.launch = launch;
 
-    steps = UnmodifiableSortedBidiMap.unmodifiableSortedBidiMap(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
+    steps = Collections.unmodifiableList(generateSteps(!project.IS_PC_CORRECTED_PROJECT.getValue()));
   }
 
   public void showDialogAndRun() {
@@ -60,7 +59,7 @@ public class GenvisisWorkflow {
     }
   }
 
-  private SortedBidiMap<Double, Step> generateSteps(boolean allowCorrectionStep) {
+  private List<Step> generateSteps(boolean allowCorrectionStep) {
     StepBuilder sb = new StepBuilder(proj);
 
     Step parseSamplesStep;
@@ -90,7 +89,7 @@ public class GenvisisWorkflow {
     sb.generateAnnotateSampleDataStep(proj, sampleQCStep, createSampleDataStep, gwasQCStep);
     sb.generateMitoCNEstimateStep(proj, transposeStep);
     Step pfbStep = sb.generatePFBStep(proj, parseSamplesStep);
-    sb.generateSexCentroidsStep(proj);
+    sb.generateSexCentroidsStep(proj, pfbStep);
     sb.generateCNVStep(proj, pfbStep, gcModelStep);
     if (allowCorrectionStep) {
       sb.generatePCCorrectedProjectStep(proj, parseSamplesStep);
@@ -300,7 +299,7 @@ public class GenvisisWorkflow {
     // Create new sample data, run sex checks?
     Step gc = sb.generateGCModelStep(pcProj);
     Step pfb = sb.generatePFBStep(pcProj, null);
-    Step cent = sb.generateSexCentroidsStep(pcProj);
+    Step cent = sb.generateSexCentroidsStep(pcProj, pfb);
     Step cnv = sb.generateCNVStep(pcProj, pfb, gc);
     Variables cnvOpts = new Variables();
     List<Requirement<?>> reqs = cnv.getRequirements().getFlatRequirementsList();

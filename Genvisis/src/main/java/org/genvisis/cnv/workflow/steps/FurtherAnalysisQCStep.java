@@ -38,9 +38,9 @@ public class FurtherAnalysisQCStep extends Step {
     final Requirement<Step> gwasQCStepReq = new Requirement.StepRequirement(gwasQCStep);
     final Requirement<Step> ancestryStepReq = new Requirement.StepRequirement(ancestryStep);
     final Requirement<File> unrelatedsFileReq = new Requirement.FileRequirement("File with list of unrelated FID/IID pairs to use for marker QC",
-                                                                                null);
+                                                                                new File(""));
     final Requirement<File> europeansFilesReq = new Requirement.FileRequirement("File with list of European samples to use for Hardy-Weinberg equilibrium tests",
-                                                                                null);
+                                                                                new File(""));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(gwasQCStepReq)

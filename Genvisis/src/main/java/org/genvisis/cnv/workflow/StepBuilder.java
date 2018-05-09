@@ -1,7 +1,10 @@
 package org.genvisis.cnv.workflow;
 
-import org.apache.commons.collections4.SortedBidiMap;
-import org.apache.commons.collections4.bidimap.DualTreeBidiMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.steps.ABLookupStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
@@ -37,7 +40,8 @@ import org.genvisis.cnv.workflow.steps.TransposeStep;
  */
 public class StepBuilder {
 
-  private SortedBidiMap<Double, Step> buildSteps;
+  private Map<Step, Double> priorityMap;
+  private List<Step> buildSteps;
   private double p;
   private final Requirement<Integer> numThreadsReq;
   public static final String NUM_THREADS_DESC = "Number of threads";
@@ -46,7 +50,8 @@ public class StepBuilder {
   public StepBuilder(Project proj) {
     numThreadsReq = new Requirement.PosIntRequirement(NUM_THREADS_DESC,
                                                       proj.NUM_THREADS.getValue());
-    buildSteps = new DualTreeBidiMap<>();
+    buildSteps = new ArrayList<>();
+    priorityMap = new HashMap<>();
     p = 0.0;
   }
 
@@ -57,7 +62,14 @@ public class StepBuilder {
   /**
    * @return All steps {@link #register(Step)}ed by this step builder thus far
    */
-  public SortedBidiMap<Double, Step> getSortedSteps() {
+  public List<Step> getSortedSteps() {
+    buildSteps.sort(new Comparator<Step>() {
+
+      @Override
+      public int compare(Step o1, Step o2) {
+        return Double.compare(priorityMap.get(o1), priorityMap.get(o2));
+      }
+    });
     return buildSteps;
   }
 
@@ -72,7 +84,8 @@ public class StepBuilder {
    * Register the given step in the list returned by {@link #getSortedSteps()}
    */
   Step register(Step s) {
-    buildSteps.put(priority(), s);
+    priorityMap.put(s, priority());
+    buildSteps.add(s);
     return s;
   }
 
@@ -158,8 +171,8 @@ public class StepBuilder {
     return register(ComputePFBStep.create(proj, parseSamplesStep));
   }
 
-  Step generateSexCentroidsStep(Project proj) {
-    return register(SexCentroidsStep.create(proj, numThreadsReq));
+  Step generateSexCentroidsStep(Project proj, final Step pfbStep) {
+    return register(SexCentroidsStep.create(proj, pfbStep, numThreadsReq));
   }
 
   Step generateCNVStep(Project proj, Step pfbStep, Step gcModelStep) {

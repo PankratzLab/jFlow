@@ -13,7 +13,7 @@ import org.genvisis.common.Files;
 
 public class SexChecksStep extends Step {
 
-  public static final String NAME = "";
+  public static final String NAME = "Run Sex Checks";
   public static final String DESC = "";
   public static final String NO_CROSS_HYBE_REQUIREMENT = "Use only X and Y chromosome R values to identify sex discriminating markers";
   public static final String ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT = "Add Estimated Sex to Sample Data";

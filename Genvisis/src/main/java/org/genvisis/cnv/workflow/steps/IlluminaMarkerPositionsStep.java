@@ -19,7 +19,7 @@ public class IlluminaMarkerPositionsStep extends Step {
 
   public static IlluminaMarkerPositionsStep create(Project proj) {
     final Requirement<File> manifestReq = new Requirement.FileRequirement("An Illumina Manifest file.",
-                                                                          new File(proj.getLocationOfSNP_Map(false)));
+                                                                          new File(""));
 
     return new IlluminaMarkerPositionsStep(proj, manifestReq);
   }
@@ -42,7 +42,8 @@ public class IlluminaMarkerPositionsStep extends Step {
   @Override
   public void run(Variables variables) {
     proj.getLog().report("Generating marker positions file");
-    String manifest = variables.get(manifestReq).getAbsolutePath();
+    String manifest = variables.get(manifestReq) == null ? null : variables.get(manifestReq)
+                                                                           .getAbsolutePath();
     if (Files.exists(manifest)) {
       MarkerBlast.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
                                                      FILE_SEQUENCE_TYPE.MANIFEST_FILE,
