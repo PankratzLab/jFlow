@@ -597,6 +597,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
+   * Note: Although the {@link SortedSetMultimap} interface does not guarantee sorting of the keys,
+   * what is actually returned is the result of
+   * {@link Multimaps#unmodifiableSortedSetMultimap(SortedSetMultimap)} on a {@link TreeMultimap},
+   * which guarantees sorting of the keys.
+   * 
    * @return an unmodifiable {@link SortedSetMultimap} from chromosome (sorted) to {@link Marker}s
    *         (sorted by position)
    */
