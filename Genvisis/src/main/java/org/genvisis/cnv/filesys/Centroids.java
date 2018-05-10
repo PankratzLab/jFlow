@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.manage.MarkerDataLoader;
@@ -650,7 +651,7 @@ public class Centroids implements Serializable, TextExport {
     final boolean[] chromPlus11Markers = proj.getMarkerForChrsBoolean(new int[] {11, 23, 24, 25,
                                                                                  26});
     final boolean[] chromMarkers = proj.getMarkerForChrsBoolean(new int[] {23, 24, 25, 26});
-    final int markerCount = ArrayUtils.booleanArraySum(chromMarkers);
+    final int markerCount = ArrayUtils.booleanArraySum(chromPlus11Markers);
     int[] sampleSex;
     final float[][][] rawCentroidsFemale;
     final float[][][] rawCentroidsMale;
@@ -751,6 +752,9 @@ public class Centroids implements Serializable, TextExport {
 
     computeHub = Executors.newFixedThreadPool(threadCount);
 
+    // counter for tracking how many centroids have been calculated
+    AtomicInteger numCentroidsCalculated = new AtomicInteger(0);
+
     for (int i = 0; i < threadCount; i++) {
       final int myIndex = i;
       final long myStartTime = System.currentTimeMillis();
@@ -769,6 +773,7 @@ public class Centroids implements Serializable, TextExport {
             if (!chromMarkers[index] && !chromPlus11Markers[index]) {
               continue;
             }
+            numCentroidsCalculated.incrementAndGet();
             int markerIndex = fullToTruncMarkerIndices[myIndex].get(index);
             MarkerData markerData = markerDataLoaders[myIndex].requestMarkerData(markerIndex);
             if (!chromMarkers[index]) {
@@ -859,9 +864,9 @@ public class Centroids implements Serializable, TextExport {
 
             }
 
-            if (markerIndex > 0 && markerIndex % 10000 == 0) {
+            if (markerIndex > 0 && numCentroidsCalculated.get() % 10000 == 0) {
               log.report(ext.getTime() + "\t...sex centroids computed up to marker "
-                         + (markerCount - markerIndex) + " of " + markerCount);
+                         + (numCentroidsCalculated.get()) + " of " + markerCount);
             }
             markerDataLoaders[myIndex].releaseIndex(markerIndex);
 
