@@ -11,6 +11,7 @@ import javax.swing.JTextField;
 import org.genvisis.common.Grafik;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
+import org.genvisis.filesys.Segment;
 
 /**
  * Utility class for creating UI navigation bars for moving between chromosomal locations. To use
@@ -83,6 +84,10 @@ public class RegionNavigator extends JPanel {
     addTextField(chrNavField, al, NAV_CHR);
     addButton(al, NEXT_CHR, "Go to next chromosome", NEXT_BTN);
     addButton(al, LAST_CHR, "Go to last chromosome", LAST_BTN);
+  }
+
+  public void setChrFieldText(Segment segment) {
+    setChrFieldText(segment.getChr(), segment.getStart(), segment.getStop());
   }
 
   public void setChrFieldText(byte chr, int start, int stop) {

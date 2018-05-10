@@ -63,6 +63,10 @@ public class GeneTrack implements Serializable {
     return getBetween(position[0], position[1], position[2], backTrack);
   }
 
+  public GeneData[] getBetween(Segment segment, int backTrack) {
+    return getBetween(segment.getChr(), segment.getStart(), segment.getStop(), backTrack);
+  }
+
   public GeneData[] getBetween(int chr, int start, int stop, int backTrack) {
     Vector<GeneData> v;
     int first, last;

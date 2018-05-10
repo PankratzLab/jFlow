@@ -191,15 +191,13 @@ public class CNVariantHash implements Serializable {
   /**
    * This method will return all of the CNVs within a specified range
    *
-   * @param chr Which chromosome to use
-   * @param start Starting position
-   * @param stop Ending position
+   * @param location range to search
    * @param minProbes Minimum number of probes (markers)
    * @param minSizeKb Minimum size in kilobases
    * @param minQualityScore Minimum quality score
    * @return Sorted array of CNVs in the region
    */
-  public CNVariant[] getAllInRegion(byte chr, int start, int stop, int minProbes, int minSizeKb,
+  public CNVariant[] getAllInRegion(Segment location, int minProbes, int minSizeKb,
                                     int minQualityScore) {
     Vector<CNVariant> inRegion = new Vector<>();
 
@@ -213,11 +211,11 @@ public class CNVariantHash implements Serializable {
           byte myChr = element.getChr();
 
           // Only look at the specified chromosome
-          if (myChr == chr) {
+          if (myChr == location.getChr()) {
             int myStart = element.getStart();
             int myStop = element.getStop();
 
-            if ((myStop < start) || (myStart > stop)) {
+            if ((myStop < location.getStart()) || (myStart > location.getStop())) {
               // We stop before the window, or start after it
             } else {
               int minSizeBases = minSizeKb * 1000;

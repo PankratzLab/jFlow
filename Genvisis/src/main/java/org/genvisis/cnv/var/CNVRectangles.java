@@ -14,6 +14,7 @@ import java.util.List;
 import org.genvisis.cnv.plots.CompPlot;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
+import org.genvisis.filesys.Segment;
 
 /**
  * This class reads in CNV files and generates a list of rectangles representing them. The list can
@@ -32,10 +33,10 @@ public class CNVRectangles {
   int probes;
   int minSize;
   int qualityScore;
-  int[] location;
+  Segment location;
 
   public CNVRectangles(ArrayList<CNVariantHash> hashes, ArrayList<String> allFiles,
-                       List<String> filterFiles, int[] location, int probes, int minSize,
+                       List<String> filterFiles, Segment location, int probes, int minSize,
                        int qualityScore, SampleData referenceSamples, String[] samplesToUse) {
     // Set the color scheme
     colorScheme = CompPlot.colorScheme;
@@ -58,8 +59,7 @@ public class CNVRectangles {
       // All CNVs in each file, when they are rendered, will be a single color
       // Any CNVs where CNVariant.getCN() != 2 will be a different shade of that color
       File file = new File(hash.getFilename());
-      CNVariant[] cnvs = hash.getAllInRegion((byte) location[0], location[1], location[2], probes,
-                                             minSize, qualityScore);
+      CNVariant[] cnvs = hash.getAllInRegion(location, probes, minSize, qualityScore);
       ArrayList<CNVariant> cnvList = new ArrayList<>(Arrays.asList(cnvs));
 
       fileMap.put(file.getName(), cnvList);
@@ -75,7 +75,7 @@ public class CNVRectangles {
 
           // Set the color
           if (sampleSet == null || (ref != null && sampleSet.contains(ref[0]))) {
-            CNVRectangle cnvRect = new CNVRectangle(variant, location[1]);
+            CNVRectangle cnvRect = new CNVRectangle(variant, location.getStart());
             cnvRect.setCNVColor(colorScheme[allFiles.indexOf(key) % colorScheme.length]);
             cnvRect.setFilename(key);
             cnvRect.addCNV(variant);
