@@ -14,7 +14,6 @@ public class CompareDuplicates {
   public static String doIt(Project proj, String[] pair, String[] markerNames,
                             int[] discordantCounts) {
     Sample[] fsamps;
-    byte[] chrs;
     float[][] xs, ys;
     int max, count, sameGeno, diffGeno;
     String summary;
@@ -46,10 +45,9 @@ public class CompareDuplicates {
         // genos[i] = fsamps[i].getForwardGenotypes();
       }
 
-      chrs = proj.getMarkerSet().getChrs();
       // max = Array.indexOfByte(chrs, (byte)23);
       // max = 1000000;
-      max = chrs.length;
+      max = proj.getMarkerSet().getMarkers().size();
 
       geno = 0;
       count = 0;
