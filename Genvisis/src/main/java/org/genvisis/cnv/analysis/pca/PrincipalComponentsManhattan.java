@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +17,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.ArrayUtils;
@@ -129,11 +130,7 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
    * dumps all tests to separate files
    */
   public void dumpResults(String fullPathToOutputBase) {
-    MarkerSetInfo markerSet = proj.getMarkerSet();
-    int[] markerIndicesInProject = ext.indexLargeFactors(markersToTest, markerSet.getMarkerNames(),
-                                                         true, getProj().getLog(), true);
-    byte[] chrs = markerSet.getChrs();
-    int[] pos = markerSet.getPositions();
+    Map<String, Marker> nameMap = proj.getMarkerSet().getMarkerNameMap();
     for (int i = 0; i < manhattanTests.length; i++) {
       String output = fullPathToOutputBase
                       + ext.replaceWithLinuxSafeCharacters(manhattanTests[i].getTitle(), true)
@@ -143,8 +140,9 @@ public class PrincipalComponentsManhattan extends PrincipalComponentsResiduals {
         PrintWriter writer = Files.openAppropriateWriter(output);
         writer.println(ArrayUtils.toStr(HEADER));
         for (int j = 0; j < markersToTest.length; j++) {
-          writer.println((j + 1) + "\t" + markersToTest[j] + "\t" + chrs[markerIndicesInProject[j]]
-                         + "\t" + pos[markerIndicesInProject[j]] + "\t"
+          Marker marker = nameMap.get(markersToTest[j]);
+          writer.println((j + 1) + "\t" + marker.getName() + "\t" + marker.getChr() + "\t"
+                         + marker.getPosition() + "\t"
                          + (results[i][j] == null ? "NaN\tNaN" : results[i][j][0] + "\t"
                                                                  + Math.abs(results[i][j][1])));
         }
