@@ -211,7 +211,7 @@ public class VcfExportShortcut {
   private static final String DESC_PED = "Pedigree File";
   private static final String DESC_PUT_WHT = "Putative whites file (file with two columns of FID/IID and no header)";
   private static final String DESC_VCF_OUT = "VCF output directory and file root";
-  private static final String DESC_IMP_REF = "Imputation marker reference file";
+  private static final String DESC_IMP_REF = "Imputation marker reference file (available for HRC at http://www.haplotype-reference-consortium.org/site)";
   private static final String DESC_GRC_OUT = "Export contigs with \"chr\" prepend (defaults to true)";
   private static final String DESC_CALLRATE = "Callrate Threshold";
   private static final String DESC_HWE = "HWE Threshold";
@@ -230,15 +230,15 @@ public class VcfExportShortcut {
 
     cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN, true);
 
-    cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS,
-               Integer.toString(Runtime.getRuntime().availableProcessors()), false);
-    cli.addArg(ARG_GRC_OUT, DESC_GRC_OUT, "true", false);
-    cli.addArg(ARG_CALLRATE, DESC_CALLRATE,
-               MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD.substring(1), false);
-    cli.addArg(ARG_HWE, DESC_HWE, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1),
-               false);
-    cli.addArg(ARG_QC, DESC_QC, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1),
-               false);
+    cli.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS,
+                          Runtime.getRuntime().availableProcessors());
+    cli.addArgWithDefault(ARG_GRC_OUT, DESC_GRC_OUT, "true");
+    cli.addArgWithDefault(ARG_CALLRATE, DESC_CALLRATE,
+                          MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD.substring(1));
+    cli.addArgWithDefault(ARG_HWE, DESC_HWE,
+                          FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1));
+    cli.addArgWithDefault(ARG_QC, DESC_QC,
+                          FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1));
 
     cli.parseWithExit(args);
 
