@@ -8,19 +8,18 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.Centroids.CENTROID_STRATEGY;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PFB;
@@ -39,6 +38,7 @@ import org.genvisis.common.SciStringComparator;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.qsub.Qsub;
+import com.google.common.collect.ImmutableSet;
 
 public class PennCNV {
 
@@ -928,19 +928,13 @@ public class PennCNV {
       batch(proj, numChunks, execList, pfbFile, gcmodelFile, hmmFile, "penn_scripts/", "", "");
     }
     if (chrx) {
-      MarkerSetInfo ms = proj.getMarkerSet();
+      MarkerDetailSet ms = proj.getMarkerSet();
       if (ms == null) {
         log.reportError("Error - no marker set available.");
       } else {
         log.report("Transforming data for chromosomal CNV analysis");
-        HashSet<String> xMarkers = new HashSet<>();
-        byte[] chrs = ms.getChrs();
-        String[] markers = ms.getMarkerNames();
-        for (int i = 0; i < chrs.length; i++) {
-          if (chrs[i] == 23) {
-            xMarkers.add(markers[i]);
-          }
-        }
+        Set<String> xMarkers = ms.getChrMap().get((byte) 23).stream().map(Marker::getName)
+                                 .collect(ImmutableSet.toImmutableSet());
         AnalysisFormats.exportPenncnvSamples(proj, samples, xMarkers, "chrX/",
                                              Runtime.getRuntime().availableProcessors());
       }
