@@ -2,8 +2,10 @@ package org.genvisis.cnv.hmm;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 import org.genvisis.CLI;
@@ -125,7 +127,7 @@ public class PFB {
       });
     }
     double[] bafAverage = new double[chrs.length];
-    Set<String> missingGenotypeMarkers = Collections.synchronizedSet(new HashSet<>());
+    Set<String> missingGenotypeMarkers = new HashSet<>();
 
     IntStream.range(0, bafSum.length).parallel().forEach((i) -> {
       boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
@@ -164,7 +166,9 @@ public class PFB {
         log.reportTimeInfo(missingGenotypeMarkers.size()
                            + " markers had missing genotypes and were set to -1 in " + output
                            + ". These markers can be treated as CN only markers, or removed at your discretion with CNVCaller");
-        Files.writeIterable(missingGenotypeMarkers, missingGenoFile);
+        List<String> missingMarkerList = new ArrayList<>(missingGenotypeMarkers);
+        Collections.sort(missingMarkerList);
+        Files.writeIterable(missingMarkerList, missingGenoFile);
       }
     } catch (Exception e) {
       log.reportError("Error writing to '" + output + "'");
