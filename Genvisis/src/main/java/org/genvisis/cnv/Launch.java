@@ -462,6 +462,26 @@ public class Launch extends JFrame implements ActionListener {
       System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + ExceptionHandler.X11_ERROR_DISABLED);
       return;
     }
+
+    // Create and set up the content pane.
+    LauncherManifest manifest = new LauncherManifest();
+    try {
+      // try not to break the launch so we will catch anything
+      manifest = LauncherManifest.loadGenvisisManifest();
+    } catch (Exception e) {
+      // It's OK if there is no manifest
+    }
+
+    launchUI = new Launch(manifest);
+    // FIXME switch to dedicated shutdown method that can notify anything that needs to respond to
+    // shutdown requests
+    launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    ueh.setLog(launchUI.log);
+
+    // Ensure we have a launch properties available
+    launchUI.initLaunchProperties();
+
+    // Show a splash screen while loading
     final JLabel splashText = new JLabel(loadMsg, SwingConstants.CENTER);
     splash.add(splashText);
     splash.setPreferredSize(new Dimension(200, 75));
@@ -493,23 +513,7 @@ public class Launch extends JFrame implements ActionListener {
       }
     }).start();
 
-    // Create and set up the content pane.
-    LauncherManifest manifest = new LauncherManifest();
-    try {
-      // try not to break the launch so we will catch anything
-      manifest = LauncherManifest.loadGenvisisManifest();
-    } catch (Exception e) {
-      // It's OK if there is no manifest
-    }
-
-    launchUI = new Launch(manifest);
-    // FIXME switch to dedicated shutdown method that can notify anything that needs to respond to
-    // shutdown requests
-    launchUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    ueh.setLog(launchUI.log);
-
     // Have to read which projects are available before creating the menus
-    launchUI.initLaunchProperties();
     launchUI.loadProjects();
 
     // Create the UI here
