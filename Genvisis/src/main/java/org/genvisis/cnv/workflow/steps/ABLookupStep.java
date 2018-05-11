@@ -1,5 +1,6 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import org.genvisis.CLI;
@@ -42,10 +43,10 @@ public class ABLookupStep extends Step {
                       + ext.addToRoot(ABLookup.DEFAULT_AB_FILE, "_parsed");
     ABLookup.parseABLookup(proj, ABSource.VCF, filename);
 
-    if (ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false)) {
+    ABLookup.fillInMissingAlleles(proj, filename, proj.getLocationOfSNP_Map(true), false);
+
+    if (new File(filename).exists()) {
       ABLookup.applyABLookupToFullSampleFiles(proj, filename);
-    } else {
-      throw new RuntimeException("Failed to fill in missing alleles - please check log for more info.");
     }
   }
 
