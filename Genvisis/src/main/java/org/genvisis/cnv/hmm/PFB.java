@@ -127,7 +127,8 @@ public class PFB {
       });
     }
     double[] bafAverage = new double[chrs.length];
-    Set<String> missingGenotypeMarkers = new HashSet<>();
+    // NB: must be synchronized since populated in parallel below
+    Set<String> missingGenotypeMarkers = Collections.synchronizedSet(new HashSet<>());
 
     IntStream.range(0, bafSum.length).parallel().forEach((i) -> {
       boolean cnOnly = proj.getArrayType().isCNOnly(markerNames[i]);
