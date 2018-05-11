@@ -534,4 +534,42 @@ public class BeastScore {
     }
     return score;
   }
+
+  public static class BeastVariant extends CNVariant {
+
+    private double beastScore;
+    private double beastLength;
+    private double beastHeight;
+
+    /**
+     * @param builder {@link CNVBuilder} to pass on primary info
+     * @param beastScore
+     * @param beastLength
+     * @param beastHeight
+     */
+    public BeastVariant(CNVBuilder builder, double beastScore, double beastLength,
+                        double beastHeight) {
+      super(builder);
+      this.beastScore = beastScore;
+      this.beastLength = beastLength;
+      this.beastHeight = beastHeight;
+    }
+
+    @Override
+    public String toAnalysisString() {
+      return toPlinkFormat() + "\t" + beastScore + "\t" + beastLength + "\t" + beastHeight;
+    }
+
+    @Override
+    public String[] getHeader() {
+      return ArrayUtils.concatAll(super.getHeader(),
+                                  new String[] {"BEAST_SCORE", "BEAST_LENGTH", "BEAST_HEIGHT"});
+    }
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+  }
 }

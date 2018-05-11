@@ -885,7 +885,7 @@ public class CNVariant extends Segment {
     }
   }
 
-  private CNVariant(CNVBuilder builder) {
+  protected CNVariant(CNVBuilder builder) {
     super(builder.chr, builder.start, builder.stop);
     familyID = builder.familyID;
     individualID = builder.individualID;
