@@ -59,11 +59,15 @@ public class SampleDataStep extends Step {
   @Override
   public void run(Variables variables) {
     Boolean minimal = variables.get(createMinimalSampleDataReq);
-    File pedFile = minimal ? null : variables.get(pedigreeReq);
+    File pedFile = variables.get(pedigreeReq);
+    String pedFilePath = null;
+    if (!minimal && pedFile != null) {
+      pedFilePath = pedFile.getAbsolutePath();
+    }
 
     proj.getLog().report("Creating SampleData.txt");
     try {
-      int retStat = SampleData.createSampleData(pedFile.getAbsolutePath(), null, proj);
+      int retStat = SampleData.createSampleData(pedFilePath, null, proj);
       if (retStat == -1) {
         throw new RuntimeException("Error during SampleData creation - please check log and try again.");
       }
