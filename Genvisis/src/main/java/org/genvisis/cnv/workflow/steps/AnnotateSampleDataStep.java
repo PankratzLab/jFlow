@@ -1,5 +1,6 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -180,18 +181,32 @@ public class AnnotateSampleDataStep extends Step {
     if (!Files.exists(sampleDataFile)) {
       return false;
     }
-    boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
     String[] header = Files.getHeaderOfFile(sampleDataFile, proj.getLog());
-    if (checkDuplicates
-        && ext.indexOfStr(SampleQC.DUPLICATE_ID_HEADER, header, false, true) == -1) {
-      return false;
-    }
-    String[] reqHdr = {SampleQC.EXCLUDE_HEADER, "ExcludeNote", "Use", "UseNote", "Use_cnv",
-                       "Use_cnvNote"};
-    int[] facts = ext.indexFactors(reqHdr, header, false);
+
+    // These columns should always added by SampleQC
+    String[] baseHeader = {SampleQC.EXCLUDE_HEADER, "ExcludeNote"};
+
+    int[] facts = ext.indexFactors(baseHeader, header, false);
     for (int i : facts) {
       if (i == -1) {
         return false;
+      }
+    }
+
+    boolean checkDuplicates = !variables.get(skipIDingDuplicatesReq).booleanValue();
+    File duplicateSetFile = new File(GenvisisWorkflow.getPlinkDir(proj) + Qc.QC_SUBDIR
+                                     + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
+                                     + ".genome_duplicatesSet.dat");
+    // If there was no duplicate file than these headers won't be added
+    if (checkDuplicates && duplicateSetFile.exists()) {
+      // These columns are only added if checkDuplicates occurred
+      String[] dupHeader = {SampleQC.DUPLICATE_ID_HEADER, "Use", "UseNote", "Use_cnv",
+                            "Use_cnvNote"};
+      facts = ext.indexFactors(dupHeader, header, false);
+      for (int i : facts) {
+        if (i == -1) {
+          return false;
+        }
       }
     }
     return true;
