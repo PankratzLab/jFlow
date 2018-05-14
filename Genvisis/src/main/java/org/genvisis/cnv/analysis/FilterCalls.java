@@ -30,7 +30,6 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
-import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -44,7 +43,6 @@ import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 
@@ -1925,23 +1923,12 @@ public class FilterCalls {
     CNVariant[] cnvs = CNVariant.loadPlinkFile(filein);
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
-    SetMultimap<GenomicPosition, Marker> genomicPositionMap = markerSet.getGenomicPositionMap();
     for (int i = 0; i < cnvs.length; i++) {
-      byte chr = cnvs[i].getChr();
-      int start = cnvs[i].getStart();
-      int stop = cnvs[i].getStop();
-      Set<Marker> firstSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, start));
-      Set<Marker> lastSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, stop));
-      if (firstSnpMatches.isEmpty() || lastSnpMatches.isEmpty()) {
-        System.err.println("Error - could not locate start or stop position for "
-                           + cnvs[i].getUCSClocation());
+      Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnvs[i]);
+      if (cnvs[i].getCN() < 2) {
+        delCounts.addAll(markersInCNV);
       } else {
-        Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnvs[i]);
-        if (cnvs[i].getCN() < 2) {
-          delCounts.addAll(markersInCNV);
-        } else {
-          dupCounts.addAll(markersInCNV);
-        }
+        dupCounts.addAll(markersInCNV);
       }
     }
     Set<Marker> acceptables = Sets.newHashSet();
@@ -1958,25 +1945,15 @@ public class FilterCalls {
     try (PrintWriter writer = Files.openAppropriateWriter(fileout)) {
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
       for (CNVariant cnv : cnvs) {
-        byte chr = cnv.getChr();
-        int start = cnv.getStart();
-        int stop = cnv.getStop();
-        Set<Marker> firstSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, start));
-        Set<Marker> lastSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, stop));
         final boolean accepted;
-        if (firstSnpMatches.isEmpty() || lastSnpMatches.isEmpty()) {
-          accepted = false;
+        Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
+        if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
+          int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
+          accepted = countAcceptable
+                     / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
         } else {
-          Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
-          if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-            int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
-            accepted = countAcceptable
-                       / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
-          } else {
-            accepted = acceptables.containsAll(markersInCNV);
-          }
+          accepted = acceptables.containsAll(markersInCNV);
         }
-
         if (accepted) {
           writer.println(cnv.toPlinkFormat());
         }
