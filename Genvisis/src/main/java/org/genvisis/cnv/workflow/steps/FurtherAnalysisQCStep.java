@@ -131,8 +131,8 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   private String resolveUnrelatedsFile(Variables stepVars) {
-    String unrelatedsFile = stepVars.get(unrelatedsFileReq).getAbsolutePath();
-    if (!Files.exists(unrelatedsFile)) {
+    String unrelatedsFile = stepVars.get(unrelatedsFileReq).getPath();
+    if (unrelatedsFile == null || unrelatedsFile.equals("") || !Files.exists(unrelatedsFile)) {
       unrelatedsFile = GenvisisWorkflow.getAncestryDir(proj)
                        + RelationAncestryQc.UNRELATEDS_FILENAME;
     }
@@ -140,8 +140,8 @@ public class FurtherAnalysisQCStep extends Step {
   }
 
   private String resolveEuropeansFile(Variables stepVars) {
-    String europeansFile = stepVars.get(europeansFilesReq).getAbsolutePath();
-    if (europeansFile == null || "".equals(europeansFile)) {
+    String europeansFile = stepVars.get(europeansFilesReq).getPath();
+    if (europeansFile == null || "".equals(europeansFile) || !Files.exists(europeansFile)) {
       String raceImputationFilename = GenvisisWorkflow.getAncestryDir(proj)
                                       + Ancestry.RACE_IMPUTATIONAS_FILENAME;
       europeansFile = PCImputeRace.formRaceListFilename(RACE.WHITE, raceImputationFilename);
