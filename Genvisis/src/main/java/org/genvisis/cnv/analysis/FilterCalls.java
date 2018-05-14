@@ -42,7 +42,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -1793,14 +1793,15 @@ public class FilterCalls {
     }
   }
 
-  public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs,
-                                                                     int totalRequired,
-                                                                     int delRequired,
-                                                                     int dupRequired,
-                                                                     int totalLimitedTo,
-                                                                     int delLimitedTo,
-                                                                     int dupLimitedTo,
-                                                                     double proportionOfProbesThatNeedToPassForFinalInclusion) {
+  public static List<CNVariant> filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj,
+                                                                         CNVariant[] cnvs,
+                                                                         int totalRequired,
+                                                                         int delRequired,
+                                                                         int dupRequired,
+                                                                         int totalLimitedTo,
+                                                                         int delLimitedTo,
+                                                                         int dupLimitedTo,
+                                                                         double proportionOfProbesThatNeedToPassForFinalInclusion) {
 
     long time = new Date().getTime();
 
@@ -1828,7 +1829,7 @@ public class FilterCalls {
     }
 
     System.out.println(ext.getTime() + "\tFiltering CNVs...");
-    List<CNVariant> filteredCNVs = Lists.newArrayList();
+    ImmutableList.Builder<CNVariant> filteredCNVs = ImmutableList.builder();
     for (CNVariant cnv : cnvs) {
       final boolean accepted;
       Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
@@ -1845,7 +1846,7 @@ public class FilterCalls {
     }
 
     System.out.println("Finished filtering CNVs in " + ext.getTimeElapsed(time));
-    return filteredCNVs.toArray(new CNVariant[0]);
+    return filteredCNVs.build();
   }
 
   public static void filterBasedOnNumberOfCNVsAtLocus(Project proj, String filein, String fileout,
@@ -1857,12 +1858,15 @@ public class FilterCalls {
     long time = new Date().getTime();
 
     System.out.println(ext.getTime() + "\tLoading plink file...");
-    CNVariant[] filteredCNVs = filterBasedOnNumberOfCNVsAtLocusInMemory(proj,
-                                                                        CNVariant.loadPlinkFile(filein),
-                                                                        totalRequired, delRequired,
-                                                                        dupRequired, totalLimitedTo,
-                                                                        delLimitedTo, dupLimitedTo,
-                                                                        proportionOfProbesThatNeedToPassForFinalInclusion);
+    List<CNVariant> filteredCNVs = filterBasedOnNumberOfCNVsAtLocusInMemory(proj,
+                                                                            CNVariant.loadPlinkFile(filein),
+                                                                            totalRequired,
+                                                                            delRequired,
+                                                                            dupRequired,
+                                                                            totalLimitedTo,
+                                                                            delLimitedTo,
+                                                                            dupLimitedTo,
+                                                                            proportionOfProbesThatNeedToPassForFinalInclusion);
 
     System.out.println(ext.getTime() + "\tWriting results...");
     try (PrintWriter writer = Files.openAppropriateWriter(fileout)) {
