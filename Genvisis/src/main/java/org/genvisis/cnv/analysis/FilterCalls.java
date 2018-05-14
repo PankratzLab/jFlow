@@ -16,7 +16,10 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -27,6 +30,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CNVFilter;
 import org.genvisis.common.CNVFilter.CNVFilterPass;
 import org.genvisis.common.Files;
+import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
@@ -38,6 +42,10 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 
 public class FilterCalls {
@@ -1906,89 +1914,66 @@ public class FilterCalls {
                                                       int dupRequired, int totalLimitedTo,
                                                       int delLimitedTo, int dupLimitedTo,
                                                       double proportionOfProbesThatNeedToPassForFinalInclusion) {
-    PrintWriter writer;
-    MarkerSetInfo markerSet;
-    int[][] positions;
-    int[][][] counts;
-    int firstSNP, lastSNP, indel;
-    CNVariant[] cnvs;
-    int index;
-    boolean[][] acceptableSNPs;
-    boolean accepted;
-    int dels, dups;
-    int countAcceptable;
-    long time;
 
-    time = new Date().getTime();
+    long time = new Date().getTime();
 
-    markerSet = proj.getMarkerSet();
-    positions = markerSet.getPositionsByChr();
-    counts = new int[positions.length][][];
-    acceptableSNPs = new boolean[positions.length][];
-    for (int i = 0; i < positions.length; i++) {
-      counts[i] = new int[positions[i].length][2];
-      acceptableSNPs[i] = new boolean[positions[i].length];
-    }
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Multiset<Marker> delCounts = HashMultiset.create();
+    Multiset<Marker> dupCounts = HashMultiset.create();
 
     System.out.println(ext.getTime() + "\tLoading plink file...");
-    cnvs = CNVariant.loadPlinkFile(filein);
+    CNVariant[] cnvs = CNVariant.loadPlinkFile(filein);
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
+    SetMultimap<GenomicPosition, Marker> genomicPositionMap = markerSet.getGenomicPositionMap();
     for (int i = 0; i < cnvs.length; i++) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
-      if (firstSNP == -1 || lastSNP == -1) {
+      byte chr = cnvs[i].getChr();
+      int start = cnvs[i].getStart();
+      int stop = cnvs[i].getStop();
+      Set<Marker> firstSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, start));
+      Set<Marker> lastSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, stop));
+      if (firstSnpMatches.isEmpty() || lastSnpMatches.isEmpty()) {
         System.err.println("Error - could not locate start or stop position for "
                            + cnvs[i].getUCSClocation());
       } else {
-        indel = cnvs[i].getCN() < 2 ? 0 : 1;
-        for (int j = firstSNP; j <= lastSNP; j++) {
-          counts[cnvs[i].getChr()][j][indel]++;
+        Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnvs[i]);
+        if (cnvs[i].getCN() < 2) {
+          delCounts.addAll(markersInCNV);
+        } else {
+          dupCounts.addAll(markersInCNV);
         }
       }
     }
-
-    for (int i = 0; i < positions.length; i++) {
-      for (int j = 0; j < positions[i].length; j++) {
-        dels = counts[i][j][0];
-        dups = counts[i][j][1];
-        acceptableSNPs[i][j] = dels + dups >= totalRequired && dels >= delRequired
-                               && dups >= dupRequired && dels + dups <= totalLimitedTo
-                               && dels <= delLimitedTo && dups <= dupLimitedTo;
+    Set<Marker> acceptables = Sets.newHashSet();
+    for (Marker marker : markerSet.getMarkers()) {
+      int dels = delCounts.count(marker);
+      int dups = dupCounts.count(marker);
+      if (dels + dups >= totalRequired && dels >= delRequired && dups >= dupRequired
+          && dels + dups <= totalLimitedTo && dels <= delLimitedTo && dups <= dupLimitedTo) {
+        acceptables.add(marker);
       }
     }
 
     System.out.println(ext.getTime() + "\tFiltering CNVs...");
-    try {
-      writer = Files.openAppropriateWriter(fileout);
+    try (PrintWriter writer = Files.openAppropriateWriter(fileout)) {
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
       for (CNVariant cnv : cnvs) {
-        firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-        lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
-        indel = cnv.getCN() < 2 ? 0 : 1;
-
-        if (firstSNP == -1 || lastSNP == -1) {
+        byte chr = cnv.getChr();
+        int start = cnv.getStart();
+        int stop = cnv.getStop();
+        Set<Marker> firstSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, start));
+        Set<Marker> lastSnpMatches = genomicPositionMap.get(new GenomicPosition(chr, stop));
+        final boolean accepted;
+        if (firstSnpMatches.isEmpty() || lastSnpMatches.isEmpty()) {
           accepted = false;
         } else {
+          Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
           if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-            countAcceptable = 0;
-            for (int j = firstSNP; j <= lastSNP; j++) {
-              if (acceptableSNPs[cnv.getChr()][j]) {
-                countAcceptable++;
-              }
-            }
-            accepted = (double) countAcceptable
-                       / (double) (lastSNP - firstSNP
-                                   + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
+            int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
+            accepted = countAcceptable
+                       / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
           } else {
-            index = firstSNP;
-            accepted = false;
-            while (!accepted && index <= lastSNP) {
-              if (acceptableSNPs[cnv.getChr()][index]) {
-                accepted = true;
-              }
-              index++;
-            }
+            accepted = acceptables.containsAll(markersInCNV);
           }
         }
 
@@ -1996,8 +1981,7 @@ public class FilterCalls {
           writer.println(cnv.toPlinkFormat());
         }
       }
-      writer.close();
-    } catch (Exception e) {
+    } catch (IOException e) {
       System.err.println("Error writing to " + fileout);
       e.printStackTrace();
     }
