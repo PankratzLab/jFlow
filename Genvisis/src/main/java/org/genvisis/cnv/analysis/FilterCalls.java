@@ -42,6 +42,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -1792,10 +1793,6 @@ public class FilterCalls {
     }
   }
 
-  /**
-   * @param cnvsAsPositions get the start and stop positions from the {@link CNVariant}s themselves
-   *          so that a {@link MarkerSet} is not needed
-   */
   public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs,
                                                                      int totalRequired,
                                                                      int delRequired,
@@ -1803,124 +1800,13 @@ public class FilterCalls {
                                                                      int totalLimitedTo,
                                                                      int delLimitedTo,
                                                                      int dupLimitedTo,
-                                                                     double proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                                     boolean cnvsAsPositions) {
-    MarkerSetInfo markerSet;
-    int[][] positions;
-    int[][][] counts;
-    int firstSNP, lastSNP, indel;
-    ;
-    int index;
-    boolean[][] acceptableSNPs;
-    boolean accepted;
-    int dels, dups;
-    int countAcceptable;
-    long time;
-
-    time = new Date().getTime();
-
-    markerSet = proj.getMarkerSet();
-    if (cnvsAsPositions) {
-      LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(cnvs, true, proj.getLog()) {
-
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-      };
-      positions = tmp.getStartsAndStopsByChromosome();
-    } else {
-      positions = markerSet.getPositionsByChr();
-    }
-    counts = new int[positions.length][][];
-    acceptableSNPs = new boolean[positions.length][];
-    for (int i = 0; i < positions.length; i++) {
-      counts[i] = new int[positions[i].length][2];
-      acceptableSNPs[i] = new boolean[positions[i].length];
-    }
-
-    System.out.println(ext.getTime() + "\tDetermining acceptability...");
-    for (int i = 0; i < cnvs.length; i++) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
-      if (firstSNP == -1 || lastSNP == -1) {
-        System.err.println("Error - could not locate start or stop position for "
-                           + cnvs[i].getUCSClocation());
-      } else {
-        indel = cnvs[i].getCN() < 2 ? 0 : 1;
-        for (int j = firstSNP; j <= lastSNP; j++) {
-          counts[cnvs[i].getChr()][j][indel]++;
-        }
-      }
-    }
-
-    for (int i = 0; i < positions.length; i++) {
-      for (int j = 0; j < positions[i].length; j++) {
-        dels = counts[i][j][0];
-        dups = counts[i][j][1];
-        acceptableSNPs[i][j] = dels + dups >= totalRequired && dels >= delRequired
-                               && dups >= dupRequired && dels + dups <= totalLimitedTo
-                               && dels <= delLimitedTo && dups <= dupLimitedTo;
-      }
-    }
-
-    ArrayList<CNVariant> acceptable = new ArrayList<>();
-
-    System.out.println(ext.getTime() + "\tFiltering CNVs...");
-    for (CNVariant cnv : cnvs) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
-      indel = cnv.getCN() < 2 ? 0 : 1;
-
-      if (firstSNP == -1 || lastSNP == -1) {
-        accepted = false;
-      } else {
-        if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-          countAcceptable = 0;
-          for (int j = firstSNP; j <= lastSNP; j++) {
-            if (acceptableSNPs[cnv.getChr()][j]) {
-              countAcceptable++;
-            }
-          }
-          accepted = (double) countAcceptable
-                     / (double) (lastSNP - firstSNP
-                                 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
-        } else {
-          index = firstSNP;
-          accepted = false;
-          while (!accepted && index <= lastSNP) {
-            if (acceptableSNPs[cnv.getChr()][index]) {
-              accepted = true;
-            }
-            index++;
-          }
-        }
-      }
-
-      if (accepted) {
-        acceptable.add(cnv);
-      }
-    }
-
-    System.out.println("Finished in " + ext.getTimeElapsed(time));
-    return acceptable.toArray(new CNVariant[acceptable.size()]);
-  }
-
-  public static void filterBasedOnNumberOfCNVsAtLocus(Project proj, String filein, String fileout,
-                                                      int totalRequired, int delRequired,
-                                                      int dupRequired, int totalLimitedTo,
-                                                      int delLimitedTo, int dupLimitedTo,
-                                                      double proportionOfProbesThatNeedToPassForFinalInclusion) {
+                                                                     double proportionOfProbesThatNeedToPassForFinalInclusion) {
 
     long time = new Date().getTime();
 
     MarkerDetailSet markerSet = proj.getMarkerSet();
     Multiset<Marker> delCounts = HashMultiset.create();
     Multiset<Marker> dupCounts = HashMultiset.create();
-
-    System.out.println(ext.getTime() + "\tLoading plink file...");
-    CNVariant[] cnvs = CNVariant.loadPlinkFile(filein);
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
     for (int i = 0; i < cnvs.length; i++) {
@@ -1942,28 +1828,54 @@ public class FilterCalls {
     }
 
     System.out.println(ext.getTime() + "\tFiltering CNVs...");
+    List<CNVariant> filteredCNVs = Lists.newArrayList();
+    for (CNVariant cnv : cnvs) {
+      final boolean accepted;
+      Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
+      if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
+        int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
+        accepted = countAcceptable
+                   / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
+      } else {
+        accepted = acceptables.containsAll(markersInCNV);
+      }
+      if (accepted) {
+        filteredCNVs.add(cnv);
+      }
+    }
+
+    System.out.println("Finished filtering CNVs in " + ext.getTimeElapsed(time));
+    return filteredCNVs.toArray(new CNVariant[0]);
+  }
+
+  public static void filterBasedOnNumberOfCNVsAtLocus(Project proj, String filein, String fileout,
+                                                      int totalRequired, int delRequired,
+                                                      int dupRequired, int totalLimitedTo,
+                                                      int delLimitedTo, int dupLimitedTo,
+                                                      double proportionOfProbesThatNeedToPassForFinalInclusion) {
+
+    long time = new Date().getTime();
+
+    System.out.println(ext.getTime() + "\tLoading plink file...");
+    CNVariant[] filteredCNVs = filterBasedOnNumberOfCNVsAtLocusInMemory(proj,
+                                                                        CNVariant.loadPlinkFile(filein),
+                                                                        totalRequired, delRequired,
+                                                                        dupRequired, totalLimitedTo,
+                                                                        delLimitedTo, dupLimitedTo,
+                                                                        proportionOfProbesThatNeedToPassForFinalInclusion);
+
+    System.out.println(ext.getTime() + "\tWriting results...");
     try (PrintWriter writer = Files.openAppropriateWriter(fileout)) {
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-      for (CNVariant cnv : cnvs) {
-        final boolean accepted;
-        Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
-        if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-          int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
-          accepted = countAcceptable
-                     / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
-        } else {
-          accepted = acceptables.containsAll(markersInCNV);
-        }
-        if (accepted) {
-          writer.println(cnv.toPlinkFormat());
-        }
+      for (CNVariant cnv : filteredCNVs) {
+        writer.println(cnv.toPlinkFormat());
       }
     } catch (IOException e) {
       System.err.println("Error writing to " + fileout);
       e.printStackTrace();
     }
 
-    System.out.println("Finished in " + ext.getTimeElapsed(time));
+    System.out.println("Finished filtering and writing CNVs in " + ext.getTimeElapsed(time));
   }
 
   public static boolean inOneOfTheseRegions(CNVariant cnv, Segment[] regions) {
