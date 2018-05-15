@@ -288,13 +288,13 @@ public class BetaOptimizer {
   }
 
   private static void analyzeAll(Project proj, String pcFile, String samplesToBuildModels,
-                                 MarkerDetailSet markerSet, ABLookup abLookup, String dbsnpVCF,
-                                 String[] namesToQuery, String outpuDir, String[] betas,
-                                 double[] pvals, double markerCallRate, int maxPCs, int numthreads,
+                                 ABLookup abLookup, String dbsnpVCF, String[] namesToQuery,
+                                 String outpuDir, String[] betas, double[] pvals,
+                                 double markerCallRate, int maxPCs, int numthreads,
                                  String usedInPCFile, int pvalRefineCutoff, double minPval,
                                  Logger log) {
-    analyze(proj, pcFile, samplesToBuildModels, markerSet, abLookup, dbsnpVCF, namesToQuery,
-            outpuDir, Arrays.asList(betas), pvals, markerCallRate, maxPCs, numthreads, usedInPCFile,
+    analyze(proj, pcFile, samplesToBuildModels, abLookup, dbsnpVCF, namesToQuery, outpuDir,
+            Arrays.asList(betas), pvals, markerCallRate, maxPCs, numthreads, usedInPCFile,
             pvalRefineCutoff, minPval, log);
 
   }
@@ -460,9 +460,9 @@ public class BetaOptimizer {
   }
 
   private static void analyze(Project proj, String pcFile, String singleRaceSamples,
-                              MarkerDetailSet markerSet, ABLookup abLookup, String dbsnpVCF,
-                              String[] namesToQuery, String outpuDir, List<String> betaFiles,
-                              double[] pvals, double markerCallRate, int maxPCs, int numthreads,
+                              ABLookup abLookup, String dbsnpVCF, String[] namesToQuery,
+                              String outpuDir, List<String> betaFiles, double[] pvals,
+                              double markerCallRate, int maxPCs, int numthreads,
                               String usedInPCFile, int pvalRefineCutoff, double minPval,
                               Logger log) {
 
@@ -481,8 +481,8 @@ public class BetaOptimizer {
                          + ArrayUtils.toStr(ArrayUtils.tagOn(BetaCorrelationResult.getHeader(),
                                                              "inv_", null))
                          + "\tBetaFile\tMethod\tpvalCutoff\tnumSamples\tmethodKey\tmarkerCallRateThreshold");
-          ArrayList<MetaBeta> metaBetas = prep(proj, markerSet, abLookup, dbsnpVCF, namesToQuery,
-                                               outpuDir, betaFile, ArrayUtils.max(pvals), log);
+          ArrayList<MetaBeta> metaBetas = prep(proj, abLookup, dbsnpVCF, namesToQuery, outpuDir,
+                                               betaFile, ArrayUtils.max(pvals), log);
           if (pvalRefineCutoff > 0 && metaBetas.size() > pvalRefineCutoff) {
             ArrayList<Double> tmpPvals = new ArrayList<>();
 
@@ -530,7 +530,7 @@ public class BetaOptimizer {
           for (double pval : pvals) {
             ArrayList<MetaBeta> current = filter(metaBetas, pval);
             if (current.size() > 2) {
-              byte[][] genos = loadGenos(proj, markerSet, current);
+              byte[][] genos = loadGenos(proj, current);
 
               for (RUN_TYPES runtype : RUN_TYPES.values()) {
                 for (ORDER_TYPE oType : ORDER_TYPE.values()) {
@@ -563,7 +563,7 @@ public class BetaOptimizer {
 
                     if (filtered.size() > pvalRefineCutoff) {
 
-                      byte[][] genosSecondary = loadGenos(proj, markerSet, filtered);
+                      byte[][] genosSecondary = loadGenos(proj, filtered);
                       FilterGenoResult filterGenoResultSecondary = filterGenos(runtype,
                                                                                samplesForModels,
                                                                                genosSecondary,
@@ -796,8 +796,7 @@ public class BetaOptimizer {
     return filt;
   }
 
-  private static byte[][] loadGenos(Project proj, MarkerDetailSet markerSet,
-                                    List<MetaBeta> metaBetas) {
+  private static byte[][] loadGenos(Project proj, List<MetaBeta> metaBetas) {
     byte[][] genos = new byte[metaBetas.size()][];
     String[] markerNames = new String[metaBetas.size()];
 
@@ -826,9 +825,9 @@ public class BetaOptimizer {
     Files.write(builder.toString(), output);
   }
 
-  private static ArrayList<MetaBeta> prep(Project proj, MarkerSetInfo markerSet, ABLookup abLookup,
-                                          String dbsnpVCF, String[] namesToQuery, String outpuDir,
-                                          String betaFile, double minPval, Logger log) {
+  private static ArrayList<MetaBeta> prep(Project proj, ABLookup abLookup, String dbsnpVCF,
+                                          String[] namesToQuery, String outpuDir, String betaFile,
+                                          double minPval, Logger log) {
     new File(outpuDir).mkdirs();
     String outSer = outpuDir + "rsIdLookup.ser";
     List<MarkerRsFormat> markerRsFormats = null;
@@ -844,7 +843,8 @@ public class BetaOptimizer {
     if (markerRsFormats == null) {
       markerRsFormats = mapToRsIds(proj, abLookup, dbsnpVCF, namesToQuery, outSer, log);
     }
-    ArrayList<MetaBeta> metaBetas = loadBetas(markerRsFormats, betaFile, minPval, markerSet, log);
+    ArrayList<MetaBeta> metaBetas = loadBetas(markerRsFormats, betaFile, minPval,
+                                              proj.getMarkerSet(), log);
     log.reportTimeInfo("Loaded " + metaBetas.size()
                        + " valid rsIds, having valid betas and  pval less than " + minPval);
     return metaBetas;
@@ -1274,9 +1274,9 @@ public class BetaOptimizer {
     } else {
       betaFiles = new String[] {betaLoc};
     }
-    analyzeAll(proj, pcFile, unRelatedFile, markerSet, abLookup, dbsnp.get(),
-               proj.getNonCNMarkers(), outDir, betaFiles, pvals, markerCallRate, maxPCs, numthreads,
-               pcSamps, pvalRefineCutoff, minPval, proj.getLog());
+    analyzeAll(proj, pcFile, unRelatedFile, abLookup, dbsnp.get(), proj.getNonCNMarkers(), outDir,
+               betaFiles, pvals, markerCallRate, maxPCs, numthreads, pcSamps, pvalRefineCutoff,
+               minPval, proj.getLog());
   }
 
   public static void main(String[] args) {
@@ -1376,9 +1376,8 @@ public class BetaOptimizer {
       abLookup.writeToFile(proj.AB_LOOKUP_FILENAME.getValue(), proj.getLog());
     }
 
-    MarkerDetailSet markerSet = proj.getMarkerSet();
-    abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
-                            true, proj.getLog());
+    abLookup = new ABLookup(proj.getMarkerSet().getMarkerNames(),
+                            proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
     Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();
     String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/" + args[0] + "/";
 
@@ -1393,8 +1392,8 @@ public class BetaOptimizer {
     proj.getLog().reportTimeInfo("Using " + numthreads + " of "
                                  + Runtime.getRuntime().availableProcessors() + " available cores");
     int maxPCs = 120;
-    analyzeAll(proj, pcFile, toUseFile, markerSet, abLookup, dbsnp.get(), proj.getNonCNMarkers(),
-               out, betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, 25, -1,
+    analyzeAll(proj, pcFile, toUseFile, abLookup, dbsnp.get(), proj.getNonCNMarkers(), out,
+               betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, 25, -1,
                proj.getLog());
   }
 }
