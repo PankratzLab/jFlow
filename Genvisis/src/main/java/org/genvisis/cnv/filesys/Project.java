@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,12 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Vector;
+import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
@@ -57,6 +61,7 @@ import org.genvisis.filesys.GeneSet;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.seq.manage.ReferenceGenome;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 public class Project implements PropertyChangeListener {
 
@@ -932,6 +937,10 @@ public class Project implements PropertyChangeListener {
     }
   }
 
+  /**
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
+   */
+  @Deprecated
   public String[] getMarkerNames() {
     return getMarkerSet().getMarkerNames();
   }
@@ -1834,7 +1843,9 @@ public class Project implements PropertyChangeListener {
 
   /**
    * @return Map with the indices of each marker in the project
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
    */
+  @Deprecated
   public Map<String, Integer> getMarkerIndices() {
     return getMarkerSet().getMarkerIndices();
   }
@@ -1891,48 +1902,58 @@ public class Project implements PropertyChangeListener {
     return cnB;
   }
 
+  /**
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
+   */
+  @Deprecated
   public String[] getMarkersForChrs(int[] chrs) {
-    MarkerSetInfo markerSet = getMarkerSet();
-    byte[] markerChrs = markerSet.getChrs();
-    ArrayList<String> tmp = new ArrayList<>();
-    for (int i = 0; i < markerChrs.length; i++) {
-      if (ext.indexOfInt(markerChrs[i], chrs) >= 0) {
-        tmp.add(markerSet.getMarkerNames()[i]);
-      }
-    }
-    return tmp.toArray(new String[tmp.size()]);
+    return markerForChrsStream(chrs).map(Marker::getName).toArray(String[]::new);
   }
 
+  /**
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
+   */
+  @Deprecated
   public String[] getAutosomalMarkers() {
-    MarkerSetInfo markerSet = getMarkerSet();
-    byte[] chrs = markerSet.getChrs();
-    ArrayList<String> tmp = new ArrayList<>();
-    for (int i = 0; i < chrs.length; i++) {
-      if (chrs[i] < 23 && chrs[i] > 0) {
-        tmp.add(markerSet.getMarkerNames()[i]);
-      }
-    }
-    return tmp.toArray(new String[tmp.size()]);
+    return autosomalMarkerStream().map(Marker::getName).toArray(String[]::new);
   }
 
   /**
    * @return indices of autosomal markers
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
    */
+  @Deprecated
   public int[] getAutosomalMarkerIndices() {
-    String[] autosomalMarkers = getAutosomalMarkers();
-    int[] indices = ext.indexLargeFactors(autosomalMarkers, getMarkerNames(), true, log, true);
-    return indices;
+    Map<Marker, Integer> markerIndices = getMarkerSet().getMarkerIndexMap();
+    return autosomalMarkerStream().mapToInt(markerIndices::get).toArray();
   }
 
+  private Stream<Marker> autosomalMarkerStream() {
+    return getMarkerSet().getNavigableChrMap().subMap((byte) 1, (byte) 23).values().stream()
+                         .flatMap(Collection::stream);
+  }
+
+  /**
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
+   */
+  @Deprecated
   public int[] getMarkersForChrsIndices(int[] chrs) {
-    String[] chrMkrs = getMarkersForChrs(chrs);
-    int[] indices = ext.indexLargeFactors(chrMkrs, getMarkerNames(), true, log, true);
-    return indices;
+    Map<Marker, Integer> markerIndices = getMarkerSet().getMarkerIndexMap();
+    return markerForChrsStream(chrs).mapToInt(markerIndices::get).toArray();
+  }
+
+  private Stream<Marker> markerForChrsStream(int[] chrs) {
+    Set<Byte> keepChrs = Arrays.stream(chrs).boxed().map(Integer::byteValue)
+                               .collect(ImmutableSet.toImmutableSet());
+    return getMarkerSet().getChrMap().entrySet().stream().filter(e -> keepChrs.contains(e.getKey()))
+                         .map(Entry::getValue).flatMap(Set::stream);
   }
 
   /**
    * @return boolean representation of autosomal markers
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
    */
+  @Deprecated
   public boolean[] getAutosomalMarkerBoolean() {
     int[] indices = getAutosomalMarkerIndices();
     boolean[] autoB = ArrayUtils.booleanArray(getMarkerNames().length, false);
@@ -1944,7 +1965,9 @@ public class Project implements PropertyChangeListener {
 
   /**
    * @return boolean representation of markers on specified chromosomes
+   * @deprecated use {@link #getMarkerSet()} to access non-parallel array-based views
    */
+  @Deprecated
   public boolean[] getMarkerForChrsBoolean(int[] chrs) {
     int[] indices = getMarkersForChrsIndices(chrs);
     boolean[] chrB = ArrayUtils.booleanArray(getMarkerNames().length, false);
