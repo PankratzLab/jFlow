@@ -7,7 +7,6 @@ import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.qc.SampleQC;
@@ -157,16 +156,13 @@ public class AffyCentroids implements Serializable {
   }
 
   public static void recompute(Project proj, String centroidsFile) {
-    MarkerSetInfo markerSet;
     Centroids affyCentroids;
     Logger log;
 
     log = proj.getLog();
-    markerSet = proj.getMarkerSet();
-    markerSet.getMarkerNames();
     affyCentroids = Centroids.load(centroidsFile);
 
-    if (affyCentroids.getFingerprint() != markerSet.getFingerprint()) {
+    if (affyCentroids.getFingerprint() != proj.getMarkerSet().getFingerprint()) {
       log.reportError("Error - fingerprint for Centroids file '" + centroidsFile
                       + "' does not match the fingerprint for the current MarkerSet");
       System.exit(1);
@@ -224,7 +220,6 @@ public class AffyCentroids implements Serializable {
                                     double missingnessThreshold, double confThreshold) {
     String[] samples;
     SampleList sampleList;
-    MarkerSetInfo markerSet;
     Logger log;
 
     log = proj.getLog();
@@ -237,8 +232,6 @@ public class AffyCentroids implements Serializable {
       log.reportError("Error - mismatched number of samples in project versus sample mask");
       System.exit(1);
     }
-    markerSet = proj.getMarkerSet();
-    markerSet.getMarkerNames();
     CentroidBuilder builder = new CentroidBuilder();
     CentroidCompute.computeAndDumpCentroids(proj,
                                             new String[] {proj.CUSTOM_CENTROIDS_FILENAME.getValue()},
