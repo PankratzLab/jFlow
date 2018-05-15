@@ -204,6 +204,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private long fingerprint;
   private Set<Marker> dropped;
   private Map<Marker, Float> lrrs, lrrValues;
+  private float lrrMin;
+  private float lrrMax;
   private Map<Marker, Float> bafs, originalBAFs;
   private Map<Marker, Byte> genotypes;
   private byte chr;
@@ -1447,8 +1449,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         float min, max;
 
         if (lrrValues != null && lrrValues.size() > 0) {
-          min = lrrValues.values().stream().min(Ordering.natural()).orElse(null);
-          max = lrrValues.values().stream().max(Ordering.natural()).orElse(null);
+          min = lrrMin;
+          max = lrrMax;
 
           if (curMarkers.size() - 1 < DYNAMIC_HEIGHT_LIMIT) {
             min = Float.POSITIVE_INFINITY;
@@ -2826,8 +2828,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
     if (projOrderLRRs != null) {
       Map<Marker, Integer> markerIndices = markerDetailSet.getMarkerIndexMap();
       lrrValues = Maps.newHashMapWithExpectedSize(markerIndices.size());
+      lrrMin = Float.MAX_VALUE;
+      lrrMax = Float.MIN_VALUE;
       for (Map.Entry<Marker, Integer> markerEntry : markerIndices.entrySet()) {
-        lrrValues.put(markerEntry.getKey(), projOrderLRRs[markerEntry.getValue()]);
+        float nextLrr = projOrderLRRs[markerEntry.getValue()];
+        lrrValues.put(markerEntry.getKey(), nextLrr);
+        lrrMin = Math.min(lrrMin, nextLrr);
+        lrrMax = Math.max(lrrMax, nextLrr);
       }
     }
   }
