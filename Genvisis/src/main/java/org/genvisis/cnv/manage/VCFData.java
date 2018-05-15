@@ -174,7 +174,8 @@ public final class VCFData {
             .report("Exporting " + markersByChr.get(chr).size() + " markers for chr" + chrName);
         List<String> mkrs = getMarkersSorted(markersByChr.get(chr), markerMap);
 
-        String fileOut = outputDirAndRoot + "_chr" + chrName + ".vcf.gz";
+        String fileOut = outputDirAndRoot + (Files.isDirectory(outputDirAndRoot) ? "chr" : "_chr")
+                         + chrName + ".vcf.gz";
 
         ActualExporter runner = new ActualExporter(proj, refGen, !useGRCContigs, fileOut,
                                                    idsToInclude, idIndexMap,
