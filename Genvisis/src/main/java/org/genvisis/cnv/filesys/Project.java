@@ -682,7 +682,7 @@ public class Project implements PropertyChangeListener {
       // skip source file headers, sample files already parsed
     } else if (createHeaders && Files.list(SOURCE_DIRECTORY.getValue(),
                                            SOURCE_FILENAME_EXTENSION.getValue()).length > 0) {
-      Map<String, SourceFileHeaderData> headers = readHeadersFile(false);
+      Map<String, SourceFileHeaderData> headers = readHeadersFile(true);
       setSourceFileHeaders(headers);
     }
 
