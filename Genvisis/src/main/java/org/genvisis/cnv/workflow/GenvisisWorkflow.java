@@ -223,7 +223,7 @@ public class GenvisisWorkflow {
     stepReqs = sexChecks.getDefaultRequirementValues();
     for (Requirement<?> r1 : stepReqs.keys()) {
       if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "true");
+        stepReqs.parseOrFail(r1, "false");
       } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
         stepReqs.parseOrFail(r1, "true");
       }
