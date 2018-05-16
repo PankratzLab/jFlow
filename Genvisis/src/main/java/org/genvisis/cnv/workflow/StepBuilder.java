@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.steps.ABLookupStep;
+import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.AnnotateSampleDataStep;
@@ -96,6 +97,10 @@ public class StepBuilder {
   IlluminaMarkerBlastStep generateIlluminaMarkerBlastAnnotationStep(Project proj,
                                                                     ParseSamplesStep parseSamplesStep) {
     return register(IlluminaMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
+  }
+
+  AffyCELProcessingStep generateAffyCELProcessingStep(Project proj) {
+    return register(AffyCELProcessingStep.create(proj, numThreadsReq));
   }
 
   AffyMarkerBlastStep generateAffyMarkerBlastAnnotationStep(final Project proj,

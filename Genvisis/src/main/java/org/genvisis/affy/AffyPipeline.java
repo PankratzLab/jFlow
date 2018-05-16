@@ -444,6 +444,104 @@ public class AffyPipeline {
     }
   }
 
+  public static void run(Project proj, String aptExeDir, String aptLibDir, String quantNormTarget,
+                         int markerBuffer, int maxWritersOpen, boolean full, int numThreads) {
+    Logger log = proj.getLog();
+
+    if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel")
+        && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel.gz")) {
+      log.reportError("Source file extension should be \".cel\" or \".cel.gz\" for Affymetrix projects.  Parsing may fail.");
+    }
+    if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
+      log.reportError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz.  Parsing cannot continue.");
+      throw new IllegalArgumentException();
+    }
+    if (full) {
+      log.reportTimeInfo("Running with full affymetrix cdf");
+    } else {
+      log.reportTimeInfo("Running with default affymetrix cdf, use the \"-full\" command to use the full version");
+    }
+
+    String[] celFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(),
+                                   proj.SOURCE_FILENAME_EXTENSION.getValue());
+    validateCelSelection(celFiles, log);
+    log.reportTime("Parsing " + celFiles.length + " Affymetrix source files.");
+
+    GENOME_BUILD build = proj.GENOME_BUILD_VERSION.getValue();
+    Resource markerPositionsRsrc = Resources.affy(log).genome(build).getMarkerPositions();
+    if (markerPositionsRsrc == null || !markerPositionsRsrc.isAvailable()) {
+      log.reportError("Affymetrix marker positions file for build " + build.getBuild()
+                      + " is not available.  Parsing cannot continue.");
+      throw new IllegalArgumentException();
+    }
+    String markerPositions = markerPositionsRsrc.get();
+
+    AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, full, log);
+    Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0],
+                                                           proj.PROJECT_DIRECTORY.getValue(),
+                                                           proj.PROJECT_NAME.getValue(),
+                                                           markerPositions);
+    if (probeSets.isFail()) {
+      log.reportTime("Critical Error - Generating probe set failed!");
+      throw new IllegalArgumentException();
+    }
+
+    String celListFile = pipeline.generateCelList(celFiles, proj.PROJECT_DIRECTORY.getValue(),
+                                                  proj.PROJECT_NAME.getValue());
+    GenotypeResult genotypeResult = pipeline.genotype(celListFile, probeSets.getSnpOnlyFile(),
+                                                      proj.PROJECT_NAME.getValue(),
+                                                      proj.PROJECT_DIRECTORY.getValue());
+    if (genotypeResult.isFailed()) {
+      log.reportTime("Critical Error - Genotyping failed!");
+      throw new IllegalArgumentException();
+    }
+
+    NormalizationResult normalizationResult = pipeline.normalize(celListFile,
+                                                                 probeSets.getAllFile(),
+                                                                 proj.PROJECT_NAME.getValue(),
+                                                                 proj.PROJECT_DIRECTORY.getValue(),
+                                                                 quantNormTarget);
+    if (normalizationResult.isFail()) {
+      log.reportTime("Critical Error - Normalization failed!");
+      throw new IllegalArgumentException();
+    }
+
+    String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
+
+    String outSnpSrc = tmpDir + "SNP_Src/";
+    new File(outSnpSrc).mkdirs();
+
+    AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
+                                             genotypeResult.getConfFile(),
+                                             normalizationResult.getQuantNormFile(), maxWritersOpen,
+                                             log);
+    AS6T.parseSNPTables(markerBuffer);
+
+    String outCNSrc = tmpDir + "CN_Src/";
+    new File(outCNSrc).mkdirs();
+
+    AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(),
+                                               maxWritersOpen, log);
+    AS6TCN.parseCNTable(markerBuffer);
+
+    proj.SOURCE_DIRECTORY.setValue("00src_CEL/");
+    proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
+    proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
+    proj.ID_HEADER.setValue("[FILENAME_ROOT]");
+    proj.LONG_FORMAT.setValue(false);
+
+    MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt",
+                             proj.SOURCE_DIRECTORY.getValue(true, true), log);
+
+    if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
+      Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(),
+                                      log);
+    }
+
+    proj.saveProperties();
+
+  }
+
   public static void run(String aptExeDir, String aptLibDir, String cels, String outDir,
                          String quantNormTarget, String analysisName, String markerPositions,
                          int markerBuffer, int maxWritersOpen, boolean full, int numThreads,
@@ -562,11 +660,20 @@ public class AffyPipeline {
           }
           proj.saveProperties();
 
+        } else {
+          log.reportTime("Critical Error - Normalization failed!");
         }
+      } else {
+        log.reportTime("Critical Error - Genotyping failed!");
       }
+    } else {
+      log.reportTime("Critical Error - Generating probe set failed!");
     }
 
   }
+
+  public static final int DEFAULT_MARKER_BUFFER = 100;
+  public static final int DEFAULT_MAX_WRITERS = 1000000;
 
   public static void main(String[] args) {
     String analysisName = "Genvisis_affy_pipeline";
@@ -577,16 +684,17 @@ public class AffyPipeline {
     String outDir = "~/Affy6_results/";
     String markerPositions = "~/resources/hg18.affy6.markerPostions";
     int numThreads = 1;
-    int markerBuffer = 100;
-    int maxWritersOpen = 1000000;
+    int markerBuffer = DEFAULT_MARKER_BUFFER;
+    int maxWritersOpen = DEFAULT_MAX_WRITERS;
     int numArgs = args.length;
     boolean full = false;
     boolean prepImputation = false;
     GENOME_BUILD build = GENOME_BUILD.HG18;
+    String projFile = null;
 
     String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
                    + "   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n"
-                   + "   (2) a directory or full path to a file containing .cel files for analyiss (i.e. cels="
+                   + "   (2) a directory or full path to a file containing .cel files for analysis (i.e. cels="
                    + cels + " (default))\n"
                    + "   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch="
                    + targetSketch + " (default))\n"
@@ -618,6 +726,9 @@ public class AffyPipeline {
         numArgs--;
       } else if (arg.startsWith("cels=")) {
         cels = ext.parseStringArg(arg, "");
+        numArgs--;
+      } else if (arg.startsWith("proj=")) {
+        projFile = ext.parseStringArg(arg);
         numArgs--;
       } else if (arg.startsWith("outDir=")) {
         outDir = ext.parseStringArg(arg, "");
@@ -666,8 +777,14 @@ public class AffyPipeline {
       System.exit(1);
     }
     try {
-      run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions,
-          markerBuffer, maxWritersOpen, full, numThreads, build, prepImputation);
+      if (projFile != null) {
+        Project proj = new Project(projFile);
+        run(proj, aptExeDir, aptLibDir, targetSketch, markerBuffer, maxWritersOpen, full,
+            numThreads);
+      } else {
+        run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions,
+            markerBuffer, maxWritersOpen, full, numThreads, build, prepImputation);
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }

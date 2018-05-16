@@ -11,7 +11,9 @@ import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
 import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.cnv.qc.AffyMarkerBlast;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
+import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -33,6 +35,11 @@ public class VcfExportShortcut {
   private final Logger log;
 
   private String manifest = null;
+  private String aptExeDir = null;
+  private String aptLibDir = null;
+  private String affyProbeFile = null;
+  private String affyAnnotFile = null;
+  private String sketch = null;
 
   private double callrateThresh = 0.98; // MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD;
   private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
@@ -41,8 +48,8 @@ public class VcfExportShortcut {
   private String markerDropsFile = null;
 
   private VcfExportShortcut(String projName, String sourceDir, String projDir, String pedigreeFile,
-                            Logger log) {
-    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, log);
+                            ARRAY arrayType, Logger log) {
+    proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, arrayType, log);
     this.log = log;
   }
 
@@ -50,7 +57,28 @@ public class VcfExportShortcut {
     this.manifest = string;
   }
 
+  private void setAffySketch(String string) {
+    this.sketch = string;
+  }
+
+  private void setAptLibDir(String string) {
+    this.aptLibDir = string;
+  }
+
+  private void setAptExeDir(String string) {
+    this.aptExeDir = string;
+  }
+
+  private void setAffyProbe(String string) {
+    this.affyProbeFile = string;
+  }
+
+  private void setAffyAnnot(String string) {
+    this.affyAnnotFile = string;
+  }
+
   private void setQCThreshold(double d) {
+
     this.generalQcThresh = d;
   }
 
@@ -63,7 +91,7 @@ public class VcfExportShortcut {
   }
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
-                                            String pedigreeFile, Logger log) {
+                                            String pedigreeFile, ARRAY arrayType, Logger log) {
     final Project proj;
     if (LaunchProperties.projectExists(projName)) {
       String projFile = LaunchProperties.formProjectPropertiesFilename(projName);
@@ -76,7 +104,7 @@ public class VcfExportShortcut {
                    .map(Multiset.Entry::getElement)
                    .ifPresent(proj.SOURCE_FILENAME_EXTENSION::setValue);
       proj.PROJECT_DIRECTORY.setValue(outDir);
-      proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
+      proj.ARRAY_TYPE.setValue(arrayType);
       Map<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(sourceDir,
                                                                                 proj.SOURCE_FILENAME_EXTENSION.getValue(),
                                                                                 false, log,
@@ -137,11 +165,20 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_MISS, generalQc);
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
-    StringBuilder outputScript = new StringBuilder(GenvisisWorkflow.setupImputation(proj,
-                                                                                    numThreads,
-                                                                                    putativeWhtFile,
-                                                                                    qcMap, true,
-                                                                                    manifest));
+    StringBuilder outputScript = null;
+    if (proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA) {
+      outputScript = new StringBuilder(GenvisisWorkflow.setupIlluminaImputation(proj, numThreads,
+                                                                                putativeWhtFile,
+                                                                                qcMap, true,
+                                                                                manifest));
+    } else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6) {
+      outputScript = new StringBuilder(GenvisisWorkflow.setupAffyImputation(proj, numThreads,
+                                                                            putativeWhtFile, qcMap,
+                                                                            true, aptExeDir,
+                                                                            aptLibDir, sketch,
+                                                                            affyProbeFile,
+                                                                            affyAnnotFile));
+    }
 
     String sampDrop = null;
     if (sampleDropsFile != null) {
@@ -191,7 +228,13 @@ public class VcfExportShortcut {
   private static final String ARG_SRC_DIR = "sourceDir";
   private static final String ARG_PROJ_DIR = "projDir";
 
+  private static final String ARG_ARRAY = "array";
   private static final String ARG_ILL_MAN = "manifest";
+  private static final String ARG_AFFY_SKETCH = "sketch";
+  private static final String ARG_APT_EXE = "aptExeDir";
+  private static final String ARG_APT_LIB = "aptLibDir";
+  private static final String ARG_AFFY_PROBE = "affyProbe";
+  private static final String ARG_AFFY_ANNOT = "affyAnnot";
 
   private static final String ARG_PED = "pedFile";
   private static final String ARG_PUT_WHT = "putativeWhiteFile";
@@ -206,7 +249,10 @@ public class VcfExportShortcut {
   private static final String DESC_SRC_DIR = "Source File Directory";
   private static final String DESC_PROJ_DIR = "Directory for project files";
 
+  private static final String DESC_ARRAY = "Array type (one of the following: "
+                                           + ARRAY.ILLUMINA.name() + ", " + ARRAY.AFFY_GW6 + ")";
   private static final String DESC_ILL_MAN = "Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv)";
+  private static final String DESC_AFFY_SKETCH = "Affymetrix target sketch file (e.g. hapmap.quant-norm.normalization-target.txt)";
 
   private static final String DESC_PED = "Pedigree File";
   private static final String DESC_PUT_WHT = "Putative whites file (file with two columns of FID/IID and no header)";
@@ -223,12 +269,20 @@ public class VcfExportShortcut {
     cli.addArg(ARG_PROJ_NAME, DESC_PROJ_NAME, true);
     cli.addArg(ARG_SRC_DIR, DESC_SRC_DIR, true);
     cli.addArg(ARG_PROJ_DIR, DESC_PROJ_DIR, true);
+    cli.addArg(ARG_ARRAY, DESC_ARRAY, true);
     cli.addArg(ARG_VCF_OUT, DESC_VCF_OUT, true);
     cli.addArg(ARG_IMP_REF, DESC_IMP_REF, true);
     cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT, true);
     cli.addArg(ARG_PED, DESC_PED, false);
 
-    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN, true);
+    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN);
+    cli.addArg(ARG_AFFY_SKETCH, DESC_AFFY_SKETCH);
+    cli.addGroup(ARG_ILL_MAN, ARG_AFFY_SKETCH);
+
+    cli.addArg(ARG_APT_EXE, AffyCELProcessingStep.DESC_APT_EXT, false);
+    cli.addArg(ARG_APT_LIB, AffyCELProcessingStep.DESC_APT_LIB, false);
+    cli.addArg(ARG_AFFY_ANNOT, AffyMarkerBlast.DESC_ANNOT_FILE, false);
+    cli.addArg(ARG_AFFY_PROBE, AffyMarkerBlast.DESC_PROBE_FILE, false);
 
     cli.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS,
                           Runtime.getRuntime().availableProcessors());
@@ -249,14 +303,36 @@ public class VcfExportShortcut {
     String putWht = cli.get(ARG_PUT_WHT);
     String vcfOut = cli.get(ARG_VCF_OUT);
     String impRef = cli.get(ARG_IMP_REF);
+    ARRAY arrayType = ARRAY.valueOf(cli.get(ARG_ARRAY).toUpperCase());
 
     int numThreads = cli.getI(CLI.ARG_THREADS);
     boolean useGRC = Boolean.parseBoolean(cli.get(ARG_GRC_OUT));
 
     Logger log = new Logger();
-    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, log);
+    VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, arrayType,
+                                                     log);
 
-    export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
+    if (cli.has(ARG_ILL_MAN)) {
+      if (arrayType != ARRAY.ILLUMINA) {
+        log.reportError("An Illumina manifest file was specified for a non-Illumina array type ("
+                        + arrayType.name()
+                        + ") - please either remove the manifest argument or set the project array type to ILLUMINA.");
+        return;
+      }
+      export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
+    } else if (cli.has(ARG_AFFY_SKETCH)) {
+      if (arrayType != ARRAY.AFFY_GW6) {
+        log.reportError("An Illumina manifest file was specified for a non-Illumina array type ("
+                        + arrayType.name()
+                        + ") - please either remove the manifest argument or set the project array type to ILLUMINA.");
+        return;
+      }
+      export.setAffySketch(cli.get(ARG_AFFY_SKETCH));
+      export.setAffyAnnot(cli.get(ARG_AFFY_ANNOT));
+      export.setAffyProbe(cli.get(ARG_AFFY_PROBE));
+      export.setAptExeDir(cli.get(ARG_APT_EXE));
+      export.setAptLibDir(cli.get(ARG_APT_LIB));
+    }
     export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
     export.setHWEThreshold(cli.getD(ARG_HWE));
     export.setQCThreshold(cli.getD(ARG_QC));
