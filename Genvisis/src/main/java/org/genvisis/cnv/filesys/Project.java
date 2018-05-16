@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import org.genvisis.CLI;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.manage.Resources;
@@ -895,6 +896,10 @@ public class Project implements PropertyChangeListener {
       if (Files.exists(BLAST_ANNOTATION_FILENAME.getValue())) {
         log.report("Attempting to generate MarkerDetails from "
                    + BLAST_ANNOTATION_FILENAME.getValue());
+        log.report("If this process gets killed by your current environment, run the following command to generate MarkerDetails: ");
+        log.report(Files.getRunString() + " "
+                   + CLI.formCmdLine(MarkerDetailSet.class,
+                                     ImmutableMap.of(CLI.ARG_PROJ, getPropertyFilename())));
         MarkerDetailSet generatedMarkerSet = new MarkerDetailSet.BlastParser(this, naiveMarkerSet,
                                                                              BLAST_ANNOTATION_FILENAME.getValue(),
                                                                              log).parse();

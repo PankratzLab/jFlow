@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import org.genvisis.CLI;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
@@ -843,5 +844,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       indices.put(entry.getKey().getName(), entry.getValue());
     }
     return indices;
+  }
+
+  public static void main(String... args) {
+    CLI cli = new CLI(MarkerDetailSet.class);
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ, CLI.EXAMPLE_PROJ, true);
+    cli.parseWithExit(args);
+
+    Project proj = new Project(cli.get(CLI.ARG_PROJ));
+    proj.getMarkerSet();
   }
 }
