@@ -20,13 +20,6 @@ public class AffyCELProcessingStep extends Step {
   public static final String DESC = "";
 
   Project proj;
-  String aptExeDir;
-  String aptLibDir;
-  String quantNormTarget;
-  int markerBuffer = AffyPipeline.DEFAULT_MARKER_BUFFER;
-  int maxWritersOpen = AffyPipeline.DEFAULT_MAX_WRITERS;
-  boolean full;
-  int numThreads;
 
   OptionalBoolRequirement fullReq;
   Requirement<Integer> numThreadsReq;
@@ -74,6 +67,14 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public void run(Variables variables) {
+    String aptExeDir = variables.get(aptExeReq).getPath();
+    String aptLibDir = variables.get(aptLibReq).getPath();
+    String quantNormTarget = variables.get(sketchReq).getPath();
+    int markerBuffer = AffyPipeline.DEFAULT_MARKER_BUFFER;
+    int maxWritersOpen = AffyPipeline.DEFAULT_MAX_WRITERS;
+    boolean full = variables.get(fullReq);
+    int numThreads = variables.get(numThreadsReq);
+
     AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, markerBuffer, maxWritersOpen,
                      full, numThreads);
   }
