@@ -6,8 +6,8 @@ import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.workflow.Requirement;
-import org.genvisis.cnv.workflow.Requirement.BoolRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
+import org.genvisis.cnv.workflow.Requirement.OptionalBoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
@@ -28,7 +28,7 @@ public class AffyCELProcessingStep extends Step {
   boolean full;
   int numThreads;
 
-  BoolRequirement fullReq;
+  OptionalBoolRequirement fullReq;
   Requirement<Integer> numThreadsReq;
   FileRequirement aptExeReq;
   FileRequirement aptLibReq;
@@ -43,7 +43,7 @@ public class AffyCELProcessingStep extends Step {
 
   public static AffyCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
 
-    BoolRequirement fullReq = new BoolRequirement(DESC_FULL, false);
+    OptionalBoolRequirement fullReq = new OptionalBoolRequirement(DESC_FULL, false);
     FileRequirement aptExtReq = new FileRequirement(DESC_APT_EXT, new File(""));
     FileRequirement aptLibReq = new FileRequirement(DESC_APT_LIB, new File(""));
     FileRequirement sketchReq = new FileRequirement(DESC_SKETCH, new File(""));
@@ -52,7 +52,7 @@ public class AffyCELProcessingStep extends Step {
   }
 
   private AffyCELProcessingStep(Project proj, FileRequirement aptExtReq, FileRequirement aptLibReq,
-                                FileRequirement sketchReq, BoolRequirement fullReq,
+                                FileRequirement sketchReq, OptionalBoolRequirement fullReq,
                                 Requirement<Integer> numThreadsReq) {
     super(NAME, DESC,
           RequirementSetBuilder.and().add(aptExtReq).add(aptLibReq).add(sketchReq).add(fullReq)

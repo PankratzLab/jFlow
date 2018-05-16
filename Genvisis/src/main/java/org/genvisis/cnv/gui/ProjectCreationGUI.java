@@ -287,7 +287,7 @@ public class ProjectCreationGUI extends JDialog {
       public void actionPerformed(ActionEvent e) {
         if (checkValues()) {
           int resp = JOptionPane.showConfirmDialog(ProjectCreationGUI.this,
-                                                   "<html>You are waiving the opporunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
+                                                   "<html>You are waiving the opportunity to review your project structure.<br />Are you sure that all source files are valid, correct, and uniform in structure?<br /><br />[If not, select 'Validate and Create' to interactively review project structure]</html>",
                                                    "Confirm File Validity",
                                                    JOptionPane.YES_NO_OPTION);
           if (resp == JOptionPane.YES_OPTION) {
@@ -528,62 +528,64 @@ public class ProjectCreationGUI extends JDialog {
     double xy = ((Double) spinnerXY.getValue()).doubleValue();
     String tgtMkrs = txtFldTgtMkrs.getText().trim();
 
-    HashMap<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(srcDir, srcExt,
-                                                                                  actuallyValidate,
-                                                                                  new org.genvisis.common.Logger(),
-                                                                                  Optional.ofNullable(progressBar));
-    if (headers == null) {
-      // errors found in headers - check output and retry?
-      return false;
-    }
-    SourceFileHeaderData reportHdr = null;
-    for (SourceFileHeaderData d : headers.values()) {
-      if (reportHdr == null) {
-        reportHdr = d;
-        break;
-      }
-    }
-    SourceFileHeaderGUI gui = new SourceFileHeaderGUI(reportHdr);
-    if (actuallyValidate) {
-      gui.setModal(true);
-      gui.setVisible(true);
-      if (gui.wasCancelled()) {
-        return false;
-      }
-    }
+    HashMap<String, SourceFileHeaderData> headers = null;
+    String[] cols = null;
     String sourceDelim = null;
     int sampCol = -100;
-    String[] cols = null;
-    for (SourceFileHeaderData d : headers.values()) {
-      if (sourceDelim == null) {
-        sourceDelim = d.getSourceFileDelimiter();
+    if (ARRAY.values()[comboBoxArrayType.getSelectedIndex()] == ARRAY.ILLUMINA) {
+      headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate,
+                                              new org.genvisis.common.Logger(),
+                                              Optional.ofNullable(progressBar));
+      if (headers == null) {
+        // errors found in headers - check output and retry?
+        return false;
       }
-      if (cols == null) {
-        cols = d.getCols();
+      SourceFileHeaderData reportHdr = null;
+      for (SourceFileHeaderData d : headers.values()) {
+        if (reportHdr == null) {
+          reportHdr = d;
+          break;
+        }
       }
-      d.setColSnpIdent(gui.getSelectedSNPIndex());
-      d.setColSampleIdent(gui.getSelectedSampleID());
-      if (sampCol == -100) {
-        sampCol = d.getColSampleIdent();
+      SourceFileHeaderGUI gui = new SourceFileHeaderGUI(reportHdr);
+      if (actuallyValidate) {
+        gui.setModal(true);
+        gui.setVisible(true);
+        if (gui.wasCancelled()) {
+          return false;
+        }
       }
-      d.setColGeno1(gui.getSelectedGeno1());
-      d.setColGeno2(gui.getSelectedGeno2());
-      d.setColGenoAB1(gui.getSelectedAB1());
-      d.setColGenoAB2(gui.getSelectedAB2());
-      d.setColBAF(gui.getSelectedBAF());
-      d.setColLRR(gui.getSelectedLRR());
-      d.setColGC(gui.getSelectedGC());
-      d.setColR(gui.getSelectedR());
-      d.setColTheta(gui.getSelectedTheta());
-      d.setColX(gui.getSelectedX());
-      d.setColY(gui.getSelectedY());
-      d.setColXRaw(gui.getSelectedXRaw());
-      d.setColYRaw(gui.getSelectedYRaw());
-    }
+      for (SourceFileHeaderData d : headers.values()) {
+        if (sourceDelim == null) {
+          sourceDelim = d.getSourceFileDelimiter();
+        }
+        if (cols == null) {
+          cols = d.getCols();
+        }
+        d.setColSnpIdent(gui.getSelectedSNPIndex());
+        d.setColSampleIdent(gui.getSelectedSampleID());
+        if (sampCol == -100) {
+          sampCol = d.getColSampleIdent();
+        }
+        d.setColGeno1(gui.getSelectedGeno1());
+        d.setColGeno2(gui.getSelectedGeno2());
+        d.setColGenoAB1(gui.getSelectedAB1());
+        d.setColGenoAB2(gui.getSelectedAB2());
+        d.setColBAF(gui.getSelectedBAF());
+        d.setColLRR(gui.getSelectedLRR());
+        d.setColGC(gui.getSelectedGC());
+        d.setColR(gui.getSelectedR());
+        d.setColTheta(gui.getSelectedTheta());
+        d.setColX(gui.getSelectedX());
+        d.setColY(gui.getSelectedY());
+        d.setColXRaw(gui.getSelectedXRaw());
+        d.setColYRaw(gui.getSelectedYRaw());
+      }
 
-    JOptionPane.showMessageDialog(this,
-                                  "The input files for this project have sucessfully passed all Genvisis validation steps.",
-                                  "Validation Successful", JOptionPane.INFORMATION_MESSAGE);
+      JOptionPane.showMessageDialog(this,
+                                    "The input files for this project have sucessfully passed all Genvisis validation steps.",
+                                    "Validation Successful", JOptionPane.INFORMATION_MESSAGE);
+    }
     File file = new File(projDir);
 
     Project dummy = new Project();
@@ -616,11 +618,13 @@ public class ProjectCreationGUI extends JDialog {
     // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
     // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
     // }
-    actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
-                                                                              : cols[sampCol]);
-    actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
+    if (ARRAY.values()[comboBoxArrayType.getSelectedIndex()] == ARRAY.ILLUMINA) {
+      actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
+                                                                                : cols[sampCol]);
+      actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));
+      actualProj.setSourceFileHeaders(headers);
+    }
     actualProj.saveProperties();
-    actualProj.setSourceFileHeaders(headers);
     proj = actualProj;
     return true;
   }
