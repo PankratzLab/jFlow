@@ -14,6 +14,7 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
+import org.genvisis.common.ext;
 
 public class AffyCELProcessingStep extends Step {
 
@@ -68,8 +69,8 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public void run(Variables variables) {
-    String aptExeDir = variables.get(aptExeReq).getPath();
-    String aptLibDir = variables.get(aptLibReq).getPath();
+    String aptExeDir = ext.verifyDirFormat(variables.get(aptExeReq).getPath());
+    String aptLibDir = ext.verifyDirFormat(variables.get(aptLibReq).getPath());
     String quantNormTarget = variables.get(sketchReq).getPath();
     int markerBuffer = AffyPipeline.DEFAULT_MARKER_BUFFER;
     int maxWritersOpen = AffyPipeline.DEFAULT_MAX_WRITERS;
