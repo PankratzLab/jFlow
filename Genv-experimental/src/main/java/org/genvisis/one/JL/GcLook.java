@@ -123,9 +123,7 @@ public class GcLook {
                                                                                    proj.getLog());
         markerAnnotationLoader.setReportEvery(500000);
         Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
-                                                                                          markerNames,
-                                                                                          markerAnnotationLoader.getMarkerSet(),
-                                                                                          markerAnnotationLoader.getMarkerIndices());
+                                                                                          markerNames);
         Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
 
         List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
