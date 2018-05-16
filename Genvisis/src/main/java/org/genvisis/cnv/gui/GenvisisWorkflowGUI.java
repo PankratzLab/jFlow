@@ -825,7 +825,7 @@ public class GenvisisWorkflowGUI extends JDialog {
                   for (Requirement<?> req : step.getRequirements().getFlatRequirementsList()) {
                     Variables vars = variables.get(step);
                     Object o = vars.get(req);
-                    String arg = o == null ? null : o.toString();
+                    String arg = !vars.has(req) || o == null ? null : o.toString();
                     boolean met = req.checkRequirement(arg, selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
                   }
@@ -1036,6 +1036,7 @@ public class GenvisisWorkflowGUI extends JDialog {
   }
 
   private void run() {
+    if (getSelectedOptions().size() == 0) return;
     running = true;
     runThread = new Thread(new Runnable() {
 
@@ -1142,7 +1143,12 @@ public class GenvisisWorkflowGUI extends JDialog {
         } else if (j instanceof JList<?>) {
           val = Requirement.ListSelectionRequirement.createArgValString(((JList<?>) j).getSelectedValuesList());
         }
-        vars.parseOrFail(req, val);
+        try {
+          vars.parseOrFail(req, val);
+        } catch (Exception e) {
+          proj.getLog().reportTimeWarning("Error parsing value (" + val + ") for requirement "
+                                          + req.getDescription() + ": " + e.getMessage());
+        }
       }
     }
     return returnVars;

@@ -8,6 +8,7 @@ import java.util.Set;
 public class Variables {
 
   private Map<Requirement<?>, Object> lineValues;
+  private static final Object FAIL = new Object();
 
   /**
    * Constructor
@@ -25,7 +26,11 @@ public class Variables {
    * @param String Raw, unparsed variable value
    */
   public <T> void parseOrFail(Requirement<T> fc, String rawValue) {
-    lineValues.put(fc, fc.parseValue(rawValue));
+    try {
+      lineValues.put(fc, fc.parseValue(rawValue));
+    } catch (Exception e) {
+      lineValues.put(fc, FAIL);
+    }
   }
 
   /**
@@ -47,7 +52,7 @@ public class Variables {
    * @return
    */
   public boolean has(Requirement<?> fc) {
-    return lineValues.containsKey(fc);
+    return lineValues.containsKey(fc) && lineValues.get(fc) != FAIL;
   }
 
   /**
@@ -59,7 +64,7 @@ public class Variables {
    * @return
    */
   public String getString(Requirement<?> fc) {
-    return lineValues.get(fc).toString();
+    return (has(fc) ? lineValues.get(fc) : null).toString();
   }
 
   /**
@@ -69,6 +74,10 @@ public class Variables {
   @SuppressWarnings("unchecked")
   public <T> T get(Requirement<T> fc) {
     return has(fc) ? (T) lineValues.get(fc) : fc.getDefaultValue();
+  }
+
+  public boolean parseFail(Requirement<?> fc) {
+    return lineValues.get(fc) == FAIL;
   }
 
   public Set<Requirement<?>> keys() {
