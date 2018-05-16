@@ -462,8 +462,8 @@ public class AffyPipeline {
       log.reportTimeInfo("Running with default affymetrix cdf, use the \"-full\" command to use the full version");
     }
 
-    String[] celFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(),
-                                   proj.SOURCE_FILENAME_EXTENSION.getValue());
+    String[] celFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(), null,
+                                   proj.SOURCE_FILENAME_EXTENSION.getValue(), true, true);
     validateCelSelection(celFiles, log);
     log.reportTime("Parsing " + celFiles.length + " Affymetrix source files.");
 
