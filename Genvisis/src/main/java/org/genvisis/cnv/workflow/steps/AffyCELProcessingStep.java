@@ -6,6 +6,7 @@ import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.workflow.Requirement;
+import org.genvisis.cnv.workflow.Requirement.DirRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.Requirement.OptionalBoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
@@ -23,8 +24,8 @@ public class AffyCELProcessingStep extends Step {
 
   OptionalBoolRequirement fullReq;
   Requirement<Integer> numThreadsReq;
-  FileRequirement aptExeReq;
-  FileRequirement aptLibReq;
+  DirRequirement aptExeReq;
+  DirRequirement aptLibReq;
   FileRequirement sketchReq;
 
   public static final String DESC_MKR_BUFF = "Number of markers to buffer when splitting files.";
@@ -37,14 +38,14 @@ public class AffyCELProcessingStep extends Step {
   public static AffyCELProcessingStep create(Project proj, Requirement<Integer> numThreadsReq) {
 
     OptionalBoolRequirement fullReq = new OptionalBoolRequirement(DESC_FULL, false);
-    FileRequirement aptExtReq = new FileRequirement(DESC_APT_EXT, new File(""));
-    FileRequirement aptLibReq = new FileRequirement(DESC_APT_LIB, new File(""));
+    DirRequirement aptExtReq = new DirRequirement(DESC_APT_EXT, new File(""));
+    DirRequirement aptLibReq = new DirRequirement(DESC_APT_LIB, new File(""));
     FileRequirement sketchReq = new FileRequirement(DESC_SKETCH, new File(""));
 
     return new AffyCELProcessingStep(proj, aptExtReq, aptLibReq, sketchReq, fullReq, numThreadsReq);
   }
 
-  private AffyCELProcessingStep(Project proj, FileRequirement aptExtReq, FileRequirement aptLibReq,
+  private AffyCELProcessingStep(Project proj, DirRequirement aptExtReq, DirRequirement aptLibReq,
                                 FileRequirement sketchReq, OptionalBoolRequirement fullReq,
                                 Requirement<Integer> numThreadsReq) {
     super(NAME, DESC,
