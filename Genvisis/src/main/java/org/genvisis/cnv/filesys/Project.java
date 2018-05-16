@@ -1174,6 +1174,17 @@ public class Project implements PropertyChangeListener {
     }
   }
 
+  /**
+   * @return The results of {@link #getFilteredHash()} with the name of markers converted to a
+   *         {@link Marker} from the project
+   */
+  public Map<Marker, String> getFilteredMarkers() {
+    Map<String, Marker> markerNameMap = getMarkerSet().getMarkerNameMap();
+    return getFilteredHash().entrySet().stream()
+                            .collect(ImmutableMap.toImmutableMap(entry -> markerNameMap.get(entry.getKey()),
+                                                                 Entry::getValue));
+  }
+
   public List<String> getStratResults() {
     String[] files;
     List<String> v;
