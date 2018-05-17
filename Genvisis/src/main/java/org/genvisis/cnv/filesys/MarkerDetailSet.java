@@ -647,6 +647,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     return markerIndexMap;
   }
 
+  public Iterable<Marker> getAutosomalMarkers() {
+    return Iterables.concat(getChrMap().subMap((byte) 1, (byte) 23).values());
+  }
+
   @Override
   public void exportToText(Project proj, String filename) {
     PrintWriter writer;

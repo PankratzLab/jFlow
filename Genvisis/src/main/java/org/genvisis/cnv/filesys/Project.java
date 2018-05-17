@@ -16,7 +16,6 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,6 +61,7 @@ import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.seq.manage.ReferenceGenome;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 
 public class Project implements PropertyChangeListener {
 
@@ -1926,7 +1926,8 @@ public class Project implements PropertyChangeListener {
    */
   @Deprecated
   public String[] getAutosomalMarkers() {
-    return autosomalMarkerStream().map(Marker::getName).toArray(String[]::new);
+    return Streams.stream(getMarkerSet().getAutosomalMarkers()).map(Marker::getName)
+                  .toArray(String[]::new);
   }
 
   /**
@@ -1936,12 +1937,8 @@ public class Project implements PropertyChangeListener {
   @Deprecated
   public int[] getAutosomalMarkerIndices() {
     Map<Marker, Integer> markerIndices = getMarkerSet().getMarkerIndexMap();
-    return autosomalMarkerStream().mapToInt(markerIndices::get).toArray();
-  }
-
-  private Stream<Marker> autosomalMarkerStream() {
-    return getMarkerSet().getNavigableChrMap().subMap((byte) 1, (byte) 23).values().stream()
-                         .flatMap(Collection::stream);
+    return Streams.stream(getMarkerSet().getAutosomalMarkers()).mapToInt(markerIndices::get)
+                  .toArray();
   }
 
   /**
