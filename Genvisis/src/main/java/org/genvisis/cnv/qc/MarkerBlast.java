@@ -202,8 +202,7 @@ public abstract class MarkerBlast {
   public MarkerBlastResult blastEm() {
     String fastaDb = proj.getReferenceGenomeFASTAFilename();
     if (!Files.exists(fastaDb) && doBlast) {
-      log.reportError("Unable to find or obtain reference genome");
-      return null;
+      throw new IllegalStateException("Unable to find or obtain reference genome");
     } else {
       double evalueCutoff = 10000;
       BlastParams blastParams = new BlastParams(getSourceString(), fastaDb, maxAlignmentsReported,
@@ -211,6 +210,9 @@ public abstract class MarkerBlast {
                                                 ext.getTimestampForFilename(), evalueCutoff,
                                                 proj.getMarkerSet().getFingerprint(), "", log);
       Blast blast = new Blast(fastaDb, blastWordSize, reportWordSize, log, true, true);
+      if (blast.isFail()) {
+        throw new IllegalStateException("Problem initializing BLAST program. Please check log for more details.");
+      }
       blast.setEvalue(evalueCutoff);// we rely on the wordSize instead
       String dir = proj.PROJECT_DIRECTORY.getValue() + "Blasts/";
       new File(dir).mkdirs();
