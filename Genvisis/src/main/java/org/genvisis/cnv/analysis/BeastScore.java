@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -479,6 +480,20 @@ public class BeastScore {
   public static BeastScore beastInd(Project proj, SampleData sampleData, CNVariant[] cNVariantInd,
                                     byte[] chr, int[] positions, int[][] indicesByChr) {
     return beastInd(proj, sampleData, null, cNVariantInd, chr, positions, indicesByChr);
+  }
+
+  /**
+   * Helper function to compute beast scores for CNVariant[] representing a single individual, uses
+   * {@link Project#getMarkerSet()} to get array-based arguments to
+   * {@link #beastInd(Project, SampleData, float[], CNVariant[], byte[], int[], int[][])}
+   *
+   * @return BeastScore (for all the individual's cnvs)
+   */
+  public static BeastScore beastInd(Project proj, SampleData sampleData, float[] lrrs,
+                                    CNVariant[] cNVariantInd) {
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    return beastInd(proj, sampleData, lrrs, cNVariantInd, markerSet.getChrs(),
+                    markerSet.getPositions(), markerSet.getIndicesByChr());
   }
 
   /**
