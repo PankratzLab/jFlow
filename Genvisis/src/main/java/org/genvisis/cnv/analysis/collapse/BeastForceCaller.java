@@ -17,7 +17,7 @@ import org.genvisis.filesys.Segment;
  * 
  *
  */
-class BeastForceCaller extends ForcedCaller<BeastVariant> {
+class BeastForceCaller extends ArrayBasedForcedCaller<BeastVariant> {
 
   private double[] lrrs;
 

@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.genvisis.cnv.analysis.BeastScore.BeastVariant;
 import org.genvisis.cnv.analysis.collapse.LRRForceCaller.LRRRegion;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -17,6 +18,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Methods to force call a region of the genome for copy number status
@@ -100,10 +102,14 @@ class CNVForceCaller {
           called.beastResults = beastForceCaller.getResults();
           break;
         case MOSAIC:
+          ImmutableSet.Builder<Marker> useMarkers = ImmutableSet.builder();
+          List<Marker> projOrderMarkers = proj.getMarkerSet().getMarkers();
+          for (int i = 0; i < markersToUse.length; i++) {
+            if (markersToUse[i]) useMarkers.add(projOrderMarkers.get(i));
+          }
           MosaicForceCaller mosaicForceCaller = new MosaicForceCaller(proj, sample.getSampleName(),
-                                                                      indicesByChr,
-                                                                      ArrayUtils.toDoubleArray(sample.getBAFs()),
-                                                                      markersToUse);
+                                                                      sample.markerBAFMap(proj.getMarkerSet()),
+                                                                      useMarkers.build());
           mosaicForceCaller.setDistributionalExcludes(distributionalMosExcludes);
           mosaicForceCaller.forceCall(regions);
           called.mosaicResults = mosaicForceCaller.getResults();

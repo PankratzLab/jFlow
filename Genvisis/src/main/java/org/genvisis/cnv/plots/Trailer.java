@@ -2593,8 +2593,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
             MosaicBuilder builder = new MosaicBuilder();
             builder.verbose(true);
-            MosaicismDetect md = builder.build(proj, sample, markerSet,
-                                               ArrayUtils.toDoubleArray(getBAFsAsArray()));
+            MosaicismDetect md = builder.build(proj, sample, bafs);
             Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
             LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
             int externalCNVs = prepInternalClasses();
@@ -3896,8 +3895,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         || selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
       MosaicBuilder builderMosaic = new MosaicBuilder();
       builderMosaic.verbose(true);
-      MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,
-                                               ArrayUtils.toDoubleArray(getBAFsAsArray()));
+      MosaicismDetect md = builderMosaic.build(proj, sample, bafs);
       LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
       if (mosSet.getLoci().length != 1) {

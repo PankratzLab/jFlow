@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import org.apache.commons.math3.stat.inference.TTest;
 import org.genvisis.cnv.analysis.MosaicismDetect;
@@ -20,6 +22,7 @@ import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
@@ -39,6 +42,7 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.Ttest;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Doubles;
 
 public class SexChecks {
@@ -464,7 +468,7 @@ public class SexChecks {
     uncertains = ArrayUtils.booleanArray(sampleNames.length, false);
     notes = ArrayUtils.stringArray(sampleNames.length, "");
 
-    boolean[] mosaicismCheckUse = mosaicismUse();
+    Set<Marker> mosaicismCheckUse = mosaicismUse();
 
     int sdForYOutliers = 0;
     while (sdForYOutliers < MAX_SD_FOR_Y_OUTLIERS) {
@@ -582,11 +586,12 @@ public class SexChecks {
   }
 
   /*
-   * Generates a boolean array where every marker is true except for X chromosome markers that were
-   * excluded. Autosomal markers are needed for the mosaicism checker but we want to only check
-   * mosoacism on "good" X chromosome markers
+   * Generates a set of every marker except for X chromosome markers that were excluded. Autosomal
+   * markers are needed for the mosaicism checker but we want to only check mosaicism on "good" X
+   * chromosome markers Note: This implementation is very inefficient but is a temporary fix until
+   * SexChecks is converted to using MarkerDetailSet properly
    */
-  private boolean[] mosaicismUse() {
+  private Set<Marker> mosaicismUse() {
     boolean[] use = ArrayUtils.booleanArray(markerSet.getPositions().length, true);
     int[] xIndices = ArrayUtils.booleanArrayToIndices(xKeeps);
     HashSet<Integer> xInclude = new HashSet<>();
@@ -600,18 +605,21 @@ public class SexChecks {
         use[index] = false;
       }
     }
-    return use;
+    List<Marker> markers = markerSet.getMarkers();
+    ImmutableSet.Builder<Marker> useMarkers = ImmutableSet.builder();
+    for (int i = 0; i < use.length; i++) {
+      if (use[i]) useMarkers.add(markers.get(i));
+    }
+    return useMarkers.build();
   }
 
-  private boolean checkXMosaicism(int sample, boolean[] use) {
-    float[] bafs = proj.getPartialSampleFromRandomAccessFile(sampleNames[sample], false, false,
-                                                             true, false, false)
-                       .getBAFs();
+  private boolean checkXMosaicism(int sample, Set<Marker> use) {
+    Map<Marker, Double> bafs = proj.getPartialSampleFromRandomAccessFile(sampleNames[sample], false,
+                                                                         false, true, false, false)
+                                   .markerBAFMap(proj.getMarkerSet());
     MosaicBuilder mosaicBuilder = new MosaicBuilder();
     mosaicBuilder.use(use);
-    mosaicBuilder.markerIndices(proj.getMarkerIndices());
-    MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], markerSet,
-                                                          ArrayUtils.toDoubleArray(bafs));
+    MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], bafs);
     int xStart = markerSet.getPositions()[indicesByChr[23][0]];
     int xStop = markerSet.getPositions()[indicesByChr[23][indicesByChr[23].length - 1]];
     Segment xSegment = new Segment((byte) 23, xStart, xStop);

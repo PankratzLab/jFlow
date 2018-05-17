@@ -9,7 +9,7 @@ import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicProducer;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
@@ -42,27 +42,15 @@ public class CNVMosaic {
         samples.add(samps[i]);
       }
     }
-    MarkerSetInfo markerSet = proj.getMarkerSet();
-    int[][] indicesByChr = markerSet.getIndicesByChr();
     MosaicBuilder builder = new MosaicBuilder();
-    builder.indicesByChr(indicesByChr);
 
     ArrayList<Segment> callSegs = new ArrayList<>();
 
-    for (int i = 0; i < indicesByChr.length; i++) {
-      if (i > 0 && i < 23 && indicesByChr[i].length > 0) {
-        callSegs.add(new Segment((byte) i, 0, Integer.MAX_VALUE));
-      }
+    for (byte chr : proj.getMarkerSet().getChrMap().navigableKeySet().subSet((byte) 1, (byte) 23)) {
+      callSegs.add(new Segment(chr, 0, Integer.MAX_VALUE));
     }
-    LocusSet<Segment> segs = new LocusSet<Segment>(callSegs.toArray(new Segment[callSegs.size()]),
-                                                   true, proj.getLog()) {
-
-      /**
-       *
-       */
-      private static final long serialVersionUID = 1L;
-
-    };
+    LocusSet<Segment> segs = new LocusSet<>(callSegs.toArray(new Segment[callSegs.size()]), true,
+                                            proj.getLog());
     String ser = output + ".ser";
 
     if (!Files.exists(ser) || !Files.exists(output)) {
@@ -74,8 +62,7 @@ public class CNVMosaic {
                        + ArrayUtils.toStr(MosaicRegion.ADD_HEADER) + "\tEXCLUDED\tDNA\tUCSC");
 
         MosaicProducer producer = new MosaicProducer(proj, builder,
-                                                     ArrayUtils.toStringArray(samples), markerSet,
-                                                     segs);
+                                                     ArrayUtils.toStringArray(samples), segs);
         try (WorkerTrain<LocusSet<MosaicRegion>> train = new WorkerTrain<>(producer, numThreads, 2,
                                                                            proj.getLog())) {
           int index = 0;
@@ -392,14 +379,13 @@ public class CNVMosaic {
 
         @Override
         public MosaicRegion[] call() throws Exception {
-          MarkerSetInfo markerSet = proj.getMarkerSet();
+          MarkerDetailSet markerSet = proj.getMarkerSet();
           int[][] indicesByChr = markerSet.getIndicesByChr();
           Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
           ArrayList<MosaicRegion> all = new ArrayList<>();
           MosaicBuilder builderMosaic = new MosaicBuilder();
           builderMosaic.verbose(true);
-          MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,
-                                                   ArrayUtils.toDoubleArray(samp.getBAFs()));
+          MosaicismDetect md = builderMosaic.build(proj, sample, samp.markerBAFMap(markerSet));
           // MosaicQuantWorker worker = new MosaicQuantWorker(sampCNVs.getLoci(), proj, sample,
           // MOSAIC_TYPE.values(), 5);
           // WorkerHive<MosaicQuantResults[]> hive = new

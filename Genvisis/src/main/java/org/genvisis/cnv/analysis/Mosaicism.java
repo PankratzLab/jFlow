@@ -9,13 +9,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
@@ -36,6 +38,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Floats;
 
 public class Mosaicism {
@@ -54,49 +59,29 @@ public class Mosaicism {
   public static void findOutliers(Project proj, int numthreads) {
     final PrintWriter writer;
     String[] samples;
-    int chr;
     Hashtable<String, String> hash = new Hashtable<>();
-    String[] markerNames;
-    byte[] chrs;
-    int[] positions;
-    boolean[] snpDropped;
-    int[][] chrBoundaries;
-    MarkerDetailSet markerSet;
 
-    hash = proj.getFilteredHash();
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    List<Marker> markers = markerSet.getMarkers();
+    Set<Marker> dropMarkers = proj.getFilteredMarkers().keySet();
+    System.out.println("Mosacism will be estimated using " + markers.size() + " markers");
 
-    chrBoundaries = new int[27][3];
-    snpDropped = null;
-    for (int i = 0; i < chrBoundaries.length; i++) {
-      chrBoundaries[i][0] = chrBoundaries[i][1] = chrBoundaries[i][2] = -1;
-    }
-    markerSet = proj.getMarkerSet();
-    markerNames = markerSet.getMarkerNames();
-    chrs = markerSet.getChrs();
-    positions = markerSet.getPositions();
-    snpDropped = new boolean[markerNames.length];
-    int[][] indicesByChr = markerSet.getIndicesByChr();
-    System.out.println("Mosacism will be estimated using " + markerNames.length + " markers");
-    chr = 0;
-    for (int i = 0; i < markerNames.length; i++) {
-      snpDropped[i] = hash.containsKey(markerNames[i]);
-      if (positions[i] > Positions.CENTROMERE_MIDPOINTS[chr] && chrBoundaries[chr][1] == -1) {
-        chrBoundaries[chr][1] = i;
-      }
-      if (chrs[i] > chr || i == markerNames.length - 1) {
-        if (chr != 0) {
-          chrBoundaries[chr][2] = i - 1;
-        }
-        chr = chrs[i];
-        chrBoundaries[chr][0] = i;
-      }
-    }
-    chrBoundaries[0][0] = 0;
-    chrBoundaries[0][2] = markerNames.length - 1;
-
-    for (int i = 0; i < chrBoundaries.length; i++) {
-      if (chrBoundaries[i][0] == -1 || chrBoundaries[i][2] == -1) {
-        System.err.println("Error - no data for chromosome '" + i + "'");
+    Map<Byte, Iterable<Marker>> chrArmPMarkers = Maps.newHashMap();
+    Map<Byte, Iterable<Marker>> chrArmQMarkers = Maps.newHashMap();
+    for (byte chr = 1; chr < 27; chr++) {
+      int min = 0;
+      int max = Integer.MAX_VALUE;
+      int centromere = Positions.CENTROMERE_MIDPOINTS[chr];
+      Iterable<Marker> pMarkers = markerSet.viewMarkersInSeg(new Segment(chr, min,
+                                                                         Math.max(0,
+                                                                                  centromere - 1)));
+      Iterable<Marker> qMarkers = markerSet.viewMarkersInSeg(new Segment(chr,
+                                                                         Math.max(0, centromere),
+                                                                         max));
+      chrArmPMarkers.put(chr, pMarkers);
+      chrArmQMarkers.put(chr, qMarkers);
+      if (Iterables.isEmpty(pMarkers) && Iterables.isEmpty(qMarkers)) {
+        System.err.println("Error - no data for chromosome '" + chr + "'");
       }
     }
 
@@ -108,9 +93,8 @@ public class Mosaicism {
       // samples = new String[] { "7355066051_R03C01", "7330686030_R02C01", "7159911135_R01C02" };
       // samples = new String[] { "7355066051_R03C01" };
 
-      MosaicResultProducer producer = new MosaicResultProducer(proj, samples, snpDropped,
-                                                               chrBoundaries, markerSet,
-                                                               indicesByChr);
+      MosaicResultProducer producer = new MosaicResultProducer(proj, chrArmPMarkers, chrArmQMarkers,
+                                                               dropMarkers, samples);
       try (WorkerTrain<String[]> train = new WorkerTrain<>(producer,
                                                            numthreads > 0 ? numthreads
                                                                           : proj.NUM_THREADS.getValue(),
@@ -158,23 +142,21 @@ public class Mosaicism {
   private static class MosaicResultProducer extends AbstractProducer<String[]> {
 
     private final Project proj;
+    private final Map<Byte, Iterable<Marker>> chrArmPMarkers;
+    private final Map<Byte, Iterable<Marker>> chrArmQMarkers;
+    private final Set<Marker> dropMarkers;
     private final String[] samples;
-    private final boolean[] snpDropped;
-    private final int[][] chrBoundaries;
-    private final PreparedMarkerSet markerSet;
-    private final int[][] indicesByChr;
     private int index;
 
-    public MosaicResultProducer(Project proj, String[] samples, boolean[] snpDropped,
-                                int[][] chrBoundaries, MarkerSetInfo markerSet,
-                                int[][] indicesByChr) {
+    public MosaicResultProducer(Project proj, Map<Byte, Iterable<Marker>> chrArmPMarkers,
+                                Map<Byte, Iterable<Marker>> chrArmQMarkers, Set<Marker> dropMarkers,
+                                String[] samples) {
       super();
       this.proj = proj;
+      this.chrArmPMarkers = chrArmPMarkers;
+      this.chrArmQMarkers = chrArmQMarkers;
+      this.dropMarkers = dropMarkers;
       this.samples = samples;
-      this.snpDropped = snpDropped;
-      this.chrBoundaries = chrBoundaries;
-      this.indicesByChr = indicesByChr;
-      this.markerSet = PreparedMarkerSet.getPreparedMarkerSet(markerSet);
       index = 0;
     }
 
@@ -191,8 +173,7 @@ public class Mosaicism {
         @Override
         public String[] call() throws Exception {
 
-          return getMosaicResults(proj, currentSample, snpDropped, chrBoundaries, markerSet,
-                                  indicesByChr);
+          return getMosaicResults(proj, chrArmPMarkers, chrArmQMarkers, currentSample, dropMarkers);
         }
       };
       index++;
@@ -203,79 +184,64 @@ public class Mosaicism {
     public void shutdown() {
       index = samples.length;
     }
+
   }
 
-  private static String[] getMosaicResults(Project proj, String sample, boolean[] snpDropped,
-                                           int[][] chrBoundaries, MarkerSetInfo markerSet,
-                                           int[][] indicesByChr) {
-    Sample samp;
-    float baf;
-    float[] lrrs;
-    float[] bafs;
-    samp = proj.getPartialSampleFromRandomAccessFile(sample);
+  private static String[] getMosaicResults(Project proj, Map<Byte, Iterable<Marker>> chrArmPMarkers,
+                                           Map<Byte, Iterable<Marker>> chrArmQMarkers,
+                                           String sample, Set<Marker> dropMarkers) {
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Sample samp = proj.getPartialSampleFromRandomAccessFile(sample);
     ArrayList<String> results = new ArrayList<>();
     if (samp.getFingerprint() != markerSet.getFingerprint()) {
       String error = "Error - cannot estimate mosaics if MarkerSet and Sample (" + sample
                      + ") don't use the same markers";
       throw new IllegalArgumentException(error);
     }
-    lrrs = samp.getLRRs();
-    bafs = samp.getBAFs();
+    Map<Marker, Double> lrrs = samp.markerLRRMap(markerSet);
+    Map<Marker, Double> bafs = samp.markerBAFMap(markerSet);
     MosaicBuilder builder = new MosaicBuilder();
-    builder.indicesByChr(indicesByChr);
     builder.verbose(false);
-    builder.markerIndices(proj.getMarkerIndices());
     if (proj.getArrayType() == ARRAY.NGS) {
       proj.getLog().reportTimeWarning("Masking non-variant sites for project type " + ARRAY.NGS);
-      boolean[] use = new boolean[markerSet.getMarkerNames().length];
-      int numMasked = 0;
-      for (int i = 0; i < use.length; i++) {
-        boolean useit = !proj.getArrayType().isCNOnly(markerSet.getMarkerNames()[i]);
-        if (!useit) {
-          numMasked++;
-        }
-        use[i] = useit;
-      }
-      proj.getLog().reportTimeInfo(numMasked + " markers were masked");
+      Set<Marker> use = markerSet.getMarkers().stream()
+                                 .filter(m -> !proj.getArrayType().isCNOnly(m.getName()))
+                                 .collect(ImmutableSet.toImmutableSet());
+
+      proj.getLog()
+          .reportTimeInfo(markerSet.getMarkers().size() - use.size() + " markers were masked");
       builder.use(use);
     }
-    MosaicismDetect md = builder.build(proj, sample, markerSet, ArrayUtils.toDoubleArray(bafs));
-    int[] positions = markerSet.getPositions();
-    byte[] chrs = markerSet.getChrs();
-    for (int j = 1; j <= 23; j++) {
+    MosaicismDetect md = builder.build(proj, sample, samp.markerBAFMap(markerSet));
+    for (byte chr = 1; chr <= 23; chr++) {
       for (int arm = 0; arm < 2; arm++) {
-        int startIndex = (arm == 0 ? chrBoundaries[j][0] : chrBoundaries[j][1]);
-        int stopIndex = (arm == 0 ? chrBoundaries[j][1] : chrBoundaries[j][2] + 1);
+        Iterable<Marker> armMarkers = (arm == 0 ? chrArmPMarkers : chrArmQMarkers).get(chr);
 
-        ArrayList<Float> lrrAl = new ArrayList<>(stopIndex + 10 - startIndex);
-        ArrayList<Float> bafAl = new ArrayList<>(stopIndex + 10 - startIndex);
-        for (int k = startIndex; k < stopIndex; k++) {
-          if (!snpDropped[k] && !(md.getUse() != null && !md.getUse()[k])) {
-            if (!Float.isNaN(lrrs[k])) {
-              lrrAl.add(lrrs[k]);
+        List<Double> lrrAl = new ArrayList<>();
+        List<Double> bafAl = new ArrayList<>();
+        for (Marker marker : armMarkers) {
+          if (!dropMarkers.contains(marker)
+              && (md.getUse() == null || md.getUse().contains(marker))) {
+            double lrr = lrrs.get(marker);
+            if (!Double.isNaN(lrr)) {
+              lrrAl.add(lrr);
             }
-            baf = bafs[k];
+            double baf = bafs.get(marker);
             if (baf > LOWER_BOUND && baf < UPPER_BOUND) {
               bafAl.add(baf);
             }
           }
         }
         if (lrrAl.size() > 100) {
-          if (chrs[startIndex] != (byte) j || chrs[stopIndex - 1] != (byte) j) {
-
-            throw new IllegalStateException("Internal Error, mismatched chromosome indices, start ="
-                                            + chrs[startIndex] + "\tstop = " + chrs[stopIndex]
-                                            + "\tarm = " + arm);
-          }
-          Segment armSeg = new Segment((byte) j, positions[startIndex], positions[stopIndex - 1]);
+          Segment armSeg = new Segment(chr, armMarkers.iterator().next().getPosition(),
+                                       Iterables.getLast(armMarkers).getPosition());
           MosaicMetric mosaicMetrics = getMosiacMetric(md, armSeg, proj.getLog());
 
           int bafSize = bafAl.size();
           int lrrSize = lrrAl.size();
           float[] bafTmp = Floats.toArray(bafAl);
-          String result = sample + "\t" + "chr" + j + (arm == 0 ? "p" : "q") + "\t" + lrrSize + "\t"
-                          + ext.formDeci(ArrayUtils.mean(Floats.toArray(lrrAl)), 5) + "\t"
-                          + bafAl.size()
+          String result = sample + "\t" + "chr" + chr + (arm == 0 ? "p" : "q") + "\t" + lrrSize
+                          + "\t" + ext.formDeci(ArrayUtils.mean(lrrAl), 5) + "\t" + bafAl.size()
                           + (bafSize > 10 ? "\t" + ext.formDeci(ArrayUtils.stdev(bafTmp, true), 5)
                                             + "\t"
                                             + ext.formDeci(ArrayUtils.iqrExclusive(bafTmp), 5)
@@ -626,5 +592,4 @@ public class Mosaicism {
       e.printStackTrace();
     }
   }
-
 }
