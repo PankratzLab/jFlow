@@ -11,8 +11,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import org.genvisis.CLI;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
@@ -25,6 +28,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerHive;
 import org.genvisis.common.ext;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Doubles;
 
 public class Sample implements Serializable {
@@ -363,6 +367,19 @@ public class Sample implements Serializable {
     return rs;
   }
 
+  /**
+   * @param markerSet
+   * @return Map from {@link MarkerDetailSet.Marker} to BAF for this {@link Sample}
+   */
+  public Map<Marker, Double> markerBAFMap(MarkerDetailSet markerSet) {
+    List<Marker> projOrderMarkers = markerSet.getMarkers();
+    ImmutableMap.Builder<Marker, Double> markerBAFMapBuilder = ImmutableMap.builder();
+    for (int i = 0; i < bafs.length; i++) {
+      markerBAFMapBuilder.put(projOrderMarkers.get(i), (double) bafs[i]);
+    }
+    return markerBAFMapBuilder.build();
+  }
+
   public float[] getBAFs() {
     return bafs;
   }
@@ -384,6 +401,19 @@ public class Sample implements Serializable {
     }
 
     return bafs;
+  }
+
+  /**
+   * @param markerSet
+   * @return Map from {@link MarkerDetailSet.Marker} to LRR for this {@link Sample}
+   */
+  public Map<Marker, Double> markerLRRMap(MarkerDetailSet markerSet) {
+    List<Marker> projOrderMarkers = markerSet.getMarkers();
+    ImmutableMap.Builder<Marker, Double> markerLRRMapBuilder = ImmutableMap.builder();
+    for (int i = 0; i < lrrs.length; i++) {
+      markerLRRMapBuilder.put(projOrderMarkers.get(i), (double) lrrs[i]);
+    }
+    return markerLRRMapBuilder.build();
   }
 
   public float[] getLRRs() {
