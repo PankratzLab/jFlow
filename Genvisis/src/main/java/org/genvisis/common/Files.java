@@ -2121,7 +2121,8 @@ public class Files {
 
     result = true;
     for (String filename : filenames) {
-      if (!exists(dir + filename, treatEmptyAsMissing)) {
+      String f = filename.startsWith(dir) ? filename : (dir + filename);
+      if (!exists(f, treatEmptyAsMissing)) {
         result = false;
         break;
       }

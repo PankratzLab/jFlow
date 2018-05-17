@@ -84,7 +84,7 @@ public class AffyCELProcessingStep extends Step {
   @Override
   public boolean checkIfOutputExists(Variables variables) {
     // four measures that indicate success, from AffyPipeline
-    return proj.SOURCE_DIRECTORY.getValue().equals("00src_CEL/")
+    return proj.SOURCE_DIRECTORY.getValue().endsWith("00src_CEL/")
            && proj.SOURCE_FILENAME_EXTENSION.getValue().equals(".txt.gz")
            && proj.SOURCE_FILE_DELIMITER.getValue() == SOURCE_FILE_DELIMITERS.TAB
            && proj.ID_HEADER.getValue().equals("[FILENAME_ROOT]");

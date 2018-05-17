@@ -221,10 +221,12 @@ public class AffyPipeline {
     log.report(ext.getTime() + " Info - running a command to extract probeset ids: " + psetCommand);
 
     String probeResults = outDir + currentAnalysis + ".summary.txt";
-    boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(psetCommand), "",
-                                                        new String[] {celFile},
-                                                        new String[] {probeResults}, true, false,
-                                                        false, log);
+
+    boolean progress = CmdLine.builder(log).build()
+                              .run(Command.builder(psetCommand)
+                                          .necessaryInputFiles(new String[] {celFile})
+                                          .expectedOutputFiles(new String[] {probeResults})
+                                          .build());
 
     log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
     ArrayList<String> probesetIdsAll = new ArrayList<>(1800000);
@@ -340,10 +342,12 @@ public class AffyPipeline {
     String quantNormFile = outCurrent + analysisName + ".summary.txt";
     String report = outCurrent + analysisName + ".report.txt";
 
-    boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(normalizeCommand),
-                                                        "", null,
-                                                        new String[] {quantNormFile, report}, true,
-                                                        false, false, log);
+    String[] output = new String[] {quantNormFile, report};
+
+    boolean progress = CmdLine.builder(log).build()
+                              .run(Command.builder(normalizeCommand).dir(outCurrent)
+                                          .expectedOutputFiles(output).build());
+
     NormalizationResult normalizationResult = new NormalizationResult(quantNormFile);
     normalizationResult.setFail(!progress);
     return normalizationResult;

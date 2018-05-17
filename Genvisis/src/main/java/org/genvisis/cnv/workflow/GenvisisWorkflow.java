@@ -85,7 +85,8 @@ public class GenvisisWorkflow {
         || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
 
       if (proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel")
-          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel.gz")) {
+          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel.gz")
+          || proj.SOURCE_DIRECTORY.getValue().endsWith("00src_CEL/")) {
         sb.generateAffyCELProcessingStep(proj);
       }
       parseSamplesStep = sb.generateParseSamplesStep(proj);
