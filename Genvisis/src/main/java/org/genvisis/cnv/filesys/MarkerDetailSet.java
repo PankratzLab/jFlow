@@ -39,7 +39,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
@@ -672,15 +671,27 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
+   * Unless a new collection is explicitly needed, use {@link #viewMarkersInSeg(Segment)} for a view
+   * of {@link Marker}s in seg
+   * 
    * @param seg Segment
    * @return {@link ImmutableSortedSet} of Markers in seg
    */
   public ImmutableSortedSet<Marker> getMarkersInSeg(Segment seg) {
+    return ImmutableSortedSet.copyOf(viewMarkersInSeg(seg));
+  }
+
+  /**
+   * @param seg Segment to view
+   * @return an Iterable that iterates over the {@link Marker}s in seg
+   */
+  public Iterable<Marker> viewMarkersInSeg(Segment seg) {
     NavigableMap<GenomicPosition, NavigableSet<Marker>> positionMap = getGenomicPositionMap();
-    return positionMap.subMap(new GenomicPosition(seg.getChr(), seg.getStart()), true,
-                              new GenomicPosition(seg.getChr(), seg.getStop()), true)
-                      .values().stream().flatMap(SortedSet::stream)
-                      .collect(ImmutableSortedSet.toImmutableSortedSet(Ordering.natural()));
+    return Iterables.concat(positionMap.subMap(new GenomicPosition(seg.getChr(), seg.getStart()),
+                                               true,
+                                               new GenomicPosition(seg.getChr(), seg.getStop()),
+                                               true)
+                                       .values());
   }
 
   @Override
