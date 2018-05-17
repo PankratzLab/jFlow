@@ -105,21 +105,25 @@ public class VcfExportShortcut {
                    .ifPresent(proj.SOURCE_FILENAME_EXTENSION::setValue);
       proj.PROJECT_DIRECTORY.setValue(outDir);
       proj.ARRAY_TYPE.setValue(arrayType);
-      Map<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(sourceDir,
-                                                                                proj.SOURCE_FILENAME_EXTENSION.getValue(),
-                                                                                false, log,
-                                                                                Optional.empty());
-      SourceFileHeaderData firstHeader = headers.values().stream().findFirst()
-                                                .orElseThrow(() -> new IllegalStateException("No source files parsed"));
-      if (firstHeader.getColSampleIdent() >= 0) {
-        proj.ID_HEADER.setValue(firstHeader.getCols()[firstHeader.getColSnpIdent()]);
+      if (arrayType == ARRAY.ILLUMINA) {
+        Map<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(sourceDir,
+                                                                                  proj.SOURCE_FILENAME_EXTENSION.getValue(),
+                                                                                  false, log,
+                                                                                  Optional.empty());
+        SourceFileHeaderData firstHeader = headers.values().stream().findFirst()
+                                                  .orElseThrow(() -> new IllegalStateException("No source files parsed"));
+        if (firstHeader.getColSampleIdent() >= 0) {
+          proj.ID_HEADER.setValue(firstHeader.getCols()[firstHeader.getColSnpIdent()]);
+        } else {
+          proj.ID_HEADER.setValue(SourceFileParser.FILENAME_AS_ID_OPTION);
+        }
+        proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(firstHeader.getSourceFileDelimiter()));
+        proj.setSourceFileHeaders(headers);
       } else {
         proj.ID_HEADER.setValue(SourceFileParser.FILENAME_AS_ID_OPTION);
       }
-
-      proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(firstHeader.getSourceFileDelimiter()));
+      //      proj.USE_BLAST_POSITIONS.setValue(Boolean.TRUE);
       proj.saveProperties();
-      proj.setSourceFileHeaders(headers);
       proj.setLog(log);
       checkAndSetPed(proj, pedigreeFile);
       log.reportTime("Created Genvisis project at " + proj.getPropertyFilename());
