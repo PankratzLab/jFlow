@@ -34,11 +34,18 @@ public class MarkerBlastQC {
 
   public static void getOneHitWonders(Project proj, String blastVCF, String outFile,
                                       double crossHybePercent, Logger log) {
-    if (blastVCF == null) {
-      blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
-    }
     if (outFile == null) {
       outFile = defaultOneHitWondersFilename(blastVCF);
+    }
+    List<String> oneHitters = getOneHitWonders(proj, blastVCF, crossHybePercent, log);
+    log.report("Writing results to " + outFile);
+    Files.writeIterable(oneHitters, outFile);
+  }
+
+  public static List<String> getOneHitWonders(Project proj, String blastVCF,
+                                              double crossHybePercent, Logger log) {
+    if (blastVCF == null) {
+      blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
     }
     MarkerSetInfo markerSet = proj.getMarkerSet();
     String[] markerNames = markerSet.getMarkerNames();
@@ -90,8 +97,7 @@ public class MarkerBlastQC {
 
     log.reportTime(oneHitters.size() + " one hit wonder markers identified out of "
                    + markerNames.length + " total markers");
-    log.report("Writing results to " + outFile);
-    Files.writeIterable(oneHitters, outFile);
+    return oneHitters;
   }
 
   public static void main(String[] args) {
