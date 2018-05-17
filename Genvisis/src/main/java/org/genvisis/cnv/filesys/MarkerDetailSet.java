@@ -647,6 +647,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     return markerIndexMap;
   }
 
+  /**
+   * @return an {@link Iterable} view of all autosomal markers
+   */
   public Iterable<Marker> getAutosomalMarkers() {
     return Iterables.concat(getChrMap().subMap((byte) 1, (byte) 23).values());
   }
