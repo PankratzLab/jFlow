@@ -26,6 +26,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
+import org.genvisis.common.Command;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -417,8 +418,11 @@ public class AffyPipeline {
     GenotypeResult genotypeResult = new GenotypeResult(callFile, confFile);
     String[] output = new String[] {genotypeResult.getCallFile(), genotypeResult.getConfFile(),
                                     reportFile};
-    boolean progress = CmdLine.runCommandWithFileChecks(ArrayUtils.toStringArray(genotypeCommand),
-                                                        "", null, output, true, false, false, log);
+
+    boolean progress = CmdLine.builder(log).build()
+                              .run(Command.builder(genotypeCommand).expectedOutputFiles(output)
+                                          .dir(outCurrent).build());
+
     genotypeResult.setFailed(!progress);
     return genotypeResult;
   }
