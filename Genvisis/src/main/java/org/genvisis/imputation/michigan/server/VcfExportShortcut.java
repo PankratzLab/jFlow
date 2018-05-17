@@ -316,15 +316,18 @@ public class VcfExportShortcut {
       if (arrayType != ARRAY.ILLUMINA) {
         log.reportError("An Illumina manifest file was specified for a non-Illumina array type ("
                         + arrayType.name()
-                        + ") - please either remove the manifest argument or set the project array type to ILLUMINA.");
+                        + ") - please either remove the manifest argument or set the project array type to "
+                        + ARRAY.ILLUMINA.name() + ".");
         return;
       }
       export.setIlluminaManifest(cli.get(ARG_ILL_MAN));
-    } else if (cli.has(ARG_AFFY_SKETCH)) {
+    } else if (cli.has(ARG_AFFY_SKETCH) || cli.has(ARG_AFFY_ANNOT) || cli.has(ARG_AFFY_PROBE)
+               || cli.has(ARG_APT_EXE) || cli.has(ARG_APT_LIB)) {
       if (arrayType != ARRAY.AFFY_GW6) {
-        log.reportError("An Illumina manifest file was specified for a non-Illumina array type ("
+        log.reportError("An Affymetrix input file was specified for a non-Illumina array type ("
                         + arrayType.name()
-                        + ") - please either remove the manifest argument or set the project array type to ILLUMINA.");
+                        + ") - please either remove the Affymetrix file argument or set the project array type to "
+                        + ARRAY.AFFY_GW6.name() + ".");
         return;
       }
       export.setAffySketch(cli.get(ARG_AFFY_SKETCH));
