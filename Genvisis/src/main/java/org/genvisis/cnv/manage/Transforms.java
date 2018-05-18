@@ -41,6 +41,7 @@ public class Transforms {
 
   public static float[] transform(float[] input, int transformation_type, int[][] indices,
                                   boolean[] transform) {
+    indices = ArrayUtils.deepCopy(indices);
     float[] output, trav;
     int count;
     // long time;
