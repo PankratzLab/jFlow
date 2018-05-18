@@ -1,9 +1,11 @@
 package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
@@ -12,6 +14,7 @@ import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
@@ -40,6 +43,85 @@ public class MarkerBlastQC {
     List<String> oneHitters = getOneHitWonders(proj, blastVCF, crossHybePercent, log);
     log.report("Writing results to " + outFile);
     Files.writeIterable(oneHitters, outFile);
+  }
+
+  static class QCResults {
+
+    public Set<String> getMatches() {
+      return matches;
+    }
+
+    public Set<String> getMissing() {
+      return missing;
+    }
+
+    public Set<String> getBad() {
+      return bad;
+    }
+
+    public Set<String> getAmbig() {
+      return ambig;
+    }
+
+    public Set<String> getPerfect() {
+      return perfect;
+    }
+
+    private final Set<String> perfect = new HashSet<>();
+    private final Set<String> matches = new HashSet<>();
+    private final Set<String> missing = new HashSet<>();
+    private final Set<String> bad = new HashSet<>();
+    private final Set<String> ambig = new HashSet<>();
+
+  }
+
+  public static QCResults getSingleHitMarkers(Project proj, String blastVCF) {
+    if (blastVCF == null) {
+      blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
+    }
+    MarkerSetInfo markerSet = proj.getMarkerSet();
+    byte[] chrs = markerSet.getChrs();
+    int[] pos = markerSet.getPositions();
+    String[] markerNames = markerSet.getMarkerNames();
+    MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
+                                                                               proj.BLAST_ANNOTATION_FILENAME.getValue(),
+                                                                               proj.getMarkerSet(),
+                                                                               true, proj.getLog());
+    markerAnnotationLoader.setReportEvery(500000);
+    Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
+                                                                                      markerNames);
+    Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
+    List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
+    parsers.add(gcAnnotations);
+    parsers.add(blastResults);
+
+    markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
+
+    QCResults result = new QCResults();
+    for (int i = 0; i < markerNames.length; i++) {
+      String m = markerNames[i];
+      MarkerBlastAnnotation annot = blastResults.get(m);
+      if (annot == null) {
+        result.getMissing().add(m);
+        continue;
+      }
+      List<BlastAnnotation> perfectMatches = annot.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
+                                                                     proj.getLog());
+      if (perfectMatches.size() == 1) {
+        result.getPerfect().add(m);
+      } else if (!perfectMatches.isEmpty()) {
+        BlastAnnotation best = MarkerDetailSet.closestChrMatch(chrs[i], pos[i], perfectMatches);
+        if (best != null) {
+          result.getMatches().add(m);
+        } else {
+          result.getAmbig().add(m);
+        }
+      } else {
+        result.getBad().add(m);
+      }
+    }
+
+    return result;
   }
 
   public static List<String> getOneHitWonders(Project proj, String blastVCF,

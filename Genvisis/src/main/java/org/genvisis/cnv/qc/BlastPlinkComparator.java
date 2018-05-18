@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.qc.MarkerBlastQC.QCResults;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import com.google.common.collect.Sets;
@@ -13,76 +14,137 @@ public class BlastPlinkComparator {
   Project proj;
 
   public BlastPlinkComparator(Project project) {
-    this.proj = proj;
+    this.proj = project;
   }
 
   public void run() {
-    Set<String> oneHits = loadOneHitters();
+    QCResults oneHits = loadOneHitters();
     Set<String> plinkQC = loadPlinkQCPassingMarkers();
 
-    int qcPassClean = 0;
-    int qcPassNoClean = 0;
-    int qcFailClean = 0;
-    int qcFailNoClean = 0;
+    int qcPassPerf = 0;
+    int qcFailPerf = 0;
+    int qcPassClose = 0;
+    int qcFailClose = 0;
+    int qcPassAmbig = 0;
+    int qcFailAmbig = 0;
+    int qcPassBad = 0;
+    int qcFailBad = 0;
+    int qcPassMiss = 0;
+    int qcFailMiss = 0;
 
     String[] allMkrs = proj.getMarkerNames();
     for (String s : allMkrs) {
-      boolean hit = oneHits.contains(s);
+      boolean hit = oneHits.getPerfect().contains(s);
+      boolean clo = oneHits.getMatches().contains(s);
+      boolean amb = oneHits.getAmbig().contains(s);
+      boolean bad = oneHits.getBad().contains(s);
+      boolean miss = oneHits.getMissing().contains(s);
       boolean pqc = plinkQC.contains(s);
 
-      if (hit && pqc) {
-        qcPassClean++;
-      } else if (hit && !pqc) {
-        qcFailClean++;
-      } else if (!hit && pqc) {
-        qcPassNoClean++;
-      } else if (!hit && !pqc) {
-        qcFailNoClean++;
+      if (pqc && hit) {
+        qcPassPerf++;
+      } else if (!pqc && hit) {
+        qcFailPerf++;
+      } else if (pqc && clo) {
+        qcPassClose++;
+      } else if (!pqc && clo) {
+        qcFailClose++;
+      } else if (pqc && amb) {
+        qcPassAmbig++;
+      } else if (!pqc && amb) {
+        qcFailAmbig++;
+      } else if (pqc && bad) {
+        qcPassBad++;
+      } else if (!pqc && bad) {
+        qcFailBad++;
+      } else if (pqc && miss) {
+        qcPassMiss++;
+      } else if (!pqc && miss) {
+        qcFailMiss++;
       }
 
     }
 
     int maxLen = 0;
     int len = 0;
-    if ((len = Integer.toString(qcPassClean).length()) > maxLen) {
+    if ((len = Integer.toString(qcPassPerf).length()) > maxLen) {
       maxLen = len;
     }
-    if ((len = Integer.toString(qcPassNoClean).length()) > maxLen) {
+    if ((len = Integer.toString(qcFailPerf).length()) > maxLen) {
       maxLen = len;
     }
-    if ((len = Integer.toString(qcFailClean).length()) > maxLen) {
+    if ((len = Integer.toString(qcPassClose).length()) > maxLen) {
       maxLen = len;
     }
-    if ((len = Integer.toString(qcFailNoClean).length()) > maxLen) {
+    if ((len = Integer.toString(qcFailClose).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcPassAmbig).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcFailAmbig).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcPassBad).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcFailBad).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcPassMiss).length()) > maxLen) {
+      maxLen = len;
+    }
+    if ((len = Integer.toString(qcFailMiss).length()) > maxLen) {
       maxLen = len;
     }
 
     int allMkrsLen = allMkrs.length;
 
-    String rep1 = ext.formStr(Integer.toString(qcPassClean), maxLen) + " ("
-                  + ext.formDeci(((double) qcPassClean * 100) / allMkrsLen, 2, 2, true)
+    String rep1 = ext.formStr(Integer.toString(qcPassPerf), maxLen) + " ("
+                  + ext.formDeci(((double) qcPassPerf * 100) / allMkrsLen, 2, 2, true)
                   + "%) Number of markers that pass marker QC that have a clean exact BLAST hit";
-    String rep2 = ext.formStr(Integer.toString(qcFailClean), maxLen) + " ("
-                  + ext.formDeci(((double) qcFailClean * 100) / allMkrsLen, 2, 2, true)
+    String rep2 = ext.formStr(Integer.toString(qcFailPerf), maxLen) + " ("
+                  + ext.formDeci(((double) qcFailPerf * 100) / allMkrsLen, 2, 2, true)
                   + "%) Number of markers that do not pass marker QC that have a clean exact BLAST hit";
-    String rep3 = ext.formStr(Integer.toString(qcPassNoClean), maxLen) + " ("
-                  + ext.formDeci(((double) qcPassNoClean * 100) / allMkrsLen, 2, 2, true)
-                  + "%) Number of markers that pass marker QC that do not have an exact BLAST hit";
-    String rep4 = ext.formStr(Integer.toString(qcFailNoClean), maxLen) + " ("
-                  + ext.formDeci(((double) qcFailNoClean * 100) / allMkrsLen, 2, 2, true)
-                  + "%) Number of markers that do not pass marker QC that do not have an exact BLAST hit";
+    String rep3 = ext.formStr(Integer.toString(qcPassClose), maxLen) + " ("
+                  + ext.formDeci(((double) qcPassClose * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that pass marker QC that have a single close, but not exact, BLAST hit";
+    String rep4 = ext.formStr(Integer.toString(qcFailClose), maxLen) + " ("
+                  + ext.formDeci(((double) qcFailClose * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that do not pass marker QC that have a single close, but not exact, BLAST hit";
+    String rep5 = ext.formStr(Integer.toString(qcPassAmbig), maxLen) + " ("
+                  + ext.formDeci(((double) qcPassAmbig * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that pass marker QC that have a multiple close, but not exact, BLAST hits";
+    String rep6 = ext.formStr(Integer.toString(qcFailAmbig), maxLen) + " ("
+                  + ext.formDeci(((double) qcFailAmbig * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that do not pass marker QC that have a multiple close, but not exact, BLAST hits";
+    String rep7 = ext.formStr(Integer.toString(qcPassBad), maxLen) + " ("
+                  + ext.formDeci(((double) qcPassBad * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that pass marker QC that do not have any close BLAST hits";
+    String rep8 = ext.formStr(Integer.toString(qcFailBad), maxLen) + " ("
+                  + ext.formDeci(((double) qcFailBad * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that do not pass marker QC that do not have any close BLAST hits";
+    String rep9 = ext.formStr(Integer.toString(qcPassMiss), maxLen) + " ("
+                  + ext.formDeci(((double) qcPassMiss * 100) / allMkrsLen, 2, 2, true)
+                  + "%) Number of markers that pass marker QC that were not in the BLAST results.";
+    String rep10 = ext.formStr(Integer.toString(qcFailMiss), maxLen) + " ("
+                   + ext.formDeci(((double) qcFailMiss * 100) / allMkrsLen, 2, 2, true)
+                   + "%) Number of markers that do not pass marker QC that were not in the BLAST results.";
 
     System.out.println(rep1);
     System.out.println(rep2);
     System.out.println(rep3);
     System.out.println(rep4);
+    System.out.println(rep5);
+    System.out.println(rep6);
+    System.out.println(rep7);
+    System.out.println(rep8);
+    System.out.println(rep9);
+    System.out.println(rep10);
   }
 
-  private Set<String> loadOneHitters() {
-    return Sets.newHashSet(MarkerBlastQC.getOneHitWonders(proj,
-                                                          proj.BLAST_ANNOTATION_FILENAME.getValue(),
-                                                          MarkerBlastQC.DEFAULT_CROSS_HYBE_THRESHOLD,
-                                                          proj.getLog()));
+  private QCResults loadOneHitters() {
+    return MarkerBlastQC.getSingleHitMarkers(proj, proj.BLAST_ANNOTATION_FILENAME.getValue());
   }
 
   private Set<String> loadPlinkQCPassingMarkers() {
