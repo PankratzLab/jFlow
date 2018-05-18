@@ -2850,6 +2850,73 @@ public class Files {
     }
   }
 
+  public static void cat(String[] originalFiles, String finalFile, int[] skips, int[] cols,
+                         boolean addFilename, Logger log) {
+    BufferedReader reader;
+    PrintWriter writer;
+    String trav;
+    boolean problem;
+    String delimiter;
+
+    delimiter = finalFile.endsWith(".csv") || finalFile.endsWith(".csv.gz") ? "," : "\t";
+
+    if (skips != null) {
+      if (skips.length == 0) {
+        skips = ArrayUtils.addIntToArray(0, ArrayUtils.intArray(originalFiles.length - 1, 1), 0);
+      }
+      if (skips.length != originalFiles.length) {
+        log.reportError("Error - mismatched length of arrays for the files and number of lines to skip for file "
+                        + finalFile + "; aborting...");
+        return;
+      }
+    }
+
+    problem = false;
+    for (int i = 0; i < originalFiles.length; i++) {
+      if (originalFiles[i] == null) {
+        log.reportError("Error - can't cat if the filename is null");
+        problem = true;
+      } else if (!new File(originalFiles[i]).exists()) {
+        log.reportError("Error - missing file '" + originalFiles[i] + "'");
+        problem = true;
+      }
+    }
+    if (problem) {
+      return;
+    }
+
+    try {
+      writer = getAppropriateWriter(finalFile);
+      for (int i = 0; i < originalFiles.length; i++) {
+        try {
+
+          reader = getAppropriateReader(originalFiles[i]);
+          for (int j = 0; skips != null && j < skips[i]; j++) {
+            reader.readLine();
+          }
+          while (reader.ready()) {
+            trav = reader.readLine();
+            if (cols != null && cols.length > 0) {
+              String[] temp = trav.split(delimiter);
+              trav = ArrayUtils.toStr(ArrayUtils.subArray(temp, cols), delimiter);
+            }
+            writer.println((addFilename ? originalFiles[i] + delimiter : "") + trav);
+          }
+          reader.close();
+        } catch (FileNotFoundException fnfe) {
+          log.reportError("Error: file \"" + originalFiles[i]
+                          + "\" not found in current directory");
+        } catch (IOException ioe) {
+          log.reportError("Error reading file \"" + originalFiles[i] + "\"");
+        }
+      }
+      writer.close();
+    } catch (Exception e) {
+      log.reportError("Error writing to " + finalFile);
+      e.printStackTrace();
+    }
+  }
+
   // this is much faster than any c=in.read() method would be (~3.7 times faster for a large .mldose
   // file)
   // however it is almost twice as slow as the LineNumberReader below

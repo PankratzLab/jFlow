@@ -756,7 +756,7 @@ public class SeqMeta {
           commands.add("library(bdsmatrix)");
           commands.add("library(seqMeta)");
           if (runningByChr) {
-            snpInfoFile = snpInfoDir + "/snpInfo_chr" + chrom + ".RData";
+            snpInfoFile = snpInfoDir + "snpInfo_chr" + chrom + ".RData";
           }
           commands.add("load(\"" + snpInfoFile + "\")");
 
@@ -850,7 +850,7 @@ public class SeqMeta {
         commands.add("library(bdsmatrix)");
         commands.add("library(seqMeta)");
         if (runningByChr) {
-          snpInfoFile = "snpInfos/snpInfo_chr" + chrom + ".RData";
+          snpInfoFile = snpInfoDir + "snpInfo_chr" + chrom + ".RData";
         }
         commands.add("load(\"" + snpInfoFile + "\")");
 
@@ -1022,7 +1022,8 @@ public class SeqMeta {
                                 + "/" + root + ".csv.gz").length() == 0) {
                   log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
                   stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                         root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
+                         root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(),
+                         HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
                 }
 
               }
@@ -1044,7 +1045,8 @@ public class SeqMeta {
                             + root + ".csv.gz").length() == 0) {
               log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
               stitch(dir + phenotypes[i][0] + "/" + races[k][0] + "/" + methods[m][0] + "/",
-                     root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
+                     root + "_chr#.csv.gz", root + ".csv.gz", maps.getSnpInfoChrsDir(),
+                     HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
             }
           }
         }
@@ -1062,7 +1064,8 @@ public class SeqMeta {
                           + ".csv.gz").length() == 0) {
             log.report(ext.getTime() + "\tStiching up " + root + ".csv.gz");
             stitch(dir + phenotypes[i][0] + "/" + methods[m][0] + "/", root + "_chr#.csv.gz",
-                   root + ".csv.gz", maps.getSnpInfoChrsDir(), log);
+                   root + ".csv.gz", maps.getSnpInfoChrsDir(),
+                   HEADER_TYPES[ext.indexOfStr(methods[m][2], ALGORITHMS)], log);
           }
         }
       }
@@ -1504,7 +1507,10 @@ public class SeqMeta {
                  + ext.addCommas(snpGeneFunctionalHash.size()) + " functional variants) in "
                  + ext.getTimeElapsed(time));
     } else {
-      for (String functionFlagName : functionNames) {
+      for (int x = 0; x <= functionNames.length; x++) {
+        String functionFlagName;
+        if (x == functionNames.length) functionFlagName = "None";
+        else functionFlagName = functionNames[x];
         snpGeneHash = new Hashtable<>();
         snpGeneFunctionalHash = new Hashtable<>();
         geneLoci = new Hashtable<>();
@@ -1984,6 +1990,12 @@ public class SeqMeta {
             filenames += pvalFile + ",1=Meta_" + races[k][0] + ";";
 
             header = Files.getHeaderOfFile(localRaceDir + filename, ",!", log);
+            if (header[4].equals("caf")) {
+              boolean[] keeps = ArrayUtils.booleanArray(header.length, true);
+              keeps[4] = false;
+              header = ArrayUtils.subArray(header, keeps);
+            }
+
             header[0] = "'" + header[0] + "'";
             for (int h = 1; h < header.length; h++) {
               header[h] = "'" + header[h] + "'=" + races[k][0] + "_" + header[h] + "_"
@@ -2024,6 +2036,11 @@ public class SeqMeta {
           filenames += pvalFile + ",1=Meta_PanEthnic;";
 
           header = Files.getHeaderOfFile(localDir + filename, ",!", log);
+          if (header[4].equals("caf")) {
+            boolean[] keeps = ArrayUtils.booleanArray(header.length, true);
+            keeps[4] = false;
+            header = ArrayUtils.subArray(header, keeps);
+          }
           header[0] = "'" + header[0] + "'";
           for (int h = 1; h < header.length; h++) {
             header[h] = "'" + header[h] + "'=PanEthnic_" + header[h] + "_" + methods[m][0];
@@ -2177,16 +2194,16 @@ public class SeqMeta {
     header = Files.getHeaderOfFile(filename, ",!", log);
     expected = getHeaderForMethod(method);
 
-    keeps = ArrayUtils.booleanArray(header.length, true);
-    if (header[4].equals("caf")) {
-      keeps[4] = false;
-    }
+    // keeps = ArrayUtils.booleanArray(header.length, true);
+    // if (header[4].equals("caf")) {
+    // keeps[4] = false;
+    // }
 
-    if (!ext.checkHeader(ArrayUtils.subArray(header, keeps), expected,
-                         ArrayUtils.arrayOfIndices(expected.length), false, log, false)) {
-      log.reportError("Error - unexpected header for file " + filename);
-      System.exit(1);
-    }
+    // if (!ext.checkHeader(ArrayUtils.subArray(header, keeps), expected,
+    // ArrayUtils.arrayOfIndices(expected.length), false, log, false)) {
+    // log.reportError("Error - unexpected header for file " + filename);
+    // System.exit(1);
+    // }
 
     index = -1;
     for (int h = 1; h < header.length; h++) {
@@ -2928,9 +2945,9 @@ public class SeqMeta {
   }
 
   public static void stitch(String dir, String pattern, String fileout, String snpInfoChrDir,
-                            Logger log) {
+                            String[] header, Logger log) {
     String[] list;
-    int[] skips;
+    int[] skips, cols;
     int maxChr;
 
     maxChr = getMaxChr(snpInfoChrDir);
@@ -2942,9 +2959,11 @@ public class SeqMeta {
                                                      : (chr == 24 ? "Y"
                                                                   : (chr == 25 ? "XY" : chr + "")));
     }
+    String[] h = Files.getHeaderOfFile(list[0], ",", log);
+    cols = ext.indexFactors(header, h, false, log, false, false, false);
     skips = ArrayUtils.intArray(list.length, 1);
     skips[0] = 0;
-    Files.cat(list, dir + fileout, skips, log);
+    Files.cat(list, dir + fileout, skips, cols, false, log);
   }
 
   public static void removeIndicesFromRdata(String filein, String fileout) {
@@ -4217,7 +4236,7 @@ public class SeqMeta {
     log.report("Plotting markers from " + forestFile);
     ForestPlot forest = new ForestPlot(forestFile, log);
 
-    forest.screenCapAll(null, true, false);
+    forest.screenCapAll(null, false, true);
   }
 
   public static void main(String[] args) {
