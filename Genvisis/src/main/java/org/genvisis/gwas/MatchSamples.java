@@ -893,51 +893,60 @@ public class MatchSamples {
   public static void main(String[] args) {
     int numArgs = args.length;
     // String dir = "C:\\Documents and Settings\\npankrat\\My Documents\\gwas\\MatchingForMito\\";
-    String dir = "D:\\tWork\\SequencingProjectWithCIDR\\MatchingControls\\MatchingForMito\\";
+    String d = "D:\\tWork\\SequencingProjectWithCIDR\\MatchingControls\\MatchingForMito\\";
     String anchors = "anchor_cases.dat";
-    String barnacles = "barnacle_controls.dat";
-    String factors = "mds10.mds.xln";
-    // int[] factorIndices = new int[] {1,2,3,4};
+    String barnaclesFile = "barnacle_controls.dat";
+    String factorsFile = "mds10.mds.xln";
+    String[] factorNames = new String[] {"PC1", "PC2", "AGE01", "SEX"};
     // int[] factorIndices = new int[] {1,2,3,4,5,6,7,8,9,10};
     // int[] factorIndices = new int[] {1,2};
 
     // String[] factorTargets = new String[] {"C1_norm", "C2_norm",
     // "Age_norm", "AgeAtExam_norm"};
-    // double[] factorLoadings = new double[] {2, 2, 4, 1};
+    double[] factorLoadings = new double[] {16, 16, 4, 1};
 
     String clusterfile = "cluster.genome";
     String file, pairs;
+    int iterations = 1;
 
     String usage = "\\n" + "gwas.MatchSamples requires 0-1 arguments\n"
-                   + "   (0) directory (i.e. dir=" + dir + " (default))\n"
+                   + "   (0) directory (i.e. dir=" + d + " (default))\n"
                    + "   (1) anchors (i.e. anchors=" + anchors + " (default))\n"
-                   + "   (2) barnacles (i.e. barnacles=" + barnacles + " (default))\n"
-                   + "   (3) file with factors (i.e. factors=" + factors + " (default))\n" +
-                   // " (4) indices of factors in clusterfile (i.e.
-                   // indices="+Array.toStr(factorIndices, ",") +" (default))\n" +
-                   "   (5) clusterfile (i.e. clusterfile=" + clusterfile + " (default))\n" + "";
+                   + "   (2) barnacles (i.e. barnacles=" + barnaclesFile + " (default))\n"
+                   + "   (3) file with factors (i.e. factors=" + factorsFile + " (default))\n"
+                   + " (4) column names of factors in clusterfile (i.e. columns="
+                   + ArrayUtils.toStr(factorNames, ",") + " (default))\n"
+                   + "   (5) clusterfile (i.e. clusterfile=" + clusterfile + " (default))\n"
+                   + "   (6) number of control sets to generate (i.e. iterations=1 (default))\n"
+                   + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
         System.err.println(usage);
         System.exit(1);
       } else if (arg.startsWith("dir=")) {
-        dir = arg.split("=")[1];
+        d = arg.split("=")[1];
         numArgs--;
       } else if (arg.startsWith("anchors=")) {
         anchors = arg.split("=")[1];
         numArgs--;
       } else if (arg.startsWith("barnacles=")) {
-        barnacles = arg.split("=")[1];
+        barnaclesFile = arg.split("=")[1];
         numArgs--;
       } else if (arg.startsWith("factors=")) {
-        factors = arg.split("=")[1];
+        factorsFile = arg.split("=")[1];
         numArgs--;
-        // } else if (args[i].startsWith("indices=")) {
-        // factorIndices = Array.toIntArray(args[i].split("=")[1].split(","));
-        // numArgs--;
+      } else if (arg.startsWith("columns=")) {
+        factorNames = arg.split("=")[1].split(",");
+        numArgs--;
+      } else if (arg.startsWith("loadings=")) {
+        factorLoadings = ArrayUtils.toDoubleArray(arg.split("=")[1].split(","));
+        numArgs--;
       } else if (arg.startsWith("clusterfile=")) {
         clusterfile = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("iterations=")) {
+        iterations = Integer.parseInt(arg.split("=")[1]);
         numArgs--;
       }
     }
@@ -945,69 +954,55 @@ public class MatchSamples {
       System.err.println(usage);
       System.exit(1);
     }
+
+    if (factorNames.length < 2) {
+      System.err.println("At least two factors are required. Found: "
+                         + ArrayUtils.toStr(factorNames, ","));
+      System.exit(1);
+    }
+
+    if (factorNames.length != factorLoadings.length) {
+      System.err.println("Number of loadings and number of factors must match.");
+      System.exit(1);
+    }
+
     try {
-      // parseClusterfile(dir, anchors, barnacles, clusterfile);
-      //
-      // correlate(dir, "distances_1,2.xln", "distances_1,2,3,4,5,6,7,8,9,10.xln");
-      // correlate(dir, "distances_1,2.xln", "pihats.xln");
-      // correlate(dir, "distances_1,2.xln", "dsts.xln");
-      // correlate(dir, "distances_1,2,3,4,5,6,7,8,9,10.xln", "dsts.xln");
-      // correlate(dir, "distances_1,2.xln", "ratios.xln");
-      // correlate(dir, "distances_1,2.xln", "pihats.xln");
-      // correlate(dir, "pihats.xln", "dsts.xln");
-      // correlate(dir, "pihats.xln", "ratios.xln");
-      // correlate(dir, "dsts.xln", "ratios.xln");
-      // matchPairs(dir, "dsts.xln", true);
-      // matchPairs(dir, "dsts.xln", false);
-      // normalizeDistances(dir, "distances_1,2.xln", 0, 100);
-      //
-      // matchPairs(dir, "dsts_norm.xln", true);
-      // matchPairs(dir, "dsts_norm.xln", false);
-      // matchPairs(dir, "distances_1,2_norm.xln", true);
-      //
-      // matchMaker(dir, anchors, barnacles, "mds100.mds.xln",
-      // Array.toIntArray(Array.stringArraySequence(100, "")));
-      // normalizeDistances(dir, "distances_1-100.xln", 0, 100);
-      // matchPairs(dir, "distances_1-100_norm.xln", true);
-      // matchPairs(dir, "distances_1-100_norm.xln", false);
-      // correlate(dir, "dsts.xln", "distances_1-100.xln");
-      //
-      // file = matchMaker(dir, anchors, barnacles, "mds10.mds.xln", new String[] {"C1", "C2"}, new
-      // int[] {1, 1});
+      Logger log = new Logger();
+      int[] factorIndices = ext.indexFactors(factorNames,
+                                             Files.getHeaderOfFile(d + factorsFile,
+                                                                   PSF.Regex.GREEDY_WHITESPACE,
+                                                                   log),
+                                             false, log, true);
 
-      // dir = "D:\\tWork\\SequencingProjectWithCIDR\\MatchingControls\\MatchingForMito\\";
-      dir = "D:\\tWork\\SequencingProjectWithCIDR\\MatchingControls\\";
-      anchors = "anchor_cases.dat";
-      barnacles = "barnacle_controls.dat";
-      factors = "mds10.mds.xln";
+      for (int i = 1; i <= iterations; i++) {
+        String dir = d + "/matches_" + i + "/";
+        Files.ensurePathExists(dir);
 
-      file = matchMaker(dir, anchors, barnacles, "mds10_norm.txt",
-                        new String[] {"C1_norm", "C2_norm"}, new double[] {1, 1}, false);
-      file = matchMaker(dir, anchors, barnacles, "mds10_norm.txt",
-                        new String[] {"C1_norm", "C2_norm", "Age_norm", "Male"},
-                        new double[] {16, 16, 4, 1}, false);
-      // file = matchMaker(dir, anchors, barnacles, "mds10_zscor.mds.xln",
-      // new String[] {"C1_zscor", "C2_zscor", "Age_zscor", "Male_zscor"},
-      // new int[] {32, 32, 4, 1});
-      // file = normalizeDistances(dir, file, 0, 100);
-      pairs = matchPairs(dir, file, true);
-      evalAgeSex_and_MDS_separately(dir, pairs, "distances_C1_normx1,C2_normx1.xln",
-                                    "demographics.dat", "Age", "Male"); // old method
-      eval(dir, pairs, "demographics.dat", new String[] {"Age", "Male=concordance"}); // new method,
-                                                                                     // should
-                                                                                     // still be
-                                                                                     // the same
-                                                                                     // except MDS
-                                                                                     // specific
-                                                                                     // metrics
-      new MatchesVisualized(dir, anchors, barnacles, "mds10.mds.xln", new int[] {1, 2}, pairs);
-      pairs = matchPairs(dir, file, false);
-      evalAgeSex_and_MDS_separately(dir, pairs, "distances_C1_normx1,C2_normx1.xln",
-                                    "demographics.dat", "Age", "Male");
-      eval(dir, pairs, "demographics.dat", new String[] {"Age", "Male=concordance"});
-      new MatchesVisualized(dir, anchors, barnacles, "mds10.mds.xln", new int[] {1, 2}, pairs);
-      // new MatchesVisualized(dir, anchors, barnacles, "mds10.mds.xln", new int[] {1, 2},
-      // "originalMapping.xln");
+        String[] barnacles = HashVec.loadFileToStringArray(d + "/" + barnaclesFile, false, null,
+                                                           true);
+
+        file = MatchSamples.matchMaker(dir, "/../" + anchors, "/../" + barnaclesFile,
+                                       "/../" + factorsFile, factorNames, factorLoadings, true);
+
+        pairs = MatchSamples.matchPairs(dir, file, true);
+        String p = pairs.split("_minMin")[0] + ".xln";
+
+        MatchSamples.evalAgeSex_and_MDS_separately(dir, pairs, p, "/../" + factorsFile, "AGE01",
+                                                   "SEX");
+        MatchSamples.eval(dir, pairs, "/../" + factorsFile,
+                          new String[] {"AGE01", "SEX=concordance"});
+
+        new MatchesVisualized(dir, "/../" + anchors, "/../" + barnaclesFile, "/../" + factorsFile,
+                              new int[] {factorIndices[0], factorIndices[1]}, pairs);
+
+        if (i < iterations) {
+          String[] barns = HashVec.loadFileToStringArray(dir + pairs, true, new int[] {1}, true);
+          String[] updatedBarns = ArrayUtils.removeFromArray(barnacles, barns);
+          Files.writeArray(updatedBarns, d + "/" + "barnacles_" + i + ".dat");
+          // update the barnacles array to the new file we just made
+          barnaclesFile = "barnacles_" + i + ".dat";
+        }
+      }
 
     } catch (Exception e) {
       e.printStackTrace();
