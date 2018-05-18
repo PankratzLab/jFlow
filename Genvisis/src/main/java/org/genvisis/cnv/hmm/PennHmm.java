@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.StringJoiner;
+import org.apache.commons.math3.analysis.function.Gaussian;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -15,8 +17,6 @@ import org.genvisis.filesys.CNVariant.CNVBuilder;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.stats.Stats;
 import com.google.common.primitives.Ints;
-import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
-import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 
 /*
  * This file was adapted from several subroutines from the UMDHMM package by Tapas Kanungo (Date: 15
@@ -86,26 +86,29 @@ public class PennHmm {
 
   public static final int LOH_FLAG = 99;
   private static final double NOT_ZERO_PI = 0.000000001; // 1e-9
-  private static final double STATE_CHANGE = 100000.0;
+  static final double STATE_CHANGE = 100000.0;
   private static final double VITHUGE = 100000000000.0;
   private static final double FLOAT_MINIMUM = 1.175494351e-38;
   private final int M;
   private final int N;// number of states
   private double[] pi;
   private double[][] a;
+  private double[][] b;
+
   private final BStatus B1;// for LRR measure from SNP markers
   private final BStatus B2;// for BAF measure from SNP markers
   private final BStatus B3;// for LRR measure from CN only markers
 
   private final Logger log;
 
-  public PennHmm(int m, int n, double[] pi, double[][] a, BStatus b1, BStatus b2, BStatus b3,
-                 Logger log) {
+  public PennHmm(int m, int n, double[] pi, double[][] a, double[][] b, BStatus b1, BStatus b2,
+                 BStatus b3, Logger log) {
     super();
     M = m;
     N = n;
     this.pi = pi;
     this.a = a;
+    this.b = b;
     B1 = b1;
     B2 = b2;
     B3 = b3;
@@ -187,11 +190,10 @@ public class PennHmm {
    * @param o the intensity observation (LRR value)
    * @return
    */
-  private static double b1iot(int state, BStatus bStatus, double o) {
+  static double b1iot(int state, BStatus bStatus, double o) {
     double p = 0;
     p = bStatus.getB_uf();
-    p += (1 - bStatus.getB_uf())
-         * bStatus.getGaussians()[state].probability(new ObservationReal(o));
+    p += (1 - bStatus.getB_uf()) * bStatus.getGaussians()[state].value(o);
 
     if (p == 0) {
       p = FLOAT_MINIMUM;
@@ -207,7 +209,7 @@ public class PennHmm {
    * @param b baf value to test
    * @return log odds, I think, for the current data and state
    */
-  private static double b2iot(int state, BStatus bStatus, double pfb, double b) {
+  static double b2iot(int state, BStatus bStatus, double pfb, double b) {
 
     double uf = bStatus.getB_uf();
     double p = uf;
@@ -232,16 +234,15 @@ public class PennHmm {
     // p+= (1-uf) * pdf_normal (b, mean50_state1, sd50_state1);
     // }
     // }
-    ObservationReal o = new ObservationReal(b);
     if (state == 0) {
-      OpdfGaussian opdfGaussian = bStatus.getGaussians()[4];
+      Gaussian opdfGaussian = bStatus.getGaussians()[4];
 
       if (b == 0) {
-        p += (1 - uf) * Stats.cdf(opdfGaussian, new ObservationReal(0));
+        p += (1 - uf) * Stats.cdf(bStatus.getB_mean()[4], bStatus.getB_sd()[4], 0);
       } else if (b == 1) {
-        p += (1 - uf) * Stats.cdf(opdfGaussian, new ObservationReal(0));
+        p += (1 - uf) * Stats.cdf(bStatus.getB_mean()[4], bStatus.getB_sd()[4], 0);
       } else {
-        p += (1 - uf) * opdfGaussian.probability(o);
+        p += (1 - uf) * opdfGaussian.value(b);
       }
 
     } else if (state == 1) {
@@ -250,12 +251,11 @@ public class PennHmm {
       } else if (b == 1) {
         p += (1 - uf) * pfb / 2;
       } else {
-        OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
-                                                          Math.pow(bStatus.getB_sd()[0], 2));
+        Gaussian opdfGaussian = bStatus.getGaussians()[0];
+        Gaussian opdfGaussianMinus = new Gaussian(1 - bStatus.getB_mean()[0], bStatus.getB_sd()[0]);
 
-        p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
-        p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
+        p += (1 - uf) * (1 - pfb) * opdfGaussian.value(b);
+        p += (1 - uf) * pfb * opdfGaussianMinus.value(b);
       }
     } else if (state == 2) {
       if (b == 0) {
@@ -263,13 +263,12 @@ public class PennHmm {
       } else if (b == 1) {
         p += (1 - uf) * pfb * pfb / 2;
       } else {
-        OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
-                                                          Math.pow(bStatus.getB_sd()[0], 2));
-        OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
-        p += (1 - uf) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
-        p += (1 - uf) * 2 * pfb * (1 - pfb) * opdfGaussian5.probability(o);
-        p += (1 - uf) * pfb * pfb * opdfGaussianMinus.probability(o);
+        Gaussian opdfGaussian = bStatus.getGaussians()[0];
+        Gaussian opdfGaussianMinus = new Gaussian(1 - bStatus.getB_mean()[0], bStatus.getB_sd()[0]);
+        Gaussian opdfGaussian5 = bStatus.getGaussians()[3];
+        p += (1 - uf) * (1 - pfb) * (1 - pfb) * opdfGaussian.value(b);
+        p += (1 - uf) * 2 * pfb * (1 - pfb) * opdfGaussian5.value(b);
+        p += (1 - uf) * pfb * pfb * opdfGaussianMinus.value(b);
       }
     } else if (state == 3) {
       if (b == 0) {
@@ -277,12 +276,11 @@ public class PennHmm {
       } else if (b == 1) {
         p += (1 - uf) * pfb / 2;
       } else {
-        OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
-                                                          Math.pow(bStatus.getB_sd()[0], 2));
+        Gaussian opdfGaussian = bStatus.getGaussians()[0];
+        Gaussian opdfGaussianMinus = new Gaussian(1 - bStatus.getB_mean()[0], bStatus.getB_sd()[0]);
 
-        p += (1 - uf) * (1 - pfb) * opdfGaussian.probability(o);
-        p += (1 - uf) * pfb * opdfGaussianMinus.probability(o);
+        p += (1 - uf) * (1 - pfb) * opdfGaussian.value(b);
+        p += (1 - uf) * pfb * opdfGaussianMinus.value(b);
       }
     } else if (state == 4) {
       if (b == 0) {
@@ -290,17 +288,16 @@ public class PennHmm {
       } else if (b == 1) {
         p += (1 - uf) * pfb * pfb * pfb / 2;
       } else {
-        OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
-                                                          Math.pow(bStatus.getB_sd()[0], 2));
-        OpdfGaussian opdfGaussian33 = bStatus.getGaussians()[2];
-        OpdfGaussian opdfGaussianMinus33 = new OpdfGaussian(1 - bStatus.getB_mean()[2],
-                                                            Math.pow(bStatus.getB_sd()[2], 2));
+        Gaussian opdfGaussian = bStatus.getGaussians()[0];
+        Gaussian opdfGaussianMinus = new Gaussian(1 - bStatus.getB_mean()[0], bStatus.getB_sd()[0]);
+        Gaussian opdfGaussian33 = bStatus.getGaussians()[2];
+        Gaussian opdfGaussianMinus33 = new Gaussian(1 - bStatus.getB_mean()[2],
+                                                    bStatus.getB_sd()[2]);
 
-        p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
-        p += (1 - uf) * 3 * (1 - pfb) * (1 - pfb) * pfb * opdfGaussian33.probability(o);
-        p += (1 - uf) * 3 * (1 - pfb) * pfb * pfb * opdfGaussianMinus33.probability(o);
-        p += (1 - uf) * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
+        p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.value(b);
+        p += (1 - uf) * 3 * (1 - pfb) * (1 - pfb) * pfb * opdfGaussian33.value(b);
+        p += (1 - uf) * 3 * (1 - pfb) * pfb * pfb * opdfGaussianMinus33.value(b);
+        p += (1 - uf) * pfb * pfb * pfb * opdfGaussianMinus.value(b);
       }
     } else if (state == 5) {
       if (b == 0) {
@@ -308,19 +305,18 @@ public class PennHmm {
       } else if (b == 1) {
         p += (1 - uf) * pfb * pfb * pfb * pfb / 2;
       } else {
-        OpdfGaussian opdfGaussian = bStatus.getGaussians()[0];
-        OpdfGaussian opdfGaussianMinus = new OpdfGaussian(1 - bStatus.getB_mean()[0],
-                                                          Math.pow(bStatus.getB_sd()[0], 2));
-        OpdfGaussian opdfGaussian25 = bStatus.getGaussians()[1];
-        OpdfGaussian opdfGaussianMinus25 = new OpdfGaussian(1 - bStatus.getB_mean()[1],
-                                                            Math.pow(bStatus.getB_sd()[1], 2));
-        OpdfGaussian opdfGaussian5 = bStatus.getGaussians()[3];
+        Gaussian opdfGaussian = bStatus.getGaussians()[0];
+        Gaussian opdfGaussianMinus = new Gaussian(1 - bStatus.getB_mean()[0], bStatus.getB_sd()[0]);
+        Gaussian opdfGaussian25 = bStatus.getGaussians()[1];
+        Gaussian opdfGaussianMinus25 = new Gaussian(1 - bStatus.getB_mean()[1],
+                                                    bStatus.getB_sd()[1]);
+        Gaussian opdfGaussian5 = bStatus.getGaussians()[3];
 
-        p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.probability(o);
-        p += (1 - uf) * 4 * (1 - pfb) * (1 - pfb) * (1 - pfb) * pfb * opdfGaussian25.probability(o);
-        p += (1 - uf) * 6 * (1 - pfb) * (1 - pfb) * pfb * pfb * opdfGaussian5.probability(o);
-        p += (1 - uf) * 4 * (1 - pfb) * pfb * pfb * pfb * opdfGaussianMinus25.probability(o);
-        p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.probability(o);
+        p += (1 - uf) * (1 - pfb) * (1 - pfb) * (1 - pfb) * (1 - pfb) * opdfGaussian.value(b);
+        p += (1 - uf) * 4 * (1 - pfb) * (1 - pfb) * (1 - pfb) * pfb * opdfGaussian25.value(b);
+        p += (1 - uf) * 6 * (1 - pfb) * (1 - pfb) * pfb * pfb * opdfGaussian5.value(b);
+        p += (1 - uf) * 4 * (1 - pfb) * pfb * pfb * pfb * opdfGaussianMinus25.value(b);
+        p += (1 - uf) * pfb * pfb * pfb * pfb * opdfGaussianMinus.value(b);
       }
     }
     if (!Double.isFinite(p)) {
@@ -348,6 +344,7 @@ public class PennHmm {
         int m = -1;
         int n = -1;
         double[][] a = null;
+        double[][] b = null;
         if (!M.startsWith("M=")) {
           log.reportError("cannot read M annotation from HMM file");
           return null;
@@ -373,14 +370,14 @@ public class PennHmm {
           log.reportError("cannot read B: annotation from HMM file");
           return null;
         } else {
-          loadMatrix(reader, m, n);
+          b = loadMatrix(reader, m, n);
         }
         double[] pi = loadTwoLineDoubleArray("pi", reader, log);
         BStatus B1 = loadBstatus("B1", reader, log);
         BStatus B2 = loadBstatus("B2", reader, log);
         BStatus B3 = loadBstatus("B3", reader, log);
         reader.close();
-        return new PennHmm(m, n, pi, a, B1, B2, B3, log);
+        return new PennHmm(m, n, pi, a, b, B1, B2, B3, log);
       } catch (FileNotFoundException fnfe) {
         log.reportError("Error: file \"" + hmmFile + "\" not found in current directory");
         return null;
@@ -394,19 +391,7 @@ public class PennHmm {
   public static ViterbiResult ViterbiLogNP_CHMM(PennHmm pennHmm, double[] o1, double[] o2,
                                                 double[] pfb, final int[] snpdist,
                                                 final boolean[] copyNumberOnlyDef) {
-    if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length
-        || o1.length != copyNumberOnlyDef.length) {
-      String error = "BUG: mismatched array lengths";
-      pennHmm.getLog().reportError(error);
-      error += "\nO1 Length: " + o1.length + "\n";
-      error += "O2 Length: " + o2.length + "\n";
-      error += "pfb Length: " + pfb.length + "\n";
-
-      error += "SnpDist Length: " + snpdist.length + "\n";
-      error += "CN Length: " + copyNumberOnlyDef.length + "\n";
-
-      throw new IllegalArgumentException(error);
-    }
+    validateLengths(pennHmm, o1, o2, pfb, snpdist, copyNumberOnlyDef);
 
     double[][] biot = new double[pennHmm.getN()][o1.length];
     int[] q = new int[o1.length];
@@ -462,6 +447,23 @@ public class PennHmm {
       q[t] = psi[t + 1][q[t + 1]];
     }
     return new ViterbiResult(q, delta);
+  }
+
+  static void validateLengths(PennHmm pennHmm, double[] o1, double[] o2, double[] pfb,
+                              final int[] snpdist, final boolean[] copyNumberOnlyDef) {
+    if (o1.length != o2.length || o1.length != pfb.length || o1.length != snpdist.length
+        || o1.length != copyNumberOnlyDef.length) {
+      String error = "BUG: mismatched array lengths";
+      pennHmm.getLog().reportError(error);
+      error += "\nO1 Length: " + o1.length + "\n";
+      error += "O2 Length: " + o2.length + "\n";
+      error += "pfb Length: " + pfb.length + "\n";
+
+      error += "SnpDist Length: " + snpdist.length + "\n";
+      error += "CN Length: " + copyNumberOnlyDef.length + "\n";
+
+      throw new IllegalArgumentException(error);
+    }
   }
 
   /**
@@ -669,11 +671,11 @@ public class PennHmm {
   /**
    * Stores the B1* etc entries for the data distributions of each state
    */
-  private static class BStatus {
+  static class BStatus {
 
     private final double[] b_mean;
     private double[] b_sd;
-    private final OpdfGaussian[] gaussians;
+    private final Gaussian[] gaussians;
     private final double b_uf;
 
     private BStatus(double[] b_mean, double[] b_sd, double b_uf) {
@@ -681,29 +683,29 @@ public class PennHmm {
       this.b_mean = b_mean;
       this.b_sd = b_sd;
       this.b_uf = b_uf;
-      gaussians = new OpdfGaussian[b_mean.length];
+      gaussians = new Gaussian[b_mean.length];
       for (int i = 0; i < b_mean.length; i++) {
         if (!Double.isFinite(b_sd[i]) || !Double.isFinite(b_mean[i]) || b_sd[i] <= 0) {
           throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
                                              + b_sd[i]);
         }
-        gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
+        gaussians[i] = new Gaussian(b_mean[i], b_sd[i]);
       }
     }
 
-    private OpdfGaussian[] getGaussians() {
+    private Gaussian[] getGaussians() {
       return gaussians;
     }
 
-    private double[] getB_mean() {
+    double[] getB_mean() {
       return b_mean;
     }
 
-    private double[] getB_sd() {
+    double[] getB_sd() {
       return b_sd;
     }
 
-    private double getB_uf() {
+    double getB_uf() {
       return b_uf;
     }
 
@@ -723,13 +725,13 @@ public class PennHmm {
           throw new IllegalArgumentException("Invalid b status mean:" + b_mean[i] + " sd: "
                                              + b_sd[i]);
         }
-        gaussians[i] = new OpdfGaussian(b_mean[i], Math.pow(b_sd[i], 2));
+        gaussians[i] = new Gaussian(b_mean[i], b_sd[i]);
       }
     }
 
   }
 
-  private static PennHmm convertHMMTransition(PennHmm pennHmm, int dist) {
+  static PennHmm convertHMMTransition(PennHmm pennHmm, int dist) {
     PennHmm converted = new PennHmm(pennHmm);
     double D = STATE_CHANGE;
     double offdiagonal_sum = 0;
@@ -916,5 +918,67 @@ public class PennHmm {
     pennAdjusted.getB2().setB_sd(b2AdjustedSd);
     pennAdjusted.getB3().setB_sd(b3AdjustedSd);
     return pennAdjusted;
+  }
+
+  static void PrintCHMMToFile(String file, PennHmm pennHmm, Logger log) {
+    log.reportTimeInfo("Reporting model to " + file);
+    String hmm = PrintCHMM(pennHmm, log);
+    Files.write(hmm, file);
+  }
+
+  static String PrintCHMM(PennHmm pennHmm, Logger log) {
+    StringJoiner joiner = new StringJoiner("\n");
+    joiner.add("M=" + pennHmm.M);
+    joiner.add("N=" + pennHmm.N);
+    joiner.add("A:");
+
+    for (int i = 0; i < pennHmm.getN(); i++) {
+      StringJoiner ajoiner = new StringJoiner(" ");
+      for (int j = 0; j < pennHmm.getN(); j++) {
+        ajoiner.add(Double.toString(pennHmm.getA()[i][j]));
+      }
+      joiner.add(ajoiner.toString());
+    }
+
+    joiner.add("B:");
+    for (int j = 0; j < pennHmm.getN(); j++) {
+      StringJoiner bjoiner = new StringJoiner(" ");
+      for (int k = 0; k < pennHmm.M; k++) {
+        bjoiner.add(Double.toString(pennHmm.b[j][k]));
+      }
+      joiner.add(bjoiner.toString());
+    }
+
+    joiner.add("pi:");
+    joiner.add(ArrayUtils.toStr(pennHmm.pi, " "));
+
+    joiner.add("B1_mean:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B1.b_mean, " "));
+
+    joiner.add("B1_sd:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B1.b_sd, " "));
+
+    joiner.add("B1_uf:");
+    joiner.add(Double.toString(pennHmm.B1.b_uf));
+
+    joiner.add("B2_mean:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B2.b_mean, " "));
+
+    joiner.add("B2_sd:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B2.b_sd, " "));
+
+    joiner.add("B2_uf:");
+    joiner.add(Double.toString(pennHmm.B2.b_uf));
+
+    joiner.add("B3_mean:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B3.b_mean, " "));
+
+    joiner.add("B3_sd:");
+    joiner.add(ArrayUtils.toStr(pennHmm.B3.b_sd, " "));
+
+    joiner.add("B3_uf:");
+    joiner.add(Double.toString(pennHmm.B3.b_uf));
+
+    return joiner.toString();
   }
 }

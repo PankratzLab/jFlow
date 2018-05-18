@@ -323,7 +323,7 @@ public class MosaicismQuant implements Calcfc {
         double tmp = smoothed[i] + tmpRandomControl.getVals()[tmpRandomControl.getOrder()[i]];
         smoothed[i] = tmp / controls.length;
       }
-      smoothed = CNVCaller.adjustBaf(smoothed, minBaf, maxBaf, false, proj.getLog());
+      smoothed = CNVCaller.adjustBaf(smoothed, minBaf, maxBaf, false, proj.getLog()).getAdjusted();
       smoothedControl = new CDF(new BafSelection(smoothed, null));// many different indices for
                                                                   // controls
     }
@@ -442,7 +442,8 @@ public class MosaicismQuant implements Calcfc {
       BafSelection bafSelection = selectBafs(markerSet, indicesByChr, seg, minBaf, maxBaf,
                                              numControlForce);
       double[] bafs = CNVCaller.adjustBaf(bafSelection.getBafs(), minBaf, maxBaf, false,
-                                          proj.getLog());
+                                          proj.getLog())
+                               .getAdjusted();
       cdf = new CDF(new BafSelection(bafs, bafSelection.getProjectIndices()));
     }
 

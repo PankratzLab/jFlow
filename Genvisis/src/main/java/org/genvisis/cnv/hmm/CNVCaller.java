@@ -2,9 +2,11 @@ package org.genvisis.cnv.hmm;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Centroids;
@@ -56,15 +58,17 @@ public class CNVCaller {
   private final String dna;
   private PennHmm pennHmm;
   private final GcModel gcModel;
-  private final PreparedMarkerSet markerSet;
+  final PreparedMarkerSet markerSet;
   private boolean[] markersToUse;
-  private boolean[] copyNumberDef;
-  private double[] analysisLrrs, analysisBafs, analysisPfbs;
-  private int[] analysisProjectIndices, analysisPositions;// linker of what is being analyzed to the
-                                                          // order in the project
+  boolean[] copyNumberDef;
+  double[] analysisLrrs, analysisBafs, analysisPfbs;
+  private int[] analysisProjectIndices;// linker of what is being analyzed to the
+                                       // order in the project
+  int[] analysisPositions;
   private final DATA_ADJUSTMENTS[] dataAdjustments;
   private final PFB_MANAGEMENT_TYPE pManagementType;
   private final boolean debugMode;
+  AdjustmentQC adjustmentQC;
 
   /**
    * A couple ways that a PFB file can be used;
@@ -101,10 +105,9 @@ public class CNVCaller {
    * @param bafs
    * @param debugMode
    */
-  public CNVCaller(Project proj, String dna, PennHmm pennHmm, GcModel gcModel, PFB pfb,
-                   DATA_ADJUSTMENTS[] dataAdjustments, PreparedMarkerSet markerSet,
-                   boolean[] markersToUse, boolean[] copyNumberDef, double[] lrrs, double[] bafs,
-                   PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
+  CNVCaller(Project proj, String dna, PennHmm pennHmm, GcModel gcModel, PFB pfb,
+            DATA_ADJUSTMENTS[] dataAdjustments, PreparedMarkerSet markerSet, boolean[] markersToUse,
+            double[] lrrs, double[] bafs, PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
     super();
     this.proj = proj;
     this.pennHmm = pennHmm;
@@ -118,10 +121,11 @@ public class CNVCaller {
     this.pManagementType = pManagementType;
     managePfbs();
     this.dataAdjustments = dataAdjustments;
-    this.copyNumberDef = copyNumberDef;
+    this.copyNumberDef = getCNDef();
     analysisProjectIndices = ArrayUtils.arrayOfIndices(markerSet.getMarkerNames().length);
     analysisPositions = markerSet.getPositions();
     this.debugMode = debugMode;
+    this.adjustmentQC = new AdjustmentQC(dna);
 
     if (lrrs.length != bafs.length || markerSet.getMarkerNames().length != lrrs.length) {
       String error = "BUG: must supply entire lrr and baf data set for the project, consider using the markersToUse array to subset the analysis";
@@ -131,6 +135,29 @@ public class CNVCaller {
     if (debugMode) {
       proj.getLog().reportTimeInfo("Sample: " + dna);
     }
+  }
+
+  private boolean[] getCNDef() {
+
+    boolean[] copyNumberDef = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
+    if (debugMode) {
+      proj.getLog()
+          .reportTimeInfo("Assigning copy number probes according to "
+                          + proj.ARRAY_TYPE.getValue().toString() + " using the following "
+                          + ArrayUtils.toStr(proj.ARRAY_TYPE.getValue().getCnFlags(), ","));
+      proj.getLog()
+          .reportTimeInfo("BAF values greater than 1 will also be set to copy number only");
+
+    }
+    for (int i = 0; i < copyNumberDef.length; i++) {
+      copyNumberDef[i] = proj.ARRAY_TYPE.getValue().isCNOnly(markerSet.getMarkerNames()[i])
+                         || analysisBafs[i] > 1;
+    }
+    if (debugMode) {
+      proj.getLog().reportTimeInfo("Found " + ArrayUtils.booleanArraySum(copyNumberDef)
+                                   + " copy number only markers");
+    }
+    return (copyNumberDef);
   }
 
   private void managePfbs() {
@@ -171,10 +198,93 @@ public class CNVCaller {
     return ArrayUtils.round(array, PENN_CNV_SIG_FIGS);
   }
 
+  static class AdjustmentQC implements Serializable {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    String sample;
+    double lrrSD;
+    double baf_median;
+    double baf_drift;
+    int totalMarkers;
+
+    /**
+     * @param lrrSD
+     * @param baf_median
+     * @param baf_drift
+     */
+    AdjustmentQC(String sample) {
+      super();
+      this.sample = sample;
+      this.lrrSD = Double.NaN;
+      this.baf_median = Double.NaN;
+      this.baf_drift = Double.NaN;
+      this.totalMarkers = -1;
+    }
+
+    /**
+     * @param totalMarkers the totalMarkers to set
+     */
+    void setTotalMarkers(int totalMarkers) {
+      this.totalMarkers = totalMarkers;
+    }
+
+    /**
+     * @param lrrSD the lrrSD to set
+     */
+    void setLrrSD(double lrrSD) {
+      this.lrrSD = lrrSD;
+    }
+
+    /**
+     * @param baf_drift the baf_drift to set
+     */
+    void setBaf_drift(double baf_drift) {
+      this.baf_drift = baf_drift;
+    }
+
+    /**
+     * @return the baf_median
+     */
+    double getBaf_median() {
+      return baf_median;
+    }
+
+    /**
+     * @param baf_median the baf_median to set
+     */
+    void setBaf_median(double baf_median) {
+      this.baf_median = baf_median;
+    }
+
+    /**
+     * @return the lrrSD
+     */
+    double getLrrSD() {
+      return lrrSD;
+    }
+
+    /**
+     * @return the baf_drift
+     */
+    double getBaf_drift() {
+      return baf_drift;
+    }
+
+  }
+
+  private double getBAFDrift(double min1, double max1, double min2, double max2, double[] bafs) {
+    int numOut = ArrayUtils.getValuesBetween(bafs, min1, max1).length
+                 + ArrayUtils.getValuesBetween(bafs, min2, max2).length;
+    return ((double) numOut / bafs.length);
+  }
+
   /**
    * Warning: only the default PennCNV order of adjustments has been tested
    */
-  public void adjustData() {
+  void adjustData() {
 
     if (dataAdjustments == null) {
       proj.getLog().reportTimeWarning("No data adjustments supplied");
@@ -182,8 +292,11 @@ public class CNVCaller {
       double lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(analysisLrrs,
                                                                   MIN_LRR_MEDIAN_ADJUST,
                                                                   MAX_LRR_MEDIAN_ADJUST));
+
       for (DATA_ADJUSTMENTS type : dataAdjustments) {
+        proj.getLog().reportTimeInfo("Current LRR sd " + lrrSd);
         switch (type) {
+
           case ROUND_TO_PENNCNV_SIG_FIGS:// May not be necessary
             analysisLrrs = roundToPennCNVSigFigs(analysisLrrs);
             analysisBafs = roundToPennCNVSigFigs(analysisBafs);
@@ -200,6 +313,7 @@ public class CNVCaller {
             }
             break;
           case GC_ADJUST:
+
             if (gcModel == null) {
               String error = "gc model cannot be null if adjustment " + type + " is flagged";
               proj.getLog().reportError(error);
@@ -228,7 +342,6 @@ public class CNVCaller {
               lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(analysisLrrs,
                                                                    MIN_LRR_MEDIAN_ADJUST,
                                                                    MAX_LRR_MEDIAN_ADJUST));
-
             }
             break;
           case HANDLE_NAN:
@@ -250,10 +363,16 @@ public class CNVCaller {
 
             break;
           case MEDIAN_ADJUST:
+
             analysisLrrs = adjustLrr(analysisLrrs, MIN_LRR_MEDIAN_ADJUST, MAX_LRR_MEDIAN_ADJUST,
                                      debugMode, proj.getLog());
-            analysisBafs = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST, MAX_BAF_MEDIAN_ADJUST,
-                                     debugMode, proj.getLog());
+
+            BAFAdjustResult adjustResult = adjustBaf(analysisBafs, MIN_BAF_MEDIAN_ADJUST,
+                                                     MAX_BAF_MEDIAN_ADJUST, debugMode,
+                                                     proj.getLog());
+            analysisBafs = adjustResult.adjusted;
+            adjustmentQC.setBaf_median(0.5);
+
             // TODO, update lrrSd later?
             // lrrSd = Array.stdev(getValuesBetween(analysisLrrs, MIN_LRR_MEDIAN_ADJUST,
             // MAX_LRR_MEDIAN_ADJUST)); PennCNV does not update lrr sd here so we wont either
@@ -273,6 +392,8 @@ public class CNVCaller {
               lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(analysisLrrs,
                                                                    MIN_LRR_MEDIAN_ADJUST,
                                                                    MAX_LRR_MEDIAN_ADJUST));
+              adjustmentQC.setBaf_drift(computeBAFDrift());
+
             }
             break;
 
@@ -282,8 +403,30 @@ public class CNVCaller {
             analysisLrrs = null;
             break;
         }
+
+      }
+      adjustmentQC.setLrrSD(lrrSd);
+
+    }
+  }
+
+  double computeBAFDrift() {
+    List<Double> bafDrifts = new ArrayList<>();
+    HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<>();
+    boolean[] finalAnalysisSet = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
+    populateIndices(finalAnalysisSet, chrIndices, markerSet.getChrs());
+    for (String chr : chrIndices.keySet()) {
+      int c = Positions.chromosomeNumber(chr);
+      if (c > 0 && c < 23) {
+        List<Double> bafsDrift = new ArrayList<>();
+        for (int i : chrIndices.get(chr)) {
+          bafsDrift.add(analysisBafs[i]);
+        }
+        double drift = getBAFDrift(0.2, 0.25, 0.75, 0.8, Doubles.toArray(bafsDrift));
+        bafDrifts.add(drift);
       }
     }
+    return (ArrayUtils.median(Doubles.toArray(bafDrifts)));
   }
 
   private CNVCallResult callCNVS(int[] chrsToCall, boolean callReverse, int minNumMarkers,
@@ -298,14 +441,7 @@ public class CNVCaller {
       HashMap<String, ArrayList<Integer>> chrIndices = new HashMap<>();
       byte[] chrs = markerSet.getChrs();
 
-      for (int i = 0; i < analysisProjectIndices.length; i++) {
-        String chr = Positions.getChromosomeUCSC(chrs[analysisProjectIndices[i]], true);
-        if (!chrIndices.containsKey(chr)) {
-          chrIndices.put(chr, new ArrayList<Integer>());
-        }
-        chrIndices.get(chr).add(i);
-        finalAnalysisSet[analysisProjectIndices[i]] = true;
-      }
+      populateIndices(finalAnalysisSet, chrIndices, chrs);
       int[][] snpDists = getSNPDist(proj, markerSet, false, finalAnalysisSet);
 
       if (chrsToCall == null) {
@@ -383,6 +519,18 @@ public class CNVCaller {
 
     };
     return new CNVCallResult(allLocusSet, allLocusSetReverse, allLocusSetReverseConsensus);
+  }
+
+  void populateIndices(boolean[] finalAnalysisSet, HashMap<String, ArrayList<Integer>> chrIndices,
+                       byte[] chrs) {
+    for (int i = 0; i < analysisProjectIndices.length; i++) {
+      String chr = Positions.getChromosomeUCSC(chrs[analysisProjectIndices[i]], true);
+      if (!chrIndices.containsKey(chr)) {
+        chrIndices.put(chr, new ArrayList<Integer>());
+      }
+      chrIndices.get(chr).add(i);
+      finalAnalysisSet[analysisProjectIndices[i]] = true;
+    }
   }
 
   /**
@@ -573,11 +721,42 @@ public class CNVCaller {
     return adjusted;
   }
 
+  public static class BAFAdjustResult {
+
+    private double[] adjusted;
+    private double median;
+
+    /**
+     * @param adjusted
+     * @param median
+     */
+    private BAFAdjustResult(double[] adjusted, double median) {
+      super();
+      this.adjusted = adjusted;
+      this.median = median;
+    }
+
+    /**
+     * @return the adjusted
+     */
+    public double[] getAdjusted() {
+      return adjusted;
+    }
+
+    /**
+     * @return the median
+     */
+    public double getMedian() {
+      return median;
+    }
+
+  }
+
   /**
    * Median adjust these baf values like PennCNV
    */
-  public static double[] adjustBaf(double[] bafs, double minBaf, double maxBaf, boolean debugMode,
-                                   Logger log) {
+  public static BAFAdjustResult adjustBaf(double[] bafs, double minBaf, double maxBaf,
+                                          boolean debugMode, Logger log) {
     double[] adjusted = new double[bafs.length];
     ArrayList<Double> bafsToMedian = new ArrayList<>();
     for (int i = 0; i < bafs.length; i++) {
@@ -596,9 +775,8 @@ public class CNVCaller {
       } else {
         adjusted[i] = bafs[i];
       }
-
     }
-    return adjusted;
+    return new BAFAdjustResult(adjusted, median);
   }
 
   /**
@@ -630,13 +808,12 @@ public class CNVCaller {
     return da.toArray(new DATA_ADJUSTMENTS[da.size()]);
   }
 
-  private static CNVCallResult callCNVsFor(Project proj, PennHmm pennHmm, String sampleName,
-                                           double[] sampLrrs, double[] sampBafs, GcModel gcModel,
-                                           PFB pfb, PreparedMarkerSet markerSet,
-                                           boolean[] markersToUse, boolean[] copyNumberDef,
-                                           int[] chrsToCall, boolean callReverse, int minNumMarkers,
-                                           double minConf, int numThreads,
-                                           PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
+  public static CNVCaller getCNVCaller(Project proj, PennHmm pennHmm, String sampleName,
+                                       double[] sampLrrs, double[] sampBafs, GcModel gcModel,
+                                       PFB pfb, PreparedMarkerSet markerSet, boolean[] markersToUse,
+                                       int[] chrsToCall, boolean callReverse, int minNumMarkers,
+                                       double minConf, int numThreads,
+                                       PFB_MANAGEMENT_TYPE pManagementType, boolean debugMode) {
     DATA_ADJUSTMENTS[] dAdjustments;
     if (gcModel == null) {
       dAdjustments = getPennCNVProcessingOrder();
@@ -647,9 +824,22 @@ public class CNVCaller {
     }
 
     CNVCaller caller = new CNVCaller(proj, sampleName, pennHmm, gcModel, pfb, dAdjustments,
-                                     markerSet, markersToUse, copyNumberDef, sampLrrs, sampBafs,
-                                     pManagementType, debugMode);
+                                     markerSet, markersToUse, sampLrrs, sampBafs, pManagementType,
+                                     debugMode);
     caller.adjustData();
+    return caller;
+  }
+
+  private static CNVCallResult callCNVsFor(Project proj, PennHmm pennHmm, String sampleName,
+                                           double[] sampLrrs, double[] sampBafs, GcModel gcModel,
+                                           PFB pfb, PreparedMarkerSet markerSet,
+                                           boolean[] markersToUse, int[] chrsToCall,
+                                           boolean callReverse, int minNumMarkers, double minConf,
+                                           int numThreads, PFB_MANAGEMENT_TYPE pManagementType,
+                                           boolean debugMode) {
+    CNVCaller caller = getCNVCaller(proj, pennHmm, sampleName, sampLrrs, sampBafs, gcModel, pfb,
+                                    markerSet, markersToUse, chrsToCall, callReverse, minNumMarkers,
+                                    minConf, numThreads, pManagementType, debugMode);
 
     return caller.callCNVS(chrsToCall, callReverse, minNumMarkers, minConf, numThreads);
 
@@ -674,23 +864,8 @@ public class CNVCaller {
                                           PFB_MANAGEMENT_TYPE pManagementType, int numThreads,
                                           boolean debugMode) {
     String[] markerNames = markerSet.getMarkerNames();
-    boolean[] copyNumberDef = ArrayUtils.booleanArray(markerNames.length, false);
     ARRAY array = proj.getArrayType();
-    if (debugMode) {
-      proj.getLog()
-          .reportTimeInfo("Assigning copy number probes according to " + array.toString()
-                          + " using the following " + ArrayUtils.toStr(array.getCnFlags(), ","));
-      proj.getLog()
-          .reportTimeInfo("BAF values greater than 1 will also be set to copy number only");
 
-    }
-    for (int i = 0; i < copyNumberDef.length; i++) {
-      copyNumberDef[i] = array.isCNOnly(markerNames[i]) || bafs[i] > 1;
-    }
-    if (debugMode) {
-      proj.getLog().reportTimeInfo("Found " + ArrayUtils.booleanArraySum(copyNumberDef)
-                                   + " copy number only markers");
-    }
     if (markersToUse == null) {
       int[] autosomalMarkers = proj.getAutosomalMarkerIndices();
       markersToUse = ArrayUtils.booleanArray(markerSet.getMarkerNames().length, false);
@@ -708,9 +883,8 @@ public class CNVCaller {
 
     }
     CNVCallResult cnvs = callCNVsFor(proj, pennHmm, sample, lrrs, bafs, gcModel, pfb, markerSet,
-                                     markersToUse, copyNumberDef, chrsToCall, callReverse,
-                                     minNumMarkers, minConf, numThreads, pManagementType,
-                                     debugMode);
+                                     markersToUse, chrsToCall, callReverse, minNumMarkers, minConf,
+                                     numThreads, pManagementType, debugMode);
     System.gc();
     return cnvs;
   }
