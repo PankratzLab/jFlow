@@ -5269,6 +5269,58 @@ public class ArrayUtils {
     return sorted;
   }
 
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the int values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static int[][] deepCopy(int[][] source) {
+    int[][] copy = new int[source.length][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = source[i].clone();
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the int values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static int[][][] deepCopy(int[][][] source) {
+    int[][][] copy = new int[source.length][][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = deepCopy(source[i]);
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the double values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static double[][] deepCopy(double[][] source) {
+    double[][] copy = new double[source.length][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = source[i].clone();
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the double values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static double[][][] deepCopy(double[][][] source) {
+    double[][][] copy = new double[source.length][][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = deepCopy(source[i]);
+    }
+    return copy;
+  }
+
   public static int[] booleanArrayRunLengths(boolean[] samplesToLoadAfterIndex) {
     ArrayList<Integer> runs = new ArrayList<>();
     int run = 0;
