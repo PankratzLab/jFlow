@@ -1837,7 +1837,6 @@ public class SeqMeta {
             groupHits.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName), new Hits());
             groupParams.put(methods[m][1] + (useFunc ? "" : "_" + functionFileName),
                             new ArrayList<>());
->>>>>>> d1e2ec560... [SeqMeta] pretties up -hits output column order 
           }
         }
 
