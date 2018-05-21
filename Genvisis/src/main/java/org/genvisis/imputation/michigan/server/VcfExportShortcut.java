@@ -255,7 +255,7 @@ public class VcfExportShortcut {
 
   private static final String DESC_ARRAY = "Array type (one of the following: "
                                            + ARRAY.ILLUMINA.name() + ", " + ARRAY.AFFY_GW6 + ")";
-  private static final String DESC_ILL_MAN = "Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv)";
+  private static final String DESC_ILL_MAN = "An HG19 Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv). ";
   private static final String DESC_AFFY_SKETCH = "Affymetrix target sketch file (e.g. hapmap.quant-norm.normalization-target.txt)";
 
   private static final String DESC_PED = "Pedigree File";
