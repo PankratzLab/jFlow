@@ -10,7 +10,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
-import org.genvisis.cnv.qc.AffyMarkerBlast;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
@@ -173,8 +172,7 @@ public class GenvisisWorkflow {
 
   public static String setupAffyImputation(Project proj, int numThreads, String putativeWhitesFile,
                                            Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
-                                           String aptExeDir, String aptLibDir, String sketch,
-                                           String affyProbeFile, String affyAnnotFile) {
+                                           String aptExeDir, String aptLibDir, String sketch) {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
@@ -213,17 +211,6 @@ public class GenvisisWorkflow {
     if (parseSource) {
       varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
       varMap.put(transpose, transpose.getDefaultRequirementValues());
-      stepReqs = blast.getDefaultRequirementValues();
-      for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equalsIgnoreCase(AffyMarkerBlast.DESC_ANNOT_FILE)) {
-          stepReqs.parseOrFail(r1, affyAnnotFile);
-          break;
-        } else if (r1.getDescription().equalsIgnoreCase(AffyMarkerBlast.DESC_PROBE_FILE)) {
-          stepReqs.parseOrFail(r1, affyProbeFile);
-          break;
-        }
-      }
-      varMap.put(blast, stepReqs);
 
       stepReqs = sampleData.getDefaultRequirementValues();
       for (Requirement<?> r1 : stepReqs.keys()) {
@@ -291,7 +278,6 @@ public class GenvisisWorkflow {
     String s1 = parseSamples.getCommandLine(varMap.get(parseSamples));
     String s2 = transpose.getCommandLine(varMap.get(transpose));
     String s3 = sampleData.getCommandLine(varMap.get(sampleData));
-    String s4 = blast.getCommandLine(varMap.get(blast));
     String s5 = sampleQc.getCommandLine(varMap.get(sampleQc));
     String s6 = markerQc.getCommandLine(varMap.get(markerQc));
     String s7 = sexChecks.getCommandLine(varMap.get(sexChecks));
@@ -309,7 +295,6 @@ public class GenvisisWorkflow {
       addStepInfo(output, parseSamples, s1);
       addStepInfo(output, transpose, s2);
       addStepInfo(output, sampleData, s3);
-      addStepInfo(output, blast, s4);
     }
     addStepInfo(output, sampleQc, s5);
     addStepInfo(output, markerQc, s6);
