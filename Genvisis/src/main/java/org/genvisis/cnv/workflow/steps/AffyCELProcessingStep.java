@@ -96,8 +96,9 @@ public class AffyCELProcessingStep extends Step {
     cmd.append(Files.getRunString());
     cmd.append(" ").append(AffyPipeline.class.getName());
     cmd.append(" proj=").append(proj.getPropertyFilename());
-    cmd.append(" aptExeDir=").append(variables.get(aptExeReq).getPath());
-    cmd.append(" aptLibDir=").append(variables.get(aptLibReq).getPath());
+    cmd.append(" aptExeDir=").append(ext.verifyDirFormat(variables.get(aptExeReq).getPath()));
+    cmd.append(" aptLibDir=").append(ext.verifyDirFormat(variables.get(aptLibReq).getPath()));
+    cmd.append(" sketch=").append(variables.get(sketchReq).getPath());
     cmd.append(" ").append(PSF.Ext.NUM_THREADS_COMMAND).append(variables.get(numThreadsReq));
     if (variables.get(fullReq)) {
       cmd.append(" -full");
