@@ -43,6 +43,7 @@ import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -1811,11 +1812,11 @@ public class FilterCalls {
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
     for (int i = 0; i < cnvs.length; i++) {
-      Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnvs[i]);
+      Iterable<Marker> markersInCNV = markerSet.viewMarkersInSeg(cnvs[i]);
       if (cnvs[i].getCN() < 2) {
-        delCounts.addAll(markersInCNV);
+        Iterables.addAll(delCounts, markersInCNV);
       } else {
-        dupCounts.addAll(markersInCNV);
+        Iterables.addAll(dupCounts, markersInCNV);
       }
     }
     Set<Marker> acceptables = Sets.newHashSet();

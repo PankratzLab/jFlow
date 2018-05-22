@@ -6,7 +6,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -725,10 +724,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-    Collection<Marker> segMarkers = getMarkersInSeg(seg);
+    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
     Iterator<Marker> segMarkersIter = segMarkers.iterator();
     Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
-    int[] segMarkerIndices = new int[segMarkers.size()];
+    int[] segMarkerIndices = new int[Iterables.size(segMarkers)];
     for (int i = 0; i < segMarkerIndices.length; i++) {
       segMarkerIndices[i] = markerIndexMap.get(segMarkersIter.next());
     }
@@ -738,9 +737,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
-    Collection<Marker> segMarkers = getMarkersInSeg(seg);
+    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
     Iterator<Marker> segMarkersIter = segMarkers.iterator();
-    String[] segMarkerNames = new String[segMarkers.size()];
+    String[] segMarkerNames = new String[Iterables.size(segMarkers)];
     for (int i = 0; i < segMarkerNames.length; i++) {
       segMarkerNames[i] = segMarkersIter.next().getName();
     }

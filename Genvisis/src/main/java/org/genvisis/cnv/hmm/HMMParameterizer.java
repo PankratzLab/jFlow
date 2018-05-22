@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -83,7 +82,7 @@ public class HMMParameterizer {
         byte[] genos = samp.getAB_Genotypes();
 
         for (CNVariant cnv : sampSet.getLoci()) {
-          Set<Marker> cnvMarks = markerDetailSet.getMarkersInSeg(cnv);
+          Iterable<Marker> cnvMarks = markerDetailSet.viewMarkersInSeg(cnv);
           for (Marker cnvMark : cnvMarks) {
             double lrr = lrrs[markerIndexMap.get(cnvMark)];
             if (Double.isFinite(lrr) && cnv.getSize() > minbp && cnv.getNumMarkers() > minP) {
