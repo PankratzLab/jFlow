@@ -953,9 +953,7 @@ public class SourceFileParser implements Runnable {
             reader.close();
             // we should have all markers now...
             markerNames = ArrayUtils.mapToValueSortedArray(markerNameHash);
-            keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                                        proj.MARKERSET_FILENAME.getValue(true, true),
-                                        proj.getLog());
+            keys = Markers.orderMarkers(markerNames, proj);
             PSF.checkInterrupted();
             if (keys == null) {
               return 0;// checkForSNP_Map(proj, log);
@@ -987,8 +985,7 @@ public class SourceFileParser implements Runnable {
 
     PSF.checkInterrupted();
     markerNames = ArrayUtils.mapToValueSortedArray(markerNameHash);
-    keys = Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                                proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+    keys = Markers.orderMarkers(markerNames, proj);
     if (keys == null) {
       return 0;// checkForSNP_Map(proj, log);
     }
@@ -1205,10 +1202,9 @@ public class SourceFileParser implements Runnable {
       markerIndexMap.put(markerNames[i], new Integer(i));
     }
 
-    log.report("There were " + markerNames.length + " markers present in '"
-               + proj.MARKERSET_FILENAME.getValue(true, true)
-               + "' that will be processed from the source files (fingerprint: " + fingerprint
-               + ")");
+    log.report("There were " + markerNames.length
+               + " markers present in the project that will be processed from the source files (fingerprint: "
+               + fingerprint + ")");
 
     // int[] dataIndices, genotypeIndices;
 

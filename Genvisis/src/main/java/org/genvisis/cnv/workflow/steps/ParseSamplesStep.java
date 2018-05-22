@@ -80,7 +80,7 @@ public class ParseSamplesStep extends Step {
   @Override
   public boolean checkIfOutputExists(Variables variables) {
     String sampleDirectory = proj.SAMPLE_DIRECTORY.getValue(false, false);
-    boolean mkrSetFile = Files.exists(proj.MARKERSET_FILENAME.getValue(false, false));
+    boolean mkrSetFile = proj.MARKERSET_FILENAME.exists();
     boolean returnValue = mkrSetFile;
     returnValue = returnValue && proj.getSampleList() != null;
     returnValue = returnValue && Files.exists(sampleDirectory);

@@ -127,6 +127,13 @@ public class Segment implements Serializable, Comparable<Segment> {
     return stop;
   }
 
+  /**
+   * @return difference between stop and start positions
+   */
+  public int getLength() {
+    return stop - start;
+  }
+
   public String getUCSClocation() {
     return Positions.getUCSCformat(new int[] {getChr(), getStart(), getStop()});
   }

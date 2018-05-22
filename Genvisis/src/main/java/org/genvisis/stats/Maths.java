@@ -2,11 +2,14 @@ package org.genvisis.stats;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import org.genvisis.common.ArrayUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.math.IntMath;
 
 public class Maths {
@@ -95,6 +98,64 @@ public class Maths {
       }
     }
 
+  }
+
+  public static class MovingAverage {
+
+    private final int window;
+    private final Queue<Double> vals;
+    private double sum;
+    private int nans;
+
+    /**
+     * @param window window size for moving average
+     */
+    public MovingAverage(int window) {
+      if (window <= 0) throw new IllegalArgumentException("Cannot calculate moving average with a nonpositive window");
+      this.window = window;
+      vals = Lists.newLinkedList();
+      sum = 0.0;
+      nans = 0;
+    }
+
+    /**
+     * @param val Value to add to moving average
+     * @return average of window for added val (ignoring NaNs)
+     */
+    public double add(double val) {
+      if (vals.size() == window) {
+        double drop = vals.remove();
+        if (Double.isNaN(drop)) nans--;
+        else sum -= drop;
+      }
+      if (Double.isNaN(val)) nans++;
+      else sum += val;
+      vals.add(val);
+      int count = vals.size() - nans;
+      if (count > 0) return sum / count;
+      else return Double.NaN;
+    }
+  }
+
+  /**
+   * @param window window size to calculate moving average
+   * @param source
+   * @param skipNaN if true, every moving average will be calculated with as many non-NaN points are
+   *          available up to the window size; if false, the window will only extend up to window
+   *          size and NaNs within that window will simply be ignored in averages
+   * @return list of moving average for every point in source
+   */
+  public static List<Double> movingAverageForward(int window, Collection<Double> source,
+                                                  boolean skipNaN) {
+    MovingAverage movingAverage = new MovingAverage(window);
+    List<Double> results = Lists.newArrayListWithCapacity(source.size());
+    if (skipNaN) {
+      source.forEach(val -> results.add(Double.isNaN(val) ? val : movingAverage.add(val)));
+    } else {
+      source.forEach(val -> results.add(movingAverage.add(val)));
+    }
+
+    return results;
   }
 
   public static double limit(double d, double min, double max) {

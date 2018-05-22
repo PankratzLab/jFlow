@@ -332,12 +332,11 @@ public class UKBBParsingPipeline {
   }
 
   protected void writeMarkerSet() {
-    if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+    if (proj.MARKERSET_FILENAME.exists()) {
       long t1 = System.nanoTime();
       String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
                                                     new int[] {0}, false);
-      Markers.orderMarkers(mkrs, proj.MARKER_POSITION_FILENAME.getValue(),
-                           proj.MARKERSET_FILENAME.getValue(), log);
+      Markers.orderMarkers(mkrs, proj, log);
       mkrs = null;
       log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
     } else {

@@ -308,7 +308,7 @@ public class SRAPipeline implements Callable<List<PipelinePart>> {
   private static void generatePrelim(String rootOutDir, String refGenome, String captureBed,
                                      String binBed, String vcf, Logger log, ASSAY_TYPE aType) {
     Project proj = Pipeline.getProjectFor(aType, rootOutDir);
-    if (!Files.exists(proj.MARKERSET_FILENAME.getValue())) {
+    if (proj.MARKERSET_FILENAME.exists()) {
 
       BamImport.generateAnalysisSet(proj, binBed, captureBed, vcf, BamImport.CAPTURE_BUFFER, aType,
                                     true, log, new ReferenceGenome(refGenome, log));

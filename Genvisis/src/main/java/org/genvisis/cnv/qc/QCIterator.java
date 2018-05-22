@@ -185,7 +185,6 @@ public class QCIterator implements Runnable {
     CNVariantQC[][] allIndcnVariantQCsArrays = CNValidate.computeMultiThreadedValidations(proj,
                                                                                           inds,
                                                                                           allIndcnVariantQCs,
-                                                                                          markerSet,
                                                                                           threads);
     printNewCNVariantQCFile(proj, output, inds, allIndcnVariantQCsArrays);
     log.report(ext.getTime() + " Completed QC computations");

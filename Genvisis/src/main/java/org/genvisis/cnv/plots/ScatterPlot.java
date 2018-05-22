@@ -4348,9 +4348,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     if (hasAnnotationFile) {
       try {
-        gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList,
-                                                          annotationLoader.getMarkerSet(),
-                                                          annotationLoader.getMarkerIndices());
+        gcAnnotations = MarkerGCAnnotation.initForMarkers(proj, masterMarkerList);
         blastResults = MarkerBlastAnnotation.initForMarkers(masterMarkerList);
         List<Map<String, ? extends AnnotationParser>> parsers = Lists.newArrayList();
         parsers.add(blastResults);

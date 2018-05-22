@@ -1057,6 +1057,10 @@ public class ArrayUtils {
   }
 
   /**
+   * Note: This method simply calls {@link Maths#movingAverageForward(int, Collection, boolean)}
+   * with a List view of the array and converts the result to a double[], if array results are not
+   * required, use Maths#movingAverageForward(int, Collection, boolean)}
+   * 
    * @param n number of points for the moving average
    * @param array
    * @param skipNaN If true, every moving average will be composed of n points, or NaN; defaults to
@@ -1064,21 +1068,7 @@ public class ArrayUtils {
    * @return an array of moving averages with moving average of n sequential points
    */
   public static double[] movingAverageForward(int n, double[] array, boolean skipNaN) {
-    double[] ma = new double[array.length];
-    ArrayList<Double> tmp = new ArrayList<>();
-    for (int i = 0; i < array.length; i++) {
-      if (!skipNaN || !Double.isNaN(array[i])) {
-        tmp.add(array[i]);
-        ma[i] = mean(Doubles.toArray(tmp), true);
-        if (tmp.size() >= n) {
-          tmp.remove(0);
-        }
-      } else {
-        ma[i] = Double.NaN;
-
-      }
-    }
-    return ma;
+    return Doubles.toArray(Maths.movingAverageForward(n, Doubles.asList(array), skipNaN));
   }
 
   /**
@@ -5287,6 +5277,58 @@ public class ArrayUtils {
       }
     });
     return sorted;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the int values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static int[][] deepCopy(int[][] source) {
+    int[][] copy = new int[source.length][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = source[i].clone();
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the int values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static int[][][] deepCopy(int[][][] source) {
+    int[][][] copy = new int[source.length][][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = deepCopy(source[i]);
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the double values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static double[][] deepCopy(double[][] source) {
+    double[][] copy = new double[source.length][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = source[i].clone();
+    }
+    return copy;
+  }
+
+  /**
+   * @param source to copy
+   * @return a deep copy of the input array, copying only the double values to new 1st and 2nd
+   *         dimension arrays
+   */
+  public static double[][][] deepCopy(double[][][] source) {
+    double[][][] copy = new double[source.length][][];
+    for (int i = 0; i < source.length; i++) {
+      copy[i] = deepCopy(source[i]);
+    }
+    return copy;
   }
 
   public static int[] booleanArrayRunLengths(boolean[] samplesToLoadAfterIndex) {

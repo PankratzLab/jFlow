@@ -16,7 +16,7 @@ import org.genvisis.filesys.Segment;
 /**
  * Forced "calls" using LRR summary data
  */
-public class LRRForceCaller extends ForcedCaller<LRRRegion> {
+public class LRRForceCaller extends ArrayBasedForcedCaller<LRRRegion> {
 
   private static final double MAD_FACTOR = 1.4826;
   private double[] lrrs;

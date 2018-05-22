@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -86,7 +87,7 @@ public class AnalysisFormats implements Runnable {
   }
 
   public static void exportPenncnvSamples(final Project proj, final String[] samples,
-                                          final HashSet<String> markersToWrite, String subDir,
+                                          final Set<String> markersToWrite, String subDir,
                                           int threadCount) {
     final String[] markerNames = proj.getMarkerNames();
     final boolean gzip;

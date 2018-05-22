@@ -1,7 +1,8 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.Map;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.Segment;
@@ -45,26 +46,18 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
     return getLocusName().equals(vc.getID());
   }
 
-  public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers,
-                                                               MarkerSetInfo markerSet,
-                                                               Map<String, Integer> indices) {
-    if (markerSet == null) {
-      markerSet = proj.getMarkerSet();
-    }
-    if (indices == null) {
-      indices = proj.getMarkerIndices();
-    }
+  public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers) {
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Map<String, Marker> markerNameMap = markerSet.getMarkerNameMap();
 
     Map<String, MarkerGCAnnotation> markerGCAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
-    for (String marker : markers) {
+    for (String markerName : markers) {
+      Marker marker = markerNameMap.get(markerName);
       Builder builder = new Builder();
       builder.annotations(new AnnotationData[] {getGCAnnotationDatas()});
-      int index = indices.get(marker);
-      markerGCAnnotations.put(marker,
-                              new MarkerGCAnnotation(builder, marker,
-                                                     new Segment(markerSet.getChrs()[index],
-                                                                 markerSet.getPositions()[index],
-                                                                 markerSet.getPositions()[index])));
+      markerGCAnnotations.put(markerName,
+                              new MarkerGCAnnotation(builder, markerName,
+                                                     new Segment(marker.getGenomicPosition())));
     }
     return markerGCAnnotations;
   }

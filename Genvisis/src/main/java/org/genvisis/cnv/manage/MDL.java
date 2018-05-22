@@ -4,14 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
@@ -20,20 +26,19 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
-import com.google.common.primitives.Ints;
+import com.google.common.collect.ImmutableList;
 
 public class MDL implements Iterator<MarkerData> {
 
   private final Project proj;
-  private final String[] markerNames;
-  private final MarkerSetInfo markerSet;
+  private final List<Marker> markersToLoad;
   private final int numDecompressThreads;
   private WorkerTrain<MarkerData> decompTrain;
   private final MarkerLookup markerLookup;
   private final ArrayList<FileMatch> files;
   private int numLoaded, fileIndex, numLoadedForFile;
   private final int markerBuffer;
-  private final Hashtable<String, String> missing;
+  private final Set<String> missing;
   private BufferReader producer;
   private int reportEvery;
   private final long startTime;
@@ -42,26 +47,42 @@ public class MDL implements Iterator<MarkerData> {
 
   /**
    * @param proj
-   * @param markerSet if null, will be loaded
-   * @param markerNames them to load
+   * @param markersToLoad them to load
    */
-  public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames) {
-    this(proj, markerSet, markerNames, 2, 100);
+  public MDL(Project proj, List<Marker> markersToLoad) {
+    this(proj, markersToLoad, 2, 100);
   }
 
   /**
    * @param proj
-   * @param markerSet if null, will be loaded
+   * @param markerNames them to load
+   */
+  public MDL(Project proj, String[] markerNames) {
+    this(proj, markerNames, 2, 100);
+  }
+
+  /**
+   * @param proj
    * @param markerNames them to load
    * @param numDecompressThreads number of threads used to decompress the marker
    * @param markerBuffer number of markers to hold in the queue for processing
    */
-  public MDL(Project proj, MarkerSetInfo markerSet, String[] markerNames, int numDecompressThreads,
-             int markerBuffer) {
+  public MDL(Project proj, String[] markerNames, int numDecompressThreads, int markerBuffer) {
+    this(proj, Arrays.stream(markerNames).map(proj.getMarkerSet().getMarkerNameMap()::get)
+                     .collect(ImmutableList.toImmutableList()),
+         numDecompressThreads, markerBuffer);
+  }
+
+  /**
+   * @param proj
+   * @param markersToLoad them to load
+   * @param numDecompressThreads number of threads used to decompress the marker
+   * @param markerBuffer number of markers to hold in the queue for processing
+   */
+  public MDL(Project proj, List<Marker> markersToLoad, int numDecompressThreads, int markerBuffer) {
     this.proj = proj;
-    missing = new Hashtable<>();
-    this.markerNames = markerNames;
-    this.markerSet = markerSet == null ? proj.getMarkerSet() : markerSet;
+    missing = new HashSet<>();
+    this.markersToLoad = markersToLoad;
     this.numDecompressThreads = numDecompressThreads;
     markerLookup = proj.getMarkerLookup();
     files = matchFileNames();
@@ -80,9 +101,7 @@ public class MDL implements Iterator<MarkerData> {
     if (decompTrain != null) {
       decompTrain.close();
     }
-    producer = new BufferReader(proj, markerSet, match.getFileName(),
-                                Ints.toArray(match.getFileIndices()),
-                                Ints.toArray(match.getProjIndices()), debugMode);
+    producer = new BufferReader(proj, match, debugMode);
     try {
       producer.init();
     } catch (IllegalStateException e) {
@@ -98,7 +117,7 @@ public class MDL implements Iterator<MarkerData> {
 
   @Override
   public boolean hasNext() {
-    boolean hasNext = numLoaded < markerNames.length;
+    boolean hasNext = numLoaded < markersToLoad.size();
     if (!hasNext) {
       shutdown();
     }
@@ -118,7 +137,7 @@ public class MDL implements Iterator<MarkerData> {
       if (numLoaded == 0 && fileIndex == 0) {
         initTrain(files.get(fileIndex));
         numLoadedForFile = 0;
-      } else if (numLoadedForFile == files.get(fileIndex).getMarkersToLoad().size()) {
+      } else if (numLoadedForFile == files.get(fileIndex).getMatches().size()) {
         fileIndex++;
         initTrain(files.get(fileIndex));
         numLoadedForFile = 0;
@@ -133,16 +152,16 @@ public class MDL implements Iterator<MarkerData> {
       numLoaded++;
       if ((startTime - new Date().getTime()) % reportEvery == 0) {
         proj.getLog()
-            .reportTimeInfo("Loaded " + numLoaded + " of " + markerNames.length + " markers");
+            .reportTimeInfo("Loaded " + numLoaded + " of " + markersToLoad.size() + " markers");
       }
       markerData = decompTrain.next();
-      if (!markerData.getMarkerName().equals(markerNames[numLoaded - 1])) {
+      if (!markerData.getMarkerName().equals(markersToLoad.get(numLoaded - 1).getName())) {
         String error = "Internal index error - mismatched marker data found, halting";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);
       }
     } catch (NullPointerException npe) {
-      proj.getLog().reportError("Could not load " + markerNames[numLoaded - 1]
+      proj.getLog().reportError("Could not load " + markersToLoad.get(numLoaded - 1).getName()
                                 + ", this is usually caused by a corrupt or missing outlier file");
 
     }
@@ -175,39 +194,59 @@ public class MDL implements Iterator<MarkerData> {
    */
   private static class FileMatch {
 
+    private static class Match {
+
+      private final Marker marker;
+      private final int fileIndex;
+
+      /**
+       * @param marker
+       * @param fileIndex
+       */
+      private Match(Marker marker, int fileIndex) {
+        super();
+        this.marker = marker;
+        this.fileIndex = fileIndex;
+      }
+
+      /**
+       * @return the marker
+       */
+      public Marker getMarker() {
+        return marker;
+      }
+
+      /**
+       * @return the fileIndex
+       */
+      public int getFileIndex() {
+        return fileIndex;
+      }
+
+    }
+
     private final String fileName;
-    private final ArrayList<String> markersToLoad;
-    private final ArrayList<Integer> projIndices;
-    private final ArrayList<Integer> fileIndices;
+    private final List<Match> matches;
 
     private FileMatch(String fileName) {
       super();
       this.fileName = fileName;
-      markersToLoad = new ArrayList<>(100000);
-      projIndices = new ArrayList<>(100000);
-      fileIndices = new ArrayList<>(100000);
+      matches = new ArrayList<>(100000);
     }
 
-    private String getFileName() {
+    public String getFileName() {
       return fileName;
     }
 
-    private ArrayList<String> getMarkersToLoad() {
-      return markersToLoad;
+    /**
+     * @return the matches
+     */
+    public List<Match> getMatches() {
+      return Collections.unmodifiableList(matches);
     }
 
-    public ArrayList<Integer> getProjIndices() {
-      return projIndices;
-    }
-
-    private ArrayList<Integer> getFileIndices() {
-      return fileIndices;
-    }
-
-    private void add(String markerName, int projIndex, int fileIndex) {
-      markersToLoad.add(markerName);
-      projIndices.add(projIndex);
-      fileIndices.add(fileIndex);
+    private void add(Marker marker, int fileIndex) {
+      matches.add(new Match(marker, fileIndex));
     }
 
   }
@@ -217,29 +256,25 @@ public class MDL implements Iterator<MarkerData> {
    */
   private ArrayList<FileMatch> matchFileNames() {
     ArrayList<FileMatch> files = new ArrayList<>();
-    int[] indicesInProject = ext.indexLargeFactors(markerNames, proj.getMarkerNames(), true,
-                                                   proj.getLog(), true);
     String currentFile = "";
     int currentIndex = -1;
-    for (int i = 0; i < markerNames.length; i++) {
-      if (markerLookup.contains(markerNames[i])) {
-        String[] line = markerLookup.get(markerNames[i]).split(PSF.Regex.GREEDY_WHITESPACE);
+    for (Marker marker : markersToLoad) {
+      if (markerLookup.contains(marker.getName())) {
+        String[] line = markerLookup.get(marker.getName()).split(PSF.Regex.GREEDY_WHITESPACE);
         if (!line[0].equals(currentFile)) {
           currentFile = line[0];
           files.add(new FileMatch(proj.MARKER_DATA_DIRECTORY.getValue(false, true) + currentFile));
           currentIndex++;
         }
-        files.get(currentIndex).add(markerNames[i], indicesInProject[i], Integer.parseInt(line[1]));
+        files.get(currentIndex).add(marker, Integer.parseInt(line[1]));
 
       } else {
-        missing.put(markerNames[i], markerNames[i]);
+        missing.add(marker.getName());
       }
     }
-    if (missing.size() > 0) {
-      proj.getLog()
-          .reportError("Could not find the following markers in the project"
-                       + ArrayUtils.toStr(missing.keySet().toArray(new String[missing.size()]),
-                                          "\n"));
+    if (!missing.isEmpty()) {
+      proj.getLog().reportError("Could not find the following markers in the project"
+                                + ArrayUtils.toStr(missing, "\n"));
     }
     return files;
   }
@@ -254,28 +289,20 @@ public class MDL implements Iterator<MarkerData> {
     private byte nullStatus;
     private byte bytesPerSampleMarker;
     private int numBytesPerMarker, numSamplesObserved, numBytesMarkernamesSection, numLoaded;
-    private final int[] markersIndicesInFile, markerIndicesInProject;
-    private int[] positions;
-    private byte[] chrs;
-    private String[] names;
     private long fingerprint, sampleFingerprint;
-    private final String currentMarkFilename;
+    private final FileMatch fileMatch;
     private final Project proj;
     private boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull,
         isNegativeXYAllowed;
     private final boolean debugMode;
     private Hashtable<String, Float> outlierHash;
-    private final MarkerSetInfo markerSet;
+    private final MarkerDetailSet markerSet;
 
-    private BufferReader(Project proj, MarkerSetInfo markerSet, String currentMarkFilename,
-                         int[] markersIndicesInFile, int[] markerIndicesInProject,
-                         boolean debugMode) {
+    private BufferReader(Project proj, FileMatch fileMatch, boolean debugMode) {
       super();
       this.proj = proj;
-      this.markerSet = markerSet;
-      this.currentMarkFilename = currentMarkFilename;
-      this.markersIndicesInFile = markersIndicesInFile;
-      this.markerIndicesInProject = markerIndicesInProject;
+      this.markerSet = proj.getMarkerSet();
+      this.fileMatch = fileMatch;
       numLoaded = 0;
       this.debugMode = debugMode;
     }
@@ -283,10 +310,7 @@ public class MDL implements Iterator<MarkerData> {
     @SuppressWarnings("unchecked")
     private void init() throws IOException, IllegalStateException {
       sampleFingerprint = proj.getSampleList().getFingerprint();
-      chrs = ArrayUtils.subArray(markerSet.getChrs(), markerIndicesInProject);
-      positions = ArrayUtils.subArray(markerSet.getPositions(), markerIndicesInProject);
-      names = ArrayUtils.subArray(markerSet.getMarkerNames(), markerIndicesInProject);
-      file = new RandomAccessFile(currentMarkFilename, "r");
+      file = new RandomAccessFile(fileMatch.getFileName(), "r");
       file.read(parameterReadBuffer);
       nullStatus = parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START];
       bytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
@@ -295,8 +319,8 @@ public class MDL implements Iterator<MarkerData> {
                                                   TransposeData.MARKERDATA_NUMSAMPLES_START);
       if (numSamplesObserved != proj.getSamples().length) {
         String error = "mismatched number of samples between sample list (n="
-                       + proj.getSamples().length + ") and file '" + currentMarkFilename + "' (n="
-                       + numSamplesObserved + ")";
+                       + proj.getSamples().length + ") and file '" + fileMatch.getFileName()
+                       + "' (n=" + numSamplesObserved + ")";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);
       }
@@ -304,7 +328,7 @@ public class MDL implements Iterator<MarkerData> {
                                             TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
         String error = "mismatched sample fingerprints between sample list and file '"
-                       + currentMarkFilename + "'";
+                       + fileMatch.getFileName() + "'";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);
       }
@@ -323,7 +347,7 @@ public class MDL implements Iterator<MarkerData> {
                                                                             + "outliers.ser");
         if (debugMode) {
           proj.getLog()
-              .reportTimeInfo("Loading RAF: " + currentMarkFilename + " and outliers "
+              .reportTimeInfo("Loading RAF: " + fileMatch.getFileName() + " and outliers "
                               + proj.MARKER_DATA_DIRECTORY.getValue(false, true) + "outliers.ser");
         }
       } else {
@@ -333,35 +357,38 @@ public class MDL implements Iterator<MarkerData> {
 
     @Override
     public boolean hasNext() {
-      return numLoaded < markersIndicesInFile.length;
+      return numLoaded < fileMatch.getMatches().size();
     }
 
     @Override
     public Callable<MarkerData> next() {
+      FileMatch.Match nextMatch = fileMatch.getMatches().get(numLoaded);
+      Marker nextMarker = nextMatch.getMarker();
       long seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
                           + (long) numBytesMarkernamesSection
-                          + markersIndicesInFile[numLoaded] * (long) numBytesPerMarker;
+                          + nextMatch.getFileIndex() * (long) numBytesPerMarker;
       byte[] buffer = new byte[numBytesPerMarker];
       try {
         file.seek(seekLocation);
         file.read(buffer);
         MDLWorker worker = new MDLWorker(buffer, bytesPerSampleMarker,
-                                         markerIndicesInProject[numLoaded], proj.getSamples(),
-                                         names[numLoaded], chrs[numLoaded], positions[numLoaded],
-                                         isGcNull, isXNull, isYNull, isBafNull, isLrrNull,
-                                         isGenotypeNull, isNegativeXYAllowed, outlierHash,
-                                         sampleFingerprint, debugMode);
+                                         markerSet.getMarkerIndexMap().get(nextMarker),
+                                         proj.getSamples(), nextMarker.getName(),
+                                         nextMarker.getChr(), nextMarker.getPosition(), isGcNull,
+                                         isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull,
+                                         isNegativeXYAllowed, outlierHash, sampleFingerprint,
+                                         debugMode);
         numLoaded++;
         buffer = null;
         return worker;
 
       } catch (IOException e) {
-        proj.getLog().reportIOException(currentMarkFilename);
+        proj.getLog().reportIOException(fileMatch.getFileName());
         e.printStackTrace();
       } catch (Exception e) {
         proj.getLog().reportException(e);
       }
-      numLoaded = markerIndicesInProject.length;
+      numLoaded = fileMatch.getMatches().size();
       return null;
     };
 
@@ -371,7 +398,7 @@ public class MDL implements Iterator<MarkerData> {
         try {
           file.close();
         } catch (IOException e) {
-          proj.getLog().reportIOException(currentMarkFilename);
+          proj.getLog().reportIOException(fileMatch.getFileName());
           e.printStackTrace();
         }
       }
@@ -559,7 +586,7 @@ public class MDL implements Iterator<MarkerData> {
 
     for (int i = 0; i < iter; i++) {
       int index = 0;
-      MDL mdl = new MDL(proj, null, proj.getMarkerNames(), 3, 10);
+      MDL mdl = new MDL(proj, proj.getMarkerNames(), 3, 10);
       while (mdl.hasNext()) {
         try {
           MarkerData markerData = mdl.next();

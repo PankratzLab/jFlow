@@ -44,6 +44,19 @@ public class Markers {
                                                                                          "dbSNP chr",
                                                                                          "dbSNP pos");
 
+  public static int[] orderMarkers(String[] markerNames, Project proj) {
+    return orderMarkers(markerNames, proj, proj.getLog());
+  }
+
+  public static int[] orderMarkers(String[] markerNames, Project proj, Logger log) {
+    return orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
+                        proj.MARKERSET_FILENAME.getValue(true, false), log);
+  }
+
+  @Deprecated
+  /**
+   * @deprecated use #orderMarkers(String[], Project)
+   */
   public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output,
                                    Logger log) {
     Hashtable<String, String> snpPositions;

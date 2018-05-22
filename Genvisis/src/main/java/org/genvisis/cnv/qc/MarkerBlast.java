@@ -20,6 +20,7 @@ import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -324,21 +325,22 @@ public abstract class MarkerBlast {
   protected void annotateGCContent() {
     MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(null, false);
     MarkerDetailSet markerSet = proj.getMarkerSet();
-    String[] markerNames = markerSet.getMarkerNames();
-    Map<String, Integer> indices = markerSet.getMarkerIndices();
+    List<Marker> markers = markerSet.getMarkers();
+    Map<Marker, Integer> indices = markerSet.getMarkerIndexMap();
+    Map<String, Marker> nameMap = markerSet.getMarkerNameMap();
     // ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, log);
-    LocusAnnotation[] gcAnnotations = new LocusAnnotation[markerNames.length];
+    LocusAnnotation[] gcAnnotations = new LocusAnnotation[markers.size()];
     for (MarkerFastaEntry fastaEntrie : fastaEntries) {
-      String marker = fastaEntrie.getName();
-      PROBE_TAG tag = PROBE_TAG.parseMarkerTag(marker, log);
-      marker = marker.substring(0, marker.length() - tag.getTag().length());
-      int index = indices.get(marker);
+      String markerName = fastaEntrie.getName();
+      PROBE_TAG tag = PROBE_TAG.parseMarkerTag(markerName, log);
+      markerName = markerName.substring(0, markerName.length() - tag.getTag().length());
+      int index = indices.get(nameMap.get(markerName));
       double gcContent = fastaEntrie.getGCMinusInterrogationPosition();
       Builder builder = new Builder();
       AnnotationData annotationData = MarkerGCAnnotation.getGCAnnotationDatas();
       annotationData.setData(gcContent + "");
       builder.annotations(new AnnotationData[] {annotationData});
-      MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, marker,
+      MarkerGCAnnotation markerGCAnnotation = new MarkerGCAnnotation(builder, markerName,
                                                                      fastaEntrie.getMarkerSegment());
       gcAnnotations[index] = markerGCAnnotation;
     }
@@ -352,15 +354,14 @@ public abstract class MarkerBlast {
         writer.write(gcAnnotations[i], false, true);
 
       } else {
+        Marker marker = markers.get(i);
         double gcContent = Double.NaN;
         Builder builder = new Builder();
         AnnotationData annotationData = MarkerGCAnnotation.getGCAnnotationDatas();
         annotationData.setData(gcContent + "");
         builder.annotations(new AnnotationData[] {annotationData});
-        MarkerGCAnnotation blank = new MarkerGCAnnotation(builder, markerNames[i],
-                                                          new Segment(markerSet.getChrs()[i],
-                                                                      markerSet.getPositions()[i],
-                                                                      markerSet.getPositions()[i]));
+        MarkerGCAnnotation blank = new MarkerGCAnnotation(builder, marker.getName(),
+                                                          new Segment(marker.getGenomicPosition()));
         writer.write(blank, false, true);
       }
     }
@@ -814,8 +815,7 @@ public abstract class MarkerBlast {
           String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type,
                                                                     proj.MARKER_POSITION_FILENAME.getValue(),
                                                                     ",", log);
-          Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                               proj.MARKERSET_FILENAME.getValue(true, true), log);
+          Markers.orderMarkers(markerNames, proj);
 
           break;
         default:

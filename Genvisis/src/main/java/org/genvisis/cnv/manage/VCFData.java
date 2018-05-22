@@ -399,7 +399,7 @@ public final class VCFData {
       float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
 
       log.report("Initializing MDL for " + markers.length + " markers...");
-      MDL mdl = new MDL(proj, proj.getMarkerSet(), markers);
+      MDL mdl = new MDL(proj, markers);
 
       while (mdl.hasNext()) {
         MarkerData markerData = mdl.next();

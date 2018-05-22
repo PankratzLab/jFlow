@@ -115,7 +115,7 @@ public class ExomeDepthRun {
     String positions = proj.MARKER_POSITION_FILENAME.getValue();
     proj.getLog().reportTimeInfo("Postions will be set to the midpoint of each segment");
     String[] markerNames = new String[segments.length];
-    if (!Files.exists(positions) || !Files.exists(proj.MARKERSET_FILENAME.getValue(true, true))) {
+    if (!Files.exists(positions) || !proj.MARKERSET_FILENAME.exists()) {
       try {
         PrintWriter writer = Files.openAppropriateWriter(positions);
         int markerIndex = 0;
@@ -136,8 +136,7 @@ public class ExomeDepthRun {
         proj.getLog().reportException(e);
       }
 
-      Markers.orderMarkers(markerNames, proj.MARKER_POSITION_FILENAME.getValue(),
-                           proj.MARKERSET_FILENAME.getValue(true, true), proj.getLog());
+      Markers.orderMarkers(markerNames, proj);
     }
   }
 

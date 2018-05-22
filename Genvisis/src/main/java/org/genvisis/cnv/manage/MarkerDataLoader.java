@@ -22,7 +22,6 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CountHash;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.SerializedFiles;
@@ -32,8 +31,6 @@ public class MarkerDataLoader implements Runnable {
 
   private Project proj;
   private String[] markerNames;
-  private byte[] chrs;
-  private int[] positions;
   private MarkerData[] markerData;
   private boolean[] loaded;
 
@@ -57,13 +54,8 @@ public class MarkerDataLoader implements Runnable {
   private HashSet<Integer> waitTimesSeen;
 
   public MarkerDataLoader(Project proj, String[] markerNames, int amountToLoadAtOnceInMB) {
-    Hashtable<String, Integer> markerHash;
     Vector<String> missingMarkers, v;
-    String[] markerNamesProj;
-    int[] positionsProj;
-    byte[] chrsProj;
     String[] line;
-    int index;
 
     this.proj = proj;
     log = proj.getLog();
@@ -80,8 +72,6 @@ public class MarkerDataLoader implements Runnable {
       return;
     }
 
-    chrs = new byte[markerNames.length];
-    positions = new int[markerNames.length];
     markerData = new MarkerData[markerNames.length];
     loaded = new boolean[markerNames.length];
     sampleFingerprint = proj.getSampleList().getFingerprint();
@@ -89,19 +79,6 @@ public class MarkerDataLoader implements Runnable {
     initiated = false;
     waitTimesSeen = new HashSet<>();
     finalWaitTimeCounts = new CountHash();
-
-    markerNamesProj = proj.getMarkerNames();
-    chrsProj = proj.getMarkerSet().getChrs();
-    positionsProj = proj.getMarkerSet().getPositions();
-    markerHash = HashVec.loadToHashIndices(markerNames, log);
-    for (int i = 0; i < markerNamesProj.length; i++) {
-      if (markerHash.containsKey(markerNamesProj[i])) {
-        index = markerHash.get(markerNamesProj[i]);
-        chrs[index] = chrsProj[i];
-        positions[index] = positionsProj[i];
-        break;
-      }
-    }
 
     // if (plinkFileRoot != null) {
     // this.plinkFormat = true;

@@ -181,7 +181,7 @@ public class CNVFocus {
       String[] markersInSeg = preparedMarkerSet.getMarkersIn(seg,
                                                              preparedMarkerSet.getIndicesByChr());
 
-      MDL mdl = new MDL(proj, preparedMarkerSet, markersInSeg);
+      MDL mdl = new MDL(proj, markersInSeg);
 
       ArrayList<CNDataPoint> points = new ArrayList<>();
 

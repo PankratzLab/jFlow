@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.filesys.CNVariant;
@@ -421,22 +420,6 @@ public class CNVFilter {
     return cnvCentromere;
   }
 
-  /**
-   * Any or all can be null,
-   *
-   * @param commonIn include (true) or exclude (false) common variants
-   */
-  public void setAllAuxillaryRegionsFromFiles(String fullPathToProblematicRegions,
-                                              String fullPathToSnpMarkerSetFilename,
-                                              String fullPathToCommonCNPReference,
-                                              String fullPathToIndividualsToKeepFile,
-                                              boolean commonIn) {
-    setProblemRegionsFromFile(fullPathToProblematicRegions);
-    setCentromereBoundariesFromFile(fullPathToSnpMarkerSetFilename);
-    setCommonReferenceFromFile(fullPathToCommonCNPReference, commonIn);
-    setIndividualsToKeepFromFile(fullPathToIndividualsToKeepFile);
-  }
-
   public void setCentromereBoundariesFromFile(String fullPathToSnpMarkerSetFilename) {
     if (fullPathToSnpMarkerSetFilename == null || fullPathToSnpMarkerSetFilename.equals("")) {
       setCentromereBoundaries(CNVFilter.NO_FILTER_CENTROMERE_BOUNDARIES);
@@ -449,13 +432,16 @@ public class CNVFilter {
                                                                                    markerSet.getPositions(),
                                                                                    build, log));
     } else if (fullPathToSnpMarkerSetFilename.endsWith(".ser")) {
-      MarkerSetInfo markerSet = MarkerSet.load(fullPathToSnpMarkerSetFilename);
-      setPositions(markerSet.getPositionsByChr());
-      setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
-                                                                                   markerSet.getPositions(),
-                                                                                   build, log));
+      throw new IllegalStateException("Cannot load MarkerSet as file manually");
     } else {}
     computeCentromereMidPoints();
+  }
+
+  public void setCentromereBoundariesFromMarkerSet(MarkerSetInfo markerSet) {
+    setPositions(markerSet.getPositionsByChr());
+    setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
+                                                                                 markerSet.getPositions(),
+                                                                                 build, log));
   }
 
   public void setProblemRegionsFromFile(String fullPathToProblematicRegions) {

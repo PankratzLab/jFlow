@@ -30,8 +30,7 @@ public class ProjectCNVFiltering {
   }
 
   public static void setCentromereBoundariesFromProject(CNVFilter filter, Project proj) {
-    // setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
-    filter.setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());
+    filter.setCentromereBoundariesFromMarkerSet(proj.getMarkerSet());
   }
 
   public static void setCNVDefaults(CNVFilter filter, Project proj) {
@@ -44,8 +43,7 @@ public class ProjectCNVFiltering {
   }
 
   private static void loadMarkerSet(Project proj, CNVFilter filter) {
-    String markerSetFile = proj.MARKERSET_FILENAME.getValue();
-    MarkerSetInfo markerSet = MarkerSet.load(markerSetFile);
+    MarkerSetInfo markerSet = proj.getMarkerSet();
     filter.setPositions(markerSet.getPositionsByChr());
     filter.setCentromereBoundaries(Positions.determineCentromereBoundariesFromMarkerSet(markerSet.getChrs(),
                                                                                         markerSet.getPositions(),
@@ -112,8 +110,7 @@ public class ProjectCNVFiltering {
         filter.addCommandLineFilter(args[i], CNVFilter.COMMAND_INDIVIDUALS_TO_KEEP);
       } else if (args[i].startsWith(CNVFilter.COMMAND_BUILD)) {
         filter.setBuild(ext.parseIntArg(args[i]));
-        // filter.setCentromereBoundariesFromFile(proj.getFilename(proj.MARKERSET_FILENAME));
-        filter.setCentromereBoundariesFromFile(proj.MARKERSET_FILENAME.getValue());
+        filter.setCentromereBoundariesFromMarkerSet(proj.getMarkerSet());
         filter.addCommandLineFilter(args[i], CNVFilter.COMMAND_BUILD);
       } else if (args[i].startsWith(CNVFilter.COMMAND_COMMON_IN)) {
         filter.setCommonIn(ext.parseBooleanArg(args[i]));
@@ -180,8 +177,8 @@ public class ProjectCNVFiltering {
                                                                     freqFilter.totalLimitedTo,
                                                                     freqFilter.delLimitedTo,
                                                                     freqFilter.dupLimitedTo,
-                                                                    freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                                    cnvsAsPositions);
+                                                                    freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion)
+                          .toArray(new CNVariant[0]);
         log.report("CNV filtering by frequency complete: started with " + numPrior
                    + " CNVs, now have " + cnvs.length + " CNVs remaining.");
       } else {
@@ -193,8 +190,8 @@ public class ProjectCNVFiltering {
                                                                     freqFilter.totalLimitedTo,
                                                                     freqFilter.delLimitedTo,
                                                                     freqFilter.dupLimitedTo,
-                                                                    freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                                    cnvsAsPositions);
+                                                                    freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion)
+                          .toArray(new CNVariant[0]);
         log.report("CNV filtering by frequency complete: started with " + numPrior
                    + " CNVs, now have " + cnvs.length + " CNVs remaining.");
 
@@ -229,8 +226,8 @@ public class ProjectCNVFiltering {
                                                                   freqFilter.totalLimitedTo,
                                                                   freqFilter.delLimitedTo,
                                                                   freqFilter.dupLimitedTo,
-                                                                  freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                                  cnvsAsPositions);
+                                                                  freqFilter.proportionOfProbesThatNeedToPassForFinalInclusion)
+                        .toArray(new CNVariant[0]);
       log.report("CNV filtering by frequency complete: started with " + numPrior
                  + " CNVs, now have " + cnvs.length + " CNVs remaining.");
     }

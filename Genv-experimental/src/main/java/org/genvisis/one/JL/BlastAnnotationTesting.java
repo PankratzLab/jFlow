@@ -1,9 +1,12 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.genvisis.cnv.annotation.markers.AnnotationData;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationFileWriter;
@@ -14,6 +17,7 @@ import org.genvisis.cnv.annotation.markers.LocusAnnotation;
 import org.genvisis.cnv.annotation.markers.LocusAnnotation.Builder;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
@@ -32,7 +36,7 @@ public class BlastAnnotationTesting {
 
     // Reading
     System.out.println("getting testers");
-    ArrayList<String> t = getTestMarks(proj);
+    List<String> t = getTestMarks(proj);
     String[] markers = proj.getMarkerNames();
     for (int i = 300; i < 4000; i++) {
       t.add(markers[i]);
@@ -113,7 +117,7 @@ public class BlastAnnotationTesting {
   }
 
   public static void testHistogram(Project proj) {
-    ArrayList<String> t = getTestMarks(proj);
+    List<String> t = getTestMarks(proj);
 
     String[] markers = proj.getMarkerNames();
     for (int i = 0; i < 100; i++) {
@@ -180,17 +184,10 @@ public class BlastAnnotationTesting {
     return anDatas;
   }
 
-  private static ArrayList<String> getTestMarks(Project proj) {
-    ArrayList<String> t = new ArrayList<>();
-    MarkerSetInfo markerSet = proj.getMarkerSet();
-
-    for (int i = 0; i < markerSet.getIndicesByChr().length; i++) {
-      if (markerSet.getIndicesByChr()[i].length - 1 >= 0) {
-        t.add(proj.getMarkerNames()[markerSet.getIndicesByChr()[i][markerSet.getIndicesByChr()[i].length
-                                                                   - 1]]);
-      }
-    }
-    return t;
+  private static List<String> getTestMarks(Project proj) {
+    return proj.getMarkerSet().getChrMap().entrySet().stream().map(Entry::getValue)
+               .filter(Set::isEmpty).map(NavigableSet::last).map(Marker::getName)
+               .collect(Collectors.toList());
   }
 
   public static void main(String[] args) {

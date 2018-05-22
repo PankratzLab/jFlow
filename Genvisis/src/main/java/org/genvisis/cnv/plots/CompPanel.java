@@ -13,7 +13,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.JPanel;
 import org.genvisis.cnv.gui.ChromosomeViewer;
@@ -21,6 +20,7 @@ import org.genvisis.cnv.var.CNVRectangle;
 import org.genvisis.cnv.var.CNVRectangles;
 import org.genvisis.common.Positions;
 import org.genvisis.filesys.CNVariant;
+import org.genvisis.filesys.Segment;
 
 /**
  * @author Michael Vieths
@@ -268,8 +268,8 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    int[] newLocation = plot.getCPLocation();
-    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]];
+    Segment oldLocation = plot.getCPLocation();
+    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[oldLocation.getChr()];
     int x = e.getPoint().x;
     double diff = (int) (clickStart - x);
 
@@ -279,31 +279,32 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
     clickStart = x;
 
-    int loc1 = (int) (newLocation[1] + offset);
-    int loc2 = (int) (newLocation[2] + offset);
+    int loc1 = (int) (oldLocation.getStart() + offset);
+    int loc2 = (int) (oldLocation.getStop() + offset);
 
     // Only change the window if we're still in a valid range
+    int newStart = oldLocation.getStart();
+    int newStop = oldLocation.getStop();
     if (offset < 0) {
       if (loc1 >= 0) {
-        newLocation[1] = loc1;
-        newLocation[2] = loc2;
+        newStart = loc1;
+        newStop = loc2;
       }
     } else {
       if (loc2 <= chromosomeLength) {
-        newLocation[1] = loc1;
-        newLocation[2] = loc2;
+        newStart = loc1;
+        newStop = loc2;
       }
     }
-    plot.setCPLocation(newLocation);
+    plot.setCPLocation(new Segment(oldLocation.getChr(), newStart, newStop));
   }
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    int[] newLocation = plot.getCPLocation();
-    int[] oldLocation = Arrays.copyOf(newLocation, newLocation.length);
+    Segment oldLocation = plot.getCPLocation();
     // int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B36_HG18[newLocation[0]]; // TODO make
     // this build specific
-    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B37_HG19[newLocation[0]];
+    int chromosomeLength = Positions.CHROMOSOME_LENGTHS_B37_HG19[oldLocation.getChr()];
 
     int rotation = e.getWheelRotation();
     double width = endBase - startBase;
@@ -316,6 +317,9 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
     // Figure out which base we're moused over
     int mouseBase = startBase + (int) ((double) mouseX / scalingFactor);
+
+    int newStart = oldLocation.getStart();
+    int newStop = oldLocation.getStop();
 
     if (rotation > 0) {
       // Zoom out 10%
@@ -330,15 +334,15 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
       // Zoom out
       if (loc1 < 0) {
-        newLocation[1] = 0;
+        newStart = 0;
       } else {
-        newLocation[1] = loc1;
+        newStart = loc1;
       }
 
       if (loc2 > chromosomeLength) {
-        newLocation[2] = chromosomeLength;
+        newStop = chromosomeLength;
       } else {
-        newLocation[2] = loc2;
+        newStop = loc2;
       }
     } else if (rotation < 0) {
       // Zoom in 10%
@@ -357,13 +361,14 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
         // Otherwise we can get caught in a position where the width never changes and we can't zoom
         // back out again.
       } else {
-        newLocation[1] = loc1;
-        newLocation[2] = loc2;
+        newStart = loc1;
+        newStop = loc2;
       }
     }
 
+    Segment newLocation = new Segment(oldLocation.getChr(), newStart, newStop);
     // Don't reset the location if it hasn't changed
-    if (!Arrays.equals(oldLocation, newLocation)) {
+    if (!newLocation.equals(oldLocation)) {
       plot.setCPLocation(newLocation);
     }
   }

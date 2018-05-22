@@ -103,4 +103,11 @@ public class FileProperty extends StringProperty {
 
     return tempValue;
   }
+
+  /**
+   * @return true if the named file exists
+   */
+  public boolean exists() {
+    return new File(getValue()).exists();
+  }
 }

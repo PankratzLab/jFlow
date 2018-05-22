@@ -112,15 +112,13 @@ public class LrrSd extends Parallelizable {
         // proj.getLog().reportError("Error - was not able to detect any autosomal markers for
         // sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
         proj.getLog()
-            .reportError("Error - was not able to detect any autosomal markers for sample QC in "
-                         + proj.MARKERSET_FILENAME.getValue());
+            .reportError("Error - was not able to detect any autosomal markers for sample QC in project");
         return;
       }
       if (chrs[subIndex] != 23) {
         // proj.getLog().report("Info - did not detect chromosome 23 in " +
         // proj.getFilename(proj.MARKERSET_FILENAME));
-        proj.getLog()
-            .report("Info - did not detect chromosome 23 in " + proj.MARKERSET_FILENAME.getValue());
+        proj.getLog().report("Info - did not detect chromosome 23 in project");
       }
       if (markersForEverythingElse != null) {
         for (int i = subIndex; i < markersForEverythingElse.length; i++) {

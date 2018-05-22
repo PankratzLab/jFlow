@@ -826,7 +826,7 @@ public class lab {
                                                     + proj.PROJECT_NAME.getValue()
                                                     + "_Xvalues.txt");
 
-    MDL mdl = new MDL(proj, proj.getMarkerSet(), proj.getMarkerNames());
+    MDL mdl = new MDL(proj, proj.getMarkerNames());
     while (mdl.hasNext()) {
       MarkerData md = mdl.next();
       for (float x : md.getXs()) {
@@ -866,8 +866,7 @@ public class lab {
       }
     }
 
-    MDL mdl = new MDL(proj, proj.getMarkerSet(),
-                      ArrayUtils.subArray(proj.getMarkerNames(), sampling));
+    MDL mdl = new MDL(proj, ArrayUtils.subArray(proj.getMarkerNames(), sampling));
     while (mdl.hasNext()) {
       MarkerData md = mdl.next();
       for (float x : md.getXs()) {

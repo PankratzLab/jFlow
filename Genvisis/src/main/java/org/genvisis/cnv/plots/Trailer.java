@@ -46,6 +46,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Vector;
@@ -147,9 +149,7 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.mining.Transformations;
 import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.google.common.collect.SortedSetMultimap;
 import com.google.common.primitives.Floats;
 import net.miginfocom.swing.MigLayout;
 
@@ -200,7 +200,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private IndiPheno indiPheno;
   private PreparedMarkerSet markerSet;
   private MarkerDetailSet markerDetailSet;
-  private SortedSetMultimap<Byte, Marker> markerChrMap;
+  private NavigableMap<Byte, NavigableSet<Marker>> markerChrMap;
   private long fingerprint;
   private Set<Marker> dropped;
   private Map<Marker, Float> lrrs, lrrValues;
@@ -2593,8 +2593,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             JCheckBoxMenuItem jrb = (JCheckBoxMenuItem) ie.getItem();
             MosaicBuilder builder = new MosaicBuilder();
             builder.verbose(true);
-            MosaicismDetect md = builder.build(proj, sample, markerSet,
-                                               ArrayUtils.toDoubleArray(getBAFsAsArray()));
+            MosaicismDetect md = builder.build(proj, sample, bafs);
             Segment seg = new Segment(chr, 0, Integer.MAX_VALUE);
             LocusSet<MosaicRegion> mosSet = md.callMosaic(seg, false);
             int externalCNVs = prepInternalClasses();
@@ -3293,7 +3292,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         chr = oldChr;
         return;
       }
-      chr = markerChrMap.keys().stream().min(Byte::compareTo).get();
+      chr = markerChrMap.keySet().stream().min(Byte::compareTo).get();
     }
     if (chr != oldChr) {
       start = stop = -1;
@@ -3896,8 +3895,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         || selectedCNV[0] != externalCNVs + INTERNAL_CNV_TYPES.MOSAIC_CALLER.getIndex()) {
       MosaicBuilder builderMosaic = new MosaicBuilder();
       builderMosaic.verbose(true);
-      MosaicismDetect md = builderMosaic.build(proj, sample, markerSet,
-                                               ArrayUtils.toDoubleArray(getBAFsAsArray()));
+      MosaicismDetect md = builderMosaic.build(proj, sample, bafs);
       LocusSet<MosaicRegion> mosSet = md.callMosaic(quantSeg, true);
 
       if (mosSet.getLoci().length != 1) {

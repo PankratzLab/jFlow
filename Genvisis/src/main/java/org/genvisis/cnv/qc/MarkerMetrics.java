@@ -313,7 +313,7 @@ public class MarkerMetrics {
 
       // markerDataLoader = MarkerDataLoader.loadMarkerDataFromListInSeparateThread(proj,
       // markerNames);
-      MDL mdl = new MDL(proj, proj.getMarkerSet(), markerNames, 2, 100);
+      MDL mdl = new MDL(proj, markerNames, 2, 100);
       time = new Date().getTime();
       // for (int i = 0; i < markerNames.length; i++) {
       int index = 0;

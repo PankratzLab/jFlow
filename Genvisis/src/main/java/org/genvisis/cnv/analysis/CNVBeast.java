@@ -7,13 +7,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -28,6 +31,8 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 
 /**
  * Wrapper for the Beast software package as available here
@@ -86,7 +91,6 @@ public class CNVBeast {
       proj.getLog()
           .reportError("Error - mismatched array sizes for project's samples and sample mask");
     } else {
-      MarkerSetInfo markerSet = proj.getMarkerSet();
       int numSamples = (samplesToAnalyze != null ? ArrayUtils.booleanArraySum(samplesToAnalyze)
                                                  : samples.length);
       BeastConfig[][] sampleConfigs = new BeastConfig[numSamples][];
@@ -99,15 +103,14 @@ public class CNVBeast {
                                + samples.length);
         }
         if (samplesToAnalyze == null || samplesToAnalyze[i]) {
-          sampleConfigs[configIndex] = generateConfigs(proj, samples[i], markerSet,
+          sampleConfigs[configIndex] = generateConfigs(proj, samples[i],
                                                        proj.PROJECT_DIRECTORY.getValue()
-                                                                                    + analysisDirectory,
+                                                                         + analysisDirectory,
                                                        fullPathToBeastExe, overWriteExistingFiles);
           configIndex++;
         }
       }
-      BeastConfig[] allConfigs = parseAllSamples(proj, sampleConfigs, markerSet, gcModel,
-                                                 numThreads);
+      BeastConfig[] allConfigs = parseAllSamples(proj, sampleConfigs, gcModel, numThreads);
       allConfigs = analyzeConfigs(proj, allConfigs, numThreads);
       CNVariant[][] allCNVs = parseBeastResults(proj, allConfigs);
       reportAllCNVs(proj, allCNVs,
@@ -159,7 +162,7 @@ public class CNVBeast {
     ArrayList<CNVariant> indCNVariants = new ArrayList<>();
     String[] ind = sampleData.lookup(config.getSample());
     String summaryFile = config.getSummaryFile();
-    byte chr = (byte) config.getAnalysisChr();
+    byte chr = config.getAnalysisChr();
     if (ind != null) {
       String fid = ind[1].split("\t")[0];
       String iid = ind[1].split("\t")[1];
@@ -218,8 +221,7 @@ public class CNVBeast {
   }
 
   private static BeastConfig[] parseAllSamples(Project proj, BeastConfig[][] configs,
-                                               MarkerSetInfo markerSet, GcModel gcModel,
-                                               int numThreads) {
+                                               GcModel gcModel, int numThreads) {
     ArrayList<BeastConfig> allConfigs = new ArrayList<>();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
     ArrayList<Future<BeastConfig[]>> tmpResults = new ArrayList<>();
@@ -231,11 +233,7 @@ public class CNVBeast {
         }
         BeastSampleParserThread worker = new BeastSampleParserThread(proj, configs[i],
                                                                      configs[i][0].getSample(),
-                                                                     gcModel,
-                                                                     markerSet.getIndicesByChr(),
-                                                                     markerSet.getMarkerNames(),
-                                                                     markerSet.getPositions(),
-                                                                     callString);
+                                                                     gcModel, callString);
         tmpResults.add(executor.submit(worker));
       }
     }
@@ -287,29 +285,25 @@ public class CNVBeast {
     return analyzedConfigs;
   }
 
-  private static BeastConfig[] generateConfigs(Project proj, String sample, MarkerSetInfo markerSet,
+  private static BeastConfig[] generateConfigs(Project proj, String sample,
                                                String analysisDirectoryFullPath,
                                                String fullPathToBeastExe,
                                                boolean overWriteExistingFiles) {
-    int[][] indicesByChr = markerSet.getIndicesByChr();
-    ArrayList<BeastConfig> configs = new ArrayList<>(indicesByChr.length);
-    for (int i = 1; i < indicesByChr.length; i++) {// skip 0
-      if (hasDataAt(indicesByChr, i)) {
-        String baseName = sample + "_chr" + i;
-        String subDir = "chr" + i + "/";
-        BeastConfig sampChrConfig = new BeastConfig(sample, baseName, fullPathToBeastExe,
-                                                    analysisDirectoryFullPath + subDir,
-                                                    overWriteExistingFiles, i,
-                                                    markerSet.getMarkerNames().length,
-                                                    proj.getLog());
-        configs.add(sampChrConfig);
-      }
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    int numMarkers = markerSet.getMarkers().size();
+    Set<Byte> chrs = Sets.newHashSet(proj.getMarkerSet().getChrMap().keySet());
+    chrs.remove((byte) 0); // skip chr 0
+    ArrayList<BeastConfig> configs = new ArrayList<>(chrs.size());
+    for (byte chr : chrs) {
+      String baseName = sample + "_chr" + chr;
+      String subDir = "chr" + chr + "/";
+      BeastConfig sampChrConfig = new BeastConfig(sample, baseName, fullPathToBeastExe,
+                                                  analysisDirectoryFullPath + subDir,
+                                                  overWriteExistingFiles, chr, numMarkers,
+                                                  proj.getLog());
+      configs.add(sampChrConfig);
     }
     return configs.toArray(new BeastConfig[configs.size()]);
-  }
-
-  private static boolean hasDataAt(int[][] indicesByChr, int index) {
-    return indicesByChr[index] != null && indicesByChr[index].length > 0;
   }
 
   private static class BeastSampleParserThread implements Callable<BeastConfig[]> {
@@ -318,22 +312,15 @@ public class CNVBeast {
     private final BeastConfig[] configs;
     private final String sampleToParse;
     private final GcModel gcModel;
-    private final int[][] indicesByChr;
-    private final String[] markerNames;
-    private final int[] positions;
     private final String callString;// for reporting progress only
 
     public BeastSampleParserThread(Project proj, BeastConfig[] configs, String sampleToParse,
-                                   GcModel gcModel, int[][] indicesByChr, String[] markerNames,
-                                   int[] positions, String callString) {
+                                   GcModel gcModel, String callString) {
       super();
       this.proj = proj;
       this.configs = configs;
       this.sampleToParse = sampleToParse;
       this.gcModel = gcModel;
-      this.indicesByChr = indicesByChr;
-      this.markerNames = markerNames;
-      this.positions = positions;
       this.callString = callString;
     }
 
@@ -368,12 +355,13 @@ public class CNVBeast {
             try {
               PrintWriter writer = Files.openAppropriateWriter(configs[i].getDataFile());
               writer.println(ArrayUtils.toStr(BEAST_DATA_HEADER));
-              int analysisChr = configs[i].getAnalysisChr();
-              for (int j = 0; j < indicesByChr[analysisChr].length; j++) {
-                writer.println(markerNames[indicesByChr[analysisChr][j]] + "\t"
-                               + indicesByChr[analysisChr][j] + "\t"
-                               + positions[indicesByChr[analysisChr][j]] + "\t"
-                               + lrrs[indicesByChr[analysisChr][j]]);
+              byte analysisChr = configs[i].getAnalysisChr();
+              MarkerDetailSet markerSet = proj.getMarkerSet();
+              Map<Marker, Integer> markerIndices = markerSet.getMarkerIndexMap();
+              for (Marker marker : markerSet.getChrMap().get(analysisChr)) {
+                int index = markerIndices.get(marker);
+                writer.println(Joiner.on('\t').join(marker.getName(), analysisChr,
+                                                    marker.getPosition(), lrrs[index]));
               }
               writer.close();
             } catch (Exception e) {
@@ -448,8 +436,8 @@ public class CNVBeast {
     private static final boolean DEFAULT_SORTED_FILE = true;
     private static final String[] OUTPUT_EXT = {".config", ".dat", ".summary.res", ".pred.res"};
 
-    private final int minGap, maxGap, numDelimBeforeLoc, numDelimBeforeLRR, blockSize, asciiDelim,
-        analysisChr;
+    private final int minGap, maxGap, numDelimBeforeLoc, numDelimBeforeLRR, blockSize, asciiDelim;
+    private final byte analysisChr;
     private final double minRatio, scoreExponent;
     private final boolean quantile, outputPredicted, overWriteExistingFiles, sortedFile;
 
@@ -485,7 +473,7 @@ public class CNVBeast {
                        int numDelimBeforeLRR, double minRatio, boolean sortedFile,
                        double scoreExponent, int asciiDelim, boolean quantileNormalize,
                        boolean outputPredicted, String baseName, String analysisDirectoryFullPath,
-                       String fullPathToBeastExe, boolean overWriteExistingFiles, int analysisChr,
+                       String fullPathToBeastExe, boolean overWriteExistingFiles, byte analysisChr,
                        String sample, Logger log) {
       super();
       this.minGap = minGap;
@@ -516,7 +504,7 @@ public class CNVBeast {
      */
     public BeastConfig(String sample, String baseName, String fullPathToBeastExe,
                        String analysisDirectoryFullPath, boolean overWriteExistingFiles,
-                       int analysisChr, int blockSize, Logger log) {
+                       byte analysisChr, int blockSize, Logger log) {
       this(DEFAULT_MIN_GAP, DEFAULT_MAX_GAP, blockSize, DEFAULT_NUM_DELIM_BEFORE_LOC,
            DEFAULT_NUM_DELIM_BEFORE_LRR, DEFAULT_MIN_RATIO, DEFAULT_SORTED_FILE,
            DEFAULT_SCORE_EXPONENT, DEFAULT_ASCII_DELIM, DEFAULT_QUANTILE, DEFAULT_OUTPUT_PREDRES,
@@ -573,7 +561,7 @@ public class CNVBeast {
       return Files.exists(summaryFile);
     }
 
-    public int getAnalysisChr() {
+    public byte getAnalysisChr() {
       return analysisChr;
     }
 

@@ -19,9 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NavigableSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -37,7 +38,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.gui.CompConfig;
@@ -61,6 +63,9 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.CNVariantHash;
 import org.genvisis.filesys.GeneTrack;
+import org.genvisis.filesys.Segment;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Michael Vieths
@@ -105,12 +110,11 @@ public class CompPlot extends JFrame implements ChrNavigator {
   CNVRectangles cnvRects;
 
   // From RegionNavigator
-  int[] location = new int[3];
-  MarkerSetInfo markerSet;
-  int[] positions;
-  String[] markerNames, allSamples, subSamples;
-  boolean[] dropped;
-  int[][] chrBoundaries;
+  private Segment location = new Segment((byte) 0, 0, 0);
+  private final MarkerDetailSet markerSet;
+  String[] allSamples;
+  String[] subSamples;
+  private final Set<Marker> dropped;
 
   ArrayList<CNVariantHash> hashes;
   private JMenu delRegionFileMenu;
@@ -126,29 +130,10 @@ public class CompPlot extends JFrame implements ChrNavigator {
     this.proj = proj;
     markerSet = this.proj.getMarkerSet();
     if (markerSet != null) {
-      positions = markerSet.getPositions();
-      markerNames = markerSet.getMarkerNames();
-      Hashtable<String, String> hash = proj.getFilteredHash();
-      byte[] chrs = markerSet.getChrs();
-      dropped = new boolean[markerNames.length];
-      chrBoundaries = new int[27][2];
-      for (int i = 0; i < chrBoundaries.length; i++) {
-        chrBoundaries[i][0] = chrBoundaries[i][1] = 0;
-      }
-      byte chr = 0;
-      for (int i = 0; i < markerNames.length; i++) {
-        dropped[i] = hash.containsKey(markerNames[i]);
-        if (chrs[i] > chr) {
-          if (chr != 0) {
-            chrBoundaries[chr][1] = i - 1;
-          }
-          chr = chrs[i];
-          chrBoundaries[chr][0] = i;
-        }
-      }
-      chrBoundaries[chr][1] = markerNames.length - 1;
-      chrBoundaries[0][0] = 0;
-      chrBoundaries[0][1] = markerNames.length - 1;
+      dropped = proj.getFilteredHash().keySet().stream().map(markerSet.getMarkerNameMap()::get)
+                    .filter(Predicates.notNull()).collect(ImmutableSet.toImmutableSet());
+    } else {
+      dropped = ImmutableSet.of();
     }
     allSamples = proj.getSamples();
     subSamples = ArrayUtils.subArray(proj.getSamples(),
@@ -291,7 +276,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
     JPanel viewers = new JPanel();
     viewers.setLayout(new BorderLayout());
 
-    chromosomeViewer = new ChromosomeViewer(location[0], location[1], location[2], track);
+    chromosomeViewer = new ChromosomeViewer(location, track);
 
     viewers.add(chromosomeViewer, BorderLayout.NORTH);
     chromosomeViewer.setPreferredSize(new Dimension(800, 45));
@@ -493,7 +478,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
     String[][] sampleRegions = new String[selectedCNVs.size()][];
     for (int i = 0; i < sampleRegions.length; i++) {
       CNVariant cnv = selectedCNVs.get(i);
-      String markerPosition = "chr" + location[0] + ":" + (cnv.getStart() - window) + "-"
+      String markerPosition = "chr" + location.getChr() + ":" + (cnv.getStart() - window) + "-"
                               + (cnv.getStop() + window);
 
       // Strip p or q from the end
@@ -852,13 +837,13 @@ public class CompPlot extends JFrame implements ChrNavigator {
     return true;
   }
 
-  public void loadCNVs(int[] location) {
+  public void loadCNVs(Segment location) {
     // long startTime = Calendar.getInstance().getTimeInMillis();
     cnvRects = new CNVRectangles(hashes, allFiles, filterFiles, location, probes, minSize,
                                  qualityScore, proj.getSampleData(false),
                                  showExcludes ? allSamples : subSamples);
     cnvRects.setRectangleHeight(rectangleHeight);
-    compPanel.setWindow(location[1], location[2]);
+    compPanel.setWindow(location.getStart(), location.getStop());
     cnvRects.setScalingFactor(compPanel.getScalingFactor());
     compPanel.setCNVRectangles(cnvRects);
 
@@ -940,26 +925,22 @@ public class CompPlot extends JFrame implements ChrNavigator {
   }
 
   public void setRegion(Region region) {
-    location = Positions.parseUCSClocation(region.getRegion());
-    byte chr;
-    int start, stop;
+    location = new Segment(region.getRegion());
 
-    chr = (byte) location[0];
-    if (chr == -1) {
+    if (location.getChr() == -1) {
       return;
     }
-    start = location[1];
-    stop = location[2];
-    if (start == -1 || start < 0) {
-      start = 1;
-      location[1] = start;
+    if (location.getStart() < 0) {
+      location = new Segment(location.getChr(), 1, location.getStop());
     }
-    if (stop == -1 || stop > positions[chrBoundaries[chr][1]]) {
-      stop = positions[chrBoundaries[chr][1]];
-      location[2] = stop;
+
+    NavigableSet<Marker> chrMarkers = markerSet.getChrMap().get(location.getChr());
+    int lastPosition = chrMarkers.isEmpty() ? 0 : chrMarkers.last().getPosition();
+    if (location.getStop() == -1 || location.getStop() > lastPosition) {
+      location = new Segment(location.getChr(), location.getStart(), lastPosition);
     }
-    regionNavigator.setChrFieldText(chr, start, stop);
-    chromosomeViewer.updateView(chr, start, stop);
+    regionNavigator.setChrFieldText(location);
+    chromosomeViewer.updateView(location);
     loadCNVs(location);
     chromosomeViewer.repaint();
   }
@@ -968,15 +949,15 @@ public class CompPlot extends JFrame implements ChrNavigator {
     return new Region(regionNavigator.getChrText());
   }
 
-  public void setCPLocation(int[] location) {
+  public void setCPLocation(Segment location) {
     this.location = location;
-    regionNavigator.setChrFieldText((byte) location[0], location[1], location[2]);
-    chromosomeViewer.updateView(location[0], location[1], location[2]);
+    regionNavigator.setChrFieldText(location);
+    chromosomeViewer.updateView(location);
     loadCNVs(location);
     chromosomeViewer.repaint();
   }
 
-  public int[] getCPLocation() {
+  public Segment getCPLocation() {
     return location;
   }
 

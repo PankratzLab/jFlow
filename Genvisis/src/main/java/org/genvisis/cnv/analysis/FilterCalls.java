@@ -16,7 +16,10 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -38,6 +41,11 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
 
 public class FilterCalls {
@@ -1429,52 +1437,6 @@ public class FilterCalls {
 
   }
 
-  public static CNVariant[] breakCentromereCNVs(CNVariant[] cnvs,
-                                                String markerSetFilenameToBreakUpCentromeres) {
-    CNVFilter filter = new CNVFilter(null);
-    filter.setBreakupCentromeres(true);
-    filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
-    filter.computeCentromereMidPoints();
-
-    ArrayList<CNVariant> newCNVList = new ArrayList<>();
-    for (CNVariant cnv : cnvs) {
-      CNVFilterPass fp = filter.getCNVFilterPass(cnv);
-      CNVariant[] broken = filter.breakUpCentromere(fp, cnv);
-      for (CNVariant newcnv : broken) {
-        newCNVList.add(newcnv);
-      }
-    }
-
-    return newCNVList.toArray(new CNVariant[] {});
-  }
-
-  public static void breakCentromereCNVs(String dir, String in, String out,
-                                         String markerSetFilenameToBreakUpCentromeres) {
-    CNVFilter filter = new CNVFilter(null);
-    filter.setBreakupCentromeres(true);
-    filter.setCentromereBoundariesFromFile(markerSetFilenameToBreakUpCentromeres);
-    filter.computeCentromereMidPoints();
-
-    CNVariant[] centromeric = CNVariant.loadPlinkFile(dir + in);
-
-    try {
-      PrintWriter writer = Files.openAppropriateWriter(dir + out);
-      writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
-
-      for (CNVariant cnv : centromeric) {
-        CNVFilterPass fp = filter.getCNVFilterPass(cnv);
-        CNVariant[] broken = filter.breakUpCentromere(fp, cnv);
-        for (CNVariant newcnv : broken) {
-          writer.println(newcnv.toPlinkFormat());
-        }
-      }
-      writer.flush();
-      writer.close();
-    } catch (IOException e) {
-      System.err.println("Error writing file \"" + dir + out + "\" - " + e.getMessage());
-    }
-  }
-
   private static void configureFilterBasics(CNVFilter filter, String filenameOfProblematicRegions,
                                             int commonInOutOrIgnore, String individualsToKeepFile,
                                             int[][] pos, int[][] bnds, boolean makeUCSCtrack,
@@ -1832,119 +1794,60 @@ public class FilterCalls {
     }
   }
 
-  /**
-   * @param cnvsAsPositions get the start and stop positions from the {@link CNVariant}s themselves
-   *          so that a {@link MarkerSet} is not needed
-   */
-  public static CNVariant[] filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj, CNVariant[] cnvs,
-                                                                     int totalRequired,
-                                                                     int delRequired,
-                                                                     int dupRequired,
-                                                                     int totalLimitedTo,
-                                                                     int delLimitedTo,
-                                                                     int dupLimitedTo,
-                                                                     double proportionOfProbesThatNeedToPassForFinalInclusion,
-                                                                     boolean cnvsAsPositions) {
-    MarkerSetInfo markerSet;
-    int[][] positions;
-    int[][][] counts;
-    int firstSNP, lastSNP, indel;
-    ;
-    int index;
-    boolean[][] acceptableSNPs;
-    boolean accepted;
-    int dels, dups;
-    int countAcceptable;
-    long time;
+  public static List<CNVariant> filterBasedOnNumberOfCNVsAtLocusInMemory(Project proj,
+                                                                         CNVariant[] cnvs,
+                                                                         int totalRequired,
+                                                                         int delRequired,
+                                                                         int dupRequired,
+                                                                         int totalLimitedTo,
+                                                                         int delLimitedTo,
+                                                                         int dupLimitedTo,
+                                                                         double proportionOfProbesThatNeedToPassForFinalInclusion) {
 
-    time = new Date().getTime();
+    long time = new Date().getTime();
 
-    markerSet = proj.getMarkerSet();
-    if (cnvsAsPositions) {
-      LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(cnvs, true, proj.getLog()) {
-
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-      };
-      positions = tmp.getStartsAndStopsByChromosome();
-    } else {
-      positions = markerSet.getPositionsByChr();
-    }
-    counts = new int[positions.length][][];
-    acceptableSNPs = new boolean[positions.length][];
-    for (int i = 0; i < positions.length; i++) {
-      counts[i] = new int[positions[i].length][2];
-      acceptableSNPs[i] = new boolean[positions[i].length];
-    }
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Multiset<Marker> delCounts = HashMultiset.create();
+    Multiset<Marker> dupCounts = HashMultiset.create();
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
     for (int i = 0; i < cnvs.length; i++) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
-      if (firstSNP == -1 || lastSNP == -1) {
-        System.err.println("Error - could not locate start or stop position for "
-                           + cnvs[i].getUCSClocation());
+      Iterable<Marker> markersInCNV = markerSet.viewMarkersInSeg(cnvs[i]);
+      if (cnvs[i].getCN() < 2) {
+        Iterables.addAll(delCounts, markersInCNV);
       } else {
-        indel = cnvs[i].getCN() < 2 ? 0 : 1;
-        for (int j = firstSNP; j <= lastSNP; j++) {
-          counts[cnvs[i].getChr()][j][indel]++;
-        }
+        Iterables.addAll(dupCounts, markersInCNV);
       }
     }
-
-    for (int i = 0; i < positions.length; i++) {
-      for (int j = 0; j < positions[i].length; j++) {
-        dels = counts[i][j][0];
-        dups = counts[i][j][1];
-        acceptableSNPs[i][j] = dels + dups >= totalRequired && dels >= delRequired
-                               && dups >= dupRequired && dels + dups <= totalLimitedTo
-                               && dels <= delLimitedTo && dups <= dupLimitedTo;
+    Set<Marker> acceptables = Sets.newHashSet();
+    for (Marker marker : markerSet.getMarkers()) {
+      int dels = delCounts.count(marker);
+      int dups = dupCounts.count(marker);
+      if (dels + dups >= totalRequired && dels >= delRequired && dups >= dupRequired
+          && dels + dups <= totalLimitedTo && dels <= delLimitedTo && dups <= dupLimitedTo) {
+        acceptables.add(marker);
       }
     }
-
-    ArrayList<CNVariant> acceptable = new ArrayList<>();
 
     System.out.println(ext.getTime() + "\tFiltering CNVs...");
+    ImmutableList.Builder<CNVariant> filteredCNVs = ImmutableList.builder();
     for (CNVariant cnv : cnvs) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
-      indel = cnv.getCN() < 2 ? 0 : 1;
-
-      if (firstSNP == -1 || lastSNP == -1) {
-        accepted = false;
+      final boolean accepted;
+      Set<Marker> markersInCNV = markerSet.getMarkersInSeg(cnv);
+      if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
+        int countAcceptable = Sets.intersection(acceptables, markersInCNV).size();
+        accepted = countAcceptable
+                   / (double) (markersInCNV.size()) > proportionOfProbesThatNeedToPassForFinalInclusion;
       } else {
-        if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-          countAcceptable = 0;
-          for (int j = firstSNP; j <= lastSNP; j++) {
-            if (acceptableSNPs[cnv.getChr()][j]) {
-              countAcceptable++;
-            }
-          }
-          accepted = (double) countAcceptable
-                     / (double) (lastSNP - firstSNP
-                                 + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
-        } else {
-          index = firstSNP;
-          accepted = false;
-          while (!accepted && index <= lastSNP) {
-            if (acceptableSNPs[cnv.getChr()][index]) {
-              accepted = true;
-            }
-            index++;
-          }
-        }
+        accepted = acceptables.containsAll(markersInCNV);
       }
-
       if (accepted) {
-        acceptable.add(cnv);
+        filteredCNVs.add(cnv);
       }
     }
 
-    System.out.println("Finished in " + ext.getTimeElapsed(time));
-    return acceptable.toArray(new CNVariant[acceptable.size()]);
+    System.out.println("Finished filtering CNVs in " + ext.getTimeElapsed(time));
+    return filteredCNVs.build();
   }
 
   public static void filterBasedOnNumberOfCNVsAtLocus(Project proj, String filein, String fileout,
@@ -1952,103 +1855,32 @@ public class FilterCalls {
                                                       int dupRequired, int totalLimitedTo,
                                                       int delLimitedTo, int dupLimitedTo,
                                                       double proportionOfProbesThatNeedToPassForFinalInclusion) {
-    PrintWriter writer;
-    MarkerSetInfo markerSet;
-    int[][] positions;
-    int[][][] counts;
-    int firstSNP, lastSNP, indel;
-    CNVariant[] cnvs;
-    int index;
-    boolean[][] acceptableSNPs;
-    boolean accepted;
-    int dels, dups;
-    int countAcceptable;
-    long time;
 
-    time = new Date().getTime();
-
-    markerSet = proj.getMarkerSet();
-    positions = markerSet.getPositionsByChr();
-    counts = new int[positions.length][][];
-    acceptableSNPs = new boolean[positions.length][];
-    for (int i = 0; i < positions.length; i++) {
-      counts[i] = new int[positions[i].length][2];
-      acceptableSNPs[i] = new boolean[positions[i].length];
-    }
+    long time = new Date().getTime();
 
     System.out.println(ext.getTime() + "\tLoading plink file...");
-    cnvs = CNVariant.loadPlinkFile(filein);
+    List<CNVariant> filteredCNVs = filterBasedOnNumberOfCNVsAtLocusInMemory(proj,
+                                                                            CNVariant.loadPlinkFile(filein),
+                                                                            totalRequired,
+                                                                            delRequired,
+                                                                            dupRequired,
+                                                                            totalLimitedTo,
+                                                                            delLimitedTo,
+                                                                            dupLimitedTo,
+                                                                            proportionOfProbesThatNeedToPassForFinalInclusion);
 
-    System.out.println(ext.getTime() + "\tDetermining acceptability...");
-    for (int i = 0; i < cnvs.length; i++) {
-      firstSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStart(), true);
-      lastSNP = ArrayUtils.binarySearch(positions[cnvs[i].getChr()], cnvs[i].getStop(), true);
-      if (firstSNP == -1 || lastSNP == -1) {
-        System.err.println("Error - could not locate start or stop position for "
-                           + cnvs[i].getUCSClocation());
-      } else {
-        indel = cnvs[i].getCN() < 2 ? 0 : 1;
-        for (int j = firstSNP; j <= lastSNP; j++) {
-          counts[cnvs[i].getChr()][j][indel]++;
-        }
-      }
-    }
-
-    for (int i = 0; i < positions.length; i++) {
-      for (int j = 0; j < positions[i].length; j++) {
-        dels = counts[i][j][0];
-        dups = counts[i][j][1];
-        acceptableSNPs[i][j] = dels + dups >= totalRequired && dels >= delRequired
-                               && dups >= dupRequired && dels + dups <= totalLimitedTo
-                               && dels <= delLimitedTo && dups <= dupLimitedTo;
-      }
-    }
-
-    System.out.println(ext.getTime() + "\tFiltering CNVs...");
-    try {
-      writer = Files.openAppropriateWriter(fileout);
+    System.out.println(ext.getTime() + "\tWriting results...");
+    try (PrintWriter writer = Files.openAppropriateWriter(fileout)) {
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER));
-      for (CNVariant cnv : cnvs) {
-        firstSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStart(), true);
-        lastSNP = ArrayUtils.binarySearch(positions[cnv.getChr()], cnv.getStop(), true);
-        indel = cnv.getCN() < 2 ? 0 : 1;
-
-        if (firstSNP == -1 || lastSNP == -1) {
-          accepted = false;
-        } else {
-          if (proportionOfProbesThatNeedToPassForFinalInclusion < 1.0) {
-            countAcceptable = 0;
-            for (int j = firstSNP; j <= lastSNP; j++) {
-              if (acceptableSNPs[cnv.getChr()][j]) {
-                countAcceptable++;
-              }
-            }
-            accepted = (double) countAcceptable
-                       / (double) (lastSNP - firstSNP
-                                   + 1) > proportionOfProbesThatNeedToPassForFinalInclusion;
-          } else {
-            index = firstSNP;
-            accepted = false;
-            while (!accepted && index <= lastSNP) {
-              if (acceptableSNPs[cnv.getChr()][index]) {
-                accepted = true;
-              }
-              index++;
-            }
-          }
-        }
-
-        if (accepted) {
-          writer.println(cnv.toPlinkFormat());
-        }
+      for (CNVariant cnv : filteredCNVs) {
+        writer.println(cnv.toPlinkFormat());
       }
-      writer.close();
-    } catch (Exception e) {
+    } catch (IOException e) {
       System.err.println("Error writing to " + fileout);
       e.printStackTrace();
     }
 
-    System.out.println("Finished in " + ext.getTimeElapsed(time));
+    System.out.println("Finished filtering and writing CNVs in " + ext.getTimeElapsed(time));
   }
 
   public static boolean inOneOfTheseRegions(CNVariant cnv, Segment[] regions) {

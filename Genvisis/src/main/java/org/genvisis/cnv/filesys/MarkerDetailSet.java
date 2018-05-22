@@ -6,11 +6,11 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
 import org.genvisis.CLI;
@@ -33,16 +33,12 @@ import org.genvisis.seq.manage.StrandOps;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.google.common.collect.SortedSetMultimap;
-import com.google.common.collect.TreeMultimap;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
@@ -174,8 +170,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   private final long markerSetFingerprint;
 
   private transient Reference<Map<String, Marker>> markerNameMapRef = null;
-  private transient Reference<SortedSetMultimap<Byte, Marker>> chrMapRef = null;
-  private transient Reference<SetMultimap<GenomicPosition, Marker>> genomicPositionMapRef = null;
+  private transient Reference<NavigableMap<Byte, NavigableSet<Marker>>> chrMapRef = null;
+  private transient Reference<NavigableMap<GenomicPosition, NavigableSet<Marker>>> genomicPositionMapRef = null;
   private transient Reference<Map<Marker, Integer>> markerIndexMapRef = null;
   private transient Reference<String[]> markerNameArrayRef = null;
 
@@ -277,21 +273,33 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     return markerNameMapBuilder.build();
   }
 
-  private SortedSetMultimap<Byte, Marker> generateChrMap() {
-    TreeMultimap<Byte, Marker> chrTreeMultimap = TreeMultimap.create();
+  private NavigableMap<Byte, NavigableSet<Marker>> generateChrMap() {
+    Map<Byte, ImmutableSortedSet.Builder<Marker>> chrBuilders = Maps.newHashMap();
     for (Marker marker : markers) {
-      chrTreeMultimap.put(marker.getChr(), marker);
+      Byte chr = marker.getChr();
+      if (!chrBuilders.containsKey(chr)) {
+        chrBuilders.put(chr, ImmutableSortedSet.naturalOrder());
+      }
+      chrBuilders.get(chr).add(marker);
     }
-    return Multimaps.unmodifiableSortedSetMultimap(chrTreeMultimap);
+    ImmutableSortedMap.Builder<Byte, NavigableSet<Marker>> chrMapBuilder = ImmutableSortedMap.naturalOrder();
+    chrBuilders.forEach((k, v) -> chrMapBuilder.put(k, v.build()));
+    return chrMapBuilder.build();
   }
 
-  private SetMultimap<GenomicPosition, Marker> generateGenomicPositionMap() {
-    ImmutableSetMultimap.Builder<GenomicPosition, Marker> genomicPositionMapBuilder = ImmutableSetMultimap.builder();
+  private NavigableMap<GenomicPosition, NavigableSet<Marker>> generateGenomicPositionMap() {
+    Map<GenomicPosition, ImmutableSortedSet.Builder<Marker>> gpBuilders = Maps.newHashMapWithExpectedSize(markers.size());
     for (Marker marker : markers) {
-      genomicPositionMapBuilder.put(marker.getGenomicPosition(), marker);
+      GenomicPosition pos = marker.getGenomicPosition();
+      if (!gpBuilders.containsKey(pos)) {
+        gpBuilders.put(pos, ImmutableSortedSet.naturalOrder());
+      }
+      gpBuilders.get(pos).add(marker);
     }
-    genomicPositionMapBuilder.orderKeysBy(Ordering.natural());
-    return genomicPositionMapBuilder.build();
+
+    ImmutableSortedMap.Builder<GenomicPosition, NavigableSet<Marker>> positionMapBuilder = ImmutableSortedMap.naturalOrder();
+    gpBuilders.forEach((k, v) -> positionMapBuilder.put(k, v.build()));
+    return positionMapBuilder.build();
   }
 
   private Map<Marker, Integer> generateMarkerIndexMap() {
@@ -597,11 +605,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
-   * @return an unmodifiable {@link SortedSetMultimap} from chromosome (sorted) to {@link Marker}s
-   *         (sorted by position)
+   * @return an unmodifiable {@link NavigableMap} from chromosome to a {@link NavigableSet} of
+   *         {@link Marker}s on that chromosome
    */
-  public SortedSetMultimap<Byte, Marker> getChrMap() {
-    SortedSetMultimap<Byte, Marker> chrMap = chrMapRef == null ? null : chrMapRef.get();
+  public NavigableMap<Byte, NavigableSet<Marker>> getChrMap() {
+    NavigableMap<Byte, NavigableSet<Marker>> chrMap = chrMapRef == null ? null : chrMapRef.get();
     if (chrMap == null) {
       chrMap = generateChrMap();
       chrMapRef = new SoftReference<>(chrMap);
@@ -610,12 +618,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
-   * @return a {@link SetMultimap} from {@link GenomicPosition} to {@link Marker}s (sorted by
-   *         GenomicPosition)
+   * @return an unmodifiable {@link NavigableMap} from {@link GenomicPosition} to a
+   *         {@link NavigableSet} of {@link Marker}s
    */
-  public SetMultimap<GenomicPosition, Marker> getGenomicPositionMap() {
-    SetMultimap<GenomicPosition, Marker> genomicPositionMap = genomicPositionMapRef == null ? null
-                                                                                            : genomicPositionMapRef.get();
+  public NavigableMap<GenomicPosition, NavigableSet<Marker>> getGenomicPositionMap() {
+    NavigableMap<GenomicPosition, NavigableSet<Marker>> genomicPositionMap = genomicPositionMapRef == null ? null
+                                                                                                           : genomicPositionMapRef.get();
     if (genomicPositionMap == null) {
       genomicPositionMap = generateGenomicPositionMap();
       genomicPositionMapRef = new SoftReference<>(genomicPositionMap);
@@ -623,8 +631,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     return genomicPositionMap;
   }
 
-  public Collection<Marker> getMarkersSortedByChrPos() {
-    return getGenomicPositionMap().values();
+  public Iterable<Marker> getMarkersSortedByChrPos() {
+    return Iterables.concat(getGenomicPositionMap().values());
   }
 
   public Map<Marker, Integer> getMarkerIndexMap() {
@@ -635,6 +643,13 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       markerIndexMapRef = new SoftReference<>(markerIndexMap);
     }
     return markerIndexMap;
+  }
+
+  /**
+   * @return an {@link Iterable} view of all autosomal markers
+   */
+  public Iterable<Marker> getAutosomalMarkers() {
+    return Iterables.concat(getChrMap().subMap((byte) 1, (byte) 23).values());
   }
 
   @Override
@@ -654,23 +669,28 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     }
   }
 
-  public LinkedHashSet<Marker> getMarkersInSeg(Segment seg) {
-    SortedSet<Marker> chrMarkers = getChrMap().get(seg.getChr());
-    Iterator<Marker> markerIter = chrMarkers.iterator();
-    Marker curMarker = null;
-    while (markerIter.hasNext()) {
-      curMarker = markerIter.next();
-      if (curMarker.getPosition() >= seg.getStart()) break;
-    }
-    LinkedHashSet<Marker> segMarkers = Sets.newLinkedHashSet();
-    if (curMarker != null) {
-      while (curMarker.getPosition() <= seg.getStop()) {
-        segMarkers.add(curMarker);
-        if (markerIter.hasNext()) curMarker = markerIter.next();
-        else break;
-      }
-    }
-    return segMarkers;
+  /**
+   * Unless a new collection is explicitly needed, use {@link #viewMarkersInSeg(Segment)} for a view
+   * of {@link Marker}s in seg
+   * 
+   * @param seg Segment
+   * @return {@link ImmutableSortedSet} of Markers in seg
+   */
+  public ImmutableSortedSet<Marker> getMarkersInSeg(Segment seg) {
+    return ImmutableSortedSet.copyOf(viewMarkersInSeg(seg));
+  }
+
+  /**
+   * @param seg Segment to view
+   * @return an Iterable that iterates over the {@link Marker}s in seg
+   */
+  public Iterable<Marker> viewMarkersInSeg(Segment seg) {
+    NavigableMap<GenomicPosition, NavigableSet<Marker>> positionMap = getGenomicPositionMap();
+    return Iterables.concat(positionMap.subMap(new GenomicPosition(seg.getChr(), seg.getStart()),
+                                               true,
+                                               new GenomicPosition(seg.getChr(), seg.getStop()),
+                                               true)
+                                       .values());
   }
 
   @Override
@@ -704,10 +724,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-    Collection<Marker> segMarkers = getMarkersInSeg(seg);
+    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
     Iterator<Marker> segMarkersIter = segMarkers.iterator();
     Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
-    int[] segMarkerIndices = new int[segMarkers.size()];
+    int[] segMarkerIndices = new int[Iterables.size(segMarkers)];
     for (int i = 0; i < segMarkerIndices.length; i++) {
       segMarkerIndices[i] = markerIndexMap.get(segMarkersIter.next());
     }
@@ -717,9 +737,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
-    Collection<Marker> segMarkers = getMarkersInSeg(seg);
+    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
     Iterator<Marker> segMarkersIter = segMarkers.iterator();
-    String[] segMarkerNames = new String[segMarkers.size()];
+    String[] segMarkerNames = new String[Iterables.size(segMarkers)];
     for (int i = 0; i < segMarkerNames.length; i++) {
       segMarkerNames[i] = segMarkersIter.next().getName();
     }
@@ -789,7 +809,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public int[][] getPositionsByChr() {
-    SortedSetMultimap<Byte, Marker> chrMap = getChrMap();
+    NavigableMap<Byte, NavigableSet<Marker>> chrMap = getChrMap();
     int[][] positionsByChr = new int[MarkerSet.CHR_INDICES][];
 
     for (byte chr : chrMap.keySet()) {
@@ -809,7 +829,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public int[][] getIndicesByChr() {
-    SortedSetMultimap<Byte, Marker> chrMap = getChrMap();
+    NavigableMap<Byte, NavigableSet<Marker>> chrMap = getChrMap();
     Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
     int[][] indicesByChr = new int[MarkerSet.CHR_INDICES][0];
 

@@ -195,13 +195,11 @@ public class ABLookup {
     char[] alleles;
     double travD;
     int order;
-    MarkerSetInfo markerSet;
     Logger log;
 
     log = proj.getLog();
     samples = proj.getSamples();
-    markerSet = proj.getMarkerSet();
-    markerNames = markerSet.getMarkerNames();
+    markerNames = proj.getMarkerSet().getMarkerNames();
 
     genotypesSeen = new String[markerNames.length][3];
     meanThetasForGenotypes = new double[markerNames.length][3];
@@ -414,8 +412,7 @@ public class ABLookup {
 
     log = proj.getLog();
     samples = proj.getSamples();
-    markerSet = proj.getMarkerSet();
-    markerNames = markerSet.getMarkerNames();
+    markerNames = proj.getMarkerSet().getMarkerNames();
 
     genotypesSeen = new String[markerNames.length][3];
     countsForGenotypes = new int[markerNames.length][3];

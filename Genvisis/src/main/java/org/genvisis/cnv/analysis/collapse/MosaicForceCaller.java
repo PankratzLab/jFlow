@@ -5,25 +5,28 @@ package org.genvisis.cnv.analysis.collapse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Force a mosaic call for a region
  */
-class MosaicForceCaller extends ForcedCaller<MosaicRegion> {
+class MosaicForceCaller extends MarkerBasedForcedCaller<MosaicRegion> {
 
-  private final double[] bafs;
+  private final Map<Marker, Double> bafs;
   private LocusSet<Segment> distributionalExcludes;
 
-  MosaicForceCaller(Project proj, String sample, int[][] indicesByChr, double[] bafs,
-                    boolean[] use) {
-    super(proj, sample, indicesByChr, use);
+  MosaicForceCaller(Project proj, String sample, Map<Marker, Double> bafs, Set<Marker> use) {
+    super(proj, sample, use);
     this.bafs = bafs;
     this.distributionalExcludes = null;
   }
@@ -37,25 +40,24 @@ class MosaicForceCaller extends ForcedCaller<MosaicRegion> {
     MosaicBuilder builderMosaic = new MosaicBuilder();
     builderMosaic.verbose(true);
     builderMosaic.use(use);
-    boolean[] cns = proj.getCNMarkers();
-    boolean[] tmp = ArrayUtils.booleanNegative(cns);
+    List<Marker> allMarkers = proj.getMarkerSet().getMarkers();
+    Set<Marker> nonCNMarkers = allMarkers.stream()
+                                         .filter(m -> !proj.ARRAY_TYPE.getValue()
+                                                                      .isCNOnly(m.getName()))
+                                         .collect(ImmutableSet.toImmutableSet());
     proj.getLog()
-        .reportTimeWarning("Starting with "
-                           + (use == null ? 0
-                                          : ArrayUtils.booleanArraySum(ArrayUtils.booleanNegative(use)))
-                           + " pre-defined markers to remove of " + cns.length + " markers total");
+        .reportTimeWarning("Starting with " + (use == null ? 0 : allMarkers.size() - use.size())
+                           + " pre-defined markers to remove of " + nonCNMarkers.size()
+                           + " markers total");
 
-    for (int i = 0; i < tmp.length; i++) {
-      tmp[i] = tmp[i] && (use == null || use[i]);
-    }
-    builderMosaic.use(tmp);
+    Set<Marker> nonCNUseMarkers = use == null ? nonCNMarkers : Sets.intersection(use, nonCNMarkers);
+    builderMosaic.use(nonCNUseMarkers);
     proj.getLog()
-        .reportTimeWarning("Removed " + ArrayUtils.booleanArraySum(cns)
-                           + " copy number only markers, leaving " + ArrayUtils.booleanArraySum(tmp)
+        .reportTimeWarning("Removed " + (allMarkers.size() - nonCNMarkers.size())
+                           + " copy number only markers, leaving " + nonCNUseMarkers.size()
                            + " markers for analysis");
 
-    builderMosaic.indicesByChr(indicesByChr);
-    MosaicismDetect md = builderMosaic.build(proj, sample, proj.getMarkerSet(), bafs);
+    MosaicismDetect md = builderMosaic.build(proj, sample, bafs);
     List<MosaicRegion> regions = new ArrayList<>();
     for (V v : set.getLoci()) {
       regions.add(md.callMosaic(v, true).getLoci()[0]);

@@ -22,9 +22,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
   public static final int WIDTH_BUFFER = 25;
 
-  private int chromosome = 1;
-  private int startPosition = 0;
-  private int stopPosition = 0;
+  private Segment location;
   private GeneTrack track = null; // Represents where the genes are
   float scalingFactor;
   private final ArrayList<GeneRectangle> geneRects;
@@ -34,10 +32,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
   private final int geneNameRowStart = (height * 2) + 2;
   private final int rulerRowStart = geneNameRowStart + 2;
 
-  public ChromosomeViewer(int chr, int start, int stop, GeneTrack gt) {
-    chromosome = chr;
-    startPosition = start;
-    stopPosition = stop;
+  public ChromosomeViewer(Segment segment, GeneTrack gt) {
+    this.location = segment;
     track = gt;
     geneRects = new ArrayList<>();
     oldGenes = new GeneData[0];
@@ -54,12 +50,10 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
    * @param start
    * @param stop
    */
-  public void updateView(int chr, int start, int stop) {
-    chromosome = chr;
-    startPosition = start;
-    stopPosition = stop;
+  public void updateView(Segment segment) {
+    location = segment;
 
-    int window = stopPosition - startPosition;
+    int window = location.getLength();
     scalingFactor = (float) getWidth() / window;
 
     repaint();
@@ -80,7 +74,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 
     try {
       if (track != null) {
-        genes = track.getBetween(chromosome, startPosition, stopPosition, 30);
+        genes = track.getBetween(location, 30);
         if (!Arrays.equals(genes, oldGenes)) {
           // We've changed the list of genes, so update the rectangles list as we create them
           geneRects.clear();
@@ -137,12 +131,12 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
         g.setFont(new Font("Arial", 0, 12));
         int numTicks = 10;
         int tickBottom = rulerRowStart + height;
-        int tickScale = (stopPosition - startPosition) / numTicks;
+        int tickScale = location.getLength() / numTicks;
 
-        g.fillRect(getX(startPosition), rulerRowStart, getWidth(), 2);
+        g.fillRect(getX(location.getStart()), rulerRowStart, getWidth(), 2);
 
         for (int i = 0; i <= numTicks; i++) {
-          int tickPos = startPosition + (i * tickScale);
+          int tickPos = location.getStart() + (i * tickScale);
 
           int posWidth = 0;
           switch (i) {
@@ -163,7 +157,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
               // ticks
               g.fillRect(getX(tickPos) - 2, rulerRowStart, 2, height);
               posWidth = g.getFontMetrics(g.getFont()).stringWidth(Integer.toString(tickPos));
-              g.drawString(Integer.toString(tickPos), getX(stopPosition) - posWidth,
+              g.drawString(Integer.toString(tickPos), getX(location.getStop()) - posWidth,
                            tickBottom + height);
               break;
             default:
@@ -184,7 +178,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
    * @return
    */
   public int getX(int pos) {
-    return (int) ((pos - startPosition) * scalingFactor);
+    return (int) ((pos - location.getStart()) * scalingFactor);
   }
 
   /**
@@ -194,7 +188,7 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
    * @return
    */
   public int getPos(int x) {
-    return (int) (x / scalingFactor) + startPosition;
+    return (int) (x / scalingFactor) + location.getStart();
   }
 
   @Override
