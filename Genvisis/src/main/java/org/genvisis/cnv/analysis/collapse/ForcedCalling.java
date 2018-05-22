@@ -4,9 +4,9 @@
 package org.genvisis.cnv.analysis.collapse;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.common.Logger;
@@ -42,7 +42,7 @@ interface ForcedCalling<T extends Segment> {
     List<int[]> indicesInProjectToCall = new ArrayList<>();
     Map<Marker, Integer> map = markerDetailSet.getMarkerIndexMap();
     for (E t : regions.getLoci()) {
-      LinkedHashSet<Marker> markers = markerDetailSet.getMarkersInSeg(t);
+      Set<Marker> markers = markerDetailSet.getMarkersInSeg(t);
       List<Integer> useIndices = new ArrayList<>();
 
       for (Marker marker : markers) {

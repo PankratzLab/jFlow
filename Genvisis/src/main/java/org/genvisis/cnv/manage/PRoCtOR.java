@@ -10,6 +10,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.genvisis.cnv.analysis.PennCNVPrep;
 import org.genvisis.cnv.analysis.pca.PCA;
@@ -36,7 +38,6 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.ext;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.SortedSetMultimap;
 
 // PRincipal COmponents Residuals - PR [o] C[t]O R
 public class PRoCtOR {
@@ -143,7 +144,7 @@ public class PRoCtOR {
       mkrInds = proj.getMarkerIndices();
       numInd = proj.getSamples().length;
       fingerprint = MarkerSet.fingerprintForMarkers(proj);
-      SortedSetMultimap<Byte, Marker> chrMap = proj.getMarkerSet().getChrMap();
+      NavigableMap<Byte, NavigableSet<Marker>> chrMap = proj.getMarkerSet().getChrMap();
       int numMarkers = 2500;
       for (Byte b : chrMap.keySet()) {
         List<Marker> mkrs = ImmutableList.copyOf(chrMap.get(b));

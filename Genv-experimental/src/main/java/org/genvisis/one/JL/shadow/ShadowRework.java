@@ -8,6 +8,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
@@ -28,7 +30,6 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.SortedSetMultimap;
 
 /**
  * Draft of a possibly a more friendly,less temporary version of shadowing Needs a few magic methods
@@ -64,7 +65,7 @@ public class ShadowRework {
       mkrInds = proj.getMarkerIndices();
       numInd = proj.getSamples().length;
       fingerprint = MarkerSet.fingerprintForMarkers(proj);
-      SortedSetMultimap<Byte, Marker> chrMap = proj.getMarkerSet().getChrMap();
+      NavigableMap<Byte, NavigableSet<Marker>> chrMap = proj.getMarkerSet().getChrMap();
       int numMarkers = 2500;
       for (Byte b : chrMap.keySet()) {
         List<Marker> mkrs = ImmutableList.copyOf(chrMap.get(b));

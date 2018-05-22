@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NavigableSet;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
@@ -66,7 +66,6 @@ import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.Segment;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.SortedSetMultimap;
 
 /**
  * @author Michael Vieths
@@ -935,8 +934,7 @@ public class CompPlot extends JFrame implements ChrNavigator {
       location = new Segment(location.getChr(), 1, location.getStop());
     }
 
-    SortedSetMultimap<Byte, Marker> chrMap = markerSet.getChrMap();
-    SortedSet<Marker> chrMarkers = chrMap.get(location.getChr());
+    NavigableSet<Marker> chrMarkers = markerSet.getChrMap().get(location.getChr());
     int lastPosition = chrMarkers.isEmpty() ? 0 : chrMarkers.last().getPosition();
     if (location.getStop() == -1 || location.getStop() > lastPosition) {
       location = new Segment(location.getChr(), location.getStart(), lastPosition);
