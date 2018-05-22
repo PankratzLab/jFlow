@@ -9,6 +9,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Class used to add callables to a thread pool and retrieve in order
@@ -24,6 +26,8 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
   private final int qBuffer;
   private final Thread trainLoader;
   private final Logger log;
+  private final AtomicBoolean producerHasNext;
+  private final ReentrantLock lock;
 
   /**
    * @param producer dishes up {@link Callable}s to run on the thread pool
@@ -41,6 +45,8 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
     this.producer = producer;
     this.log = log;
     this.trainLoader = new Thread(this::loadTrain);
+    producerHasNext = new AtomicBoolean(producer.hasNext());
+    lock = new ReentrantLock(true);
 
     start();
   }
@@ -60,11 +66,25 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
 
   private void loadTrain() {
     while (producer.hasNext()) {
-      if (Thread.interrupted()) return;
-      try {
-        bq.put(executor.submit(producer.next()));
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+      // We know there's something in the producer so hasNext will be true until the next item is
+      // enqueued
+      producerHasNext.set(true);
+      Future<E> next = executor.submit(producer.next());
+      boolean done = false;
+      while (!done) {
+        if (Thread.interrupted()) return;
+        // The queue may be full; we do not want to maintain a lock on the queue, which would
+        // deadlock with next(), so we wait until there's room and our entry is accepted
+        try {
+          lock.lock();
+          // Updating the queue and updating producerHasNext must be atomic to avoid race conditions
+          if (bq.offer(next)) {
+            done = true;
+            producerHasNext.set(producer.hasNext());
+          }
+        } finally {
+          lock.unlock();
+        }
       }
     }
   }
@@ -82,7 +102,19 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
 
   @Override
   public boolean hasNext() {
-    boolean hasNext = producer.hasNext() || !bq.isEmpty();
+    // If the producer has unqueued tasks or the queue has remaining values, then next() will
+    // eventually return something. But we cannot check the producer itself directly, as the act of
+    // retrieving from the producer and enqueuing cannot be atomic without introducing potential
+    // deadlock. So we use a boolean surrogate whose update is synchronized with enqueuing and 
+    // dequeuing actions.
+    boolean hasNext;
+    try {
+      lock.lock();
+      hasNext = producerHasNext.get() || !bq.isEmpty();
+    } finally {
+      lock.unlock();
+    }
+
     if (!hasNext) close();
     return hasNext;
   }
@@ -91,7 +123,16 @@ public class WorkerTrain<E> implements Iterator<E>, AutoCloseable {
   public E next() {
     if (hasNext()) {
       try {
-        return bq.take().get();
+
+        Future<E> next = null;
+
+        while (next == null) {
+          // We know the queue has something to return, but it may not have received it yet if the
+          // producer is slow. So we wait for it to arrive.
+          next = bq.poll();
+        }
+
+        return next.get();
       } catch (InterruptedException e) {
         log.reportException(e);
         close();
