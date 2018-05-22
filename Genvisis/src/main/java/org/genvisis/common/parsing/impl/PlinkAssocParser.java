@@ -2,16 +2,16 @@ package org.genvisis.common.parsing.impl;
 
 import java.io.IOException;
 import org.genvisis.CLI;
-import org.genvisis.cnv.plots.AFPlot;
 import org.genvisis.cnv.plots.ManhattanPlot;
+import org.genvisis.cnv.plots.PlotUtilities;
 import org.genvisis.cnv.plots.QQPlot;
 import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import org.genvisis.common.parsing.AbstractColumnFilter;
 import org.genvisis.common.parsing.AbstractFileParserFactory;
 import org.genvisis.common.parsing.AliasedFileColumn;
 import org.genvisis.common.parsing.Aliases;
+import org.genvisis.common.parsing.Aliases.MultipleAliasStrategy;
 import org.genvisis.common.parsing.ColumnFilter;
 import org.genvisis.common.parsing.DataLine;
 import org.genvisis.common.parsing.FileColumn;
@@ -19,7 +19,6 @@ import org.genvisis.common.parsing.FileLink;
 import org.genvisis.common.parsing.FileParser;
 import org.genvisis.common.parsing.FileParserFactory;
 import org.genvisis.common.parsing.StandardFileColumns;
-import org.genvisis.common.parsing.Aliases.MultipleAliasStrategy;
 import org.genvisis.gwas.HitWindows;
 
 /**
@@ -72,31 +71,19 @@ public class PlinkAssocParser {
       parser.parseToFile(outFile, "\t");
 
       if (hits) {
-        HitWindows.main(new String[] {"file=" + outFile,
-                                      "out=" + ext.rootOf(outFile, false) + ".hits"});
+        PlotUtilities.runHitWindows(outFile);
       }
 
       if (man) {
-        // manhattan plot
-        ManhattanPlot mp = new ManhattanPlot(null);
-        mp.loadFileAuto(outFile);
-        mp.waitForData();
-        mp.getManPan().setSize(800, 600);
-        mp.screenshot(ext.rootOf(outFile, false) + "_manPlot.png");
+        PlotUtilities.createManPlotScreenshot(outFile);
       }
 
       if (qq) {
-        // qqplot
-        QQPlot qqPlot = QQPlot.loadPvals(new String[] {outFile}, "Q-Q Plot", false, true, false, -1,
-                                         -1, false, Float.MAX_VALUE, new Logger());
-        qqPlot.screenCap(ext.rootOf(outFile, false) + "_qqPlot.png");
+        PlotUtilities.createQQPlotScreenshot(outFile);
       }
 
       if (af) {
-        AFPlot afPlot = new AFPlot(null);
-        afPlot.loadFromFile(outFile, null);
-        afPlot.waitForData();
-        afPlot.screenshot(ext.rootOf(outFile, false) + "_afPlot.png");
+        PlotUtilities.createAFPlotScreenshot(outFile);
       }
 
     } catch (IOException e) {

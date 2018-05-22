@@ -33,14 +33,12 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import net.miginfocom.swing.MigLayout;
 import org.genvisis.cnv.plots.data.DataFile;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import net.miginfocom.swing.MigLayout;
 
 public class ManhattanLoadGUI extends JDialog {
-
-  private final String TEMP_DIR = "D:/data/ny_choanal/omni2.5v1.2/plink/";
 
   private final JPanel contentPanel = new JPanel();
   private JTextField textField;
@@ -284,7 +282,7 @@ public class ManhattanLoadGUI extends JDialog {
   }
 
   private void selectFile() {
-    JFileChooser jfc = new JFileChooser(TEMP_DIR);
+    JFileChooser jfc = new JFileChooser();
     jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
     jfc.setMultiSelectionEnabled(false);
     jfc.setDialogTitle("Select File...");
