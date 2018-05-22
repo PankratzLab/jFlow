@@ -2052,7 +2052,7 @@ public class Files {
     }
 
     return size;
-}
+  }
 
   public static int getSizeInJar(String filename) {
     int size = -1;
