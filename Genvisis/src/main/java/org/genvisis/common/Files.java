@@ -352,35 +352,34 @@ public class Files {
     return copy;
   }
 
+  // causes trouble with Serialized data
   public static boolean copyFile(String from, String to) {
-    InputStream is = null;
-    OutputStream os = null;
+    FileReader in;
+    FileWriter out;
+    int c;
+
     try {
-      is = new FileInputStream(new File(from));
-      os = new FileOutputStream(new File(to));
-      byte[] buffer = new byte[1024];
-      int length;
-      while ((length = is.read(buffer)) > 0) {
-        os.write(buffer, 0, length);
+      in = new FileReader(from);
+    } catch (FileNotFoundException fnfe) {
+      System.err.println("Error - Cannot find " + from + " in current directory");
+      return false;
+    }
+
+    try {
+      out = new FileWriter(to);
+
+      while ((c = in.read()) != -1) {
+        out.write(c);
       }
+
+      in.close();
+      out.close();
+
       new File(to).setLastModified(new File(from).lastModified());
 
       return true;
-    } catch (FileNotFoundException e) {
-      System.err.println("Error - Cannot find " + from + " in current directory");
+    } catch (Exception e) {
       return false;
-    } catch (IOException e) {
-      return false;
-    } finally {
-      try {
-        is.close();
-        os.close();
-      } catch (IOException e) {
-        if (new File(from).length() == new File(to).length()) {
-          return true;
-        }
-        return false;
-      }
     }
   }
 
@@ -1564,7 +1563,11 @@ public class Files {
           }
           if (parameter[1].equals("mean")) {
             writer.print("\t" + (ArrayUtils
-                                           .sum(counts) > 0 ? (percent ? ext.formDeci(means[files.length] / ArrayUtils.sum(counts) * 100, sf) + "%" : ext.formDeci(means[files.length] / ArrayUtils.sum(counts), sf)) : (blank ? "" : ".")));
+                                           .sum(counts) > 0 ? (percent ? ext.formDeci(means[files.length] / ArrayUtils.sum(counts) * 100, sf) + "%" : ext.formDeci(means[files.length]
+
+                                                                                                                                                                   / ArrayUtils.sum(counts),
+                                                                                                                                                                   sf))
+                                                            : (blank ? "" : ".")));
           } else {
             // TODO calculate the overall stdev of crossing files.
           }
@@ -2034,17 +2037,7 @@ public class Files {
   }
 
   public static long getSize(String filename) {
-    long size = -1;
-
-    try {
-      if (Files.exists(filename)) {
-        size = new File(filename).length();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    return size;
+    return getSize(new File(filename));
   }
 
   public static long getSize(File file) {
@@ -2059,7 +2052,7 @@ public class Files {
     }
 
     return size;
-  }
+}
 
   public static int getSizeInJar(String filename) {
     int size = -1;
@@ -2796,6 +2789,19 @@ public class Files {
   // rest should be skipped
   public static void cat(String[] originalFiles, String finalFile, int[] skips, boolean addFilename,
                          Logger log) {
+    cat(originalFiles, finalFile, skips, null, addFilename, log);
+  }
+
+  /**
+   * @param originalFiles tab or comma-delimited files to concatenate
+   * @param finalFile filename to write out to
+   * @param skips rows at the start of the file to skip
+   * @param cols columns to include in output
+   * @param addFilename add the name of the originating file to the start of each line
+   * @param log
+   */
+  public static void cat(String[] originalFiles, String finalFile, int[] skips, int[] cols,
+                         boolean addFilename, Logger log) {
     BufferedReader reader;
     PrintWriter writer;
     String trav;
@@ -2834,12 +2840,16 @@ public class Files {
       for (int i = 0; i < originalFiles.length; i++) {
         try {
 
-          reader = new BufferedReader(new FileReader(originalFiles[i]));
+          reader = getAppropriateReader(originalFiles[i]);
           for (int j = 0; skips != null && j < skips[i]; j++) {
             reader.readLine();
           }
           while (reader.ready()) {
             trav = reader.readLine();
+            if (cols != null && cols.length > 0) {
+              String[] temp = trav.split(delimiter);
+              trav = ArrayUtils.toStr(ArrayUtils.subArray(temp, cols), delimiter);
+            }
             writer.println((addFilename ? originalFiles[i] + delimiter : "") + trav);
           }
           reader.close();

@@ -482,7 +482,8 @@ public class SkatMeta {
     String[] studies;
     String snpName;
     String[][] methods;
-    String functionFlagName, geneName;
+    String[] functionFlagName;
+    String geneName;
     boolean runningByChr;
     IntVector jobSizes;
     Vector<String> jobNames;

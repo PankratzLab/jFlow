@@ -21,7 +21,8 @@ public class MetaAnalysisParams {
                                                  "GROUP_ANNOTATION_PARAMS"};
   public static final String[] KEY_PROPERTIES = {"SNP_INFO_FILE=", "VARIANT_NAME=", "CHROM_NAME=",
                                                  "GENE_NAME=", "FUNCTIONAL=", "R_EXEC=",
-                                                 "RUN_BY_CHR="};
+                                                 "RUN_BY_CHR=", "SNP_INFO_CHR_DIR=", "PRIMARY_DIR=",
+                                                 "GENOS="};
 
   private String[] studies;
   private String[] studyGroupings;
@@ -29,13 +30,16 @@ public class MetaAnalysisParams {
   private String[][] racesWithFilenameAliases;
   private final int[][] sampleSizes;
   private String snpInfoFilename;
+  private String snpInfoChrsDir;
   private String variantName;
   private String chromName;
   private String geneName;
-  private String functionFlagName;
+  private String[] functionFlagName;
   private String rExec;
   private String[][] methods;
   private String[][] groupAnnotationParams;
+  private String genos;
+  private String primaryDir;
   private boolean runByChr;
 
   private BufferedReader reader;
@@ -49,13 +53,10 @@ public class MetaAnalysisParams {
     problem = false;
     runByChr = true;
 
-    if (!Files.exists(filename, false)) {
-      log.report("File '" + filename
-                 + "' does not exist; if you create an empty text file with this same filename, then it will be filled with example parameters and instructions");
-      System.exit(1);
-    }
-
-    if (new File(filename).length() == 0) {
+    if (new File(filename).length() < 100) {
+      if (!Files.exists(filename, false)) {
+        log.report(filename + " does not exist.");
+      }
       log.report("File '" + filename
                  + "' is being populated with example parameters and instructions; tailor to your datasets and then re-run");
       Files.copyFileFromJar(DEFAULT_PARAMETERS, filename);
@@ -132,11 +133,17 @@ public class MetaAnalysisParams {
           } else if (trav.startsWith("GENE_NAME=")) {
             geneName = ext.parseStringArg(trav, "SKATgene");
           } else if (trav.startsWith("FUNCTIONAL=")) {
-            functionFlagName = ext.parseStringArg(trav, null);
+            functionFlagName = ext.parseStringArg(trav, "None").split(",");
           } else if (trav.startsWith("R_EXEC=")) {
             rExec = ext.parseStringArg(trav, null);
           } else if (trav.startsWith("RUN_BY_CHR=")) {
             runByChr = ext.parseBooleanArg(trav);
+          } else if (trav.startsWith("SNP_INFO_CHR_DIR=")) {
+            snpInfoChrsDir = ext.parseStringArg(trav, "snpInfos/");
+          } else if (trav.startsWith("PRIMARY_DIR=")) {
+            primaryDir = ext.parseStringArg(trav, null);
+          } else if (trav.startsWith("GENOS=")) {
+            genos = ext.parseStringArg(trav, null);
           } else {
             log.reportError("Error - property '" + trav
                             + "' was defined in MetaAnalysisParams.KEY_PROPERTIES but is not yet mapped to a variable name");
@@ -254,6 +261,10 @@ public class MetaAnalysisParams {
     return snpInfoFilename;
   }
 
+  public String getSnpInfoChrsDir() {
+    return snpInfoChrsDir;
+  }
+
   public String getVariantName() {
     return variantName;
   }
@@ -266,7 +277,7 @@ public class MetaAnalysisParams {
     return geneName;
   }
 
-  public String getFunctionFlagName() {
+  public String[] getFunctionFlagName() {
     return functionFlagName;
   }
 
@@ -276,6 +287,14 @@ public class MetaAnalysisParams {
 
   public String[][] getMethods() {
     return methods;
+  }
+
+  public String getPrimaryDir() {
+    return primaryDir;
+  }
+
+  public String getGenos() {
+    return genos;
   }
 
   public String[] getGroups() {
