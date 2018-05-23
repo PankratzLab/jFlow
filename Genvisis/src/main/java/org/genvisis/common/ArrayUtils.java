@@ -1343,6 +1343,17 @@ public class ArrayUtils {
     return sum / (array.length - 1);
   }
 
+  public static double variance(Collection<? extends Number> values) {
+    double avg = mean(values);
+    double sum = 0;
+
+    for (Number element : values) {
+      double dblElement = element.doubleValue();
+      sum += Math.pow(avg - dblElement, 2);
+    }
+    return sum / (values.size() - 1);
+  }
+
   /**
    * Calculates the variance of an array, dropping the NaNs in the array.
    *
@@ -1439,6 +1450,16 @@ public class ArrayUtils {
    */
   public static double stdev(double[] array) {
     return Math.sqrt(varianceDropNaN(array));
+  }
+
+  /**
+   * Calculates the standard deviation of a Collection
+   * 
+   * @param values
+   * @return standard deviation of values
+   */
+  public static double stdev(Collection<? extends Number> values) {
+    return Math.sqrt(variance(values));
   }
 
   /**
@@ -1563,6 +1584,38 @@ public class ArrayUtils {
     }
 
     return (float) Math.sqrt(sum / (count - 1));
+  }
+
+  /**
+   * Calculates the standard deviation of an Iterable
+   *
+   * @param values
+   * @param removeNaN remove any value that is not a number
+   * @return standard deviation of the [filtered] values
+   */
+  public static double stdev(Iterable<? extends Number> values, boolean removeNaN) {
+
+    double sum = 0;
+    int count = 0;
+    for (Number val : values) {
+      double dblVal = val.doubleValue();
+      if (!Double.isNaN(dblVal) || !removeNaN) {
+        sum += dblVal;
+        count++;
+      }
+    }
+    if (count == 0) return Double.NaN;
+    double avg = (sum / count);
+
+    sum = 0;
+    for (Number val : values) {
+      double dblVal = val.doubleValue();
+      if (!Double.isNaN(dblVal)) {
+        sum += Math.pow(avg - dblVal, 2);
+      }
+    }
+
+    return Math.sqrt(sum / (count - 1));
   }
 
   /**
