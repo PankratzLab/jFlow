@@ -107,6 +107,40 @@ public class Genesis {
     }
   }
 
+  private static void stitch(String pheno, String dir, String libpath, String gds) {
+    String[] gdsHalves = gds.split("#");
+    String rCode = ".libPaths(\"" + libpath + "\")\n"
+                   + "source(\"https://bioconductor.org/biocLite.R\")\n" + "biocLite(\"GENESIS\")\n"
+                   + "library(GENESIS)\n" + "library(GWASTools)\n" + "library(SeqVarTools)\n" + "\n"
+                   + "setwd(\"" + dir + "/results/\")\n" + "for(i in 1:23) {\n"
+                   + "  pattern = paste(\"" + pheno + "_chr\", i, \"-\\\\d+.csv\", sep=\"\")\n"
+                   + "  files <- list.files(pattern=pattern)\n" + "  file <- read.csv(files[1])\n"
+                   + "\n" + "  for (f in files[-1]) {\n" + "    df <- read.csv(f)\n"
+                   + "    file <- rbind(file, df)\n" + "  }\n" + "\n"
+                   + "  file <- file[order(file$snpID),]\n" + "\n" + "  gds <- seqOpen(paste(\""
+                   + gdsHalves[0] + "\",i,\"" + gdsHalves[1] + "\",sep=\"\"))\n"
+                   + "  seqData <- SeqVarData(gds)\n" + "\n"
+                   + "  seqSetFilter(seqData, file$snpID)\n" + "\n"
+                   + "  file$pos <- seqGetData(seqData, \"position\")\n"
+                   + "  file$allele <- seqGetData(seqData, \"allele\")\n" + "\n"
+                   + "  write.table(file, paste(\"" + pheno
+                   + "_chr\",i,\".csv\",sep=\"\"), sep=\",\", row.names=F)\n"
+                   + "  seqClose(seqData)\n" + "}";
+
+    try {
+      PrintWriter out = new PrintWriter(new FileOutputStream(dir + "/" + pheno + "_stitch.R"));
+      out.println(rCode);
+      out.close();
+
+      Qsub.qsub(dir + "/run_" + pheno + "_stitch.qsub",
+                Rscript.getRscriptExecutable(new Logger()) + " --no-save " + dir + "/" + pheno
+                                                        + "_stitch.R",
+                24000, 24.0D, 1);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public static void main(String[] args) throws ParseException {
     CLI c = new CLI("GENESIS");
     c.addArg("libpath", "Path to library folder where GENESIS is installed");
@@ -130,5 +164,6 @@ public class Genesis {
     }
     Files.writeArray(ArrayUtils.toStringArray(v), c.get("dir") + "/scriptAll");
     Files.chmod("scriptAll");
+    stitch(c.get("pheno"), c.get("dir"), c.get("libpath"), c.get("gds"));
   }
 }
