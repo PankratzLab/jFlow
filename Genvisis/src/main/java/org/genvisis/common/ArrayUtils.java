@@ -1133,6 +1133,32 @@ public class ArrayUtils {
   }
 
   /**
+   * Calculates the mean of an Iterable
+   * 
+   * @param values values to calculate mean of
+   * @param ignoreNaN true to skip NaN values
+   * @return mean of the values
+   */
+  public static double mean(Iterable<? extends Number> values, boolean ignoreNaN) {
+    double sum = 0.0;
+    int count = 0;
+    for (Number val : values) {
+      double dblVal = val.doubleValue();
+      if (!Double.isNaN(dblVal) || !ignoreNaN) {
+        sum += dblVal;
+        count++;
+      }
+    }
+
+    if (count == 0) {
+      return Double.NaN;
+    }
+
+    return sum / count;
+
+  }
+
+  /**
    * Calculates the mean of an array
    *
    * @param array an array of numbers
@@ -4063,14 +4089,7 @@ public class ArrayUtils {
    * @return scrubbed array
    */
   public static double[] removeNonFinites(double[] array) {
-    boolean[] use;
-
-    use = new boolean[array.length];
-    for (int i = 0; i < use.length; i++) {
-      use[i] = Double.isFinite(array[i]);
-    }
-
-    return subArray(array, use);
+    return Arrays.stream(array).filter(Double::isFinite).toArray();
   }
 
   /**
