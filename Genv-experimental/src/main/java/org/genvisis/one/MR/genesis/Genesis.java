@@ -18,7 +18,7 @@ import org.genvisis.stats.Rscript;
 
 public class Genesis {
 
-  private static void batchChrs(String pheno, String libpath, String gds, int chr, String dir) {
+  private static int batchChrs(String pheno, String libpath, String gds, int chr, String dir) {
     String batchDir = dir + "/batches/";
     if ((!Files.exists(batchDir)) || (!Files.isDirectory(batchDir))) {
       new File(batchDir).mkdirs();
@@ -66,6 +66,7 @@ public class Genesis {
     }
     Qsub.qsubExecutor(batchDir, commands, null, batchDir + "run_" + pheno + "_chr" + chr, 16, 24000,
                       96.0D);
+    return commands.size();
   }
 
   private static void nullmod(String phenoFile, String pheno, String[] covars, String libpath,
@@ -124,8 +125,8 @@ public class Genesis {
     Vector<String> v = new Vector<String>();
     v.add("cd " + c.get("dir") + "/batches/");
     for (int i = 1; i <= 23; i++) {
-      batchChrs(c.get("pheno"), c.get("libpath"), c.get("gds"), i, c.get("dir"));
-      v.add("qsub run_" + c.get("pheno") + "_chr" + i + ".pbs");
+      int num = batchChrs(c.get("pheno"), c.get("libpath"), c.get("gds"), i, c.get("dir"));
+      if (num > 0) v.add("qsub run_" + c.get("pheno") + "_chr" + i + ".pbs");
     }
     Files.writeArray(ArrayUtils.toStringArray(v), c.get("dir") + "/scriptAll");
     Files.chmod("scriptAll");
