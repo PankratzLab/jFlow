@@ -94,7 +94,7 @@ public class Launch {
                                                "snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
                                                "dbgapMerge - creates a merged dbGaP data set by combining all *.data_dict.xml *.var_report.xml and *.txt.gz files",
                                                "dbgapSearch - takes a merged dbGap data set and searches for specific keywords",
-                                               "dbgapExtract - takes the output of \"search\" and extracts data from merged dbGap data",
+                                               "dbgapExtract - takes the output of \"dbgapSearch\" and extracts data from merged dbGap data",
                                                GeneScorePipeline.COMMAND_GENESCORE,
                                                TwoDPlot.COMMAND_TWO_D_SCREENSHOTS,};
 
