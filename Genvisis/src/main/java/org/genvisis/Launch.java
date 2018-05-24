@@ -92,8 +92,9 @@ public class Launch {
                                                VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION,
                                                "replaceAll - replace Strings in a file using a list of replacements",
                                                "snps - takes a list of marker names (rs IDs) and adds chr/pos info, and possibly additional information depending on options specified",
-                                               "search - takes a merged dbGap data set and searches for specific keywords",
-                                               "dbgap - takes the output of \"search\" and extracts data from merged dbGap data",
+                                               "dbgapMerge - creates a merged dbGaP data set by combining all *.data_dict.xml *.var_report.xml and *.txt.gz files",
+                                               "dbgapSearch - takes a merged dbGap data set and searches for specific keywords",
+                                               "dbgapExtract - takes the output of \"search\" and extracts data from merged dbGap data",
                                                GeneScorePipeline.COMMAND_GENESCORE,
                                                TwoDPlot.COMMAND_TWO_D_SCREENSHOTS,};
 
@@ -228,12 +229,12 @@ public class Launch {
         Files.replaceAllFromParameters(filename, log);
       } else if (temp.equalsIgnoreCase("snps")) {
         MapSNPsAndGenes.fromParameters(filename, log);
-      } else if (temp.equalsIgnoreCase("search")) {
-        DBGapLookup.fromParameters(filename, log);
-      } else if (temp.equalsIgnoreCase("dbgap")) {
-        DBGapExtract.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase("dbgapMerge")) {
         DBGAPMerge.fromParameters(filename, log);
+      } else if (temp.equalsIgnoreCase("dbgapSearch")) {
+        DBGapLookup.fromParameters(filename, log);
+      } else if (temp.equalsIgnoreCase("dbgapExtract")) {
+        DBGapExtract.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase(TwoDPlot.COMMAND_TWO_D_SCREENSHOTS)) {
         TwoDPlot.fromParameters(filename, log);
       } else {

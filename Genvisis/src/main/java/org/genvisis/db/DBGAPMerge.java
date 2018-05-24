@@ -448,7 +448,7 @@ public class DBGAPMerge {
       List<String> params;
       String[] args;
 
-      params = Files.parseControlFile(filename, "dbgap",
+      params = Files.parseControlFile(filename, "dbgapExtract",
                                       new String[] {"variables=searchTerms.xln",
                                                     "dataFile=mergeOut.xln.gz",
                                                     "outputFile=searchedVariables.xln",
@@ -591,7 +591,7 @@ public class DBGAPMerge {
       String mapFile;
       StringBuilder sb;
 
-      params = Files.parseControlFile(filename, "search",
+      params = Files.parseControlFile(filename, "dbgapSearch",
                                       new String[] {"mergeMap.xln   searchCols=3,7,9,10 outputCols=0,5,6,3,7,9,10 out=searchTerms.xln  crf=dbgap.crf",
                                                     "# search terms below, one per line:"},
                                       log);
@@ -628,7 +628,7 @@ public class DBGAPMerge {
       int[] searchCols = new int[] {3, 7, 9, 10, 11};
       int[] outputCols = new int[] {0, 5, 6, 3, 7, 9, 10, 11};
       String output = "searchTerms.xln";
-      String crf = "dbgap.crf";
+      String crf = "dbgapExtract.crf";
       String[] search = new String[] {"cancer", "height", "bmi"};
 
       String logfile = null;
@@ -686,7 +686,7 @@ public class DBGAPMerge {
         if (Files.exists(crf)) {
           log.reportError("Error - specified .CRF file already exists! -- " + crf);
         } else {
-          Files.parseControlFile(crf, "dbgap",
+          Files.parseControlFile(crf, "dbgapExtract",
                                  new String[] {"variables=" + output, "dataFile=mergeOut.xln.gz",
                                                "outputFile=searchedVariables.xln", "head=IID",},
                                  log);
