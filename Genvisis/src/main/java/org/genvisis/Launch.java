@@ -22,6 +22,7 @@ import org.genvisis.common.Unique;
 import org.genvisis.common.Zip;
 import org.genvisis.common.ext;
 import org.genvisis.db.CreateMarkerDatabase;
+import org.genvisis.db.DBGAPMerge;
 import org.genvisis.db.DBGAPMerge.DBGapExtract;
 import org.genvisis.db.DBGAPMerge.DBGapLookup;
 import org.genvisis.db.DummyDataset;
@@ -231,6 +232,8 @@ public class Launch {
         DBGapLookup.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase("dbgap")) {
         DBGapExtract.fromParameters(filename, log);
+      } else if (temp.equalsIgnoreCase("dbgapMerge")) {
+        DBGAPMerge.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase(TwoDPlot.COMMAND_TWO_D_SCREENSHOTS)) {
         TwoDPlot.fromParameters(filename, log);
       } else {

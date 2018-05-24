@@ -354,6 +354,21 @@ public class DBGAPMerge {
 
   }
 
+  public static void fromParameters(String filename, Logger log) {
+    List<String> params;
+    String[] args;
+
+    params = Files.parseControlFile(filename, "dbgapMerge",
+                                    new String[] {"dir=./", "out=mergeOut.xln.gz",
+                                                  "outMap=mergeMap.xln",},
+                                    log);
+
+    if (params != null) {
+      args = params.toArray(new String[params.size()]);
+      main(args);
+    }
+  }
+
   public static void main(String[] args) {
     String out = "out";
     String outMap = "outMap";
