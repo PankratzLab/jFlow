@@ -78,7 +78,7 @@ public class GATK {
   public static final String STAND_EMIT_CONF = "-stand_emit_conf";
   public static final String DEFAULT_STAND_EMIT_CONF = "10";
   public static final String STAND_CALL_CONF = "-stand_call_conf";
-  public static final String DEFAULT_STAND_CALL_CONF = "30";
+  public static final String DEFAULT_STAND_CALL_CONF = "10";
 
   public static final String BEFORE = "-before";
   public static final String AFTER = "-after";
@@ -590,8 +590,7 @@ public class GATK {
                                               gatkLocation + GENOME_ANALYSIS_TK, T,
                                               HAPLOTYPE_CALLER, R, referenceGenomeFasta, I, bamFile,
                                               O, output, ERC_MODE, GVCF_MODE, GENOTYPING_MODE,
-                                              DISCOVERY, STAND_EMIT_CONF, DEFAULT_STAND_EMIT_CONF,
-                                              STAND_CALL_CONF, DEFAULT_STAND_CALL_CONF,
+                                              DISCOVERY, STAND_CALL_CONF, DEFAULT_STAND_CALL_CONF,
                                               dbSnpFile == null ? "" : DB_SNP,
                                               dbSnpFile == null ? "" : dbSnpFile, NCT,
                                               Integer.toString(numWithinSampleThreads));
