@@ -167,11 +167,11 @@ public class SexPanel extends AbstractPanel implements MouseListener, MouseMotio
     for (int i = 0; i < samples.length; i++) {
       if (uncertains[i]) {
         uncertainsXRegions[writeIndex] = new String[] {samples[i], "chr23",
-                                                       "Called as " + SexChecks.ESTIMATED_SEXES[estimatedSexes[i]]
+                                                       "Called as " + SexChecks.EstimatedSex.values()[estimatedSexes[i]].toString()
                                                                             + " (" + notes[i]
                                                                             + ")"};
         uncertainsYRegions[writeIndex++] = new String[] {samples[i], "chr24",
-                                                         "Called as " + SexChecks.ESTIMATED_SEXES[estimatedSexes[i]]
+                                                         "Called as " + SexChecks.EstimatedSex.values()[estimatedSexes[i]].toString()
                                                                               + " (" + notes[i]
                                                                               + ")"};
       }

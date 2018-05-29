@@ -7,14 +7,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.Vector;
 import org.apache.commons.math3.stat.inference.TTest;
 import org.genvisis.cnv.analysis.MosaicismDetect;
@@ -42,33 +46,106 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.Ttest;
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ArrayTable;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
+import com.google.common.math.Quantiles;
 import com.google.common.primitives.Doubles;
 
 public class SexChecks {
 
-  public static final String[] ESTIMATED_SEXES = new String[] {"Unknown", // 0
-                                                               "Male", // 1
-                                                               "Female", // 2
-                                                               "Klinefelter", // 3
-                                                               "UPD Klinefelter", // 4
-                                                               "Mosaic Klinefelter", // 5
-                                                               "Triple X", // 6
-                                                               "Mosaic Triple X", // 7
-                                                               "Turner", // 8
-                                                               "Mosaic Turner"}; // 9
-  public static final String EST_SEX_HEADER = generateEstSexHeader();
+  public enum BinarySex {
+    UNKNOWN, MALE, FEMALE
+  }
 
-  private static final int[] EST_SEX_MAPPING = {0, 1, 2, 1, 1, 1, 2, 2, 2, 2};
-  private static final int[] EST_NUM_CHRX_MAPPING = {0, 1, 2, 2, 2, 2, 3, 3, 1, 1};
+  public enum EstimatedSex {
+    UNKNOWN(BinarySex.UNKNOWN, 0, "Unknown", ""),
+    MALE(BinarySex.MALE, 1, "Male", "XY"),
+    FEMALE(BinarySex.FEMALE, 2, "Female", "XX"),
+    KLINEFELTER(BinarySex.MALE, 2, "Klinefelter", "XXY"),
+    UPD_KLINEFELTER(BinarySex.MALE, 2, "UPD Klinefelter", "XXY"),
+    MOSAIC_KLINEFELTER(BinarySex.MALE, 2, "Mosaic Klinefelter", "XXY"),
+    TRIPLE_X(BinarySex.FEMALE, 3, "Triple X", "XXX"),
+    MOSAIC_TRIPLE_X(BinarySex.FEMALE, 3, "Mosaic Triple X", "XXX"),
+    TURNER(BinarySex.FEMALE, 1, "Turner", "X"),
+    MOSAIC_TURNER(BinarySex.FEMALE, 1, "Mosaic Turner", "X");
+
+    private static final Map<String, EstimatedSex> DESC_MAPPING = Arrays.stream(values())
+                                                                        .collect(ImmutableMap.toImmutableMap(EstimatedSex::toString,
+                                                                                                             Functions.identity()));
+
+    private static final Map<String, EstimatedSex> HEADER_MAPPING = Arrays.stream(values())
+                                                                          .collect(ImmutableMap.toImmutableMap(EstimatedSex::headerString,
+                                                                                                               Functions.identity()));
+
+    private final BinarySex binarySex;
+    private final int chrXCount;
+    private final String desc;
+    private final String karyotype;
+
+    private EstimatedSex(BinarySex baseSex, int chrXCount, String desc, String karyotype) {
+      this.binarySex = baseSex;
+      this.chrXCount = chrXCount;
+      this.desc = desc;
+      this.karyotype = karyotype;
+    }
+
+    /**
+     * @return the binarySex
+     */
+    public BinarySex getBinarySex() {
+      return binarySex;
+    }
+
+    /**
+     * @return the chrXCount
+     */
+    public int getChrXCount() {
+      return chrXCount;
+    }
+
+    /**
+     * @return the karyotype
+     */
+    public String getKaryotype() {
+      return karyotype;
+    }
+
+    @Override
+    public String toString() {
+      return desc;
+    }
+
+    public String headerString() {
+      return ordinal() + "=" + toString();
+    }
+
+    public static EstimatedSex parse(String desc) {
+      return DESC_MAPPING.get(desc);
+    }
+
+    public static EstimatedSex parseHeaderString(String headerString) {
+      return HEADER_MAPPING.get(headerString);
+    }
+
+  }
+
+  public static final String EST_SEX_HEADER = generateEstSexHeader();
 
   public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note",
                                              "Check", "Excluded", "Median X e^LRR",
                                              "Median Y e^LRR", "e^LRR Ratio Y:X",
                                              "% X Heterozygote Calls", "% X BAF 0.15-0.85",
                                              "Median X LRR", "Median Y LRR"};
-  public static final String[] KARYOTYPES = {"", "XY", "XX", "XXY", "XXY", "XXY", "XXX", "XXX", "X",
-                                             "X"};
 
   private static final float XY_ELRR_RATIO_MIN_SEED_MALE = 1.0f;
   private static final float XY_ELRR_RATIO_MAX_SEED_MALE = 1.5f;
@@ -90,49 +167,38 @@ public class SexChecks {
   private final Project proj;
   private final Logger log;
   private final MarkerDetailSet markerSet;
-  private final String[] sampleNames;
-  private boolean[] qcPassedSamples;
+  private final List<String> sampleNames;
+  private Set<String> qcPassedSamples;
 
-  private int[][] indicesByChr;
+  private Set<Marker> xMarkers;
+  private Set<Marker> yMarkers;
 
-  private boolean[] xKeeps;
-  private boolean[] yKeeps;
-
-  private String[] xMarkers;
-  private String[] yMarkers;
-
-  private final boolean[] xUseMarkers;
-  private final boolean[] yUseMarkers;
-
-  // private float[] rMedX;
-  // private float[] rMedY;
+  private final Set<Marker> xUseMarkers;
+  private final Set<Marker> yUseMarkers;
 
   // TODO Talk to Nathan about switching from r ratios to e^lrr ratios
 
-  private float[] elrrMedX;
-  private float[] elrrMedY;
+  private Map<String, Double> elrrMedX;
+  private Map<String, Double> elrrMedY;
 
-  private float[][] lrrsX;
-  private float[][] lrrsY;
+  private Table<Marker, String, Double> lrrsX;
+  private Table<Marker, String, Double> lrrsY;
 
-  private byte[][] genotypesX;
-  private float[][] bafsX;
+  private Table<Marker, String, Byte> genotypesX;
+  private Table<Marker, String, Double> bafsX;
 
-  private boolean[] seedMales;
-  private boolean[] seedFemales;
+  private Set<String> seedMales;
+  private Set<String> seedFemales;
 
-  private final float[] lrrMedX;
-  private final float[] lrrMedY;
+  private final Map<String, Double> lrrMedX;
+  private final Map<String, Double> lrrMedY;
 
-  private final float[] lrrMeanX;
-  private final float[] lrrMeanY;
+  private final Map<String, Double> pctXHets;
+  private final Map<String, Double> pctXBaf15_85;
 
-  private final float[] pctXHets;
-  private final float[] pctXBaf15_85;
-
-  private int[] sexes;
-  private boolean[] uncertains;
-  private String[] notes;
+  private Map<String, EstimatedSex> sexes;
+  private Set<String> uncertains;
+  private Multimap<String, String> notes;
 
   private SexChecks(Project proj, boolean appendToSampleData,
                     String nonCrossHybridizingMarkersFile) {
@@ -141,16 +207,9 @@ public class SexChecks {
     log = proj.getLog();
 
     markerSet = proj.getMarkerSet();
-    sampleNames = proj.getSamples();
-    if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
-      log.reportTimeWarning("LRR SD values are required for filtering samples to use in Sex Checks. Sample QC will be run now...");
-      int numThreads = proj.NUM_THREADS.getValue();
-      LrrSd.init(proj, null, null, numThreads, false);
-    }
-    qcPassedSamples = LrrSd.samplesPassingQc(proj);
-    if (qcPassedSamples == null) {
-      throw new IllegalStateException("Sex Checks failed: no LRR SD-filtered samples were found. Please verify that Sample QC was run successfully.");
-    }
+    sampleNames = Collections.unmodifiableList(Arrays.asList(proj.getSamples()));
+
+    qcPassedSamples = generateQCPassedSamples();
 
     PSF.checkInterrupted();
 
@@ -162,12 +221,10 @@ public class SexChecks {
 
     log.report("Determining Samples to seed Sex Checks...");
     generateSeedSexLists();
-    log.report("Found " + ArrayUtils.booleanArraySum(seedMales) + " obvious males");
-    log.report("Found " + ArrayUtils.booleanArraySum(seedFemales) + " obvious females");
-    log.report("Seeding sex checks using these "
-               + (ArrayUtils.booleanArraySum(seedMales) + ArrayUtils.booleanArraySum(seedFemales))
-               + " samples (of " + ArrayUtils.booleanArraySum(qcPassedSamples)
-               + " QC passed samples)");
+    log.report("Found " + seedMales.size() + " obvious males");
+    log.report("Found " + seedFemales.size() + " obvious females");
+    log.report("Seeding sex checks using these " + (seedMales.size() + seedFemales.size())
+               + " samples (of " + qcPassedSamples.size() + " QC passed samples)");
 
     log.report("Scanning for markers that express differently by sex...");
     PSF.checkInterrupted();
@@ -175,26 +232,20 @@ public class SexChecks {
     xUseMarkers = sexDiscriminatingXMarkers();
     yUseMarkers = sexDiscriminatingYMarkers();
 
-    log.report("Found " + ArrayUtils.booleanArraySum(xUseMarkers)
-               + " sex differentiating markers out of " + indicesByChr[23].length
-               + " X chromosome markers");
-    log.report("Found " + ArrayUtils.booleanArraySum(yUseMarkers)
-               + " sex differentiating markers out of " + indicesByChr[24].length
-               + " Y chromosome markers");
+    log.report("Found " + xUseMarkers.size() + " sex differentiating markers out of "
+               + xMarkers.size() + " X chromosome markers");
+    log.report("Found " + yUseMarkers.size() + " sex differentiating markers out of "
+               + yMarkers.size() + " Y chromosome markers");
     PSF.checkInterrupted();
 
     log.report("Calculating median sample LRR for identified X and Y chromosome markers");
-    lrrMedX = calcMedianLRRs(lrrsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
-    lrrMedY = calcMedianLRRs(lrrsY, ArrayUtils.booleanArrayToIndices(yUseMarkers));
-    PSF.checkInterrupted();
-
-    lrrMeanX = calcMeanLRRs(lrrsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
-    lrrMeanY = calcMeanLRRs(lrrsY, ArrayUtils.booleanArrayToIndices(yUseMarkers));
+    lrrMedX = calcMedianLRRs(lrrsX, xUseMarkers);
+    lrrMedY = calcMedianLRRs(lrrsY, yUseMarkers);
     PSF.checkInterrupted();
 
     log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
-    pctXHets = calcPctHets(genotypesX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
-    pctXBaf15_85 = calcPctBaf15_85(bafsX, ArrayUtils.booleanArrayToIndices(xUseMarkers));
+    pctXHets = calcPctHets(genotypesX, xUseMarkers);
+    pctXBaf15_85 = calcPctBaf15_85(bafsX, xUseMarkers);
     PSF.checkInterrupted();
 
     log.report("Estimating sex for each sample...");
@@ -208,265 +259,280 @@ public class SexChecks {
 
   private static String generateEstSexHeader() {
     String header = "Estimated Sex";
-    for (int i = 0; i < ESTIMATED_SEXES.length; i++) {
-      header += ";" + i + "=" + ESTIMATED_SEXES[i];
+    for (EstimatedSex sex : EstimatedSex.values()) {
+      header += ";" + sex.headerString();
     }
     return header;
   }
 
+  private Set<String> generateQCPassedSamples() {
+    if (!Files.exists(proj.SAMPLE_QC_FILENAME.getValue())) {
+      log.reportTimeWarning("LRR SD values are required for filtering samples to use in Sex Checks. Sample QC will be run now...");
+      int numThreads = proj.NUM_THREADS.getValue();
+      LrrSd.init(proj, null, null, numThreads, false);
+    }
+
+    Set<String> passedSamples = LrrSd.qcPassedSampleSet(proj);
+    if (passedSamples.isEmpty()) {
+      throw new IllegalStateException("Sex Checks failed: no LRR SD-filtered samples were found. Please verify that Sample QC was run successfully.");
+    }
+    return passedSamples;
+  }
+
   private void generateMarkerLists(String nonCrossHybridizingMarkersFile) {
-    HashSet<String> nonCrossHybridizingMarkers;
-    String[] markerNames = markerSet.getMarkerNames();
+    NavigableMap<Byte, NavigableSet<Marker>> chrMap = markerSet.getChrMap();
+    xMarkers = chrMap.get((byte) 23);
+    yMarkers = chrMap.get((byte) 24);
     if (nonCrossHybridizingMarkersFile == null) {
       log.reportError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
-      nonCrossHybridizingMarkers = new HashSet<>(Arrays.asList(markerNames));
     } else {
       log.report("Using " + nonCrossHybridizingMarkersFile
                  + " to identify markers that do not cross hybridize");
-      nonCrossHybridizingMarkers = HashVec.loadFileToHashSet(nonCrossHybridizingMarkersFile, false);
+      Map<String, Marker> markerNameMap = markerSet.getMarkerNameMap();
+      Set<Marker> nonCrossHybridizingMarkers = HashVec.loadFileToHashSet(nonCrossHybridizingMarkersFile,
+                                                                         false)
+                                                      .stream().map(markerNameMap::get)
+                                                      .collect(ImmutableSet.toImmutableSet());
+      xMarkers = Sets.intersection(xMarkers, nonCrossHybridizingMarkers);
+      yMarkers = Sets.intersection(yMarkers, nonCrossHybridizingMarkers);
     }
-    indicesByChr = markerSet.getIndicesByChr();
-    byte[] chrs = markerSet.getChrs();
-
-    xKeeps = new boolean[chrs.length];
-    yKeeps = new boolean[chrs.length];
-    for (int i = 0; i < chrs.length; i++) {
-      switch (chrs[i]) {
-        case 23:
-          xKeeps[i] = nonCrossHybridizingMarkers.contains(markerNames[i]);
-          yKeeps[i] = false;
-          break;
-        case 24:
-          xKeeps[i] = false;
-          yKeeps[i] = nonCrossHybridizingMarkers.contains(markerNames[i]);
-          break;
-        default:
-          xKeeps[i] = false;
-          yKeeps[i] = false;
-          break;
-      }
-    }
-    xMarkers = ArrayUtils.subArray(markerSet.getMarkerNames(), xKeeps);
-    yMarkers = ArrayUtils.subArray(markerSet.getMarkerNames(), yKeeps);
   }
 
   private void gatherMarkerStats() {
-    MDL mdl = new MDL(proj, xMarkers, Math.max(proj.NUM_THREADS.getValue() - 1, 1), 100);
+    gatherXMarkerStats();
+    gatherYMarkerStats();
 
-    float[][] elrrs;
+  }
 
-    lrrsX = new float[xMarkers.length][sampleNames.length];
-    genotypesX = new byte[xMarkers.length][sampleNames.length];
-    bafsX = new float[xMarkers.length][sampleNames.length];
-    elrrs = new float[sampleNames.length][xMarkers.length];
+  private void gatherXMarkerStats() {
     ClusterFilterCollection clusterFilters = proj.getClusterFilterCollection();
     float gcThreshold = proj.GC_THRESHOLD.getValue().floatValue();
+    List<Marker> xMarkerList = ImmutableList.copyOf(xMarkers);
+    MDL mdl = new MDL(proj, xMarkerList, Math.max(proj.NUM_THREADS.getValue() - 1, 1), 100);
+
+    lrrsX = ArrayTable.create(xMarkerList, sampleNames);
+    genotypesX = ArrayTable.create(xMarkerList, sampleNames);
+    bafsX = ArrayTable.create(xMarkerList, sampleNames);
+    Table<String, Marker, Double> elrrs = HashBasedTable.create(sampleNames.size(),
+                                                                xMarkerList.size());
+
     for (int m = 0; mdl.hasNext(); m++) {
       MarkerData markerData = mdl.next();
-      markerData.getXs();
-      markerData.getYs();
-      lrrsX[m] = markerData.getLRRs();
-      genotypesX[m] = markerData.getAbGenotypesAfterFilters(clusterFilters,
-                                                            markerData.getMarkerName(), gcThreshold,
-                                                            log);
-      bafsX[m] = markerData.getBAFs();
-      for (int s = 0; s < sampleNames.length; s++) {
-        elrrs[s][m] = (float) Math.pow(Math.E, lrrsX[m][s]);
+      Marker marker = xMarkerList.get(m);
+      if (!markerData.getMarkerName().equals(marker.getName())) {
+        throw new IllegalStateException("MarkerData name does not match Marker name at index " + m
+                                        + ". Expected " + marker.getName() + ", found "
+                                        + markerData.getMarkerName());
+      }
+      float[] lrrs = markerData.getLRRs();
+      byte[] genos = markerData.getAbGenotypesAfterFilters(clusterFilters,
+                                                           markerData.getMarkerName(), gcThreshold,
+                                                           log);
+      float[] bafs = markerData.getBAFs();
+      for (int s = 0; s < sampleNames.size(); s++) {
+        String sample = sampleNames.get(s);
+        double lrr = lrrs[s];
+        double baf = bafs[s];
+        lrrsX.put(marker, sample, lrr);
+        genotypesX.put(marker, sample, genos[s]);
+        bafsX.put(marker, sample, baf);
+        double elrr = Math.pow(Math.E, lrr);
+        if (Double.isFinite(elrr)) elrrs.put(sample, marker, elrr);
       }
     }
     mdl.shutdown();
-    elrrMedX = new float[sampleNames.length];
-    for (int i = 0; i < sampleNames.length; i++) {
-      elrrMedX[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(elrrs[i]));
-    }
+    elrrMedX = elrrs.rowMap().entrySet().stream()
+                    .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                         e -> Quantiles.median()
+                                                                       .compute(e.getValue()
+                                                                                 .values())));
+  }
 
-    mdl = new MDL(proj, yMarkers, 1, 100);
+  private void gatherYMarkerStats() {
+    ImmutableList<Marker> yMarkerList = ImmutableList.copyOf(yMarkers);
+    MDL mdl = new MDL(proj, yMarkerList, 1, 100);
 
-    lrrsY = new float[yMarkers.length][sampleNames.length];
-    elrrs = new float[sampleNames.length][yMarkers.length];
+    lrrsY = ArrayTable.create(yMarkerList, sampleNames);
+    Table<String, Marker, Double> elrrs = HashBasedTable.create(sampleNames.size(),
+                                                                yMarkerList.size());
     for (int m = 0; mdl.hasNext(); m++) {
       MarkerData markerData = mdl.next();
-      markerData.getXs();
-      markerData.getYs();
-      lrrsY[m] = markerData.getLRRs();
-      for (int s = 0; s < sampleNames.length; s++) {
-        elrrs[s][m] = (float) Math.pow(Math.E, lrrsY[m][s]);
+      Marker marker = yMarkerList.get(m);
+      if (!markerData.getMarkerName().equals(marker.getName())) {
+        throw new IllegalStateException("MarkerData name does not match Marker name at index " + m
+                                        + ". Expected " + marker.getName() + ", found "
+                                        + markerData.getMarkerName());
+      }
+      float[] lrrs = markerData.getLRRs();
+      for (int s = 0; s < sampleNames.size(); s++) {
+        String sample = sampleNames.get(s);
+        double lrr = lrrs[s];
+        lrrsY.put(marker, sample, lrr);
+        double elrr = Math.pow(Math.E, lrr);
+        if (Double.isFinite(elrr)) elrrs.put(sample, marker, elrr);
       }
     }
     mdl.shutdown();
-    elrrMedY = new float[sampleNames.length];
-    for (int i = 0; i < sampleNames.length; i++) {
-      elrrMedY[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(elrrs[i]));
-    }
-
+    elrrMedY = elrrs.rowMap().entrySet().stream()
+                    .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                         e -> Quantiles.median()
+                                                                       .compute(e.getValue()
+                                                                                 .values())));
   }
 
   private void generateSeedSexLists() {
+    ImmutableSet.Builder<String> maleBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<String> femaleBuilder = ImmutableSet.builder();
 
-    seedMales = new boolean[sampleNames.length];
-    seedFemales = new boolean[sampleNames.length];
-
-    for (int i = 0; i < sampleNames.length; i++) {
-      float elrrRatio = elrrMedY[i] / elrrMedX[i];
-      if (elrrRatio > XY_ELRR_RATIO_MIN_SEED_MALE && elrrRatio < XY_ELRR_RATIO_MAX_SEED_MALE
-          && qcPassedSamples[i]) {
-        seedMales[i] = true;
-      } else if (elrrRatio < XY_ELRR_RATIO_MAX_SEED_FEMALE && qcPassedSamples[i]) {
-        seedFemales[i] = true;
+    for (String sample : qcPassedSamples) {
+      double elrrRatio = elrrMedY.get(sample) / elrrMedX.get(sample);
+      if (elrrRatio > XY_ELRR_RATIO_MIN_SEED_MALE && elrrRatio < XY_ELRR_RATIO_MAX_SEED_MALE) {
+        maleBuilder.add(sample);
+      } else if (elrrRatio < XY_ELRR_RATIO_MAX_SEED_FEMALE) {
+        femaleBuilder.add(sample);
       }
     }
+
+    seedMales = maleBuilder.build();
+    seedFemales = femaleBuilder.build();
   }
 
-  private boolean[] sexDiscriminatingXMarkers() {
-    boolean[] discriminatingMarkers = new boolean[xMarkers.length];
+  private Set<Marker> sexDiscriminatingXMarkers() {
+    ImmutableSet.Builder<Marker> discriminatingMarkers = ImmutableSet.builder();
     TTest tTest = new TTest();
-    for (int i = 0; i < xMarkers.length; i++) {
-      double[] markerLrrs = ArrayUtils.toDoubleArray(lrrsX[i]);
-      double[] maleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedMales));
-      double[] femaleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs,
-                                                                            seedFemales));
-      if (maleLrrs.length < 2 || femaleLrrs.length < 2
-          || ArrayUtils.mean(femaleLrrs) <= ArrayUtils.mean(maleLrrs)) {
-        discriminatingMarkers[i] = false;
-      } else {
-        double pVal = tTest.tTest(maleLrrs, femaleLrrs);
-        discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / xMarkers.length;
-      }
-    }
-    return discriminatingMarkers;
-  }
-
-  private boolean[] sexDiscriminatingYMarkers() {
-    boolean[] discriminatingMarkers = new boolean[yMarkers.length];
-    TTest tTest = new TTest();
-    for (int i = 0; i < yMarkers.length; i++) {
-      double[] markerLrrs = ArrayUtils.toDoubleArray(lrrsY[i]);
-      double[] maleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs, seedMales));
-      double[] femaleLrrs = ArrayUtils.removeNonFinites(ArrayUtils.subArray(markerLrrs,
-                                                                            seedFemales));
-      if (maleLrrs.length < 2 || femaleLrrs.length < 2
-          || ArrayUtils.mean(maleLrrs) <= ArrayUtils.mean(femaleLrrs)) {
-        discriminatingMarkers[i] = false;
-      } else {
-        double pVal = tTest.tTest(maleLrrs, femaleLrrs);
-        discriminatingMarkers[i] = pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / yMarkers.length;
-      }
-    }
-    return discriminatingMarkers;
-  }
-
-  private float[] calcMedianLRRs(float[][] lrrs, int[] useMarkers) {
-    float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
-    for (int m = 0; m < useMarkers.length; m++) {
-      for (int s = 0; s < sampleNames.length; s++) {
-        lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
-      }
-    }
-
-    float[] medianLRRs = new float[sampleNames.length];
-    for (int i = 0; i < sampleNames.length; i++) {
-      medianLRRs[i] = ArrayUtils.median(ArrayUtils.removeNonFinites(lrrsBySample[i]));
-    }
-
-    return medianLRRs;
-  }
-
-  private float[] calcMeanLRRs(float[][] lrrs, int[] useMarkers) {
-    float[][] lrrsBySample = new float[sampleNames.length][useMarkers.length];
-    for (int m = 0; m < useMarkers.length; m++) {
-      for (int s = 0; s < sampleNames.length; s++) {
-        lrrsBySample[s][m] = lrrs[useMarkers[m]][s];
-      }
-    }
-
-    float[] meanLRRs = new float[sampleNames.length];
-    for (int i = 0; i < sampleNames.length; i++) {
-      float[] cleaned = ArrayUtils.removeNonFinites(lrrsBySample[i]);
-      float[] sorted = cleaned.clone();
-      Arrays.sort(sorted);
-      meanLRRs[i] = ArrayUtils.mean(cleaned);
-    }
-
-    return meanLRRs;
-  }
-
-  private float[] calcPctHets(byte[][] genotypes, int[] useMarkers) {
-    int[] hetCounts = ArrayUtils.intArray(sampleNames.length, 0);
-    int[] genotypeCounts = ArrayUtils.intArray(sampleNames.length, 0);
-    for (int useMarker : useMarkers) {
-      for (int s = 0; s < sampleNames.length; s++) {
-        genotypeCounts[s]++;
-        if (genotypes[useMarker][s] == 1) {
-          hetCounts[s]++;
+    for (Marker marker : xMarkers) {
+      Map<String, Double> maleLrrs = Maps.filterValues(Maps.filterKeys(lrrsX.row(marker),
+                                                                       seedMales::contains),
+                                                       Double::isFinite);
+      Map<String, Double> femaleLrrs = Maps.filterValues(Maps.filterKeys(lrrsX.row(marker),
+                                                                         seedFemales::contains),
+                                                         Double::isFinite);
+      if (maleLrrs.size() > 1 && femaleLrrs.size() > 2
+          && ArrayUtils.mean(femaleLrrs.values()) > ArrayUtils.mean(maleLrrs.values())) {
+        double pVal = tTest.tTest(Doubles.toArray(maleLrrs.values()),
+                                  Doubles.toArray(femaleLrrs.values()));
+        if (pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / xMarkers.size()) {
+          discriminatingMarkers.add(marker);
         }
       }
     }
-    float[] pctHets = new float[sampleNames.length];
-    for (int s = 0; s < sampleNames.length; s++) {
-      if (genotypeCounts[s] == 0) {
-        pctHets[s] = 0.0f;
-      } else {
-        pctHets[s] = (float) hetCounts[s] / genotypeCounts[s];
-      }
-    }
-    return pctHets;
+    return discriminatingMarkers.build();
   }
 
-  private float[] calcPctBaf15_85(float[][] bafs, int[] useMarkers) {
-    int[] baf15_85Counts = ArrayUtils.intArray(sampleNames.length, 0);
-    int[] bafCounts = ArrayUtils.intArray(sampleNames.length, 0);
-    for (int useMarker : useMarkers) {
-      for (int s = 0; s < sampleNames.length; s++) {
-        bafCounts[s]++;
-        if (bafs[useMarker][s] > 0.15f && bafs[useMarker][s] < 0.85f) {
-          baf15_85Counts[s]++;
+  private Set<Marker> sexDiscriminatingYMarkers() {
+    ImmutableSet.Builder<Marker> discriminatingMarkers = ImmutableSet.builder();
+    TTest tTest = new TTest();
+    for (Marker marker : yMarkers) {
+      Map<String, Double> maleLrrs = Maps.filterValues(Maps.filterKeys(lrrsY.row(marker),
+                                                                       seedMales::contains),
+                                                       Double::isFinite);
+      Map<String, Double> femaleLrrs = Maps.filterValues(Maps.filterKeys(lrrsY.row(marker),
+                                                                         seedFemales::contains),
+                                                         Double::isFinite);
+      if (maleLrrs.size() > 1 && femaleLrrs.size() > 1
+          && ArrayUtils.mean(maleLrrs.values()) > ArrayUtils.mean(femaleLrrs.values())) {
+        double pVal = tTest.tTest(Doubles.toArray(maleLrrs.values()),
+                                  Doubles.toArray(femaleLrrs.values()));
+        if (pVal < SEX_DISCRIMINATING_BASE_P_THRESHOLD / yMarkers.size()) {
+          discriminatingMarkers.add(marker);
         }
       }
     }
-    float[] pctBaf15_85 = new float[sampleNames.length];
-    for (int s = 0; s < sampleNames.length; s++) {
-      if (bafCounts[s] == 0) {
-        pctBaf15_85[s] = 0.0f;
-      } else {
-        pctBaf15_85[s] = (float) baf15_85Counts[s] / bafCounts[s];
-      }
+    return discriminatingMarkers.build();
+  }
+
+  private Map<String, Double> calcMedianLRRs(Table<Marker, String, Double> lrrs,
+                                             Set<Marker> useMarkers) {
+    ImmutableMap.Builder<String, Double> medianLRRs = ImmutableMap.builderWithExpectedSize(sampleNames.size());
+    for (String sample : sampleNames) {
+      medianLRRs.put(sample,
+                     Quantiles.median()
+                              .compute(Maps.filterEntries(lrrs.column(sample),
+                                                          e -> useMarkers.contains(e.getKey())
+                                                               && Double.isFinite(e.getValue()))
+                                           .values()));
     }
-    return pctBaf15_85;
+    return medianLRRs.build();
+  }
+
+  private Map<String, Double> calcPctHets(Table<Marker, String, Byte> genotypes,
+                                          Set<Marker> useMarkers) {
+    return genotypes.columnMap().entrySet().stream()
+                    .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                         e -> pctHet(Maps.filterKeys(e.getValue(),
+                                                                                     useMarkers::contains)
+                                                                         .values())));
+
+  }
+
+  private static double pctHet(Collection<Byte> genos) {
+    return genos.stream().filter(g -> g == (byte) 1).count() / (double) genos.size();
+  }
+
+  private Map<String, Double> calcPctBaf15_85(Table<Marker, String, Double> bafs,
+                                              Set<Marker> useMarkers) {
+    return bafs.columnMap().entrySet().stream()
+               .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                    e -> pctBaf15_85(Maps.filterKeys(e.getValue(),
+                                                                                     useMarkers::contains)
+                                                                         .values())));
+
+  }
+
+  private static double pctBaf15_85(Collection<Double> bafs) {
+    return bafs.stream().mapToDouble(Double::doubleValue).filter(baf -> baf > 0.15 && baf < 0.85)
+               .count()
+           / (double) bafs.size();
   }
 
   private void estimateSexes() {
-    float[] maleMedLRRsX = ArrayUtils.subArray(lrrMedX, seedMales);
-    float[] femaleMedLRRsX = ArrayUtils.subArray(lrrMedX, seedFemales);
+    Collection<Double> maleMedLRRsX = Maps.filterEntries(lrrMedX,
+                                                         e -> seedMales.contains(e.getKey())
+                                                              && Double.isFinite(e.getValue()))
+                                          .values();
+    Collection<Double> femaleMedLRRsX = Maps.filterEntries(lrrMedX,
+                                                           e -> seedFemales.contains(e.getKey())
+                                                                && Double.isFinite(e.getValue()))
+                                            .values();
 
-    float maleMeanX = ArrayUtils.mean(maleMedLRRsX, true);
-    float maleStdDevX = ArrayUtils.stdev(maleMedLRRsX, true);
-    float femaleMeanX = ArrayUtils.mean(femaleMedLRRsX, true);
-    float femaleStdDevX = ArrayUtils.stdev(femaleMedLRRsX, true);
+    double maleMeanX = ArrayUtils.mean(maleMedLRRsX);
+    double maleStdDevX = ArrayUtils.stdev(maleMedLRRsX);
+    double femaleMeanX = ArrayUtils.mean(femaleMedLRRsX);
+    double femaleStdDevX = ArrayUtils.stdev(femaleMedLRRsX);
 
-    float maleMeanPctXHets = ArrayUtils.mean(ArrayUtils.subArray(pctXHets, seedMales), true);
-    float maleStdDevPctXHets = ArrayUtils.stdev(ArrayUtils.subArray(pctXHets, seedMales), true);
-    ArrayUtils.mean(ArrayUtils.subArray(pctXHets, seedFemales), true);
-    ArrayUtils.stdev(ArrayUtils.subArray(pctXHets, seedFemales), true);
+    Collection<Double> malePctXHets = Maps.filterEntries(pctXHets,
+                                                         e -> seedMales.contains(e.getKey())
+                                                              && Double.isFinite(e.getValue()))
+                                          .values();
 
-    ArrayUtils.mean(ArrayUtils.subArray(pctXBaf15_85, seedMales), true);
-    ArrayUtils.stdev(ArrayUtils.subArray(pctXBaf15_85, seedMales), true);
-    float femaleMeanPctXBaf15_85 = ArrayUtils.mean(ArrayUtils.subArray(pctXBaf15_85, seedFemales),
-                                                   true);
-    float femaleStdDevPctXBaf15_85 = ArrayUtils.stdev(ArrayUtils.subArray(pctXBaf15_85,
-                                                                          seedFemales),
-                                                      true);
+    double maleMeanPctXHets = ArrayUtils.mean(malePctXHets);
+    double maleStdDevPctXHets = ArrayUtils.stdev(malePctXHets);
 
-    float[] maleMedLRRsY = ArrayUtils.subArray(lrrMedY, seedMales);
-    float[] femaleMedLRRsY = ArrayUtils.subArray(lrrMedY, seedFemales);
+    Collection<Double> femalePctXBaf15_85 = Maps.filterEntries(pctXBaf15_85,
+                                                               e -> seedFemales.contains(e.getKey())
+                                                                    && Double.isFinite(e.getValue()))
+                                                .values();
 
-    float maleMeanY = ArrayUtils.mean(maleMedLRRsY, true);
-    float maleStdDevY = ArrayUtils.stdev(maleMedLRRsY, true);
-    float femaleMeanY = ArrayUtils.mean(femaleMedLRRsY, true);
-    float femaleStdDevY = ArrayUtils.stdev(femaleMedLRRsY, true);
+    double femaleMeanPctXBaf15_85 = ArrayUtils.mean(femalePctXBaf15_85);
+    double femaleStdDevPctXBaf15_85 = ArrayUtils.stdev(femalePctXBaf15_85);
 
-    sexes = new int[sampleNames.length];
-    uncertains = ArrayUtils.booleanArray(sampleNames.length, false);
-    notes = ArrayUtils.stringArray(sampleNames.length, "");
+    Collection<Double> maleMedLRRsY = Maps.filterEntries(lrrMedY,
+                                                         e -> seedMales.contains(e.getKey())
+                                                              && Double.isFinite(e.getValue()))
+                                          .values();
+    Collection<Double> femaleMedLRRsY = Maps.filterEntries(lrrMedY,
+                                                           e -> seedFemales.contains(e.getKey())
+                                                                && Double.isFinite(e.getValue()))
+                                            .values();
+
+    double maleMeanY = ArrayUtils.mean(maleMedLRRsY);
+    double maleStdDevY = ArrayUtils.stdev(maleMedLRRsY);
+    double femaleMeanY = ArrayUtils.mean(femaleMedLRRsY);
+    double femaleStdDevY = ArrayUtils.stdev(femaleMedLRRsY);
+
+    sexes = Maps.newHashMapWithExpectedSize(sampleNames.size());
+    uncertains = Sets.newHashSet();
+    notes = ArrayListMultimap.create();
 
     Set<Marker> mosaicismCheckUse = mosaicismUse();
 
@@ -482,103 +548,119 @@ public class SexChecks {
     }
     log.report("Using " + sdForYOutliers
                + " standard deviations from mean male and female Y LRRs to define sex clusters");
-    float maleFloorY = maleMeanY - sdForYOutliers * maleStdDevY;
+    double maleFloorY = maleMeanY - sdForYOutliers * maleStdDevY;
     log.report("Male mean Y LRR:    " + maleMeanY);
     log.report("Male Std Dev Y LRR: " + maleStdDevY);
     log.report("Male Y LRR Floor:   " + maleFloorY);
-    float femaleCeilingY = femaleMeanY + sdForYOutliers * femaleStdDevY;
+    double femaleCeilingY = femaleMeanY + sdForYOutliers * femaleStdDevY;
     log.report("Female mean Y LRR:    " + femaleMeanY);
     log.report("Female SD Y LRR:      " + femaleStdDevY);
     log.report("Female Y LRR Ceiling: " + femaleCeilingY);
 
     String taskName = "SexEstimation";
 
-    proj.getProgressMonitor().beginDeterminateTask(taskName, "Estimating Sexes", sampleNames.length,
+    proj.getProgressMonitor().beginDeterminateTask(taskName, "Estimating Sexes", sampleNames.size(),
                                                    DISPLAY_MODE.GUI_AND_CONSOLE);
 
-    for (int i = 0; i < sampleNames.length; i++) {
+    for (String sample : sampleNames) {
       boolean male = false;
       boolean female = false;
-      if (lrrMedY[i] > maleFloorY) {
+      double lrrY = lrrMedY.get(sample);
+      if (lrrY > maleFloorY) {
         male = true;
-      } else if (lrrMedY[i] < femaleCeilingY) {
+      } else if (lrrY < femaleCeilingY) {
         female = true;
       } else {
-        uncertains[i] = true;
-        notes[i] += "Median Y LRR (" + ext.formDeci(lrrMedY[i], 4)
-                    + ") is outside of both male and female acceptance intervals; ";
-        if (seedMales[i]) {
+        uncertains.add(sample);
+        notes.put(sample, "Median Y LRR (" + ext.formDeci(lrrY, 4)
+                          + ") is outside of both male and female acceptance intervals");
+        if (seedMales.contains(sample)) {
           male = true;
-        } else if (seedFemales[i]) {
+        } else if (seedFemales.contains(sample)) {
           female = true;
         }
       }
 
       if (male) {
-        if (seedFemales[i]) {
-          uncertains[i] = true;
-          notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-                      + ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated female; ";
-        } else if (!seedMales[i]) {
-          notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-                      + ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
+        if (seedFemales.contains(sample)) {
+          uncertains.add(sample);
+          notes.put(sample,
+                    "Ratio of Median X e^LRR to Median Y e^LRR ("
+                            + ext.formDeci(elrrMedY.get(sample) / elrrMedX.get(sample), 4)
+                            + ") indicated female");
+        } else if (!seedMales.contains(sample)) {
+          notes.put(sample,
+                    "Ratio of Median X e^LRR to Median Y e^LRR ("
+                            + ext.formDeci(elrrMedY.get(sample) / elrrMedX.get(sample), 4)
+                            + ") outlier");
         }
-        if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)
-            && lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
-          if (lrrMedX[i] < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
-            uncertains[i] = true;
-            notes[i] += "Median X LRR (" + ext.formDeci(lrrMedX[i], 4)
-                        + ") not elevated enough to call Klinefelter without X heterozygosity ("
-                        + ext.formPercent(pctXHets[i], 4) + "); ";
+        if (pctXHets.get(sample) > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)
+            && lrrMedX.get(sample) > (maleMeanX + NUM_SD_FOR_MALE_X_OUTLIERS * maleStdDevX)) {
+          if (lrrMedX.get(sample) < (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
+            uncertains.add(sample);
+            notes.put(sample,
+                      "Median X LRR (" + ext.formDeci(lrrMedX.get(sample), 4)
+                              + ") not elevated enough to call Klinefelter without X heterozygosity ("
+                              + ext.formPercent(pctXHets.get(sample), 4) + ")");
           }
-          if (checkXMosaicism(i, mosaicismCheckUse)) {
-            sexes[i] = 5; // Mosaic Klinefelter
+          if (checkXMosaicism(sample, mosaicismCheckUse)) {
+            sexes.put(sample, EstimatedSex.MOSAIC_KLINEFELTER);
           } else {
-            sexes[i] = 3; // Full Klinefelter
+            sexes.put(sample, EstimatedSex.KLINEFELTER);
           }
-        } else if (lrrMedX[i] > (maleMeanX + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
-          sexes[i] = 4; // UPD Klinefelter
+        } else if (lrrMedX.get(sample) > (maleMeanX
+                                          + NUM_SD_FOR_MALE_X_FULL_ANEUPLOIDY * maleStdDevX)) {
+          sexes.put(sample, EstimatedSex.UPD_KLINEFELTER);
         } else {
-          if (pctXHets[i] > (maleMeanPctXHets + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)) {
-            uncertains[i] = true;
-            notes[i] += "X heterozygosity (" + ext.formPercent(pctXHets[i], 4)
-                        + ") suggests Klinefelter but Median X LRR (" + ext.formDeci(lrrMedX[i], 4)
-                        + ") is not elevated; ";
+          if (pctXHets.get(sample) > (maleMeanPctXHets
+                                      + NUM_SD_FOR_HET_OUTLIERS * maleStdDevPctXHets)) {
+            uncertains.add(sample);
+            notes.put(sample,
+                      "X heterozygosity (" + ext.formPercent(pctXHets.get(sample), 4)
+                              + ") suggests Klinefelter but Median X LRR ("
+                              + ext.formDeci(lrrMedX.get(sample), 4) + ") is not elevated");
           }
-          sexes[i] = 1; // Male
+          sexes.put(sample, EstimatedSex.MALE);
         }
       } else if (female) {
-        if (seedMales[i]) {
-          uncertains[i] = true;
-          notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-                      + ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") indicated male; ";
-        } else if (!seedFemales[i]) {
-          notes[i] += "Ratio of Median X e^LRR to Median Y e^LRR ("
-                      + ext.formDeci(elrrMedY[i] / elrrMedX[i], 4) + ") outlier; ";
+        if (seedMales.contains(sample)) {
+          uncertains.add(sample);
+          notes.put(sample,
+                    "Ratio of Median X e^LRR to Median Y e^LRR ("
+                            + ext.formDeci(elrrMedY.get(sample) / elrrMedX.get(sample), 4)
+                            + ") indicated male");
+        } else if (!seedFemales.contains(sample)) {
+          notes.put(sample,
+                    "Ratio of Median X e^LRR to Median Y e^LRR ("
+                            + ext.formDeci(elrrMedY.get(sample) / elrrMedX.get(sample), 4)
+                            + ") outlier");
         }
 
-        if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
-            && checkXMosaicism(i, mosaicismCheckUse)) {
-          if (lrrMedX[i] > (femaleMeanX + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
-            sexes[i] = 6; // Full Triple X
+        if (lrrMedX.get(sample) > (femaleMeanX + NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
+            && checkXMosaicism(sample, mosaicismCheckUse)) {
+          if (lrrMedX.get(sample) > (femaleMeanX
+                                     + NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)) {
+            sexes.put(sample, EstimatedSex.TRIPLE_X);
           } else {
-            sexes[i] = 7; // Mosaic Triple X
+            sexes.put(sample, EstimatedSex.MOSAIC_TRIPLE_X);
           }
-        } else if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
-                   && checkXMosaicism(i, mosaicismCheckUse)) {
-          if (lrrMedX[i] < (femaleMeanX - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)
-              && pctXBaf15_85[i] < (femaleMeanPctXBaf15_85
-                                    - NUM_SD_FOR_HET_OUTLIERS * femaleStdDevPctXBaf15_85)) {
-            sexes[i] = 8; // Full Turner
+        } else if (lrrMedX.get(sample) < (femaleMeanX
+                                          - NUM_SD_FOR_FEMALE_X_OUTLIERS * femaleStdDevX)
+                   && checkXMosaicism(sample, mosaicismCheckUse)) {
+          if (lrrMedX.get(sample) < (femaleMeanX
+                                     - NUM_SD_FOR_FEMALE_X_FULL_ANEUPLOIDY * femaleStdDevX)
+              && pctXBaf15_85.get(sample) < (femaleMeanPctXBaf15_85 - NUM_SD_FOR_HET_OUTLIERS
+                                                                      * femaleStdDevPctXBaf15_85)) {
+            sexes.put(sample, EstimatedSex.TURNER);
           } else {
-            sexes[i] = 9; // Mosaic Turner
+            sexes.put(sample, EstimatedSex.MOSAIC_TURNER);
           }
         } else {
-          sexes[i] = 2; // Female
+          sexes.put(sample, EstimatedSex.FEMALE);
         }
       } else {
-        sexes[i] = 0; // Missing
-        uncertains[i] = true;
+        sexes.put(sample, EstimatedSex.UNKNOWN);
+        uncertains.add(sample);
       }
       proj.getProgressMonitor().updateTask(taskName);
     }
@@ -588,40 +670,24 @@ public class SexChecks {
   /*
    * Generates a set of every marker except for X chromosome markers that were excluded. Autosomal
    * markers are needed for the mosaicism checker but we want to only check mosaicism on "good" X
-   * chromosome markers Note: This implementation is very inefficient but is a temporary fix until
-   * SexChecks is converted to using MarkerDetailSet properly
+   * chromosome markers
    */
   private Set<Marker> mosaicismUse() {
-    boolean[] use = ArrayUtils.booleanArray(markerSet.getPositions().length, true);
-    int[] xIndices = ArrayUtils.booleanArrayToIndices(xKeeps);
-    HashSet<Integer> xInclude = new HashSet<>();
-    for (int i = 0; i < xIndices.length; i++) {
-      if (xUseMarkers[i]) {
-        xInclude.add(xIndices[i]);
-      }
-    }
-    for (int index : indicesByChr[23]) {
-      if (!xInclude.contains(index)) {
-        use[index] = false;
-      }
-    }
-    List<Marker> markers = markerSet.getMarkers();
-    ImmutableSet.Builder<Marker> useMarkers = ImmutableSet.builder();
-    for (int i = 0; i < use.length; i++) {
-      if (use[i]) useMarkers.add(markers.get(i));
-    }
-    return useMarkers.build();
+    Set<Marker> allMarkers = ImmutableSet.copyOf(markerSet.getMarkers());
+    Set<Marker> excludedXMarkers = Sets.difference(xMarkers, xUseMarkers);
+    return Sets.difference(allMarkers, excludedXMarkers);
   }
 
-  private boolean checkXMosaicism(int sample, Set<Marker> use) {
-    Map<Marker, Double> bafs = proj.getPartialSampleFromRandomAccessFile(sampleNames[sample], false,
-                                                                         false, true, false, false)
+  private boolean checkXMosaicism(String sample, Set<Marker> use) {
+    Map<Marker, Double> bafs = proj.getPartialSampleFromRandomAccessFile(sample, false, false, true,
+                                                                         false, false)
                                    .markerBAFMap(proj.getMarkerSet());
     MosaicBuilder mosaicBuilder = new MosaicBuilder();
     mosaicBuilder.use(use);
-    MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sampleNames[sample], bafs);
-    int xStart = markerSet.getPositions()[indicesByChr[23][0]];
-    int xStop = markerSet.getPositions()[indicesByChr[23][indicesByChr[23].length - 1]];
+    MosaicismDetect mosaicismDetect = mosaicBuilder.build(proj, sample, bafs);
+    NavigableSet<Marker> chrXMarkers = markerSet.getChrMap().get((byte) 23);
+    int xStart = chrXMarkers.first().getPosition();
+    int xStop = chrXMarkers.last().getPosition();
     Segment xSegment = new Segment((byte) 23, xStart, xStop);
     LocusSet<MosaicRegion> xMosaic = mosaicismDetect.callMosaic(xSegment, false);
     int numRegions = xMosaic.getLoci().length;
@@ -643,97 +709,101 @@ public class SexChecks {
     notesAdd += "Total Mosaic Coverage: " + ext.formPercent(totalCoverage, 4) + "; ";
     if (totalCoverage < MOSAIC_COVERAGE_CERTAINTY_THRESHOLD) {
       if (totalCoverage > MOSAIC_COVERAGE_ABSOLUTE_THRESHOLD) {
-        uncertains[sample] = true;
+        uncertains.add(sample);
       } else {
         return false;
       }
     }
     double weightedAverageF = weightedSumF / totalCoverage;
     if (weightedAverageF < MOSAIC_F_CERTAINTY_THRESHOLD) {
-      uncertains[sample] = true;
+      uncertains.add(sample);
     }
-    notes[sample] += notesAdd;
+    notes.put(sample, notesAdd);
     return true;
   }
 
   private void writeToFile(boolean appendToSampleData) {
-
-    PrintWriter writer;
-    String[] lookup;
-    String famIndPair;
-    List<String>[] regionLists = new List[ESTIMATED_SEXES.length + 2];
+    Multimap<Integer, String> regionLists = ArrayListMultimap.create();
 
     SampleData sampleData = proj.getSampleData(false);
     String resultsDir = new File(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false)).getParent()
                         + "/";
-    Hashtable<String, String> estSex = new Hashtable<>();
-    Hashtable<String, String> binarySex = new Hashtable<>();
-    Hashtable<String, String> pedigreeMap = null;
+    Map<String, String> pedigreeMap = null;
     final String pedFile = proj.PEDIGREE_FILENAME.getValue();
     if (Files.exists(pedFile)) {
       log.report("Loading Pedigree file, assuming standard pedigree.dat file format (FID, IID, FA, MO, SEX, PHENO, DNA)");
       pedigreeMap = HashVec.loadFileToHashString(pedFile, 6, new int[] {4}, "\t", false);
     }
 
-    try {
-      writer = Files.openAppropriateWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true, false));
+    try (PrintWriter writer = Files.openAppropriateWriter(proj.SEXCHECK_RESULTS_FILENAME.getValue(true,
+                                                                                                  false))) {
       writer.println(ArrayUtils.toStr(SEX_HEADER));
 
-      for (int i = 0; i < sampleNames.length; i++) {
-        lookup = sampleData.lookup(sampleNames[i]);
-        famIndPair = lookup == null ? null : lookup[1];
-        int sex = sexes[i];
-        int binSex = EST_SEX_MAPPING[sex];
+      for (String sample : sampleNames) {
+        String fid = sampleData.lookupFID(sample);
+        String iid = sampleData.lookupIID(sample);
+        EstimatedSex sex = sexes.get(sample);
+        BinarySex binSex = sex.getBinarySex();
 
-        if (pedigreeMap != null && binSex == 0 && pedigreeMap.containsKey(sampleNames[i])) {
-          binSex = Integer.parseInt(pedigreeMap.get(sampleNames[i]));
+        if (pedigreeMap != null && binSex == BinarySex.UNKNOWN && pedigreeMap.containsKey(sample)) {
+          binSex = BinarySex.values()[Integer.parseInt(pedigreeMap.get(sample))];
         }
 
-        writer.print(sampleNames[i] + "\t");
-        if (famIndPair == null) {
-          log.reportError("Error - no data for sample '" + sampleNames[i] + "'");
-          // famIndPair has a tab in it so it's actually 2 columns
-          writer.print(".\t.\t-9");
+        StringJoiner lineBuilder = new StringJoiner("\t");
+
+        lineBuilder.add(sample);
+        if (fid == null) {
+          log.reportError("Error - no data for sample '" + sample + "'");
+          lineBuilder.add(".").add(".").add("-9");
         } else {
-          writer.print(famIndPair + "\t" + binSex);
+          lineBuilder.add(fid).add(iid).add(String.valueOf(binSex.ordinal()));
         }
-        writer.println("\t" + sex + "\t" + ("".equals(notes[i]) ? "." : notes[i]) + "\t"
-                       + (uncertains[i] ? "1" : "0") + "\t" + (qcPassedSamples[i] ? "0" : "1")
-                       + "\t" + elrrMedX[i] + "\t" + elrrMedY[i] + "\t"
-                       + (elrrMedY[i] / elrrMedX[i]) + "\t" + pctXHets[i] + "\t" + pctXBaf15_85[i]
-                       + "\t" + lrrMedX[i] + "\t" + lrrMedY[i]);
-        if (appendToSampleData) {
-          estSex.put(sampleNames[i], Integer.toString(sex));
-          binarySex.put(sampleNames[i], Integer.toString(binSex));
-        }
+        String note = notes.get(sample).isEmpty() ? "." : Joiner.on("; ").join(notes.get(sample));
+        String uncertain = uncertains.contains(sample) ? "1" : "0";
+        String qcPassed = qcPassedSamples.contains(sample) ? "0" : "1";
+        double elrrX = elrrMedX.get(sample);
+        double elrrY = elrrMedY.get(sample);
+        lineBuilder.add(String.valueOf(sex.ordinal())).add(note).add(uncertain).add(qcPassed)
+                   .add(String.valueOf(elrrX)).add(String.valueOf(elrrY))
+                   .add(String.valueOf(elrrY / elrrX)).add(String.valueOf(pctXHets.get(sample)))
+                   .add(String.valueOf(pctXBaf15_85.get(sample)))
+                   .add(String.valueOf(lrrMedX.get(sample)))
+                   .add(String.valueOf(lrrMedY.get(sample)));
+        writer.println(lineBuilder.toString());
         // Create sex-specific region files for any "unusual" sex call to allow easy review
         // TODO it would be nice to add these to Trailer automatically but not clear if that
         // requires a UI, and public API
-        String dna = lookup == null ? sampleNames[i] : lookup[0];
-        if (!qcPassedSamples[i]) {
-          addRegion(regionLists, ESTIMATED_SEXES.length, dna, "chr1", "(excluded ) " + notes[i]);
-        } else if (uncertains[i]) {
-          addRegion(regionLists, ESTIMATED_SEXES.length + 1, dna, "chr1",
-                    "(uncertain ) " + notes[i]);
-        } else if (sex != 1 && sex != 2) {
-          addRegion(regionLists, sex, dna, sex == 0 ? "chr1" : "chr23",
-                    "(" + ESTIMATED_SEXES[sex].replaceAll("\\s", "") + " ) " + notes[i]);
+        String dna = sampleData.lookupDNA(sample);
+        if (dna == null) dna = sample;
+        if (!qcPassedSamples.contains(sample)) {
+          addRegion(regionLists, EstimatedSex.values().length, dna, "chr1", "(excluded ) " + note);
+        } else if (uncertains.contains(sample)) {
+          addRegion(regionLists, EstimatedSex.values().length + 1, dna, "chr1",
+                    "(uncertain ) " + note);
+        } else if (sex != EstimatedSex.MALE && sex != EstimatedSex.FEMALE) {
+          addRegion(regionLists, sex.ordinal(), dna, sex == EstimatedSex.UNKNOWN ? "chr1" : "chr23",
+                    "(" + sex.toString().replaceAll("\\s", "") + " ) " + note);
         }
       }
-      writer.flush();
-      writer.close();
-
-      writeSexRegions(regionLists, resultsDir + "sexCheck_regions.txt");
     } catch (Exception e) {
       log.reportError("Error writing to " + proj.SEXCHECK_RESULTS_FILENAME.getValue());
       log.reportException(e);
     }
+    writeSexRegions(regionLists, resultsDir + "sexCheck_regions.txt");
     if (appendToSampleData) {
-      if (!sampleData.addData(binarySex, "DNA", new String[] {"CLASS=Sex"}, ".", "", log)) {
+      if (!sampleData.addData(sexes.entrySet().stream()
+                                   .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                                        e -> String.valueOf(e.getValue()
+                                                                                             .getBinarySex()
+                                                                                             .ordinal()))),
+                              "DNA", new String[] {"CLASS=Sex"}, ".", "", log)) {
         log.reportError("Error - failed to write Binarized Sex to sample data file");
       }
-      if (!sampleData.addData(estSex, "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "",
-                              log)) {
+      if (!sampleData.addData(sexes.entrySet().stream()
+                                   .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                                        e -> String.valueOf(e.getValue()
+                                                                                             .ordinal()))),
+                              "DNA", new String[] {"CLASS=" + EST_SEX_HEADER}, ".", "", log)) {
         log.reportError("Error - failed to write Estimated Sex to sample data file");
       }
     }
@@ -743,43 +813,41 @@ public class SexChecks {
    * Adds a string of the format "dna\tchr\tnote" to the list for the specified sex value. Lists are
    * created if they do not already exist.
    */
-  private void addRegion(List<String>[] regionLists, int sex, String dna, String chr, String note) {
-    if (regionLists[sex] == null) {
-      regionLists[sex] = new ArrayList<>();
-    }
-    regionLists[sex].add(dna + "\t" + chr + "\t" + note);
+  private void addRegion(Multimap<Integer, String> regionLists, int sex, String dna, String chr,
+                         String note) {
+    regionLists.put(sex, dna + "\t" + chr + "\t" + note);
   }
 
   /**
    * Write all samples of all regions to the specified path
    */
-  private void writeSexRegions(List<String>[] regions, String path) throws IOException {
-    PrintWriter out = Files.openAppropriateWriter(path);
-    log.report("SexChecks -- Creating sex-specific region file: " + path);
-    for (List<String> samples : regions) {
-      if (samples == null) {
-        continue;
+  private void writeSexRegions(Multimap<Integer, String> regions, String path) {
+    try (PrintWriter out = Files.openAppropriateWriter(path)) {
+      log.report("SexChecks -- Creating sex-specific region file: " + path);
+      for (Collection<String> samples : regions.asMap().values()) {
+        if (samples == null) {
+          continue;
+        }
+        // Insert count information to the region comment
+        String suffix = " of " + samples.size();
+        int count = 0;
+        for (String line : samples) {
+          int parIndex = line.indexOf(')');
+          out.println(line.substring(0, parIndex) + count++ + suffix + line.substring(parIndex));
+        }
       }
-      // Insert count information to the region comment
-      String suffix = " of " + samples.size();
-      for (int i = 0; i < samples.size(); i++) {
-        String line = samples.get(i);
-        int parIndex = line.indexOf(')');
-        out.println(line.substring(0, parIndex) + i + suffix + line.substring(parIndex));
-      }
+    } catch (IOException e) {
+      log.reportError("Error writing to " + path);
     }
-    out.flush();
-    out.close();
   }
 
   /**
    * Maps complete code (e.g. "1=Male") to definitive sex
    */
   public static int mapEstimatedSexToSex(String estCode) {
-    String[] estCodes = EST_SEX_HEADER.split(";");
-    for (int i = 1; i < estCodes.length; i++) {
-      if (estCodes[i].startsWith(estCode)) {
-        return EST_SEX_MAPPING[i - 1];
+    for (EstimatedSex sex : EstimatedSex.values()) {
+      if (sex.headerString().startsWith(estCode)) {
+        return sex.ordinal();
       }
     }
     return 0;
@@ -789,14 +857,14 @@ public class SexChecks {
    * returns the trinary (0=unknown, 1=male, 2=female) sex for the given code value (e.g. "1")
    */
   public static int getMappedSex(String estimatedValue) {
-    return EST_SEX_MAPPING[Integer.parseInt(estimatedValue)];
+    return EstimatedSex.values()[Integer.parseInt(estimatedValue)].getBinarySex().ordinal();
   }
 
   /**
    * returns the number of X chromosomes present for a given code value (e.g female=2, Triple X =3)
    */
   public static int getNumXChrSex(String estimatedValue) {
-    return EST_NUM_CHRX_MAPPING[Integer.parseInt(estimatedValue)];
+    return EstimatedSex.values()[Integer.parseInt(estimatedValue)].getChrXCount();
   }
 
   public static void sexCheck(Project proj, boolean appendToSampleData) {
@@ -1130,10 +1198,6 @@ public class SexChecks {
       System.err.println(usage);
       System.exit(1);
     }
-
-    // check = true;
-    // par = true;
-    // filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
     try {
       proj = new Project(filename);
 

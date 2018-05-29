@@ -7,9 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
@@ -30,6 +30,7 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Parallelizable;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class LrrSd extends Parallelizable {
@@ -612,7 +613,7 @@ public class LrrSd extends Parallelizable {
     return new int[] {numPassing, count};
   }
 
-  public static boolean[] samplesPassingQc(Project proj) {
+  public static Set<String> qcPassedSampleSet(Project proj) {
     Logger log = proj.getLog();
 
     double lrrSdFilter = proj.LRRSD_CUTOFF.getValue();
@@ -625,11 +626,8 @@ public class LrrSd extends Parallelizable {
     }
 
     int count = 0;
-    int numPassing = 0;
-    try {
-      BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false);
+    try (BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false)) {
       if (!reader.ready()) {
-        reader.close();
         log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
         return null;
       }
@@ -638,19 +636,13 @@ public class LrrSd extends Parallelizable {
       int[] indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true);
 
       if (!checkIndices(proj, indices)) {
-        reader.close();
         log.reportError("Error - could not detect proper header in QC file ("
                         + proj.SAMPLE_QC_FILENAME.getValue() + ")");
         return null;
       }
 
-      HashMap<String, Integer> sampleIndices = new HashMap<>();
-      String[] samples = proj.getSamples();
-      for (int i = 0; i < samples.length; i++) {
-        sampleIndices.put(samples[i], i);
-      }
-      boolean[] passingSamples = ArrayUtils.booleanArray(samples.length, false);
-      boolean hasGeno, hasLrr;
+      Set<String> samples = ImmutableSet.copyOf(proj.getSamples());
+      ImmutableSet.Builder<String> passingSamplesBuilder = ImmutableSet.builder();
       while (reader.ready()) {
         line = reader.readLine().trim().split(delim);
         // skip any headers as a result of concatenating the qc results
@@ -659,9 +651,9 @@ public class LrrSd extends Parallelizable {
           String sample = line[indices[0]];
           Sample fsamp = proj.getPartialSampleFromRandomAccessFile(sample, false, false, false,
                                                                    true, true);
-          hasGeno = fsamp.getAB_Genotypes() != null || fsamp.getForwardGenotypes() != null;
-          hasLrr = fsamp.getLRRs() != null;
-          if (!sampleIndices.containsKey(sample)) {
+          boolean hasGeno = fsamp.getAB_Genotypes() != null || fsamp.getForwardGenotypes() != null;
+          boolean hasLrr = fsamp.getLRRs() != null;
+          if (!samples.contains(sample)) {
             log.reportError("Sample " + sample + " is listed in "
                             + proj.SAMPLE_QC_FILENAME.getValue() + " but is not in the project");
             continue;
@@ -669,19 +661,17 @@ public class LrrSd extends Parallelizable {
           double lrrSd = Double.parseDouble(line[indices[1]]);
           double callrate = Double.parseDouble(line[indices[2]]);
           if ((!hasLrr || lrrSd < lrrSdFilter) && (!hasGeno || callrate > callRateFilter)) {
-            numPassing++;
-            passingSamples[sampleIndices.get(sample)] = true;
+            passingSamplesBuilder.add(sample);
           }
           count++;
         }
       }
 
-      reader.close();
-
-      if (numPassing == 0) {
+      Set<String> passingSamples = passingSamplesBuilder.build();
+      if (passingSamples.isEmpty()) {
         log.reportError("Error - all samples were filtered out by the QC step");
       } else {
-        log.report("Info - " + numPassing + " of " + count + " samples in "
+        log.report("Info - " + passingSamples.size() + " of " + count + " samples in "
                    + proj.SAMPLE_QC_FILENAME.getValue() + " passed the QC threshold");
       }
       return passingSamples;
@@ -693,6 +683,21 @@ public class LrrSd extends Parallelizable {
     }
 
     return null;
+
+  }
+
+  public static boolean[] samplesPassingQc(Project proj) {
+    Set<String> qcPassedSamples = qcPassedSampleSet(proj);
+    String[] samples = proj.getSamples();
+
+    boolean[] passingSamplesMask = new boolean[samples.length];
+    for (int i = 0; i < samples.length; i++) {
+      String sample = samples[i];
+      if (qcPassedSamples.contains(sample)) {
+        passingSamplesMask[i] = true;
+      }
+    }
+    return passingSamplesMask;
   }
 
   private static boolean[] getMarkerSubset(Project proj, String[] subMarkers, String[] markers) {
