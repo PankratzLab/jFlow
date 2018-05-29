@@ -176,9 +176,6 @@ public class SexChecks {
   private final Set<Marker> xUseMarkers;
   private final Set<Marker> yUseMarkers;
 
-  // private float[] rMedX;
-  // private float[] rMedY;
-
   // TODO Talk to Nathan about switching from r ratios to e^lrr ratios
 
   private Map<String, Double> elrrMedX;
@@ -195,9 +192,6 @@ public class SexChecks {
 
   private final Map<String, Double> lrrMedX;
   private final Map<String, Double> lrrMedY;
-
-  private final Map<String, Double> lrrMeanX;
-  private final Map<String, Double> lrrMeanY;
 
   private final Map<String, Double> pctXHets;
   private final Map<String, Double> pctXBaf15_85;
@@ -247,10 +241,6 @@ public class SexChecks {
     log.report("Calculating median sample LRR for identified X and Y chromosome markers");
     lrrMedX = calcMedianLRRs(lrrsX, xUseMarkers);
     lrrMedY = calcMedianLRRs(lrrsY, yUseMarkers);
-    PSF.checkInterrupted();
-
-    lrrMeanX = calcMeanLRRs(lrrsX, xUseMarkers);
-    lrrMeanY = calcMeanLRRs(lrrsY, yUseMarkers);
     PSF.checkInterrupted();
 
     log.report("Calculating sample counts of heterozygote calls for identified X chromosome markers...");
@@ -463,20 +453,6 @@ public class SexChecks {
                                            .values()));
     }
     return medianLRRs.build();
-  }
-
-  private Map<String, Double> calcMeanLRRs(Table<Marker, String, Double> lrrs,
-                                           Set<Marker> useMarkers) {
-    ImmutableMap.Builder<String, Double> meanLRRs = ImmutableMap.builderWithExpectedSize(sampleNames.size());
-    for (String sample : sampleNames) {
-      meanLRRs.put(sample, ArrayUtils.mean(Maps
-                                               .filterEntries(lrrs.column(sample),
-                                                              e -> useMarkers.contains(e.getKey())
-                                                                   && Double.isFinite(e.getValue()))
-                                               .values()));
-    }
-
-    return meanLRRs.build();
   }
 
   private Map<String, Double> calcPctHets(Table<Marker, String, Byte> genotypes,
@@ -1222,10 +1198,6 @@ public class SexChecks {
       System.err.println(usage);
       System.exit(1);
     }
-
-    // check = true;
-    // par = true;
-    // filename = "D:/home/npankrat/projects/GEDI_exomeRAF.properties";
     try {
       proj = new Project(filename);
 
