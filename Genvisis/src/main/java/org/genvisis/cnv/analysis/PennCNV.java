@@ -374,7 +374,7 @@ public class PennCNV {
         String estSexStr = lineData.getValue().get(0);
         if (!ext.isMissingValue(estSexStr)) {
           int estSex = Integer.parseInt(estSexStr);
-          estSex = SexChecks.KARYOTYPES[estSex].contains("XX") ? 2 : 1;
+          estSex = SexChecks.EstimatedSex.values()[estSex].getKaryotype().contains("XX") ? 2 : 1;
           writer.println(lineData.getKey() + "\t" + estSex);
         }
       }

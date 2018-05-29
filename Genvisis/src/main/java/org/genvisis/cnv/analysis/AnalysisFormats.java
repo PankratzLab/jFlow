@@ -373,7 +373,7 @@ public class AnalysisFormats implements Runnable {
             if (sex == -1) {
               sex = Integer.parseInt(sexData.get(sampleName.toUpperCase()).get(0));
             }
-            boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
+            boolean compFemale = SexChecks.EstimatedSex.values()[sex].getKaryotype().contains("XX");
             String exportFileName = (compFemale ? femaleDir : maleDir) + sampleName
                                     + (gzip ? ".gz" : "");
             if (!Files.exists(exportFileName)) {
@@ -734,7 +734,7 @@ public class AnalysisFormats implements Runnable {
       if (sex == -1) {
         sex = Integer.parseInt(sexData.get(samples[i].toUpperCase()).get(0));
       }
-      boolean compFemale = SexChecks.KARYOTYPES[sex].contains("XX");
+      boolean compFemale = SexChecks.EstimatedSex.values()[sex].getKaryotype().contains("XX");
 
       String exportFileName = (compFemale ? femaleDir : maleDir) + samples[i] + (gzip ? ".gz" : "");
       if (!Files.exists(exportFileName)) {
