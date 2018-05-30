@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.util.concurrent.Callable;
 import org.genvisis.CLI;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.WorkerHive;
@@ -116,7 +117,7 @@ public class SimpleTallyGene {
 
     c.addArgWithDefault("vcf", "vcf to tally", "a.vcf");
     c.addArgWithDefault("vpop", "vpop to use", "a.vpop");
-    c.addArgWithDefault("maf", "maf to use", "1.2");
+    c.addArgWithDefault("mafs", "mafs to use,comma delimited", "0.0,1.2");
     c.addArgWithDefault("segment", "UCSC segments , ; delimited",
                         "chr18:20714428-20840534;chr17:7571720-7590868");
     c.addArgWithDefault("name", "typically gene name, comma delimited", "CABLES1,TP53");
@@ -126,7 +127,7 @@ public class SimpleTallyGene {
 
     String vcf = c.get("vcf");
     String vpop = c.get("vpop");
-    double maf = c.getD("maf");
+    double[] mafs = ArrayUtils.toDoubleArray(c.get("mafs").split(","));
 
     Segment[] segs = Segment.getSegments(c.get("segment").split(";"));
     String[] names = c.get("name").split(",");
@@ -135,7 +136,9 @@ public class SimpleTallyGene {
       throw new IllegalArgumentException("Must have a name for each segment");
     }
     for (int i = 0; i < names.length; i++) {
-      run(vcf, vpop, maf, segs[i], names[i], omimDir);
+      for (double maf : mafs) {
+        run(vcf, vpop, maf, segs[i], names[i], omimDir);
+      }
     }
 
   }
