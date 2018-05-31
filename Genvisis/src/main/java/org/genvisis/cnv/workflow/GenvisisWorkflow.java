@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.CLI;
+import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -83,10 +84,11 @@ public class GenvisisWorkflow {
     if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
         || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
 
-      if (proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel")
-          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel.gz")
+      if (proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
+                                        .equals(AffyPipeline.AFFY_CEL_EXTENSION)
+          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
+                                           .equals(AffyPipeline.AFFY_CEL_GZ_EXTENSION)
       // remove step if source file extension has changed, as trying to run the CEL processing step again would result in errors
-      //          || proj.SOURCE_DIRECTORY.getValue().endsWith("00src_CEL/") 
       ) {
         sb.generateAffyCELProcessingStep(proj);
       }

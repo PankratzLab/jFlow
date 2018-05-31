@@ -27,6 +27,7 @@ import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Command;
+import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -42,6 +43,8 @@ import org.genvisis.common.ext;
  */
 public class AffyPipeline {
 
+  public static final String AFFY_CEL_EXTENSION = ".cel";
+  public static final String AFFY_CEL_GZ_EXTENSION = ".cel.gz";
   private static final String AFFY_CEL_LIST_HEADER = "cel_files";
   private static final String AFFY_PROBELIST_HEADER = "probeset_id";
 
@@ -223,10 +226,8 @@ public class AffyPipeline {
     String probeResults = outDir + currentAnalysis + ".summary.txt";
 
     boolean progress = CmdLine.builder(log).build()
-                              .run(Command.builder(psetCommand)
-                                          .necessaryInputFiles(new String[] {celFile})
-                                          .expectedOutputFiles(new String[] {probeResults})
-                                          .build());
+                              .run(Command.builder(psetCommand).necessaryInputFiles(celFile)
+                                          .expectedOutputFiles(probeResults).build());
 
     log.reportTimeInfo("Parsing " + probeResults + " to obtain all probesIds");
     ArrayList<String> probesetIdsAll = new ArrayList<>(1800000);
@@ -342,11 +343,9 @@ public class AffyPipeline {
     String quantNormFile = outCurrent + analysisName + ".summary.txt";
     String report = outCurrent + analysisName + ".report.txt";
 
-    String[] output = new String[] {quantNormFile, report};
-
     boolean progress = CmdLine.builder(log).build()
                               .run(Command.builder(normalizeCommand).dir(outCurrent)
-                                          .expectedOutputFiles(output).build());
+                                          .expectedOutputFiles(quantNormFile, report).build());
 
     NormalizationResult normalizationResult = new NormalizationResult(quantNormFile);
     normalizationResult.setFail(!progress);
@@ -420,11 +419,12 @@ public class AffyPipeline {
     String reportFile = outCurrent + analysisName + ".report.txt";
 
     GenotypeResult genotypeResult = new GenotypeResult(callFile, confFile);
-    String[] output = new String[] {genotypeResult.getCallFile(), genotypeResult.getConfFile(),
-                                    reportFile};
 
     boolean progress = CmdLine.builder(log).build()
-                              .run(Command.builder(genotypeCommand).expectedOutputFiles(output)
+                              .run(Command.builder(genotypeCommand)
+                                          .expectedOutputFiles(genotypeResult.getCallFile(),
+                                                               genotypeResult.getConfFile(),
+                                                               reportFile)
                                           .dir(outCurrent).build());
 
     genotypeResult.setFailed(!progress);
@@ -453,16 +453,17 @@ public class AffyPipeline {
   }
 
   public static void run(Project proj, String aptExeDir, String aptLibDir, String quantNormTarget,
-                         int markerBuffer, int maxWritersOpen, boolean full, int numThreads) {
+                         int markerBuffer, int maxWritersOpen, boolean full,
+                         int numThreads) throws Elision {
     Logger log = proj.getLog();
 
-    if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel")
-        && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(".cel.gz")) {
-      log.reportError("Source file extension should be \".cel\" or \".cel.gz\" for Affymetrix projects.  Parsing may fail.");
+    if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_EXTENSION)
+        && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_GZ_EXTENSION)) {
+      log.reportError("Source file extension should be \"" + AFFY_CEL_EXTENSION + "\" or \""
+                      + AFFY_CEL_GZ_EXTENSION + "\" for Affymetrix projects.  Parsing may fail.");
     }
     if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
-      log.reportError("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz.  Parsing cannot continue.");
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz.  Parsing cannot continue.");
     }
     if (full) {
       log.reportTimeInfo("Running with full affymetrix cdf");
@@ -478,9 +479,9 @@ public class AffyPipeline {
     GENOME_BUILD build = proj.GENOME_BUILD_VERSION.getValue();
     Resource markerPositionsRsrc = Resources.affy(log).genome(build).getMarkerPositions();
     if (markerPositionsRsrc == null || !markerPositionsRsrc.isAvailable()) {
-      log.reportError("Affymetrix marker positions file for build " + build.getBuild()
-                      + " is not available.  Parsing cannot continue.");
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException("Affymetrix marker positions file for build "
+                                         + build.getBuild()
+                                         + " is not available.  Parsing cannot continue.");
     }
     String markerPositions = markerPositionsRsrc.get();
 
@@ -490,8 +491,7 @@ public class AffyPipeline {
                                                            proj.PROJECT_NAME.getValue(),
                                                            markerPositions);
     if (probeSets.isFail()) {
-      log.reportTime("Critical Error - Generating probe set failed!");
-      throw new IllegalArgumentException();
+      throw new Elision("Critical Error - Generating probe set failed!");
     }
 
     String celListFile = pipeline.generateCelList(celFiles, proj.PROJECT_DIRECTORY.getValue(),
@@ -500,8 +500,7 @@ public class AffyPipeline {
                                                       proj.PROJECT_NAME.getValue(),
                                                       proj.PROJECT_DIRECTORY.getValue());
     if (genotypeResult.isFailed()) {
-      log.reportTime("Critical Error - Genotyping failed!");
-      throw new IllegalArgumentException();
+      throw new Elision("Critical Error - Genotyping failed!");
     }
 
     NormalizationResult normalizationResult = pipeline.normalize(celListFile,
@@ -510,8 +509,7 @@ public class AffyPipeline {
                                                                  proj.PROJECT_DIRECTORY.getValue(),
                                                                  quantNormTarget);
     if (normalizationResult.isFail()) {
-      log.reportTime("Critical Error - Normalization failed!");
-      throw new IllegalArgumentException();
+      throw new Elision("Critical Error - Normalization failed!");
     }
 
     String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
@@ -558,12 +556,12 @@ public class AffyPipeline {
     Logger log = new Logger(outDir + "affyPipeline.log");
     String[] celFiles;
     if (Files.isDirectory(cels)) {
-      celFiles = Files.list(cels, null, ".cel", false, true);
+      celFiles = Files.list(cels, null, AFFY_CEL_EXTENSION, false, true);
     } else {
       celFiles = HashVec.loadFileToStringArray(cels, false, new int[] {0}, true);
     }
     validateCelSelection(celFiles, log);
-    log.reportTimeInfo("Found " + celFiles.length + " .cel files to process");
+    log.reportTimeInfo("Found " + celFiles.length + " " + AFFY_CEL_EXTENSION + " files to process");
     if (markerPositions == null || !Files.exists(markerPositions)) {
       log.reportError("Could not find marker position file " + markerPositions);
       Resource markerPos = Resources.affy(log).genome(build).getMarkerPositions();
@@ -702,8 +700,8 @@ public class AffyPipeline {
 
     String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
                    + "   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n"
-                   + "   (2) a directory or full path to a file containing .cel files for analysis (i.e. cels="
-                   + cels + " (default))\n"
+                   + "   (2) a directory or full path to a file containing " + AFFY_CEL_EXTENSION
+                   + " files for analysis (i.e. cels=" + cels + " (default))\n"
                    + "   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch="
                    + targetSketch + " (default))\n"
                    + "   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/) (i.e. aptExeDir="

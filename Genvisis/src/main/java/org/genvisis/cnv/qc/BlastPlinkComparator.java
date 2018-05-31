@@ -8,6 +8,7 @@ import org.genvisis.cnv.qc.MarkerBlastQC.QCResults;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.ext;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 
 public class BlastPlinkComparator {
 
@@ -65,38 +66,10 @@ public class BlastPlinkComparator {
 
     }
 
-    int maxLen = 0;
-    int len = 0;
-    if ((len = Integer.toString(qcPassPerf).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcFailPerf).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcPassClose).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcFailClose).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcPassAmbig).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcFailAmbig).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcPassBad).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcFailBad).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcPassMiss).length()) > maxLen) {
-      maxLen = len;
-    }
-    if ((len = Integer.toString(qcFailMiss).length()) > maxLen) {
-      maxLen = len;
-    }
+    int maxLen = Integer.toString(Ints.max(qcPassPerf, qcFailPerf, qcPassClose, qcFailClose,
+                                           qcPassAmbig, qcFailAmbig, qcPassBad, qcFailBad,
+                                           qcPassMiss, qcFailMiss))
+                        .length();
 
     int allMkrsLen = allMkrs.length;
 

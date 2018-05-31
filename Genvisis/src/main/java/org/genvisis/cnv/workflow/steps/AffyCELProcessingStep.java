@@ -12,6 +12,7 @@ import org.genvisis.cnv.workflow.Requirement.OptionalBoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
@@ -21,13 +22,13 @@ public class AffyCELProcessingStep extends Step {
   public static final String NAME = "Process Affymetrix CEL files";
   public static final String DESC = "";
 
-  Project proj;
+  private final Project proj;
 
-  OptionalBoolRequirement fullReq;
-  Requirement<Integer> numThreadsReq;
-  DirRequirement aptExeReq;
-  DirRequirement aptLibReq;
-  FileRequirement sketchReq;
+  private final OptionalBoolRequirement fullReq;
+  private final Requirement<Integer> numThreadsReq;
+  private final DirRequirement aptExeReq;
+  private final DirRequirement aptLibReq;
+  private final FileRequirement sketchReq;
 
   public static final String DESC_MKR_BUFF = "Number of markers to buffer when splitting files.";
   public static final String DESC_MAX_WRIT = "Maximum number of writers to open, if this is less than the sample size parsing will slow drastically.";
@@ -77,8 +78,12 @@ public class AffyCELProcessingStep extends Step {
     boolean full = variables.get(fullReq);
     int numThreads = variables.get(numThreadsReq);
 
-    AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, markerBuffer, maxWritersOpen,
-                     full, numThreads);
+    try {
+      AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, markerBuffer, maxWritersOpen,
+                       full, numThreads);
+    } catch (Elision e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

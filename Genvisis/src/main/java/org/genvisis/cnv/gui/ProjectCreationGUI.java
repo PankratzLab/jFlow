@@ -532,7 +532,7 @@ public class ProjectCreationGUI extends JDialog {
     String[] cols = null;
     String sourceDelim = null;
     int sampCol = -100;
-    if (ARRAY.values()[comboBoxArrayType.getSelectedIndex()] == ARRAY.ILLUMINA) {
+    if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
       headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate,
                                               new org.genvisis.common.Logger(),
                                               Optional.ofNullable(progressBar));
@@ -618,7 +618,7 @@ public class ProjectCreationGUI extends JDialog {
     // if (abLookup != null && Files.exists(projectDirectory + abLookup)) {
     // proj.setProperty(proj.AB_LOOKUP_FILENAME, ext.removeDirectoryInfo(abLookup));
     // }
-    if (ARRAY.values()[comboBoxArrayType.getSelectedIndex()] == ARRAY.ILLUMINA) {
+    if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
       actualProj.ID_HEADER.setValue(sampCol == SourceFileHeaderGUI.FILENAME_IND ? SourceFileParser.FILENAME_AS_ID_OPTION
                                                                                 : cols[sampCol]);
       actualProj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.getDelimiter(sourceDelim));

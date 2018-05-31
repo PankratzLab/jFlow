@@ -245,7 +245,8 @@ public class VcfExportShortcut {
   private static final String DESC_PROJ_DIR = "Directory for project files";
 
   private static final String DESC_ARRAY = "Array type (one of the following: "
-                                           + ARRAY.ILLUMINA.name() + ", " + ARRAY.AFFY_GW6 + ")";
+                                           + ARRAY.ILLUMINA.name() + ", " + ARRAY.AFFY_GW6.name()
+                                           + ")";
   private static final String DESC_ILL_MAN = "An HG19 Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv). ";
   private static final String DESC_AFFY_SKETCH = "Affymetrix target sketch file (e.g. hapmap.quant-norm.normalization-target.txt)";
   private static final String DESC_BLAST_VCF = "The blast.vcf.gz file provided with the Genvisis executable for Affymetrix projects.  Please contact help@genvisis.org if this file is missing.";
