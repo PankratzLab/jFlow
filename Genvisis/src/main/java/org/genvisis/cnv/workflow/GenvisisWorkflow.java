@@ -269,7 +269,7 @@ public class GenvisisWorkflow {
     // override threads defaults
     if (numThreads > 0) {
       for (Step s : varMap.keySet()) {
-        if (varMap.get(s).has(numThreadsReq)) {
+        if (varMap.get(s).hasValid(numThreadsReq)) {
           varMap.get(s).put(numThreadsReq, numThreads);
         }
       }
@@ -412,7 +412,7 @@ public class GenvisisWorkflow {
     // override threads defaults
     if (numThreads > 0) {
       for (Step s : varMap.keySet()) {
-        if (varMap.get(s).has(numThreadsReq)) {
+        if (varMap.get(s).hasValid(numThreadsReq)) {
           varMap.get(s).put(numThreadsReq, numThreads);
         }
       }

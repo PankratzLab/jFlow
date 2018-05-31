@@ -141,7 +141,7 @@ public class MitoCNEstimateStep extends Step {
 
   @Override
   public void run(Variables variables) {
-    String medianMarkers = variables.has(medianMarkersReq) ? variables.get(medianMarkersReq)
+    String medianMarkers = variables.hasValid(medianMarkersReq) ? variables.get(medianMarkersReq)
                                                                       .getPath()
                                                            : null;
     double markerCallRateFilter = variables.get(callrateThresholdReq);

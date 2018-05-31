@@ -152,6 +152,7 @@ public abstract class RequirementSet {
     boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
                                   Map<Step, Variables> variables) {
       for (Requirement<?> r : reqs) {
+        if (variables.get(step).parseFail(r)) return false;
         if (!r.checkRequirement(variables.get(step).get(r).toString(), stepSelections, variables)) {
           return false;
         }

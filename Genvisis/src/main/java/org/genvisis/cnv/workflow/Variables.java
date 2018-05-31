@@ -22,14 +22,14 @@ public class Variables {
   /**
    * Set value if valid, or set as a parse failure
    * 
-   * @param fc Requirement
+   * @param req Requirement
    * @param String Raw, unparsed variable value
    */
-  public <T> void parseOrFail(Requirement<T> fc, String rawValue) {
+  public <T> void parseOrFail(Requirement<T> req, String rawValue) {
     try {
-      lineValues.put(fc, fc.parseValue(rawValue));
+      lineValues.put(req, req.parseValue(rawValue));
     } catch (Exception e) {
-      lineValues.put(fc, FAIL);
+      lineValues.put(req, FAIL);
     }
   }
 
@@ -37,47 +37,45 @@ public class Variables {
    * Set value
    * 
    * @param <T>
-   * @param fc Requirement
+   * @param req Requirement
    * @param T Raw, unparsed variable value
    */
-  public <T> void put(Requirement<T> fc, T value) {
-    lineValues.put(fc, value);
+  public <T> void put(Requirement<T> req, T value) {
+    lineValues.put(req, value);
   }
 
   /**
-   * Is there <i>any</i> value for the given Requirement in this DataLine?<br />
-   * (May be a parse failure value, but at least a value is present.)
+   * Is there a <i>valid</i> value for the given Requirement in this Variables?<br />
    * 
-   * @param fc
+   * @param req
    * @return
    */
-  public boolean has(Requirement<?> fc) {
-    return lineValues.containsKey(fc) && lineValues.get(fc) != FAIL;
+  public boolean hasValid(Requirement<?> req) {
+    return lineValues.containsKey(req) && lineValues.get(req) != FAIL;
   }
 
   /**
-   * Get the String representation of the value in this line for the given Requirement. Calls
-   * {@link Object#toString()}, so if no value is present a {@link NullPointerException} will be
-   * thrown.
+   * Get the String representation of the value in this line for the given Requirement or null if no
+   * value is present.
    * 
-   * @param fc
+   * @param req
    * @return
    */
-  public String getString(Requirement<?> fc) {
-    return (has(fc) ? lineValues.get(fc) : null).toString();
+  public String getString(Requirement<?> req) {
+    return hasValid(req) ? lineValues.get(req).toString() : null;
   }
 
   /**
-   * @param fc
+   * @param req
    * @return
    */
   @SuppressWarnings("unchecked")
-  public <T> T get(Requirement<T> fc) {
-    return has(fc) ? (T) lineValues.get(fc) : fc.getDefaultValue();
+  public <T> T get(Requirement<T> req) {
+    return hasValid(req) ? (T) lineValues.get(req) : req.getDefaultValue();
   }
 
-  public boolean parseFail(Requirement<?> fc) {
-    return lineValues.get(fc) == FAIL;
+  public boolean parseFail(Requirement<?> req) {
+    return lineValues.get(req) == FAIL;
   }
 
   public Set<Requirement<?>> keys() {
