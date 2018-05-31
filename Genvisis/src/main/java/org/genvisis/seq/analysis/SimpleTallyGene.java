@@ -1,6 +1,9 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
@@ -17,7 +20,7 @@ public class SimpleTallyGene {
   private static class Params implements Callable<Params> {
 
     private final String vcf;
-    private final Segment seg;
+    private final Collection<Segment> segs;
     private final String name;
     private final String vpopFile;
     private final String omimDir;
@@ -33,11 +36,11 @@ public class SimpleTallyGene {
      * @param filter
      * @param maf max maf
      */
-    private Params(String vcf, Segment seg, String name, String vpopFile, String omimDir,
-                   VariantContextFilter filter, double maf) {
+    private Params(String vcf, Collection<Segment> segs, String name, String vpopFile,
+                   String omimDir, VariantContextFilter filter, double maf) {
       super();
       this.vcf = vcf;
-      this.seg = seg;
+      this.segs = segs;
       this.name = name;
       this.vpopFile = vpopFile;
       this.omimDir = omimDir;
@@ -54,7 +57,11 @@ public class SimpleTallyGene {
 
       String newVpop = dir + ext.removeDirectoryInfo(vpopFile);
       String segFile = dir + name + ".segs";
-      Files.write(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop(), segFile);
+      StringJoiner segJoiner = new StringJoiner("\n");
+      for (Segment seg : segs) {
+        segJoiner.add(seg.getChr() + "\t" + seg.getStart() + "\t" + seg.getStop());
+      }
+      Files.write(segJoiner.toString(), segFile);
       String subVcf = VCFOps.extractSegments(vcf, segFile, 100, null,
                                              ext.rootOf(vpopFile, false) + "_extractedVcfs/", false,
                                              true, true, false, null, 1, log);
@@ -78,11 +85,11 @@ public class SimpleTallyGene {
    * @param name
    * @param omimDir
    */
-  public static void run(String vcf, String vpop, double maf, Segment seg, String name,
+  public static void run(String vcf, String vpop, double maf, Collection<Segment> segs, String name,
                          String omimDir) {
 
     WorkerHive<Params> hive = new WorkerHive<>(1, 1, new Logger());
-    hive.addCallable(new Params(vcf, seg, name, vpop, omimDir, null, maf));
+    hive.addCallable(new Params(vcf, segs, name, vpop, omimDir, null, maf));
     hive.execute(true);
 
   }
@@ -99,9 +106,11 @@ public class SimpleTallyGene {
     String omimDir = "/Volumes/Beta/ref/OMIM/";
     for (int i = 0; i < names.length; i++) {
       for (double maf : mafs) {
-        hive.addCallable(new Params(vcf, segs[i], names[i], vpop, omimDir, null, maf));
+        hive.addCallable(new Params(vcf, Arrays.asList(segs[i]), names[i], vpop, omimDir, null,
+                                    maf));
         if (maf == 0) {
-          hive.addCallable(new Params(vcf, segs[i], names[i], tnVpop, omimDir, null, maf));
+          hive.addCallable(new Params(vcf, Arrays.asList(segs[i]), names[i], tnVpop, omimDir, null,
+                                      maf));
         }
       }
     }
@@ -122,6 +131,7 @@ public class SimpleTallyGene {
                         "chr18:20714428-20840534;chr17:7571720-7590868");
     c.addArgWithDefault("name", "typically gene name, comma delimited", "CABLES1,TP53");
     c.addArgWithDefault("omimDir", "omim directory", "/Volumes/Beta/ref/OMIM/");
+    c.addFlag("combine", "If multiple segments are provided, combine for a single analysis");
 
     c.parseWithExit(args);
 
@@ -132,12 +142,20 @@ public class SimpleTallyGene {
     Segment[] segs = Segment.getSegments(c.get("segment").split(";"));
     String[] names = c.get("name").split(",");
     String omimDir = c.get("omimDir");
-    if (names.length != segs.length) {
-      throw new IllegalArgumentException("Must have a name for each segment");
-    }
-    for (int i = 0; i < names.length; i++) {
-      for (double maf : mafs) {
-        run(vcf, vpop, maf, segs[i], names[i], omimDir);
+
+    for (double maf : mafs) {
+      if (c.has("combine")) {
+        if (names.length != 1) {
+          throw new IllegalArgumentException("Must have a single name when combining");
+        }
+        run(vcf, vpop, maf, Arrays.asList(segs), names[0], omimDir);
+      } else {
+        if (names.length != segs.length) {
+          throw new IllegalArgumentException("Must have a name for each segment");
+        }
+        for (int i = 0; i < names.length; i++) {
+          run(vcf, vpop, maf, Arrays.asList(segs[i]), names[i], omimDir);
+        }
       }
     }
 
