@@ -1397,7 +1397,7 @@ public final class Resources {
    * Supported genome reference builds
    */
   public enum GENOME_BUILD {
-    HG19("hg19", 37), HG18("hg18", 36);
+    HG38("hg38", 38), HG19("hg19", 37), HG18("hg18", 36);
 
     private final String build;
     private final int buildInt;
