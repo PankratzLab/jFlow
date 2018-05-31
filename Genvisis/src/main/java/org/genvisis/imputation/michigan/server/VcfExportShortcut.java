@@ -10,6 +10,8 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
@@ -247,8 +249,8 @@ public class VcfExportShortcut {
   private static final String DESC_ARRAY = "Array type (one of the following: "
                                            + ARRAY.ILLUMINA.name() + ", " + ARRAY.AFFY_GW6.name()
                                            + ")";
-  private static final String DESC_ILL_MAN = "An HG19 Illumina manifest file (e.g. HumanOmni2.5-4v1_H.csv). ";
-  private static final String DESC_AFFY_SKETCH = "Affymetrix target sketch file (e.g. hapmap.quant-norm.normalization-target.txt)";
+  private static final String DESC_ILL_MAN = "An HG19 Illumina manifest file";
+  private static final String DESC_AFFY_SKETCH = "Affymetrix target sketch file";
   private static final String DESC_BLAST_VCF = "The blast.vcf.gz file provided with the Genvisis executable for Affymetrix projects.  Please contact help@genvisis.org if this file is missing.";
   private static final String DESC_MKR_POS = "The markerPositions.txt file provided with the Genvisis executable for Affymetrix projects.  Please contact help@genvisis.org if this file is missing.";
 
@@ -273,8 +275,8 @@ public class VcfExportShortcut {
     cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT, true);
     cli.addArg(ARG_PED, DESC_PED, false);
 
-    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN);
-    cli.addArg(ARG_AFFY_SKETCH, DESC_AFFY_SKETCH);
+    cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN, "HumanOmni2.5-4v1_H.csv");
+    cli.addArg(ARG_AFFY_SKETCH, DESC_AFFY_SKETCH, "hapmap.quant-norm.normalization-target.txt");
     cli.addGroup(ARG_ILL_MAN, ARG_AFFY_SKETCH);
 
     cli.addArg(ARG_APT_EXE, AffyCELProcessingStep.DESC_APT_EXT, false);
@@ -336,6 +338,7 @@ public class VcfExportShortcut {
       export.setAffySketch(cli.get(ARG_AFFY_SKETCH));
       export.setAptExeDir(cli.get(ARG_APT_EXE));
       export.setAptLibDir(cli.get(ARG_APT_LIB));
+      Resources.affy(log).genome(GENOME_BUILD.HG19).getMarkerPositions().get(); // download if necessary
     }
     export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
     export.setHWEThreshold(cli.getD(ARG_HWE));

@@ -354,6 +354,7 @@ public class GenvisisWorkflow {
       }
       varMap.put(sampleData, stepReqs);
     }
+
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 

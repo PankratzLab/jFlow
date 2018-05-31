@@ -15,6 +15,8 @@ public class PropertyKeys {
   public static final String KEY_XY_SCALE_FACTOR = "XY_SCALE_FACTOR";
   public static final String KEY_SOURCE_DIRECTORY = "SOURCE_DIRECTORY";
   public static final String KEY_SOURCE_FILENAME_EXTENSION = "SOURCE_FILENAME_EXTENSION";
+  public static final String KEY_RAW_SOURCE_EXTENSION = "RAW_SOURCE_EXTENSION";
+  public static final String KEY_RAW_SOURCE_DIRECTORY = "RAW_SOURCE_DIRECTORY";
   public static final String KEY_LONG_FORMAT = "LONG_FORMAT";
   public static final String KEY_SOURCE_FILE_DELIMITER = "SOURCE_FILE_DELIMITER";
   public static final String KEY_ID_HEADER = "ID_HEADER";
