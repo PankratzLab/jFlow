@@ -275,36 +275,23 @@ public class GenvisisWorkflow {
       }
     }
 
-    String s0 = parseCELFiles == null ? ""
-                                      : parseCELFiles.getCommandLine(varMap.get(parseCELFiles));
-    String s1 = parseSamples.getCommandLine(varMap.get(parseSamples));
-    String s2 = transpose.getCommandLine(varMap.get(transpose));
-    String s3 = sampleData.getCommandLine(varMap.get(sampleData));
-    String s5 = sampleQc.getCommandLine(varMap.get(sampleQc));
-    String s6 = markerQc.getCommandLine(varMap.get(markerQc));
-    String s7 = sexChecks.getCommandLine(varMap.get(sexChecks));
-    String s8 = exportPlink.getCommandLine(varMap.get(exportPlink));
-    String s9 = gwasQc.getCommandLine(varMap.get(gwasQc));
-    String s10 = ancestry.getCommandLine(varMap.get(ancestry));
-    String s11 = faqcStep.getCommandLine(varMap.get(faqcStep));
-
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
     if (parseCELFiles != null) {
-      addStepInfo(output, parseCELFiles, s0);
+      addStepInfo(output, parseCELFiles, parseCELFiles.getCommandLine(varMap.get(parseCELFiles)));
     }
     if (parseSource) {
-      addStepInfo(output, parseSamples, s1);
-      addStepInfo(output, transpose, s2);
-      addStepInfo(output, sampleData, s3);
+      addStepInfo(output, parseSamples, parseSamples.getCommandLine(varMap.get(parseSamples)));
+      addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
+      addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
     }
-    addStepInfo(output, sampleQc, s5);
-    addStepInfo(output, markerQc, s6);
-    addStepInfo(output, sexChecks, s7);
-    addStepInfo(output, exportPlink, s8);
-    addStepInfo(output, gwasQc, s9);
-    addStepInfo(output, ancestry, s10);
-    addStepInfo(output, faqcStep, s11);
+    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
 
     return output.toString();
   }
@@ -316,6 +303,7 @@ public class GenvisisWorkflow {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
+
     IlluminaMarkerPositionsStep createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep(proj)
                                                            : null;
     ParseSamplesStep parseSamples = sb.generateParseSamplesStep(proj, createMkrPos);
@@ -418,37 +406,24 @@ public class GenvisisWorkflow {
       }
     }
 
-    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(varMap.get(createMkrPos));
-    String s1 = parseSamples.getCommandLine(varMap.get(parseSamples));
-    String s2 = transpose.getCommandLine(varMap.get(transpose));
-    String s3 = sampleData.getCommandLine(varMap.get(sampleData));
-    String s4 = blast.getCommandLine(varMap.get(blast));
-    String s5 = sampleQc.getCommandLine(varMap.get(sampleQc));
-    String s6 = markerQc.getCommandLine(varMap.get(markerQc));
-    String s7 = sexChecks.getCommandLine(varMap.get(sexChecks));
-    String s8 = exportPlink.getCommandLine(varMap.get(exportPlink));
-    String s9 = gwasQc.getCommandLine(varMap.get(gwasQc));
-    String s10 = ancestry.getCommandLine(varMap.get(ancestry));
-    String s11 = faqcStep.getCommandLine(varMap.get(faqcStep));
-
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
     if (createMkrPos != null) {
-      addStepInfo(output, createMkrPos, s0);
+      addStepInfo(output, createMkrPos, createMkrPos.getCommandLine(varMap.get(createMkrPos)));
     }
     if (parseSource) {
-      addStepInfo(output, parseSamples, s1);
-      addStepInfo(output, transpose, s2);
-      addStepInfo(output, sampleData, s3);
-      addStepInfo(output, blast, s4);
+      addStepInfo(output, parseSamples, parseSamples.getCommandLine(varMap.get(parseSamples)));
+      addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
+      addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
+      addStepInfo(output, blast, blast.getCommandLine(varMap.get(blast)));
     }
-    addStepInfo(output, sampleQc, s5);
-    addStepInfo(output, markerQc, s6);
-    addStepInfo(output, sexChecks, s7);
-    addStepInfo(output, exportPlink, s8);
-    addStepInfo(output, gwasQc, s9);
-    addStepInfo(output, ancestry, s10);
-    addStepInfo(output, faqcStep, s11);
+    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
 
     return output.toString();
   }
