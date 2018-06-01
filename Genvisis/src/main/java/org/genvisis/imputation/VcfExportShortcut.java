@@ -10,8 +10,6 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
@@ -337,7 +335,6 @@ public class VcfExportShortcut {
       export.setAffySketch(cli.get(ARG_AFFY_SKETCH));
       export.setAptExeDir(cli.get(ARG_APT_EXE));
       export.setAptLibDir(cli.get(ARG_APT_LIB));
-      Resources.affy(log).genome(GENOME_BUILD.HG19).getMarkerPositions().get(); // download if necessary
     }
     export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
     export.setHWEThreshold(cli.getD(ARG_HWE));

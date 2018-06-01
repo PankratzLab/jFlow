@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
+import org.genvisis.cnv.manage.Resources;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.DirRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
@@ -97,6 +99,8 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public String getCommandLine(Variables variables) {
+    Resources.affy(proj.getLog()).genome(GENOME_BUILD.HG19).getMarkerPositions().get(); // download if necessary
+
     StringBuilder cmd = new StringBuilder();
     cmd.append(Files.getRunString());
     cmd.append(" ").append(AffyPipeline.class.getName());
