@@ -1,4 +1,4 @@
-package org.genvisis.imputation.michigan.server;
+package org.genvisis.imputation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,6 @@ import org.genvisis.gwas.FurtherAnalysisQc;
 import org.genvisis.gwas.MarkerQC;
 import org.genvisis.gwas.MarkerQC.QC_METRIC;
 import org.genvisis.gwas.Qc;
-import org.genvisis.imputation.ImputationPipeline;
 import org.genvisis.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
