@@ -8,11 +8,11 @@
   <parent>
     <groupId>org.genvisis</groupId>
     <artifactId>pom-genvisis</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${pom-genvisis.version}</version>
   </parent>
 
   <artifactId>Genv-deprecated</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>${genv-dep.version}</version>
 	<packaging>takari-jar</packaging>
 
   <description>Deprecated Genvisis projects</description>

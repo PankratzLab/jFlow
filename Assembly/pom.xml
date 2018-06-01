@@ -8,11 +8,11 @@
 	<parent>
 		<groupId>org.genvisis</groupId>
 		<artifactId>pom-genvisis</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>${pom-genvisis.version}</version>
 	</parent>
 
 	<artifactId>Assembly</artifactId>
-	<version>0.1.11-SNAPSHOT</version>
+	<version>${assembly.version}</version>
 	<packaging>takari-jar</packaging>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
