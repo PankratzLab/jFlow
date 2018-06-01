@@ -1,5 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -46,11 +48,12 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
     return getLocusName().equals(vc.getID());
   }
 
-  public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers) {
+  public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj,
+                                                               Collection<String> markers) {
     MarkerDetailSet markerSet = proj.getMarkerSet();
     Map<String, Marker> markerNameMap = markerSet.getMarkerNameMap();
 
-    Map<String, MarkerGCAnnotation> markerGCAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
+    Map<String, MarkerGCAnnotation> markerGCAnnotations = Maps.newHashMapWithExpectedSize(markers.size());
     for (String markerName : markers) {
       Marker marker = markerNameMap.get(markerName);
       Builder builder = new Builder();
@@ -60,6 +63,10 @@ public class MarkerGCAnnotation extends LocusAnnotation implements AnnotationPar
                                                      new Segment(marker.getGenomicPosition())));
     }
     return markerGCAnnotations;
+  }
+
+  public static Map<String, MarkerGCAnnotation> initForMarkers(Project proj, String[] markers) {
+    return initForMarkers(proj, Arrays.asList(markers));
   }
 
   @Override

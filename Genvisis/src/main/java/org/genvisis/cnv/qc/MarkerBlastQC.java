@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
@@ -15,6 +16,7 @@ import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerGCAnnotation;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.common.ArrayUtils;
@@ -79,15 +81,16 @@ public class MarkerBlastQC {
     if (blastVCF == null) {
       blastVCF = proj.BLAST_ANNOTATION_FILENAME.getValue();
     }
-    MarkerSetInfo markerSet = proj.getMarkerSet();
-    byte[] chrs = markerSet.getChrs();
-    int[] pos = markerSet.getPositions();
-    String[] markerNames = markerSet.getMarkerNames();
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Map<String, Marker> markerMap = markerSet.getMarkerNameMap();
+    List<Marker> markers = markerSet.getMarkers();
+    List<String> markerNames = markers.stream().map(Marker::getName).collect(Collectors.toList());
     MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
                                                                                proj.BLAST_ANNOTATION_FILENAME.getValue(),
                                                                                proj.getMarkerSet(),
                                                                                true, proj.getLog());
     markerAnnotationLoader.setReportEvery(500000);
+
     Map<String, MarkerGCAnnotation> gcAnnotations = MarkerGCAnnotation.initForMarkers(proj,
                                                                                       markerNames);
     Map<String, MarkerBlastAnnotation> blastResults = MarkerBlastAnnotation.initForMarkers(markerNames);
@@ -98,8 +101,8 @@ public class MarkerBlastQC {
     markerAnnotationLoader.fillAnnotations(null, parsers, QUERY_TYPE.ONE_TO_ONE);
 
     QCResults result = new QCResults();
-    for (int i = 0; i < markerNames.length; i++) {
-      String m = markerNames[i];
+    for (int i = 0; i < markers.size(); i++) {
+      String m = markers.get(i).getName();
       MarkerBlastAnnotation annot = blastResults.get(m);
       if (annot == null) {
         result.getMissing().add(m);
@@ -110,7 +113,9 @@ public class MarkerBlastQC {
       if (perfectMatches.size() == 1) {
         result.getPerfect().add(m);
       } else if (!perfectMatches.isEmpty()) {
-        BlastAnnotation best = MarkerDetailSet.closestChrMatch(chrs[i], pos[i], perfectMatches);
+        BlastAnnotation best = MarkerDetailSet.closestChrMatch(markerMap.get(m).getChr(),
+                                                               markerMap.get(m).getPosition(),
+                                                               perfectMatches);
         if (best != null) {
           result.getMatches().add(m);
         } else {

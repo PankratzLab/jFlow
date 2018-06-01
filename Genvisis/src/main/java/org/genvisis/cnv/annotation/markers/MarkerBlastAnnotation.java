@@ -1,6 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -145,7 +146,11 @@ public class MarkerBlastAnnotation implements AnnotationParser {
   }
 
   public static Map<String, MarkerBlastAnnotation> initForMarkers(final String[] markers) {
-    Map<String, MarkerBlastAnnotation> blastAnnotations = Maps.newHashMapWithExpectedSize(markers.length);
+    return initForMarkers(Arrays.asList(markers));
+  }
+
+  public static Map<String, MarkerBlastAnnotation> initForMarkers(final Collection<String> markers) {
+    Map<String, MarkerBlastAnnotation> blastAnnotations = Maps.newHashMapWithExpectedSize(markers.size());
     for (String marker : markers) {
       blastAnnotations.put(marker, new MarkerBlastAnnotation(marker));
     }
