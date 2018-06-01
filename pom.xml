@@ -95,7 +95,7 @@
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
-		<assembly.version>0.1.11-SNAPSHOT</assembly.version>
+		<assembly.version>0.1.11</assembly.version>
 		<app.version>0.0.1-SNAPSHOT</app.version>
 		<pom-genvisis.version>0.0.1-SNAPSHOT</pom-genvisis.version>
 
