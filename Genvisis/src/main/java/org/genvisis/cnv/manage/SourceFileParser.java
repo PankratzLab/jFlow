@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -1031,29 +1032,39 @@ public class SourceFileParser implements Runnable {
       futures.add(executor.submit(parser));
     }
     executor.shutdown();
+
     try {
-      executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-    } catch (InterruptedException e) {
-      log.reportTimeWarning("Source file parsing was interrupted - please check output validity.");
-    }
-    int ooms = 0;
-    for (Future<?> f : futures) {
-      try {
-        f.get();
-      } catch (ExecutionException e) {
-        Throwable cause = e.getCause();
-        if (cause instanceof OutOfMemoryError) {
-          ooms++;
-        } else {
-          log.reportError("Source file parsing encountered an error (" + cause.getMessage()
-                          + ") and could not complete.  Please fix the error and restart Genvisis, or contact help@genvisis.org for assistance.");
+      // 5 minutes
+      Thread.sleep(1000 * 60 * 5);
+    } catch (InterruptedException e1) {}
+    boolean failed = false;
+    watch: while (!executor.isTerminated()) {
+      for (Future<?> f : futures) {
+        try {
+          f.get(1, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+          Throwable cause = e.getCause();
+          if (cause instanceof OutOfMemoryError) {
+            log.reportError("Source file parsing ran out of memory - please restart Genvisis with more memory or fewer threads.");
+          } else {
+            log.reportError("Source file parsing encountered an error (" + cause.getMessage()
+                            + ") and could not complete.  Please fix the error and restart Genvisis, or contact help@genvisis.org for assistance.");
+          }
+          failed = true;
+          executor.shutdownNow();
+          break watch;
+        } catch (InterruptedException e) {
+          // ignore
+        } catch (TimeoutException e) {
+          // ignore
         }
-      } catch (InterruptedException e) {
-        // ignore
+        try {
+          // 5 minutes
+          Thread.sleep(1000 * 60 * 5);
+        } catch (InterruptedException e) {}
       }
     }
-    if (ooms > 0) {
-      log.reportError("Source file parsing ran out of memory - please restart Genvisis with more memory or fewer threads.");
+    if (failed) {
       String[] remove = Files.list(proj.SAMPLE_DIRECTORY.getValue(), "",
                                    Sample.SAMPLE_FILE_EXTENSION, false, true);
       for (String f : remove) {
