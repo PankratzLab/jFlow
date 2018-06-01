@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.genvisis</groupId>
 		<artifactId>pom-genvisis</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>${pom-genvisis.version}</version>
 	</parent>
 	<artifactId>Genv-flow</artifactId>
 	<name>Genv-flow</name>
