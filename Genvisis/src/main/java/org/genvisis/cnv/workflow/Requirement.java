@@ -57,11 +57,34 @@ public abstract class Requirement<T> {
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
-      return exists(arg);
+      return valid(arg);
     }
 
-    protected boolean exists(String arg) {
-      return Files.exists(arg);
+    protected boolean valid(String arg) {
+      return Files.exists(arg) && !Files.isDirectory(arg);
+    }
+
+    @Override
+    public File parseValue(String raw) {
+      return new File(raw);
+    }
+
+  }
+
+  public static class DirRequirement extends Requirement<File> {
+
+    public DirRequirement(String description, File defaultValue) {
+      super(description, Requirement.RequirementInputType.DIR, defaultValue);
+    }
+
+    @Override
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
+                                    Map<Step, Variables> variables) {
+      return valid(arg);
+    }
+
+    protected boolean valid(String arg) {
+      return Files.exists(arg) && Files.isDirectory(arg);
     }
 
     @Override
@@ -80,7 +103,7 @@ public abstract class Requirement<T> {
     @Override
     public boolean checkRequirement(String arg, Set<Step> stepSelections,
                                     Map<Step, Variables> variables) {
-      return !exists(arg);
+      return !Files.exists(arg);
     }
   }
 

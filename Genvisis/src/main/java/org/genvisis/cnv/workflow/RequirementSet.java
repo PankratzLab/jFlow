@@ -99,7 +99,9 @@ public abstract class RequirementSet {
                                   Map<Step, Variables> variables) {
       Requirement<?> req = this.reqs.get(0);
       Object def = variables.get(step).get(this.reqs.get(0));
-      return req.checkRequirement(def == null ? null : def.toString(), stepSelections, variables);
+      return !variables.get(step).parseFail(req)
+             && req.checkRequirement(def == null ? null : def.toString(), stepSelections,
+                                     variables);
     }
 
     @Override
@@ -117,6 +119,7 @@ public abstract class RequirementSet {
     boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
                                   Map<Step, Variables> variables) {
       for (Requirement<?> r : reqs) {
+        if (variables.get(step).parseFail(r)) return false;
         if (r.checkRequirement(variables.get(step).get(r).toString(), stepSelections, variables)) {
           return true;
         }
@@ -149,6 +152,7 @@ public abstract class RequirementSet {
     boolean satisfiesRequirements(Step step, Set<Step> stepSelections,
                                   Map<Step, Variables> variables) {
       for (Requirement<?> r : reqs) {
+        if (variables.get(step).parseFail(r)) return false;
         if (!r.checkRequirement(variables.get(step).get(r).toString(), stepSelections, variables)) {
           return false;
         }

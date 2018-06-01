@@ -235,8 +235,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     this.hashCode = generateHashCode();
   }
 
-  private static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
-                                                 Iterable<BlastAnnotation> matches) {
+  public static BlastAnnotation closestChrMatch(byte naiveChr, int naivePosition,
+                                                Iterable<BlastAnnotation> matches) {
     // If more than one match, try choosing one with chr that matches naiveChr (chr
     // won't be affected by build) and closest position to naivePosition
     BlastAnnotation bestMatch = null;
@@ -397,9 +397,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       boolean ambiguousPosition = false;
       List<BlastAnnotation> perfectMatches = markerBlastAnnotation.getAnnotationsFor(BLAST_ANNOTATION_TYPES.PERFECT_MATCH,
                                                                                      log);
+      BlastAnnotation useThis = null;
       BlastAnnotation bestMatch = null;
       if (perfectMatches.size() == 1) {
-        bestMatch = perfectMatches.get(0);
+        useThis = bestMatch = perfectMatches.get(0);
       } else if (!perfectMatches.isEmpty()) {
         // TODO implement liftOver here to check which match is actually in naiveMarkerSet
         ambiguousPosition = true;
@@ -410,6 +411,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                 + " perfect matches for " + markerBlastAnnotation.getMarkerName()
                                 + ", none of which are on the same chromosome as indicated by the array");
           bestMatch = perfectMatches.get(0);
+        } else {
+          useThis = bestMatch;
         }
       } else {
         // Otherwise, choose lowest e-value match from non-perfect matches

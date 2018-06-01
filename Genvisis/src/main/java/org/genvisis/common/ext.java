@@ -510,11 +510,16 @@ public class ext {
   }
 
   public static String formDeci(double num, int numPlaces, boolean forceDigits) {
-    return formDeci(num, forceDigits ? numPlaces : 0, numPlaces);
+    return formDeci(num, forceDigits ? numPlaces : 0, numPlaces, false);
   }
 
   public static String formDeci(double num, int minSigFigs, int maxSigFigs) {
-    String theFormat = (maxSigFigs > 0 ? "0." : "0");
+    return formDeci(num, minSigFigs, maxSigFigs, false);
+  }
+
+  public static String formDeci(double num, int minSigFigs, int maxSigFigs,
+                                boolean forcePrecedingZeros) {
+    String theFormat = (maxSigFigs > 0 ? (forcePrecedingZeros ? "00." : "0.") : "0");
     String result;
 
     if (Double.isNaN(num)) {

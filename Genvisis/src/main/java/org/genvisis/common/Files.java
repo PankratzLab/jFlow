@@ -2130,6 +2130,10 @@ public class Files {
     return result;
   }
 
+  public static boolean exists(Iterable<String> filenames, boolean treatEmptyAsMissing) {
+    return exists("", filenames, treatEmptyAsMissing);
+  }
+
   // public static boolean exists(String filename) {
   // return exists(filename, false);
   // }

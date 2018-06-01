@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.CLI;
+import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
+import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.genvisis.cnv.workflow.steps.AffyMarkerBlastStep;
 import org.genvisis.cnv.workflow.steps.AncestryStep;
 import org.genvisis.cnv.workflow.steps.ComputePFBStep;
@@ -81,6 +83,15 @@ public class GenvisisWorkflow {
     AffyMarkerBlastStep affyMarkerBlastStep = null;
     if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
         || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
+
+      if (proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
+                                        .equals(AffyPipeline.AFFY_CEL_EXTENSION)
+          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
+                                           .equals(AffyPipeline.AFFY_CEL_GZ_EXTENSION)
+      // remove step if source file extension has changed, as trying to run the CEL processing step again would result in errors
+      ) {
+        sb.generateAffyCELProcessingStep(proj);
+      }
       parseSamplesStep = sb.generateParseSamplesStep(proj);
       affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamplesStep);
     } else {
@@ -157,16 +168,142 @@ public class GenvisisWorkflow {
   }
 
   public static String setupImputationDefaults(Project proj) {
-    return setupImputation(proj, Runtime.getRuntime().availableProcessors(), null, null, false,
-                           null);
+    return setupIlluminaImputation(proj, Runtime.getRuntime().availableProcessors(), null, null,
+                                   false, null);
   }
 
-  public static String setupImputation(Project proj, int numThreads, String putativeWhitesFile,
-                                       Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
-                                       String man) {
+  public static String setupAffyImputation(Project proj, int numThreads, String putativeWhitesFile,
+                                           Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
+                                           String aptExeDir, String aptLibDir, String sketch) {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
+    AffyCELProcessingStep parseCELFiles = sketch != null ? sb.generateAffyCELProcessingStep(proj)
+                                                         : null;
+    ParseSamplesStep parseSamples = sb.generateParseSamplesStep(proj);
+    TransposeStep transpose = sb.generateTransposeStep(proj, parseSamples);
+    SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
+    AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamples);
+    SampleQCStep sampleQc = sb.generateSampleQCStep(proj, parseSamples);
+    MarkerQCStep markerQc = sb.generateMarkerQCStep(proj, parseSamples);
+    SexChecksStep sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData,
+                                                       transpose, sampleQc);
+    PlinkExportStep exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
+    GwasQCStep gwasQc = sb.generateGwasQCStep(proj, exportPlink);
+    AncestryStep ancestry = sb.generateAncestryStep(proj, gwasQc);
+    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc,
+                                                                      ancestry);
+
+    Variables stepReqs;
+    Map<Step, Variables> varMap = new HashMap<>();
+
+    if (parseCELFiles != null) {
+      stepReqs = parseCELFiles.getDefaultRequirementValues();
+      for (Requirement<?> r1 : stepReqs.keys()) {
+        if (r1.getDescription().equals(AffyCELProcessingStep.DESC_SKETCH)) {
+          stepReqs.parseOrFail(r1, sketch);
+        } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_EXT)) {
+          stepReqs.parseOrFail(r1, aptExeDir);
+        } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_LIB)) {
+          stepReqs.parseOrFail(r1, aptLibDir);
+        }
+      }
+      varMap.put(parseCELFiles, stepReqs);
+    }
+    if (parseSource) {
+      varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
+      varMap.put(transpose, transpose.getDefaultRequirementValues());
+
+      stepReqs = sampleData.getDefaultRequirementValues();
+      for (Requirement<?> r1 : stepReqs.keys()) {
+        if (r1.getDescription().equalsIgnoreCase(SampleDataStep.REQ_CREATE_MINIMAL)) {
+          stepReqs.parseOrFail(r1, "false");
+          break;
+        }
+      }
+      varMap.put(sampleData, stepReqs);
+    }
+    varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+    varMap.put(markerQc, markerQc.getDefaultRequirementValues());
+
+    stepReqs = sexChecks.getDefaultRequirementValues();
+    for (Requirement<?> r1 : stepReqs.keys()) {
+      if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
+        stepReqs.parseOrFail(r1, "false");
+      } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+        stepReqs.parseOrFail(r1, "true");
+      }
+    }
+
+    varMap.put(sexChecks, stepReqs);
+    varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
+
+    stepReqs = gwasQc.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(gwasQc, stepReqs);
+
+    stepReqs = ancestry.getDefaultRequirementValues();
+    if (putativeWhitesFile != null) {
+      Requirement<?> r = null;
+      for (Requirement<?> r1 : stepReqs.keys()) {
+        if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
+          r = r1;
+          break;
+        }
+      }
+      if (r == null) {
+        throw new IllegalStateException();
+      }
+      stepReqs.parseOrFail(r, putativeWhitesFile);
+    }
+    varMap.put(ancestry, stepReqs);
+
+    stepReqs = faqcStep.getDefaultRequirementValues();
+    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+      fixQCThreshs(stepReqs, faqcThreshs);
+    }
+    varMap.put(faqcStep, stepReqs);
+
+    // override threads defaults
+    if (numThreads > 0) {
+      for (Step s : varMap.keySet()) {
+        if (varMap.get(s).hasValid(numThreadsReq)) {
+          varMap.get(s).put(numThreadsReq, numThreads);
+        }
+      }
+    }
+
+    StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
+
+    if (parseCELFiles != null) {
+      addStepInfo(output, parseCELFiles, parseCELFiles.getCommandLine(varMap.get(parseCELFiles)));
+    }
+    if (parseSource) {
+      addStepInfo(output, parseSamples, parseSamples.getCommandLine(varMap.get(parseSamples)));
+      addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
+      addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
+    }
+    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
+
+    return output.toString();
+  }
+
+  public static String setupIlluminaImputation(Project proj, int numThreads,
+                                               String putativeWhitesFile,
+                                               Map<QC_METRIC, String> faqcThreshs,
+                                               boolean parseSource, String man) {
+    StepBuilder sb = new StepBuilder(proj);
+
+    Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
+
     IlluminaMarkerPositionsStep createMkrPos = man != null ? sb.generateIlluminaMarkerPositionsStep(proj)
                                                            : null;
     ParseSamplesStep parseSamples = sb.generateParseSamplesStep(proj, createMkrPos);
@@ -217,13 +354,14 @@ public class GenvisisWorkflow {
       }
       varMap.put(sampleData, stepReqs);
     }
+
     varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
     varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
     stepReqs = sexChecks.getDefaultRequirementValues();
     for (Requirement<?> r1 : stepReqs.keys()) {
       if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "true");
+        stepReqs.parseOrFail(r1, "false");
       } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
         stepReqs.parseOrFail(r1, "true");
       }
@@ -263,43 +401,30 @@ public class GenvisisWorkflow {
     // override threads defaults
     if (numThreads > 0) {
       for (Step s : varMap.keySet()) {
-        if (varMap.get(s).has(numThreadsReq)) {
+        if (varMap.get(s).hasValid(numThreadsReq)) {
           varMap.get(s).put(numThreadsReq, numThreads);
         }
       }
     }
 
-    String s0 = createMkrPos == null ? "" : createMkrPos.getCommandLine(varMap.get(createMkrPos));
-    String s1 = parseSamples.getCommandLine(varMap.get(parseSamples));
-    String s2 = transpose.getCommandLine(varMap.get(transpose));
-    String s3 = sampleData.getCommandLine(varMap.get(sampleData));
-    String s4 = blast.getCommandLine(varMap.get(blast));
-    String s5 = sampleQc.getCommandLine(varMap.get(sampleQc));
-    String s6 = markerQc.getCommandLine(varMap.get(markerQc));
-    String s7 = sexChecks.getCommandLine(varMap.get(sexChecks));
-    String s8 = exportPlink.getCommandLine(varMap.get(exportPlink));
-    String s9 = gwasQc.getCommandLine(varMap.get(gwasQc));
-    String s10 = ancestry.getCommandLine(varMap.get(ancestry));
-    String s11 = faqcStep.getCommandLine(varMap.get(faqcStep));
-
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
     if (createMkrPos != null) {
-      addStepInfo(output, createMkrPos, s0);
+      addStepInfo(output, createMkrPos, createMkrPos.getCommandLine(varMap.get(createMkrPos)));
     }
     if (parseSource) {
-      addStepInfo(output, parseSamples, s1);
-      addStepInfo(output, transpose, s2);
-      addStepInfo(output, sampleData, s3);
-      addStepInfo(output, blast, s4);
+      addStepInfo(output, parseSamples, parseSamples.getCommandLine(varMap.get(parseSamples)));
+      addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
+      addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
+      addStepInfo(output, blast, blast.getCommandLine(varMap.get(blast)));
     }
-    addStepInfo(output, sampleQc, s5);
-    addStepInfo(output, markerQc, s6);
-    addStepInfo(output, sexChecks, s7);
-    addStepInfo(output, exportPlink, s8);
-    addStepInfo(output, gwasQc, s9);
-    addStepInfo(output, ancestry, s10);
-    addStepInfo(output, faqcStep, s11);
+    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
 
     return output.toString();
   }

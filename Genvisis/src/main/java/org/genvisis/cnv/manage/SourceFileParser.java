@@ -11,12 +11,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Vector;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.filesys.ABLookup;
@@ -39,6 +42,7 @@ import org.genvisis.common.Sort;
 import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
+import com.google.common.collect.Lists;
 
 public class SourceFileParser implements Runnable {
 
@@ -424,6 +428,7 @@ public class SourceFileParser implements Runnable {
       }
 
     } catch (Exception e) {
+      // TODO doesn't catch OOMs
       log.reportException(e);
     }
 
@@ -1015,24 +1020,50 @@ public class SourceFileParser implements Runnable {
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+    List<Future<?>> futures = Lists.newArrayList();
     for (int i = 0; i < numThreads; i++) {
       String[] threadFiles = fileCabinet.elementAt(i)
                                         .toArray(new String[fileCabinet.elementAt(i).size()]);
       if (threadFiles.length == 0) continue;
-      executor.submit(new SourceFileParser(proj, threadFiles, markerNames, keysKeys, lookup,
-                                           delimiter, fingerprint, fixes, timeBegan, i));
+      SourceFileParser parser = new SourceFileParser(proj, threadFiles, markerNames, keysKeys,
+                                                     lookup, delimiter, fingerprint, fixes,
+                                                     timeBegan, i);
+      futures.add(executor.submit(parser));
     }
-    try {
-      Thread.sleep(100);
-    } catch (InterruptedException e1) {
-      // 
-    }
-    Thread.yield();
     executor.shutdown();
     try {
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (InterruptedException e) {
-      //  ignore, TODO check if properly complete  
+      log.reportTimeWarning("Source file parsing was interrupted - please check output validity.");
+    }
+    int ooms = 0;
+    for (Future<?> f : futures) {
+      try {
+        f.get();
+      } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof OutOfMemoryError) {
+          ooms++;
+        } else {
+          log.reportError("Source file parsing encountered an error (" + cause.getMessage()
+                          + ") and could not complete.  Please fix the error and restart Genvisis, or contact help@genvisis.org for assistance.");
+        }
+      } catch (InterruptedException e) {
+        // ignore
+      }
+    }
+    if (ooms > 0) {
+      log.reportError("Source file parsing ran out of memory - please restart Genvisis with more memory or fewer threads.");
+      String[] remove = Files.list(proj.SAMPLE_DIRECTORY.getValue(), "",
+                                   Sample.SAMPLE_FILE_EXTENSION, false, true);
+      for (String f : remove) {
+        new File(f).delete();
+      }
+      remove = Files.list(proj.SAMPLE_DIRECTORY.getValue(), "", ".ser", false, true);
+      for (String f : remove) {
+        new File(f).delete();
+      }
+      return 0;
     }
 
     log.report(ext.getTime() + "]\tWriting sample list...");

@@ -93,6 +93,10 @@ public class Blast {
     }
   }
 
+  public boolean isFail() {
+    return fail;
+  }
+
   public boolean isOverwriteExisting() {
     return overwriteExisting;
   }
