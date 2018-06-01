@@ -144,7 +144,8 @@ public class PCCorrectionStep extends Step {
     String outputBase = variables.get(outputBaseReq).getPath();
     double markerCallRateFilter = variables.get(callrateReq);
     boolean recomputeLRRPCs = variables.get(recomputeLrrReq);
-    String tmpDir = !variables.hasValid(tempDirReq) ? variables.get(tempDirReq).getAbsolutePath() : null;
+    String tmpDir = variables.hasValid(tempDirReq) ? variables.get(tempDirReq).getAbsolutePath()
+                                                   : null;
     CORRECTION_TYPE correctionType = (CORRECTION_TYPE) variables.get(correctionStrategyReq);
     CHROMOSOME_X_STRATEGY strategy = (CHROMOSOME_X_STRATEGY) variables.get(sexChromosomeStrategyReq);
 
