@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 public class Command {
 
@@ -121,9 +122,17 @@ public class Command {
 
   private Command(Builder builder) {
     this.elements = builder.elements;
-    this.necessaryInputFiles = builder.necessaryInputFiles;
-    this.expectedOutputFiles = builder.expectedOutputFiles;
+    this.necessaryInputFiles = buildFiles(builder.dir, builder.necessaryInputFiles);
+    this.expectedOutputFiles = buildFiles(builder.dir, builder.expectedOutputFiles);
     this.dir = builder.dir;
+  }
+
+  private Collection<String> buildFiles(String dir, Collection<String> files) {
+    List<String> full = Lists.newArrayList();
+    for (String f : files) {
+      full.add(Files.isRelativePath(f) ? dir + f : f);
+    }
+    return full;
   }
 
   /**

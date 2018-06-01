@@ -2121,14 +2121,17 @@ public class Files {
 
     result = true;
     for (String filename : filenames) {
-      String f = filename.startsWith(dir) ? filename : (dir + filename);
-      if (!exists(f, treatEmptyAsMissing)) {
+      if (!exists(dir + filename, treatEmptyAsMissing)) {
         result = false;
         break;
       }
     }
 
     return result;
+  }
+
+  public static boolean exists(Iterable<String> filenames, boolean treatEmptyAsMissing) {
+    return exists("", filenames, treatEmptyAsMissing);
   }
 
   // public static boolean exists(String filename) {

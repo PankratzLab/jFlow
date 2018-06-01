@@ -203,10 +203,9 @@ public class CmdLine {
   public boolean run(Command command) {
     boolean success = false;
     if (overWriteExistingOutput || command.getExpectedOutputFiles().isEmpty()
-        || !Files.exists(command.getDir(), command.getExpectedOutputFiles(), treatEmptyAsMissing)) {
+        || !Files.exists(command.getExpectedOutputFiles(), treatEmptyAsMissing)) {
       if (command.getNecessaryInputFiles().isEmpty()
-          || Files.exists(command.getDir(), command.getNecessaryInputFiles(),
-                          treatEmptyAsMissing)) {
+          || Files.exists(command.getNecessaryInputFiles(), treatEmptyAsMissing)) {
         if (verbose) {
           log.report(ext.getTime() + " Info - running command "
                      + ArrayUtils.toStr(command.getElements(), " "));
