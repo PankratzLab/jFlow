@@ -142,8 +142,8 @@ public class MitoCNEstimateStep extends Step {
   @Override
   public void run(Variables variables) {
     String medianMarkers = variables.hasValid(medianMarkersReq) ? variables.get(medianMarkersReq)
-                                                                      .getPath()
-                                                           : null;
+                                                                           .getPath()
+                                                                : null;
     double markerCallRateFilter = variables.get(callrateThresholdReq);
     // FIXME: This gcCorrect assignment was carried over from the old indexed version but
     // appears incorrect
