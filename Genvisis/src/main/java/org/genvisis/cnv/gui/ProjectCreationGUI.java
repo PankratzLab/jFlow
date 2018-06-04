@@ -606,9 +606,8 @@ public class ProjectCreationGUI extends JDialog {
       dummy.message("Error - Project " + name + " already exists");
       return false;
     }
-    Project actualProj = Project.initializeProject(name);
+    Project actualProj = Project.initializeProject(name, projDir);
     actualProj.PROJECT_NAME.setValue(name);
-    actualProj.PROJECT_DIRECTORY.setValue(projDir);
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
     actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
     // actualProj.LRRSD_CUTOFF.setValue(lrrSd);

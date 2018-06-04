@@ -2272,12 +2272,13 @@ public class Project implements PropertyChangeListener {
    * @return Initialized {@link Project}
    * @throws IllegalArgumentException if a {@link Project} with name already exists
    */
-  public static Project initializeProject(String name) {
+  public static Project initializeProject(String name, String projectDir) {
     String filename = LaunchProperties.formProjectPropertiesFilename(name);
     if (Files.exists(filename, true)) {
       throw new IllegalArgumentException(filename + " already exists, cannot initialize project");
     } else {
-      Files.write(PropertyKeys.KEY_PROJECT_NAME + "=" + name, filename);
+      Files.writeLines(filename, PropertyKeys.KEY_PROJECT_NAME + "=" + name,
+                       PropertyKeys.KEY_PROJECT_DIRECTORY + "=" + ext.verifyDirFormat(projectDir));
     }
     return new Project(filename, null, false);
   }

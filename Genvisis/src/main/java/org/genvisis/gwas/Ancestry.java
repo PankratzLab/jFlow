@@ -54,9 +54,7 @@ public class Ancestry {
   private static Project createDummyProject(String dir, String dummyProjectPrefix,
                                             String putativeWhitesFile, Logger log) {
     String projectName = dummyProjectPrefix + "_AncestryResults";
-    Project dummyProject = Project.initializeProject(projectName);
-    dummyProject.PROJECT_DIRECTORY.setValue(dir);
-    dummyProject.saveProperties();
+    Project dummyProject = Project.initializeProject(projectName, dir);
 
     String plinkFamFile = dir + "plink.fam";
     String[][] plinkFam = HashVec.loadFileToStringMatrix(plinkFamFile, false, null);

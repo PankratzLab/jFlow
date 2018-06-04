@@ -96,8 +96,7 @@ public class LaunchProperties {
   private static void initalizeExampleProject() {
     String projName = "example";
     if (!Files.exists(formProjectPropertiesFilename(projName))) {
-      Project proj = Project.initializeProject(projName);
-      proj.PROJECT_DIRECTORY.setValue("example/");
+      Project proj = Project.initializeProject(projName, "example/");
       proj.SOURCE_DIRECTORY.setValue("sourceFiles/");
       proj.saveProperties();
     }
