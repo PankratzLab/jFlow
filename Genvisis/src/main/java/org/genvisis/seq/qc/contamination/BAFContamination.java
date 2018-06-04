@@ -3,8 +3,10 @@ package org.genvisis.seq.qc.contamination;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PFB;
@@ -53,11 +55,8 @@ public class BAFContamination {
   }
 
   public BAFContaminationResults getContamination() {
-    byte[] chrs = proj.getMarkerSet().getChrs();
-    int subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);
     // mafs = getMafs(mafs);
-    boolean[] use = getPFBsToUse(getMafs(mafs), callRate, sampGenotypes, minFreq, minCallRate,
-                                 subIndex);
+    boolean[] use = getPFBsToUse();
     double[][] indeps = new double[ArrayUtils.booleanArraySum(use)][2];
 
     log.reportTimeInfo("Found " + ArrayUtils.booleanArraySum(use)
@@ -88,12 +87,13 @@ public class BAFContamination {
     return results;
   }
 
-  private static boolean[] getPFBsToUse(double[] maf, double[] callRate, byte[] sampGenotypes,
-                                        double minFreq, double minCallRate, int sexStart) {
+  private boolean[] getPFBsToUse() {
+    List<Marker> markers = proj.getMarkerSet().getMarkers();
+    double[] maf = getMafs(mafs);
     boolean[] use = new boolean[maf.length];
     for (int i = 0; i < use.length; i++) {
-      if (maf[i] >= minFreq && (sampGenotypes[i] == 0 || sampGenotypes[i] == 2) && i < sexStart
-          && callRate[i] >= minCallRate) {
+      if (maf[i] >= minFreq && (sampGenotypes[i] == 0 || sampGenotypes[i] == 2)
+          && markers.get(i).getChr() < 23 && callRate[i] >= minCallRate) {
         use[i] = true;
       }
     }
