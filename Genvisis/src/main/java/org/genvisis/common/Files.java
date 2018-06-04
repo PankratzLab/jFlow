@@ -2953,6 +2953,10 @@ public class Files {
     }
   }
 
+  public static void writeLines(String filename, String... lines) {
+    writeArray(lines, filename);
+  }
+
   public static void writeArray(String[] entries, String filename) {
     PrintWriter writer;
 
