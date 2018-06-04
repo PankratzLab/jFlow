@@ -105,7 +105,6 @@ public class SourceFileParser implements Runnable {
     String sampleName, /* temp, */filename, trav, idHeader;
     float[][] data;
     byte[][] genotypes;
-    boolean ignoreAB;
     Hashtable<String, Float> allOutliers;
     Map<String, SourceFileHeaderData> headers;
     Logger log;
@@ -150,12 +149,11 @@ public class SourceFileParser implements Runnable {
                             + ArrayUtils.toStr(Sample.DATA_FIELDS[4], "/"));
             return;
           }
+          final boolean ignoreAB;
           if ((headerData.getColGenoAB1() == -1 || headerData.getColGenoAB2() == -1)
               && abLookup == null) {
-            log.reportTimeWarning("Setting IGNORE_AB to TRUE");
             ignoreAB = true;
           } else {
-            log.reportTimeWarning("Setting IGNORE_AB to FALSE");
             ignoreAB = false;
           }
 
