@@ -114,7 +114,6 @@ public class SourceFileParser implements Runnable {
     idHeader = proj.ID_HEADER.getValue();
     allOutliers = new Hashtable<>();
     headers = proj.getSourceFileHeaders(true);
-    boolean headersOutput = false;
     try {
       for (int i = 0; i < files.length; i++) {
 
@@ -177,12 +176,6 @@ public class SourceFileParser implements Runnable {
           genotypes = new byte[][] {ArrayUtils.byteArray(markerNames.length, (byte) 0),
                                     ignoreAB ? null
                                              : ArrayUtils.byteArray(markerNames.length, (byte) -1)};
-          if (!headersOutput) {
-            String logOutput = buildColumnAssignmentsLogOutput(headerData);
-            log.report(logOutput);
-            headersOutput = true;
-          }
-
           count = 0;
           parseAtAt = proj.PARSE_AT_AT_SYMBOL.getValue();
           String tmp;
@@ -438,7 +431,7 @@ public class SourceFileParser implements Runnable {
     System.gc();
   }
 
-  private String buildColumnAssignmentsLogOutput(SourceFileHeaderData headerData) {
+  private static String buildColumnAssignmentsLogOutput(SourceFileHeaderData headerData) {
     StringBuilder logOutput = new StringBuilder();
     logOutput.append("Column name assignments for data import:\n");
     logOutput.append("GC: ")
@@ -1009,6 +1002,8 @@ public class SourceFileParser implements Runnable {
 
     PSF.checkInterrupted();
 
+    log.report(buildColumnAssignmentsLogOutput(proj.getSourceFileHeaders(false).get(files[0])));
+
     if (affyProcess != null) {
       affyProcess.combineAll(numThreads);
     }
@@ -1260,6 +1255,7 @@ public class SourceFileParser implements Runnable {
     allOutliers = new Hashtable<>();
     renamedIDsHash = new Hashtable<>();
     headers = proj.getSourceFileHeaders(true);// setting to true fixed an issue parsing NGRC data
+    log.report(buildColumnAssignmentsLogOutput(headers.get(files[0])));
     int count = 0;
     try {
       LongFileFormatProducer producer = new LongFileFormatProducer(proj, files, idHeader, fixes,
