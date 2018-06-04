@@ -41,7 +41,9 @@ public class VcfExportShortcut {
   private double hweThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
   private double generalQcThresh = 0.0000001; // 1E-7, FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD
   private String sampleDropsFile = null;
+  private String sampleKeepsFile = null;
   private String markerDropsFile = null;
+  private String markerKeepsFile = null;
 
   private VcfExportShortcut(String projName, String sourceDir, String projDir, String pedigreeFile,
                             String blastVCF, String markerPositions, ARRAY arrayType, Logger log) {
@@ -77,6 +79,50 @@ public class VcfExportShortcut {
 
   private void setCallrateThreshold(double d) {
     this.callrateThresh = d;
+  }
+
+  private void setSampleKeepsFile(String file) {
+    if (file == null) {
+      throw new IllegalArgumentException("Sample keeps file cannot be null!");
+    }
+    if (!Files.exists(file)) {
+      throw new IllegalArgumentException("Specified sample keeps file (" + file
+                                         + ") couldn't be found!");
+    }
+    sampleKeepsFile = file;
+  }
+
+  private void setSampleDropsFile(String file) {
+    if (file == null) {
+      throw new IllegalArgumentException("Sample drops file cannot be null!");
+    }
+    if (!Files.exists(file)) {
+      throw new IllegalArgumentException("Specified sample drops file (" + file
+                                         + ") couldn't be found!");
+    }
+    sampleDropsFile = file;
+  }
+
+  private void setMarkerKeepsFile(String file) {
+    if (file == null) {
+      throw new IllegalArgumentException("Marker keeps file cannot be null!");
+    }
+    if (!Files.exists(file)) {
+      throw new IllegalArgumentException("Specified marker keeps file (" + file
+                                         + ") couldn't be found!");
+    }
+    markerKeepsFile = file;
+  }
+
+  private void setMarkerDropsFile(String file) {
+    if (file == null) {
+      throw new IllegalArgumentException("Marker drops file cannot be null!");
+    }
+    if (!Files.exists(file)) {
+      throw new IllegalArgumentException("Specified marker drops file (" + file
+                                         + ") couldn't be found!");
+    }
+    markerDropsFile = file;
   }
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
@@ -162,16 +208,20 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
     StringBuilder outputScript = null;
+    boolean includeQC = sampleDropsFile != null || sampleKeepsFile != null
+                        || markerKeepsFile != null || markerDropsFile != null;
     if (proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA) {
       outputScript = new StringBuilder(GenvisisWorkflow.setupIlluminaImputation(proj, numThreads,
                                                                                 putativeWhtFile,
                                                                                 qcMap, true,
-                                                                                manifest));
+                                                                                manifest,
+                                                                                includeQC));
     } else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6) {
       outputScript = new StringBuilder(GenvisisWorkflow.setupAffyImputation(proj, numThreads,
                                                                             putativeWhtFile, qcMap,
                                                                             true, aptExeDir,
-                                                                            aptLibDir, sketch));
+                                                                            aptLibDir, sketch,
+                                                                            includeQC));
     }
 
     String sampDrop = null;
@@ -198,7 +248,13 @@ public class VcfExportShortcut {
     outputScript.append(" ").append(ImputationPipeline.PROJ_ARG).append(proj.getPropertyFilename());
     outputScript.append(" ").append(ImputationPipeline.REF_ARG).append(imputationReferenceFile);
     outputScript.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
+    if (sampleKeepsFile != null) {
+      outputScript.append(" ").append(ImputationPipeline.KEEP_SAMPLES_ARG).append(sampleKeepsFile);
+    }
     outputScript.append(" ").append(ImputationPipeline.DROP_MARKERS_ARG).append(markDrop);
+    if (markerKeepsFile != null) {
+      outputScript.append(" ").append(ImputationPipeline.KEEP_MARKERS_ARG).append(markerKeepsFile);
+    }
     outputScript.append(" ").append(ImputationPipeline.EXPORT_IIDS).append("TRUE");
     outputScript.append(" ").append(ImputationPipeline.USE_GRC_ARG)
                 .append(Boolean.toString(useGRC));
@@ -238,6 +294,16 @@ public class VcfExportShortcut {
   private static final String ARG_CALLRATE = "callrate";
   private static final String ARG_HWE = "hwe";
   private static final String ARG_QC = "qc";
+
+  private static final String ARG_DROP_SAMPLES = "dropSamples";
+  private static final String ARG_KEEP_SAMPLES = "keepSamples";
+  private static final String ARG_DROP_MARKERS = "dropMarkers";
+  private static final String ARG_KEEP_MARKERS = "keepMarkers";
+
+  private static final String DESC_DROP_SAMPLES = "File of samples to drop from the exported data set";
+  private static final String DESC_KEEP_SAMPLES = "File of samples to keep in the exported data set";
+  private static final String DESC_DROP_MARKERS = "File of markers to drop from the exported data set";
+  private static final String DESC_KEEP_MARKERS = "File of markers to keep in the exported data set";
 
   private static final String DESC_PROJ_NAME = "Project Name";
   private static final String DESC_SRC_DIR = "Source File Directory";
@@ -291,6 +357,11 @@ public class VcfExportShortcut {
     cli.addArgWithDefault(ARG_QC, DESC_QC,
                           FurtherAnalysisQc.BONFERRONI_CORRECTED_P_THRESHOLD.substring(1));
 
+    cli.addArg(ARG_KEEP_SAMPLES, DESC_KEEP_SAMPLES, false);
+    cli.addArg(ARG_DROP_SAMPLES, DESC_DROP_SAMPLES, false);
+    cli.addArg(ARG_KEEP_MARKERS, DESC_KEEP_MARKERS, false);
+    cli.addArg(ARG_DROP_MARKERS, DESC_DROP_MARKERS, false);
+
     cli.parseWithExit(args);
 
     String projName = cli.get(ARG_PROJ_NAME);
@@ -339,6 +410,18 @@ public class VcfExportShortcut {
     export.setCallrateThreshold(cli.getD(ARG_CALLRATE));
     export.setHWEThreshold(cli.getD(ARG_HWE));
     export.setQCThreshold(cli.getD(ARG_QC));
+    if (cli.has(ARG_KEEP_SAMPLES)) {
+      export.setSampleKeepsFile(cli.get(ARG_KEEP_SAMPLES));
+    }
+    if (cli.has(ARG_DROP_SAMPLES)) {
+      export.setSampleDropsFile(cli.get(ARG_DROP_SAMPLES));
+    }
+    if (cli.has(ARG_KEEP_MARKERS)) {
+      export.setMarkerKeepsFile(cli.get(ARG_KEEP_MARKERS));
+    }
+    if (cli.has(ARG_DROP_MARKERS)) {
+      export.setMarkerDropsFile(cli.get(ARG_DROP_MARKERS));
+    }
 
     export.runPipeline(numThreads, putWht, vcfOut, impRef, useGRC);
 

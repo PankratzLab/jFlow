@@ -169,12 +169,13 @@ public class GenvisisWorkflow {
 
   public static String setupImputationDefaults(Project proj) {
     return setupIlluminaImputation(proj, Runtime.getRuntime().availableProcessors(), null, null,
-                                   false, null);
+                                   false, null, true);
   }
 
   public static String setupAffyImputation(Project proj, int numThreads, String putativeWhitesFile,
                                            Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
-                                           String aptExeDir, String aptLibDir, String sketch) {
+                                           String aptExeDir, String aptLibDir, String sketch,
+                                           boolean includeQC) {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
@@ -184,15 +185,23 @@ public class GenvisisWorkflow {
     TransposeStep transpose = sb.generateTransposeStep(proj, parseSamples);
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
     AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamples);
-    SampleQCStep sampleQc = sb.generateSampleQCStep(proj, parseSamples);
-    MarkerQCStep markerQc = sb.generateMarkerQCStep(proj, parseSamples);
-    SexChecksStep sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData,
-                                                       transpose, sampleQc);
-    PlinkExportStep exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
-    GwasQCStep gwasQc = sb.generateGwasQCStep(proj, exportPlink);
-    AncestryStep ancestry = sb.generateAncestryStep(proj, gwasQc);
-    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc,
-                                                                      ancestry);
+    SampleQCStep sampleQc = null;
+    MarkerQCStep markerQc = null;
+    SexChecksStep sexChecks = null;
+    PlinkExportStep exportPlink = null;
+    GwasQCStep gwasQc = null;
+    AncestryStep ancestry = null;
+    FurtherAnalysisQCStep faqcStep = null;
+    if (includeQC) {
+      sampleQc = sb.generateSampleQCStep(proj, parseSamples);
+      markerQc = sb.generateMarkerQCStep(proj, parseSamples);
+      sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData, transpose,
+                                           sampleQc);
+      exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
+      gwasQc = sb.generateGwasQCStep(proj, exportPlink);
+      ancestry = sb.generateAncestryStep(proj, gwasQc);
+      faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc, ancestry);
+    }
 
     Variables stepReqs;
     Map<Step, Variables> varMap = new HashMap<>();
@@ -223,48 +232,51 @@ public class GenvisisWorkflow {
       }
       varMap.put(sampleData, stepReqs);
     }
-    varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
-    varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
-    stepReqs = sexChecks.getDefaultRequirementValues();
-    for (Requirement<?> r1 : stepReqs.keys()) {
-      if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "false");
-      } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "true");
-      }
-    }
+    if (includeQC) {
+      varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+      varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
-    varMap.put(sexChecks, stepReqs);
-    varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
-
-    stepReqs = gwasQc.getDefaultRequirementValues();
-    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
-      fixQCThreshs(stepReqs, faqcThreshs);
-    }
-    varMap.put(gwasQc, stepReqs);
-
-    stepReqs = ancestry.getDefaultRequirementValues();
-    if (putativeWhitesFile != null) {
-      Requirement<?> r = null;
+      stepReqs = sexChecks.getDefaultRequirementValues();
       for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
-          r = r1;
-          break;
+        if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
+          stepReqs.parseOrFail(r1, "false");
+        } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+          stepReqs.parseOrFail(r1, "true");
         }
       }
-      if (r == null) {
-        throw new IllegalStateException();
-      }
-      stepReqs.parseOrFail(r, putativeWhitesFile);
-    }
-    varMap.put(ancestry, stepReqs);
 
-    stepReqs = faqcStep.getDefaultRequirementValues();
-    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
-      fixQCThreshs(stepReqs, faqcThreshs);
+      varMap.put(sexChecks, stepReqs);
+      varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
+
+      stepReqs = gwasQc.getDefaultRequirementValues();
+      if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+        fixQCThreshs(stepReqs, faqcThreshs);
+      }
+      varMap.put(gwasQc, stepReqs);
+
+      stepReqs = ancestry.getDefaultRequirementValues();
+      if (putativeWhitesFile != null) {
+        Requirement<?> r = null;
+        for (Requirement<?> r1 : stepReqs.keys()) {
+          if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
+            r = r1;
+            break;
+          }
+        }
+        if (r == null) {
+          throw new IllegalStateException();
+        }
+        stepReqs.parseOrFail(r, putativeWhitesFile);
+      }
+      varMap.put(ancestry, stepReqs);
+
+      stepReqs = faqcStep.getDefaultRequirementValues();
+      if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+        fixQCThreshs(stepReqs, faqcThreshs);
+      }
+      varMap.put(faqcStep, stepReqs);
     }
-    varMap.put(faqcStep, stepReqs);
 
     // override threads defaults
     if (numThreads > 0) {
@@ -285,13 +297,15 @@ public class GenvisisWorkflow {
       addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
       addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
     }
-    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
-    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
-    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
-    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
-    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
-    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
-    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
+    if (includeQC) {
+      addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+      addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+      addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+      addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+      addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+      addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+      addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
+    }
 
     return output.toString();
   }
@@ -299,7 +313,7 @@ public class GenvisisWorkflow {
   public static String setupIlluminaImputation(Project proj, int numThreads,
                                                String putativeWhitesFile,
                                                Map<QC_METRIC, String> faqcThreshs,
-                                               boolean parseSource, String man) {
+                                               boolean parseSource, String man, boolean includeQC) {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
@@ -311,15 +325,23 @@ public class GenvisisWorkflow {
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
     IlluminaMarkerBlastStep blast = sb.generateIlluminaMarkerBlastAnnotationStep(proj,
                                                                                  parseSamples);
-    SampleQCStep sampleQc = sb.generateSampleQCStep(proj, parseSamples);
-    MarkerQCStep markerQc = sb.generateMarkerQCStep(proj, parseSamples);
-    SexChecksStep sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData,
-                                                       transpose, sampleQc);
-    PlinkExportStep exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
-    GwasQCStep gwasQc = sb.generateGwasQCStep(proj, exportPlink);
-    AncestryStep ancestry = sb.generateAncestryStep(proj, gwasQc);
-    FurtherAnalysisQCStep faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc,
-                                                                      ancestry);
+    SampleQCStep sampleQc = null;
+    MarkerQCStep markerQc = null;
+    SexChecksStep sexChecks = null;
+    PlinkExportStep exportPlink = null;
+    GwasQCStep gwasQc = null;
+    AncestryStep ancestry = null;
+    FurtherAnalysisQCStep faqcStep = null;
+    if (includeQC) {
+      sampleQc = sb.generateSampleQCStep(proj, parseSamples);
+      markerQc = sb.generateMarkerQCStep(proj, parseSamples);
+      sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData, transpose,
+                                           sampleQc);
+      exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
+      gwasQc = sb.generateGwasQCStep(proj, exportPlink);
+      ancestry = sb.generateAncestryStep(proj, gwasQc);
+      faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc, ancestry);
+    }
 
     Variables stepReqs;
     Map<Step, Variables> varMap = new HashMap<>();
@@ -355,48 +377,50 @@ public class GenvisisWorkflow {
       varMap.put(sampleData, stepReqs);
     }
 
-    varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
-    varMap.put(markerQc, markerQc.getDefaultRequirementValues());
+    if (includeQC) {
+      varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
+      varMap.put(markerQc, markerQc.getDefaultRequirementValues());
 
-    stepReqs = sexChecks.getDefaultRequirementValues();
-    for (Requirement<?> r1 : stepReqs.keys()) {
-      if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "false");
-      } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
-        stepReqs.parseOrFail(r1, "true");
-      }
-    }
-
-    varMap.put(sexChecks, stepReqs);
-    varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
-
-    stepReqs = gwasQc.getDefaultRequirementValues();
-    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
-      fixQCThreshs(stepReqs, faqcThreshs);
-    }
-    varMap.put(gwasQc, stepReqs);
-
-    stepReqs = ancestry.getDefaultRequirementValues();
-    if (putativeWhitesFile != null) {
-      Requirement<?> r = null;
+      stepReqs = sexChecks.getDefaultRequirementValues();
       for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
-          r = r1;
-          break;
+        if (r1.getDescription().equals(SexChecksStep.NO_CROSS_HYBE_REQUIREMENT)) {
+          stepReqs.parseOrFail(r1, "false");
+        } else if (r1.getDescription().equals(SexChecksStep.ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT)) {
+          stepReqs.parseOrFail(r1, "true");
         }
       }
-      if (r == null) {
-        throw new IllegalStateException();
-      }
-      stepReqs.parseOrFail(r, putativeWhitesFile);
-    }
-    varMap.put(ancestry, stepReqs);
 
-    stepReqs = faqcStep.getDefaultRequirementValues();
-    if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
-      fixQCThreshs(stepReqs, faqcThreshs);
+      varMap.put(sexChecks, stepReqs);
+      varMap.put(exportPlink, exportPlink.getDefaultRequirementValues());
+
+      stepReqs = gwasQc.getDefaultRequirementValues();
+      if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+        fixQCThreshs(stepReqs, faqcThreshs);
+      }
+      varMap.put(gwasQc, stepReqs);
+
+      stepReqs = ancestry.getDefaultRequirementValues();
+      if (putativeWhitesFile != null) {
+        Requirement<?> r = null;
+        for (Requirement<?> r1 : stepReqs.keys()) {
+          if (r1.getDescription().equals(StepBuilder.PUTATIVE_WHITE_FILE_DESCRIPTION)) {
+            r = r1;
+            break;
+          }
+        }
+        if (r == null) {
+          throw new IllegalStateException();
+        }
+        stepReqs.parseOrFail(r, putativeWhitesFile);
+      }
+      varMap.put(ancestry, stepReqs);
+
+      stepReqs = faqcStep.getDefaultRequirementValues();
+      if (faqcThreshs != null && !faqcThreshs.isEmpty()) {
+        fixQCThreshs(stepReqs, faqcThreshs);
+      }
+      varMap.put(faqcStep, stepReqs);
     }
-    varMap.put(faqcStep, stepReqs);
 
     // override threads defaults
     if (numThreads > 0) {
@@ -418,13 +442,15 @@ public class GenvisisWorkflow {
       addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
       addStepInfo(output, blast, blast.getCommandLine(varMap.get(blast)));
     }
-    addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
-    addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
-    addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
-    addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
-    addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
-    addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
-    addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
+    if (includeQC) {
+      addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
+      addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
+      addStepInfo(output, sexChecks, sexChecks.getCommandLine(varMap.get(sexChecks)));
+      addStepInfo(output, exportPlink, exportPlink.getCommandLine(varMap.get(exportPlink)));
+      addStepInfo(output, gwasQc, gwasQc.getCommandLine(varMap.get(gwasQc)));
+      addStepInfo(output, ancestry, ancestry.getCommandLine(varMap.get(ancestry)));
+      addStepInfo(output, faqcStep, faqcStep.getCommandLine(varMap.get(faqcStep)));
+    }
 
     return output.toString();
   }
