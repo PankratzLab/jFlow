@@ -678,7 +678,8 @@ public class Project implements PropertyChangeListener {
                                                                                                                                    .toString(),
                                                                                     GROUP.IMPORT,
                                                                                     false,
-                                                                                    COPY.VALUE, 0,
+                                                                                    COPY.VALUE,
+                                                                                    GENOME_BUILD.HG19.ordinal(),
                                                                                     GENOME_BUILD.class);
   public final FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
                                                               "Last region file opened in Trailer",
