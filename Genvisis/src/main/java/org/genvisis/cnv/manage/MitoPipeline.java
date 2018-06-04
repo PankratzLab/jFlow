@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
-import org.genvisis.cnv.analysis.pca.BetaOptimizer;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.analysis.pca.PCAPrep;
@@ -507,28 +506,12 @@ public class MitoPipeline {
                                   null, pcApply.getExtrapolatedPCsFile(), pedFile, LS_TYPE.REGULAR,
                                   true, 0.05, plot, numThreads);
 
-        boolean requireBeta = betaFile == null || !Files.exists(betaFile);
-        if (requireBeta) {
-          log.reportTimeWarning("Attempting to use pre-set beta file");
+        if (betaFile != null) {
+          log.reportTimeWarning(getBetaFileWarning(betaFile));
         }
-        boolean mitoResourceAvailable = prepareMitoResources(proj, requireBeta, proj.getLog());
-        if (mitoResourceAvailable) {
-          BetaOptimizer.optimize(proj,
-                                 proj.PROJECT_DIRECTORY.getValue()
-                                       + pcApply.getExtrapolatedPCsFile(),
-                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/",
-                                 requireBeta ? ext.parseDirectoryOfFile(Resources.mitoCN(log)
-                                                                                 .getTotalWBC()
-                                                                                 .get())
-                                             : betaFile,
-                                 betaOptFile,
-                                 proj.PROJECT_DIRECTORY.getValue() + outputBase + PCA.PCA_SAMPLES,
-                                 pvalOpt, numComponents, markerCallRateFilter, 2, 0.0000000001,
-                                 numThreads);
-
-        } else {
-          proj.getLog().reportError("Could not optimize betas due to missing files");
-        }
+        String depricatedBetaDir = proj.PROJECT_DIRECTORY.getValue() + outputBase + "_beta_opt/";
+        new File(depricatedBetaDir).mkdirs();
+        Files.write("", depricatedBetaDir + "THIS_DIRECTORY_INTENTIONALLY_HAS_NO_RESULTS.txt");
       }
     }
   }
@@ -843,6 +826,11 @@ public class MitoPipeline {
     }
   }
 
+  private static String getBetaFileWarning(String betaFile) {
+    return "FYI the betas= argument has been depricated and will no longer be used\n ignoring "
+           + betaFile;
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename = null;
@@ -960,9 +948,9 @@ public class MitoPipeline {
     // bins, and the reference genome will not be used (i.e. gcmodel=" + gcmodel + " (default))\n";
     usage += "   (24) recompute LRR using only those samples that pass QC, and are in the use file (i.e. sampLRR="
              + recompSampleSpecific + " (default))\n";
-    usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals="
-             + ArrayUtils.toStr(ArrayUtils.toStringArray(pvalOpt), ",") + " (default))\n";
-    usage += "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
+    //    usage += "   (25) comma-delimited list of p-values for pc-beta optimization  (i.e. pvals="
+    //             + ArrayUtils.toStr(ArrayUtils.toStringArray(pvalOpt), ",") + " (default))\n";
+    //    usage += "   (26) use an external beta file to optimize PC selection  (i.e. betas= (no default))\n";
 
     usage += "   NOTE:\n";
     usage += "   Project properties can be manually edited in the .properties file for the project. If you would like to use an existing project properties file, please specify the filename using the \"proj=\" argument\n";
@@ -1076,6 +1064,9 @@ public class MitoPipeline {
       } else if (arg.startsWith("betas=")) {
         betaFile = ext.parseStringArg(arg, null);
         numArgs--;
+        System.out.println(getBetaFileWarning(betaFile));
+        betaFile = null;
+
       } else if (arg.startsWith("idHeader=")) {
         System.out.println(arg);
         idHeader = ext.parseStringArg(arg.replaceAll("_", " "), null);
