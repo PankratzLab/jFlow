@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.genvisis.cnv.manage.PlinkMergePrep;
@@ -507,23 +508,22 @@ public class MergeExtractPipeline {
         return;
       }
       dataSources.add(new DataSource(null, dir, PSF.Plink.getBED(outRoot),
-                                     PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no
-                                                                                                                                                                 // prepend
-                                                                                                                                                                 // here,
-                                                                                                                                                                 // as
-                                                                                                                                                                 // we've
-                                                                                                                                                                 // already
-                                                                                                                                                                 // renamed
-                                                                                                                                                                 // the
-                                                                                                                                                                 // markers
-                                                                                                                                                                 // using
-                                                                                                                                                                 // PlinkMergePrep
+                                     PSF.Plink.getBIM(outRoot), PSF.Plink.getFAM(outRoot))); // no prepend here, as we've already renamed the markers using PlinkMergePrep
       if (markersFile != null && !"".equals(markersFile)) {
         String newMkrFile = (new File(PlinkMergePrep.TEMP_MKR_FILE)).getAbsolutePath();
         tempMarkerFiles.add(newMkrFile);
         log.report("Setting markers file to temporarily generated plink-renamed markers file: "
                    + newMkrFile);
-        markersFile = newMkrFile;
+        setMarkers(newMkrFile);
+      }
+    }
+
+    Map<String, int[]> markerLocationMap = null;
+    if (markersFile != null) {
+      markerLocationMap = new HashMap<>();
+      for (int i = 0; i < markers.length; i++) {
+        markerLocationMap.put(markers[i], new int[] {markerLocations[i][0], markerLocations[i][1],
+                                                     markerLocations[i][1]});
       }
     }
 
@@ -534,7 +534,7 @@ public class MergeExtractPipeline {
     log.reportTime("Starting from data file: " + dataSources.get(0).dataFile);
 
     DosageData dd1 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
-                                    dataSources.get(0).mapFile, regionsFile, markersFile,
+                                    dataSources.get(0).mapFile, regions, markers, markerLocationMap,
                                     renameMarkers ? dataSources.get(0).label : "", verbose, log);
     HashMap<String, HashMap<String, Annotation>> annotations = null;
     if (!ext.isMissingValue(dataSources.get(0).mapFile)) {
@@ -545,7 +545,8 @@ public class MergeExtractPipeline {
       System.gc();
       log.reportTime("... merging with data file: " + dataSources.get(i).dataFile);
       DosageData dd2 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
-                                      dataSources.get(i).mapFile, regionsFile, markersFile,
+                                      dataSources.get(i).mapFile, regions, markers,
+                                      markerLocationMap,
                                       renameMarkers ? dataSources.get(i).label : "", verbose, log);
       if (!dd2.isEmpty()) {
         if (annotations != null && !ext.isMissingValue(dataSources.get(i).mapFile)) {

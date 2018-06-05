@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,9 +21,12 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import org.apache.commons.compress.utils.Lists;
 import org.genvisis.bgen.BGENReader;
 import org.genvisis.bgen.BGENReader.BGENRecord;
 import org.genvisis.bgen.BGENTools;
@@ -44,8 +48,7 @@ import org.genvisis.gwas.Plink;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
@@ -150,7 +153,7 @@ public class DosageData implements Serializable {
   }
 
   public DosageData(String dosageFile, String idFile, String mapFile, boolean verbose, Logger log) {
-    this(dosageFile, idFile, mapFile, null, null, null, verbose, log);
+    this(dosageFile, idFile, mapFile, determineType(dosageFile), null, null, verbose, log);
   }
 
   public DosageData(String dosageFile, String idFile, String mapFile, int type, boolean verbose,
@@ -192,15 +195,35 @@ public class DosageData implements Serializable {
          markersToUseFile, markerNamePrepend, verbose, log);
   }
 
+  public DosageData(String dosageFile, String idFile, String mapFile, int[][] regions,
+                    String[] markers, String markerNamePrepend, boolean verbose, Logger log) {
+    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regions, markers,
+         markerNamePrepend, verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, int[][] regions,
+                    String[] markers, Map<String, int[]> markerLocationMap,
+                    String markerNamePrepend, boolean verbose, Logger log) {
+    this(dosageFile, idFile, mapFile, PARAMETERS[determineType(dosageFile)], regions, markers,
+         markerLocationMap, markerNamePrepend, verbose, log);
+  }
+
   public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters,
                     int[][] regions, String[] markers, String markerNamePrepend, boolean verbose,
                     Logger log) {
+    this(dosageFile, idFile, mapFile, parameters, regions, markers, null, markerNamePrepend,
+         verbose, log);
+  }
+
+  public DosageData(String dosageFile, String idFile, String mapFile, int[] parameters,
+                    int[][] regions, String[] markers, Map<String, int[]> markerLocationMap,
+                    String markerNamePrepend, boolean verbose, Logger log) {
     DosageData dd = null;
     if (parameters[2] == PLINK_FORMAT_INTERNAL) {
       dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers,
                            ext.rootOf(dosageFile, true), markerNamePrepend, true);
     } else if (parameters[2] == VCF_FORMAT_INTERNAL) {
-      dd = loadVCF(dosageFile, regions, markers, markerNamePrepend);
+      dd = loadVCF(dosageFile, regions, markers, markerLocationMap, markerNamePrepend);
     } else if (parameters[2] == BGEN_FORMAT_INTERNAL) {
       dd = loadBGEN(dosageFile, mapFile, idFile, regions, markers, markerNamePrepend, log);
     }
@@ -2290,9 +2313,10 @@ public class DosageData implements Serializable {
   }
 
   public static DosageData loadVCF(String file, int[][] regionsToKeep, String[] markersToKeep,
-                                   String markerNamePrepend) {
+                                   Map<String, int[]> markerLocations, String markerNamePrepend) {
     String probTag = "GP";
 
+    List<Segment> segsToQuery = new ArrayList<>();
     HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<>();
     if (markersToKeep != null) {
       for (String s : markersToKeep) {
@@ -2300,23 +2324,68 @@ public class DosageData implements Serializable {
       }
     }
 
-    Map<Integer, List<int[]>> rgnsToKeep = new HashMap<>();
     if (regionsToKeep != null) {
       for (int[] rgn : regionsToKeep) {
-        List<int[]> rgns = rgnsToKeep.get(rgn[0]);
-        if (rgns == null) {
-          rgns = new ArrayList<>();
-          rgnsToKeep.put(rgn[0], rgns);
-        }
-        rgns.add(rgn);
+        segsToQuery.add(new Segment((byte) rgn[0], rgn[1], rgn[2]));
       }
     }
+
+    if (markerLocations != null) {
+      for (Entry<String, int[]> mkrLoc : markerLocations.entrySet()) {
+        markerSet.add(mkrLoc.getKey());
+        segsToQuery.add(new Segment((byte) mkrLoc.getValue()[0], mkrLoc.getValue()[1],
+                                    mkrLoc.getValue()[2]));
+      }
+    }
+
+    if (segsToQuery.size() > 0) {
+      Collections.sort(segsToQuery);
+    }
+
     VCFHeader header;
-    List<VariantContext> keepList;
+    List<VariantContext> keepList = Lists.newArrayList();
+
     try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
-      header = reader.getFileHeader(); // need?
-      keepList = ImmutableList.copyOf(Iterables.filter(reader,
-                                                       e -> keepVariant(e, rgnsToKeep, markerSet)));
+      header = reader.getFileHeader();
+
+      Set<Integer> contigs = Sets.newHashSet();
+      header.getContigLines().forEach(vch -> {
+        byte chr = Positions.chromosomeNumber(vch.getID());
+        contigs.add((int) chr);
+      });
+
+      for (int i = segsToQuery.size() - 1; i >= 0; i--) {
+        if (!contigs.contains((int) segsToQuery.get(i).chr)) {
+          segsToQuery.remove(i);
+        }
+      }
+
+      markerSet.removeIf(m -> {
+        return markerLocations.containsKey(m) && !contigs.contains(markerLocations.get(m)[0]);
+      });
+
+      System.out.println("Searching for " + segsToQuery.size() + " segments and " + markerSet.size()
+                         + " markers.");
+
+      for (Segment seg : segsToQuery) {
+        for (VariantContext vc : reader.query(Byte.toString(seg.chr), seg.start, seg.stop)
+                                       .toList()) {
+          if (markerSet.contains(vc.getID())
+              || segsToQuery.contains(new Segment(Positions.chromosomeNumber(vc.getContig()),
+                                                  vc.getStart(), vc.getEnd()))) {
+            keepList.add(vc);
+            markerSet.remove(vc.getID());
+          }
+        }
+      }
+    }
+
+    if (markerSet.size() > 0) {
+      try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
+        keepList.addAll(reader.iterator().stream().filter(vc -> {
+          return markerSet.contains(vc.getID());
+        }).collect(Collectors.toList()));
+      }
     }
 
     DosageData dd = new DosageData();
