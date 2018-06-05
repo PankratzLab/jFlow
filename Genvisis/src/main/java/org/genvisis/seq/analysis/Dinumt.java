@@ -27,7 +27,7 @@ public class Dinumt {
 
     String[] stats = HashVec.loadFileToStringArray(bamQCOutput, true, indices,
                                                    false)[0].split("\t");
-    double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log);
+    double bpCoverage = Double.parseDouble(stats[0]) * BamOps.estimateReadSize(bamFile, log).mean();
     double targeted = Double.parseDouble(stats[1]);
     double averageCoverage = bpCoverage / targeted;
     System.out.println(ArrayUtils.toStr(stats));

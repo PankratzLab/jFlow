@@ -9,6 +9,7 @@ import java.util.StringJoiner;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.BamOps;
+import com.google.common.math.Stats;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SamReader;
@@ -31,7 +32,7 @@ public class CramStats {
     String outFile = out + "summary.txt";
     PrintWriter writer = Files.getAppropriateWriter(outFile);
 
-    writer.println("Sample\tSEQUENCING_CENTER\tDATE_RUN_PRODUCED\tPLATFORM\tLIBRARY\tDESCRIPTION\tREAD_LENGTH");
+    writer.println("Sample\tSEQUENCING_CENTER\tDATE_RUN_PRODUCED\tPLATFORM\tLIBRARY\tDESCRIPTION\tAVERAGE_READ_LENGTH\tMAX_READ_LENGTH");
 
     for (String cram : crams) {
 
@@ -41,13 +42,9 @@ public class CramStats {
       SamReader reader = samReaderFactory.open(new File(cram));
 
       SAMFileHeader header = reader.getFileHeader();
-      int rl = BamOps.estimateReadSize(cram, new Logger());
+      Stats rl = BamOps.estimateReadSize(cram, new Logger());
       List<SAMReadGroupRecord> rgs = header.getReadGroups();
       for (SAMReadGroupRecord rg : rgs) {
-
-        //        System.out.println(rg.getLibrary());
-        System.out.println(rg);
-
         StringJoiner joiner = new StringJoiner("\t");
         joiner.add(rg.getSample());
         joiner.add(rg.getSequencingCenter());
@@ -55,7 +52,8 @@ public class CramStats {
         joiner.add(rg.getPlatform());
         joiner.add(rg.getLibrary());
         joiner.add(rg.getDescription());
-        joiner.add(Double.toString(rl));
+        joiner.add(Double.toString(rl.mean()));
+        joiner.add(Double.toString(rl.max()));
 
         writer.println(joiner.toString());
 

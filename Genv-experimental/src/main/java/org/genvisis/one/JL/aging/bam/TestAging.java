@@ -25,7 +25,8 @@ public class TestAging {
     String outDir = ext.parseDirectoryOfFile(bam);
     Logger log = new Logger(outDir + "TL.test.log");
     String output = outDir + "tel.results.txt";
-    TelSeq.telSeqIt(bam, output, BamOps.estimateReadSize(bam, log), new ArrayList<String>(), log);
+    TelSeq.telSeqIt(bam, output, (int) BamOps.estimateReadSize(bam, log).mean(),
+                    new ArrayList<String>(), log);
     List<BamAnalysis> analyses = new ArrayList<>();
 
     PatternCounterTelomere pNgs = new PatternCounterTelomere(PatternCounterTelomere.getTelomericPattern(7),

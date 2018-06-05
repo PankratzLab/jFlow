@@ -136,7 +136,7 @@ public class Computel {
       String r2 = finalOutDirectory + "src/examples/analysis_reads2.fq";
       boolean converted = convertToFasta(inputBam, finalOutDirectory, r1, r2, log);
       if (converted) {
-        int readLength = BamOps.estimateReadSize(inputBam, 100000, log);
+        int readLength = (int) BamOps.estimateReadSize(inputBam, 100000, log).mean();
 
         String config = manageConfig(log, finalOutDirectory, bowtieSamDir, r1, r2, readLength);
         String configFile = finalOutDirectory + "computelConfig.txt";

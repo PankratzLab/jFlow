@@ -71,7 +71,7 @@ public class TelSeq {
     @Override
     public TelSeqResult call() throws Exception {
       String out = outputDir + ext.rootOf(inputBam) + ".telseq";
-      int readSize = BamOps.estimateReadSize(inputBam, log);
+      int readSize = (int) BamOps.estimateReadSize(inputBam, log).mean();
       log.reportTimeInfo("Estimated readsize for " + inputBam + " to be " + readSize);
       Ran ran = telSeqIt(inputBam, out, readSize, additionalArgs, log);
       String sampleName = "NA";

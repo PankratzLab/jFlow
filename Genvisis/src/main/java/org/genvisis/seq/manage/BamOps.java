@@ -19,9 +19,12 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import com.google.common.math.Stats;
+import com.google.common.math.StatsAccumulator;
 import com.google.common.primitives.Doubles;
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.BAMIndexMetaData;
+import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -357,7 +360,7 @@ public class BamOps {
    * @param log
    * @return the estimated read size
    */
-  public static int estimateReadSize(String bamFile, Logger log) {
+  public static Stats estimateReadSize(String bamFile, Logger log) {
     return estimateReadSize(bamFile, NUM_READ_ESTIMATOR, log);
   }
 
@@ -458,19 +461,17 @@ public class BamOps {
    * @param log
    * @return the estimated read size
    */
-  public static int estimateReadSize(String bamFile, int numReads, Logger log) {
+  public static Stats estimateReadSize(String bamFile, int numReads, Logger log) {
     SamReader reader = getDefaultReader(bamFile, ValidationStringency.STRICT);
-    int readsize = 0;
     SAMRecordIterator iterator = reader.iterator();
-
+    StatsAccumulator stats = new StatsAccumulator();
     int readsScanned = 0;
     while (iterator.hasNext()) {
       SAMRecord samRecord = iterator.next();
-      if (!samRecord.getReadUnmappedFlag() && samRecord.getCigar().getCigarElements().size() == 1) {
-
-        readsize += samRecord.getReadLength();
+      if (!samRecord.getReadUnmappedFlag() && samRecord.getCigar().getCigarElements().size() == 1
+          && samRecord.getCigar().getCigarElements().get(0).getOperator() == CigarOperator.M) {
+        stats.addAll(samRecord.getReadLength());
         readsScanned++;
-
       }
       if (readsScanned > numReads) {
         break;
@@ -482,11 +483,8 @@ public class BamOps {
       log.reportException(e);
 
     }
-    if (readsScanned > 0) {
-      double avg = (double) readsize / readsScanned;
-      return (int) avg;
-    }
-    return -1;
+    return (stats.snapshot());
+
   }
 
   @Deprecated

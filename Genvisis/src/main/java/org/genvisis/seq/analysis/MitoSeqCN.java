@@ -311,7 +311,7 @@ public class MitoSeqCN {
 
         BamIndexStats bamIndexStats = BamOps.getBamIndexStats(reader);
         reader.close();
-        int estimatedReadLength = BamOps.estimateReadSize(bam, log);
+        int estimatedReadLength = (int) BamOps.estimateReadSize(bam, log).mean();
         return new MitoCNResult(sample, numMitoReads, numXReads, numYReads, numOffTarget,
                                 mitoLength, genomeBinsMinusBinsCaputure.getBpCovered(),
                                 bamIndexStats, estimatedReadLength, outputMTBam);
