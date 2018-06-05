@@ -1,7 +1,9 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Set;
 import org.genvisis.common.Files;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.SerializedFiles;
@@ -30,6 +32,14 @@ public class BaselineUnclusteredMarkers implements Serializable {
   public float markerCallrate(String marker) {
     Float callrate = markerCallrate.get(marker);
     return callrate == null ? -1f : callrate;
+  }
+
+  /**
+   * @return a {@link Set} of the names of all markers for which {@link #markerUnclustered(String)}
+   *         would return true
+   */
+  public Set<String> unclusteredMarkers() {
+    return Collections.unmodifiableSet(markerCallrate.keySet());
   }
 
   private static String getBaselineUnclusteredMarkersFile(Project proj) {
