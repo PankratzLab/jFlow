@@ -89,6 +89,7 @@ public class MarkerMetrics {
 
   private final Project proj;
   private final Pedigree pedigree;
+  private final ClusterFilterCollection clusterFilterCollection;
   private final boolean[] sampleIndicesToExclude;
   private final boolean checkMendel;
   private final ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
@@ -107,6 +108,7 @@ public class MarkerMetrics {
     super();
     this.proj = proj;
     this.pedigree = proj.loadPedigree();
+    this.clusterFilterCollection = proj.getClusterFilterCollection();
     this.sampleIndicesToExclude = sampleIndicesToExclude;
     this.checkMendel = checkMendel;
     this.batchHeaderIndexBatches = batchHeaderIndexBatches;
@@ -277,7 +279,6 @@ public class MarkerMetrics {
     float[] thetas, rs, lrrs;
     byte[] abGenotypes;
     String markerName;
-    ClusterFilterCollection clusterFilterCollection;
     float gcThreshold, lrrsd;
     long time;
     // MarkerDataLoader markerDataLoader;
@@ -299,7 +300,6 @@ public class MarkerMetrics {
     }
 
     samples = proj.getSamples();
-    clusterFilterCollection = proj.getClusterFilterCollection();
     gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
     sexes = getSexes(proj, samples);
 
