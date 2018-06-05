@@ -74,8 +74,8 @@ public class RealMatrixUtils {
     DenseMatrix64F dm = new DenseMatrix64F(1, 1);
     dm.reshape(m.getRowDimension(), m.getColumnDimension());
     for (int row = 0; row < m.getRowDimension(); row++) {
-      for (int col = 0; col < m.getColumnDimension(); col++) {
-        dm.add(row, col, m.getEntry(row, col));
+      for (int column = 0; column < m.getColumnDimension(); column++) {
+        dm.add(row, column, m.getEntry(row, column));
       }
     }
     return dm;
@@ -90,21 +90,21 @@ public class RealMatrixUtils {
     double[] medians = new double[m.getColumnDimension()]; //In genvisis, samples are typically columns
 
     //    convert columns to log2 fold-change from median
-    for (int j = 0; j < m.getColumnDimension(); j++) {
+    for (int column = 0; column < m.getColumnDimension(); column++) {
       double[] tmp = new double[m.getRowDimension()];//In genvisis, markers are typically rows
-      for (int i = 0; i < m.getRowDimension(); i++) {
-        tmp[i] += m.getEntry(i, j);
+      for (int row = 0; row < m.getRowDimension(); row++) {
+        tmp[row] += m.getEntry(row, column);
       }
-      medians[j] = ArrayUtils.median(tmp);
+      medians[column] = ArrayUtils.median(tmp);
     }
-    for (int i = 0; i < m.getRowDimension(); i++) {
-      for (int j = 0; j < m.getColumnDimension(); j++) {
-        double entry = m.getEntry(i, j);
+    for (int row = 0; row < m.getRowDimension(); row++) {
+      for (int column = 0; column < m.getColumnDimension(); column++) {
+        double entry = m.getEntry(row, column);
         if (entry > 0) {
-          double standard = Maths.log2(entry / medians[j]);
-          m.setEntry(i, j, standard);
+          double standard = Maths.log2(entry / medians[column]);
+          m.setEntry(row, column, standard);
         } else {
-          m.setEntry(i, j, 0);
+          m.setEntry(row, column, 0);
         }
       }
     }
@@ -117,11 +117,11 @@ public class RealMatrixUtils {
    * @param m Center the rows of this {@link RealMatrix} to a median of 0
    */
   public static void centerRowsToMedian(RealMatrix m) {
-    for (int i = 0; i < m.getRowDimension(); i++) {
-      double[] tmp = m.getRow(i);
+    for (int row = 0; row < m.getRowDimension(); row++) {
+      double[] tmp = m.getRow(row);
       double median = ArrayUtils.median(tmp);
       for (int j = 0; j < m.getColumnDimension(); j++) {
-        m.setEntry(i, j, tmp[j] - median);
+        m.setEntry(row, j, tmp[j] - median);
       }
     }
   }
@@ -133,7 +133,7 @@ public class RealMatrixUtils {
     double[] sds = new double[m.getColumnDimension()];
     double[] mean = new double[m.getColumnDimension()];
 
-    for (int column = 0; column < mean.length; column++) {
+    for (int column = 0; column < m.getColumnDimension(); column++) {
       double[] tmp = new double[m.getRowDimension()];
       for (int i = 0; i < m.getRowDimension(); i++) {
         tmp[i] += m.getEntry(i, column);
@@ -142,12 +142,11 @@ public class RealMatrixUtils {
       sds[column] = ArrayUtils.stdev(tmp);
     }
     for (int row = 0; row < m.getRowDimension(); row++) {
-      for (int column = 0; column < mean.length; column++) {
+      for (int column = 0; column < m.getColumnDimension(); column++) {
         double standard = m.getEntry(row, column) - mean[column];
         standard /= sds[column];
         m.setEntry(row, column, standard);
       }
     }
   }
-
 }
