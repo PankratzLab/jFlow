@@ -39,6 +39,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Floats;
+import com.google.common.primitives.Ints;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.Allele;
 
@@ -694,6 +698,85 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                                new GenomicPosition(seg.getChr(), seg.getStop()),
                                                true)
                                        .values());
+  }
+
+  /**
+   * @param markerMask a boolean[] in project order indicating whether to include a given Marker in
+   *          the returned {@link Set}
+   * @return a mutable {@link Set} of all {@link Marker}s for which the project index in markerMask
+   *         is true
+   */
+  public Set<Marker> includeProjectOrderMask(boolean[] markerMask) {
+    if (markerMask.length != markers.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
+    Set<Marker> includedMarkers = Sets.newHashSet();
+    for (int i = 0; i < markerMask.length; i++) {
+      if (markerMask[i]) includedMarkers.add(markers.get(i));
+    }
+    return includedMarkers;
+  }
+
+  /**
+   * @param markerMask a boolean[] in project order indicating whether to exclude a given Marker in
+   *          the returned {@link Set}
+   * @return a mutable {@link Set} of all {@link Marker}s for which the project index in markerMask
+   *         is false
+   */
+  public Set<Marker> excludeProjectOrderMask(boolean[] markerMask) {
+    if (markerMask.length != markers.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
+    Set<Marker> excludedMarkers = Sets.newHashSet();
+    for (int i = 0; i < markerMask.length; i++) {
+      if (!markerMask[i]) excludedMarkers.add(markers.get(i));
+    }
+    return excludedMarkers;
+  }
+
+  /**
+   * @param dataInProjOrder {@link List} of data of the same length as {@link #getMarkers()}
+   * @return a mutable {@link Map} from {@link Marker} to the data at the project index of the
+   *         {@link Marker} in dataInProjOrder
+   */
+  public <T> Map<Marker, T> mapProjectOrderData(List<T> dataInProjOrder) {
+    if (dataInProjOrder.size() != markers.size()) throw new IllegalArgumentException("Project order data does not match size of project marker List");
+    Map<Marker, T> markerDataMap = Maps.newHashMapWithExpectedSize(markers.size());
+    for (int i = 0; i < markers.size(); i++) {
+      markerDataMap.put(markers.get(i), dataInProjOrder.get(i));
+    }
+    return markerDataMap;
+  }
+
+  /**
+   * @see #mapProjectOrderData(List)
+   */
+  public <T> Map<Marker, T> mapProjectOrderData(T[] dataInProjOrder) {
+    return mapProjectOrderData(Arrays.asList(dataInProjOrder));
+  }
+
+  /**
+   * @see #mapProjectOrderData(List)
+   */
+  public Map<Marker, Double> mapProjectOrderData(double[] dataInProjOrder) {
+    return mapProjectOrderData(Doubles.asList(dataInProjOrder));
+  }
+
+  /**
+   * @see #mapProjectOrderData(List)
+   */
+  public Map<Marker, Float> mapProjectOrderData(float[] dataInProjOrder) {
+    return mapProjectOrderData(Floats.asList(dataInProjOrder));
+  }
+
+  /**
+   * @see #mapProjectOrderData(List)
+   */
+  public Map<Marker, Byte> mapProjectOrderData(byte[] dataInProjOrder) {
+    return mapProjectOrderData(Bytes.asList(dataInProjOrder));
+  }
+
+  /**
+   * @see #mapProjectOrderData(List)
+   */
+  public Map<Marker, Integer> mapProjectOrderData(int[] dataInProjOrder) {
+    return mapProjectOrderData(Ints.asList(dataInProjOrder));
   }
 
   @Override
