@@ -270,7 +270,7 @@ public class DosageData implements Serializable {
     DosageData dd = null;
     if (parameters[2] == PLINK_FORMAT_INTERNAL) {
       dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers,
-                           ext.rootOf(dosageFile, true), markerNamePrepend, true);
+                           ext.rootOf(dosageFile, true), markerNamePrepend, true, false);
     } else if (parameters[2] == VCF_FORMAT_INTERNAL) {
       dd = loadVCF(dosageFile, mapFile, regions, markers, markerLocationMap, markerNamePrepend,
                    log);
@@ -2615,7 +2615,8 @@ public class DosageData implements Serializable {
 
   public static DosageData loadPlinkBinary(String dir, int[][] regionsToKeep,
                                            String[] markersToKeep, String plinkRoot,
-                                           String markerNamePrepend, boolean loadMissingAsNaN) {
+                                           String markerNamePrepend, boolean loadMissingAsNaN,
+                                           boolean includeAllMarkers) {
     DosageData dd = new DosageData();
 
     String[][] bimData = HashVec.loadFileToStringMatrix(dir + plinkRoot + ".bim", false,
@@ -2633,7 +2634,7 @@ public class DosageData implements Serializable {
 
     boolean[] markersToInclude = ArrayUtils.booleanArray(bimData.length, false);
     markers: for (int i = 0; i < bimData.length; i++) {
-      if (markerSet != null && markerSet.contains(bimData[i][1])) {
+      if ((markerSet != null && markerSet.contains(bimData[i][1])) || includeAllMarkers) {
         markersToInclude[i] = true;
         continue;
       }
