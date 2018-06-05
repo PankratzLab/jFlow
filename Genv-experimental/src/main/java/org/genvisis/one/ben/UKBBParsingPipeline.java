@@ -8,10 +8,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.iterators.ArrayIterator;
 import org.genvisis.CLI;
 import org.genvisis.bgen.BGENBitMath;
 import org.genvisis.cnv.Launch;
@@ -346,10 +345,8 @@ public class UKBBParsingPipeline {
 
   protected void writeMarkerDetailSet() {
     if (!Files.exists(proj.MARKER_DETAILS_FILENAME.getValue())) {
-      Iterable<Marker> markerIterable;
       try {
-        markerIterable = loadMarkers();
-        MarkerDetailSet mds = new MarkerDetailSet(markerIterable);
+        MarkerDetailSet mds = new MarkerDetailSet(loadMarkers());
         mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
         markerMap = mds.getMarkerNameMap();
       } catch (IOException e) {
@@ -486,7 +483,7 @@ public class UKBBParsingPipeline {
     }
   }
 
-  private Iterable<Marker> loadMarkers() throws IOException {
+  private List<Marker> loadMarkers() throws IOException {
     String[] headerFactors = {"Affy SNP ID", "dbSNP RS ID", "Chromosome", "Physical Position",
                               "Allele A", "Allele B", "Ref Allele", "Flank"};
     int[] hdrInds = null;
@@ -587,13 +584,7 @@ public class UKBBParsingPipeline {
     }
     reader.close();
     markerIndices = null;
-    return new Iterable<MarkerDetailSet.Marker>() {
-
-      @Override
-      public Iterator<Marker> iterator() {
-        return new ArrayIterator<>(markers);
-      }
-    };
+    return Arrays.asList(markers);
   }
 
   private boolean isMissing(String value) {

@@ -6,6 +6,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -237,7 +238,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   @SuppressWarnings("deprecation")
-  public MarkerDetailSet(Iterable<Marker> markers) {
+  public MarkerDetailSet(Collection<Marker> markers) {
     this.markersSet = ImmutableSet.copyOf(markers);
     if (markersSet.size() != Iterables.size(markers)) throw new IllegalStateException("Duplicate Markers cannot exist in MarkerDetailSet");
     this.markersList = markersSet.asList();
