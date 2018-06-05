@@ -149,7 +149,7 @@ public class MitoPipeline {
       log.report("Project properties file can be found at " + projFile);
       Files.write("PROJECT_NAME=" + projectName, projectName);
     }
-    proj = Project.initializeProject(projectName);
+    proj = Project.initializeProject(projectName, projectDirectory);
   }
 
   public void initProjectDir() {
@@ -227,7 +227,6 @@ public class MitoPipeline {
    */
   public void initMainProperties() {
     proj.setProperty(proj.PROJECT_NAME, projectName);
-    proj.setProperty(proj.PROJECT_DIRECTORY, projectDirectory);
     proj.setProperty(proj.SOURCE_DIRECTORY, sourceDirectory);
     proj.setProperty(proj.SOURCE_FILENAME_EXTENSION, dataExtension);
     proj.setProperty(proj.ID_HEADER, idHeader);

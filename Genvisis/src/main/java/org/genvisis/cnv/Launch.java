@@ -1638,7 +1638,11 @@ public class Launch extends JFrame implements ActionListener {
         try {
           meth = mainClass.getMethod("main", String[].class);
           String[] params = Arrays.copyOfRange(args, 1, args.length);
+          long startTime = System.currentTimeMillis();
+          System.out.println("Running " + mainClass.getCanonicalName());
           meth.invoke(null, (Object) params);
+          System.out.println("Finished running " + mainClass.getCanonicalName() + " in "
+                             + ext.getTimeElapsed(startTime));
         } catch (NoSuchMethodException exc) {
           System.err.println("Requested main class does not have main method: " + mainClassName);
         } catch (Exception exc) {

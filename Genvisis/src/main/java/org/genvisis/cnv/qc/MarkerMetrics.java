@@ -87,6 +87,34 @@ public class MarkerMetrics {
 
   public static final String BATCH_HEADERS_ARG = "batchHeaders";
 
+  private final Project proj;
+  private final Pedigree pedigree;
+  private final ClusterFilterCollection clusterFilterCollection;
+  private final boolean[] sampleIndicesToExclude;
+  private final boolean checkMendel;
+  private final ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
+  private final ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches;
+
+  /**
+   * @param proj
+   * @param sampleIndicesToExclude
+   * @param checkMendel
+   * @param batchHeaderIndexBatches
+   * @param batchHeaderBatches
+   */
+  private MarkerMetrics(Project proj, boolean[] sampleIndicesToExclude, boolean checkMendel,
+                        ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
+                        ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
+    super();
+    this.proj = proj;
+    this.pedigree = proj.loadPedigree();
+    this.clusterFilterCollection = proj.getClusterFilterCollection();
+    this.sampleIndicesToExclude = sampleIndicesToExclude;
+    this.checkMendel = checkMendel;
+    this.batchHeaderIndexBatches = batchHeaderIndexBatches;
+    this.batchHeaderBatches = batchHeaderBatches;
+  }
+
   /**
    * {@link #fullQC(Project, boolean[], String, boolean, Set, int)} with
    * {@link #DEFAULT_SAMPLE_DATA_BATCH_HEADERS}
@@ -167,10 +195,10 @@ public class MarkerMetrics {
       batchHeaderIndexBatches = batchHeaderIndexBatchesBuilder.build();
       batchHeaderBatches = batchHeaderBatchesBuilder.build();
     }
-
+    MarkerMetrics markerMetrics = new MarkerMetrics(proj, samplesToExclude, checkMendel,
+                                                    batchHeaderIndexBatches, batchHeaderBatches);
     if (numThreads <= 1) {
-      fullQC(proj, samplesToExclude, markerNames, finalQcFile, checkMendel, batchHeaderIndexBatches,
-             batchHeaderBatches);
+      markerMetrics.fullQC(markerNames, finalQcFile);
     } else {
       WorkerHive<Boolean> hive = new WorkerHive<>(numThreads, 10, proj.getLog());
       List<String[]> batches = ArrayUtils.splitUpArray(markerNames, numThreads, proj.getLog());
@@ -184,9 +212,7 @@ public class MarkerMetrics {
       }
       for (int i = 0; i < batches.size(); i++) {
         String tmp = ext.addToRoot(finalQcFile, "tmp" + i);
-        hive.addCallable(new MarkerMetricsWorker(proj, samplesToExclude, batches.get(i), tmp,
-                                                 checkMendel, batchHeaderIndexBatches,
-                                                 batchHeaderBatches));
+        hive.addCallable(new MarkerMetricsWorker(markerMetrics, batches.get(i), tmp));
         tmpQc[i] = tmp;
         if (checkMendel) {
           tmpMendel[i] = ext.rootOf(tmp, false) + DEFAULT_MENDEL_FILE_SUFFIX;
@@ -248,15 +274,11 @@ public class MarkerMetrics {
 
   }
 
-  private static void fullQC(Project proj, boolean[] sampleIndicesToExclude, String[] markerNames,
-                             String fullPathToOutput, final boolean checkMendel,
-                             ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
-                             ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
+  private void fullQC(String[] markerNames, String fullPathToOutput) {
     String[] samples;
     float[] thetas, rs, lrrs;
     byte[] abGenotypes;
     String markerName;
-    ClusterFilterCollection clusterFilterCollection;
     float gcThreshold, lrrsd;
     long time;
     // MarkerDataLoader markerDataLoader;
@@ -278,10 +300,8 @@ public class MarkerMetrics {
     }
 
     samples = proj.getSamples();
-    clusterFilterCollection = proj.getClusterFilterCollection();
     gcThreshold = proj.getProperty(proj.GC_THRESHOLD).floatValue();
     sexes = getSexes(proj, samples);
-    final Pedigree pedigree = proj.loadPedigree();
 
     final boolean[] samplesToExclude = sampleIndicesToExclude == null ? ArrayUtils.booleanArray(samples.length,
                                                                                                 false)
@@ -1549,44 +1569,34 @@ public class MarkerMetrics {
    */
   private static class MarkerMetricsWorker implements Callable<Boolean> {
 
-    private final Project proj;
-    private final boolean[] samplesToExclude;
+    private final MarkerMetrics markerMetrics;
     private final String[] markerNames;
     private final String fullPathToOutput;
-    private final boolean checkMendel;
-    private final ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches;
-    private final ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches;
 
-    public MarkerMetricsWorker(Project proj, boolean[] samplesToExclude, String[] markerNames,
-                               String fullPathToOutput, boolean checkMendel,
-                               ImmutableMap<String, ImmutableMap<Integer, String>> batchHeaderIndexBatches,
-                               ImmutableMap<String, ImmutableMultiset<String>> batchHeaderBatches) {
+    public MarkerMetricsWorker(MarkerMetrics markerMetrics, String[] markerNames,
+                               String fullPathToOutput) {
       super();
-      this.proj = proj;
-      this.samplesToExclude = samplesToExclude;
+      this.markerMetrics = markerMetrics;
       this.markerNames = markerNames;
       this.fullPathToOutput = fullPathToOutput;
-      this.checkMendel = checkMendel;
-      this.batchHeaderIndexBatches = batchHeaderIndexBatches;
-      this.batchHeaderBatches = batchHeaderBatches;
     }
 
     @Override
     public Boolean call() throws Exception {
-      fullQC(proj, samplesToExclude, markerNames, fullPathToOutput, checkMendel,
-             batchHeaderIndexBatches, batchHeaderBatches);
+      markerMetrics.fullQC(markerNames, fullPathToOutput);
       if (Files.exists(fullPathToOutput)
           && Files.countLines(fullPathToOutput, 1) == markerNames.length) {
         return true;
       } else {
         if (!Files.exists(fullPathToOutput)) {
-          proj.getLog().reportError("Could not compute marker metrics on "
-                                    + Thread.currentThread().toString());
-          proj.getLog().reportFileNotFound(fullPathToOutput);
+          markerMetrics.proj.getLog().reportError("Could not compute marker metrics on "
+                                                  + Thread.currentThread().toString());
+          markerMetrics.proj.getLog().reportFileNotFound(fullPathToOutput);
         } else {
-          proj.getLog()
-              .reportError("Found " + Files.countLines(fullPathToOutput, 1) + " markers in "
-                           + fullPathToOutput + " but should have found " + markerNames.length);
+          markerMetrics.proj.getLog()
+                            .reportError("Found " + Files.countLines(fullPathToOutput, 1)
+                                         + " markers in " + fullPathToOutput
+                                         + " but should have found " + markerNames.length);
         }
         return false;
       }

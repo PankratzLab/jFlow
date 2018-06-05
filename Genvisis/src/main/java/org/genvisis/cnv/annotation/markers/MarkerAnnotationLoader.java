@@ -49,9 +49,7 @@ public class MarkerAnnotationLoader extends AnnotationFileLoader {
                               List<Map<String, ? extends AnnotationParser>> parsersQueries,
                               QUERY_TYPE qOrder) {
     Segment[] markerSegments = null;
-    if (markers == null && qOrder != QUERY_TYPE.DISCRETE_LIST) {
-      log.reportTimeWarning("No marker names were provided, searching entire annotation file");
-    } else {
+    if (markers != null || qOrder == QUERY_TYPE.DISCRETE_LIST) {
       markerSegments = getSegmentsForMarkers(markers);
     }
     query(markerSegments, parsersQueries, qOrder);

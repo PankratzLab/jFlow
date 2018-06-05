@@ -437,8 +437,7 @@ public class ImportProjectGUI extends JDialog {
       return false;
     }
     String projDir = txtFldProjDir.getText().trim();
-    Project actualProj = Project.initializeProject(name);
-    actualProj.PROJECT_DIRECTORY.setValue(projDir);
+    Project actualProj = Project.initializeProject(name, projDir);
 
     Map<String, String> importProps = actualProj.loadImportMetaFile();
     if (importProps != null && !importProps.isEmpty()) {

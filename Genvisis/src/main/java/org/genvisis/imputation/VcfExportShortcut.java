@@ -134,12 +134,11 @@ public class VcfExportShortcut {
       log.reportTime("Found existing project - " + projFile);
       proj = new Project(projFile);
     } else {
-      proj = Project.initializeProject(projName);
+      proj = Project.initializeProject(projName, outDir);
       proj.SOURCE_DIRECTORY.setValue(sourceDir);
       MultisetUtils.maxCount(ProjectCreationGUI.getSourceExtensionCounts(sourceDir))
                    .map(Multiset.Entry::getElement)
                    .ifPresent(proj.SOURCE_FILENAME_EXTENSION::setValue);
-      proj.PROJECT_DIRECTORY.setValue(outDir);
       proj.ARRAY_TYPE.setValue(arrayType);
       if (arrayType == ARRAY.ILLUMINA) {
         Map<String, SourceFileHeaderData> headers = SourceFileHeaderData.validate(sourceDir,
