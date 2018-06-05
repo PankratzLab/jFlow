@@ -20,6 +20,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
+import org.genvisis.common.RealMatrixUtils;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
@@ -65,13 +66,7 @@ public class SimpleNGSPCA implements Serializable {
   private void computeSVD(Logger log) {
     log.reportTimeInfo("computing SVD base");
 
-    DenseMatrix64F a = new DenseMatrix64F(1, 1);
-    a.reshape(m.getRowDimension(), m.getColumnDimension());
-    for (int row = 0; row < m.getRowDimension(); row++) {
-      for (int col = 0; col < m.getColumnDimension(); col++) {
-        a.add(row, col, m.getEntry(row, col));
-      }
-    }
+    DenseMatrix64F a = RealMatrixUtils.toDenseMatrix64F(m);
     log.reportTimeInfo("Computing EJML PCs");
     SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
     svd.decompose(a);
@@ -121,68 +116,6 @@ public class SimpleNGSPCA implements Serializable {
 
     }
     writer.close();
-  }
-
-  /**
-   * compute fold change for sample and center to marker median
-   * 
-   * @param m an {@link RealMatrix}
-   */
-  private static void foldChangeAndCenter(RealMatrix m) {
-    double[] medians = new double[m.getColumnDimension()]; //Samples are columns
-
-    //    convert samples to log2 fold-change from median
-    for (int j = 0; j < m.getColumnDimension(); j++) {
-      double[] tmp = new double[m.getRowDimension()];//Markers are rows
-      for (int i = 0; i < m.getRowDimension(); i++) {
-        tmp[i] += m.getEntry(i, j);
-      }
-      medians[j] = ArrayUtils.median(tmp);
-    }
-    for (int i = 0; i < m.getRowDimension(); i++) {
-      for (int j = 0; j < m.getColumnDimension(); j++) {
-        double entry = m.getEntry(i, j);
-        if (entry > 0) {
-          double standard = Maths.log2(entry / medians[j]);
-          m.setEntry(i, j, standard);
-        } else {
-          m.setEntry(i, j, 0);
-        }
-      }
-    }
-    //    convert markers to distance from median
-    scaleMarkersToMedian(m);
-  }
-
-  private static void scaleMarkersToMedian(RealMatrix m) {
-    for (int i = 0; i < m.getRowDimension(); i++) {
-      double[] tmp = m.getRow(i);
-      double median = ArrayUtils.median(tmp);
-      for (int j = 0; j < m.getColumnDimension(); j++) {
-        m.setEntry(i, j, tmp[j] - median);
-      }
-    }
-  }
-
-  private static void scale(RealMatrix m) {
-    double[] sds = new double[m.getColumnDimension()];
-    double[] mean = new double[m.getColumnDimension()];
-
-    for (int column = 0; column < mean.length; column++) {
-      double[] tmp = new double[m.getRowDimension()];
-      for (int i = 0; i < m.getRowDimension(); i++) {
-        tmp[i] += m.getEntry(i, column);
-      }
-      mean[column] = ArrayUtils.mean(tmp);
-      sds[column] = ArrayUtils.stdev(tmp);
-    }
-    for (int row = 0; row < m.getRowDimension(); row++) {
-      for (int column = 0; column < mean.length; column++) {
-        double standard = m.getEntry(row, column) - mean[column];
-        standard /= sds[column];
-        m.setEntry(row, column, standard);
-      }
-    }
   }
 
   public static void main(String[] args) {
@@ -280,15 +213,14 @@ public class SimpleNGSPCA implements Serializable {
       log.reportTime("Scaling data");
       switch (method) {
         case CENTER_SCALE_SAMPLE:
-          scale(tm.m);
+          RealMatrixUtils.scaleAndCenterColumns(tm.m);
           break;
         case CENTER_SCALE_SAMPLE_SCALE_MARKER:
-          scale(tm.m);
-          scaleMarkersToMedian(tm.m);
+          RealMatrixUtils.scaleAndCenterColumns(tm.m);
+          RealMatrixUtils.centerRowsToMedian(tm.m);
           break;
         case FC_MEDIAN:
-          foldChangeAndCenter(tm.m);
-
+          RealMatrixUtils.foldChangeAndCenter(tm.m);
           break;
         default:
           throw new IllegalArgumentException("Invalid method " + method);
