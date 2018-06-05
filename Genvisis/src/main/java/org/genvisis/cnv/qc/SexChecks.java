@@ -673,7 +673,7 @@ public class SexChecks {
    * chromosome markers
    */
   private Set<Marker> mosaicismUse() {
-    Set<Marker> allMarkers = ImmutableSet.copyOf(markerSet.getMarkers());
+    Set<Marker> allMarkers = ImmutableSet.copyOf(markerSet.markersAsList());
     Set<Marker> excludedXMarkers = Sets.difference(xMarkers, xUseMarkers);
     return Sets.difference(allMarkers, excludedXMarkers);
   }

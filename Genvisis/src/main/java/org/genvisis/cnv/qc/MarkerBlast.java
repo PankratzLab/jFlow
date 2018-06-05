@@ -155,10 +155,10 @@ public abstract class MarkerBlast {
     if (overrideMarkerPositions.isEmpty()) {
       return naiveMarkerSet;
     }
-    List<MarkerDetailSet.Marker> markers = Lists.newArrayListWithCapacity(naiveMarkerSet.getMarkers()
+    List<MarkerDetailSet.Marker> markers = Lists.newArrayListWithCapacity(naiveMarkerSet.markersAsList()
                                                                                         .size());
 
-    for (MarkerDetailSet.Marker naiveMarker : naiveMarkerSet.getMarkers()) {
+    for (MarkerDetailSet.Marker naiveMarker : naiveMarkerSet.markersAsList()) {
       String name = naiveMarker.getName();
       MarkerDetailSet.Marker marker;
       if (overrideMarkerPositions.containsKey(name)) {
@@ -327,7 +327,7 @@ public abstract class MarkerBlast {
   protected void annotateGCContent() {
     MarkerFastaEntry[] fastaEntries = getMarkerFastaEntries(null, false);
     MarkerDetailSet markerSet = proj.getMarkerSet();
-    List<Marker> markers = markerSet.getMarkers();
+    List<Marker> markers = markerSet.markersAsList();
     Map<Marker, Integer> indices = markerSet.getMarkerIndexMap();
     Map<String, Marker> nameMap = markerSet.getMarkerNameMap();
     // ReferenceGenome referenceGenome = new ReferenceGenome(fastaDb, log);

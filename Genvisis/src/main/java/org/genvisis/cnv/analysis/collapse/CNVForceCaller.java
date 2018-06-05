@@ -103,7 +103,7 @@ class CNVForceCaller {
           break;
         case MOSAIC:
           ImmutableSet.Builder<Marker> useMarkers = ImmutableSet.builder();
-          List<Marker> projOrderMarkers = proj.getMarkerSet().getMarkers();
+          List<Marker> projOrderMarkers = proj.getMarkerSet().markersAsList();
           for (int i = 0; i < markersToUse.length; i++) {
             if (markersToUse[i]) useMarkers.add(projOrderMarkers.get(i));
           }

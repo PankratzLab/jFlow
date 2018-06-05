@@ -83,7 +83,7 @@ public class MarkerBlastQC {
     }
     MarkerDetailSet markerSet = proj.getMarkerSet();
     Map<String, Marker> markerMap = markerSet.getMarkerNameMap();
-    List<Marker> markers = markerSet.getMarkers();
+    List<Marker> markers = markerSet.markersAsList();
     List<String> markerNames = markers.stream().map(Marker::getName).collect(Collectors.toList());
     MarkerAnnotationLoader markerAnnotationLoader = new MarkerAnnotationLoader(null,
                                                                                proj.BLAST_ANNOTATION_FILENAME.getValue(),

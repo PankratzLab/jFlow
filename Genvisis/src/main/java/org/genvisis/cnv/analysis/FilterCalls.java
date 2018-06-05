@@ -1820,7 +1820,7 @@ public class FilterCalls {
       }
     }
     Set<Marker> acceptables = Sets.newHashSet();
-    for (Marker marker : markerSet.getMarkers()) {
+    for (Marker marker : markerSet.markersAsList()) {
       int dels = delCounts.count(marker);
       int dups = dupCounts.count(marker);
       if (dels + dups >= totalRequired && dels >= delRequired && dups >= dupRequired

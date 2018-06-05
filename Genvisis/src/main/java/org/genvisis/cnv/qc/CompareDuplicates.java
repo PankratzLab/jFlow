@@ -47,7 +47,7 @@ public class CompareDuplicates {
 
       // max = Array.indexOfByte(chrs, (byte)23);
       // max = 1000000;
-      max = proj.getMarkerSet().getMarkers().size();
+      max = proj.getMarkerSet().markersAsList().size();
 
       geno = 0;
       count = 0;

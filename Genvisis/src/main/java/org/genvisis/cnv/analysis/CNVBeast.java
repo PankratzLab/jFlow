@@ -290,7 +290,7 @@ public class CNVBeast {
                                                String fullPathToBeastExe,
                                                boolean overWriteExistingFiles) {
     MarkerDetailSet markerSet = proj.getMarkerSet();
-    int numMarkers = markerSet.getMarkers().size();
+    int numMarkers = markerSet.markersAsList().size();
     Set<Byte> chrs = Sets.newHashSet(proj.getMarkerSet().getChrMap().keySet());
     chrs.remove((byte) 0); // skip chr 0
     ArrayList<BeastConfig> configs = new ArrayList<>(chrs.size());

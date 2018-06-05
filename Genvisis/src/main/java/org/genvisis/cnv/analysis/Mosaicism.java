@@ -62,7 +62,7 @@ public class Mosaicism {
     Hashtable<String, String> hash = new Hashtable<>();
 
     MarkerDetailSet markerSet = proj.getMarkerSet();
-    List<Marker> markers = markerSet.getMarkers();
+    List<Marker> markers = markerSet.markersAsList();
     Set<Marker> dropMarkers = proj.getFilteredMarkers().keySet();
     System.out.println("Mosacism will be estimated using " + markers.size() + " markers");
 
@@ -204,12 +204,12 @@ public class Mosaicism {
     builder.verbose(false);
     if (proj.getArrayType() == ARRAY.NGS) {
       proj.getLog().reportTimeWarning("Masking non-variant sites for project type " + ARRAY.NGS);
-      Set<Marker> use = markerSet.getMarkers().stream()
+      Set<Marker> use = markerSet.markersAsList().stream()
                                  .filter(m -> !proj.getArrayType().isCNOnly(m.getName()))
                                  .collect(ImmutableSet.toImmutableSet());
 
       proj.getLog()
-          .reportTimeInfo(markerSet.getMarkers().size() - use.size() + " markers were masked");
+          .reportTimeInfo(markerSet.markersAsList().size() - use.size() + " markers were masked");
       builder.use(use);
     }
     MosaicismDetect md = builder.build(proj, sample, samp.markerBAFMap(markerSet));

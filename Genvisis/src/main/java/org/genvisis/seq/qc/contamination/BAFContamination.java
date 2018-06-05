@@ -88,7 +88,7 @@ public class BAFContamination {
   }
 
   private boolean[] getPFBsToUse() {
-    List<Marker> markers = proj.getMarkerSet().getMarkers();
+    List<Marker> markers = proj.getMarkerSet().markersAsList();
     double[] maf = getMafs(mafs);
     boolean[] use = new boolean[maf.length];
     for (int i = 0; i < use.length; i++) {

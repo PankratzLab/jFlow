@@ -40,7 +40,7 @@ class MosaicForceCaller extends MarkerBasedForcedCaller<MosaicRegion> {
     MosaicBuilder builderMosaic = new MosaicBuilder();
     builderMosaic.verbose(true);
     builderMosaic.use(use);
-    List<Marker> allMarkers = proj.getMarkerSet().getMarkers();
+    List<Marker> allMarkers = proj.getMarkerSet().markersAsList();
     Set<Marker> nonCNMarkers = allMarkers.stream()
                                          .filter(m -> !proj.ARRAY_TYPE.getValue()
                                                                       .isCNOnly(m.getName()))

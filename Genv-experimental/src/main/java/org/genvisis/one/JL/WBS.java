@@ -39,7 +39,7 @@ public class WBS {
     String outDir = "/Volumes/Beta/data/LLFS/cnvsWBS/";
     String wbsCalls = "/Volumes/Beta/data/LLFS/cnvsWBS/10007060.wbs.cps.txt";
     new File(outDir).mkdirs();
-    List<MarkerDetailSet.Marker> markers = md.getMarkers();
+    List<MarkerDetailSet.Marker> markers = md.markersAsList();
     Map<MarkerDetailSet.Marker, Integer> map = md.getMarkerIndexMap();
     PrintWriter writer = Files.getAppropriateWriter(outDir + samp.getSampleName() + ".wbs.gz");
     writer.println("MARKER\tCHR\tPOS\tLRR");

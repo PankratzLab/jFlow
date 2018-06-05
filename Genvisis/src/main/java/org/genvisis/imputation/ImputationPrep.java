@@ -183,7 +183,7 @@ public class ImputationPrep {
 
   private Set<Marker> filterMarkers() {
     MarkerDetailSet markerSet = proj.getMarkerSet();
-    List<Marker> markers = markerSet.getMarkers();
+    List<Marker> markers = markerSet.markersAsList();
     Map<Byte, Map<Integer, Set<ReferencePosition>>> referencePositions = readRefFile();
     ImmutableSet.Builder<Marker> matchingMarkersBuilder = ImmutableSet.builder();
     int mismatchPos = 0;

@@ -501,7 +501,7 @@ public class MosaicismDetect {
     means = builder.means;
     variances = builder.variances;
     use = builder.use;
-    if (bafs.keySet().size() != proj.getMarkerSet().getMarkers().size()) {
+    if (bafs.keySet().size() != proj.getMarkerSet().markersAsList().size()) {
       throw new IllegalArgumentException("Internal error, bafs must be present for entire array, fill with NaN if neccesary");
     }
     prep();
@@ -517,12 +517,12 @@ public class MosaicismDetect {
     MarkerDetailSet markerSet = proj.getMarkerSet();
     MosaicBuilder builder = new MosaicBuilder();// most customizing can be done in the builder if
                                                 // needed
-    Set<Marker> use = markerSet.getMarkers().stream()
+    Set<Marker> use = markerSet.markersAsList().stream()
                                .filter(m -> proj.ARRAY_TYPE.getValue().isCNOnly(m.getName()))
                                .collect(ImmutableSet.toImmutableSet());
     builder.use(use);
     proj.getLog()
-        .reportTimeWarning("Skipping " + (markerSet.getMarkers().size() - use.size())
+        .reportTimeWarning("Skipping " + (markerSet.markersAsList().size() - use.size())
                            + " copy number only markers for mosaic regions and array type "
                            + proj.ARRAY_TYPE.getValue().toString());
     // develop segments to call on

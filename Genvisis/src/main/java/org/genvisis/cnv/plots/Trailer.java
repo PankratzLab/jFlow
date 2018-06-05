@@ -3223,7 +3223,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       float[] bafsProjOrder = samp.getBAFs();
       byte[] genotypesProjOrder = samp.getAB_Genotypes();
 
-      List<Marker> projOrderMarkers = markerDetailSet.getMarkers();
+      List<Marker> projOrderMarkers = markerDetailSet.markersAsList();
       float[] lrrValuesProjOrder;
       float[] originalBAFsProjOrder = new float[bafsProjOrder.length];
 
@@ -3335,19 +3335,19 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   private float[] getLRRsAsArray() {
     if (lrrs == null) return null;
-    return Floats.toArray(markerDetailSet.getMarkers().stream().map(lrrs::get)
+    return Floats.toArray(markerDetailSet.markersAsList().stream().map(lrrs::get)
                                          .collect(Collectors.toList()));
   }
 
   private float[] getLRRValuesAsArray() {
     if (lrrValues == null) return null;
-    return Floats.toArray(markerDetailSet.getMarkers().stream().map(lrrValues::get)
+    return Floats.toArray(markerDetailSet.markersAsList().stream().map(lrrValues::get)
                                          .collect(Collectors.toList()));
   }
 
   private float[] getBAFsAsArray() {
     if (bafs == null) return null;
-    return Floats.toArray(markerDetailSet.getMarkers().stream().map(bafs::get)
+    return Floats.toArray(markerDetailSet.markersAsList().stream().map(bafs::get)
                                          .collect(Collectors.toList()));
   }
 

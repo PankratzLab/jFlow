@@ -67,7 +67,7 @@ public class HMMParameterizer {
       LocusSet<CNVariant> sampSet = set.get(sample);
       if (sampSet.getLoci().length < maxCalls) {
         HashSet<Marker> notAccountedFor = new HashSet<>();
-        notAccountedFor.addAll(markerDetailSet.getMarkers());
+        notAccountedFor.addAll(markerDetailSet.markersAsList());
         String dna = sample.split("\t")[0];
         Sample samp = proj.getFullSampleFromRandomAccessFile(dna);
         if (samp == null) {

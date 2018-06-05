@@ -33,6 +33,7 @@ import org.genvisis.seq.manage.StrandOps;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
@@ -161,7 +162,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     }
   }
 
-  public static final long serialVersionUID = 9L;
+  public static final long serialVersionUID = 10L;
 
   public static final List<String> MARKER_POSITIONS_ISSUES_HEADER = Lists.newArrayList("Marker",
                                                                                        "DefinedChr",
@@ -169,7 +170,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
                                                                                        "BestMatchChr",
                                                                                        "BestMatchPos");
 
-  private final ImmutableList<Marker> markers;
+  private final ImmutableSet<Marker> markersSet;
+  private final ImmutableList<Marker> markersList;
   private final int hashCode;
   private final long markerSetFingerprint;
 
@@ -215,7 +217,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       throw new IllegalArgumentException(this.getClass().getName()
                                          + " cannot be constructed with mismatched list of Markers and positions or AB Alleles");
     }
-    ImmutableList.Builder<Marker> markersBuilder = ImmutableList.builder();
+    ImmutableSet.Builder<Marker> markersBuilder = ImmutableSet.builder();
     for (int i = 0; i < markerNames.length; i++) {
       String name = markerNames[i];
       GenomicPosition genomicPosition = new GenomicPosition(chrs[i], positions[i]);
@@ -227,14 +229,18 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
       }
       markersBuilder.add(marker);
     }
-    markers = markersBuilder.build();
+    markersSet = markersBuilder.build();
+    if (markersSet.size() != markerNames.length) throw new IllegalStateException("Duplicate Markers cannot exist in MarkerDetailSet");
+    markersList = markersSet.asList();
     this.markerSetFingerprint = markerSetFingerprint;
     hashCode = generateHashCode();
   }
 
   @SuppressWarnings("deprecation")
   public MarkerDetailSet(Iterable<Marker> markers) {
-    this.markers = ImmutableList.copyOf(markers);
+    this.markersSet = ImmutableSet.copyOf(markers);
+    if (markersSet.size() != Iterables.size(markers)) throw new IllegalStateException("Duplicate Markers cannot exist in MarkerDetailSet");
+    this.markersList = markersSet.asList();
     this.markerSetFingerprint = MarkerSet.fingerprint(getMarkerNames());
     this.hashCode = generateHashCode();
   }
@@ -265,13 +271,13 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   private int generateHashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((markers == null) ? 0 : markers.hashCode());
+    result = prime * result + ((markersList == null) ? 0 : markersList.hashCode());
     return result;
   }
 
   private Map<String, Marker> generateMarkerNameMap() {
     ImmutableMap.Builder<String, Marker> markerNameMapBuilder = ImmutableMap.builder();
-    for (Marker marker : markers) {
+    for (Marker marker : markersList) {
       markerNameMapBuilder.put(marker.getName(), marker);
     }
     return markerNameMapBuilder.build();
@@ -279,7 +285,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
   private NavigableMap<Byte, NavigableSet<Marker>> generateChrMap() {
     Map<Byte, ImmutableSortedSet.Builder<Marker>> chrBuilders = Maps.newHashMap();
-    for (Marker marker : markers) {
+    for (Marker marker : markersList) {
       Byte chr = marker.getChr();
       if (!chrBuilders.containsKey(chr)) {
         chrBuilders.put(chr, ImmutableSortedSet.naturalOrder());
@@ -292,8 +298,8 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   private NavigableMap<GenomicPosition, NavigableSet<Marker>> generateGenomicPositionMap() {
-    Map<GenomicPosition, ImmutableSortedSet.Builder<Marker>> gpBuilders = Maps.newHashMapWithExpectedSize(markers.size());
-    for (Marker marker : markers) {
+    Map<GenomicPosition, ImmutableSortedSet.Builder<Marker>> gpBuilders = Maps.newHashMapWithExpectedSize(markersList.size());
+    for (Marker marker : markersList) {
       GenomicPosition pos = marker.getGenomicPosition();
       if (!gpBuilders.containsKey(pos)) {
         gpBuilders.put(pos, ImmutableSortedSet.naturalOrder());
@@ -308,32 +314,32 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
   private Map<Marker, Integer> generateMarkerIndexMap() {
     ImmutableMap.Builder<Marker, Integer> indexMapBuilder = ImmutableMap.builder();
-    for (int i = 0; i < markers.size(); i++) {
-      indexMapBuilder.put(markers.get(i), i);
+    for (int i = 0; i < markersList.size(); i++) {
+      indexMapBuilder.put(markersList.get(i), i);
     }
     return indexMapBuilder.build();
   }
 
   private String[] generateMarkerNameArray() {
-    String[] markerNames = new String[markers.size()];
-    for (int i = 0; i < markers.size(); i++) {
-      markerNames[i] = markers.get(i).getName();
+    String[] markerNames = new String[markersList.size()];
+    for (int i = 0; i < markersList.size(); i++) {
+      markerNames[i] = markersList.get(i).getName();
     }
     return markerNames;
   }
 
   private byte[] generateChrArray() {
-    byte[] chrs = new byte[markers.size()];
-    for (int i = 0; i < markers.size(); i++) {
-      chrs[i] = markers.get(i).getChr();
+    byte[] chrs = new byte[markersList.size()];
+    for (int i = 0; i < markersList.size(); i++) {
+      chrs[i] = markersList.get(i).getChr();
     }
     return chrs;
   }
 
   private int[] generatePositionsArray() {
-    int[] chrs = new int[markers.size()];
-    for (int i = 0; i < markers.size(); i++) {
-      chrs[i] = markers.get(i).getPosition();
+    int[] chrs = new int[markersList.size()];
+    for (int i = 0; i < markersList.size(); i++) {
+      chrs[i] = markersList.get(i).getPosition();
     }
     return chrs;
   }
@@ -596,10 +602,17 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
-   * @return a List of {@link Marker}s in defined order
+   * @return a List of {@link Marker}s in "project" order
    */
-  public List<Marker> getMarkers() {
-    return markers;
+  public List<Marker> markersAsList() {
+    return markersList;
+  }
+
+  /**
+   * @return a Set of {@link Marker}s in "project" order
+   */
+  public Set<Marker> markersAsSet() {
+    return markersSet;
   }
 
   public Map<String, Marker> getMarkerNameMap() {
@@ -665,7 +678,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
     try {
       writer = Files.getAppropriateWriter(filename);
-      for (Marker marker : markers) {
+      for (Marker marker : markersList) {
         writer.println(Joiner.on('\t').join(marker.getName(), marker.getChr(), marker.getPosition(),
                                             marker.getA(), marker.getB()));
       }
@@ -707,10 +720,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    *         is true
    */
   public Set<Marker> includeProjectOrderMask(boolean[] markerMask) {
-    if (markerMask.length != markers.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
+    if (markerMask.length != markersList.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
     Set<Marker> includedMarkers = Sets.newHashSet();
     for (int i = 0; i < markerMask.length; i++) {
-      if (markerMask[i]) includedMarkers.add(markers.get(i));
+      if (markerMask[i]) includedMarkers.add(markersList.get(i));
     }
     return includedMarkers;
   }
@@ -722,24 +735,24 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    *         is false
    */
   public Set<Marker> excludeProjectOrderMask(boolean[] markerMask) {
-    if (markerMask.length != markers.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
+    if (markerMask.length != markersList.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
     Set<Marker> excludedMarkers = Sets.newHashSet();
     for (int i = 0; i < markerMask.length; i++) {
-      if (!markerMask[i]) excludedMarkers.add(markers.get(i));
+      if (!markerMask[i]) excludedMarkers.add(markersList.get(i));
     }
     return excludedMarkers;
   }
 
   /**
-   * @param dataInProjOrder {@link List} of data of the same length as {@link #getMarkers()}
+   * @param dataInProjOrder {@link List} of data of the same length as {@link #markersAsList()}
    * @return a mutable {@link Map} from {@link Marker} to the data at the project index of the
    *         {@link Marker} in dataInProjOrder
    */
   public <T> Map<Marker, T> mapProjectOrderData(List<T> dataInProjOrder) {
-    if (dataInProjOrder.size() != markers.size()) throw new IllegalArgumentException("Project order data does not match size of project marker List");
-    Map<Marker, T> markerDataMap = Maps.newHashMapWithExpectedSize(markers.size());
-    for (int i = 0; i < markers.size(); i++) {
-      markerDataMap.put(markers.get(i), dataInProjOrder.get(i));
+    if (dataInProjOrder.size() != markersList.size()) throw new IllegalArgumentException("Project order data does not match size of project marker List");
+    Map<Marker, T> markerDataMap = Maps.newHashMapWithExpectedSize(markersList.size());
+    for (int i = 0; i < markersList.size(); i++) {
+      markerDataMap.put(markersList.get(i), dataInProjOrder.get(i));
     }
     return markerDataMap;
   }
@@ -790,9 +803,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     MarkerDetailSet other = (MarkerDetailSet) obj;
-    if (markers == null) {
-      if (other.markers != null) return false;
-    } else if (!markers.equals(other.markers)) return false;
+    if (markersList == null) {
+      if (other.markersList != null) return false;
+    } else if (!markersList.equals(other.markersList)) return false;
     return true;
   }
 
@@ -934,9 +947,9 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
 
   @Deprecated
   public char[][] getABAlleles() {
-    char[][] abAlleles = new char[markers.size()][2];
-    for (int i = 0; i < markers.size(); i++) {
-      abAlleles[i] = markers.get(i).getAB();
+    char[][] abAlleles = new char[markersList.size()][2];
+    for (int i = 0; i < markersList.size(); i++) {
+      abAlleles[i] = markersList.get(i).getAB();
     }
     return abAlleles;
   }

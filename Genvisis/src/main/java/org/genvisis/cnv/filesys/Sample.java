@@ -372,7 +372,7 @@ public class Sample implements Serializable {
    * @return Map from {@link MarkerDetailSet.Marker} to BAF for this {@link Sample}
    */
   public Map<Marker, Double> markerBAFMap(MarkerDetailSet markerSet) {
-    List<Marker> projOrderMarkers = markerSet.getMarkers();
+    List<Marker> projOrderMarkers = markerSet.markersAsList();
     ImmutableMap.Builder<Marker, Double> markerBAFMapBuilder = ImmutableMap.builder();
     for (int i = 0; i < bafs.length; i++) {
       markerBAFMapBuilder.put(projOrderMarkers.get(i), (double) bafs[i]);
@@ -408,7 +408,7 @@ public class Sample implements Serializable {
    * @return Map from {@link MarkerDetailSet.Marker} to LRR for this {@link Sample}
    */
   public Map<Marker, Double> markerLRRMap(MarkerDetailSet markerSet) {
-    List<Marker> projOrderMarkers = markerSet.getMarkers();
+    List<Marker> projOrderMarkers = markerSet.markersAsList();
     ImmutableMap.Builder<Marker, Double> markerLRRMapBuilder = ImmutableMap.builder();
     for (int i = 0; i < lrrs.length; i++) {
       markerLRRMapBuilder.put(projOrderMarkers.get(i), (double) lrrs[i]);
