@@ -9,11 +9,16 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.Set;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -32,6 +37,10 @@ import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Doubles;
 
 public class LrrSd extends Parallelizable {
 
@@ -55,24 +64,50 @@ public class LrrSd extends Parallelizable {
                                                   BOUND_MAD_CORRECTED};
   public static final String SAMPLE_COLUMN = "Sample";
   private final Project proj;
-  private final String[] samples;
+  private final MarkerDetailSet markerDetailSet;
+  private final List<String> samples;
   private final String centroidsFile;
   private final int threadNumber;
   private final int numThreads;
-  private final boolean[] markersForCallrate, markersForEverythingElse;
+  private final Set<Marker> markersForCallrate;
+  private final Set<Marker> markersForEverythingElse;
   private final GcModel gcModel;
 
-  public LrrSd(Project proj, String[] samples, boolean[] markersForCallrate,
-               boolean[] markersForEverythingElse, String centroidsFile, GcModel gcModel,
+  public LrrSd(Project proj, List<String> samples, Set<Marker> markersForCallrate,
+               Set<Marker> markersForEverythingElse, String centroidsFile, GcModel gcModel,
                int threadNumber, int numThreads) {
     this.proj = proj;
+    this.markerDetailSet = proj.getMarkerSet();
     this.samples = samples;
     this.centroidsFile = centroidsFile;
     this.threadNumber = threadNumber;
     this.numThreads = numThreads;
     this.markersForCallrate = markersForCallrate;
-    this.markersForEverythingElse = markersForEverythingElse;
+    this.markersForEverythingElse = viewNonAutosomalMarkers(markersForEverythingElse);
     this.gcModel = gcModel;
+  }
+
+  private Set<Marker> viewNonAutosomalMarkers(Set<Marker> inputMarkers) {
+    NavigableMap<Byte, NavigableSet<Marker>> chrMap = markerDetailSet.getChrMap();
+    if (chrMap.firstKey() >= 23) {
+      proj.getLog()
+          .reportError("Error - was not able to detect any autosomal markers for sample QC in project");
+    }
+    NavigableMap<Byte, NavigableSet<Marker>> nonAutosomalMarkers = chrMap.tailMap((byte) 23, true);
+    if (nonAutosomalMarkers.firstKey() != 23) {
+      proj.getLog().report("Info - did not detect chromosome 23 in project");
+    }
+    Set<Marker> returnMarkers;
+    if (inputMarkers != null) {
+      returnMarkers = inputMarkers;
+      for (Set<Marker> chrMarkers : nonAutosomalMarkers.values()) {
+        returnMarkers = Sets.difference(returnMarkers, chrMarkers);
+      }
+    } else {
+      returnMarkers = chrMap.headMap((byte) 22, true).values().stream()
+                            .collect(ImmutableSet::of, Sets::intersection, Sets::intersection);
+    }
+    return returnMarkers;
   }
 
   @Override
@@ -80,8 +115,6 @@ public class LrrSd extends Parallelizable {
     PrintWriter writer;
     Sample fsamp;
     float[][][] cents;
-    byte[] chrs;
-    int subIndex = -1;
     Logger log;
 
     String PROG_KEY = "LRRSTDEV_" + threadNumber;
@@ -89,7 +122,7 @@ public class LrrSd extends Parallelizable {
 
     ProgressMonitor progMon = proj.getProgressMonitor();
     if (progMon != null) {
-      progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.length + 1,
+      progMon.beginDeterminateTask(PROG_KEY, progDesc, samples.size() + 1,
                                    ProgressMonitor.DISPLAY_MODE.GUI_AND_CONSOLE);
     }
 
@@ -105,32 +138,9 @@ public class LrrSd extends Parallelizable {
         proj.getProgressMonitor().updateTask(PROG_KEY);
       }
 
-      chrs = proj.getMarkerSet().getChrs();
-      subIndex = ArrayUtils.indexOfFirstMaxByte(chrs, (byte) 23);// index is the first byte >= 23,
-      // chrs.length if all are less, -1 if
-      // none are less, 0 if all are greater!
-      if (subIndex <= 0) {
-        // proj.getLog().reportError("Error - was not able to detect any autosomal markers for
-        // sample QC in " + proj.getFilename(proj.MARKERSET_FILENAME));
-        proj.getLog()
-            .reportError("Error - was not able to detect any autosomal markers for sample QC in project");
-        return;
-      }
-      if (chrs[subIndex] != 23) {
-        // proj.getLog().report("Info - did not detect chromosome 23 in " +
-        // proj.getFilename(proj.MARKERSET_FILENAME));
-        proj.getLog().report("Info - did not detect chromosome 23 in project");
-      }
-      if (markersForEverythingElse != null) {
-        for (int i = subIndex; i < markersForEverythingElse.length; i++) {
-          markersForEverythingElse[i] = false;
-        }
-      }
-
-      int numAb = (markersForCallrate == null ? chrs.length
-                                              : ArrayUtils.booleanArraySum(markersForCallrate));
-      int numAllElse = (markersForEverythingElse == null ? subIndex
-                                                         : ArrayUtils.booleanArraySum(markersForEverythingElse));
+      int numAb = (markersForCallrate == null ? markerDetailSet.markersAsList().size()
+                                              : markersForCallrate.size());
+      int numAllElse = markersForEverythingElse.size();
       if (threadNumber == 1) {// we can just show this once
         proj.getLog().report("Info - using " + numAb + " markers for sample call rate qc");
         proj.getLog().report("Info - using " + numAllElse
@@ -155,10 +165,6 @@ public class LrrSd extends Parallelizable {
             .report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers")
                     + " for other qc metrics may result in inaccurate sample qc, please consider using more");
       }
-
-      // writer = new PrintWriter(new
-      // FileWriter(ext.rootOf(proj.getFilename(proj.SAMPLE_QC_FILENAME), false) + "." +
-      // threadNumber));
       writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
                                               + "." + threadNumber));
       writer.println(SAMPLE_COLUMN + "\t" + ArrayUtils.toStr(NUMERIC_COLUMNS));
@@ -227,59 +233,49 @@ public class LrrSd extends Parallelizable {
    */
   public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet, String sampleID,
                                         Sample fsamp, float[][][] cents,
-                                        boolean[] markersForCallrate,
-                                        boolean[] markersForEverythingElse, GcModel gcModel,
+                                        Set<Marker> markersForCallrate,
+                                        Set<Marker> markersForEverythingElse, GcModel gcModel,
                                         GC_CORRECTION_METHOD correctionMethod, Logger log) {
-    byte[] abGenotypes, forwardGenotypes;
-    float[] lrrs, bafs, bafsWide;
-    double abCallRate, forwardCallRate, abHetRate, forwardHetRate, wfPrior, gcwfPrior, wfPost,
-        gcwfPost, lrrsdBound, lrrsdPost, lrrsdPostBound, lrrMadBound, lrrMadPost, lrrMadBoundPost;
     int[] bafBinCounts;
     boolean multimodal;
 
-    lrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
-    bafs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
+    MarkerDetailSet markerDetailSet = proj.getMarkerSet();
 
-    bafsWide = bafs;
-    markersForEverythingElse = markersForEverythingElse == null ? proj.getAutosomalMarkerBoolean()
-                                                                : markersForEverythingElse;
-    if (markersForEverythingElse == null || markersForEverythingElse.length == 0) {
-      proj.getLog()
-          .reportTimeWarning("Could not determine appropriate marker subset, lrr_sd.xln data for sample "
-                             + fsamp.getSampleName()
-                             + " will be based on all markers, not just autosomal markers");
-      markersForEverythingElse = null;
-    } else {
-      lrrs = ArrayUtils.subArray(lrrs, markersForEverythingElse);
-      bafs = ArrayUtils.subArray(bafs, markersForEverythingElse);
-      bafsWide = ArrayUtils.subArray(bafsWide, markersForEverythingElse);
-    }
-    abGenotypes = fsamp.getAB_Genotypes();
-    forwardGenotypes = fsamp.getForwardGenotypes();
-    // TODO, remove cnv only probes using proj Array type if markersForCallrate is not provided...
-    if (markersForCallrate != null) {// we do not need autosomal only markers here...
-      abGenotypes = (abGenotypes == null ? abGenotypes
-                                         : ArrayUtils.subArray(abGenotypes, markersForCallrate));
-      forwardGenotypes = (forwardGenotypes == null ? forwardGenotypes
-                                                   : ArrayUtils.subArray(forwardGenotypes,
-                                                                         markersForCallrate));
+    Map<Marker, Float> lrrs = markerDetailSet.mapProjectOrderData(cents == null ? fsamp.getLRRs()
+                                                                                : fsamp.getLRRs(cents));
+    lrrs.keySet().retainAll(markersForEverythingElse);
+    Map<Marker, Float> bafs = markerDetailSet.mapProjectOrderData(cents == null ? fsamp.getBAFs()
+                                                                                : fsamp.getBAFs(cents));
+    bafs.keySet().retainAll(markersForEverythingElse);
+    Map<Marker, Float> bafsWide = Maps.newHashMap(bafs);
+
+    Map<Marker, Byte> abGenotypes = fsamp.getAB_Genotypes() == null ? null
+                                                                    : markerDetailSet.mapProjectOrderData(fsamp.getAB_Genotypes());
+    Map<Marker, Byte> forwardGenotypes = fsamp.getForwardGenotypes() == null ? null
+                                                                             : markerDetailSet.mapProjectOrderData(fsamp.getForwardGenotypes());
+
+    if (markersForCallrate != null) {
+      if (abGenotypes != null) abGenotypes.keySet().retainAll(markersForCallrate);
+      if (forwardGenotypes != null) forwardGenotypes.keySet().retainAll(markersForCallrate);
     }
 
     bafBinCounts = new int[101];
-    for (int j = 0; j < bafs.length; j++) {
-      if (!Float.isNaN(bafs[j])) {
-        bafBinCounts[(int) Math.floor(bafs[j] * 100)]++;
+    for (Marker marker : markersForEverythingElse) {
+      final float baf = bafs.get(marker);
+      if (!Float.isNaN(baf)) {
+        bafBinCounts[(int) Math.floor(baf * 100)]++;
       }
-      if (bafs[j] < 0.15 || bafs[j] > 0.85) {
-        bafs[j] = Float.NaN;
+      if (baf < 0.15 || baf > 0.85) {
+        bafs.put(marker, Float.NaN);
       }
-      if (bafsWide[j] < 0.03 || bafsWide[j] > 0.97) {
-        bafsWide[j] = Float.NaN;
+      if (baf < 0.03 || baf > 0.97) {
+        bafsWide.put(marker, Float.NaN);
       }
     }
-    abCallRate = abHetRate = 0;
+    double abCallRate = 0;
+    double abHetRate = 0;
     if (abGenotypes != null) {
-      for (byte abGenotype : abGenotypes) {
+      for (byte abGenotype : abGenotypes.values()) {
         if (abGenotype >= 0) {
           abCallRate++;
         }
@@ -289,11 +285,12 @@ public class LrrSd extends Parallelizable {
 
       }
       abHetRate /= abCallRate;
-      abCallRate /= abGenotypes.length;
+      abCallRate /= abGenotypes.size();
     }
-    forwardCallRate = forwardHetRate = 0;
+    double forwardCallRate = 0;
+    double forwardHetRate = 0;
     if (forwardGenotypes != null) {
-      for (byte forwardGenotype : forwardGenotypes) {
+      for (byte forwardGenotype : forwardGenotypes.values()) {
         if (forwardGenotype > 0) {
           forwardCallRate++;
         }
@@ -302,16 +299,16 @@ public class LrrSd extends Parallelizable {
         }
       }
       forwardHetRate /= forwardCallRate;
-      forwardCallRate /= forwardGenotypes.length;
+      forwardCallRate /= forwardGenotypes.size();
     }
-    wfPrior = Double.NaN;
-    gcwfPrior = Double.NaN;
-    wfPost = Double.NaN;
-    gcwfPost = Double.NaN;
-    lrrsdPost = Double.NaN;
-    lrrsdPostBound = Double.NaN;
-    lrrMadPost = Double.NaN;
-    lrrMadBoundPost = Double.NaN;
+    double wfPrior = Double.NaN;
+    double gcwfPrior = Double.NaN;
+    double wfPost = Double.NaN;
+    double gcwfPost = Double.NaN;
+    double lrrsdPost = Double.NaN;
+    double lrrsdPostBound = Double.NaN;
+    double lrrMadPost = Double.NaN;
+    double lrrMadBoundPost = Double.NaN;
     if (gcModel != null) {
       GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
                                                              cents == null ? fsamp.getLRRs()
@@ -324,21 +321,14 @@ public class LrrSd extends Parallelizable {
         wfPost = gcAdjustor.getWfPost();
         gcwfPost = gcAdjustor.getGcwfPost();
         double[] tmp;
-        if (markersForEverythingElse == null) {
-
-          lrrsdPost = ArrayUtils.stdev(gcAdjustor.getCorrectedIntensities(), true);
-          lrrMadPost = ArrayUtils.mad(ArrayUtils.removeNaN(gcAdjustor.getCorrectedIntensities()));
-          tmp = CNVCaller.adjustLrr(gcAdjustor.getCorrectedIntensities(),
-                                    CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-                                    CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-        } else {
-          double[] subLrr = ArrayUtils.subArray(gcAdjustor.getCorrectedIntensities(),
-                                                markersForEverythingElse);
-          lrrsdPost = ArrayUtils.stdev(subLrr, true);
-          lrrMadPost = ArrayUtils.mad(ArrayUtils.removeNaN(subLrr));
-          tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-                                    CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
-        }
+        Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
+        double[] subLrr = markersForEverythingElse.stream().map(markerIndexMap::get)
+                                                  .mapToDouble(i -> gcAdjustor.getCorrectedIntensities()[i])
+                                                  .filter(d -> !Double.isNaN(d)).toArray();
+        lrrsdPost = ArrayUtils.stdev(subLrr);
+        lrrMadPost = ArrayUtils.mad(subLrr);
+        tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+                                  CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, log);
         tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
                                                                CNVCaller.MAX_LRR_MEDIAN_ADJUST,
                                                                false));
@@ -347,21 +337,25 @@ public class LrrSd extends Parallelizable {
       }
     }
 
-    multimodal = ArrayUtils.isMultimodal(ArrayUtils.toDoubleArray(ArrayUtils.removeNaN(bafsWide)),
+    multimodal = ArrayUtils.isMultimodal(bafsWide.values().stream().mapToDouble(f -> f)
+                                                 .filter(d -> !Double.isNaN(d)).toArray(),
                                          0.1, 0.5, 0.01);
-    lrrs = ArrayUtils.replaceNonFinites(lrrs);
-    double[] dlrrs = ArrayUtils.toDoubleArray(lrrs);
-    double[] tmp = CNVCaller.adjustLrr(dlrrs, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-                                       CNVCaller.MAX_LRR_MEDIAN_ADJUST, false, proj.getLog());
-    tmp = ArrayUtils.removeNaN(ArrayUtils.getValuesBetween(tmp, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
-                                                           CNVCaller.MAX_LRR_MEDIAN_ADJUST, false));
-    lrrsdBound = ArrayUtils.stdev(tmp, true);
-    lrrMadBound = ArrayUtils.mad(tmp);
+    lrrs.replaceAll((m, lrr) -> Float.isFinite(lrr) ? lrr : Float.NaN);
+    double[] tmp = Arrays.stream(CNVCaller.adjustLrr(Doubles.toArray(lrrs.values()),
+                                                     CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+                                                     CNVCaller.MAX_LRR_MEDIAN_ADJUST, false,
+                                                     proj.getLog()))
+                         .filter(Range.open(CNVCaller.MIN_LRR_MEDIAN_ADJUST,
+                                            CNVCaller.MAX_LRR_MEDIAN_ADJUST)::contains)
+                         .filter(d -> !Double.isNaN(d)).toArray();
+    double lrrsdBound = ArrayUtils.stdev(tmp, true);
+    double lrrMadBound = ArrayUtils.mad(tmp);
 
-    String[] retVals = new String[] {sampleID, ArrayUtils.mean(lrrs, true) + "",
-                                     ArrayUtils.stdev(lrrs, true) + "", lrrsdBound + "",
-                                     ArrayUtils.mad(ArrayUtils.removeNaN(dlrrs)) + "",
-                                     lrrMadBound + "", ArrayUtils.stdev(bafs, true) + "",
+    String[] retVals = new String[] {sampleID, ArrayUtils.mean(lrrs.values(), true) + "",
+                                     ArrayUtils.stdev(lrrs.values(), true) + "", lrrsdBound + "",
+                                     ArrayUtils.mad(lrrs.values().stream().filter(d -> !d.isNaN())
+                                                        .mapToDouble(d -> d).toArray()) + "",
+                                     lrrMadBound + "", ArrayUtils.stdev(bafs.values(), true) + "",
                                      (abCallRate > 0 ? abCallRate : forwardCallRate) + "",
                                      (abCallRate > 0 ? abHetRate : forwardHetRate) + "",
                                      wfPrior + "", gcwfPrior + "", wfPost + "", gcwfPost + "",
@@ -788,12 +782,24 @@ public class LrrSd extends Parallelizable {
   public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate,
                           boolean[] markersForEverythingElse, String centroidsFile,
                           boolean gcMetrics, int numThreads) {
+    Set<Marker> callrateMarkersSet = markersForCallrate == null ? proj.getMarkerSet().markersAsSet()
+                                                                : proj.getMarkerSet()
+                                                                      .includeProjectOrderMask(markersForCallrate);
+    Set<Marker> everythingElseMarkersSet = markersForEverythingElse == null ? proj.getMarkerSet()
+                                                                                  .markersAsSet()
+                                                                            : proj.getMarkerSet()
+                                                                                  .includeProjectOrderMask(markersForEverythingElse);
+    init(proj, customSampleFileList, callrateMarkersSet, everythingElseMarkersSet, centroidsFile,
+         gcMetrics, numThreads);
+  }
+
+  public static void init(Project proj, String customSampleFileList, Set<Marker> markersForCallrate,
+                          Set<Marker> markersForEverythingElse, String centroidsFile,
+                          boolean gcMetrics, int numThreads) {
     String[] samples, subsamples;
     String[][] threadSeeds;
     LrrSd[] runables;
     boolean error;
-    String[] markers;
-    BaselineUnclusteredMarkers bum;
     GcModel gcModel;
     Logger log;
 
@@ -840,17 +846,11 @@ public class LrrSd extends Parallelizable {
       }
     }
 
-    markers = proj.getMarkerNames();
-    if (markersForCallrate == null) {
-      markersForCallrate = new boolean[markers.length];
-      Arrays.fill(markersForCallrate, true);
-    }
-    bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
-    for (int i = 0; i < markersForCallrate.length; i++) {
-      if (markersForCallrate[i] && bum.markerUnclustered(markers[i])) {
-        markersForCallrate[i] = false;
-      }
-    }
+    BaselineUnclusteredMarkers bum = BaselineUnclusteredMarkers.getProjBaselineUnclusteredMarkers(proj);
+    Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
+    markersForCallrate = Sets.difference(markersForCallrate,
+                                         bum.unclusteredMarkers().stream().map(markerNameMap::get)
+                                            .collect(ImmutableSet.toImmutableSet()));
 
     gcModel = null;
     if (gcMetrics && Files.exists(proj.GC_MODEL_FILENAME.getValue(false, false))) {
@@ -877,8 +877,9 @@ public class LrrSd extends Parallelizable {
     runables = new LrrSd[numThreads];
     for (int i = 0; i < numThreads; i++) {
       if (threadSeeds[i].length > 0) {
-        runables[i] = new LrrSd(proj, threadSeeds[i], markersForCallrate, markersForEverythingElse,
-                                centroidsFile, gcModel, i + 1, numThreads);
+        runables[i] = new LrrSd(proj, Arrays.asList(threadSeeds[i]), markersForCallrate,
+                                markersForEverythingElse, centroidsFile, gcModel, i + 1,
+                                numThreads);
       }
     }
 

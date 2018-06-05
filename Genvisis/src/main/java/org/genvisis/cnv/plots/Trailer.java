@@ -3450,12 +3450,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           while (inDrag) {
             Thread.yield();
           }
-          boolean[] markersForCallrate = null;
           GcModel gcModelToUse = gcModel != null && gcCorrectButton.isSelected() ? gcModel : null;
           // boolean fastQC = false;//gcFastButton.isSelected();
           GC_CORRECTION_METHOD correctionMethod = GC_CORRECTION_METHOD.GENVISIS_GC;// !gcFastButton.isSelected();
           Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
-          boolean[] markersForEverythingElse = new boolean[markerIndexMap.size()];
           // If updateRegion, exclude markers outside of the current region
           Set<Marker> toUse = updateRegion ? curMarkers : markerIndexMap.keySet();
 
@@ -3484,13 +3482,10 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
           // Apply the update(s)
           if (updateGenome || updateChr || updateRegion) {
-            for (Marker marker : toUse) {
-              markersForEverythingElse[markerIndexMap.get(marker)] = true;
-            }
 
             qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
-                                            markersForCallrate, markersForEverythingElse,
-                                            gcModelToUse, correctionMethod, log);
+                                            markerDetailSet.markersAsSet(), toUse, gcModelToUse,
+                                            correctionMethod, log);
           }
           updateQCDisplay();
         }
