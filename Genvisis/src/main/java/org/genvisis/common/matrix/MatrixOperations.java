@@ -106,7 +106,7 @@ public class MatrixOperations {
   private static void centerRowsToMedian(RealMatrix m) {
     for (int row = 0; row < m.getRowDimension(); row++) {
       double[] tmp = m.getRow(row);
-      double median = ArrayUtils.median(tmp);
+      double median = ArrayUtils.median(tmp, true);
       for (int column = 0; column < m.getColumnDimension(); column++) {
         m.setEntry(row, column, tmp[column] - median);
       }
@@ -121,8 +121,8 @@ public class MatrixOperations {
     double[] mean = new double[m.getColumnDimension()];
     for (int column = 0; column < m.getColumnDimension(); column++) {
       double[] tmp = new double[m.getRowDimension()];
-      for (int i = 0; i < m.getRowDimension(); i++) {
-        tmp[i] += m.getEntry(i, column);
+      for (int row = 0; row < m.getRowDimension(); row++) {
+        tmp[row] += m.getEntry(row, column);
       }
       mean[column] = ArrayUtils.mean(tmp, true);
       sds[column] = ArrayUtils.stdev(tmp, true);

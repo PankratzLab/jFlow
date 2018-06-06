@@ -3,17 +3,12 @@
  */
 package org.genvisis.pca.ancestry;
 
-import org.apache.commons.math3.linear.DiagonalMatrix;
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.SingularOps;
 import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
-import org.genvisis.common.matrix.MatrixOperations;
 import org.genvisis.common.matrix.NamedRealMatrix;
-import org.genvisis.common.matrix.SVDResult;
+import org.genvisis.common.matrix.SVD;
+import com.google.common.math.Stats;
+import com.google.common.math.StatsAccumulator;
 
 /**
  * Runs PCA starting from a {@link NamedRealMatrix}
@@ -24,35 +19,62 @@ public class AncestryPCA {
 
   }
 
-  public static SVDResult generatePCs(MatrixDataLoading loader, Logger log) {
-    return computePCA(loader.getData(), log);
+  public static SVD generatePCs(MatrixDataLoading loader, Logger log) {
+    NamedRealMatrix m = loader.getData();
+
+    prepareForPCA(m, log);
+    return computePCA(m, log);
   }
 
-  private static SVDResult computePCA(NamedRealMatrix m, Logger log) {
-    DenseMatrix64F a = MatrixOperations.toDenseMatrix64F(m.getM());
+  /**
+   * Prepares genotype data for PCA (see https://www.nature.com/articles/ng1847)
+   * 
+   * @param m
+   * @param log
+   * @return
+   */
+  public static void prepareForPCA(NamedRealMatrix m, Logger log) {
+    //    Let gij be a matrix of genotypes for SNP i and individual j, where i = 1 to M 
+    //        and j = 1 to N. We subtract the row mean μi = (Σjgij)/N from each entry in row i 
+    //        to obtain a matrix with row sums equal to 0; missing entries are excluded from
+    //        the computation of μi and are subsequently set to 0. We then normalize row i by 
+    //        dividing each entry by √(pi(1 − pi)), where pi is a posterior estimate of the unobserved
+    //        underlying allele frequency of SNP i defined by pi = (1 + Σjgij)/(2 + 2N), 
+    //        with missing entries excluded from the computation.
 
-    log.reportTimeInfo("Computing EJML PCs");
-    SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
-    svd.decompose(a);
-    log.reportTimeInfo("Finished Computing EJML PCs");
-    DenseMatrix64F tv = svd.getV(null, true);
-
-    DenseMatrix64F tmpW = svd.getW(null);
-    SingularOps.descendingOrder(null, false, tmpW, tv, true);
-    int numSingular = Math.min(tmpW.numRows, tmpW.numCols);
-    double[] singularValues = new double[numSingular];
-    for (int i = 0; i < numSingular; i++) {
-      singularValues[i] = tmpW.get(i, i);
-    }
-    DiagonalMatrix w = new DiagonalMatrix(singularValues);
-    RealMatrix v = MatrixUtils.createRealMatrix(tv.numRows, tv.numCols);
-    for (int row = 0; row < tv.numRows; row++) {
-      for (int col = 0; col < tv.numCols; col++) {
-        v.addToEntry(row, col, tv.get(row, col));
+    for (int row = 0; row < m.getM().getRowDimension(); row++) {
+      StatsAccumulator statsAccumulator = new StatsAccumulator();
+      for (int column = 0; column < m.getM().getColumnDimension(); column++) {
+        double val = m.getM().getEntry(row, column);
+        if (valid(val)) {
+          if (Double.isFinite(val)) {
+            statsAccumulator.add(val);
+          }
+        } else {
+          throw new IllegalArgumentException("Invalid  value at marker "
+                                             + m.getIndexRowMap().get(row) + " and sample "
+                                             + m.getIndexColumnMap().get(column));
+        }
+      }
+      Stats stats = statsAccumulator.snapshot();
+      for (int column = 0; column < m.getM().getColumnDimension(); column++) {
+        double val = m.getM().getEntry(row, column);
+        if (Double.isFinite(val)) {
+          m.getM().setEntry(row, column, 0);
+        } else {
+          m.getM().setEntry(row, column, val - stats.mean());
+        }
       }
     }
-    return new SVDResult(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
-
   }
 
+  private static boolean valid(double val) {
+    // since these are genotypes, we are using strict equality
+    return Double.isNaN(val) || val == 2 || val == 1 || val == 0;
+  }
+
+  private static SVD computePCA(NamedRealMatrix m, Logger log) {
+
+    return SVD.computeSVD(m, log);
+  }
 }

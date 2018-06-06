@@ -38,7 +38,7 @@ public class PlinkDataLoader implements MatrixDataLoading {
     DosageData d = DosageData.loadPlinkBinary(dir, null, null, plinkRoot, null, true, true);
     String[] samples = new String[d.getIds().length];
     for (int i = 0; i < samples.length; i++) {
-      samples[i] = d.getIds()[i][0] + "\t" + d.getIds()[i][1];
+      samples[i] = d.getIds()[i][0] + "_" + d.getIds()[i][1];
     }
 
     String[] markers = d.getMarkerSet().getMarkerNames();
@@ -56,21 +56,11 @@ public class PlinkDataLoader implements MatrixDataLoading {
     RealMatrix m = MatrixUtils.createRealMatrix(markers.length, samples.length);
     for (int column = 0; column < m.getColumnDimension(); column++) {
       for (int row = 0; row < m.getRowDimension(); row++) {
-        double val = d.getDosageValues()[row][column];
-        if (valid(val)) {
-          m.setEntry(row, column, val);
-        } else {
-          throw new IllegalArgumentException("Invalid  value at marker " + markers[row]
-                                             + " and sample " + samples[column]);
-        }
+        m.setEntry(row, column, d.getDosageValues()[row][column]);
       }
     }
+    log.memoryPercentTotalFree();
     return new NamedRealMatrix(markerMap, sampleMap, m);
-  }
-
-  private static boolean valid(double val) {
-    // since these are genotypes, we are using strict equality
-    return Double.isNaN(val) || val == 2 || val == 1 || val == 0;
   }
 
 }

@@ -77,14 +77,14 @@ public class NamedRealMatrix implements Serializable {
   /**
    * @return the indexRowMap
    */
-  protected Map<Integer, String> getIndexRowMap() {
+  public Map<Integer, String> getIndexRowMap() {
     return indexRowMap;
   }
 
   /**
    * @return the indexColumnMap
    */
-  protected Map<Integer, String> getIndexColumnMap() {
+  public Map<Integer, String> getIndexColumnMap() {
     return indexColumnMap;
   }
 
