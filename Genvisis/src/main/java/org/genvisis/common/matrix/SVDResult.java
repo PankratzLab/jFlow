@@ -14,10 +14,9 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 
 /**
- * 
- *
+ * Stores the V,W and input data for Singular value decompositions
  */
-public class SVD extends NamedRealMatrix {
+public class SVDResult extends NamedRealMatrix {
 
   /**
    * 
@@ -34,8 +33,8 @@ public class SVD extends NamedRealMatrix {
    * @param w the w {@link RealMatrix}, eigenvector
    */
 
-  public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, RealMatrix m,
-             RealMatrix v, DiagonalMatrix w) {
+  public SVDResult(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap,
+                   RealMatrix m, RealMatrix v, DiagonalMatrix w) {
     super(rowNameMap, columnNameMap, m);
     this.v = v;
     this.w = w;

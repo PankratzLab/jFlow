@@ -13,7 +13,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.MatrixOperations;
 import org.genvisis.common.matrix.NamedRealMatrix;
-import org.genvisis.common.matrix.SVD;
+import org.genvisis.common.matrix.SVDResult;
 
 /**
  * Runs PCA starting from a {@link NamedRealMatrix}
@@ -24,11 +24,11 @@ public class AncestryPCA {
 
   }
 
-  public static SVD generatePCs(MatrixDataLoading loader, Logger log) {
+  public static SVDResult generatePCs(MatrixDataLoading loader, Logger log) {
     return computePCA(loader.getData(), log);
   }
 
-  private static SVD computePCA(NamedRealMatrix m, Logger log) {
+  private static SVDResult computePCA(NamedRealMatrix m, Logger log) {
     DenseMatrix64F a = MatrixOperations.toDenseMatrix64F(m.getM());
 
     log.reportTimeInfo("Computing EJML PCs");
@@ -51,7 +51,7 @@ public class AncestryPCA {
         v.addToEntry(row, col, tv.get(row, col));
       }
     }
-    return new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
+    return new SVDResult(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
 
   }
 
