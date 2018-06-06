@@ -57,10 +57,14 @@ public class AncestryPCA {
         }
       }
       Stats stats = statsAccumulator.snapshot();
+      double pi = (1 + stats.sum()) / ((double) 2 + 2 * m.getM().getColumnDimension());
+      double norm = Math.sqrt(pi * (1 - pi));
       for (int column = 0; column < m.getM().getColumnDimension(); column++) {
         double val = m.getM().getEntry(row, column);
         if (Double.isFinite(val)) {
-          m.getM().setEntry(row, column, val - stats.mean());
+          double mc = val - stats.mean();
+          mc /= norm;
+          m.getM().setEntry(row, column, mc);
         } else {
           m.getM().setEntry(row, column, 0);
 
