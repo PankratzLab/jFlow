@@ -3,11 +3,14 @@ package org.genvisis.cnv.qc;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.filesys.Centroids;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor.GCAdjustorBuilder;
@@ -22,6 +25,7 @@ import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Stores betas to re-create a gc-correction for a particular sample
@@ -201,7 +205,6 @@ public class GcAdjustorParameter implements Serializable {
   private static class GcAdjustorWorker implements Callable<GcAdjustorParameter[][][]> {
 
     private final Project proj;
-    private final PreparedMarkerSet markerSet;
     private final String sample;
     private final GcModel gcmodel;
     private final Centroids[] centroids;
@@ -211,9 +214,8 @@ public class GcAdjustorParameter implements Serializable {
     private final boolean debugMode;
 
     public GcAdjustorWorker(Project proj, boolean[][][] compute, GCAdjustorBuilder[] builders,
-                            PreparedMarkerSet markerSet, String sample, GcModel gcmodel,
-                            Centroids[] centroids, GC_CORRECTION_METHOD[] correction_METHODs,
-                            boolean debugMode) {
+                            String sample, GcModel gcmodel, Centroids[] centroids,
+                            GC_CORRECTION_METHOD[] correction_METHODs, boolean debugMode) {
       super();
       this.proj = proj;
       this.builders = new GCAdjustorBuilder[builders.length];
@@ -225,36 +227,38 @@ public class GcAdjustorParameter implements Serializable {
       this.gcmodel = gcmodel;
       this.correction_METHODs = correction_METHODs;
       this.centroids = centroids;
-      this.markerSet = markerSet;
       this.debugMode = debugMode;
     }
 
     @Override
     public GcAdjustorParameter[][][] call() throws Exception {
       Sample samp = proj.getFullSampleFromRandomAccessFile(sample);
-      int[] autoIndices = proj.getAutosomalMarkerIndices();
+      MarkerDetailSet markerSet = proj.getMarkerSet();
+      Set<Marker> autosomalMarkers = ImmutableSet.copyOf(markerSet.getAutosomalMarkers());
       proj.getLog().reportTimeInfo("sample " + sample);
       GcAdjustorParameter[][][] params = new GcAdjustorParameter[builders.length][centroids == null ? 1
                                                                                                     : 1
                                                                                                       + centroids.length][];
-      float[] intensites = samp.getLRRs();
+      Map<Marker, Double> intensites = samp.markerLRRMap(markerSet);
       if (intensites == null && centroids != null && centroids.length > 0) {
         proj.getLog()
             .reportTimeWarning("No LRRs were detected, will use centroids (first centroid) to compute baseline gc correction");
-        intensites = samp.getLRRs(centroids[0].getCentroids());
+        intensites = samp.markerLRRMap(markerSet, centroids[0].getCentroids());
       } else if (intensites == null) {
         throw new IllegalStateException("Could not detect sample LRRs and centroids were not provided for gc correction");
       }
       for (int i = 0; i < builders.length; i++) {
         ArrayList<GcAdjustorParameter> parameters = getParams(builders[i], compute[i][0],
-                                                              intensites, autoIndices);
+                                                              intensites, autosomalMarkers);
         params[i][0] = parameters.toArray(new GcAdjustorParameter[parameters.size()]);
         if (centroids != null) {
           for (int j = 0; j < centroids.length; j++) {
-            float[] centIntensites = samp.getLRRs(centroids[j].getCentroids());
+            Map<Marker, Double> centIntensites = samp.markerLRRMap(markerSet,
+                                                                   centroids[j].getCentroids());
             ArrayList<GcAdjustorParameter> centParameters = getParams(builders[i],
                                                                       compute[i][j + 1],
-                                                                      centIntensites, autoIndices);
+                                                                      centIntensites,
+                                                                      autosomalMarkers);
             params[i][j
                       + 1] = centParameters.toArray(new GcAdjustorParameter[centParameters.size()]);
           }
@@ -264,15 +268,16 @@ public class GcAdjustorParameter implements Serializable {
     }
 
     private ArrayList<GcAdjustorParameter> getParams(GCAdjustorBuilder builder,
-                                                     boolean[] computeMethods, float[] intensites,
-                                                     int[] autosomalIndices) {
+                                                     boolean[] computeMethods,
+                                                     Map<Marker, Double> intensites,
+                                                     Set<Marker> autosomalMarkers) {
       ArrayList<GcAdjustorParameter> parameters = new ArrayList<>();
       for (int i = 0; i < correction_METHODs.length; i++) {
         if (computeMethods[i]) {
           builder.correctionMethod(correction_METHODs[i]);
           GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, builder, sample, null,
-                                                                 markerSet, intensites, gcmodel,
-                                                                 true, true, debugMode);
+                                                                 intensites, gcmodel, true, true,
+                                                                 debugMode);
           GcAdjustorParameter gcAdjustorParameters;
           if (gcAdjustor.isFail()) {
             // proj.getLog().reportTimeWarning("Sample "+sample +" failed GC correction");
@@ -281,9 +286,9 @@ public class GcAdjustorParameter implements Serializable {
                                                            Double.NaN, Double.NaN, Double.NaN,
                                                            correction_METHODs[i], proj.getLog());
           } else {
-            double[] meandSdPrior = getMeanSd(intensites, autosomalIndices);
-            double[] meandSdPost = getMeanSd(ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities()),
-                                             autosomalIndices);
+            double[] meandSdPrior = getMeanSd(intensites, autosomalMarkers);
+            double[] meandSdPost = getMeanSd(gcAdjustor.getCorrectedIntensities(),
+                                             autosomalMarkers);
             gcAdjustorParameters = new GcAdjustorParameter(sample,
                                                            gcAdjustor.getCrossValidation()
                                                                      .getBetas(),
@@ -303,11 +308,12 @@ public class GcAdjustorParameter implements Serializable {
       return parameters;
     }
 
-    private static double[] getMeanSd(float[] intensites, int[] autosomalIndices) {
-      float[] tmp = ArrayUtils.subArray(intensites, autosomalIndices);
-      float[] clean = ArrayUtils.removeNaN(tmp);
-      float sd = Float.NaN;
-      float mean = Float.NaN;
+    private static double[] getMeanSd(Map<Marker, Double> intensites,
+                                      Set<Marker> autosomalIndices) {
+      double[] clean = autosomalIndices.stream().mapToDouble(intensites::get)
+                                       .filter(d -> !Double.isNaN(d)).toArray();
+      double sd = Float.NaN;
+      double mean = Float.NaN;
       if (clean.length > 0) {
         sd = ArrayUtils.stdev(clean, false);
         mean = ArrayUtils.mean(clean);
@@ -324,7 +330,6 @@ public class GcAdjustorParameter implements Serializable {
     private final boolean debugMode;
     private final Centroids[] centroids;
     private final GC_CORRECTION_METHOD[] correction_METHODs;
-    private final PreparedMarkerSet markerSet;
     private final GCAdjustorBuilder[] builders;
     private final boolean[][][] compute;
     private int index;
@@ -335,7 +340,6 @@ public class GcAdjustorParameter implements Serializable {
       super();
       this.proj = proj;
       this.builders = builders;
-      markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
       this.samples = samples;
       this.gcmodel = gcmodel;
       this.debugMode = debugMode;
@@ -352,9 +356,9 @@ public class GcAdjustorParameter implements Serializable {
     @Override
     public Callable<GcAdjustorParameter[][][]> next() {
 
-      GcAdjustorWorker worker = new GcAdjustorWorker(proj, compute, builders, markerSet,
-                                                     samples[index], gcmodel, centroids,
-                                                     correction_METHODs, debugMode);
+      GcAdjustorWorker worker = new GcAdjustorWorker(proj, compute, builders, samples[index],
+                                                     gcmodel, centroids, correction_METHODs,
+                                                     debugMode);
       index++;
       return worker;
     }

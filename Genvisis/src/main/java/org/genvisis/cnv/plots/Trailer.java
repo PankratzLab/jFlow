@@ -3796,11 +3796,15 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       correctGC = false;
     }
     if (correctGC && correctGCFirst) {
-      tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj, markerSet, tmpLrrs,
-                                                                       gcModel,
-                                                                       GC_CORRECTION_METHOD.GENVISIS_GC,
-                                                                       false, false, true)
-                                                  .getCorrectedIntensities());
+      Map<Marker, Double> correctedIntensities = GcAdjustor.getComputedAdjustor(proj,
+                                                                                Sample.floatsToDoubleMap(tmpLrrs,
+                                                                                                         proj.getMarkerSet()),
+                                                                                gcModel,
+                                                                                GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                                                false, false, true)
+                                                           .getCorrectedIntensities();
+      tmpLrrs = ArrayUtils.toFloatArray(proj.getMarkerSet().markersAsList().stream()
+                                            .mapToDouble(correctedIntensities::get).toArray());
     }
 
     if (transformation_type > 0) {
@@ -3808,11 +3812,16 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                                      markerSet);
     }
     if (correctGC && !correctGCFirst) {
-      tmpLrrs = ArrayUtils.toFloatArray(GcAdjustor.getComputedAdjustor(proj, markerSet, tmpLrrs,
-                                                                       gcModel,
-                                                                       GC_CORRECTION_METHOD.GENVISIS_GC,
-                                                                       false, false, true)
-                                                  .getCorrectedIntensities());
+      Map<Marker, Double> correctedIntensities = GcAdjustor.getComputedAdjustor(proj,
+                                                                                Sample.floatsToDoubleMap(tmpLrrs,
+                                                                                                         proj.getMarkerSet()),
+                                                                                gcModel,
+                                                                                GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                                                false, false, true)
+                                                           .getCorrectedIntensities();
+
+      tmpLrrs = ArrayUtils.toFloatArray(proj.getMarkerSet().markersAsList().stream()
+                                            .mapToDouble(correctedIntensities::get).toArray());
     }
     if (Transforms.TRANSFORMATION_TYPES[transformation_type] == Transformations.MAD_SCALED) {
       for (int i = 0; i < tmpLrrs.length; i++) {

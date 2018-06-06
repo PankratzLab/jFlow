@@ -310,9 +310,10 @@ public class LrrSd extends Parallelizable {
     double lrrMadPost = Double.NaN;
     double lrrMadBoundPost = Double.NaN;
     if (gcModel != null) {
-      GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, pMarkerSet,
-                                                             cents == null ? fsamp.getLRRs()
-                                                                           : fsamp.getLRRs(cents),
+      GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj,
+                                                             cents == null ? fsamp.markerLRRMap(markerDetailSet)
+                                                                           : fsamp.markerLRRMap(markerDetailSet,
+                                                                                                cents),
                                                              gcModel, correctionMethod, true, true,
                                                              false);
       if (!gcAdjustor.isFail()) {
@@ -321,9 +322,8 @@ public class LrrSd extends Parallelizable {
         wfPost = gcAdjustor.getWfPost();
         gcwfPost = gcAdjustor.getGcwfPost();
         double[] tmp;
-        Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
-        double[] subLrr = markersForEverythingElse.stream().map(markerIndexMap::get)
-                                                  .mapToDouble(i -> gcAdjustor.getCorrectedIntensities()[i])
+        double[] subLrr = markersForEverythingElse.stream()
+                                                  .mapToDouble(gcAdjustor.getCorrectedIntensities()::get)
                                                   .filter(d -> !Double.isNaN(d)).toArray();
         lrrsdPost = ArrayUtils.stdev(subLrr);
         lrrMadPost = ArrayUtils.mad(subLrr);

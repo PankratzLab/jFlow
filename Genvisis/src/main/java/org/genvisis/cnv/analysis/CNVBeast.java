@@ -337,11 +337,14 @@ public class CNVBeast {
             if (samp == null || lrrs == null) {// only load once, and only if needed
               samp = proj.getFullSampleFromRandomAccessFile(sampleToParse);
               if (gcModel != null) {
-                GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, null, gcModel,
+                GcAdjustor gcAdjustor = GcAdjustor.getComputedAdjustor(proj, samp, gcModel,
                                                                        GC_CORRECTION_METHOD.GENVISIS_GC,
                                                                        false, true, false);
                 if (!gcAdjustor.isFail()) {
-                  lrrs = ArrayUtils.toFloatArray(gcAdjustor.getCorrectedIntensities());
+                  Map<Marker, Double> correctedIntensities = gcAdjustor.getCorrectedIntensities();
+                  lrrs = ArrayUtils.toFloatArray(proj.getMarkerSet().markersAsList().stream()
+                                                     .mapToDouble(correctedIntensities::get)
+                                                     .toArray());
                 } else {
                   proj.getLog()
                       .reportError("Error - gc correction has failed for sample "

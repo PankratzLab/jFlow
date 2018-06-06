@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -333,11 +334,15 @@ public class CNVCaller {
               GCAdjustorBuilder builder = new GCAdjustorBuilder();
               builder.correctionMethod(GC_CORRECTION_METHOD.PENNCNV_GC);
               builder.verbose(debugMode);
-              GcAdjustor gcAdjustor = builder.build(proj, markerSet, gcModel, dataToCorrect);
+              GcAdjustor gcAdjustor = builder.build(proj, gcModel,
+                                                    proj.getMarkerSet()
+                                                        .mapProjectOrderData(dataToCorrect));
               gcAdjustor.correctIntensities();
               gcAdjustor.computeQCMetrics(true, true);
-              analysisLrrs = ArrayUtils.subArray(gcAdjustor.getCorrectedIntensities(),
-                                                 analysisProjectIndices);
+              analysisLrrs = Arrays.stream(analysisProjectIndices)
+                                   .mapToObj(proj.getMarkerSet().markersAsList()::get)
+                                   .mapToDouble(gcAdjustor.getCorrectedIntensities()::get)
+                                   .toArray();
               proj.getLog().reportTimeInfo(gcAdjustor.getAnnotatedQCString());
               lrrSd = ArrayUtils.stdev(ArrayUtils.getValuesBetween(analysisLrrs,
                                                                    MIN_LRR_MEDIAN_ADJUST,

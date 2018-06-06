@@ -2,7 +2,9 @@ package org.genvisis.seq.manage;
 
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -41,10 +43,16 @@ public class VCFSamplePrep {
         break;
       case NORMALIZED_GC_CORRECTED:
         if (gcModel != null) {
-          normDepth = GcAdjustor.getComputedAdjustor(proj, null, ArrayUtils.toFloatArray(normDepth),
-                                                     gcModel, GC_CORRECTION_METHOD.GENVISIS_GC,
-                                                     true, true, false)
-                                .getCorrectedIntensities();
+          Map<Marker, Double> correctedIntensities = GcAdjustor.getComputedAdjustor(proj,
+                                                                                    proj.getMarkerSet()
+                                                                                        .mapProjectOrderData(normDepth),
+                                                                                    gcModel,
+                                                                                    GC_CORRECTION_METHOD.GENVISIS_GC,
+                                                                                    true, true,
+                                                                                    false)
+                                                               .getCorrectedIntensities();
+          normDepth = proj.getMarkerSet().markersAsList().stream()
+                          .mapToDouble(correctedIntensities::get).toArray();
         } else {
           proj.getLog()
               .reportError("Projects gcmodel file must be valid for this method, skipping gc correction");
