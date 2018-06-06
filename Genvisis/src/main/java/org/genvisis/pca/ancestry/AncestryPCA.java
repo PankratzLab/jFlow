@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genvisis.cnv.analysis.pca.ancestry;
+package org.genvisis.pca.ancestry;
 
 import org.apache.commons.math3.linear.DiagonalMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -10,8 +10,9 @@ import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.SingularOps;
 import org.genvisis.common.Logger;
-import org.genvisis.common.RealMatrixUtils;
-import org.genvisis.common.RealMatrixUtils.NamedRealMatrix;
+import org.genvisis.common.matrix.MatrixDataLoading;
+import org.genvisis.common.matrix.MatrixOperations;
+import org.genvisis.common.matrix.MatrixOperations.NamedRealMatrix;
 
 /**
  * Runs PCA starting from a {@link NamedRealMatrix}
@@ -22,16 +23,17 @@ public class AncestryPCA {
 
   }
 
-  public static void computePCA(NamedRealMatrix m, Logger log) {
-    DenseMatrix64F a = RealMatrixUtils.toDenseMatrix64F(m.getM());
+  public static void generatePCs(MatrixDataLoading loader, Logger log) {
+    computePCA(loader.getData(), log);
+  }
+
+  private static void computePCA(NamedRealMatrix m, Logger log) {
+    DenseMatrix64F a = MatrixOperations.toDenseMatrix64F(m.getM());
 
     log.reportTimeInfo("Computing EJML PCs");
     SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
     svd.decompose(a);
     log.reportTimeInfo("Finished Computing EJML PCs");
-
-    log.reportTimeInfo("finished computing SVD base");
-
     DenseMatrix64F tv = svd.getV(null, true);
 
     DenseMatrix64F tmpW = svd.getW(null);

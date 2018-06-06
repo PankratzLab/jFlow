@@ -1,9 +1,9 @@
 package org.genvisis.one.JL.ancestry.pca;
 
 import java.io.File;
-import org.genvisis.cnv.analysis.pca.ancestry.AncestryPCA;
-import org.genvisis.cnv.analysis.pca.ancestry.PlinkDataLoader;
 import org.genvisis.common.Logger;
+import org.genvisis.pca.ancestry.AncestryPCA;
+import org.genvisis.pca.ancestry.PlinkDataLoader;
 
 public class TestAncPCA {
 
@@ -15,7 +15,7 @@ public class TestAncPCA {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
 
-    AncestryPCA.computePCA(new PlinkDataLoader(dir, plinkRoot, log).getData(), log);
+    AncestryPCA.generatePCs(new PlinkDataLoader(dir, plinkRoot, log), log);
 
   }
 

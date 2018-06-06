@@ -1,16 +1,16 @@
 /**
  * 
  */
-package org.genvisis.cnv.analysis.pca.ancestry;
+package org.genvisis.common.matrix;
 
 import org.apache.commons.math3.linear.RealMatrix;
-import org.genvisis.common.RealMatrixUtils.NamedRealMatrix;
+import org.genvisis.common.matrix.MatrixOperations.NamedRealMatrix;
 
 /**
  *
  *
  */
-interface AncestryDataLoading {
+public interface MatrixDataLoading {
 
   /**
    * Loads the date (typically genotypes that will enter the ancestry PCA)

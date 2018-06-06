@@ -20,9 +20,10 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.RealMatrixUtils;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
+import org.genvisis.common.matrix.MatrixOperations;
+import org.genvisis.common.matrix.MatrixOperations.SCALE_METHOD;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -66,7 +67,7 @@ public class SimpleNGSPCA implements Serializable {
   private void computeSVD(Logger log) {
     log.reportTimeInfo("computing SVD base");
 
-    DenseMatrix64F a = RealMatrixUtils.toDenseMatrix64F(m);
+    DenseMatrix64F a = MatrixOperations.toDenseMatrix64F(m);
     log.reportTimeInfo("Computing EJML PCs");
     SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
     svd.decompose(a);
@@ -90,10 +91,6 @@ public class SimpleNGSPCA implements Serializable {
         v.addToEntry(row, col, tv.get(row, col));
       }
     }
-  }
-
-  private enum SCALE_METHOD {
-    FC_MEDIAN, CENTER_SCALE_SAMPLE, CENTER_SCALE_SAMPLE_SCALE_MARKER;
   }
 
   private void dumpPCsToText(String file) {
@@ -211,21 +208,7 @@ public class SimpleNGSPCA implements Serializable {
       log.reportTime("Loading data");
       SimpleNGSPCA tm = (SimpleNGSPCA) SerializedFiles.readSerial(matFile, log, false);
       log.reportTime("Scaling data");
-      switch (method) {
-        case CENTER_SCALE_SAMPLE:
-          RealMatrixUtils.scaleAndCenterColumns(tm.m);
-          break;
-        case CENTER_SCALE_SAMPLE_SCALE_MARKER:
-          RealMatrixUtils.scaleAndCenterColumns(tm.m);
-          RealMatrixUtils.centerRowsToMedian(tm.m);
-          break;
-        case FC_MEDIAN:
-          RealMatrixUtils.foldChangeAndCenter(tm.m);
-          break;
-        default:
-          throw new IllegalArgumentException("Invalid method " + method);
-
-      }
+      MatrixOperations.scaleByMethod(method, tm.m);
 
       log.reportTimeInfo("Rows=" + tm.m.getRowDimension());
       log.reportTimeInfo("Cols=" + tm.m.getColumnDimension());
