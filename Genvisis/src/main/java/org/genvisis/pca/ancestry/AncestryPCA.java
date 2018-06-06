@@ -60,9 +60,10 @@ public class AncestryPCA {
       for (int column = 0; column < m.getM().getColumnDimension(); column++) {
         double val = m.getM().getEntry(row, column);
         if (Double.isFinite(val)) {
-          m.getM().setEntry(row, column, 0);
-        } else {
           m.getM().setEntry(row, column, val - stats.mean());
+        } else {
+          m.getM().setEntry(row, column, 0);
+
         }
       }
     }
