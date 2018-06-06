@@ -15,7 +15,8 @@ public class TestAncPCA {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
 
-    AncestryPCA.generatePCs(new PlinkDataLoader(dir, plinkRoot, log), log);
+    AncestryPCA.generatePCs(new PlinkDataLoader(dir, plinkRoot, log), log)
+               .dumpPCsToText(dir + "testPCS/test", log);
 
   }
 

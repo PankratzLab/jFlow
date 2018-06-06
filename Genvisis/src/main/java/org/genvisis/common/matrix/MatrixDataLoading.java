@@ -3,8 +3,6 @@
  */
 package org.genvisis.common.matrix;
 
-import org.apache.commons.math3.linear.RealMatrix;
-
 /**
  *
  *
@@ -12,9 +10,9 @@ import org.apache.commons.math3.linear.RealMatrix;
 public interface MatrixDataLoading {
 
   /**
-   * Loads the date (typically genotypes that will enter the ancestry PCA)
+   * Loads the data into a {@link NamedRealMatrix}
    * 
-   * @return {@link RealMatrix}
+   * @return {@link NamedRealMatrix}
    */
   NamedRealMatrix getData();
 
