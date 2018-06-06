@@ -12,7 +12,7 @@ import org.ejml.ops.SingularOps;
 import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.MatrixOperations;
-import org.genvisis.common.matrix.MatrixOperations.NamedRealMatrix;
+import org.genvisis.common.matrix.NamedRealMatrix;
 
 /**
  * Runs PCA starting from a {@link NamedRealMatrix}

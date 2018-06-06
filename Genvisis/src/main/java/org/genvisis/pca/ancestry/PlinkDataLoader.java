@@ -7,7 +7,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
-import org.genvisis.common.matrix.MatrixOperations.NamedRealMatrix;
+import org.genvisis.common.matrix.NamedRealMatrix;
 import org.genvisis.filesys.DosageData;
 
 /**
