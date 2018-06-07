@@ -49,26 +49,62 @@ public class SVD extends NamedRealMatrix {
    */
   public void dumpPCsToText(String outputRoot, Logger log) {
     new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-    String out = outputRoot + ".pcs";
+    String out = outputRoot + ".pcs.gz";
     PrintWriter writer = Files.getAppropriateWriter(out);
     log.reportTimeInfo("Writing PCs to " + out);
     StringJoiner joiner = new StringJoiner("\t");
     joiner.add("SAMPLE");
-    for (int i = 0; i < v.getColumnDimension(); i++) {
-      joiner.add("PC" + (i + 1));
+    for (int column = 0; column < v.getColumnDimension(); column++) {
+      joiner.add("PC" + (column + 1));
     }
     writer.println(joiner.toString());
 
-    for (int i = 0; i < v.getRowDimension(); i++) {
+    for (int row = 0; row < v.getRowDimension(); row++) {
       StringJoiner sample = new StringJoiner("\t");
-      sample.add(getIndexColumnMap().get(i));
+      sample.add(getIndexColumnMap().get(row));
       for (int j = 0; j < v.getColumnDimension(); j++) {
-        sample.add(Double.toString(v.getEntry(j, i)));
+        sample.add(Double.toString(v.getEntry(j, row)));
       }
       writer.println(sample.toString());
 
     }
     writer.close();
+  }
+
+  /**
+   * @param outputRoot full path - ".pcs" will be appended to the output root
+   */
+  public void dumpLoadingsToText(String outputRoot, Logger log) {
+    new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
+    String out = outputRoot + ".loadings.gz";
+    PrintWriter writer = Files.getAppropriateWriter(out);
+    log.reportTimeInfo("Writing loadings to " + out);
+    StringJoiner joiner = new StringJoiner("\t");
+    joiner.add("MARKER");
+
+    for (int i = 0; i < v.getColumnDimension(); i++) {
+      joiner.add("LOADING" + (i + 1));
+    }
+    writer.println(joiner.toString());
+
+    for (int row = 0; row < m.getRowDimension(); row++) {
+      StringJoiner sample = new StringJoiner("\t");
+      sample.add(getIndexColumnMap().get(row));
+      for (int j = 0; j < v.getColumnDimension(); j++) {
+        sample.add(Double.toString(v.getEntry(j, row)));
+      }
+      writer.println(sample.toString());
+
+    }
+    writer.close();
+  }
+
+  private static double getLoading(double singularValue, double[] data, double[] basis) {
+    double sum = 0;
+    for (int i = 0; i < data.length; i++) {
+      sum += data[i] * basis[i];
+    }
+    return sum / singularValue;
   }
 
   /**

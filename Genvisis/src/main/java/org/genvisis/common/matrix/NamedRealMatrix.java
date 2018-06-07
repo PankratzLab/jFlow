@@ -22,7 +22,7 @@ public class NamedRealMatrix implements Serializable {
   private final Map<String, Integer> columnNameMap;
   private final Map<Integer, String> indexRowMap;
   private final Map<Integer, String> indexColumnMap;
-  private final RealMatrix m;
+  protected final RealMatrix m;
 
   /**
    * @param rowNameMap maps row names to row indices
