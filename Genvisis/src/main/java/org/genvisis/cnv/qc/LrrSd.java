@@ -111,7 +111,6 @@ public class LrrSd extends Parallelizable {
 
   @Override
   public void run() {
-    PrintWriter writer;
     Sample fsamp;
     float[][][] cents;
     Logger log;
@@ -164,28 +163,29 @@ public class LrrSd extends Parallelizable {
             .report("Warning - using " + numAllElse + (numAllElse == 1 ? " marker" : " markers")
                     + " for other qc metrics may result in inaccurate sample qc, please consider using more");
       }
-      writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
-                                              + "." + threadNumber));
-      writer.println(SAMPLE_COLUMN + "\t" + ArrayUtils.toStr(NUMERIC_COLUMNS));
-      for (String sample : samples) {
-        // log.report((i+1)+" of "+samples.length);
-        fsamp = proj.getFullSampleFromRandomAccessFile(sample);
-        if (fsamp == null) {
-          log.reportError("Error - " + sample + Sample.SAMPLE_FILE_EXTENSION
-                          + " not found in samples directory");
-        } else {
-          writer.println(ArrayUtils.toStr(LrrSdPerSample(proj, sample, fsamp, cents,
-                                                         markersForCallrate,
-                                                         markersForEverythingElse, gcModel,
-                                                         GC_CORRECTION_METHOD.GENVISIS_GC, log),
-                                          "\t"));
-          writer.flush();
-        }
-        if (progMon != null) {
-          proj.getProgressMonitor().updateTask(PROG_KEY);
+      try (PrintWriter writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(),
+                                                                          false)
+                                                               + "." + threadNumber))) {
+        writer.println(SAMPLE_COLUMN + "\t" + ArrayUtils.toStr(NUMERIC_COLUMNS));
+        for (String sample : samples) {
+          // log.report((i+1)+" of "+samples.length);
+          fsamp = proj.getFullSampleFromRandomAccessFile(sample);
+          if (fsamp == null) {
+            log.reportError("Error - " + sample + Sample.SAMPLE_FILE_EXTENSION
+                            + " not found in samples directory");
+          } else {
+            writer.println(ArrayUtils.toStr(LrrSdPerSample(proj, sample, fsamp, cents,
+                                                           markersForCallrate,
+                                                           markersForEverythingElse, gcModel,
+                                                           GC_CORRECTION_METHOD.GENVISIS_GC, log),
+                                            "\t"));
+            writer.flush();
+          }
+          if (progMon != null) {
+            proj.getProgressMonitor().updateTask(PROG_KEY);
+          }
         }
       }
-      writer.close();
       log.report("LRR SD calculation complete. Wrote output to: "
                  + proj.SAMPLE_QC_FILENAME.getValue() + "." + threadNumber);
     } catch (Exception e) {
@@ -517,67 +517,59 @@ public class LrrSd extends Parallelizable {
     numPassing = 0;
     try {
       PSF.checkInterrupted();
-      BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false);
-      PrintWriter writerUse = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-                                                          + outputBase + PCA.PCA_SAMPLES);
-      PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
-                                                              + outputBase
-                                                              + MitoPipeline.PCA_SAMPLES_SUMMARY);
+      try (BufferedReader reader = Files.getReader(proj.SAMPLE_QC_FILENAME.getValue(), true, false);
+           PrintWriter writerUse = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                               + outputBase + PCA.PCA_SAMPLES);
+           PrintWriter writerSummary = Files.openAppropriateWriter(proj.PROJECT_DIRECTORY.getValue()
+                                                                   + outputBase
+                                                                   + MitoPipeline.PCA_SAMPLES_SUMMARY)) {
 
-      writerSummary.println(ArrayUtils.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
-      if (!reader.ready()) {
-        writerUse.close();
-        writerSummary.close();
-        reader.close();
-        log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
-        return new int[] {numPassing, count};
-      }
-      line = reader.readLine().trim().split(delim);
-      indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true);
-
-      if (!checkIndices(proj, indices)) {
-        writerUse.close();
-        writerSummary.close();
-        reader.close();
-        log.reportError("Error - could not detect proper header in QC file ("
-                        + proj.SAMPLE_QC_FILENAME.getValue() + ")");
-        return null;
-      }
-
-      while (reader.ready()) {
+        writerSummary.println(ArrayUtils.toStr(MitoPipeline.SAMPLE_QC_SUMMARY));
+        if (!reader.ready()) {
+          log.reportError("Error - QC file (" + proj.SAMPLE_QC_FILENAME.getValue() + ") was empty");
+          return new int[] {numPassing, count};
+        }
         line = reader.readLine().trim().split(delim);
-        // skip any headers as a result of concatenating the qc results
-        if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
-          // if passes qc
-          if (Double.parseDouble(line[indices[1]]) < lrrSdFilter
-              && Double.parseDouble(line[indices[2]]) > callRateFilter) {
-            sampDataQC.put(line[indices[0]],
-                           line[indices[1]] + "\t" + line[indices[2]] + "\t" + "0");
-            // check the subset
-            if (subset.size() == 0 || subset.containsKey(line[indices[0]])) {
-              writerUse.println(line[indices[0]]);
-              writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
-                                    + line[indices[2]] + "\t" + "TRUE");
-              numPassing++;
+        indices = ext.indexFactors(MitoPipeline.QC_COLUMNS, line, true, log, true);
+
+        if (!checkIndices(proj, indices)) {
+          log.reportError("Error - could not detect proper header in QC file ("
+                          + proj.SAMPLE_QC_FILENAME.getValue() + ")");
+          return null;
+        }
+
+        while (reader.ready()) {
+          line = reader.readLine().trim().split(delim);
+          // skip any headers as a result of concatenating the qc results
+          if (!line[indices[0]].equals(MitoPipeline.QC_COLUMNS[0])) {
+            // if passes qc
+            if (Double.parseDouble(line[indices[1]]) < lrrSdFilter
+                && Double.parseDouble(line[indices[2]]) > callRateFilter) {
+              sampDataQC.put(line[indices[0]],
+                             line[indices[1]] + "\t" + line[indices[2]] + "\t" + "0");
+              // check the subset
+              if (subset.size() == 0 || subset.containsKey(line[indices[0]])) {
+                writerUse.println(line[indices[0]]);
+                writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
+                                      + line[indices[2]] + "\t" + "TRUE");
+                numPassing++;
+              } else {
+                // sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t"
+                // + "1");
+                writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
+                                      + line[indices[2]] + "\t" + "FALSE");
+              }
             } else {
-              // sampDataQC.put(line[indices[0]], line[indices[1]] + "\t" + line[indices[2]] + "\t"
-              // + "1");
+              sampDataQC.put(line[indices[0]],
+                             line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
               writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
                                     + line[indices[2]] + "\t" + "FALSE");
             }
-          } else {
-            sampDataQC.put(line[indices[0]],
-                           line[indices[1]] + "\t" + line[indices[2]] + "\t" + "1");
-            writerSummary.println(line[indices[0]] + "\t" + line[indices[1]] + "\t"
-                                  + line[indices[2]] + "\t" + "FALSE");
+            count++;
           }
-          count++;
         }
-      }
 
-      reader.close();
-      writerUse.close();
-      writerSummary.close();
+      }
 
       if (numPassing == 0) {
         log.reportError("Error - all Samples were filtered out by the QC step");
