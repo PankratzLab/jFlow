@@ -120,6 +120,15 @@ public class SVD extends NamedRealMatrix {
     writer.close();
   }
 
+  private RealMatrix computeLoadings() {
+    //    Will have all markers, but not all "PCs" all the time
+    RealMatrix loadings = MatrixUtils.createRealMatrix(v.getRowDimension(),
+                                                      getM().getRowDimension());
+
+
+    return loadings;
+  }
+
   private static double getLoading(double singularValue, RealVector data, RealVector basis) {
     return data.ebeMultiply(basis).walkInDefaultOrder(SUM_VISITOR) / singularValue;
   }
