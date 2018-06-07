@@ -522,8 +522,7 @@ public class MergeExtractPipeline {
     if (markersFile != null) {
       markerLocationMap = new HashMap<>();
       for (int i = 0; i < markers.length; i++) {
-        markerLocationMap.put(markers[i], new int[] {markerLocations[i][0], markerLocations[i][1],
-                                                     markerLocations[i][1]});
+        markerLocationMap.put(markers[i], new int[] {markerLocations[i][0], markerLocations[i][1]});
       }
     }
 

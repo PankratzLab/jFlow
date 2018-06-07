@@ -48,8 +48,10 @@ import org.genvisis.gwas.Plink;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -2316,6 +2318,7 @@ public class DosageData implements Serializable {
                                    Map<String, int[]> markerLocations, String markerNamePrepend) {
     String probTag = "GP";
 
+    Map<String, String> segLookup = Maps.newHashMap();
     List<Segment> segsToQuery = new ArrayList<>();
     HashSet<String> markerSet = markersToKeep == null ? null : new HashSet<>();
     if (markersToKeep != null) {
@@ -2334,7 +2337,9 @@ public class DosageData implements Serializable {
       for (Entry<String, int[]> mkrLoc : markerLocations.entrySet()) {
         markerSet.add(mkrLoc.getKey());
         segsToQuery.add(new Segment((byte) mkrLoc.getValue()[0], mkrLoc.getValue()[1],
-                                    mkrLoc.getValue()[2]));
+                                    mkrLoc.getValue()[1]));
+        segLookup.put(mkrLoc.getValue()[0] + ":" + mkrLoc.getValue()[1], mkrLoc.getKey());
+        segLookup.put("chr" + mkrLoc.getValue()[0] + ":" + mkrLoc.getValue()[1], mkrLoc.getKey());
       }
     }
 
@@ -2348,33 +2353,41 @@ public class DosageData implements Serializable {
     try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
       header = reader.getFileHeader();
 
+      // discover which chrs are in this vcf file
       Set<Integer> contigs = Sets.newHashSet();
       header.getContigLines().forEach(vch -> {
         byte chr = Positions.chromosomeNumber(vch.getID());
         contigs.add((int) chr);
       });
 
+      // remove segs on unavailable chrs
       for (int i = segsToQuery.size() - 1; i >= 0; i--) {
         if (!contigs.contains((int) segsToQuery.get(i).chr)) {
           segsToQuery.remove(i);
         }
       }
 
-      markerSet.removeIf(m -> {
-        return markerLocations.containsKey(m) && !contigs.contains(markerLocations.get(m)[0]);
-      });
-
-      System.out.println("Searching for " + segsToQuery.size() + " segments and " + markerSet.size()
-                         + " markers.");
+      // remove markers if we have a location for them and that location isn't available
+      if (markerLocations != null) {
+        markerSet.removeIf(m -> {
+          return markerLocations.containsKey(m) && !contigs.contains(markerLocations.get(m)[0]);
+        });
+      }
 
       for (Segment seg : segsToQuery) {
-        for (VariantContext vc : reader.query(Byte.toString(seg.chr), seg.start, seg.stop)
-                                       .toList()) {
+        CloseableIterator<VariantContext> iter = reader.query(Byte.toString(seg.chr), seg.start - 1,
+                                                              seg.stop + 1);
+        while (iter.hasNext()) {
+          VariantContext vc = iter.next();
           if (markerSet.contains(vc.getID())
+              || segLookup.containsKey(vc.getContig() + ":" + vc.getStart())
               || segsToQuery.contains(new Segment(Positions.chromosomeNumber(vc.getContig()),
                                                   vc.getStart(), vc.getEnd()))) {
             keepList.add(vc);
-            markerSet.remove(vc.getID());
+            String id = markerSet.contains(vc.getID()) ? vc.getID()
+                                                       : segLookup.containsKey(vc.getContig() + ":"
+                                                                               + vc.getStart()) ? segLookup.get((vc.getContig() + ":" + vc.getStart())) : vc.getID();
+            markerSet.remove(id);
           }
         }
       }
