@@ -21,14 +21,15 @@ public class AncestryPCA {
 
   /**
    * @param loader {@link MatrixDataLoading} that provides genotypes in double format (0,1,2,NaN)
+   * @param numComponents number of components that will be stored
    * @param log
    * @return {@link SVD} holding results
    */
-  public static SVD generatePCs(MatrixDataLoading loader, Logger log) {
+  public static SVD generatePCs(MatrixDataLoading loader, int numComponents, Logger log) {
     NamedRealMatrix m = loader.getData();
 
     normalizeGenotypeData(m, log);
-    return computePCA(m, log);
+    return computePCA(m, numComponents, log);
   }
 
   /**
@@ -94,8 +95,8 @@ public class AncestryPCA {
    * @param log
    * @return {@link SVD}
    */
-  private static SVD computePCA(NamedRealMatrix m, Logger log) {
+  private static SVD computePCA(NamedRealMatrix m, int numComponents, Logger log) {
 
-    return SVD.computeSVD(m, log);
+    return SVD.computeSVD(m, numComponents, log);
   }
 }

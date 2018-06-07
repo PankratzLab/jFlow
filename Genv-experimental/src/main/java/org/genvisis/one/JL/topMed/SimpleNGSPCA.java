@@ -193,9 +193,17 @@ public class SimpleNGSPCA implements Serializable {
       for (int i = 0; i < colNames.length; i++) {
         colNames[i] = ext.rootOf(files.get(i));
         log.reportTime("Parsing sample " + (i + 1) + ", " + colNames[i]);
-        String[] data = HashVec.loadFileToStringArray(files.get(i), false, new int[] {3}, false);
+        String[] data = HashVec.loadFileToStringArray(files.get(i), false, new int[] {0, 1, 2, 3},
+                                                      false);
         for (int j = 0; j < indices.size(); j++) {
-          m.addToEntry(j, i, Double.parseDouble(data[indices.get(j)]));
+          String[] current = data[indices.get(j)].split("\t");
+          Segment seg = new Segment(current[0], current[1], current[2]);
+          if (!seg.getUCSClocation().equals(rows.get(j))) {
+            throw new IllegalStateException("Should be " + rows.get(j) + "and found "
+                                            + seg.getUCSClocation());
+          }
+
+          m.addToEntry(j, i, Double.parseDouble(current[3]));
         }
       }
       //      new SingularValueDecomposition(

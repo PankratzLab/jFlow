@@ -17,7 +17,7 @@ public class TestAncPCA {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
 
-    SVD svd = AncestryPCA.generatePCs(new PlinkDataLoader(dir, plinkRoot, log), log);
+    SVD svd = AncestryPCA.generatePCs(new PlinkDataLoader(dir, plinkRoot, log), 10, log);
     svd.dumpPCsToText(dir + "testPCS/testMean0_posEstAF", log);
 
     log.reportTimeElapsed(time);
