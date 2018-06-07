@@ -19,7 +19,6 @@ import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.CNVCaller;
@@ -168,7 +167,6 @@ public class LrrSd extends Parallelizable {
       writer = new PrintWriter(new FileWriter(ext.rootOf(proj.SAMPLE_QC_FILENAME.getValue(), false)
                                               + "." + threadNumber));
       writer.println(SAMPLE_COLUMN + "\t" + ArrayUtils.toStr(NUMERIC_COLUMNS));
-      PreparedMarkerSet markerSet = PreparedMarkerSet.getPreparedMarkerSet(proj.getMarkerSet());
       for (String sample : samples) {
         // log.report((i+1)+" of "+samples.length);
         fsamp = proj.getFullSampleFromRandomAccessFile(sample);
@@ -176,7 +174,7 @@ public class LrrSd extends Parallelizable {
           log.reportError("Error - " + sample + Sample.SAMPLE_FILE_EXTENSION
                           + " not found in samples directory");
         } else {
-          writer.println(ArrayUtils.toStr(LrrSdPerSample(proj, markerSet, sample, fsamp, cents,
+          writer.println(ArrayUtils.toStr(LrrSdPerSample(proj, sample, fsamp, cents,
                                                          markersForCallrate,
                                                          markersForEverythingElse, gcModel,
                                                          GC_CORRECTION_METHOD.GENVISIS_GC, log),
@@ -221,7 +219,6 @@ public class LrrSd extends Parallelizable {
    * Array.toStr(bafBinCounts)<br/>
    *
    * @param proj
-   * @param pMarkerSet
    * @param sampleID
    * @param fsamp
    * @param cents
@@ -231,9 +228,8 @@ public class LrrSd extends Parallelizable {
    * @param log
    * @return
    */
-  public static String[] LrrSdPerSample(Project proj, PreparedMarkerSet pMarkerSet, String sampleID,
-                                        Sample fsamp, float[][][] cents,
-                                        Set<Marker> markersForCallrate,
+  public static String[] LrrSdPerSample(Project proj, String sampleID, Sample fsamp,
+                                        float[][][] cents, Set<Marker> markersForCallrate,
                                         Set<Marker> markersForEverythingElse, GcModel gcModel,
                                         GC_CORRECTION_METHOD correctionMethod, Logger log) {
     int[] bafBinCounts;

@@ -3483,7 +3483,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
           // Apply the update(s)
           if (updateGenome || updateChr || updateRegion) {
 
-            qcRegion = LrrSd.LrrSdPerSample(proj, markerSet, sample, samp, centroids,
+            qcRegion = LrrSd.LrrSdPerSample(proj, sample, samp, centroids,
                                             markerDetailSet.markersAsSet(), toUse, gcModelToUse,
                                             correctionMethod, log);
           }
