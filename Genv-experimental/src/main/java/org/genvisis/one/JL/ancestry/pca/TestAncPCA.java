@@ -16,7 +16,7 @@ public class TestAncPCA {
 
     String plinkRoot = "plink";
 
-    String outDir = dir + "testOut/";
+    String outDir = dir + "testOutCenterMean0Norm/";
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
     String ser = outDir + "svdBase.ser.gz";
@@ -25,10 +25,10 @@ public class TestAncPCA {
 
     }
     SVD svd = SVD.readSerial(ser);
-    svd.dumpPCsToText(outDir + "testMean0_posEstAF", "SAMPLE", log);
-    svd.dumpLoadingsToText(outDir + "testMean0_posEstAF", "MARKER", log);
+    svd.dumpPCsToText(outDir + "test", "SAMPLE", log);
+    svd.dumpLoadingsToText(outDir + "test", "MARKER", log);
     AncestryPCA.extrapolatePCs(svd, new PlinkDataLoader(dir, plinkRoot, log), log)
-               .dumpToText(outDir + "testMean0_posEstAF.extrapolatedPcs.txt", "SAMPLE", log);
+               .dumpToText(outDir + "test.extrapolatedPcs.txt", "SAMPLE", log);
     log.reportTimeElapsed(time);
 
   }

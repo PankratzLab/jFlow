@@ -54,13 +54,7 @@ public class AncestryPCA {
    * @return
    */
   static void normalizeGenotypeData(NamedRealMatrix m, Logger log) {
-    //    Let gij be a matrix of genotypes for SNP i and individual j, where i = 1 to M 
-    //        and j = 1 to N. We subtract the row mean μi = (Σjgij)/N from each entry in row i 
-    //        to obtain a matrix with row sums equal to 0; missing entries are excluded from
-    //        the computation of μi and are subsequently set to 0. We then normalize row i by 
-    //        dividing each entry by √(pi(1 − pi)), where pi is a posterior estimate of the unobserved
-    //        underlying allele frequency of SNP i defined by pi = (1 + Σjgij)/(2 + 2N), 
-    //        with missing entries excluded from the computation.
+
     log.reportTimeInfo("Preparing genotype data");
     for (int row = 0; row < m.getM().getRowDimension(); row++) {
       StatsAccumulator statsAccumulator = new StatsAccumulator();

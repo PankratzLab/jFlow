@@ -11,7 +11,6 @@ import java.util.StringJoiner;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVectorPreservingVisitor;
 import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.SingularOps;
@@ -32,23 +31,6 @@ public class SVD extends NamedRealMatrix {
   private final RealMatrix v;
   private final DiagonalMatrix w;
   private final int numComponents;
-
-  private static final RealVectorPreservingVisitor SUM_VISITOR = new RealVectorPreservingVisitor() {
-
-    private double sum;
-
-    public void visit(final int actualIndex, final double actualValue) {
-      sum += actualValue;
-    }
-
-    public void start(final int actualSize, final int actualStart, final int actualEnd) {
-      //
-    }
-
-    public double end() {
-      return sum;
-    }
-  };
 
   /**
    * @param rowNameMap see {@link NamedRealMatrix}
@@ -83,7 +65,7 @@ public class SVD extends NamedRealMatrix {
    */
   public void dumpPCsToText(String outputRoot, String columnOneTitle, Logger log) {
     new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-    String out = outputRoot + ".pcs";
+    String out = outputRoot + ".pcs.gz";
     PrintWriter writer = Files.getAppropriateWriter(out);
     log.reportTimeInfo("Writing PCs to " + out);
     StringJoiner joiner = new StringJoiner("\t");
@@ -138,7 +120,7 @@ public class SVD extends NamedRealMatrix {
 
     for (int component = 0; component < numComponents; component++) {
       //   v is transposed releative to m
-      joiner.add("LOADING" + component);
+      joiner.add("LOADING_" + component);
     }
     writer.println(joiner.toString());
 
@@ -170,11 +152,6 @@ public class SVD extends NamedRealMatrix {
     for (int component = 0; component < numComponents; component++) {
       loadingMap.put("LOADING" + component, component);
     }
-    //    System.out.println(m.getRowDimension() + "\t" + m.getColumnDimension());
-    //    System.out.println(v.getRowDimension() + "\t" + v.getColumnDimension());
-    //    System.out.println(loadings.getRowDimension() + "\t" + loadings.getColumnDimension());
-    //    System.exit(1);
-
     for (int row = 0; row < m.getRowDimension(); row++) {
 
       double[] rowData = m.getRow(row);
@@ -200,16 +177,10 @@ public class SVD extends NamedRealMatrix {
     }
     RealMatrix pcs = MatrixUtils.createRealMatrix(getM().getColumnDimension(), numComponents);
     for (int row = 0; row < other.getM().getRowDimension(); row++) {
-      String key = other.getIndexRowMap().get(row);
       for (int component = 0; component < numComponents; component++) {
         for (int column = 0; column < other.getM().getColumnDimension(); column++) {
           pcs.addToEntry(column, component, other.getM().getEntry(row, column)
                                             * loadings.getM().getEntry(row, component));
-          //          pcs.addToEntry(column, component,
-          //                         other.getM().getEntry(row, column)
-          //                                            * loadings.getM()
-          //                                                      .getEntry(loadings.getRowNameMap().get(key),
-          //                                                                component));
         }
       }
     }
@@ -229,8 +200,6 @@ public class SVD extends NamedRealMatrix {
       loading += data[i] * basis[i];
     }
     return loading / singularValue;
-
-    //    return data.ebeMultiply(basis).walkInDefaultOrder(SUM_VISITOR) / singularValue;
   }
 
   /**
