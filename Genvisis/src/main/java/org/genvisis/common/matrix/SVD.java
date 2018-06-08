@@ -170,6 +170,10 @@ public class SVD extends NamedRealMatrix {
     for (int component = 0; component < numComponents; component++) {
       loadingMap.put("LOADING" + component, component);
     }
+    //    System.out.println(m.getRowDimension() + "\t" + m.getColumnDimension());
+    //    System.out.println(v.getRowDimension() + "\t" + v.getColumnDimension());
+    //    System.out.println(loadings.getRowDimension() + "\t" + loadings.getColumnDimension());
+    //    System.exit(1);
 
     for (int row = 0; row < m.getRowDimension(); row++) {
 
@@ -192,18 +196,20 @@ public class SVD extends NamedRealMatrix {
 
     Map<String, Integer> pcMap = new HashMap<>();
     for (int component = 0; component < numComponents; component++) {
-      pcMap.put("PC" + component, component);
+      pcMap.put("PC" + (component + 1), component);
     }
     RealMatrix pcs = MatrixUtils.createRealMatrix(getM().getColumnDimension(), numComponents);
     for (int row = 0; row < other.getM().getRowDimension(); row++) {
       String key = other.getIndexRowMap().get(row);
       for (int component = 0; component < numComponents; component++) {
         for (int column = 0; column < other.getM().getColumnDimension(); column++) {
-          pcs.addToEntry(column, component,
-                         other.getM().getEntry(row, column)
-                                            * loadings.getM()
-                                                      .getEntry(loadings.getRowNameMap().get(key),
-                                                                component));
+          pcs.addToEntry(column, component, other.getM().getEntry(row, column)
+                                            * loadings.getM().getEntry(row, component));
+          //          pcs.addToEntry(column, component,
+          //                         other.getM().getEntry(row, column)
+          //                                            * loadings.getM()
+          //                                                      .getEntry(loadings.getRowNameMap().get(key),
+          //                                                                component));
         }
       }
     }
