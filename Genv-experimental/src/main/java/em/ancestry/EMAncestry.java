@@ -21,6 +21,8 @@ import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.common.matrix.MatrixOperations;
+import org.genvisis.common.matrix.MatrixOperations.SCALE_METHOD;
 
 /**
  * Prototype to perform unsupervised clustering of genotype PCA results in n-dimensions using
@@ -216,17 +218,17 @@ public class EMAncestry {
 
   public static void main(String[] args) {
     String pcFile = args[0];
-    int numClusters = 5;
-    int[] indicesInFile = new int[] {2, 3, 4, 5};
+    int numClusters = 4;
+    int[] indicesInFile = new int[] {1,2,3};
 
     Logger log = new Logger(ext.parseDirectoryOfFile(pcFile) + "cluster.log");
     log.reportTimeInfo("Loading " + pcFile);
     double[][] datas = loadData(new File(pcFile), indicesInFile, log);
     String[] headerData = ArrayUtils.subArray(Files.getHeaderOfFile(pcFile, log), indicesInFile);
-    String[] samples = HashVec.loadFileToStringArray(pcFile, true, new int[] {1}, false);
+    String[] samples = HashVec.loadFileToStringArray(pcFile, true, new int[] {0}, false);
 
     log.reportTimeInfo("transposing data " + pcFile);
-
+    
     double[][] dataT = transpose(datas);
     MultivariateNormalMixtureExpectationMaximization maximization = getClusters(dataT, dataT,
                                                                                 numClusters, log);
