@@ -30,6 +30,7 @@ public class SVD extends NamedRealMatrix {
   private static final long serialVersionUID = 1L;
   private final RealMatrix v;
   private final DiagonalMatrix w;
+  private final int numComponents;
 
   private static final RealVectorPreservingVisitor SUM_VISITOR = new RealVectorPreservingVisitor() {
 
@@ -57,10 +58,21 @@ public class SVD extends NamedRealMatrix {
    */
 
   public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, RealMatrix m,
-             RealMatrix v, DiagonalMatrix w) {
+             RealMatrix v, DiagonalMatrix w, int numComponents) {
     super(rowNameMap, columnNameMap, m);
     this.v = v;
     this.w = w;
+    this.numComponents = numComponents;
+    if (numComponents != w.getColumnDimension()) {
+      throw new IllegalArgumentException("Invalid number of singular values ("
+                                         + w.getColumnDimension() + ") for " + numComponents
+                                         + " components");
+    }
+
+    if (numComponents != v.getRowDimension()) {
+      throw new IllegalArgumentException("Invalid diminsion for V  (" + v.getRowDimension()
+                                         + ") for " + numComponents + " components");
+    }
   }
 
   /**
@@ -81,8 +93,8 @@ public class SVD extends NamedRealMatrix {
     for (int row = 0; row < v.getRowDimension(); row++) {
       StringJoiner sample = new StringJoiner("\t");
       sample.add(getIndexColumnMap().get(row));
-      for (int j = 0; j < v.getColumnDimension(); j++) {
-        sample.add(Double.toString(v.getEntry(j, row)));
+      for (int component = 0; component < numComponents; component++) {//
+        sample.add(Double.toString(v.getEntry(component, row)));
       }
       writer.println(sample.toString());
 
@@ -111,6 +123,8 @@ public class SVD extends NamedRealMatrix {
       StringJoiner loadings = new StringJoiner("\t");
       loadings.add(getIndexRowMap().get(row));
 
+      System.out.println(v.getColumnDimension() + "\t" + v.getRowDimension());
+
       for (int j = 0; j < v.getColumnDimension(); j++) {
         loadings.add(Double.toString(v.getEntry(j, row)));
       }
@@ -123,8 +137,7 @@ public class SVD extends NamedRealMatrix {
   private RealMatrix computeLoadings() {
     //    Will have all markers, but not all "PCs" all the time
     RealMatrix loadings = MatrixUtils.createRealMatrix(v.getRowDimension(),
-                                                      getM().getRowDimension());
-
+                                                       getM().getRowDimension());
 
     return loadings;
   }
@@ -163,7 +176,9 @@ public class SVD extends NamedRealMatrix {
         v.addToEntry(row, col, tv.get(row, col));
       }
     }
-    return new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
+    return new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w, numComponents);
   }
+
+  //  public void writeSerial
 
 }
