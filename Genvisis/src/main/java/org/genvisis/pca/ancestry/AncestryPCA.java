@@ -33,6 +33,19 @@ public class AncestryPCA {
   }
 
   /**
+   * @param svd {@link SVD} that will be used to extrapolate the data
+   * @param loader {@link MatrixDataLoading} that will load the matrix
+   * @param log
+   * @return {@link NamedRealMatrix} holding extrapolated PCs
+   */
+  public static NamedRealMatrix extrapolatePCs(SVD svd, MatrixDataLoading loader, Logger log) {
+    NamedRealMatrix m = loader.getData();
+
+    normalizeGenotypeData(m, log);
+    return svd.getExtraploatedPCs(m, log);
+  }
+
+  /**
    * Prepares genotype data for PCA (see https://www.nature.com/articles/ng1847). Can also be used
    * to prepare data for extrapolating PCs
    * 
@@ -48,7 +61,7 @@ public class AncestryPCA {
     //        dividing each entry by √(pi(1 − pi)), where pi is a posterior estimate of the unobserved
     //        underlying allele frequency of SNP i defined by pi = (1 + Σjgij)/(2 + 2N), 
     //        with missing entries excluded from the computation.
-
+    log.reportTimeInfo("Preparing genotype data");
     for (int row = 0; row < m.getM().getRowDimension(); row++) {
       StatsAccumulator statsAccumulator = new StatsAccumulator();
       for (int column = 0; column < m.getM().getColumnDimension(); column++) {
@@ -78,6 +91,8 @@ public class AncestryPCA {
         }
       }
     }
+    log.reportTimeInfo("Finished preparing genotype data");
+
   }
 
   private static boolean isNonMissing(double val) {

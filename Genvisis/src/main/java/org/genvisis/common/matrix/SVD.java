@@ -5,18 +5,19 @@ package org.genvisis.common.matrix;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.apache.commons.math3.linear.DiagonalMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.RealVectorPreservingVisitor;
 import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.SingularOps;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 
 /**
@@ -77,24 +78,26 @@ public class SVD extends NamedRealMatrix {
 
   /**
    * @param outputRoot full path - ".pcs" will be appended to the output root
+   * @param columnOneTitle the first column will have this entry in the header (e.g "PCs", "SAMPLE")
+   * @param log {@link Logger}
    */
-  public void dumpPCsToText(String outputRoot, Logger log) {
+  public void dumpPCsToText(String outputRoot, String columnOneTitle, Logger log) {
     new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
-    String out = outputRoot + ".pcs.gz";
+    String out = outputRoot + ".pcs";
     PrintWriter writer = Files.getAppropriateWriter(out);
     log.reportTimeInfo("Writing PCs to " + out);
     StringJoiner joiner = new StringJoiner("\t");
     joiner.add("SAMPLE");
-    for (int column = 0; column < v.getColumnDimension(); column++) {
-      joiner.add("PC" + (column + 1));
+    for (int component = 0; component < numComponents; component++) {
+      joiner.add("PC" + (component + 1));
     }
     writer.println(joiner.toString());
 
-    for (int row = 0; row < v.getRowDimension(); row++) {
+    for (int outputRow = 0; outputRow < v.getColumnDimension(); outputRow++) {
       StringJoiner sample = new StringJoiner("\t");
-      sample.add(getIndexColumnMap().get(row));
+      sample.add(getIndexColumnMap().get(outputRow));
       for (int component = 0; component < numComponents; component++) {//
-        sample.add(Double.toString(v.getEntry(component, row)));
+        sample.add(Double.toString(v.getEntry(component, outputRow)));
       }
       writer.println(sample.toString());
 
@@ -103,47 +106,125 @@ public class SVD extends NamedRealMatrix {
   }
 
   /**
-   * @param outputRoot full path - ".pcs" will be appended to the output root
+   * @param outputRoot full path - ".singularValues.gz" will be appended to the output root
+   * @param columnOneTitle the first column will have this entry in the header (e.g
+   *          "SingularValues")
+   * @param log {@link Logger}
    */
-  public void dumpLoadingsToText(String outputRoot, Logger log) {
+  public void dumpSingularValuesToText(String outputRoot, String columnOneTitle, Logger log) {
+    new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
+    String out = outputRoot + ".singularValues.gz";
+    log.reportTimeInfo("Writing singular values to " + out);
+    StringJoiner joiner = new StringJoiner("\n");
+    joiner.add(columnOneTitle);
+
+    for (int component = 0; component < numComponents; component++) {
+      joiner.add(Double.toString(w.getEntry(component, component)));
+    }
+  }
+
+  /**
+   * @param outputRoot full path - ".loadings.gz" will be appended to the output root
+   * @param columnOneTitle the first column will have this entry in the header (e.g "MARKER")
+   * @param log {@link Logger}
+   */
+  public void dumpLoadingsToText(String outputRoot, String columnOneTitle, Logger log) {
     new File(ext.parseDirectoryOfFile(outputRoot)).mkdirs();
     String out = outputRoot + ".loadings.gz";
     PrintWriter writer = Files.getAppropriateWriter(out);
     log.reportTimeInfo("Writing loadings to " + out);
     StringJoiner joiner = new StringJoiner("\t");
-    joiner.add("LOADING");
+    joiner.add(columnOneTitle);
 
-    for (int vColumn = 0; vColumn < v.getColumnDimension(); vColumn++) {
+    for (int component = 0; component < numComponents; component++) {
       //   v is transposed releative to m
-      joiner.add(getIndexRowMap().get(vColumn));
+      joiner.add("LOADING" + component);
     }
     writer.println(joiner.toString());
 
     for (int row = 0; row < m.getRowDimension(); row++) {
       StringJoiner loadings = new StringJoiner("\t");
       loadings.add(getIndexRowMap().get(row));
+      double[] rowData = m.getRow(row);
 
-      System.out.println(v.getColumnDimension() + "\t" + v.getRowDimension());
+      for (int component = 0; component < numComponents; component++) {
+        double loading = getLoading(w.getEntry(component, component), rowData, v.getRow(component));
 
-      for (int j = 0; j < v.getColumnDimension(); j++) {
-        loadings.add(Double.toString(v.getEntry(j, row)));
+        loadings.add(Double.toString(loading));
       }
       writer.println(loadings.toString());
-
     }
     writer.close();
   }
 
-  private RealMatrix computeLoadings() {
+  private NamedRealMatrix computeLoadings() {
     //    Will have all markers, but not all "PCs" all the time
-    RealMatrix loadings = MatrixUtils.createRealMatrix(v.getRowDimension(),
-                                                       getM().getRowDimension());
+    RealMatrix loadings = MatrixUtils.createRealMatrix(getM().getRowDimension(), numComponents);
 
-    return loadings;
+    Map<String, Integer> rowMap = new HashMap<>();
+    for (int row = 0; row < m.getRowDimension(); row++) {
+      rowMap.put(getIndexRowMap().get(row), row);
+    }
+
+    Map<String, Integer> loadingMap = new HashMap<>();
+    for (int component = 0; component < numComponents; component++) {
+      loadingMap.put("LOADING" + component, component);
+    }
+
+    for (int row = 0; row < m.getRowDimension(); row++) {
+
+      double[] rowData = m.getRow(row);
+      for (int component = 0; component < numComponents; component++) {
+        double loading = getLoading(w.getEntry(component, component), rowData, v.getRow(component));
+        loadings.addToEntry(row, component, loading);
+      }
+    }
+    return new NamedRealMatrix(rowMap, loadingMap, loadings);
   }
 
-  private static double getLoading(double singularValue, RealVector data, RealVector basis) {
-    return data.ebeMultiply(basis).walkInDefaultOrder(SUM_VISITOR) / singularValue;
+  public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
+    if (!other.getRowNameMap().keySet().containsAll(getRowNameMap().keySet())
+        || getRowNameMap().keySet().size() != other.getRowNameMap().keySet().size()) {
+      throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
+    }
+    log.reportTimeInfo("Extrapolating PCs");
+    NamedRealMatrix loadings = computeLoadings();
+
+    Map<String, Integer> pcMap = new HashMap<>();
+    for (int component = 0; component < numComponents; component++) {
+      pcMap.put("PC" + component, component);
+    }
+    RealMatrix pcs = MatrixUtils.createRealMatrix(getM().getColumnDimension(), numComponents);
+    for (int row = 0; row < other.getM().getRowDimension(); row++) {
+      String key = other.getIndexRowMap().get(row);
+      for (int component = 0; component < numComponents; component++) {
+        for (int column = 0; column < other.getM().getColumnDimension(); column++) {
+          pcs.addToEntry(column, component,
+                         other.getM().getEntry(row, column)
+                                            * loadings.getM()
+                                                      .getEntry(loadings.getRowNameMap().get(key),
+                                                                component));
+        }
+      }
+    }
+    for (int pc = 0; pc < pcs.getColumnDimension(); pc++) {
+      for (int row = 0; row < pcs.getRowDimension(); row++) {
+        double current = pcs.getEntry(row, pc);
+        pcs.setEntry(row, pc, current / w.getEntry(pc, pc));
+      }
+    }
+
+    return new NamedRealMatrix(other.getColumnNameMap(), pcMap, pcs);
+  }
+
+  private static double getLoading(double singularValue, double[] data, double[] basis) {
+    double loading = 0;
+    for (int i = 0; i < basis.length; i++) {
+      loading += data[i] * basis[i];
+    }
+    return loading / singularValue;
+
+    //    return data.ebeMultiply(basis).walkInDefaultOrder(SUM_VISITOR) / singularValue;
   }
 
   /**
@@ -179,6 +260,11 @@ public class SVD extends NamedRealMatrix {
     return new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w, numComponents);
   }
 
-  //  public void writeSerial
+  public void writeSerial(String serFile) {
+    SerializedFiles.writeSerial(this, serFile, true);
+  }
 
+  public static SVD readSerial(String serFile) {
+    return (SVD) SerializedFiles.readSerial(serFile);
+  }
 }

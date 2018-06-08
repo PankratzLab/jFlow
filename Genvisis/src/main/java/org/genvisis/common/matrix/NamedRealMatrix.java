@@ -3,11 +3,15 @@
  */
 package org.genvisis.common.matrix;
 
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 
 /**
  * Attaches column and row names to a {@link RealMatrix}
@@ -107,6 +111,34 @@ public class NamedRealMatrix implements Serializable {
    */
   public RealMatrix getM() {
     return m;
+  }
+
+  /**
+   * @param out the text file to write to
+   * @param columnOneTitle the first column will have this entry in the header (e.g "PCs", "SAMPLE")
+   * @param log
+   */
+  public void dumpToText(String out, String columnOneTitle, Logger log) {
+    PrintWriter writer = Files.getAppropriateWriter(out);
+    log.reportTimeInfo("Writing matrix to " + out);
+    StringJoiner joiner = new StringJoiner("\t");
+    joiner.add(columnOneTitle);
+
+    for (int column = 0; column < m.getColumnDimension(); column++) {
+      joiner.add(getIndexColumnMap().get(column));
+    }
+    writer.println(joiner.toString());
+
+    for (int row = 0; row < m.getRowDimension(); row++) {
+      StringJoiner rows = new StringJoiner("\t");
+      rows.add(getIndexRowMap().get(row));
+
+      for (int column = 0; column < m.getColumnDimension(); column++) {
+        rows.add(Double.toString(m.getEntry(row, column)));
+      }
+      writer.println(rows.toString());
+    }
+    writer.close();
   }
 
 }
