@@ -28,7 +28,7 @@ public class TestAncPCA {
     svd.dumpPCsToText(outDir + "test", "SAMPLE", log);
     svd.dumpLoadingsToText(outDir + "test", "MARKER", log);
     AncestryPCA.extrapolatePCs(svd, new PlinkDataLoader(dir, plinkRoot, log), log)
-               .dumpToText(outDir + "test.extrapolatedPcs.txt", "SAMPLE", log);
+               .dumpToText(outDir + "test.extrapolatedPcs.txt.gz", "SAMPLE", log);
     log.reportTimeElapsed(time);
 
   }
