@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -318,9 +319,10 @@ public class LrrSd extends Parallelizable {
         wfPost = gcAdjustor.getWfPost();
         gcwfPost = gcAdjustor.getGcwfPost();
         double[] tmp;
-        double[] subLrr = markersForEverythingElse.stream()
-                                                  .mapToDouble(gcAdjustor.getCorrectedIntensities()::get)
-                                                  .filter(d -> !Double.isNaN(d)).toArray();
+        double[] subLrr = gcAdjustor.getCorrectedIntensities().entrySet().stream()
+                                    .filter(e -> markersForEverythingElse.contains(e.getKey()))
+                                    .mapToDouble(Entry::getValue).filter(d -> !Double.isNaN(d))
+                                    .toArray();
         lrrsdPost = ArrayUtils.stdev(subLrr);
         lrrMadPost = ArrayUtils.mad(subLrr);
         tmp = CNVCaller.adjustLrr(subLrr, CNVCaller.MIN_LRR_MEDIAN_ADJUST,
