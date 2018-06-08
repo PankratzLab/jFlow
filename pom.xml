@@ -4,7 +4,7 @@
 
 	<groupId>org.genvisis</groupId>
 	<artifactId>pom-genvisis</artifactId>
-	<version>${pom-genvisis.version}</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Genvisis Projects</name>
@@ -97,7 +97,6 @@
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
 		<assembly.version>0.1.14-SNAPSHOT</assembly.version>
 		<app.version>0.0.1-SNAPSHOT</app.version>
-		<pom-genvisis.version>0.0.1-SNAPSHOT</pom-genvisis.version>
 
 		<!-- CFCS -->
 		<cfcs.version>0.0.1-SNAPSHOT</cfcs.version>
