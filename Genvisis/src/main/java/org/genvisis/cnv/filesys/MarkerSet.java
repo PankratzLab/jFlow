@@ -340,7 +340,7 @@ public class MarkerSet implements Serializable, TextExport, MarkerSetInfo {
    * since that can be expensive<br>
    * Is nice if a function needs pos, chr, names, and indicesByChr across threads etc;
    */
-  public static class PreparedMarkerSet extends MarkerSet {
+  public static class PreparedMarkerSet extends MarkerDetailSet {
 
     /**
      *
