@@ -738,7 +738,7 @@ public class lab {
   private static void vcfTest(String filename, String probAttrName) {
     String dir = ext.parseDirectoryOfFile(filename);
     DosageData dd1 = new DosageData(filename, null, null, false, new Logger());
-    DosageData dd2 = DosageData.loadVCF(filename, null, null, null, null);
+    DosageData dd2 = DosageData.loadVCF(filename, null, null, null, null, new Logger());
     dd1.writeToFile(dir + "pd_var1.db.xln.gz", dir + "pd_var1.xln.gz", null, null, new Logger());
     dd2.writeToFile(dir + "pd_var2.db.xln.gz", dir + "pd_var2.xln.gz", null, null, new Logger());
     System.out.println("Done");

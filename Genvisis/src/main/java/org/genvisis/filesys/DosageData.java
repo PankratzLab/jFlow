@@ -226,7 +226,7 @@ public class DosageData implements Serializable {
       dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers,
                            ext.rootOf(dosageFile, true), markerNamePrepend, true);
     } else if (parameters[2] == VCF_FORMAT_INTERNAL) {
-      dd = loadVCF(dosageFile, regions, markers, markerLocationMap, markerNamePrepend);
+      dd = loadVCF(dosageFile, regions, markers, markerLocationMap, markerNamePrepend, log);
     } else if (parameters[2] == BGEN_FORMAT_INTERNAL) {
       dd = loadBGEN(dosageFile, mapFile, idFile, regions, markers, markerNamePrepend, log);
     }
@@ -2316,7 +2316,8 @@ public class DosageData implements Serializable {
   }
 
   public static DosageData loadVCF(String file, int[][] regionsToKeep, String[] markersToKeep,
-                                   Map<String, int[]> markerLocations, String markerNamePrepend) {
+                                   Map<String, int[]> markerLocations, String markerNamePrepend,
+                                   Logger log) {
     String probTag = "GP";
 
     Map<String, String> segLookup = Maps.newHashMap();
@@ -2396,8 +2397,8 @@ public class DosageData implements Serializable {
     }
 
     if (markerSet.size() > 0) {
-      System.out.println("Scanning through " + file + " for " + markerSet.size()
-                         + " remaining variants.");
+      log.reportTime("Scanning through " + file + " for " + markerSet.size()
+                     + " remaining variants.");
       try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
         keepList.addAll(reader.iterator().stream().filter(vc -> {
           return markerSet.contains(vc.getID());
