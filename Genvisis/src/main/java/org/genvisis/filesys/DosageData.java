@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
 import org.genvisis.bgen.BGENReader;
 import org.genvisis.bgen.BGENReader.BGENRecord;
@@ -49,7 +51,6 @@ import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
@@ -2354,15 +2355,15 @@ public class DosageData implements Serializable {
       header = reader.getFileHeader();
 
       // discover which chrs are in this vcf file
-      Set<Integer> contigs = Sets.newHashSet();
+      BidiMap<String, Integer> contigMap = new DualHashBidiMap<>();
       header.getContigLines().forEach(vch -> {
-        byte chr = Positions.chromosomeNumber(vch.getID());
-        contigs.add((int) chr);
+        // ensure parsability
+        contigMap.put(vch.getID(), (int) Positions.chromosomeNumber(vch.getID()));
       });
 
       // remove segs on unavailable chrs
       for (int i = segsToQuery.size() - 1; i >= 0; i--) {
-        if (!contigs.contains((int) segsToQuery.get(i).chr)) {
+        if (!contigMap.containsValue((int) segsToQuery.get(i).chr)) {
           segsToQuery.remove(i);
         }
       }
@@ -2370,13 +2371,14 @@ public class DosageData implements Serializable {
       // remove markers if we have a location for them and that location isn't available
       if (markerLocations != null) {
         markerSet.removeIf(m -> {
-          return markerLocations.containsKey(m) && !contigs.contains(markerLocations.get(m)[0]);
+          return markerLocations.containsKey(m)
+                 && !contigMap.containsValue(markerLocations.get(m)[0]);
         });
       }
 
       for (Segment seg : segsToQuery) {
-        CloseableIterator<VariantContext> iter = reader.query(Byte.toString(seg.chr), seg.start - 1,
-                                                              seg.stop + 1);
+        CloseableIterator<VariantContext> iter = reader.query(contigMap.getKey(seg.chr),
+                                                              seg.start - 1, seg.stop + 1);
         while (iter.hasNext()) {
           VariantContext vc = iter.next();
           if (markerSet.contains(vc.getID())
@@ -2394,6 +2396,8 @@ public class DosageData implements Serializable {
     }
 
     if (markerSet.size() > 0) {
+      System.out.println("Scanning through " + file + " for " + markerSet.size()
+                         + " remaining variants.");
       try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
         keepList.addAll(reader.iterator().stream().filter(vc -> {
           return markerSet.contains(vc.getID());
