@@ -718,11 +718,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * @param markerMask a boolean[] in project order indicating whether to include a given Marker in
    *          the returned {@link Set}
    * @return a mutable {@link Set} of all {@link Marker}s for which the project index in markerMask
-   *         is true
+   *         is true, the iteration order of the returned {@link Set} is in project order
    */
   public Set<Marker> includeProjectOrderMask(boolean[] markerMask) {
     if (markerMask.length != markersList.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
-    Set<Marker> includedMarkers = Sets.newHashSet();
+    Set<Marker> includedMarkers = Sets.newLinkedHashSet();
     for (int i = 0; i < markerMask.length; i++) {
       if (markerMask[i]) includedMarkers.add(markersList.get(i));
     }
@@ -733,11 +733,11 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * @param markerMask a boolean[] in project order indicating whether to exclude a given Marker in
    *          the returned {@link Set}
    * @return a mutable {@link Set} of all {@link Marker}s for which the project index in markerMask
-   *         is false
+   *         is false, the iteration order of the returned {@link Set} is in project order
    */
   public Set<Marker> excludeProjectOrderMask(boolean[] markerMask) {
     if (markerMask.length != markersList.size()) throw new IllegalArgumentException("Project order marker mask does not match size of project marker List");
-    Set<Marker> excludedMarkers = Sets.newHashSet();
+    Set<Marker> excludedMarkers = Sets.newLinkedHashSet();
     for (int i = 0; i < markerMask.length; i++) {
       if (!markerMask[i]) excludedMarkers.add(markersList.get(i));
     }
@@ -747,11 +747,12 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   /**
    * @param dataInProjOrder {@link List} of data of the same length as {@link #markersAsList()}
    * @return a mutable {@link Map} from {@link Marker} to the data at the project index of the
-   *         {@link Marker} in dataInProjOrder
+   *         {@link Marker} in dataInProjOrder, the iteration order of the returned {@link Map} is
+   *         in project order
    */
   public <T> Map<Marker, T> mapProjectOrderData(List<T> dataInProjOrder) {
     if (dataInProjOrder.size() != markersList.size()) throw new IllegalArgumentException("Project order data does not match size of project marker List");
-    Map<Marker, T> markerDataMap = Maps.newHashMapWithExpectedSize(markersList.size());
+    Map<Marker, T> markerDataMap = Maps.newLinkedHashMapWithExpectedSize(markersList.size());
     for (int i = 0; i < markersList.size(); i++) {
       markerDataMap.put(markersList.get(i), dataInProjOrder.get(i));
     }
