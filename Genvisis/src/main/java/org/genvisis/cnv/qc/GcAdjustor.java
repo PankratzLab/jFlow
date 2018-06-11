@@ -40,7 +40,6 @@ import org.genvisis.stats.CrossValidation;
 import org.genvisis.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Doubles;
@@ -175,7 +174,7 @@ public class GcAdjustor {
 
   private final Project proj;
   private CrossValidation crossValidation;
-  private ImmutableSet<Marker> correctedMarkers;// the indices we were able to correct, as ordered by the input
+  private List<Marker> correctedMarkers;// the indices we were able to correct, as ordered by the input
   // data
   private List<? extends List<Marker>> qcMarkers;// the markers used to compute qc metrics, as ordered by the input-gc
   // matched arrays
@@ -458,7 +457,7 @@ public class GcAdjustor {
       ImmutableList.Builder<ImmutableList<Marker>> tmpchr11qcMarkers = ImmutableList.builderWithExpectedSize(3000);// refers to the index matched
       // gc/LRR values on chromosome
       // 11 only
-      ImmutableSet.Builder<Marker> correctedMarkersBuilder = ImmutableSet.builderWithExpectedSize(markers.size());// refers to
+      ImmutableList.Builder<Marker> correctedMarkersBuilder = ImmutableList.builderWithExpectedSize(markers.size());// refers to
       // all indices
       // we will
       // correct
@@ -714,9 +713,8 @@ public class GcAdjustor {
    */
   private void assignCorrectedIntensities() {
     Map<Marker, Double> correctedIntensitiesBuilder = Maps.newHashMap(markerIntensities);
-    List<Marker> correctedMarkerList = correctedMarkers.asList();
-    for (int i = 0; i < correctedMarkerList.size(); i++) {
-      Marker marker = correctedMarkerList.get(i);
+    for (int i = 0; i < correctedMarkers.size(); i++) {
+      Marker marker = correctedMarkers.get(i);
       correctedIntensitiesBuilder.put(marker, crossValidation.getResiduals()[i]);
     }
     correctedIntensities = Collections.unmodifiableMap(correctedIntensitiesBuilder);
