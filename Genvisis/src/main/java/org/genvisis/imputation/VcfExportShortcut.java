@@ -207,8 +207,8 @@ public class VcfExportShortcut {
     qcMap.put(QC_METRIC.P_GENDER, generalQc);
     qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
     StringBuilder outputScript = null;
-    boolean includeQC = sampleDropsFile != null || sampleKeepsFile != null
-                        || markerKeepsFile != null || markerDropsFile != null;
+    boolean includeQC = sampleDropsFile == null && sampleKeepsFile == null
+                        && markerKeepsFile == null && markerDropsFile == null;
     if (proj.ARRAY_TYPE.getValue() == ARRAY.ILLUMINA) {
       outputScript = new StringBuilder(GenvisisWorkflow.setupIlluminaImputation(proj, numThreads,
                                                                                 putativeWhtFile,
