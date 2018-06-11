@@ -437,7 +437,7 @@ public class GCTA {
     String[] plinks = PSF.Plink.getPlinkBedBimFam(plinkRoot);
     if (!Files.exists("", plinks)) {
       String nonCNFile = outDir + "markersToQC.txt";
-      Files.writeArray(proj.getNonCNMarkers(), nonCNFile);
+      Files.writeArray(proj.getNonCNMarkerNames(), nonCNFile);
       Pedigree.build(proj, null, samples, false);
       PlinkData.saveGenvisisToPlinkBedSet(proj, "gcta/gcta", null, nonCNFile);
     }

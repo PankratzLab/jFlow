@@ -713,7 +713,7 @@ public class LrrSd extends Parallelizable {
     boolean[] theRest = null;
 
     if (!useAllMarkers) {
-      callRate = ArrayUtils.booleanNegative(proj.getCNMarkers());
+      callRate = ArrayUtils.booleanNegative(proj.getCNMarkersMask());
       theRest = proj.getAutosomalMarkerBoolean();
       if (callRate.length != theRest.length) {
         proj.getLog()

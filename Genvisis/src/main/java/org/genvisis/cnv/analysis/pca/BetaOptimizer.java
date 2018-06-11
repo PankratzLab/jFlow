@@ -1274,9 +1274,9 @@ public class BetaOptimizer {
     } else {
       betaFiles = new String[] {betaLoc};
     }
-    analyzeAll(proj, pcFile, unRelatedFile, abLookup, dbsnp.get(), proj.getNonCNMarkers(), outDir,
-               betaFiles, pvals, markerCallRate, maxPCs, numthreads, pcSamps, pvalRefineCutoff,
-               minPval, proj.getLog());
+    analyzeAll(proj, pcFile, unRelatedFile, abLookup, dbsnp.get(), proj.getNonCNMarkerNames(),
+               outDir, betaFiles, pvals, markerCallRate, maxPCs, numthreads, pcSamps,
+               pvalRefineCutoff, minPval, proj.getLog());
   }
 
   public static void main(String[] args) {
@@ -1392,7 +1392,7 @@ public class BetaOptimizer {
     proj.getLog().reportTimeInfo("Using " + numthreads + " of "
                                  + Runtime.getRuntime().availableProcessors() + " available cores");
     int maxPCs = 120;
-    analyzeAll(proj, pcFile, toUseFile, abLookup, dbsnp.get(), proj.getNonCNMarkers(), out,
+    analyzeAll(proj, pcFile, toUseFile, abLookup, dbsnp.get(), proj.getNonCNMarkerNames(), out,
                betaFiles, pvals, markerCallRate, maxPCs, numthreads, usedInPCFile, 25, -1,
                proj.getLog());
   }

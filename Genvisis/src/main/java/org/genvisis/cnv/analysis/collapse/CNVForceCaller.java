@@ -87,7 +87,7 @@ class CNVForceCaller {
                                        + " markers to use");
           if (proj.ARRAY_TYPE.getValue() == ARRAY.NGS) {
             proj.getLog().reportTimeInfo("subsetting to CN only for " + proj.ARRAY_TYPE.getValue());
-            boolean[] tmp = proj.getCNMarkers();
+            boolean[] tmp = proj.getCNMarkersMask();
             for (int i = 0; i < tmp.length; i++) {
               beastMarkers[i] = tmp[i] && markersToUse[i];
             }

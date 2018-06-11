@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Vector;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
@@ -1964,7 +1965,11 @@ public class Project implements PropertyChangeListener {
     return outliers;
   }
 
-  public String[] getNonCNMarkers() {
+  /**
+   * @deprecated use {@link #getNonCNMarkers()} instead
+   */
+  @Deprecated
+  public String[] getNonCNMarkerNames() {
     String[] mkrs = getMarkerNames();
     ARRAY myArrayType = ARRAY_TYPE.getValue();
     ArrayList<String> nonCNs = new ArrayList<>();
@@ -1976,7 +1981,11 @@ public class Project implements PropertyChangeListener {
     return ArrayUtils.toStringArray(nonCNs);
   }
 
-  public String[] getAutosomalNonCNMarkers() {
+  /**
+   * @deprecated use {@link #getAutosomNonCNMarkers()} instead
+   */
+  @Deprecated
+  public String[] getAutosomalNonCNMarkerNames() {
     String[] mkrs = getAutosomalMarkers();
     ARRAY myArrayType = ARRAY_TYPE.getValue();
     ArrayList<String> nonCNs = new ArrayList<>();
@@ -1988,7 +1997,11 @@ public class Project implements PropertyChangeListener {
     return ArrayUtils.toStringArray(nonCNs);
   }
 
-  public boolean[] getCNMarkers() {
+  /**
+   * @deprecated use {@link #getCNMarkers()} instead
+   */
+  @Deprecated
+  public boolean[] getCNMarkersMask() {
     String[] mkrs = getMarkerNames();
     boolean[] cnB = new boolean[mkrs.length];
     ARRAY myArrayType = ARRAY_TYPE.getValue();
@@ -1996,6 +2009,31 @@ public class Project implements PropertyChangeListener {
       cnB[i] = myArrayType.isCNOnly(mkrs[i]);
     }
     return cnB;
+  }
+
+  /**
+   * @return {@link Stream} of all CN Only {@link Marker}s
+   */
+  public Stream<Marker> getCNMarkers() {
+    return getMarkerSet().markersAsList().stream().filter(cnOnly());
+  }
+
+  /**
+   * @return {@link Stream} of all non-CN Only {@link Marker}s
+   */
+  public Stream<Marker> getNonCNMarkers() {
+    return getMarkerSet().markersAsList().stream().filter(cnOnly().negate());
+  }
+
+  /**
+   * @return {@link Stream} of all autosomal non-CN Only {@link Marker}s
+   */
+  public Stream<Marker> getAutosomNonCNMarkers() {
+    return Streams.stream(getMarkerSet().getAutosomalMarkers()).filter(cnOnly().negate());
+  }
+
+  private Predicate<Marker> cnOnly() {
+    return m -> ARRAY_TYPE.getValue().isCNOnly(m.getName());
   }
 
   /**

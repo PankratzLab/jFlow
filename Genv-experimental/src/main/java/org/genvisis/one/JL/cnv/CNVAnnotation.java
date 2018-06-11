@@ -98,7 +98,7 @@ public class CNVAnnotation {
       proj.getLog().reportTimeInfo("Annotating for sample " + sample);
       if (set.containsKey(key)) {
         CNVariant[] loci = set.get(key).getLoci();
-        proj.getCNMarkers();
+        proj.getCNMarkersMask();
         int[][] cnvIndices = new int[loci.length][];
         Map<String, Integer> track = proj.getMarkerIndices();
         for (int i = 0; i < loci.length; i++) {
