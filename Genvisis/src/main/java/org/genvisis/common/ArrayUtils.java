@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
 import com.google.common.base.Joiner;
@@ -2128,6 +2130,38 @@ public class ArrayUtils {
     return (quantExclusive(tmp, 0.50)) * constant;
   }
 
+  public static double madStream(double[] values) {
+    double median = median(Arrays.stream(values), values.length);
+    return madStream(values, median);
+  }
+
+  public static double madStream(double[] values, double median) {
+    return median(Arrays.stream(values).map(v -> Math.abs(v - median)), values.length);
+  }
+
+  /**
+   * Determines the median absolute difference of a Collection of Numbers
+   * 
+   * @param values
+   * @return
+   */
+  public static double mad(Collection<? extends Number> values) {
+    double median = median(values.stream(), values.size());
+    return mad(values, median);
+  }
+
+  /**
+   * Determines the median absolute difference of a Collection of Numbers with a known median
+   *
+   * @param values values to find MAD of
+   * @param median the median of the given values
+   * @return MAD of the values
+   */
+  public static double mad(Collection<? extends Number> values, double median) {
+    return median(values.stream().mapToDouble(Number::doubleValue).map(v -> Math.abs(v - median)),
+                  values.size());
+  }
+
   /**
    * Determines the median of an array of numbers
    *
@@ -2172,7 +2206,7 @@ public class ArrayUtils {
   /**
    * Determines the median of sorted list of numbers
    */
-  public static <T extends Number> double medianSorted(List<T> list) {
+  public static double medianSorted(List<? extends Number> list) {
     int midpoint = list.size() / 2;
     double median;
     if (list.size() % 2 == 0) {
@@ -2181,6 +2215,51 @@ public class ArrayUtils {
       median = list.get(midpoint).doubleValue();
     }
 
+    return median;
+
+  }
+
+  /**
+   * @param stream a Stream of Numbers with known size
+   * @param size size of stream
+   * @return median of stream
+   */
+  public static double median(Stream<? extends Number> stream, int size) {
+    return medianSorted(stream.sorted(), size);
+  }
+
+  /**
+   * @param stream a DoubleStream with known size
+   * @param size size of stream
+   * @return median of stream
+   */
+  public static double median(DoubleStream stream, int size) {
+    return medianSorted(stream.sorted(), size);
+  }
+
+  /**
+   * @param stream a sorted Stream of Numbers with known size
+   * @param size size of stream
+   * @return median of stream
+   */
+  public static double medianSorted(Stream<? extends Number> stream, int size) {
+    return medianSorted(stream.mapToDouble(Number::doubleValue), size);
+  }
+
+  /**
+   * @param stream a sorted DoubleStream with known size
+   * @param size size of stream
+   * @return median of stream
+   */
+  public static double medianSorted(DoubleStream stream, int size) {
+    if (size <= 0) return Double.NaN;
+    final int midpoint = size / 2;
+    double median;
+    if (size % 2 == 0) {
+      median = stream.skip(midpoint - 1).limit(2).summaryStatistics().getAverage();
+    } else {
+      median = stream.skip(midpoint).findFirst().getAsDouble();
+    }
     return median;
   }
 
