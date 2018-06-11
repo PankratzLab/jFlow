@@ -664,13 +664,12 @@ public class GcAdjustor {
     ArrayList<Double> medianGc = new ArrayList<>();
     for (List<Marker> wFbin : wfBins) {
       if (!wFbin.isEmpty()) {
-        medianIntensity.add(ArrayUtils.median(wFbin.stream().mapToDouble(intensities::get)
-                                                   .toArray()));
-        medianGc.add(ArrayUtils.median(wFbin.stream().mapToDouble(gcs::get).toArray()));
+        medianIntensity.add(ArrayUtils.median(wFbin.stream().map(intensities::get), wFbin.size()));
+        medianGc.add(ArrayUtils.median(wFbin.stream().map(gcs::get), wFbin.size()));
       }
     }
 
-    double wf = ArrayUtils.mad(Doubles.toArray(medianIntensity));
+    double wf = ArrayUtils.mad(medianIntensity);
     if (pennCNVGCBins != null) {// Used for PennCNV bins, if not supplied we use what we found above
       if (pennCNVGCBins.size() != DEFAULT_PENNCNV_CHR11_GC_BINS.length) {
         log.reportError("Error - default PennCNV GC bins and current data do not match up, computing using full autosomal bins instead");
@@ -684,9 +683,8 @@ public class GcAdjustor {
           List<Marker> pennCNVGCBin = pennCNVGCBins.get(i);
           if (!pennCNVGCBin.isEmpty()) {
             medianGc.add(DEFAULT_PENNCNV_CHR11_GC_BINS[i]);
-            medianIntensity.add(ArrayUtils.median(pennCNVGCBin.stream()
-                                                              .mapToDouble(intensities::get)
-                                                              .toArray()));
+            medianIntensity.add(ArrayUtils.median(pennCNVGCBin.stream().map(intensities::get),
+                                                  pennCNVGCBin.size()));
           }
         }
       }
