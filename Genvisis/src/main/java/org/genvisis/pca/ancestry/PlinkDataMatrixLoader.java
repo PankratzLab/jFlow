@@ -15,13 +15,13 @@ import org.genvisis.filesys.DosageData;
 /**
  * Implements {@link MatrixDataLoading} to load plink files to a {@link RealMatrix}, using -1,0,1,2
  */
-public class PlinkDataLoader implements MatrixDataLoading {
+public class PlinkDataMatrixLoader implements MatrixDataLoading {
 
   private final String dir;
   private final String plinkRoot;
   private final Logger log;
 
-  public PlinkDataLoader(String dir, String plinkRoot, Logger log) {
+  public PlinkDataMatrixLoader(String dir, String plinkRoot, Logger log) {
 
     this.dir = dir;
     this.plinkRoot = plinkRoot;

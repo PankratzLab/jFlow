@@ -71,7 +71,7 @@ public class AncestryPCA {
         }
       }
       Stats stats = statsAccumulator.snapshot();
-      double possible = (double) (2 + 2 * m.getM().numCols);
+      double possible = (double) (2 + 2 * stats.count());
       double pi = (1 + stats.sum()) / possible;
       double norm = Math.sqrt(pi * (1 - pi));
       for (int column = 0; column < m.getM().numCols; column++) {

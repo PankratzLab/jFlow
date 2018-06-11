@@ -31,6 +31,7 @@ public class SVD extends NamedRealMatrix {
   private static final long serialVersionUID = 1L;
   private final RealMatrix v;
   private final DiagonalMatrix w;
+  private NamedRealMatrix loadings;
   private final int numComponents;
 
   /**
@@ -126,25 +127,21 @@ public class SVD extends NamedRealMatrix {
     writer.println(joiner.toString());
 
     for (int row = 0; row < m.getNumRows(); row++) {
-      StringJoiner loadings = new StringJoiner("\t");
-      loadings.add(getIndexRowMap().get(row));
-      DenseMatrix64F rowData = new DenseMatrix64F(1, m.numCols);
-      CommonOps.extractRow(m, row, rowData);
+      StringJoiner loadingString = new StringJoiner("\t");
+      loadingString.add(getIndexRowMap().get(row));
 
       for (int component = 0; component < numComponents; component++) {
-        double loading = getLoading(w.getEntry(component, component), rowData.data,
-                                    v.getRow(component));
-
-        loadings.add(Double.toString(loading));
+        loadingString.add(Double.toString(loadings.m.get(row, component)));
       }
-      writer.println(loadings.toString());
+      writer.println(loadingString.toString());
     }
     writer.close();
   }
 
-  private NamedRealMatrix computeLoadings() {
+  //TODO - could potentially read marker and dump loading line by line
+  private void computeLoadings() {
     //    Will have all markers, but not all "PCs" all the time
-    DenseMatrix64F loadings = new DenseMatrix64F(getM().numRows, numComponents);
+    DenseMatrix64F loadingData = new DenseMatrix64F(getM().numRows, numComponents);
 
     Map<String, Integer> rowMap = new HashMap<>();
     for (int row = 0; row < m.numRows; row++) {
@@ -163,11 +160,13 @@ public class SVD extends NamedRealMatrix {
       for (int component = 0; component < numComponents; component++) {
         double loading = getLoading(w.getEntry(component, component), rowData.data,
                                     v.getRow(component));
-        loadings.add(row, component, loading);
+        loadingData.add(row, component, loading);
       }
     }
-    return new NamedRealMatrix(rowMap, loadingMap, loadings);
+    this.loadings = new NamedRealMatrix(rowMap, loadingMap, loadingData);
   }
+
+  // TODO, could refactor to static method that just takes singular values "w" and loadings "u"
 
   public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
     if (!other.getRowNameMap().keySet().containsAll(getRowNameMap().keySet())
@@ -175,14 +174,13 @@ public class SVD extends NamedRealMatrix {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }
     log.reportTimeInfo("Extrapolating PCs");
-    NamedRealMatrix loadings = computeLoadings();
 
     Map<String, Integer> pcMap = new HashMap<>();
     for (int component = 0; component < numComponents; component++) {
       pcMap.put("PC" + (component + 1), component);
     }
 
-    DenseMatrix64F pcs = new DenseMatrix64F(getM().numCols, numComponents);
+    DenseMatrix64F pcs = new DenseMatrix64F(other.getM().numCols, numComponents);
     for (int row = 0; row < other.getM().numRows; row++) {
       for (int component = 0; component < numComponents; component++) {
         for (int column = 0; column < other.getM().numCols; column++) {
@@ -239,13 +237,20 @@ public class SVD extends NamedRealMatrix {
         v.addToEntry(row, col, tv.get(row, col));
       }
     }
-    return new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w, numComponents);
+
+    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w, numComponents);
+    svdResult.computeLoadings();
+    return svdResult;
   }
 
   public void writeSerial(String serFile) {
     SerializedFiles.writeSerial(this, serFile, true);
   }
 
+  /**
+   * @param serFile
+   * @return
+   */
   public static SVD readSerial(String serFile) {
     return (SVD) SerializedFiles.readSerial(serFile);
   }
