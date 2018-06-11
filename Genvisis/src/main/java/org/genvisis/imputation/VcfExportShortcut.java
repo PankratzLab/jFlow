@@ -223,10 +223,13 @@ public class VcfExportShortcut {
                                                                             includeQC));
     }
 
+    boolean defaultKD = sampleDropsFile == null && sampleKeepsFile == null
+                        && markerDropsFile == null && markerKeepsFile == null;
+
     String sampDrop = null;
     if (sampleDropsFile != null) {
       sampDrop = sampleDropsFile;
-    } else {
+    } else if (defaultKD) {
       sampDrop = proj.PROJECT_DIRECTORY.getValue() + GenvisisWorkflow.PLINK_SUBDIR
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + FurtherAnalysisQc.SAMPLE_QC_DROPS;
     }
@@ -234,7 +237,7 @@ public class VcfExportShortcut {
     String markDrop = null;
     if (markerDropsFile != null) {
       markDrop = markerDropsFile;
-    } else {
+    } else if (defaultKD) {
       markDrop = proj.PROJECT_DIRECTORY.getValue() + GenvisisWorkflow.PLINK_SUBDIR + Qc.QC_SUBDIR
                  + FurtherAnalysisQc.FURTHER_ANALYSIS_DIR + FurtherAnalysisQc.MARKER_QC_DROPS;
     }
@@ -246,12 +249,16 @@ public class VcfExportShortcut {
     outputScript.append(" ").append(ImputationPipeline.class.getName());
     outputScript.append(" ").append(ImputationPipeline.PROJ_ARG).append(proj.getPropertyFilename());
     outputScript.append(" ").append(ImputationPipeline.REF_ARG).append(imputationReferenceFile);
-    outputScript.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
-    if (sampleKeepsFile != null) {
+    if (sampDrop != null) {
+      outputScript.append(" ").append(ImputationPipeline.DROP_SAMPLES_ARG).append(sampDrop);
+    }
+    if (sampleKeepsFile != null && !defaultKD) {
       outputScript.append(" ").append(ImputationPipeline.KEEP_SAMPLES_ARG).append(sampleKeepsFile);
     }
-    outputScript.append(" ").append(ImputationPipeline.DROP_MARKERS_ARG).append(markDrop);
-    if (markerKeepsFile != null) {
+    if (markDrop != null) {
+      outputScript.append(" ").append(ImputationPipeline.DROP_MARKERS_ARG).append(markDrop);
+    }
+    if (markerKeepsFile != null && !defaultKD) {
       outputScript.append(" ").append(ImputationPipeline.KEEP_MARKERS_ARG).append(markerKeepsFile);
     }
     outputScript.append(" ").append(ImputationPipeline.EXPORT_IIDS).append("TRUE");
