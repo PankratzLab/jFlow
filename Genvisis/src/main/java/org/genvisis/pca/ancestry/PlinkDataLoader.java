@@ -5,8 +5,8 @@ package org.genvisis.pca.ancestry;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.ejml.data.DenseMatrix64F;
 import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.NamedRealMatrix;
@@ -53,10 +53,10 @@ public class PlinkDataLoader implements MatrixDataLoading {
     }
     log.reportTimeInfo("Preparing matrix for " + markers.length + " markers and " + samples.length
                        + " samples");
-    RealMatrix m = MatrixUtils.createRealMatrix(markers.length, samples.length);
-    for (int column = 0; column < m.getColumnDimension(); column++) {
-      for (int row = 0; row < m.getRowDimension(); row++) {
-        m.setEntry(row, column, d.getDosageValues()[row][column]);
+    DenseMatrix64F m = new DenseMatrix64F(markers.length, samples.length);
+    for (int column = 0; column < m.numCols; column++) {
+      for (int row = 0; row < m.numRows; row++) {
+        m.set(row, column, d.getDosageValues()[row][column]);
       }
     }
     log.memoryPercentTotalFree();

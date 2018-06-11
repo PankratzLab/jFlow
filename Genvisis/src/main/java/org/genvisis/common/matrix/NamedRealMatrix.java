@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.ejml.data.DenseMatrix64F;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
@@ -26,7 +27,7 @@ public class NamedRealMatrix implements Serializable {
   private final Map<String, Integer> columnNameMap;
   private final Map<Integer, String> indexRowMap;
   private final Map<Integer, String> indexColumnMap;
-  protected final RealMatrix m;
+  protected final DenseMatrix64F m;
 
   /**
    * @param rowNameMap maps row names to row indices
@@ -34,10 +35,10 @@ public class NamedRealMatrix implements Serializable {
    * @param m {@link RealMatrix} underlying data
    */
   public NamedRealMatrix(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap,
-                         RealMatrix m) {
+                         DenseMatrix64F m) {
     super();
-    validateMap(rowNameMap, m.getRowDimension());
-    validateMap(columnNameMap, m.getColumnDimension());
+    validateMap(rowNameMap, m.numRows);
+    validateMap(columnNameMap, m.numCols);
     this.rowNameMap = rowNameMap;
     this.columnNameMap = columnNameMap;
     this.indexRowMap = generateIndexMap(rowNameMap);
@@ -109,7 +110,7 @@ public class NamedRealMatrix implements Serializable {
   /**
    * @return the m
    */
-  public RealMatrix getM() {
+  public DenseMatrix64F getM() {
     return m;
   }
 
@@ -124,17 +125,17 @@ public class NamedRealMatrix implements Serializable {
     StringJoiner joiner = new StringJoiner("\t");
     joiner.add(columnOneTitle);
 
-    for (int column = 0; column < m.getColumnDimension(); column++) {
+    for (int column = 0; column < m.numCols; column++) {
       joiner.add(getIndexColumnMap().get(column));
     }
     writer.println(joiner.toString());
 
-    for (int row = 0; row < m.getRowDimension(); row++) {
+    for (int row = 0; row < m.numRows; row++) {
       StringJoiner rows = new StringJoiner("\t");
       rows.add(getIndexRowMap().get(row));
 
-      for (int column = 0; column < m.getColumnDimension(); column++) {
-        rows.add(Double.toString(m.getEntry(row, column)));
+      for (int column = 0; column < m.numCols; column++) {
+        rows.add(Double.toString(m.get(row, column)));
       }
       writer.println(rows.toString());
     }

@@ -56,10 +56,10 @@ public class AncestryPCA {
   static void normalizeGenotypeData(NamedRealMatrix m, Logger log) {
 
     log.reportTimeInfo("Preparing genotype data");
-    for (int row = 0; row < m.getM().getRowDimension(); row++) {
+    for (int row = 0; row < m.getM().numRows; row++) {
       StatsAccumulator statsAccumulator = new StatsAccumulator();
-      for (int column = 0; column < m.getM().getColumnDimension(); column++) {
-        double val = m.getM().getEntry(row, column);
+      for (int column = 0; column < m.getM().numCols; column++) {
+        double val = m.getM().get(row, column);
         if (valid(val)) {
           if (isNonMissing(val)) {
             statsAccumulator.add(val);
@@ -71,17 +71,17 @@ public class AncestryPCA {
         }
       }
       Stats stats = statsAccumulator.snapshot();
-      double possible = (double) (2 + 2 * m.getM().getColumnDimension());
+      double possible = (double) (2 + 2 * m.getM().numCols);
       double pi = (1 + stats.sum()) / possible;
       double norm = Math.sqrt(pi * (1 - pi));
-      for (int column = 0; column < m.getM().getColumnDimension(); column++) {
-        double val = m.getM().getEntry(row, column);
+      for (int column = 0; column < m.getM().numCols; column++) {
+        double val = m.getM().get(row, column);
         if (isNonMissing(val)) {
           double mc = val - stats.mean();
           mc /= norm;
-          m.getM().setEntry(row, column, mc);
+          m.getM().set(row, column, mc);
         } else {
-          m.getM().setEntry(row, column, 0);
+          m.getM().set(row, column, 0);
         }
       }
     }

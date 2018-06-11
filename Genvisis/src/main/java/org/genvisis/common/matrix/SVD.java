@@ -13,6 +13,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
 import org.ejml.ops.SingularOps;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -40,7 +41,7 @@ public class SVD extends NamedRealMatrix {
    * @param w the w {@link RealMatrix}, eigenvector
    */
 
-  public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, RealMatrix m,
+  public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, DenseMatrix64F m,
              RealMatrix v, DiagonalMatrix w, int numComponents) {
     super(rowNameMap, columnNameMap, m);
     this.v = v;
@@ -124,13 +125,15 @@ public class SVD extends NamedRealMatrix {
     }
     writer.println(joiner.toString());
 
-    for (int row = 0; row < m.getRowDimension(); row++) {
+    for (int row = 0; row < m.getNumRows(); row++) {
       StringJoiner loadings = new StringJoiner("\t");
       loadings.add(getIndexRowMap().get(row));
-      double[] rowData = m.getRow(row);
+      DenseMatrix64F rowData = new DenseMatrix64F(1, m.numCols);
+      CommonOps.extractRow(m, row, rowData);
 
       for (int component = 0; component < numComponents; component++) {
-        double loading = getLoading(w.getEntry(component, component), rowData, v.getRow(component));
+        double loading = getLoading(w.getEntry(component, component), rowData.data,
+                                    v.getRow(component));
 
         loadings.add(Double.toString(loading));
       }
@@ -141,10 +144,10 @@ public class SVD extends NamedRealMatrix {
 
   private NamedRealMatrix computeLoadings() {
     //    Will have all markers, but not all "PCs" all the time
-    RealMatrix loadings = MatrixUtils.createRealMatrix(getM().getRowDimension(), numComponents);
+    DenseMatrix64F loadings = new DenseMatrix64F(getM().numRows, numComponents);
 
     Map<String, Integer> rowMap = new HashMap<>();
-    for (int row = 0; row < m.getRowDimension(); row++) {
+    for (int row = 0; row < m.numRows; row++) {
       rowMap.put(getIndexRowMap().get(row), row);
     }
 
@@ -152,12 +155,15 @@ public class SVD extends NamedRealMatrix {
     for (int component = 0; component < numComponents; component++) {
       loadingMap.put("LOADING" + component, component);
     }
-    for (int row = 0; row < m.getRowDimension(); row++) {
+    for (int row = 0; row < m.numRows; row++) {
 
-      double[] rowData = m.getRow(row);
+      DenseMatrix64F rowData = new DenseMatrix64F(1, m.numCols);
+      CommonOps.extractRow(m, row, rowData);
+
       for (int component = 0; component < numComponents; component++) {
-        double loading = getLoading(w.getEntry(component, component), rowData, v.getRow(component));
-        loadings.addToEntry(row, component, loading);
+        double loading = getLoading(w.getEntry(component, component), rowData.data,
+                                    v.getRow(component));
+        loadings.add(row, component, loading);
       }
     }
     return new NamedRealMatrix(rowMap, loadingMap, loadings);
@@ -175,19 +181,20 @@ public class SVD extends NamedRealMatrix {
     for (int component = 0; component < numComponents; component++) {
       pcMap.put("PC" + (component + 1), component);
     }
-    RealMatrix pcs = MatrixUtils.createRealMatrix(getM().getColumnDimension(), numComponents);
-    for (int row = 0; row < other.getM().getRowDimension(); row++) {
+
+    DenseMatrix64F pcs = new DenseMatrix64F(getM().numCols, numComponents);
+    for (int row = 0; row < other.getM().numRows; row++) {
       for (int component = 0; component < numComponents; component++) {
-        for (int column = 0; column < other.getM().getColumnDimension(); column++) {
-          pcs.addToEntry(column, component, other.getM().getEntry(row, column)
-                                            * loadings.getM().getEntry(row, component));
+        for (int column = 0; column < other.getM().numCols; column++) {
+          pcs.add(column, component,
+                  other.getM().get(row, column) * loadings.getM().get(row, component));
         }
       }
     }
-    for (int pc = 0; pc < pcs.getColumnDimension(); pc++) {
-      for (int row = 0; row < pcs.getRowDimension(); row++) {
-        double current = pcs.getEntry(row, pc);
-        pcs.setEntry(row, pc, current / w.getEntry(pc, pc));
+    for (int pc = 0; pc < pcs.numCols; pc++) {
+      for (int row = 0; row < pcs.numRows; row++) {
+        double current = pcs.get(row, pc);
+        pcs.set(row, pc, current / w.getEntry(pc, pc));
       }
     }
 
@@ -211,7 +218,7 @@ public class SVD extends NamedRealMatrix {
   public static SVD computeSVD(NamedRealMatrix m, int numComponents, Logger log) {
     log.reportTimeInfo("Computing EJML PCs");
     SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
-    svd.decompose(MatrixOperations.toDenseMatrix64F(m.getM()));
+    svd.decompose(m.getM());
     log.memoryPercentTotalFree();
 
     log.reportTimeInfo("Finished Computing EJML PCs");
@@ -224,7 +231,7 @@ public class SVD extends NamedRealMatrix {
     for (int i = 0; i < numSingular; i++) {
       singularValues[i] = tmpW.get(i, i);
     }
-    tv.reshape(numComponents, m.getM().getColumnDimension(), true);
+    tv.reshape(numComponents, m.getM().numCols, true);
     DiagonalMatrix w = new DiagonalMatrix(singularValues);
     RealMatrix v = MatrixUtils.createRealMatrix(tv.numRows, tv.numCols);
     for (int row = 0; row < tv.numRows; row++) {
