@@ -241,35 +241,37 @@ public class LrrSd extends Parallelizable {
 
     MarkerDetailSet markerDetailSet = proj.getMarkerSet();
 
-    Map<Marker, Float> lrrs = markerDetailSet.mapProjectOrderData(cents == null ? fsamp.getLRRs()
-                                                                                : fsamp.getLRRs(cents));
-    lrrs.keySet().retainAll(markersForEverythingElse);
-    Map<Marker, Float> bafs = markerDetailSet.mapProjectOrderData(cents == null ? fsamp.getBAFs()
-                                                                                : fsamp.getBAFs(cents));
-    bafs.keySet().retainAll(markersForEverythingElse);
-    Map<Marker, Float> bafsWide = Maps.newHashMap(bafs);
-
-    Map<Marker, Byte> abGenotypes = fsamp.getAB_Genotypes() == null ? null
-                                                                    : markerDetailSet.mapProjectOrderData(fsamp.getAB_Genotypes());
-    Map<Marker, Byte> forwardGenotypes = fsamp.getForwardGenotypes() == null ? null
-                                                                             : markerDetailSet.mapProjectOrderData(fsamp.getForwardGenotypes());
-
-    if (markersForCallrate != null) {
-      if (abGenotypes != null) abGenotypes.keySet().retainAll(markersForCallrate);
-      if (forwardGenotypes != null) forwardGenotypes.keySet().retainAll(markersForCallrate);
+    List<Marker> projOrderMarkers = markerDetailSet.markersAsList();
+    float[] projOrderLrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
+    float[] projOrderBAFs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
+    Map<Marker, Double> lrrs = Maps.newHashMapWithExpectedSize(markersForEverythingElse.size());
+    Map<Marker, Double> bafs = Maps.newHashMapWithExpectedSize(markersForEverythingElse.size());
+    Map<Marker, Byte> abGenotypes = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
+    Map<Marker, Byte> forwardGenotypes = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
+    for (int i = 0; i < projOrderMarkers.size(); i++) {
+      Marker marker = projOrderMarkers.get(i);
+      if (markersForEverythingElse.contains(marker)) {
+        lrrs.put(marker, (double) projOrderLrrs[i]);
+        bafs.put(marker, (double) projOrderBAFs[i]);
+      }
+      if (markersForCallrate.contains(marker)) {
+        abGenotypes.put(marker, fsamp.getAB_Genotypes()[i]);
+        forwardGenotypes.put(marker, fsamp.getForwardGenotypes()[i]);
+      }
     }
+    Map<Marker, Double> bafsWide = Maps.newHashMap(bafs);
 
     bafBinCounts = new int[101];
     for (Marker marker : markersForEverythingElse) {
-      final float baf = bafs.get(marker);
-      if (!Float.isNaN(baf)) {
+      final double baf = bafs.get(marker);
+      if (!Double.isNaN(baf)) {
         bafBinCounts[(int) Math.floor(baf * 100)]++;
       }
       if (baf < 0.15 || baf > 0.85) {
-        bafs.put(marker, Float.NaN);
+        bafs.put(marker, Double.NaN);
       }
       if (baf < 0.03 || baf > 0.97) {
-        bafsWide.put(marker, Float.NaN);
+        bafsWide.put(marker, Double.NaN);
       }
     }
     double abCallRate = 0;
@@ -341,7 +343,7 @@ public class LrrSd extends Parallelizable {
     multimodal = ArrayUtils.isMultimodal(bafsWide.values().stream().mapToDouble(f -> f)
                                                  .filter(d -> !Double.isNaN(d)).toArray(),
                                          0.1, 0.5, 0.01);
-    lrrs.replaceAll((m, lrr) -> Float.isFinite(lrr) ? lrr : Float.NaN);
+    lrrs.replaceAll((m, lrr) -> Double.isFinite(lrr) ? lrr : Double.NaN);
     double[] tmp = Arrays.stream(CNVCaller.adjustLrr(Doubles.toArray(lrrs.values()),
                                                      CNVCaller.MIN_LRR_MEDIAN_ADJUST,
                                                      CNVCaller.MAX_LRR_MEDIAN_ADJUST, false,
@@ -744,8 +746,8 @@ public class LrrSd extends Parallelizable {
 
   public static void init(Project proj, @Nullable String customSampleFileList,
                           @Nullable Set<Marker> markersForCallrate,
-                          @Nullable Set<Marker> markersForEverythingElse, @Nullable String centroidsFile,
-                          boolean gcMetrics, int numThreads) {
+                          @Nullable Set<Marker> markersForEverythingElse,
+                          @Nullable String centroidsFile, boolean gcMetrics, int numThreads) {
     String[] samples, subsamples;
     String[][] threadSeeds;
     LrrSd[] runables;
