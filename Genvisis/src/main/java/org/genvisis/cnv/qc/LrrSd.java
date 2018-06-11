@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.pca.PCA;
 import org.genvisis.cnv.filesys.BaselineUnclusteredMarkers;
@@ -35,7 +36,9 @@ import org.genvisis.common.PSF;
 import org.genvisis.common.Parallelizable;
 import org.genvisis.common.ProgressMonitor;
 import org.genvisis.common.ext;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
@@ -684,24 +687,6 @@ public class LrrSd extends Parallelizable {
     return passingSamplesMask;
   }
 
-  private static boolean[] getMarkerSubset(Project proj, String[] subMarkers, String[] markers) {
-    boolean[] markerSubset = new boolean[markers.length];
-    if (subMarkers == null) {
-      Arrays.fill(markerSubset, true);
-    } else {
-      Arrays.fill(markerSubset, false);
-      int[] indicesToUse = ext.indexLargeFactors(subMarkers, markers, true, proj.getLog(), true);
-      for (int i = 0; i < indicesToUse.length; i++) {
-        if (indicesToUse[i] < 0) {
-          return null;
-        } else {
-          markerSubset[indicesToUse[i]] = true;
-        }
-      }
-    }
-    return markerSubset;
-  }
-
   public static void init(Project proj, String customSampleFileList, String centroidsFile,
                           int numThreads) {
     init(proj, customSampleFileList, null, null, centroidsFile, numThreads);
@@ -709,82 +694,57 @@ public class LrrSd extends Parallelizable {
 
   public static void init(Project proj, String customSampleFileList, String centroidsFile,
                           int numThreads, boolean useAllMarkers) {
-    boolean[] callRate = null;
-    boolean[] theRest = null;
+    Set<Marker> callRate = null;
+    Set<Marker> theRest = null;
 
     if (!useAllMarkers) {
-      callRate = ArrayUtils.booleanNegative(proj.getCNMarkersMask());
-      theRest = proj.getAutosomalMarkerBoolean();
-      if (callRate.length != theRest.length) {
-        proj.getLog()
-            .reportError("Error -- array lengths differ between proj.getCNMarkers() and proj.getAutosomalMarkerBoolean().  Please report or fix this.");
-        return;
-      }
-      for (int i = 0; i < callRate.length; i++) {
-        if (!callRate[i] && theRest[i]) {
-          theRest[i] = false;
-        }
-      }
+      callRate = proj.getNonCNMarkers().collect(ImmutableSet.toImmutableSet());
+      theRest = ImmutableSet.copyOf(Iterables.filter(proj.getMarkerSet().getAutosomalMarkers(),
+                                                     callRate::contains));
     }
 
     init(proj, customSampleFileList, callRate, theRest, centroidsFile, numThreads);
   }
 
-  private static boolean[] loadMarkers(Project proj, String markersFile) {
-    String[] markers;
-    boolean[] returnMarkers;
-    markers = proj.getMarkerNames();
+  private static Set<Marker> loadMarkers(Project proj, String markersFile) {
+    Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
     if (markersFile != null) {
-      returnMarkers = getMarkerSubset(proj, HashVec.loadFileToStringArray(markersFile, false,
-                                                                          new int[] {0}, false),
-                                      markers);
-      if (returnMarkers == null) {
+      String[] markerSubsetNames = HashVec.loadFileToStringArray(markersFile, false, new int[] {0},
+                                                                 false);
+      Set<Marker> subMarkers = Arrays.stream(markerSubsetNames).map(markerNameMap::get)
+                                     .filter(Predicates.notNull())
+                                     .collect(ImmutableSet.toImmutableSet());
+      if (subMarkers.size() != markerSubsetNames.length) {
         proj.getLog().reportError("Error - Some markers listed in " + markersFile
                                   + " were not found in the current project, or were duplicates");
       } else {
-        return returnMarkers;
+        return subMarkers;
       }
     }
-    returnMarkers = new boolean[markers.length];
-    Arrays.fill(returnMarkers, true);
-    return returnMarkers;
+    return null;
   }
 
   public static void init(Project proj, String customSampleFileList, String markersForCallrateFile,
                           String markersForEverythingElseFile, int numThreads, String centroidsFile,
                           boolean gcMetrics) {
-    boolean[] markersForCallrate, markersForEverythingElse;
 
-    markersForCallrate = loadMarkers(proj, markersForCallrateFile);
-    markersForEverythingElse = loadMarkers(proj, markersForEverythingElseFile);
+    Set<Marker> markersForCallrate = loadMarkers(proj, markersForCallrateFile);
+    Set<Marker> markersForEverythingElse = loadMarkers(proj, markersForEverythingElseFile);
 
     init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
-         gcMetrics, numThreads);
-  }
-
-  public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate,
-                          boolean[] markersForEverythingElse, String centroidsFile,
-                          int numThreads) {
-    init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
-         true, numThreads);
-  }
-
-  public static void init(Project proj, String customSampleFileList, boolean[] markersForCallrate,
-                          boolean[] markersForEverythingElse, String centroidsFile,
-                          boolean gcMetrics, int numThreads) {
-    Set<Marker> callrateMarkersSet = markersForCallrate == null ? proj.getMarkerSet().markersAsSet()
-                                                                : proj.getMarkerSet()
-                                                                      .includeProjectOrderMask(markersForCallrate);
-    Set<Marker> everythingElseMarkersSet = markersForEverythingElse == null ? proj.getMarkerSet()
-                                                                                  .markersAsSet()
-                                                                            : proj.getMarkerSet()
-                                                                                  .includeProjectOrderMask(markersForEverythingElse);
-    init(proj, customSampleFileList, callrateMarkersSet, everythingElseMarkersSet, centroidsFile,
          gcMetrics, numThreads);
   }
 
   public static void init(Project proj, String customSampleFileList, Set<Marker> markersForCallrate,
                           Set<Marker> markersForEverythingElse, String centroidsFile,
+                          int numThreads) {
+    init(proj, customSampleFileList, markersForCallrate, markersForEverythingElse, centroidsFile,
+         true, numThreads);
+  }
+
+  public static void init(Project proj, @Nullable String customSampleFileList,
+                          @Nullable Set<Marker> markersForCallrate,
+                          @Nullable Set<Marker> markersForEverythingElse, @Nullable String centroidsFile,
                           boolean gcMetrics, int numThreads) {
     String[] samples, subsamples;
     String[][] threadSeeds;
@@ -792,6 +752,10 @@ public class LrrSd extends Parallelizable {
     boolean error;
     GcModel gcModel;
     Logger log;
+
+    if (markersForCallrate == null) markersForCallrate = proj.getMarkerSet().markersAsSet();
+    if (markersForEverythingElse == null) markersForEverythingElse = proj.getMarkerSet()
+                                                                         .markersAsSet();
 
     error = false;
     log = proj.getLog();
