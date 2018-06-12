@@ -385,8 +385,8 @@ public class AffyPipeline {
   private GenotypeResult genotype(String celListFile, String pIDFile, String analysisName,
                                   String outDirRoot) {
 
-    String outCurrent = outDirRoot + analysisName + "_Genotypes/";
-    new File(outCurrent).mkdirs();
+    String outCurrent = analysisName + "_Genotypes/";
+    new File(outDirRoot + outCurrent).mkdirs();
     ArrayList<String> genotypeCommand = new ArrayList<>();
     genotypeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
     genotypeCommand.add("-c");
@@ -410,7 +410,7 @@ public class AffyPipeline {
     genotypeCommand.add("--set-analysis-name");
     genotypeCommand.add(analysisName);
     genotypeCommand.add("-out-dir");
-    genotypeCommand.add(outCurrent);
+    genotypeCommand.add(outDirRoot + outCurrent);
     genotypeCommand.add("--cel-files");
     genotypeCommand.add(celListFile);
 
@@ -425,7 +425,7 @@ public class AffyPipeline {
                                           .expectedOutputFiles(genotypeResult.getCallFile(),
                                                                genotypeResult.getConfFile(),
                                                                reportFile)
-                                          .dir(outCurrent).build());
+                                          .dir(outDirRoot + outCurrent).build());
 
     genotypeResult.setFailed(!progress);
     return genotypeResult;
