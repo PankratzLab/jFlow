@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -295,15 +296,15 @@ public class GcAdjustor {
     if (!fail) {
       double[] intensityArray = correctedMarkers.stream().mapToDouble(markerIntensities::get)
                                                 .toArray();
-      double[] gcArray = correctedMarkers.stream().mapToDouble(markerGcs::get).toArray();
+      double[][] gcArray = prepForRegression(correctedMarkers.stream().map(markerGcs::get));
       if (gcParameters != null) {
-        crossValidation = gcParameters.adjust(correctionMethod, sample, intensityArray,
-                                              prepForRegression(gcArray), verbose, proj.getLog());
+        crossValidation = gcParameters.adjust(correctionMethod, sample, intensityArray, gcArray,
+                                              verbose, proj.getLog());
       } else {
         crossValidation = new CrossValidation(Doubles.toArray(regressionIntensity),
-                                              prepForRegression(Doubles.toArray(regressionGcs)),
-                                              intensityArray, prepForRegression(gcArray), true,
-                                              LS_TYPE.REGULAR, proj.getLog());
+                                              prepForRegression(regressionGcs.stream()),
+                                              intensityArray, gcArray, true, LS_TYPE.REGULAR,
+                                              proj.getLog());
         crossValidation.train();
         crossValidation.computePredictedValues();
         crossValidation.computeResiduals();
@@ -718,12 +719,8 @@ public class GcAdjustor {
     correctedIntensities = Collections.unmodifiableMap(correctedIntensitiesBuilder);
   }
 
-  private static double[][] prepForRegression(double[] toPrep) {
-    double[][] prepped = new double[toPrep.length][1];
-    for (int i = 0; i < toPrep.length; i++) {
-      prepped[i][0] = toPrep[i];
-    }
-    return prepped;
+  private static double[][] prepForRegression(Stream<Double> gcs) {
+    return gcs.map(g -> new double[] {g}).toArray(double[][]::new);
   }
 
   private static boolean useMarker(double intensity, double gc, double minimumAutosomalGC,
