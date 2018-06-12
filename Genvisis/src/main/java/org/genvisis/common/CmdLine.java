@@ -212,8 +212,7 @@ public class CmdLine {
         }
         if (runCommand(command)) {
           if (!command.getExpectedOutputFiles().isEmpty()
-              && !Files.exists(command.getDir(), command.getExpectedOutputFiles(),
-                               treatEmptyAsMissing)) {
+              && !Files.exists(command.getExpectedOutputFiles(), treatEmptyAsMissing)) {
             log.reportError("Error - the command " + ArrayUtils.toStr(command.getElements(), " ")
                             + " appeared to run, but could not find all necessary output files in "
                             + command.getDir() + ":"
