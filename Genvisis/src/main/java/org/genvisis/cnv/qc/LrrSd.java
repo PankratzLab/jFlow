@@ -236,43 +236,44 @@ public class LrrSd extends Parallelizable {
                                         float[][][] cents, Set<Marker> markersForCallrate,
                                         Set<Marker> markersForEverythingElse, GcModel gcModel,
                                         GC_CORRECTION_METHOD correctionMethod, Logger log) {
-    int[] bafBinCounts;
     boolean multimodal;
 
     MarkerDetailSet markerDetailSet = proj.getMarkerSet();
 
-    List<Marker> projOrderMarkers = markerDetailSet.markersAsList();
+    Map<Marker, Integer> markerIndexMap = markerDetailSet.getMarkerIndexMap();
     float[] projOrderLrrs = cents == null ? fsamp.getLRRs() : fsamp.getLRRs(cents);
     float[] projOrderBAFs = cents == null ? fsamp.getBAFs() : fsamp.getBAFs(cents);
     Map<Marker, Double> lrrs = Maps.newHashMapWithExpectedSize(markersForEverythingElse.size());
     Map<Marker, Double> bafs = Maps.newHashMapWithExpectedSize(markersForEverythingElse.size());
-    Map<Marker, Byte> abGenotypes = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-    Map<Marker, Byte> forwardGenotypes = Maps.newHashMapWithExpectedSize(projOrderMarkers.size());
-    for (int i = 0; i < projOrderMarkers.size(); i++) {
-      Marker marker = projOrderMarkers.get(i);
-      if (markersForEverythingElse.contains(marker)) {
-        lrrs.put(marker, (double) projOrderLrrs[i]);
-        bafs.put(marker, (double) projOrderBAFs[i]);
-      }
-      if (markersForCallrate.contains(marker)) {
-        abGenotypes.put(marker, fsamp.getAB_Genotypes()[i]);
-        forwardGenotypes.put(marker, fsamp.getForwardGenotypes()[i]);
-      }
-    }
-    Map<Marker, Double> bafsWide = Maps.newHashMap(bafs);
-
-    bafBinCounts = new int[101];
+    Map<Marker, Double> bafsWide = Maps.newHashMapWithExpectedSize(markersForEverythingElse.size());
+    Map<Marker, Byte> abGenotypes = Maps.newHashMapWithExpectedSize(markerIndexMap.size());
+    Map<Marker, Byte> forwardGenotypes = Maps.newHashMapWithExpectedSize(markerIndexMap.size());
+    int[] bafBinCounts = new int[101];
     for (Marker marker : markersForEverythingElse) {
-      final double baf = bafs.get(marker);
-      if (!Double.isNaN(baf)) {
+      final int index = markerIndexMap.get(marker);
+      lrrs.put(marker, (double) projOrderLrrs[index]);
+
+      final float baf = projOrderBAFs[index];
+
+      if (!Float.isNaN(baf)) {
         bafBinCounts[(int) Math.floor(baf * 100)]++;
       }
-      if (baf < 0.15 || baf > 0.85) {
+      double bafDbl = baf;
+      if (bafDbl < 0.15 || bafDbl > 0.85) {
         bafs.put(marker, Double.NaN);
+      } else {
+        bafs.put(marker, bafDbl);
       }
-      if (baf < 0.03 || baf > 0.97) {
+      if (bafDbl < 0.03 || bafDbl > 0.97) {
         bafsWide.put(marker, Double.NaN);
+      } else {
+        bafsWide.put(marker, bafDbl);
       }
+    }
+    for (Marker marker : markersForCallrate) {
+      int index = markerIndexMap.get(marker);
+      abGenotypes.put(marker, fsamp.getAB_Genotypes()[index]);
+      forwardGenotypes.put(marker, fsamp.getForwardGenotypes()[index]);
     }
     double abCallRate = 0;
     double abHetRate = 0;
