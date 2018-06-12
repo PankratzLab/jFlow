@@ -177,6 +177,8 @@ public class GcAdjustor {
   private CrossValidation crossValidation;
   private List<Marker> correctedMarkers;// the indices we were able to correct, as ordered by the input
   // data
+  private List<Double> lrrsToCorrect;
+  private List<Double> gcsToCorrect;
   private List<? extends List<Marker>> qcMarkers;// the markers used to compute qc metrics, as ordered by the input-gc
   // matched arrays
   private List<? extends List<Marker>> chr11qcMarkers;// only used if defualy penncnv GCWF calculation is desired
@@ -294,9 +296,8 @@ public class GcAdjustor {
    */
   public void correctIntensities(String sample, GcAdjustorParameter gcParameters) {
     if (!fail) {
-      double[] intensityArray = correctedMarkers.stream().mapToDouble(markerIntensities::get)
-                                                .toArray();
-      double[][] gcArray = prepForRegression(correctedMarkers.stream().map(markerGcs::get));
+      double[] intensityArray = Doubles.toArray(lrrsToCorrect);
+      double[][] gcArray = prepForRegression(gcsToCorrect.stream());
       if (gcParameters != null) {
         crossValidation = gcParameters.adjust(correctionMethod, sample, intensityArray, gcArray,
                                               verbose, proj.getLog());
@@ -462,6 +463,8 @@ public class GcAdjustor {
       // all indices
       // we will
       // correct
+      ImmutableList.Builder<Double> correctedLrrsBuilder = ImmutableList.builderWithExpectedSize(markers.size());
+      ImmutableList.Builder<Double> correctedGcsBuilder = ImmutableList.builderWithExpectedSize(markers.size());
 
       int numPossibleBins = 0;
       for (Map.Entry<Byte, NavigableSet<Marker>> chrMarkers : markerSet.getChrMap().entrySet()) {
@@ -491,6 +494,8 @@ public class GcAdjustor {
                                                               // is
                                                               // built
             correctedMarkersBuilder.add(marker);
+            correctedLrrsBuilder.add(intensity);
+            correctedGcsBuilder.add(gc);
           }
           if (chr > 0 && chr < 23) {// build from autosomal only
             if (markerCount >= skipPerChr
@@ -617,6 +622,8 @@ public class GcAdjustor {
       } else {
         regressionIntensity = regressIntensityBuilder.build();
         correctedMarkers = correctedMarkersBuilder.build();
+        lrrsToCorrect = correctedLrrsBuilder.build();
+        gcsToCorrect = correctedGcsBuilder.build();
         if (verbose) {
           proj.getLog().report("Info - using " + regressionIntensity.size() + " of "
                                + markers.size() + " markers for regression model");
