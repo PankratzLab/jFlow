@@ -86,7 +86,7 @@ public class LrrSd extends Parallelizable {
     this.threadNumber = threadNumber;
     this.numThreads = numThreads;
     this.markersForCallrate = markersForCallrate;
-    this.markersForEverythingElse = viewNonAutosomalMarkers(markersForEverythingElse);
+    this.markersForEverythingElse = ImmutableSet.copyOf(viewNonAutosomalMarkers(markersForEverythingElse));
     this.gcModel = gcModel;
   }
 
