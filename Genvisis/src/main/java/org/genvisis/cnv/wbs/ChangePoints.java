@@ -109,8 +109,8 @@ class ChangePoints {
   }
 
   static double computeSigma(double[] x) {
-    return ArrayUtils.mad(WBSUtilities.rootTwo(WBSUtilities.computeLagOneDifference(x)),
-                          MAD_FACTOR);
+    return ArrayUtils.madFactor(WBSUtilities.rootTwo(WBSUtilities.computeLagOneDifference(x)),
+                                MAD_FACTOR);
 
   }
 

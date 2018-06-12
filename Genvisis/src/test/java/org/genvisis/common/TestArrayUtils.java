@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import java.util.Arrays;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.junit.Test;
 
 /**
@@ -83,11 +84,14 @@ public class TestArrayUtils {
   }
 
   @Test
-  public void testMedianStreams() {
+  public void testMedian() {
     double[] test = new double[] {1, 2, 3};
-    testMedianStreamMethod(test);
+    testMedianMethod(test);
     test = new double[] {1, 2, 3, 4};
-    testMedianStreamMethod(test);
+    testMedianMethod(test);
+
+    test = new double[] {1, 2, 3, 4};
+    testMedianMethod(test);
 
     for (int i = 0; i < 1000; i++) {
       int size = (int) (Math.random() * 1000);
@@ -95,41 +99,13 @@ public class TestArrayUtils {
       for (int j = 0; j < size; j++) {
         test[j] = Math.random() * i;
       }
-      testMedianStreamMethod(test);
+      testMedianMethod(test);
     }
   }
 
-  private static void testMedianStreamMethod(double[] test) {
-    double arrayVersion = ArrayUtils.median(test);
+  private static void testMedianMethod(double[] test) {
+    double arrayVersion = new Median().evaluate(test);
     double streamVersion = ArrayUtils.median(Arrays.stream(test), test.length);
-    assertEquals(arrayVersion, streamVersion, 0.0000000000001);
-  }
-
-  @Test
-  public void testMADLists() {
-    double[] test = new double[] {1, 2, 3};
-    testMADListMethod(test);
-    test = new double[] {1, 2, 3, 4};
-    testMADListMethod(test);
-
-    for (int i = 0; i < 1000; i++) {
-      int size = (int) (Math.random() * 10000000);
-      test = new double[size];
-      for (int j = 0; j < size; j++) {
-        test[j] = Math.random() * i;
-      }
-      testMADListMethod(test);
-    }
-  }
-
-  private static void testMADListMethod(double[] test) {
-    long time = System.currentTimeMillis();
-    double arrayVersion = ArrayUtils.mad(test);
-    new Logger().reportTimeElapsed("Array version: ", time);
-    time = System.currentTimeMillis();
-    double streamVersion = ArrayUtils.madStream(test);
-    new Logger().reportTimeElapsed("New version: ", time);
-    assertEquals(arrayVersion, streamVersion, 0.0000000000001);
-    System.out.println();
+    assertEquals(arrayVersion, streamVersion, 0.000000001);
   }
 }

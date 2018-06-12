@@ -83,14 +83,14 @@ public class LRRForceCaller extends ArrayBasedForcedCaller<LRRRegion> {
     }
     double[] sub = ArrayUtils.subArray(lrrs, tmp.stream().mapToInt(i -> i).toArray());
     double autosomalLrrMedian = ArrayUtils.median(sub);
-    double autosomalLrrMAD = ArrayUtils.mad(sub, MAD_FACTOR);
+    double autosomalLrrMAD = ArrayUtils.madFactor(sub, MAD_FACTOR);
 
     List<LRRRegion> lrrVariants = new ArrayList<>();
     for (int i = 0; i < set.getLoci().length; i++) {
       int[] current = indicesToUse.get(i);
       double[] currentLrrs = ArrayUtils.subArray(lrrs, current);
       double lrrRegionMedian = ArrayUtils.median(currentLrrs);
-      double lrrRegionMAD = ArrayUtils.mad(currentLrrs, MAD_FACTOR);
+      double lrrRegionMAD = ArrayUtils.madFactor(currentLrrs, MAD_FACTOR);
 
       CNVBuilder builder = new CNVBuilder();
       V v = set.getLoci()[i];

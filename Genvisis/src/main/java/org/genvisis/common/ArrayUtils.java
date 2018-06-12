@@ -19,6 +19,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.genvisis.stats.Maths;
 import org.genvisis.stats.ProbDist;
@@ -567,6 +568,14 @@ public class ArrayUtils {
       arr[i] = array[i];
     }
     return arr;
+  }
+
+  /**
+   * @param array a float array
+   * @return a {@link DoubleStream} containing the elements of the array
+   */
+  public static DoubleStream toDoubleStream(float[] array) {
+    return IntStream.range(0, array.length).mapToDouble(i -> array[i]);
   }
 
   /**
@@ -2062,22 +2071,23 @@ public class ArrayUtils {
    * @return mad of the array
    */
   public static double mad(float[] array) {
-    return mad(array, 1);
+    double median = median(array);
+    return mad(array, median);
+  }
+
+  public static double mad(float[] values, double median) {
+    return mad(toDoubleStream(values), median, values.length);
   }
 
   /**
    * Determines the median absolute difference of an array of floats
    *
    * @param array an array of numbers
+   * @param constant factor to multiply result by
    * @return mad of the array
    */
-  public static double mad(float[] array, double constant) {
-    double median = quantExclusive(array, 0.50f);
-    float[] tmp = new float[array.length];
-    for (int i = 0; i < array.length; i++) {
-      tmp[i] = (float) Math.abs(array[i] - median);
-    }
-    return quantExclusive(tmp, 0.50f) * constant;
+  public static double madFactor(float[] array, double constant) {
+    return mad(array) * constant;
   }
 
   /**
@@ -2087,56 +2097,44 @@ public class ArrayUtils {
    * @return mad of the array
    */
   public static double mad(double[] array) {
-    return mad(array, 1);
+    double median = median(array);
+    return mad(array, median);
   }
 
   /**
    * As {@link #mad(double[])} but we know the initial array is already sorted
    */
   public static double madSorted(double[] array) {
-    double median;
-    int midpoint = array.length / 2;
-    if (array.length % 2 == 0) {
-      median = (array[midpoint] + array[midpoint + 1]) / 2.0;
-    } else {
-      median = array[midpoint];
-    }
-    return mad(array, 1, median);
+    double median = medianSorted(array);
+    return mad(array, median);
   }
 
   /**
    * Determines the median absolute difference of an array of double
    *
    * @param array an array of numbers
+   * @param constant factor to multiply result by
    * @return mad of the array
    */
-  public static double mad(double[] array, double constant) {
-    double median = (quantExclusive(array, 0.50));
-    return mad(array, constant, median);
+  public static double madFactor(double[] array, double constant) {
+    double median = median(array);
+    return madFactor(array, constant, median);
   }
 
   /**
    * Determines the median absolute difference of an array of double with a known median
    *
    * @param array an array of numbers
+   * @param constant factor to multiply result by
    * @param median the median of the given array
    * @return mad of the array
    */
-  public static double mad(double[] array, double constant, double median) {
-    double[] tmp = new double[array.length];
-    for (int i = 0; i < array.length; i++) {
-      tmp[i] = Math.abs(array[i] - median);
-    }
-    return (quantExclusive(tmp, 0.50)) * constant;
+  public static double madFactor(double[] array, double constant, double median) {
+    return mad(array, median) * constant;
   }
 
-  public static double madStream(double[] values) {
-    double median = median(Arrays.stream(values), values.length);
-    return madStream(values, median);
-  }
-
-  public static double madStream(double[] values, double median) {
-    return median(Arrays.stream(values).map(v -> Math.abs(v - median)), values.length);
+  public static double mad(double[] values, double median) {
+    return mad(Arrays.stream(values), median, values.length);
   }
 
   /**
@@ -2146,7 +2144,7 @@ public class ArrayUtils {
    * @return
    */
   public static double mad(Collection<? extends Number> values) {
-    double median = median(values.stream(), values.size());
+    double median = median(values);
     return mad(values, median);
   }
 
@@ -2158,8 +2156,20 @@ public class ArrayUtils {
    * @return MAD of the values
    */
   public static double mad(Collection<? extends Number> values, double median) {
-    return median(values.stream().mapToDouble(Number::doubleValue).map(v -> Math.abs(v - median)),
-                  values.size());
+    return mad(values.stream().mapToDouble(Number::doubleValue), median, values.size());
+  }
+
+  /**
+   * Determines the median absolute difference of a {@link DoubleStream} with a known median and
+   * size
+   *
+   * @param values values to find MAD of
+   * @param median the median of the given values
+   * @param size the size of values
+   * @return MAD of the values
+   */
+  public static double mad(DoubleStream values, double median, int size) {
+    return median(values.map(v -> Math.abs(v - median)), size);
   }
 
   /**
@@ -2169,7 +2179,7 @@ public class ArrayUtils {
    * @return median of the array
    */
   public static double median(int[] array) {
-    return (quantExclusive(array, 0.50));
+    return median(Arrays.stream(array).asDoubleStream(), array.length);
   }
 
   /**
@@ -2179,18 +2189,18 @@ public class ArrayUtils {
    * @return median of the array
    */
   public static double median(double[] array) {
-    return median(array, false);
+    return median(Arrays.stream(array), array.length);
   }
 
   /**
    * Determines the median of an array of numbers
    *
    * @param array an array of numbers
+   * @param dropNaN true to exclude NaN values from the array
    * @return median of the array
    */
   public static double median(double[] array, boolean dropNaN) {
-    return dropNaN ? quantExclusive(subArray(array, getFinite(array)), 0.50)
-                   : quantExclusive(array, 0.50);
+    return dropNaN ? median(removeNonFinites(array)) : median(array);
   }
 
   /**
@@ -2199,37 +2209,37 @@ public class ArrayUtils {
    * @param array an array of numbers
    * @return median of the array
    */
-  public static float median(float[] array) {
-    return (quantExclusive(array, 0.50f));
+  public static double median(float[] array) {
+    return median(toDoubleStream(array), array.length);
   }
 
   /**
-   * Determines the median of sorted list of numbers
+   * @param collection a sorted {@link Collections} of {@link Number}s
+   * @return median of collection
    */
-  public static double medianSorted(List<? extends Number> list) {
-    int midpoint = list.size() / 2;
-    double median;
-    if (list.size() % 2 == 0) {
-      median = (list.get(midpoint).doubleValue() + list.get(midpoint - 1).doubleValue()) / 2.0;
-    } else {
-      median = list.get(midpoint).doubleValue();
-    }
-
-    return median;
-
+  public static double medianSorted(Collection<? extends Number> collection) {
+    return medianSorted(collection.stream(), collection.size());
   }
 
   /**
-   * @param stream a Stream of Numbers with known size
+   * @param collection a {@link Collections} of {@link Number}s
+   * @return median of collection
+   */
+  public static double median(Collection<? extends Number> collection) {
+    return median(collection.stream(), collection.size());
+  }
+
+  /**
+   * @param stream a {@link Stream} of {@link Number}s with known size
    * @param size size of stream
    * @return median of stream
    */
   public static double median(Stream<? extends Number> stream, int size) {
-    return medianSorted(stream.sorted(), size);
+    return median(stream.mapToDouble(Number::doubleValue), size);
   }
 
   /**
-   * @param stream a DoubleStream with known size
+   * @param stream a {@link DoubleStream} with known size
    * @param size size of stream
    * @return median of stream
    */
@@ -2238,7 +2248,15 @@ public class ArrayUtils {
   }
 
   /**
-   * @param stream a sorted Stream of Numbers with known size
+   * @param array a sorted array of doubles
+   * @return median of array
+   */
+  public static double medianSorted(double[] array) {
+    return medianSorted(Arrays.stream(array), array.length);
+  }
+
+  /**
+   * @param stream a sorted {@link Stream} of {@link Number}s with known size
    * @param size size of stream
    * @return median of stream
    */
@@ -2247,7 +2265,7 @@ public class ArrayUtils {
   }
 
   /**
-   * @param stream a sorted DoubleStream with known size
+   * @param stream a sorted {@link DoubleStream} with known size
    * @param size size of stream
    * @return median of stream
    */
