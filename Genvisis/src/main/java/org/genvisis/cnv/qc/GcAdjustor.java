@@ -762,6 +762,8 @@ public class GcAdjustor {
     private final byte[] chrs;
     private final int[] positions;
     private final double[] gcs;
+    private Project mappedProj = null;
+    private Map<Marker, Double> markerGcMap = null;
     private Map<String, Integer> index = new Hashtable<>();
     private ColorManager<String> colorManager;
 
@@ -860,6 +862,24 @@ public class GcAdjustor {
         gcs[i] = getGcFor(markers[i]);
       }
       return gcs;
+    }
+
+    public synchronized Map<Marker, Double> getMarkerGcMap(Project proj) {
+      maybeSetProject(proj);
+      if (markerGcMap == null) {
+        markerGcMap = mappedProj.getMarkerSet().markersAsList().stream()
+                                .collect(ImmutableMap.toImmutableMap(m -> m,
+                                                                     m -> getGcFor(m.getName())));
+      }
+      return markerGcMap;
+    }
+
+    private void maybeSetProject(Project proj) {
+      if (mappedProj == null) {
+        mappedProj = proj;
+      } else if (!mappedProj.equals(proj)) {
+        throw new IllegalStateException("Same GC Model cannot be used with multiple projects");
+      }
     }
 
     public boolean hasMarker(String marker) {
@@ -1402,9 +1422,7 @@ public class GcAdjustor {
       proj.getLog().reportError("Error - a gcModel was not supplied");
       markerGcs = null;
     } else {
-      markerGcs = markerIntensities.keySet().stream()
-                                   .collect(ImmutableMap.toImmutableMap(k -> k,
-                                                                        k -> gcModel.getGcFor(k.getName())));
+      markerGcs = gcModel.getMarkerGcMap(proj);
     }
     fail = false;
     wfPrior = Double.NaN;
