@@ -30,7 +30,7 @@ public class Aliases {
   public static final String[] STD_ERRS = {"se", "StdErr", "sebeta_SNP_add", "ROBUST_SE_SNP"};
 
   public static final String[] PVALUES = {"pval", "P", "p-val", "p-value", "Pvalue", "mbpval",
-                                          "minPval", "ROBUST_PVAL_SNP", "chi_P_2df"};
+                                          "minPval", "ROBUST_PVAL_SNP", "chi_P_2df", "EMP1"};
   public static final String[] NS = {"N", "NMISS", "sampleN", "n_total", "ESampleSize"};
 
   public static final String[] ALLELE_FREQS = {"freq", "AlleleFreq", "A1Freq", "AF", "AAF", "MAF",

@@ -204,7 +204,7 @@ public class QQPlot {
         } catch (Exception e) {}
       } else {
         String[] v = Files.getHeaderOfFile(filenames[i], log);
-        int[] poss = ext.indexFactors(Aliases.PVALUES, v, false);
+        int[] poss = ext.indexFactors(Aliases.PVALUES, v, false, log, false);
         for (int p : poss) {
           if (p >= 0) {
             cols[i] = p;

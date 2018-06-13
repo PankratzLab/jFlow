@@ -78,7 +78,7 @@ public class PlinkCNVParser {
 
     FileColumn<String> snp1 = StandardFileColumns.snp("SNP");
 
-    FileColumn<Double> EMP1 = new DoubleWrapperColumn(new AliasedFileColumn("P",
+    FileColumn<Double> EMP1 = new DoubleWrapperColumn(new AliasedFileColumn("EMP1",
                                                                             new Aliases(new String[] {"EMP1"},
                                                                                         MultipleAliasStrategy.FAIL,
                                                                                         false)));
