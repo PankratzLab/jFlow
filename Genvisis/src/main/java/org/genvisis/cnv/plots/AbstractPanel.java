@@ -589,13 +589,12 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       if (DEBUGGING) {
         log.report("Drawing base image.");
       }
+      g.fillRect(0, 0, getWidth(), getHeight());
+      g.setFont(new Font("Arial", 0, axisFontSize));
 
       titleHeight = calcTitleHeight(g, base, fontMetrics);
 
       drawTitle(g, base, fontMetrics);
-
-      g.fillRect(0, 0, getWidth(), getHeight());
-      g.setFont(new Font("Arial", 0, axisFontSize));
 
       fontMetrics = g.getFontMetrics(g.getFont());
       missingWidth = fontMetrics.stringWidth("X");
