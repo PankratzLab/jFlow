@@ -415,6 +415,7 @@ public class Launch extends JFrame implements ActionListener {
    * Entry point for graphical use
    */
   private static void createAndShowGUI() {
+    System.out.println(ext.getTime() + "]\tStarting Genvisis...");
     final Launch launchUI;
 
     try {
@@ -1582,7 +1583,7 @@ public class Launch extends JFrame implements ActionListener {
    */
   public static void main(String[] args) {
     if (args.length > 0) runMainClass(args);
-    else launchGUI();
+    else createAndShowGUI();
   }
 
   /**
@@ -1633,26 +1634,6 @@ public class Launch extends JFrame implements ActionListener {
           }
           exc.printStackTrace();
         }
-      }
-    }
-  }
-
-  private static void launchGUI() {
-    StartupValidation.validate(new StartupErrorHandler() {
-
-      @Override
-      public void handleWarnings(String warning) {
-        System.err.println(warning);
-      }
-    });
-
-    try {
-      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
-      createAndShowGUI();
-    } catch (InternalError e) {
-      if (e.getMessage().contains("X11")) {
-        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + "cause of error unknown: "
-                           + e.toString());
       }
     }
   }
