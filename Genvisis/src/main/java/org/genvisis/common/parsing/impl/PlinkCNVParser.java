@@ -13,6 +13,7 @@ import org.genvisis.common.parsing.FileColumn;
 import org.genvisis.common.parsing.FileLink;
 import org.genvisis.common.parsing.FileParser;
 import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.FixedValueColumn;
 import org.genvisis.common.parsing.IntegerFilter;
 import org.genvisis.common.parsing.IntegerWrapperColumn;
 import org.genvisis.common.parsing.StandardFileColumns;
@@ -76,7 +77,7 @@ public class PlinkCNVParser {
 
     FileColumn<String> snp1 = StandardFileColumns.snp("SNP");
 
-    FileColumn<Double> EMP1 = new DoubleWrapperColumn(new AliasedFileColumn("EMP1",
+    FileColumn<Double> EMP1 = new DoubleWrapperColumn(new AliasedFileColumn("P",
                                                                             new Aliases(new String[] {"EMP1"},
                                                                                         MultipleAliasStrategy.FAIL,
                                                                                         false)));
@@ -89,7 +90,7 @@ public class PlinkCNVParser {
                                                                                           EMP2);
 
     try (FileParser parser = FileParserFactory.setup(inputFileRoot + ".qt.summary", snp, chr, pos,
-                                                     NCNV, M0, M1)
+                                                     NCNV, EMP1, EMP2, M0, M1)
                                               .filter(ncnvFilter).link(link).build()) {
 
       parser.parseToFile(outFile, "\t");
@@ -106,6 +107,18 @@ public class PlinkCNVParser {
         PlotUtilities.createQQPlotScreenshot(outFile);
       }
 
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    // write new map file:
+    chr = StandardFileColumns.chr("CHR");
+    snp = StandardFileColumns.snp("SNP");
+    FileColumn<String> zeroCol = new FixedValueColumn("", "0");
+    pos = StandardFileColumns.pos("BP");
+
+    try (FileParser parser = FileParserFactory.setup(outFile, chr, snp, zeroCol, pos).build()) {
+      parser.parseToFile(outFile + ".map", "\t");
     } catch (IOException e) {
       e.printStackTrace();
     }
