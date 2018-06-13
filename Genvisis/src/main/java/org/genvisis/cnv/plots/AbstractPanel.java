@@ -326,11 +326,13 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     boolean mkdirs = new File(imgDir).mkdirs();
     File imgFile = new File(filename);
     if (mkdirs || Files.exists(ext.parseDirectoryOfFile(filename))) {
-      image = null;
-      do {
-        createImage();
-        Thread.yield();
-      } while (image == null || imageStatus != IMAGE_COMPLETE);
+      if (image == null) {
+        do {
+          createImage();
+          Thread.yield();
+        } while (image == null || imageStatus != IMAGE_COMPLETE);
+      }
+
       SwingUtilities.invokeLater(() -> {
         try {
           ImageIO.write(image, "png", imgFile);

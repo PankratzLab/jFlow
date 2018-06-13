@@ -106,7 +106,6 @@ public class QQPlot {
 
       @Override
       public void run() {
-        qqPanel.createImage();
         qqPanel.screenCapture(outFile);
       }
     });

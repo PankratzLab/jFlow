@@ -182,7 +182,6 @@ public class QQPanel extends AbstractPanel {
       }
     }
 
-    System.out.println("Created " + count + " points in QQPanel!");
   }
 
   public static void main(String[] args) {
