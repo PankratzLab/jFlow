@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -101,8 +102,14 @@ public class QQPlot {
     int descrHeight = qqPanel.getPvals().length * 35;
     qqPanel.setSize(new Dimension(2000, 1440 + descrHeight));
     qqPanel.validate();
-    qqPanel.createImage();
-    qqPanel.screenCapture(outFile);
+    SwingUtilities.invokeLater(new Runnable() {
+
+      @Override
+      public void run() {
+        qqPanel.createImage();
+        qqPanel.screenCapture(outFile);
+      }
+    });
   }
 
   protected QQPanel getQqPanel() {
