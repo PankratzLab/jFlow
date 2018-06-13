@@ -1581,27 +1581,8 @@ public class Launch extends JFrame implements ActionListener {
    * @param args Command-line arguments
    */
   public static void main(String[] args) {
-    if (runMainClass(args)) {
-      return;
-    }
-
-    StartupValidation.validate(new StartupErrorHandler() {
-
-      @Override
-      public void handleWarnings(String warning) {
-        System.err.println(warning);
-      }
-    });
-
-    try {
-      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
-      createAndShowGUI();
-    } catch (InternalError e) {
-      if (e.getMessage().contains("X11")) {
-        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + "cause of error unknown: "
-                           + e.toString());
-      }
-    }
+    if (args.length > 0) runMainClass(args);
+    else launchGUI();
   }
 
   /**
@@ -1609,7 +1590,7 @@ public class Launch extends JFrame implements ActionListener {
    *
    * @return true if a main class was executed.
    */
-  private static boolean runMainClass(String[] args) {
+  private static void runMainClass(String[] args) {
     // Check for alternate main requests
     String mainClassName = args.length > 0 ? args[0] : null;
     Class<?> mainClass = null;
@@ -1651,10 +1632,28 @@ public class Launch extends JFrame implements ActionListener {
           }
           exc.printStackTrace();
         }
-        return true;
       }
     }
-    return false;
+  }
+
+  private static void launchGUI() {
+    StartupValidation.validate(new StartupErrorHandler() {
+
+      @Override
+      public void handleWarnings(String warning) {
+        System.err.println(warning);
+      }
+    });
+
+    try {
+      System.out.println(ext.getTime() + "]\tStarting Genvisis...");
+      createAndShowGUI();
+    } catch (InternalError e) {
+      if (e.getMessage().contains("X11")) {
+        System.err.println(ExceptionHandler.X11_ERROR_MSG_FORE + "cause of error unknown: "
+                           + e.toString());
+      }
+    }
   }
 
   /**
