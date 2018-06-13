@@ -18,6 +18,7 @@ import org.genvisis.common.parsing.IntegerFilter;
 import org.genvisis.common.parsing.IntegerWrapperColumn;
 import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.stats.Maths.COMPARISON;
+import com.google.common.collect.Lists;
 
 public class PlinkCNVParser {
 
@@ -90,10 +91,11 @@ public class PlinkCNVParser {
                                                                                           EMP2);
 
     try (FileParser parser = FileParserFactory.setup(inputFileRoot + ".qt.summary", snp, chr, pos,
-                                                     NCNV, EMP1, EMP2, M0, M1)
+                                                     NCNV, M0, M1)
                                               .filter(ncnvFilter).link(link).build()) {
 
-      parser.parseToFile(outFile, "\t");
+      parser.parseToFile(outFile, "\t",
+                         Lists.newArrayList(snp, chr, pos, NCNV, EMP1, EMP2, M0, M1));
 
       if (hits) {
         PlotUtilities.runHitWindows(outFile);
@@ -118,7 +120,7 @@ public class PlinkCNVParser {
     pos = StandardFileColumns.pos("BP");
 
     try (FileParser parser = FileParserFactory.setup(outFile, chr, snp, zeroCol, pos).build()) {
-      parser.parseToFile(outFile + ".map", "\t");
+      parser.parseToFile(outFile + ".map", "\t", false, false);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -150,8 +152,7 @@ public class PlinkCNVParser {
     cli.parseWithExit(args);
 
     String file = cli.get(fileArg);
-    String out = cli.has(outArg) ? cli.get(outArg)
-                                 : ext.rootOf(ext.rootOf(fileArg, false)) + ".results";
+    String out = cli.has(outArg) ? cli.get(outArg) : (ext.rootOf(file, false) + ".results");
     boolean hits = cli.has(hitsArg) ? Boolean.parseBoolean(cli.get(hitsArg)) : true;
     boolean man = cli.has(manArg) ? Boolean.parseBoolean(cli.get(manArg)) : true;
     boolean qq = cli.has(qqArg) ? Boolean.parseBoolean(cli.get(qqArg)) : true;
