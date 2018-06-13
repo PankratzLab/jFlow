@@ -116,7 +116,9 @@ public class SourceFileParser implements Runnable {
     try {
       for (int i = 0; i < files.length; i++) {
 
-        PSF.checkInterrupted();
+        if (Thread.currentThread().isInterrupted()) {
+          return;
+        }
         if (new File(proj.SAMPLE_DIRECTORY.getValue(true, true)
                      + SourceFileParser.CANCEL_OPTION_FILE).exists()) {
           return;
