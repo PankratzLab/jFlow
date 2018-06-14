@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
@@ -3909,6 +3910,49 @@ public class Files {
     }
   }
 
+  public static void swapIDs(String filename, String idfile, String outfile, Logger log) {
+    // read in IDs from idfile and make a map of from->to
+    Map<String, String> fidmap = HashVec.loadFileColumnToMap(idfile, 0, 2, false, log);
+    Map<String, String> iidmap = HashVec.loadFileColumnToMap(idfile, 1, 3, false, log);
+
+    // read in filename by line, replace the ids, write back out
+    BufferedReader reader;
+    PrintWriter writer;
+
+    try {
+      reader = getAppropriateReader(filename);
+      writer = getAppropriateWriter(outfile);
+      String delim = Files.determineDelimiter(filename, log);
+
+      while (reader.ready()) {
+        String[] line = reader.readLine().split(delim);
+        line[0] = fidmap.get(line[0]);
+        line[1] = iidmap.get(line[1]);
+
+        writer.write(ArrayUtils.toStr(line, "\t") + "\n");
+      }
+
+      reader.close();
+      writer.close();
+    } catch (IOException ioe) {
+      log.reportError("Error reading file \"" + filename + "\"");
+      log.reportException(ioe);
+    }
+  }
+
+  public static void swapIDsFromParameters(String filename, Logger log) {
+    List<String> params;
+    params = Files.parseControlFile(filename, "swapIDs",
+                                    new String[] {"file=input.dat", "out=outputFile.dat",
+                                                  "ids=idfile.txt"},
+                                    log);
+
+    if (params != null) {
+      params.add("log=" + log.getFilename());
+      main(ArrayUtils.toStringArray(params));
+    }
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename = null;
@@ -3935,6 +3979,7 @@ public class Files {
     boolean filter = false;
     boolean ord = true;
     int keyIndex = -1;
+    String idfile = null;
 
     String usage = "\n" + "common.Files requires 0-1 arguments\n"
                    + "   (1) filename to convert to a .qsub (i.e. file=batchFile (not the default))\n"
@@ -4047,6 +4092,9 @@ public class Files {
       } else if (arg.startsWith("log=")) {
         logfile = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("ids=")) {
+        idfile = arg.split("=")[1];
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -4096,6 +4144,8 @@ public class Files {
                   commaDelimitedOut ? "," : PSF.Regex.GREEDY_WHITESPACE, log);
       } else if (replacements != null) {
         replaceAll(filename, outfile, replacements, log);
+      } else if (idfile != null) {
+        swapIDs(filename, idfile, outfile, log);
       } else if (filename != null) {
         Qsub.makeQsub(new File(filename).getAbsolutePath(), multiple, start, stop, separate,
                       patterns, cwd);

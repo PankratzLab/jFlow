@@ -237,6 +237,8 @@ public class Launch {
         DBGapExtract.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase(TwoDPlot.COMMAND_TWO_D_SCREENSHOTS)) {
         TwoDPlot.fromParameters(filename, log);
+      } else if (temp.equalsIgnoreCase("swapIDs")) {
+        Files.swapIDsFromParameters(filename, log);
       } else {
         log.reportError("Error - '" + temp + "' is an invalid launch type, options include:");
         log.reportError(ArrayUtils.toStr(LAUNCH_TYPES, "\n"));
