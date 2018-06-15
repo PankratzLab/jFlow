@@ -88,29 +88,23 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public Segment(int start, int stop) {
-    chr = 0;
-    this.start = start;
-    this.stop = stop;
+    this((byte) 0, start, stop);
   }
 
   public Segment(String ucscLocation) {
-    int[] location = Positions.parseUCSClocation(ucscLocation);
+    this(Positions.parseUCSClocation(ucscLocation));
+  }
 
-    chr = (byte) location[0];
-    start = location[1];
-    stop = location[2];
+  private Segment(int[] ucscLocation) {
+    this((byte) ucscLocation[0], ucscLocation[1], ucscLocation[2]);
   }
 
   public Segment(String chr, String start, String stop) {
-    this.chr = Positions.chromosomeNumber(chr);
-    this.start = Integer.parseInt(start);
-    this.stop = Integer.parseInt(stop);
+    this(Positions.chromosomeNumber(chr), Integer.parseInt(start), Integer.parseInt(stop));
   }
 
   public Segment(String chr, int start, int stop) {
-    this.chr = Positions.chromosomeNumber(chr);
-    this.start = start;
-    this.stop = stop;
+    this(Positions.chromosomeNumber(chr), start, stop);
   }
 
   public byte getChr() {
