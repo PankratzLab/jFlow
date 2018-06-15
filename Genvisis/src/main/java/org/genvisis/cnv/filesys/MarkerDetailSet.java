@@ -702,16 +702,29 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   }
 
   /**
-   * @param seg Segment to view
-   * @return an Iterable that iterates over the {@link Marker}s in seg
+   * Convenience method for iterating over all {@link Marker}s in a particular {@link Segment}
+   *
+   * @see #viewMarkersInSeg(GenomicPosition, GenomicPosition)
    */
   public Iterable<Marker> viewMarkersInSeg(Segment seg) {
+    return viewMarkersInSeg(seg.getChr(), seg.getStart(), seg.getStop());
+  }
+
+  /**
+   * @see #viewMarkersInSeg(GenomicPosition, GenomicPosition)
+   */
+  public Iterable<Marker> viewMarkersInSeg(byte chr, int start, int stop) {
+    return viewMarkersInSeg(new GenomicPosition(chr, start), new GenomicPosition(chr, stop));
+  }
+
+  /**
+   * @param start First position of the desired region
+   * @param stop Last position of the desired region
+   * @return an Iterable that iterates over the {@link Marker}s in the specified region
+   */
+  public Iterable<Marker> viewMarkersInSeg(GenomicPosition start, GenomicPosition stop) {
     NavigableMap<GenomicPosition, NavigableSet<Marker>> positionMap = getGenomicPositionMap();
-    return Iterables.concat(positionMap.subMap(new GenomicPosition(seg.getChr(), seg.getStart()),
-                                               true,
-                                               new GenomicPosition(seg.getChr(), seg.getStop()),
-                                               true)
-                                       .values());
+    return Iterables.concat(positionMap.subMap(start, true, stop, true).values());
   }
 
   /**
