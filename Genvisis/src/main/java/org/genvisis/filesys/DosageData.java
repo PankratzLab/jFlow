@@ -2364,7 +2364,7 @@ public class DosageData implements Serializable {
 
       // remove segs on unavailable chrs
       for (int i = segsToQuery.size() - 1; i >= 0; i--) {
-        if (!contigMap.containsValue((int) segsToQuery.get(i).chr)) {
+        if (!contigMap.containsValue((int) segsToQuery.get(i).getChr())) {
           segsToQuery.remove(i);
         }
       }
@@ -2378,8 +2378,9 @@ public class DosageData implements Serializable {
       }
 
       for (Segment seg : segsToQuery) {
-        CloseableIterator<VariantContext> iter = reader.query(contigMap.getKey(seg.chr),
-                                                              seg.start - 1, seg.stop + 1);
+        CloseableIterator<VariantContext> iter = reader.query(contigMap.getKey(seg.getChr()),
+                                                              seg.getStart() - 1,
+                                                              seg.getStop() + 1);
         while (iter.hasNext()) {
           VariantContext vc = iter.next();
           if (markerSet.contains(vc.getID())
