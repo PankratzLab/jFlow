@@ -26,9 +26,9 @@ public class Segment implements Serializable, Comparable<Segment> {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + chr;
-    result = prime * result + start;
-    result = prime * result + stop;
+    result = prime * result + getChr();
+    result = prime * result + getStart();
+    result = prime * result + getStop();
     return result;
   }
 
@@ -44,13 +44,13 @@ public class Segment implements Serializable, Comparable<Segment> {
       return false;
     }
     Segment other = (Segment) obj;
-    if (chr != other.chr) {
+    if (getChr() != other.getChr()) {
       return false;
     }
-    if (start != other.start) {
+    if (getStart() != other.getStart()) {
       return false;
     }
-    if (stop != other.stop) {
+    if (getStop() != other.getStop()) {
       return false;
     }
     return true;
@@ -58,9 +58,9 @@ public class Segment implements Serializable, Comparable<Segment> {
 
   public static final long serialVersionUID = 1L;
 
-  protected final byte chr;
-  protected final int start;
-  protected final int stop;
+  private final byte chr;
+  private final int start;
+  private final int stop;
 
   public Segment(byte chr, int start, int stop) {
     this.chr = chr;
@@ -129,7 +129,7 @@ public class Segment implements Serializable, Comparable<Segment> {
    * @return difference between stop and start positions
    */
   public int getLength() {
-    return stop - start;
+    return getStop() - getStart();
   }
 
   public String getUCSClocation() {
@@ -137,7 +137,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public String getChromosomeUCSC() {
-    return Positions.getChromosomeUCSC(chr, true);
+    return Positions.getChromosomeUCSC(getChr(), true);
   }
 
   public String getUCSCLink(String hgBuild) {
@@ -145,7 +145,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public int getSize() {
-    return stop - start + 1;
+    return getStop() - getStart() + 1;
   }
 
   public boolean equals(Segment seg) {
@@ -153,18 +153,18 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public int amountOfOverlapInBasepairs(Segment seg) {
-    if (chr == seg.chr || chr == -1 || seg.chr == -1) {
-      if (start >= seg.start && stop <= seg.stop) {
+    if (getChr() == seg.getChr() || getChr() == -1 || seg.getChr() == -1) {
+      if (getStart() >= seg.getStart() && getStop() <= seg.getStop()) {
         return getSize();
       }
-      if (seg.start >= start && seg.stop <= stop) {
+      if (seg.getStart() >= getStart() && seg.getStop() <= getStop()) {
         return seg.getSize();
       }
-      if (start >= seg.start && start <= seg.stop) {
-        return seg.stop - start + 1;
+      if (getStart() >= seg.getStart() && getStart() <= seg.getStop()) {
+        return seg.getStop() - getStart() + 1;
       }
-      if (stop >= seg.start && stop <= seg.stop) {
-        return stop - seg.start + 1;
+      if (getStop() >= seg.getStart() && getStop() <= seg.getStop()) {
+        return getStop() - seg.getStart() + 1;
       }
     }
 
@@ -176,7 +176,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public Segment getBufferedSegment(int buffer) {
-    return new Segment(chr, start - buffer, stop + buffer);
+    return new Segment(getChr(), getStart() - buffer, getStop() + buffer);
   }
 
   /**
@@ -231,10 +231,11 @@ public class Segment implements Serializable, Comparable<Segment> {
   // }
 
   public Segment merge(Segment seg) {
-    if (chr != seg.chr) {
+    if (getChr() != seg.getChr()) {
       System.err.println("Error - merging segments on different chromosomes");
     }
-    return new Segment(chr, Math.min(start, seg.start), Math.max(stop, seg.stop));
+    return new Segment(getChr(), Math.min(getStart(), seg.getStart()),
+                       Math.max(getStop(), seg.getStop()));
   }
 
   /**
@@ -243,7 +244,7 @@ public class Segment implements Serializable, Comparable<Segment> {
    * @return the intersection of the two segments
    */
   public Segment getIntersection(Segment seg, Logger log) {
-    if (chr != seg.chr) {
+    if (getChr() != seg.getChr()) {
       String error = "merging segments on different chromosomes";
       log.reportError(error);
       throw new IllegalArgumentException(error);
@@ -253,7 +254,8 @@ public class Segment implements Serializable, Comparable<Segment> {
       log.reportError(error);
       throw new IllegalArgumentException(error);
     }
-    return new Segment(chr, Math.max(start, seg.start), Math.min(stop, seg.stop));
+    return new Segment(getChr(), Math.max(getStart(), seg.getStart()),
+                       Math.min(getStop(), seg.getStop()));
   }
 
   /**
@@ -402,7 +404,8 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public String toAnalysisString() {
-    return Positions.getChromosomeUCSC(chr, true) + "\t" + start + "\t" + stop + "\t";
+    return Positions.getChromosomeUCSC(getChr(), true) + "\t" + getStart() + "\t" + getStop()
+           + "\t";
   }
 
   public String[] getHeader() {
@@ -541,7 +544,7 @@ public class Segment implements Serializable, Comparable<Segment> {
       Segment inspect = orderedList[mid];
       if (inspect.overlaps(seg)) {
         return mid;
-      } else if (seg.stop < inspect.start) {
+      } else if (seg.getStop() < inspect.getStart()) {
         high = mid - 1;
       } else {
         low = mid + 1;
@@ -604,8 +607,9 @@ public class Segment implements Serializable, Comparable<Segment> {
       mid = low + (high - low) / 2;
       if (orderedList[mid].overlaps(seg)) {
         return mid;
-      } else if (seg.chr < orderedList[mid].chr
-                 || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+      } else if (seg.getChr() < orderedList[mid].getChr()
+                 || (seg.getChr() == orderedList[mid].getChr()
+                     && seg.getStart() < orderedList[mid].getStart())) {
         high = mid - 1;
       } else {
         low = mid + 1;
@@ -624,8 +628,9 @@ public class Segment implements Serializable, Comparable<Segment> {
       if (orderedList[mid].getChr() == seg.getChr()
           && orderedList[mid].getStart() == seg.getStart()) {
         return mid;
-      } else if (seg.chr < orderedList[mid].chr
-                 || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+      } else if (seg.getChr() < orderedList[mid].getChr()
+                 || (seg.getChr() == orderedList[mid].getChr()
+                     && seg.getStart() < orderedList[mid].getStart())) {
         high = mid - 1;
       } else {
         low = mid + 1;
@@ -658,8 +663,9 @@ public class Segment implements Serializable, Comparable<Segment> {
           }
         }
         return mid;
-      } else if (seg.chr < orderedList[mid].chr
-                 || (seg.chr == orderedList[mid].chr && seg.start < orderedList[mid].start)) {
+      } else if (seg.getChr() < orderedList[mid].getChr()
+                 || (seg.getChr() == orderedList[mid].getChr()
+                     && seg.getStart() < orderedList[mid].getStart())) {
         high = mid - 1;
       } else {
         low = mid + 1;

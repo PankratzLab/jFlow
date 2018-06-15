@@ -190,11 +190,11 @@ public class CytoCNVariant extends CNVariant {
       log.reportError("Error - this aberation spans multiple chromosomes, this should not happen");
       merge = false;
     }
-    if (newstop <= stop) {
+    if (newstop <= getStop()) {
       log.reportError("Error - the current stop being added is less than the previous stop position, this should not happen");
       merge = false;
     }
-    if (newstop <= start) {
+    if (newstop <= getStart()) {
       log.reportError("Error - the current stop being added is less than the start position, this should not happen");
       merge = false;
     }
@@ -209,7 +209,7 @@ public class CytoCNVariant extends CNVariant {
   }
 
   public boolean isSameChr(byte newChr) {
-    return chr == newChr;
+    return getChr() == newChr;
   }
 
   /**
@@ -227,7 +227,7 @@ public class CytoCNVariant extends CNVariant {
    * Format the cytoband as chromosome(UCSC,not int if appropriate) and band1band2....
    */
   private void formatCytoBand() {
-    cytoBand = Positions.getChromosomeUCSC(chr, false)
+    cytoBand = Positions.getChromosomeUCSC(getChr(), false)
                + ArrayUtils.toStr(cytoBandtmp.toArray(new String[cytoBandtmp.size()]), "");
   }
 
