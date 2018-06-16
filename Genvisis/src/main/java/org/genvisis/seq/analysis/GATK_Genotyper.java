@@ -367,8 +367,8 @@ public class GATK_Genotyper {
       tranchesINDELFile = currentRoot + "." + GATK.INDEL + TRANCHES_EXT;
       rscriptINDELFile = currentRoot + "." + GATK.INDEL + RScript_EXT;
 
-      recalSNP_VCF_File = ext.addToRoot(rawVCF, "." + GATK.SNP + RECAL_EXT);
-      recalSNP_Indel_VCF_File = ext.addToRoot(recalSNP_VCF_File, "." + GATK.INDEL + RECAL_EXT);
+      recalSNP_VCF_File = VCFOps.addToRoot(rawVCF, "." + GATK.SNP + RECAL_EXT);
+      recalSNP_Indel_VCF_File = VCFOps.addToRoot(recalSNP_VCF_File, "." + GATK.INDEL + RECAL_EXT);
     }
 
     public String getOutput() {

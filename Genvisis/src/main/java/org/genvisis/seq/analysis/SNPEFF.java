@@ -5,6 +5,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.seq.manage.VCFOps;
 
 // TODO counts
 public class SNPEFF {
@@ -151,8 +152,11 @@ public class SNPEFF {
     }
 
     public void parse() {
-      outputSnpEffVCF = ext.addToRoot(vcfFile, OUT_EFF);
-      outputGatkSnpEffVCF = ext.addToRoot(outputSnpEffVCF, OUT_GATK);
+      outputSnpEffVCF = VCFOps.addToRoot(vcfFile, OUT_EFF);
+      outputGatkSnpEffVCF = VCFOps.addToRoot(outputSnpEffVCF, OUT_GATK);
+      if (outputSnpEffVCF.endsWith(".gz")) {
+        outputSnpEffVCF = outputSnpEffVCF.replaceAll(".gz$", "");
+      }
     }
 
     public String getInputVCF() {
