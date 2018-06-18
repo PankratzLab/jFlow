@@ -407,6 +407,16 @@ public class Segment implements Serializable, Comparable<Segment> {
     return c;
   }
 
+  public static boolean addIfAbsent(Segment seg, List<Segment> exons) {
+    for (int i = 0; i < exons.size(); i++) {
+      if (seg.equals(exons.get(i))) {
+        return false;
+      }
+    }
+    exons.add(seg);
+    return true;
+  }
+
   public static Segment[] mergeOverlapsAndSortAllChromosomes(Segment[] segments, int buffer) {
     Hashtable<String, Vector<Segment>> splits = new Hashtable<>();
     for (int i = 0; i < segments.length; i++) {

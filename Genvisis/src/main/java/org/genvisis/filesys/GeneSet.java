@@ -6,9 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Hashtable;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.HashVec;
@@ -127,7 +125,7 @@ public class GeneSet implements Serializable {
     String[] geneNames;
     Vector<String> assessionNumbers;
     byte strand;
-    Set<Segment> exons;
+    Vector<Segment> exons;
     boolean newlyAdded;
     byte count;
     int[][] exonBoundaries;
@@ -187,7 +185,7 @@ public class GeneSet implements Serializable {
                 // chromosomes (though half the time it's an X/Y pairing)
 
         assessionNumbers = new Vector<>();
-        exons = new LinkedHashSet<>();
+        exons = new Vector<>();
         for (int j = 0; j < overlapping.size(); j++) {
           gene = overlapping.elementAt(j);
           finalList.add(gene); // add all genes/isoforms to list
@@ -199,7 +197,7 @@ public class GeneSet implements Serializable {
 
           // different isoforms have different combinations of the same superset of exons
           for (int[] exonBoundarie : exonBoundaries) {
-            exons.add(new Segment(exonBoundarie[0], exonBoundarie[1]));
+            Segment.addIfAbsent(new Segment(exonBoundarie[0], exonBoundarie[1]), exons);
           }
         }
 
