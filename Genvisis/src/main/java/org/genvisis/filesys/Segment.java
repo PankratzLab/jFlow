@@ -148,6 +148,10 @@ public class Segment implements Serializable, Comparable<Segment> {
     return stop - start + 1;
   }
 
+  public boolean equals(Segment seg) {
+    return chr == seg.chr && start == seg.start && stop == seg.stop;
+  }
+
   public int amountOfOverlapInBasepairs(Segment seg) {
     if (chr == seg.chr || chr == -1 || seg.chr == -1) {
       if (start >= seg.start && stop <= seg.stop) {
