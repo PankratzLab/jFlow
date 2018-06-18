@@ -18,10 +18,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
-import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
 import com.google.common.primitives.Ints;
 
 public class Segment implements Serializable, Comparable<Segment> {
@@ -64,13 +61,12 @@ public class Segment implements Serializable, Comparable<Segment> {
 
   private final GenomicPosition start;
   private final GenomicPosition stop;
-  /**
-   * an open {@link Range} from the start to the stop {@link GenomicPosition}
-   */
   private final Range<GenomicPosition> range;
 
   public Segment(byte chr, int startPos, int stopPos) {
-    this(new GenomicPosition(chr, startPos), new GenomicPosition(chr, stopPos));
+    start = new GenomicPosition(chr, startPos);
+    stop = new GenomicPosition(chr, stopPos);
+    range = Range.open(start, stop);
   }
 
   /**
@@ -90,39 +86,6 @@ public class Segment implements Serializable, Comparable<Segment> {
    */
   public Segment(GenomicPosition genomicPosition) {
     this(genomicPosition.getChr(), genomicPosition.getPosition());
-  }
-
-  /**
-   * Construct a {@link Segment} from a start and stop {@link GenomicPosition}
-   * 
-   * @param start
-   * @param stop
-   */
-  public Segment(GenomicPosition start, GenomicPosition stop) {
-    if (start.getChr() != stop.getChr()) {
-      throw new IllegalArgumentException("Segment cannot span multiple chromosomes");
-    }
-    this.start = start;
-    this.stop = stop;
-    range = Range.closed(start, stop);
-  }
-
-  /**
-   * Construct a {@link Segment} from a {@link Range} of {@link GenomicPosition}. Range must be
-   * {@link BoundType#CLOSED} and have the same {@link GenomicPosition#getChr()} for both endpoints
-   * 
-   * @param baseRange
-   */
-  public Segment(Range<GenomicPosition> baseRange) {
-    if (baseRange.hasLowerBound() && baseRange.hasUpperBound()
-        && baseRange.upperBoundType() == BoundType.CLOSED
-        && baseRange.lowerBoundType() == BoundType.CLOSED) {
-      this.start = baseRange.lowerEndpoint();
-      this.stop = baseRange.upperEndpoint();
-      this.range = baseRange;
-    } else {
-      throw new IllegalArgumentException("Range must be closed and have the same chr for both endpoints");
-    }
   }
 
   public Segment(int start, int stop) {
@@ -189,15 +152,26 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public int amountOfOverlapInBasepairs(Segment seg) {
-    if (overlaps(seg)) {
-      return getIntersection(seg, new Logger()).getSize();
-    } else {
-      return -1;
+    if (getChr() == seg.getChr() || getChr() == -1 || seg.getChr() == -1) {
+      if (getStart() >= seg.getStart() && getStop() <= seg.getStop()) {
+        return getSize();
+      }
+      if (seg.getStart() >= getStart() && seg.getStop() <= getStop()) {
+        return seg.getSize();
+      }
+      if (getStart() >= seg.getStart() && getStart() <= seg.getStop()) {
+        return seg.getStop() - getStart() + 1;
+      }
+      if (getStop() >= seg.getStart() && getStop() <= seg.getStop()) {
+        return getStop() - seg.getStart() + 1;
+      }
     }
+
+    return -1;
   }
 
   public boolean overlaps(Segment seg) {
-    return asRange().isConnected(seg.asRange());
+    return amountOfOverlapInBasepairs(seg) > 0;
   }
 
   public Segment getBufferedSegment(int buffer) {
@@ -259,8 +233,8 @@ public class Segment implements Serializable, Comparable<Segment> {
     if (getChr() != seg.getChr()) {
       System.err.println("Error - merging segments on different chromosomes");
     }
-    Range<GenomicPosition> span = asRange().span(seg.asRange());
-    return new Segment(span);
+    return new Segment(getChr(), Math.min(getStart(), seg.getStart()),
+                       Math.max(getStop(), seg.getStop()));
   }
 
   /**
@@ -279,8 +253,8 @@ public class Segment implements Serializable, Comparable<Segment> {
       log.reportError(error);
       throw new IllegalArgumentException(error);
     }
-    Range<GenomicPosition> intersection = asRange().intersection(seg.asRange());
-    return new Segment(intersection);
+    return new Segment(getChr(), Math.max(getStart(), seg.getStart()),
+                       Math.min(getStop(), seg.getStop()));
   }
 
   /**
@@ -308,7 +282,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 
       ArrayList<Segment> currentSegs = new ArrayList<>();
 
-      Segment[] removed = remove(finalRemovers[0]);// seed removal
+      Segment[] removed = remove(finalRemovers[0], log);// seed removal
       if (removed != null) {
         for (Segment element : removed) {
           currentSegs.add(element);
@@ -325,7 +299,7 @@ public class Segment implements Serializable, Comparable<Segment> {
         ArrayList<Segment> tmp = new ArrayList<>();
 
         for (int i = 0; i < currentSegs.size(); i++) {
-          Segment[] removedMore = currentSegs.get(i).remove(finalRemovers[currentIndex]);
+          Segment[] removedMore = currentSegs.get(i).remove(finalRemovers[currentIndex], log);
           if (removedMore != null) {
             for (Segment element : removedMore) {
               tmp.add(element);
@@ -375,17 +349,57 @@ public class Segment implements Serializable, Comparable<Segment> {
    * **Warning, not really tested
    *
    * @param seg
+   * @param log
    * @return
    */
-  public Segment[] remove(Segment seg) {
+  public Segment[] remove(Segment seg, Logger log) {
+    Segment[] cleaned = null;
     if (!overlaps(seg)) {
-      return new Segment[] {this};
+      cleaned = new Segment[] {this};
     } else {
-      RangeSet<GenomicPosition> rangeSet = TreeRangeSet.create();
-      rangeSet.add(asRange());
-      rangeSet.remove(seg.asRange());
-      return rangeSet.asRanges().stream().map(Segment::new).toArray(Segment[]::new);
+      Segment intersection = getIntersection(seg, log);
+      if (equals(intersection)) {
+        cleaned = null;// removed all
+      } else if (intersection.getStart() > getStart() && intersection.getStop() < getStop()) {// split
+        Segment first = new Segment(getChr(), getStart(), intersection.getStart() - 1);
+        Segment second = new Segment(getChr(), intersection.getStop() + 1, getStop());
+        cleaned = new Segment[] {first, second};
+      } else if (intersection.getStart() > getStart() && intersection.getStop() >= getStop()) {
+        Segment head = new Segment(getChr(), getStart(), intersection.getStart() - 1);
+        cleaned = new Segment[] {head};
+      } else if (intersection.getStart() <= getStart() && intersection.getStop() < getStop()) {
+        Segment tail = new Segment(getChr(), intersection.getStop() + 1, getStop());
+        cleaned = new Segment[] {tail};
+      } else {
+        String error = "Un accounted for remove" + getUCSClocation() + " trying to remove "
+                       + seg.getUCSClocation();
+        log.reportError(error);
+        throw new IllegalStateException(error);
+      }
     }
+
+    int numBpRemaining = 0;
+    int bpShouldHaveBeenRemoved = Math.max(amountOfOverlapInBasepairs(seg), 0);
+    if (cleaned != null) {
+      for (Segment element : cleaned) {
+        numBpRemaining += element.getSize();
+      }
+    }
+    int numBpRemoved = getSize() - numBpRemaining;
+
+    if (numBpRemoved != bpShouldHaveBeenRemoved) {
+      String error = "BUG: " + numBpRemoved + " base pairs were removed, but "
+                     + bpShouldHaveBeenRemoved + " should have been removed";
+      error += "\nOriginal: " + getUCSClocation() + " Removed: " + seg.getUCSClocation();
+      if (cleaned != null) {
+        for (Segment element : cleaned) {
+          error += "\n New: " + element.getUCSClocation();
+        }
+      }
+      log.reportError(error);
+      throw new IllegalStateException(error);
+    }
+    return cleaned;
   }
 
   public String toAnalysisString() {
