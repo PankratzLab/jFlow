@@ -123,7 +123,7 @@ public class CNVariant extends Segment {
   }
 
   public CNVariant(CNVariant cnv) {
-    super(cnv.getChr(), cnv.getStart(), cnv.getStop());
+    super(cnv.chr, cnv.start, cnv.stop);
     familyID = cnv.familyID;
     individualID = cnv.individualID;
     cn = cnv.cn;
@@ -173,9 +173,8 @@ public class CNVariant extends Segment {
   }
 
   public boolean equalsIncludingIndividual(CNVariant cnv) {
-    return cnv.familyID.equals(familyID) && cnv.individualID.equals(individualID)
-           && cnv.getChr() == getChr() && cnv.getStart() == getStart() && cnv.getStop() == getStop()
-           && cnv.cn == cn;
+    return cnv.familyID.equals(familyID) && cnv.individualID.equals(individualID) && cnv.chr == chr
+           && cnv.start == start && cnv.stop == stop && cnv.cn == cn;
   }
 
   public boolean overlapsLocAndIndividual(CNVariant cnv) {
@@ -191,8 +190,8 @@ public class CNVariant extends Segment {
   }
 
   public String toPlinkFormat() {
-    return familyID + "\t" + individualID + "\t" + getChr() + "\t" + getStart() + "\t" + getStop()
-           + "\t" + cn + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
+    return familyID + "\t" + individualID + "\t" + chr + "\t" + start + "\t" + stop + "\t" + cn
+           + "\t" + ext.formDeci(score, 5) + "\t" + numMarkers;
   }
 
   /**
@@ -209,8 +208,8 @@ public class CNVariant extends Segment {
   }
 
   public String getFingerprint() {
-    return familyID + "_" + individualID + "_" + getChr() + "_" + getStart() + "_" + getStop() + "_"
-           + cn + "_" + numMarkers;
+    return familyID + "_" + individualID + "_" + chr + "_" + start + "_" + stop + "_" + cn + "_"
+           + numMarkers;
   }
 
   public static CNVariant[] toCNVariantArray(List<CNVariant> v) {
@@ -621,8 +620,7 @@ public class CNVariant extends Segment {
 
   @Override
   public CNVariant clone() {
-    return new CNVariant(familyID, individualID, getChr(), getStart(), getStop(), cn, score,
-                         numMarkers, source);
+    return new CNVariant(familyID, individualID, chr, start, stop, cn, score, numMarkers, source);
   }
 
   public static void main(String[] args) {
@@ -784,9 +782,9 @@ public class CNVariant extends Segment {
     }
 
     public CNVBuilder(CNVariant cnVariant) {
-      chr = cnVariant.getChr();
-      start = cnVariant.getStart();
-      stop = cnVariant.getStop();
+      chr = cnVariant.chr;
+      start = cnVariant.start;
+      stop = cnVariant.stop;
       familyID = cnVariant.familyID;
       individualID = cnVariant.individualID;
       cn = cnVariant.cn;

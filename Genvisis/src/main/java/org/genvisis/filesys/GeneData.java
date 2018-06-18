@@ -43,7 +43,7 @@ public class GeneData extends Segment implements Serializable {
     geneName = refGeneLine[12];
     ncbiAssessionNumbers = new String[] {refGeneLine[1]};
 
-    positionFinalized = getChr() != -1 && !refGeneLine[2].contains("_");
+    positionFinalized = chr != -1 && !refGeneLine[2].contains("_");
 
     if (refGeneLine[3].equals("+")) {
       strand = PLUS_STRAND;
@@ -105,22 +105,22 @@ public class GeneData extends Segment implements Serializable {
 
   @Override
   public int getSize() {
-    return getStop() - getStart() + 1;
+    return stop - start + 1;
   }
 
   public int amountOfOverlapInBasepairs(GeneData gene) {
-    if (getChr() == gene.getChr()) {
-      if (getStart() >= gene.getStart() && getStop() <= gene.getStop()) {
+    if (chr == gene.chr) {
+      if (start >= gene.start && stop <= gene.stop) {
         return getSize();
       }
-      if (gene.getStart() >= getStart() && gene.getStop() <= getStop()) {
+      if (gene.start >= start && gene.stop <= stop) {
         return gene.getSize();
       }
-      if (getStart() >= gene.getStart() && getStart() <= gene.getStop()) {
-        return gene.getStop() - getStart() + 1;
+      if (start >= gene.start && start <= gene.stop) {
+        return gene.stop - start + 1;
       }
-      if (getStop() >= gene.getStart() && getStop() <= gene.getStop()) {
-        return getStop() - gene.getStart() + 1;
+      if (stop >= gene.start && stop <= gene.stop) {
+        return stop - gene.start + 1;
       }
     }
 
