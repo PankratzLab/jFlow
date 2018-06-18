@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -496,9 +495,18 @@ public class Segment implements Serializable, Comparable<Segment> {
     }
   }
 
-  public static int[][] convertListToSortedBoundaries(Collection<Segment> segs) {
-    return segs.stream().sorted().map(s -> new int[] {s.getStart(), s.getStop()})
-               .toArray(int[][]::new);
+  public static int[][] convertListToSortedBoundaries(List<Segment> segs) {
+    int[][] segBoundaries = new int[segs.size()][2];
+
+    Segment[] arr = segs.toArray(new Segment[segs.size()]);
+    Arrays.sort(arr);
+
+    for (int i = 0; i < segs.size(); i++) {
+      segBoundaries[i][0] = arr[i].getStart();
+      segBoundaries[i][1] = arr[i].getStop();
+    }
+
+    return segBoundaries;
   }
 
   public static Segment[] toArray(List<Segment> setVec) {
