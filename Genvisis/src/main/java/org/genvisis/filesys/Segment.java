@@ -18,7 +18,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
-import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 public class Segment implements Serializable, Comparable<Segment> {
@@ -59,14 +58,14 @@ public class Segment implements Serializable, Comparable<Segment> {
 
   public static final long serialVersionUID = 1L;
 
-  private final GenomicPosition start;
-  private final GenomicPosition stop;
-  private final Range<GenomicPosition> range;
+  private final byte chr;
+  private final int start;
+  private final int stop;
 
-  public Segment(byte chr, int startPos, int stopPos) {
-    start = new GenomicPosition(chr, startPos);
-    stop = new GenomicPosition(chr, stopPos);
-    range = Range.open(start, stop);
+  public Segment(byte chr, int start, int stop) {
+    this.chr = chr;
+    this.start = start;
+    this.stop = stop;
   }
 
   /**
@@ -109,19 +108,15 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   public byte getChr() {
-    return start.getChr();
+    return chr;
   }
 
   public int getStart() {
-    return start.getPosition();
+    return start;
   }
 
   public int getStop() {
-    return stop.getPosition();
-  }
-
-  public Range<GenomicPosition> asRange() {
-    return range;
+    return stop;
   }
 
   /**
