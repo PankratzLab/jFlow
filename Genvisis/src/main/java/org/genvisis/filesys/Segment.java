@@ -439,7 +439,7 @@ public class Segment implements Serializable, Comparable<Segment> {
   }
 
   // this method must be run separately for each chromosome
-  public static void mergeOverlapsAndSort(List<Segment> segments) {
+  public static void mergeOverlapsAndSort(Collection<Segment> segments) {
     byte chr;
     int[][] segBoundaries;
     int count, start, stop;
@@ -448,9 +448,9 @@ public class Segment implements Serializable, Comparable<Segment> {
       return;
     }
 
-    chr = segments.get(0).getChr();
-    for (int i = 0; i < segments.size(); i++) {
-      if (segments.get(i).getChr() != chr) {
+    chr = segments.iterator().next().getChr();
+    for (Segment seg : segments) {
+      if (seg.getChr() != chr) {
         System.err.println("Mismatched chromosmes for merging...");
         segments = null;
         return;
