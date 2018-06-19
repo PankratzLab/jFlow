@@ -20,6 +20,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_M
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -92,6 +93,10 @@ public class BamImport {
 
     public String getFlag() {
       return flag;
+    }
+
+    public static NGS_MARKER_TYPE getType(Marker marker) {
+      return getType(marker.getName());
     }
 
     /**

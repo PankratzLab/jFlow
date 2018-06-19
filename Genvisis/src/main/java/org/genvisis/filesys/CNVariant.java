@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import org.genvisis.cnv.annotator.AnnotatedSegment;
 import org.genvisis.cnv.hmm.PennHmm;
 import org.genvisis.common.ByteVector;
 import org.genvisis.common.Files;
@@ -27,7 +28,7 @@ import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.StringVector;
 import org.genvisis.common.ext;
 
-public class CNVariant extends Segment {
+public class CNVariant extends AnnotatedSegment {
 
   @Override
   public int hashCode() {
