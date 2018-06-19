@@ -815,15 +815,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
     NavigableMap<Byte, NavigableSet<Marker>> chrMap = getChrMap();
     int[][] positionsByChr = new int[MarkerSet.CHR_INDICES][];
 
-    for (byte chr : chrMap.keySet()) {
-      if (chr >= 0 && chr < MarkerSet.CHR_INDICES) {
-        SortedSet<Marker> markers = chrMap.get(chr);
-        positionsByChr[chr] = new int[markers.size()];
-        int i = 0;
-        for (Marker marker : markers) {
-          positionsByChr[chr][i] = marker.getPosition();
-          i++;
-        }
+    for (byte chr = 0; chr < MarkerSet.CHR_INDICES; chr++) {
+      SortedSet<Marker> markers = chrMap.get(chr);
+      if (markers == null) markers = ImmutableSortedSet.of();
+      positionsByChr[chr] = new int[markers.size()];
+      int i = 0;
+      for (Marker marker : markers) {
+        positionsByChr[chr][i] = marker.getPosition();
+        i++;
       }
     }
     return positionsByChr;
