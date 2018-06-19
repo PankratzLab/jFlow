@@ -1477,102 +1477,78 @@ public class GeneScorePipeline {
   }
 
   private void writeResults() {
-    PrintWriter writer;
-
     String resFile = metaDir + "results.xln";
     log.report(ext.getTime() + "]\tWriting regression results... [ --> " + resFile + "]");
-    writer = Files.getAppropriateWriter(resFile);
-    writer.println(REGRESSION_HEADER);
+    try (PrintWriter writer = Files.getAppropriateWriter(resFile)) {
+      writer.println(REGRESSION_HEADER);
 
-    for (Study study : studies) {
-      for (String dFile : metaFiles) {
-        String dataFile = ext.rootOf(dFile, false);
-        for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
-          HashMap<String, RegressionResult> phenoResults = study.regressions.get(filePrefix.getKey())
-                                                                            .get(dataFile);
+      for (Study study : studies) {
+        for (String dFile : metaFiles) {
+          String dataFile = ext.rootOf(dFile, false);
+          for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
+            HashMap<String, RegressionResult> phenoResults = study.regressions.get(filePrefix.getKey())
+                                                                              .get(dataFile);
 
-          String resultPrefix = study.studyName + "\t" + dataFile + "\t"
-                                + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false)
-                                + "\t";
+            String resultPrefix = study.studyName + "\t" + dataFile + "\t"
+                                  + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false)
+                                  + "\t";
 
-          String middle = (new StringBuilder()).append(dataCounts.get(dFile)
-                                                                 .get(filePrefix.getKey()))
-                                               .append("\t")
-                                               .append(study.hitSnpCounts.get(filePrefix.getKey())
-                                                                         .get(dataFile))
-                                               .append("\t")
-                                               .append(study.hitWindowCnts.get(filePrefix.getKey())
-                                                                          .get(dataFile))
-                                               .append("\t")
-                                               .append(study.scores.get(filePrefix.getKey())
-                                                                   .get(dataFile)[0])
-                                               .append("\t")
-                                               .append(study.scores.get(filePrefix.getKey())
-                                                                   .get(dataFile)[1])
-                                               .append("\t").toString();
-          if (study.phenoFiles.isEmpty()) {
-            RegressionResult rr = new RegressionResult();
-            rr.dummy();
-
-            String pvalExcl = rr.num == 0 ? "."
-                                          : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
-                                                         : "=TDIST(" + Math.abs(rr.stats) + ","
-                                                           + rr.num + ",2)");
-
-            StringBuilder sb = new StringBuilder(resultPrefix).append("--").append("\t")
-                                                              .append(rr.baseRSq).append("\t")
-                                                              .append(rr.rsq).append("\t")
-                                                              .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                                            : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                                        : (new BigDecimal(rr.rsq
-                                                                                                                                          + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                                         + "")))))
-                                                              .append("\t").append(rr.pval)
-                                                              .append("\t").append(rr.beta)
-                                                              .append("\t").append(rr.se)
-                                                              .append("\t").append(rr.num)
-                                                              .append("\t").append(middle)
-                                                              .append(pvalExcl);
-
-            writer.println(sb.toString());
-          } else {
-            for (String pheno : study.phenoFiles) {
-              RegressionResult rr = phenoResults.get(pheno);
-
-              if (rr == null) {
-                rr = new RegressionResult();
-                rr.dummy();
+            String middle = (new StringBuilder()).append(dataCounts.get(dFile)
+                                                                   .get(filePrefix.getKey()))
+                                                 .append("\t")
+                                                 .append(study.hitSnpCounts.get(filePrefix.getKey())
+                                                                           .get(dataFile))
+                                                 .append("\t")
+                                                 .append(study.hitWindowCnts.get(filePrefix.getKey())
+                                                                            .get(dataFile))
+                                                 .append("\t")
+                                                 .append(study.scores.get(filePrefix.getKey())
+                                                                     .get(dataFile)[0])
+                                                 .append("\t")
+                                                 .append(study.scores.get(filePrefix.getKey())
+                                                                     .get(dataFile)[1])
+                                                 .append("\t").toString();
+            if (study.phenoFiles.isEmpty()) {
+              RegressionResult rr = new RegressionResult();
+              rr.dummy();
+              writeSingleResult("--", rr, resultPrefix, middle, writer);
+            } else {
+              for (String pheno : study.phenoFiles) {
+                RegressionResult rr = phenoResults.get(pheno);
+                if (rr == null) {
+                  rr = new RegressionResult();
+                  rr.dummy();
+                }
+                writeSingleResult(pheno, rr, resultPrefix, middle, writer);
               }
-              String pvalExcl = rr.num == 0 ? "."
-                                            : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats)
-                                                             + ")"
-                                                           : "=TDIST(" + Math.abs(rr.stats) + ","
-                                                             + rr.num + ",2)");
-
-              StringBuilder sb = new StringBuilder(resultPrefix).append(pheno).append("\t")
-                                                                .append(rr.baseRSq).append("\t")
-                                                                .append(rr.rsq).append("\t")
-                                                                .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                                              : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                                          : (new BigDecimal(rr.rsq
-                                                                                                                                            + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                                           + "")))))
-                                                                .append("\t").append(rr.pval)
-                                                                .append("\t").append(rr.beta)
-                                                                .append("\t").append(rr.se)
-                                                                .append("\t").append(rr.num)
-                                                                .append("\t").append(middle)
-                                                                .append(pvalExcl);
-
-              writer.println(sb.toString());
             }
           }
         }
       }
     }
+  }
 
-    writer.flush();
-    writer.close();
+  private void writeSingleResult(String pheno, RegressionResult rr, String resultPrefix,
+                                 String middle, PrintWriter writer) {
+    String pvalExcl = rr.num == 0 ? "."
+                                  : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                                                 : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
+                                                   + ",2)");
+
+    StringBuilder sb = new StringBuilder(resultPrefix).append(pheno).append("\t").append(rr.baseRSq)
+                                                      .append("\t").append(rr.rsq).append("\t")
+                                                      .append((Double.isNaN(rr.rsq) ? Double.NaN
+                                                                                    : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                                                                                                                : (new BigDecimal(rr.rsq
+                                                                                                                                  + "")).subtract(new BigDecimal(rr.baseRSq
+                                                                                                                                                                 + "")))))
+                                                      .append("\t").append(rr.pval).append("\t")
+                                                      .append(rr.beta).append("\t").append(rr.se)
+                                                      .append("\t").append(rr.num).append("\t")
+                                                      .append(middle).append(pvalExcl);
+
+    writer.println(sb.toString());
+
   }
 
   public static final String COMMAND_GENESCORE = "geneScore";
