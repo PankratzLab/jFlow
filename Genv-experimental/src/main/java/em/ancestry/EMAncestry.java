@@ -219,7 +219,7 @@ public class EMAncestry {
   public static void main(String[] args) {
     String pcFile = args[0];
     int numClusters = 4;
-    int[] indicesInFile = new int[] {1,2,3};
+    int[] indicesInFile = new int[] {1, 2, 3};
 
     Logger log = new Logger(ext.parseDirectoryOfFile(pcFile) + "cluster.log");
     log.reportTimeInfo("Loading " + pcFile);
@@ -228,7 +228,7 @@ public class EMAncestry {
     String[] samples = HashVec.loadFileToStringArray(pcFile, true, new int[] {0}, false);
 
     log.reportTimeInfo("transposing data " + pcFile);
-    
+
     double[][] dataT = transpose(datas);
     MultivariateNormalMixtureExpectationMaximization maximization = getClusters(dataT, dataT,
                                                                                 numClusters, log);
