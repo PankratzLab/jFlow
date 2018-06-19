@@ -1861,26 +1861,48 @@ public class ext {
     return false;
   }
 
+  /**
+   * Parse a String to an double, returning a default value when parsing fails
+   * 
+   * @param str to parse to an double
+   * @param defaultValue to return if a {@link NumberFormatException} occurs while parsing
+   * @return
+   */
+  public static double parseDoubleOr(String str, double defaultValue) {
+    try {
+      return Double.parseDouble(str);
+    } catch (NumberFormatException nfe) {
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Parse a String to an int, returning a default value when parsing fails
+   * 
+   * @param str to parse to an int
+   * @param defaultValue to return if a {@link NumberFormatException} occurs while parsing
+   * @return
+   */
+  public static int parseIntOr(String str, int defaultValue) {
+    try {
+      return Integer.parseInt(str);
+    } catch (NumberFormatException nfe) {
+      return defaultValue;
+    }
+  }
+
   public static double getValidDouble(String str) {
     if (isMissingValue(str)) {
       return 0.0;
     }
-    try {
-      return Double.parseDouble(str);
-    } catch (NumberFormatException nfe) {
-      return 0.0;
-    }
+    return parseDoubleOr(str, 0.0);
   }
 
   public static int getValidInteger(String str) {
     if (isMissingValue(str)) {
       return 0;
     }
-    try {
-      return Integer.parseInt(str);
-    } catch (NumberFormatException nfe) {
-      return 0;
-    }
+    return parseIntOr(str, 0);
   }
 
   public static boolean isValidDouble(String str) {
