@@ -1142,18 +1142,20 @@ public class VCFOps {
         BufferedReader reader = Files.getAppropriateReader(fullPathToPopFile);
         String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
         int[] indices = ext.indexFactors(HEADER, header, true, log, false);
-        if (type == POPULATION_TYPE.AF) {
-          if (indices[0] >= 0 && indices[1] >= 0) {
-            indices[2] = indices[1];
+        if (ArrayUtils.countIf(indices, -1) > 0) {
+          if (type == POPULATION_TYPE.AF) {
+            if (indices[0] >= 0 && indices[1] >= 0) {
+              indices[2] = indices[1];
+            } else {
+              log.reportError("Could not find required headers "
+                              + ArrayUtils.toStr(ArrayUtils.subArray(HEADER, 0, 2)) + " in "
+                              + fullPathToPopFile);
+            }
           } else {
-            log.reportError("Could not find required headers "
-                            + ArrayUtils.toStr(ArrayUtils.subArray(HEADER, 0, 2)) + " in "
+            log.reportError("Could not find required headers " + ArrayUtils.toStr(HEADER) + " in "
                             + fullPathToPopFile);
+            return null;
           }
-        } else {
-          log.reportError("Could not find required headers " + ArrayUtils.toStr(HEADER) + " in "
-                          + fullPathToPopFile);
-          return null;
         }
         reader.readLine();
         while (reader.ready()) {
