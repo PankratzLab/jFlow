@@ -716,7 +716,11 @@ public class VCFOps {
       PC_ANCESTRY,
       ANCHOR_BARNACLE,
       TUMOR_NORMAL,
-      DENOVO;
+      DENOVO,
+      /**
+       * Allows for no super population
+       */
+      AF;
     }
 
     public enum RETRIEVE_TYPE {
@@ -821,6 +825,10 @@ public class VCFOps {
 
       }
       return tmp.toArray(new String[tmp.size()]);
+    }
+
+    public HashSet<String> getAllPopInds() {
+      return getAllInds();
     }
 
     private HashSet<String> getAllInds() {
@@ -983,9 +991,11 @@ public class VCFOps {
         log.reportTimeInfo("Sub - population " + key + " had " + subPop.get(key).size()
                            + " individuals");
       }
-      for (String key : superPop.keySet()) {
-        log.reportTimeInfo("Super - population " + key + " had " + superPop.get(key).size()
-                           + " individuals");
+      if (type != POPULATION_TYPE.AF) {
+        for (String key : superPop.keySet()) {
+          log.reportTimeInfo("Super - population " + key + " had " + superPop.get(key).size()
+                             + " individuals");
+        }
       }
     }
 
@@ -1131,8 +1141,16 @@ public class VCFOps {
       try {
         BufferedReader reader = Files.getAppropriateReader(fullPathToPopFile);
         String[] header = Files.getHeaderOfFile(fullPathToPopFile, log);
-        int[] indices = ext.indexFactors(HEADER, header, true);
-        if (ArrayUtils.countIf(indices, -1) > 0) {
+        int[] indices = ext.indexFactors(HEADER, header, true, log, false);
+        if (type == POPULATION_TYPE.AF) {
+          if (indices[0] >= 0 && indices[1] >= 0) {
+            indices[2] = indices[1];
+          } else {
+            log.reportError("Could not find required headers "
+                            + ArrayUtils.toStr(ArrayUtils.subArray(HEADER, 0, 2)) + " in "
+                            + fullPathToPopFile);
+          }
+        } else {
           log.reportError("Could not find required headers " + ArrayUtils.toStr(HEADER) + " in "
                           + fullPathToPopFile);
           return null;
