@@ -10,7 +10,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.CLI;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
@@ -22,7 +21,6 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.Pedfile;
 import org.genvisis.seq.analysis.GATK.GenotypeRefiner;
 import org.genvisis.seq.analysis.GATK.Mutect;
-import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.ChrSplitResults;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -31,7 +29,6 @@ import org.genvisis.seq.manage.VCOps;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
@@ -62,7 +59,7 @@ public class GenotypeRefinement {
   // http://gatkforums.broadinstitute.org/gatk/discussion/5071/calculategenotypeposteriors-error
 
   private static void refineGenotypes(String vcf, String ped, String outputDir, GATK gatk,
-                                      int threads) {
+                                      boolean autosomalOnly, int threads) {
     new File(outputDir).mkdirs();
     Logger log = new Logger(outputDir + "gtRefine.log");
     String[] sampsinPed = HashVec.loadFileToStringArray(ped, false, Pedfile.COMMENT_INDICATORS,
@@ -79,7 +76,8 @@ public class GenotypeRefinement {
       analysisVCF = subToPedSamples(vcf, ped, outputDir, log, sampsinPed);
     }
 
-    ChrSplitResults[] splits = VCFOps.splitByChrs(analysisVCF, outputDir, 24, true, log);
+    ChrSplitResults[] splits = VCFOps.splitByChrs(analysisVCF, outputDir, 24, true, autosomalOnly,
+                                                  log);
 
     RefinementProducer producer = new RefinementProducer(gatk, splits, outputDir, ped, log);
 
@@ -94,24 +92,10 @@ public class GenotypeRefinement {
         }
       }
     }
-    log.reportTimeWarning("Starting hacky portion to get quick look at denovo variants");
-
-    // combineResults(refinedResults, analysisVCF, outputDir, log);
-    // Later, when the original vcf is already annotated, we can just simply combine results from
-    // contig denovo vcfs using combineResults
-    // Just don't want to annotate every variant right now
-    List<String> filtDenovos = filterAndCombineDenovos(refinedResults, analysisVCF, outputDir, log);
-
-    for (String filtDenovoVCF : filtDenovos) {
-      GATK_Genotyper.annotateOnlyWithDefualtLocations(filtDenovoVCF, null,
-                                                      PSF.Ext.DEFAULT_MEMORY_MB, true, false, log);
-    }
+    combineResults(refinedResults, analysisVCF, outputDir, log);
   }
 
   /**
-   * This method is untested, but is the basic replacement for
-   * {@link GenotypeRefinement#filterAndCombineDenovos}
-   * 
    * @param refinedResults this assumes that each {@link GenotypeRefiner} has been successfully run
    *          (has result vcf)
    * @param originalVCF for output naming
@@ -134,123 +118,77 @@ public class GenotypeRefinement {
                                                             VCFOps.DEFUALT_WRITER_OPTIONS, dict);
       outputWriter.writeHeader(header);
 
+      String hiConfVCF = outputDir + VCFOps.getAppropriateRoot(originalVCF, true)
+                         + ".hiConfDenovo.vcf.gz";
+      String hiLowConfVCF = outputDir + VCFOps.getAppropriateRoot(originalVCF, true)
+                            + ".hiLowConfDenovo.vcf.gz";
+
+      VariantContextWriter hiLowConfwriter = VCFOps.initWriter(hiLowConfVCF,
+                                                               VCFOps.DEFUALT_WRITER_OPTIONS, dict);
+      VariantContextWriter hiConfwriter = VCFOps.initWriter(hiConfVCF,
+                                                            VCFOps.DEFUALT_WRITER_OPTIONS, dict);
+
+      hiConfwriter.writeHeader(header);
+      hiLowConfwriter.writeHeader(header);
+
       tmp.close();
+      int potentialDenovos = 0;
       int total = 0;
       for (SAMSequenceRecord record : dict.getSequences()) { // should iterate in sorted
-        // order
-        for (GenotypeRefiner refiner : refinedResults) {
-          String denovoVCF = refiner.getDenovoVCF();
+        log.reportTime("Testing for record " + record.getSequenceName() + " of "
+                       + dict.getSequences().size() + " total");
+        if (Positions.chromosomeNumber(record.getSequenceName()) > 0) {
+          // order
+          for (GenotypeRefiner refiner : refinedResults) {
+            String denovoVCF = refiner.getDenovoVCF();
 
-          String contig = VCFOps.getFirstContig(denovoVCF, log);
-          if (Positions.chromosomeNumber(contig) == Positions.chromosomeNumber(record.getSequenceName())) { // so
-            // efficient
-            log.reportTimeInfo("Matching " + ext.removeDirectoryInfo(denovoVCF) + " to contig "
-                               + record.getSequenceName());
-            VCFFileReader reader = new VCFFileReader(new File(denovoVCF), true);
+            String contig = VCFOps.getFirstContig(denovoVCF, log);
+            if (Positions.chromosomeNumber(contig) == Positions.chromosomeNumber(record.getSequenceName())) { // so
+              // efficient
+              log.reportTimeInfo("Matching " + ext.removeDirectoryInfo(denovoVCF) + " to contig "
+                                 + record.getSequenceName());
+              VCFFileReader reader = new VCFFileReader(new File(denovoVCF), true);
 
-            for (VariantContext vc : reader) {
-              total++;
-              if (!vc.getContig().equals(contig)) {
-                reader.close();
-                outputWriter.close();
-                throw new IllegalArgumentException("Method designed to combine vcfs split by contigs");
+              for (VariantContext vc : reader) {
+                total++;
+                if (!vc.getContig().equals(contig)) {
+                  reader.close();
+                  outputWriter.close();
+                  hiLowConfwriter.close();
+                  hiConfwriter.close();
+                  throw new IllegalArgumentException("Method designed to combine vcfs split by contigs");
+                }
+
+                if (!vc.isFiltered() && isPotentialDenovo(vc)) { // Lots of tranche garbage
+
+                  hiLowConfwriter.add(vc);
+                  if (isHighConfPotentialDenovo(vc)) {
+                    hiConfwriter.add(vc);
+                  }
+                  potentialDenovos++;
+                }
+
+                outputWriter.add(vc);
+
+                if (total % 5000 == 0) {
+                  log.reportTimeInfo("Reading file " + ext.removeDirectoryInfo(denovoVCF)
+                                     + ", written  " + total + " variants found " + potentialDenovos
+                                     + " potential denovos from " + total
+                                     + " total variants scanned");
+                }
+
               }
-              outputWriter.add(vc);
-
-              if (total % 1000000 == 0) {
-                log.reportTimeInfo("Reading file " + ext.removeDirectoryInfo(denovoVCF)
-                                   + ", written  " + total + " variants ");
-              }
+              reader.close();
             }
-            reader.close();
           }
         }
       }
       outputWriter.close();
+      hiLowConfwriter.close();
+      hiConfwriter.close();
     } else {
       log.reportFileExists(refinedVCF);
     }
-  }
-
-  /**
-   * @param refinedResults
-   * @param outputVCF
-   * @param outputDir Extracts potential denovos from refined results, and converts contigs to hg19
-   *          ...for now
-   */
-  private static List<String> filterAndCombineDenovos(List<GenotypeRefiner> refinedResults,
-                                                      String originalVCF, String outputDir,
-                                                      Logger log) {
-    String hiConfVCF = outputDir + VCFOps.getAppropriateRoot(originalVCF, true)
-                       + ".hiConfDenovo.vcf.gz";
-    String hiLowConfVCF = outputDir + VCFOps.getAppropriateRoot(originalVCF, true)
-                          + ".hiLowConfDenovo.vcf.gz";
-    List<String> filtDenovos = new ArrayList<>();
-    filtDenovos.add(hiConfVCF);
-    filtDenovos.add(hiLowConfVCF);
-    if (!Files.exists(hiConfVCF) && !Files.exists(hiLowConfVCF)) {
-      SAMSequenceDictionary newDictionary = new ReferenceGenome(GENOME_BUILD.HG19,
-                                                                log).getDictionary();
-      VariantContextWriter hiLowConfwriter = VCFOps.initWriter(hiLowConfVCF,
-                                                               VCFOps.DEFUALT_WRITER_OPTIONS,
-                                                               newDictionary);
-      VariantContextWriter hiConfwriter = VCFOps.initWriter(hiConfVCF,
-                                                            VCFOps.DEFUALT_WRITER_OPTIONS,
-                                                            newDictionary);
-      int potentialDenovos = 0;
-      int total = 0;
-      boolean writeHeader = true;
-      for (SAMSequenceRecord record : newDictionary.getSequences()) { // should iterate in sorted
-                                                                     // order
-        for (GenotypeRefiner refiner : refinedResults) {
-          String denovoVCF = refiner.getDenovoVCF();
-
-          String contig = VCFOps.getFirstContig(denovoVCF, log);
-          if (Positions.chromosomeNumber(contig) == Positions.chromosomeNumber(record.getSequenceName())) { // so
-                                                                                                           // efficient
-            log.reportTimeInfo("Matching " + ext.removeDirectoryInfo(denovoVCF) + " to contig "
-                               + record.getSequenceName());
-            VCFFileReader reader = new VCFFileReader(new File(denovoVCF), true);
-            if (writeHeader) {
-              VCFHeader header = reader.getFileHeader();
-              header.setSequenceDictionary(newDictionary);
-              hiConfwriter.writeHeader(header);
-              hiLowConfwriter.writeHeader(header);
-            }
-            writeHeader = false;
-            for (VariantContext vc : reader) {
-              total++;
-              if (!vc.getContig().equals(contig)) {
-                reader.close();
-                hiConfwriter.close();
-                hiLowConfwriter.close();
-                throw new IllegalArgumentException("Method designed to combine contig split vcfs");
-              } else if (!vc.isFiltered() && isPotentialDenovo(vc)) { // Lots of tranche garbage
-                VariantContextBuilder builder = new VariantContextBuilder(vc);
-                builder.chr(record.getSequenceName());
-                VariantContext vcWrite = builder.make();
-                hiLowConfwriter.add(vcWrite);
-                if (isHighConfPotentialDenovo(vcWrite)) {
-                  hiConfwriter.add(vcWrite);
-                }
-                potentialDenovos++;
-              }
-              if (total % 100000 == 0) {
-                log.reportTimeInfo("Reading file " + ext.removeDirectoryInfo(denovoVCF) + ", found "
-                                   + potentialDenovos + " potential denovos from " + total
-                                   + " total variants scanned");
-              }
-            }
-            reader.close();
-          }
-        }
-      }
-      hiConfwriter.close();
-      hiLowConfwriter.close();
-      log.reportTimeInfo("found " + potentialDenovos + " potential denovos in total from " + total
-                         + " variants scanned");
-    }
-    return filtDenovos;
   }
 
   private static boolean isHighConfPotentialDenovo(VariantContext vc) {
@@ -361,6 +299,7 @@ public class GenotypeRefinement {
     c.addArg("supportSnps", "supporting snps for priors");
     c.addArg("ped", "pedigree file");
     c.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS);
+    c.addFlag("autosomalOnly", "only refine the autosome");
 
     c.parseWithExit(args);
 
@@ -370,7 +309,7 @@ public class GenotypeRefinement {
                            PSF.Ext.DEFAULT_MEMORY_MB, null, null, null, null, true, false, log);
     gatk.setSupportingSnps(c.get("supportSnps"));
     refineGenotypes(c.get(CLI.ARG_VCF), c.get("ped"), c.get(CLI.ARG_OUTDIR), gatk,
-                    c.getI(CLI.ARG_THREADS));
+                    c.has("autosomalOnly"), c.getI(CLI.ARG_THREADS));
 
   }
 }

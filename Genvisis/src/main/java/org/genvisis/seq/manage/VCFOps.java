@@ -1936,7 +1936,13 @@ public class VCFOps {
 
   public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads,
                                               boolean onlyWithVariants, Logger log) {
-    String[] toSplit = getAllContigs(vcf, log);
+    return splitByChrs(vcf, newDir, numthreads, onlyWithVariants, log);
+  }
+
+  public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads,
+                                              boolean onlyWithVariants, boolean autosomalOnly,
+                                              Logger log) {
+    String[] toSplit = getContigs(vcf, autosomalOnly, log);
     log.reportTimeInfo("Detected " + toSplit.length + " chrs to split");
     VCFSplitProducer producer = new VCFSplitProducer(vcf, newDir, toSplit, log);
     ArrayList<ChrSplitResults> chrSplitResults = new ArrayList<>();
@@ -2001,13 +2007,24 @@ public class VCFOps {
     }
   }
 
-  public static String[] getAllContigs(String vcfFile, Logger log) {
+  //  public static String[] getAllContigs(String vcfFile, Logger log) {
+  //    return getContigs(vcfFile, false, log);
+  //  }
+
+  public static String[] getContigs(String vcfFile, boolean autosomalOnly, Logger log) {
     List<SAMSequenceRecord> sList = getAllSAMSequenceRecords(vcfFile, log);
-    String[] all = new String[sList.size()];
-    for (int i = 0; i < all.length; i++) {
-      all[i] = sList.get(i).getSequenceName();
+    List<String> all = new ArrayList<>();
+    for (int i = 0; i < sList.size(); i++) {
+      if (!autosomalOnly) {
+        all.add(sList.get(i).getSequenceName());
+      } else {
+        byte chr = Positions.chromosomeNumber(sList.get(i).getSequenceName());
+        if (chr > 0 && chr < 23) {
+          all.add(sList.get(i).getSequenceName());
+        }
+      }
     }
-    return all;
+    return ArrayUtils.toStringArray(all);
   }
 
   public static List<SAMSequenceRecord> getAllSAMSequenceRecords(String vcfFile, Logger log) {
