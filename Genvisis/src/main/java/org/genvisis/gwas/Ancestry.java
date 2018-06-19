@@ -25,21 +25,28 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
+import org.genvisis.common.matrix.SVD;
 import org.genvisis.filesys.SnpMarkerSet;
+import org.genvisis.pca.ancestry.AncestryPCA;
+import org.genvisis.pca.ancestry.PlinkDataMatrixLoader;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
 public class Ancestry {
 
+  public static final int DEFAULT_NUM_COMPONENTS_ANCESTRY = 10;
   public static final String DEFAULT_HAPMAP_PLINKROOT = "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
-  public static final String RACE_IMPUTATIONAS_FILENAME = "raceImputations.mds";
+  public static final String RACE_IMPUTATIONS_FILENAME = "raceImputations.mds";
   public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
   private static final String HAPMAP_CLASS_NAME = "HapMap";
   private static final String EIGENSTRAT_OUTPUT_NAME = "combo_fancy_postnormed_eigens.xln";
+  private static final String PCA_OUTPUT_NAME = "combo.extrapolatedPCs.txt.gz";
   private static final String EIGENSTRAT_IID_LABEL = "IID";
   private static final String EIGENSTRAT_FID_LABEL = "FID";
+  private static final String PCA_PC1_LABEL = "PC1";
+  private static final String PCA_PC2_LABEL = "PC2";
   private static final String EIGENSTRAT_PC1_LABEL = "C1";
   private static final String EIGENSTRAT_PC2_LABEL = "C2";
 
@@ -111,8 +118,17 @@ public class Ancestry {
     }
     String homogeneityDrops = parseHomogeneity(dir, log);
     mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
-    runEigenstrat(dir);
-    imputeRace(dir, proj, log);
+    runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
+    imputeRaceFromPCA(dir, proj, log);
+  }
+
+  private static void runPCA(String dir, int numComps, Logger log) {
+    setupAncestry(dir);
+    SVD svd = AncestryPCA.generatePCs(new PlinkDataMatrixLoader(dir, "unrelateds/plink", log),
+                                      numComps, log);
+    svd.dumpLoadingsToText(dir + "combo", "MARKER", log);
+    AncestryPCA.extrapolatePCs(svd, new PlinkDataMatrixLoader(dir, "combo", log), log)
+               .dumpToText(dir + PCA_OUTPUT_NAME, "FID\tIID", log);
   }
 
   private static void checkHomogeneity(String dir, String putativeWhitesFile,
@@ -238,7 +254,7 @@ public class Ancestry {
     }
   }
 
-  private static void runEigenstrat(String dir) {
+  private static void setupAncestry(String dir) {
     Logger log;
 
     dir = ext.verifyDirFormat(dir);
@@ -264,36 +280,10 @@ public class Ancestry {
                           + " --make-bed --noweb", unrelatedsDir, log);
     }
 
-    if (!Files.exists(unrelatedsDir + "master")) {
-      log.report(ext.getTime() + "]\tCreating Eigenstrat");
-      CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=plink -create",
-                          unrelatedsDir, log);
-    }
-
-    if (!Files.exists(unrelatedsDir + "plink.pca.evec")) {
-      log.report(ext.getTime() + "]\tRunning master");
-      CmdLine.runDefaults("./master", unrelatedsDir, log);
-      CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat convert=plink.pca.evec",
-                          unrelatedsDir, log);
-    }
-
-    if (!Files.exists(dir + "convertf.par")) {
-      log.report(ext.getTime() + "]\tRunning convertf");
-      CmdLine.runDefaults(Files.getRunString() + " gwas.Eigenstrat source=combo -create", dir, log);
-      CmdLine.runDefaults("convertf -p convertf.par", dir, log);
-    }
-
-    if (!Files.exists(dir + EIGENSTRAT_OUTPUT_NAME)) {
-      CmdLine.runDefaults("plink2 --bfile unrelateds/plink --freq --out unrelateds/plink --noweb",
-                          dir, log);
-      CmdLine.runDefaults(Files.getRunString()
-                          + " gwas.Eigenstrat source=unrelateds/plink target=combo -parse -eigenFormat",
-                          dir, log);
-    }
   }
 
-  private static void imputeRace(String dir, @Nullable Project proj, Logger log) {
-    if (!Files.exists(dir + RACE_IMPUTATIONAS_FILENAME)) {
+  private static void imputeRaceFromPCA(String dir, @Nullable Project proj, Logger log) {
+    if (!Files.exists(dir + RACE_IMPUTATIONS_FILENAME)) {
       Table<String, String, HapMapPopulation> fidIidHapMapPopTable = parseHapMapAncestries(proj,
                                                                                            log);
       if (fidIidHapMapPopTable == null) return;
@@ -302,14 +292,14 @@ public class Ancestry {
       Set<PCImputeRace.Sample> europeans = Sets.newHashSet();
       Set<PCImputeRace.Sample> africans = Sets.newHashSet();
       Set<PCImputeRace.Sample> asians = Sets.newHashSet();
-      try (BufferedReader eigenReader = Files.getAppropriateReader(dir + EIGENSTRAT_OUTPUT_NAME)) {
+      try (BufferedReader eigenReader = Files.getAppropriateReader(dir + PCA_OUTPUT_NAME)) {
         String headerLine = eigenReader.readLine();
         String delim = ext.determineDelimiter(headerLine);
         String[] header = headerLine.split("\t");
         Map<String, Integer> eigenstratIndices = ext.indexMap(new String[] {EIGENSTRAT_FID_LABEL,
                                                                             EIGENSTRAT_IID_LABEL,
-                                                                            EIGENSTRAT_PC1_LABEL,
-                                                                            EIGENSTRAT_PC2_LABEL},
+                                                                            PCA_PC1_LABEL,
+                                                                            PCA_PC2_LABEL},
                                                               header, true, false);
 
         while (eigenReader.ready()) {
@@ -319,12 +309,12 @@ public class Ancestry {
           double pc1;
           double pc2;
           try {
-            pc1 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC1_LABEL)]);
+            pc1 = Double.parseDouble(line[eigenstratIndices.get(PCA_PC1_LABEL)]);
           } catch (NumberFormatException nfe) {
             pc1 = Double.NaN;
           }
           try {
-            pc2 = Double.parseDouble(line[eigenstratIndices.get(EIGENSTRAT_PC2_LABEL)]);
+            pc2 = Double.parseDouble(line[eigenstratIndices.get(PCA_PC2_LABEL)]);
           } catch (NumberFormatException nfe) {
             pc2 = Double.NaN;
           }
@@ -351,20 +341,20 @@ public class Ancestry {
           }
         }
       } catch (FileNotFoundException e) {
-        log.reportFileNotFound(dir + EIGENSTRAT_OUTPUT_NAME);
+        log.reportFileNotFound(dir + PCA_OUTPUT_NAME);
       } catch (IOException e) {
-        log.reportIOException(dir + EIGENSTRAT_OUTPUT_NAME);
+        log.reportIOException(dir + PCA_OUTPUT_NAME);
       }
 
       PCImputeRace pcir = new PCImputeRace(proj, samples, europeans, africans, asians, log);
-      pcir.correctPCsToRace(dir + RACE_IMPUTATIONAS_FILENAME);
+      pcir.correctPCsToRace(dir + RACE_IMPUTATIONS_FILENAME);
     } else {
       log.reportTimeWarning("Skipping imputation - output already exists: "
-                            + (dir + RACE_IMPUTATIONAS_FILENAME));
+                            + (dir + RACE_IMPUTATIONS_FILENAME));
     }
 
     if (!Files.exists(dir + RACE_FREQS_FILENAME)) {
-      PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONAS_FILENAME, dir + "plink",
+      PCImputeRace.freqsByRace(dir + RACE_IMPUTATIONS_FILENAME, dir + "plink",
                                dir + RACE_FREQS_FILENAME, log);
     } else {
       log.reportTimeWarning("Skipping race freq calculation - output already exists: "
@@ -528,9 +518,9 @@ public class Ancestry {
       } else if (run) {
         String homogeneityDrops = parseHomogeneity(dir, log);
         mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
-        runEigenstrat(dir);
+        runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
       } else if (imputeRace) {
-        imputeRace(dir, proj, log);
+        imputeRaceFromPCA(dir, proj, log);
       } else {
         System.err.println(usage);
         System.exit(1);

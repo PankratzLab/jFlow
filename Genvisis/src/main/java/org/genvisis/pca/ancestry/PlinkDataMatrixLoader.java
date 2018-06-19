@@ -38,7 +38,7 @@ public class PlinkDataMatrixLoader implements MatrixDataLoading {
     DosageData d = DosageData.loadPlinkBinary(dir, null, null, plinkRoot, null, true, true);
     String[] samples = new String[d.getIds().length];
     for (int i = 0; i < samples.length; i++) {
-      samples[i] = d.getIds()[i][0] + "_" + d.getIds()[i][1];
+      samples[i] = d.getIds()[i][0] + "\t" + d.getIds()[i][1];
     }
 
     String[] markers = d.getMarkerSet().getMarkerNames();

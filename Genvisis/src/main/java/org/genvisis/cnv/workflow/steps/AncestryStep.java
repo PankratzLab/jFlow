@@ -88,7 +88,7 @@ public class AncestryStep extends Step {
   public boolean checkIfOutputExists(Variables variables) {
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     return Files.exists(ancestryDir + Ancestry.RACE_FREQS_FILENAME)
-           && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONAS_FILENAME);
+           && Files.exists(ancestryDir + Ancestry.RACE_IMPUTATIONS_FILENAME);
   }
 
 }

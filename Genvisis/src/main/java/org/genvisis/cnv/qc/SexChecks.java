@@ -328,6 +328,7 @@ public class SexChecks {
       byte[] genos = markerData.getAbGenotypesAfterFilters(clusterFilters,
                                                            markerData.getMarkerName(), gcThreshold,
                                                            log);
+
       float[] bafs = markerData.getBAFs();
       for (int s = 0; s < sampleNames.size(); s++) {
         String sample = sampleNames.get(s);
@@ -355,6 +356,7 @@ public class SexChecks {
     lrrsY = ArrayTable.create(yMarkerList, sampleNames);
     Table<String, Marker, Double> elrrs = HashBasedTable.create(sampleNames.size(),
                                                                 yMarkerList.size());
+
     for (int m = 0; mdl.hasNext(); m++) {
       MarkerData markerData = mdl.next();
       Marker marker = yMarkerList.get(m);
@@ -385,11 +387,13 @@ public class SexChecks {
     ImmutableSet.Builder<String> femaleBuilder = ImmutableSet.builder();
 
     for (String sample : qcPassedSamples) {
-      double elrrRatio = elrrMedY.get(sample) / elrrMedX.get(sample);
-      if (elrrRatio > XY_ELRR_RATIO_MIN_SEED_MALE && elrrRatio < XY_ELRR_RATIO_MAX_SEED_MALE) {
-        maleBuilder.add(sample);
-      } else if (elrrRatio < XY_ELRR_RATIO_MAX_SEED_FEMALE) {
-        femaleBuilder.add(sample);
+      if (elrrMedY.containsKey(sample) && elrrMedX.containsKey(sample)) {
+        double elrrRatio = elrrMedY.get(sample) / elrrMedX.get(sample);
+        if (elrrRatio > XY_ELRR_RATIO_MIN_SEED_MALE && elrrRatio < XY_ELRR_RATIO_MAX_SEED_MALE) {
+          maleBuilder.add(sample);
+        } else if (elrrRatio < XY_ELRR_RATIO_MAX_SEED_FEMALE) {
+          femaleBuilder.add(sample);
+        }
       }
     }
 

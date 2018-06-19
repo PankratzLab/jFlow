@@ -143,7 +143,7 @@ public class FurtherAnalysisQCStep extends Step {
     String europeansFile = stepVars.get(europeansFilesReq).getPath();
     if (europeansFile == null || "".equals(europeansFile) || !Files.exists(europeansFile)) {
       String raceImputationFilename = GenvisisWorkflow.getAncestryDir(proj)
-                                      + Ancestry.RACE_IMPUTATIONAS_FILENAME;
+                                      + Ancestry.RACE_IMPUTATIONS_FILENAME;
       europeansFile = PCImputeRace.formRaceListFilename(RACE.WHITE, raceImputationFilename);
     }
     return europeansFile;
