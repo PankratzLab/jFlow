@@ -41,14 +41,11 @@ public class Ancestry {
   public static final String RACE_FREQS_FILENAME = "freqsByRace.xln";
 
   private static final String HAPMAP_CLASS_NAME = "HapMap";
-  private static final String EIGENSTRAT_OUTPUT_NAME = "combo_fancy_postnormed_eigens.xln";
   private static final String PCA_OUTPUT_NAME = "combo.extrapolatedPCs.txt.gz";
   private static final String EIGENSTRAT_IID_LABEL = "IID";
   private static final String EIGENSTRAT_FID_LABEL = "FID";
   private static final String PCA_PC1_LABEL = "PC1";
   private static final String PCA_PC2_LABEL = "PC2";
-  private static final String EIGENSTRAT_PC1_LABEL = "C1";
-  private static final String EIGENSTRAT_PC2_LABEL = "C2";
 
   private static enum HapMapPopulation {
     CEU, YRI, CHB, JPT;
