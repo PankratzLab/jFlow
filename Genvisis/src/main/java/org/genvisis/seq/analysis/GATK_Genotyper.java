@@ -866,7 +866,7 @@ public class GATK_Genotyper {
         annoVCF = ANNOVCF.fromArg(arg);
         numArgs--;
       } else if (arg.startsWith(SNPEFF.SNP_EFF_BUILD_COMMAND)) {
-        annoBuild = ANNOTATION_BUILD.valueOf(arg);
+        annoBuild = ANNOTATION_BUILD.valueOf(ext.parseStringArg(arg));
         numArgs--;
       } else if (ext.startsWithOneOf(arg, GATK.RESOURCE.names())) {
         String name = arg.substring(0, arg.indexOf('='));
