@@ -61,7 +61,7 @@ public class SVD extends NamedRealMatrix {
   }
 
   /**
-   * @param outputRoot full path - ".pcs" will be appended to the output root
+   * @param outputRoot full path - ".pcs.gz" will be appended to the output root
    * @param columnOneTitle the first column will have this entry in the header (e.g "PCs", "SAMPLE")
    * @param log {@link Logger}
    */
@@ -71,7 +71,7 @@ public class SVD extends NamedRealMatrix {
     PrintWriter writer = Files.getAppropriateWriter(out);
     log.reportTimeInfo("Writing PCs to " + out);
     StringJoiner joiner = new StringJoiner("\t");
-    joiner.add("SAMPLE");
+    joiner.add(columnOneTitle);
     for (int component = 0; component < numComponents; component++) {
       joiner.add("PC" + (component + 1));
     }
