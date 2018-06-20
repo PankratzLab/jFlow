@@ -589,39 +589,45 @@ public class AffyPipeline {
       throw new Elision("Critical Error - Normalization failed!");
     }
 
-    String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
+    AffyParsingPipeline parser = new AffyParsingPipeline();
+    parser.setCallFile(genotypeResult.getCallFile());
+    parser.setConfFile(genotypeResult.getConfFile());
+    parser.setSigFile(normalizationResult.getQuantNormFile());
+    parser.run();
 
-    String outSnpSrc = tmpDir + "SNP_Src/";
-    new File(outSnpSrc).mkdirs();
+    //    String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
 
-    AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
-                                             genotypeResult.getConfFile(),
-                                             normalizationResult.getQuantNormFile(), maxWritersOpen,
-                                             log);
-    AS6T.parseSNPTables(markerBuffer);
-
-    String outCNSrc = tmpDir + "CN_Src/";
-    new File(outCNSrc).mkdirs();
-
-    AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(),
-                                               maxWritersOpen, log);
-    AS6TCN.parseCNTable(markerBuffer);
-
-    proj.SOURCE_DIRECTORY.setValue("00src_CEL/");
-    proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
-    proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
-    proj.ID_HEADER.setValue("[FILENAME_ROOT]");
-    proj.LONG_FORMAT.setValue(false);
-
-    MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt",
-                             proj.SOURCE_DIRECTORY.getValue(true, true), log);
-
-    if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
-      Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(),
-                                      log);
-    }
-
-    proj.saveProperties();
+    //    String outSnpSrc = tmpDir + "SNP_Src/";
+    //    new File(outSnpSrc).mkdirs();
+    //
+    //        AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
+    //                                                 genotypeResult.getConfFile(),
+    //                                                 normalizationResult.getQuantNormFile(), maxWritersOpen,
+    //                                                 log);
+    //        AS6T.parseSNPTables(markerBuffer);
+    //
+    //    String outCNSrc = tmpDir + "CN_Src/";
+    //    new File(outCNSrc).mkdirs();
+    //
+    //    AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(),
+    //                                               maxWritersOpen, log);
+    //    AS6TCN.parseCNTable(markerBuffer);
+    //
+    //    proj.SOURCE_DIRECTORY.setValue("00src_CEL/");
+    //    proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
+    //    proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
+    //    proj.ID_HEADER.setValue("[FILENAME_ROOT]");
+    //    proj.LONG_FORMAT.setValue(false);
+    //
+    //    MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt",
+    //                             proj.SOURCE_DIRECTORY.getValue(true, true), log);
+    //
+    //    if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
+    //      Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(),
+    //                                      log);
+    //    }
+    //
+    //    proj.saveProperties();
   }
 
   public static final int DEFAULT_MARKER_BUFFER = 100;

@@ -45,7 +45,7 @@ public class AffySNP6Tables {
     this.log = log;
   }
 
-  public String parseCall(String callCode) {
+  public static String parseCall(String callCode, Logger log) {
     String call = "NC";
     if (callCode.equals("0")) {
       call = "AA";
@@ -62,15 +62,15 @@ public class AffySNP6Tables {
     return call;
   }
 
-  public double power2(String signal) {
+  public static double power2(String signal) {
     return (Math.pow(2, Double.parseDouble(signal)));
   }
 
   public void parseSNPLine(String[] calls, String[] confs, String[] sigA, String[] sigB) {
     for (int j = 1; j < calls.length; j++) {
-      indFiles[j - 1].append(calls[0] + "\t" + parseCall(calls[j]) + "\t" + confs[j] + "\t"
+      indFiles[j - 1].append(calls[0] + "\t" + parseCall(calls[j], log) + "\t" + confs[j] + "\t"
                              + Double.toString(power2(sigA[j])) + "\t"
-                             + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j])
+                             + Double.toString(power2(sigB[j])) + "\t" + parseCall(calls[j], log)
                              + "\n");
     }
   }
