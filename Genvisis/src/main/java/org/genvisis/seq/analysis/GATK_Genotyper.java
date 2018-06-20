@@ -108,8 +108,7 @@ public class GATK_Genotyper {
       }
 
       if (!annovar.isFail()) {
-        AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build.getAnnovarBuild(),
-                                                            numWithinSampleThreads, log);
+        AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, numWithinSampleThreads, log);
         in = annovarResults.getOutputVCF();
         out = annovarResults.getOutputVCF();
       }

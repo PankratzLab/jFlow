@@ -4,6 +4,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOTATION_BUILD;
 import org.genvisis.seq.manage.VCFOps;
 
 /**
@@ -15,8 +16,9 @@ public class ANNOVAR {
   public static final String TABLE_ANNOVAR = "table_annovar.pl";
   private static final String PROTOCOL = "-protocol";
   private static final String DEFAULT_PROTOCOLS = "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,mitimpact24";
-  private static final String OPERATION = "-operation";
   private static final String DEFAULT_OPERATIONS = "g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
+
+  private static final String OPERATION = "-operation";
   private static final String REMOVE = "-remove";
   private static final String DEFUALT_ANNOVAR_DB = "humandb/";
   private static final String BUILD_VERSION = "-buildver";
@@ -70,7 +72,8 @@ public class ANNOVAR {
     return fail;
   }
 
-  public AnnovarResults AnnovarAVCF(String inputVCF, String build, int numthreads, Logger log) {
+  public AnnovarResults AnnovarAVCF(String inputVCF, ANNOTATION_BUILD build, int numthreads,
+                                    Logger log) {
     AnnovarResults annovarResults = new AnnovarResults(inputVCF, build);
     annovarResults.parse();
     boolean progress = AnnovarAVCF(annovarResults.getInputVCF(), annovarResults.getOutput(),
@@ -83,16 +86,16 @@ public class ANNOVAR {
     return annovarResults;
   }
 
-  private boolean AnnovarAVCF(String inputVCF, String outputBase, String outputVCF, String build,
-                              int numthreads, Logger log) {
+  private boolean AnnovarAVCF(String inputVCF, String outputBase, String outputVCF,
+                              ANNOTATION_BUILD build, int numthreads, Logger log) {
     boolean progress = !fail;
     if (progress) {
       // THREAD, numthreads + ""
       String[] command = new String[] {PSF.Cmd.PERL, annovarLocation + TABLE_ANNOVAR, inputVCF,
-                                       annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION, build,
-                                       OUT, outputBase, REMOVE, PROTOCOL, DEFAULT_PROTOCOLS,
-                                       OPERATION, DEFAULT_OPERATIONS, NA_STRING, DEFAULT_NA_STRING,
-                                       VCF_INPUT};
+                                       annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION,
+                                       build.getAnnovarBuild(), OUT, outputBase, REMOVE, PROTOCOL,
+                                       DEFAULT_PROTOCOLS, OPERATION, DEFAULT_OPERATIONS, NA_STRING,
+                                       DEFAULT_NA_STRING, VCF_INPUT};
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF},
                                                   new String[] {outputVCF}, verbose,
                                                   overWriteExistingOutput, false, log);
@@ -103,13 +106,13 @@ public class ANNOVAR {
   public static class AnnovarResults {
 
     private final String inputVCF;
-    private final String build;
+    private final ANNOTATION_BUILD build;
     private String output;
     private String outputVCF;
     private boolean fail;
     private Logger log;
 
-    public AnnovarResults(String inputVCF, String build) {
+    public AnnovarResults(String inputVCF, ANNOTATION_BUILD build) {
       super();
       this.inputVCF = inputVCF;
       this.build = build;
@@ -125,7 +128,7 @@ public class ANNOVAR {
       return inputVCF;
     }
 
-    public String getBuild() {
+    public ANNOTATION_BUILD getBuild() {
       return build;
     }
 
