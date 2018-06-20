@@ -83,6 +83,22 @@ public class PhenoPrep {
     PhenoPrep prep;
     String[] covars;
 
+    if (Files.isRelativePath(idFile)) {
+      idFile = dir + idFile;
+    }
+
+    if (Files.isRelativePath(filename)) {
+      filename = dir + filename;
+    }
+
+    if (Files.isRelativePath(outFile)) {
+      outFile = dir + outFile;
+    }
+
+    if (Files.isRelativePath(extras)) {
+      extras = dir + extras;
+    }
+
     if (outFile == null) {
       outFile = pheno + "_out.csv";
       log.reportError("Warning - no output filename specified using [pheno]_out.csv (" + outFile
@@ -146,15 +162,14 @@ public class PhenoPrep {
       covars = ArrayUtils.insertStringAt(timeVariable, covars, 0);
     }
 
-    String[] header = Files.getHeaderOfFile(dir + filename, log);
+    String[] header = Files.getHeaderOfFile(filename, log);
     if (ext.indexOfStr(pheno, header) == -1 && pheno.endsWith(header[1])) {
       log.reportError("Warning - did not find specified phenotype '" + pheno + "', but did find '"
                       + header[1] + "', so using that instead");
       pheno = header[1];
     }
 
-    prep = new PhenoPrep(dir + filename, idFile == null ? null : dir + idFile, idColName, pheno,
-                         covars, log);
+    prep = new PhenoPrep(filename, idFile == null ? null : idFile, idColName, pheno, covars, log);
 
     if (prep.failed()) {
       log.report("Error - PhenoPrep failed for " + pheno);
@@ -189,14 +204,14 @@ public class PhenoPrep {
     }
 
     if (extras != null) {
-      prep.addExtraColumns(idColName, dir + extras);
+      prep.addExtraColumns(idColName, extras);
     }
 
     if (matchIdOrder) {
       if (idFile == null) {
         log.reportError("Error - match was selected, but no ID file was provided, skippping this step");
       } else {
-        prep.matchIdOrder(dir + idFile);
+        prep.matchIdOrder(idFile);
       }
     } else if (sort) {
       prep.sort();
@@ -206,12 +221,12 @@ public class PhenoPrep {
       prep.setFinalHeaderToCox();
     }
 
-    prep.writeFinalFile(dir + outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues,
-                        variablesAllInOneFile, dir + idFile, finalHeader);
-    prep.summarizeCentralMoments(dir + idFile);
+    prep.writeFinalFile(outFile, plinkFormat, pedFormat, fastFormat, excludeMissingValues,
+                        variablesAllInOneFile, idFile, finalHeader);
+    prep.summarizeCentralMoments(idFile);
 
     if (histogram) {
-      String[] parts = Files.getHeaderOfFile(dir + outFile, log);
+      String[] parts = Files.getHeaderOfFile(outFile, log);
       // int idIndex = ext.indexOfStr(idColName, parts);
       int dataIndex = ext.indexOfStr(fastFormat ? "Phenotype" : pheno, parts);
       if (dataIndex < 0) {
@@ -221,7 +236,7 @@ public class PhenoPrep {
         return;
       }
 
-      String[] dataStrs = HashVec.loadFileToStringArray(dir + outFile, true, new int[] {dataIndex},
+      String[] dataStrs = HashVec.loadFileToStringArray(outFile, true, new int[] {dataIndex},
                                                         false);
       String[] valid = ArrayUtils.removeMissingValues(dataStrs);
       int missing = dataStrs.length - valid.length;
