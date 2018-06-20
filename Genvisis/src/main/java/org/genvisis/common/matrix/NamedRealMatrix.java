@@ -9,13 +9,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.StringJoiner;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.data.DenseMatrix64F;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 
 /**
- * Attaches column and row names to a {@link RealMatrix}
+ * Attaches column and row names to a {@link DenseMatrix64F}
  */
 public class NamedRealMatrix implements Serializable {
 
@@ -32,7 +31,7 @@ public class NamedRealMatrix implements Serializable {
   /**
    * @param rowNameMap maps row names to row indices
    * @param columnNameMap maps column names to column indices
-   * @param m {@link RealMatrix} underlying data
+   * @param m {@link DenseMatrix64F} underlying data
    */
   public NamedRealMatrix(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap,
                          DenseMatrix64F m) {
@@ -57,8 +56,9 @@ public class NamedRealMatrix implements Serializable {
 
   void validateMap(Map<String, Integer> map, int numEntries) {
     if (map == null || map.size() != numEntries) {
-      throw new IllegalArgumentException("Mismatched mapped names length, map size=" + map.size()
-                                         + " should be " + numEntries);
+      throw new IllegalArgumentException("Mismatched mapped names length, map size="
+                                         + (map == null ? 0 : map.size()) + " should be "
+                                         + numEntries);
     }
     HashSet<Integer> indices = new HashSet<>();
     HashSet<String> keys = new HashSet<>();
@@ -108,7 +108,7 @@ public class NamedRealMatrix implements Serializable {
   }
 
   /**
-   * @return the m
+   * @return the {@link DenseMatrix64F} m
    */
   public DenseMatrix64F getM() {
     return m;
