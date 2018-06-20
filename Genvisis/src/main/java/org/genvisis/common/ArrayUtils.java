@@ -1716,6 +1716,7 @@ public class ArrayUtils {
     int[] order;
 
     order = Sort.getSortedIndices(array);
+
     quantiles = new double[array.length];
     for (int i = 0; i < quantiles.length; i++) {
       quantiles[order[i]] = ((double) i + 1) / ((double) quantiles.length + 1);
@@ -2214,11 +2215,21 @@ public class ArrayUtils {
   }
 
   /**
-   * @param collection a sorted {@link Collections} of {@link Number}s
+   * @param collection a sorted {@link List} of {@link Number}s
    * @return median of collection
    */
-  public static double medianSorted(Collection<? extends Number> collection) {
-    return medianSorted(collection.stream(), collection.size());
+  public static double medianSorted(List<? extends Number> collection) {
+    int size = collection.size();
+    if (size <= 0) return Double.NaN;
+    final int midpoint = size / 2;
+    double median;
+    if (size % 2 == 0) {
+      median = (collection.get(midpoint - 1).doubleValue() + collection.get(midpoint).doubleValue())
+               / 2.0;
+    } else {
+      median = collection.get(midpoint).doubleValue();
+    }
+    return median;
   }
 
   /**
@@ -2226,7 +2237,7 @@ public class ArrayUtils {
    * @return median of collection
    */
   public static double median(Collection<? extends Number> collection) {
-    return median(collection.stream(), collection.size());
+    return medianSorted(collection.stream(), collection.size());
   }
 
   /**

@@ -95,18 +95,18 @@ public class AnnotatedSegment extends Segment {
   public Annotation getAnnotation(Annotator<? extends AnnotatedSegment> annotator,
                                   String annoName) {
 
-    // 1) Get the set of annotations for annotator (instance):
+    // 1) Get the set of annotations for the given annotator 
     Collection<Annotation> annoList = annotations.get(annotator);
 
     // 2) Then see if it contains an annotation with annoName:
     for (Annotation annoInstance : annoList) {
 
-      // 3) If so return that annotation otherwise null;
-      if (annoInstance.getAnnotationName().equals(annoName)) {
+      // 3) If so return that annotation
+      if (annoInstance.hasName(annoName)) {
         return annoInstance;
       }
     }
-    // Otherwise:
+
     return null;
   }
 }

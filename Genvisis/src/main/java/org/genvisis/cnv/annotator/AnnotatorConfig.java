@@ -122,10 +122,10 @@ public class AnnotatorConfig {
       flankEndMarkerIndex = markers.getMarkerIndexMap().get(referenceMarker);
       flankEndMarkerIndex += markerDistance;
       // If you go over markers and there's none left in that direction (ensures this marker index is valid):
-      flankEndMarkerIndex = Math.min(flankEndMarkerIndex, markers.getMarkers().size() - 1);
+      flankEndMarkerIndex = Math.min(flankEndMarkerIndex, markers.markersAsList().size() - 1);
     }
 
-    basePairOffset = Math.abs(markers.getMarkers().get(flankEndMarkerIndex).getPosition()
+    basePairOffset = Math.abs(markers.markersAsList().get(flankEndMarkerIndex).getPosition()
                               - referenceMarker.getPosition());
 
     return basePairOffset;

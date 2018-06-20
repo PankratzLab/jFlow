@@ -1,7 +1,6 @@
 package org.genvisis.cnv.annotator;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.filesys.CNVariant;
@@ -23,17 +22,16 @@ public class CNVAnnoTester {
   public static void scoreCNVFile(Project proj, String cnvFile,
                                   boolean recomputeLRRsFromSexCentroids) {
 
+    long t = System.currentTimeMillis();
     // Take CNVs in original .cnv file list, convert them to segments:
     // Get a list of CNVariants:
     List<CNVariant> cnvs = CNVariant.loadPlinkFile(cnvFile, null, true);
 
-    // Sort the list as precaution:
-    Collections.sort(cnvs);
-
     // 1) Gather the segments into an AnnotatedCollection:
-    AnnotatedCollection<CNVariant> annotatedCollection = new AnnotatedCollection<>(cnvs);
+    AnnotatorConfig config = new AnnotatorConfig().setDoUpstream().setDoDownstream()
+                                                  .setUseSegmentSize();
+    AnnotatedCollection<CNVariant> annotatedCollection = new AnnotatedCollection<>(cnvs, config);
 
-    long t = System.currentTimeMillis();
     // 2) Create a BeastScoreAnnotator and annotate the collection
     BeastScoreAnnotator beastScoreAnnotator = new BeastScoreAnnotator(proj);
 
@@ -43,7 +41,7 @@ public class CNVAnnoTester {
     System.out.println("Took: " + (System.currentTimeMillis() - t) + "ms");
 
     try {
-      annotatedCollection.writeResults("C:\\Users\\Mark Hiner\\Desktop\\Illumina\\Omni2_5_1000g_Genvisis\\cnvs\\beastTest.annotated");
+      annotatedCollection.writeResults("C:\\Users\\Mark Hiner\\Desktop\\Illumina\\Omni2_5_1000g_Genvisis\\cnvs\\beastTest.annotated.cnv");
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -64,7 +62,7 @@ public class CNVAnnoTester {
     // Read in .cnv file:
     // String cnvFile = "/Users/taylorkuebler/PennCNV_calls34.cnv";
     // COPY OF ABOVE, FOR TESTING ONLY (SMALL SUBSET OF DATA FOR DEBUGGING)
-    String cnvFile = "C:\\Users\\Mark Hiner\\Desktop\\Illumina\\Omni2_5_1000g_Genvisis\\cnvs\\beastTest.cnv";
+    String cnvFile = "C:\\Users\\Mark Hiner\\Desktop\\Illumina\\Omni2_5_1000g_Genvisis\\cnvs\\genvisis.cnv";
 
     // scoreCNVfile to derive BEAST height, score, and individual sex annotations for each CNV,
     // store in new .cnv file:

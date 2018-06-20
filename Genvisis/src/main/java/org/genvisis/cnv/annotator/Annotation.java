@@ -23,6 +23,13 @@ public class Annotation {
     this.annoValue = annoValue;
   }
 
+  /**
+   * @return True if this annotation has the same name as the given string
+   */
+  public boolean hasName(String name) {
+    return annoName.equals(name);
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;

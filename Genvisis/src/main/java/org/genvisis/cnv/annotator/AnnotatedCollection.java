@@ -20,13 +20,20 @@ public class AnnotatedCollection<A extends AnnotatedSegment> implements Collecti
   private List<Annotator<? super A>> annotators = new ArrayList<>();
   private ImmutableList<Annotator<? super A>> cachedAnnotators;
 
-  // Takes a Collection of A (passes to next):
+  /**
+   * Create a collection with the default {@link AnnotatorConfig}
+   *
+   * @see #AnnotatedCollection(Collection, AnnotatorConfig)
+   */
   public AnnotatedCollection(Collection<A> delegate) {
-    this(new AnnotatorConfig(), delegate);
+    this(delegate, new AnnotatorConfig());
   }
 
-  // Takes a Collection of A (master constructor, assign fields/variables, so doing just once):
-  public AnnotatedCollection(AnnotatorConfig config, Collection<A> delegate) {
+  /**
+   * @param delegate Underlying collection of {@link AnnotatedSegment}s to annotate
+   * @param config {@link AnnotatorConfig} to use when annotating this collection
+   */
+  public AnnotatedCollection(Collection<A> delegate, AnnotatorConfig config) {
     this.delegate = delegate;
     this.config = config;
   }
@@ -35,9 +42,9 @@ public class AnnotatedCollection<A extends AnnotatedSegment> implements Collecti
    * Record that an {@link Annotator} was used on this collection
    */
   public void addAnnotator(Annotator<? super A> annotator) {
-    // Add annotator to list of annotators:
     annotators.add(annotator);
-    // Clear the cached list
+
+    // Clear cached annotators
     if (cachedAnnotators != null) {
       cachedAnnotators = null;
     }
