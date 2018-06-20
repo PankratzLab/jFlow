@@ -5,6 +5,7 @@ import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOTATION_BUILD;
 import org.genvisis.seq.manage.VCFOps;
 
 // TODO counts
@@ -31,7 +32,6 @@ public class SNPEFF {
 
   public static final String O = "-o";
   public static final String GATK = "gatk";
-  public static final String[] BUILDS = {"hg19"};
   public static final String CARROT = ">";
 
   private String snpEffLocation;
@@ -212,11 +212,12 @@ public class SNPEFF {
     String snpEffLocation = "/home/pankrat2/public/bin/snpEff/";
     String inputDirectory = "/home/tsaim/shared/Project_Tsai_Project_021/bam/";
     String bedFile = "/home/tsaim/lane0212/bin/ref/S04380219_Regions.bed";
-    String build = BUILDS[0];
+    ANNOTATION_BUILD build = ANNOTATION_BUILD.HG19;
     String match = ".bam";
     int numThreads = 2;
     Logger log = new Logger(inputDirectory + "snpEff.log");
-    testCounts(snpEffLocation, inputDirectory, build, match, bedFile, numThreads, log);
+    testCounts(snpEffLocation, inputDirectory, build.getSnpEffBuild(), match, bedFile, numThreads,
+               log);
 
     // String usage = "\n" + "seq.analysis.SNPEFF requires 0-1 arguments\n" + " (1) filename (i.e.
     // file=" + filename + " (default))\n" + "";

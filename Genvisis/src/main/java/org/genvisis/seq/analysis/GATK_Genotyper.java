@@ -91,7 +91,8 @@ public class GATK_Genotyper {
     return progress;
   }
 
-  public String annotateVCF(String inputVCF, String build, MergeVCF mergeVCF, ANNOVCF annoVCF) {
+  public String annotateVCF(String inputVCF, ANNOTATION_BUILD build, MergeVCF mergeVCF,
+                            ANNOVCF annoVCF) {
     if (!fail) {
       String in = inputVCF;
       String out = "";
@@ -107,12 +108,13 @@ public class GATK_Genotyper {
       }
 
       if (!annovar.isFail()) {
-        AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build, numWithinSampleThreads, log);
+        AnnovarResults annovarResults = annovar.AnnovarAVCF(in, build.getAnnovarBuild(),
+                                                            numWithinSampleThreads, log);
         in = annovarResults.getOutputVCF();
         out = annovarResults.getOutputVCF();
       }
       if (!snpeff.isFail()) {
-        SnpEffResult snpEffResult = snpeff.annotateAVCF(in, build);
+        SnpEffResult snpEffResult = snpeff.annotateAVCF(in, build.getSnpEffBuild());
         gatk.annotateAVcfWithSnpEFF(snpEffResult, false);
         out = snpEffResult.getOutputGatkSnpEffVCF();
         if (!snpEffResult.isFail()) {
@@ -465,10 +467,10 @@ public class GATK_Genotyper {
                                    String gATKLocation, String referenceGenomeFasta,
                                    String fileOfGVCFs, Map<RESOURCE, String> trainingResources,
                                    String snpEffLocation, String snpSiftLocation,
-                                   String annovarLocation, String annoBuild, String regionsFile,
-                                   SEQ_TARGET seqTarget, MergeVCF mergeVCF, ANNOVCF annoVCF,
-                                   boolean verbose, boolean overwriteExisting, boolean batch,
-                                   boolean annotate, boolean ignoreInbreeding,
+                                   String annovarLocation, ANNOTATION_BUILD annoBuild,
+                                   String regionsFile, SEQ_TARGET seqTarget, MergeVCF mergeVCF,
+                                   ANNOVCF annoVCF, boolean verbose, boolean overwriteExisting,
+                                   boolean batch, boolean annotate, boolean ignoreInbreeding,
                                    boolean skipRecalibration, int numThreads, int memoryInMB,
                                    int wallTimeInHours, Logger log) {
     GATK gatk = new GATK(gATKLocation, referenceGenomeFasta, regionsFile, seqTarget, null,
@@ -522,15 +524,16 @@ public class GATK_Genotyper {
                                                         Logger log) {
     return annotateOnly(vcf, AnnotationDefaults.GATK_LOC, AnnotationDefaults.REF, SEQ_TARGET.GENOME,
                         memoryInMB, null, AnnotationDefaults.SNP_EFF, null,
-                        AnnotationDefaults.ANNOVAR, SNPEFF.BUILDS[0], annoVCF, verbose,
+                        AnnotationDefaults.ANNOVAR, ANNOTATION_BUILD.HG19, annoVCF, verbose,
                         overwriteExisting, log);
   }
 
   public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
                                     SEQ_TARGET seqTarget, int memoryInMB, String fileOfGVCFs,
                                     String snpEffLocation, String snpSiftLocation,
-                                    String annovarLocation, String annoBuild, ANNOVCF annoVCF,
-                                    boolean verbose, boolean overwriteExisting, Logger log) {
+                                    String annovarLocation, ANNOTATION_BUILD annoBuild,
+                                    ANNOVCF annoVCF, boolean verbose, boolean overwriteExisting,
+                                    Logger log) {
     String snpSiftLoc = snpSiftLocation;
     if (snpSiftLoc == null || snpSiftLoc.equals(PSF.Ext.BLANK)) {
       snpSiftLoc = snpEffLocation;
@@ -547,8 +550,8 @@ public class GATK_Genotyper {
 
   public static String annotateOnly(String vcf, String gATKLocation, String referenceGenomeFasta,
                                     int memoryInMB, String snpEffLocation, String snpSiftLocation,
-                                    String annovarLocation, String annoBuild, boolean verbose,
-                                    boolean overwriteExisting, Logger log) {
+                                    String annovarLocation, ANNOTATION_BUILD annoBuild,
+                                    boolean verbose, boolean overwriteExisting, Logger log) {
     return annotateOnly(vcf, gATKLocation, referenceGenomeFasta, SEQ_TARGET.GENOME, memoryInMB,
                         null, snpEffLocation, snpSiftLocation, annovarLocation, annoBuild, null,
                         verbose, overwriteExisting, log);
@@ -653,6 +656,33 @@ public class GATK_Genotyper {
   public static final String MERGE_WITH = "mergeWith=";
   public static final String EXTRA_VCF_ANNOTATIONS = "extraVCFAnno=";
 
+  public enum ANNOTATION_BUILD {
+    HG19("hg19", "hg19"), HG38("hg38", "GRCh38.86");
+
+    private String annovarBuild;
+    private String snpEffBuild;
+
+    private ANNOTATION_BUILD(String annovarBuild, String snpEffBuild) {
+      this.annovarBuild = annovarBuild;
+      this.snpEffBuild = snpEffBuild;
+    }
+
+    /**
+     * @return the annovarBuild
+     */
+    public String getAnnovarBuild() {
+      return annovarBuild;
+    }
+
+    /**
+     * @return the snpEffBuild
+     */
+    public String getSnpEffBuild() {
+      return snpEffBuild;
+    }
+
+  }
+
   public static void main(String[] args) {
 
     int numArgs = args.length;
@@ -672,7 +702,7 @@ public class GATK_Genotyper {
     String snpEffLocation = PSF.Ext.BLANK;
     String snpSiftLocation = PSF.Ext.BLANK;
     String annovarLocation = PSF.Ext.BLANK;
-    String annoBuild = SNPEFF.BUILDS[0];
+    ANNOTATION_BUILD annoBuild = ANNOTATION_BUILD.HG19;
     String vcfToAnnotate = null;
     boolean annotate = true;
     boolean ignoreInbreeding = false;
@@ -717,8 +747,8 @@ public class GATK_Genotyper {
     usage += "   (" + argNum++ + ") full path to the SNP EFF directory (i.e. "
              + SNPEFF.SNP_EFF_COMMAND + " ( no default))\n" + "";
     usage += "   (" + argNum++ + ") the build version for SNP EFF annotation (options are "
-             + ArrayUtils.toStr(SNPEFF.BUILDS, ", ") + " (i.e. " + SNPEFF.SNP_EFF_BUILD_COMMAND
-             + annoBuild + " ( default))\n" + "";
+             + ArrayUtils.toStr(ANNOTATION_BUILD.values(), ", ") + " (i.e. "
+             + SNPEFF.SNP_EFF_BUILD_COMMAND + annoBuild.toString() + " ( default))\n" + "";
     usage += "   (" + argNum++
              + ") full path to the SNP SIFT directory (only if different from the SNP EFF directory) (i.e. "
              + SNPSIFT.SNP_SIFT_LOCATION_COMMAND + " ( no default))\n" + "";
@@ -834,6 +864,9 @@ public class GATK_Genotyper {
         numArgs--;
       } else if (arg.startsWith(EXTRA_VCF_ANNOTATIONS)) {
         annoVCF = ANNOVCF.fromArg(arg);
+        numArgs--;
+      } else if (arg.startsWith(SNPEFF.SNP_EFF_BUILD_COMMAND)) {
+        annoBuild = ANNOTATION_BUILD.valueOf(arg);
         numArgs--;
       } else if (ext.startsWithOneOf(arg, GATK.RESOURCE.names())) {
         String name = arg.substring(0, arg.indexOf('='));

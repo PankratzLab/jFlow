@@ -22,6 +22,7 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.VCFExport;
 import org.genvisis.seq.analysis.ANNOVAR;
 import org.genvisis.seq.analysis.GATK_Genotyper;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOTATION_BUILD;
 import org.genvisis.seq.analysis.SNPEFF;
 
 public class MapSNPsAndGenes {
@@ -261,8 +262,8 @@ public class MapSNPsAndGenes {
         // TODO error occurred!
       }
       output = GATK_Genotyper.annotateOnly(input, "", "", PSF.Ext.DEFAULT_MEMORY_MB, snpEffLoc,
-                                           snpEffLoc, annovarLoc, SNPEFF.BUILDS[0], true, false,
-                                           log);
+                                           snpEffLoc, annovarLoc, ANNOTATION_BUILD.HG19, true,
+                                           false, log);
     } else if (snpEff) {
       output = SNPEffAnnotation.pipeline(ext.rootOf(dir + snps, false) + "_positions.xln",
                                          SNPEffAnnotation.getDefaultConfigFile(), log);

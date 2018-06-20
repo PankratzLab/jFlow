@@ -20,6 +20,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.analysis.GATK_Genotyper.ANNOTATION_BUILD;
 import org.genvisis.seq.analysis.SNPEFF;
 import org.genvisis.stats.Histogram;
 import org.genvisis.stats.Histogram.DynamicHistogram;
@@ -342,8 +343,8 @@ public class BamQC {
                                                           new StringBuilder(String.valueOf(baitsAsTarget ? ".libraryBaitsResults.summary"
                                                                                                          : ".libraryResults.summary")).append("count")
                                                                                                                                       .toString()),
-                                SNPEFF.BUILDS[0], baitsAsTarget ? null : targetLibraryFile,
-                                numThreads);
+                                ANNOTATION_BUILD.HG19.getSnpEffBuild(),
+                                baitsAsTarget ? null : targetLibraryFile, numThreads);
         }
       }
     }
