@@ -485,7 +485,7 @@ public class Emim {
     }
     commands = "cd " + currDir + "\n" + commands;
 
-    Qsub.qsub(emimPBS, commands, 32000, 6, 1);
+    Qsub.qsub(emimPBS, commands, 32000, 12, 1);
 
     return runPremimPBS ? premimPBS : emimPBS;
   }
