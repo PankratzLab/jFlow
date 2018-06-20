@@ -1317,6 +1317,9 @@ public class ArrayUtils {
   }
 
   public static <T extends Number> double mean(Collection<T> collection) {
+    if (collection.isEmpty()) {
+      return 0.0;
+    }
     return sum(collection) / collection.size();
   }
 
