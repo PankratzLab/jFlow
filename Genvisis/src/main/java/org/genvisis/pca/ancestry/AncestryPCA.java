@@ -72,8 +72,9 @@ public class AncestryPCA {
       }
       Stats stats = statsAccumulator.snapshot();
       double possible = (double) (2 + 2 * stats.count());
-      double pi = (1 + stats.sum()) / possible;
-      double norm = Math.sqrt(pi * (1 - pi));
+      double posteriorEstimateOfAlleleFrequency = (1 + stats.sum()) / possible;
+      double norm = Math.sqrt(posteriorEstimateOfAlleleFrequency
+                              * (1 - posteriorEstimateOfAlleleFrequency));
       for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
         double val = m.getDenseMatrix().get(row, column);
         if (isNonMissing(val)) {
