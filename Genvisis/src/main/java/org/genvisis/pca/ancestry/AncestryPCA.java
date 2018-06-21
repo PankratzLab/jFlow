@@ -3,6 +3,8 @@
  */
 package org.genvisis.pca.ancestry;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.NamedRealMatrix;
@@ -15,8 +17,13 @@ import com.google.common.math.StatsAccumulator;
  */
 public class AncestryPCA {
 
-  private AncestryPCA() {
+  private final SVD svd;
 
+  private final Map<String, Stats> statMap;
+
+  private AncestryPCA(SVD svd, Map<String, Stats> statMap) {
+    this.svd = svd;
+    this.statMap = statMap;
   }
 
   /**
@@ -28,7 +35,8 @@ public class AncestryPCA {
   public static SVD generatePCs(MatrixDataLoading loader, int numComponents, Logger log) {
     NamedRealMatrix m = loader.getData();
 
-    normalizeGenotypeData(m, log);
+    Map<String, Stats> statMap = generateStats(m, log);
+    normalizeGenotypeData(m, statMap, log);
     return computePCA(m, numComponents, log);
   }
 
@@ -41,20 +49,18 @@ public class AncestryPCA {
   public static NamedRealMatrix extrapolatePCs(SVD svd, MatrixDataLoading loader, Logger log) {
     NamedRealMatrix m = loader.getData();
 
-    normalizeGenotypeData(m, log);
+    Map<String, Stats> statMap = generateStats(m, log);
+    normalizeGenotypeData(m, statMap, log);
     return svd.getExtraploatedPCs(m, log);
   }
 
   /**
-   * Prepares genotype data for PCA (see https://www.nature.com/articles/ng1847). Can also be used
-   * to prepare data for extrapolating PCs
-   * 
-   * @param m {@link NamedRealMatrix} with genotypes to prepare
+   * @param m compute {@link Stats} for each marker (row)
    * @param log
-   * @return
+   * @return Map from row name to {@link Stats}
    */
-  static void normalizeGenotypeData(NamedRealMatrix m, Logger log) {
-
+  private static Map<String, Stats> generateStats(NamedRealMatrix m, Logger log) {
+    Map<String, Stats> statMap = new HashMap<>();
     log.reportTimeInfo("Preparing genotype data");
     for (int row = 0; row < m.getDenseMatrix().numRows; row++) {
       StatsAccumulator statsAccumulator = new StatsAccumulator();
@@ -71,10 +77,27 @@ public class AncestryPCA {
         }
       }
       Stats stats = statsAccumulator.snapshot();
-      double possible = (double) (2 + 2 * stats.count());
-      double posteriorEstimateOfAlleleFrequency = (1 + stats.sum()) / possible;
-      double norm = Math.sqrt(posteriorEstimateOfAlleleFrequency
-                              * (1 - posteriorEstimateOfAlleleFrequency));
+      statMap.put(m.getIndexRowMap().get(row), stats);
+    }
+    return statMap;
+  }
+
+  /**
+   * Prepares genotype data for PCA (see https://www.nature.com/articles/ng1847). Can also be used
+   * to prepare data for extrapolating PCs
+   * 
+   * @param m {@link NamedRealMatrix} with genotypes to prepare
+   * @param statMap a map from row names to the marker {@link Stats} required for normalization
+   * @param log
+   * @return
+   */
+  private static Map<String, Stats> normalizeGenotypeData(NamedRealMatrix m,
+                                                          Map<String, Stats> statMap, Logger log) {
+    for (int row = 0; row < m.getDenseMatrix().numRows; row++) {
+
+      Stats stats = statMap.get(m.getIndexRowMap().get(row));
+
+      double norm = getNormalizationFactor(stats);
       for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
         double val = m.getDenseMatrix().get(row, column);
         if (isNonMissing(val)) {
@@ -87,7 +110,14 @@ public class AncestryPCA {
       }
     }
     log.reportTimeInfo("Finished preparing genotype data");
+    return statMap;
 
+  }
+
+  private static double getNormalizationFactor(Stats stats) {
+    double possible = (double) (2 + 2 * stats.count());
+    double posteriorEstimateOfAlleleFrequency = (1 + stats.sum()) / possible;
+    return Math.sqrt(posteriorEstimateOfAlleleFrequency * (1 - posteriorEstimateOfAlleleFrequency));
   }
 
   private static boolean isNonMissing(double val) {
@@ -101,7 +131,7 @@ public class AncestryPCA {
 
   /**
    * @param m {@link NamedRealMatrix} that has been prepared with
-   *          {@link AncestryPCA#normalizeGenotypeData(NamedRealMatrix, Logger)}
+   *          {@link AncestryPCA#generateStats(NamedRealMatrix, Logger)}
    * @param log
    * @return {@link SVD}
    */

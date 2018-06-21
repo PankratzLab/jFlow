@@ -26,7 +26,7 @@ public class TestAncPCA {
 
     }
     SVD svd = SVD.readSerial(ser);
-    svd.dumpPCsToText(outDir + "test", "SAMPLE", log);
+    svd.dumpPCsToText(outDir + "test", "FID\tIID", log);
     svd.dumpLoadingsToText(outDir + "test", "MARKER", log);
 
     AncestryPCA.extrapolatePCs(svd, new PlinkDataMatrixLoader(dir, plinkRoot, log), log)
