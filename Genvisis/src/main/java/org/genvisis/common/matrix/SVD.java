@@ -61,6 +61,20 @@ public class SVD extends NamedRealMatrix {
   }
 
   /**
+   * @return the {@link RealMatrix} v, in our case we usually call em "PCs"
+   */
+  public RealMatrix getPCs() {
+    return v;
+  }
+
+  /**
+   * @return the {@link NamedRealMatrix} loadings
+   */
+  public NamedRealMatrix getLoadings() {
+    return loadings;
+  }
+
+  /**
    * @param outputRoot full path - ".pcs.gz" will be appended to the output root
    * @param columnOneTitle the first column will have this entry in the header (e.g "PCs", "SAMPLE")
    * @param log {@link Logger}
