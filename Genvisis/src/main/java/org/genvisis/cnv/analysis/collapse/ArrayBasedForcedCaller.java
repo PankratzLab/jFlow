@@ -6,6 +6,7 @@ package org.genvisis.cnv.analysis.collapse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
@@ -40,14 +41,11 @@ abstract class ArrayBasedForcedCaller<T extends Segment> extends ForcedCaller<T>
     List<int[]> indicesInProjectToCall = new ArrayList<>();
     Map<Marker, Integer> map = markerDetailSet.getMarkerIndexMap();
     for (E t : regions.getLoci()) {
-      Iterable<Marker> markers = markerDetailSet.viewMarkersInSeg(t);
+      Stream<Marker> markers = markerDetailSet.viewMarkersInSeg(t);
       List<Integer> useIndices = new ArrayList<>();
 
-      for (Marker marker : markers) {
-        int index = map.get(marker);
-        if (use != null && use[index]) {
-          useIndices.add(index);
-        }
+      if (use != null) {
+        markers.mapToInt(map::get).filter(i -> use[i]).forEach(useIndices::add);
       }
       indicesInProjectToCall.add(useIndices.stream().mapToInt(i -> i).toArray());
     }

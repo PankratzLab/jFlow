@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.stream.Stream;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -82,8 +83,8 @@ public class HMMParameterizer {
         byte[] genos = samp.getAB_Genotypes();
 
         for (CNVariant cnv : sampSet.getLoci()) {
-          Iterable<Marker> cnvMarks = markerDetailSet.viewMarkersInSeg(cnv);
-          for (Marker cnvMark : cnvMarks) {
+          Stream<Marker> cnvMarks = markerDetailSet.viewMarkersInSeg(cnv);
+          cnvMarks.forEach(cnvMark -> {
             double lrr = lrrs[markerIndexMap.get(cnvMark)];
             if (Double.isFinite(lrr) && cnv.getSize() > minbp && cnv.getNumMarkers() > minP) {
               lrrstats.get(cnv.getCN()).add(lrr);
@@ -141,7 +142,7 @@ public class HMMParameterizer {
             }
 
             notAccountedFor.remove(cnvMark);
-          }
+          });
         }
 
         for (Marker notAccountedForMarker : notAccountedFor) {

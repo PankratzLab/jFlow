@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSet;
@@ -43,7 +44,6 @@ import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Doubles;
@@ -1812,12 +1812,9 @@ public class FilterCalls {
 
     System.out.println(ext.getTime() + "\tDetermining acceptability...");
     for (int i = 0; i < cnvs.length; i++) {
-      Iterable<Marker> markersInCNV = markerSet.viewMarkersInSeg(cnvs[i]);
-      if (cnvs[i].getCN() < 2) {
-        Iterables.addAll(delCounts, markersInCNV);
-      } else {
-        Iterables.addAll(dupCounts, markersInCNV);
-      }
+      Stream<Marker> markersInCNV = markerSet.viewMarkersInSeg(cnvs[i]);
+      Multiset<Marker> countDestination = cnvs[i].getCN() < 2 ? delCounts : dupCounts;
+      markersInCNV.forEach(countDestination::add);
     }
     Set<Marker> acceptables = Sets.newHashSet();
     for (Marker marker : markerSet.markersAsList()) {

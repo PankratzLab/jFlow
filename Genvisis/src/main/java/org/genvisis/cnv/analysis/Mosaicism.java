@@ -39,6 +39,7 @@ import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Floats;
@@ -72,15 +73,17 @@ public class Mosaicism {
       int min = 0;
       int max = Integer.MAX_VALUE;
       int centromere = Positions.CENTROMERE_MIDPOINTS[chr];
-      Iterable<Marker> pMarkers = markerSet.viewMarkersInSeg(new Segment(chr, min,
-                                                                         Math.max(0,
-                                                                                  centromere - 1)));
-      Iterable<Marker> qMarkers = markerSet.viewMarkersInSeg(new Segment(chr,
-                                                                         Math.max(0, centromere),
-                                                                         max));
+      ImmutableSortedSet<Marker> pMarkers = markerSet.getMarkersInSeg(new Segment(chr, min,
+                                                                                  Math.max(0,
+                                                                                           centromere
+                                                                                              - 1)));
+      ImmutableSortedSet<Marker> qMarkers = markerSet.getMarkersInSeg(new Segment(chr,
+                                                                                  Math.max(0,
+                                                                                           centromere),
+                                                                                  max));
       chrArmPMarkers.put(chr, pMarkers);
       chrArmQMarkers.put(chr, qMarkers);
-      if (Iterables.isEmpty(pMarkers) && Iterables.isEmpty(qMarkers)) {
+      if (pMarkers.isEmpty() && qMarkers.isEmpty()) {
         System.err.println("Error - no data for chromosome '" + chr + "'");
       }
     }

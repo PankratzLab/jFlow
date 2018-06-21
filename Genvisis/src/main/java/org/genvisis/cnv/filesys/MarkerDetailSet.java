@@ -7,13 +7,13 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.stream.Stream;
 import org.genvisis.CLI;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
@@ -40,6 +40,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Doubles;
@@ -698,7 +699,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * @return {@link ImmutableSortedSet} of Markers in seg
    */
   public ImmutableSortedSet<Marker> getMarkersInSeg(Segment seg) {
-    return ImmutableSortedSet.copyOf(viewMarkersInSeg(seg));
+    return viewMarkersInSeg(seg).collect(ImmutableSortedSet.toImmutableSortedSet(Ordering.natural()));
   }
 
   /**
@@ -706,14 +707,14 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    *
    * @see #viewMarkersInSeg(GenomicPosition, GenomicPosition)
    */
-  public Iterable<Marker> viewMarkersInSeg(Segment seg) {
+  public Stream<Marker> viewMarkersInSeg(Segment seg) {
     return viewMarkersInSeg(seg.getChr(), seg.getStart(), seg.getStop());
   }
 
   /**
    * @see #viewMarkersInSeg(GenomicPosition, GenomicPosition)
    */
-  public Iterable<Marker> viewMarkersInSeg(byte chr, int start, int stop) {
+  public Stream<Marker> viewMarkersInSeg(byte chr, int start, int stop) {
     return viewMarkersInSeg(new GenomicPosition(chr, start), new GenomicPosition(chr, stop));
   }
 
@@ -722,9 +723,10 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * @param stop Last position of the desired region
    * @return an Iterable that iterates over the {@link Marker}s in the specified region
    */
-  public Iterable<Marker> viewMarkersInSeg(GenomicPosition start, GenomicPosition stop) {
+  public Stream<Marker> viewMarkersInSeg(GenomicPosition start, GenomicPosition stop) {
     NavigableMap<GenomicPosition, NavigableSet<Marker>> positionMap = getGenomicPositionMap();
-    return Iterables.concat(positionMap.subMap(start, true, stop, true).values());
+    return positionMap.subMap(start, true, stop, true).values().stream()
+                      .flatMap(Collection::stream);
   }
 
   /**
@@ -838,26 +840,16 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
   @Override
   @Deprecated
   public int[] getIndicesOfMarkersIn(Segment seg, int[][] indicesByChr, Logger log) {
-    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
-    Iterator<Marker> segMarkersIter = segMarkers.iterator();
     Map<Marker, Integer> markerIndexMap = getMarkerIndexMap();
-    int[] segMarkerIndices = new int[Iterables.size(segMarkers)];
-    for (int i = 0; i < segMarkerIndices.length; i++) {
-      segMarkerIndices[i] = markerIndexMap.get(segMarkersIter.next());
-    }
-    return segMarkerIndices;
+    Stream<Marker> segMarkers = viewMarkersInSeg(seg);
+    return segMarkers.mapToInt(markerIndexMap::get).toArray();
   }
 
   @Override
   @Deprecated
   public String[] getMarkersIn(Segment seg, int[][] indicesByChr) {
-    Iterable<Marker> segMarkers = viewMarkersInSeg(seg);
-    Iterator<Marker> segMarkersIter = segMarkers.iterator();
-    String[] segMarkerNames = new String[Iterables.size(segMarkers)];
-    for (int i = 0; i < segMarkerNames.length; i++) {
-      segMarkerNames[i] = segMarkersIter.next().getName();
-    }
-    return segMarkerNames;
+    Stream<Marker> segMarkers = viewMarkersInSeg(seg);
+    return segMarkers.map(Marker::getName).toArray(String[]::new);
   }
 
   @Override

@@ -166,7 +166,7 @@ public class MosaicismDetect {
       for (int i = 0; i < dud.getLoci().length; i++) {
         CNVBuilder builder = new CNVBuilder(dud.getLoci()[i]);
         int numFMarkers = dud.getLoci()[i].getNumMarkers();
-        builder.numMarkers(Iterables.size(proj.getMarkerSet().viewMarkersInSeg(dud.getLoci()[i])));
+        builder.numMarkers((int) proj.getMarkerSet().viewMarkersInSeg(dud.getLoci()[i]).count());
         if (force) {
           builder.chr(seg.getChr());
           builder.start(seg.getStart());
