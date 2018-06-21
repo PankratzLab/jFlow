@@ -140,7 +140,7 @@ public class ANNOVAR {
 
     public void parse() {
       output = VCFOps.getAppropriateRoot(inputVCF, false);
-      outputVCF = output + "." + build + "_" + MULTI_ANNO;
+      outputVCF = output + "." + build.getAnnovarBuild() + "_" + MULTI_ANNO;
     }
 
     public String getInputVCF() {
