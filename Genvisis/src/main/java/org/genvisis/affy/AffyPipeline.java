@@ -590,6 +590,7 @@ public class AffyPipeline {
     }
 
     AffyParsingPipeline parser = new AffyParsingPipeline();
+    parser.setProject(proj);
     parser.setCallFile(genotypeResult.getCallFile());
     parser.setConfFile(genotypeResult.getConfFile());
     parser.setSigFile(normalizationResult.getQuantNormFile());
