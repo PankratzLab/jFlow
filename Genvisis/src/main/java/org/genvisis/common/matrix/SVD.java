@@ -179,8 +179,7 @@ public class SVD extends NamedRealMatrix {
   // TODO, could refactor to static method that just takes singular values "w" and loadings "u"
 
   public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
-    if (!other.getRowNameMap().keySet().containsAll(getRowNameMap().keySet())
-        || getRowNameMap().keySet().size() != other.getRowNameMap().keySet().size()) {
+    if (!getRowNameMap().keySet().equals(other.getRowNameMap().keySet())) {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }
     log.reportTimeInfo("Extrapolating PCs");
