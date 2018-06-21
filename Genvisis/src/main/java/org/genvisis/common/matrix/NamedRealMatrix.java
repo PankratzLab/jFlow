@@ -110,7 +110,7 @@ public class NamedRealMatrix implements Serializable {
   /**
    * @return the {@link DenseMatrix64F} m
    */
-  public DenseMatrix64F getM() {
+  public DenseMatrix64F getDenseMatrix() {
     return m;
   }
 

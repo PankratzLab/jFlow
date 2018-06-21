@@ -283,14 +283,15 @@ public class TestAncestryPCA {
 
     InputProvider inputProvider = new InputProvider(INPUT);
     NamedRealMatrix m = inputProvider.getData();
-    assertEquals(10, m.getM().getNumCols());//samples
-    assertEquals(11, m.getM().getNumRows());//markers
+    assertEquals(10, m.getDenseMatrix().getNumCols());//samples
+    assertEquals(11, m.getDenseMatrix().getNumRows());//markers
     Logger log = new Logger();
     SVD svd = AncestryPCA.generatePCs(inputProvider, 5, log);
     comparePCsToStandard(svd.getPCs(), OUTPUT_PCS);
     compareLoadingsToStandard(svd.getLoadings(), OUTPUT_LOADINGS);
 
-    comparePCsToStandard(AncestryPCA.extrapolatePCs(svd, inputProvider, log).getM(), OUTPUT_PCS);
+    comparePCsToStandard(AncestryPCA.extrapolatePCs(svd, inputProvider, log).getDenseMatrix(),
+                         OUTPUT_PCS);
 
   }
 
@@ -341,13 +342,13 @@ public class TestAncestryPCA {
   }
 
   void compareLoadingsToStandard(NamedRealMatrix loadings, double[][] standardLoadings) {
-    for (int component = 0; component < loadings.getM().numCols; component++) {//
+    for (int component = 0; component < loadings.getDenseMatrix().numCols; component++) {//
       boolean flip = false;
 
-      for (int marker = 0; marker < loadings.getM().numRows; marker++) {
+      for (int marker = 0; marker < loadings.getDenseMatrix().numRows; marker++) {
 
         double standard = standardLoadings[marker][component];
-        double test = loadings.getM().get(marker, component);
+        double test = loadings.getDenseMatrix().get(marker, component);
         if (marker == 0 && ((standard < 0 && test > 0) || (standard > 0 && test < 0))) {
           flip = true;
         }

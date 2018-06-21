@@ -156,7 +156,7 @@ public class SVD extends NamedRealMatrix {
   //TODO - could potentially read marker and dump loading line by line
   private void computeLoadings() {
     //    Will have all markers, but not all "PCs" all the time
-    DenseMatrix64F loadingData = new DenseMatrix64F(getM().numRows, numComponents);
+    DenseMatrix64F loadingData = new DenseMatrix64F(getDenseMatrix().numRows, numComponents);
 
     Map<String, Integer> rowMap = new HashMap<>();
     for (int row = 0; row < m.numRows; row++) {
@@ -195,12 +195,12 @@ public class SVD extends NamedRealMatrix {
       pcMap.put(namedComponents.get(i), i);
     }
 
-    DenseMatrix64F pcs = new DenseMatrix64F(other.getM().numCols, numComponents);
-    for (int row = 0; row < other.getM().numRows; row++) {
+    DenseMatrix64F pcs = new DenseMatrix64F(other.getDenseMatrix().numCols, numComponents);
+    for (int row = 0; row < other.getDenseMatrix().numRows; row++) {
       for (int component = 0; component < numComponents; component++) {
-        for (int column = 0; column < other.getM().numCols; column++) {
-          pcs.add(column, component,
-                  other.getM().get(row, column) * loadings.getM().get(row, component));
+        for (int column = 0; column < other.getDenseMatrix().numCols; column++) {
+          pcs.add(column, component, other.getDenseMatrix().get(row, column)
+                                     * loadings.getDenseMatrix().get(row, component));
         }
       }
     }
@@ -239,7 +239,7 @@ public class SVD extends NamedRealMatrix {
   public static SVD computeSVD(NamedRealMatrix m, int numComponents, Logger log) {
     log.reportTimeInfo("Computing EJML PCs");
     SvdImplicitQrDecompose_D64 svd = new SvdImplicitQrDecompose_D64(false, false, true, false);
-    svd.decompose(m.getM());
+    svd.decompose(m.getDenseMatrix());
     log.memoryPercentTotalFree();
 
     log.reportTimeInfo("Finished Computing EJML PCs");
@@ -252,7 +252,7 @@ public class SVD extends NamedRealMatrix {
     for (int i = 0; i < numSingular; i++) {
       singularValues[i] = tmpW.get(i, i);
     }
-    tv.reshape(numComponents, m.getM().numCols, true);
+    tv.reshape(numComponents, m.getDenseMatrix().numCols, true);
     DiagonalMatrix w = new DiagonalMatrix(singularValues);
     RealMatrix v = MatrixUtils.createRealMatrix(tv.numRows, tv.numCols);
     for (int row = 0; row < tv.numRows; row++) {
@@ -261,7 +261,7 @@ public class SVD extends NamedRealMatrix {
       }
     }
 
-    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
+    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getDenseMatrix(), v, w);
     svdResult.computeLoadings();
     return svdResult;
   }

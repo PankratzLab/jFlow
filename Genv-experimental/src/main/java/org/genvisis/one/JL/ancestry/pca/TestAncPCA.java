@@ -12,11 +12,11 @@ public class TestAncPCA {
   public static void main(String[] args) {
     long time = System.currentTimeMillis();
     String dir = "/Volumes/Beta2/Poynter/";
-    dir = "/Volumes/Beta2/NGS/topmed/aims/plinkfreeze.5b.aims.pass_and_fail.gtonly.minDP10.vcf/quality_control/ancestryFull/unrelateds/";
+    //    dir = "/Volumes/Beta2/NGS/topmed/aims/plinkfreeze.5b.aims.pass_and_fail.gtonly.minDP10.vcf/quality_control/ancestryFull/unrelateds/";
 
     String plinkRoot = "plink";
 
-    String outDir = dir + "testOutCenterMean0NormEJML/";
+    String outDir = dir + "testOutCenterMean0NormEJML_Testing/";
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
     String ser = outDir + "svdBase.ser.gz";
