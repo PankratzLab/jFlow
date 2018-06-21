@@ -25,7 +25,6 @@ import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.PSF;
 import org.genvisis.common.ext;
-import org.genvisis.common.matrix.SVD;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.pca.ancestry.AncestryPCA;
 import org.genvisis.pca.ancestry.PlinkDataMatrixLoader;
@@ -121,10 +120,12 @@ public class Ancestry {
 
   private static void runPCA(String dir, int numComps, Logger log) {
     setupAncestry(dir);
-    SVD svd = AncestryPCA.generatePCs(new PlinkDataMatrixLoader(dir, "unrelateds/plink", log),
-                                      numComps, log);
-    svd.dumpLoadingsToText(dir + "combo", "MARKER", log);
-    AncestryPCA.extrapolatePCs(svd, new PlinkDataMatrixLoader(dir, "combo", log), log)
+    AncestryPCA ancestryPCA = AncestryPCA.generatePCs(new PlinkDataMatrixLoader(dir,
+                                                                                "unrelateds/plink",
+                                                                                log),
+                                                      numComps, log);
+    ancestryPCA.getSvd().dumpLoadingsToText(dir + "combo", "MARKER", log);
+    AncestryPCA.extrapolatePCs(ancestryPCA, new PlinkDataMatrixLoader(dir, "combo", log), log)
                .dumpToText(dir + PCA_OUTPUT_NAME, "FID\tIID", log);
   }
 

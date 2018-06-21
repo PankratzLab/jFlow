@@ -6,6 +6,7 @@ package org.genvisis.pca.ancestry;
 import java.util.HashMap;
 import java.util.Map;
 import org.genvisis.common.Logger;
+import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.NamedRealMatrix;
 import org.genvisis.common.matrix.SVD;
@@ -27,31 +28,53 @@ public class AncestryPCA {
   }
 
   /**
+   * @return the underlying {@link SVD}
+   */
+  public SVD getSvd() {
+    return svd;
+  }
+
+  /**
    * @param loader {@link MatrixDataLoading} that provides genotypes in double format (0,1,2,NaN)
    * @param numComponents number of components that will be stored
    * @param log
-   * @return {@link SVD} holding results
+   * @return {@link AncestryPCA} holding the {@link SVD} and required {@link Stats} for
+   *         normalization
    */
-  public static SVD generatePCs(MatrixDataLoading loader, int numComponents, Logger log) {
+  public static AncestryPCA generatePCs(MatrixDataLoading loader, int numComponents, Logger log) {
     NamedRealMatrix m = loader.getData();
 
     Map<String, Stats> statMap = generateStats(m, log);
     normalizeGenotypeData(m, statMap, log);
-    return computePCA(m, numComponents, log);
+    SVD svd = computePCA(m, numComponents, log);
+
+    return new AncestryPCA(svd, statMap);
   }
 
   /**
-   * @param svd {@link SVD} that will be used to extrapolate the data
+   * @param svd {@link AncestryPCA} that will be used to extrapolate the data
    * @param loader {@link MatrixDataLoading} that will load the matrix
    * @param log
    * @return {@link NamedRealMatrix} holding extrapolated PCs
    */
-  public static NamedRealMatrix extrapolatePCs(SVD svd, MatrixDataLoading loader, Logger log) {
+  public static NamedRealMatrix extrapolatePCs(AncestryPCA ancestryPCA, MatrixDataLoading loader,
+                                               Logger log) {
     NamedRealMatrix m = loader.getData();
 
-    Map<String, Stats> statMap = generateStats(m, log);
-    normalizeGenotypeData(m, statMap, log);
-    return svd.getExtraploatedPCs(m, log);
+    normalizeGenotypeData(m, ancestryPCA.statMap, log);
+    return ancestryPCA.svd.getExtraploatedPCs(m, log);
+  }
+
+  public void writeSerial(String serFile) {
+    SerializedFiles.writeSerial(this, serFile, true);
+  }
+
+  /**
+   * @param serFile
+   * @return
+   */
+  public static AncestryPCA readSerial(String serFile) {
+    return (AncestryPCA) SerializedFiles.readSerial(serFile);
   }
 
   /**

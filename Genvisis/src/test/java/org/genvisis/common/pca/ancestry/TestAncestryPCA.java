@@ -13,7 +13,6 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
 import org.genvisis.common.matrix.MatrixDataLoading;
 import org.genvisis.common.matrix.NamedRealMatrix;
-import org.genvisis.common.matrix.SVD;
 import org.genvisis.pca.ancestry.AncestryPCA;
 import org.junit.Test;
 
@@ -297,15 +296,16 @@ public class TestAncestryPCA {
     assertEquals(11, numberOfMarkers);//markers
 
     Logger log = new Logger();
-    SVD svd = AncestryPCA.generatePCs(inputProvider, 5, log);
+    AncestryPCA ancestryPCA = AncestryPCA.generatePCs(inputProvider, 5, log);
     //compare the generated PCs to expected
-    comparePCsToStandard(svd.getPCs(), OUTPUT_PCS);
+    comparePCsToStandard(ancestryPCA.getSvd().getPCs(), OUTPUT_PCS);
     //compare the generated loadings to expected
 
-    compareLoadingsToStandard(svd.getLoadings(), OUTPUT_LOADINGS);
+    compareLoadingsToStandard(ancestryPCA.getSvd().getLoadings(), OUTPUT_LOADINGS);
 
     //compare the extrapolated pcs on the same samples to expected
-    comparePCsToStandard(AncestryPCA.extrapolatePCs(svd, inputProvider, log).getDenseMatrix(),
+    comparePCsToStandard(AncestryPCA.extrapolatePCs(ancestryPCA, inputProvider, log)
+                                    .getDenseMatrix(),
                          OUTPUT_PCS, numberOfPCSamples);
 
     //    spike in new samples
@@ -320,8 +320,9 @@ public class TestAncestryPCA {
     assertEquals(11, m2.getDenseMatrix().getNumRows());//same number of markers
 
     //compare the extrapolated pcs generated with the spiked in samples to expected for the original samples
-    //    comparePCsToStandard(AncestryPCA.extrapolatePCs(svd, inputProvider2, log).getDenseMatrix(),
-    //                         OUTPUT_PCS, numberOfPCSamples);
+    comparePCsToStandard(AncestryPCA.extrapolatePCs(ancestryPCA, inputProvider2, log)
+                                    .getDenseMatrix(),
+                         OUTPUT_PCS, numberOfPCSamples);
 
   }
 
