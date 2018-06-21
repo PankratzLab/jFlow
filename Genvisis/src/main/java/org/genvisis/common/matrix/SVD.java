@@ -5,7 +5,9 @@ package org.genvisis.common.matrix;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.apache.commons.math3.linear.DiagonalMatrix;
@@ -82,9 +84,12 @@ public class SVD extends NamedRealMatrix {
     log.reportTimeInfo("Writing PCs to " + out);
     StringJoiner joiner = new StringJoiner("\t");
     joiner.add(columnOneTitle);
-    for (int component = 0; component < numComponents; component++) {
-      joiner.add("PC" + (component + 1));
+    List<String> namedComponents = getNamedComponents(numComponents);
+    for (String namedComponent : namedComponents) {
+      joiner.add(namedComponent);
     }
+
+    for (int component = 0; component < numComponents; component++) {}
     writer.println(joiner.toString());
 
     for (int outputRow = 0; outputRow < v.getColumnDimension(); outputRow++) {
@@ -185,8 +190,9 @@ public class SVD extends NamedRealMatrix {
     log.reportTimeInfo("Extrapolating PCs");
 
     Map<String, Integer> pcMap = new HashMap<>();
-    for (int component = 0; component < numComponents; component++) {
-      pcMap.put("PC" + (component + 1), component);
+    List<String> namedComponents = getNamedComponents(numComponents);
+    for (int i = 0; i < namedComponents.size(); i++) {
+      pcMap.put(namedComponents.get(i), i);
     }
 
     DenseMatrix64F pcs = new DenseMatrix64F(other.getM().numCols, numComponents);
@@ -206,6 +212,14 @@ public class SVD extends NamedRealMatrix {
     }
 
     return new NamedRealMatrix(other.getColumnNameMap(), pcMap, pcs);
+  }
+
+  private static List<String> getNamedComponents(int numComponents) {
+    List<String> namedComponents = new ArrayList<String>();
+    for (int component = 0; component < numComponents; component++) {
+      namedComponents.add("PC" + (component + 1));
+    }
+    return namedComponents;
   }
 
   private static double getLoading(double singularValue, double[] data, double[] basis) {
