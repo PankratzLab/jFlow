@@ -43,20 +43,16 @@ public class SVD extends NamedRealMatrix {
    */
 
   public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, DenseMatrix64F m,
-             RealMatrix v, DiagonalMatrix w, int numComponents) {
+             RealMatrix v, DiagonalMatrix w) {
     super(rowNameMap, columnNameMap, m);
     this.v = v;
     this.w = w;
-    this.numComponents = numComponents;
-    if (numComponents != w.getColumnDimension()) {
-      throw new IllegalArgumentException("Invalid number of singular values ("
-                                         + w.getColumnDimension() + ") for " + numComponents
-                                         + " components");
-    }
+    this.numComponents = w.getColumnDimension();
 
-    if (numComponents != v.getRowDimension()) {
-      throw new IllegalArgumentException("Invalid diminsion for V  (" + v.getRowDimension()
-                                         + ") for " + numComponents + " components");
+    if (w.getColumnDimension() != v.getRowDimension()) {
+      throw new IllegalArgumentException("Diminsion mismatch for  V (num rows="
+                                         + v.getRowDimension() + ") and W (num columns = "
+                                         + w.getColumnDimension() + ")");
     }
   }
 
@@ -252,7 +248,7 @@ public class SVD extends NamedRealMatrix {
       }
     }
 
-    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w, numComponents);
+    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getM(), v, w);
     svdResult.computeLoadings();
     return svdResult;
   }
