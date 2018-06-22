@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.apache.commons.math3.linear.DiagonalMatrix;
-import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
@@ -31,7 +30,7 @@ public class SVD extends NamedRealMatrix {
    * 
    */
   private static final long serialVersionUID = 1L;
-  private final RealMatrix v;
+  private final NamedRealMatrix v;
   private final DiagonalMatrix w;
   private NamedRealMatrix loadings;
   private final int numComponents;
@@ -40,28 +39,29 @@ public class SVD extends NamedRealMatrix {
    * @param rowNameMap see {@link NamedRealMatrix}
    * @param columnNameMap see {@link NamedRealMatrix}
    * @param m see {@link NamedRealMatrix}
-   * @param v the v {@link RealMatrix}, (PCs)
+   * @param v the v {@link NamedRealMatrix}, (PCs)
    * @param w the w {@link RealMatrix}, eigenvector
    */
 
   public SVD(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap, DenseMatrix64F m,
-             RealMatrix v, DiagonalMatrix w) {
+             NamedRealMatrix v, DiagonalMatrix w) {
     super(rowNameMap, columnNameMap, m);
     this.v = v;
     this.w = w;
     this.numComponents = w.getColumnDimension();
 
-    if (w.getColumnDimension() != v.getRowDimension()) {
+    if (w.getColumnDimension() != v.getDenseMatrix().getNumRows()) {
       throw new IllegalArgumentException("Diminsion mismatch for  V (num rows="
-                                         + v.getRowDimension() + ") and W (num columns = "
-                                         + w.getColumnDimension() + ")");
+                                         + v.getDenseMatrix().getNumRows()
+                                         + ") and W (num columns = " + w.getColumnDimension()
+                                         + ")");
     }
   }
 
   /**
    * @return the {@link RealMatrix} v, in our case we usually call em "PCs"
    */
-  public RealMatrix getPCs() {
+  public NamedRealMatrix getPCs() {
     return v;
   }
 
@@ -92,11 +92,11 @@ public class SVD extends NamedRealMatrix {
     for (int component = 0; component < numComponents; component++) {}
     writer.println(joiner.toString());
 
-    for (int outputRow = 0; outputRow < v.getColumnDimension(); outputRow++) {
+    for (int outputRow = 0; outputRow < v.getDenseMatrix().getNumCols(); outputRow++) {
       StringJoiner sample = new StringJoiner("\t");
       sample.add(getIndexColumnMap().get(outputRow));
       for (int component = 0; component < numComponents; component++) {//
-        sample.add(Double.toString(v.getEntry(component, outputRow)));
+        sample.add(Double.toString(v.getDenseMatrix().get(component, outputRow)));
       }
       writer.println(sample.toString());
 
@@ -173,8 +173,11 @@ public class SVD extends NamedRealMatrix {
       CommonOps.extractRow(m, row, rowData);
 
       for (int component = 0; component < numComponents; component++) {
+        DenseMatrix64F componentData = new DenseMatrix64F(1, v.getDenseMatrix().numCols);
+
         double loading = getLoading(w.getEntry(component, component), rowData.data,
-                                    v.getRow(component));
+                                    CommonOps.extractRow(v.getDenseMatrix(), component,
+                                                         componentData).data);
         loadingData.add(row, component, loading);
       }
     }
@@ -188,12 +191,6 @@ public class SVD extends NamedRealMatrix {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }
     log.reportTimeInfo("Extrapolating PCs");
-
-    Map<String, Integer> pcMap = new HashMap<>();
-    List<String> namedComponents = getNamedComponents(numComponents);
-    for (int i = 0; i < namedComponents.size(); i++) {
-      pcMap.put(namedComponents.get(i), i);
-    }
 
     DenseMatrix64F pcs = new DenseMatrix64F(other.getDenseMatrix().numCols, numComponents);
     for (int row = 0; row < other.getDenseMatrix().numRows; row++) {
@@ -211,11 +208,20 @@ public class SVD extends NamedRealMatrix {
       }
     }
 
-    return new NamedRealMatrix(other.getColumnNameMap(), pcMap, pcs);
+    return new NamedRealMatrix(other.getColumnNameMap(), getNamedComponentsMap(numComponents), pcs);
+  }
+
+  private static Map<String, Integer> getNamedComponentsMap(int numComponents) {
+    Map<String, Integer> pcMap = new HashMap<>();
+    List<String> namedComponents = getNamedComponents(numComponents);
+    for (int i = 0; i < namedComponents.size(); i++) {
+      pcMap.put(namedComponents.get(i), i);
+    }
+    return pcMap;
   }
 
   private static List<String> getNamedComponents(int numComponents) {
-    List<String> namedComponents = new ArrayList<String>();
+    List<String> namedComponents = new ArrayList<>();
     for (int component = 0; component < numComponents; component++) {
       namedComponents.add("PC" + (component + 1));
     }
@@ -254,14 +260,10 @@ public class SVD extends NamedRealMatrix {
     }
     tv.reshape(numComponents, m.getDenseMatrix().numCols, true);
     DiagonalMatrix w = new DiagonalMatrix(singularValues);
-    RealMatrix v = MatrixUtils.createRealMatrix(tv.numRows, tv.numCols);
-    for (int row = 0; row < tv.numRows; row++) {
-      for (int col = 0; col < tv.numCols; col++) {
-        v.addToEntry(row, col, tv.get(row, col));
-      }
-    }
-
-    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getDenseMatrix(), v, w);
+    NamedRealMatrix vNamedRealMatrix = new NamedRealMatrix(getNamedComponentsMap(numComponents),
+                                                           m.getColumnNameMap(), tv);
+    SVD svdResult = new SVD(m.getRowNameMap(), m.getColumnNameMap(), m.getDenseMatrix(),
+                            vNamedRealMatrix, w);
     svdResult.computeLoadings();
     return svdResult;
   }

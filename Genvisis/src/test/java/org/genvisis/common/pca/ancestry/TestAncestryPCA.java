@@ -6,8 +6,8 @@ package org.genvisis.common.pca.ancestry;
 import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Matrix;
@@ -298,7 +298,10 @@ public class TestAncestryPCA {
     Logger log = new Logger();
     AncestryPCA ancestryPCA = AncestryPCA.generatePCs(inputProvider, 5, log);
     //compare the generated PCs to expected
-    comparePCsToStandard(ancestryPCA.getSvd().getPCs(), OUTPUT_PCS);
+    DenseMatrix64F pcs = ancestryPCA.getSvd().getPCs().getDenseMatrix();
+    DenseMatrix64F transposed = new DenseMatrix64F(pcs.numCols, pcs.numRows);
+    CommonOps.transpose(pcs, transposed);
+    comparePCsToStandard(transposed, OUTPUT_PCS, numberOfPCSamples);
     //compare the generated loadings to expected
 
     compareLoadingsToStandard(ancestryPCA.getSvd().getLoadings(), OUTPUT_LOADINGS);
@@ -334,29 +337,6 @@ public class TestAncestryPCA {
 
         double standard = standardPCs[sample][component];
         double test = pcs.get(sample, component);
-        //since the sign of a PC does not matter, we test if the first row (sample) of the PC should be flipped. 
-        //  If it should, we flip all other entries.
-        //   We only do this test once per PC since it should be consistent      
-        if (sample == 0 && ((standard < 0 && test > 0) || (standard > 0 && test < 0))) {
-          flip = true;
-        }
-        if (flip) {
-          test = test * -1;
-        }
-        assertEquals(standard, test, DELTA);
-
-      }
-    }
-  }
-
-  private void comparePCsToStandard(RealMatrix pcs, double[][] standardPCs) {
-    for (int component = 0; component < pcs.getRowDimension(); component++) {//
-      boolean flip = false;
-
-      for (int sample = 0; sample < pcs.getColumnDimension(); sample++) {
-
-        double standard = standardPCs[sample][component];
-        double test = pcs.getEntry(component, sample);
         //since the sign of a PC does not matter, we test if the first row (sample) of the PC should be flipped. 
         //  If it should, we flip all other entries.
         //   We only do this test once per PC since it should be consistent      
