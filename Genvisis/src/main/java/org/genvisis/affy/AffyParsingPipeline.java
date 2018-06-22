@@ -1,6 +1,7 @@
 package org.genvisis.affy;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Hashtable;
@@ -82,6 +83,8 @@ public class AffyParsingPipeline {
     int markerFileIndex = 0;
     String mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex
                      + ".mdRAF";
+
+    new File(proj.MARKER_DATA_DIRECTORY.getValue()).mkdirs();
 
     String[] names = new String[numMarkersPerFile];
     byte[][] mkrBytes = new byte[numMarkersPerFile][];
@@ -179,6 +182,7 @@ public class AffyParsingPipeline {
     raf.write(oorBytes);
 
     raf.close();
+    proj.getLog().reportTime("Wrote marker file " + mkrFile);
   }
 
   @SuppressWarnings("deprecation")
@@ -259,10 +263,10 @@ public class AffyParsingPipeline {
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
-      abGenos[i] = (byte) Integer.parseInt(calls[i]);
-      gcs[i] = Float.parseFloat(confs[i]);
-      xs[i] = (float) (AffySNP6Tables.power2(sigsA[i]) / scale);
-      ys[i] = (float) (AffySNP6Tables.power2(sigsB[i]) / scale);
+      abGenos[i] = (byte) Integer.parseInt(calls[i + 1]);
+      gcs[i] = Float.parseFloat(confs[i + 1]);
+      xs[i] = (float) (AffySNP6Tables.power2(sigsA[i + 1]) / scale);
+      ys[i] = (float) (AffySNP6Tables.power2(sigsB[i + 1]) / scale);
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
