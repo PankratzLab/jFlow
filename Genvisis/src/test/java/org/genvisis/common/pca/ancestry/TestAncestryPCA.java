@@ -330,6 +330,8 @@ public class TestAncestryPCA {
   }
 
   private void comparePCsToStandard(DenseMatrix64F pcs, double[][] standardPCs, int numSamples) {
+    // ensure we test all PCs we think we have
+    assertEquals(5, pcs.numCols);
     for (int component = 0; component < pcs.numCols; component++) {//
       boolean flip = false;
 

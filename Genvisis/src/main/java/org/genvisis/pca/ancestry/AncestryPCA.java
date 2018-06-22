@@ -3,6 +3,7 @@
  */
 package org.genvisis.pca.ancestry;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import org.genvisis.common.Logger;
@@ -16,7 +17,12 @@ import com.google.common.math.StatsAccumulator;
 /**
  * Runs PCA that focuses on ancestry PCS (prepares genotype data for ancestry PCA)
  */
-public class AncestryPCA {
+public class AncestryPCA implements Serializable {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
   private final SVD svd;
 
