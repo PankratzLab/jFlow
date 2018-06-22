@@ -38,7 +38,7 @@ public class SVD implements Serializable {
 
   /**
    * @param v the v {@link NamedRealMatrix}, (PCs)
-   * @param w the w {@link RealMatrix}, eigenvector
+   * @param w the w {@link DiagonalMatrix}, eigenvector
    */
 
   private SVD(NamedRealMatrix v, DiagonalMatrix w) {
@@ -255,9 +255,10 @@ public class SVD implements Serializable {
       singularValues[i] = tmpW.get(i, i);
     }
     tv.reshape(numComponents, m.getDenseMatrix().numCols, true);
-    DiagonalMatrix w = new DiagonalMatrix(singularValues);
     NamedRealMatrix vNamedRealMatrix = new NamedRealMatrix(getNamedComponentsMap(numComponents),
                                                            m.getColumnNameMap(), tv);
+    DiagonalMatrix w = new DiagonalMatrix(singularValues);
+
     SVD svdResult = new SVD(vNamedRealMatrix, w);
     svdResult.computeLoadings(m);
     return svdResult;

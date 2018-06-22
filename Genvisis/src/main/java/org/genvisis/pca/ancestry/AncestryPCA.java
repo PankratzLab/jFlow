@@ -113,7 +113,8 @@ public class AncestryPCA implements Serializable {
 
   /**
    * Prepares genotype data for PCA (see https://www.nature.com/articles/ng1847). Can also be used
-   * to prepare data for extrapolating PCs
+   * to prepare data for extrapolating PCs Note that any data not found in the statMap will be
+   * ignored(and not normalized).
    * 
    * @param m {@link NamedRealMatrix} with genotypes to prepare
    * @param statMap a map from row names to the marker {@link Stats} required for normalization
@@ -122,19 +123,28 @@ public class AncestryPCA implements Serializable {
    */
   private static Map<String, Stats> normalizeGenotypeData(NamedRealMatrix m,
                                                           Map<String, Stats> statMap, Logger log) {
+
+    if (statMap.keySet().containsAll(m.getRowNameMap().keySet())) {
+      log.reportTimeWarning(m.getRowNameMap().keySet().size() - statMap.keySet().size()
+                            + " markers in the input data were not found in the data "
+                            + "used to generate normalization stats, these markers will be ignored. "
+                            + "This is typically not a problem");
+    }
     for (int row = 0; row < m.getDenseMatrix().numRows; row++) {
+      String rowKey = m.getIndexRowMap().get(row);
+      if (statMap.containsKey(rowKey)) {
+        Stats stats = statMap.get(rowKey);
 
-      Stats stats = statMap.get(m.getIndexRowMap().get(row));
-
-      double norm = getNormalizationFactor(stats);
-      for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
-        double val = m.getDenseMatrix().get(row, column);
-        if (isNonMissing(val)) {
-          double mc = val - stats.mean();
-          mc /= norm;
-          m.getDenseMatrix().set(row, column, mc);
-        } else {
-          m.getDenseMatrix().set(row, column, 0);
+        double norm = getNormalizationFactor(stats);
+        for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
+          double val = m.getDenseMatrix().get(row, column);
+          if (isNonMissing(val)) {
+            double mc = val - stats.mean();
+            mc /= norm;
+            m.getDenseMatrix().set(row, column, mc);
+          } else {
+            m.getDenseMatrix().set(row, column, 0);
+          }
         }
       }
     }
