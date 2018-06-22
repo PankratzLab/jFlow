@@ -19,10 +19,12 @@ import com.google.common.collect.Sets;
 
 public class AffyParsingPipeline {
 
-  Project proj;
+  private static final int MAX_MKRS_PER_MDRAF = 2500;
+
+  private Project proj;
   private String callFile;
   private String confFile;
-  private String sigFile;
+  private String intFile;
 
   private String delim = "\t";
 
@@ -34,23 +36,23 @@ public class AffyParsingPipeline {
   private String[] callHeader;
   private String[] sigHeader;
 
-  int numSamples;
-  long fingerprint;
+  private int numSamples;
+  private long fingerprint;
 
   public void setProject(Project proj) {
     this.proj = proj;
   }
 
-  public void setCallFile(String callFile) {
+  public void setGenotypeCallFile(String callFile) {
     this.callFile = callFile;
   }
 
-  public void setConfFile(String confFile) {
+  public void setConfidencesFile(String confFile) {
     this.confFile = confFile;
   }
 
-  public void setSigFile(String quantNormFile) {
-    this.sigFile = quantNormFile;
+  public void setNormIntensitiesFile(String quantNormFile) {
+    this.intFile = quantNormFile;
   }
 
   public void run() {
@@ -58,22 +60,24 @@ public class AffyParsingPipeline {
       initReaders();
     } catch (IOException e) {
       proj.getLog().reportError("Couldn't open files for reading: \n\t" + confFile + "\n\t"
-                                + callFile + "\n\t" + sigFile);
+                                + callFile + "\n\t" + intFile);
       try {
         closeReaders();
       } catch (IOException e1) {}
       return;
     }
 
-    // setup marker files (determine memory buffer for MarkerData)
-    // TODO tweak this number:
-    int numMarkersPerFile = 1000;
+    // TODO determine if true:
     boolean canXYBeNegative = true;
-    Hashtable<String, String> lookup = new Hashtable<>();
-
     byte nullStatus = Sample.updateNullStatus(new float[0], new float[0], new float[0],
                                               new float[0], new float[0], new byte[0], null,
                                               canXYBeNegative);
+    int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
+    long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
+    long markersInMemory = mem / (long) bytesPerMarker;
+    int numMarkersPerFile = Math.min(MAX_MKRS_PER_MDRAF, (int) markersInMemory);
+
+    Hashtable<String, String> lookup = new Hashtable<>();
 
     int markerFileIndex = 0;
     String mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex
@@ -181,7 +185,7 @@ public class AffyParsingPipeline {
   void initReaders() throws IOException {
     confReader = Files.getAppropriateReader(confFile);
     callReader = Files.getAppropriateReader(confFile);
-    sigReader = Files.getAppropriateReader(sigFile);
+    sigReader = Files.getAppropriateReader(intFile);
 
     String line;
 
@@ -253,11 +257,12 @@ public class AffyParsingPipeline {
     byte[] abGenos = new byte[numSamples];
     byte[] forwardGenos = null;
 
+    double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
       abGenos[i] = (byte) Integer.parseInt(calls[i]);
       gcs[i] = Float.parseFloat(confs[i]);
-      xs[i] = (float) AffySNP6Tables.power2(sigsA[i]);
-      ys[i] = (float) AffySNP6Tables.power2(sigsB[i]);
+      xs[i] = (float) (AffySNP6Tables.power2(sigsA[i]) / scale);
+      ys[i] = (float) (AffySNP6Tables.power2(sigsB[i]) / scale);
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);

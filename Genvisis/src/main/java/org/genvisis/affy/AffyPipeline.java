@@ -591,9 +591,9 @@ public class AffyPipeline {
 
     AffyParsingPipeline parser = new AffyParsingPipeline();
     parser.setProject(proj);
-    parser.setCallFile(genotypeResult.getCallFile());
-    parser.setConfFile(genotypeResult.getConfFile());
-    parser.setSigFile(normalizationResult.getQuantNormFile());
+    parser.setGenotypeCallFile(genotypeResult.getCallFile());
+    parser.setConfidencesFile(genotypeResult.getConfFile());
+    parser.setNormIntensitiesFile(normalizationResult.getQuantNormFile());
     parser.run();
 
     //    String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
