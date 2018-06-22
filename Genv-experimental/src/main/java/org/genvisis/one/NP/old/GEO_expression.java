@@ -1,4 +1,4 @@
-package org.genvisis.parse;
+package org.genvisis.one.NP.old;
 
 import java.io.BufferedReader;
 import java.io.File;

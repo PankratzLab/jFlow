@@ -1,5 +1,5 @@
 // used to see how many genes/snps are within each of the 235 regions on the Metabochip
-package org.genvisis.parse;
+package org.genvisis.one.NP.old;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
