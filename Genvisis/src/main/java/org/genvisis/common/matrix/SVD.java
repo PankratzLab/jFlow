@@ -181,16 +181,18 @@ public class SVD implements Serializable {
   // TODO, could refactor to static method that just takes singular values "w" and loadings "u"
 
   public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
-    if (!loadings.getRowNameMap().keySet().equals(other.getRowNameMap().keySet())) {
+    //we want to make sure the other has all data available, but we do not care if it has more
+    if (!other.getRowNameMap().keySet().containsAll(loadings.getRowNameMap().keySet())) {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }
     log.reportTimeInfo("Extrapolating PCs");
 
     DenseMatrix64F pcs = new DenseMatrix64F(other.getDenseMatrix().numCols, numComponents);
-    for (int row = 0; row < other.getDenseMatrix().numRows; row++) {
+    for (int row = 0; row < loadings.getDenseMatrix().numRows; row++) {
+      int otherRow = other.getRowNameMap().get(loadings.getIndexRowMap().get(row));
       for (int component = 0; component < numComponents; component++) {
         for (int column = 0; column < other.getDenseMatrix().numCols; column++) {
-          pcs.add(column, component, other.getDenseMatrix().get(row, column)
+          pcs.add(column, component, other.getDenseMatrix().get(otherRow, column)
                                      * loadings.getDenseMatrix().get(row, component));
         }
       }

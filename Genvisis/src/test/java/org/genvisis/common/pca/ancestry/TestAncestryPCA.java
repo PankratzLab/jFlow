@@ -327,6 +327,8 @@ public class TestAncestryPCA {
                                     .getDenseMatrix(),
                          OUTPUT_PCS, numberOfPCSamples);
 
+    //TODO spike in new marker
+
   }
 
   private void comparePCsToStandard(DenseMatrix64F pcs, double[][] standardPCs, int numSamples) {

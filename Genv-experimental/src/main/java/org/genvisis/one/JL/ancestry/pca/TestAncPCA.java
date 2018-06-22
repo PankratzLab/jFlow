@@ -16,7 +16,7 @@ public class TestAncPCA {
 
     String plinkRoot = "plink";
 
-    String outDir = dir + "testOutCenterMean0NormEJML_Testing2/";
+    String outDir = dir + "testOutCenterMean0NormEJML_Testing3/";
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
     String ser = outDir + "svdBase.ser.gz";
