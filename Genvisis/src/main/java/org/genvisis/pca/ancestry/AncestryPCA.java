@@ -100,13 +100,12 @@ public class AncestryPCA implements Serializable {
             statsAccumulator.add(val);
           }
         } else {
-          throw new IllegalArgumentException("Invalid  value at marker "
-                                             + m.getIndexRowMap().get(row) + " and sample "
-                                             + m.getIndexColumnMap().get(column));
+          throw new IllegalArgumentException("Invalid  value at marker " + m.getNameForRowIndex(row)
+                                             + " and sample " + m.getNameForColumnIndex(column));
         }
       }
       Stats stats = statsAccumulator.snapshot();
-      statMap.put(m.getIndexRowMap().get(row), stats);
+      statMap.put(m.getNameForRowIndex(row), stats);
     }
     return statMap;
   }
@@ -124,14 +123,14 @@ public class AncestryPCA implements Serializable {
   private static Map<String, Stats> normalizeGenotypeData(NamedRealMatrix m,
                                                           Map<String, Stats> statMap, Logger log) {
 
-    if (statMap.keySet().containsAll(m.getRowNameMap().keySet())) {
-      log.reportTimeWarning(m.getRowNameMap().keySet().size() - statMap.keySet().size()
+    if (!statMap.keySet().containsAll(m.getRowMap().keySet())) {
+      log.reportTimeWarning(m.getRowMap().keySet().size() - statMap.keySet().size()
                             + " markers in the input data were not found in the data "
                             + "used to generate normalization stats, these markers will be ignored. "
                             + "This is typically not a problem");
     }
     for (int row = 0; row < m.getDenseMatrix().numRows; row++) {
-      String rowKey = m.getIndexRowMap().get(row);
+      String rowKey = m.getNameForRowIndex(row);
       if (statMap.containsKey(rowKey)) {
         Stats stats = statMap.get(rowKey);
 

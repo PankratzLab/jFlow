@@ -5,16 +5,16 @@ package org.genvisis.common.matrix;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.StringJoiner;
 import org.ejml.data.DenseMatrix64F;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 /**
- * Attaches column and row names to a {@link DenseMatrix64F}
+ * Attaches column and row names<-> index mapping to a {@link DenseMatrix64F} using {@link BiMap}s
  */
 public class NamedRealMatrix implements Serializable {
 
@@ -22,10 +22,9 @@ public class NamedRealMatrix implements Serializable {
    * 
    */
   private static final long serialVersionUID = 1L;
-  private final Map<String, Integer> rowNameMap;
-  private final Map<String, Integer> columnNameMap;
-  private final Map<Integer, String> indexRowMap;
-  private final Map<Integer, String> indexColumnMap;
+
+  private final BiMap<String, Integer> rowMap;
+  private final BiMap<String, Integer> columnMap;
   protected final DenseMatrix64F m;
 
   /**
@@ -36,75 +35,77 @@ public class NamedRealMatrix implements Serializable {
   public NamedRealMatrix(Map<String, Integer> rowNameMap, Map<String, Integer> columnNameMap,
                          DenseMatrix64F m) {
     super();
-    validateMap(rowNameMap, m.numRows);
-    validateMap(columnNameMap, m.numCols);
-    this.rowNameMap = rowNameMap;
-    this.columnNameMap = columnNameMap;
-    this.indexRowMap = generateIndexMap(rowNameMap);
-    this.indexColumnMap = generateIndexMap(columnNameMap);
+    this.rowMap = generateBiMap(rowNameMap, m.getNumRows());
+    this.columnMap = generateBiMap(columnNameMap, m.getNumCols());
     this.m = m;
   }
 
-  private static Map<Integer, String> generateIndexMap(Map<String, Integer> map) {
-    Map<Integer, String> iMap = new HashMap<>();
-    for (String key : map.keySet()) {
-      iMap.put(map.get(key), key);
-    }
-    return iMap;
-
-  }
-
-  void validateMap(Map<String, Integer> map, int numEntries) {
-    if (map == null || map.size() != numEntries) {
+  /**
+   * Generates and validates the dimension map
+   * 
+   * @param map these key value pairs will form the {@link BiMap}
+   * @param expectedSize
+   * @return {@link BiMap}
+   */
+  private static BiMap<String, Integer> generateBiMap(Map<String, Integer> map, int expectedSize) {
+    if (map == null || map.size() != expectedSize) {
       throw new IllegalArgumentException("Mismatched mapped names length, map size="
                                          + (map == null ? 0 : map.size()) + " should be "
-                                         + numEntries);
+                                         + expectedSize);
     }
-    HashSet<Integer> indices = new HashSet<>();
-    HashSet<String> keys = new HashSet<>();
+    BiMap<String, Integer> biMap = HashBiMap.create(map.keySet().size());
+    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+      if (entry.getValue() >= expectedSize) {
+        throw new IllegalArgumentException("Mapped values greater than data dimension");
 
-    for (String key : map.keySet()) {
-      if (map.get(key) >= numEntries) {
-        throw new IllegalArgumentException("Invalid named index");
-      } else {
-        indices.add(map.get(key));
-        keys.add(key);
       }
+      biMap.put(entry.getKey(), entry.getValue());
     }
-    if (indices.size() != map.size()) {
-      throw new IllegalArgumentException("Duplicate indices provided");
+    return biMap;
+  }
+
+  /**
+   * @param rowName name to get the index of
+   * @return the index
+   */
+  public int getRowIndexFor(String rowName) {
+    if (!rowMap.containsKey(rowName)) {
+      throw new IllegalArgumentException("invalid row name " + rowName);
     }
-    if (keys.size() != map.size()) {
-      throw new IllegalArgumentException("Duplicate keys provided");
+    return rowMap.get(rowName);
+  }
+
+  /**
+   * @param columName name to get the index of
+   * @return the index
+   */
+  public int getColumnIndexFor(String columName) {
+    if (!columnMap.containsKey(columName)) {
+      throw new IllegalArgumentException("invalid column name " + columName);
     }
+    return columnMap.get(columName);
   }
 
   /**
-   * @return the indexRowMap
+   * @param row to get the name for
+   * @return the name
    */
-  public Map<Integer, String> getIndexRowMap() {
-    return indexRowMap;
+  public String getNameForRowIndex(int row) {
+    if (!rowMap.inverse().containsKey(row)) {
+      throw new IllegalArgumentException("invalid row index " + row);
+    }
+    return rowMap.inverse().get(row);
   }
 
   /**
-   * @return the indexColumnMap
+   * @param column to get the name for
+   * @return the name
    */
-  public Map<Integer, String> getIndexColumnMap() {
-    return indexColumnMap;
-  }
-
-  /**
-   * @return the rowNameMap
-   */
-  public Map<String, Integer> getRowNameMap() {
-    return rowNameMap;
-  }
-
-  /**
-   * @return the columnNameMap
-   */
-  public Map<String, Integer> getColumnNameMap() {
-    return columnNameMap;
+  public String getNameForColumnIndex(int column) {
+    if (!columnMap.inverse().containsKey(column)) {
+      throw new IllegalArgumentException("invalid column index " + column);
+    }
+    return columnMap.inverse().get(column);
   }
 
   /**
@@ -112,6 +113,20 @@ public class NamedRealMatrix implements Serializable {
    */
   public DenseMatrix64F getDenseMatrix() {
     return m;
+  }
+
+  /**
+   * @return the rowMap
+   */
+  public BiMap<String, Integer> getRowMap() {
+    return rowMap;
+  }
+
+  /**
+   * @return the columnMap
+   */
+  public BiMap<String, Integer> getColumnMap() {
+    return columnMap;
   }
 
   /**
@@ -126,13 +141,13 @@ public class NamedRealMatrix implements Serializable {
     joiner.add(columnOneTitle);
 
     for (int column = 0; column < m.numCols; column++) {
-      joiner.add(getIndexColumnMap().get(column));
+      joiner.add(getNameForColumnIndex(column));
     }
     writer.println(joiner.toString());
 
     for (int row = 0; row < m.numRows; row++) {
       StringJoiner rows = new StringJoiner("\t");
-      rows.add(getIndexRowMap().get(row));
+      rows.add(getNameForRowIndex(row));
 
       for (int column = 0; column < m.numCols; column++) {
         rows.add(Double.toString(m.get(row, column)));

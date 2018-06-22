@@ -6,17 +6,23 @@ import org.genvisis.common.Logger;
 import org.genvisis.common.matrix.SVD;
 import org.genvisis.pca.ancestry.AncestryPCA;
 import org.genvisis.pca.ancestry.PlinkDataMatrixLoader;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 public class TestAncPCA {
 
   public static void main(String[] args) {
+
+    //    BiMap<String, String> test = HashBiMap.create();
+    //    System.out.println(test.get("DFS"));
+
     long time = System.currentTimeMillis();
     String dir = "/Volumes/Beta2/Poynter/";
     //    dir = "/Volumes/Beta2/NGS/topmed/aims/plinkfreeze.5b.aims.pass_and_fail.gtonly.minDP10.vcf/quality_control/ancestryFull/unrelateds/";
 
     String plinkRoot = "plink";
 
-    String outDir = dir + "testOutCenterMean0NormEJML_Testing3/";
+    String outDir = dir + "testOutCenterMean0NormEJML_Testing5/";
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "test.log");
     String ser = outDir + "svdBase.ser.gz";

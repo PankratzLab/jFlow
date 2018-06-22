@@ -88,7 +88,7 @@ public class SVD implements Serializable {
 
     for (int outputRow = 0; outputRow < v.getDenseMatrix().getNumCols(); outputRow++) {
       StringJoiner sample = new StringJoiner("\t");
-      sample.add(v.getIndexColumnMap().get(outputRow));
+      sample.add(v.getNameForColumnIndex(outputRow));
       for (int component = 0; component < numComponents; component++) {//
         sample.add(Double.toString(v.getDenseMatrix().get(component, outputRow)));
       }
@@ -137,7 +137,7 @@ public class SVD implements Serializable {
 
     for (int row = 0; row < loadings.getDenseMatrix().getNumRows(); row++) {
       StringJoiner loadingString = new StringJoiner("\t");
-      loadingString.add(loadings.getIndexRowMap().get(row));
+      loadingString.add(loadings.getNameForRowIndex(row));
 
       for (int component = 0; component < numComponents; component++) {
         loadingString.add(Double.toString(loadings.m.get(row, component)));
@@ -154,7 +154,7 @@ public class SVD implements Serializable {
 
     Map<String, Integer> rowMap = new HashMap<>();
     for (int row = 0; row < m.getDenseMatrix().numRows; row++) {
-      rowMap.put(m.getIndexRowMap().get(row), row);
+      rowMap.put(m.getNameForRowIndex(row), row);
     }
 
     Map<String, Integer> loadingMap = new HashMap<>();
@@ -182,14 +182,14 @@ public class SVD implements Serializable {
 
   public NamedRealMatrix getExtraploatedPCs(NamedRealMatrix other, Logger log) {
     //we want to make sure the other has all data available, but we do not care if it has more
-    if (!other.getRowNameMap().keySet().containsAll(loadings.getRowNameMap().keySet())) {
+    if (!other.getRowMap().keySet().containsAll(loadings.getRowMap().keySet())) {
       throw new IllegalArgumentException("All rows from data to be extrapolated must be present");
     }
     log.reportTimeInfo("Extrapolating PCs");
 
     DenseMatrix64F pcs = new DenseMatrix64F(other.getDenseMatrix().numCols, numComponents);
     for (int row = 0; row < loadings.getDenseMatrix().numRows; row++) {
-      int otherRow = other.getRowNameMap().get(loadings.getIndexRowMap().get(row));
+      int otherRow = other.getRowIndexFor(loadings.getNameForRowIndex(row));
       for (int component = 0; component < numComponents; component++) {
         for (int column = 0; column < other.getDenseMatrix().numCols; column++) {
           pcs.add(column, component, other.getDenseMatrix().get(otherRow, column)
@@ -204,7 +204,7 @@ public class SVD implements Serializable {
       }
     }
 
-    return new NamedRealMatrix(other.getColumnNameMap(), getNamedComponentsMap(numComponents), pcs);
+    return new NamedRealMatrix(other.getColumnMap(), getNamedComponentsMap(numComponents), pcs);
   }
 
   private static Map<String, Integer> getNamedComponentsMap(int numComponents) {
@@ -256,7 +256,7 @@ public class SVD implements Serializable {
     }
     tv.reshape(numComponents, m.getDenseMatrix().numCols, true);
     NamedRealMatrix vNamedRealMatrix = new NamedRealMatrix(getNamedComponentsMap(numComponents),
-                                                           m.getColumnNameMap(), tv);
+                                                           m.getColumnMap(), tv);
     DiagonalMatrix w = new DiagonalMatrix(singularValues);
 
     SVD svdResult = new SVD(vNamedRealMatrix, w);

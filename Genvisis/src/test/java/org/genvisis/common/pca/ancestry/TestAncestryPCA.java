@@ -377,7 +377,6 @@ public class TestAncestryPCA {
           test = test * -1;
         }
         assertEquals(standard, test, DELTA);
-
       }
     }
   }
