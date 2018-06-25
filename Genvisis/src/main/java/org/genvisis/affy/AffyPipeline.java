@@ -453,8 +453,7 @@ public class AffyPipeline {
   }
 
   public static void run(Project proj, String aptExeDir, String aptLibDir, String quantNormTarget,
-                         int markerBuffer, int maxWritersOpen, boolean full,
-                         int numThreads) throws Elision {
+                         boolean full, int numThreads) throws Elision {
     Logger log = proj.getLog();
     if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_EXTENSION)
         && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_GZ_EXTENSION)) {
@@ -466,14 +465,14 @@ public class AffyPipeline {
     GENOME_BUILD build = proj.GENOME_BUILD_VERSION.getValue();
 
     runInternal(celFiles, log, quantNormTarget, full, null, build, proj, aptExeDir, aptLibDir,
-                markerBuffer, maxWritersOpen, numThreads);
+                numThreads);
 
   }
 
   public static void run(String aptExeDir, String aptLibDir, String cels, String outDir,
                          String quantNormTarget, String analysisName, String markerPositions,
-                         int markerBuffer, int maxWritersOpen, boolean full, int numThreads,
-                         GENOME_BUILD build, boolean prepImputation) throws Elision {
+                         boolean full, int numThreads, GENOME_BUILD build,
+                         boolean prepImputation) throws Elision {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "affyPipeline.log");
     String[] celFiles;
@@ -485,7 +484,7 @@ public class AffyPipeline {
     Project proj = createProject(log, outDir, analysisName, build);
 
     runInternal(celFiles, log, quantNormTarget, full, markerPositions, build, proj, aptExeDir,
-                aptLibDir, markerBuffer, maxWritersOpen, numThreads);
+                aptLibDir, numThreads);
 
     if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0
         || Files.exists(proj.PROJECT_DIRECTORY.getValue() + Project.HEADERS_FILENAME)) {
@@ -532,7 +531,6 @@ public class AffyPipeline {
   private static void runInternal(String[] celFiles, Logger log, String quantNormTarget,
                                   boolean full, String markerPositions, GENOME_BUILD build,
                                   Project proj, String aptExeDir, String aptLibDir,
-                                  int markerBuffer, int maxWritersOpen,
                                   int numThreads) throws Elision {
 
     validateCelSelection(celFiles, log);
@@ -596,39 +594,6 @@ public class AffyPipeline {
     parser.setNormIntensitiesFile(normalizationResult.getQuantNormFile());
     parser.run();
 
-    //    String tmpDir = proj.PROJECT_DIRECTORY.getValue() + proj.PROJECT_NAME.getValue() + "_TMP/";
-
-    //    String outSnpSrc = tmpDir + "SNP_Src/";
-    //    new File(outSnpSrc).mkdirs();
-    //
-    //        AffySNP6Tables AS6T = new AffySNP6Tables(outSnpSrc, genotypeResult.getCallFile(),
-    //                                                 genotypeResult.getConfFile(),
-    //                                                 normalizationResult.getQuantNormFile(), maxWritersOpen,
-    //                                                 log);
-    //        AS6T.parseSNPTables(markerBuffer);
-    //
-    //    String outCNSrc = tmpDir + "CN_Src/";
-    //    new File(outCNSrc).mkdirs();
-    //
-    //    AffySNP6Tables AS6TCN = new AffySNP6Tables(outCNSrc, normalizationResult.getQuantNormFile(),
-    //                                               maxWritersOpen, log);
-    //    AS6TCN.parseCNTable(markerBuffer);
-    //
-    //    proj.SOURCE_DIRECTORY.setValue("00src_CEL/");
-    //    proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
-    //    proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
-    //    proj.ID_HEADER.setValue("[FILENAME_ROOT]");
-    //    proj.LONG_FORMAT.setValue(false);
-    //
-    //    MergeChp.combineChpFiles(tmpDir, numThreads, "", ".txt",
-    //                             proj.SOURCE_DIRECTORY.getValue(true, true), log);
-    //
-    //    if (!proj.MARKER_POSITION_FILENAME.getValue().equals(markerPositions)) {
-    //      Files.copyFileUsingFileChannels(markerPositions, proj.MARKER_POSITION_FILENAME.getValue(),
-    //                                      log);
-    //    }
-    //
-    //    proj.saveProperties();
   }
 
   public static final int DEFAULT_MARKER_BUFFER = 100;
@@ -701,14 +666,8 @@ public class AffyPipeline {
       } else if (arg.startsWith("aptLibDir=")) {
         aptLibDir = ext.parseStringArg(arg, "");
         numArgs--;
-      } else if (arg.startsWith("maxWritersOpen=")) {
-        maxWritersOpen = ext.parseIntArg(arg);
-        numArgs--;
       } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
         numThreads = ext.parseIntArg(arg);
-        numArgs--;
-      } else if (arg.startsWith("markerBuffer")) {
-        markerBuffer = ext.parseIntArg(arg);
         numArgs--;
       } else if (arg.startsWith("-full")) {
         full = true;
@@ -739,14 +698,13 @@ public class AffyPipeline {
       if (projFile != null) {
         Project proj = new Project(projFile);
         try {
-          run(proj, aptExeDir, aptLibDir, targetSketch, markerBuffer, maxWritersOpen, full,
-              numThreads);
+          run(proj, aptExeDir, aptLibDir, targetSketch, full, numThreads);
         } catch (Elision e1) {
           System.err.println(e1.getMessage());
         }
       } else {
-        run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions,
-            markerBuffer, maxWritersOpen, full, numThreads, build, prepImputation);
+        run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, full,
+            numThreads, build, prepImputation);
       }
     } catch (Exception e) {
       e.printStackTrace();

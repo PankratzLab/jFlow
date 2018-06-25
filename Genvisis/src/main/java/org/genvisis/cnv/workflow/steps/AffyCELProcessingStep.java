@@ -32,8 +32,6 @@ public class AffyCELProcessingStep extends Step {
   private final DirRequirement aptLibReq;
   private final FileRequirement sketchReq;
 
-  public static final String DESC_MKR_BUFF = "Number of markers to buffer when splitting files.";
-  public static final String DESC_MAX_WRIT = "Maximum number of writers to open, if this is less than the sample size parsing will slow drastically.";
   public static final String DESC_FULL = "Use the full affymetrix cdf, which contains more mitochondrial probesets.";
   public static final String DESC_APT_EXT = "Directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/)";
   public static final String DESC_APT_LIB = "Directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/)";
@@ -75,14 +73,11 @@ public class AffyCELProcessingStep extends Step {
     String aptExeDir = ext.verifyDirFormat(variables.get(aptExeReq).getPath());
     String aptLibDir = ext.verifyDirFormat(variables.get(aptLibReq).getPath());
     String quantNormTarget = variables.get(sketchReq).getPath();
-    int markerBuffer = AffyPipeline.DEFAULT_MARKER_BUFFER;
-    int maxWritersOpen = AffyPipeline.DEFAULT_MAX_WRITERS;
     boolean full = variables.get(fullReq);
     int numThreads = variables.get(numThreadsReq);
 
     try {
-      AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, markerBuffer, maxWritersOpen,
-                       full, numThreads);
+      AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, full, numThreads);
     } catch (Elision e) {
       throw new RuntimeException(e);
     }

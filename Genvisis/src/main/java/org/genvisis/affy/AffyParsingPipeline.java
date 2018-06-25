@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Hashtable;
 import java.util.Set;
+import org.genvisis.CLI;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -20,7 +21,7 @@ import com.google.common.collect.Sets;
 
 public class AffyParsingPipeline {
 
-  private static final int MAX_MKRS_PER_MDRAF = 2500;
+  private static final int MAX_MKRS_PER_MDRAF = 1500;
 
   private Project proj;
   private String callFile;
@@ -110,7 +111,8 @@ public class AffyParsingPipeline {
         mkrCount++;
         if (mkrCount == numMarkersPerFile) {
           try {
-            writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, oorTable);
+            writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
+                     oorTable);
           } catch (IOException e) {
             proj.getLog()
                 // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -131,7 +133,8 @@ public class AffyParsingPipeline {
         }
       }
       try {
-        writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, oorTable);
+        writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
+                 oorTable);
       } catch (IOException e) {
         proj.getLog()
             // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -165,14 +168,14 @@ public class AffyParsingPipeline {
   }
 
   private void writeRAF(int numMarkersPerFile, Hashtable<String, String> lookup, byte nullStatus,
-                        String mkrFile, String[] names, byte[][] mkrBytes,
+                        String mkrFile, String[] names, byte[][] mkrBytes, int mkrsToWrite,
                         Hashtable<String, Float> oorTable) throws IOException {
     byte[] mkrNmBytes = Compression.objToBytes(names);
     byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, numMarkersPerFile,
                                                              nullStatus, fingerprint, mkrNmBytes);
     RandomAccessFile raf = new RandomAccessFile(mkrFile, "rw");
     raf.write(param);
-    for (int i = 0; i < numMarkersPerFile; i++) {
+    for (int i = 0; i < mkrsToWrite; i++) {
       raf.write(mkrBytes[i]);
       lookup.put(names[i], mkrFile + "\t" + i);
     }
@@ -188,7 +191,7 @@ public class AffyParsingPipeline {
   @SuppressWarnings("deprecation")
   void initReaders() throws IOException {
     confReader = Files.getAppropriateReader(confFile);
-    callReader = Files.getAppropriateReader(confFile);
+    callReader = Files.getAppropriateReader(callFile);
     sigReader = Files.getAppropriateReader(intFile);
 
     String line;
@@ -240,11 +243,52 @@ public class AffyParsingPipeline {
   MarkerData parseLine() throws IOException {
     String confLine = confReader.readLine();
     String callLine = callReader.readLine();
-    String sigLine = sigReader.readLine();
+    String sigLineA = sigReader.readLine();
+    if (confLine == null && callLine == null && sigLineA != null) {
+      return parseCNMarker(sigLineA);
+    }
+    String sigLineB = sigReader.readLine();
+
+    if (confLine == null && callLine == null && sigLineA == null && sigLineB == null) {
+      return null;
+    }
+
+    return parseSNPMarker(confLine, callLine, sigLineA, sigLineB);
+  }
+
+  private MarkerData parseCNMarker(String sigLine) {
+    String[] sigs = sigLine.trim().split(delim, -1);
+
+    String mkr = sigs[0];
+
+    float[] gcs = new float[numSamples];
+    float[] xRaws = null;
+    float[] yRaws = null;
+    float[] xs = new float[numSamples];
+    float[] ys = new float[numSamples];
+    float[] thetas = null;
+    float[] rs = null;
+    float[] bafs = new float[numSamples];
+    float[] lrrs = new float[numSamples];
+    byte[] abGenos = new byte[numSamples];
+    byte[] forwardGenos = null;
+
+    double scale = proj.XY_SCALE_FACTOR.getValue();
+    for (int i = 0; i < numSamples; i++) {
+      xs[i] = ys[i] = (float) (AffySNP6Tables.power2(sigs[i + 1]) / scale);
+      bafs[i] = lrrs[i] = gcs[i] = 0;
+      abGenos[i] = -1;
+    }
+    return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
+                          bafs, lrrs, abGenos, forwardGenos);
+  }
+
+  private MarkerData parseSNPMarker(String confLine, String callLine, String sigLineA,
+                                    String sigLineB) {
     String[] confs = confLine.trim().split(delim, -1);
     String[] calls = callLine.trim().split(delim, -1);
-    String[] sigsA = sigLine.trim().split(delim, -1);
-    String[] sigsB = sigLine.trim().split(delim, -1);
+    String[] sigsA = sigLineA.trim().split(delim, -1);
+    String[] sigsB = sigLineB.trim().split(delim, -1);
     ensureSame(confs[0], calls[0], sigsA[0], sigsB[0]);
 
     String mkr = calls[0];
@@ -290,6 +334,32 @@ public class AffyParsingPipeline {
     confReader.close();
     callReader.close();
     sigReader.close();
+  }
+
+  private static final String ARG_CALL_FILE = "call";
+  private static final String ARG_CONF_FILE = "conf";
+  private static final String ARG_NORM_INT_FILE = "norm";
+  private static final String DESC_CALL_FILE = "A file containing genotype calls created by AffyPowerTools";
+  private static final String DESC_CONF_FILE = "A file containing confidence values created by AffyPowerTools";
+  private static final String DESC_NORM_INT_FILE = "A file containing normalized intensities, created by AffyPowerTools";
+
+  public static void main(String[] args) {
+    CLI cli = new CLI(AffyParsingPipeline.class);
+
+    cli.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ);
+    cli.addArg(ARG_CALL_FILE, DESC_CALL_FILE);
+    cli.addArg(ARG_CONF_FILE, DESC_CONF_FILE);
+    cli.addArg(ARG_NORM_INT_FILE, DESC_NORM_INT_FILE);
+
+    cli.parseWithExit(args);
+
+    AffyParsingPipeline app = new AffyParsingPipeline();
+    app.setProject(new Project(cli.get(CLI.ARG_PROJ)));
+    app.setConfidencesFile(cli.get(ARG_CONF_FILE));
+    app.setGenotypeCallFile(cli.get(ARG_CALL_FILE));
+    app.setNormIntensitiesFile(cli.get(ARG_NORM_INT_FILE));
+    app.run();
+
   }
 
 }
