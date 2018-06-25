@@ -304,7 +304,7 @@ public class Emim {
     reader = Files.getAppropriateReader(bimFile);
     line = null;
     while ((line = reader.readLine()) != null) {
-      parts = line.trim().split("\t", -1);
+      parts = line.trim().split(PSF.Regex.GREEDY_WHITESPACE, -1);
       chr = Integer.parseInt(parts[0]);
       if (chr > 22) {
         writer.println(parts[1]);
