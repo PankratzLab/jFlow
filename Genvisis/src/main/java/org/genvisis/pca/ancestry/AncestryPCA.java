@@ -95,13 +95,9 @@ public class AncestryPCA implements Serializable {
       StatsAccumulator statsAccumulator = new StatsAccumulator();
       for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
         double val = m.getDenseMatrix().get(row, column);
-        if (valid(val)) {
-          if (isNonMissing(val)) {
-            statsAccumulator.add(val);
-          }
-        } else {
-          throw new IllegalArgumentException("Invalid  value at marker " + m.getNameForRowIndex(row)
-                                             + " and sample " + m.getNameForColumnIndex(column));
+        checkValid(val, row, column);
+        if (isNonMissing(val)) {
+          statsAccumulator.add(val);
         }
       }
       Stats stats = statsAccumulator.snapshot();
@@ -137,6 +133,7 @@ public class AncestryPCA implements Serializable {
         double norm = getNormalizationFactor(stats);
         for (int column = 0; column < m.getDenseMatrix().numCols; column++) {
           double val = m.getDenseMatrix().get(row, column);
+          checkValid(val, row, column);
           if (isNonMissing(val)) {
             double mc = val - stats.mean();
             mc /= norm;
@@ -144,6 +141,7 @@ public class AncestryPCA implements Serializable {
           } else {
             m.getDenseMatrix().set(row, column, 0);
           }
+
         }
       }
     }
@@ -162,9 +160,12 @@ public class AncestryPCA implements Serializable {
     return Double.isFinite(val) && val >= 0;
   }
 
-  private static boolean valid(double val) {
+  private static void checkValid(double val, int row, int column) {
     // since these are genotypes, we are using strict equality
-    return Double.isNaN(val) || val == 2 || val == 1 || val == 0;
+    if (!(Double.isNaN(val) || val == 2 || val == 1 || val == 0)) {
+      throw new IllegalArgumentException("Invalid  value at row " + row + " and column " + column);
+    }
+
   }
 
   /**
