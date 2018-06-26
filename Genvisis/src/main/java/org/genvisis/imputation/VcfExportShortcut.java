@@ -218,9 +218,8 @@ public class VcfExportShortcut {
     } else if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6) {
       outputScript = new StringBuilder(GenvisisWorkflow.setupAffyImputation(proj, numThreads,
                                                                             putativeWhtFile, qcMap,
-                                                                            true, aptExeDir,
-                                                                            aptLibDir, sketch,
-                                                                            includeQC));
+                                                                            aptExeDir, aptLibDir,
+                                                                            sketch, includeQC));
     }
 
     boolean defaultKD = sampleDropsFile == null && sampleKeepsFile == null

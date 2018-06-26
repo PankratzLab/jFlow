@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.CLI;
-import org.genvisis.affy.AffyPipeline;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -24,6 +23,7 @@ import org.genvisis.cnv.workflow.steps.IlluminaMarkerPositionsStep;
 import org.genvisis.cnv.workflow.steps.MarkerQCStep;
 import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
+import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
@@ -76,42 +76,69 @@ public class GenvisisWorkflow {
   }
 
   private List<Step> generateSteps(boolean allowCorrectionStep) {
-    StepBuilder sb = new StepBuilder(proj);
+    boolean isAffy = proj.getArrayType() == ARRAY.AFFY_GW6
+                     || proj.getArrayType() == ARRAY.AFFY_GW6_CN
+                     || proj.getArrayType() == ARRAY.AFFY_AXIOM;
+    if (isAffy) {
+      return generateAffySteps(allowCorrectionStep);
+    } else {
+      return generateIlluminaSteps(allowCorrectionStep);
+    }
+  }
 
+  private List<Step> generateAffySteps(boolean allowCorrectionStep) {
+    StepBuilder sb = new StepBuilder(proj);
+    AffyCELProcessingStep parseAffyCELs;
+    AffyMarkerBlastStep affyMarkerBlastStep = null;
+    ReverseTransposeTarget reverseTransposeStep = null;
+    SampleDataStep createSampleDataStep;
+    GCModelStep gcModelStep;
+    SampleQCStep sampleQCStep;
+    parseAffyCELs = sb.generateAffyCELProcessingStep(proj);
+    reverseTransposeStep = sb.generateReverseTransposeStep(proj, parseAffyCELs);
+    affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, reverseTransposeStep);
+    createSampleDataStep = sb.generateCreateSampleDataStep(proj, reverseTransposeStep);
+    gcModelStep = sb.generateGCModelStep(proj);
+    sampleQCStep = sb.generateSampleQCStep(proj, reverseTransposeStep);
+    sb.generateMarkerQCStep(proj, reverseTransposeStep);
+    sb.generateSexChecksStep(proj, reverseTransposeStep, affyMarkerBlastStep, createSampleDataStep,
+                             sampleQCStep);
+    sb.generateABLookupStep(proj, reverseTransposeStep);
+    PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(proj, reverseTransposeStep);
+    GwasQCStep gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
+    AncestryStep ancestryStep = sb.generateAncestryStep(proj, gwasQCStep);
+    sb.generateFurtherAnalysisQCStep(proj, plinkExportStep, gwasQCStep, ancestryStep);
+    sb.generateMosaicArmsStep(proj, reverseTransposeStep);
+    sb.generateAnnotateSampleDataStep(proj, sampleQCStep, createSampleDataStep, gwasQCStep);
+    sb.generateMitoCNEstimateStep(proj, reverseTransposeStep);
+    ComputePFBStep pfbStep = sb.generatePFBStep(proj, reverseTransposeStep);
+    sb.generateSexCentroidsStep(proj, pfbStep);
+    sb.generateCNVStep(proj, pfbStep, gcModelStep);
+    if (allowCorrectionStep) {
+      sb.generatePCCorrectedProjectStep(proj, reverseTransposeStep);
+    }
+
+    return sb.getSortedSteps();
+  }
+
+  private List<Step> generateIlluminaSteps(boolean allowCorrectionStep) {
+    StepBuilder sb = new StepBuilder(proj);
     ParseSamplesStep parseSamplesStep;
     IlluminaMarkerBlastStep illumMarkerBlastStep = null;
-    AffyMarkerBlastStep affyMarkerBlastStep = null;
-    if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
-        || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
-
-      if (proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
-                                        .equals(AffyPipeline.AFFY_CEL_EXTENSION)
-          || proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase()
-                                           .equals(AffyPipeline.AFFY_CEL_GZ_EXTENSION)
-      // remove step if source file extension has changed, as trying to run the CEL processing step again would result in errors
-      ) {
-        sb.generateAffyCELProcessingStep(proj);
-      }
-      parseSamplesStep = sb.generateParseSamplesStep(proj);
-      affyMarkerBlastStep = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamplesStep);
-    } else {
-      IlluminaMarkerPositionsStep markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
-      parseSamplesStep = sb.generateParseSamplesStep(proj, markerPositions);
-      illumMarkerBlastStep = sb.generateIlluminaMarkerBlastAnnotationStep(proj, parseSamplesStep);
-    }
-    SampleDataStep createSampleDataStep = sb.generateCreateSampleDataStep(proj, parseSamplesStep);
-    TransposeStep transposeStep = sb.generateTransposeStep(proj, parseSamplesStep);
-    GCModelStep gcModelStep = sb.generateGCModelStep(proj);
-    SampleQCStep sampleQCStep = sb.generateSampleQCStep(proj, parseSamplesStep);
+    SampleDataStep createSampleDataStep;
+    GCModelStep gcModelStep;
+    SampleQCStep sampleQCStep;
+    TransposeStep transposeStep = null;
+    IlluminaMarkerPositionsStep markerPositions = sb.generateIlluminaMarkerPositionsStep(proj);
+    parseSamplesStep = sb.generateParseSamplesStep(proj, markerPositions);
+    illumMarkerBlastStep = sb.generateIlluminaMarkerBlastAnnotationStep(proj, parseSamplesStep);
+    createSampleDataStep = sb.generateCreateSampleDataStep(proj, parseSamplesStep);
+    transposeStep = sb.generateTransposeStep(proj, parseSamplesStep);
+    gcModelStep = sb.generateGCModelStep(proj);
+    sampleQCStep = sb.generateSampleQCStep(proj, parseSamplesStep);
     sb.generateMarkerQCStep(proj, parseSamplesStep);
-    if (proj.getArrayType() == ARRAY.AFFY_GW6 || proj.getArrayType() == ARRAY.AFFY_GW6_CN
-        || proj.getArrayType() == ARRAY.AFFY_AXIOM) {
-      sb.generateSexChecksStep(proj, parseSamplesStep, affyMarkerBlastStep, createSampleDataStep,
-                               transposeStep, sampleQCStep);
-    } else {
-      sb.generateSexChecksStep(proj, parseSamplesStep, illumMarkerBlastStep, createSampleDataStep,
-                               transposeStep, sampleQCStep);
-    }
+    sb.generateSexChecksStep(proj, parseSamplesStep, illumMarkerBlastStep, createSampleDataStep,
+                             transposeStep, sampleQCStep);
     sb.generateABLookupStep(proj, parseSamplesStep);
     PlinkExportStep plinkExportStep = sb.generatePlinkExportStep(proj, parseSamplesStep);
     GwasQCStep gwasQCStep = sb.generateGwasQCStep(proj, plinkExportStep);
@@ -173,18 +200,16 @@ public class GenvisisWorkflow {
   }
 
   public static String setupAffyImputation(Project proj, int numThreads, String putativeWhitesFile,
-                                           Map<QC_METRIC, String> faqcThreshs, boolean parseSource,
-                                           String aptExeDir, String aptLibDir, String sketch,
-                                           boolean includeQC) {
+                                           Map<QC_METRIC, String> faqcThreshs, String aptExeDir,
+                                           String aptLibDir, String sketch, boolean includeQC) {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
     AffyCELProcessingStep parseCELFiles = sketch != null ? sb.generateAffyCELProcessingStep(proj)
                                                          : null;
-    ParseSamplesStep parseSamples = sb.generateParseSamplesStep(proj);
-    TransposeStep transpose = sb.generateTransposeStep(proj, parseSamples);
-    SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, parseSamples);
-    AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(proj, parseSamples);
+    ReverseTransposeTarget reverseTranspose = sb.generateReverseTransposeStep(proj, parseCELFiles);
+    SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, reverseTranspose);
+    AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(proj, reverseTranspose);
     SampleQCStep sampleQc = null;
     MarkerQCStep markerQc = null;
     SexChecksStep sexChecks = null;
@@ -193,11 +218,10 @@ public class GenvisisWorkflow {
     AncestryStep ancestry = null;
     FurtherAnalysisQCStep faqcStep = null;
     if (includeQC) {
-      sampleQc = sb.generateSampleQCStep(proj, parseSamples);
-      markerQc = sb.generateMarkerQCStep(proj, parseSamples);
-      sexChecks = sb.generateSexChecksStep(proj, parseSamples, blast, sampleData, transpose,
-                                           sampleQc);
-      exportPlink = sb.generatePlinkExportStep(proj, parseSamples);
+      sampleQc = sb.generateSampleQCStep(proj, reverseTranspose);
+      markerQc = sb.generateMarkerQCStep(proj, reverseTranspose);
+      sexChecks = sb.generateSexChecksStep(proj, reverseTranspose, blast, sampleData, sampleQc);
+      exportPlink = sb.generatePlinkExportStep(proj, reverseTranspose);
       gwasQc = sb.generateGwasQCStep(proj, exportPlink);
       ancestry = sb.generateAncestryStep(proj, gwasQc);
       faqcStep = sb.generateFurtherAnalysisQCStep(proj, exportPlink, gwasQc, ancestry);
@@ -219,19 +243,16 @@ public class GenvisisWorkflow {
       }
       varMap.put(parseCELFiles, stepReqs);
     }
-    if (parseSource) {
-      varMap.put(parseSamples, parseSamples.getDefaultRequirementValues());
-      varMap.put(transpose, transpose.getDefaultRequirementValues());
+    varMap.put(reverseTranspose, reverseTranspose.getDefaultRequirementValues());
 
-      stepReqs = sampleData.getDefaultRequirementValues();
-      for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equalsIgnoreCase(SampleDataStep.REQ_CREATE_MINIMAL)) {
-          stepReqs.parseOrFail(r1, "false");
-          break;
-        }
+    stepReqs = sampleData.getDefaultRequirementValues();
+    for (Requirement<?> r1 : stepReqs.keys()) {
+      if (r1.getDescription().equalsIgnoreCase(SampleDataStep.REQ_CREATE_MINIMAL)) {
+        stepReqs.parseOrFail(r1, "false");
+        break;
       }
-      varMap.put(sampleData, stepReqs);
     }
+    varMap.put(sampleData, stepReqs);
 
     if (includeQC) {
       varMap.put(sampleQc, sampleQc.getDefaultRequirementValues());
@@ -292,11 +313,9 @@ public class GenvisisWorkflow {
     if (parseCELFiles != null) {
       addStepInfo(output, parseCELFiles, parseCELFiles.getCommandLine(varMap.get(parseCELFiles)));
     }
-    if (parseSource) {
-      addStepInfo(output, parseSamples, parseSamples.getCommandLine(varMap.get(parseSamples)));
-      addStepInfo(output, transpose, transpose.getCommandLine(varMap.get(transpose)));
-      addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
-    }
+    addStepInfo(output, reverseTranspose,
+                reverseTranspose.getCommandLine(varMap.get(reverseTranspose)));
+    addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
     if (includeQC) {
       addStepInfo(output, sampleQc, sampleQc.getCommandLine(varMap.get(sampleQc)));
       addStepInfo(output, markerQc, markerQc.getCommandLine(varMap.get(markerQc)));
@@ -473,7 +492,7 @@ public class GenvisisWorkflow {
     Step transpose = sb.generateTransposeStep(pcProj, null);
     // Create new sample data, run sex checks?
     GCModelStep gc = sb.generateGCModelStep(pcProj);
-    ComputePFBStep pfb = sb.generatePFBStep(pcProj, null);
+    ComputePFBStep pfb = sb.generatePFBStep(pcProj, (ParseSamplesStep) null);
     SexCentroidsStep cent = sb.generateSexCentroidsStep(pcProj, pfb);
     Step cnv = sb.generateCNVStep(pcProj, pfb, gc);
     Variables cnvOpts = new Variables();

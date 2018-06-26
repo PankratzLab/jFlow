@@ -18,10 +18,9 @@ public class SexChecksStep extends Step {
   public static final String NO_CROSS_HYBE_REQUIREMENT = "Use only X and Y chromosome R values to identify sex discriminating markers";
   public static final String ADD_ESTSEX_TO_SAMPDATA_REQUIREMENT = "Add Estimated Sex to Sample Data";
 
-  public static SexChecksStep create(final Project proj, final Step parseSamplesStep,
-                                     final Step markerBlastStep, final Step sampleDataStep,
-                                     final Step transposeStep, final Step sampleQCStep) {
-    final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
+  public static SexChecksStep create(final Project proj, final Step markerBlastStep,
+                                     final Step sampleDataStep, final Step transposeStep,
+                                     final Step sampleQCStep) {
     final Requirement<Step> sampleDataStepReq = new Requirement.StepRequirement(sampleDataStep);
     final Requirement<Step> transposeStepReq = new Requirement.StepRequirement(transposeStep);
     final Requirement<Step> sampleQCStepReq = new Requirement.StepRequirement(sampleQCStep);
@@ -34,9 +33,8 @@ public class SexChecksStep extends Step {
     final Requirement<Boolean> noCrossHybeReq = new Requirement.BoolRequirement(NO_CROSS_HYBE_REQUIREMENT,
                                                                                 false);
 
-    final RequirementSet reqSet = RequirementSetBuilder.and().add(parseSamplesStepReq)
-                                                       .add(sampleDataStepReq).add(transposeStepReq)
-                                                       .add(sampleQCStepReq)
+    final RequirementSet reqSet = RequirementSetBuilder.and().add(sampleDataStepReq)
+                                                       .add(transposeStepReq).add(sampleQCStepReq)
                                                        .add(RequirementSetBuilder.or()
                                                                                  .add(oneHittersReq)
                                                                                  .add(markerBlastStepReq)

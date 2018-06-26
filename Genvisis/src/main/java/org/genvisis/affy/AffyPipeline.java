@@ -555,8 +555,11 @@ public class AffyPipeline {
                                            + build.getBuild()
                                            + " is not available.  Parsing cannot continue.");
       } else {
-        log.report("Using " + markerPos.get());
-        markerPositions = markerPos.get();
+        log.reportTime("No marker positions file found - copying resource from "
+                       + ext.parseDirectoryOfFile(markerPos.get()) + " to "
+                       + proj.MARKER_POSITION_FILENAME.getValue());
+        Files.copyFile(markerPos.get(), proj.MARKER_POSITION_FILENAME.getValue());
+        markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
       }
     }
 

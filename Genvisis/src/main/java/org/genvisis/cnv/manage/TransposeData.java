@@ -569,14 +569,18 @@ public class TransposeData {
     timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     timeFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-    final String[] listOfAllSamplesInProj = proj.getSamples();
+    String[] samples = proj.getSamples();
+    if (samples == null && Files.exists(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt")) {
+      samples = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
+                                              + "ListOfSamples.txt", false, null, false);
+    }
+    final String[] listOfAllSamplesInProj = samples;
     final String[] listOfAllMarkersInProj = proj.getMarkerNames();
 
     fingerprintForMarkers = proj.getMarkerSet().getFingerprint();
 
     // compute null status (see GenvisisTechDoc.docx for explanation)
-    final byte nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue(false,
-                                                                                                  true)
+    final byte nullStatus = getNullstatusFromRandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue()
                                                               + proj.getMarkerLookup()
                                                                     .getFirstMarkerDataRafFilename(),
                                                               false);
@@ -594,11 +598,6 @@ public class TransposeData {
     long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
     long threadBuffer = mem / maxThreads;
 
-    log.reportTime("    Mem: " + mem + "b == " + (mem / 1024) + "kb == " + ((mem / 1024) / 1024)
-                   + "mb == " + (((mem / 1024) / 1024) / 1024) + "gb");
-    log.reportTime("Threads: " + maxThreads);
-    log.reportTime(" Buffer: " + threadBuffer + "b");
-
     int maxMkrsBuffer = listOfAllMarkersInProj.length;
     int maxMkrsStep = Math.max(1, listOfAllMarkersInProj.length / 10);
     int numSamplesPerThread = (int) (threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer));
@@ -607,7 +606,16 @@ public class TransposeData {
       numSamplesPerThread = (int) (threadBuffer / (numBytesPerSampleMarker * maxMkrsBuffer));
     }
     final int mkrsInBuffer = maxMkrsBuffer;
-    final int numSampsInThread = numSamplesPerThread;
+    final int numSampsInThread = numSamplesPerThread >= samples.length ? samples.length
+                                                                       : numSamplesPerThread;
+    if (numSampsInThread >= samples.length) {
+      maxThreads = 1;
+    }
+
+    log.reportTime("    Mem: " + mem + "b == " + (mem / 1024) + "kb == " + ((mem / 1024) / 1024)
+                   + "mb == " + (((mem / 1024) / 1024) / 1024) + "gb");
+    log.reportTime("Threads: " + maxThreads);
+    log.reportTime(" Buffer: " + threadBuffer + "b");
 
     log.reportTime("Reverse-transposing " + numSamplesPerThread + " samples per thread with "
                    + maxThreads + " threads and a buffer of " + mkrsInBuffer + " markers ("
@@ -693,8 +701,10 @@ public class TransposeData {
                     }
                     openMarkerFile = markerFile;
                     time2 = System.nanoTime();
-                    markerRAF = new RandomAccessFile(proj.MARKER_DATA_DIRECTORY.getValue()
-                                                     + openMarkerFile, "r");
+                    markerRAF = new RandomAccessFile(Files.isRelativePath(openMarkerFile) ? proj.MARKER_DATA_DIRECTORY.getValue()
+                                                                                            + openMarkerFile
+                                                                                          : openMarkerFile,
+                                                     "r");
                     openTime += (System.nanoTime() - time2);
                     markerRAF.read(parameterReadBuffer);
                     numBytesPerSampMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
@@ -797,7 +807,10 @@ public class TransposeData {
       transposeService.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (InterruptedException e) {
       /**/
+      log.reportTime("Reverse transpose was interrupted!");
     }
+
+    log.reportTime("Reverse transpose has finished.");
 
   }
 
@@ -1796,6 +1809,7 @@ public class TransposeData {
     String filename = null;
     boolean transpose = false;
     boolean reversetranspose = false;
+    boolean reverseTransposeStream = false;
     boolean keepFilesOpen = false;
     int maxFileSize = 0;
     boolean lookup = false;
@@ -1825,6 +1839,12 @@ public class TransposeData {
       } else if (arg.startsWith("-transpose")) {
         transpose = true;
         numArgs--;
+      } else if (arg.startsWith("-reversetranspose")) {
+        reversetranspose = true;
+        numArgs--;
+      } else if (arg.startsWith("-reverseStream")) {
+        reverseTransposeStream = true;
+        numArgs--;
       } else if (arg.startsWith("-keepFilesOpen")) {
         keepFilesOpen = true;
         numArgs--;
@@ -1850,6 +1870,18 @@ public class TransposeData {
         transposeData(proj, maxFileSize, keepFilesOpen);
       } else if (reversetranspose) {
         reverseTranspose(proj);
+      } else if (reverseTransposeStream) {
+        if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SAMPLES_FILE)) {
+          String[] samples = proj.getSamples();
+          if (samples == null
+              && Files.exists(proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt")) {
+            samples = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
+                                                    + "ListOfSamples.txt", false, null, false);
+          }
+          Files.writeArray(samples, proj.MARKER_DATA_DIRECTORY.getValue() + TEMP_SAMPLES_FILE);
+        }
+        reverseTransposeStreaming(proj,
+                                  ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()));
       } else if (lookup) {
         recreateMarkerLookup(proj);
       } else {

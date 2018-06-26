@@ -89,10 +89,11 @@ public class SampleList implements Serializable {
     // }
 
     if (Files.exists(proj.SAMPLE_DIRECTORY.getValue(false, true))) {
-      files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, true), Sample.SAMPLE_FILE_EXTENSION);
+      files = Files.list(proj.SAMPLE_DIRECTORY.getValue(false, false),
+                         Sample.SAMPLE_FILE_EXTENSION);
     } else {
       log.reportError("Error - failed to find the SAMPLE_DIRECTORY ("
-                      + proj.SAMPLE_DIRECTORY.getValue(false, true)
+                      + proj.SAMPLE_DIRECTORY.getValue(false, false)
                       + "); no SampleList could be generated");
       return null;
     }
@@ -108,7 +109,7 @@ public class SampleList implements Serializable {
     }
     list = new SampleList(samples);
     if (samples.length > 0) {
-      list.serialize(proj.SAMPLELIST_FILENAME.getValue(true, true));
+      list.serialize(proj.SAMPLELIST_FILENAME.getValue(true, false));
     } else {
       log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
     }

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Set;
 import org.genvisis.CLI;
 import org.genvisis.cnv.analysis.CentroidCompute;
@@ -13,11 +14,15 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
+import org.genvisis.common.ext;
 import com.google.common.collect.Sets;
+import com.googlecode.charts4j.collect.Lists;
 
 public class AffyParsingPipeline {
 
@@ -38,7 +43,8 @@ public class AffyParsingPipeline {
   private String[] callHeader;
   private String[] sigHeader;
 
-  private int numSamples;
+  private String[] samples;
+  int numSamples;
   private long fingerprint;
 
   public void setProject(Project proj) {
@@ -87,6 +93,7 @@ public class AffyParsingPipeline {
 
     new File(proj.MARKER_DATA_DIRECTORY.getValue()).mkdirs();
 
+    List<String> allMarkers = Lists.newArrayList();
     String[] names = new String[numMarkersPerFile];
     byte[][] mkrBytes = new byte[numMarkersPerFile][];
     int mkrCount = 0;
@@ -96,6 +103,7 @@ public class AffyParsingPipeline {
     try {
       while ((md = parseLine()) != null) {
         names[mkrCount] = md.getMarkerName();
+        allMarkers.add(md.getMarkerName());
         try {
           mkrBytes[mkrCount] = md.compress(mkrCount, nullStatus, oorTable, canXYBeNegative);
         } catch (Elision e1) {
@@ -155,7 +163,7 @@ public class AffyParsingPipeline {
         proj.getLog()
             .reportTimeWarning("Exception occurred when closing input files.  This may not be a problem.");
       }
-      new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+      writeMarkerLookupAndList(allMarkers, lookup);
     } catch (IOException e) {
       proj.getLog()
           // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -165,6 +173,11 @@ public class AffyParsingPipeline {
         closeReaders();
       } catch (IOException e2) {}
     }
+  }
+
+  private void writeMarkerLookupAndList(List<String> allMarkers, Hashtable<String, String> lookup) {
+    new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+    Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj, proj.getLog());
   }
 
   private void writeRAF(int numMarkersPerFile, Hashtable<String, String> lookup, byte nullStatus,
@@ -177,7 +190,7 @@ public class AffyParsingPipeline {
     raf.write(param);
     for (int i = 0; i < mkrsToWrite; i++) {
       raf.write(mkrBytes[i]);
-      lookup.put(names[i], mkrFile + "\t" + i);
+      lookup.put(names[i], ext.removeDirectoryInfo(mkrFile) + "\t" + i);
     }
 
     byte[] oorBytes = Compression.objToBytes(oorTable);
@@ -215,7 +228,13 @@ public class AffyParsingPipeline {
     sigHeader = line.trim().split(delim, -1);
 
     ensureHeaderContentsSame();
-    numSamples = confHeader.length - 1;
+    samples = ArrayUtils.subArray(confHeader, 1);
+    SampleList sl = new SampleList(samples);
+    sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
+    Files.writeArray(samples, proj.PROJECT_DIRECTORY.getValue() + "ListOfSamples.txt");
+    Files.writeArray(samples, proj.MARKER_DATA_DIRECTORY.getValue(true, false)
+                              + TransposeData.TEMP_SAMPLES_FILE);
+    numSamples = samples.length;
     fingerprint = org.genvisis.cnv.filesys.MarkerSet.fingerprint(ArrayUtils.subArray(confHeader,
                                                                                      1));
   }

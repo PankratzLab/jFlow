@@ -24,6 +24,7 @@ import org.genvisis.cnv.workflow.steps.MosaicArmsStep;
 import org.genvisis.cnv.workflow.steps.PCCorrectionStep;
 import org.genvisis.cnv.workflow.steps.ParseSamplesStep;
 import org.genvisis.cnv.workflow.steps.PlinkExportStep;
+import org.genvisis.cnv.workflow.steps.ReverseTransposeTarget;
 import org.genvisis.cnv.workflow.steps.SampleDataStep;
 import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
@@ -104,7 +105,7 @@ public class StepBuilder {
   }
 
   AffyMarkerBlastStep generateAffyMarkerBlastAnnotationStep(final Project proj,
-                                                            ParseSamplesStep parseSamplesStep) {
+                                                            ReverseTransposeTarget parseSamplesStep) {
     return register(AffyMarkerBlastStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
@@ -117,8 +118,18 @@ public class StepBuilder {
     return register(ParseSamplesStep.create(proj, markerPositionsStep, numThreadsReq));
   }
 
+  SampleDataStep generateCreateSampleDataStep(Project proj,
+                                              ReverseTransposeTarget reverseTransposeTarget) {
+    return register(SampleDataStep.create(proj, reverseTransposeTarget));
+  }
+
   SampleDataStep generateCreateSampleDataStep(Project proj, ParseSamplesStep parseSamplesStep) {
     return register(SampleDataStep.create(proj, parseSamplesStep));
+  }
+
+  ReverseTransposeTarget generateReverseTransposeStep(Project proj,
+                                                      AffyCELProcessingStep parseAffyCELs) {
+    return register(ReverseTransposeTarget.create(proj, parseAffyCELs));
   }
 
   TransposeStep generateTransposeStep(Project proj, ParseSamplesStep parseSamplesStep) {
@@ -129,11 +140,11 @@ public class StepBuilder {
     return register(GCModelStep.create(proj));
   }
 
-  SampleQCStep generateSampleQCStep(Project proj, ParseSamplesStep parseSamplesStep) {
+  SampleQCStep generateSampleQCStep(Project proj, Step parseSamplesStep) {
     return register(SampleQCStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
-  MarkerQCStep generateMarkerQCStep(Project proj, ParseSamplesStep parseSamplesStep) {
+  MarkerQCStep generateMarkerQCStep(Project proj, Step parseSamplesStep) {
     return register(MarkerQCStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
@@ -141,20 +152,24 @@ public class StepBuilder {
                                       IlluminaMarkerBlastStep markerBlastStep,
                                       SampleDataStep sampleDataStep, TransposeStep transposeStep,
                                       SampleQCStep sampleQCStep) {
-    return register(SexChecksStep.create(proj, parseSamplesStep, markerBlastStep, sampleDataStep,
-                                         transposeStep, sampleQCStep));
+    return register(SexChecksStep.create(proj, markerBlastStep, sampleDataStep, transposeStep,
+                                         sampleQCStep));
   }
 
-  SexChecksStep generateSexChecksStep(Project proj, ParseSamplesStep parseSamplesStep,
+  SexChecksStep generateSexChecksStep(Project proj, ReverseTransposeTarget reverseTransposeStep,
                                       AffyMarkerBlastStep markerBlastStep,
-                                      SampleDataStep sampleDataStep, TransposeStep transposeStep,
-                                      SampleQCStep sampleQCStep) {
-    return register(SexChecksStep.create(proj, parseSamplesStep, markerBlastStep, sampleDataStep,
-                                         transposeStep, sampleQCStep));
+                                      SampleDataStep sampleDataStep, SampleQCStep sampleQCStep) {
+    return register(SexChecksStep.create(proj, markerBlastStep, sampleDataStep,
+                                         reverseTransposeStep, sampleQCStep));
   }
 
   PlinkExportStep generatePlinkExportStep(Project proj, ParseSamplesStep parseSamplesStep) {
     return register(PlinkExportStep.create(proj, parseSamplesStep));
+  }
+
+  PlinkExportStep generatePlinkExportStep(Project proj,
+                                          ReverseTransposeTarget reverseTransposeStep) {
+    return register(PlinkExportStep.create(proj, reverseTransposeStep));
   }
 
   GwasQCStep generateGwasQCStep(Project proj, PlinkExportStep plinkExportStep) {
@@ -175,6 +190,10 @@ public class StepBuilder {
     return register(MosaicArmsStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
+  MosaicArmsStep generateMosaicArmsStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
+    return register(MosaicArmsStep.create(proj, reverseTransposeStep, numThreadsReq));
+  }
+
   AnnotateSampleDataStep generateAnnotateSampleDataStep(Project proj, SampleQCStep sampleQCStep,
                                                         SampleDataStep createSampleDataStep,
                                                         GwasQCStep gwasQCStep) {
@@ -186,8 +205,17 @@ public class StepBuilder {
     return register(MitoCNEstimateStep.create(proj, transposeStep, numThreadsReq));
   }
 
+  MitoCNEstimateStep generateMitoCNEstimateStep(Project proj,
+                                                ReverseTransposeTarget reverseTransposeStep) {
+    return register(MitoCNEstimateStep.create(proj, reverseTransposeStep, numThreadsReq));
+  }
+
   ComputePFBStep generatePFBStep(Project proj, ParseSamplesStep parseSamplesStep) {
     return register(ComputePFBStep.create(proj, parseSamplesStep));
+  }
+
+  ComputePFBStep generatePFBStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
+    return register(ComputePFBStep.create(proj, reverseTransposeStep));
   }
 
   SexCentroidsStep generateSexCentroidsStep(Project proj, ComputePFBStep pfbStep) {
@@ -202,8 +230,17 @@ public class StepBuilder {
     return register(PCCorrectionStep.create(proj, parseSamplesStep, numThreadsReq));
   }
 
+  PCCorrectionStep generatePCCorrectedProjectStep(Project proj,
+                                                  ReverseTransposeTarget reverseTransposeStep) {
+    return register(PCCorrectionStep.create(proj, reverseTransposeStep, numThreadsReq));
+  }
+
   ABLookupStep generateABLookupStep(Project proj, ParseSamplesStep parseSamplesStep) {
     return register(ABLookupStep.create(proj, parseSamplesStep));
+  }
+
+  ABLookupStep generateABLookupStep(Project proj, ReverseTransposeTarget reverseTransposeStep) {
+    return register(ABLookupStep.create(proj, reverseTransposeStep));
   }
 
   public static int resolveThreads(Project proj, int numThreads) {
