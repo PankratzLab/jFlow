@@ -617,7 +617,7 @@ public class TransposeData {
     log.reportTime("Threads: " + maxThreads);
     log.reportTime(" Buffer: " + threadBuffer + "b");
 
-    log.reportTime("Reverse-transposing " + numSamplesPerThread + " samples per thread with "
+    log.reportTime("Reverse-transposing " + numSampsInThread + " samples per thread with "
                    + maxThreads + " threads and a buffer of " + mkrsInBuffer + " markers ("
                    + (threadBuffer / 1024 / 1024) + "Mb allocated per thread).");
 
