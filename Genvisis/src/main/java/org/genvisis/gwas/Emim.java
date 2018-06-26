@@ -455,7 +455,7 @@ public class Emim {
         outputs.add("emimsummary_" + runID + "_" + model.toString() + ".out");
         outputs.add("emimparams_" + runID + "_" + model.toString() + ".dat");
       }
-      boolean skipModel = Files.checkAllFiles(currDir, outputs, false, false, log);
+      boolean skipModel = !forceRun && Files.checkAllFiles(currDir, outputs, false, false, log);
       if (skipModel) {
         log.report("Results already exist in " + currDir + " for " + model.toString()
                    + " model, skipping " + model.toString() + " EMIM");
