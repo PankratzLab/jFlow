@@ -205,8 +205,7 @@ public class GenvisisWorkflow {
     StepBuilder sb = new StepBuilder(proj);
 
     Requirement<Integer> numThreadsReq = sb.getNumThreadsReq();
-    AffyCELProcessingStep parseCELFiles = sketch != null ? sb.generateAffyCELProcessingStep(proj)
-                                                         : null;
+    AffyCELProcessingStep parseCELFiles = sb.generateAffyCELProcessingStep(proj);
     ReverseTransposeTarget reverseTranspose = sb.generateReverseTransposeStep(proj, parseCELFiles);
     SampleDataStep sampleData = sb.generateCreateSampleDataStep(proj, reverseTranspose);
     AffyMarkerBlastStep blast = sb.generateAffyMarkerBlastAnnotationStep(proj, reverseTranspose);
@@ -230,19 +229,17 @@ public class GenvisisWorkflow {
     Variables stepReqs;
     Map<Step, Variables> varMap = new HashMap<>();
 
-    if (parseCELFiles != null) {
-      stepReqs = parseCELFiles.getDefaultRequirementValues();
-      for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equals(AffyCELProcessingStep.DESC_SKETCH)) {
-          stepReqs.parseOrFail(r1, sketch);
-        } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_EXT)) {
-          stepReqs.parseOrFail(r1, aptExeDir);
-        } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_LIB)) {
-          stepReqs.parseOrFail(r1, aptLibDir);
-        }
+    stepReqs = parseCELFiles.getDefaultRequirementValues();
+    for (Requirement<?> r1 : stepReqs.keys()) {
+      if (r1.getDescription().equals(AffyCELProcessingStep.DESC_SKETCH)) {
+        stepReqs.parseOrFail(r1, sketch);
+      } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_EXT)) {
+        stepReqs.parseOrFail(r1, aptExeDir);
+      } else if (r1.getDescription().equals(AffyCELProcessingStep.DESC_APT_LIB)) {
+        stepReqs.parseOrFail(r1, aptLibDir);
       }
-      varMap.put(parseCELFiles, stepReqs);
     }
+    varMap.put(parseCELFiles, stepReqs);
     varMap.put(reverseTranspose, reverseTranspose.getDefaultRequirementValues());
 
     stepReqs = sampleData.getDefaultRequirementValues();
@@ -310,9 +307,7 @@ public class GenvisisWorkflow {
 
     StringBuilder output = new StringBuilder("## Genvisis Project Pipeline - Stepwise Commands\n\n");
 
-    if (parseCELFiles != null) {
-      addStepInfo(output, parseCELFiles, parseCELFiles.getCommandLine(varMap.get(parseCELFiles)));
-    }
+    addStepInfo(output, parseCELFiles, parseCELFiles.getCommandLine(varMap.get(parseCELFiles)));
     addStepInfo(output, reverseTranspose,
                 reverseTranspose.getCommandLine(varMap.get(reverseTranspose)));
     addStepInfo(output, sampleData, sampleData.getCommandLine(varMap.get(sampleData)));
