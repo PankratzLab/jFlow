@@ -15,11 +15,13 @@ import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
+import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
 import com.google.common.collect.Sets;
 import com.googlecode.charts4j.collect.Lists;
@@ -75,10 +77,9 @@ public class AffyParsingPipeline {
       return;
     }
 
-    // TODO determine if true:
     boolean canXYBeNegative = true;
     byte nullStatus = Sample.updateNullStatus(new float[0], new float[0], new float[0],
-                                              new float[0], new float[0], new byte[0], null,
+                                              new float[0], new float[0], new byte[0], new byte[0],
                                               canXYBeNegative);
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
     long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
@@ -100,12 +101,35 @@ public class AffyParsingPipeline {
     Hashtable<String, Float> oorTable = new Hashtable<>();
     MarkerData md = null;
 
+    String[] allSampsInProj = new String[numSamples];
+    for (int i = 0; i < numSamples; i++) {
+      allSampsInProj[i] = "Sample_" + i;
+    }
+
+    int dump = 5;
+
     try {
       while ((md = parseLine()) != null) {
         names[mkrCount] = md.getMarkerName();
         allMarkers.add(md.getMarkerName());
         try {
+          if (dump > 0) {
+            md.dump(null, ext.parseDirectoryOfFile(mkrFile) + ext.rootOf(mkrFile) + "_dump_original"
+                          + ".xln",
+                    allSampsInProj, true, new Logger());
+          }
           mkrBytes[mkrCount] = md.compress(mkrCount, nullStatus, oorTable, canXYBeNegative);
+          if (dump > 0) {
+            MarkerData md1 = MarkerDataLoader.parseMarkerData((byte) -1, -1, nullStatus,
+                                                              fingerprint, true, true, true, true,
+                                                              true, allSampsInProj, names, mkrCount,
+                                                              oorTable, mkrBytes[mkrCount],
+                                                              new Logger());
+            md1.dump(null, ext.parseDirectoryOfFile(mkrFile) + ext.rootOf(mkrFile)
+                           + "_dump_compressed" + ".xln",
+                     allSampsInProj, true, new Logger());
+            dump--;
+          }
         } catch (Elision e1) {
           proj.getLog()
               // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -120,7 +144,7 @@ public class AffyParsingPipeline {
         if (mkrCount == numMarkersPerFile) {
           try {
             writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
-                     oorTable);
+                     oorTable, bytesPerMarker);
           } catch (IOException e) {
             proj.getLog()
                 // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -142,7 +166,7 @@ public class AffyParsingPipeline {
       }
       try {
         writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
-                 oorTable);
+                 oorTable, bytesPerMarker);
       } catch (IOException e) {
         proj.getLog()
             // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -182,13 +206,21 @@ public class AffyParsingPipeline {
 
   private void writeRAF(int numMarkersPerFile, Hashtable<String, String> lookup, byte nullStatus,
                         String mkrFile, String[] names, byte[][] mkrBytes, int mkrsToWrite,
-                        Hashtable<String, Float> oorTable) throws IOException {
+                        Hashtable<String, Float> oorTable,
+                        int numBytesPerMarker) throws IOException {
     byte[] mkrNmBytes = Compression.objToBytes(names);
     byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, numMarkersPerFile,
                                                              nullStatus, fingerprint, mkrNmBytes);
     RandomAccessFile raf = new RandomAccessFile(mkrFile, "rw");
+    raf.seek(0);
     raf.write(param);
     for (int i = 0; i < mkrsToWrite; i++) {
+      long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length
+                  + i * numBytesPerMarker;
+      // seek to location of marker in file, as we may be writing out of order
+      if (raf.getFilePointer() != seek) {
+        raf.seek(seek);
+      }
       raf.write(mkrBytes[i]);
       lookup.put(names[i], ext.removeDirectoryInfo(mkrFile) + "\t" + i);
     }
@@ -322,7 +354,7 @@ public class AffyParsingPipeline {
     float[] bafs = null;
     float[] lrrs = null;
     byte[] abGenos = new byte[numSamples];
-    byte[] forwardGenos = null;
+    byte[] forwardGenos = ArrayUtils.byteArray(numSamples, (byte) 0);
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {

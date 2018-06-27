@@ -4,7 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
@@ -15,10 +15,7 @@ public class Dump {
     try {
       MarkerData[] mkData;
 
-      if (indicesOfMarkersToDump == null) {
-        indicesOfMarkersToDump = new int[] {0};
-      }
-      mkData = TransposeData.loadFromRAF(filename, indicesOfMarkersToDump);
+      mkData = MarkerDataLoader.loadFromRAF(filename, indicesOfMarkersToDump);
       for (MarkerData element : mkData) {
         element.dump(null,
                      ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_"

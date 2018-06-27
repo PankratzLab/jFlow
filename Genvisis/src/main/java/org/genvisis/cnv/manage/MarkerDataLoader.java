@@ -512,27 +512,15 @@ public class MarkerDataLoader implements Runnable {
     MarkerData[] result;
     RandomAccessFile file;
     int numBytesPerMarker;
-    float[] gcs = null;
-    float[] xs = null;
-    float[] ys = null;
-    float[] bafs = null;
-    float[] lrrs = null;
-    byte[] abGenotypes = null;
-    byte[] forwardGenotypes = null;
-    byte[] genotypeTmp;
     long seekLocation;
     byte[][] readBuffer = null;
-    int indexReadBuffer;
     byte[] parameterReadBuffer;
     long fingerprint;
     int numBytesMarkernamesSection;
-    // Hashtable<String, Float> outOfRangeValues = null;
     int numSamplesProj;
     byte nullStatus = 0;
     byte bytesPerSampleMarker = 0;
-    int indexStart;
     int numSamplesObserved;
-    boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXYAllowed;
 
     fingerprint = -1;
     numSamplesProj = allSampsInProj.length;
@@ -541,12 +529,7 @@ public class MarkerDataLoader implements Runnable {
     try {
       file = new RandomAccessFile(currentMarkFilename, "r");
       file.read(parameterReadBuffer);
-      // numMarkers = Compression.bytesToInt(parameterReadBuffer,
-      // TransposeData.MARKERDATA_NUMMARKS_START);
       nullStatus = parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START];
-      // bytesPerSampleMarker = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) -
-      // (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus
-      // >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
       bytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
       numBytesPerMarker = bytesPerSampleMarker * numSamplesProj;
       readBuffer = new byte[markersIndicesInFile.length][numBytesPerMarker];
@@ -586,182 +569,192 @@ public class MarkerDataLoader implements Runnable {
       log.reportException(ioe);
     }
 
-    isGcNull = Sample.isGcNull(nullStatus);
-    isXNull = Sample.isXNull(nullStatus);
-    isYNull = Sample.isYNull(nullStatus);
-    isBafNull = Sample.isBafNull(nullStatus);
-    isLrrNull = Sample.isLrrNull(nullStatus);
-    isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
-    isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
-
     for (int i = 0; i < markersIndicesInFile.length; i++) {
-      indexReadBuffer = 0;
+      result[i] = parseMarkerData(allChrsInProj == null ? (byte) -1
+                                                        : allChrsInProj[markersIndicesInProj[i]],
+                                  allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
+                                  nullStatus, fingerprint, loadGC, loadXY, loadBAF, loadLRR,
+                                  loadAbGenotype, allSampsInProj, allMarkersInProj,
+                                  markersIndicesInProj[i], outOfRangeValues, readBuffer[i], log);
+    }
+    return result;
+  }
 
-      indexStart = 0;
-      indexReadBuffer = indexStart;
-      // time = new Date().getTime();
-      if (!isGcNull) {
-        if (loadGC) {
-          gcs = new float[numSamplesProj];
-          for (int j = 0; j < numSamplesProj; j++) {
-            gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                             readBuffer[i][indexReadBuffer + 1]});
-            indexReadBuffer += bytesPerSampleMarker;
-          }
-        }
-        indexStart += 2;
-      }
-      indexReadBuffer = indexStart;
-      if (!isXNull) {
-        if (loadXY) {
-          xs = new float[numSamplesProj];
-          for (int j = 0; j < numSamplesProj; j++) {
-            if (isNegativeXYAllowed) {
-              xs[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                        readBuffer[i][indexReadBuffer
-                                                                                      + 1]});
-            } else {
-              xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                       readBuffer[i][indexReadBuffer
-                                                                                     + 1]});
-            }
-            if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              // xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
-              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
-                                             + "\tx");
-              if (f == null) {
-                // System.out.println(outOfRangeValues.keySet());
-                if (allSampsInProj == null || allMarkersInProj == null
-                    || markersIndicesInProj == null) {
-                  log.reportError("Error - value for X is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
-                } else {
-                  log.reportError("Error - value for X is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
-                }
-                return null; // TODO better return value than null?
-              }
-              xs[j] = f.floatValue();
-            }
-            indexReadBuffer += bytesPerSampleMarker;
-          }
-        }
-        indexStart += 2;
-      }
-      indexReadBuffer = indexStart;
-      if (!isYNull) {
-        if (loadXY) {
-          ys = new float[numSamplesProj];
-          for (int j = 0; j < numSamplesProj; j++) {
-            if (isNegativeXYAllowed) {
-              ys[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                        readBuffer[i][indexReadBuffer
-                                                                                      + 1]});
-            } else {
-              ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[i][indexReadBuffer],
-                                                                       readBuffer[i][indexReadBuffer
-                                                                                     + 1]});
-            }
-            if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              // ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
-              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
-                                             + "\ty");
-              if (f == null) {
-                if (allSampsInProj == null || allMarkersInProj == null
-                    || markersIndicesInProj == null) {
-                  log.reportError("Error - value for Y is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
-                } else {
-                  log.reportError("Error - value for Y is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
-                }
-                return null; // TODO better return value than null?
-              }
-              ys[j] = f.floatValue();
-            }
-            indexReadBuffer += bytesPerSampleMarker;
-          }
-
-        }
-        indexStart += 2;
-      }
-      indexReadBuffer = indexStart;
-      if (!isBafNull) {
-        if (loadBAF) {
-          bafs = new float[numSamplesProj];
-          for (int j = 0; j < numSamplesProj; j++) {
-            bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                              readBuffer[i][indexReadBuffer + 1]});
-            indexReadBuffer += bytesPerSampleMarker;
-          }
-        }
-        indexStart += 2;
-      }
-      indexReadBuffer = indexStart;
-      if (!isLrrNull) {
-        if (loadLRR) {
-          lrrs = new float[numSamplesProj];
-          for (int j = 0; j < numSamplesProj; j++) {
-            lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[i][indexReadBuffer],
-                                                            readBuffer[i][indexReadBuffer + 1],
-                                                            readBuffer[i][indexReadBuffer + 2]});
-            if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
-              // lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
-              Float f = outOfRangeValues.get(markersIndicesInProj[i] + "\t" + allSampsInProj[j]
-                                             + "\tlrr");
-              if (f == null) {
-                if (allSampsInProj == null || allMarkersInProj == null
-                    || markersIndicesInProj == null) {
-                  log.reportError("Error - value for LRR is an outlier for the marker that is at index "
-                                  + i
-                                  + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
-                                  + j
-                                  + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
-                } else {
-                  log.reportError("Error - value for LRR is an outlier [Marker: "
-                                  + allMarkersInProj[markersIndicesInProj[i]] + ", Sample: "
-                                  + allSampsInProj[j]
-                                  + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
-                }
-                return null; // TODO better return value than null?
-              }
-              lrrs[j] = f.floatValue();
-            }
-            indexReadBuffer += bytesPerSampleMarker;
-          }
-        }
-        indexStart += 3;
-      }
-      indexReadBuffer = indexStart;
-      if (!isGenotypeNull && loadAbGenotype) {
-        abGenotypes = new byte[numSamplesProj];
-        forwardGenotypes = new byte[numSamplesProj];
+  public static MarkerData parseMarkerData(byte chr, int pos, byte nullStatus, long fingerprint,
+                                           boolean loadGC, boolean loadXY, boolean loadBAF,
+                                           boolean loadLRR, boolean loadAbGenotype,
+                                           String[] allSampsInProj, String[] allMarkersInProj,
+                                           int markersIndexInProj,
+                                           Hashtable<String, Float> outOfRangeValues,
+                                           byte[] readBuffer, Logger log) {
+    boolean isGcNull = Sample.isGcNull(nullStatus);
+    boolean isXNull = Sample.isXNull(nullStatus);
+    boolean isYNull = Sample.isYNull(nullStatus);
+    boolean isBafNull = Sample.isBafNull(nullStatus);
+    boolean isLrrNull = Sample.isLrrNull(nullStatus);
+    boolean isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
+    boolean isNegativeXYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
+    float[] gcs = null;
+    float[] xs = null;
+    float[] ys = null;
+    float[] bafs = null;
+    float[] lrrs = null;
+    byte[] abGenotypes = null;
+    byte[] forwardGenotypes = null;
+    byte[] genotypeTmp;
+    int indexReadBuffer = 0;
+    int indexStart = 0;
+    int numSamplesProj = allSampsInProj.length;
+    int bytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+    // time = new Date().getTime();
+    if (!isGcNull) {
+      if (loadGC) {
+        gcs = new float[numSamplesProj];
         for (int j = 0; j < numSamplesProj; j++) {
-          genotypeTmp = Compression.genotypeDecompress(readBuffer[i][indexReadBuffer]);
-          abGenotypes[j] = genotypeTmp[0];
-          forwardGenotypes[j] = genotypeTmp[1];
+          gcs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[indexReadBuffer],
+                                                           readBuffer[indexReadBuffer + 1]});
           indexReadBuffer += bytesPerSampleMarker;
         }
       }
-      result[i] = new MarkerData(allMarkersInProj == null ? null
-                                                          : allMarkersInProj[markersIndicesInProj[i]],
-                                 allChrsInProj == null ? (byte) -1
-                                                       : allChrsInProj[markersIndicesInProj[i]],
-                                 allPosInProj == null ? -1 : allPosInProj[markersIndicesInProj[i]],
-                                 fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs,
-                                 abGenotypes, forwardGenotypes);
+      indexStart += 2;
     }
-    return result;
+    indexReadBuffer = indexStart;
+    if (!isXNull) {
+      if (loadXY) {
+        xs = new float[numSamplesProj];
+        for (int j = 0; j < numSamplesProj; j++) {
+          if (isNegativeXYAllowed) {
+            xs[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[indexReadBuffer],
+                                                                      readBuffer[indexReadBuffer
+                                                                                 + 1]});
+          } else {
+            xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[indexReadBuffer],
+                                                                     readBuffer[indexReadBuffer
+                                                                                + 1]});
+          }
+          if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
+            // xs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tx");
+            Float f = outOfRangeValues.get(markersIndexInProj + "\t" + allSampsInProj[j] + "\tx");
+            if (f == null) {
+              // System.out.println(outOfRangeValues.keySet());
+              if (allSampsInProj == null || allMarkersInProj == null) {
+                log.reportError("Error - value for X is an outlier for the marker that is at index "
+                                + markersIndexInProj
+                                + " in the targetMarkers (if subset) or in all markers (if all), for the sample with the index of "
+                                + j
+                                + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+              } else {
+                log.reportError("Error - value for X is an outlier [Marker: "
+                                + allMarkersInProj[markersIndexInProj] + ", Sample: "
+                                + allSampsInProj[j]
+                                + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+              }
+              return null; // TODO better return value than null?
+            }
+            xs[j] = f.floatValue();
+          }
+          indexReadBuffer += bytesPerSampleMarker;
+        }
+      }
+      indexStart += 2;
+    }
+    indexReadBuffer = indexStart;
+    if (!isYNull) {
+      if (loadXY) {
+        ys = new float[numSamplesProj];
+        for (int j = 0; j < numSamplesProj; j++) {
+          if (isNegativeXYAllowed) {
+            ys[j] = Compression.xyDecompressAllowNegative(new byte[] {readBuffer[indexReadBuffer],
+                                                                      readBuffer[indexReadBuffer
+                                                                                 + 1]});
+          } else {
+            ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[indexReadBuffer],
+                                                                     readBuffer[indexReadBuffer
+                                                                                + 1]});
+          }
+          if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
+            // ys[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\ty");
+            Float f = outOfRangeValues.get(markersIndexInProj + "\t" + allSampsInProj[j] + "\ty");
+            if (f == null) {
+              if (allSampsInProj == null || allMarkersInProj == null) {
+                log.reportError("Error - value for Y is an outlier for the marker that is at index "
+                                + markersIndexInProj
+                                + " in all markers, for the sample with the index of " + j
+                                + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+              } else {
+                log.reportError("Error - value for Y is an outlier [Marker: "
+                                + allMarkersInProj[markersIndexInProj] + ", Sample: "
+                                + allSampsInProj[j]
+                                + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+              }
+              return null; // TODO better return value than null?
+            }
+            ys[j] = f.floatValue();
+          }
+          indexReadBuffer += bytesPerSampleMarker;
+        }
+
+      }
+      indexStart += 2;
+    }
+    indexReadBuffer = indexStart;
+    if (!isBafNull) {
+      if (loadBAF) {
+        bafs = new float[numSamplesProj];
+        for (int j = 0; j < numSamplesProj; j++) {
+          bafs[j] = Compression.gcBafDecompress(new byte[] {readBuffer[indexReadBuffer],
+                                                            readBuffer[indexReadBuffer + 1]});
+          indexReadBuffer += bytesPerSampleMarker;
+        }
+      }
+      indexStart += 2;
+    }
+    indexReadBuffer = indexStart;
+    if (!isLrrNull) {
+      if (loadLRR) {
+        lrrs = new float[numSamplesProj];
+        for (int j = 0; j < numSamplesProj; j++) {
+          lrrs[j] = Compression.lrrDecompress(new byte[] {readBuffer[indexReadBuffer],
+                                                          readBuffer[indexReadBuffer + 1],
+                                                          readBuffer[indexReadBuffer + 2]});
+          if (lrrs[j] == Compression.REDUCED_PRECISION_LRR_OUT_OF_RANGE_LRR_FLAG_FLOAT) {
+            // lrrs[j] = outOfRangeValues.get(sampleName+"\t"+allMarkersProj[j]+"\tlrr");
+            Float f = outOfRangeValues.get(markersIndexInProj + "\t" + allSampsInProj[j] + "\tlrr");
+            if (f == null) {
+              if (allSampsInProj == null || allMarkersInProj == null) {
+                log.reportError("Error - value for LRR is an outlier for the marker that is at index "
+                                + markersIndexInProj
+                                + " in all markers, for the sample with the index of " + j
+                                + "; however, the original value is not present in the outlier hash.  Check if outliers.ser exists and re-run.");
+              } else {
+                log.reportError("Error - value for LRR is an outlier [Marker: "
+                                + allMarkersInProj[markersIndexInProj] + ", Sample: "
+                                + allSampsInProj[j]
+                                + "], original value not present in outlier hash.  Check if outliers.ser exists and re-run.");
+              }
+              return null; // TODO better return value than null?
+            }
+            lrrs[j] = f.floatValue();
+          }
+          indexReadBuffer += bytesPerSampleMarker;
+        }
+      }
+      indexStart += 3;
+    }
+    indexReadBuffer = indexStart;
+    if (!isGenotypeNull && loadAbGenotype) {
+      abGenotypes = new byte[numSamplesProj];
+      forwardGenotypes = new byte[numSamplesProj];
+      for (int j = 0; j < numSamplesProj; j++) {
+        genotypeTmp = Compression.genotypeDecompress(readBuffer[indexReadBuffer]);
+        abGenotypes[j] = genotypeTmp[0];
+        forwardGenotypes[j] = genotypeTmp[1];
+        indexReadBuffer += bytesPerSampleMarker;
+      }
+    }
+    return new MarkerData(allMarkersInProj == null ? null : allMarkersInProj[markersIndexInProj],
+                          chr, pos, fingerprint, gcs, null, null, xs, ys, null, null, bafs, lrrs,
+                          abGenotypes, forwardGenotypes);
   }
 
   /**
@@ -986,6 +979,112 @@ public class MarkerDataLoader implements Runnable {
     this.thread = thread;
   }
 
+  @SuppressWarnings("unchecked")
+  public static MarkerData[] loadFromRAF(String markerFilename, int[] targetMarkerIndicesInFile) {
+    MarkerData[] result = null;
+    RandomAccessFile file;
+    int numBytesPerMarker;
+    float[] gcs = null;
+    float[] xs = null;
+    float[] ys = null;
+    float[] bafs = null;
+    float[] lrrs = null;
+    byte[] abGenotypes = null;
+    byte[] forwardGenotypes = null;
+    byte[] genotypeTmp;
+    long seekLocation;
+    byte[][] readBuffer;
+    int indexReadBuffer;
+    byte[] parameters;
+    int markernamesSectionLength;
+    Hashtable<String, Float> outOfRangeValues = null;
+    byte nullStatus = 0;
+    byte numBytesPerSampleMarker = 0;
+    int indexStart;
+    int nSamples;
+    int numMarkersInThisFile;
+    long fingerPrint;
+    String[] markerNames;
+    int lengthOfOutOfRangeHashtable;
+    boolean isGcNull, isXNull, isYNull, isBafNull, isLrrNull, isGenotypeNull, isNegativeXOrYAllowed;
+
+    try {
+      file = new RandomAccessFile(markerFilename, "r");
+      parameters = new byte[TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN];
+      file.read(parameters);
+      nSamples = Compression.bytesToInt(parameters, TransposeData.MARKERDATA_NUMSAMPLES_START);
+      numMarkersInThisFile = Compression.bytesToInt(parameters,
+                                                    TransposeData.MARKERDATA_NUMMARKERS_START);
+      nullStatus = parameters[TransposeData.MARKERDATA_NULLSTATUS_START];
+      isGcNull = Sample.isGcNull(nullStatus);
+      isXNull = Sample.isXNull(nullStatus);
+      isYNull = Sample.isYNull(nullStatus);
+      isBafNull = Sample.isBafNull(nullStatus);
+      isLrrNull = Sample.isLrrNull(nullStatus);
+      isGenotypeNull = Sample.isAbAndForwardGenotypeNull(nullStatus);
+      isNegativeXOrYAllowed = Sample.isNegativeXOrYAllowed(nullStatus);
+      numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(nullStatus);
+      numBytesPerMarker = numBytesPerSampleMarker * nSamples;
+      fingerPrint = Compression.bytesToLong(parameters, TransposeData.MARKERDATA_FINGERPRINT_START);
+      markernamesSectionLength = Compression.bytesToInt(parameters,
+                                                        TransposeData.MARKERDATA_MARKERNAMELEN_START);
+
+      parameters = new byte[markernamesSectionLength];
+      file.read(parameters);
+      markerNames = (String[]) Compression.bytesToObj(parameters);
+      int[] targetMarkerIndicesInFileToLoad = targetMarkerIndicesInFile == null ? ArrayUtils.arrayOfIndices(markerNames.length)
+                                                                                : targetMarkerIndicesInFile;
+      result = new MarkerData[targetMarkerIndicesInFileToLoad.length];
+      readBuffer = new byte[targetMarkerIndicesInFileToLoad.length][numBytesPerMarker];
+
+      for (int i = 0; i < targetMarkerIndicesInFileToLoad.length; i++) {
+        if (targetMarkerIndicesInFileToLoad[i] < 0
+            || targetMarkerIndicesInFileToLoad[i] >= numMarkersInThisFile) {
+          System.err.println("Skipped the marker index " + targetMarkerIndicesInFileToLoad[i]
+                             + ", because it is out of range.");
+        } else {
+          seekLocation = (long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+                         + (long) markernamesSectionLength
+                         + targetMarkerIndicesInFileToLoad[i] * (long) numBytesPerMarker;
+          file.seek(seekLocation);
+          file.read(readBuffer[i]);
+        }
+      }
+
+      // TODO this is read every time, wouldn't it be faster to use the serialized version?
+      file.seek((long) TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+                + (long) markernamesSectionLength
+                + (long) numMarkersInThisFile * (long) numBytesPerMarker);
+      lengthOfOutOfRangeHashtable = file.readInt();
+      if (lengthOfOutOfRangeHashtable > 0) {
+        parameters = new byte[lengthOfOutOfRangeHashtable];
+        file.read(parameters);
+        outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(parameters);
+      }
+      file.close();
+
+      String[] allSampsInProj = new String[nSamples];
+      for (int i = 0; i < nSamples; i++) {
+        allSampsInProj[i] = "Sample_" + i;
+      }
+      for (int i = 0; i < targetMarkerIndicesInFileToLoad.length; i++) {
+        result[i] = parseMarkerData((byte) -1, -1, nullStatus, fingerPrint, !isGcNull, !isXNull,
+                                    !isBafNull, !isLrrNull, !isGenotypeNull, allSampsInProj,
+                                    markerNames, targetMarkerIndicesInFileToLoad[i],
+                                    outOfRangeValues, readBuffer[i], new Logger());
+      }
+    } catch (FileNotFoundException e) {
+      System.err.println("Error - could not find RAF marker file '" + markerFilename + "'");
+      e.printStackTrace();
+    } catch (IOException e) {
+      System.err.println("Error reading RAF marker file '" + markerFilename + "'");
+      e.printStackTrace();
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    return result;
+  }
+
   public static MarkerData[] loadMarkerData(Project proj, String[] markers) {
     if (markers.length > 500) {
       proj.getLog()
@@ -1018,4 +1117,5 @@ public class MarkerDataLoader implements Runnable {
   public static int getnumBytes_Mark(byte nullStatus, int numberOfSamples) {
     return numberOfSamples * Sample.getNBytesPerSampleMarker(nullStatus);
   }
+
 }
