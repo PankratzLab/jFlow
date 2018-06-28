@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import javax.swing.AbstractAction;
@@ -992,6 +993,15 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
       } else {
         setPlotType(PLOT_TYPE.HISTOGRAM);
       }
+      Gate gg = gate;
+      while (gg != null) {
+        if (clusterAssignmentsByGate.containsKey(gg.getName())) {
+          setClusters(clusterAssignmentsByGate.get(gg.getName()));
+          break;
+        } else {
+          gg = gg.getParentGate();
+        }
+      }
     }
     if (reset) {
       gatingSelector.resetGating(getGatingStrategy(), gate);
@@ -1208,10 +1218,38 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     return clusterAssigns;
   }
 
+  public void loadClusterAssignments(String clusterFile) {
+    String[] data = HashVec.loadFileToStringArray(clusterFile, false, null, false);
+    String gate = data[0];
+    int[] clusters = new int[data.length - 1];
+    for (int i = 0; i < clusters.length; i++) {
+      clusters[i] = Integer.parseInt(data[i + 1]);
+      if (clusters[i] >= 0) {
+        clusters[i] = clusters[i] + 10;
+      }
+    }
+    setClusterAssignments(gate, clusters);
+  }
+
+  Map<String, int[]> clusterAssignmentsByGate = new HashMap<>();
+
+  private void setClusterAssignments(String gate, int[] clusters) {
+    clusterAssignmentsByGate.put(gate, clusters);
+  }
+
+  private void setClusters(int[] clusters) {
+    fullClusterAssigns = clusters;
+    if (parentGate != null) {
+      boolean[] gating = getParentGating();
+      clusterAssigns = ArrayUtils.subArray(fullClusterAssigns, gating);
+    } else {
+      clusterAssigns = fullClusterAssigns;
+    }
+  }
+
   private void setupEM() {
     EMModel model = EMModel.run(dataLoader);
-    fullClusterAssigns = model.getClusterAssigns();
-    clusterAssigns = fullClusterAssigns;
+    setClusters(model.getClusterAssigns());
     updateGUI();
   }
 
@@ -1347,6 +1385,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
   }
 
   public void loadOverridesAsClusterColors(FCSDataLoader loader, String[] clusterGateNames) {
+    boolean test = true;
+    if (test) return;
     int cS = 3;
     fullClusterAssigns = new int[loader.getCount()];
     for (int g = 0; g < clusterGateNames.length; g++) {

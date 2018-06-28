@@ -124,7 +124,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     colors[9] = BLUES.DODGER_BLUE; // light blue
     int[][] cols = ParulaColorMap.getParulaMap(40);
     for (int i = 10; i < colors.length; i++) {
-      colors[i] = new Color(cols[i - 10][0], cols[i - 10][1], cols[i - 10][2]);
+      int ind = i - 10;
+      if (ind % 2 == 1) {
+        ind = cols.length - (ind + 1);
+      }
+      colors[i] = new Color(cols[ind][0], cols[ind][1], cols[ind][2]);
     }
     return colors;
   }
@@ -495,7 +499,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
   private void assignClusterColors() {
     int[] clustered = fcp.getClusterAssignments();
     for (int i = 0; i < points.length; i++) {
-      points[i].setVisible(clustered[i] != 0);
+      points[i].setVisible(true);
       points[i].setColor((byte) clustered[i]);
     }
   }
@@ -516,13 +520,15 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean[] parentGating = fcp.getParentGating();
     java.util.HashMap<Gate, boolean[]> leafGating = null;
 
-    if (fcp.selectedVis != null) {
-      assignClassifierColors();
-      return;
-    }
+    //    if (fcp.selectedVis != null) {
+    //      fcp.log.reportTime("Assigning classification colors");
+    //      assignClassifierColors();
+    //      return;
+    //    }
 
     if (fcp.getClusterAssignments() != null) {
       assignClusterColors();
+      fcp.log.reportTime("Used cluster colors for " + getTitle());
       return;
     }
 
