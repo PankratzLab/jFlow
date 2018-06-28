@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -277,9 +278,58 @@ public class GeneScorePipeline {
 
   private class PhenoIndiv {
 
-    String fid, iid;
-    double depvar;
-    HashMap<String, Double> covars = new HashMap<>();
+    private final String fid;
+    private final String iid;
+    private final double depvar;
+    private final Map<String, Double> covars;
+
+    /**
+     * @param fid
+     * @param iid
+     * @param depvar
+     */
+    public PhenoIndiv(String fid, String iid, double depvar) {
+      super();
+      this.fid = fid;
+      this.iid = iid;
+      this.depvar = depvar;
+      this.covars = new HashMap<>();
+    }
+
+    /**
+     * @return the fid
+     */
+    public String getFid() {
+      return fid;
+    }
+
+    /**
+     * @return the iid
+     */
+    public String getIid() {
+      return iid;
+    }
+
+    /**
+     * @return the depvar
+     */
+    public double getDepvar() {
+      return depvar;
+    }
+
+    /**
+     * @return an unmodifiable view of the covars
+     */
+    public Map<String, Double> getCovars() {
+      return Collections.unmodifiableMap(covars);
+    }
+
+    public void addCovar(String name, double value) {
+      if (covars.putIfAbsent(name, value) != null) {
+        log.reportTimeWarning("Duplicate covars named '" + name + "', only one will be used");
+      }
+    }
+
   }
 
   private static String[] readPlinkFile(int chr, String file, HashMap<String, String> rsToFull) {
@@ -904,17 +954,17 @@ public class GeneScorePipeline {
           String[] line = temp.split("\t");
 
           if (!ext.isMissingValue(line[2])) {
-            PhenoIndiv pi = new PhenoIndiv();
-            pi.fid = line[0];
-            pi.iid = line[1];
-            pi.depvar = Double.parseDouble(line[2]);
+            String fid = line[0];
+            String iid = line[1];
+            double depvar = Double.parseDouble(line[2]);
+            PhenoIndiv pi = new PhenoIndiv(fid, iid, depvar);
             for (int i = 3; i < line.length; i++) {
               if (ext.isMissingValue(line[i])) {
                 continue indiv;
               }
-              pi.covars.put(header[i], Double.parseDouble(line[i]));
+              pi.addCovar(header[i], Double.parseDouble(line[i]));
             }
-            pd.indivs.put(pi.fid + "\t" + pi.iid, pi);
+            pd.indivs.put(pi.getFid() + "\t" + pi.getIid(), pi);
           }
 
         } while ((temp = reader.readLine()) != null);
@@ -1389,25 +1439,25 @@ public class GeneScorePipeline {
             for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
               if (scoreData.containsKey(indiv.getKey())) {
                 PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
-                depData.add(pdi.depvar);
+                depData.add(pdi.getDepvar());
                 double[] baseData = new double[pd.covars.size()];
                 double[] covarData = new double[pd.covars.size() + 1];
                 covarData[0] = scoreData.get(indiv.getKey());
                 for (int k = 1; k < pd.covars.size() + 1; k++) {
                   Double d;
-                  d = pdi.covars.get(pd.covars.get(k - 1));
+                  d = pdi.getCovars().get(pd.covars.get(k - 1));
                   if (d == null) {
                     log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
                                     + pd.covars.get(k - 1));
                   } else {
                     baseData[k - 1] = d.doubleValue();
                   }
-                  d = pdi.covars.get(pd.covars.get(k - 1));
+                  d = pdi.getCovars().get(pd.covars.get(k - 1));
                   if (d == null) {
                     log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
                                     + pd.covars.get(k - 1));
                   } else {
-                    covarData[k] = pdi.covars.get(pd.covars.get(k - 1));
+                    covarData[k] = pdi.getCovars().get(pd.covars.get(k - 1));
                   }
                 }
                 baselineIndeps.add(baseData);
