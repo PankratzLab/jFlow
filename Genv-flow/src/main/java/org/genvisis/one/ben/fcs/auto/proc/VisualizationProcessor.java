@@ -280,7 +280,6 @@ public class VisualizationProcessor implements SampleProcessor {
         g.setFillGate(false);
         fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
       } else if (fcp.getClusterAssignments() != null) {
-        log.reportTime("Found cluster assignments for gate " + g.getName());
         fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
         g.setFillGate(false);
       } else {
