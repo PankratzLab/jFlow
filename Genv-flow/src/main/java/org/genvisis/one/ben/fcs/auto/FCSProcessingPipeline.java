@@ -2,7 +2,6 @@ package org.genvisis.one.ben.fcs.auto;
 
 import java.io.IOException;
 import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
 import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.auto.proc.InclusionProcessor;
 import org.genvisis.one.ben.fcs.auto.proc.PercentageAndCountWriterFactory;
@@ -18,7 +17,8 @@ public class FCSProcessingPipeline {
                                           {"CD3.", "Tcells (CD3+ CD19-)"},};
 
   public FCSProcessingPipeline(String fcs, String wsp, String auto, String out, String highP,
-                               String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch) {
+                               String lowP, String ovvrDir, String ovvrSuff, String ovvrMatch,
+                               String clusterDir, String clusterSuffix) {
     fcsDir = fcs;
     wspDir = wsp;
     autoDir = auto;
@@ -28,10 +28,13 @@ public class FCSProcessingPipeline {
     this.ovvrDir = ovvrDir;
     this.ovvrSuff = ovvrSuff;
     this.ovvrMatch = ovvrMatch;
+    this.clustDir = clusterDir;
+    this.clustSfx = clusterSuffix;
   }
 
   private String fcsDir, wspDir, autoDir, outDir, highPrioFile, lowPrioFile;
   private String ovvrDir, ovvrSuff, ovvrMatch;
+  private String clustDir, clustSfx;
 
   private void run(PIPELINE pipeToRun, int panel) throws IOException {
 
@@ -98,7 +101,8 @@ public class FCSProcessingPipeline {
 
           @Override
           public SampleProcessor createProcessor(Object owner, int index) {
-            return new VisualizationProcessor(autoDir, outDir, ovvrDir, ovvrSuff, ovvrMatch);
+            return new VisualizationProcessor(autoDir, outDir, ovvrDir, ovvrSuff, ovvrMatch,
+                                              clustDir, clustSfx);
           }
         };
         break;
@@ -150,22 +154,24 @@ public class FCSProcessingPipeline {
     String gateOverrideDir = null;
     String gateOverrideMatchFile = null;
     String gateOverrideFileSuffix = ".boolMatrix.txt.gz";
+    String clusterDir = null;
+    String clusterSuffix = "_subFirst_TRUE_normalize_FALSE.IntMatrix.txt.gz";
     int panel = -1;
     PIPELINE pipe = PIPELINE.VIZ;
-    boolean test = Files.isWindows();
-    if (test) {
-      String dir = "F:\\Flow\\boolGating\\";
-      fcs = dir + "fcs\\";
-      wsp = dir + "wsp\\";
-      out = dir + "out3\\";
-      gateOverrideDir = dir + "ovvr\\";
-      gateOverrideMatchFile = dir + "ovvrMatch.txt";
-      new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
-                                gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
-                                                                                                    PIPELINE.VIZ,
-                                                                                                    -1);
-      return;
-    }
+    //    boolean test = Files.isWindows();
+    //    if (test) {
+    //      String dir = "C:\\Users\\Ben\\Desktop\\dev\\work\\flow\\phenograph\\";
+    //      fcs = dir + "src\\";
+    //      wsp = dir + "src\\";
+    //      out = dir + "out\\";
+    //      gateOverrideDir = dir + "src\\";
+    //      gateOverrideMatchFile = dir + "src\\ovvrMatch.txt";
+    //      new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
+    //                                gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
+    //                                                                                                    PIPELINE.VIZ,
+    //                                                                                                    -1);
+    //      return;
+    //    }
 
     for (String arg : args) {
       if (arg.startsWith("fcs=")) {
@@ -198,12 +204,14 @@ public class FCSProcessingPipeline {
       } else if (arg.startsWith("gateOverrideMatchup=")) {
         gateOverrideMatchFile = arg.split("=")[1];
         numArgs--;
+      } else if (arg.startsWith("clusterDir=")) {
+        clusterDir = arg.split("=")[1];
+        numArgs--;
       }
     }
 
     new FCSProcessingPipeline(fcs, wsp, auto, out, highPriorityFile, lowPriorityFile,
-                              gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile).run(
-                                                                                                  pipe,
-                                                                                                  panel);
+                              gateOverrideDir, gateOverrideFileSuffix, gateOverrideMatchFile,
+                              clusterDir, clusterSuffix).run(pipe, panel);
   }
 }

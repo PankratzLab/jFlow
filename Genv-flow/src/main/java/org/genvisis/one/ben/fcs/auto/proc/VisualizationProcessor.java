@@ -28,13 +28,18 @@ public class VisualizationProcessor implements SampleProcessor {
   final String ovvrSfx;
   final String ovvrMatch;
   final String outDir;
+  final String clustDir;
+  final String clustSfx;
 
-  public VisualizationProcessor(String a, String o, String m, String mS, String mM) {
+  public VisualizationProcessor(String a, String o, String m, String mS, String mM, String cD,
+                                String cS) {
     this.autoDir = a;
     this.outDir = o;
     this.ovvrDir = m;
     this.ovvrSfx = mS;
     this.ovvrMatch = mM;
+    this.clustDir = cD;
+    this.clustSfx = cS;
   }
 
   private static String[][] hardcodedAddlImages = {{"effector helper Tcells (CCR7/CD45RA)",
@@ -176,6 +181,8 @@ public class VisualizationProcessor implements SampleProcessor {
     }
     int rowCnt = loader.getCount();
 
+    fcp.loadClusterAssignments(clustDir + ext.removeDirectoryInfo(sn.fcsFile) + clustSfx);
+
     long time3 = System.nanoTime();
 
     // String fNum = fcp.discoverFNumFile(autoDir);
@@ -272,7 +279,10 @@ public class VisualizationProcessor implements SampleProcessor {
         fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
         g.setFillGate(false);
         fcp.loadOverridesAsClusterColors(loader, GateTree.EFFECTOR_MEM_SUB_IMGS);
-
+      } else if (fcp.getClusterAssignments() != null) {
+        log.reportTime("Found cluster assignments for gate " + g.getName());
+        fcp.setPlotType(PLOT_TYPE.DOT_PLOT);
+        g.setFillGate(false);
       } else {
         fcp.setPlotType(PLOT_TYPE.HEATMAP);
         g.setFillGate(true);
