@@ -528,7 +528,6 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
 
     if (fcp.getClusterAssignments() != null) {
       assignClusterColors();
-      fcp.log.reportTime("Used cluster colors for " + getTitle());
       return;
     }
 
