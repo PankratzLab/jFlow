@@ -2215,21 +2215,28 @@ public class ArrayUtils {
   }
 
   /**
-   * @param collection a sorted {@link List} of {@link Number}s
+   * @param list a sorted {@link List} of {@link Number}s
    * @return median of collection
    */
-  public static double medianSorted(List<? extends Number> collection) {
-    int size = collection.size();
+  public static double medianSorted(List<? extends Number> list) {
+    int size = list.size();
     if (size <= 0) return Double.NaN;
     final int midpoint = size / 2;
     double median;
     if (size % 2 == 0) {
-      median = (collection.get(midpoint - 1).doubleValue() + collection.get(midpoint).doubleValue())
-               / 2.0;
+      median = (list.get(midpoint - 1).doubleValue() + list.get(midpoint).doubleValue()) / 2.0;
     } else {
-      median = collection.get(midpoint).doubleValue();
+      median = list.get(midpoint).doubleValue();
     }
     return median;
+  }
+
+  /**
+   * @param collection a sorted {@link Collection} of {@link Number}s
+   * @return median of collection
+   */
+  public static double medianSorted(Collection<? extends Number> collection) {
+    return medianSorted(collection.stream(), collection.size());
   }
 
   /**
@@ -2237,7 +2244,7 @@ public class ArrayUtils {
    * @return median of collection
    */
   public static double median(Collection<? extends Number> collection) {
-    return medianSorted(collection.stream(), collection.size());
+    return median(collection.stream(), collection.size());
   }
 
   /**
