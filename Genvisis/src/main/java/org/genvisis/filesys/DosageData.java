@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
@@ -50,6 +51,8 @@ import org.genvisis.gwas.Plink;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
 import org.genvisis.stats.RegressionModel;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import htsjdk.samtools.util.CloseableIterator;
@@ -60,6 +63,42 @@ import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
 
 public class DosageData implements Serializable {
+
+  public class Trio {
+
+    private final int childIndex;
+    private final int fatherIndex;
+    private final int motherIndex;
+
+    public Trio(int childIndex, int fatherIndex, int motherIndex) {
+      super();
+      this.childIndex = childIndex;
+      this.fatherIndex = fatherIndex;
+      this.motherIndex = motherIndex;
+    }
+
+    /**
+     * @return the childIndex
+     */
+    public int getChildIndex() {
+      return childIndex;
+    }
+
+    /**
+     * @return the fatherIndex
+     */
+    public int getFatherIndex() {
+      return fatherIndex;
+    }
+
+    /**
+     * @return the motherIndex
+     */
+    public int getMotherIndex() {
+      return motherIndex;
+    }
+
+  }
 
   public static final long serialVersionUID = 1L;
 
@@ -140,6 +179,7 @@ public class DosageData implements Serializable {
   private float[][] dosageValues;
   private float[][][] genotypeProbabilities;
   private String[][] alleles;
+  private List<Trio> trios = null;
   private byte[] chrs;
   private int[] positions;
   private String labelPrepend;
@@ -826,6 +866,42 @@ public class DosageData implements Serializable {
 
   public String[][] getIds() {
     return ids;
+  }
+
+  public List<Trio> getTrios() {
+    if (trios == null) generateTrios();
+    return trios;
+  }
+
+  private void generateTrios() {
+    Map<String, Integer> indexMap = IntStream.range(0, ids.length).boxed()
+                                             .collect(ImmutableMap.toImmutableMap(i -> formFidIid(ids[i][0],
+                                                                                                  ids[i][1]),
+                                                                                  Integer::intValue));
+    ImmutableList.Builder<Trio> triosBuilder = ImmutableList.builder();
+    for (int i = 0; i < ids.length; i++) {
+      String[] id = ids[i];
+      if (id.length > PSF.Plink.FAM_MO_INDEX && id.length > PSF.Plink.FAM_FA_INDEX) {
+        String famId = id[PSF.Plink.FAM_FID_INDEX];
+        String fatherId = id[PSF.Plink.FAM_FA_INDEX];
+        String motherId = id[PSF.Plink.FAM_MO_INDEX];
+
+        Integer fatherIndex = indexMap.get(formFidIid(famId, fatherId));
+        Integer motherIndex = indexMap.get(formFidIid(famId, motherId));
+        if (fatherIndex == null && motherIndex == null && famId.equals(id[1])) {
+          fatherIndex = indexMap.get(formFidIid(fatherId, fatherId));
+          motherIndex = indexMap.get(formFidIid(motherId, motherId));
+        }
+        if (fatherIndex != null && motherIndex != null) {
+          triosBuilder.add(new Trio(i, fatherIndex, motherIndex));
+        }
+      }
+    }
+    trios = triosBuilder.build();
+  }
+
+  private static String formFidIid(String fid, String iid) {
+    return fid + "\t" + iid;
   }
 
   public SnpMarkerSet getMarkerSet() {
