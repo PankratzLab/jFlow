@@ -2236,6 +2236,7 @@ public class ArrayUtils {
    * @return median of collection
    */
   public static double medianSorted(Collection<? extends Number> collection) {
+    if (collection instanceof List) return medianSorted((List<? extends Number>) collection);
     return medianSorted(collection.stream(), collection.size());
   }
 
@@ -2270,7 +2271,7 @@ public class ArrayUtils {
    * @return median of array
    */
   public static double medianSorted(double[] array) {
-    return medianSorted(Arrays.stream(array), array.length);
+    return medianSorted(Doubles.asList(array));
   }
 
   /**
