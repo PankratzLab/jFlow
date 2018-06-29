@@ -177,11 +177,23 @@ public class VisualizationProcessor implements SampleProcessor {
       Thread.yield();
     }
     if (ovvrDir != null) {
-      loader.loadGateOverrides(ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx, ovvrMatch);
+      String kmeans = ovvrDir + ext.removeDirectoryInfo(sn.fcsFile) + ovvrSfx;
+      if (!Files.exists(kmeans)) {
+        log.reportError("K-Means boolean file missing!  Couldn't find " + kmeans);
+      } else {
+        loader.loadGateOverrides(kmeans, ovvrMatch);
+      }
     }
     int rowCnt = loader.getCount();
 
-    fcp.loadClusterAssignments(clustDir + ext.removeDirectoryInfo(sn.fcsFile) + clustSfx);
+    if (clustDir != null) {
+      String clust = clustDir + ext.removeDirectoryInfo(sn.fcsFile) + clustSfx;
+      if (!Files.exists(clust)) {
+        log.reportError("Phenograph cluster file missing!  Couldn't find " + clust);
+      } else {
+        fcp.loadClusterAssignments(clust);
+      }
+    }
 
     long time3 = System.nanoTime();
 
