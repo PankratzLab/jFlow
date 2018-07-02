@@ -416,7 +416,7 @@ public class ImputationPipeline {
                    + "   (h) Output directory and fileroot (i.e " + OUT_DIR_AND_ROOT_ARG
                    + outDirAndRoot + " (default))\n" + "   (i) Output directory (i.e " + OUT_DIR_ARG
                    + outDir + " (default))\n"
-                   + "   (j) Export contigs as 'chr1' instead of '1' (i.e. " + USE_GRC_ARG + useGRC
+                   + "   (j) Export contigs as '1' instead of 'chr1' (i.e. " + USE_GRC_ARG + useGRC
                    + " (default))\n" + "   (k) Directory with output from ShapeIt (i.e. "
                    + HAPS_DIR_ARG + hapsDir + " (default))\n" + "   --------------------- \n"
                    + "   Additional pipeline argument requirements are as follows:\n";

@@ -296,7 +296,7 @@ public class VcfExportShortcut {
   private static final String ARG_PUT_WHT = "putativeWhiteFile";
   private static final String ARG_VCF_OUT = "vcfDirRoot";
   private static final String ARG_IMP_REF = "imputationReference";
-  private static final String ARG_GRC_OUT = "useGRC";
+  private static final String ARG_GRC_OUT = "exportGRC";
   private static final String ARG_CALLRATE = "callrate";
   private static final String ARG_HWE = "hwe";
   private static final String ARG_QC = "qc";
@@ -327,7 +327,7 @@ public class VcfExportShortcut {
   private static final String DESC_PUT_WHT = "Putative whites file (file with two columns of FID/IID and no header)";
   private static final String DESC_VCF_OUT = "VCF output directory and file root";
   private static final String DESC_IMP_REF = "Imputation marker reference file (available for HRC at http://www.haplotype-reference-consortium.org/site)";
-  private static final String DESC_GRC_OUT = "Export contigs with \"chr\" prepend (defaults to true)";
+  private static final String DESC_GRC_OUT = "Export contigs in GRC format, without \"chr\" prepend (i.e. as '1' instead of 'chr1')";
   private static final String DESC_CALLRATE = "Callrate Threshold";
   private static final String DESC_HWE = "HWE Threshold";
   private static final String DESC_QC = "General QC Threshold";
@@ -355,7 +355,7 @@ public class VcfExportShortcut {
 
     cli.addArgWithDefault(CLI.ARG_THREADS, CLI.DESC_THREADS,
                           Runtime.getRuntime().availableProcessors());
-    cli.addArgWithDefault(ARG_GRC_OUT, DESC_GRC_OUT, "true");
+    cli.addFlag(ARG_GRC_OUT, DESC_GRC_OUT);
     cli.addArgWithDefault(ARG_CALLRATE, DESC_CALLRATE,
                           MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD.substring(1));
     cli.addArgWithDefault(ARG_HWE, DESC_HWE,
