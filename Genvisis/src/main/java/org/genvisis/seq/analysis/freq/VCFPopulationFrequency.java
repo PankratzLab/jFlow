@@ -16,6 +16,7 @@ import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -32,6 +33,10 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
  */
 public class VCFPopulationFrequency {
 
+  /**
+  * 
+  */
+  private static final String REGION = "region";
   /**
    * 
    */
@@ -140,8 +145,9 @@ public class VCFPopulationFrequency {
    * @param vcf input vcf file to compute population specific frequencies on
    * @param popFile population definition file
    * @param outDir output directory
+   * @param region if not null, only this region will be scanned
    */
-  private static boolean run(String vcf, String popFile, String outDir) {
+  private static boolean run(String vcf, String popFile, String outDir, String region) {
 
     //    validate input files exist
     new File(outDir).mkdirs();
@@ -170,49 +176,73 @@ public class VCFPopulationFrequency {
 
     //    Initialize writer and add updated header 
     String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + "_"
-                       + ext.rootOf(popFile, true) + "_AF.vcf.gz";
-    log.reportTimeInfo("Creating site only .vcf at " + outputVcf);
-    VariantContextWriter writer = buildVcfWriter(reader, outputVcf);
-    addHeader(vpop, reader.getFileHeader(), writer);
+                       + ext.rootOf(popFile, true)
+                       + (region == null ? ""
+                                         : "_region_"
+                                           + ext.replaceWithLinuxSafeCharacters(region, true))
+                       + "_AF.vcf.gz";
 
-    //    Compute population specific AFs for all variants
-    int numVariantsScanned = 0;
-    for (VariantContext vc : reader) {
-      VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
-      List<Allele> alleles = vc.getAlternateAlleles();
+    if (!(Files.exists(outputVcf) && Files.exists(outputVcf + ".tbi"))) {
+      log.reportTimeInfo("Creating site only .vcf at " + outputVcf);
+      VariantContextWriter writer = buildVcfWriter(reader, outputVcf);
+      addHeader(vpop, reader.getFileHeader(), writer);
 
-      for (String population : vpop.getSubPop().keySet()) {
-        //        number of total alleles
-        int nTotal = vc.getCalledChrCount(vpop.getSubPop().get(population));
-        StringJoiner afJoiner = new StringJoiner(",");
+      //    Compute population specific AFs for all variants
+      int numVariantsScanned = 0;
 
-        for (Allele a : alleles) {
-          //  number of this allele
-          int nAllele = vc.getCalledChrCount(a, vpop.getSubPop().get(population));
+      CloseableIterator<VariantContext> iter;
+      if (region == null) {
+        iter = reader.iterator();
+      } else {
+        String[] split = region.split(":");
+        String chr = split[0];
+        int start = Integer.parseInt(split[1].split("-")[0]);
+        int stop = Integer.parseInt(split[1].split("-")[1]);
+        iter = reader.query(chr, start, stop);
+        log.reportTime("restricting pop AF to " + region);
+      }
 
-          double afA = 0;
-          if (nTotal > 0) {
-            afA = (double) nAllele / nTotal;
+      while (iter.hasNext()) {
+        VariantContext vc = iter.next();
+        VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
+        List<Allele> alleles = vc.getAlternateAlleles();
+
+        for (String population : vpop.getSubPop().keySet()) {
+          //        number of total alleles
+          int nTotal = vc.getCalledChrCount(vpop.getSubPop().get(population));
+          StringJoiner afJoiner = new StringJoiner(",");
+
+          for (Allele a : alleles) {
+            //  number of this allele
+            int nAllele = vc.getCalledChrCount(a, vpop.getSubPop().get(population));
+
+            double afA = 0;
+            if (nTotal > 0) {
+              afA = (double) nAllele / nTotal;
+            }
+            afJoiner.add(Double.toString(afA));
+
           }
-          afJoiner.add(Double.toString(afA));
-
+          vcBuilder.attribute(getPopFreqKey(population), afJoiner.toString());
+          vcBuilder.attribute(getPopNKey(population), Integer.toString(nTotal));
         }
-        vcBuilder.attribute(getPopFreqKey(population), afJoiner.toString());
-        vcBuilder.attribute(getPopNKey(population), Integer.toString(nTotal));
+        writer.add(vcBuilder.make());
+        numVariantsScanned++;
+        if (numVariantsScanned % 10000 == 0) {
+          log.reportTimeInfo("Computed population specific AF for " + numVariantsScanned
+                             + " variants");
+        }
       }
-      writer.add(vcBuilder.make());
-      numVariantsScanned++;
-      if (numVariantsScanned % 10000 == 0) {
-        log.reportTimeInfo("Computed population specific AF for " + numVariantsScanned
-                           + " variants");
-      }
+      reader.close();
+      writer.close();
+    } else {
+      log.reportTimeWarning("Output " + outputVcf + " already exists, skipping");
     }
-    reader.close();
-    writer.close();
     return true;
   }
 
-  public static void runDir(String vcfDir, String popFile, String outDir, int threads) {
+  public static void runDir(String vcfDir, String popFile, String outDir, String region,
+                            int threads) {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "popFreq.log");
 
@@ -222,7 +252,7 @@ public class VCFPopulationFrequency {
 
     WorkerHive<Boolean> hive = new WorkerHive<>(threads, 10, log);
     for (final String vcf : vcfs) {
-      hive.addCallable(() -> run(vcf, popFile, outDir));
+      hive.addCallable(() -> run(vcf, popFile, outDir, region));
     }
     hive.execute(true);
 
@@ -243,13 +273,18 @@ public class VCFPopulationFrequency {
     c.addArg(CLI.ARG_THREADS, "number of threads, only if " + VCF_DIR + " option is flagged",
              false);
 
+    c.addArg(REGION, "only compute population specific allele frequencies in this UCSC region ",
+             false);
+
     c.parseWithExit(args);
 
     if (c.has(VCF_DIR)) {
-      runDir(c.get(VCF_DIR), c.get(POP_FILE), c.get(CLI.ARG_OUTDIR), c.getI(CLI.ARG_THREADS));
+      runDir(c.get(VCF_DIR), c.get(POP_FILE), c.get(CLI.ARG_OUTDIR), c.get(REGION),
+             c.getI(CLI.ARG_THREADS));
     } else {
-      run(c.get(CLI.ARG_VCF), c.get(POP_FILE), c.get(CLI.ARG_OUTDIR));
+      run(c.get(CLI.ARG_VCF), c.get(POP_FILE), c.get(CLI.ARG_OUTDIR), c.get(REGION));
     }
+
   }
 
 }
