@@ -448,17 +448,18 @@ public class Emim {
         runIDs.add("CIm");
         runIDs.add("CIp");
       }
-      Set<String> outputs = Sets.newHashSet();
+      boolean parseModel = false;
       for (String runID : runIDs) {
+        Set<String> outputs = Sets.newHashSet();
         outputs.add("emimsummary_" + runID + "_" + model.toString() + ".out");
         outputs.add("emimparams_" + runID + "_" + model.toString() + ".dat");
-      }
-      boolean skipModel = !forceRun && Files.checkAllFiles(currDir, outputs, false, false, log);
-      if (skipModel) {
-        log.report("Results already exist in " + currDir + " for " + model.toString()
-                   + " model, skipping " + model.toString() + " EMIM");
-      } else {
-        for (String runID : runIDs) {
+
+        if (!forceRun && Files.checkAllFiles(currDir, outputs, false, false, log)) {
+          log.report("Results already exist in " + currDir + " for " + runID + "_"
+                     + model.toString() + " model, skipping " + runID + "_" + model.toString()
+                     + " EMIM");
+        } else {
+          parseModel = true;
           commands += "\n" + Files.getRunString() + " gwas.Emim run=" + runID + " model="
                       + model.toString() + "\n" + "emim\n" + "mv emimsummary.out emimsummary_"
                       + runID + "_" + model.toString() + ".out\n" + "rm emimresults.out\n"
@@ -466,7 +467,7 @@ public class Emim {
         }
       }
 
-      if (!skipModel || forceParse
+      if (forceParse || parseModel
           || !Files.exists((resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
                            + model.toString() + ".xln")) {
         parseCommands += Files.getRunString() + " gwas.Emim parse=./" + " hwe=plink.hwe"
