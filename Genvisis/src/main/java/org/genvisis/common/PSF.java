@@ -311,6 +311,18 @@ public class PSF {
     public static final int FAM_SEX_INDEX = 4;
     public static final int FAM_AFF_INDEX = 5;
 
+    public static final int AFF_CASE_STATUS = 2;
+
+    public static boolean affIsCase(String affField) {
+      final int aff;
+      try {
+        aff = Integer.parseInt(affField);
+      } catch (NumberFormatException e) {
+        return false;
+      }
+      return aff == AFF_CASE_STATUS;
+    }
+
     public static boolean bedBimFamExist(String plinkDirAndRoot) {
       return allFilesExist(plinkDirAndRoot, true);
     }

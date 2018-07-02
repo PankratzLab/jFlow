@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import org.apache.commons.math3.stat.inference.TTest;
+import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
 import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.manage.Resources;
@@ -45,6 +47,7 @@ import org.genvisis.common.parsing.FileParserFactory;
 import org.genvisis.common.parsing.ParseFailureException;
 import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.filesys.DosageData;
+import org.genvisis.filesys.DosageData.Trio;
 import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.gwas.MergeExtractPipeline.DataSource;
 import org.genvisis.seq.manage.StrandOps;
@@ -54,7 +57,9 @@ import org.genvisis.stats.Maths.COMPARISON;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 import com.google.common.base.Joiner;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
 
 public class GeneScorePipeline {
@@ -90,6 +95,8 @@ public class GeneScorePipeline {
                                                                         .add("R-SQR").add("R-DIFF")
                                                                         .add("P-VALUE").add("BETA")
                                                                         .add("SE").add("NUM")
+                                                                        .add("PAIRED-T-P-VALUE")
+                                                                        .add("WILCOXON-SIGNED-RANK-P-VALUE")
                                                                         .add("#DATASNPs")
                                                                         .add("#PLINKSNPs")
                                                                         .add("#HITSNPs")
@@ -169,6 +176,8 @@ public class GeneScorePipeline {
 
     HashMap<String, PhenoData> phenoData = new HashMap<>();
 
+    // constraint -> datafile
+    Table<String, String, TrioScoreTest.Results> trioScoreTests = HashBasedTable.create();
     // constraint -> datafile -> phenofile
     HashMap<String, HashMap<String, HashMap<String, RegressionResult>>> regressions = new HashMap<>();
     // constraint -> datafile
@@ -267,6 +276,59 @@ public class GeneScorePipeline {
       se = Double.NaN;
       num = 0;
       stats = Double.NaN;
+    }
+
+  }
+
+  private static class TrioScoreTest {
+
+    private class Results {
+
+      private final double wilcoxonPVal;
+      private final double pairedTPVal;
+
+      private Results() {
+        super();
+        double[] caseScoresArray = Doubles.toArray(caseScores);
+        double[] parentMeansArray = Doubles.toArray(parentScores);
+        this.wilcoxonPVal = new WilcoxonSignedRankTest().wilcoxonSignedRankTest(caseScoresArray,
+                                                                                parentMeansArray,
+                                                                                false);
+        this.pairedTPVal = new TTest().pairedTTest(caseScoresArray, parentMeansArray);
+      }
+
+      /**
+       * @return the wilcoxonPVal
+       */
+      public double getWilcoxonPVal() {
+        return wilcoxonPVal;
+      }
+
+      /**
+       * @return the pairedTPVal
+       */
+      public double getPairedTPVal() {
+        return pairedTPVal;
+      }
+
+    }
+
+    private final List<Double> caseScores;
+    private final List<Double> parentScores;
+
+    public TrioScoreTest() {
+      caseScores = new ArrayList<>();
+      parentScores = new ArrayList<>();
+    }
+
+    public void addScore(double caseScore, double fatherScore, double motherScore) {
+      caseScores.add(caseScore);
+      parentScores.add((fatherScore + motherScore) / 2.0);
+    }
+
+    public Results runTests() {
+      if (caseScores.size() < 2) return null;
+      return new Results();
     }
 
   }
@@ -1445,6 +1507,42 @@ public class GeneScorePipeline {
           // }
           // }
 
+          DosageData data = study.data.get(dataFile + "\t" + filePrefix.getKey());
+          List<Trio> trios = data.getTrios();
+          String[][] ids = data.getIds();
+          TrioScoreTest trioTests = new TrioScoreTest();
+
+          int sibs = 0;
+
+          for (Trio trio : data.getTrios()) {
+            String caseID = ids[trio.getChildIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                            + ids[trio.getChildIndex()][PSF.Plink.FAM_IID_INDEX];
+            if (ids[trio.getChildIndex()].length > PSF.Plink.FAM_AFF_INDEX
+                && !PSF.Plink.affIsCase(ids[trio.getChildIndex()][PSF.Plink.FAM_AFF_INDEX])) {
+              sibs++;
+              continue;
+            }
+            String fatherID = ids[trio.getFatherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                              + ids[trio.getFatherIndex()][PSF.Plink.FAM_IID_INDEX];
+            String motherID = ids[trio.getMotherIndex()][PSF.Plink.FAM_FID_INDEX] + "\t"
+                              + ids[trio.getMotherIndex()][PSF.Plink.FAM_IID_INDEX];
+            if (scoreData.containsKey(caseID) && scoreData.containsKey(fatherID)
+                && scoreData.containsKey(motherID)) {
+              double caseScore = scoreData.get(caseID);
+              double fatherScore = scoreData.get(fatherID);
+              double motherScore = scoreData.get(motherID);
+              trioTests.addScore(caseScore, fatherScore, motherScore);
+            }
+            TrioScoreTest.Results trioTestResults = trioTests.runTests();
+            if (trioTestResults != null) study.trioScoreTests.put(filePrefix.getKey(), dataFile,
+                                                                  trioTestResults);
+          }
+
+          if (sibs > 0) {
+            log.reportTimeWarning(sibs + " trios (of " + data.getTrios().size()
+                                  + " total trios) were excluded from paired score analyses because the children were not coded as cases in the fam data.");
+          }
+
           for (int i = 0; i < study.phenoFiles.size(); i++) {
             PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
             ArrayList<Double> depData = new ArrayList<>();
@@ -1553,13 +1651,25 @@ public class GeneScorePipeline {
           for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
             HashMap<String, RegressionResult> phenoResults = study.regressions.get(filePrefix.getKey())
                                                                               .get(dataFile);
+            TrioScoreTest.Results trioTestResults = study.trioScoreTests.get(filePrefix.getKey(),
+                                                                             dataFile);
+            final String pairedT;
+            final String wilcoxon;
+            if (trioTestResults == null) {
+              pairedT = "N/A";
+              wilcoxon = "N/A";
+            } else {
+              pairedT = String.valueOf(trioTestResults.pairedTPVal);
+              wilcoxon = String.valueOf(trioTestResults.wilcoxonPVal);
+            }
 
             String resultPrefix = new StringJoiner("\t").add(study.studyName).add(dataFile)
                                                         .add(ext.formSciNot(filePrefix.getValue().indexThreshold,
                                                                             5, false))
                                                         .toString();
 
-            String middle = new StringJoiner("\t").add(String.valueOf(dataCounts.get(dFile)
+            String middle = new StringJoiner("\t").add(pairedT).add(wilcoxon)
+                                                  .add(String.valueOf(dataCounts.get(dFile)
                                                                                 .get(filePrefix.getKey())))
 
                                                   .add(String.valueOf(study.hitSnpCounts.get(filePrefix.getKey())
