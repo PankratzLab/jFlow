@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import org.genvisis.bioinformatics.MapSNPsAndGenes;
@@ -53,6 +54,7 @@ import org.genvisis.stats.Maths.COMPARISON;
 import org.genvisis.stats.ProbDist;
 import org.genvisis.stats.RegressionModel;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Doubles;
 
 public class GeneScorePipeline {
@@ -80,8 +82,21 @@ public class GeneScorePipeline {
   private static final String EFFECT_ALLELE_COL_NAME = "EffectAllele";
   private static final String NON_EFFECT_ALLELE_COL_NAME = "NonEffectAllele";
   private static final String BETA_COL_NAME = "beta";
-
-  private static final String REGRESSION_HEADER = "STUDY\tDATAFILE\tINDEX-THRESHOLD\tFACTOR\tBASE-R-SQR\tR-SQR\tR-DIFF\tP-VALUE\tBETA\tSE\tNUM\t#DATASNPs\t#PLINKSNPs\t#HITSNPs\tB-F-SCORE\tINVCHI-SCORE\tEXCEL-SIG";
+  private static final String REGRESSION_HEADER = new StringJoiner("\t").add("STUDY")
+                                                                        .add("DATAFILE")
+                                                                        .add("INDEX-THRESHOLD")
+                                                                        .add("FACTOR")
+                                                                        .add("BASE-R-SQR")
+                                                                        .add("R-SQR").add("R-DIFF")
+                                                                        .add("P-VALUE").add("BETA")
+                                                                        .add("SE").add("NUM")
+                                                                        .add("#DATASNPs")
+                                                                        .add("#PLINKSNPs")
+                                                                        .add("#HITSNPs")
+                                                                        .add("B-F-SCORE")
+                                                                        .add("INVCHI-SCORE")
+                                                                        .add("EXCEL-SIG")
+                                                                        .toString();
   private final String metaDir;
 
   private float[] indexThresholds = new float[] {DEFAULT_INDEX_THRESHOLD};
@@ -1539,25 +1554,25 @@ public class GeneScorePipeline {
             HashMap<String, RegressionResult> phenoResults = study.regressions.get(filePrefix.getKey())
                                                                               .get(dataFile);
 
-            String resultPrefix = study.studyName + "\t" + dataFile + "\t"
-                                  + ext.formSciNot(filePrefix.getValue().indexThreshold, 5, false)
-                                  + "\t";
+            String resultPrefix = new StringJoiner("\t").add(study.studyName).add(dataFile)
+                                                        .add(ext.formSciNot(filePrefix.getValue().indexThreshold,
+                                                                            5, false))
+                                                        .toString();
 
-            String middle = (new StringBuilder()).append(dataCounts.get(dFile)
-                                                                   .get(filePrefix.getKey()))
-                                                 .append("\t")
-                                                 .append(study.hitSnpCounts.get(filePrefix.getKey())
-                                                                           .get(dataFile))
-                                                 .append("\t")
-                                                 .append(study.hitWindowCnts.get(filePrefix.getKey())
-                                                                            .get(dataFile))
-                                                 .append("\t")
-                                                 .append(study.scores.get(filePrefix.getKey())
-                                                                     .get(dataFile)[0])
-                                                 .append("\t")
-                                                 .append(study.scores.get(filePrefix.getKey())
-                                                                     .get(dataFile)[1])
-                                                 .append("\t").toString();
+            String middle = new StringJoiner("\t").add(String.valueOf(dataCounts.get(dFile)
+                                                                                .get(filePrefix.getKey())))
+
+                                                  .add(String.valueOf(study.hitSnpCounts.get(filePrefix.getKey())
+                                                                                        .get(dataFile)))
+
+                                                  .add(String.valueOf(study.hitWindowCnts.get(filePrefix.getKey())
+                                                                                         .get(dataFile)))
+
+                                                  .add(String.valueOf(study.scores.get(filePrefix.getKey())
+                                                                                  .get(dataFile)[0]))
+                                                  .add(String.valueOf(study.scores.get(filePrefix.getKey())
+                                                                                  .get(dataFile)[1]))
+                                                  .toString();
             if (study.phenoFiles.isEmpty()) {
               RegressionResult rr = new RegressionResult();
               rr.dummy();
@@ -1585,19 +1600,18 @@ public class GeneScorePipeline {
                                                  : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
                                                    + ",2)");
 
-    StringBuilder sb = new StringBuilder(resultPrefix).append(pheno).append("\t").append(rr.baseRSq)
-                                                      .append("\t").append(rr.rsq).append("\t")
-                                                      .append((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                                    : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                                : (new BigDecimal(rr.rsq
-                                                                                                                                  + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                                 + "")))))
-                                                      .append("\t").append(rr.pval).append("\t")
-                                                      .append(rr.beta).append("\t").append(rr.se)
-                                                      .append("\t").append(rr.num).append("\t")
-                                                      .append(middle).append(pvalExcl);
+    String line = Joiner.on("\t")
+                        .join(ImmutableList.builder().add(resultPrefix).add(pheno).add(rr.baseRSq)
+                                           .add(rr.rsq)
+                                           .add((Double.isNaN(rr.rsq) ? Double.NaN
+                                                                      : (Double.isNaN(rr.baseRSq) ? rr.rsq
+                                                                                                  : (new BigDecimal(rr.rsq
+                                                                                                                    + "")).subtract(new BigDecimal(rr.baseRSq
+                                                                                                                                                   + "")))))
+                                           .add(rr.pval).add(rr.beta).add(rr.se).add(rr.num)
+                                           .add(middle).add(pvalExcl).build());
 
-    writer.println(sb.toString());
+    writer.println(line);
 
   }
 
