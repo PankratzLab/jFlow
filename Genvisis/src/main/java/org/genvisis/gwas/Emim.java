@@ -449,8 +449,6 @@ public class Emim {
         runIDs.add("CIp");
       }
       Set<String> outputs = Sets.newHashSet();
-      outputs.add((resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
-                  + model.toString() + ".xln");
       for (String runID : runIDs) {
         outputs.add("emimsummary_" + runID + "_" + model.toString() + ".out");
         outputs.add("emimparams_" + runID + "_" + model.toString() + ".dat");
@@ -468,7 +466,9 @@ public class Emim {
         }
       }
 
-      if (!skipModel || forceParse) {
+      if (!skipModel || forceParse
+          || !Files.exists((resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
+                           + model.toString() + ".xln")) {
         parseCommands += Files.getRunString() + " gwas.Emim parse=./" + " hwe=plink.hwe"
                          + " frq=plink.frq" + " pThreshold=" + pThreshold + " model="
                          + model.toString()
