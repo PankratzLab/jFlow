@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -1363,18 +1364,32 @@ public class DosageData implements Serializable {
     HashMap<String, Integer> dd1IdsAndIndices = new HashMap<>();
     HashMap<String, Integer> dd2IdsAndIndices = new HashMap<>();
     HashSet<String> duplicatedIDs = new HashSet<>();
-    LinkedHashSet<String> idSet = new LinkedHashSet<>(); // use to ensure uniqueness and order
+    Map<String, String[]> idSet = new LinkedHashMap<>(); // use to ensure uniqueness and order
     for (int s = 0; s < dd1Ids.length; s++) {
       String id = dd1Ids[s][0] + "\t" + dd1Ids[s][1];
-      idSet.add(id);
+      idSet.put(id, dd1Ids[s]);
       dd1IdsAndIndices.put(id, s);
     }
     for (int s = 0; s < dd2Ids.length; s++) {
       String id = dd2Ids[s][0] + "\t" + dd2Ids[s][1];
       dd2IdsAndIndices.put(id, s);
-      boolean alreadyPresent = !idSet.add(id);
-      if (alreadyPresent) {
+      String[] otherIds = idSet.get(id);
+      if (otherIds == null) idSet.put(id, dd2Ids[s]);
+      else {
         duplicatedIDs.add(id);
+        if (!Arrays.equals(dd2Ids[s], otherIds)) {
+          boolean mismatchData = false;
+          for (int i = 0; i < Math.min(dd2Ids[s].length, otherIds.length); i++) {
+            if (!dd2Ids[s][i].equals(otherIds[i])) {
+              mismatchData = true;
+              break;
+            }
+          }
+          if (mismatchData) {
+            log.reportError("For sample " + id + " fam data to combine does not match");
+          }
+          if (dd2Ids[s].length > otherIds.length) idSet.put(id, dd2Ids[s]);
+        }
       }
     }
     if (duplicatedIDs.size() > 0) {
@@ -1464,12 +1479,7 @@ public class DosageData implements Serializable {
     }
 
     DosageData ddNew = new DosageData();
-    ddNew.ids = new String[idSet.size()][];
-    Iterator<String> iter = idSet.iterator();
-    int ind = 0;
-    while (iter.hasNext()) {
-      ddNew.ids[ind++] = iter.next().split("\t");
-    }
+    ddNew.ids = idSet.values().toArray(new String[0][]);
     idSet = null; // can now refer to ddNew.ids
 
     // don't use merge, as it sorts markers after merging
@@ -1516,7 +1526,7 @@ public class DosageData implements Serializable {
 
       mkrs[m] = mkr;
       if (dd1MarkersAndIndices.containsKey(mkr)) {
-        ind = dd1MarkersAndIndices.get(mkr);
+        int ind = dd1MarkersAndIndices.get(mkr);
         ddNew.chrs[m] = chrSrc == null ? missingChr : chrSrc[ind];
         ddNew.alleles[m] = alleleSrc == null ? missingAlleles : alleleSrc[ind];
         ddNew.positions[m] = posSrc == null ? missingPos : posSrc[ind];
@@ -1526,7 +1536,7 @@ public class DosageData implements Serializable {
           annotations[m][i] = annot[i];
         }
       } else if (dd2MarkersAndIndices.containsKey(mkr)) {
-        ind = dd2MarkersAndIndices.get(mkr);
+        int ind = dd2MarkersAndIndices.get(mkr);
         ddNew.chrs[m] = chrSrc2 == null ? missingChr : chrSrc2[ind];
         ddNew.alleles[m] = alleleSrc2 == null ? missingAlleles : alleleSrc2[ind];
         ddNew.positions[m] = posSrc2 == null ? missingPos : posSrc2[ind];
