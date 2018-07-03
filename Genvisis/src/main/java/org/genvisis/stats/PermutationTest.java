@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.cli.ParseException;
 import org.genvisis.CLI;
+import org.genvisis.cnv.plots.PlotUtilities;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
@@ -303,6 +304,8 @@ public class PermutationTest {
                           "all");
     cli.addArgWithDefault("type", "Test type (eg \"plink\", Mann-Whitney (\"mw\"))", "plink");
     cli.addArgWithDefault("threads", "number of threads to use", 1);
+    cli.addFlag("parseResults",
+                "run hitWindows, manhattan plot, and qq plot on the resulting file");
 
     cli.parse(args);
     Filter filter;
@@ -340,5 +343,14 @@ public class PermutationTest {
 
     mperm(cli.get("cnvFile"), cli.get("mapFile"), pheno, cli.getI("window"), cli.getI("mperm"),
           cli.get("outFile"), cli.has("twoSided"), filter, type, cli.getI("threads"), log);
+    if (cli.has("parseResults")) {
+      String outFile = cli.get("outFile");
+      PlotUtilities.runHitWindows(outFile);
+
+      PlotUtilities.createManPlotScreenshot(outFile);
+
+      PlotUtilities.createQQPlotScreenshot(outFile);
+
+    }
   }
 }
