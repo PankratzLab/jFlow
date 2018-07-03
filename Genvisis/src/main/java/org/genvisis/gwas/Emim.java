@@ -467,9 +467,9 @@ public class Emim {
         }
       }
 
-      if (forceParse || parseModel
-          || !Files.exists((resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
-                           + model.toString() + ".xln")) {
+      if (model.isOptional()
+          && (forceParse || parseModel
+              || !Files.exists(currDir + formParsedOutFileName(resultPrefix, model)))) {
         parseCommands += Files.getRunString() + " gwas.Emim parse=./" + " hwe=plink.hwe"
                          + " frq=plink.frq" + " pThreshold=" + pThreshold + " model="
                          + model.toString()
@@ -543,6 +543,11 @@ public class Emim {
     // Files.qsub(plinkPrefix+"_runEmim.pbs", commands, 5000, 24, 1);
   }
 
+  private static String formParsedOutFileName(String resultPrefix, EMIM_MODEL model) {
+    return (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_" + model.toString()
+           + ".xln";
+  }
+
   public static void parse(String dir, String resultPrefix, String hweFile, String frqFile,
                            double pValueThreshold, EMIM_MODEL model) {
     if (!model.isOptional()) {
@@ -559,8 +564,7 @@ public class Emim {
     String resultsFileTdt = dir + "plink.tdt";
     String mapFile = dir + "emimPrep.bim";
     String mendelErrorFile = dir + "plink.lmendel";
-    String outfile = dir + (resultPrefix == null ? "" : resultPrefix + "_") + "results_pVals_"
-                     + model.toString() + ".xln";
+    String outfile = dir + formParsedOutFileName(resultPrefix, model);
 
     ResultsPackager.parseEmimFormat(resultsFileC, resultsFileM, resultsFileCM, resultsFileCIm,
                                     resultsFileCIp, resultsFileIm, resultsFileIp, resultsFileTdt,
