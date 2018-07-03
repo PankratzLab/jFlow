@@ -920,12 +920,14 @@ public class MarkerData implements Serializable {
     int markerBlockSize = numInd * bytesPerSamp;
     byte[] mkrBuff = new byte[markerBlockSize];
     int buffInd = 0;
-
+    int buffMark = 0;
     // GCs
     for (int i = 0; i < numInd; i++) {
       Compression.gcBafCompress(getGCs()[i], mkrBuff, buffInd);
-      buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+      buffInd += bytesPerSamp;
     }
+    buffMark += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+    buffInd = buffMark;
 
     // Xs
     for (int i = 0; i < numInd; i++) {
@@ -933,11 +935,13 @@ public class MarkerData implements Serializable {
                                                                            buffInd)
                                     : !Compression.xyCompressPositiveOnly(getXs()[i], mkrBuff,
                                                                           buffInd);
-      buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+      buffInd += bytesPerSamp;
       if (oor) {
         oorTable.put(mkrIndLocal + "\t" + i + "\tx", getXs()[i]);
       }
     }
+    buffMark += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+    buffInd = buffMark;
 
     // Ys
     for (int i = 0; i < numInd; i++) {
@@ -945,26 +949,32 @@ public class MarkerData implements Serializable {
                                                                            buffInd)
                                     : !Compression.xyCompressPositiveOnly(getYs()[i], mkrBuff,
                                                                           buffInd);
-      buffInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+      buffInd += bytesPerSamp;
       if (oor) {
         oorTable.put(mkrIndLocal + "\t" + i + "\ty", getYs()[i]);
       }
     }
+    buffMark += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+    buffInd = buffMark;
 
     // BAFs
     for (int i = 0; i < numInd; i++) {
       Compression.gcBafCompress(getBAFs()[i], mkrBuff, buffInd);
-      buffInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+      buffInd += bytesPerSamp;
     }
+    buffMark += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+    buffInd = buffMark;
 
     // LRRs
     for (int i = 0; i < numInd; i++) {
       boolean oor = -1 == Compression.lrrCompress(getLRRs()[i], mkrBuff, buffInd);
-      buffInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+      buffInd += bytesPerSamp;
       if (oor) {
         oorTable.put(mkrIndLocal + "\t" + i + "\tlrr", getLRRs()[i]);
       }
     }
+    buffMark += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+    buffInd = buffMark;
 
     // Genotypes
     for (int i = 0; i < numInd; i++) {
@@ -972,8 +982,10 @@ public class MarkerData implements Serializable {
                                                                                : getAbGenotypes()[i],
                                                       getForwardGenotypes() == null ? 0
                                                                                     : getForwardGenotypes()[i]);
-      buffInd += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
+      buffInd += bytesPerSamp;
     }
+    buffMark += Compression.REDUCED_PRECISION_ABFORWARD_GENOTYPE_NUM_BYTES;
+    buffInd = buffMark;
 
     return mkrBuff;
   }

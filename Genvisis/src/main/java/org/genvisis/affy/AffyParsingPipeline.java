@@ -77,9 +77,9 @@ public class AffyParsingPipeline {
       return;
     }
 
-    boolean canXYBeNegative = true;
+    boolean canXYBeNegative = false;
     byte nullStatus = Sample.updateNullStatus(new float[0], new float[0], new float[0],
-                                              new float[0], new float[0], new byte[0], new byte[0],
+                                              new float[0], new float[0], new byte[0], null,
                                               canXYBeNegative);
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
     long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
@@ -354,7 +354,7 @@ public class AffyParsingPipeline {
     float[] bafs = null;
     float[] lrrs = null;
     byte[] abGenos = new byte[numSamples];
-    byte[] forwardGenos = ArrayUtils.byteArray(numSamples, (byte) 0);
+    byte[] forwardGenos = null;
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
