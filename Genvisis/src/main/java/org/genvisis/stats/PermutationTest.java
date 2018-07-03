@@ -145,7 +145,7 @@ public class PermutationTest {
     log.report("Built PED matrix in " + ext.getTimeElapsed(time));
 
     MpermResults[] out = new MpermResults[cnMatrix.length];
-    String[] outHeader = new String[] {"chr", "pos", "name", "CN", "M1", "M0", "p", "p2"};
+    String[] outHeader = new String[] {"CHR", "BP", "SNP", "NCNV", "M1", "M0", "EMP1", "EMP2"};
     time = new Date().getTime();
     // make a results object for each region we're testing
     for (int i = 0; i < cnMatrix.length; i++) {
