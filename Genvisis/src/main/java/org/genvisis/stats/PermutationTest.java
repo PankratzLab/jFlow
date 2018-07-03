@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -94,17 +96,30 @@ public class PermutationTest {
     String[][] mat;
     // create list of regions to check using the given map file and window size
     if (mapfile == null) {
-      mat = new String[cnvs.length * 3][4];
+      List<String[]> tempMat = new ArrayList<String[]>();
+      Set<String> seen = new HashSet<String>();
       for (int i = 0; i < cnvs.length; i++) {
         CNVariant c = cnvs[i];
         String[] start = {c.getChr() + "", c.getChr() + ":" + c.getStart(), "0", c.getStart() + ""};
-        mat[i * 3] = start;
         String[] stop = {c.getChr() + "", c.getChr() + ":" + c.getStop(), "0", c.getStop() + ""};
-        mat[i * 3 + 1] = stop;
         String[] onePlus = {c.getChr() + "", c.getChr() + ":" + (c.getStop() + 1), "0",
                             c.getStop() + 1 + ""};
-        mat[i * 3 + 2] = onePlus;
+
+        // check if we've seen this named region before, if not, add it to our matrix
+        if (!seen.contains(start[1])) {
+          seen.add(start[1]);
+          tempMat.add(start);
+        }
+        if (!seen.contains(stop[1])) {
+          seen.add(stop[1]);
+          tempMat.add(stop);
+        }
+        if (!seen.contains(onePlus[1])) {
+          seen.add(onePlus[1]);
+          tempMat.add(onePlus);
+        }
       }
+      mat = Matrix.toStringArrays(tempMat);
     } else {
       mat = HashVec.loadFileToStringMatrix(mapfile, false, null);
     }
