@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.Nullable;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
@@ -47,6 +48,10 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.Sort;
 import org.genvisis.common.ext;
+import org.genvisis.common.parsing.DataLine;
+import org.genvisis.common.parsing.ExplicitIndexedFileColumn;
+import org.genvisis.common.parsing.FileColumn;
+import org.genvisis.common.parsing.FileParserFactory;
 import org.genvisis.gwas.Plink;
 import org.genvisis.stats.LeastSquares;
 import org.genvisis.stats.LogisticRegression;
@@ -266,7 +271,8 @@ public class DosageData implements Serializable {
       dd = loadPlinkBinary(ext.parseDirectoryOfFile(dosageFile), regions, markers,
                            ext.rootOf(dosageFile, true), markerNamePrepend, true);
     } else if (parameters[2] == VCF_FORMAT_INTERNAL) {
-      dd = loadVCF(dosageFile, regions, markers, markerLocationMap, markerNamePrepend, log);
+      dd = loadVCF(dosageFile, mapFile, regions, markers, markerLocationMap, markerNamePrepend,
+                   log);
     } else if (parameters[2] == BGEN_FORMAT_INTERNAL) {
       dd = loadBGEN(dosageFile, mapFile, idFile, regions, markers, markerNamePrepend, log);
     }
@@ -2391,9 +2397,19 @@ public class DosageData implements Serializable {
     return dd;
   }
 
-  public static DosageData loadVCF(String file, int[][] regionsToKeep, String[] markersToKeep,
-                                   Map<String, int[]> markerLocations, String markerNamePrepend,
-                                   Logger log) {
+  /**
+   * @param vcfFile VCF file to load
+   * @param mapFile optional map file to load for IDs in VCF
+   * @param regionsToKeep
+   * @param markersToKeep
+   * @param markerLocations
+   * @param markerNamePrepend
+   * @param log
+   * @return
+   */
+  public static DosageData loadVCF(String vcfFile, @Nullable String mapFile, int[][] regionsToKeep,
+                                   String[] markersToKeep, Map<String, int[]> markerLocations,
+                                   String markerNamePrepend, Logger log) {
     String probTag = "GP";
 
     Map<String, String> segLookup = Maps.newHashMap();
@@ -2428,7 +2444,8 @@ public class DosageData implements Serializable {
     VCFHeader header;
     List<VariantContext> keepList = Lists.newArrayList();
 
-    try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
+    try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
+                                                  Files.exists(vcfFile + ".tbi"))) {
       header = reader.getFileHeader();
 
       // discover which chrs are in this vcf file
@@ -2474,9 +2491,10 @@ public class DosageData implements Serializable {
     }
 
     if (markerSet.size() > 0) {
-      log.reportTime("Scanning through " + file + " for " + markerSet.size()
+      log.reportTime("Scanning through " + vcfFile + " for " + markerSet.size()
                      + " remaining variants.");
-      try (VCFFileReader reader = new VCFFileReader(new File(file), Files.exists(file + ".tbi"))) {
+      try (VCFFileReader reader = new VCFFileReader(new File(vcfFile),
+                                                    Files.exists(vcfFile + ".tbi"))) {
         keepList.addAll(reader.iterator().stream().filter(vc -> {
           return markerSet.contains(vc.getID());
         }).collect(Collectors.toList()));
@@ -2485,10 +2503,38 @@ public class DosageData implements Serializable {
 
     DosageData dd = new DosageData();
 
+    Map<ImmutableList<Object>, DataLine> mapLines = null;
+    FileColumn<String> fid = new ExplicitIndexedFileColumn("FID", PSF.Plink.FAM_FID_INDEX);
+    FileColumn<String> iid = new ExplicitIndexedFileColumn("IID", PSF.Plink.FAM_IID_INDEX);
+    FileColumn<String> father = new ExplicitIndexedFileColumn("Father", PSF.Plink.FAM_FA_INDEX);
+    FileColumn<String> mother = new ExplicitIndexedFileColumn("Mother", PSF.Plink.FAM_MO_INDEX);
+    FileColumn<String> sex = new ExplicitIndexedFileColumn("Sex", PSF.Plink.FAM_SEX_INDEX);
+    FileColumn<String> pheno = new ExplicitIndexedFileColumn("Pheno", PSF.Plink.FAM_AFF_INDEX);
+    if (mapFile != null && !ext.isMissingValue(mapFile)) {
+      try {
+        mapLines = FileParserFactory.setup(mapFile, fid, iid, father, mother, sex, pheno).noHeader()
+                                    .build().load(true, fid, iid);
+      } catch (IOException e) {
+        log.reportError("Failed to load " + mapFile + ", not loading fam data for " + vcfFile);
+      }
+    }
     dd.ids = new String[header.getSampleNamesInOrder().size()][];
-    int ind = 0;
-    for (String id : header.getSampleNamesInOrder()) {
-      dd.ids[ind++] = new String[] {id, id};
+    for (int i = 0; i < header.getSampleNamesInOrder().size(); i++) {
+      String id = header.getSampleNamesInOrder().get(i);
+      DataLine mapLine = mapLines.get(ImmutableList.of(id, id));
+      final String[] idLine;
+      if (mapLine != null) {
+        idLine = new String[PSF.Plink.FAM_FIELD_COUNT];
+        idLine[PSF.Plink.FAM_FID_INDEX] = id;
+        idLine[PSF.Plink.FAM_IID_INDEX] = id;
+        idLine[PSF.Plink.FAM_FA_INDEX] = mapLine.getString(father);
+        idLine[PSF.Plink.FAM_MO_INDEX] = mapLine.getString(mother);
+        idLine[PSF.Plink.FAM_SEX_INDEX] = mapLine.getString(sex);
+        idLine[PSF.Plink.FAM_AFF_INDEX] = mapLine.getString(pheno);
+      } else {
+        idLine = new String[] {id, id};
+      }
+      dd.ids[i] = idLine;
     }
 
     int numMarkers = keepList.size();
