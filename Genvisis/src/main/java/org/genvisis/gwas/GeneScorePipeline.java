@@ -1027,7 +1027,7 @@ public class GeneScorePipeline {
         }
         pd.covars.addAll(covars);
         String temp = reader.readLine();
-        indiv: do {
+        do {
           String[] line = temp.split("\t");
 
           if (!ext.isMissingValue(line[2])) {
@@ -1036,10 +1036,9 @@ public class GeneScorePipeline {
             double depvar = Double.parseDouble(line[2]);
             PhenoIndiv pi = new PhenoIndiv(fid, iid, depvar);
             for (int i = 3; i < line.length; i++) {
-              if (ext.isMissingValue(line[i])) {
-                continue indiv;
+              if (!ext.isMissingValue(line[i])) {
+                pi.addCovar(header[i], Double.parseDouble(line[i]));
               }
-              pi.addCovar(header[i], Double.parseDouble(line[i]));
             }
             pd.indivs.put(pi.getFid() + "\t" + pi.getIid(), pi);
           }
