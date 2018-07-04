@@ -98,8 +98,8 @@ public class GeneScorePipeline {
                                                                         .add("PAIRED-T-P-VALUE")
                                                                         .add("WILCOXON-SIGNED-RANK-P-VALUE")
                                                                         .add("#sigInMeta")
-                                                                        .add("#indexVariantsInDataset")
                                                                         .add("#indexVariantsInMeta")
+                                                                        .add("#indexVariantsInDataset")
                                                                         .add("B-F-SCORE")
                                                                         .add("INVCHI-SCORE")
                                                                         .add("EXCEL-SIG")
@@ -1683,13 +1683,10 @@ public class GeneScorePipeline {
             String middle = new StringJoiner("\t").add(pairedT).add(wilcoxon)
                                                   .add(String.valueOf(dataCounts.get(dFile)
                                                                                 .get(filePrefix.getKey())))
-
-                                                  .add(String.valueOf(study.hitSnpCounts.get(filePrefix.getKey())
-                                                                                        .get(dataFile)))
-
                                                   .add(String.valueOf(study.hitWindowCnts.get(filePrefix.getKey())
                                                                                          .get(dataFile)))
-
+                                                  .add(String.valueOf(study.hitSnpCounts.get(filePrefix.getKey())
+                                                                                        .get(dataFile)))
                                                   .add(String.valueOf(study.scores.get(filePrefix.getKey())
                                                                                   .get(dataFile)[0]))
                                                   .add(String.valueOf(study.scores.get(filePrefix.getKey())
