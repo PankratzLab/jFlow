@@ -668,6 +668,9 @@ public class GeneScorePipeline {
     this.indexThresholds = indexThresholds;
     windowMinSizePerSides = windowMins;
     windowExtensionThresholds = windowExtThresholds;
+    if (indexThresholds.length != windowExtThresholds.length) {
+      throw new IllegalArgumentException();
+    }
     setFilePrefices();
     loadStudyFolders();
     // instantiate inner hashmaps:
@@ -697,11 +700,21 @@ public class GeneScorePipeline {
     for (float i : indexThresholds) {
       for (int m : windowMinSizePerSides) {
         for (float w : windowExtensionThresholds) {
+          final float indexThresh = i;
+          final int minSize = m;
+          final float windowThresh;
+          if (w < indexThresh) {
+            log.reportError("Window extension threshold (" + w
+                            + ") is more stringent than index threshold (" + indexThresh
+                            + "), index threshold will be used as window extension threshold");
+            windowThresh = indexThresh;
+          } else windowThresh = w;
           StringBuilder prefixSB = new StringBuilder();
-          prefixSB.append(ext.formSciNot(i, 4, false)).append("_")
-                  .append(ext.formSciNot(m, 4, false)).append("_")
-                  .append(ext.formSciNot(w, 4, false));
-          analysisConstraints.put(prefixSB.toString(), new Constraint(i, m, w));
+          prefixSB.append(ext.formSciNot(indexThresh, 4, false)).append("_")
+                  .append(ext.formSciNot(minSize, 4, false)).append("_")
+                  .append(ext.formSciNot(windowThresh, 4, false));
+          analysisConstraints.put(prefixSB.toString(),
+                                  new Constraint(indexThresh, minSize, windowThresh));
         }
       }
     }
