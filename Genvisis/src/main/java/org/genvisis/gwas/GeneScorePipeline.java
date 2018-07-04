@@ -1705,7 +1705,8 @@ public class GeneScorePipeline {
   private void writeSingleResult(String pheno, RegressionResult rr, String resultPrefix,
                                  String middle, PrintWriter writer) {
     String pvalExcl = rr.num == 0 ? "."
-                                  : (rr.logistic ? "=NORMSDIST(" + Math.sqrt(rr.stats) + ")"
+                                  : (rr.logistic ? "=(1-(NORM.S.DIST(ABS(" + rr.stats
+                                                   + "),TRUE)))*2"
                                                  : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
                                                    + ",2)");
 
