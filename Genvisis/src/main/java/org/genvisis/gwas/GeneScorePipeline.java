@@ -1152,6 +1152,7 @@ public class GeneScorePipeline {
         log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
                    + crossFilterFile + "']");
         HashMap<String, GenomicPosition> mkrsBim = new HashMap<>();
+        Map<String, String[]> mkrAlleles = new HashMap<>();
         SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
                                            .getMarkerSet();
         int cntAmbig = 0;
@@ -1167,6 +1168,7 @@ public class GeneScorePipeline {
                                  || (Sequence.validBase(a1) && Sequence.validBase(a2));
           if (validAlleles && !a1.equals(Sequence.flip(a2))) {
             mkrsBim.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
+            mkrAlleles.put(mkrNames[i], new String[] {a1, a2});
           } else {
             cntAmbig++;
           }
@@ -1203,6 +1205,9 @@ public class GeneScorePipeline {
             return mkrsBim.get(markerCol.getValue(line)).getPosition();
           }
         };
+
+        final AliasedFileColumn a1Column = StandardFileColumns.a1("a1");
+        final AliasedFileColumn a2Column = StandardFileColumns.a2("a2");
         final FileColumn<Double> pColumn = StandardFileColumns.pVal("p");
         final FileColumn<String> remainingColumns = StandardFileColumns.allExcept(outDelim,
                                                                                   markerCol,
@@ -1215,6 +1220,27 @@ public class GeneScorePipeline {
           @Override
           public boolean filter(DataLine values) {
             return mkrsBim.containsKey(values.get(markerCol, null));
+          }
+        };
+        final ColumnFilter mkrsAlleleFilter = new AbstractColumnFilter(markerCol, a1Column,
+                                                                       a2Column) {
+
+          @Override
+          public boolean filter(DataLine values) {
+            String mkr = values.get(markerCol, null);
+            String[] dataAlleles = mkrAlleles.get(mkr);
+            String[] metaAlleles = new String[] {values.get(a1Column, "NA"),
+                                                 values.get(a2Column, "NA")};
+            AlleleOrder alleleOrder = StrandOps.determineStrandConfig(dataAlleles, metaAlleles)
+                                               .getAlleleOrder();
+            if (alleleOrder == AlleleOrder.SAME || alleleOrder == AlleleOrder.OPPOSITE) return true;
+            else {
+              Joiner alleleJoiner = Joiner.on('/');
+              log.reportError("Alleles in study (" + alleleJoiner.join(dataAlleles)
+                              + ") do not match source alleles (" + alleleJoiner.join(metaAlleles)
+                              + ") for " + mkr);
+              return false;
+            }
           }
         };
         final ColumnFilter pValThreshold = new DoubleFilter(pColumn, COMPARISON.LT,
@@ -1231,6 +1257,7 @@ public class GeneScorePipeline {
                                                                remainingColumns)
                                                         .optionalColumns(pColumn)
                                                         .filter(mkrsBimFilter)
+                                                        .filter(mkrsAlleleFilter)
                                                         .filter(ColumnFilters.or(pValMissing,
                                                                                  pValThreshold))
                                                         .build();
@@ -1384,17 +1411,6 @@ public class GeneScorePipeline {
           HitMarker hitMarker = hitMarkerData.get(mkr);
           if (hitMarker == null) continue;
           AlleleOrder alleleOrder = determineAlleleOrder(alleles[m], hitMarker);
-          if (!(alleleOrder.equals(AlleleOrder.SAME) || alleleOrder.equals(AlleleOrder.OPPOSITE))) {
-            Joiner alleleJoiner = Joiner.on('/');
-            log.reportError("Alleles in study (" + alleleJoiner.join(alleles[m])
-                            + ") do not match source alleles ("
-                            + alleleJoiner.join(hitMarker.getEffectAllele() == null ? "NULL"
-                                                                                    : hitMarker.getEffectAllele(),
-                                                hitMarker.getNonEffectAllele() == null ? "NULL"
-                                                                                       : hitMarker.getNonEffectAllele())
-                            + ") for " + mkr);
-            continue;
-          }
           matchedMarkerAlleleOrders.put(mkr, alleleOrder);
           matchedMarkerIndices.put(mkr, m);
           int cnt = 0;
@@ -1430,7 +1446,7 @@ public class GeneScorePipeline {
               cnt2 += isNaN ? 0 : (2.0 - dosage);
               scoreSum += (2.0 - (isNaN ? matchedMarkerFreqs.get(mkr) : dosage)) * beta;
             } else {
-              throw new IllegalStateException("Mismatched alleles were not caught when mapping");
+              throw new IllegalStateException("Mismatched alleles were not caught when cross-filtering");
             }
           }
 
