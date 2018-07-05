@@ -3,8 +3,8 @@ package org.genvisis.cnv.workflow.steps;
 import java.io.File;
 import java.util.EnumSet;
 import org.genvisis.affy.AffyPipeline;
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.workflow.Requirement;
@@ -85,11 +85,8 @@ public class AffyCELProcessingStep extends Step {
 
   @Override
   public boolean checkIfOutputExists(Variables variables) {
-    // four measures that indicate success, from AffyPipeline
-    return proj.SOURCE_DIRECTORY.getValue().endsWith("00src_CEL/")
-           && proj.SOURCE_FILENAME_EXTENSION.getValue().equals(".txt.gz")
-           && proj.SOURCE_FILE_DELIMITER.getValue() == SOURCE_FILE_DELIMITERS.TAB
-           && proj.ID_HEADER.getValue().equals("[FILENAME_ROOT]");
+    return Files.countFiles(proj.MARKER_DATA_DIRECTORY.getValue(false, false),
+                            MarkerData.MARKER_DATA_FILE_EXTENSION) > 0;
   }
 
   @Override
