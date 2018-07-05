@@ -76,10 +76,10 @@ public class TempFileTranspose {
         } catch (NoSuchFileException e1) {
           e = e1;
           try {
-            // 30 seconds
-            Thread.sleep(1000 * 30);
+            // 3 seconds
+            Thread.sleep(1000 * 3);
           } catch (InterruptedException e2) {}
-          minsSlept += .5;
+          minsSlept += .05;
         }
       } while (e != null && minsSlept < MAX_MINS_SLEPT);
 
@@ -308,6 +308,7 @@ public class TempFileTranspose {
   }
 
   public void setupSampleListFile() {
+    new File(proj.SAMPLE_DIRECTORY.getValue()).mkdirs();
     String[] samples = proj.getSamples();
     for (int i = 0; i < samples.length; i++) {
       samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
