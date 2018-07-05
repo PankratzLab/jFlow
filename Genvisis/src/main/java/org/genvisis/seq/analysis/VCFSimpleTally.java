@@ -108,7 +108,7 @@ public class VCFSimpleTally {
   }
 
   private static void filter(String vcf, String output, String casePop, VcfPopulation vpop,
-                             double controlFreq, Logger log) {
+                             double controlFreq, Set<String> countOnlyControls, Logger log) {
     if (!Files.exists(output)) {
       Set<String> cases = vpop.getSuperPop().get(casePop);
       Map<String, Set<String>> controls = vpop.getSuperPop();
@@ -116,6 +116,11 @@ public class VCFSimpleTally {
       log.reportTimeInfo("CASE :" + casePop + " n: " + cases.size());
       controls.remove(casePop);
       controls.remove(VcfPopulation.EXCLUDE);
+      for (String countOnlyPop : countOnlyControls) {
+        controls.remove(countOnlyPop);
+        log.reportTimeInfo("Excluding control pop" + countOnlyPop + " from freq filter");
+
+      }
       for (String control : controls.keySet()) {
         log.reportTimeInfo("Control: " + control + " n: " + controls.get(control).size());
       }
@@ -148,15 +153,9 @@ public class VCFSimpleTally {
           Files.writeArray(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
           throw new IllegalArgumentException("could not find all cases for " + casePop);
         }
-        if (!vcCase.isMonomorphicInSamples() && vcCase.getNoCallCount() != cases.size()
-            && (!vc.hasAttribute("esp6500si_all") || !vc.hasAttribute("g10002014oct_all")
-                || !vc.hasAttribute("g10002015aug_all") || !vc.hasAttribute("esp6500siv2_all"))) {
-          // String error = "Expected annotations esp6500si_all, g10002014oct_all were not present";
-          // error += "\n" + vc.toStringWithoutGenotypes();
-          // throw new IllegalStateException(error);
-        } else if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size()
-                   && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed()
-                   && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
+        if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size()
+            && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed()
+            && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
           boolean controlPass = true;
           for (String controlPop : controls.keySet()) {
             VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop),
@@ -166,9 +165,10 @@ public class VCFSimpleTally {
             }
             if (controlFreq < 1) {
               double maf = VCOps.getMAF(vcControl, null);
-              if ((!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq)
+              if (!controls.get(controlPop).isEmpty()
+                  && (!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq)
                   && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in
-                                                                                                                                                               // control
+                                                                                                                                                                                                      // control
                 controlPass = false;
                 break;
               }
@@ -816,7 +816,8 @@ public class VCFSimpleTally {
                                                   int numThreads, String outDir, GeneSet[] geneSets,
                                                   VariantContextFilter qualCase,
                                                   HashSet<String> lqs, HashSet<String> genelimit,
-                                                  boolean splitPopVcf, Logger log) {
+                                                  boolean splitPopVcf,
+                                                  Set<String> countOnlyControls, Logger log) {
     VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
     vpopAc.report();
     String caseDef = ext.rootOf(vpop);
@@ -831,7 +832,7 @@ public class VCFSimpleTally {
       FilterWorker worker = new FilterWorker(chrSplitResult.getOutputVCF(), outputVcf,
                                              ext.rootOf(vpop),
                                              VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log),
-                                             maf, log);
+                                             maf, countOnlyControls, log);
       hive.addCallable(worker);
     }
     hive.execute(true);
@@ -1639,22 +1640,24 @@ public class VCFSimpleTally {
     private final String casePop;
     private final VcfPopulation vpop;
     private final double maf;
+    private final Set<String> countOnlyControls;
     private final Logger log;
 
     public FilterWorker(String vcf, String outputVcf, String casePop, VcfPopulation vpop,
-                        double maf, Logger log) {
+                        double maf, Set<String> countOnlyControls, Logger log) {
       super();
       this.vcf = vcf;
       this.outputVcf = outputVcf;
       this.casePop = casePop;
       this.vpop = vpop;
       this.maf = maf;
+      this.countOnlyControls = countOnlyControls;
       this.log = log;
     }
 
     @Override
     public String call() throws Exception {
-      filter(vcf, outputVcf, casePop, vpop, maf, log);
+      filter(vcf, outputVcf, casePop, vpop, maf, countOnlyControls, log);
 
       return outputVcf;
     }
@@ -1696,7 +1699,7 @@ public class VCFSimpleTally {
                           String[] otherGenesOfInterest, String genesetDir, double maf,
                           boolean controlSpecifiComp, boolean controlSpecifiEnrich,
                           VariantContextFilter caseQualFilter, boolean doclustering,
-                          int numThreads) {
+                          Set<String> countOnlyControls, int numThreads) {
     // popDir + "CUSHING_FREQ.vpop", popDir + "EPP.vpop" };
     // ,popDir + "ALL_CONTROL_EPP.vpop", popDir + "ANIRIDIA.vpop", popDir + "ANOTIA.vpop" };
     for (int i = 0; i < vpopsCase.length; i++) {
@@ -1750,7 +1753,7 @@ public class VCFSimpleTally {
       log.reportTimeInfo("Loaded " + genelimit.size() + " gene limiters");
       SimpleTallyResult caseResult = runSimpleTally(vcf, vpopsCase[i], maf, numThreads, outDir,
                                                     currentSets, caseQualFilter, lqs, genelimit,
-                                                    false, log);
+                                                    false, countOnlyControls, log);
 
       summarizeVariantsBySample(caseResult, lqs, log);
       VcfPopulation controls = caseResult.getControls();
@@ -1760,7 +1763,7 @@ public class VCFSimpleTally {
       controls.dump(controlFile);
       SimpleTallyResult controlResult = runSimpleTally(vcf, controlFile, maf, numThreads, outDir,
                                                        currentSets, null, new HashSet<String>(),
-                                                       genelimit, false, log);
+                                                       genelimit, false, new HashSet<>(), log);
       VCFOps.VcfPopulation.splitVcfByPopulation(controlResult.getFinalOutVCF(), vpopsCase[i], true,
                                                 true, false, log);
       String geneFileCase = caseResult.getFinalAnnotGene();
@@ -1801,7 +1804,7 @@ public class VCFSimpleTally {
           SimpleTallyResult controlSpecificResult = runSimpleTally(vcf, out, maf, numThreads,
                                                                    outDir, currentSets, null,
                                                                    new HashSet<String>(), genelimit,
-                                                                   false, log);
+                                                                   false, new HashSet<>(), log);
           controlFuncHashes.add(loadToGeneFuncHash(controlSpecificResult.getFinalAnnotGene(), log));
           if (controlSpecifiEnrich) {
             Hashtable<String, PosCluster[]> clusterSpecific;
@@ -1976,6 +1979,7 @@ public class VCFSimpleTally {
     boolean controlSpecifiEnrich = false;
     boolean doclustering = false;
     double[] mafs = new double[] {0.01};
+    HashSet<String> countOnlyControls = new HashSet<>();
     int numThreads = 24;
 
     String usage = "\n" + "seq.analysis.VCFSimpleTally requires 0-1 arguments\n"
@@ -1991,7 +1995,9 @@ public class VCFSimpleTally {
                    + controlSpecifiComp + " (default))\n"
                    + "   (8) for each control group, do enrichment (i.e. controlSpecifiEnrich="
                    + controlSpecifiEnrich + " (default))\n" + "   (9) "
-                   + PSF.Ext.NUM_THREADS_COMMAND + "(" + numThreads + " (default))\n" + "";
+                   + PSF.Ext.NUM_THREADS_COMMAND + "(" + numThreads + " (default))\n" + ""
+                   + "   (10) only tally these controls, do not filter on   (i.e. countOnlyControls="
+                   + "" + " (default))\n";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -2002,6 +2008,12 @@ public class VCFSimpleTally {
         numArgs--;
       } else if (arg.startsWith("popDir=")) {
         popDir = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith("countOnlyControls=")) {
+        String[] tmp = arg.split("=")[1].split(",");
+        for (String control : tmp) {
+          countOnlyControls.add(control);
+        }
         numArgs--;
       } else if (arg.startsWith("omim=")) {
         omimDir = arg.split("=")[1];
@@ -2040,7 +2052,8 @@ public class VCFSimpleTally {
       for (String vpops : vpopsCase) {
         for (double maf : mafs) {
           test(vcf, new String[] {vpops}, omimDir, otherGenesOfInterest, null, maf,
-               controlSpecifiComp, controlSpecifiEnrich, null, doclustering, numThreads);
+               controlSpecifiComp, controlSpecifiEnrich, null, doclustering, countOnlyControls,
+               numThreads);
         }
       }
     } catch (Exception e) {

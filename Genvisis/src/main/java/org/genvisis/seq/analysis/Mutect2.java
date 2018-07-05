@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -402,7 +403,8 @@ public class Mutect2 extends AbstractProducer<MutectTumorNormal> {
     for (double maf : mafs) {
       VariantContextFilter filter = FilterNGS.generateFilter(type, maf, failureFilter, log);
       VCFSimpleTally.test(vcf, new String[] {popDir + ext.removeDirectoryInfo(vpops)}, omim, extras,
-                          genesetDir, maf, controlSpecifiComp, false, filter, false, 24);
+                          genesetDir, maf, controlSpecifiComp, false, filter, false,
+                          new HashSet<>(), 24);
     }
   }
 

@@ -3,6 +3,7 @@ package org.genvisis.seq.analysis;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import org.genvisis.CLI;
@@ -71,7 +72,7 @@ public class SimpleTallyGene {
                        dir + ext.rootOf(vpopFile, true) + ".lowerQualitySamples.txt");
       }
       VCFSimpleTally.test(subVcf, new String[] {newVpop}, omimDir, null, null, maf, true, true,
-                          filter, false, 24);
+                          filter, false, new HashSet<>(), 24);
       return this;
     }
 

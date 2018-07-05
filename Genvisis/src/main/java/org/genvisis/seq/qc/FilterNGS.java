@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCOps;
@@ -1431,18 +1432,24 @@ public class FilterNGS implements Serializable {
     return filters;
   }
 
-  private static final String ESP_FILTER = "(esp6500si_all=='.'||esp6500si_all <=";
-  private static final String ESPV2_FILTER = "(esp6500siv2_all=='.'||esp6500siv2_all <=";
-  private static final String G10002014_FILTER = "(g10002014oct_all=='.'||g10002014oct_all <=";
-  private static final String G10002015_FILTER = "(g10002015aug_all=='.'||g10002015aug_all <=";
-  private static final String POPFREQ_MAXFILTER = "(PopFreqMax=='.'||PopFreqMax <=";
+  private static String getFilterFor(String attribute) {
+    return "(!vc.hasAttribute('" + attribute + "')||" + attribute + "=='.'||" + attribute + " <=";
+  }
+
+  private static final List<String> FREQ_FILTERS = Arrays.asList(getFilterFor("esp6500si_all"),
+                                                                 getFilterFor("g10002014oct_all"),
+                                                                 getFilterFor("g10002015aug_all"),
+                                                                 getFilterFor("esp6500siv2_all"),
+                                                                 getFilterFor("PopFreqMax"));
+
   private static final String AND = "&&";
 
   public static String getPopFreqFilterString(double maf) {
-    String freq = ESP_FILTER + maf + ")" + AND + G10002014_FILTER + maf + ")" + AND
-                  + G10002015_FILTER + maf + ")" + AND + ESPV2_FILTER + maf + ")" + AND
-                  + POPFREQ_MAXFILTER + maf + ")";
-    return freq;
+    StringJoiner filterJoiner = new StringJoiner(")" + AND);
+    for (String freqFilter : FREQ_FILTERS) {
+      filterJoiner.add(freqFilter + maf);
+    }
+    return filterJoiner.toString() + ")";
   }
 
   public enum FILTER_GENERATION_TYPE {

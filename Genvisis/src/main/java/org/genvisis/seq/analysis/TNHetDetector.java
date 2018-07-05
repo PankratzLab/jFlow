@@ -104,7 +104,7 @@ public class TNHetDetector {
     tumorCase.dump(outCase);
 
     VCFSimpleTally.test(output, new String[] {outCase}, omimDir, otherGenesOfInterest, null, maf,
-                        true, true, null, false, 24);
+                        true, true, null, false, new HashSet<>(), 24);
   }
 
   private static VcfPopulation developTNVpopCase(VcfPopulation vpop) {
