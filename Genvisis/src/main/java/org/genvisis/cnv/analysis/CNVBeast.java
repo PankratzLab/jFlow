@@ -711,7 +711,7 @@ public class CNVBeast {
     int numThreads = 1;
     // TODO, add customizations to the config file, currently running with beast defaults
     String usage = "\n" + "cnv.analysis.CNVBeast requires 1 argument\n";
-    usage += "   (1) project filename (i.e. file=" + filename + " (no default))\n" + "";
+    usage += "   (1) project filename (i.e. proj=" + filename + " (no default))\n" + "";
     usage += "   (2) full path to beast.exe (i.e. beast=" + fullPathToBeastExe + " (default))\n"
              + "";// if
                                                                                                                // you
