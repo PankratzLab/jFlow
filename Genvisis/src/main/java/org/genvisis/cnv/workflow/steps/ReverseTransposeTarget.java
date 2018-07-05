@@ -1,16 +1,16 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.IOException;
 import java.util.EnumSet;
+import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.ext;
 
 public class ReverseTransposeTarget extends Step {
 
@@ -38,26 +38,37 @@ public class ReverseTransposeTarget extends Step {
 
   @Override
   public void run(Variables variables) {
-    if (!Files.exists(proj.MARKER_DATA_DIRECTORY.getValue() + TransposeData.TEMP_SAMPLES_FILE)) {
-      String[] samples = proj.getSamples();
-      if (samples == null) {
-        samples = HashVec.loadFileToStringArray(proj.PROJECT_DIRECTORY.getValue()
-                                                + "ListOfSamples.txt", false, null, false);
-      }
-      Files.writeArray(samples,
-                       proj.MARKER_DATA_DIRECTORY.getValue() + TransposeData.TEMP_SAMPLES_FILE);
+    String temp = proj.PROJECT_DIRECTORY.getValue() + "temp/";
+    TempFileTranspose tft = new TempFileTranspose(proj, temp, "");
+    tft.setupMarkerListFile();
+    try {
+      tft.runFirst();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-    TransposeData.reverseTransposeStreaming(proj,
-                                            ext.replaceWithLinuxSafeCharacters(proj.PROJECT_NAME.getValue()));
+    tft.setupSampleListFile();
+    try {
+      tft.runSecond();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public String getCommandLine(Variables variables) {
     String projPropFile = proj.getPropertyFilename();
-    StringBuilder cmd = new StringBuilder();
-    return cmd.append(Files.getRunString())
-              .append(" " + TransposeData.class.getName() + " -reverseStream proj=" + projPropFile)
-              .toString();
+    StringBuilder cmd1 = new StringBuilder();
+    cmd1.append(Files.getRunString());
+    cmd1.append(" ").append(TempFileTranspose.class.getName());
+    cmd1.append(CLI.ARG_PROJ).append("=").append(projPropFile);
+    cmd1.append(" type=M jobID=$PBS_JOBID -setup");
+    cmd1.append("\n");
+    cmd1.append(Files.getRunString());
+    cmd1.append(" ").append(TempFileTranspose.class.getName());
+    cmd1.append(CLI.ARG_PROJ).append("=").append(projPropFile);
+    cmd1.append(" type=S jobID=$PBS_JOBID -setup");
+
+    return cmd1.toString();
   }
 
   @Override

@@ -1,5 +1,6 @@
-package org.genvisis.one.ben;
+package org.genvisis.cnv.manage;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,8 +25,6 @@ import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
@@ -225,6 +224,7 @@ public class TempFileTranspose {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+    proj.getLog().reportTime("Creation of temporary files for reverse-transposing is complete!");
   }
 
   public void runFirstResub() throws IOException {
@@ -366,6 +366,7 @@ public class TempFileTranspose {
     for (RandomAccessFile f : readerMap.values()) {
       f.close();
     }
+    proj.getLog().reportTime("Transposing marker files to sample files is complete!");
   }
 
   public void runSecondResub() throws IOException {
@@ -443,8 +444,7 @@ public class TempFileTranspose {
     byte[] buffer;
     RandomAccessFile sampFile;
     int sInd = sampleIndices.get(samp);
-    sampFile = new RandomAccessFile(proj.SAMPLE_DIRECTORY.getValue(true, false) + samp
-                                    + Sample.SAMPLE_FILE_EXTENSION, "rw");
+    sampFile = new RandomAccessFile(samp, "rw");
 
     sampFile.write(mkrCntBytes);
     sampFile.write(nullStatus);
@@ -505,6 +505,7 @@ public class TempFileTranspose {
     this.proj = p;
     this.tempDir = d;
     this.label = l;
+    new File(tempDir).mkdirs();
   }
 
   public static void main(String[] args) throws IOException {

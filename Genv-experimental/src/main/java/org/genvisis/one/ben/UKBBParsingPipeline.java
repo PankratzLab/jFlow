@@ -42,6 +42,7 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.PlinkData;
+import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
