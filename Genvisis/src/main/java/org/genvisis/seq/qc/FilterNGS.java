@@ -1440,7 +1440,12 @@ public class FilterNGS implements Serializable {
                                                                  getFilterFor("g10002014oct_all"),
                                                                  getFilterFor("g10002015aug_all"),
                                                                  getFilterFor("esp6500siv2_all"),
-                                                                 getFilterFor("PopFreqMax"));
+                                                                 getFilterFor("PopFreqMax"),
+                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans"),
+                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_EAS"),
+                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics"),
+                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_Whites"),
+                                                                 getFilterFor("TOPMed_freeze_5b.AF"));
 
   private static final String AND = "&&";
 
