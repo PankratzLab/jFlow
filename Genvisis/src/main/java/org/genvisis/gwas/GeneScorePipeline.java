@@ -97,6 +97,7 @@ public class GeneScorePipeline {
                                                                         .add("SE").add("NUM")
                                                                         .add("PAIRED-T-P-VALUE")
                                                                         .add("WILCOXON-SIGNED-RANK-P-VALUE")
+                                                                        .add("PAIRED-STAT-NUM-TRIOS")
                                                                         .add("#sigInMeta")
                                                                         .add("#indexVariantsInMeta")
                                                                         .add("#indexVariantsInDataset")
@@ -1694,12 +1695,15 @@ public class GeneScorePipeline {
                                                                               .get(dataFile);
             TrioScoreTest.Results trioTestResults = study.trioScoreTests.get(filePrefix.getKey(),
                                                                              dataFile);
+            final String pairedStatTrios;
             final String pairedT;
             final String wilcoxon;
             if (trioTestResults == null) {
+              pairedStatTrios = "0";
               pairedT = "N/A";
               wilcoxon = "N/A";
             } else {
+              pairedStatTrios = String.valueOf(trioTestResults.getTrioCount());
               pairedT = String.valueOf(trioTestResults.pairedTPVal);
               wilcoxon = String.valueOf(trioTestResults.wilcoxonPVal);
             }
@@ -1709,7 +1713,7 @@ public class GeneScorePipeline {
                                                                             5, false))
                                                         .toString();
 
-            String middle = new StringJoiner("\t").add(pairedT).add(wilcoxon)
+            String middle = new StringJoiner("\t").add(pairedT).add(wilcoxon).add(pairedStatTrios)
                                                   .add(String.valueOf(dataCounts.get(dFile)
                                                                                 .get(filePrefix.getKey())))
                                                   .add(String.valueOf(study.hitWindowCnts.get(filePrefix.getKey())
