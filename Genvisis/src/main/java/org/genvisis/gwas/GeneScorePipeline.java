@@ -282,19 +282,32 @@ public class GeneScorePipeline {
 
   private static class TrioScoreTest {
 
-    private class Results {
+    private static class Results {
 
+      private final int trioCount;
       private final double wilcoxonPVal;
       private final double pairedTPVal;
 
-      private Results() {
+      private Results(TrioScoreTest trioScoreTest) {
         super();
-        double[] caseScoresArray = Doubles.toArray(caseScores);
-        double[] parentMeansArray = Doubles.toArray(parentScores);
+        double[] caseScoresArray = Doubles.toArray(trioScoreTest.caseScores);
+        double[] parentMeansArray = Doubles.toArray(trioScoreTest.parentScores);
+        if (caseScoresArray.length == parentMeansArray.length) {
+          trioCount = caseScoresArray.length;
+        } else {
+          throw new IllegalStateException("Case and mean parent score arrays must be parallel");
+        }
         this.wilcoxonPVal = new WilcoxonSignedRankTest().wilcoxonSignedRankTest(caseScoresArray,
                                                                                 parentMeansArray,
                                                                                 false);
         this.pairedTPVal = new TTest().pairedTTest(caseScoresArray, parentMeansArray);
+      }
+
+      /**
+       * @return the number of trios used in the paired stats calculated
+       */
+      public int getTrioCount() {
+        return trioCount;
       }
 
       /**
@@ -328,7 +341,7 @@ public class GeneScorePipeline {
 
     public Results runTests() {
       if (caseScores.size() < 2) return null;
-      return new Results();
+      return new Results(this);
     }
 
   }
