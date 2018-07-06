@@ -1510,14 +1510,14 @@ public class GeneScorePipeline {
 
           HashMap<String, Double> scoreData = new HashMap<>();
 
-          BufferedReader scoreReader = Files.getAppropriateReader(scoreFile);
-          String line = scoreReader.readLine();
-          while ((line = scoreReader.readLine()) != null) {
-            String[] parts = line.split("\t");
-            String score = parts[parts.length - 1];
-            scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
+          try (BufferedReader scoreReader = Files.getAppropriateReader(scoreFile)) {
+            String line;
+            while ((line = scoreReader.readLine()) != null) {
+              String[] parts = line.split("\t");
+              String score = parts[parts.length - 1];
+              scoreData.put(parts[0] + "\t" + parts[1], Double.parseDouble(score));
+            }
           }
-          scoreReader.close();
 
           // if (!(new File(prefDir + "/scores.hist").exists())) {
           // double[] scores = new double[scoreData.size()];
