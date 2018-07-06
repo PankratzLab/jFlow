@@ -20,7 +20,11 @@ import htsjdk.samtools.filter.SamRecordFilter;
 import htsjdk.samtools.filter.SecondaryAlignmentFilter;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.VariantContextUtils;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 public class FilterNGS implements Serializable {
 
@@ -1436,19 +1440,132 @@ public class FilterNGS implements Serializable {
     return "(!vc.hasAttribute('" + attribute + "')||" + attribute + "=='.'||" + attribute + " <=";
   }
 
-  private static final List<String> FREQ_FILTERS = Arrays.asList(getFilterFor("esp6500si_all"),
-                                                                 getFilterFor("g10002014oct_all"),
-                                                                 getFilterFor("g10002015aug_all"),
-                                                                 getFilterFor("esp6500siv2_all"),
-                                                                 getFilterFor("PopFreqMax"),
-                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans"),
-                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_EAS"),
-                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics"),
-                                                                 getFilterFor("TOPMed_freeze_5b.AF_EM_POP_DEF_Whites"),
-                                                                 getFilterFor("TOPMed_freeze_5b.AF"));
+  private static final List<String> FREQ_ATTRIBUTES = Arrays.asList("esp6500si_all",
+                                                                    "g10002014oct_all",
+                                                                    "g10002014oct_afr",
+                                                                    "g10002014oct_eas",
+                                                                    "g10002014oct_eur",
+                                                                    "g10002015aug_all",
+                                                                    "g10002015aug_afr",
+                                                                    "g10002015aug_eas",
+                                                                    "g10002015aug_eur",
+                                                                    "esp6500siv2_all",
+                                                                    "esp6500siv2_aa",
+                                                                    "esp6500siv2_ea", "PopFreqMax",
+                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans",
+                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_EAS",
+                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
+                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
+
+  // commented code left on purpose
+  //  getFilterFor("TOPMed_freeze_5b.AF")
+
+  /**
+   * Stores {@link VCFInfoHeaderLine}s for pop freq max use
+   */
+  public static class FreqMax {
+
+    public static final String POP_KEY = "GENVISIS_MAX_POP";
+    public static final String POP_FREQ_KEY = "GENVISIS_MAX_POP_FREQ";
+
+    private final VCFInfoHeaderLine popLine;
+    private final VCFInfoHeaderLine freqLine;
+
+    /**
+     * @param popLine
+     * @param freqLine
+     */
+    private FreqMax(VCFInfoHeaderLine popLine, VCFInfoHeaderLine freqLine) {
+      super();
+      this.popLine = popLine;
+      this.freqLine = freqLine;
+    }
+
+    /**
+     * @return the popLine
+     */
+    public VCFInfoHeaderLine getPopLine() {
+      return popLine;
+    }
+
+    /**
+     * @return the freqLine
+     */
+    public VCFInfoHeaderLine getFreqLine() {
+      return freqLine;
+    }
+
+  }
+
+  /**
+   * @param header
+   * @return {@link FreqMax} describing the freq max {@link VCFInfoHeaderLine}s
+   */
+  public static FreqMax getFreqMaxLines(VCFHeader header) {
+    List<String> avail = new ArrayList<>();
+    for (String filt : FREQ_ATTRIBUTES) {
+      if (header.hasInfoLine(filt)) {
+        avail.add(filt);
+      }
+    }
+
+    VCFInfoHeaderLine vcfInfoHeaderLinePop = new VCFInfoHeaderLine(FreqMax.POP_KEY, 1,
+                                                                   VCFHeaderLineType.String,
+                                                                   "Population with the highest variant frequency from:"
+                                                                                             + ArrayUtils.toStr(avail,
+                                                                                                                ",")
+                                                                                             + " or NA if none");
+    VCFInfoHeaderLine vcfInfoHeaderLineFreq = new VCFInfoHeaderLine(FreqMax.POP_FREQ_KEY, 1,
+                                                                    VCFHeaderLineType.String,
+                                                                    "Highest variant frequency from:"
+                                                                                              + ArrayUtils.toStr(avail,
+                                                                                                                 ",")
+                                                                                              + " or 0 if none");
+
+    return new FreqMax(vcfInfoHeaderLinePop, vcfInfoHeaderLineFreq);
+
+  }
+
+  /**
+   * @param vc a new {@link VariantContext} with {@link FreqMax } attributes
+   * @return
+   */
+  public static VariantContext addFreqMaxResult(VariantContext vc) {
+
+    double max = 0;
+    String maxPop = "NA";
+    VariantContextBuilder builder = new VariantContextBuilder(vc);
+    for (String filt : FREQ_ATTRIBUTES) {
+      if (vc.hasAttribute(filt) && !".".equals(vc.getAttributeAsString(filt, "."))) {
+        double cAF = vc.getCommonInfo().getAttributeAsDouble(filt, 0);
+        if (cAF > max) {
+          max = cAF;
+          maxPop = filt;
+        }
+      }
+    }
+    builder.attribute(FreqMax.POP_FREQ_KEY, max);
+    builder.attribute(FreqMax.POP_KEY, maxPop);
+    return builder.make();
+
+  }
+
+  private static List<String> getAllFreqFilters() {
+    List<String> filters = new ArrayList<>();
+    for (String filt : FREQ_ATTRIBUTES) {
+      filters.add(getFilterFor(filt));
+    }
+    return filters;
+  }
+
+  private static final List<String> FREQ_FILTERS = getAllFreqFilters();
 
   private static final String AND = "&&";
 
+  /**
+   * @param maf
+   * @return JEXL formatted filter based on the MAF and attributes in {@link FilterNGS#FREQ_FILTERS}
+   */
   public static String getPopFreqFilterString(double maf) {
     StringJoiner filterJoiner = new StringJoiner(")" + AND);
     for (String freqFilter : FREQ_FILTERS) {

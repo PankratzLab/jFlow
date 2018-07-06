@@ -42,6 +42,7 @@ import org.genvisis.seq.manage.VCOps.ALT_ALLELE_CONTEXT_TYPE;
 import org.genvisis.seq.manage.VCOps.GENOTYPE_INFO;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.genvisis.seq.qc.FilterNGS;
+import org.genvisis.seq.qc.FilterNGS.FreqMax;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
@@ -54,6 +55,7 @@ import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFHeader;
 
 /**
  *
@@ -128,7 +130,13 @@ public class VCFSimpleTally {
       VariantContextWriter writer = VCFOps.initWriter(output, VCFOps.DEFUALT_WRITER_OPTIONS,
                                                       reader.getFileHeader()
                                                             .getSequenceDictionary());
-      VCFOps.copyHeader(reader, writer, null, HEADER_COPY_TYPE.FULL_COPY, log);
+      VCFHeader newVCFHeader = reader.getFileHeader();
+      FreqMax freqMax = FilterNGS.getFreqMaxLines(newVCFHeader);
+      newVCFHeader.addMetaDataLine(freqMax.getPopLine());
+      newVCFHeader.addMetaDataLine(freqMax.getFreqLine());
+
+      writer.writeHeader(newVCFHeader);
+
       VariantContextFilter freqFilter = getFreqFilter(controlFreq, log);
       int numScanned = 0;
       int numPass = 0;
@@ -151,6 +159,7 @@ public class VCFSimpleTally {
                                   + (ext.indexOfStr(aCase, allSamps) >= 0));
           }
           Files.writeArray(allSamps, ext.rootOf(casePop, false) + "samplesToPickFrom.txt");
+          reader.close();
           throw new IllegalArgumentException("could not find all cases for " + casePop);
         }
         if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size()
@@ -161,6 +170,7 @@ public class VCFSimpleTally {
             VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop),
                                                        VC_SUBSET_TYPE.SUBSET_STRICT, false);
             if (vcControl.getSampleNames().size() != controls.get(controlPop).size()) {
+              reader.close();
               throw new IllegalArgumentException("could not find all controls for " + controlPop);
             }
             if (controlFreq < 1) {
@@ -176,7 +186,7 @@ public class VCFSimpleTally {
           }
           if (controlPass) {
             numPass++;
-            writer.add(vc);
+            writer.add(FilterNGS.addFreqMaxResult(vc));
           }
         }
       }
@@ -907,8 +917,8 @@ public class VCFSimpleTally {
                                                                 finalGeneSetSummary);
     simpleTallyResult.getFinalGeneVariantPositions();
 
-    String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(vcf, log);
-    String[][] variantAnnotations = VCFOps.getAnnotationKeys(vcf, log);
+    String[][] genotypeAnnotations = GenotypeOps.getGenoFormatKeys(filtVcfs.get(0), log);
+    String[][] variantAnnotations = VCFOps.getAnnotationKeys(filtVcfs.get(0), log);
     String annos = "CONTEXT\tID\tDescription\n";
     for (int j = 0; j < genotypeAnnotations[0].length; j++) {
       annos += "GENOTYPE\t" + genotypeAnnotations[0][j] + "\t" + genotypeAnnotations[1][j] + "\n";
