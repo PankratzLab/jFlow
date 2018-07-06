@@ -93,8 +93,10 @@ public class GeneScorePipeline {
                                                                         .add("FACTOR")
                                                                         .add("BASE-R-SQR")
                                                                         .add("R-SQR").add("R-DIFF")
-                                                                        .add("P-VALUE").add("BETA")
-                                                                        .add("SE").add("NUM")
+                                                                        .add("P-VALUE")
+                                                                        .add("EXCEL-SIG")
+                                                                        .add("BETA").add("SE")
+                                                                        .add("NUM")
                                                                         .add("PAIRED-T-P-VALUE")
                                                                         .add("WILCOXON-SIGNED-RANK-P-VALUE")
                                                                         .add("PAIRED-STAT-NUM-TRIOS")
@@ -103,7 +105,6 @@ public class GeneScorePipeline {
                                                                         .add("#indexVariantsInDataset")
                                                                         .add("B-F-SCORE")
                                                                         .add("INVCHI-SCORE")
-                                                                        .add("EXCEL-SIG")
                                                                         .toString();
   private final String metaDir;
 
@@ -1761,8 +1762,8 @@ public class GeneScorePipeline {
                                                                                                   : (new BigDecimal(rr.rsq
                                                                                                                     + "")).subtract(new BigDecimal(rr.baseRSq
                                                                                                                                                    + "")))))
-                                           .add(rr.pval).add(rr.beta).add(rr.se).add(rr.num)
-                                           .add(middle).add(pvalExcl).build());
+                                           .add(rr.pval).add(pvalExcl).add(rr.beta).add(rr.se)
+                                           .add(rr.num).add(middle).build());
 
     writer.println(line);
 
