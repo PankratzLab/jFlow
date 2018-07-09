@@ -164,20 +164,21 @@ public class AffyParsingPipeline {
           mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex + ".mdRAF";
         }
       }
-      try {
-        writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
-                 oorTable, bytesPerMarker);
-      } catch (IOException e) {
-        proj.getLog()
-            // TODO FOR-REVIEW remove existing mdRAF files automatically?
-            .reportError("Uexpected error occurred while writing marker file: " + e.getMessage()
-                         + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
+      if (mkrCount != 0) {
         try {
-          closeReaders();
-        } catch (IOException e2) {}
-        return;
+          writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
+                   oorTable, bytesPerMarker);
+        } catch (IOException e) {
+          proj.getLog()
+              // TODO FOR-REVIEW remove existing mdRAF files automatically?
+              .reportError("Uexpected error occurred while writing marker file: " + e.getMessage()
+                           + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
+          try {
+            closeReaders();
+          } catch (IOException e2) {}
+          return;
+        }
       }
-
       names = null;
       mkrBytes = null;
       oorTable = null;
@@ -205,17 +206,22 @@ public class AffyParsingPipeline {
   }
 
   private void writeRAF(int numMarkersPerFile, Hashtable<String, String> lookup, byte nullStatus,
-                        String mkrFile, String[] names, byte[][] mkrBytes, int mkrsToWrite,
+                        String mkrFile, String[] namesToWrite, byte[][] mkrBytes, int mkrsToWrite,
                         Hashtable<String, Float> oorTable,
                         int numBytesPerMarker) throws IOException {
+    String[] names = namesToWrite;
+    if (mkrsToWrite < names.length) {
+      names = ArrayUtils.trimArray(namesToWrite);
+    }
+
     byte[] mkrNmBytes = Compression.objToBytes(names);
-    byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, numMarkersPerFile,
-                                                             nullStatus, fingerprint, mkrNmBytes);
+    byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, names.length, nullStatus,
+                                                             fingerprint, mkrNmBytes);
     RandomAccessFile raf = new RandomAccessFile(mkrFile, "rw");
     raf.seek(0);
     raf.write(param);
     for (int i = 0; i < mkrsToWrite; i++) {
-      long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length
+      long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrNmBytes.length
                   + i * numBytesPerMarker;
       // seek to location of marker in file, as we may be writing out of order
       if (raf.getFilePointer() != seek) {

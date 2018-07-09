@@ -1,7 +1,9 @@
 package org.genvisis.cnv.workflow.steps;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
+import org.apache.commons.io.FileUtils;
 import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -37,6 +39,12 @@ public class ReverseTransposeTarget extends Step {
   }
 
   @Override
+  public void cleanupAfterFailure(Project proj) {
+    // TODO Auto-generated method stub
+    super.cleanupAfterFailure(proj);
+  }
+
+  @Override
   public void run(Variables variables) {
     String temp = proj.PROJECT_DIRECTORY.getValue() + "temp/";
     TempFileTranspose tft = new TempFileTranspose(proj, temp, "");
@@ -44,12 +52,24 @@ public class ReverseTransposeTarget extends Step {
     try {
       tft.runFirst();
     } catch (IOException e) {
+      new File(tft.getMarkerListFile()).delete();
+      try {
+        FileUtils.deleteDirectory(new File(temp));
+      } catch (IOException e1) {
+        // TODO do something other than ignoring this
+      }
       throw new RuntimeException(e);
     }
     tft.setupSampleListFile();
     try {
       tft.runSecond();
     } catch (IOException e) {
+      new File(tft.getSampleListFile()).delete();
+      try {
+        FileUtils.deleteDirectory(new File(proj.SAMPLE_DIRECTORY.getValue()));
+      } catch (IOException e1) {
+        // TODO do something other than ignoring this
+      }
       throw new RuntimeException(e);
     }
   }
