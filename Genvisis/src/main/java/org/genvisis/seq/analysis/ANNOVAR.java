@@ -17,8 +17,8 @@ public class ANNOVAR {
   private static final String PROTOCOL = "-protocol";
   private static final String DEFAULT_HG19_PROTOCOLS = "refGene,cytoBand,genomicSuperDups,esp6500si_all,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,snp138,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,popfreq_max_20150413,popfreq_all_20150413,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,mitimpact24";
   private static final String DEFAULT_HG19_OPERATIONS = "g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
-  private static final String DEFAULT_HG38_PROTOCOLS = "refGene,knownGene,ensGene,cytoBand,genomicSuperDups,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,avsnp150,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp30a,clinvar_20170905,exac03nontcga";
-  private static final String DEFAULT_HG38_OPERATIONS = "g,g,g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
+  private static final String DEFAULT_HG38_PROTOCOLS = "refGene,knownGene,ensGene,cytoBand,genomicSuperDups,1000g2014oct_all,1000g2014oct_afr,1000g2014oct_eas,1000g2014oct_eur,avsnp150,1000g2015aug_all,1000g2015aug_afr,1000g2015aug_eas,1000g2015aug_eur,esp6500siv2_all,esp6500siv2_aa,esp6500siv2_ea,cosmic70,dbnsfp33a,clinvar_20180603,exac03nontcga,intervar_20180118";
+  private static final String DEFAULT_HG38_OPERATIONS = "g,g,g,r,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f";
 
   private static final String OPERATION = "-operation";
   private static final String REMOVE = "-remove";
