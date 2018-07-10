@@ -1452,8 +1452,10 @@ public class FilterNGS implements Serializable {
                                                                     "esp6500siv2_all",
                                                                     "esp6500siv2_aa",
                                                                     "esp6500siv2_ea", "PopFreqMax",
+                                                                    "exac03nontcga",
                                                                     "TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans",
                                                                     "TOPMed_freeze_5b.AF_EM_POP_DEF_EAS",
+                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_SAS",
                                                                     "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
                                                                     "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
 
