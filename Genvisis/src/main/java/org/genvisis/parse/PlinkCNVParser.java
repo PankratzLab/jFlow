@@ -87,10 +87,9 @@ public class PlinkCNVParser {
                                                                                         MultipleAliasStrategy.FAIL,
                                                                                         false)));
 
-    FileLink link = FileLink.setup(inputFileRoot + ".qt.summary.mperm").keys(snp1).values(EMP1,
-                                                                                          EMP2);
+    FileLink link = FileLink.setup(inputFileRoot + ".summary.mperm").keys(snp1).values(EMP1, EMP2);
 
-    try (FileParser parser = FileParserFactory.setup(inputFileRoot + ".qt.summary", snp, chr, pos,
+    try (FileParser parser = FileParserFactory.setup(inputFileRoot + ".summary", snp, chr, pos,
                                                      NCNV, M0, M1)
                                               .filter(ncnvFilter).link(link).build()) {
 
