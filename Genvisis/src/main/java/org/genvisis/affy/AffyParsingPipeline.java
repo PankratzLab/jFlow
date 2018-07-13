@@ -4,27 +4,29 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.genvisis.CLI;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.common.ext;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.googlecode.charts4j.collect.Lists;
 
 public class AffyParsingPipeline {
 
@@ -47,6 +49,9 @@ public class AffyParsingPipeline {
 
   private String[] samples;
   int numSamples;
+  Map<Marker, String> markerFileMap;
+  Map<String, String[]> markersInFileMap;
+  Map<Marker, Integer> markerIndexInFileMap;
   private long fingerprint;
 
   public void setProject(Project proj) {
@@ -65,7 +70,62 @@ public class AffyParsingPipeline {
     this.intFile = quantNormFile;
   }
 
+  private void loadAndSortMarkers() throws IOException {
+    List<String> allMarkers = new ArrayList<>();
+    BufferedReader reader = Files.getAppropriateReader(confFile);
+    String line = null;
+    boolean before = true;
+    while ((line = reader.readLine()) != null) {
+      // skip vcf output comment lines
+      if (line.startsWith("#%")) continue;
+      if (before) {
+        // skip header
+        before = false;
+        continue;
+      }
+      allMarkers.add(line.split("\t")[0]);
+    }
+    reader.close();
+
+    // create naive MarkerSet file 
+    Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj);
+  }
+
+  private void binMarkers(int numMkrsPerFile) {
+    List<Marker> markers = proj.getMarkerSet().markersAsList();
+    Map<String, List<String>> markerListMap = Maps.newHashMap();
+    markerFileMap = Maps.newHashMap();
+    Hashtable<String, String> lookup = new Hashtable<>();
+    markerIndexInFileMap = Maps.newHashMap();
+
+    for (int i = 0; i < markers.size(); i++) {
+      int markerFileIndex = i / numMkrsPerFile;
+      String mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex
+                       + ".mdRAF";
+      int markerIndexInFile = i % numMkrsPerFile;
+      markerFileMap.put(markers.get(i), mkrFile);
+      markerIndexInFileMap.put(markers.get(i), markerIndexInFile);
+      lookup.put(markers.get(i).getName(),
+                 ext.removeDirectoryInfo(mkrFile) + "\t" + markerIndexInFile);
+      List<String> mkrsInFile = markerListMap.get(mkrFile);
+      if (mkrsInFile == null) {
+        mkrsInFile = new ArrayList<>();
+        markerListMap.put(mkrFile, mkrsInFile);
+      }
+      mkrsInFile.add(markers.get(i).getName());
+    }
+    markersInFileMap = Maps.newHashMap();
+    for (Entry<String, List<String>> m : markerListMap.entrySet()) {
+      markersInFileMap.put(m.getKey(), m.getValue().toArray(new String[m.getValue().size()]));
+    }
+    new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+  }
+
   public void run() {
+    // ensure directory exists
+    new File(proj.MARKER_DATA_DIRECTORY.getValue()).mkdirs();
+
+    // open files and parse header to determine samples
     try {
       initReaders();
     } catch (IOException e) {
@@ -86,50 +146,70 @@ public class AffyParsingPipeline {
     long markersInMemory = mem / (long) bytesPerMarker;
     int numMarkersPerFile = Math.min(MAX_MKRS_PER_MDRAF, (int) markersInMemory);
 
-    Hashtable<String, String> lookup = new Hashtable<>();
-
-    int markerFileIndex = 0;
-    String mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex
-                     + ".mdRAF";
-
-    new File(proj.MARKER_DATA_DIRECTORY.getValue()).mkdirs();
-
-    List<String> allMarkers = Lists.newArrayList();
-    String[] names = new String[numMarkersPerFile];
-    byte[][] mkrBytes = new byte[numMarkersPerFile][];
-    int mkrCount = 0;
-    Hashtable<String, Float> oorTable = new Hashtable<>();
-    MarkerData md = null;
-
-    String[] allSampsInProj = new String[numSamples];
-    for (int i = 0; i < numSamples; i++) {
-      allSampsInProj[i] = "Sample_" + i;
+    // load a list of all markers, sort into chr/pos order, and create the MarkerSet file
+    try {
+      loadAndSortMarkers();
+    } catch (IOException e3) {
+      proj.getLog()
+          .reportError("Encountered problem when reading the confidences file.  Parsing will fail; error message: "
+                       + e3.getMessage());
+      return;
     }
 
-    int dump = 5;
+    // assign each marker to a file
+    binMarkers(numMarkersPerFile);
 
+    Map<String, Integer> markerNameBytesLengthMap = Maps.newHashMap();
+    Map<String, RandomAccessFile> rafMap = Maps.newHashMap();
+    Map<String, Long> afterLastMarkerPosition = Maps.newHashMap();
+
+    // setup out of range value tables for each marker file
+    Map<String, Hashtable<String, Float>> oorTables = Maps.newHashMap();
+    for (String file : markerFileMap.values()) {
+      oorTables.put(file, new Hashtable<>());
+      afterLastMarkerPosition.put(file, 0L);
+    }
+
+    Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
+
+    MarkerData md = null;
+    byte[] mkrBytes;
     try {
       while ((md = parseLine()) != null) {
-        names[mkrCount] = md.getMarkerName();
-        allMarkers.add(md.getMarkerName());
+        Marker marker = markerNameMap.get(md.getMarkerName());
+        if (marker == null) {
+          // TODO error
+          return;
+        }
+
+        String mkrFile = markerFileMap.get(marker);
+        if (mkrFile == null) {
+          // TODO Error
+          continue;
+        }
+
+        RandomAccessFile raf = rafMap.get(mkrFile);
+        if (raf == null) {
+          raf = new RandomAccessFile(mkrFile, "rw");
+          rafMap.put(mkrFile, raf);
+
+          String[] names = markersInFileMap.get(mkrFile);
+          byte[] mkrNmBytes = Compression.objToBytes(names);
+          byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, names.length,
+                                                                   nullStatus, fingerprint,
+                                                                   mkrNmBytes);
+          raf.seek(0);
+          raf.write(param);
+          markerNameBytesLengthMap.put(mkrFile, mkrNmBytes.length);
+        }
+
+        int indInFile = markerIndexInFileMap.get(marker);
+
+        long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
+                    + markerNameBytesLengthMap.get(mkrFile) + indInFile * bytesPerMarker;
+
         try {
-          if (dump > 0) {
-            md.dump(null, ext.parseDirectoryOfFile(mkrFile) + ext.rootOf(mkrFile) + "_dump_original"
-                          + ".xln",
-                    allSampsInProj, true, new Logger());
-          }
-          mkrBytes[mkrCount] = md.compress(mkrCount, nullStatus, oorTable, canXYBeNegative);
-          if (dump > 0) {
-            MarkerData md1 = MarkerDataLoader.parseMarkerData((byte) -1, -1, nullStatus,
-                                                              fingerprint, true, true, true, true,
-                                                              true, allSampsInProj, names, mkrCount,
-                                                              oorTable, mkrBytes[mkrCount],
-                                                              new Logger());
-            md1.dump(null, ext.parseDirectoryOfFile(mkrFile) + ext.rootOf(mkrFile)
-                           + "_dump_compressed" + ".xln",
-                     allSampsInProj, true, new Logger());
-            dump--;
-          }
+          mkrBytes = md.compress(indInFile, nullStatus, oorTables.get(mkrFile), canXYBeNegative);
         } catch (Elision e1) {
           proj.getLog()
               // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -140,55 +220,34 @@ public class AffyParsingPipeline {
           } catch (IOException e2) {}
           return;
         }
-        mkrCount++;
-        if (mkrCount == numMarkersPerFile) {
-          try {
-            writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
-                     oorTable, bytesPerMarker);
-          } catch (IOException e) {
-            proj.getLog()
-                // TODO FOR-REVIEW remove existing mdRAF files automatically?
-                .reportError("Uexpected error occurred while writing marker file: " + e.getMessage()
-                             + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
-            try {
-              closeReaders();
-            } catch (IOException e2) {}
-            return;
-          }
 
-          names = new String[numMarkersPerFile];
-          mkrBytes = new byte[numMarkersPerFile][];
-          oorTable.clear();
-          mkrCount = 0;
-          markerFileIndex++;
-          mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex + ".mdRAF";
+        if (raf.getFilePointer() != seek) {
+          raf.seek(seek);
+        }
+        raf.write(mkrBytes);
+        if (seek + mkrBytes.length > afterLastMarkerPosition.get(mkrFile)) {
+          afterLastMarkerPosition.put(mkrFile, seek + mkrBytes.length);
         }
       }
-      if (mkrCount != 0) {
-        try {
-          writeRAF(numMarkersPerFile, lookup, nullStatus, mkrFile, names, mkrBytes, mkrCount,
-                   oorTable, bytesPerMarker);
-        } catch (IOException e) {
-          proj.getLog()
-              // TODO FOR-REVIEW remove existing mdRAF files automatically?
-              .reportError("Uexpected error occurred while writing marker file: " + e.getMessage()
-                           + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
-          try {
-            closeReaders();
-          } catch (IOException e2) {}
-          return;
-        }
-      }
-      names = null;
-      mkrBytes = null;
-      oorTable = null;
       try {
         closeReaders();
       } catch (IOException e) {
         proj.getLog()
             .reportTimeWarning("Exception occurred when closing input files.  This may not be a problem.");
       }
-      writeMarkerLookupAndList(allMarkers, lookup);
+
+      for (String mkrFile : markerFileMap.values()) {
+        Hashtable<String, Float> oorTable = oorTables.get(mkrFile);
+        byte[] oorBytes = Compression.objToBytes(oorTable);
+        RandomAccessFile raf = rafMap.get(mkrFile);
+        if (raf.getFilePointer() != afterLastMarkerPosition.get(mkrFile)) {
+          raf.seek(afterLastMarkerPosition.get(mkrFile));
+        }
+        raf.write(Compression.intToBytes(oorBytes.length));
+        raf.write(oorBytes);
+        raf.close();
+      }
+
     } catch (IOException e) {
       proj.getLog()
           // TODO FOR-REVIEW remove existing mdRAF files automatically?
@@ -198,45 +257,6 @@ public class AffyParsingPipeline {
         closeReaders();
       } catch (IOException e2) {}
     }
-  }
-
-  private void writeMarkerLookupAndList(List<String> allMarkers, Hashtable<String, String> lookup) {
-    new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
-    Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj, proj.getLog());
-  }
-
-  private void writeRAF(int numMarkersPerFile, Hashtable<String, String> lookup, byte nullStatus,
-                        String mkrFile, String[] namesToWrite, byte[][] mkrBytes, int mkrsToWrite,
-                        Hashtable<String, Float> oorTable,
-                        int numBytesPerMarker) throws IOException {
-    String[] names = namesToWrite;
-    if (mkrsToWrite < names.length) {
-      names = ArrayUtils.trimArray(namesToWrite);
-    }
-
-    byte[] mkrNmBytes = Compression.objToBytes(names);
-    byte[] param = TransposeData.getParameterSectionForMdRaf(numSamples, names.length, nullStatus,
-                                                             fingerprint, mkrNmBytes);
-    RandomAccessFile raf = new RandomAccessFile(mkrFile, "rw");
-    raf.seek(0);
-    raf.write(param);
-    for (int i = 0; i < mkrsToWrite; i++) {
-      long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrNmBytes.length
-                  + i * numBytesPerMarker;
-      // seek to location of marker in file, as we may be writing out of order
-      if (raf.getFilePointer() != seek) {
-        raf.seek(seek);
-      }
-      raf.write(mkrBytes[i]);
-      lookup.put(names[i], ext.removeDirectoryInfo(mkrFile) + "\t" + i);
-    }
-
-    byte[] oorBytes = Compression.objToBytes(oorTable);
-    raf.write(Compression.intToBytes(oorBytes.length));
-    raf.write(oorBytes);
-
-    raf.close();
-    proj.getLog().reportTime("Wrote marker file " + mkrFile);
   }
 
   @SuppressWarnings("deprecation")
