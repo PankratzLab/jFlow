@@ -275,8 +275,21 @@ public class ExomeDepth {
 
   private String generateCountsScripts() {
     String script = generateBamBaiScript();
-    script += MY_COUNTS_VAR
-              + " <- getBamCounts(bed.frame = exons.hg19 , bam.files=BAMFILES, include.chr=TRUE, index.files=BAIFILES )\n";
+
+    String exons;
+    switch (callingType) {
+      case AUTOSOMAL:
+        exons = "exons.hg19";
+        break;
+      case SEX_CHROMOSOMES:
+        exons = "exons.hg19.X";
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid calling type " + callingType);
+
+    }
+    script += MY_COUNTS_VAR + " <- getBamCounts(bed.frame = " + exons
+              + " , bam.files=BAMFILES, include.chr=TRUE, index.files=BAIFILES )\n";
     script += EXOME_COUNTS_DAFR + " <- as(" + MY_COUNTS_VAR + "[, colnames(" + MY_COUNTS_VAR
               + ")], 'data.frame')\n";
     script += EXOME_COUNTS_DAFR + "$chromosome <- gsub(as.character(" + EXOME_COUNTS_DAFR
@@ -298,6 +311,7 @@ public class ExomeDepth {
   private static String addBaseLoadScript(String script) {
     script += "library(ExomeDepth)\n";
     script += "data(exons.hg19)\n";
+    script += "data(exons.hg19.X)\n";
     script += "data(Conrad.hg19)\n";
     return script;
   }
