@@ -985,19 +985,12 @@ public class Sample implements Serializable {
       file.read(readBuffer);
       file.close();
 
-      // numMarkers = Compression.bytesToInt(new byte[]{readBuffer[0], readBuffer[1], readBuffer[2],
-      // readBuffer[3]});
       temp = new byte[PARAMETER_SECTION_NUMMARKERS_LENGTH];
       for (int i = 0; i < temp.length; i++) {
         temp[i] = readBuffer[PARAMETER_SECTION_NUMMARKERS_LOCATION + i];
       }
       numMarkers = Compression.bytesToInt(temp);
 
-      // nullStatus = readBuffer[4];
-      // temp = new byte[PARAMETER_SECTION_NULLSTAT_LEN];
-      // for (int i=0; i<temp.length; i++) {
-      // temp[i] = readBuffer[PARAMETER_SECTION_NULLSTAT_LOC + i];
-      // }
       nullStatus = readBuffer[PARAMETER_SECTION_NULLSTAT_LOCATION];
 
       temp = new byte[PARAMETER_SECTION_OUTLIERSECTIONLENGTH_LENGTH];
@@ -1006,23 +999,14 @@ public class Sample implements Serializable {
       }
       numBytesOfOutOfRangeValues = Compression.bytesToInt(temp);
 
-      // fingerPrint = Compression.bytesToLong(new byte[]{readBuffer[5], readBuffer[6],
-      // readBuffer[7], readBuffer[8], readBuffer[9], readBuffer[10], readBuffer[11],
-      // readBuffer[12]});
       temp = new byte[PARAMETER_SECTION_FINGPRNT_LENGTH];
       for (int i = 0; i < temp.length; i++) {
         temp[i] = readBuffer[PARAMETER_SECTION_FINGPRNT_LOCATION + i];
       }
       fingerPrint = Compression.bytesToLong(temp);
 
-      // bytesPerSampleMarker = (byte) (Compression.BYTES_PER_SAMPLE_MARKER - (nullStatus & 0x01) -
-      // (nullStatus >>1 & 0x01) - (nullStatus >>2 & 0x01) - (nullStatus >>3 & 0x01) - (nullStatus
-      // >>4 & 0x01) - (nullStatus >>5 & 0x01) - (nullStatus >>6 & 0x01));
       bytesPerSampleMarker = getNBytesPerSampleMarker(nullStatus);
 
-      // numBytesOfOutOfRangeValues = Compression.bytesToInt(new
-      // byte[]{readBuffer[outlierSectionLocation], readBuffer[outlierSectionLocation+1],
-      // readBuffer[outlierSectionLocation+2], readBuffer[outlierSectionLocation+3]});
       if (numBytesOfOutOfRangeValues > 0) {
         outlierSectionLocation = PARAMETER_SECTION_BYTES + numMarkers * bytesPerSampleMarker;
         outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer,
@@ -1051,7 +1035,13 @@ public class Sample implements Serializable {
             xs[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[index],
                                                                      readBuffer[index + 1]});
             if (xs[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              xs[j] = outOfRangeValues.get(j + "\tx");
+              Float oor = outOfRangeValues.get(j + "\tx");
+              if (oor == null) {
+                System.err.println("Error - X value for sample " + sampleName + " and marker " + j
+                                   + " was out of range, but couldn't be found.");
+              } else {
+                xs[j] = outOfRangeValues.get(j + "\tx");
+              }
             }
             index += bytesPerSampleMarker;
           }
@@ -1066,7 +1056,13 @@ public class Sample implements Serializable {
             ys[j] = Compression.xyDecompressPositiveOnly(new byte[] {readBuffer[index],
                                                                      readBuffer[index + 1]});
             if (ys[j] == Compression.REDUCED_PRECISION_XY_OUT_OF_RANGE_FLAG_FLOAT) {
-              ys[j] = outOfRangeValues.get(j + "\ty");
+              Float oor = outOfRangeValues.get(j + "\ty");
+              if (oor == null) {
+                System.err.println("Error - Y value for sample " + sampleName + " and marker " + j
+                                   + " was out of range, but couldn't be found.");
+              } else {
+                ys[j] = oor.floatValue();
+              }
             }
             index += bytesPerSampleMarker;
           }

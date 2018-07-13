@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 
 public class OutOfRangeValues {
@@ -32,11 +33,13 @@ public class OutOfRangeValues {
 
   public Hashtable<String, Float> getSampleOutliersForFile(Project proj, String sampleName) {
     Hashtable<String, Float> table = new Hashtable<>();
+    Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
+    Map<Marker, Integer> markerIndexMap = proj.getMarkerSet().getMarkerIndexMap();
     Map<String, Map<OutOfRangeValues.TYPE, Float>> outs = getSampleOutliers(sampleName);
     for (Entry<String, Map<OutOfRangeValues.TYPE, Float>> e : outs.entrySet()) {
       for (Entry<OutOfRangeValues.TYPE, Float> e1 : e.getValue().entrySet()) {
-        table.put(proj.getMarkerIndices().get(e.getKey()) + "\t" + e1.getKey().name().toLowerCase(),
-                  e1.getValue());
+        table.put(markerIndexMap.get(markerNameMap.get(e.getKey())).intValue() + "\t"
+                  + e1.getKey().name().toLowerCase(), e1.getValue());
       }
     }
     return table;
@@ -73,6 +76,7 @@ public class OutOfRangeValues {
       outMap.put(samp, new HashMap<>());
     }
     outMap.get(samp).put(typ, value);
+
     if (!smpMap.containsKey(samp)) {
       smpMap.put(samp, new HashMap<>());
     }

@@ -36,7 +36,7 @@ public class TempFileTranspose {
 
   static class ListFileCheckoutSystem {
 
-    static final int MAX_MINS_SLEPT = 20;
+    static final int MAX_MINS_SLEPT = 10;
 
     public static void initFile(String file, String[] values) {
       if (!Files.exists(file)) {
@@ -277,30 +277,20 @@ public class TempFileTranspose {
                                       + parameter[TransposeData.MARKERDATA_NULLSTATUS_START]);
     }
     // read entire mdRAF file into memory:
-    long rT = System.nanoTime();
     readBuffer = MarkerDataLoader.loadFromMarkerDataRafWithoutDecompressRange(file, parameter, null,
                                                                               0, -1, f,
                                                                               proj.getLog());
-    long rT2 = System.nanoTime();
-    long wT = System.nanoTime();
     OutputStream os = new FileOutputStream(out);
-    long written = 0;
     for (int s = 0, c = proj.getSamples().length; s < c; s++) {
       for (int m = 0; m < readBuffer.length; m++) { // should be all markers
         os.write(readBuffer[m], s * numBytesPerSampleMarker, numBytesPerSampleMarker);
-        written += numBytesPerSampleMarker;
       }
     }
     os.flush();
     os.close();
-    long wT2 = System.nanoTime();
 
     os = null;
     readBuffer = null;
-    proj.getLog()
-        .reportTime("Tranposed " + file + " - wrote " + written + " bytes, took "
-                    + ext.formatTimeElapsed(rT2 - rT, TimeUnit.NANOSECONDS) + " to read and "
-                    + ext.formatTimeElapsed(wT2 - wT, TimeUnit.NANOSECONDS) + " to write.");
   }
 
   public String getSampleListFile() {
@@ -447,13 +437,13 @@ public class TempFileTranspose {
     int sInd = sampleIndices.get(samp);
     sampFile = new RandomAccessFile(samp, "rw");
 
+    sampFile.seek(0);
     sampFile.write(mkrCntBytes);
     sampFile.write(nullStatus);
 
-    outs = outliers.getSampleOutliersForFile(proj, samp);
-    byte[] outBytes = null;
+    outs = outliers.getSampleOutliersForFile(proj, ext.rootOf(samp, true));
+    byte[] outBytes = Compression.objToBytes(outs);
     if (outs.size() > 0) {
-      outBytes = Compression.objToBytes(outs);
       sampFile.write(Compression.intToBytes(outBytes.length));
     } else {
       sampFile.write(Compression.intToBytes(0));

@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
@@ -450,18 +451,21 @@ public class MarkerDataLoader implements Runnable {
       return n.endsWith(MarkerData.MARKER_DATA_FILE_EXTENSION);
     });
 
-    Map<String, Integer> mkrInds = proj.getMarkerIndices();
+    Map<Marker, Integer> markerIndices = proj.getMarkerSet().getMarkerIndexMap();
+    Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
+
     String[] samples = proj.getSamples();
     for (String mdRAF : mdRAFs) {
       String[] fileMkrs = TransposeData.loadMarkerNamesFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
                                                                + mdRAF);
       Hashtable<String, Float> outliers = TransposeData.loadOutliersFromRAF(proj.MARKER_DATA_DIRECTORY.getValue()
                                                                             + mdRAF);
+
       for (Entry<String, Float> outlier : outliers.entrySet()) {
         String[] pts = outlier.getKey().split("\t");
         String mkrIndInFile = pts[0];
         String mkr = fileMkrs[Integer.parseInt(mkrIndInFile)];
-        Integer mkrInd = mkrInds.get(mkr);
+        Integer mkrInd = markerIndices.get(markerNameMap.get(mkr));
         if (mkrInd == null) {
           proj.getLog()
               .reportError("No marker index found for " + mkr + " -- looking up slowly...");

@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.filesys.Dump;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -1410,25 +1411,6 @@ public class lab {
     System.out.println("Found " + count + " samples with missing or NaN LRR data");
   }
 
-  public static void checkOOR() {
-    Project proj = new Project("/home/pankrat2/cole0482/projects/UKBioBank.properties");
-    OutOfRangeValues oorv = OutOfRangeValues.construct(proj);
-    System.out.println("Expecting " + oorv.smpMap.size() + " samples to have oor values.");
-    for (String samp : oorv.smpMap.keySet()) {
-      int exp = oorv.smpMap.get(samp).size();
-      String file = proj.SAMPLE_DIRECTORY.getValue() + samp + ".sampRAF";
-      try {
-        Hashtable<String, Float> outs = Sample.loadOutOfRangeValuesFromRandomAccessFile(file);
-        System.out.println("Sample " + samp + "; expected: " + exp + ", found: "
-                           + (outs == null ? "null" : outs.size()));
-        outs = null;
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-
-    }
-  }
-
   private static final void combineAllWithSelect() throws IOException {
     ImmutableMap.Builder<String, String> b = new ImmutableMap.Builder<>();
     b.put("Comp-BV 605-A \\(CD95\\)", "Comp-BV605-A \\(CD95\\)");
@@ -1649,6 +1631,17 @@ public class lab {
       // fixBCXResultsAlleleFreq();
 
       //      combineAllWithSelect();
+      //      proj = new Project("D:\\projects\\AffyParsingTest.properties");
+      //      OutOfRangeValues vals = OutOfRangeValues.construct(proj);
+      //      for (String s : proj.getSamples()) {
+      //        System.out.println(vals.getSampleOutliersForFile(proj, s).size() + " for " + s);
+      //      }
+
+      Dump.dumpMdRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\transposed\\markers.0.mdRAF",
+                     new int[] {0, 1, 2, 3, 4, 5}, new Logger());
+      Dump.dumpSampRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\samples\\"
+                       + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
+                       + ".sampRAF");
 
       // runHRC();
       // QQPlot.main(new String[]
