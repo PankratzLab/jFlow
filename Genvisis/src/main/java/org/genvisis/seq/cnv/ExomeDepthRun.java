@@ -32,7 +32,7 @@ import org.genvisis.stats.Maths;
 public class ExomeDepthRun {
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
-                                   String outputRoot, String rLoc, boolean somaticMode,
+                                   String outputRoot, String rLoc, POPULATION_TYPE type,
                                    int numthreads, Logger log) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
@@ -56,11 +56,7 @@ public class ExomeDepthRun {
     if (vpopFile == null) {
       log.reportTimeWarning("A vpopulation file was not provided, sample specific and global exclusions will not be applied");
     } else {
-      if (somaticMode) {
-        vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.TUMOR_NORMAL, log);
-      } else {
-        vpop = VcfPopulation.load(vpopFile, POPULATION_TYPE.EXOME_DEPTH, log);
-      }
+      vpop = VcfPopulation.load(vpopFile, type, log);
       vpop.report();
       exomeDepth.parseVpop(vpop);
     }
@@ -251,7 +247,7 @@ public class ExomeDepthRun {
     String vpopFile = null;
     String logfile = null;
     String Rloc = null;
-    boolean somaticMode = false;
+    POPULATION_TYPE type = POPULATION_TYPE.EXOME_DEPTH;
     Logger log;
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
@@ -263,7 +259,7 @@ public class ExomeDepthRun {
     usage += "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n"
              + "";
     usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
-    usage += "   (7) somatic mode (i.e. somaticMode=" + somaticMode + " (default))\n" + "";
+    usage += "   (7) somatic mode (i.e. populationType=" + type + " (default))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -288,7 +284,7 @@ public class ExomeDepthRun {
         outputRoot = ext.parseStringArg(arg, "");
         numArgs--;
       } else if (arg.startsWith("somaticMode=")) {
-        somaticMode = ext.parseBooleanArg(arg);
+        type = POPULATION_TYPE.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
       } else if (arg.startsWith("log=")) {
         logfile = arg.split("=")[1];
@@ -303,7 +299,7 @@ public class ExomeDepthRun {
     }
     try {
       log = new Logger(logfile);
-      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, somaticMode, numthreads, log);
+      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, numthreads, log);
     } catch (Exception e) {
       e.printStackTrace();
     }

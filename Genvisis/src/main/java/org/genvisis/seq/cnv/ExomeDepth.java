@@ -27,7 +27,6 @@ import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
-import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
 import org.genvisis.seq.manage.VCFTumorNormalOps;
 import org.genvisis.seq.manage.VCFTumorNormalOps.TNSample;
@@ -112,50 +111,55 @@ public class ExomeDepth {
   }
 
   public void parseVpop(VcfPopulation vpop) {
-    if (vpop.getType() == POPULATION_TYPE.TUMOR_NORMAL) {
-      log.reportTimeInfo("Setting up exome depth for somatic cnv calling");
-      TNSample[] tnsaSamples = VCFTumorNormalOps.matchSamples(allReferenceBAMFiles, vpop, log);
-      for (int i = 0; i < tnsaSamples.length; i++) {
-        for (int j = 0; j < tnsaSamples.length; j++) {
-          if (i != j) {
-            sampleSpecificExclude.get(tnsaSamples[i].getTumorSample())
-                                 .add(tnsaSamples[j].getTumorSample());
-            sampleSpecificExclude.get(tnsaSamples[i].getTumorSample())
-                                 .add(tnsaSamples[j].getNormalSample());
-          }
-        }
-      }
 
-    } else {
-      List<String> missingSamplesFromVpop = new ArrayList<>();
-      for (int i = 0; i < allSampleNames.length; i++) {
-        if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
-          globalExclude.add(allSampleNames[i]);
-        }
-        String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i],
-                                                                RETRIEVE_TYPE.SUB);
-        if (sampSpecificExclude == null || sampSpecificExclude.length == 0) {
-          missingSamplesFromVpop.add(allSampleNames[i]);
-          globalExclude.add(allSampleNames[i]);
-        }
-        for (String element : sampSpecificExclude) {
-          Set<String> curSet = vpop.getSubPop().get(element);
-          for (String samp : curSet) {
-            if (!samp.equals(allSampleNames[i])) {
-              sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+    switch (vpop.getType()) {
+      case TUMOR_NORMAL:
+        log.reportTimeInfo("Setting up exome depth for somatic cnv calling");
+        TNSample[] tnsaSamples = VCFTumorNormalOps.matchSamples(allReferenceBAMFiles, vpop, log);
+        for (int i = 0; i < tnsaSamples.length; i++) {
+          for (int j = 0; j < tnsaSamples.length; j++) {
+            if (i != j) {
+              sampleSpecificExclude.get(tnsaSamples[i].getTumorSample())
+                                   .add(tnsaSamples[j].getTumorSample());
+              sampleSpecificExclude.get(tnsaSamples[i].getTumorSample())
+                                   .add(tnsaSamples[j].getNormalSample());
             }
           }
         }
-      }
-      if (!missingSamplesFromVpop.isEmpty()) {
-        log.reportTimeWarning(missingSamplesFromVpop.size() + " samples were not found in "
-                              + vpop.getFileName()
-                              + " and will not be excluded from reference panel:");
-        log.reportTimeWarning(ArrayUtils.toStr(missingSamplesFromVpop, "\n"));
+        break;
+      case EXOME_DEPTH:
+        List<String> missingSamplesFromVpop = new ArrayList<>();
+        for (int i = 0; i < allSampleNames.length; i++) {
+          if (vpop.getSuperPop().get(VcfPopulation.EXCLUDE).contains(allSampleNames[i])) {
+            globalExclude.add(allSampleNames[i]);
+          }
+          String[] sampSpecificExclude = vpop.getPopulationForInd(allSampleNames[i],
+                                                                  RETRIEVE_TYPE.SUB);
+          if (sampSpecificExclude == null || sampSpecificExclude.length == 0) {
+            missingSamplesFromVpop.add(allSampleNames[i]);
+            globalExclude.add(allSampleNames[i]);
+          }
+          for (String element : sampSpecificExclude) {
+            Set<String> curSet = vpop.getSubPop().get(element);
+            for (String samp : curSet) {
+              if (!samp.equals(allSampleNames[i])) {
+                sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+              }
+            }
+          }
+        }
+        if (!missingSamplesFromVpop.isEmpty()) {
+          log.reportTimeWarning(missingSamplesFromVpop.size() + " samples were not found in "
+                                + vpop.getFileName()
+                                + " and will not be excluded from reference panel:");
+          log.reportTimeWarning(ArrayUtils.toStr(missingSamplesFromVpop, "\n"));
 
-      }
+        }
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid population type " + vpop.getType()
+                                           + " for ExomeDepth");
     }
-
   }
 
   private boolean gatherBai() {
