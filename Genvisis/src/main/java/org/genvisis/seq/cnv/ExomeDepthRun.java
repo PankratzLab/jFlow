@@ -34,7 +34,7 @@ public class ExomeDepthRun {
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
                                    String outputRoot, String rLoc, POPULATION_TYPE type,
-                                   CALLING_TYPE callingType, int numthreads, Logger log) {
+                                   CALLING_TYPE callingType, int numthreads) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
@@ -42,9 +42,12 @@ public class ExomeDepthRun {
                                                                                             false,
                                                                                             new int[] {0},
                                                                                             true);
+
+    outputDir = outputDir + type + "/" + callingType + "/";
     String outputResultsDir = (outputDir == null ? ext.parseDirectoryOfFile(bams) : outputDir)
                               + "results/";
     new File(outputResultsDir).mkdirs();
+    Logger log = new Logger(outputDir + outputRoot + ".log");
     ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles,
                                            outputResultsDir, outputRoot, rLoc, callingType, log);
     if (!Files.exists(exomeDepth.getCountFile())) {
@@ -250,7 +253,6 @@ public class ExomeDepthRun {
     String Rloc = null;
     POPULATION_TYPE type = POPULATION_TYPE.EXOME_DEPTH;
     CALLING_TYPE cType = CALLING_TYPE.AUTOSOMAL;
-    Logger log;
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
     usage += "   (1) full path to a directory of or file of bams (i.e. bams=" + bams
@@ -293,9 +295,6 @@ public class ExomeDepthRun {
       } else if (arg.startsWith("callingType=")) {
         cType = CALLING_TYPE.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
-      } else if (arg.startsWith("log=")) {
-        logfile = arg.split("=")[1];
-        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -305,8 +304,7 @@ public class ExomeDepthRun {
       System.exit(1);
     }
     try {
-      log = new Logger(logfile);
-      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, cType, numthreads, log);
+      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, cType, numthreads);
     } catch (Exception e) {
       e.printStackTrace();
     }
