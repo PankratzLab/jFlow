@@ -16,11 +16,13 @@ public class Dump {
       MarkerData[] mkData;
 
       mkData = MarkerDataLoader.loadFromRAF(filename, indicesOfMarkersToDump);
-      for (MarkerData element : mkData) {
-        element.dump(null,
-                     ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_"
-                           + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())) + ".xln",
-                     null, false, log);
+      for (int i = 0; i < indicesOfMarkersToDump.length; i++) {
+        mkData[i].dump(null,
+                       ext.parseDirectoryOfFile(filename) + ext.rootOf(filename) + "_dump_marker"
+                             + i + "_"
+                             + (new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()))
+                             + ".xln",
+                       null, false, log);
       }
     } catch (Exception e) {
       log.reportError("Error dumping data from " + filename + " to a textfile");
