@@ -148,7 +148,22 @@ public class ExomeDepth {
             Set<String> curSet = vpop.getSubPop().get(element);
             for (String samp : curSet) {
               if (!samp.equals(allSampleNames[i])) {
-                sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+
+                switch (callingType) {
+                  case AUTOSOMAL:
+                    sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+                    break;
+                  case SEX_CHROMOSOMES:
+                    if (!vpop.getPopulationForInd(samp,
+                                                  RETRIEVE_TYPE.SUB)[0].equals(vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB)[0])) {
+                      sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+                    }
+                    break;
+
+                  default:
+                    throw new IllegalArgumentException("Invalid calling type " + callingType);
+
+                }
               }
             }
           }
