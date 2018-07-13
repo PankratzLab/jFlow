@@ -19,6 +19,7 @@ import org.genvisis.common.WorkerTrain;
 import org.genvisis.common.WorkerTrain.AbstractProducer;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.cnv.ExomeDepth.CALLING_TYPE;
 import org.genvisis.seq.cnv.ExomeDepth.ExomeDepthAnalysis;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -33,7 +34,7 @@ public class ExomeDepthRun {
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
                                    String outputRoot, String rLoc, POPULATION_TYPE type,
-                                   int numthreads, Logger log) {
+                                   CALLING_TYPE callingType, int numthreads, Logger log) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
@@ -45,7 +46,7 @@ public class ExomeDepthRun {
                               + "results/";
     new File(outputResultsDir).mkdirs();
     ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles,
-                                           outputResultsDir, outputRoot, rLoc, log);
+                                           outputResultsDir, outputRoot, rLoc, callingType, log);
     if (!Files.exists(exomeDepth.getCountFile())) {
       log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
                             + ", generating it now (takes a long time)");
@@ -248,6 +249,7 @@ public class ExomeDepthRun {
     String logfile = null;
     String Rloc = null;
     POPULATION_TYPE type = POPULATION_TYPE.EXOME_DEPTH;
+    CALLING_TYPE cType = CALLING_TYPE.AUTOSOMAL;
     Logger log;
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
@@ -259,7 +261,9 @@ public class ExomeDepthRun {
     usage += "   (5) full path to a v population file, individuals with the same population will not be used as ref(i.e. vpop= (no default))\n"
              + "";
     usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
-    usage += "   (7) somatic mode (i.e. populationType=" + type + " (default))\n" + "";
+    usage += "   (7) population type (i.e. populationType=" + type + " (default))\n" + "";
+    usage += "   (8) calling type (i.e. callingType=" + type + " (default, options are "
+             + ArrayUtils.toStr(CALLING_TYPE.values(), ",") + "))\n" + "";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -283,8 +287,11 @@ public class ExomeDepthRun {
       } else if (arg.startsWith("root=")) {
         outputRoot = ext.parseStringArg(arg, "");
         numArgs--;
-      } else if (arg.startsWith("somaticMode=")) {
+      } else if (arg.startsWith("populationType=")) {
         type = POPULATION_TYPE.valueOf(ext.parseStringArg(arg, ""));
+        numArgs--;
+      } else if (arg.startsWith("callingType=")) {
+        cType = CALLING_TYPE.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
       } else if (arg.startsWith("log=")) {
         logfile = arg.split("=")[1];
@@ -299,7 +306,7 @@ public class ExomeDepthRun {
     }
     try {
       log = new Logger(logfile);
-      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, numthreads, log);
+      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, cType, numthreads, log);
     } catch (Exception e) {
       e.printStackTrace();
     }

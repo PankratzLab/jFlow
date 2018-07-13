@@ -60,9 +60,14 @@ public class ExomeDepth {
   private final HashSet<String> globalExclude; // never use these for a reference
   private final String rLoc;
   private final Logger log;
+  private final CALLING_TYPE callingType;
+
+  public enum CALLING_TYPE {
+    AUTOSOMAL, SEX_CHROMOSOMES
+  }
 
   public ExomeDepth(String[] allReferenceBamFiles, String[] analysisBamFiles, String outputDir,
-                    String outputRoot, String rLoc, Logger log) {
+                    String outputRoot, String rLoc, CALLING_TYPE callingType, Logger log) {
     super();
     allReferenceBAMFiles = allReferenceBamFiles;
     this.log = log;
@@ -70,7 +75,7 @@ public class ExomeDepth {
     globalExclude = new HashSet<>();
     allSampleNames = BamOps.getSampleNames(allReferenceBamFiles, log);
     fail = gatherBai();
-
+    this.callingType = callingType;
     this.analysisBamFiles = analysisBamFiles;
     this.outputDir = outputDir;
     new File(outputDir).mkdirs();
@@ -570,7 +575,7 @@ public class ExomeDepth {
 
   public static void runExomeDepth(String bams, String outputDir, String outputRoot, String Rloc,
                                    int numBatches, int numthreads, int wallTimeInHours,
-                                   int memoryInMb, Logger log) {
+                                   int memoryInMb, CALLING_TYPE callingType, Logger log) {
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
                                                             : HashVec.loadFileToStringArray(bams,
@@ -586,7 +591,7 @@ public class ExomeDepth {
       List<String[]> batches = ArrayUtils.splitUpArray(allReferenceBamFiles, numBatches, log);
       for (int i = 0; i < batches.size(); i++) {
         ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir,
-                                               outputRoot, Rloc, log);
+                                               outputRoot, Rloc, callingType, log);
         if (!Files.exists(exomeDepth.getCountFile())) {
           log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
                                 + ", generating it now (takes a long time)");
@@ -614,7 +619,7 @@ public class ExomeDepth {
       }
     } else {
       ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir,
-                                             outputRoot, Rloc, log);
+                                             outputRoot, Rloc, callingType, log);
       callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
     }
   }
@@ -735,7 +740,7 @@ public class ExomeDepth {
     try {
       log = new Logger(logfile);
       runExomeDepth(bams, outputDir, outputRoot, Rloc, numBatches, numthreads, wallTimeInHours,
-                    memoryInMb, log);
+                    memoryInMb, CALLING_TYPE.AUTOSOMAL, log);
     } catch (Exception e) {
       e.printStackTrace();
     }
