@@ -161,18 +161,11 @@ public class ExomeDepth {
 
             case SEX_CHROMOSOMES:
               for (String samp : allSampleNames) {
-
                 String compPop = vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUB)[0];
-
-                System.out.println(allSampleNames[i] + "\t" + samp + "\t" + currentPop + "\t"
-                                   + compPop);
-                if (!currentPop.equals(compPop) & !samp.equals(allSampleNames[i])) {
-                  System.out.println("Not using");
-
+                //only care if the sample is not an "exclude"
+                if (!globalExclude.contains(allSampleNames[i])
+                    && !currentPop.equals(compPop) & !samp.equals(allSampleNames[i])) {
                   sampleSpecificExclude.get(allSampleNames[i]).add(samp);
-                } else {
-                  System.out.println("Using");
-
                 }
               }
               break;
@@ -196,8 +189,6 @@ public class ExomeDepth {
         throw new IllegalArgumentException("Invalid population type " + vpop.getType()
                                            + " for ExomeDepth");
     }
-    System.exit(1);
-
   }
 
   private boolean gatherBai() {
@@ -545,7 +536,8 @@ public class ExomeDepth {
     }
 
     private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
-      script += "plot(all.exons , sequence = \"" + cnv.getChr() + "\",";
+      script += "plot(all.exons , sequence = \"" + Positions.getChromosomeUCSC(cnv.getChr(), true)
+                + "\",";
       int buffer = (int) (bufferPercent * cnv.getSize());
       String[] curBoundary = new String[] {cnv.getStart() + " - " + buffer,
                                            cnv.getStop() + " + " + buffer};
