@@ -144,29 +144,44 @@ public class ExomeDepth {
             missingSamplesFromVpop.add(allSampleNames[i]);
             globalExclude.add(allSampleNames[i]);
           }
-          for (String element : sampSpecificExclude) {
-            Set<String> curSet = vpop.getSubPop().get(element);
-            for (String samp : curSet) {
-              if (!samp.equals(allSampleNames[i])) {
+          String currentPop = vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB)[0];
+          switch (callingType) {
+            case AUTOSOMAL:
+              for (String element : sampSpecificExclude) {
+                Set<String> curSet = vpop.getSubPop().get(element);
+                for (String samp : curSet) {
+                  if (!samp.equals(allSampleNames[i])) {
 
-                switch (callingType) {
-                  case AUTOSOMAL:
                     sampleSpecificExclude.get(allSampleNames[i]).add(samp);
-                    break;
-                  case SEX_CHROMOSOMES:
-                    if (!vpop.getPopulationForInd(samp,
-                                                  RETRIEVE_TYPE.SUB)[0].equals(vpop.getPopulationForInd(allSampleNames[i], RETRIEVE_TYPE.SUB)[0])) {
-                      sampleSpecificExclude.get(allSampleNames[i]).add(samp);
-                    }
-                    break;
 
-                  default:
-                    throw new IllegalArgumentException("Invalid calling type " + callingType);
+                  }
+                }
+              }
+              break;
+
+            case SEX_CHROMOSOMES:
+              for (String samp : allSampleNames) {
+
+                String compPop = vpop.getPopulationForInd(samp, RETRIEVE_TYPE.SUB)[0];
+
+                System.out.println(allSampleNames[i] + "\t" + samp + "\t" + currentPop + "\t"
+                                   + compPop);
+                if (!currentPop.equals(compPop) & !samp.equals(allSampleNames[i])) {
+                  System.out.println("Not using");
+
+                  sampleSpecificExclude.get(allSampleNames[i]).add(samp);
+                } else {
+                  System.out.println("Using");
 
                 }
               }
-            }
+              break;
+
+            default:
+              throw new IllegalArgumentException("Invalid calling type " + callingType);
+
           }
+
         }
         if (!missingSamplesFromVpop.isEmpty()) {
           log.reportTimeWarning(missingSamplesFromVpop.size() + " samples were not found in "
@@ -176,10 +191,13 @@ public class ExomeDepth {
 
         }
         break;
+
       default:
         throw new IllegalArgumentException("Invalid population type " + vpop.getType()
                                            + " for ExomeDepth");
     }
+    System.exit(1);
+
   }
 
   private boolean gatherBai() {
