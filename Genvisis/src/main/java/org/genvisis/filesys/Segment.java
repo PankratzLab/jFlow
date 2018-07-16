@@ -100,12 +100,16 @@ public class Segment implements Serializable, Comparable<Segment> {
    * @param stop
    */
   public Segment(GenomicPosition start, GenomicPosition stop) {
-    if (start.getChr() != stop.getChr()) {
-      throw new IllegalArgumentException("Segment cannot span multiple chromosomes");
+    if (start.getChr() == stop.getChr() && start.getPosition() >= 0
+        || stop.getPosition() >= 0 && start.getPosition() <= stop.getPosition()) {
+
+      this.start = start;
+      this.stop = stop;
+      range = Range.closed(start, stop);
+    } else {
+      throw new IllegalArgumentException("Segment must be on a single chromosome with non-negative start and stop positions where start <= stop (start: "
+                                         + start.toString() + ", stop: " + stop.toString() + ")");
     }
-    this.start = start;
-    this.stop = stop;
-    range = Range.closed(start, stop);
   }
 
   /**
@@ -117,12 +121,14 @@ public class Segment implements Serializable, Comparable<Segment> {
   public Segment(Range<GenomicPosition> baseRange) {
     if (baseRange.hasLowerBound() && baseRange.hasUpperBound()
         && baseRange.upperBoundType() == BoundType.CLOSED
-        && baseRange.lowerBoundType() == BoundType.CLOSED) {
+        && baseRange.lowerBoundType() == BoundType.CLOSED
+        && baseRange.lowerEndpoint().getPosition() >= 0) {
       this.start = baseRange.lowerEndpoint();
       this.stop = baseRange.upperEndpoint();
       this.range = baseRange;
     } else {
-      throw new IllegalArgumentException("Range must be closed and have the same chr for both endpoints");
+      throw new IllegalArgumentException("Segment can only be constructed from a closed range on a single chromosome with non-negative positions ("
+                                         + baseRange.toString() + ")");
     }
   }
 
