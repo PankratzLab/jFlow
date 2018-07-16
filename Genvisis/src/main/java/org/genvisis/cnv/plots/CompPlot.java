@@ -66,6 +66,7 @@ import org.genvisis.filesys.GeneTrack;
 import org.genvisis.filesys.Segment;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * @author Michael Vieths
@@ -924,20 +925,25 @@ public class CompPlot extends JFrame implements ChrNavigator {
     return markerSet.getChrs()[markerSet.getChrs().length - 1];
   }
 
-  public void setRegion(Region region) {
-    location = new Segment(region.getRegion());
-
-    if (location.getChr() == -1) {
-      return;
+  public void setRegion(Region r) {
+    byte chr = (byte) r.getChr();
+    NavigableSet<Marker> chrMarkers = markerSet.getChrMap().get(chr);
+    if (chrMarkers == null) chrMarkers = ImmutableSortedSet.of();
+    int start = r.getStart();
+    int stop = r.getStop();
+    if (start < 0) {
+      start = 1;
     }
-    if (location.getStart() < 0) {
-      location = new Segment(location.getChr(), 1, location.getStop());
-    }
-
-    NavigableSet<Marker> chrMarkers = markerSet.getChrMap().get(location.getChr());
     int lastPosition = chrMarkers.isEmpty() ? 0 : chrMarkers.last().getPosition();
-    if (location.getStop() == -1 || location.getStop() > lastPosition) {
-      location = new Segment(location.getChr(), location.getStart(), lastPosition);
+    if (stop < 0 || stop > lastPosition) {
+      stop = lastPosition;
+    }
+    if (start > stop) {
+      start = stop;
+    }
+    location = new Segment(chr, start, stop);
+    if (chr == -1) {
+      return;
     }
     regionNavigator.setChrFieldText(location);
     chromosomeViewer.updateView(location);
