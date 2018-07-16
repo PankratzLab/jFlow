@@ -297,7 +297,7 @@ public class ExomeDepth {
         exons = "exons.hg19";
         break;
       case SEX_CHROMOSOMES:
-        exons = "exons.hg19.X";
+        exons = "hg19_ucsc_exons_sex_chromosomes";
         break;
       default:
         throw new IllegalArgumentException("Invalid calling type " + callingType);
@@ -328,6 +328,8 @@ public class ExomeDepth {
     script += "data(exons.hg19)\n";
     script += "data(exons.hg19.X)\n";
     script += "data(Conrad.hg19)\n";
+    script += "library(knownGeneExons)\n";
+    script += "data(hg19_ucsc_exons_sex_chromosomes)\n";
     return script;
   }
 
