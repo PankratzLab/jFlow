@@ -68,12 +68,8 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
     int width, begin, end;
     int lastNameEnd = 0;
 
-    if (track == null) {
-      System.out.println("Track is null");
-    }
-
-    try {
-      if (track != null) {
+    if (track != null) {
+      try {
         genes = track.getBetween(location, 30);
         if (!Arrays.equals(genes, oldGenes)) {
           // We've changed the list of genes, so update the rectangles list as we create them
@@ -165,9 +161,9 @@ public class ChromosomeViewer extends JPanel implements MouseMotionListener {
               g.fillRect(getX(tickPos), rulerRowStart, 2, (height / 2));
           }
         }
+      } catch (Exception ex) {
+        System.out.println("Missing data in gene track");
       }
-    } catch (Exception ex) {
-      System.out.println("Missing data in gene track");
     }
   }
 
