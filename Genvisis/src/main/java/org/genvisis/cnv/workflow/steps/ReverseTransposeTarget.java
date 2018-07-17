@@ -86,12 +86,12 @@ public class ReverseTransposeTarget extends Step {
     StringBuilder cmd1 = new StringBuilder();
     cmd1.append(Files.getRunString());
     cmd1.append(" ").append(TempFileTranspose.class.getName());
-    cmd1.append(CLI.ARG_PROJ).append("=").append(projPropFile);
+    cmd1.append(" ").append(CLI.ARG_PROJ).append("=").append(projPropFile);
     cmd1.append(" type=M jobID=$PBS_JOBID -setup");
     cmd1.append("\n");
     cmd1.append(Files.getRunString());
     cmd1.append(" ").append(TempFileTranspose.class.getName());
-    cmd1.append(CLI.ARG_PROJ).append("=").append(projPropFile);
+    cmd1.append(" ").append(CLI.ARG_PROJ).append("=").append(projPropFile);
     cmd1.append(" type=S jobID=$PBS_JOBID -setup");
 
     return cmd1.toString();
