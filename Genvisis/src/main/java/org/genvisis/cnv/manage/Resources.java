@@ -1168,6 +1168,7 @@ public final class Resources {
       rsrc = new File(path).getName();
     }
 
+    @Override
     public String getName() {
       return rsrc;
     }
@@ -1190,15 +1191,18 @@ public final class Resources {
             reader.close();
           } else {
             // Compute the md5 for this resource
-            log.report("Generating md5 checksum for resource: " + absolutePath());
-            FileInputStream fis = new FileInputStream(new File(localPath));
-            md5 = DigestUtils.md5Hex(fis);
-            fis.close();
-            // Write out the computed md5
-            PrintWriter writer = Files.getAppropriateWriter(md5Path);
-            writer.println(md5);
-            writer.flush();
-            writer.close();
+            // Some resources may not preserve the original file and cannot be md5 checked
+            if (Files.exists(localPath)) {
+              log.report("Generating md5 checksum for resource: " + absolutePath());
+              FileInputStream fis = new FileInputStream(new File(localPath));
+              md5 = DigestUtils.md5Hex(fis);
+              fis.close();
+              // Write out the computed md5
+              PrintWriter writer = Files.getAppropriateWriter(md5Path);
+              writer.println(md5);
+              writer.flush();
+              writer.close();
+            }
           }
         } catch (FileNotFoundException e) {
           log.reportException(e);
@@ -1220,6 +1224,7 @@ public final class Resources {
       return md5;
     }
 
+    @Override
     public Logger log() {
       return log;
     }
