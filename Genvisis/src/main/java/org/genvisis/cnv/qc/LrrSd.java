@@ -272,8 +272,12 @@ public class LrrSd extends Parallelizable {
     }
     for (Marker marker : markersForCallrate) {
       int index = markerIndexMap.get(marker);
-      abGenotypes.put(marker, fsamp.getAB_Genotypes()[index]);
-      forwardGenotypes.put(marker, fsamp.getForwardGenotypes()[index]);
+      if (fsamp.getAB_Genotypes() != null) {
+        abGenotypes.put(marker, fsamp.getAB_Genotypes()[index]);
+      }
+      if (fsamp.getForwardGenotypes() != null) {
+        forwardGenotypes.put(marker, fsamp.getForwardGenotypes()[index]);
+      }
     }
     double abCallRate = 0;
     double abHetRate = 0;
