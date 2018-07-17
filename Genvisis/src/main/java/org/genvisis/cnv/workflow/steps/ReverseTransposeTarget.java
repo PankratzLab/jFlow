@@ -72,6 +72,12 @@ public class ReverseTransposeTarget extends Step {
       }
       throw new RuntimeException(e);
     }
+    // remove temporary files
+    try {
+      FileUtils.deleteDirectory(new File(temp));
+    } catch (IOException e1) {
+      // TODO do something other than ignoring this
+    }
   }
 
   @Override
