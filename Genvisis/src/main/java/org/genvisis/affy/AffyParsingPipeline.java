@@ -258,7 +258,6 @@ public class AffyParsingPipeline {
         if (oorTable.isEmpty()) {
           raf.write(Compression.intToBytes(0));
         } else {
-          System.out.println("Found " + oorTable.size() + " outliers for " + mkrFile);
           byte[] oorBytes = Compression.objToBytes(oorTable);
           raf.write(Compression.intToBytes(oorBytes.length));
           raf.write(oorBytes);
