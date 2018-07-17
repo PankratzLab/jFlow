@@ -16,7 +16,7 @@ import org.genvisis.common.Files;
 
 public class ReverseTransposeTarget extends Step {
 
-  public static final String NAME = "Reverse-Transpose Marker Files to Sample Files";
+  public static final String NAME = "Transpose Marker Files to Sample Files";
   public static final String DESC = "";
 
   public static ReverseTransposeTarget create(Project proj, Step affyCelParsingStep) {
