@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,8 @@ public class AffyParsingPipeline {
   }
 
   private void loadAndSortMarkers() throws IOException {
-    List<String> allMarkers = new ArrayList<>();
-    BufferedReader reader = Files.getAppropriateReader(confFile);
+    Set<String> allMarkers = new HashSet<>();
+    BufferedReader reader = Files.getAppropriateReader(intFile);
     String line = null;
     boolean before = true;
     while ((line = reader.readLine()) != null) {
@@ -83,7 +84,11 @@ public class AffyParsingPipeline {
         before = false;
         continue;
       }
-      allMarkers.add(line.split("\t")[0]);
+      String snp = line.split("\t")[0];
+      if (snp.endsWith("-A") || snp.endsWith("-B")) {
+        snp = snp.substring(0, snp.length() - 2);
+      }
+      allMarkers.add(snp);
     }
     reader.close();
 
@@ -122,6 +127,7 @@ public class AffyParsingPipeline {
   }
 
   public void run() {
+    long startTimeNanos = System.nanoTime();
     // ensure directory exists
     new File(proj.MARKER_DATA_DIRECTORY.getValue()).mkdirs();
 
@@ -170,20 +176,24 @@ public class AffyParsingPipeline {
       afterLastMarkerPosition.put(file, 0L);
     }
 
+    long missing = 0;
     Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
-
+    long count = 0;
     MarkerData md = null;
     byte[] mkrBytes;
     try {
       while ((md = parseLine()) != null) {
         Marker marker = markerNameMap.get(md.getMarkerName());
         if (marker == null) {
+          missing++;
+          //          proj.getLog().reportTimeWarning("No Marker object found for " + md.getMarkerName());
           // TODO error
-          return;
+          continue;
         }
 
         String mkrFile = markerFileMap.get(marker);
         if (mkrFile == null) {
+          //          proj.getLog().reportTimeWarning("No file found for " + marker.getName());
           // TODO Error
           continue;
         }
@@ -228,6 +238,7 @@ public class AffyParsingPipeline {
         if (seek + mkrBytes.length > afterLastMarkerPosition.get(mkrFile)) {
           afterLastMarkerPosition.put(mkrFile, seek + mkrBytes.length);
         }
+        count++;
       }
       try {
         closeReaders();
@@ -236,15 +247,22 @@ public class AffyParsingPipeline {
             .reportTimeWarning("Exception occurred when closing input files.  This may not be a problem.");
       }
 
-      for (String mkrFile : markerFileMap.values()) {
+      // use a set so we only process each file once
+      HashSet<String> files = new HashSet<>(markerFileMap.values());
+      for (String mkrFile : files) {
         Hashtable<String, Float> oorTable = oorTables.get(mkrFile);
-        byte[] oorBytes = Compression.objToBytes(oorTable);
         RandomAccessFile raf = rafMap.get(mkrFile);
         if (raf.getFilePointer() != afterLastMarkerPosition.get(mkrFile)) {
           raf.seek(afterLastMarkerPosition.get(mkrFile));
         }
-        raf.write(Compression.intToBytes(oorBytes.length));
-        raf.write(oorBytes);
+        if (oorTable.isEmpty()) {
+          raf.write(Compression.intToBytes(0));
+        } else {
+          System.out.println("Found " + oorTable.size() + " outliers for " + mkrFile);
+          byte[] oorBytes = Compression.objToBytes(oorTable);
+          raf.write(Compression.intToBytes(oorBytes.length));
+          raf.write(oorBytes);
+        }
         raf.close();
       }
 
@@ -253,10 +271,14 @@ public class AffyParsingPipeline {
           // TODO FOR-REVIEW remove existing mdRAF files automatically?
           .reportError("Uexpected error occurred while reading input files: " + e.getMessage()
                        + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
+      proj.getLog().reportException(e);
       try {
         closeReaders();
       } catch (IOException e2) {}
     }
+
+    proj.getLog()
+        .reportTime("Parsing finished in " + ext.getTimeElapsedNanos(startTimeNanos) + ".");
   }
 
   @SuppressWarnings("deprecation")

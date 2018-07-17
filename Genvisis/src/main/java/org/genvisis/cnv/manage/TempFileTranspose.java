@@ -441,7 +441,14 @@ public class TempFileTranspose {
     sampFile.write(mkrCntBytes);
     sampFile.write(nullStatus);
 
-    outs = outliers.getSampleOutliersForFile(proj, ext.rootOf(samp, true));
+    if (outliers.hasSample(samp)) {
+      outs = outliers.getSampleOutliersForFile(proj, samp);
+    } else if (outliers.hasSample(ext.rootOf(samp, true))) {
+      outs = outliers.getSampleOutliersForFile(proj, ext.rootOf(samp, true));
+    } else {
+      proj.getLog().reportTimeWarning("No outliers found for sample " + samp);
+      outs = new Hashtable<>();
+    }
     byte[] outBytes = Compression.objToBytes(outs);
     if (outs.size() > 0) {
       sampFile.write(Compression.intToBytes(outBytes.length));
@@ -473,7 +480,7 @@ public class TempFileTranspose {
       buffer = null;
     }
 
-    if (outBytes != null) {
+    if (outs.size() > 0 && outBytes != null) {
       sampFile.write(outBytes);
     }
     sampFile.close();

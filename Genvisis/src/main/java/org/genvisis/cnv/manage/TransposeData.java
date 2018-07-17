@@ -1576,6 +1576,8 @@ public class TransposeData {
         parameters = new byte[lengthOfOutOfRangeHashtable];
         file.read(parameters);
         outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(parameters);
+      } else {
+        outOfRangeValues = new Hashtable<>();
       }
       file.close();
 

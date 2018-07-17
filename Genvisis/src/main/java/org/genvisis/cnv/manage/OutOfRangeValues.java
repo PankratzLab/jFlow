@@ -31,6 +31,10 @@ public class OutOfRangeValues {
     return smpMap.containsKey(sampleName) ? smpMap.get(sampleName) : new HashMap<>();
   }
 
+  public boolean hasSample(String sampleName) {
+    return smpMap.containsKey(sampleName);
+  }
+
   public Hashtable<String, Float> getSampleOutliersForFile(Project proj, String sampleName) {
     Hashtable<String, Float> table = new Hashtable<>();
     Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();

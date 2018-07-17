@@ -1012,6 +1012,8 @@ public class Sample implements Serializable {
         outOfRangeValues = (Hashtable<String, Float>) Compression.bytesToObj(readBuffer,
                                                                              outlierSectionLocation,
                                                                              numBytesOfOutOfRangeValues);
+      } else {
+        outOfRangeValues = new Hashtable<>();
       }
 
       indexStart = PARAMETER_SECTION_BYTES;
