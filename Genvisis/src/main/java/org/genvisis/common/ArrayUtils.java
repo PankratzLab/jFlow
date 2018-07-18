@@ -38,9 +38,6 @@ public class ArrayUtils {
   private static final int MINB = Byte.MAX_VALUE;
 
   private static boolean badLength(int length) {
-    if (length <= 0) {
-      new Logger().reportError("Empty arrays do not have defined min or max values");
-    }
     return length == 0;
   }
 
