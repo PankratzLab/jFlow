@@ -46,19 +46,20 @@ public class TempFileTranspose {
 
     public static String[] checkout(String listFile, int pull, String label,
                                     Logger log) throws IOException {
-      Path fP = FileSystems.getDefault().getPath(listFile);
-      String nF = ext.rootOf(listFile, false) + "." + label + "." + Thread.currentThread().getName()
-                  + ".temp";
-      Path nFP = FileSystems.getDefault().getPath(nF);
+      Path filePath = FileSystems.getDefault().getPath(listFile);
+      String newFile = ext.rootOf(listFile, false) + "." + label + "."
+                       + Thread.currentThread().getName() + ".temp";
+      Path newFilePath = FileSystems.getDefault().getPath(newFile);
       IOException e = null;
       double minsSlept = 0;
       do {
         try {
-          java.nio.file.Files.move(fP, nFP, StandardCopyOption.ATOMIC_MOVE);
+          // throws the caught exception if missing
+          java.nio.file.Files.move(filePath, newFilePath, StandardCopyOption.ATOMIC_MOVE);
 
-          String[] list = HashVec.loadFileToStringArray(nF, false, null, false);
+          String[] list = HashVec.loadFileToStringArray(newFile, false, null, false);
           if (list.length == 0) {
-            return null;
+            return new String[0];
           }
           int p = Math.min(pull, list.length);
           int r = Math.max(0, list.length - p);
@@ -67,11 +68,11 @@ public class TempFileTranspose {
           System.arraycopy(list, 0, values, 0, p);
           if (r > 0) {
             System.arraycopy(list, p, remain, 0, remain.length);
-            Files.writeArray(remain, nF);
-            java.nio.file.Files.move(nFP, fP, StandardCopyOption.ATOMIC_MOVE);
+            Files.writeArray(remain, newFile);
+            java.nio.file.Files.move(newFilePath, filePath, StandardCopyOption.ATOMIC_MOVE);
           }
 
-          Files.writeArray(values, nF);
+          Files.writeArray(values, newFile);
           return values;
         } catch (NoSuchFileException e1) {
           e = e1;
@@ -86,7 +87,7 @@ public class TempFileTranspose {
       log.reportTimeWarning("Waited for " + minsSlept + " minutes, trying to checkout " + pull
                             + " values for " + label + ", + couldn't find " + listFile);
 
-      return null;
+      return new String[0];
     }
 
     public static void checkin(String listFile, String[] values, int start, String label,
@@ -206,10 +207,11 @@ public class TempFileTranspose {
     for (int i = 0; i < proc; i++) {
       Runnable run = () -> {
         try {
-          String file = null;
-          while ((file = ListFileCheckoutSystem.checkout(listFile, 1, label,
-                                                         proj.getLog())[0]) != null) {
-            processOneMDRAF(f, numBytesPerSampleMarker, file);
+          String[] files = null;
+          while ((files = ListFileCheckoutSystem.checkout(listFile, 1, label,
+                                                          proj.getLog())) != null
+                 && files.length > 0) {
+            processOneMDRAF(f, numBytesPerSampleMarker, files[0]);
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block
@@ -238,7 +240,7 @@ public class TempFileTranspose {
 
     final String[] preSel = ListFileCheckoutSystem.checkout(listFile, proc, label, proj.getLog());
 
-    if (preSel != null) {
+    if (preSel.length > 0) {
       proj.getLog().reportTime("Checked out " + preSel.length + "; expected " + proc);
       for (int i = 0; i < preSel.length; i++) {
         final int ind = i;
@@ -332,13 +334,14 @@ public class TempFileTranspose {
     }
     for (int t = 0; t < threads; t++) {
       Runnable run = () -> {
-        String samp;
+        String[] samps;
         try {
-          while ((samp = ListFileCheckoutSystem.checkout(listFile, 1, label,
-                                                         proj.getLog())[0]) != null) {
+          while ((samps = ListFileCheckoutSystem.checkout(listFile, 1, label,
+                                                          proj.getLog())) != null
+                 && samps.length > 0) {
             processOneSAMPRAF(outliers, files, markerCountMap, numBytesPerSampleMarker,
                               numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices, readerMap,
-                              samp);
+                              samps[0]);
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block
@@ -379,7 +382,7 @@ public class TempFileTranspose {
     long fingerPrint = MarkerSet.fingerprintForSamples(proj);
     final ImmutableMap<String, Integer> sampleIndices = proj.getSampleIndices();
 
-    if (preSel != null) {
+    if (preSel.length > 0) {
       proj.getLog()
           .reportTime("Checked out " + preSel.length + "; expected (max) " + threads * 1000);
       HashMap<String, RandomAccessFile> readerMap = new HashMap<>();
