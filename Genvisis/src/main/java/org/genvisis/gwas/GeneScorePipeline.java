@@ -808,7 +808,7 @@ public class GeneScorePipeline {
           BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
           String line = reader.readLine();
           String[] dataHdrs = line.split(PSF.Regex.GREEDY_WHITESPACE);
-          int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false);
+          int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, log, false);
           int ind = -1;
           for (int i : indices) {
             if (i > 0) {
