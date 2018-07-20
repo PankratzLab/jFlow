@@ -70,7 +70,9 @@ import htsjdk.variant.vcf.VCFHeader;
 
 public class DosageData implements Serializable {
 
-  public class Trio {
+  public class Trio implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final int childIndex;
     private final int fatherIndex;
@@ -185,7 +187,7 @@ public class DosageData implements Serializable {
   private float[][] dosageValues;
   private float[][][] genotypeProbabilities;
   private String[][] alleles;
-  private List<Trio> trios = null;
+  private ImmutableList<Trio> trios = null;
   private byte[] chrs;
   private int[] positions;
   private String labelPrepend;
