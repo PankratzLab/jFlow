@@ -237,24 +237,33 @@ public class GeneScorePipeline {
         log.reportError("Error - no data sources loaded from file: " + dataSource + "; expected "
                         + markerLocations.length);
       } else {
-        log.reportTime("Loading data file " + dataSources.get(0).dataFile);
-        DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
-                                       dataSources.get(0).mapFile, null, hitMkrs, true, log);
-        if (dataSources.size() > 1) {
-          for (int i = 1; i < dataSources.size(); i++) {
-            log.reportTime("Loading data file " + dataSources.get(i).dataFile);
-            DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
-                                           dataSources.get(i).mapFile, null, hitMkrs, true, log);
-            d0 = DosageData.combine(d0, d1, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, false, 0,
-                                    log);
-            System.gc();
+        final String serOutput = studyDir + ext.replaceWithLinuxSafeCharacters(dataKey)
+                                 + "_dosage.ser";
+        if (!Files.exists(serOutput)) {
+          log.reportTime("Loading data file " + dataSources.get(0).dataFile);
+          DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
+                                         dataSources.get(0).mapFile, null, hitMkrs, true, log);
+          if (dataSources.size() > 1) {
+            for (int i = 1; i < dataSources.size(); i++) {
+              log.reportTime("Loading data file " + dataSources.get(i).dataFile);
+              DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
+                                             dataSources.get(i).mapFile, null, hitMkrs, true, log);
+              d0 = DosageData.combine(d0, d1, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, false,
+                                      0, log);
+              System.gc();
+            }
           }
+          if (d0.isEmpty()) {
+            log.reportError("no data for key: " + dataKey);
+          }
+          data.put(dataKey, d0);
+          d0.serialize(serOutput);
+          System.gc();
+        } else {
+          log.reportTime(serOutput + " already exists, loading previously loaded data for "
+                         + dataSource);
+          data.put(dataKey, DosageData.load(serOutput));
         }
-        if (d0.isEmpty()) {
-          log.reportError("no data for key: " + dataKey);
-        }
-        data.put(dataKey, d0);
-        System.gc();
       }
     }
   }
