@@ -786,74 +786,74 @@ public class GeneScorePipeline {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-    }
+    } else {
 
-    for (String dFile : metaFiles) {
-      HashMap<String, Constraint> threshNeed = new HashMap<>();
+      for (String dFile : metaFiles) {
+        HashMap<String, Constraint> threshNeed = new HashMap<>();
 
-      HashMap<String, Integer> cnts = dataCounts.get(dFile);
-      if (cnts == null) {
-        threshNeed.putAll(analysisConstraints);
-        cnts = new HashMap<>();
-        dataCounts.put(dFile, cnts);
-      } else {
-        for (String pref : analysisConstraints.keySet()) {
-          if (!cnts.containsKey(pref)) {
-            threshNeed.put(pref, analysisConstraints.get(pref));
-          }
-        }
-      }
-
-      if (threshNeed.size() > 0) {
-        try {
-          BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
-          String line = reader.readLine();
-          String[] dataHdrs = line.split(PSF.Regex.GREEDY_WHITESPACE);
-          int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, log, false);
-          int ind = -1;
-          for (int i : indices) {
-            if (i > 0) {
-              ind = i;
-              break;
+        HashMap<String, Integer> cnts = dataCounts.get(dFile);
+        if (cnts == null) {
+          threshNeed.putAll(analysisConstraints);
+          cnts = new HashMap<>();
+          dataCounts.put(dFile, cnts);
+        } else {
+          for (String pref : analysisConstraints.keySet()) {
+            if (!cnts.containsKey(pref)) {
+              threshNeed.put(pref, analysisConstraints.get(pref));
             }
           }
-          if (ind > 0) {
-            while ((line = reader.readLine()) != null) {
-              String[] parts = line.split("\t");
-              if (!ext.isMissingValue(parts[ind]) && ext.isValidDouble(parts[ind])) {
-                double pval = Double.parseDouble(parts[ind]);
-                for (java.util.Map.Entry<String, Constraint> constraint : threshNeed.entrySet()) {
-                  if (pval < constraint.getValue().indexThreshold) {
-                    Integer cnt = dataCounts.get(dFile).get(constraint.getKey());
-                    if (cnt == null) {
-                      cnt = 0;
+        }
+
+        if (threshNeed.size() > 0) {
+          try {
+            BufferedReader reader = Files.getAppropriateReader(metaDir + dFile);
+            String line = reader.readLine();
+            String[] dataHdrs = line.split(PSF.Regex.GREEDY_WHITESPACE);
+            int[] indices = ext.indexFactors(Aliases.PVALUES, dataHdrs, false, log, false);
+            int ind = -1;
+            for (int i : indices) {
+              if (i > 0) {
+                ind = i;
+                break;
+              }
+            }
+            if (ind > 0) {
+              while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                if (!ext.isMissingValue(parts[ind]) && ext.isValidDouble(parts[ind])) {
+                  double pval = Double.parseDouble(parts[ind]);
+                  for (java.util.Map.Entry<String, Constraint> constraint : threshNeed.entrySet()) {
+                    if (pval < constraint.getValue().indexThreshold) {
+                      Integer cnt = dataCounts.get(dFile).get(constraint.getKey());
+                      if (cnt == null) {
+                        cnt = 0;
+                      }
+                      cnt = cnt + 1;
+                      dataCounts.get(dFile).put(constraint.getKey(), cnt);
                     }
-                    cnt = cnt + 1;
-                    dataCounts.get(dFile).put(constraint.getKey(), cnt);
                   }
                 }
               }
             }
+          } catch (NumberFormatException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
           }
-        } catch (NumberFormatException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
         }
       }
-    }
 
-    StringBuilder output = new StringBuilder();
-    for (java.util.Map.Entry<String, HashMap<String, Integer>> entry : dataCounts.entrySet()) {
-      for (java.util.Map.Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
-        output.append(entry.getKey()).append("\t").append(subEntry.getKey()).append("\t")
-              .append(subEntry.getValue()).append("\n");
+      StringBuilder output = new StringBuilder();
+      for (java.util.Map.Entry<String, HashMap<String, Integer>> entry : dataCounts.entrySet()) {
+        for (java.util.Map.Entry<String, Integer> subEntry : entry.getValue().entrySet()) {
+          output.append(entry.getKey()).append("\t").append(subEntry.getKey()).append("\t")
+                .append(subEntry.getValue()).append("\n");
+        }
       }
+      Files.write(output.toString(), countsFile);
     }
-    Files.write(output.toString(), countsFile);
-
   }
 
   private void runMetaHitWindowsAndLoadData() {
