@@ -1426,6 +1426,17 @@ public class GeneScorePipeline {
           HitMarker hitMarker = hitMarkerData.get(mkr);
           if (hitMarker == null) continue;
           AlleleOrder alleleOrder = determineAlleleOrder(alleles[m], hitMarker);
+          if (!(alleleOrder.equals(AlleleOrder.SAME) || alleleOrder.equals(AlleleOrder.OPPOSITE))) {
+            Joiner alleleJoiner = Joiner.on('/');
+            log.reportError("Alleles in study (" + alleleJoiner.join(alleles[m])
+                            + ") do not match source alleles ("
+                            + alleleJoiner.join(hitMarker.getEffectAllele() == null ? "NULL"
+                                                                                    : hitMarker.getEffectAllele(),
+                                                hitMarker.getNonEffectAllele() == null ? "NULL"
+                                                                                       : hitMarker.getNonEffectAllele())
+                            + ") for " + mkr);
+            continue;
+          }
           matchedMarkerAlleleOrders.put(mkr, alleleOrder);
           matchedMarkerIndices.put(mkr, m);
           int cnt = 0;
