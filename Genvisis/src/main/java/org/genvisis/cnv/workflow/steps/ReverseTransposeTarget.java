@@ -39,15 +39,11 @@ public class ReverseTransposeTarget extends Step {
   }
 
   @Override
-  public void cleanupAfterFailure(Project proj) {
-    // TODO Auto-generated method stub
-    super.cleanupAfterFailure(proj);
-  }
-
-  @Override
   public void run(Variables variables) {
     String temp = proj.PROJECT_DIRECTORY.getValue() + "temp/";
     TempFileTranspose tft = new TempFileTranspose(proj, temp, "");
+
+    // first step, transpose to temp files:
     tft.setupMarkerListFile();
     try {
       tft.runFirst();
@@ -56,10 +52,12 @@ public class ReverseTransposeTarget extends Step {
       try {
         FileUtils.deleteDirectory(new File(temp));
       } catch (IOException e1) {
-        // TODO do something other than ignoring this
+        proj.getLog().reportException(e1);
       }
       throw new RuntimeException(e);
     }
+
+    // second step, compile samples from transposed temp files:
     tft.setupSampleListFile();
     try {
       tft.runSecond();
@@ -68,15 +66,16 @@ public class ReverseTransposeTarget extends Step {
       try {
         FileUtils.deleteDirectory(new File(proj.SAMPLE_DIRECTORY.getValue()));
       } catch (IOException e1) {
-        // TODO do something other than ignoring this
+        proj.getLog().reportException(e1);
       }
       throw new RuntimeException(e);
     }
-    // remove temporary files
+
+    // remove temporary files:
     try {
       FileUtils.deleteDirectory(new File(temp));
     } catch (IOException e1) {
-      // TODO do something other than ignoring this
+      proj.getLog().reportException(e1);
     }
   }
 
