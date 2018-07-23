@@ -144,7 +144,7 @@ public class AffyParsingPipeline {
     }
 
     boolean canXYBeNegative = false;
-    byte nullStatus = Sample.updateNullStatus(new float[0], new float[0], new float[0],
+    byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
                                               new float[0], new float[0], new byte[0], null,
                                               canXYBeNegative);
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);

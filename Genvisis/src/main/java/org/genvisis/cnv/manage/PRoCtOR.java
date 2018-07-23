@@ -177,7 +177,7 @@ public class PRoCtOR {
         RandomAccessFile mdraf = rafMap.get(mdrafName);
         String[] mkrNmArr = mkrNames.get(mdrafName);
         if (mdraf == null) {
-          byte nullStatus = Sample.updateNullStatus(markerData.getGCs(), markerData.getXs(),
+          byte nullStatus = Sample.computeNullStatus(markerData.getGCs(), markerData.getXs(),
                                                     markerData.getYs(), markerData.getBAFs(),
                                                     markerData.getLRRs(),
                                                     markerData.getAbGenotypes(),

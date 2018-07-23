@@ -647,7 +647,7 @@ public class UKBBParsingPipeline {
   }
 
   private byte getNullStatus() {
-    return Sample.updateNullStatus(new float[0], new float[0], new float[0], new float[0],
+    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
                                    new float[0], importGenoAsAB ? new byte[0] : null,
                                    importGenoAsAB ? null : new byte[0], false);
   }

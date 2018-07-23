@@ -98,7 +98,7 @@ public class ShadowRework {
         RandomAccessFile mdraf = rafMap.get(mdrafName);
         String[] mkrNmArr = mkrNames.get(mdrafName);
         if (mdraf == null) {
-          byte nullStatus = Sample.updateNullStatus(markerData.getGCs(), null, null,
+          byte nullStatus = Sample.computeNullStatus(markerData.getGCs(), null, null,
                                                     markerData.getBAFs(), markerData.getLRRs(),
                                                     markerData.getAbGenotypes(),
                                                     markerData.getForwardGenotypes(), false);
