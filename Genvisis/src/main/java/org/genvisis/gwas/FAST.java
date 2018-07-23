@@ -978,6 +978,7 @@ public class FAST {
           if (writePValThresh) {
             indices = ext.indexFactors(new String[][] {Aliases.PVALUES},
                                        line.split(PSF.Regex.GREEDY_WHITESPACE), false, true, true);
+            pvalWriter.println(line);
           }
           writer.println(line);
           first = false;
