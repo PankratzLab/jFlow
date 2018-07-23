@@ -176,25 +176,20 @@ public class AffyParsingPipeline {
       afterLastMarkerPosition.put(file, 0L);
     }
 
-    long missing = 0;
     Map<String, Marker> markerNameMap = proj.getMarkerSet().getMarkerNameMap();
-    long count = 0;
     MarkerData md = null;
     byte[] mkrBytes;
     try {
       while ((md = parseLine()) != null) {
         Marker marker = markerNameMap.get(md.getMarkerName());
         if (marker == null) {
-          missing++;
-          //          proj.getLog().reportTimeWarning("No Marker object found for " + md.getMarkerName());
-          // TODO error
+          proj.getLog().reportTimeWarning("No Marker object found for " + md.getMarkerName());
           continue;
         }
 
         String mkrFile = markerFileMap.get(marker);
         if (mkrFile == null) {
-          //          proj.getLog().reportTimeWarning("No file found for " + marker.getName());
-          // TODO Error
+          proj.getLog().reportTimeWarning("No file found for " + marker.getName());
           continue;
         }
 
@@ -222,7 +217,6 @@ public class AffyParsingPipeline {
           mkrBytes = md.compress(indInFile, nullStatus, oorTables.get(mkrFile), canXYBeNegative);
         } catch (Elision e1) {
           proj.getLog()
-              // TODO FOR-REVIEW remove existing mdRAF files automatically?
               .reportError("Unexpected error while compressing data: " + e1.getMessage()
                            + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
           try {
@@ -238,7 +232,6 @@ public class AffyParsingPipeline {
         if (seek + mkrBytes.length > afterLastMarkerPosition.get(mkrFile)) {
           afterLastMarkerPosition.put(mkrFile, seek + mkrBytes.length);
         }
-        count++;
       }
       try {
         closeReaders();
@@ -267,7 +260,6 @@ public class AffyParsingPipeline {
 
     } catch (IOException e) {
       proj.getLog()
-          // TODO FOR-REVIEW remove existing mdRAF files automatically?
           .reportError("Uexpected error occurred while reading input files: " + e.getMessage()
                        + ". Parsing will stop.  Please remove any existing .mdRAF files and try again.");
       proj.getLog().reportException(e);
