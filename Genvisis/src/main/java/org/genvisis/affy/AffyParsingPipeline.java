@@ -77,7 +77,7 @@ public class AffyParsingPipeline {
     String line = null;
     boolean before = true;
     while ((line = reader.readLine()) != null) {
-      // skip vcf output comment lines
+      // skip comment lines
       if (line.startsWith("#%")) continue;
       if (before) {
         // skip header
