@@ -3038,8 +3038,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
   public void zoomProportionally(boolean outNotIn, Point p, boolean center) {
     int width = lrrPanel.getWidth() - 2 * WIDTH_BUFFER;
-    double x = p.getX() - WIDTH_BUFFER;
-    double xHat = width - x;
+    double x = p.getX() < WIDTH_BUFFER ? 0 : p.getX() - WIDTH_BUFFER;
+    double xHat = x > width ? 1 : width - x;
     double left = x / width;
     double right = xHat / width;
     double multiplier = MOUSE_WHEEL_MULTIPLIER / (outNotIn ? 1 : -2);
