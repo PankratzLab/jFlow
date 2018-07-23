@@ -44,10 +44,6 @@ public class AffyParsingPipeline {
   private BufferedReader callReader;
   private BufferedReader sigReader;
 
-  private String[] confHeader;
-  private String[] callHeader;
-  private String[] sigHeader;
-
   private String[] samples;
   int numSamples;
   Map<Marker, String> markerFileMap;
@@ -145,8 +141,8 @@ public class AffyParsingPipeline {
 
     boolean canXYBeNegative = false;
     byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
-                                              new float[0], new float[0], new byte[0], null,
-                                              canXYBeNegative);
+                                               new float[0], new float[0], new byte[0], null,
+                                               canXYBeNegative);
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
     long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
     long markersInMemory = mem / (long) bytesPerMarker;
@@ -284,21 +280,21 @@ public class AffyParsingPipeline {
     while ((line = confReader.readLine()) != null && line.charAt(0) == '#') {
       // seek to header
     }
-    confHeader = line.trim().split(delim, -1);
+    String[] confHeader = line.trim().split(delim, -1);
 
     line = null;
     while ((line = callReader.readLine()) != null && line.charAt(0) == '#') {
       // seek to header
     }
-    callHeader = line.trim().split(delim, -1);
+    String[] callHeader = line.trim().split(delim, -1);
 
     line = null;
     while ((line = sigReader.readLine()) != null && line.charAt(0) == '#') {
       // seek to header
     }
-    sigHeader = line.trim().split(delim, -1);
+    String[] sigHeader = line.trim().split(delim, -1);
 
-    ensureHeaderContentsSame();
+    ensureHeaderContentsSame(confHeader, callHeader, sigHeader);
     samples = ArrayUtils.subArray(confHeader, 1);
     SampleList sl = new SampleList(samples);
     sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
@@ -306,11 +302,11 @@ public class AffyParsingPipeline {
     Files.writeArray(samples, proj.MARKER_DATA_DIRECTORY.getValue(true, false)
                               + TransposeData.TEMP_SAMPLES_FILE);
     numSamples = samples.length;
-    fingerprint = org.genvisis.cnv.filesys.MarkerSet.fingerprint(ArrayUtils.subArray(confHeader,
-                                                                                     1));
+    fingerprint = org.genvisis.cnv.filesys.MarkerSet.fingerprint(samples);
   }
 
-  private void ensureHeaderContentsSame() {
+  private void ensureHeaderContentsSame(String[] confHeader, String[] callHeader,
+                                        String[] sigHeader) {
     if (confHeader.length != callHeader.length || confHeader.length != sigHeader.length
         || callHeader.length != sigHeader.length) {
       throw new IllegalStateException("File headers have different lengths: [Conf: "
