@@ -35,7 +35,7 @@ public class PlinkCNV {
     String merge = dir + "penncnv.cnv";
     if (!Files.exists(merge)) {
       log.reportTimeInfo("Merging calls");
-      FilterCalls.mergeCNVs(cnvaFile, merge, FilterCalls.DEFAULT_CLEAN_FACTOR, null);
+      FilterCalls.mergeCNVs(cnvaFile, merge, FilterCalls.DEFAULT_CLEAN_FACTOR);
     }
     String[] filters = Files.list(dir, ".crf");
 

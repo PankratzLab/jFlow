@@ -21,7 +21,6 @@ import java.util.TreeSet;
 import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.UCSCtrack;
@@ -1026,14 +1025,8 @@ public class FilterCalls {
     return bpCount;
   }
 
-  public static void mergeCNVs(String in, String out, float distanceQuotient, String bimFile) {
+  public static void mergeCNVs(String in, String out, float distanceQuotient) {
     List<CNVariant> inputCNVs = CNVariant.loadPlinkFile(in, null, true);
-
-    int[][] positions = null;
-    if (bimFile != null) {
-      MarkerSetInfo markerSet = MarkerSet.load(bimFile);
-      positions = markerSet.getPositionsByChr();
-    }
 
     ArrayList<CNVariant> newCNVs = new ArrayList<>();
     newCNVs.addAll(inputCNVs);
@@ -1043,7 +1036,7 @@ public class FilterCalls {
     int actStart = startCnt;
     do {
       startCnt = newCNVs.size();
-      newCNVs = getMergedCNVs(newCNVs, distanceQuotient, positions);
+      newCNVs = getMergedCNVs(newCNVs, distanceQuotient, null);
       cnt++;
     } while (startCnt > newCNVs.size());
 
@@ -2358,7 +2351,7 @@ public class FilterCalls {
       } else if (excludeFile != null) {
         filterExclusions(dir, in, out, excludeFile, exclude);
       } else if (merge) {
-        mergeCNVs(in, out, mergeFactor, null);
+        mergeCNVs(in, out, mergeFactor);
       } else {
         filterCNVs(dir, in, out, new int[] {delSize, hDelSize}, new int[] {dupSize, hDupSize},
                    new int[] {number, hNumber}, score, filenameOfProblematicRegions,
