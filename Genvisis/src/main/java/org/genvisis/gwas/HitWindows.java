@@ -166,7 +166,6 @@ public class HitWindows {
     startIndex = -1;
     stopIndex = -1;
     region = 1;
-    // log.report("Starting search...");
     for (int i = 0; i < markerNames.length; i++) {
       if (pvals[i] < indexThreshold) {
         startIndex = i;
@@ -176,28 +175,8 @@ public class HitWindows {
         numSig = numSuggestive = 1;
         while (startIndex - offset - 1 >= 0 && chrs[startIndex] == chrs[startIndex - offset - 1]
                && positions[startIndex]
-                  - windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) { // *2
-                                                                                                                                                                                                       // required
-                                                                                                                                                                                                       // to ensure
-                                                                                                                                                                                                       // that
-                                                                                                                                                                                                       // there
-                                                                                                                                                                                                       // are no
-                                                                                                                                                                                                       // overlapping
-                                                                                                                                                                                                       // SNPs
-                                                                                                                                                                                                       // 500kb
-                                                                                                                                                                                                       // after
-                                                                                                                                                                                                       // last
-                                                                                                                                                                                                       // hit and
-                                                                                                                                                                                                       // 500kb
-                                                                                                                                                                                                       // before
-                                                                                                                                                                                                       // next
-                                                                                                                                                                                                       // hit is
-                                                                                                                                                                                                       // technically
-                                                                                                                                                                                                       // a 1M
-                                                                                                                                                                                                       // region
-                                                                                                                                                                                                       // that
-                                                                                                                                                                                                       // should
-                                                                                                                                                                                                       // be merged
+                  // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged:
+                  - windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) {
           offset++;
           if (pvals[startIndex - offset] < windowExtensionThreshold) {
             startIndex -= offset;
@@ -205,22 +184,15 @@ public class HitWindows {
             numSuggestive++;
           }
         }
-        // log.report(markerNames[i]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
 
         stopIndex = i;
         offset = 0;
-        // while (stopIndex+offset+1 < markerNames.length && chrs[stopIndex] ==
-        // chrs[stopIndex+offset+1] && positions[stopIndex] + windowMinSizePerSide*2 >=
-        // positions[stopIndex+offset+1]) {
         while (stopIndex + offset + 1 < markerNames.length
                && chrs[stopIndex] == chrs[stopIndex + offset + 1]
                && positions[stopIndex]
-                  + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the
-                                                                                                                                                                                                              // 2* here,
-                                                                                                                                                                                                              // though
+                  + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the 2* here, though
           offset++;
           if (pvals[stopIndex + offset] < indexThreshold) {
-            // log.report(markerNames[stopIndex+offset]+"\t"+region);
             numSig++;
           }
           if (pvals[stopIndex + offset] < windowExtensionThreshold) {
@@ -233,8 +205,6 @@ public class HitWindows {
             minPval = pvals[stopIndex];
           }
         }
-        // log.report(markerNames[minIndex]+"\t"+region+"\t"+numSig+"\t"+numSuggestive);
-        // log.report(markerNames[minIndex]+"\t"+chrs[minIndex]+"\t"+positions[minIndex]+"\tchr"+chrs[startIndex]+":"+(positions[startIndex]-windowMinSizePerSide)+":"+(positions[stopIndex]+windowMinSizePerSide));
 
         line = new String[] {region + "", markerNames[minIndex], chrs[minIndex]
                                                                  + "",
