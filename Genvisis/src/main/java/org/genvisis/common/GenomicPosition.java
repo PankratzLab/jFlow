@@ -27,6 +27,20 @@ public class GenomicPosition implements Serializable, Comparable<GenomicPosition
     return position;
   }
 
+  /**
+   * @return a new {@link GenomicPosition} with the same chromosome and position + 1
+   */
+  public GenomicPosition nextPos() {
+    return new GenomicPosition(chr, position + 1);
+  }
+
+  /**
+   * @return a new {@link GenomicPosition} with the same chromosome and position - 1
+   */
+  public GenomicPosition prevPos() {
+    return new GenomicPosition(chr, position - 1);
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
