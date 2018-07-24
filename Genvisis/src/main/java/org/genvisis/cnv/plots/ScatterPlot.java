@@ -191,6 +191,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   private JButton first, previous, next, last;
+  private JSlider gcSlider;
   private JTextField navigationField;
   // private ScatterPanel selectedScatterPanel;
   private int selectedPanelIndex = 0;
@@ -2200,6 +2201,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     if (markerIndex != previousMarkerIndex) {
       updateCentLabels();
+      updateGCSlider();
     }
     previousMarkerIndex = markerIndex;
 
@@ -2245,6 +2247,10 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // System.out.println("\tt1: " + t1);
     // System.out.println("\tt2: " + t2);
     // System.out.println("\tt3: " + t3);
+  }
+
+  private void updateGCSlider() {
+    gcSlider.setValue(DEFAULT_GC_THRESHOLD);
   }
 
   public void updateMarkerIndexHistory() {
@@ -3793,6 +3799,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     });
     // tabPanel.add(slider, gbc);
     gcSliderPanel.add(slider);
+    gcSlider = slider;
 
     return gcSliderPanel;
   }
