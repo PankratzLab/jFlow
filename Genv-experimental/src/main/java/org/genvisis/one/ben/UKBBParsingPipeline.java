@@ -648,8 +648,8 @@ public class UKBBParsingPipeline {
 
   private byte getNullStatus() {
     return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
-                                   new float[0], importGenoAsAB ? new byte[0] : null,
-                                   importGenoAsAB ? null : new byte[0], false);
+                                    new float[0], importGenoAsAB ? new byte[0] : null,
+                                    importGenoAsAB ? null : new byte[0], false);
   }
 
   private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus, long fingerprint,

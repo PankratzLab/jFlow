@@ -99,9 +99,9 @@ public class ShadowRework {
         String[] mkrNmArr = mkrNames.get(mdrafName);
         if (mdraf == null) {
           byte nullStatus = Sample.computeNullStatus(markerData.getGCs(), null, null,
-                                                    markerData.getBAFs(), markerData.getLRRs(),
-                                                    markerData.getAbGenotypes(),
-                                                    markerData.getForwardGenotypes(), false);
+                                                     markerData.getBAFs(), markerData.getLRRs(),
+                                                     markerData.getAbGenotypes(),
+                                                     markerData.getForwardGenotypes(), false);
           mdraf = openMDRAF(mdrafName, numInd, nullStatus, fingerprint, mkrNmArr);
           rafMap.put(mdrafName, mdraf);
           statMap.put(mdrafName, nullStatus);
