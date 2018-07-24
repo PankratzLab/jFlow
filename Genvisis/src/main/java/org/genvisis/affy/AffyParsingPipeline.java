@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
@@ -26,6 +26,7 @@ import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.ext;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -69,7 +70,9 @@ public class AffyParsingPipeline {
 
   private void loadAndSortMarkers() throws IOException {
     Set<String> allMarkers = new HashSet<>();
-    BufferedReader reader = Files.getAppropriateReader(intFile);
+    BufferedReader reader = Files.getAppropriateReader(proj.PROJECT_DIRECTORY.getValue()
+                                                       + proj.PROJECT_NAME.getValue()
+                                                       + ".probesetIdsAll.txt");
     String line = null;
     boolean before = true;
     while ((line = reader.readLine()) != null) {
@@ -94,7 +97,9 @@ public class AffyParsingPipeline {
 
   private void binMarkers(int numMkrsPerFile) {
     List<Marker> markers = proj.getMarkerSet().markersAsList();
-    Map<String, List<String>> markerListMap = Maps.newHashMap();
+
+    ArrayListMultimap<String, String> markerListMap = ArrayListMultimap.create();
+
     markerFileMap = Maps.newHashMap();
     Hashtable<String, String> lookup = new Hashtable<>();
     markerIndexInFileMap = Maps.newHashMap();
@@ -108,15 +113,10 @@ public class AffyParsingPipeline {
       markerIndexInFileMap.put(markers.get(i), markerIndexInFile);
       lookup.put(markers.get(i).getName(),
                  ext.removeDirectoryInfo(mkrFile) + "\t" + markerIndexInFile);
-      List<String> mkrsInFile = markerListMap.get(mkrFile);
-      if (mkrsInFile == null) {
-        mkrsInFile = new ArrayList<>();
-        markerListMap.put(mkrFile, mkrsInFile);
-      }
-      mkrsInFile.add(markers.get(i).getName());
+      markerListMap.put(mkrFile, markers.get(i).getName());
     }
     markersInFileMap = Maps.newHashMap();
-    for (Entry<String, List<String>> m : markerListMap.entrySet()) {
+    for (Entry<String, Collection<String>> m : markerListMap.asMap().entrySet()) {
       markersInFileMap.put(m.getKey(), m.getValue().toArray(new String[m.getValue().size()]));
     }
     new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
