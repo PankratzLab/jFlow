@@ -178,11 +178,11 @@ public class PRoCtOR {
         String[] mkrNmArr = mkrNames.get(mdrafName);
         if (mdraf == null) {
           byte nullStatus = Sample.computeNullStatus(markerData.getGCs(), markerData.getXs(),
-                                                    markerData.getYs(), markerData.getBAFs(),
-                                                    markerData.getLRRs(),
-                                                    markerData.getAbGenotypes(),
-                                                    markerData.getForwardGenotypes(),
-                                                    canXYBeNegative);
+                                                     markerData.getYs(), markerData.getBAFs(),
+                                                     markerData.getLRRs(),
+                                                     markerData.getAbGenotypes(),
+                                                     markerData.getForwardGenotypes(),
+                                                     canXYBeNegative);
           mdraf = openMDRAF(outDir + mdrafName, numInd, nullStatus, fingerprint, mkrNmArr);
           rafMap.put(mdrafName, mdraf);
           statMap.put(mdrafName, nullStatus);

@@ -185,8 +185,8 @@ public class Sample implements Serializable {
   }
 
   public static byte computeNullStatus(float[] gcs, float[] xs, float[] ys, float[] bafs,
-                                      float[] lrrs, byte[] abGenotypes, byte[] forwardGenotypes,
-                                      boolean canXYBeNegative) {
+                                       float[] lrrs, byte[] abGenotypes, byte[] forwardGenotypes,
+                                       boolean canXYBeNegative) {
     byte nullStatus;
 
     nullStatus = 0;
