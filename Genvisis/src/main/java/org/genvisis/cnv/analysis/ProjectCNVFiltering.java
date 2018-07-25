@@ -1,7 +1,6 @@
 package org.genvisis.cnv.analysis;
 
 import java.util.Hashtable;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
@@ -143,18 +142,15 @@ public class ProjectCNVFiltering {
                                                   boolean ifMergeAndFreqMergeFirst) {
     CNVariant[] cnvs = CNVariant.loadPlinkFile(proj.PROJECT_DIRECTORY.getValue() + cnvFile);
     return filterCNVFile(proj, cnvs, out, cnvFilter, mergePrior, freqFilterPrior, freqFilter,
-                         ifMergeAndFreqMergeFirst, false);
+                         ifMergeAndFreqMergeFirst);
   }
 
   /**
-   * @param cnvsAsPositions get the start and stop positions from the {@link CNVariant}s themselves
-   *          so that a {@link MarkerSet} is not needed
    */
   public static LocusSet<CNVariant> filterCNVFile(Project proj, CNVariant[] cnvs, String out,
                                                   CNVFilter cnvFilter, boolean mergePrior,
                                                   boolean freqFilterPrior, FreqFilter freqFilter,
-                                                  boolean ifMergeAndFreqMergeFirst,
-                                                  boolean cnvsAsPositions) {
+                                                  boolean ifMergeAndFreqMergeFirst) {
     Logger log = proj.getLog();
     if (mergePrior && freqFilterPrior) {
       if (ifMergeAndFreqMergeFirst) {
@@ -163,8 +159,7 @@ public class ProjectCNVFiltering {
         do {
           numPrior = cnvs.length;
           log.report("Merging CNVs, iteration " + iter);
-          cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR,
-                                               cnvsAsPositions);
+          cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
           log.report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior
                      + " CNVs, now have " + cnvs.length + " CNVs remaining.");
         } while (numPrior > cnvs.length);
@@ -200,8 +195,7 @@ public class ProjectCNVFiltering {
         do {
           numPrior = cnvs.length;
           log.report("Merging CNVs, iteration " + iter);
-          cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR,
-                                               cnvsAsPositions);
+          cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
           log.report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior
                      + " CNVs, now have " + cnvs.length + " CNVs remaining.");
         } while (numPrior > cnvs.length);
@@ -212,8 +206,7 @@ public class ProjectCNVFiltering {
       do {
         numPrior = cnvs.length;
         log.report("Merging CNVs, iteration " + iter);
-        cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR,
-                                             cnvsAsPositions);
+        cnvs = FilterCalls.mergeCNVsInMemory(proj, cnvs, FilterCalls.DEFAULT_CLEAN_FACTOR);
         log.report("CNV merging iteration " + iter++ + " + complete: started with " + numPrior
                    + " CNVs, now have " + cnvs.length + " CNVs remaining.");
       } while (numPrior > cnvs.length);

@@ -209,7 +209,7 @@ public class CushingCnvs {
     // CNVFilter cnvFilter = new CNVFilter(proj.getLog());
     LocusSet<CNVariant> setToRemove = null;
     setToRemove = ProjectCNVFiltering.filterCNVFile(proj, cnSet2.getLoci(), outFilt, null, false,
-                                                    true, freqFilter, false, true);
+                                                    true, freqFilter, false);
     setToRemove.writeRegions(outFilt, TO_STRING_TYPE.REGULAR, true, proj.getLog());
 
     if (!Files.exists(outFilt)) {} else {}

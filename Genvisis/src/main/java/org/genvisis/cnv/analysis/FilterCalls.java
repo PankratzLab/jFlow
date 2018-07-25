@@ -13,15 +13,15 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.SampleData;
@@ -37,15 +37,14 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.GeneSet;
-import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.filesys.SegmentLists;
 import org.genvisis.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Doubles;
 
 public class FilterCalls {
 
@@ -373,17 +372,21 @@ public class FilterCalls {
 
   private static class MergedCNVariant {
 
-    int markerStart;
-    int markerStop;
+    Marker markerStart;
+    Marker markerStop;
     CNVariant cnv;
     final ArrayList<MergedCNVariant> originalCNVs = new ArrayList<>();
     double medianLRR;
     double stdevLRR;
 
-    public MergedCNVariant(int start, int stop, CNVariant cnvariant) {
-      markerStart = start;
-      markerStop = stop;
+    public MergedCNVariant(List<Marker> markers, CNVariant cnvariant, Map<Marker, Double> lrrs) {
+      markerStart = markers.get(0);
+      markerStop = Iterables.getLast(markers);
       cnv = cnvariant;
+      List<Double> sortedSubsetLRRs = markers.stream().map(lrrs::get).sorted()
+                                             .collect(ImmutableList.toImmutableList());
+      medianLRR = ArrayUtils.medianSorted(sortedSubsetLRRs);
+      stdevLRR = ArrayUtils.stdev(sortedSubsetLRRs);
     }
 
     public MergedCNVariant addOriginalCNV(MergedCNVariant cnv) {
@@ -396,7 +399,7 @@ public class FilterCalls {
   }
 
   public static CNVariant[] mergeCNVsInMemory(Project proj, CNVariant[] inCNVs,
-                                              double distanceQuotient, boolean cnvsAsPositions) {
+                                              double distanceQuotient) {
     Logger log = proj.getLog();
     int initialCount = inCNVs.length;
     ArrayList<CNVariant> mergedCNVs = new ArrayList<>();
@@ -419,24 +422,8 @@ public class FilterCalls {
       cnvList.add(cnv);
     }
 
-    MarkerSetInfo markerSet = proj.getMarkerSet();
-    int[][] positions = null;
-    if (cnvsAsPositions) {
-      LocusSet<CNVariant> tmp = new LocusSet<CNVariant>(inCNVs, true, proj.getLog()) {
-
-        /**
-         *
-         */
-        private static final long serialVersionUID = 1L;
-
-      };
-      positions = tmp.getStartsAndStopsByChromosome();
-    } else {
-
-      positions = markerSet.getPositionsByChr();
-    }
-    Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
-    String[] markerNames = markerSet.getMarkerNames();
+    MarkerDetailSet markerSet = proj.getMarkerSet();
+    Set<String> droppedMarkerNames = proj.getFilteredHash().keySet();
     SampleData sampleData = proj.getSampleData(false);
 
     log.report(ext.getTime() + "] Cleaning CNVs...");
@@ -451,7 +438,6 @@ public class FilterCalls {
       String fidiid = entry.getKey();
 
       String ind;
-      float[] lrrs;
       try {
         ind = sampleData.lookup(fidiid)[0];
       } catch (NullPointerException npe) {
@@ -462,8 +448,9 @@ public class FilterCalls {
                         + fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
         continue;
       }
+      Map<Marker, Double> lrrs;
       try {
-        lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
+        lrrs = proj.getFullSampleFromRandomAccessFile(ind).markerLRRMap(markerSet);
       } catch (NullPointerException npe) {
         log.reportError("Error - could not load data for the sample " + ind + "\t" + fidiid
                         + ", please ensure samples have been parsed prior to computing beast score");
@@ -477,98 +464,51 @@ public class FilterCalls {
         if (cnvLists.getValue().size() == 0) {
           continue;
         } else if (cnvLists.getValue().size() == 1) {
-          mergedCNVs.add(cnvLists.getValue().get(0));
           continue;
         }
 
         ArrayList<CNVariant> cnvList = cnvLists.getValue();
         Collections.sort(cnvList, cnvComparator);
 
-        LinkedList<MergedCNVariant> tempChromo = new LinkedList<>();
+        List<MergedCNVariant> chromo = new ArrayList<>();
 
         // create objects for all CNVs while also setting start/end marker indices, accounting for
         // dropped markers
         for (int i = 0; i < cnvList.size(); i++) {
-          CNVariant cnv = cnvList.get(i);
-          int firstSNPIndex = Arrays.binarySearch(positions[chr], cnv.getStart());
-          int lastSNPIndex = Arrays.binarySearch(positions[chr], cnv.getStop());
-
-          if (firstSNPIndex < 0 || lastSNPIndex < 0) {
-            log.reportTimeWarning("Cannot merge CNV with bounds outside known start/stop: "
-                                  + cnv.getStart() + "-" + cnv.getStop());
+          List<Marker> cnvMarkers = markerSet.viewMarkersInSeg(new Segment(chr,
+                                                                           cnvList.get(i)
+                                                                                  .getStart(),
+                                                                           cnvList.get(i)
+                                                                                  .getStop()))
+                                             .filter(m -> !droppedMarkerNames.contains(m.getName()))
+                                             .collect(ImmutableList.toImmutableList());
+          if (cnvMarkers.isEmpty()) {
+            log.reportError("No unfiltered markers in CNV: " + chr + ":" + cnvList.get(i).getStart()
+                            + "-" + cnvList.get(i).getStop());
             continue;
           }
-
-          // account for dropped markers
-          if (droppedMarkerNames.contains(markerNames[firstSNPIndex])) {
-            int f1 = firstSNPIndex, f2 = firstSNPIndex;
-            while (f1 > (i == 0 ? 0 : tempChromo.get(i - 1).markerStop)
-                   && droppedMarkerNames.contains(markerNames[f1])) {
-              f1--;
-            }
-            while (f2 < lastSNPIndex - 1 && droppedMarkerNames.contains(markerNames[f2])) {
-              f2++;
-            }
-            firstSNPIndex = ((firstSNPIndex - f1) < (f2 - firstSNPIndex) ? f1 : f2);
-          }
-          if (droppedMarkerNames.contains(markerNames[lastSNPIndex])) {
-            int s1 = firstSNPIndex, s2 = lastSNPIndex;
-            while (s1 > firstSNPIndex && droppedMarkerNames.contains(markerNames[s1])) {
-              s1--;
-            }
-            while (s2 < markerNames.length - 1 && droppedMarkerNames.contains(markerNames[s2])) {
-              s2++;
-            }
-
-            lastSNPIndex = ((lastSNPIndex - s1) < (s2 - lastSNPIndex) ? s1 : s2);
-          }
-
-          MergedCNVariant orig = new MergedCNVariant(firstSNPIndex, lastSNPIndex, cnvList.get(i));
+          MergedCNVariant orig = new MergedCNVariant(cnvMarkers, cnvList.get(i), lrrs);
           orig.addOriginalCNV(orig);
-          tempChromo.add(orig);
+          chromo.add(orig);
         }
-
-        LinkedList<MergedCNVariant> chromo = new LinkedList<>();
-
         // create full list: CNVs and objects for the spaces between CNVs, also accounting for
         // dropped markers
-        chromo.add(tempChromo.get(0));
-        for (int i = 1; i < tempChromo.size(); i++) {
-          MergedCNVariant cnv1 = tempChromo.get(i - 1);
-          MergedCNVariant cnv2 = tempChromo.get(i);
-
-          if (cnv2.markerStart - cnv1.markerStop <= 1) {
-            chromo.add(cnv2);
-            continue;
+        ListIterator<MergedCNVariant> chromIter = chromo.listIterator();
+        MergedCNVariant cnv1 = chromIter.next();
+        while (chromIter.hasNext()) {
+          MergedCNVariant cnv2 = chromIter.next();
+          List<Marker> markersBetween = markerSet.viewMarkersInSeg(cnv1.markerStop.getGenomicPosition()
+                                                                                  .nextPos(),
+                                                                   cnv2.markerStart.getGenomicPosition()
+                                                                                   .prevPos())
+                                                 .filter(m -> !droppedMarkerNames.contains(m.getName()))
+                                                 .collect(ImmutableList.toImmutableList());
+          if (!markersBetween.isEmpty()) {
+            chromIter.previous();
+            chromIter.add(new MergedCNVariant(markersBetween, null, lrrs));
+            chromIter.next();
           }
-
-          int m1 = cnv1.markerStop + 1;
-          int m2 = cnv2.markerStart - 1;
-
-          if (droppedMarkerNames.contains(markerNames[m1])) {
-            int f1 = m1;
-            while (f1 < m2 - 1 && droppedMarkerNames.contains(markerNames[f1])) {
-              f1++;
-            }
-            m1 = f1;
-          }
-          if (droppedMarkerNames.contains(markerNames[m2])) {
-            int s1 = m2;
-            while (s1 > m1 + 1 && droppedMarkerNames.contains(markerNames[s1])) {
-              s1--;
-            }
-            m2 = s1;
-          }
-
-          chromo.add(new MergedCNVariant(m1, m2, null));
-          chromo.add(cnv2);
-        }
-        tempChromo = null;
-
-        // iterate through full array and compute median and stdev of LRRs
-        for (int i = 0; i < chromo.size(); i++) {
-          MergedCNVariant cnv = chromo.get(i);
-          setLRRMedStdDev(cnv, droppedMarkerNames, markerNames, lrrs);
+          cnv1 = cnv2;
         }
 
         HashMap<Integer, MergedCNVariant> removed = new HashMap<>();
@@ -597,8 +537,10 @@ public class FilterCalls {
           // same CN
           boolean sameCN = actualCNV1.cnv.getCN() == actualCNV2.cnv.getCN();
           // less than distanceQuotient percent space vs # of markers
-          float mkQ = (float) ((cnv.markerStop - cnv.markerStart + 1))
-                      / (float) ((actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers()));
+          float mkQ = (float) (markerSet.viewMarkersInSeg(cnv.markerStart.getGenomicPosition(),
+                                                          cnv.markerStop.getGenomicPosition())
+                                        .count())
+                      / ((actualCNV1.cnv.getNumMarkers() + actualCNV2.cnv.getNumMarkers()));
           boolean markerQuotient = mkQ < distanceQuotient;
           // less than 100% of total called base pairs
           float bpQ = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) / (float) bpSize;
@@ -617,8 +559,12 @@ public class FilterCalls {
                                            actualCNV2.medianLRR + actualCNV2.stdevLRR)};
 
           if (cnv.medianLRR > medSDLimits[0] && cnv.medianLRR < medSDLimits[1]) {
-            MergedCNVariant newCNV = new MergedCNVariant(actualCNV1.markerStart,
-                                                         actualCNV2.markerStop,
+            List<Marker> mergedMarkers = markerSet.viewMarkersInSeg(actualCNV1.markerStart.getGenomicPosition(),
+                                                                    actualCNV2.markerStop.getGenomicPosition())
+                                                  .collect(Collectors.toCollection(ArrayList::new));
+            int numTotalMarkers = mergedMarkers.size();
+            mergedMarkers.removeIf(m -> droppedMarkerNames.contains(m.getName()));
+            MergedCNVariant newCNV = new MergedCNVariant(mergedMarkers,
                                                          new CNVariant(actualCNV1.cnv.getFamilyID(),
                                                                        actualCNV1.cnv.getIndividualID(),
                                                                        chr,
@@ -627,10 +573,9 @@ public class FilterCalls {
                                                                        actualCNV1.cnv.getCN(),
                                                                        Math.max(actualCNV1.cnv.getScore(),
                                                                                 actualCNV2.cnv.getScore()),
-                                                                       actualCNV2.markerStop - actualCNV1.markerStart + 1,
-                                                                       actualCNV1.cnv.getSource()));
-
-            setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames, lrrs);
+                                                                       numTotalMarkers,
+                                                                       actualCNV1.cnv.getSource()),
+                                                         lrrs);
 
             // remove ICS
             chromo.remove(index);
@@ -683,281 +628,11 @@ public class FilterCalls {
   public static void mergeCNVs(Project proj, String in, String out, double distanceQuotient) {
     Logger log = proj.getLog();
     log.report(ext.getTime() + "] Loading CNV file...");
-    CNVariant[] srcCNVs = CNVariant.loadPlinkFile(in);
-    int initialCount = srcCNVs.length;
+    CNVariant[] mergedCNVs = mergeCNVsInMemory(proj, CNVariant.loadPlinkFile(in), distanceQuotient);
 
-    try {
-      PrintWriter writer = Files.openAppropriateWriter(out);
+    try (PrintWriter writer = Files.openAppropriateWriter(out)) {
       writer.println(ArrayUtils.toStr(CNVariant.PLINK_CNV_HEADER, "\t"));
-
-      HashMap<String, HashMap<Byte, ArrayList<CNVariant>>> indivChrCNVMap = new HashMap<>();
-
-      log.report(ext.getTime() + "] Organizing CNVs in memory...");
-      for (CNVariant cnv : srcCNVs) {
-        HashMap<Byte, ArrayList<CNVariant>> chrCNVMap = indivChrCNVMap.get(cnv.getFamilyID() + "\t"
-                                                                           + cnv.getIndividualID());
-        if (chrCNVMap == null) {
-          chrCNVMap = new HashMap<>();
-          indivChrCNVMap.put(cnv.getFamilyID() + "\t" + cnv.getIndividualID(), chrCNVMap);
-        }
-        ArrayList<CNVariant> cnvList = chrCNVMap.get(cnv.getChr());
-        if (cnvList == null) {
-          cnvList = new ArrayList<>();
-          chrCNVMap.put(cnv.getChr(), cnvList);
-        }
-        cnvList.add(cnv);
-      }
-
-      srcCNVs = null;
-
-      MarkerSetInfo markerSet = proj.getMarkerSet();
-      int[][] positions = markerSet.getPositionsByChr();
-      Hashtable<String, String> droppedMarkerNames = proj.getFilteredHash();
-      String[] markerNames = markerSet.getMarkerNames();
-      SampleData sampleData = proj.getSampleData(false);
-
-      log.report(ext.getTime() + "] Cleaning CNVs...");
-      int size = indivChrCNVMap.size();
-      int cnt = 0;
-      int step = size / 10;
-      int cnvCount = 0;
-      for (java.util.Map.Entry<String, HashMap<Byte, ArrayList<CNVariant>>> entry : indivChrCNVMap.entrySet()) {
-        if (cnt > 0 && cnt % step == 0) {
-          log.report(ext.getTime() + "] \t" + ((cnt / step) * 10) + "% complete");
-        }
-        // log.report(ext.getTime() + "] Analyzing CNVs for {" + entry.getKey() + "}");
-        String fidiid = entry.getKey();
-
-        String ind;
-        float[] lrrs;
-        try {
-          ind = sampleData.lookup(fidiid)[0];
-        } catch (NullPointerException npe) {
-          // log.reportError("Error - could not look up the sample " + fidiid + " in the sample data
-          // file " + proj.getFilename(proj.SAMPLE_DATA_FILENAME) + ", cannot load sample to compute
-          // beast score");
-          log.reportError("Error - could not look up the sample " + fidiid
-                          + " in the sample data file " + proj.SAMPLE_DATA_FILENAME.getValue()
-                          + ", cannot load sample to compute beast score");
-          log.reportError("Error - please ensure that the sample names correspond to the varaints being processed with FID="
-                          + fidiid.split("\t")[0] + " and IID=" + fidiid.split("\t")[1]);
-          continue;
-        }
-        try {
-          lrrs = proj.getFullSampleFromRandomAccessFile(ind).getLRRs();
-        } catch (NullPointerException npe) {
-          log.reportError("Error - could not load data for the sample " + ind + "\t" + fidiid
-                          + ", please ensure samples have been parsed prior to computing beast score");
-          log.report("Skipping beast score for sample " + ind + "\t" + fidiid);
-          continue;
-        }
-
-        for (java.util.Map.Entry<Byte, ArrayList<CNVariant>> cnvLists : entry.getValue()
-                                                                             .entrySet()) {
-          byte chr = cnvLists.getKey();
-
-          if (cnvLists.getValue().size() == 0) {
-            continue;
-          } else if (cnvLists.getValue().size() == 1) {
-            writer.println(cnvLists.getValue().get(0).toPlinkFormat());
-            continue;
-          }
-
-          ArrayList<CNVariant> cnvList = cnvLists.getValue();
-          Collections.sort(cnvList, cnvComparator);
-
-          LinkedList<MergedCNVariant> tempChromo = new LinkedList<>();
-
-          // create objects for all CNVs while also setting start/end marker indices, accounting for
-          // dropped markers
-          for (int i = 0; i < cnvList.size(); i++) {
-            int firstSNPIndex = ArrayUtils.binarySearch(positions[chr], cnvList.get(i).getStart(),
-                                                        true);
-            int lastSNPIndex = ArrayUtils.binarySearch(positions[chr], cnvList.get(i).getStop(),
-                                                       true);
-
-            // account for dropped markers
-            if (droppedMarkerNames.contains(markerNames[firstSNPIndex])) {
-              int f1 = firstSNPIndex, f2 = firstSNPIndex;
-              while (f1 > (i == 0 ? 0 : tempChromo.get(i - 1).markerStop)
-                     && droppedMarkerNames.contains(markerNames[f1])) {
-                f1--;
-              }
-              while (f2 < lastSNPIndex - 1 && droppedMarkerNames.contains(markerNames[f2])) {
-                f2++;
-              }
-              firstSNPIndex = ((firstSNPIndex - f1) < (f2 - firstSNPIndex) ? f1 : f2);
-            }
-            if (droppedMarkerNames.contains(markerNames[lastSNPIndex])) {
-              int s1 = firstSNPIndex, s2 = lastSNPIndex;
-              while (s1 > firstSNPIndex && droppedMarkerNames.contains(markerNames[s1])) {
-                s1--;
-              }
-              while (s2 < markerNames.length - 1 && droppedMarkerNames.contains(markerNames[s2])) {
-                s2++;
-              }
-
-              lastSNPIndex = ((lastSNPIndex - s1) < (s2 - lastSNPIndex) ? s1 : s2);
-            }
-
-            MergedCNVariant orig = new MergedCNVariant(firstSNPIndex, lastSNPIndex, cnvList.get(i));
-            orig.addOriginalCNV(orig);
-            tempChromo.add(orig);
-          }
-
-          LinkedList<MergedCNVariant> chromo = new LinkedList<>();
-
-          // create full list: CNVs and objects for the spaces between CNVs, also accounting for
-          // dropped markers
-          chromo.add(tempChromo.get(0));
-          for (int i = 1; i < tempChromo.size(); i++) {
-            MergedCNVariant cnv1 = tempChromo.get(i - 1);
-            MergedCNVariant cnv2 = tempChromo.get(i);
-
-            if (cnv2.markerStart - cnv1.markerStop <= 1) {
-              chromo.add(cnv2);
-              continue;
-            }
-
-            int m1 = cnv1.markerStop + 1;
-            int m2 = cnv2.markerStart - 1;
-
-            if (droppedMarkerNames.contains(markerNames[m1])) {
-              int f1 = m1;
-              while (f1 < m2 - 1 && droppedMarkerNames.contains(markerNames[f1])) {
-                f1++;
-              }
-              m1 = f1;
-            }
-            if (droppedMarkerNames.contains(markerNames[m2])) {
-              int s1 = m2;
-              while (s1 > m1 + 1 && droppedMarkerNames.contains(markerNames[s1])) {
-                s1--;
-              }
-              m2 = s1;
-            }
-
-            chromo.add(new MergedCNVariant(m1, m2, null));
-            chromo.add(cnv2);
-          }
-          tempChromo = null;
-
-          // iterate through full array and compute median and stdev of LRRs
-          for (int i = 0; i < chromo.size(); i++) {
-            MergedCNVariant cnv = chromo.get(i);
-            setLRRMedStdDev(cnv, droppedMarkerNames, markerNames, lrrs);
-          }
-
-          HashMap<Integer, MergedCNVariant> removed = new HashMap<>();
-          TreeSet<Integer> indexList = new TreeSet<>();
-          boolean done = false;
-          while (!done) {
-            int index = 0;
-            MergedCNVariant cnv = chromo.get(0);
-            // find index of first ICS (inter-CNV space); should never be index 0 or max
-            for (index = 1; index < chromo.size() - 1 && cnv.cnv != null; index++) {
-              cnv = chromo.get(index);
-            }
-
-            if (cnv.cnv != null) {
-              // iterated through entire list and no ICSs left!
-              done = true;
-              break;
-            }
-            index--;
-
-            MergedCNVariant actualCNV1 = chromo.get(index - 1);
-            MergedCNVariant actualCNV2 = chromo.get(index + 1);
-
-            int bpSize = countBP(actualCNV1) + countBP(actualCNV2);
-
-            // same CN
-            boolean sameCN = actualCNV1.cnv.getCN() == actualCNV2.cnv.getCN();
-            // less than distanceQuotient percent space vs # of markers
-            float mkQ = (float) ((cnv.markerStop - cnv.markerStart + 1))
-                        / (float) ((actualCNV1.cnv.getNumMarkers()
-                                    + actualCNV2.cnv.getNumMarkers()));
-            boolean markerQuotient = mkQ < distanceQuotient;
-            // less than 100% of total called base pairs
-            float bpQ = (actualCNV2.cnv.getStart() - actualCNV1.cnv.getStop() + 1) / (float) bpSize;
-            boolean basepairQuotient = bpQ < 1;
-
-            if (!sameCN || !markerQuotient || !basepairQuotient) {
-              // remove ICS placeholder
-              removed.put(index, chromo.remove(index));
-              indexList.add(index);
-              continue;
-            }
-
-            double[] medSDLimits = {Math.max(actualCNV1.medianLRR - actualCNV1.stdevLRR,
-                                             actualCNV2.medianLRR - actualCNV2.stdevLRR),
-                                    Math.min(actualCNV1.medianLRR + actualCNV1.stdevLRR,
-                                             actualCNV2.medianLRR + actualCNV2.stdevLRR)};
-
-            if (cnv.medianLRR > medSDLimits[0] && cnv.medianLRR < medSDLimits[1]) {
-              MergedCNVariant newCNV = new MergedCNVariant(actualCNV1.markerStart,
-                                                           actualCNV2.markerStop,
-                                                           new CNVariant(actualCNV1.cnv.getFamilyID(),
-                                                                         actualCNV1.cnv.getIndividualID(),
-                                                                         chr,
-                                                                         actualCNV1.cnv.getStart(),
-                                                                         actualCNV2.cnv.getStop(),
-                                                                         actualCNV1.cnv.getCN(),
-                                                                         Math.max(actualCNV1.cnv.getScore(),
-                                                                                  actualCNV2.cnv.getScore()),
-                                                                         actualCNV2.markerStop - actualCNV1.markerStart
-                                                                                                              + 1,
-                                                                         actualCNV1.cnv.getSource()));
-
-              setLRRMedStdDev(newCNV, actualCNV1, actualCNV2, droppedMarkerNames, markerNames,
-                              lrrs);
-
-              // remove ICS
-              chromo.remove(index);
-              // remove CNV2
-              chromo.remove(index);
-              // remove CNV1
-              chromo.remove(index - 1);
-
-              chromo.add(index - 1, newCNV);
-
-              // add removed ICSs, in case we've altered things enough to now combine more
-              Integer addBack = indexList.pollLast();
-              while (addBack != null) {
-                chromo.add(addBack, removed.remove(addBack));
-                addBack = indexList.pollLast();
-              }
-            } else {
-              // not close enough to combine, so remove ICS placeholder
-              removed.put(index, chromo.remove(index));
-              indexList.add(index);
-              continue;
-            }
-
-          }
-
-          cnvCount += chromo.size();
-
-          for (int i = 0; i < chromo.size(); i++) {
-            // shouldn't have any ICSs remaining... but check anyway, just to be safe?
-            if (chromo.get(i).cnv != null) {
-              writer.println(chromo.get(i).cnv.toPlinkFormat());
-              // if (newLargeCNV(chromo.get(i), positions[chr])) {
-              // verboseWriter.println(chromo.get(i).cnv.toPlinkFormat());
-              // }
-            }
-          }
-        }
-        cnt++;
-      }
-
-      writer.flush();
-      writer.close();
-      // verboseWriter.flush();
-      // verboseWriter.close();
-
-      log.report(ext.getTime() + "] CNV cleaning complete!  Started with " + initialCount
-                 + " CNVs, reduced to " + cnvCount + " CNVs");
+      Arrays.stream(mergedCNVs).map(CNVariant::toPlinkFormat).forEachOrdered(writer::println);
     } catch (IOException e) {
       proj.getLog().reportException(e);
     }
@@ -972,50 +647,6 @@ public class FilterCalls {
   // }
   // return newSize > sz * 1000;
   // }
-
-  private static void setLRRMedStdDev(MergedCNVariant cnv,
-                                      Hashtable<String, String> droppedMarkerNames,
-                                      String[] markerNames, float[] lrrs) {
-    ArrayList<Float> lrr = new ArrayList<>();
-    for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
-      if (droppedMarkerNames.contains(markerNames[m])) {
-        continue;
-      }
-      if (!Double.isNaN(lrrs[m])) {
-        lrr.add(lrrs[m]);
-      }
-    }
-    double[] lrrsDubs = Doubles.toArray(lrr);
-    cnv.medianLRR = ArrayUtils.median(lrrsDubs);
-    cnv.stdevLRR = ArrayUtils.stdev(lrrsDubs);
-  }
-
-  private static void setLRRMedStdDev(MergedCNVariant newCNV, MergedCNVariant oldCNV1,
-                                      MergedCNVariant oldCNV2,
-                                      Hashtable<String, String> droppedMarkerNames,
-                                      String[] markerNames, float[] lrrs) {
-    ArrayList<MergedCNVariant> allOriginalCNVs = new ArrayList<>();
-    allOriginalCNVs.addAll(oldCNV1.originalCNVs);
-    allOriginalCNVs.addAll(oldCNV2.originalCNVs);
-
-    ArrayList<Float> lrr = new ArrayList<>();
-    for (MergedCNVariant cnv : allOriginalCNVs) {
-      for (int m = cnv.markerStart; m <= cnv.markerStop; m++) {
-        if (droppedMarkerNames.contains(markerNames[m])) {
-          continue;
-        }
-        if (!Double.isNaN(lrrs[m])) {
-          lrr.add(lrrs[m]);
-        }
-      }
-    }
-
-    double[] lrrsDubs = Doubles.toArray(lrr);
-    newCNV.medianLRR = ArrayUtils.median(lrrsDubs);
-    newCNV.stdevLRR = ArrayUtils.stdev(lrrsDubs);
-
-    newCNV.originalCNVs.addAll(allOriginalCNVs);
-  }
 
   private static int countBP(MergedCNVariant actualCNV1) {
     int bpCount = 0;
