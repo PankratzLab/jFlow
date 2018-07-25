@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import org.genvisis.cnv.filesys.ClusterFilter;
@@ -668,33 +669,56 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     if (SwingUtilities.isLeftMouseButton(e) && !e.isControlDown()) {
       if (Math.abs(mouseEndX - mouseStartX) > (sp.getPointSize() / 2)
           || Math.abs(mouseEndY - mouseStartY) > (sp.getPointSize() / 2)) {
-        // Automatically predict the new genotype and assigns to the last filter.
-        sp.getClusterFilterCollection()
-          .addClusterFilter(sp.getMarkerName(),
-                            new ClusterFilter((byte) sp.getPlotType(panelIndex).getLegacyIndex(),
-                                              (float) Math.max(plotXmin,
-                                                               Math.min(getXValueFromXPixel(mouseStartX),
-                                                                        getXValueFromXPixel(mouseEndX))),
-                                              (float) Math.max(plotYmin,
-                                                               Math.min(getYValueFromYPixel(mouseStartY),
-                                                                        getYValueFromYPixel(mouseEndY))),
-                                              (float) Math.min(plotXmax,
-                                                               Math.max(getXValueFromXPixel(mouseStartX),
-                                                                        getXValueFromXPixel(mouseEndX))),
-                                              (float) Math.min(plotYmax,
-                                                               Math.max(getYValueFromYPixel(mouseStartY),
-                                                                        getYValueFromYPixel(mouseEndY))),
-                                              sp.getCurrentMarkerData()));
-        // sp.startAutoSaveToTempFile();
-        sp.setClusterFilterUpdated(true);
-        setPointsGeneratable(true);
-        setUpdateQCPanel(true);
-        generateRectangles();
-        sp.setCurrentClusterFilter((byte) (sp.getClusterFilterCollection()
-                                             .getSize(sp.getMarkerName())
-                                           - 1));
-        sp.displayClusterFilterIndex();
-        paintAgain();
+        // Check if custom GC is masking any markers that should be included
+        float gcCurr = sp.getGCthreshold();
+        float gcMin = ArrayUtils.min(sp.getCurrentMarkerData().getGCs());
+
+        boolean drawFilter = true;
+        if (gcCurr > gcMin) {
+          int select = JOptionPane.showConfirmDialog(sp.getFocusOwner(),
+                                                     "A cluster filter was created while the GC slider was set to "
+                                                                         + gcCurr
+                                                                         + "; \nsince there were samples with genotypes with GC values less than this value (minimum was "
+                                                                         + gcMin
+                                                                         + "), \nthe GC slider bar has been set to this minimum value, so that you can see all genotypes that may be exported. \nThis is to ensure that the user exports exactly what they saw when they manually reclustered the marker.",
+                                                     "Custom GC Value",
+                                                     JOptionPane.OK_CANCEL_OPTION);
+          if (select == JOptionPane.CANCEL_OPTION) {
+            drawFilter = false;
+          } else {
+            sp.updateGCSlider((int) (gcMin * 100));
+          }
+        }
+
+        if (drawFilter) {
+          // Automatically predict the new genotype and assigns to the last filter.
+          sp.getClusterFilterCollection()
+            .addClusterFilter(sp.getMarkerName(),
+                              new ClusterFilter((byte) sp.getPlotType(panelIndex).getLegacyIndex(),
+                                                (float) Math.max(plotXmin,
+                                                                 Math.min(getXValueFromXPixel(mouseStartX),
+                                                                          getXValueFromXPixel(mouseEndX))),
+                                                (float) Math.max(plotYmin,
+                                                                 Math.min(getYValueFromYPixel(mouseStartY),
+                                                                          getYValueFromYPixel(mouseEndY))),
+                                                (float) Math.min(plotXmax,
+                                                                 Math.max(getXValueFromXPixel(mouseStartX),
+                                                                          getXValueFromXPixel(mouseEndX))),
+                                                (float) Math.min(plotYmax,
+                                                                 Math.max(getYValueFromYPixel(mouseStartY),
+                                                                          getYValueFromYPixel(mouseEndY))),
+                                                sp.getCurrentMarkerData()));
+          // sp.startAutoSaveToTempFile();
+          sp.setClusterFilterUpdated(true);
+          setPointsGeneratable(true);
+          setUpdateQCPanel(true);
+          generateRectangles();
+          sp.setCurrentClusterFilter((byte) (sp.getClusterFilterCollection()
+                                               .getSize(sp.getMarkerName())
+                                             - 1));
+          sp.displayClusterFilterIndex();
+          paintAgain();
+        }
       }
     } else {
       super.mouseReleased(e);

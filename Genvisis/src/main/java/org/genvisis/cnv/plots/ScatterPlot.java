@@ -2249,8 +2249,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     // System.out.println("\tt3: " + t3);
   }
 
-  private void updateGCSlider() {
-    gcSlider.setValue(DEFAULT_GC_THRESHOLD);
+  public void updateGCSlider() {
+    updateGCSlider(DEFAULT_GC_THRESHOLD);
+  }
+
+  public void updateGCSlider(int threshold) {
+    gcSlider.setValue(threshold);
   }
 
   public void updateMarkerIndexHistory() {
