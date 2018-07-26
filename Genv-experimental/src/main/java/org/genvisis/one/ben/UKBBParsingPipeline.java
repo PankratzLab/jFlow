@@ -42,8 +42,8 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.AllelePair;
@@ -183,7 +183,7 @@ public class UKBBParsingPipeline {
   protected void createSampleList() {
     famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
     String[] allSamples = Matrix.extractColumn(famData, 1);
-    fingerprintForMarkerFiles = MarkerSet.fingerprintForMarkers(proj);
+    fingerprintForMarkerFiles = MarkerSet.fingerprint(allSamples);
     if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
       SampleList sl = new SampleList(allSamples);
       sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
