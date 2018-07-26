@@ -3770,9 +3770,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   private JPanel gcSliderPanel() {
     JPanel gcSliderPanel = new JPanel();
     // gcSliderPanel.setLayout(new BoxLayout(gcSliderPanel, BoxLayout.Y_AXIS));
-    gcSliderPanel.setLayout(new GridLayout(2, 1));
+    gcSliderPanel.setLayout(new MigLayout());
     gcSliderPanel.setBackground(BACKGROUND_COLOR);
-
     JSlider slider = new JSlider(JSlider.HORIZONTAL, 2, 20, DEFAULT_SIZE);
     // slider.setSize(new Dimension(150, 20));
     slider.setBackground(BACKGROUND_COLOR);
@@ -3781,7 +3780,22 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
     gcLabel = new JLabel("GC > 0." + DEFAULT_GC_THRESHOLD, JLabel.CENTER);
     gcLabel.setFont(new Font("Arial", Font.PLAIN, 16));
     // tabPanel.add(gcLabel, gbc);
-    gcSliderPanel.add(gcLabel);
+    gcSliderPanel.add(gcLabel, "cell 0 0, pushx, center");
+
+    JButton help = new JButton();
+    help.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent ae) {
+        JOptionPane.showMessageDialog(null,
+                                      "Custom GC is greater than minimum detected GC. Some genotyped samples may appear as missing. GC filter will need to be reset before applying Cluster Filters.",
+                                      "Help", JOptionPane.INFORMATION_MESSAGE);
+      }
+    });
+    help.setIcon(Grafik.getImageIcon("images/question-mark_sm.png"));
+    help.setVisible(false);
+
+    gcSliderPanel.add(help, "cell 1 0");
 
     slider.addChangeListener(new ChangeListener() {
 
@@ -3790,6 +3804,16 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         JSlider slider = (JSlider) ce.getSource();
         gcThreshold = slider.getValue() / 100f;
         gcLabel.setText("GC > " + ext.formDeci(gcThreshold, 2, true));
+        float gcMin = ArrayUtils.min(getCurrentMarkerData().getGCs());
+        if (gcThreshold > gcMin) {
+          gcLabel.setForeground(Color.RED);
+          help.setVisible(true);
+        } else {
+          gcLabel.setForeground(Color.BLACK);
+          help.setVisible(false);
+        }
+
+        gcLabel.setToolTipText("Minimum detected GC: " + ext.formDeci(gcMin, 2, true));
         // seletedScatterPanel.setPointsGeneratable(true);
         // seletedScatterPanel.setQcPanelUpdatable(true);
         // seletedScatterPanel.paintAgain();
@@ -3802,7 +3826,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
     });
     // tabPanel.add(slider, gbc);
-    gcSliderPanel.add(slider);
+    gcSliderPanel.add(slider, "cell 0 1, spanx, pushx, center, grow");
     gcSlider = slider;
 
     return gcSliderPanel;
