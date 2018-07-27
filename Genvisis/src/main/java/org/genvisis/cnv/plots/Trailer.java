@@ -90,6 +90,7 @@ import javax.swing.text.NumberFormatter;
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
+import org.genvisis.cnv.analysis.pod.PODAnnotator;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
@@ -2681,6 +2682,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       if (gcModel != null) {
         optsTmp.add(new String[] {"GC content", "GC content", "Color by GC content"});
       }
+      if (Files.exists(proj.PEDIGREE_FILENAME.getValue())) {
+        optsTmp.add(new String[] {"POD", "POD", "Color by parent of origin"});
+      }
       if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null) {
         for (int i = 0; i < proj.MARKER_COLOR_KEY_FILENAMES.getValue().length; i++) {
           optsTmp.add(new String[] {ext.rootOf(proj.MARKER_COLOR_KEY_FILENAMES.getValue()[i]),
@@ -2710,6 +2714,9 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
               } else {
                 currentColorManager = gcModel.getColorManager();// stored within, doesent regenerate
               }
+            } else if ("POD".equals(cmd)) {
+              currentColorManager = PODAnnotator.getPODColors(proj, sample,
+                                                              proj.PEDIGREE_FILENAME.getValue());
             } else if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null
                        && ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
               int index = ext.indexOfStr(cmd, proj.MARKER_COLOR_KEY_FILENAMES.getValue());
