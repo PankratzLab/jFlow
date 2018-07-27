@@ -2250,7 +2250,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
   }
 
   public void updateGCSlider() {
-    updateGCSlider(DEFAULT_GC_THRESHOLD);
+    updateGCSlider((int) (proj.GC_THRESHOLD.getValue() * 100));
   }
 
   public void updateGCSlider(int threshold) {
@@ -3797,6 +3797,15 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
     gcSliderPanel.add(help, "cell 1 0");
 
+    JButton setDefault = new JButton("Set as default");
+    setDefault.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent ae) {
+        proj.GC_THRESHOLD.setValue(gcSlider.getValue() / 100.0);
+      }
+    });
+
     slider.addChangeListener(new ChangeListener() {
 
       @Override
@@ -3826,7 +3835,8 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
       }
     });
     // tabPanel.add(slider, gbc);
-    gcSliderPanel.add(slider, "cell 0 1, spanx, pushx, center, grow");
+    gcSliderPanel.add(slider, "cell 0 1, pushx, center, grow");
+    gcSliderPanel.add(setDefault, "cell 1 1");
     gcSlider = slider;
 
     return gcSliderPanel;
