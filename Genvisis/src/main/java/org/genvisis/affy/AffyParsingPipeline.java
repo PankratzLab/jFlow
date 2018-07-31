@@ -365,8 +365,12 @@ public class AffyParsingPipeline {
       bafs[i] = lrrs[i] = gcs[i] = 0;
       abGenos[i] = -1;
     }
+    MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
+                                   rs, bafs, lrrs, abGenos, forwardGenos);
+    CentroidCompute centroid = md.getCentroid(null, null, true, 0, 0, null, true, proj.getLog());
+    md = null;
     return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
-                          bafs, lrrs, abGenos, forwardGenos);
+                          bafs, centroid.getRecomputedLRR(), abGenos, forwardGenos);
   }
 
   private MarkerData parseSNPMarker(String confLine, String callLine, String sigLineA,
