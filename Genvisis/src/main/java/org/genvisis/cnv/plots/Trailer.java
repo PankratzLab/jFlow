@@ -3429,11 +3429,12 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   public void updateGUI() {
     Marker dummyStart = new Marker("dummyStart", new GenomicPosition(chr, start - 1));
     Marker dummyStop = new Marker("dummyStop", new GenomicPosition(chr, stop + 1));
-    curMarkers = markerChrMap.get(chr).subSet(dummyStart, dummyStop);
+    NavigableSet<Marker> markers = markerChrMap.get(chr);
+    curMarkers = markers == null ? null : markers.subSet(dummyStart, dummyStop);
     if (start < 1) {
       start = 1;
     }
-    if (markerChrMap.containsKey(chr) && stop > markerChrMap.get(chr).last().getPosition()) {
+    if (markers != null && stop > markerChrMap.get(chr).last().getPosition()) {
       stop = markerChrMap.get(chr).last().getPosition();
     }
 
