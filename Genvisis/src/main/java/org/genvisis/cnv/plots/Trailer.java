@@ -3585,7 +3585,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
         // 9 wfPost
         // 10 gcwfPost
         // 11 lrrsdPost
-        // 12 lrrsdPostBound
+        // 12 lrrsdPostBound 
         // 13 multimodal
         // 14 Array.toStr(bafBinCounts)
         if (qcDetails == null) {
