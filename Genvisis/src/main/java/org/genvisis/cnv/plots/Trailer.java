@@ -1030,6 +1030,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private JPanel dataPanel;
   private JPanel tracksPanel;
 
+	private String currentColor;
+
   public void waitForInit() {
     if (initThread != null && initThread.isAlive()) {
       try {
@@ -2748,6 +2750,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             else {
               log.reportError("Internal error, Invalid color command");
             }
+            currentColor = cmd;
             updateQCDisplay();
           }
         }
@@ -3388,6 +3391,53 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             indiPheno.getCnvClasses().add(new Hashtable<String, CNVariant[]>());
           }
 
+        }
+        if (currentColorManager != null && !currentColorManager.hasColorFor(newSample)) {
+        	
+          if ("Default".equals(currentColor)) {
+            currentColorManager = null;
+          } else if ("GC content".equals(currentColor)) {
+            if (gcModel == null) {
+              log.reportError("Internal error, null gc model");
+            } else {
+              currentColorManager = gcModel.getColorManager();// stored within, doesent regenerate
+            }
+          } else if ("POD".equals(currentColor)) {
+            currentColorManager = PODAnnotator.getPODColors(proj, sample,
+                                                            proj.PEDIGREE_FILENAME.getValue());
+          } else if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null
+                     && ext.indexOfStr(currentColor, proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
+            int index = ext.indexOfStr(currentColor, proj.MARKER_COLOR_KEY_FILENAMES.getValue());
+            if (previouslyLoadedManagers.containsKey(currentColor)) {
+              currentColorManager = previouslyLoadedManagers.get(currentColor);
+            } else {
+              ColorManager<String> tmp = ColorExt.getColorManager(proj,
+                                                                  proj.MARKER_COLOR_KEY_FILENAMES.getValue()[index]);
+              previouslyLoadedManagers.put(currentColor, tmp);
+              currentColorManager = previouslyLoadedManagers.get(currentColor);
+            }
+          } else if (currentColor != null && ext.indexOfStr(currentColor, otherColors) >= 0) {
+            int index = ext.indexOfStr(currentColor, otherColors);
+            if (previouslyLoadedManagers.containsKey(currentColor)) {
+              currentColorManager = previouslyLoadedManagers.get(currentColor);
+            } else {
+              try {
+                ColorManager<String> tmp = GcModel.populateFromFile(otherColors[index], true, log)
+                                                  .getColorManager();
+                previouslyLoadedManagers.put(currentColor, tmp);
+                currentColorManager = previouslyLoadedManagers.get(currentColor);
+              } catch (Exception e) {
+                log.reportTimeWarning("Could not load additional gc-model file "
+                                      + otherColors[index]);
+              }
+            }           
+          }
+
+          else {
+            log.reportError("Internal error, Invalid color command");
+          }
+          
+          updateQC(true, true, true);
         }
       }
       loadValues();
