@@ -1030,7 +1030,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
   private JPanel dataPanel;
   private JPanel tracksPanel;
 
-	private String currentColor;
+  private String currentColor;
 
   public void waitForInit() {
     if (initThread != null && initThread.isAlive()) {
@@ -3393,7 +3393,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
 
         }
         if (currentColorManager != null && !currentColorManager.hasColorFor(newSample)) {
-        	
+
           if ("Default".equals(currentColor)) {
             currentColorManager = null;
           } else if ("GC content".equals(currentColor)) {
@@ -3406,7 +3406,8 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
             currentColorManager = PODAnnotator.getPODColors(proj, sample,
                                                             proj.PEDIGREE_FILENAME.getValue());
           } else if (proj.MARKER_COLOR_KEY_FILENAMES.getValue() != null
-                     && ext.indexOfStr(currentColor, proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
+                     && ext.indexOfStr(currentColor,
+                                       proj.MARKER_COLOR_KEY_FILENAMES.getValue()) >= 0) {
             int index = ext.indexOfStr(currentColor, proj.MARKER_COLOR_KEY_FILENAMES.getValue());
             if (previouslyLoadedManagers.containsKey(currentColor)) {
               currentColorManager = previouslyLoadedManagers.get(currentColor);
@@ -3430,13 +3431,13 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
                 log.reportTimeWarning("Could not load additional gc-model file "
                                       + otherColors[index]);
               }
-            }           
+            }
           }
 
           else {
             log.reportError("Internal error, Invalid color command");
           }
-          
+
           updateQC(true, true, true);
         }
       }
