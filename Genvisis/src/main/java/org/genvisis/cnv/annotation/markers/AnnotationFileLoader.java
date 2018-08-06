@@ -98,13 +98,16 @@ public abstract class AnnotationFileLoader extends AnnotationFile implements Rea
           for (AnnotationParser parser : parsers.values()) {
             if (!parser.isFound()) {
               allFound = false;
+              break;
             }
           }
-
+          if (!allFound) {
+            break;
+          }
         }
         if (!allFound) {
           String error = "Did not find all queries for type " + queryType
-                         + " , missing annotations or internal bug";
+                         + ", missing annotations or internal bug.";
           log.reportError(error);
           throw new IllegalStateException(error);
         }
