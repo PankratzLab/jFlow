@@ -4,10 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
+import org.genvisis.CLI;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
@@ -15,6 +19,7 @@ import org.genvisis.common.ext;
 import org.genvisis.filesys.SerialHash;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
+import com.google.common.collect.Maps;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.CloseableIterator;
@@ -217,12 +222,12 @@ public class SNPVCFTesting {
     reader.close();
   }
 
-  static void writeByRSNumber() throws IOException {
+  static void writeByRSNumber(String vcfFile, String vcfOut) throws IOException {
     System.out.println(ext.getTime() + "]\tCounting lines...");
-    int lines = Files.countLines(papu, 0);
+    int lines = Files.countLines(vcfFile, 0);
     System.out.println(ext.getTime() + "]\t" + lines + " lines in VCF file.");
     System.out.println(ext.getTime() + "]\tReading header...");
-    BufferedReader reader = Files.getAppropriateReader(papu);
+    BufferedReader reader = Files.getAppropriateReader(vcfFile);
     boolean afterHeader = false;
     String line = null;
     int headerLineCount = 0;
@@ -242,10 +247,14 @@ public class SNPVCFTesting {
     int MAX_CONTIG_LEN = 512 * 1024 * 1024;
 
     int[] rsNumbers = new int[lines - headerLineCount];
-    HashMap<Integer, String> rsNumberLineMap = new HashMap<>();
+    System.out.println(ext.getTime() + "]\tParsing data to temporary file...");
 
-    System.out.println(ext.getTime() + "]\tReading data...");
+    RandomAccessFile tempWriter = new RandomAccessFile(ext.rootOf(vcfOut, false) + ".temp", "rw");
+    Map<Integer, Long> lineIndexMap = Maps.newHashMap();
+    Map<Integer, Integer> byteCountMap = Maps.newHashMap();
+
     int cnt = 0;
+
     HashSet<Integer> contigs = new HashSet<>();
     while ((line = reader.readLine()) != null) {
       line = line.trim();
@@ -284,8 +293,14 @@ public class SNPVCFTesting {
           newLineNonRS.append(";").append(str);
         }
       }
-      rsNumberLineMap.put(rsNumber, newLineNonRS.toString());
+      long pos = tempWriter.getFilePointer();
+      byte[] str = newLineNonRS.toString().getBytes();
+      tempWriter.write(str);
+      lineIndexMap.put(rsNumber, pos);
+      byteCountMap.put(rsNumber, str.length);
     }
+    tempWriter.close();
+
     System.out.println("Count: " + cnt);
     System.out.println("Length: " + rsNumbers.length);
     System.out.println("Contigs: " + contigs);
@@ -294,7 +309,7 @@ public class SNPVCFTesting {
     Arrays.sort(rsNumbers);
 
     System.out.println(ext.getTime() + "]\tWriting new file...");
-    PrintWriter writerNonRS = Files.getAppropriateWriter(papu_out);
+    PrintWriter writerNonRS = Files.getAppropriateWriter(vcfOut);
 
     for (int i = 0; i < header.length; i++) {
       if (i == header.length - 1) {
@@ -302,12 +317,21 @@ public class SNPVCFTesting {
       }
       writerNonRS.println(header[i]);
     }
+
+    RandomAccessFile raf = new RandomAccessFile(ext.rootOf(vcfOut, false) + ".temp", "r");
     for (int number : rsNumbers) {
       Integer key = Integer.valueOf(number);
-      writerNonRS.println(rsNumberLineMap.get(key));
+      raf.seek(lineIndexMap.get(key));
+      byte[] read = new byte[byteCountMap.get(key)];
+      raf.read(read);
+      writerNonRS.println(new String(read));
     }
     writerNonRS.flush();
     writerNonRS.close();
+    raf.close();
+
+    System.out.println(ext.getTime() + "]\tDeleting temporary file...");
+    java.nio.file.Files.delete(Paths.get(ext.rootOf(vcfOut, false) + ".temp"));
 
     System.out.println(ext.getTime() + "]\tComplete!");
   }
@@ -390,15 +414,19 @@ public class SNPVCFTesting {
   }
 
   public static void main(String[] args) {
-    processMerged();
-    // run();
-    // try {
-    // writeByRSNumber();
-    createTBI();
-    // trimFileOnce();
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // }
+    CLI cli = new CLI(SNPVCFTesting.class);
+
+    cli.addArg("file", "");
+    cli.addArg("out", "");
+
+    cli.parseWithExit(args);
+
+    try {
+      writeByRSNumber(cli.get("file"), cli.get("out"));
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }
