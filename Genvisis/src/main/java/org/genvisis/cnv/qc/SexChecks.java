@@ -142,11 +142,13 @@ public class SexChecks {
   public static final String EST_SEX_HEADER = generateEstSexHeader();
 
   public static final String[] SEX_HEADER = {"Sample", "FID", "IID", "Sex", EST_SEX_HEADER, "Note",
-                                             "Check", "Excluded", "Median X e^LRR",
-                                             "Median Y e^LRR", "e^LRR Ratio Y:X",
+                                             "Check", "Excluded", "X Inbreeding Coefficient",
+                                             "Median X e^LRR", "Median Y e^LRR", "e^LRR Ratio Y:X",
                                              "% X Heterozygote Calls", "% X BAF 0.15-0.85",
                                              "Median X LRR", "Median Y LRR"};
 
+  private static final double X_INBREEDING_COEFFICIENT_MIN_SEED_MALE = 0.8;
+  private static final double X_INBREEDING_COEFFICIENT_MAX_SEED_FEMALE = 0.2;
   private static final float XY_ELRR_RATIO_MIN_SEED_MALE = 1.0f;
   private static final float XY_ELRR_RATIO_MAX_SEED_MALE = 1.5f;
   private static final float XY_ELRR_RATIO_MAX_SEED_FEMALE = 0.5f;
@@ -180,6 +182,8 @@ public class SexChecks {
 
   private Map<String, Double> elrrMedX;
   private Map<String, Double> elrrMedY;
+
+  private Map<String, Double> fStatX;
 
   private Table<Marker, String, Double> lrrsX;
   private Table<Marker, String, Double> lrrsY;
@@ -342,11 +346,32 @@ public class SexChecks {
       }
     }
     mdl.shutdown();
+    final double expectedHomCount = genotypesX.rowMap().entrySet().stream().map(Entry::getValue)
+                                              .map(Map::values).map(Collection::stream)
+                                              .map(s -> s.mapToInt(Byte::intValue)
+                                                         .summaryStatistics())
+                                              .mapToDouble(s -> s.getSum()
+                                                                / (double) (s.getCount() * 2))
+                                              .map(freq -> Math.pow(freq, 2.0)
+                                                           + Math.pow(1.0 - freq, 2.0))
+                                              .sum();
+    fStatX = sampleNames.stream()
+                        .collect(ImmutableMap.toImmutableMap(Functions.identity(),
+                                                             s -> calculateFStat(genotypesX.column(s)
+                                                                                           .values(),
+                                                                                 expectedHomCount)));
     elrrMedX = elrrs.rowMap().entrySet().stream()
                     .collect(ImmutableMap.toImmutableMap(Entry::getKey,
                                                          e -> Quantiles.median()
                                                                        .compute(e.getValue()
                                                                                  .values())));
+  }
+
+  private double calculateFStat(Collection<Byte> genos, double expectedHomCount) {
+    double sampleHomCount = genos.stream().filter(geno -> geno == (byte) 0 || geno == (byte) 2)
+                                 .count();
+    return (sampleHomCount - expectedHomCount) / (genos.size() - expectedHomCount);
+
   }
 
   private void gatherYMarkerStats() {
@@ -385,9 +410,13 @@ public class SexChecks {
   private void generateSeedSexLists() {
     ImmutableSet.Builder<String> maleBuilder = ImmutableSet.builder();
     ImmutableSet.Builder<String> femaleBuilder = ImmutableSet.builder();
-
     for (String sample : qcPassedSamples) {
-      if (elrrMedY.containsKey(sample) && elrrMedX.containsKey(sample)) {
+      double fStat = fStatX.get(sample);
+      if (fStat >= X_INBREEDING_COEFFICIENT_MIN_SEED_MALE) {
+        maleBuilder.add(sample);
+      } else if (fStat <= X_INBREEDING_COEFFICIENT_MAX_SEED_FEMALE) {
+        femaleBuilder.add(sample);
+      } else if (elrrMedY.containsKey(sample) && elrrMedX.containsKey(sample)) {
         double elrrRatio = elrrMedY.get(sample) / elrrMedX.get(sample);
         if (elrrRatio > XY_ELRR_RATIO_MIN_SEED_MALE && elrrRatio < XY_ELRR_RATIO_MAX_SEED_MALE) {
           maleBuilder.add(sample);
@@ -768,8 +797,9 @@ public class SexChecks {
         double elrrX = elrrMedX.get(sample);
         double elrrY = elrrMedY.get(sample);
         lineBuilder.add(String.valueOf(sex.ordinal())).add(note).add(uncertain).add(qcPassed)
-                   .add(String.valueOf(elrrX)).add(String.valueOf(elrrY))
-                   .add(String.valueOf(elrrY / elrrX)).add(String.valueOf(pctXHets.get(sample)))
+                   .add(String.valueOf(fStatX.get(sample))).add(String.valueOf(elrrX))
+                   .add(String.valueOf(elrrY)).add(String.valueOf(elrrY / elrrX))
+                   .add(String.valueOf(pctXHets.get(sample)))
                    .add(String.valueOf(pctXBaf15_85.get(sample)))
                    .add(String.valueOf(lrrMedX.get(sample)))
                    .add(String.valueOf(lrrMedY.get(sample)));
