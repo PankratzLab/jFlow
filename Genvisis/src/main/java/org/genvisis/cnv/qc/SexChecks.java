@@ -285,7 +285,8 @@ public class SexChecks {
 
   private void generateMarkerLists(String nonCrossHybridizingMarkersFile) {
     NavigableMap<Byte, NavigableSet<Marker>> chrMap = markerSet.getChrMap();
-    xMarkers = chrMap.get((byte) 23);
+    xMarkers = markerSet.getNonPARXMarkers(proj.GENOME_BUILD_VERSION.getValue())
+                        .collect(ImmutableSet.toImmutableSet());
     yMarkers = chrMap.get((byte) 24);
     if (nonCrossHybridizingMarkersFile == null) {
       log.reportError("No file of markers that do not cross hybridize was provided, all X and Y chromosome markers will be used to determine sex baselines");
