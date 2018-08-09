@@ -83,18 +83,20 @@ public class BamImport {
    * @author Kitty
    */
   public enum NGS_MARKER_TYPE {
-    /**
-     * Typically representing exons
-     */
-    ON_TARGET("ON_TARGET"),
-    /**
-     * Off target bins
-     */
-    OFF_TARGET("OFF_TARGET"),
-    /**
-     * Corresponding to actual variant sites
-     */
-    VARIANT_SITE("VARIANT_SITE");
+                                                                             /**
+                                                                              * Typically
+                                                                              * representing exons
+                                                                              */
+                                                                             ON_TARGET("ON_TARGET"),
+                                                                             /**
+                                                                              * Off target bins
+                                                                              */
+                                                                             OFF_TARGET("OFF_TARGET"),
+                                                                             /**
+                                                                              * Corresponding to
+                                                                              * actual variant sites
+                                                                              */
+                                                                             VARIANT_SITE("VARIANT_SITE");
 
     private final String flag;
 
@@ -407,7 +409,7 @@ public class BamImport {
    * @param log
    * @return
    */
-  private static LocusSet<Segment> loadGenomeBins(Project proj, ASSAY_TYPE atype,
+  private static LocusSet<Segment> loadGenomeBins(ASSAY_TYPE atype,
                                                   LocusSet<BEDFeatureSeg> bLocusSet,
                                                   LocusSet<BEDFeatureSeg> captureSet,
                                                   int captureBuffer,
@@ -454,7 +456,7 @@ public class BamImport {
           readerCapture.close();
           if (!bLocusSet.hasNoOverlap()) {
             log.memoryFree();
-            genomeBinsMinusBinsCaputure = loadGenomeBins(proj, atype, bLocusSet, captureSet,
+            genomeBinsMinusBinsCaputure = loadGenomeBins(atype, bLocusSet, captureSet,
                                                          captureBuffer, referenceGenome, log);
           } else {
             log.reportError("The bed file " + binBed
@@ -465,8 +467,7 @@ public class BamImport {
         break;
       case WGS:
         bLocusSet = new LocusSet<>(new BEDFeatureSeg[0], false, log);
-        genomeBinsMinusBinsCaputure = loadGenomeBins(proj, atype, null, null, -1, referenceGenome,
-                                                     log);
+        genomeBinsMinusBinsCaputure = loadGenomeBins(atype, null, null, -1, referenceGenome, log);
         break;
       default:
         throw new IllegalArgumentException("Invalid assay type " + atype);
