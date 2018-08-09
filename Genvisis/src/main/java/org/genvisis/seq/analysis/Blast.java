@@ -449,7 +449,7 @@ public class Blast {
     private final DynamicHistogram percentIdentityHistogram, evalueHistogram;
     private final String name;
     private final Hashtable<String, Integer> hitCounts;
-    private Segment perfectMatchSegment;
+    private BlastResults perfectMatchResult;
     private int numPerfectMatches;
     private final boolean taxonMode;
 
@@ -461,7 +461,7 @@ public class Blast {
       percentIdentityHistogram = new DynamicHistogram(reportWordSize, 100, 0);
       evalueHistogram = new DynamicHistogram(0, 1, 2);
       numPerfectMatches = 0;
-      perfectMatchSegment = null;
+      perfectMatchResult = null;
     }
 
     public void addBlastResult(BlastResults blastResults, Logger log) {
@@ -484,15 +484,10 @@ public class Blast {
         if (blastResults.getPercentIdentity() == 100) {
           if (numPerfectMatches == 0) {
             if (blastResults.getSubjectID().startsWith("chr")) {
-              perfectMatchSegment = new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
-                                                blastResults.isStrandFlipped() ? blastResults.getSstop()
-                                                                               : blastResults.getSstart(),
-                                                blastResults.isStrandFlipped() ? blastResults.getSstart()
-                                                                               : blastResults.getSstop());
+              perfectMatchResult = blastResults;
             }
-
           } else {
-            perfectMatchSegment = null;
+            perfectMatchResult = null;
           }
           numPerfectMatches++;
         }
@@ -507,8 +502,8 @@ public class Blast {
       return name;
     }
 
-    public Segment getPerfectMatchSegment() {
-      return perfectMatchSegment;
+    public BlastResults getPerfectMatchResult() {
+      return perfectMatchResult;
     }
 
     public int getNumPerfectMatches() {
