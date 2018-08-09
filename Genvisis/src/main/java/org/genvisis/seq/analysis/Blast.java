@@ -485,7 +485,10 @@ public class Blast {
           if (numPerfectMatches == 0) {
             if (blastResults.getSubjectID().startsWith("chr")) {
               perfectMatchSegment = new Segment(Positions.chromosomeNumber(blastResults.getSubjectID()),
-                                                blastResults.getSstart(), blastResults.getSstop());
+                                                blastResults.isStrandFlipped() ? blastResults.getSstop()
+                                                                               : blastResults.getSstart(),
+                                                blastResults.isStrandFlipped() ? blastResults.getSstart()
+                                                                               : blastResults.getSstop());
             }
 
           } else {
