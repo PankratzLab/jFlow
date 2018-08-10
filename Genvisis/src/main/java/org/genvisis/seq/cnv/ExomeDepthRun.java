@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
@@ -34,7 +35,7 @@ public class ExomeDepthRun {
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
                                    String outputRoot, String rLoc, POPULATION_TYPE type,
-                                   CALLING_TYPE callingType, int numthreads) {
+                                   CALLING_TYPE callingType, GENOME_BUILD build, int numthreads) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
@@ -49,7 +50,8 @@ public class ExomeDepthRun {
     new File(outputResultsDir).mkdirs();
     Logger log = new Logger(outputDir + outputRoot + ".log");
     ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles,
-                                           outputResultsDir, outputRoot, rLoc, callingType, log);
+                                           outputResultsDir, outputRoot, rLoc, callingType, build,
+                                           log);
     if (!Files.exists(exomeDepth.getCountFile())) {
       log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
                             + ", generating it now (takes a long time)");
@@ -253,6 +255,7 @@ public class ExomeDepthRun {
     String Rloc = null;
     POPULATION_TYPE type = POPULATION_TYPE.EXOME_DEPTH;
     CALLING_TYPE cType = CALLING_TYPE.AUTOSOMAL;
+    GENOME_BUILD build = GENOME_BUILD.HG19;
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
     usage += "   (1) full path to a directory of or file of bams (i.e. bams=" + bams
@@ -265,7 +268,9 @@ public class ExomeDepthRun {
     usage += "   (6) alternative R location (i.e. rDir= (no default))\n" + "";
     usage += "   (7) population type (i.e. populationType=" + type + " (default))\n" + "";
     usage += "   (8) calling type (i.e. callingType=" + type + " (default, options are "
-             + ArrayUtils.toStr(CALLING_TYPE.values(), ",") + "))\n" + "";
+             + ArrayUtils.toStr(CALLING_TYPE.values(), ",") + "))" + "";
+    usage += "   (9) genome build (i.e. build=" + build + " (default, options are "
+             + ArrayUtils.toStr(GENOME_BUILD.values(), ",") + "))";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -295,6 +300,9 @@ public class ExomeDepthRun {
       } else if (arg.startsWith("callingType=")) {
         cType = CALLING_TYPE.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
+      } else if (arg.startsWith("build=")) {
+        build = GENOME_BUILD.valueOf(ext.parseStringArg(arg, ""));
+        numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
       }
@@ -304,7 +312,7 @@ public class ExomeDepthRun {
       System.exit(1);
     }
     try {
-      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, cType, numthreads);
+      runExomeDepth(bams, vpopFile, outputDir, outputRoot, Rloc, type, cType, build, numthreads);
     } catch (Exception e) {
       e.printStackTrace();
     }

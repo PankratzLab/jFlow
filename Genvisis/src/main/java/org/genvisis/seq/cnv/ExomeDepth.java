@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.CmdLine;
 import org.genvisis.common.Files;
@@ -61,13 +62,15 @@ public class ExomeDepth {
   private final String rLoc;
   private final Logger log;
   private final CALLING_TYPE callingType;
+  private final GENOME_BUILD build;
 
   public enum CALLING_TYPE {
     AUTOSOMAL, SEX_CHROMOSOMES
   }
 
   public ExomeDepth(String[] allReferenceBamFiles, String[] analysisBamFiles, String outputDir,
-                    String outputRoot, String rLoc, CALLING_TYPE callingType, Logger log) {
+                    String outputRoot, String rLoc, CALLING_TYPE callingType, GENOME_BUILD build,
+                    Logger log) {
     super();
     allReferenceBAMFiles = allReferenceBamFiles;
     this.log = log;
@@ -76,6 +79,7 @@ public class ExomeDepth {
     allSampleNames = BamOps.getSampleNames(allReferenceBamFiles, log);
     fail = gatherBai();
     this.callingType = callingType;
+    this.build = build;
     this.analysisBamFiles = analysisBamFiles;
     this.outputDir = outputDir;
     new File(outputDir).mkdirs();
@@ -303,10 +307,29 @@ public class ExomeDepth {
     String exons;
     switch (callingType) {
       case AUTOSOMAL:
-        exons = "exons.hg19";
+        switch (build) {
+          case HG19:
+            exons = "exons.hg19";
+
+            break;
+          case HG38:
+            exons = "hg38_ucsc_exons";
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid build  " + build);
+        }
         break;
       case SEX_CHROMOSOMES:
-        exons = "hg19_ucsc_exons_sex_chromosomes";
+        switch (build) {
+          case HG19:
+            exons = "hg19_ucsc_exons_sex_chromosomes";
+            break;
+          case HG38:
+            exons = "hg38_ucsc_exons_sex_chromosomes";
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid build  " + build);
+        }
         break;
       default:
         throw new IllegalArgumentException("Invalid calling type " + callingType);
@@ -339,6 +362,8 @@ public class ExomeDepth {
     script += "data(Conrad.hg19)\n";
     script += "library(knownGeneExons)\n";
     script += "data(hg19_ucsc_exons_sex_chromosomes)\n";
+    script += "data(hg38_ucsc_exons)\n";
+    script += "data(hg38_ucsc_exons_sex_chromosomes)\n";
     return script;
   }
 
@@ -616,7 +641,8 @@ public class ExomeDepth {
 
   public static void runExomeDepth(String bams, String outputDir, String outputRoot, String Rloc,
                                    int numBatches, int numthreads, int wallTimeInHours,
-                                   int memoryInMb, CALLING_TYPE callingType, Logger log) {
+                                   int memoryInMb, CALLING_TYPE callingType, GENOME_BUILD build,
+                                   Logger log) {
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
                                                             : HashVec.loadFileToStringArray(bams,
@@ -632,7 +658,7 @@ public class ExomeDepth {
       List<String[]> batches = ArrayUtils.splitUpArray(allReferenceBamFiles, numBatches, log);
       for (int i = 0; i < batches.size(); i++) {
         ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, batches.get(i), outputDir,
-                                               outputRoot, Rloc, callingType, log);
+                                               outputRoot, Rloc, callingType, build, log);
         if (!Files.exists(exomeDepth.getCountFile())) {
           log.reportTimeWarning("Did not find " + exomeDepth.getCountFile()
                                 + ", generating it now (takes a long time)");
@@ -660,7 +686,7 @@ public class ExomeDepth {
       }
     } else {
       ExomeDepth exomeDepth = new ExomeDepth(allReferenceBamFiles, allReferenceBamFiles, outputDir,
-                                             outputRoot, Rloc, callingType, log);
+                                             outputRoot, Rloc, callingType, build, log);
       callCNVs(exomeDepth, outputDir, outputRoot, numthreads, log);
     }
   }
@@ -781,7 +807,7 @@ public class ExomeDepth {
     try {
       log = new Logger(logfile);
       runExomeDepth(bams, outputDir, outputRoot, Rloc, numBatches, numthreads, wallTimeInHours,
-                    memoryInMb, CALLING_TYPE.AUTOSOMAL, log);
+                    memoryInMb, CALLING_TYPE.AUTOSOMAL, GENOME_BUILD.HG19, log);
     } catch (Exception e) {
       e.printStackTrace();
     }
