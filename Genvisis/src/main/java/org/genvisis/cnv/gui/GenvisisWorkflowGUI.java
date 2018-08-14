@@ -56,6 +56,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
+import org.genvisis.cnv.workflow.Requirement.RequirementInputType;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.AndRequirementSet;
 import org.genvisis.cnv.workflow.Step;
@@ -828,6 +829,18 @@ public class GenvisisWorkflowGUI extends JDialog {
                     String arg = vars.parseFail(req) || o == null ? null : o.toString();
                     boolean met = req.checkRequirement(arg, selectedSteps, variables);
                     reqLbls.get(req).setForeground(met ? greenDark : Color.RED);
+                    if (req.getType() == RequirementInputType.DIR
+                        || req.getType() == RequirementInputType.FILE) {
+                      JTextField field = ((JTextField) gui.varFields.get(step).get(req));
+                      String v = field.getText();
+                      if (!"".equals(v)) {
+                        if (Files.exists(v)) {
+                          field.setForeground(Color.BLACK);
+                        } else {
+                          field.setForeground(Color.RED);
+                        }
+                      }
+                    }
                   }
                   gui.progVal.setValue(update);
                 }
