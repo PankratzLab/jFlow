@@ -37,12 +37,14 @@ public class SamToFastQ {
    * @return
    */
   private static boolean convertToFasta(String inputBam, String samToFastQLoc, String r1, String r2,
-                                        Logger log) {
+                                        int memoryInMb, Logger log) {
     String[] inputs = new String[] {inputBam};
     String[] outputs = new String[] {r1, r2};
     ArrayList<String> command = new ArrayList<>();
     command.add("java");
+    command.add("-Xmx" + memoryInMb + "m");
     command.add("-jar");
+
     command.add(samToFastQLoc);
     if (samToFastQLoc.endsWith("picard.jar")) {
       command.add("SamToFastq");
@@ -56,7 +58,7 @@ public class SamToFastQ {
   }
 
   private static void prepBams(String bams, final String outDir, final String tag,
-                               final String samToFastQ, int numThreads) {
+                               final String samToFastQ, int numThreads, int memoryInMb) {
     new File(outDir).mkdirs();
     final Logger log = new Logger(outDir + "samToFastq.log");
     final String[] bamFiles = getBams(bams);
@@ -90,7 +92,7 @@ public class SamToFastQ {
                                + "_UUUUU-UUUUU_L001_.fastq";
               String r1 = ext.addToRoot(rootOut, "R1_001") + ".gz";
               String r2 = ext.addToRoot(rootOut, "R2_001") + ".gz";
-              boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, log);
+              boolean success = convertToFasta(bamFile, samToFastQ, r1, r2, memoryInMb, log);
 
               if (!success) {
                 log.reportError("Could not parse " + bamFile + ", removing any output");
@@ -210,7 +212,7 @@ public class SamToFastQ {
       batch(c);
     } else {
       prepBams(c.get(BAMS), c.get(CLI.ARG_OUTDIR), c.get(TAG), c.get(SAM_TO_FASTQ),
-               c.getI(CLI.ARG_THREADS));
+               c.getI(CLI.ARG_THREADS), c.getI(PSF.Ext.MEMORY_MB));
     }
 
   }
