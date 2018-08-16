@@ -19,7 +19,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 // 20,243,313 alleles), then summing up all (CADD × allele count) products for one gene; (ii) the
 // “CADD-normalized” gene-level model of accumulated mutational damage, calculated as in i, with
 // each CADD score divided by the expected (median) CADD score of a variant with a similar allele
-// frequency (Fig. S2A);
+// frequency (Fig. S2A)
 // http://www.pnas.org/content/112/44/13615.long
 // http://www.pnas.org/content/112/44/13615.long#F2
 
@@ -47,22 +47,38 @@ public class GDI {
     writer.writeHeader(reader.getFileHeader());
 
     CloseableIterator<VariantContext> iter = reader.iterator();
+    int numTotal = 0;
+    int numUsed = 0;
+
     while (iter.hasNext()) {
+      numTotal++;
       VariantContext vc = iter.next();
+      if (vc.getAlternateAlleles().size() != 1) {
+        reader.close();
+        throw new IllegalArgumentException("Must not have multiple alternate alleles");
+      }
       List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
-      boolean use = false;
+      boolean useImpact = false;
       for (GeneImpact g : geneImpacts) {
         if (g.impact.ordinal() > IMPACT.LOW.ordinal()) {
-          use = true;
+          useImpact = true;
           break;
         }
       }
-      if (use) {
-        writer.add(vc);
+      if (useImpact) {
+
+        double af = Double.parseDouble(vc.getAttributeAsString("AF", "0"));
+        if (af < 0.5) {//with a MAF < 0.5, alt is annotated so we make sure it is minor
+          writer.add(vc);
+          numUsed++;
+        }
+      }
+      if (numTotal % 1000000 == 0) {
+        log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
       }
     }
+    log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
     reader.close();
-
   }
 
   public static void main(String[] args) {
