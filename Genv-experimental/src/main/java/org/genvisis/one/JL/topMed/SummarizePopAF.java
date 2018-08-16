@@ -1,3 +1,4 @@
+
 package org.genvisis.one.JL.topMed;
 
 import java.io.File;
@@ -13,6 +14,8 @@ import org.genvisis.CLI;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
+import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
+import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
 import org.genvisis.seq.manage.VCFOps;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -23,15 +26,6 @@ import htsjdk.variant.vcf.VCFFileReader;
  */
 public class SummarizePopAF {
 
-  private static final String MAFS = "mafs";
-  private static final String ANN = "ANN";
-  private static final String ANN_DELIM = ",";
-  private static final String ANN_DELIM_SUB = "\\|";
-  private static final String ANN_BLANK = ".";
-
-  private static final int IMPACT_INDEX = 2;
-  private static final int GENE_INDEX = 3;
-
   /**
    * If this is used elsewhere, can make this customizable
    */
@@ -40,10 +34,6 @@ public class SummarizePopAF {
                                                                "AF_EM_POP_DEF_Hispanics",
                                                                "AF_EM_POP_DEF_SAS",
                                                                "AF_EM_POP_DEF_Whites", "AF");
-
-  private enum IMPACT {
-    MODIFIER, LOW, MODERATE, HIGH;
-  }
 
   private static class MAFGeneCounter {
 
@@ -83,7 +73,7 @@ public class SummarizePopAF {
 
     String outDir = c.get(CLI.ARG_OUTDIR);
     String vcf = c.get(CLI.ARG_VCF);
-    double[] mafs = ArrayUtils.toDoubleArray(c.get(MAFS).split(","));
+    double[] mafs = ArrayUtils.toDoubleArray(c.get(TOPMedUtils.MAFS).split(","));
     Map<String, List<MAFGeneCounter>> mCounters = new HashMap<>();
     for (String pop : FREQ_ANNOS) {
       mCounters.put(pop, new ArrayList<>());
@@ -103,22 +93,20 @@ public class SummarizePopAF {
       if (numScanned % 100000 == 0) {
         log.reportTimeInfo(Integer.toString(numScanned) + " variants scanned");
       }
-      String ann = vc.getAttributeAsString(ANN, ANN_BLANK);
-      if (!ANN_BLANK.equals(ann)) {
-        String[] anns = ann.split(ANN_DELIM);
-        IMPACT maxImpact = null;
-        String gene = null;
-        for (String a : anns) {
-          String[] subAnn = a.split(ANN_DELIM_SUB);
-          IMPACT impact = IMPACT.valueOf(subAnn[IMPACT_INDEX]);
-          if (maxImpact == null || impact.ordinal() > maxImpact.ordinal()) {
+      List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
 
-            maxImpact = impact;
-            gene = subAnn[GENE_INDEX];
+      if (!geneImpacts.isEmpty()) {
+        GeneImpact maxGeneImpact = null;
+        for (GeneImpact g : geneImpacts) {
+          if (maxGeneImpact == null || g.impact.ordinal() > maxGeneImpact.impact.ordinal()) {
+            maxGeneImpact = g;
           }
         }
-
-        allGenes.add(gene);
+        if (maxGeneImpact == null) {
+          reader.close();
+          throw new IllegalArgumentException("Null impact");
+        }
+        allGenes.add(maxGeneImpact.gene);
         double maxAF = -1;
         for (String afAnno : FREQ_ANNOS) {
           double af = vc.getAttributeAsDouble(afAnno, -1);
@@ -129,9 +117,9 @@ public class SummarizePopAF {
         for (String afAnno : FREQ_ANNOS) {
           double af = vc.getAttributeAsDouble(afAnno, -1);
           for (MAFGeneCounter mCounter : mCounters.get(afAnno)) {
-            mCounter.init(gene);
+            mCounter.init(maxGeneImpact.gene);
             if (af > 0) {
-              mCounter.count(maxImpact, gene, maxAF);
+              mCounter.count(maxGeneImpact.impact, maxGeneImpact.gene, maxAF);
             }
           }
         }
@@ -177,7 +165,8 @@ public class SummarizePopAF {
     c.addArg(CLI.ARG_VCF, CLI.DESC_VCF);
 
     c.addArg(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR);
-    c.addArg(MAFS, "comma delimited list of mafs to summarize, note that maf 0 will be singletons");
+    c.addArg(TOPMedUtils.MAFS,
+             "comma delimited list of mafs to summarize, note that maf 0 will be singletons");
 
     c.parseWithExit(args);
 
