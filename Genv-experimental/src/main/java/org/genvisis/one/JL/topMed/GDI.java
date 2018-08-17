@@ -91,8 +91,9 @@ public class GDI {
   }
 
   private static final String[] BASE = new String[] {"CHROM", "START", "END", "ID", "REF", "ALT"};
-  private static final String[] ANNOS = new String[] {"CADD_raw", "AF", "SNPEFF_GENE_NAME",
-                                                      "SNPEFF_IMPACT"};
+  private static final String[] ANNOS = new String[] {"CADD_raw", "CADD_phred",
+                                                      "CADD_raw_rankscore", "AF", "AC",
+                                                      "SNPEFF_GENE_NAME", "SNPEFF_IMPACT"};
 
   private static void extractGDIComponents(CLI c) {
 
@@ -108,6 +109,8 @@ public class GDI {
     CloseableIterator<VariantContext> iter = reader.iterator();
     int numTotal = 0;
     int numUsed = 0;
+    int numSkipped = 0;
+
     PrintWriter writer = Files.getAppropriateWriter(outputTmp);
     writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS));
 
@@ -115,23 +118,27 @@ public class GDI {
       numTotal++;
       VariantContext vc = iter.next();
       if (!vc.isFiltered()) {
-        if (vc.getAlternateAlleles().size() != 1) {
-          reader.close();
-          throw new IllegalArgumentException("Must not have multiple alternate alleles");
+
+        try {
+          Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
+          StringJoiner out = new StringJoiner("\t");
+          out.add(vc.getContig());
+          out.add(Integer.toString(vc.getStart()));
+          out.add(Integer.toString(vc.getEnd()));
+          out.add(vc.getID());
+          out.add(vc.getReference().getBaseString());
+          out.add(vc.getAlternateAlleles().get(0).getBaseString());
+
+          writer.println(out.toString() + "\t"
+                         + ArrayUtils.toStr(VCOps.getAnnotationsFor(ANNOS, vc, ".")));
+          numUsed++;
+        } catch (NumberFormatException nfe) {
+          numSkipped++;
         }
-        StringJoiner out = new StringJoiner("\t");
-        out.add(vc.getContig());
-        out.add(Integer.toString(vc.getStart()));
-        out.add(Integer.toString(vc.getEnd()));
-        out.add(vc.getID());
-        out.add(vc.getReference().getBaseString());
-        out.add(vc.getAlternateAlleles().get(0).getBaseString());
 
-        writer.println(out.toString() + "\t"
-                       + ArrayUtils.toStr(VCOps.getAnnotationsFor(ANNOS, vc, ".")));
-
-        if (numTotal % 1000000 == 0) {
-          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
+        if (numTotal % 10000 == 0) {
+          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed
+                             + " skipped " + numSkipped + " for missing CADD");
         }
       }
     }
@@ -141,8 +148,8 @@ public class GDI {
   public static void main(String[] args) {
     CLI c = new CLI(GDI.class);
 
-    c.addFlag(TRIM_TO_GENES, "trim the .vcf to variants with a gene annotation");
-    c.addFlag(COMPUTE_RAW_GDI, "compute raw GDI using the provided .vcf");
+    c.addFlag(TRIM_TO_GENES, "trim the .vcf to variants to be used in GDI scores");
+    c.addFlag(EXTRACT_GDI_INFO, "extract components of the GDI score ");
 
     c.addArg(CLI.ARG_VCF, CLI.DESC_VCF);
     c.addArg(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR);
