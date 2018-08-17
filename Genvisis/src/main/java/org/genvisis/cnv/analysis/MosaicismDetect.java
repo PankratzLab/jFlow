@@ -28,7 +28,6 @@ import org.genvisis.filesys.Segment;
 import org.genvisis.stats.Maths;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import be.ac.ulg.montefiore.run.distributions.GaussianMixtureDistribution;
@@ -142,7 +141,7 @@ public class MosaicismDetect {
         double d = tD.length > 0 ? ArrayUtils.mean(tD) : Double.NaN;
         pDensityScored.put(marker, d);
         if (Double.isFinite(d)) {
-          if (d <= baseLine || force) {
+          if (d <= baseLine || force || marker.getChr() == 21) {
             states.put(marker, 0);
           } else {
             states.put(marker, 2);
@@ -518,7 +517,7 @@ public class MosaicismDetect {
     MosaicBuilder builder = new MosaicBuilder();// most customizing can be done in the builder if
                                                 // needed
     Set<Marker> use = markerSet.markersAsList().stream()
-                               .filter(m -> proj.ARRAY_TYPE.getValue().isCNOnly(m.getName()))
+                               .filter(m -> !proj.ARRAY_TYPE.getValue().isCNOnly(m.getName()))
                                .collect(ImmutableSet.toImmutableSet());
     builder.use(use);
     proj.getLog()
