@@ -1,12 +1,17 @@
 package org.genvisis.one.JL.topMed;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.List;
+import java.util.StringJoiner;
 import org.genvisis.CLI;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
 import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
 import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -29,6 +34,8 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class GDI {
 
   private static final String TRIM_TO_GENES = "trimToGenes";
+  private static final String COMPUTE_RAW_GDI = "computeRawGDI";
+  private static final String EXTRACT_GDI_INFO = "extractGDIinfo";
 
   private static void trimToImpactVariants(CLI c) {
     String outDir = c.get(CLI.ARG_OUTDIR);
@@ -36,48 +43,98 @@ public class GDI {
     Logger log = new Logger(outDir + "gdi.log");
     String vcf = c.get(CLI.ARG_VCF);
 
-    log.reportTimeInfo("selecting variants from " + vcf);
-    VCFFileReader reader = new VCFFileReader(new File(vcf));
-
     String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".func.vcf.gz";
-    VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVcf);
-    builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
+    if (!Files.exists(outputVcf)) {
+      log.reportTimeInfo("selecting variants from " + vcf);
 
-    VariantContextWriter writer = builder.build();
-    writer.writeHeader(reader.getFileHeader());
+      VCFFileReader reader = new VCFFileReader(new File(vcf));
 
+      VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVcf);
+      builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
+
+      VariantContextWriter writer = builder.build();
+      writer.writeHeader(reader.getFileHeader());
+
+      CloseableIterator<VariantContext> iter = reader.iterator();
+      int numTotal = 0;
+      int numUsed = 0;
+
+      while (iter.hasNext()) {
+        numTotal++;
+        VariantContext vc = iter.next();
+        if (vc.getAlternateAlleles().size() != 1) {
+          reader.close();
+          throw new IllegalArgumentException("Must not have multiple alternate alleles");
+        }
+        List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
+        boolean useImpact = false;
+        for (GeneImpact g : geneImpacts) {
+          if (g.impact.ordinal() > IMPACT.LOW.ordinal()) {
+            useImpact = true;
+            break;
+          }
+        }
+        if (useImpact) {
+          double af = Double.parseDouble(vc.getAttributeAsString("AF", "0"));
+          if (af < 0.5) {//with a MAF < 0.5, alt is annotated so we make sure it is minor
+            writer.add(vc);
+            numUsed++;
+          }
+        }
+        if (numTotal % 1000000 == 0) {
+          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
+        }
+      }
+      log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
+      reader.close();
+    }
+  }
+
+  private static final String[] BASE = new String[] {"CHROM", "START", "END", "ID", "REF", "ALT"};
+  private static final String[] ANNOS = new String[] {"CADD_raw", "AF", "SNPEFF_GENE_NAME",
+                                                      "SNPEFF_IMPACT"};
+
+  private static void extractGDIComponents(CLI c) {
+
+    String outDir = c.get(CLI.ARG_OUTDIR);
+    new File(outDir).mkdirs();
+    Logger log = new Logger(outDir + "gdi.log");
+    String vcf = c.get(CLI.ARG_VCF);
+
+    log.reportTimeInfo("computing GDI using variants from " + vcf);
+
+    VCFFileReader reader = new VCFFileReader(new File(vcf));
+    String outputTmp = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".cadd.af.txt.gz";
     CloseableIterator<VariantContext> iter = reader.iterator();
     int numTotal = 0;
     int numUsed = 0;
+    PrintWriter writer = Files.getAppropriateWriter(outputTmp);
+    writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS));
 
     while (iter.hasNext()) {
       numTotal++;
       VariantContext vc = iter.next();
-      if (vc.getAlternateAlleles().size() != 1) {
-        reader.close();
-        throw new IllegalArgumentException("Must not have multiple alternate alleles");
-      }
-      List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
-      boolean useImpact = false;
-      for (GeneImpact g : geneImpacts) {
-        if (g.impact.ordinal() > IMPACT.LOW.ordinal()) {
-          useImpact = true;
-          break;
+      if (!vc.isFiltered()) {
+        if (vc.getAlternateAlleles().size() != 1) {
+          reader.close();
+          throw new IllegalArgumentException("Must not have multiple alternate alleles");
         }
-      }
-      if (useImpact) {
+        StringJoiner out = new StringJoiner("\t");
+        out.add(vc.getContig());
+        out.add(Integer.toString(vc.getStart()));
+        out.add(Integer.toString(vc.getEnd()));
+        out.add(vc.getID());
+        out.add(vc.getReference().getBaseString());
+        out.add(vc.getAlternateAlleles().get(0).getBaseString());
 
-        double af = Double.parseDouble(vc.getAttributeAsString("AF", "0"));
-        if (af < 0.5) {//with a MAF < 0.5, alt is annotated so we make sure it is minor
-          writer.add(vc);
-          numUsed++;
+        writer.println(out.toString() + "\t"
+                       + ArrayUtils.toStr(VCOps.getAnnotationsFor(ANNOS, vc, ".")));
+
+        if (numTotal % 1000000 == 0) {
+          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
         }
-      }
-      if (numTotal % 1000000 == 0) {
-        log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
       }
     }
-    log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed);
     reader.close();
   }
 
@@ -85,6 +142,8 @@ public class GDI {
     CLI c = new CLI(GDI.class);
 
     c.addFlag(TRIM_TO_GENES, "trim the .vcf to variants with a gene annotation");
+    c.addFlag(COMPUTE_RAW_GDI, "compute raw GDI using the provided .vcf");
+
     c.addArg(CLI.ARG_VCF, CLI.DESC_VCF);
     c.addArg(CLI.ARG_OUTDIR, CLI.DESC_OUTDIR);
 
@@ -92,7 +151,10 @@ public class GDI {
 
     if (c.has(TRIM_TO_GENES)) {
       trimToImpactVariants(c);
+    } else if (c.has(EXTRACT_GDI_INFO)) {
+      extractGDIComponents(c);
     }
+
   }
 
 }
