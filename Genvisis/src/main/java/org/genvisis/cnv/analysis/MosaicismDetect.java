@@ -141,7 +141,7 @@ public class MosaicismDetect {
         double d = tD.length > 0 ? ArrayUtils.mean(tD) : Double.NaN;
         pDensityScored.put(marker, d);
         if (Double.isFinite(d)) {
-          if (d <= baseLine || force || marker.getChr() == 21) {
+          if (d <= baseLine || force) {
             states.put(marker, 0);
           } else {
             states.put(marker, 2);
