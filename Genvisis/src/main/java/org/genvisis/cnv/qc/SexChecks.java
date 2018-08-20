@@ -28,6 +28,7 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
@@ -347,15 +348,37 @@ public class SexChecks {
       }
     }
     mdl.shutdown();
-    final double expectedHomCount = genotypesX.rowMap().entrySet().stream().map(Entry::getValue)
-                                              .map(Map::values).map(Collection::stream)
-                                              .map(s -> s.mapToInt(Byte::intValue)
-                                                         .summaryStatistics())
-                                              .mapToDouble(s -> s.getSum()
-                                                                / (double) (s.getCount() * 2))
-                                              .map(freq -> Math.pow(freq, 2.0)
-                                                           + Math.pow(1.0 - freq, 2.0))
-                                              .sum();
+
+    final Table<Marker, String, Byte> founderXGenos;
+
+    if (proj.pedigreeExists()) {
+      log.report("Determining founders to calculate expected homozygosity for X chromosome markers");
+      Pedigree ped = proj.loadPedigree();
+      Set<String> founders = Sets.newHashSet();
+      for (int i = 0; i < ped.getDnas().length; i++) {
+        if (!ped.validMO(i) && !ped.validFA(i)) {
+          founders.add(ped.getiDNA(i));
+        }
+      }
+      log.report("Identified " + founders.size() + " founders out of " + ped.getDnas().length
+                 + " samples in pedigree");
+      founderXGenos = HashBasedTable.create(genotypesX);
+      founderXGenos.columnMap().keySet().retainAll(founders);
+    } else {
+      founderXGenos = genotypesX;
+    }
+
+    final double expectedHomCount = founderXGenos.rowMap().entrySet().stream().map(Entry::getValue)
+                                                 .map(Map::entrySet).map(Set::stream)
+                                                 .map(e -> e.map(Entry::getValue))
+                                                 .map(genos -> genos.mapToInt(Byte::intValue)
+                                                                    .summaryStatistics())
+                                                 .mapToDouble(stats -> stats.getSum()
+                                                                       / (double) (stats.getCount()
+                                                                                   * 2))
+                                                 .map(freq -> Math.pow(freq, 2.0)
+                                                              + Math.pow(1.0 - freq, 2.0))
+                                                 .sum();
     fStatX = sampleNames.stream()
                         .collect(ImmutableMap.toImmutableMap(Functions.identity(),
                                                              s -> calculateFStat(genotypesX.column(s)
