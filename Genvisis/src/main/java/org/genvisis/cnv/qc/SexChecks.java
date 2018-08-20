@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -368,22 +369,14 @@ public class SexChecks {
       founderXGenos = genotypesX;
     }
 
-    final double expectedHomCount = founderXGenos.rowMap().entrySet().stream().map(Entry::getValue)
-                                                 .map(Map::entrySet).map(Set::stream)
-                                                 .map(e -> e.map(Entry::getValue))
-                                                 .map(genos -> genos.mapToInt(Byte::intValue)
-                                                                    .summaryStatistics())
-                                                 .mapToDouble(stats -> stats.getSum()
-                                                                       / (double) (stats.getCount()
-                                                                                   * 2))
-                                                 .map(freq -> Math.pow(freq, 2.0)
-                                                              + Math.pow(1.0 - freq, 2.0))
-                                                 .sum();
+    final Map<Marker, Double> founderExpectedHoms = founderXGenos.rowMap().entrySet().stream()
+                                                                 .collect(ImmutableMap.toImmutableMap(Entry::getKey,
+                                                                                                      e -> calculateExpectedHomozygosity(e.getValue()
+                                                                                                                                          .values())));
     fStatX = sampleNames.stream()
                         .collect(ImmutableMap.toImmutableMap(Functions.identity(),
-                                                             s -> calculateFStat(genotypesX.column(s)
-                                                                                           .values(),
-                                                                                 expectedHomCount)));
+                                                             s -> calculateFStat(genotypesX.column(s),
+                                                                                 founderExpectedHoms)));
     elrrMedX = elrrs.rowMap().entrySet().stream()
                     .collect(ImmutableMap.toImmutableMap(Entry::getKey,
                                                          e -> Quantiles.median()
@@ -391,11 +384,26 @@ public class SexChecks {
                                                                                  .values())));
   }
 
-  private double calculateFStat(Collection<Byte> genos, double expectedHomCount) {
-    double sampleHomCount = genos.stream().filter(geno -> geno == (byte) 0 || geno == (byte) 2)
-                                 .count();
-    return (sampleHomCount - expectedHomCount) / (genos.size() - expectedHomCount);
+  private static double calculateBAF(Collection<Byte> genos) {
+    IntSummaryStatistics genoStats = genos.stream().mapToInt(Byte::intValue)
+                                          .filter(geno -> geno >= 0).summaryStatistics();
+    return genoStats.getSum() / (genoStats.getCount() * 2.0);
+  }
 
+  private static double calculateExpectedHomozygosity(Collection<Byte> genos) {
+    double baf = calculateBAF(genos);
+    return Math.pow(baf, 2.0) + Math.pow(1.0 - baf, 2.0);
+  }
+
+  private static double calculateHomozygosity(Collection<Byte> genos) {
+    return genos.stream().filter(geno -> geno == (byte) 0 || geno == (byte) 2).count();
+  }
+
+  private static double calculateFStat(Map<Marker, Byte> genos, Map<Marker, Double> expectedHoms) {
+    double expectedHomCount = genos.entrySet().stream().filter(e -> e.getValue() >= (byte) 0)
+                                   .map(Entry::getKey).mapToDouble(expectedHoms::get).sum();
+    double sampleHomCount = calculateHomozygosity(genos.values());
+    return (sampleHomCount - expectedHomCount) / (genos.size() - expectedHomCount);
   }
 
   private void gatherYMarkerStats() {
