@@ -173,6 +173,15 @@ public class FamilyStructure {
     return ids[index][FA_INDEX];
   }
 
+  /**
+   * @param index
+   * @return true if the sample at index has a valid father listed (non-null, non-zero, non-missing
+   *         value)
+   */
+  public boolean validFA(int index) {
+    return validIID(getFA(index));
+  }
+
   public int getIndexOfFaInIDs(int indivIndex) {
     return MISSING_ID_STR.equals(fas[indivIndex]) ? -1
                                                   : getIndIndex(fids[indivIndex], fas[indivIndex]);
@@ -185,6 +194,22 @@ public class FamilyStructure {
 
   public String getMO(int index) {
     return ids[index][MO_INDEX];
+  }
+
+  /**
+   * @param index
+   * @return true if the sample at index has a valid mother listed (non-null, non-zero, non-missing
+   *         value)
+   */
+  public boolean validMO(int index) {
+    return validIID(getMO(index));
+  }
+
+  private static boolean validIID(String id) {
+    if (id == null) return false;
+    if (id.equals("0")) return false;
+    if (ext.isMissingValue(id)) return false;
+    return true;
   }
 
   public byte[] getGenders() {
