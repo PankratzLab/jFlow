@@ -101,7 +101,7 @@ public final class StandardFileColumns {
   /**
    * {@link #chr(String, boolean)} that will not die on parse failure
    */
-  public static FileColumn<Byte> chr(String colName) {
+  public static IndexedFileColumn<Byte> chr(String colName) {
     return chr(colName, false);
   }
 
@@ -115,7 +115,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return FileColumn<Byte>
    */
-  public static FileColumn<Byte> chr(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Byte> chr(String colName, boolean dieOnMissing) {
     return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
                                                            new Aliases(org.genvisis.common.Aliases.CHRS)),
                                      Positions::chromosomeNumber, dieOnMissing);
@@ -129,7 +129,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return IntegerWrapperColumn
    */
-  public static FileColumn<Integer> pos(String colName) {
+  public static IndexedFileColumn<Integer> pos(String colName) {
     return pos(colName, false);
   }
 
@@ -142,7 +142,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return IntegerWrapperColumn
    */
-  public static FileColumn<Integer> pos(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Integer> pos(String colName, boolean dieOnMissing) {
     return new IntegerWrapperColumn(new AliasedFileColumn(colName,
                                                           new Aliases(org.genvisis.common.Aliases.POSITIONS)),
                                     dieOnMissing);
@@ -156,7 +156,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return DoubleWrapperColumn
    */
-  public static FileColumn<Double> pVal(String colName) {
+  public static IndexedFileColumn<Double> pVal(String colName) {
     return pVal(colName, false);
   }
 
@@ -169,7 +169,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return DoubleWrapperColumn
    */
-  public static FileColumn<Double> pVal(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Double> pVal(String colName, boolean dieOnMissing) {
     return new DoubleWrapperColumn(new AliasedFileColumn(colName,
                                                          new Aliases(org.genvisis.common.Aliases.PVALUES)),
                                    dieOnMissing);
@@ -194,7 +194,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return AliasedFileColumn
    */
-  public static FileColumn<Integer> n(String colName) {
+  public static IndexedFileColumn<Integer> n(String colName) {
     return n(colName, false);
   }
 
@@ -206,7 +206,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return AliasedFileColumn
    */
-  public static FileColumn<Integer> n(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Integer> n(String colName, boolean dieOnMissing) {
     return new IntegerWrapperColumn(new AliasedFileColumn(colName,
                                                           new Aliases(org.genvisis.common.Aliases.NS)),
                                     dieOnMissing);
@@ -231,7 +231,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return AliasedFileColumn
    */
-  public static FileColumn<Double> alleleFreq(String colName) {
+  public static IndexedFileColumn<Double> alleleFreq(String colName) {
     return alleleFreq(colName, false);
   }
 
@@ -243,7 +243,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return AliasedFileColumn
    */
-  public static FileColumn<Double> alleleFreq(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Double> alleleFreq(String colName, boolean dieOnMissing) {
     return new DoubleWrapperColumn(new AliasedFileColumn(colName,
                                                          new Aliases(org.genvisis.common.Aliases.ALLELE_FREQS)),
                                    dieOnMissing);
@@ -256,7 +256,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return FileColumn<Double>
    */
-  public static FileColumn<Double> beta(String colName) {
+  public static IndexedFileColumn<Double> beta(String colName) {
     return beta(colName, false);
   }
 
@@ -268,7 +268,7 @@ public final class StandardFileColumns {
    * @param dieOnMissing
    * @return FileColumn<Double>
    */
-  public static FileColumn<Double> beta(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Double> beta(String colName, boolean dieOnMissing) {
     return new DoubleWrapperColumn(new AliasedFileColumn(colName,
                                                          new Aliases(org.genvisis.common.Aliases.EFFECTS)),
                                    dieOnMissing);
@@ -281,7 +281,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return FileColumn<Double>
    */
-  public static FileColumn<Double> stdErr(String colName) {
+  public static IndexedFileColumn<Double> stdErr(String colName) {
     return stdErr(colName, false);
   }
 
@@ -292,7 +292,7 @@ public final class StandardFileColumns {
    * @param colName Desired name of column
    * @return FileColumn<Double>
    */
-  public static FileColumn<Double> stdErr(String colName, boolean dieOnMissing) {
+  public static IndexedFileColumn<Double> stdErr(String colName, boolean dieOnMissing) {
     return new DoubleWrapperColumn(new AliasedFileColumn(colName,
                                                          new Aliases(org.genvisis.common.Aliases.STD_ERRS)),
                                    dieOnMissing);
