@@ -12,6 +12,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.genvisis.cnv.plots.ForestPlot;
 import org.genvisis.common.Aliases;
 import org.genvisis.common.ArrayUtils;
@@ -2245,6 +2252,7 @@ public class SeqMeta {
         log.report("");
 
       }
+
     }
     hitsDirectory = ext.verifyDirFormat(hitsDirectory);
 
@@ -2599,6 +2607,7 @@ public class SeqMeta {
     pvalThresholdsLog.report("Trait\tN\tnTests\tBonferroni_pval");
     for (String[] phenotype : phenotypes) {
       ns = ArrayUtils.intArray(groups.length, -1);
+      HSSFWorkbook wb = new HSSFWorkbook();
       for (String[] method : methods) {
         if (method[1].equals("BurdenTests")) {
           for (String functionFileName : functionNames) {
@@ -2624,6 +2633,7 @@ public class SeqMeta {
         }
       }
       for (int g = 0; g < groups.length; g++) {
+        Sheet sheet = wb.createSheet(groups[g]);
         if (groups[g].equals("SingleVariant") && ns[g] == -1) {
           ns[g] = 1000000;
         } else if (groups[g].startsWith("BurdenTests") && ns[g] == -1) {
@@ -2643,9 +2653,9 @@ public class SeqMeta {
           // additionalCols.add("single_func_region");
           additionalCols.add("Function");
         }
-        if (groups[g].startsWith("BurdenTests")) {
-          additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
-        }
+        //        if (groups[g].startsWith("BurdenTests")) {
+        //          additionalCols.add("PanEthnic_nsnpsTotal_T5Count");
+        //        }
         for (String[] method : methods) {
           if (groups[g].startsWith(method[1])) {
             additionalCols.add("PanEthnic_p_" + method[0]);
@@ -2671,6 +2681,43 @@ public class SeqMeta {
           results = HitWindows.determine(dir + hitsDirectory + filename, indexThreshold, 500000,
                                          indexThreshold * 100,
                                          ArrayUtils.toStringArray(additionalCols), log);
+          try {
+            BufferedReader reader = Files.getAppropriateReader(hitsDirectory + "/" + filename);
+            int rownum = 0;
+            CellStyle style = wb.createCellStyle();
+            style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+            style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            String[] headerCheck = Files.getHeaderOfFile(hitsDirectory + "/" + filename, log);
+
+            if (headerCheck.length > 255) {
+              log.reportError("The Excel converter cannot currently handle more than 255 columns. The file "
+                              + filename + " has " + headerCheck.length + " columns.");
+              log.reportError("Truncating excel results at 255 columns.");
+            }
+
+            while (reader.ready()) {
+              String[] line = reader.readLine().split(",");
+              Row row = sheet.createRow(rownum++);
+
+              for (int j = 0; j < line.length && j < 255; j++) {
+                Cell cell = row.createCell(j);
+                cell.setCellValue(line[j]);
+                int pvalIndex = ext.indexFactors(new String[][] {Aliases.PVALUES},
+                                                 headerCheck[j].split("_"), false, true, false)[0];
+                if (pvalIndex > -1 && ext.isValidDouble(line[j])
+                    && Double.parseDouble(line[j]) < indexThreshold) {
+                  cell.setCellStyle(style);
+                }
+              }
+
+            }
+
+          } catch (IOException e) {
+            log.reportError("Error creating excel file from " + filename);
+            e.printStackTrace();
+          }
+
           if (results == null) {
             log.reportError("HitWindows result from " + filename + " was null");
           } else {
@@ -2712,10 +2759,18 @@ public class SeqMeta {
                           + filename);
         }
       }
+      try {
+        wb.write(new File(hitsDirectory + "/" + phenotype[0] + "_results.xls"));
+        wb.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
     for (int g = 0; g < groups.length; g++) {
-      Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
-                dir + hitsDirectory + groups[g] + "_regions.xln", new int[0], log);
+      if (filesToCat.elementAt(g).size() > 0) {
+        Files.cat(ArrayUtils.toStringArray(filesToCat.elementAt(g)),
+                  dir + hitsDirectory + groups[g] + "_regions.xln", new int[0], log);
+      }
     }
   }
 
