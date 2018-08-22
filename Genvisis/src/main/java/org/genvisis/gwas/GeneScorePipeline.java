@@ -1228,10 +1228,8 @@ public class GeneScorePipeline {
         final FileColumn<String> remainingColumns = StandardFileColumns.allExcept(outDelim,
                                                                                   markerCol,
                                                                                   pColumn,
-                                                                                  new AliasedFileColumn("excludedChr",
-                                                                                                        Aliases.CHRS),
-                                                                                  new AliasedFileColumn("excludedPos",
-                                                                                                        Aliases.POSITIONS));
+                                                                                  StandardFileColumns.chr("excludedChr"),
+                                                                                  StandardFileColumns.pos("excludedPos"));
         final ColumnFilter mkrsBimFilter = new AbstractColumnFilter(markerCol) {
 
           @Override
