@@ -36,8 +36,8 @@ public class ext {
 
   private static final String[] SUFFIXES = new String[] {"th", "st", "nd", "rd", "th", "th", "th",
                                                          "th", "th", "th"};
-  public static final Set<Character> UNSAFE_CHARS = ImmutableSet.of(' ', '?', '\'', '/', '\\', '<',
-                                                                    '>', '|', ':', '*', '\'');
+  public static final Set<Character> UNSAFE_CHARS = ImmutableSet.of(' ', '\t', '?', '\'', '/', '\\',
+                                                                    '<', '>', '|', ':', '*', '\'');
   public static final Set<Character> UNSAFE_CHARS_STRICT;
   static {
     ImmutableSet.Builder<Character> unsafeCharsStrictBuilder = ImmutableSet.builder();
