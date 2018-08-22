@@ -350,7 +350,8 @@ public class SexChecks {
     }
     mdl.shutdown();
 
-    final Table<Marker, String, Byte> founderXGenos;
+    final Table<Marker, String, Byte> founderXGenos = HashBasedTable.create(genotypesX);
+    founderXGenos.columnMap().keySet().retainAll(qcPassedSamples);
 
     if (proj.pedigreeExists()) {
       log.report("Determining founders to calculate expected homozygosity for X chromosome markers");
@@ -361,12 +362,9 @@ public class SexChecks {
           founders.add(ped.getiDNA(i));
         }
       }
-      log.report("Identified " + founders.size() + " founders out of " + ped.getDnas().length
-                 + " samples in pedigree");
-      founderXGenos = HashBasedTable.create(genotypesX);
       founderXGenos.columnMap().keySet().retainAll(founders);
-    } else {
-      founderXGenos = genotypesX;
+      log.report("Identified " + founderXGenos.columnMap().size() + " founders out of "
+                 + qcPassedSamples.size() + " qc-passed samples");
     }
 
     final Map<Marker, Double> founderExpectedHoms = founderXGenos.rowMap().entrySet().stream()
