@@ -2,11 +2,11 @@ package org.genvisis.common.parsing;
 
 public class StringWrapperColumn extends WrapperColumn<String, Object> {
 
-  public StringWrapperColumn(FileColumn<? extends Object> base) {
+  public StringWrapperColumn(IndexedFileColumn<? extends Object> base) {
     super(base);
   }
 
-  public StringWrapperColumn(FileColumn<? extends Object> base, boolean dieOnParseFailure) {
+  public StringWrapperColumn(IndexedFileColumn<? extends Object> base, boolean dieOnParseFailure) {
     super(base, dieOnParseFailure);
   }
 

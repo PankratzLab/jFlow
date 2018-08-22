@@ -10,7 +10,7 @@ public class ArrayWrapperColumn extends WrapperColumn<String[], String> {
    * @param base underlying column to split into array
    * @param delimeter regex delimiter to split on
    */
-  public ArrayWrapperColumn(FileColumn<String> base, String delimeter) {
+  public ArrayWrapperColumn(IndexedFileColumn<String> base, String delimeter) {
     this(base, delimeter, base.dieOnParseFailure());
   }
 
@@ -20,7 +20,8 @@ public class ArrayWrapperColumn extends WrapperColumn<String[], String> {
    * @param base underlying column to split into array
    * @param delimeter regex delimiter to split on
    */
-  public ArrayWrapperColumn(FileColumn<String> base, String delimeter, boolean dieOnParseFailure) {
+  public ArrayWrapperColumn(IndexedFileColumn<String> base, String delimeter,
+                            boolean dieOnParseFailure) {
     super(base, dieOnParseFailure);
     this.delimeter = delimeter;
   }

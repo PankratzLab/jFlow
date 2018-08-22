@@ -9,14 +9,14 @@ import java.util.function.Function;
  * @param <W> The wrapping type, to be returned by {@link #getValue(String[])}
  * @param <B> The base type, that of the supplied base {@link FileColumn}
  */
-public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> {
+public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> implements IndexedFileColumn<W> {
 
-  private final FileColumn<? extends B> base;
+  private final IndexedFileColumn<? extends B> base;
 
   /**
    * @param base
    */
-  public WrapperColumn(FileColumn<? extends B> base) {
+  public WrapperColumn(IndexedFileColumn<? extends B> base) {
     this(base, base.dieOnParseFailure());
   }
 
@@ -24,7 +24,7 @@ public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> {
    * @param base
    * @param dieOnParseFailure
    */
-  public WrapperColumn(FileColumn<? extends B> base, boolean dieOnParseFailure) {
+  public WrapperColumn(IndexedFileColumn<? extends B> base, boolean dieOnParseFailure) {
     super(base.getName(), dieOnParseFailure);
     this.base = base;
   }
@@ -39,6 +39,11 @@ public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> {
     return calculateFromBase(getBaseValue(line));
   }
 
+  @Override
+  public int getIndex() {
+    return base.getIndex();
+  }
+
   private final B getBaseValue(String[] line) throws ParseFailureException {
     return base.getValue(line);
   }
@@ -49,7 +54,7 @@ public abstract class WrapperColumn<W, B> extends CachedFileColumn<W> {
    */
   protected abstract W calculateFromBase(B base) throws ParseFailureException;
 
-  public static <W, B> WrapperColumn<W, B> of(FileColumn<? extends B> base,
+  public static <W, B> WrapperColumn<W, B> of(IndexedFileColumn<? extends B> base,
                                               final Function<B, W> calculateFunction) {
     return new WrapperColumn<W, B>(base) {
 

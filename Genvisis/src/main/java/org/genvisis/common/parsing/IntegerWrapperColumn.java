@@ -2,11 +2,11 @@ package org.genvisis.common.parsing;
 
 public class IntegerWrapperColumn extends NumberWrapperColumn<Integer> {
 
-  public IntegerWrapperColumn(FileColumn<?> base) {
+  public IntegerWrapperColumn(IndexedFileColumn<?> base) {
     this(base, base.dieOnParseFailure());
   }
 
-  public IntegerWrapperColumn(FileColumn<?> base, boolean dieOnParseFailure) {
+  public IntegerWrapperColumn(IndexedFileColumn<?> base, boolean dieOnParseFailure) {
     super(base, Integer::parseInt, dieOnParseFailure);
   }
 }

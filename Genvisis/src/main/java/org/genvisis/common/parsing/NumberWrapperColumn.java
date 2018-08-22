@@ -6,11 +6,11 @@ class NumberWrapperColumn<N extends Number> extends WrapperColumn<N, String> {
 
   private final Function<String, N> parseFunction;
 
-  public NumberWrapperColumn(FileColumn<?> base, Function<String, N> parseFunction) {
+  public NumberWrapperColumn(IndexedFileColumn<?> base, Function<String, N> parseFunction) {
     this(new StringWrapperColumn(base), parseFunction, base.dieOnParseFailure());
   }
 
-  public NumberWrapperColumn(FileColumn<?> base, Function<String, N> parseFunction,
+  public NumberWrapperColumn(IndexedFileColumn<?> base, Function<String, N> parseFunction,
                              boolean dieOnParseFailure) {
     super(new StringWrapperColumn(base, dieOnParseFailure), dieOnParseFailure);
     this.parseFunction = parseFunction;
