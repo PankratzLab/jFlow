@@ -1276,18 +1276,20 @@ public class GeneScorePipeline {
             return !values.has(pColumn);
           }
         };
-        FileParser crossFilterParser = FileParserFactory.setup(metaDir + dFile, markerCol,
-                                                               chrLinkedColumn, posLinkedColumn,
-                                                               remainingColumns)
-                                                        .optionalColumns(pColumn)
-                                                        .filter(mkrsBimFilter)
-                                                        .filter(mkrsAlleleFilter)
-                                                        .filter(ColumnFilters.or(pValMissing,
-                                                                                 pValThreshold))
-                                                        .build();
-        int hitCount = crossFilterParser.parseToFile(crossFilterFile, outDelim);
+        try (FileParser crossFilterParser = FileParserFactory.setup(metaDir + dFile, markerCol,
+                                                                    chrLinkedColumn,
+                                                                    posLinkedColumn,
+                                                                    remainingColumns)
+                                                             .optionalColumns(pColumn)
+                                                             .filter(mkrsBimFilter)
+                                                             .filter(mkrsAlleleFilter)
+                                                             .filter(ColumnFilters.or(pValMissing,
+                                                                                      pValThreshold))
+                                                             .build()) {
+          int hitCount = crossFilterParser.parseToFile(crossFilterFile, outDelim);
 
-        study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, hitCount);
+          study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, hitCount);
+        }
       }
     }
   }
