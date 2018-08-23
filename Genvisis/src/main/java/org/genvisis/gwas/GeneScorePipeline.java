@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import org.genvisis.common.parsing.ColumnFilters;
 import org.genvisis.common.parsing.DataLine;
 import org.genvisis.common.parsing.DoubleFilter;
 import org.genvisis.common.parsing.DoubleWrapperColumn;
+import org.genvisis.common.parsing.ExplicitIndexedFileColumn;
 import org.genvisis.common.parsing.FileColumn;
 import org.genvisis.common.parsing.FileParser;
 import org.genvisis.common.parsing.FileParserFactory;
@@ -60,6 +62,7 @@ import org.genvisis.stats.RegressionModel;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
 
@@ -200,7 +203,7 @@ public class GeneScorePipeline {
      * @param hitMkrSet
      * @return
      */
-    public HashSet<String> retrieveMarkers(String dataKey, HashSet<String> hitMkrSet) {
+    public HashSet<String> retrieveMarkers(String dataKey, Set<String> hitMkrSet) {
       HashSet<String> returnMarkers = new HashSet<>();
       if (data.get(dataKey).isEmpty()) {
         return returnMarkers;
@@ -226,8 +229,9 @@ public class GeneScorePipeline {
       return false;
     }
 
-    public void loadDataSources(String dataKey, String[] hitMkrs) {
-      SnpMarkerSet markerSet = new SnpMarkerSet(hitMkrs, false, log);
+    public void loadDataSources(String dataKey, Map<String, int[]> markerLocationMap) {
+      String[] mkrsArray = markerLocationMap.keySet().toArray(new String[0]);
+      SnpMarkerSet markerSet = new SnpMarkerSet(mkrsArray, false, log);
       markerSet.parseSNPlocations(log);
       int[][] markerLocations = markerSet.getChrAndPositionsAsInts();
       dataSources = MergeExtractPipeline.parseDataFile(null, markerLocations, null, dataSource, 0,
@@ -242,12 +246,16 @@ public class GeneScorePipeline {
         if (!Files.exists(serOutput)) {
           log.reportTime("Loading data file " + dataSources.get(0).dataFile);
           DosageData d0 = new DosageData(dataSources.get(0).dataFile, dataSources.get(0).idFile,
-                                         dataSources.get(0).mapFile, null, hitMkrs, true, log);
+                                         dataSources.get(0).mapFile, null, mkrsArray, true, log);
           if (dataSources.size() > 1) {
             for (int i = 1; i < dataSources.size(); i++) {
               log.reportTime("Loading data file " + dataSources.get(i).dataFile);
+              new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
+                             dataSources.get(i).mapFile, null, mkrsArray, markerLocationMap, null,
+                             true, log);
               DosageData d1 = new DosageData(dataSources.get(i).dataFile, dataSources.get(i).idFile,
-                                             dataSources.get(i).mapFile, null, hitMkrs, true, log);
+                                             dataSources.get(i).mapFile, null, mkrsArray, true,
+                                             log);
               d0 = DosageData.combine(d0, d1, DosageData.COMBINE_OP.EITHER_IF_OTHER_MISSING, false,
                                       0, log);
               System.gc();
@@ -871,7 +879,7 @@ public class GeneScorePipeline {
 
     for (String dFile : metaFiles) {
       String dataFile = ext.rootOf(dFile, false);
-      HashSet<String> hitMkrSet = new HashSet<>();
+      Map<String, int[]> hitMkrLocations = new HashMap<>();
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
 
         int metaCount = Files.countLines(metaDir + dFile, 0);
@@ -887,25 +895,42 @@ public class GeneScorePipeline {
           } else {
             log.report(ext.getTime() + "]\tFound " + results.length + " hit windows");
             for (String[] result : results) {
-              hitMkrSet.add(result[1]);
+              try {
+                hitMkrLocations.put(result[1], new int[] {Integer.parseInt(result[2]),
+                                                          Integer.parseInt(result[3])});
+              } catch (NumberFormatException nfe) {
+                log.reportError("Failed to parse position for result " + ArrayUtils.toStr(result));
+                hitMkrLocations.put(result[1], new int[] {-1, -1});
+              }
             }
           }
         }
-        if (hitMkrSet.isEmpty()) {
-          String[] mkrs = HashVec.loadFileToStringArray(metaDir + dFile, true, new int[] {0},
-                                                        false);
-          if (mkrs == null) {
+        if (hitMkrLocations.isEmpty()) {
+          FileColumn<String> mkrColumn = new ExplicitIndexedFileColumn("mkr", 0);
+          FileColumn<Byte> chrColumn = StandardFileColumns.chr("chr");
+          FileColumn<Integer> posColumn = StandardFileColumns.pos("pos");
+          try {
+            hitMkrLocations = Maps.transformValues(FileParserFactory.setup(metaDir + dFile,
+                                                                           mkrColumn)
+                                                                    .optionalColumns(chrColumn,
+                                                                                     posColumn)
+                                                                    .build().load(false, mkrColumn),
+                                                   d -> new int[] {d.get(chrColumn, (byte) -1),
+                                                                   d.get(posColumn, -1)});
+          } catch (IOException e) {
+            log.reportIOException(metaDir + dFile);
+          }
+
+          if (hitMkrLocations.isEmpty()) {
             log.reportError(".meta file was empty for " + dFile);
           } else {
-            log.report(ext.getTime() + "]\tUsing all " + mkrs.length + " SNPs in .meta file");
-            for (String mkr : mkrs) {
-              hitMkrSet.add(mkr);
-            }
+            log.report(ext.getTime() + "]\tUsing all " + hitMkrLocations.size()
+                       + " SNPs in .meta file");
           }
         }
         // uncomment to use all markers in dataFile
 
-        if (!hitMkrSet.isEmpty()) {
+        if (!hitMkrLocations.isEmpty()) {
           // read betas and freqs for hitwindow markers
           HashMap<String, double[]> dataMarkers = new HashMap<>();
           try {
@@ -915,12 +940,12 @@ public class GeneScorePipeline {
             int[] indices = ext.indexFactors(factors, temp, false, false, true, true, new Logger());
             while ((line = reader.readLine()) != null) {
               String mkr = line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[0]];
-              if (hitMkrSet.contains(mkr)) {
+              if (hitMkrLocations.containsKey(mkr)) {
                 if ((indices[1] != -1
                      && ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[1]]))
                     || ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[2]])
                     || ext.isMissingValue(line.split(PSF.Regex.GREEDY_WHITESPACE)[indices[3]])) {
-                  hitMkrSet.remove(mkr);
+                  hitMkrLocations.remove(mkr);
                   continue;
                 }
                 dataMarkers.put(mkr,
@@ -935,18 +960,18 @@ public class GeneScorePipeline {
             double dataScore1 = getBetaFreqScore(dataMarkers);
             double dataScore2 = getChiDistRevScore(dataMarkers);
 
-            String[] hitMkrs = hitMkrSet.toArray(new String[hitMkrSet.size()]);
             // cross-ref PLINK markers
             for (Study study : studies) {
-              study.loadDataSources(dataFile + "\t" + filePrefix.getKey(), hitMkrs);
+              study.loadDataSources(dataFile + "\t" + filePrefix.getKey(), hitMkrLocations);
 
               HashMap<String, double[]> bimSubsetMarkers = new HashMap<>();
               HashSet<String> bimMkrSet = study.retrieveMarkers(dataFile + "\t"
-                                                                + filePrefix.getKey(), hitMkrSet);
+                                                                + filePrefix.getKey(),
+                                                                hitMkrLocations.keySet());
 
               // pull betas and freqs for union markers
               for (String mkr : bimMkrSet) {
-                if (hitMkrSet.contains(mkr)) {
+                if (hitMkrLocations.containsKey(mkr)) {
                   bimSubsetMarkers.put(mkr, dataMarkers.get(mkr));
                 }
               }
