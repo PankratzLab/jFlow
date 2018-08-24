@@ -44,6 +44,7 @@ import org.genvisis.common.parsing.DoubleWrapperColumn;
 import org.genvisis.common.parsing.FileColumn;
 import org.genvisis.common.parsing.FileParser;
 import org.genvisis.common.parsing.FileParserFactory;
+import org.genvisis.common.parsing.IndexedFileColumn;
 import org.genvisis.common.parsing.ParseFailureException;
 import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.filesys.DosageData;
@@ -1223,9 +1224,10 @@ public class GeneScorePipeline {
 
         final AliasedFileColumn a1Column = StandardFileColumns.a1("a1");
         final AliasedFileColumn a2Column = StandardFileColumns.a2("a2");
-        final FileColumn<Double> pColumn = StandardFileColumns.pVal("p");
+        final IndexedFileColumn<Double> pColumn = StandardFileColumns.pVal("p");
         final FileColumn<String> remainingColumns = StandardFileColumns.allExcept(outDelim,
                                                                                   markerCol,
+                                                                                  pColumn,
                                                                                   new AliasedFileColumn("excludedChr",
                                                                                                         Aliases.CHRS),
                                                                                   new AliasedFileColumn("excludedPos",
