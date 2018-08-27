@@ -113,8 +113,9 @@ public class GDI {
 
   private static final String[] BASE = new String[] {"CHROM", "START", "END", "ID", "REF", "ALT"};
   private static final String[] ANNOS = new String[] {"CADD_raw", "CADD_phred",
-                                                      "CADD_raw_rankscore", "AF", "AC",
-                                                      "SNPEFF_GENE_NAME", "SNPEFF_IMPACT"};
+                                                      "CADD_raw_rankscore", "AF", "AC"};
+
+  private static final String[] SNPEFF = new String[] {"SNPEFF_GENE_NAME", "SNPEFF_IMPACT"};
 
   private static void extractGDIComponents(CLI c) {
 
@@ -125,7 +126,7 @@ public class GDI {
 
     log.reportTimeInfo("computing GDI using variants from " + vcf);
 
-    try (VCFFileReader reader = new VCFFileReader(new File(vcf))) {
+    try (VCFFileReader reader = new VCFFileReader(new File(vcf), false)) {
       String outputTmp = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".cadd.af.txt.gz";
       CloseableIterator<VariantContext> iter = reader.iterator();
       int numTotal = 0;
@@ -133,7 +134,8 @@ public class GDI {
       int numSkipped = 0;
 
       PrintWriter writer = Files.getAppropriateWriter(outputTmp);
-      writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS));
+      writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS) + "\t"
+                     + ArrayUtils.toStr(SNPEFF));
 
       while (iter.hasNext()) {
         numTotal++;
@@ -150,8 +152,26 @@ public class GDI {
             out.add(vc.getReference().getBaseString());
             out.add(vc.getAlternateAlleles().get(0).getBaseString());
 
-            writer.println(out.toString() + "\t"
-                           + ArrayUtils.toStr(VCOps.getAnnotationsFor(ANNOS, vc, ".")));
+            String[] anns = VCOps.getAnnotationsFor(ANNOS, vc, ".");
+            for (String ann : anns) {
+              out.add(ann);
+            }
+
+            List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
+            GeneImpact useImpact = null;
+            for (GeneImpact g : geneImpacts) {
+              if (useImpact == null || g.impact.ordinal() > useImpact.impact.ordinal()) {
+                useImpact = g;
+                break;
+              }
+            }
+            if (useImpact != null) {
+              out.add(useImpact.gene);
+              out.add(useImpact.impact.toString());
+            } else {
+              throw new IllegalArgumentException("Invalid impact");
+            }
+            writer.println(out.toString());
             numUsed++;
           } catch (NumberFormatException nfe) {
             numSkipped++;
