@@ -61,7 +61,7 @@ public class TestMutInd {
         while (iter.hasNext()) {
           VariantContext vc = iter.next();
           VCMut vcMut = VCMut.fromVariantContext(vc, PARSE_METHOD.SNP_EFF, effmap);
-          if (vcMut.isHasFullInfo() && VCFSimpleTally.filterCHARGE(vc, maf)) {
+          if (vcMut.isHasFullInfo() && VCFSimpleTally.filterCHARGEAndTOPMed(vc, maf)) {
             List<MutInd> inds = vcMut.parseToInds(vpop.getSuperPop().get(pop), filter, -4);
             for (MutInd ind : inds) {
               writer.println(ArrayUtils.toStr(ind.getMutIndMapFormat()));

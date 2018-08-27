@@ -1440,33 +1440,35 @@ public class FilterNGS implements Serializable {
     return "(!vc.hasAttribute('" + attribute + "')||" + attribute + "=='.'||" + attribute + " <=";
   }
 
-  private static final List<String> FREQ_ATTRIBUTES = Arrays.asList("esp6500si_all",
-                                                                    "g10002014oct_all",
-                                                                    "g10002014oct_afr",
-                                                                    "g10002014oct_eas",
-                                                                    "g10002014oct_eur",
-                                                                    "g10002015aug_all",
-                                                                    "g10002015aug_afr",
-                                                                    "g10002015aug_eas",
-                                                                    "g10002015aug_eur",
-                                                                    "esp6500siv2_all",
-                                                                    "esp6500siv2_aa",
-                                                                    "esp6500siv2_ea", "PopFreqMax",
-                                                                    "ExAC_nontcga_AFR",
-                                                                    "ExAC_nontcga_ALL",
-                                                                    "ExAC_nontcga_AMR",
-                                                                    "ExAC_nontcga_EAS",
-                                                                    "ExAC_nontcga_FIN",
-                                                                    "ExAC_nontcga_NFE",
-                                                                    "ExAC_nontcga_OTH",
-                                                                    "ExAC_nontcga_SAS",
-                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans",
-                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_EAS",
-                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_SAS",
-                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
-                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
-  // commented code left on purpose
-  //  getFilterFor("TOPMed_freeze_5b.AF")
+  public static final List<String> FREQ_ATTRIBUTES = Arrays.asList("esp6500si_all",
+                                                                   "g10002014oct_all",
+                                                                   "g10002014oct_afr",
+                                                                   "g10002014oct_eas",
+                                                                   "g10002014oct_eur",
+                                                                   "g10002015aug_all",
+                                                                   "g10002015aug_afr",
+                                                                   "g10002015aug_eas",
+                                                                   "g10002015aug_eur",
+                                                                   "esp6500siv2_all",
+                                                                   "esp6500siv2_aa",
+                                                                   "esp6500siv2_ea", "PopFreqMax",
+                                                                   "ExAC_nontcga_AFR",
+                                                                   "ExAC_nontcga_ALL",
+                                                                   "ExAC_nontcga_AMR",
+                                                                   "ExAC_nontcga_EAS",
+                                                                   "ExAC_nontcga_FIN",
+                                                                   "ExAC_nontcga_NFE",
+                                                                   "ExAC_nontcga_OTH",
+                                                                   "ExAC_nontcga_SAS",
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_African_Americans",
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_EAS",
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_SAS",
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
+                                                                   "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
+  //  ,
+  //  "TOPMed_freeze_5b.AF"
+
+  public static String TOPMed_freeze_5b_AF = "TOPMed_freeze_5b.AF";
 
   /**
    * Stores {@link VCFInfoHeaderLine}s for pop freq max use
@@ -1509,9 +1511,9 @@ public class FilterNGS implements Serializable {
    * @param header
    * @return {@link FreqMax} describing the freq max {@link VCFInfoHeaderLine}s
    */
-  public static FreqMax getFreqMaxLines(VCFHeader header) {
+  public static FreqMax getFreqMaxLines(VCFHeader header, List<String> attributes) {
     List<String> avail = new ArrayList<>();
-    for (String filt : FREQ_ATTRIBUTES) {
+    for (String filt : attributes) {
       if (header.hasInfoLine(filt)) {
         avail.add(filt);
       }
@@ -1538,12 +1540,11 @@ public class FilterNGS implements Serializable {
    * @param vc a new {@link VariantContext} with {@link FreqMax } attributes
    * @return
    */
-  public static VariantContext addFreqMaxResult(VariantContext vc) {
-
+  public static VariantContext addFreqMaxResult(VariantContext vc, List<String> attributes) {
     double max = 0;
     String maxPop = "NA";
     VariantContextBuilder builder = new VariantContextBuilder(vc);
-    for (String filt : FREQ_ATTRIBUTES) {
+    for (String filt : attributes) {
       if (vc.hasAttribute(filt) && !".".equals(vc.getAttributeAsString(filt, "."))) {
         double cAF = vc.getCommonInfo().getAttributeAsDouble(filt, 0);
         if (cAF > max) {

@@ -1936,7 +1936,7 @@ public class VCFOps {
 
   public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads,
                                               boolean onlyWithVariants, Logger log) {
-    return splitByChrs(vcf, newDir, numthreads, onlyWithVariants, log);
+    return splitByChrs(vcf, newDir, numthreads, onlyWithVariants, false, log);
   }
 
   public static ChrSplitResults[] splitByChrs(String vcf, String newDir, int numthreads,

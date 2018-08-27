@@ -98,7 +98,7 @@ public class VCFSimpleTally {
                                                          "numHQCompoundHets",
                                                          "numHQCompoundHetsDiffHaplotype"};
 
-  public static boolean filterCHARGE(VariantContext vc, double maf) {
+  public static boolean filterCHARGEAndTOPMed(VariantContext vc, double maf) {
     boolean pass = true;
     if (vc.hasAttribute("charge.MAF_whites")) {
       pass = vc.getCommonInfo().getAttributeAsDouble("charge.MAF_whites", 0) <= maf;
@@ -106,11 +106,22 @@ public class VCFSimpleTally {
     if (pass && vc.hasAttribute("charge.MAF_blacks")) {
       pass = vc.getCommonInfo().getAttributeAsDouble("charge.MAF_blacks", 0) <= maf;
     }
+    if (pass && vc.hasAttribute(FilterNGS.TOPMed_freeze_5b_AF)) {
+      String at = vc.getCommonInfo().getAttributeAsString(FilterNGS.TOPMed_freeze_5b_AF, ".");
+      if (!".".equals(at)) {
+        pass = Double.parseDouble(at) <= maf;
+      }
+    }
+
     return pass;
   }
 
   private static void filter(String vcf, String output, String casePop, VcfPopulation vpop,
                              double controlFreq, Set<String> countOnlyControls, Logger log) {
+
+    List<String> maxAttributes = new ArrayList<>();
+    maxAttributes.addAll(FilterNGS.FREQ_ATTRIBUTES);
+    maxAttributes.add(FilterNGS.TOPMed_freeze_5b_AF);
     if (!Files.exists(output)) {
       Set<String> cases = vpop.getSuperPop().get(casePop);
       Map<String, Set<String>> controls = vpop.getSuperPop();
@@ -131,7 +142,7 @@ public class VCFSimpleTally {
                                                       reader.getFileHeader()
                                                             .getSequenceDictionary());
       VCFHeader newVCFHeader = reader.getFileHeader();
-      FreqMax freqMax = FilterNGS.getFreqMaxLines(newVCFHeader);
+      FreqMax freqMax = FilterNGS.getFreqMaxLines(newVCFHeader, maxAttributes);
       newVCFHeader.addMetaDataLine(freqMax.getPopLine());
       newVCFHeader.addMetaDataLine(freqMax.getFreqLine());
 
@@ -164,7 +175,7 @@ public class VCFSimpleTally {
         }
         if (vcCase.getHomRefCount() + vcCase.getNoCallCount() != cases.size()
             && vcCase.getNoCallCount() != cases.size() && freqFilter.filter(vcCase).passed()
-            && filterCHARGE(vcCase, controlFreq)) {// as alts in rare esp/1000g
+            && filterCHARGEAndTOPMed(vcCase, controlFreq)) {// as alts in rare esp/1000g
           boolean controlPass = true;
           for (String controlPop : controls.keySet()) {
             VariantContext vcControl = VCOps.getSubset(vc, controls.get(controlPop),
@@ -186,7 +197,7 @@ public class VCFSimpleTally {
           }
           if (controlPass) {
             numPass++;
-            writer.add(FilterNGS.addFreqMaxResult(vc));
+            writer.add(FilterNGS.addFreqMaxResult(vc, maxAttributes));
           }
         }
       }
@@ -831,7 +842,7 @@ public class VCFSimpleTally {
     VcfPopulation vpopAc = VcfPopulation.load(vpop, POPULATION_TYPE.ANY, log);
     vpopAc.report();
     String caseDef = ext.rootOf(vpop);
-    ChrSplitResults[] chrSplitResults = VCFOps.splitByChrs(vcf, outDir, numThreads, false, log);
+    ChrSplitResults[] chrSplitResults = VCFOps.splitByChrs(vcf, outDir, numThreads, true, log);
     WorkerHive<String> hive = new WorkerHive<>(numThreads, 10, log);
     ArrayList<String> filtVcfs = new ArrayList<>();
 
