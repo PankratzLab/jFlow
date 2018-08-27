@@ -17,6 +17,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
+import scala.actors.threadpool.Arrays;
 
 // : (i) “raw” GDI, calculated for each human gene by first multiplying each variant’s CADD score by
 // the corresponding variant’s number of alleles in the 1,000 Genomes Project (a total of 610,160
@@ -135,52 +136,56 @@ public class GDI {
 
       PrintWriter writer = Files.getAppropriateWriter(outputTmp);
       writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS) + "\t"
-                     + ArrayUtils.toStr(SNPEFF));
+                     + ArrayUtils.toStr(SNPEFF) + "\tFILTER");
 
       while (iter.hasNext()) {
         numTotal++;
         VariantContext vc = iter.next();
-        if (!vc.isFiltered()) {
+        //          vc.getFilters()
+        try {
+          Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
+          StringJoiner out = new StringJoiner("\t");
+          out.add(vc.getContig());
+          out.add(Integer.toString(vc.getStart()));
+          out.add(Integer.toString(vc.getEnd()));
+          out.add(vc.getID());
+          out.add(vc.getReference().getBaseString());
+          out.add(vc.getAlternateAlleles().get(0).getBaseString());
 
-          try {
-            Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
-            StringJoiner out = new StringJoiner("\t");
-            out.add(vc.getContig());
-            out.add(Integer.toString(vc.getStart()));
-            out.add(Integer.toString(vc.getEnd()));
-            out.add(vc.getID());
-            out.add(vc.getReference().getBaseString());
-            out.add(vc.getAlternateAlleles().get(0).getBaseString());
-
-            String[] anns = VCOps.getAnnotationsFor(ANNOS, vc, ".");
-            for (String ann : anns) {
-              out.add(ann);
-            }
-
-            List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
-            GeneImpact useImpact = null;
-            for (GeneImpact g : geneImpacts) {
-              if (useImpact == null || g.impact.ordinal() > useImpact.impact.ordinal()) {
-                useImpact = g;
-                break;
-              }
-            }
-            if (useImpact != null) {
-              out.add(useImpact.gene);
-              out.add(useImpact.impact.toString());
-            } else {
-              throw new IllegalArgumentException("Invalid impact");
-            }
-            writer.println(out.toString());
-            numUsed++;
-          } catch (NumberFormatException nfe) {
-            numSkipped++;
+          String[] anns = VCOps.getAnnotationsFor(ANNOS, vc, ".");
+          for (String ann : anns) {
+            out.add(ann);
           }
 
-          if (numTotal % 10000 == 0) {
-            log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed
-                               + " skipped " + numSkipped + " for missing CADD");
+          List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
+          GeneImpact useImpact = null;
+          for (GeneImpact g : geneImpacts) {
+            if (useImpact == null || g.impact.ordinal() > useImpact.impact.ordinal()) {
+              useImpact = g;
+              break;
+            }
           }
+          if (useImpact != null) {
+            out.add(useImpact.gene);
+            out.add(useImpact.impact.toString());
+          } else {
+            throw new IllegalArgumentException("Invalid impact");
+          }
+
+          if (vc.isFiltered()) {
+            out.add(Arrays.toString(vc.getFilters().toArray(new String[0])));
+          } else {
+            out.add("PASS");
+          }
+          writer.println(out.toString());
+          numUsed++;
+        } catch (NumberFormatException nfe) {
+          numSkipped++;
+        }
+
+        if (numTotal % 10000 == 0) {
+          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed
+                             + " skipped " + numSkipped + " for missing CADD");
         }
       }
     }
