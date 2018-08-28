@@ -1922,7 +1922,7 @@ public class GeneScorePipeline {
   public static void main(String[] args) {
 
     String workDir = null;
-    String logFile = null;
+    String logFile = "GeneScorePipeline.log";
 
     float[] iT = new float[] {DEFAULT_INDEX_THRESHOLD};
     int[] mZ = new int[] {DEFAULT_WINDOW_MIN_SIZE_PER_SIDE};
