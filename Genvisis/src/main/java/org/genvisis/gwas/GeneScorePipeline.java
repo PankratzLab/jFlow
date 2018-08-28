@@ -1512,7 +1512,7 @@ public class GeneScorePipeline {
             }
           }
 
-          double mkrRatio = markers.length / (double) cnt;
+          double mkrRatio = cnt / (double) markers.length;
           if (mkrRatio > minMissThresh) {
             scoreWriter.println(ids[i][0] + "\t" + ids[i][1] + "\t" + markers.length + "\t"
                                 + (2 * cnt) + "\t" + cnt2 + "\t" + ext.formDeci(scoreSum, 3));
