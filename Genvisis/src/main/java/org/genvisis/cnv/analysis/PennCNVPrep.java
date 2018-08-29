@@ -689,6 +689,9 @@ public class PennCNVPrep {
       String shadowProjFile = getCorrectedProjectProperties(proj, numComponents, correctionType,
                                                             sexStrategy);
       proj.getLog().report("Saving shadow project properties to: " + shadowProjFile);
+      if (!Files.exists(new File(shadowProjFile))) {
+        Files.copyFile(proj.getPropertyFilename(), shadowProjFile);
+      }
       proj.saveProperties(shadowProjFile);
       Project shadowProj = new Project(shadowProjFile);
 
