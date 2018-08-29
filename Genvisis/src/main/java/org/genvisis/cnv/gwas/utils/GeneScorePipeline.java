@@ -1710,22 +1710,26 @@ public class GeneScorePipeline {
             for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
               if (scoreData.containsKey(indiv.getKey())) {
                 PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
-                depData.add(pdi.getDepvar());
                 double[] baseData = new double[pd.covars.size()];
                 double[] covarData = new double[pd.covars.size() + 1];
                 covarData[0] = scoreData.get(indiv.getKey());
+                boolean validCovars = true;
                 for (int k = 1; k < pd.covars.size() + 1; k++) {
                   Double d = pdi.getCovars().get(pd.covars.get(k - 1));
                   if (d == null) {
                     log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
                                     + pd.covars.get(k - 1));
+                    validCovars = false;
                   } else {
                     baseData[k - 1] = d.doubleValue();
                     covarData[k] = d.doubleValue();
                   }
                 }
-                baselineIndeps.add(baseData);
-                indepData.add(covarData);
+                if (validCovars) {
+                  depData.add(pdi.getDepvar());
+                  baselineIndeps.add(baseData);
+                  indepData.add(covarData);
+                }
               }
             }
 
