@@ -606,9 +606,9 @@ public class UKBBParsingPipeline {
     tft.setupMarkerListFile();
     tft.setupSampleListFile();
 
-    int gb = 22;
-    int wall = 24;
-    int proc = 16;
+    int gb = 240;
+    int wall = 240;
+    int proc = 12;
 
     String file = setupTransposeScripts(gb, wall, proc);
     CmdLine.run("qsub " + file, ext.pwd());
