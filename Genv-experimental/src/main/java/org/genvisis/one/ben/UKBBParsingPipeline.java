@@ -178,7 +178,8 @@ public class UKBBParsingPipeline {
       proj.saveProperties();
       log.reportTime("Created project properties file: " + propFile);
     } else {
-      log.reportTime("Project properties file already exists; skipping creation.");
+      log.reportTime("Project properties file already exists at " + propFile
+                     + "; skipping creation.");
       proj = new Project(propFile);
     }
   }
@@ -359,7 +360,8 @@ public class UKBBParsingPipeline {
         log.reportException(e);
       }
     } else {
-      log.report("Project marker detail set file already exists; skipping creation.");
+      log.report("Project marker detail set file already exists at "
+                 + proj.MARKER_DETAILS_FILENAME.getValue() + "; skipping creation.");
       markerMap = proj.getMarkerSet().getMarkerNameMap();
     }
   }
@@ -484,8 +486,8 @@ public class UKBBParsingPipeline {
         fs.loadBIMData();
       }
 
-      log.reportTime("Project markerPositions file already exists; skipping creation (first marker found: "
-                     + allMarkers[0] + ").");
+      log.reportTime("Project markerPositions file already exists at " + file
+                     + "; skipping creation (first marker found: " + allMarkers[0] + ").");
     }
   }
 
@@ -1356,7 +1358,7 @@ public class UKBBParsingPipeline {
 
       FileInputStream fis = new FileInputStream(file);
       InputStreamReader isr = new InputStreamReader(fis);
-      int bufferLength = 16384;
+      int bufferLength = 16384; // 16 Kb buffer 
       ByteBuffer buffer = ByteBuffer.wrap(new byte[bufferLength]);
       FileChannel fc = fis.getChannel();
 
