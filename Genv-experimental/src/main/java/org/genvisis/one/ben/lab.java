@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -19,9 +20,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.analysis.FilterCalls;
-import org.genvisis.cnv.filesys.Dump;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
@@ -47,7 +48,11 @@ import org.genvisis.common.parsing.StandardFileColumns;
 import org.genvisis.filesys.CNVariant;
 import org.genvisis.filesys.DosageData;
 import org.genvisis.filesys.Segment;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 
 public class lab {
 
@@ -1607,6 +1612,127 @@ public class lab {
     allOut.close();
   }
 
+  static class SNPLine {
+
+    Segment bin;
+    String name;
+    int dist;
+    float mafDist;
+
+  }
+
+  private static void bamSnpComparison(String file, String out, int[] scales) throws IOException {
+    BufferedReader reader = Files.getAppropriateReader(file);
+    String line = null;
+    String[] parts;
+    String header = reader.readLine();
+    Multiset<Segment> snpCounter = HashMultiset.create();
+    Multimap<Segment, SNPLine> binMap = HashMultimap.create();
+    Set<Segment> binList = new TreeSet<>();
+    while ((line = reader.readLine()) != null) {
+      parts = line.split("\t");
+      float mafDist = Float.parseFloat(parts[3]);
+      Segment seg = new Segment(parts[0]);
+      snpCounter.add(seg);
+      if (mafDist < .4) {
+        SNPLine snp = new SNPLine();
+        snp.bin = seg;
+        snp.name = parts[1];
+        snp.dist = Integer.parseInt(parts[2]);
+        snp.mafDist = mafDist;
+        binMap.put(snp.bin, snp);
+        binList.add(snp.bin);
+      }
+    }
+
+    System.out.println("Read all variants...");
+
+    PrintWriter writer = Files.getAppropriateWriter(out);
+
+    writer.print(header);
+    for (int scale : scales) {
+      writer.print("\t" + "MAF_" + scale);
+    }
+    for (int scale : scales) {
+      writer.print("\t" + "SQRT_" + scale);
+    }
+    writer.println("\tNUM");
+
+    for (Segment bin : binList) {
+      Collection<SNPLine> snps = binMap.get(bin);
+      for (SNPLine snp : snps) {
+        int d = snp.dist;
+        writer.print(snp.bin.getUCSClocation() + "\t" + snp.name + "\t" + snp.dist + "\t"
+                     + snp.mafDist);
+        for (int scale : scales) {
+          float m = snp.mafDist * scale;
+          writer.print("\t");
+          writer.print(m);
+        }
+        for (int scale : scales) {
+          float m = snp.mafDist * scale;
+          double dd = Math.sqrt(d * d + m * m);
+          writer.print("\t");
+          writer.print(dd);
+        }
+        writer.println("\t" + snpCounter.count(snp.bin));
+      }
+    }
+    writer.close();
+
+    System.out.println("Finished selecting variants!");
+  }
+
+  private static void bamSnpSelection(String file, String out, int scale) throws IOException {
+
+    BufferedReader reader = Files.getAppropriateReader(file);
+    String line = null;
+    String[] parts;
+    String header = reader.readLine();
+    Multimap<Segment, SNPLine> binMap = HashMultimap.create();
+    Set<Segment> binList = new TreeSet<>();
+    while ((line = reader.readLine()) != null) {
+      parts = line.split("\t");
+      SNPLine snp = new SNPLine();
+      snp.bin = new Segment(parts[0]);
+      snp.name = parts[1];
+      snp.dist = Integer.parseInt(parts[2]);
+      snp.mafDist = Float.parseFloat(parts[3]);
+      binMap.put(snp.bin, snp);
+      binList.add(snp.bin);
+    }
+
+    System.out.println("Read all variants...");
+
+    PrintWriter writer = Files.getAppropriateWriter(out);
+    writer.println(header + "\t" + "SQRT_DIST");
+
+    for (Segment bin : binList) {
+      double closestDist = 10000;
+      SNPLine closest = null;
+      Collection<SNPLine> snps = binMap.get(bin);
+      for (SNPLine snp : snps) {
+        int d = snp.dist;
+        float m = snp.mafDist * scale;
+        double dd = Math.sqrt(d * d + m * m);
+        if (dd < closestDist) {
+          closestDist = dd;
+          closest = snp;
+        }
+      }
+      if (closest != null) {
+        writer.println(closest.bin.getUCSClocation() + "\t" + closest.name + "\t" + closest.dist
+                       + "\t" + closest.mafDist + "\t" + closestDist);
+      } else {
+        writer.println(bin.getChromosomeUCSC() + "\t.\t.\t.\t.");
+      }
+    }
+    writer.close();
+
+    System.out.println("Finished selecting variants!");
+
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException {
     int numArgs = args.length;
     Project proj;
@@ -1637,11 +1763,15 @@ public class lab {
       //        System.out.println(vals.getSampleOutliersForFile(proj, s).size() + " for " + s);
       //      }
 
-      Dump.dumpMdRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\transposed\\markers.0.mdRAF",
-                     new int[] {0, 1, 2, 3, 4, 5}, new Logger());
-      Dump.dumpSampRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\samples\\"
-                       + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
-                       + ".sampRAF");
+      //      Dump.dumpMdRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\transposed\\markers.0.mdRAF",
+      //                     new int[] {0, 1, 2, 3, 4, 5}, new Logger());
+      //      Dump.dumpSampRaf("F:\\testProjectSrc\\Affy1000G_small\\project2\\samples\\"
+      //                       + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
+      //                       + ".sampRAF");
+
+      bamSnpComparison("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+                       "G:\\bamTesting\\snpSelection\\selected_scales.xln",
+                       new int[] {1500, 2000, 5000});
 
       // runHRC();
       // QQPlot.main(new String[]
@@ -1652,7 +1782,7 @@ public class lab {
       // ManhattanPlot.main(args1);
 
       // CARDIA2017ResultsProcessor.combineChrXDose("G:/CARDIA_DATA/AA/");
-      // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/");
+      // CARDIA2017ResultsProcessor.combineChrXInfo("G:/CARDIA_DATA/AA/"); 
 
       //            String dir = "F:/testProjectSrc/UKBB_AffyAxiom/";
       //      UKBBParsingPipeline pipe = new UKBBParsingPipeline();
