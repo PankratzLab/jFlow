@@ -2,11 +2,14 @@ package org.genvisis.one.ben;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -347,11 +350,13 @@ public class UKBBParsingPipeline {
   protected void writeMarkerDetailSet() {
     if (!Files.exists(proj.MARKER_DETAILS_FILENAME.getValue())) {
       try {
+        long t1 = System.nanoTime();
         MarkerDetailSet mds = new MarkerDetailSet(loadMarkers());
         mds.serialize(proj.MARKER_DETAILS_FILENAME.getValue());
         markerMap = mds.getMarkerNameMap();
+        log.reportTime("Created markerDetailSet in " + ext.getTimeElapsedNanos(t1));
       } catch (IOException e) {
-        e.printStackTrace();
+        log.reportException(e);
       }
     } else {
       log.report("Project marker detail set file already exists; skipping creation.");
@@ -838,6 +843,7 @@ public class UKBBParsingPipeline {
     int bytesPerSamp = Sample.getNBytesPerSampleMarker(getNullStatus()); // 12
     int markerBlockSize = nInd * bytesPerSamp;
     byte[] mkrBuff;
+    String line;
     String[] parts;
     int flipped = 0;
     // double log2 = Math.log(2);
@@ -857,7 +863,9 @@ public class UKBBParsingPipeline {
       int buffInd = 0;
       int sampInd = 0;
 
-      parts = frs.conIn.readLine().split(" ");
+      line = frs.conIn.readLine();
+      parts = line.split(" ");
+      line = null;
       if (parts.length != nInd) {
         log.reportError("Mismatched # of confidence scores {fnd: " + parts.length + ", exp: " + nInd
                         + "}.  File: " + fs.conFile);
@@ -920,7 +928,9 @@ public class UKBBParsingPipeline {
       sampInd = buffInd;
       intensBytes = null;
 
-      parts = frs.bafIn.readLine().split(" ");
+      line = frs.bafIn.readLine();
+      parts = line.split(" ");
+      line = null;
       if (parts.length != nInd) {
         log.reportError("Mismatched # of BAF values {fnd: " + parts.length + ", exp: " + nInd
                         + "}.  File: " + fs.bafFile);
@@ -945,7 +955,9 @@ public class UKBBParsingPipeline {
       sampInd = buffInd;
       parts = null;
 
-      parts = frs.lrrIn.readLine().split(" ");
+      line = frs.lrrIn.readLine();
+      parts = line.split(" ");
+      line = null;
       if (parts.length != nInd) {
         log.reportError("Mismatched # of L2R values {fnd: " + parts.length + ", exp: " + nInd
                         + "}.  File: " + fs.lrrFile);
@@ -1010,6 +1022,7 @@ public class UKBBParsingPipeline {
     log.reportTime(flipped + " markers out of " + mkrNames.length + " had flipped genotypes.");
 
     mdRAF.close();
+    //    System.gc();
 
     oorBytes = null;
     outOfRangeTable = null;
@@ -1210,9 +1223,20 @@ public class UKBBParsingPipeline {
 
     public void readAhead(FileSet fs, int start, int binSize) throws IOException {
       int line = start + binSize;
-      conIn.skip(fs.conInds.get(line) - (start == 0 ? 0 : fs.conInds.get(start)));
-      lrrIn.skip(fs.lrrInds.get(line) - (start == 0 ? 0 : fs.lrrInds.get(start)));
-      bafIn.skip(fs.bafInds.get(line) - (start == 0 ? 0 : fs.bafInds.get(start)));
+      conIn = new BufferedReader(new InputStreamReader(open(fs.conFile, fs.conInds.get(line))),
+                                 4000000);
+
+      lrrIn = new BufferedReader(new InputStreamReader(open(fs.lrrFile, fs.lrrInds.get(line))),
+                                 4000000);
+
+      bafIn = new BufferedReader(new InputStreamReader(open(fs.bafFile, fs.bafInds.get(line))),
+                                 2000000);
+    }
+
+    private FileInputStream open(String file, long skip) throws IOException {
+      FileInputStream fis = new FileInputStream(file);
+      fis.skip(skip);
+      return fis;
     }
 
     public void close() throws IOException {
@@ -1327,31 +1351,37 @@ public class UKBBParsingPipeline {
         HashMap<Integer, Long> indMap = (HashMap<Integer, Long>) SerializedFiles.readSerial(lookupFile);
         return indMap;
       }
+      log.reportTime("Building lookup file for " + ext.rootOf(lookupFile));
       HashMap<Integer, Long> lineIndices = new HashMap<>();
 
-      InputStreamReader isr = Files.getAppropriateInputStreamReader(file);
-      int chr = Integer.MIN_VALUE;
-      char[] v;
-      long total = 0L;
+      FileInputStream fis = new FileInputStream(file);
+      InputStreamReader isr = new InputStreamReader(fis);
+      int bufferLength = 16384;
+      ByteBuffer buffer = ByteBuffer.wrap(new byte[bufferLength]);
+      FileChannel fc = fis.getChannel();
+
       int line = 0;
-      while ((chr = isr.read()) != -1) {
-        v = Character.toChars(chr);
-        if (v.length == 1) {
-          total++;
-          if (v[0] == '\n') {
+      int read = 0;
+      while ((read = fc.read(buffer)) != -1) {
+        byte[] array = buffer.array();
+        if (read < bufferLength) {
+          array = new byte[read];
+          System.arraycopy(buffer.array(), 0, array, 0, read);
+        }
+        String bufferString = new String(array);
+        for (int i = 0; i < bufferString.length(); i++) {
+          if (bufferString.charAt(i) == '\n') {
             line++;
-            lineIndices.put(line, total);
-          }
-        } else {
-          for (char element : v) {
-            total++;
-            if (element == '\n') {
-              line++;
-              lineIndices.put(line, total);
+            long pos = fc.position() + 1;
+            if (i < bufferString.length()) {
+              pos -= bufferString.substring(i).getBytes().length;
             }
+            lineIndices.put(line, pos);
           }
         }
+        buffer.clear();
       }
+
       isr.close();
 
       SerializedFiles.writeSerial(lineIndices, lookupFile);
@@ -1406,12 +1436,12 @@ public class UKBBParsingPipeline {
 
   }
 
-  private static final String ARG_SRC_DIR = "source=";
-  private static final String ARG_PROJ_DIR = "projDir=";
-  private static final String ARG_PROP_DIR = "propDir=";
-  private static final String ARG_PROJ_NAME = "projName=";
-  private static final String ARG_FAM_FILE = "fam=";
-  private static final String ARG_ANNOT_CSV = "annot=";
+  private static final String ARG_SRC_DIR = "source";
+  private static final String ARG_PROJ_DIR = "projDir";
+  private static final String ARG_PROP_DIR = "propDir";
+  private static final String ARG_PROJ_NAME = "projName";
+  private static final String ARG_FAM_FILE = "fam";
+  private static final String ARG_ANNOT_CSV = "annot";
 
   private static final String DESC_SRC_DIR = "Directory of UK BioBank source files";
   private static final String DESC_PROJ_DIR = "Directory in which to create parsed files";
