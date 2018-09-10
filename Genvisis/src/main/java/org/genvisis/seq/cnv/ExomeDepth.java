@@ -417,7 +417,7 @@ public class ExomeDepth {
                                            new String[] {eAnalysis.getExomeDepthOutput(),
                                                          eAnalysis.getAnnoExomeDepthOutput()},
                                            true, false, false, log);
-          eAnalysis.plotCNVs(0.5);
+          eAnalysis.plotCNVs(0.5, exomeDepth.build);
           eAnalysis.dumpRawData();
           return eAnalysis;
         }
@@ -505,11 +505,11 @@ public class ExomeDepth {
       return ext.addToRoot(exomeDepthOutput, ".anno");
     }
 
-    public boolean plotCNVs(double bufferPercent) {
+    public boolean plotCNVs(double bufferPercent, GENOME_BUILD build) {
       String script = "";
       script += addBaseLoadScript(script);
       script += "pdf(file = \"" + exomeDepthPDFOutput + "\")\n";
-      script += getCNVPlotScript(bufferPercent);
+      script += getCNVPlotScript(bufferPercent, build);
       script += "dev.off()";
       String scriptFile = exomeDepthPDFOutput + ".Rscript";
       CmdLine.prepareBatchForCommandLine(scriptFile, true, log, new String[] {script});
@@ -520,13 +520,13 @@ public class ExomeDepth {
       return created;
     }
 
-    public String getCNVPlotScript(double bufferPercent) {
+    public String getCNVPlotScript(double bufferPercent, GENOME_BUILD build) {
       SeqCNVariant[] cnvs = processCNVs();
       CNVariant.sortInPlaceByQuality(cnvs, true);
       String script = "";
       script += "load(\"" + rDafrexomeDepthOutput + "\")\n";
       for (SeqCNVariant cnv : cnvs) {
-        script = getPlotFor(bufferPercent, cnv, script);
+        script = getPlotFor(bufferPercent, cnv, script, build);
       }
       return script;
     }
@@ -560,9 +560,10 @@ public class ExomeDepth {
 
     }
 
-    private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script) {
-      script += "plot(all.exons , sequence = \"" + Positions.getChromosomeUCSC(cnv.getChr(), true)
-                + "\",";
+    private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script,
+                                     GENOME_BUILD build) {
+      script += "plot(all.exons , sequence = \""
+                + Positions.getChromosomeUCSC(cnv.getChr(), build == GENOME_BUILD.HG19) + "\",";
       int buffer = (int) (bufferPercent * cnv.getSize());
       String[] curBoundary = new String[] {cnv.getStart() + " - " + buffer,
                                            cnv.getStop() + " + " + buffer};
