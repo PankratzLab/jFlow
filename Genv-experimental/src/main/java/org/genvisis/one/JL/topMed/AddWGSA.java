@@ -67,7 +67,7 @@ public class AddWGSA {
         Set<String> interestSNP = getHeaderOfInterest(lookupSNP.keySet());
 
         String[] headerIndel = readerAnnotationIndel.readLine().trim().split("\t");
-        for (int i = 0; i < headerSNP.length; i++) {
+        for (int i = 0; i < headerIndel.length; i++) {
           lookupIndel.put(headerIndel[i], i);
         }
 
@@ -86,7 +86,7 @@ public class AddWGSA {
           unique.addAll(interestSNP);
           unique.addAll(interestIndel);
 
-          addHeader(interestSNP, reader.getFileHeader(), writer);
+          addHeader(unique, reader.getFileHeader(), writer);
 
           for (VariantContext vc : reader) {
 
@@ -115,6 +115,7 @@ public class AddWGSA {
             }
             writer.add(vcBuilder.make());
           }
+          writer.close();
         }
       }
     } catch (FileNotFoundException e) {
