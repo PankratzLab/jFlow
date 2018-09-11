@@ -2,7 +2,6 @@ package org.genvisis.one.JL.topMed;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +50,7 @@ public class AddWGSA {
   private static void run(String vcf, String outDir, String wgsaSNP, String wgsaIndel) {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "wgsa.log");
-    log.reportTimeInfo("writiing results to " + outDir);
+    log.reportTimeInfo("writing results to " + outDir);
 
     Map<String, Integer> lookupSNP = new HashMap<>();
     Map<String, Integer> lookupIndel = new HashMap<>();
@@ -59,19 +58,13 @@ public class AddWGSA {
     try (BufferedReader readerAnnotationSNP = Files.getAppropriateReader(wgsaSNP)) {
       try (BufferedReader readerAnnotationIndel = Files.getAppropriateReader(wgsaIndel)) {
 
-        String[] headerSNP = readerAnnotationSNP.readLine().trim().split("\t");
-        for (int i = 0; i < headerSNP.length; i++) {
-          lookupSNP.put(headerSNP[i], i);
-        }
+        processHeader(lookupSNP, readerAnnotationSNP);
 
         Set<String> interestSNP = getHeaderOfInterest(lookupSNP.keySet());
 
-        String[] headerIndel = readerAnnotationIndel.readLine().trim().split("\t");
-        for (int i = 0; i < headerIndel.length; i++) {
-          lookupIndel.put(headerIndel[i], i);
-        }
+        processHeader(lookupIndel, readerAnnotationIndel);
 
-        Set<String> interestIndel = getHeaderOfInterest(lookupSNP.keySet());
+        Set<String> interestIndel = getHeaderOfInterest(lookupIndel.keySet());
 
         String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".wgsa.vcf.gz";
         try (VCFFileReader reader = new VCFFileReader(new File(vcf), false)) {
@@ -94,21 +87,10 @@ public class AddWGSA {
             Map<String, String> toAdd = new HashMap<>();
 
             if (vc.isIndel()) {
-              String[] line = readerAnnotationIndel.readLine().trim().split("\t");
-
-              validate(lookupIndel, vc, line);
-
-              for (String key : interestIndel) {
-                toAdd.put(key, line[lookupIndel.get(key)]);
-              }
+              processLine(lookupIndel, readerAnnotationIndel, interestIndel, vc, toAdd);
 
             } else {
-              String[] line = readerAnnotationSNP.readLine().trim().split("\t");
-              validate(lookupSNP, vc, line);
-
-              for (String key : interestSNP) {
-                toAdd.put(key, line[lookupSNP.get(key)]);
-              }
+              processLine(lookupSNP, readerAnnotationSNP, interestSNP, vc, toAdd);
             }
             for (String key : toAdd.keySet()) {
               vcBuilder.attribute(key, toAdd.get(key));
@@ -118,11 +100,28 @@ public class AddWGSA {
           writer.close();
         }
       }
-    } catch (FileNotFoundException e) {
-      log.reportException(e);
-
     } catch (IOException e) {
       log.reportException(e);
+
+    }
+  }
+
+  static void processHeader(Map<String, Integer> lookupIndel,
+                            BufferedReader readerAnnotationIndel) throws IOException {
+    String[] headerIndel = readerAnnotationIndel.readLine().trim().split("\t");
+    for (int i = 0; i < headerIndel.length; i++) {
+      lookupIndel.put(headerIndel[i], i);
+    }
+  }
+
+  private static void processLine(Map<String, Integer> lookup, BufferedReader reader,
+                                  Set<String> interest, VariantContext vc,
+                                  Map<String, String> toAdd) throws IOException {
+    String[] line = reader.readLine().trim().split("\t");
+    validate(lookup, vc, line);
+
+    for (String key : interest) {
+      toAdd.put(key, line[lookup.get(key)]);
     }
   }
 
