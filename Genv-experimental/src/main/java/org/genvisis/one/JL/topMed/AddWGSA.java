@@ -34,6 +34,7 @@ public class AddWGSA {
   private static final String POS = "pos";
   private static final String REF = "ref";
   private static final String ALT = "alt";
+  private static final String DB_SNP = "rs_dbSNP150";
 
   private static final List<String> VARIANT_KEYS = Arrays.asList(CHR, POS, REF, ALT);
 
@@ -92,6 +93,9 @@ public class AddWGSA {
             }
             for (Entry<String, String> entry : toAdd.entrySet()) {
               vcBuilder.attribute(entry.getKey(), entry.getValue());
+            }
+            if (".".equals(vc.getID())) {
+              vcBuilder.id(toAdd.get(DB_SNP));
             }
             writer.add(vcBuilder.make());
           }
