@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.genvisis.CLI;
 import org.genvisis.common.Files;
@@ -52,17 +53,14 @@ public class AddWGSA {
     Logger log = new Logger(outDir + "wgsa.log");
     log.reportTimeInfo("writing results to " + outDir);
 
-    Map<String, Integer> lookupSNP = new HashMap<>();
-    Map<String, Integer> lookupIndel = new HashMap<>();
-
     try (BufferedReader readerAnnotationSNP = Files.getAppropriateReader(wgsaSNP)) {
       try (BufferedReader readerAnnotationIndel = Files.getAppropriateReader(wgsaIndel)) {
 
-        processHeader(lookupSNP, readerAnnotationSNP);
+        Map<String, Integer> lookupSNP = processHeader(readerAnnotationSNP);
 
         Set<String> interestSNP = getHeaderOfInterest(lookupSNP.keySet());
 
-        processHeader(lookupIndel, readerAnnotationIndel);
+        Map<String, Integer> lookupIndel = processHeader(readerAnnotationIndel);
 
         Set<String> interestIndel = getHeaderOfInterest(lookupIndel.keySet());
 
@@ -92,8 +90,8 @@ public class AddWGSA {
             } else {
               processLine(lookupSNP, readerAnnotationSNP, interestSNP, vc, toAdd);
             }
-            for (String key : toAdd.keySet()) {
-              vcBuilder.attribute(key, toAdd.get(key));
+            for (Entry<String, String> entry : toAdd.entrySet()) {
+              vcBuilder.attribute(entry.getKey(), entry.getValue());
             }
             writer.add(vcBuilder.make());
           }
@@ -106,12 +104,13 @@ public class AddWGSA {
     }
   }
 
-  static void processHeader(Map<String, Integer> lookupIndel,
-                            BufferedReader readerAnnotationIndel) throws IOException {
+  private static Map<String, Integer> processHeader(BufferedReader readerAnnotationIndel) throws IOException {
+    Map<String, Integer> lookup = new HashMap<>();
     String[] headerIndel = readerAnnotationIndel.readLine().trim().split("\t");
     for (int i = 0; i < headerIndel.length; i++) {
-      lookupIndel.put(headerIndel[i], i);
+      lookup.put(headerIndel[i], i);
     }
+    return lookup;
   }
 
   private static void processLine(Map<String, Integer> lookup, BufferedReader reader,
@@ -125,7 +124,7 @@ public class AddWGSA {
     }
   }
 
-  static void validate(Map<String, Integer> lookupIndel, VariantContext vc, String[] line) {
+  private static void validate(Map<String, Integer> lookupIndel, VariantContext vc, String[] line) {
     if (!vc.getContig().equals(line[lookupIndel.get(CHR)])) {
       throw new IllegalArgumentException("invalid contig , " + vc.getContig() + "\t"
                                          + line[lookupIndel.get(CHR)] + "\t"
