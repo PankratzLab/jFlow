@@ -30,12 +30,17 @@ public class AddWGSA {
   private static final String WGSA_SNP_FILE = "wgsaSnpFile";
   private static final String WGSA_INDEL_FILE = "wgsaIndelFile";
 
-  private static final List<String> VARIANT_KEY = Arrays.asList(new String[] {});
+  private static final String CHR = "chr";
+  private static final String POS = "pos";
+  private static final String REF = "ref";
+  private static final String ALT = "alt";
+
+  private static final List<String> VARIANT_KEYS = Arrays.asList(CHR, POS, REF, ALT);
 
   private static LinkedHashSet<String> getHeaderOfInterest(Set<String> header) {
     LinkedHashSet<String> interest = new LinkedHashSet<>();
     for (String h : header) {
-      if (!VARIANT_KEY.contains(h)) {
+      if (!VARIANT_KEYS.contains(h)) {
         interest.add(h);
       }
     }
@@ -69,13 +74,12 @@ public class AddWGSA {
         Set<String> interestIndel = getHeaderOfInterest(lookupSNP.keySet());
 
         String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".wgsa.vcf.gz";
-        try (VCFFileReader reader = new VCFFileReader(new File(vcf), true)) {
+        try (VCFFileReader reader = new VCFFileReader(new File(vcf), false)) {
 
           VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVcf);
           if (reader.getFileHeader().getSequenceDictionary() != null) {
             builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
           }
-          //      builder.setOption(Options.DO_NOT_WRITE_GENOTYPES);
 
           VariantContextWriter writer = builder.build();
           LinkedHashSet<String> unique = new LinkedHashSet<>();
@@ -91,12 +95,17 @@ public class AddWGSA {
 
             if (vc.isIndel()) {
               String[] line = readerAnnotationIndel.readLine().trim().split("\t");
+
+              validate(lookupIndel, vc, line);
+
               for (String key : interestIndel) {
                 toAdd.put(key, line[lookupIndel.get(key)]);
               }
 
             } else {
               String[] line = readerAnnotationSNP.readLine().trim().split("\t");
+              validate(lookupSNP, vc, line);
+
               for (String key : interestSNP) {
                 toAdd.put(key, line[lookupSNP.get(key)]);
               }
@@ -113,6 +122,29 @@ public class AddWGSA {
 
     } catch (IOException e) {
       log.reportException(e);
+    }
+  }
+
+  static void validate(Map<String, Integer> lookupIndel, VariantContext vc, String[] line) {
+    if (!vc.getContig().equals(line[lookupIndel.get(CHR)])) {
+      throw new IllegalArgumentException("invalid contig , " + vc.getContig() + "\t"
+                                         + line[lookupIndel.get(CHR)] + "\t"
+                                         + vc.toStringWithoutGenotypes());
+    }
+    if (vc.getStart() != Integer.parseInt(line[lookupIndel.get(POS)])) {
+      throw new IllegalArgumentException("invalid position , " + vc.getStart() + "\t"
+                                         + line[lookupIndel.get(POS)] + "\t"
+                                         + vc.toStringWithoutGenotypes());
+    }
+    if (!vc.getReference().getBaseString().equals(line[lookupIndel.get(REF)])) {
+      throw new IllegalArgumentException("invalid ref , " + vc.getReference() + "\t"
+                                         + line[lookupIndel.get(REF)] + "\t"
+                                         + vc.toStringWithoutGenotypes());
+    }
+    if (!vc.getAlternateAllele(0).getBaseString().equals(line[lookupIndel.get(ALT)])) {
+      throw new IllegalArgumentException("invalid alt , " + vc.getReference() + "\t"
+                                         + line[lookupIndel.get(ALT)] + "\t"
+                                         + vc.toStringWithoutGenotypes());
     }
   }
 
