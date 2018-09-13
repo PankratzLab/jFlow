@@ -29,6 +29,11 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
+/**
+ * Adds WGSA annotations to a vcf <br>
+ * Note: We enforce that every variant in the .vcf has an annotation<br>
+ * Note: We allow annotations that are not present in the .vcf (which are written at the end)
+ */
 public class AddWGSA {
 
   //  Important notice:
@@ -158,7 +163,6 @@ public class AddWGSA {
         VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
 
         String vcKey = getVCKey(vc);
-        log.reportTimeInfo(vcKey);
         if (vc.isIndel()) {
           numIndelsTransferred++;
 
@@ -275,7 +279,7 @@ public class AddWGSA {
     for (VCFInfoHeaderLine vcfInfo : vcfInfos) {
       header.addMetaDataLine(vcfInfo);
     }
-    writer.writeHeader(new VCFHeader(header.getMetaDataInInputOrder(), new HashSet<String>()));
+    writer.writeHeader(header);
   }
 
   public static void main(String[] args) {
