@@ -21,6 +21,7 @@ import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCFOps;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -134,6 +135,7 @@ public class AddWGSA {
         builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
       }
 
+      builder.setOption(Options.USE_ASYNC_IO);
       VariantContextWriter writer = builder.build();
       LinkedHashSet<String> unique = new LinkedHashSet<>();
       unique.addAll(snpMap.interest);
