@@ -3,6 +3,7 @@ package org.genvisis.one.JL.topMed;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.genvisis.CLI;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCFOps;
@@ -50,10 +53,14 @@ public class AddWGSA {
 
   private static final List<String> VARIANT_KEYS = Arrays.asList(CHR, POS, REF, ALT);
 
+  private enum VARIANT_TYPE {
+    INDEL, SNP;
+  }
+
   private static LinkedHashSet<String> getHeaderOfInterest(Set<String> header) {
     LinkedHashSet<String> interest = new LinkedHashSet<>();
     for (String h : header) {
-      if (!VARIANT_KEYS.contains(h)) {
+      if (!VARIANT_KEYS.contains(h) && (h.equals(DB_SNP) || h.equals(TOPMED_FRZ6_AC))) {
         interest.add(h);
       }
     }
@@ -61,97 +68,145 @@ public class AddWGSA {
 
   }
 
+  private static class WGASMap {
+
+    private final Map<String, WGSALine> map;
+    private final Set<String> interest;
+
+    /**
+     * @param map
+     * @param lookup
+     * @param interest
+     */
+    private WGASMap(Map<String, WGSALine> map, Set<String> interest) {
+      super();
+      this.map = map;
+      this.interest = interest;
+    }
+
+  }
+
+  private static WGASMap loadMap(String wgsaFile, VARIANT_TYPE type, Logger log) {
+    try (BufferedReader readerAnnotation = Files.getAppropriateReader(wgsaFile)) {
+      Map<String, Integer> lookup = processHeader(readerAnnotation);
+      Set<String> interest = getHeaderOfInterest(lookup.keySet());
+      Map<String, WGSALine> map = new HashMap<>();
+      String tmp;
+
+      int count = 0;
+
+      while ((tmp = readerAnnotation.readLine()) != null) {
+        String[] line = tmp.trim().split("\t");
+        count++;
+        if (count % 100000 == 0) {
+          log.reportTimeInfo(count + " annotations loaded from " + wgsaFile);
+        }
+
+        if (line[lookup.get(UNIQUE_VARIANT)].equals("Y")) {
+          Map<String, String> toAdd = new HashMap<>();
+          for (String key : interest) {
+            toAdd.put(key, line[lookup.get(key)]);
+          }
+          WGSALine wLine = new WGSALine(toAdd);
+          map.put(getWGSAKey(lookup, line, type), wLine);
+        }
+      }
+      return new WGASMap(map, interest);
+
+    } catch (IOException e) {
+      log.reportException(e);
+    }
+    throw new IllegalStateException("cannot load annotations");
+  }
+
   private static void run(String vcf, String outDir, String wgsaSNP, String wgsaIndel) {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "wgsa.log");
     log.reportTimeInfo("writing results to " + outDir);
+    WGASMap snpMap = loadMap(wgsaSNP, VARIANT_TYPE.SNP, log);
+    WGASMap indelMap = loadMap(wgsaIndel, VARIANT_TYPE.INDEL, log);
 
-    try (BufferedReader readerAnnotationSNP = Files.getAppropriateReader(wgsaSNP)) {
-      try (BufferedReader readerAnnotationIndel = Files.getAppropriateReader(wgsaIndel)) {
+    String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".wgsa.vcf.gz";
+    try (VCFFileReader reader = new VCFFileReader(new File(vcf), false)) {
 
-        Map<String, Integer> lookupSNP = processHeader(readerAnnotationSNP);
-
-        Set<String> interestSNP = getHeaderOfInterest(lookupSNP.keySet());
-
-        Map<String, Integer> lookupIndel = processHeader(readerAnnotationIndel);
-
-        Set<String> interestIndel = getHeaderOfInterest(lookupIndel.keySet());
-
-        String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + ".wgsa.vcf.gz";
-        try (VCFFileReader reader = new VCFFileReader(new File(vcf), false)) {
-
-          VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVcf);
-          if (reader.getFileHeader().getSequenceDictionary() != null) {
-            builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
-          }
-
-          VariantContextWriter writer = builder.build();
-          LinkedHashSet<String> unique = new LinkedHashSet<>();
-          unique.addAll(interestSNP);
-          unique.addAll(interestIndel);
-
-          addHeader(unique, reader.getFileHeader(), writer, log);
-          int num = 0;
-          int numSNPsTransferred = 0;
-          int numIndelsTransferred = 0;
-          WGSALine wSNPLine = processLine(lookupSNP, readerAnnotationSNP, interestSNP, log);
-          WGSALine wIndelLine = processLine(lookupIndel, readerAnnotationIndel, interestIndel, log);
-          for (VariantContext vc : reader) {
-            num++;
-            if (num % 1 == 0) {
-              log.reportTimeInfo("Processed " + num + " variants\nNum SNP annotations transferred="
-                                 + numSNPsTransferred + "\nNum INDEL annotations transferred="
-                                 + numIndelsTransferred);
-
-              //              if (vc.getStart() == 5031125) {
-              //
-              log.reportTimeInfo(vc.toStringWithoutGenotypes() + "\t" + wIndelLine.line[1] + "\t"
-                                 + wIndelLine.line[2] + "\t" + wIndelLine.line[3] + "\t"
-                                 + vc.getReference().getBaseString() + "\t"
-                                 + vc.getAlternateAllele(0).getBaseString() + "\t"
-                                 + vc.getReference().getBaseString().equals(wIndelLine.line[2])
-                                 + vc.getAlternateAllele(0).getBaseString()
-                                     .equals(wIndelLine.line[3]));
-              log.reportTimeInfo(vc.toStringWithoutGenotypes() + "\t" + wSNPLine.line[1]);
-            }
-            //          }
-            //            WANT
-            //            CTTTTTT
-            //            CTTTTTTT
-            //            CTTTTTTT
-            //            
-            //            
-            //            
-            //            CTTTTTTT
-            //            CTTTTTT
-            //            CTTTTTT
-            //            CTTTTTTT
-            //            CTTTTTTT
-            VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
-            if (validate(lookupIndel, vc, wIndelLine.line)) {
-              numSNPsTransferred++;
-              transferAnnotations(vc, vcBuilder, wIndelLine.toAdd);
-              wIndelLine = processLine(lookupIndel, readerAnnotationIndel, interestIndel, log);
-            } else if (validate(lookupSNP, vc, wSNPLine.line)) {
-              transferAnnotations(vc, vcBuilder, wSNPLine.toAdd);
-              numIndelsTransferred++;
-              wSNPLine = processLine(lookupSNP, readerAnnotationSNP, interestSNP, log);
-            }
-            writer.add(vcBuilder.make());
-          }
-          writer.close();
-        }
+      VariantContextWriterBuilder builder = new VariantContextWriterBuilder().setOutputFile(outputVcf);
+      if (reader.getFileHeader().getSequenceDictionary() != null) {
+        builder.setReferenceDictionary(reader.getFileHeader().getSequenceDictionary());
       }
-    } catch (
 
-    IOException e) {
-      log.reportException(e);
+      VariantContextWriter writer = builder.build();
+      LinkedHashSet<String> unique = new LinkedHashSet<>();
+      unique.addAll(snpMap.interest);
+      unique.addAll(indelMap.interest);
 
+      addHeader(unique, reader.getFileHeader(), writer, log);
+      int num = 0;
+      int numSNPsTransferred = 0;
+      int numIndelsTransferred = 0;
+
+      for (VariantContext vc : reader) {
+        num++;
+        if (num % 100000 == 0) {
+          log.reportTimeInfo("Processed " + num + " variants\nNum SNP annotations transferred="
+                             + numSNPsTransferred + "\nNum INDEL annotations transferred="
+                             + numIndelsTransferred);
+
+        }
+
+        VariantContextBuilder vcBuilder = new VariantContextBuilder(vc);
+
+        String vcKey = getVCKey(vc);
+        log.reportTimeInfo(vcKey);
+        if (vc.isIndel()) {
+          numIndelsTransferred++;
+
+          if (!indelMap.map.containsKey(vcKey)) {
+            log.reportTimeInfo(vc.toStringWithoutGenotypes());
+            throw new IllegalArgumentException("Key not found");
+          }
+          transferAnnotations(vc, vcBuilder, indelMap.map.get(vcKey).toAdd);
+          indelMap.map.remove(vcKey);
+        } else {
+          numSNPsTransferred++;
+
+          if (!snpMap.map.containsKey(vcKey)) {
+            log.reportTimeInfo(vc.toStringWithoutGenotypes());
+            throw new IllegalArgumentException("Key not found");
+          }
+          transferAnnotations(vc, vcBuilder, snpMap.map.get(vcKey).toAdd);
+          snpMap.map.remove(vcKey);
+        }
+        writer.add(vcBuilder.make());
+
+      }
+      writer.close();
+    }
+    String outputSnpLeftover = outDir + VCFOps.getAppropriateRoot(vcf, true)
+                               + ".wgsa.snp.not.in.vcf.gz";
+    dumpLeftovers(outputSnpLeftover, snpMap);
+    String outputIndelLeftover = outDir + VCFOps.getAppropriateRoot(vcf, true)
+                                 + ".wgsa.indel.not.in.vcf.gz";
+    dumpLeftovers(outputIndelLeftover, indelMap);
+
+  }
+
+  private static void dumpLeftovers(String outFile, WGASMap map) {
+    try (PrintWriter writer = Files.getAppropriateWriter(outFile)) {
+      writer.println("KEY\t" + ArrayUtils.toStr(map.interest));
+
+      for (String key : map.map.keySet()) {
+        StringJoiner out = new StringJoiner("\t");
+        out.add(key);
+        for (String ann : map.interest) {
+          out.add(map.map.get(key).toAdd.get(ann));
+        }
+        writer.println(out.toString());
+      }
     }
   }
 
-  static void transferAnnotations(VariantContext vc, VariantContextBuilder vcBuilder,
-                                  Map<String, String> toAdd) {
+  private static void transferAnnotations(VariantContext vc, VariantContextBuilder vcBuilder,
+                                          Map<String, String> toAdd) {
     for (Entry<String, String> entry : toAdd.entrySet()) {
       vcBuilder.attribute(entry.getKey(), entry.getValue());
     }
@@ -173,67 +228,35 @@ public class AddWGSA {
   private static class WGSALine {
 
     private final Map<String, String> toAdd;
-    private final String[] line;
 
     /**
      * @param toAdd
      * @param line
      */
-    private WGSALine(Map<String, String> toAdd, String[] line) {
+    private WGSALine(Map<String, String> toAdd) {
       super();
       this.toAdd = toAdd;
-      this.line = line;
     }
 
   }
 
-  private static WGSALine processLine(Map<String, Integer> lookup, BufferedReader reader,
-                                      Set<String> interest, Logger log) throws IOException {
-    String[] line;
+  private static String getVCKey(VariantContext vc) {
+    String base = vc.getContig() + "_" + vc.getStart() + "_" + vc.getReference().getBaseString()
+                  + "_" + vc.getAlternateAllele(0).getBaseString();
 
-    while ((line = reader.readLine().trim().split("\t")) != null) {
-      if (!line[lookup.get(TOPMED_FRZ6_AC)].equals(".")
-          && line[lookup.get(UNIQUE_VARIANT)].equals("Y")) break;
+    if (vc.isIndel()) {
+      return VARIANT_TYPE.INDEL.toString() + "_" + base;
+    } else {
+      return VARIANT_TYPE.SNP.toString() + "_" + base;
     }
-
-    if (line == null) {
-      log.reportTimeWarning("Returning null WGSALine");
-      return null;
-    }
-
-    Map<String, String> toAdd = new HashMap<>();
-    for (String key : interest) {
-      toAdd.put(key, line[lookup.get(key)]);
-    }
-    return new WGSALine(toAdd, line);
   }
 
-  private static boolean validate(Map<String, Integer> lookupIndel, VariantContext vc,
-                                  String[] line) {
-    if (!vc.getContig().equals("chr" + line[lookupIndel.get(CHR)])) {
-      throw new IllegalArgumentException("invalid contig , " + vc.getContig() + "\t"
-                                         + line[lookupIndel.get(CHR)] + "\t"
-                                         + vc.toStringWithoutGenotypes());
-    }
-    if (vc.getStart() != Integer.parseInt(line[lookupIndel.get(POS)])) {
-      //      throw new IllegalArgumentException("invalid position , " + vc.getStart() + "\t"
-      //                                         + line[lookupIndel.get(POS)] + "\t"
-      //                                         + vc.toStringWithoutGenotypes());
-      return false;
-    }
-    if (!vc.getReference().getBaseString().equals(line[lookupIndel.get(REF)])) {
-      //      throw new IllegalArgumentException("invalid ref , " + vc.getReference() + "\t"
-      //                                         + line[lookupIndel.get(REF)] + "\t"
-      //                                         + vc.toStringWithoutGenotypes());
-      return false;
-    }
-    if (!vc.getAlternateAllele(0).getBaseString().equals(line[lookupIndel.get(ALT)])) {
-      //      throw new IllegalArgumentException("invalid alt , " + vc.getReference() + "\t"
-      //                                         + line[lookupIndel.get(ALT)] + "\t"
-      //                                         + vc.toStringWithoutGenotypes());
-      return false;
-    }
-    return true;
+  private static String getWGSAKey(Map<String, Integer> lookup, String[] line, VARIANT_TYPE type) {
+    String base = "chr" + line[lookup.get(CHR)] + "_" + line[lookup.get(POS)] + "_"
+                  + line[lookup.get(REF)] + "_" + line[lookup.get(ALT)];
+
+    return type.toString() + "_" + base;
+
   }
 
   private static void addHeader(Set<String> newHeaderLines, VCFHeader header,
