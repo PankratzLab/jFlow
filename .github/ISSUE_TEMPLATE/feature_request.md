@@ -1,17 +1,24 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
+name: User story
+about: Suggest an idea for new Genvisis development based on a user story
 
 ---
+# User Story
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+### Summary
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**As a** [user concerned by the story],
+**I want** [goal of the story]
+**so that** [reason for the story]
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+### Justification
+[Expand on the need for this feature]
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+### Proposed Solution
+[A clear and concise description of what you want to happen.]
+
+### Alternatives
+[A clear and concise description of any alternative solutions or features you've considered.]
+
+### Additional context
+[Any other context relevant to the feature (related issues, screenshots, mockups, emails, etc.)]
