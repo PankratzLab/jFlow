@@ -17,12 +17,13 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Screenshots and/or Log file**
+Ensure no protected information, such as IDs, is present.
 
 **Environment (please complete the following information):**
  - OS: [e.g. Windows, MacOS, linux]
- - Version [e.g. 22]
+ - Version [e.g. release 22, commit, or branch]
+ - Project ID [from project matrix](https://z.umn.edu/GenvisisStudyMatrix)
 
 **Additional context**
 Add any other context about the problem here.
