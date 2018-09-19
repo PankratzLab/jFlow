@@ -1,24 +1,27 @@
 ---
-name: User story
-about: Suggest an idea for new Genvisis development based on a user story
+name: Feature Request
+about: Suggest an idea for a new Genvisis feature
 
 ---
-# User Story
 
-### Summary
+### Overview
 
-**As a** [user concerned by the story],
-**I want** [goal of the story]
-**so that** [reason for the story]
+1. **As a** [what type of user are you? e.g. new user]
+1. **I want** [what do you want to be able to do? e.g. see descriptions of workflow options]
+1. **so that** [why do you want to do it? e.g. to make informed choices]
 
-### Justification
-[Expand on the need for this feature]
 
-### Proposed Solution
-[A clear and concise description of what you want to happen.]
+### Examples
 
-### Alternatives
-[A clear and concise description of any alternative solutions or features you've considered.]
+[Add references here to any items that would help us meet your needs.
 
-### Additional context
-[Any other context relevant to the feature (related issues, screenshots, mockups, emails, etc.)]
+e.g.
+* Does another application contain this feature? Send us a link!
+* Was there a feature you didn't understand? Attach a screenshot!
+* Are you asking for a new algorithm to be added? Share the publication!
+]
+
+
+### Other Comments
+
+[Feel free to add any other information about this request here.]
