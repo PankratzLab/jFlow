@@ -11,6 +11,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
@@ -47,17 +48,19 @@ public class TempFileTranspose {
     public static String[] checkout(String listFile, int pull, String label,
                                     Logger log) throws IOException {
       Path filePath = FileSystems.getDefault().getPath(listFile);
-      String newFile = ext.rootOf(listFile, false) + "." + label + "."
-                       + Thread.currentThread().getName() + ".temp";
+      String newFile = ext.rootOf(listFile, false) + "." + (label != null ? label + "." : "")
+                       + Thread.currentThread().getId() + ".temp";
       Path newFilePath = FileSystems.getDefault().getPath(newFile);
       IOException e = null;
       double minsSlept = 0;
       do {
         try {
           // throws the caught exception if missing
-          java.nio.file.Files.move(filePath, newFilePath, StandardCopyOption.ATOMIC_MOVE);
-
-          String[] list = HashVec.loadFileToStringArray(newFile, false, null, false);
+          String[] list;
+          synchronized (StandardCopyOption.ATOMIC_MOVE) {
+            java.nio.file.Files.move(filePath, newFilePath, StandardCopyOption.ATOMIC_MOVE);
+            list = HashVec.loadFileToStringArray(newFile, false, null, false);
+          }
           if (list.length == 0) {
             return new String[0];
           }
@@ -69,7 +72,9 @@ public class TempFileTranspose {
           if (r > 0) {
             System.arraycopy(list, p, remain, 0, remain.length);
             Files.writeArray(remain, newFile);
-            java.nio.file.Files.move(newFilePath, filePath, StandardCopyOption.ATOMIC_MOVE);
+            synchronized (StandardCopyOption.ATOMIC_MOVE) {
+              java.nio.file.Files.move(newFilePath, filePath, StandardCopyOption.ATOMIC_MOVE);
+            }
           }
 
           Files.writeArray(values, newFile);
@@ -301,7 +306,7 @@ public class TempFileTranspose {
 
   public void setupSampleListFile() {
     new File(proj.SAMPLE_DIRECTORY.getValue()).mkdirs();
-    String[] samples = proj.getSamples();
+    String[] samples = Arrays.copyOf(proj.getSamples(), proj.getSamples().length);
     for (int i = 0; i < samples.length; i++) {
       samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
     }
@@ -345,6 +350,8 @@ public class TempFileTranspose {
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (Exception e) {
           e.printStackTrace();
         }
       };
@@ -437,7 +444,14 @@ public class TempFileTranspose {
     Hashtable<String, Float> outs;
     byte[] buffer;
     RandomAccessFile sampFile;
-    int sInd = sampleIndices.get(samp);
+    int sInd = -1;
+    if (sampleIndices.containsKey(samp)) {
+      sInd = sampleIndices.get(samp);
+    } else if (sampleIndices.containsKey(ext.rootOf(samp, true))) {
+      sInd = sampleIndices.get(ext.rootOf(samp, true));
+    } else {
+      throw new RuntimeException("Error - sample " + samp + " not found in the sample index map!");
+    }
     sampFile = new RandomAccessFile(samp, "rw");
 
     sampFile.seek(0);
