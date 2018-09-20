@@ -374,7 +374,7 @@ public class GenvisisWorkflow {
       varMap.put(transpose, transpose.getDefaultRequirementValues());
       stepReqs = blast.getDefaultRequirementValues();
       for (Requirement<?> r1 : stepReqs.keys()) {
-        if (r1.getDescription().equalsIgnoreCase(IlluminaMarkerBlast.DESC_MANIFEST)) {
+        if (r1.getDescription().contains(IlluminaMarkerBlast.DESC_MANIFEST.substring(1))) {
           stepReqs.parseOrFail(r1, man);
           break;
         }
