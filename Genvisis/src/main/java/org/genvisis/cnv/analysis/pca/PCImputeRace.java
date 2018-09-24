@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -499,6 +500,7 @@ public class PCImputeRace {
       } else {
         log.reportTimeWarning("Could not calculate frequencies for " + race.getDescription()
                               + ", this occurs when no project samples were found for this race.");
+        raceFreqs.put(race, new HashMap<String, String>());
       }
     }
     writer.println();
@@ -522,8 +524,7 @@ public class PCImputeRace {
       for (RACE race : RACE.values()) {
         Map<String, String> raceFreq = raceFreqs.get(race);
         String a1f;
-        if (marker == null) {
-          log.reportError("SNP '" + marker + "' not found for " + raceListFiles.get(race));
+        if (marker == null || !raceFreq.containsKey(marker)) {
           a1f = ".";
         } else {
           String[] raceData = raceFreq.get(marker).split("\t");

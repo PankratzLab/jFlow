@@ -3,10 +3,12 @@ package org.genvisis.cnv.workflow.steps;
 import java.io.File;
 import java.util.EnumSet;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
+import org.genvisis.cnv.workflow.Requirement.OptionalFileRequirement;
 import org.genvisis.cnv.workflow.Requirement.ResourceRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
@@ -27,26 +29,41 @@ public class AncestryStep extends Step {
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getUnambiguousHapMapFounders());
 
+    String defaultSnpFile = null;
+    if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
+        || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
+      defaultSnpFile = Resources.affy(proj.getLog()).getRSIDLookup().get();
+    }
+    if (defaultSnpFile == null) {
+      defaultSnpFile = "";
+    }
+
+    final Requirement.OptionalFileRequirement snpIDLookupFileReq = new OptionalFileRequirement("A SNP name replacement file with two columns, the first being the original SNP name and the second containing the replacement name.",
+                                                                                               new File(defaultSnpFile));
     final RequirementSet reqSet = RequirementSetBuilder.and().add(gwasQCStepReq)
                                                        .add(putativeWhitesReq)
-                                                       .add(hapMapFoundersReq);
+                                                       .add(hapMapFoundersReq)
+                                                       .add(snpIDLookupFileReq);
     final Requirement.ResourceRequirement hapMapAncestryReq = new Requirement.ResourceRequirement("HapMap Samples Ancestry File",
                                                                                                   Resources.hapMap(proj.getLog())
                                                                                                            .getHapMapAncestries());
-    return new AncestryStep(proj, hapMapFoundersReq, hapMapAncestryReq, reqSet);
+    return new AncestryStep(proj, snpIDLookupFileReq, hapMapFoundersReq, hapMapAncestryReq, reqSet);
   }
 
   private final static Requirement<File> putativeWhitesReq = new FileRequirement("File with FID/IID pairs of putative white samples",
                                                                                  new File(""));
 
   final Project proj;
+  final OptionalFileRequirement snpIDLookupReq;
   final ResourceRequirement hapMapFoundersReq;
   final ResourceRequirement hapMapAncestryReq;
 
-  private AncestryStep(Project proj, ResourceRequirement hapFound, ResourceRequirement hapAnc,
+  private AncestryStep(Project proj, OptionalFileRequirement snpIDLookupReq,
+                       ResourceRequirement hapFound, ResourceRequirement hapAnc,
                        RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
     this.proj = proj;
+    this.snpIDLookupReq = snpIDLookupReq;
     this.hapMapFoundersReq = hapFound;
     this.hapMapAncestryReq = hapAnc;
   }
@@ -64,7 +81,9 @@ public class AncestryStep extends Step {
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
-    Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, proj,
+    File f = variables.get(snpIDLookupReq);
+    String snpIDFile = f == null || f.getPath().equals("") ? null : f.getAbsolutePath();
+    Ancestry.runPipeline(ancestryDir, putativeWhites, hapMapPlinkRoot, snpIDFile, proj,
                          new Logger(ancestryDir + "ancestry.log"));
   }
 
@@ -75,11 +94,21 @@ public class AncestryStep extends Step {
                                                                                 .getAbsolutePath();
     String hapMapPlinkRoot = hapMapFoundersReq.getResource().getAbsolute();
     hapMapAncestryReq.getResource().get();
+    File f = variables.get(snpIDLookupReq);
+    String snpIDFile = f == null || f.getPath().equals("") ? null : f.getAbsolutePath();
     String ancestryDir = GenvisisWorkflow.getAncestryDir(proj);
     String command = Files.getRunString() + " gwas.Ancestry -runPipeline dir=" + ancestryDir;
     command += " putativeWhites=" + putativeWhites;
     command += " proj=" + proj.getPropertyFilename();
     command += " hapMapPlinkRoot=" + hapMapPlinkRoot;
+    if (snpIDFile != null) {
+      if (Files.exists(snpIDFile)) {
+        command += " snpLookup=" + snpIDFile;
+      } else {
+        proj.getLog()
+            .reportTimeWarning("Specified SNP name lookup file couldn't be found: " + snpIDFile);
+      }
+    }
     command += " log=" + ancestryDir + "ancestry.log";
     return command;
   }

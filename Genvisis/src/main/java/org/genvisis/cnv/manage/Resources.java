@@ -636,6 +636,11 @@ public final class Resources {
     public AffyGenomes genome(GENOME_BUILD build) {
       return new AffyGenomes(build, log());
     }
+
+    public Resource getRSIDLookup() {
+      return getResource("rsLookup.txt");
+    }
+
   }
 
   /**

@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.SampleList;
@@ -34,6 +36,8 @@ import com.google.common.collect.Table;
 
 public class Ancestry {
 
+  private static final String PLINK_BIM_UNAMBIGUOUS_RENAMED_TXT = "plink.bim_unambiguous_renamed.txt";
+  private static final String PLINK_BIM_UNAMBIGUOUS_TXT = "plink.bim_unambiguous.txt";
   public static final int DEFAULT_NUM_COMPONENTS_ANCESTRY = 10;
   public static final String DEFAULT_HAPMAP_PLINKROOT = "/home/pankrat2/shared/bin/HapMap/unambiguousHapMapFounders";
   public static final String RACE_IMPUTATIONS_FILENAME = "raceImputations.mds";
@@ -48,10 +52,6 @@ public class Ancestry {
 
   private static enum HapMapPopulation {
     CEU, YRI, CHB, JPT;
-  }
-
-  public static void runPipeline(String dir, String putativeWhitesFile, Project proj, Logger log) {
-    runPipeline(dir, putativeWhitesFile, null, proj, log);
   }
 
   private static Project createDummyProject(String dir, String dummyProjectPrefix,
@@ -103,7 +103,7 @@ public class Ancestry {
   }
 
   public static void runPipeline(String dir, String putativeWhitesFile, String hapMapPlinkRoot,
-                                 Project proj, Logger log) {
+                                 String snpRSIDLookupFile, Project proj, Logger log) {
     if (hapMapPlinkRoot == null) {
       hapMapPlinkRoot = DEFAULT_HAPMAP_PLINKROOT;
     }
@@ -113,7 +113,7 @@ public class Ancestry {
       checkHomogeneity(dir, putativeWhitesFile, dir + "plink", hapMapPlinkRoot, proj, log);
     }
     String homogeneityDrops = parseHomogeneity(dir, log);
-    mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
+    mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
     runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
     imputeRaceFromPCA(dir, proj, log);
   }
@@ -177,24 +177,44 @@ public class Ancestry {
   }
 
   private static void mergeHapMap(String dir, String projectPlinkRoot, String hapMapPlinkRoot,
-                                  String dropMarkersFile, Logger log) {
+                                  String dropMarkersFile, String snpIDLookupFile, Logger log) {
     if (!Files.exists(dir + RelationAncestryQc.UNRELATEDS_FILENAME)) {
       log.reportError("Error - need a file called " + RelationAncestryQc.UNRELATEDS_FILENAME
                       + " with FID and IID pairs before we can proceed");
       return;
     }
-    if (!Files.exists(dir + "plink.bim_unambiguous.txt")) {
+
+    BidiMap<String, String> lookup = null;
+    if (snpIDLookupFile != null) {
+      if (!Files.exists(snpIDLookupFile)) {
+        log.reportError("SNP Name Lookup file was specified, but couldn't be found at: "
+                        + snpIDLookupFile);
+      } else {
+        lookup = new DualHashBidiMap<String, String>(HashVec.loadFileColumnToMap(snpIDLookupFile, 0,
+                                                                                 1, false, log));
+      }
+    }
+
+    String srcData = "plink";
+    if (lookup != null) {
+      log.report(ext.getTime() + "]\tRenaming snps using lookup file: " + snpIDLookupFile);
+      CmdLine.runDefaults("plink2 --bfile plink --update-name " + snpIDLookupFile
+                          + " --make-bed --out plinkRenamed --noweb", dir, log);
+      srcData = "plinkRenamed";
+    }
+
+    if (!Files.exists(dir + PLINK_BIM_UNAMBIGUOUS_TXT)) {
       log.report(ext.getTime() + "]\tGenerating list of unambiguous SNPs");
-      new SnpMarkerSet(dir + "plink.bim", true,
-                       log).listUnambiguousMarkers(dir + "plink.bim_unambiguous.txt",
-                                                   dropMarkersFile, true);
+      new SnpMarkerSet(dir + srcData + ".bim", true,
+                       log).listUnambiguousMarkers(dir + PLINK_BIM_UNAMBIGUOUS_TXT, dropMarkersFile,
+                                                   true);
     }
 
     if (!Files.exists(dir + "unambiguousHapMap.bed")) {
       log.report(ext.getTime() + "]\tExtracting unambiguous SNPs for HapMap founders");
-      CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot
-                          + " --extract plink.bim_unambiguous.txt --make-bed --out unambiguousHapMap --noweb",
-                          dir, log);
+      CmdLine.runDefaults("plink2 --bfile " + hapMapPlinkRoot + " --extract "
+                          + PLINK_BIM_UNAMBIGUOUS_TXT
+                          + " --make-bed --out unambiguousHapMap --noweb", dir, log);
     }
 
     if (!Files.exists(dir + "overlap.txt")) {
@@ -210,8 +230,9 @@ public class Ancestry {
 
     if (!Files.exists(dir + "unambiguous.bed")) {
       log.report(ext.getTime() + "]\tExtracting overlapping SNPs for study samples");
-      CmdLine.runDefaults("plink2 --bfile plink --extract overlap.txt --make-bed --out unambiguous --noweb",
-                          dir, log);
+      CmdLine.runDefaults("plink2 --bfile " + srcData
+                          + " --extract overlap.txt --make-bed --out unambiguous --noweb", dir,
+                          log);
     }
 
     if (!Files.exists(dir + "combo.missnp")) {
@@ -432,6 +453,7 @@ public class Ancestry {
     boolean imputeRace = false;
     Project proj = null;
     String dummyProjectPrefix = null;
+    String snpRSIDLookupFile = null;
     String logfile = null;
     Logger log;
 
@@ -484,6 +506,9 @@ public class Ancestry {
       } else if (arg.startsWith("proj")) {
         proj = new Project(ext.parseStringArg(arg, "./"));
         numArgs--;
+      } else if (arg.startsWith("snpLookup")) {
+        snpRSIDLookupFile = ext.parseStringArg(arg);
+        numArgs--;
       } else if (arg.startsWith("dummyProject")) {
         dummyProjectPrefix = ext.parseStringArg(arg, null);
         numArgs--;
@@ -510,12 +535,12 @@ public class Ancestry {
     }
     try {
       if (runPipeline) {
-        runPipeline(dir, putativeWhites, hapMapPlinkRoot, proj, log);
+        runPipeline(dir, putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
       } else if (checkHomo) {
         checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
       } else if (run) {
         String homogeneityDrops = parseHomogeneity(dir, log);
-        mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, log);
+        mergeHapMap(dir, dir + "plink", hapMapPlinkRoot, homogeneityDrops, snpRSIDLookupFile, log);
         runPCA(dir, DEFAULT_NUM_COMPONENTS_ANCESTRY, log);
       } else if (imputeRace) {
         imputeRaceFromPCA(dir, proj, log);
