@@ -57,18 +57,23 @@ public class CollapseToRsIds {
     SAMSequenceDictionary newDictionary = readerTmp.getFileHeader().getSequenceDictionary();
     readerTmp.close();
     WorkerHive<ExtractResult> hive = new WorkerHive<>(threads, 10, log);
+    int numProcessing = 0;
     for (SAMSequenceRecord record : newDictionary.getSequences()) {
       String vcf = inputDir + preChr + record.getSequenceName() + postChr;
       if (!Files.exists(vcf)) {
         log.reportTimeWarning("skipping " + vcf);
+      } else if (!Files.exists(vcf + ".tbi")) {
+        log.reportTimeWarning("skipping " + vcf + " due to missing index file");
       } else {
         log.reportTimeInfo("Submitting vcf " + vcf);
         hive.addCallable(() -> extract(outDir, preChr, postChr, log, rsIds, header, newDictionary,
                                        record, vcf));
+        numProcessing++;
 
       }
 
     }
+    log.reportTimeInfo("Processing total of " + numProcessing + " vcf files");
     hive.execute(true);
     hive.getResults();
 
@@ -129,7 +134,7 @@ public class CollapseToRsIds {
 
   private static String getOut(String outDir, String preChr, String postChr,
                                SAMSequenceRecord record) {
-    return outDir + preChr + record.getSequenceName() + ".aims." + postChr;
+    return outDir + preChr + record.getSequenceName() + ".aims" + postChr;
   }
 
   public static void main(String[] args) {
@@ -140,7 +145,7 @@ public class CollapseToRsIds {
 
     c.parseWithExit(args);
 
-    run(c.get(CLI.ARG_INDIR), c.get("rsIDFile"), c.get(CLI.ARG_OUTDIR), "freeze.5b.",
-        ".pass_and_fail.gtonly.minDP10.vcf.gz", 24);
+    run(c.get(CLI.ARG_INDIR), c.get("rsIDFile"), c.get(CLI.ARG_OUTDIR), "freeze.6a.",
+        ".pass_and_fail.gtonly.minDP0.vcf.gz", 24);
   }
 }
