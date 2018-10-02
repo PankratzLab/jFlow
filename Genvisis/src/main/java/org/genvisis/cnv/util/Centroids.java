@@ -10,12 +10,12 @@ import org.genvisis.common.Logger;
 public class Centroids {
 
   public static CentroidCompute prepareProperCentroid(ARRAY array, MarkerData markerData,
-                                                       int[] sampleSex,
-                                                       boolean[] samplesToUseCluster,
-                                                       double missingnessThreshold,
-                                                       double confThreshold,
-                                                       ClusterFilterCollection clusterFilterCollection,
-                                                       boolean medianCenter, Logger log) {
+                                                      int[] sampleSex,
+                                                      boolean[] samplesToUseCluster,
+                                                      double missingnessThreshold,
+                                                      double confThreshold,
+                                                      ClusterFilterCollection clusterFilterCollection,
+                                                      boolean medianCenter, Logger log) {
     CentroidCompute centroid;
     if (PrincipalComponentsIntensity.isAffyIntensityOnly(array, markerData)) {
       // centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true,
