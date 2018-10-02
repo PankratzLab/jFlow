@@ -9,9 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.swing.SwingConstants;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2.PLOT_TYPE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.DATA_SET;
@@ -20,6 +17,9 @@ import org.genvisis.one.ben.fcs.FCSPlot;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
 import org.genvisis.one.ben.flowannot.GateTree;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 public class VisualizationProcessor implements SampleProcessor {
 

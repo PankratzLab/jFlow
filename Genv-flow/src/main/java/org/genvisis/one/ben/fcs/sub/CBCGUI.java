@@ -19,9 +19,9 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import org.genvisis.CLI;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
 import net.miginfocom.swing.MigLayout;
 
 public class CBCGUI {

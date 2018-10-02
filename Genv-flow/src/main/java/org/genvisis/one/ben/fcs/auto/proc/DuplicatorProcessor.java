@@ -2,12 +2,12 @@ package org.genvisis.one.ben.fcs.auto.proc;
 
 import java.io.IOException;
 import java.util.HashSet;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.FCSFileDuplicator;
 import org.genvisis.one.ben.fcs.gating.Gate;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 class DuplicatorProcessor extends AbstractSampleProcessor {
 

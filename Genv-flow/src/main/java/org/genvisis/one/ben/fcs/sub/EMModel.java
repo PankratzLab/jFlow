@@ -11,11 +11,11 @@ import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureEx
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
 import org.genvisis.one.ben.fcs.AbstractPanel2.AXIS_SCALE;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.FCSDataLoader.LOAD_STATE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
 import edu.stanford.facs.logicle.Logicle;
 
 public class EMModel {

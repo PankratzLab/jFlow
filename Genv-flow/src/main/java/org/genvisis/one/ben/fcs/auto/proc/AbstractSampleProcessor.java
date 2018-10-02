@@ -3,10 +3,10 @@ package org.genvisis.one.ben.fcs.auto.proc;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.genvisis.common.Logger;
 import org.genvisis.one.ben.fcs.FCSDataLoader;
 import org.genvisis.one.ben.fcs.gating.GateFileUtils;
 import org.genvisis.one.ben.fcs.gating.Workbench.SampleNode;
+import org.pankratzlab.common.Logger;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 

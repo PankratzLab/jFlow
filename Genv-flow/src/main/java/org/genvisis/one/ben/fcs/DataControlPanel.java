@@ -10,7 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.genvisis.common.Grafik;
+import org.pankratzlab.common.Grafik;
 import net.miginfocom.swing.MigLayout;
 
 public class DataControlPanel extends JPanel {

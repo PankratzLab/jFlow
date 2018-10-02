@@ -26,9 +26,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import org.genvisis.cnv.gui.FileChooser;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 import net.miginfocom.swing.MigLayout;
 
 public class DeidentifierGUI extends JDialog {

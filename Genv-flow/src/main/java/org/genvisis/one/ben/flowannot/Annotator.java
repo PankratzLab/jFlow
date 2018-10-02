@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 public class Annotator implements IAnnotator {
 

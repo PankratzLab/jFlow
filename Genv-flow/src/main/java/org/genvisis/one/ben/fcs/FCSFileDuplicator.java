@@ -10,8 +10,8 @@ import org.flowcyt.cfcs.CFCSKeywords;
 import org.flowcyt.cfcs.CFCSListModeData;
 import org.flowcyt.cfcs.CFCSParameters;
 import org.flowcyt.cfcs.CFCSSystem;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
 
 public class FCSFileDuplicator {
 

@@ -17,7 +17,7 @@ import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.genvisis.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils;
 import net.miginfocom.swing.MigLayout;
 
 public class BoxCtrlPanel extends JPanel {
