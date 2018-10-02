@@ -1,14 +1,14 @@
 package org.genvisis.one.JL.aging;
 
 import java.io.File;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
 import org.genvisis.seq.manage.BamOps;
-import org.genvisis.sra.SRARunTable;
-import org.genvisis.sra.SRASample;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.sra.SRARunTable;
+import org.pankratzlab.utils.sra.SRASample;
 
 /**
  * Done

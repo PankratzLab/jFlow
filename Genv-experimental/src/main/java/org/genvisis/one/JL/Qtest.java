@@ -1,9 +1,9 @@
 package org.genvisis.one.JL;
 
 import java.util.concurrent.Callable;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 
 public class Qtest {
 

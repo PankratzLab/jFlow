@@ -10,9 +10,9 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 
 public class VCFSamplePrep {
 

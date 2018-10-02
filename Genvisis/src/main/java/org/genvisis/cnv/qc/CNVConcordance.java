@@ -10,15 +10,15 @@ import java.util.Map;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CNVFilter;
-import org.genvisis.common.CNVFilter.CNVFilterPass;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariantHash;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CNVFilter;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.CNVFilter.CNVFilterPass;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariantHash;
 
 /**
  * Measure statistics for agreement (concordance) of CNV calls. There are two methods for

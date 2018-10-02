@@ -10,13 +10,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.Maths;
 import com.google.common.primitives.Doubles;
 
 /**

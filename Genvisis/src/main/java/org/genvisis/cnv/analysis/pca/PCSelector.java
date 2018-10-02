@@ -9,16 +9,16 @@ import java.util.Iterator;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
-import org.genvisis.stats.SimpleM;
-import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
-import org.genvisis.stats.StatsCrossTabs.StatsCrossTabRank;
-import org.genvisis.stats.StatsCrossTabs.VALUE_TYPE;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.SimpleM;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
+import org.pankratzlab.shared.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.pankratzlab.shared.stats.StatsCrossTabs.VALUE_TYPE;
 import com.google.common.primitives.Ints;
 
 /**

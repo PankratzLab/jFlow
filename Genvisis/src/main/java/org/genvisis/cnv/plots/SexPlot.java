@@ -26,10 +26,10 @@ import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.gui.WrapLayout;
 import org.genvisis.cnv.qc.SexChecks;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.ext;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 

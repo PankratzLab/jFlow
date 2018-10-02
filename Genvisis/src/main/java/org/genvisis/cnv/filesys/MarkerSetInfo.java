@@ -1,7 +1,7 @@
 package org.genvisis.cnv.filesys;
 
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.Segment;
 
 public interface MarkerSetInfo {
 

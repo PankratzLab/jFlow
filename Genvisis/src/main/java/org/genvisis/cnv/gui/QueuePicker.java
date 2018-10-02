@@ -20,9 +20,9 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 import net.miginfocom.swing.MigLayout;
-import org.genvisis.common.Grafik;
-import org.genvisis.qsub.JobQueue;
-import org.genvisis.qsub.QueueProperties;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.utils.qsub.JobQueue;
+import org.pankratzlab.utils.qsub.QueueProperties;
 
 public class QueuePicker extends JDialog {
 

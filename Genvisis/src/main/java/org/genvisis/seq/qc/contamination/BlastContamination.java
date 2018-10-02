@@ -7,15 +7,15 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.Blast.BlastResultsSummary;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * @author lane0212 Class for assessing taxonomic contamination from .fastq files

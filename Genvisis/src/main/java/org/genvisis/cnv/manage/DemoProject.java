@@ -8,9 +8,9 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 public class DemoProject extends Project {
 

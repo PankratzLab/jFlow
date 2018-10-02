@@ -12,20 +12,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.Producer;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * Methods to replace CNVs with a forced call across an entire arm - e.g. when an entire chromosomal

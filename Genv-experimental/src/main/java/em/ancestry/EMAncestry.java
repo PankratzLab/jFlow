@@ -16,13 +16,13 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.common.matrix.MatrixOperations;
-import org.genvisis.common.matrix.MatrixOperations.SCALE_METHOD;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.matrix.MatrixOperations;
+import org.pankratzlab.common.matrix.MatrixOperations.SCALE_METHOD;
 
 /**
  * Prototype to perform unsupervised clustering of genotype PCA results in n-dimensions using

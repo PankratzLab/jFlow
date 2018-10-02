@@ -7,16 +7,16 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.ExcelConverter;
-import org.genvisis.common.ExcelConverter.ExcelConversionParams;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.GenotypeOps;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.ExcelConverter;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.ExcelConverter.ExcelConversionParams;
+import org.pankratzlab.core.CLI;
 import com.google.common.io.Files;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
@@ -40,7 +40,7 @@ public class MicaPlink {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "log.log");
     int[] gqs = new int[] {-1, 20, 50};
-    String[] covarsH = ArrayUtils.subArray(org.genvisis.common.Files.getHeaderOfFile(covars, log),
+    String[] covarsH = ArrayUtils.subArray(org.pankratzlab.common.Files.getHeaderOfFile(covars, log),
                                            2);
     ArrayList<Result> results = new ArrayList<>();
     // , 20, 50
@@ -139,8 +139,8 @@ public class MicaPlink {
       }
       builder.append("\n");
     }
-    org.genvisis.common.Files.write(builder.toString(), outDir + "parsedResults.txt");
-    org.genvisis.common.Files.write(builderSamp.toString(), outDir + "parsedResultsSamp.txt");
+    org.pankratzlab.common.Files.write(builder.toString(), outDir + "parsedResults.txt");
+    org.pankratzlab.common.Files.write(builderSamp.toString(), outDir + "parsedResultsSamp.txt");
 
     ArrayList<ExcelConversionParams> excelFile = new ArrayList<>();
     ExcelConversionParams parsedResults = new ExcelConversionParams(outDir + "parsedResults.txt",
@@ -162,7 +162,7 @@ public class MicaPlink {
       builderRS.append(rs + "\t" + rsHaves.contains(rs) + "\t" + rsOfInterest.get(rs) + "\n");
     }
     String rsSummary = ext.addToRoot(rsFile, ".have");
-    org.genvisis.common.Files.write(builderRS.toString(), rsSummary);
+    org.pankratzlab.common.Files.write(builderRS.toString(), rsSummary);
     ExcelConversionParams rsTab = new ExcelConversionParams(rsSummary, "\t", "RsIdsOfInterests");
     excelFile.add(rsTab);
 
@@ -201,7 +201,7 @@ public class MicaPlink {
     String run = "plink2 --assoc counts mperm=100000 --bfile " + root + " --out " + root;
     CmdLine.run(run, outDir);
 
-    if (!org.genvisis.common.Files.exists(root + ".assoc.logistic.mperm")) {
+    if (!org.pankratzlab.common.Files.exists(root + ".assoc.logistic.mperm")) {
       String run2 = "plink2 --logistic mperm=100000 --bfile " + root + " --out " + root
                     + (covars == null ? "" : " --covar " + covars + " --covar-name "
                                              + ArrayUtils.toStr(covarsH, ","));
@@ -216,9 +216,9 @@ public class MicaPlink {
     String t5 = "cat " + root + ".assoc.logistic.mperm | tr -s ' ' '\t' |cut -f 2-> " + root
                 + ".assoc.logistic.mperm.tabs";
 
-    org.genvisis.common.Files.write(t1 + "\n" + t2 + "\n" + t3 + "\n" + t4 + "\n" + t5,
+    org.pankratzlab.common.Files.write(t1 + "\n" + t2 + "\n" + t3 + "\n" + t4 + "\n" + t5,
                                     root + ".sh");
-    org.genvisis.common.Files.chmod(root + ".sh");
+    org.pankratzlab.common.Files.chmod(root + ".sh");
     CmdLine.run(root + ".sh", outDir);
 
     Hashtable<String, String> mperm = HashVec.loadFileToHashString(root

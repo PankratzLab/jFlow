@@ -14,10 +14,10 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.OptionalFileRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.pankratzlab.common.Files;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
 
 public class PCCorrectionStep extends Step {
 

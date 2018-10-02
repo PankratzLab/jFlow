@@ -6,12 +6,12 @@ package org.genvisis.seq.cnv;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.CLI;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
 
 /**
  * wrapper for lumpy https://github.com/arq5x/lumpy-sv

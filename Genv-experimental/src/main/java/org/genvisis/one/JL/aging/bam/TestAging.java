@@ -3,11 +3,11 @@ package org.genvisis.one.JL.aging.bam;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.telomere.TelSeq;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 import htsjdk.samtools.filter.SamRecordFilter;
 
 /**

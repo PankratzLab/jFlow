@@ -7,11 +7,11 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 import java.util.Hashtable;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SciStringComparator;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SciStringComparator;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
 import com.google.common.collect.ImmutableMap;
 
 public class SampleList implements Serializable {

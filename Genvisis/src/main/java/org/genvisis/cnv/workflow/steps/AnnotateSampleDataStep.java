@@ -12,10 +12,10 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.Qc;
-import org.genvisis.gwas.RelationAncestryQc;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.RelationAncestryQc;
+import org.pankratzlab.shared.gwas.Qc;
 
 public class AnnotateSampleDataStep extends Step {
 

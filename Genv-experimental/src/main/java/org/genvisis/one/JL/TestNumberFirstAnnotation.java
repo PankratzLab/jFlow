@@ -1,8 +1,8 @@
 package org.genvisis.one.JL;
 
-import org.genvisis.common.Logger;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.genvisis.seq.qc.FilterNGS.VcFilterJEXL;
+import org.pankratzlab.common.Logger;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
 

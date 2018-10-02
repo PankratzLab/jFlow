@@ -13,11 +13,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Elision;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 public class SourceFileHeaderData implements Serializable {
 
@@ -254,7 +254,7 @@ public class SourceFileHeaderData implements Serializable {
                                                                Optional<JProgressBar> progressBar) {
     String dir = rawDir.endsWith("/")
                  || rawDir.endsWith("\\") ? rawDir
-                                          : org.genvisis.common.ext.verifyDirFormat(rawDir);
+                                          : org.pankratzlab.common.ext.verifyDirFormat(rawDir);
     String[] possibleFiles = (new File(dir)).list(new FilenameFilter() {
 
       @Override

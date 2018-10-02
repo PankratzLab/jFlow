@@ -1,8 +1,8 @@
 package org.genvisis.cnv.plots;
 
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.HitWindows;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.HitWindows;
 
 public final class PlotUtilities {
 

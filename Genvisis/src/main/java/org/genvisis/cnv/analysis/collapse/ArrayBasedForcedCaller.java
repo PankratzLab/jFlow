@@ -10,9 +10,9 @@ import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  *

@@ -1,12 +1,12 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 
 public class Ancestry {
 

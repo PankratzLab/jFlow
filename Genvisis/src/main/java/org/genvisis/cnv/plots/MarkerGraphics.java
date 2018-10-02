@@ -14,11 +14,11 @@ import java.util.Map;
 import org.genvisis.cnv.analysis.MarkerStats;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorSequence;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.stats.BinnedMovingStatistic;
-import org.genvisis.stats.BinnedMovingStatistic.MovingStat;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.stats.BinnedMovingStatistic;
+import org.pankratzlab.shared.stats.BinnedMovingStatistic.MovingStat;
 
 /**
  * A collection of {@link MarkerStats} data for use in visualization.

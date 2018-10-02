@@ -8,10 +8,10 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * Utility class for creating UI navigation bars for moving between chromosomal locations. To use

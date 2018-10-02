@@ -69,8 +69,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
-import org.genvisis.CLI;
-import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.gui.UITools;
@@ -79,20 +77,22 @@ import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.Region;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Fonts;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.common.TransferableImage;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Fonts;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.TransferableImage;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.core.CLI.Arg;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeType;
@@ -2696,13 +2696,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     String[] fromAA, toAA;
     String loc;
     if (!".".equals(aaChng)) {
-      fromAA = org.genvisis.bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+      fromAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
       if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
         loc = aaChng.substring(1);
         toAA = null;
       } else {
         loc = aaChng.substring(1, aaChng.length() - 1);
-        toAA = org.genvisis.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+        toAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);
@@ -2722,13 +2722,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     txtBld.append("\tANNOVAR -> ");
     String[] aaChngs = getANNOVARProteinChanges(dp.vcRecord);
     for (String aa : aaChngs) {
-      fromAA = org.genvisis.bioinformatics.Protein.lookup(aa.charAt(0) + "");
+      fromAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aa.charAt(0) + "");
       if (ext.isValidInteger(aa.charAt(aa.length() - 1) + "")) {
         loc = aa.substring(1);
         toAA = null;
       } else {
         loc = aa.substring(1, aa.length() - 1);
-        toAA = org.genvisis.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
+        toAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);

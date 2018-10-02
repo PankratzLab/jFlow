@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import org.junit.Assert;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * Tests for String index methods in {@link ext}.

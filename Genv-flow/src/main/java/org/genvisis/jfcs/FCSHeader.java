@@ -1,7 +1,7 @@
 package org.genvisis.jfcs;
 
 import java.nio.charset.StandardCharsets;
-import org.genvisis.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils;
 
 public class FCSHeader {
 

@@ -14,20 +14,20 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
-import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.Restrictions;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.Restrictions;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
 
 public class CNVMosaic {
 

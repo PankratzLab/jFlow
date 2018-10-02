@@ -2,6 +2,8 @@ package org.genvisis.common;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.pankratzlab.common.SciStringComparator;
+import org.pankratzlab.common.Sort;
 
 /**
  * Unit tests for {@link Sort}.

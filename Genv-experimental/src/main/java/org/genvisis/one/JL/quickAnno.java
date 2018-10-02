@@ -1,11 +1,11 @@
 package org.genvisis.one.JL;
 
-import org.genvisis.CLI;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
 import org.genvisis.seq.analysis.GATK_Genotyper;
 import org.genvisis.seq.manage.CreateNonSiteOnlyVcf;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.core.CLI;
 
 /**
  * annotate a vcf using hard coded defualts...need I say this is dangerous? Need to sort, use

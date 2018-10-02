@@ -3,12 +3,12 @@ package org.genvisis.one.JL.cushing;
 import java.util.HashSet;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class DumpExons {
 

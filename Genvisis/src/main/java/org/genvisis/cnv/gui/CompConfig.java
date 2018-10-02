@@ -25,7 +25,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.genvisis.cnv.analysis.PennCNV;
 import org.genvisis.cnv.plots.CompPlot;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 public class CompConfig extends JPanel implements ChangeListener, ActionListener {
 

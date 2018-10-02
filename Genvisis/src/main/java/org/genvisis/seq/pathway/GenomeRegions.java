@@ -1,9 +1,9 @@
 package org.genvisis.seq.pathway;
 
 import java.io.Serializable;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.filesys.GeneTrack;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.shared.filesys.GeneTrack;
 
 public class GenomeRegions implements Serializable {
 

@@ -6,9 +6,9 @@ package org.genvisis.cnv.wbs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Sort;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Sort;
 
 /**
  * Wild Binary Segmentation http://stats.lse.ac.uk/fryzlewicz/wbs/wbs.pdf

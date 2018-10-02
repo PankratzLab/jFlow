@@ -14,18 +14,18 @@ import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.LrrSd;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Correct a project for gc content

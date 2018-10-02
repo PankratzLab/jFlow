@@ -8,10 +8,10 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.stats.StatsCrossTabs;
-import org.genvisis.stats.StatsCrossTabs.STAT_TYPE;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.StatsCrossTabs;
+import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * Class that may be used for pruning/testing principal components according to correlation with

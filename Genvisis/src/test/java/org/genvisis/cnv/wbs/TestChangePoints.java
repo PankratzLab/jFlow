@@ -4,8 +4,8 @@
 package org.genvisis.cnv.wbs;
 
 import java.util.List;
-import org.genvisis.common.Logger;
 import org.junit.Test;
+import org.pankratzlab.common.Logger;
 import junit.framework.Assert;
 
 /**

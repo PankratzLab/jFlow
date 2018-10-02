@@ -10,15 +10,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.SerialHash;
-import org.genvisis.filesys.VariantList;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.SerialHash;
+import org.pankratzlab.shared.filesys.VariantList;
 import com.google.common.primitives.Ints;
 
 public class Vcf {

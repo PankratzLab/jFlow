@@ -5,8 +5,8 @@ package org.genvisis.cnv.analysis.pod;
 
 import org.genvisis.cnv.analysis.pod.InformativeBAF.BAF_STRATEGY;
 import org.genvisis.cnv.analysis.pod.InformativeBAF.InformativeResult;
-import org.genvisis.common.ArrayUtils;
 import org.junit.Test;
+import org.pankratzlab.common.ArrayUtils;
 import junit.framework.Assert;
 
 /**

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
-import org.genvisis.filesys.CNVariantAnnotated;
+import org.pankratzlab.shared.filesys.CNVariantAnnotated;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ListMultimap;

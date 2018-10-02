@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import org.genvisis.cnv.plots.AbstractPanel;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.HashVec;
+import org.pankratzlab.common.HashVec;
 
 /**
  * @author zxu

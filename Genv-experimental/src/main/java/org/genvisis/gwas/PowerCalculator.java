@@ -2,9 +2,9 @@ package org.genvisis.gwas;
 
 import java.util.Hashtable;
 import java.util.Map;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Internat;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Internat;
+import org.pankratzlab.common.ext;
 
 public class PowerCalculator {
 

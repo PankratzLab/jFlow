@@ -9,7 +9,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.genvisis.cnv.analysis.pod.PODGenotype.BAF_EFFECT;
 import org.genvisis.cnv.analysis.pod.PODGenotype.Genotype;
 import org.genvisis.cnv.analysis.pod.PODGenotype.POD;
-import org.genvisis.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils;
 
 /**
  * Class to determine informative bafs

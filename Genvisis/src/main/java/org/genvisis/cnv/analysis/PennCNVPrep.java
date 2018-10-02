@@ -25,15 +25,15 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.PRoCtOR;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * This is a temporary fix to export corrected intensities, geared toward PennCNV output and shadow
@@ -841,7 +841,7 @@ public class PennCNVPrep {
 
   public static void main(String[] args) {
     int numArgs = args.length;
-    String classPath = "/home/pankrat2/coleb/" + org.genvisis.common.PSF.Java.GENVISIS;
+    String classPath = "/home/pankrat2/coleb/" + org.pankratzlab.common.PSF.Java.GENVISIS;
     String java = "/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java";// for lab
     // String java ="/soft/java/jdk1.7.0_45/bin/java"; //for itasca
     int memoryInMB = 22000;

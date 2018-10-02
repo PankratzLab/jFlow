@@ -2,6 +2,7 @@ package org.genvisis.common;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.pankratzlab.common.ext;
 
 /**
  * Test for {@link ext} class

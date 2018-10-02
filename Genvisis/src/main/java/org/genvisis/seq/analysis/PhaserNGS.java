@@ -5,12 +5,12 @@ package org.genvisis.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.BamOps;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.core.CLI;
 
 /**
  * @author Kitty Wrapper for https://github.com/secastel/phaser -seems to be one of few that will

@@ -3,9 +3,9 @@ package org.genvisis.one;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * Currently specific to spector data

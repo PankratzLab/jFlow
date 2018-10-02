@@ -5,9 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import org.genvisis.common.Files;
-import org.genvisis.common.GenomicPosition;
-import org.genvisis.common.PSF;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomicPosition;
+import org.pankratzlab.common.PSF;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 

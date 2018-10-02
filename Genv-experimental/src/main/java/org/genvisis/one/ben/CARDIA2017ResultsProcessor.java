@@ -9,11 +9,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 
 public class CARDIA2017ResultsProcessor {
 

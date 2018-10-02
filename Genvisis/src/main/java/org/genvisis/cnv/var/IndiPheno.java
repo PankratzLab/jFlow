@@ -3,7 +3,7 @@ package org.genvisis.cnv.var;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 public class IndiPheno {
 

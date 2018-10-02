@@ -6,10 +6,10 @@ package org.genvisis.seq.cnv;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * Wrapper for SBTyper - Bayesian genotyper for structural variants Using to genotype lumpy calls

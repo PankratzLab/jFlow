@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.CLI;
 import org.genvisis.cnv.analysis.pod.InformativeBAF.BAF_STRATEGY;
 import org.genvisis.cnv.analysis.pod.InformativeBAF.InformativeResult;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.PODResults;
@@ -27,14 +26,15 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BEDFileReader;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * Method to annotate segments of the genome for Parent of Origin

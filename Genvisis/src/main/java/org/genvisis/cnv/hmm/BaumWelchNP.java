@@ -3,7 +3,7 @@
  */
 package org.genvisis.cnv.hmm;
 
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 
 /**
  * Essentially a port of

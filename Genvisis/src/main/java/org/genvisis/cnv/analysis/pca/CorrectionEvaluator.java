@@ -7,16 +7,16 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals.PrincipalComponentsIterator;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.ArrayUtils.BooleanClassifier;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.stats.Correlation;
-import org.genvisis.stats.CrossValidation;
-import org.genvisis.stats.ICC;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.shared.stats.CrossValidation;
+import org.pankratzlab.shared.stats.ICC;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {

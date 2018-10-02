@@ -13,16 +13,16 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.Qc;
-import org.genvisis.gwas.RelationAncestryQc;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.RelationAncestryQc;
+import org.pankratzlab.shared.gwas.Qc;
 import com.google.common.primitives.Doubles;
 
 /**

@@ -8,9 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.Vector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class DeNovoGear {
 

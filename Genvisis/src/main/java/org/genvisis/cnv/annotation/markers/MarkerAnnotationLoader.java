@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * @author lane0212 Class that concentrates on loading annotations for specific markers

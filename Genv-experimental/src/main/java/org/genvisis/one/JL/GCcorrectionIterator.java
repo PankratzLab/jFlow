@@ -16,20 +16,20 @@ import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.GcAdjustorParameter;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF.Ext;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.stats.Rscript;
-import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.PSF.Ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class GCcorrectionIterator {
 

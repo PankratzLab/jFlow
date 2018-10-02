@@ -2,9 +2,9 @@ package org.genvisis.one.JL;
 
 import java.io.File;
 import java.util.Map;
-import org.genvisis.common.Logger;
 import org.genvisis.seq.analysis.mutMap.VCMut;
 import org.genvisis.seq.analysis.mutMap.VCMut.PARSE_METHOD;
+import org.pankratzlab.common.Logger;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

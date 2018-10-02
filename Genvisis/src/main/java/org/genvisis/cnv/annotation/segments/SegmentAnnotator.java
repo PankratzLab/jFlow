@@ -3,7 +3,7 @@
  */
 package org.genvisis.cnv.annotation.segments;
 
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * @author Kitty

@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariant.CNVBuilder;
-import org.genvisis.filesys.LocusSet;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
 
 public class CNV1000gConcordance {
 

@@ -1,8 +1,8 @@
 package org.genvisis.cnv.manage;
 
 import org.genvisis.cnv.filesys.MarkerSetInfo;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.mining.Transformations;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.shared.mining.Transformations;
 
 public class Transforms {
 

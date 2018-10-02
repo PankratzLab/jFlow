@@ -9,12 +9,12 @@ import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
 
 public class TrimToDependencies implements Serializable {
 
@@ -712,7 +712,7 @@ public class TrimToDependencies implements Serializable {
     String source_dir = "D:/home/npankrat/jProjects/master/src/";
     String target_dir = "D:/home/npankrat/jProjects/target/src/";
     String[] coreClasses = new String[] {"filesys.DosageData"};
-    String freshJarFile = "D:/home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS + "";
+    String freshJarFile = "D:/home/npankrat/" + org.pankratzlab.common.PSF.Java.GENVISIS + "";
     TrimToDependencies trimmer;
 
     try {

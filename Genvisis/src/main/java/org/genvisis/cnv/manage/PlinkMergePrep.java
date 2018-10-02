@@ -6,12 +6,12 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
 
 public class PlinkMergePrep {
 
@@ -405,7 +405,7 @@ public class PlinkMergePrep {
       if (renameMarkers) {
         prepends = new String[roots.length];
         for (int i = 0; i < roots.length; i++) {
-          prepends[i] = org.genvisis.common.ext.rootOf(roots[i], true);
+          prepends[i] = org.pankratzlab.common.ext.rootOf(roots[i], true);
         }
       }
 

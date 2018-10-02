@@ -14,10 +14,10 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 import com.google.common.collect.ImmutableSet;
 
 /**

@@ -6,15 +6,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.StringJoiner;
 import java.util.concurrent.Callable;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class SimpleTallyGene {
 

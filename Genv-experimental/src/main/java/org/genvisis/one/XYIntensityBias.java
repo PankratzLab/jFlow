@@ -5,10 +5,10 @@ import java.io.PrintWriter;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 
 /**
  * @author lane0212 Taking a look at the intensity bias of X and Y probes

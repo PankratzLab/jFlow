@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BedOps;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
 

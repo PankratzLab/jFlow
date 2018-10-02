@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 import org.apache.commons.math3.stat.inference.TestUtils;
-import org.genvisis.CLI;
-import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Ttest;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.core.CLI.Arg;
+import org.pankratzlab.shared.stats.Ttest;
 
 /**
  * Generates matrices plotting principal components against {@link SampleData} columns. This can be

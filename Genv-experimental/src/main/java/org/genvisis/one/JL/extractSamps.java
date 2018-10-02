@@ -3,13 +3,13 @@ package org.genvisis.one.JL;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashSet;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
 
 public class extractSamps {
 

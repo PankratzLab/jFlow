@@ -4,8 +4,8 @@ import java.util.Arrays;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ext;
 
 public class StringListProperty extends Property<String[]> {
 

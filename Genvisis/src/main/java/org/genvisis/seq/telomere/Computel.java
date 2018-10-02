@@ -6,16 +6,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.Zip;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.BamOps;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.Zip;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
 
 /**
  * Wrapper for the computel telomere length estimator ala

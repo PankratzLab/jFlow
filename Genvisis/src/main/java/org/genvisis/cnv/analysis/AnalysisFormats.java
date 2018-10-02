@@ -26,15 +26,15 @@ import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.SexChecks;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ProgressMonitor;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ProgressMonitor;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class AnalysisFormats implements Runnable {
 

@@ -9,14 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.LocusSet;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
 import com.google.common.math.Stats;
 import com.google.common.math.StatsAccumulator;
 

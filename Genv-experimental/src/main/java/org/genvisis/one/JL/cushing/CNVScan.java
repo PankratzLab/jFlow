@@ -13,21 +13,21 @@ import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
 import org.genvisis.cnv.annotation.segments.SegmentAnotation;
 import org.genvisis.cnv.annotation.segments.WESMappabilityAnnotator;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariantAnnotated;
-import org.genvisis.filesys.CNVariantAnnotated.TallyResult;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariantAnnotated;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.filesys.CNVariantAnnotated.TallyResult;
+import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
 
 public class CNVScan {
 

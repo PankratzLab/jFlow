@@ -2,10 +2,10 @@ package org.genvisis.one.JL.aging;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamOps;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;

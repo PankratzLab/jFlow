@@ -2,7 +2,7 @@ package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import org.genvisis.cnv.qc.CNVariantQC;
-import org.genvisis.common.SerializedFiles;
+import org.pankratzlab.common.SerializedFiles;
 
 public class CNVQC implements Serializable {
 

@@ -11,15 +11,15 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import org.genvisis.cnv.manage.ExportCNVsToPedFormat;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.PhenoPrep;
-import org.genvisis.stats.LeastSquares;
-import org.genvisis.stats.ProbDist;
-import org.genvisis.stats.RegressionModel;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.phenoprep.PhenoPrep;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.shared.stats.RegressionModel;
 
 public class GenCNV implements Runnable {
 

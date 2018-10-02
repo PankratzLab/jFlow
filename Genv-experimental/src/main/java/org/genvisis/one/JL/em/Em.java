@@ -6,12 +6,12 @@ import org.apache.commons.math3.distribution.MixtureMultivariateNormalDistributi
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.fitting.MultivariateNormalMixtureExpectationMaximization;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.ext;
 import com.google.common.primitives.Doubles;
 import edu.stanford.facs.logicle.Logicle;
 

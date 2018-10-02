@@ -5,7 +5,7 @@ import java.util.List;
 import org.genvisis.cnv.manage.Resources.CHROMOSOME;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.Resources.Resource;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 
 /**
  * Test class for {@link Resources}.

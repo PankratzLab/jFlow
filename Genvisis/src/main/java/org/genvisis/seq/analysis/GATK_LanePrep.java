@@ -8,13 +8,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.GATK.SEQ_TARGET;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * Prepping for the GATK is done on a lane by lane basis as reflected here

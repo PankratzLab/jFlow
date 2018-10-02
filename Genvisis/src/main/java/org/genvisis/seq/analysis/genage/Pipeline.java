@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.ext;
 import org.genvisis.seq.NGSSample;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.analysis.MitoSeqCN;
@@ -18,6 +14,10 @@ import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.telomere.Computel;
 import org.genvisis.seq.telomere.TelSeq;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
 
 /**
  * Going to be the pipeline of execution for a single input bam file

@@ -8,13 +8,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.Sort;
-import org.genvisis.filesys.SerialHash;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.shared.filesys.SerialHash;
 
 public class ConvertToBuild37 {
 

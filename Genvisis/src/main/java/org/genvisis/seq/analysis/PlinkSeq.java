@@ -4,18 +4,18 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqPhenoTypes;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject.PROPERTIES;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 
 /**
  * Wrapper for the plinkSeq package (https://atgu.mgh.harvard.edu/plinkseq/index.shtml)

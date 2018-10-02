@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.ProbDist;
 
 public class bootstrapSNP {
 

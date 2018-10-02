@@ -3,8 +3,8 @@
  */
 package org.genvisis.cnv.var;
 
-import org.genvisis.common.Positions;
-import org.genvisis.filesys.GeneTrack;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.GeneTrack;
 
 /**
  * @author Michael Vieths Store the region, which can be parsed by Positions.parseUCSClocation(),

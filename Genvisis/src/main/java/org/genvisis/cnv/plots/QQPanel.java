@@ -5,11 +5,11 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
 
 public class QQPanel extends AbstractPanel {
 

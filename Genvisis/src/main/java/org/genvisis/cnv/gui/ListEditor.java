@@ -26,10 +26,10 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import net.miginfocom.swing.MigLayout;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Positions;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Positions;
 
 public class ListEditor extends JDialog implements ActionListener {
 

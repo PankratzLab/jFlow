@@ -12,19 +12,19 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.ORANGES;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.PSF.Colors.YELLOWS;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.SerialFloatArray;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.ORANGES;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.PSF.Colors.YELLOWS;
+import org.pankratzlab.shared.filesys.SerialFloatArray;
 
 public class QQPlot {
 

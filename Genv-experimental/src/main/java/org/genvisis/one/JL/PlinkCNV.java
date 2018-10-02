@@ -9,22 +9,22 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.ExcelConverter;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
-import org.genvisis.stats.LeastSquares;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.ExcelConverter;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.LeastSquares;
 
 public class PlinkCNV {
 

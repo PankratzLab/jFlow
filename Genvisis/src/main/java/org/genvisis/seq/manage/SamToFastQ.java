@@ -7,17 +7,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.Producer;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.Producer;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * Prepares bam input for re-genotyping by handling bam-> fastq conversion.

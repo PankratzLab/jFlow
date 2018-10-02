@@ -11,7 +11,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.WindowConstants;
-import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.data.AbstractPipe;
 import org.genvisis.cnv.plots.data.AbstractPipe.DropIfMatchAnyPipe;
@@ -19,12 +18,13 @@ import org.genvisis.cnv.plots.data.DataFile;
 import org.genvisis.cnv.plots.data.DataListener;
 import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.plots.data.FilterPipe;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Maths.COMPARISON;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI.Arg;
+import org.pankratzlab.shared.stats.Maths.COMPARISON;
 
 public class ManhattanPlot {
 

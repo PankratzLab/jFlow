@@ -17,7 +17,6 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -28,17 +27,18 @@ import org.genvisis.cnv.manage.Resources.Resource;
 import org.genvisis.cnv.plots.ColorExt;
 import org.genvisis.cnv.plots.ColorExt.ColorItem;
 import org.genvisis.cnv.plots.ColorExt.ColorManager;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
-import org.genvisis.stats.CrossValidation;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.CrossValidation;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -700,7 +700,7 @@ public class GcAdjustor {
         log.report("Info - computing GCWF using " + medianGc.size() + " elements");
       }
     }
-    double cc = org.genvisis.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
+    double cc = org.pankratzlab.shared.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
                                                        Doubles.toArray(medianGc))[0];
     waves[0] = cc > 0 ? -1 * wf : wf;
     waves[1] = waves[0] * Math.abs(cc);

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotEquals;
 import java.util.Arrays;
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.junit.Test;
+import org.pankratzlab.common.ArrayUtils;
 
 /**
  * Tests for methods in {@link ArrayUtils}

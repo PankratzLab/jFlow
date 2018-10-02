@@ -21,8 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ext;
 import net.miginfocom.swing.MigLayout;
 
 public class FileAndOutputSelectorGUI extends JDialog {

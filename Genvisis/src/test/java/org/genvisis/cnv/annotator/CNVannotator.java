@@ -10,10 +10,10 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 public class CNVannotator {
 

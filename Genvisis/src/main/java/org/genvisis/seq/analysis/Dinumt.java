@@ -4,15 +4,15 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.genage.SRAPipeline;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.qc.BamQC;
 import org.genvisis.seq.qc.FilterNGS;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * @author Kitty Wrapper for https://github.com/mills-lab/dinumt May become part of the

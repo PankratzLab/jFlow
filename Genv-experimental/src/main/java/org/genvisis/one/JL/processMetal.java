@@ -1,9 +1,9 @@
 package org.genvisis.one.JL;
 
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * @author Kitty One off for processing .metal files to .beta files

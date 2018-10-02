@@ -1,7 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
 import org.genvisis.cnv.filesys.AnnotationCollection;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author lane0212 This filetype may be useful when storing/accessing annotations that typically

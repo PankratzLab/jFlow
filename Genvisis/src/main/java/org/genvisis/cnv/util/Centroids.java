@@ -5,7 +5,7 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 
 public class Centroids {
 

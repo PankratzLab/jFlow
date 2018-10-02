@@ -16,17 +16,17 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.FAST;
-import org.genvisis.gwas.FAST.DataDefinitions;
 import org.genvisis.one.ScriptExecutor;
-import org.genvisis.stats.LeastSquares;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.FAST;
+import org.pankratzlab.gwas.FAST.DataDefinitions;
+import org.pankratzlab.shared.stats.LeastSquares;
 import com.google.common.primitives.Doubles;
 
 public class ConditionalAnalysisPipeline {

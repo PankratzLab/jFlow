@@ -8,8 +8,8 @@ import java.util.Hashtable;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 /**
  * @author lane0212 For creating a little menu that has actions associated with each existing file

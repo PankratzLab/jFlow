@@ -8,15 +8,15 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.genvisis.cnv.manage.TextExport;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Segment;
 import com.google.common.primitives.Ints;
 
 /**

@@ -9,16 +9,16 @@ import java.io.PrintWriter;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.DoubleVector;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Vectors;
-import org.genvisis.common.ext;
-import org.genvisis.parse.GenParser;
-import org.genvisis.stats.LeastSquares;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.DoubleVector;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Vectors;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.parse.GenParser;
+import org.pankratzlab.shared.stats.LeastSquares;
 import com.google.common.primitives.Doubles;
 
 public class Slopes {

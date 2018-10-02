@@ -24,8 +24,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
-import org.genvisis.common.Files;
 import org.genvisis.one.ben.flowannot.AnnotatedImage.Annotation;
+import org.pankratzlab.common.Files;
 import net.miginfocom.swing.MigLayout;
 
 public class AnnotationExportDialog extends JDialog {

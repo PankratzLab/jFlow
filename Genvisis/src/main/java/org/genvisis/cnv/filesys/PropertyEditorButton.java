@@ -7,7 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.JButton;
 import org.genvisis.cnv.Launch;
-import org.genvisis.common.Grafik;
+import org.pankratzlab.common.Grafik;
 
 /**
  * Helper button configured to open a {@link ProjectPropertiesEditor} with a subset of properties.

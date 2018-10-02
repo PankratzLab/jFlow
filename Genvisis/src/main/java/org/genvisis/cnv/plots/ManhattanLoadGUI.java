@@ -34,8 +34,8 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import org.genvisis.cnv.plots.data.DataFile;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 import net.miginfocom.swing.MigLayout;
 
 public class ManhattanLoadGUI extends JDialog {

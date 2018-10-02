@@ -10,16 +10,16 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Correlation;
-import org.genvisis.stats.ICC;
-import org.genvisis.stats.IrrTable;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
-import org.genvisis.stats.Quantiles;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.shared.stats.ICC;
+import org.pankratzlab.shared.stats.IrrTable;
+import org.pankratzlab.shared.stats.Quantiles;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class PrincipalComponentsEval {

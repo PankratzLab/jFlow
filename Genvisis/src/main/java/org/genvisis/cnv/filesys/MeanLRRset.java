@@ -1,8 +1,8 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class MeanLRRset implements Serializable {
 

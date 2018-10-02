@@ -10,23 +10,23 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Unique;
-import org.genvisis.common.Zip;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.DosageData;
-import org.genvisis.filesys.SnpMarkerSet;
-import org.genvisis.gwas.GWAF;
-import org.genvisis.gwas.Mach;
-import org.genvisis.gwas.Metal;
-import org.genvisis.mining.Transformations;
-import org.genvisis.parse.GenParser;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Unique;
+import org.pankratzlab.common.Zip;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.GWAF;
+import org.pankratzlab.gwas.Mach;
+import org.pankratzlab.gwas.Metal;
+import org.pankratzlab.shared.filesys.SnpMarkerSet;
+import org.pankratzlab.shared.gwas.bgen.DosageData;
+import org.pankratzlab.shared.mining.Transformations;
+import org.pankratzlab.shared.parse.GenParser;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class CARe_Analyses {
 
@@ -426,7 +426,7 @@ public class CARe_Analyses {
           }
           Files.writeArray(hitlist, dir + "generatePhenoForPlinkWithConditionals.crf");
           CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                      + org.genvisis.common.PSF.Java.GENVISIS
+                      + org.pankratzlab.common.PSF.Java.GENVISIS
                       + " Launch -suppress generatePhenoForPlinkWithConditionals.crf", dir);
           if (FAMILY_BASED[i]) {
             Files.writeArray(new String[] {"lookup",
@@ -439,7 +439,7 @@ public class CARe_Analyses {
                                            "pheno/db_clean_wPCs.txt 1 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
                              dir + "generatePhenoForGWAFWithConditionals.crf");
             CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                        + org.genvisis.common.PSF.Java.GENVISIS
+                        + org.pankratzlab.common.PSF.Java.GENVISIS
                         + " Launch -suppress generatePhenoForGWAFWithConditionals.crf", dir);
             new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();
             Files.copyFile(dir + "phenoWithConditionals.csv",
@@ -908,7 +908,7 @@ public class CARe_Analyses {
                                          "pheno/db.txt 1 3;. 5;. 6;. 7;. !9=0 fail"},
                            dir + "generateDemographics.crf");
           CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                      + org.genvisis.common.PSF.Java.GENVISIS
+                      + org.pankratzlab.common.PSF.Java.GENVISIS
                       + " Launch -suppress generateDemographics.crf", dir);
           files.add(dir + "demographics.dat");
           fileDescriptions.add(element2);
@@ -1604,7 +1604,7 @@ public class CARe_Analyses {
             }
             Files.writeArray(hitlist, dir + "generateNormalizedPhenoForPlinkWithConditionals.crf");
             CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                        + org.genvisis.common.PSF.Java.GENVISIS
+                        + org.pankratzlab.common.PSF.Java.GENVISIS
                         + " Launch -suppress generateNormalizedPhenoForPlinkWithConditionals.crf",
                         dir);
 
@@ -1624,7 +1624,7 @@ public class CARe_Analyses {
             Files.writeArray(hitlist,
                              dir + "generateInverseNormalizedPhenoForPlinkWithConditionals.crf");
             CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                        + org.genvisis.common.PSF.Java.GENVISIS
+                        + org.pankratzlab.common.PSF.Java.GENVISIS
                         + " Launch -suppress generateInverseNormalizedPhenoForPlinkWithConditionals.crf",
                         dir);
             if (FAMILY_BASED[i]) {
@@ -1637,7 +1637,7 @@ public class CARe_Analyses {
                                              "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
                                dir + "generateNormalizedPhenoForGWAFWithConditionals.crf");
               CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                          + org.genvisis.common.PSF.Java.GENVISIS
+                          + org.pankratzlab.common.PSF.Java.GENVISIS
                           + " Launch -suppress generateNormalizedPhenoForGWAFWithConditionals.crf",
                           dir);
               Files.writeArray(new String[] {"lookup",
@@ -1649,7 +1649,7 @@ public class CARe_Analyses {
                                              "pheno/db_clean_wPCs.txt 2 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; fail"},
                                dir + "generateInverseNormalizedPhenoForGWAFWithConditionals.crf");
               CmdLine.run("java -Xmx1024M -jar C:/home/npankrat/"
-                          + org.genvisis.common.PSF.Java.GENVISIS
+                          + org.pankratzlab.common.PSF.Java.GENVISIS
                           + " Launch -suppress generateInverseNormalizedPhenoForGWAFWithConditionals.crf",
                           dir);
               new File("D:/upload/phenos/" + STUDIES[i] + "_" + element[0] + "/").mkdirs();

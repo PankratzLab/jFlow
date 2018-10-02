@@ -11,8 +11,8 @@ import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
 
 // class to compute marker QCs from all markers, currently only supports a simple minor allele
 // frequency computation

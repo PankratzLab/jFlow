@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
@@ -12,12 +11,13 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
-import org.genvisis.gwas.MarkerQC;
-import org.genvisis.gwas.MarkerQC.QC_METRIC;
-import org.genvisis.gwas.PlinkMendelianChecker;
-import org.genvisis.gwas.Qc;
-import org.genvisis.gwas.RelationAncestryQc;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.gwas.MarkerQC;
+import org.pankratzlab.gwas.PlinkMendelianChecker;
+import org.pankratzlab.gwas.RelationAncestryQc;
+import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
+import org.pankratzlab.shared.gwas.Qc;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -107,10 +107,10 @@ public class GwasQCStep extends Step {
   @Override
   public boolean checkIfOutputExists(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
-    for (int i = 0; i < org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
-      for (int j = 0; j < org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
-        if (!Files.exists(dir + org.genvisis.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
-                          + org.genvisis.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
+    for (int i = 0; i < org.pankratzlab.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
+      for (int j = 0; j < org.pankratzlab.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
+        if (!Files.exists(dir + org.pankratzlab.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
+                          + org.pankratzlab.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
           return false;
         }
       }

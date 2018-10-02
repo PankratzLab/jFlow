@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.manage.Resources.Resource;
-import org.genvisis.common.Files;
-import org.genvisis.gwas.MarkerQC;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.gwas.MarkerQC;
+import org.pankratzlab.shared.stats.Maths;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 

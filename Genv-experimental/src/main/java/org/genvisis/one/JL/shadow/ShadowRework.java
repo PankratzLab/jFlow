@@ -23,12 +23,12 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Elision;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 
 /**

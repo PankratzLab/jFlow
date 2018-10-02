@@ -5,19 +5,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.ReferenceGenome;
-import org.genvisis.stats.Rscript.GeomText;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.Rscript.GeomText;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
 
 /**
  * @author lane0212 Used for determining capture effeciency of specific targets

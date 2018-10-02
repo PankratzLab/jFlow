@@ -1,7 +1,7 @@
 package org.genvisis.cnv.filesys;
 
-import org.genvisis.common.Elision;
 import org.junit.Test;
+import org.pankratzlab.common.Elision;
 import junit.framework.Assert;
 
 /**

@@ -66,15 +66,15 @@ import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Numbers;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Numbers;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
 import com.google.common.base.Strings;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {

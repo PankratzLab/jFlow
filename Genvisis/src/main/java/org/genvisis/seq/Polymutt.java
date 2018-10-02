@@ -10,19 +10,19 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.bioinformatics.SeattleSeq;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
-import org.genvisis.filesys.SegmentLists;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.bioinformatics.SeattleSeq;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.filesys.SegmentLists;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class Polymutt {
 
@@ -359,7 +359,7 @@ public class Polymutt {
     filenames = Files.list(dir, ".vcf.gz");
 
     Qsub.qsub("findAll", ext.pwd(), -1,
-              "java -jar ~/" + org.genvisis.common.PSF.Java.GENVISIS
+              "java -jar ~/" + org.pankratzlab.common.PSF.Java.GENVISIS
                                         + " seq.Polymutt findDenovo=[%0]",
               Matrix.toMatrix(filenames), 1000, 12);
   }
@@ -952,7 +952,7 @@ public class Polymutt {
         Qsub.qsub(dir + "chunks/runAssess" + count
                   + ".qsub",
                   "cd " + dir + "\nmodule load java\njava -jar ~/"
-                             + org.genvisis.common.PSF.Java.GENVISIS + " seq.Polymutt assess="
+                             + org.pankratzlab.common.PSF.Java.GENVISIS + " seq.Polymutt assess="
                              + files[i],
                   3000, 6, 1);
         v.add(dir + "chunks/runAssess" + count + ".qsub");

@@ -9,14 +9,14 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.MarkerSet;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
 
 public class RandSortTest {
 

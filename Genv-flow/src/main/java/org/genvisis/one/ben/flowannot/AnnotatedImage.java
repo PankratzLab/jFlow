@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
-import org.genvisis.common.Files;
-import org.genvisis.common.Images;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Images;
 
 public class AnnotatedImage {
 

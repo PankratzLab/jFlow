@@ -2,10 +2,10 @@ package org.genvisis.one.JL.aging.bam;
 
 import java.io.IOException;
 import java.util.List;
-import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.SamRecordOps;
 import org.genvisis.seq.qc.FlagStats;
+import org.pankratzlab.common.Logger;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;

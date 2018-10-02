@@ -5,7 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import org.genvisis.common.Elision;
+import org.pankratzlab.common.Elision;
 
 public class Compression {
 

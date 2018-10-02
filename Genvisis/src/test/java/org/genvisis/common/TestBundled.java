@@ -3,6 +3,7 @@ package org.genvisis.common;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
+import org.pankratzlab.common.Bundled;
 
 /**
  * Tests for the {@link Bundled} class

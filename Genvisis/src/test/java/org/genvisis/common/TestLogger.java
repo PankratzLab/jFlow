@@ -1,6 +1,7 @@
 package org.genvisis.common;
 
 import java.util.Date;
+import org.pankratzlab.common.Logger;
 
 public class TestLogger {
 

@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.genvisis.CLI;
 import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
@@ -29,13 +28,14 @@ import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.cnv.workflow.steps.TransposeStep;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.MarkerQC.QC_METRIC;
-import org.genvisis.gwas.Qc;
-import org.genvisis.gwas.RelationAncestryQc;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.gwas.RelationAncestryQc;
+import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
+import org.pankratzlab.shared.gwas.Qc;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class GenvisisWorkflow {
 

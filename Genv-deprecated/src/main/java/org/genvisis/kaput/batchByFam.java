@@ -2,7 +2,7 @@ package org.genvisis.kaput;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.Files;
 
 public class batchByFam {
 

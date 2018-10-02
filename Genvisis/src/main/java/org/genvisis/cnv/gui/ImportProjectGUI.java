@@ -32,9 +32,9 @@ import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.GROUP;
 import org.genvisis.cnv.prop.Property;
-import org.genvisis.common.Files;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.ext;
 import net.miginfocom.swing.MigLayout;
 
 /**

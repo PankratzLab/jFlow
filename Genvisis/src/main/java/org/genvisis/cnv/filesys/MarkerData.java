@@ -11,14 +11,14 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.qc.GcAdjustor.GC_CORRECTION_METHOD;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.DoubleVector;
-import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.stats.Correlation;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.AlleleFreq;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.DoubleVector;
+import org.pankratzlab.common.Elision;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class MarkerData implements Serializable {

@@ -3,7 +3,7 @@
  */
 package org.genvisis.cnv.analysis.collapse;
 
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 /**
  * Specific type of {@link CNVariant} that was force called by{@link ForcedCalling}

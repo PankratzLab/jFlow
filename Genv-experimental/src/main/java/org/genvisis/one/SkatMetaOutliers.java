@@ -7,13 +7,13 @@ import java.io.FilenameFilter;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.ext;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.ProbDist;
 
 public class SkatMetaOutliers {
 

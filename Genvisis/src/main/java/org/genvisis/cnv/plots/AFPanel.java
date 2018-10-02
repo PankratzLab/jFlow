@@ -9,13 +9,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.ORANGES;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.PSF.Colors.YELLOWS;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.ORANGES;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.PSF.Colors.YELLOWS;
 
 /**
  * {@link AbstractPanel} subtype that creates {@link PlotPoint}s from the data loaded by

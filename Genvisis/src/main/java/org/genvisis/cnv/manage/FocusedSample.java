@@ -4,12 +4,12 @@ import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.ext;
 
 /**
  * Subsets samples

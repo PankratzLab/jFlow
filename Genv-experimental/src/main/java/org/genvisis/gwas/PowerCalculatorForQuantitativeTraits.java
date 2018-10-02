@@ -5,13 +5,13 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Internat;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.ext;
-import org.genvisis.stats.LeastSquares;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Internat;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.ProbDist;
 
 public class PowerCalculatorForQuantitativeTraits {
 

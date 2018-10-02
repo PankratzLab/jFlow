@@ -1,7 +1,7 @@
 package org.genvisis.cnv.manage;
 
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ext;
 
 public class SourceParserDep {
 

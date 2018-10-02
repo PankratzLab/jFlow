@@ -6,8 +6,8 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author Kitty Check for Mendelian errors in a pedigree, taken from

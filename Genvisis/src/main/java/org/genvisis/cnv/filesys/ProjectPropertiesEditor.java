@@ -62,11 +62,11 @@ import org.genvisis.cnv.prop.IntegerProperty;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 

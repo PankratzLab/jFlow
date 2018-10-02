@@ -35,8 +35,8 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.PropertyKeys;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 public class MedianLRRWidget extends JFrame implements Runnable {
 

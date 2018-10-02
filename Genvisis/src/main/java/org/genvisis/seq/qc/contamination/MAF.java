@@ -4,8 +4,8 @@ import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 
 public class MAF {
 

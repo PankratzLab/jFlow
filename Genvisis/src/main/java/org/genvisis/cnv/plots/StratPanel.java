@@ -11,17 +11,17 @@ import java.util.Hashtable;
 import javax.swing.JPopupMenu;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.CountVector;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF.Colors.BROWNS;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.ORANGES;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.mining.Distance;
+import org.pankratzlab.common.CountVector;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF.Colors.BROWNS;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.ORANGES;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.mining.Distance;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 
@@ -59,12 +59,12 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
   // new Color(174, 0, 68)}; // red purple
 
   public static final Color[] DEFAULT_COLORS = {Color.BLACK, REDS.VENETIAN_RED, // red
-                                                org.genvisis.common.PSF.Colors.BLUES.DODGER_BLUE, // light
+                                                org.pankratzlab.common.PSF.Colors.BLUES.DODGER_BLUE, // light
                                                 // blue
                                                 VIOLETS.BLUE_VIOLET, // deep purple
                                                 GREENS.GREEN, // dark green
                                                 ORANGES.SUNSHADE, // orange
-                                                org.genvisis.common.PSF.Colors.BLUES.SLATE_BLUE, // light
+                                                org.pankratzlab.common.PSF.Colors.BLUES.SLATE_BLUE, // light
                                                 // purple
                                                 VIOLETS.ORCHID, // deep red/pink
                                                 GREENS.GREEN_YELLOW, // light green
@@ -72,7 +72,7 @@ public class StratPanel extends AbstractPanel implements MouseListener, MouseMot
                                                 Color.YELLOW, // yellow
                                                 GREENS.FREE_SPEECH_AQUAMARINE, // blue green
                                                 VIOLETS.WINDSOR, // blue purple
-                                                org.genvisis.common.PSF.Colors.BLUES.NAVY, // blue
+                                                org.pankratzlab.common.PSF.Colors.BLUES.NAVY, // blue
                                                 BROWNS.MAROON, // brown
                                                 ORANGES.INDOCHINE, // light brown
   };

@@ -32,17 +32,17 @@ import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.MendelErrors.MendelErrorCheck;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CountVector;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.ORANGES;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.PSF.Colors.YELLOWS;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CountVector;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.ORANGES;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.PSF.Colors.YELLOWS;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {

@@ -10,14 +10,14 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Hits;
-import org.genvisis.gwas.CreateDatabaseFromPlink;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.CreateDatabaseFromPlink;
+import org.pankratzlab.shared.filesys.Hits;
 
 public class BOSS_Analyses {
 

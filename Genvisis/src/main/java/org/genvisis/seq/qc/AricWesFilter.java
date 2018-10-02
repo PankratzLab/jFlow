@@ -1,9 +1,9 @@
 package org.genvisis.seq.qc;
 
-import org.genvisis.common.Logger;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author lane0212 Class to mimic the variant filter reported for the CHARGE participants from

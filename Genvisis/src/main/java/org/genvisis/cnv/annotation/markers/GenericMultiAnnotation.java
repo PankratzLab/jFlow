@@ -1,8 +1,8 @@
 package org.genvisis.cnv.annotation.markers;
 
 import java.util.Hashtable;
-import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.Logger;
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**

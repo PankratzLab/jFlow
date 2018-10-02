@@ -3,8 +3,8 @@ package org.genvisis.one;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
 
 public class LOAD_OnePerFamily {
 

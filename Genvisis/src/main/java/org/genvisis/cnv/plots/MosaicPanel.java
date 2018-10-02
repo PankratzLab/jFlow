@@ -20,19 +20,19 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.PSF;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.BROWNS;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.ORANGES;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.mining.Distance;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.BROWNS;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.ORANGES;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.mining.Distance;
 
 public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 

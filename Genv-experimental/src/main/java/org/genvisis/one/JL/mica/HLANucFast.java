@@ -1,7 +1,7 @@
 package org.genvisis.one.JL.mica;
 
 import java.io.File;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 

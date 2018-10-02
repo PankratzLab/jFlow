@@ -2,8 +2,8 @@ package org.genvisis.dead;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.CountVector;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.CountVector;
+import org.pankratzlab.common.Files;
 
 public class DrunkardsWalk {
 

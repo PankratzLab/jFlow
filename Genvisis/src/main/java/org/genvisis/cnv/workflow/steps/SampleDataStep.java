@@ -9,11 +9,11 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Elision;
+import org.pankratzlab.common.Files;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
 
 public class SampleDataStep extends Step {
 

@@ -8,14 +8,14 @@ import java.util.Arrays;
 import java.util.StringJoiner;
 import org.apache.commons.math3.analysis.function.Gaussian;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariant.CNVBuilder;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.stats.Stats;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
+import org.pankratzlab.shared.stats.Stats;
 import com.google.common.primitives.Ints;
 
 /*

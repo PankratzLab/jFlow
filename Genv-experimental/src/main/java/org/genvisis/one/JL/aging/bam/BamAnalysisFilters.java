@@ -4,14 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.SamRecordOps;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 

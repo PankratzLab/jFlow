@@ -1,7 +1,7 @@
 package org.genvisis.one.JL;
 
 import java.io.File;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.Files;
 
 /**
  * @author lane0212 Testing line counter

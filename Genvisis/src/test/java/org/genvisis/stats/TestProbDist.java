@@ -2,6 +2,7 @@ package org.genvisis.stats;
 
 import java.util.Map;
 import org.junit.Test;
+import org.pankratzlab.shared.stats.ProbDist;
 import com.google.common.collect.ImmutableMap;
 import junit.framework.Assert;
 

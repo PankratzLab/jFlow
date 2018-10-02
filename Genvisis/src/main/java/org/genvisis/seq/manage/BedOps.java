@@ -2,9 +2,9 @@ package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.io.IOException;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;

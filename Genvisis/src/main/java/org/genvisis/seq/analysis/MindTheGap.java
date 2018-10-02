@@ -4,9 +4,9 @@
 package org.genvisis.seq.analysis;
 
 import java.util.ArrayList;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author Kitty Thing might work https://github.com/GATB/MindTheGap ./bin/MindTheGap find -in

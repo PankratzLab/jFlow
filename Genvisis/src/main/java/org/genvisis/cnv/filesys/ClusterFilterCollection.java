@@ -9,11 +9,11 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.manage.TextExport;
 import org.genvisis.cnv.plots.GenericRectangle;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
 
 /**
  * This is data structure to hold a group of filters that can be used to screen data points.

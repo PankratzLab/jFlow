@@ -20,10 +20,10 @@ import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
 import org.genvisis.cnv.manage.DemoProject.DEMO_TYPE;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 
 public class DemoPackage {
 
@@ -43,13 +43,13 @@ public class DemoPackage {
 
   private void initDemoPackage() {
     new File(demoDirectory).mkdirs();
-    String demoPark = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
-    String demoVis = demoDirectory + org.genvisis.common.PSF.Java.GENVISIS;
+    String demoPark = demoDirectory + org.pankratzlab.common.PSF.Java.GENVISIS;
+    String demoVis = demoDirectory + org.pankratzlab.common.PSF.Java.GENVISIS;
     String runningJar = getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-    if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
+    if (runningJar.endsWith(org.pankratzlab.common.PSF.Java.GENVISIS)) {
       String copyRunning;
       String copyOther;
-      if (runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
+      if (runningJar.endsWith(org.pankratzlab.common.PSF.Java.GENVISIS)) {
         copyRunning = demoPark;
         copyOther = demoVis;
       } else {
@@ -58,7 +58,7 @@ public class DemoPackage {
       }
       if (!Files.exists(demoVis)) {
         if (!Files.exists(copyRunning)
-            && !runningJar.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
+            && !runningJar.endsWith(org.pankratzlab.common.PSF.Java.GENVISIS)) {
           log.reportTimeInfo("Detected " + runningJar + ", copying to " + copyRunning
                              + "\n\t (this takes a while due to byte by byte copying)");
           if (Files.copyFileUsingFileChannels(runningJar, copyRunning, log)) {
@@ -72,7 +72,7 @@ public class DemoPackage {
         String other = ext.parseDirectoryOfFile(runningJar, false)
                        + ext.removeDirectoryInfo(copyOther);
         if (Files.exists(other) && !Files.exists(copyOther)
-            && !other.endsWith(org.genvisis.common.PSF.Java.GENVISIS)) {
+            && !other.endsWith(org.pankratzlab.common.PSF.Java.GENVISIS)) {
           if (Files.exists(other)) {
             log.reportTimeInfo("Detected " + other + ", copying to " + copyOther
                                + "\n\t (this takes a while due to byte by byte copying)");
@@ -90,7 +90,7 @@ public class DemoPackage {
       }
     } else {
       log.reportError("Could not detect proper jar file, found " + runningJar
-                      + " and it should have ended with " + org.genvisis.common.PSF.Java.GENVISIS);
+                      + " and it should have ended with " + org.pankratzlab.common.PSF.Java.GENVISIS);
       log.reportError("This could be because you are running from eclipse without a jar file");
       // fail = true;
     }

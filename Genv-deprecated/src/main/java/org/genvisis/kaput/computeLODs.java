@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
-import org.genvisis.common.Files;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.shared.stats.ProbDist;
 
 public class computeLODs {
 

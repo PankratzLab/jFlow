@@ -1,9 +1,9 @@
 package org.genvisis.one.JL;
 
 import java.util.ArrayList;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 public class UniqCel {
 

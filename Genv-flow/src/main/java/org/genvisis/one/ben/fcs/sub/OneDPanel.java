@@ -14,14 +14,14 @@ import org.genvisis.cnv.plots.GenericPath;
 import org.genvisis.cnv.plots.GenericRectangle;
 import org.genvisis.cnv.plots.PlotPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.ext;
 import org.genvisis.one.ben.fcs.AbstractPanel2;
-import org.genvisis.stats.LeastSquares;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.stats.LeastSquares;
 
 public class OneDPanel extends AbstractPanel2 {
 

@@ -2,7 +2,7 @@ package org.genvisis.dead;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.Files;
 
 public class batchBRI {
   // String[] SNPS = {"rs6714365", "rs2289235", "rs10933359", "rs934820"};
@@ -202,11 +202,11 @@ public class batchBRI {
   }
 
   public static void main(String[] args) throws IOException {
-    String jarpath = "c:\\" + org.genvisis.common.PSF.Java.GENVISIS + "";
+    String jarpath = "c:\\" + org.pankratzlab.common.PSF.Java.GENVISIS + "";
     String genopath = "c:\\";
 
     String usage = "\n" + "park.genoOnIBD requires 3 arguments:\n" + "   (1) location of the "
-                   + org.genvisis.common.PSF.Java.GENVISIS + " file (i.e. jar=" + jarpath
+                   + org.pankratzlab.common.PSF.Java.GENVISIS + " file (i.e. jar=" + jarpath
                    + " (default), no spaces please)\n"
                    + "   (2) path to the BRI-rs###-cases.dat files (i.e. genos=" + genopath
                    + " (default))\n" + "";

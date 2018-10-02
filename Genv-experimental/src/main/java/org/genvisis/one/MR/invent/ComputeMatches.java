@@ -1,10 +1,10 @@
 package org.genvisis.one.MR.invent;
 
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.gwas.MatchSamples;
-import org.genvisis.gwas.MatchesVisualized;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.gwas.MatchSamples;
+import org.pankratzlab.gwas.MatchesVisualized;
 
 public class ComputeMatches {
 

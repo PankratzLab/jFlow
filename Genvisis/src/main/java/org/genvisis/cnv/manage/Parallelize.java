@@ -3,8 +3,8 @@ package org.genvisis.cnv.manage;
 import java.io.File;
 import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Files;
-import org.genvisis.common.SerializedFiles;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.SerializedFiles;
 
 public class Parallelize implements Runnable {
 

@@ -2,8 +2,8 @@ package org.genvisis.cnv.annotation.markers;
 
 import java.util.List;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.Logger;
-import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 import htsjdk.variant.variantcontext.VariantContext;
 
 public class MarkerBlastHistogramAnnotation extends HistogramAnnotation {

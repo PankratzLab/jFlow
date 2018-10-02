@@ -36,15 +36,15 @@ import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.util.Centroids;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.Segment;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 
 public class MedianLRRWorker extends SwingWorker<String, Integer> {
 

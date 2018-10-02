@@ -16,11 +16,11 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.SexOps;
 import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
 import org.genvisis.cnv.plots.ScatterPlot;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.stats.CrossValidation;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.CrossValidation;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 
 /**
  * Class to facilitate correcting X/Y intensity data; TODO, intensity only correction, should be

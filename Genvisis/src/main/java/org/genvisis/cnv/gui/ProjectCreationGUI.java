@@ -37,10 +37,10 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.ext;
-import org.genvisis.common.collect.MultisetUtils;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.collect.MultisetUtils;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import net.miginfocom.swing.MigLayout;
@@ -534,7 +534,7 @@ public class ProjectCreationGUI extends JDialog {
     int sampCol = -100;
     if (comboBoxArrayType.getSelectedItem() == ARRAY.ILLUMINA) {
       headers = SourceFileHeaderData.validate(srcDir, srcExt, actuallyValidate,
-                                              new org.genvisis.common.Logger(),
+                                              new org.pankratzlab.common.Logger(),
                                               Optional.ofNullable(progressBar));
       if (headers == null) {
         // errors found in headers - check output and retry?

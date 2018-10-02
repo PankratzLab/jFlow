@@ -2,6 +2,7 @@ package org.genvisis.stats;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.pankratzlab.shared.stats.FishersExact2by2Calculator;
 
 /**
  * Tests for {@link FishersExact2by2Calculator}

@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.apache.commons.cli.ParseException;
-import org.genvisis.CLI;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.core.CLI;
 
 /**
  * Filters markers from a blast.vcf file based on search term occurrence within the value of a given

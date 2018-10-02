@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;

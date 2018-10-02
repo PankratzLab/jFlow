@@ -12,8 +12,8 @@ import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.MosaicRegion;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 

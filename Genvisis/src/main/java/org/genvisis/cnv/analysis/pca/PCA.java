@@ -3,9 +3,9 @@ package org.genvisis.cnv.analysis.pca;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 /**
  * <p>

@@ -6,9 +6,9 @@ import java.util.Hashtable;
 import java.util.List;
 import org.genvisis.cnv.filesys.CNVQC;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 // TODO extends?
 public class CNVariantQC implements Serializable {

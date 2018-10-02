@@ -3,7 +3,7 @@ package org.genvisis.cnv.annotator;
 import java.io.IOException;
 import java.util.List;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 public class CNVAnnoTester {
 

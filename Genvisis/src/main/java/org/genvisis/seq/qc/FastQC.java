@@ -16,19 +16,19 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.BWA_Analysis;
-import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.genvisis.stats.Rscript.ErrorBars;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.shared.stats.Rscript.ErrorBars;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
 
 public class FastQC {
 

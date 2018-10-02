@@ -8,14 +8,14 @@ import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.ORDER_TYPE;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.link.Heritability;
-import org.genvisis.stats.ICC;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.phenoprep.Heritability;
+import org.pankratzlab.shared.stats.ICC;
 
 class EvaluationResult implements Serializable {
 

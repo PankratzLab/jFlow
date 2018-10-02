@@ -9,14 +9,14 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import org.genvisis.cnv.plots.QQPlot;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.MatchSamples;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.MatchSamples;
 import com.google.common.primitives.Doubles;
 
 public class ControlSelection {
@@ -337,8 +337,8 @@ public class ControlSelection {
                 + "plink.assoc.logistic.tabs";
     String t2 = "cut -f9 " + matchDir + "plink.assoc.logistic.tabs > " + matchDir + cent + tag
                 + ".p.txt";
-    org.genvisis.common.Files.write(t1 + "\n" + t2, matchDir + "tab.sh");
-    org.genvisis.common.Files.chmod(matchDir + "tab.sh");
+    org.pankratzlab.common.Files.write(t1 + "\n" + t2, matchDir + "tab.sh");
+    org.pankratzlab.common.Files.chmod(matchDir + "tab.sh");
     CmdLine.run(matchDir + "tab.sh", matchDir);
     qqFiles.add(matchDir + cent + tag + ".p.txt");
     String[] ps = HashVec.loadFileToStringArray(matchDir + cent + tag + ".p.txt", true,

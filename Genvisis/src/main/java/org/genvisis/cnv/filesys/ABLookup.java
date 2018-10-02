@@ -9,8 +9,6 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import org.genvisis.CLI;
-import org.genvisis.bioinformatics.Sequence;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
@@ -19,12 +17,14 @@ import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.StrandOps;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.bioinformatics.Sequence;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -868,7 +868,7 @@ public class ABLookup {
                        + " does not exist, marker data can not be loaded and frequency of B allele will not be reported in "
                        + output
                        + ".\n If you would like to obtain the frequency of B allele for these markers, please transpose the data and then run the following");
-            log.report("java -jar /your/path/to/" + org.genvisis.common.PSF.Java.GENVISIS
+            log.report("java -jar /your/path/to/" + org.pankratzlab.common.PSF.Java.GENVISIS
                        + " cnv.filesys.ABLookup proj=" + proj.getPropertyFilename()
                        + " incompleteAB=" + incompleteABlookupFilename + " mapFile=" + mapFile);
           }

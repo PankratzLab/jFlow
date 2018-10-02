@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.matrix.MatrixDataLoading;
-import org.genvisis.common.matrix.NamedRealMatrix;
-import org.genvisis.pca.ancestry.AncestryPCA;
 import org.junit.Test;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.matrix.MatrixDataLoading;
+import org.pankratzlab.common.matrix.NamedRealMatrix;
+import org.pankratzlab.shared.gwas.pca.ancestry.AncestryPCA;
 
 /**
  * A few basic tests for {@link AncestryPCA}.<br>

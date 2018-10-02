@@ -12,14 +12,14 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.GeneTrack;
 
 public class Pathways implements Serializable {
 

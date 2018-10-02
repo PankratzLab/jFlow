@@ -5,14 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.GeneData;
-import org.genvisis.filesys.GeneTrack;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class parkGenes {
 

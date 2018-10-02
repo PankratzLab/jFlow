@@ -2,9 +2,9 @@ package org.genvisis.one.JL;
 
 import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.filesys.GeneTrack;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.shared.filesys.GeneTrack;
 
 public class ProblemGenes {
 

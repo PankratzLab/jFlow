@@ -1,6 +1,6 @@
 package org.genvisis.cnv.plots.data;
 
-import org.genvisis.stats.Maths.COMPARISON;
+import org.pankratzlab.shared.stats.Maths.COMPARISON;
 
 public class FilterPipe<T extends Number> extends AbstractPipe {
 

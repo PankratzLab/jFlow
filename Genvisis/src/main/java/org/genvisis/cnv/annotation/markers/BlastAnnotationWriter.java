@@ -13,14 +13,14 @@ import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.qc.MarkerBlast.MarkerFastaEntry;
-import org.genvisis.common.ArraySpecialList.ArrayBlastAnnotationList;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.analysis.Blast;
 import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.genvisis.seq.manage.CigarOps;
-import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ArraySpecialList.ArrayBlastAnnotationList;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 import htsjdk.samtools.Cigar;
 
 /**

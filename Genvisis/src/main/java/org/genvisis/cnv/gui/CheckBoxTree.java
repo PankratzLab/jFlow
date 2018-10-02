@@ -23,8 +23,8 @@ import javax.swing.tree.TreeCellEditor;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.PSF;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.PSF;
 
 public class CheckBoxTree extends JTree implements ItemListener {
 

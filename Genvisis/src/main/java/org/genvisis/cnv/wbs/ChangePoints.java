@@ -10,7 +10,7 @@ import java.util.List;
 import org.genvisis.cnv.wbs.ChangePoint.ChangePointComparable;
 import org.genvisis.cnv.wbs.ChangePoint.MinthComparable;
 import org.genvisis.cnv.wbs.Penalties.Penalty_type;
-import org.genvisis.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils;
 import com.google.common.primitives.Doubles;
 
 /**

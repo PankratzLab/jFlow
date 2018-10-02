@@ -2,10 +2,10 @@ package org.genvisis.seq.manage;
 
 import static org.junit.Assert.assertEquals;
 import java.util.Map.Entry;
-import org.genvisis.common.ArrayUtils;
 import org.genvisis.seq.manage.StrandOps.AlleleMatch;
 import org.genvisis.seq.manage.StrandOps.AlleleStatus;
 import org.junit.Test;
+import org.pankratzlab.common.ArrayUtils;
 import com.google.common.collect.ImmutableMap;
 
 public class TestStrandOps {

@@ -3,13 +3,13 @@ package org.genvisis.one.JL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.genvisis.common.AlleleFreq;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.seq.analysis.VCFSourceReader;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.AlleleFreq;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

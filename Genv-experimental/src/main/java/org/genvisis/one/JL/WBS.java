@@ -11,14 +11,14 @@ import java.util.Map;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariant.CNVBuilder;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
+import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
 
 /**
  * Creating output to prototype WBS in R

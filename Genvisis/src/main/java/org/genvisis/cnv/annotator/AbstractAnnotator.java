@@ -2,7 +2,7 @@ package org.genvisis.cnv.annotator;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * Abstract {@link Annotator} implementation. Takes care of virtually all boilerplate so concrete

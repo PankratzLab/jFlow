@@ -32,15 +32,15 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.Files;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ProgressBarDialog;
-import org.genvisis.common.ext;
-import org.genvisis.mining.Distance;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ProgressBarDialog;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.mining.Distance;
+import org.pankratzlab.shared.stats.Maths;
 import com.google.common.primitives.Bytes;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {

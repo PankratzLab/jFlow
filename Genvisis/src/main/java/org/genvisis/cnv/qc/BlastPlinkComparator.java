@@ -2,11 +2,11 @@ package org.genvisis.cnv.qc;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.MarkerBlastQC.QCResults;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 

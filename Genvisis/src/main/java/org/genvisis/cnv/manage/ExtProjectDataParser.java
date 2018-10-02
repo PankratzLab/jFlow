@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.TypedFileParser;
-import org.genvisis.common.TypedFileParser.TypedFileLine;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.TypedFileParser;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.TypedFileParser.TypedFileLine;
 
 /**
  * Trying to have a single framework to load and match sample or marker data to a project from

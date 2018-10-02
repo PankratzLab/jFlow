@@ -10,11 +10,11 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Grafik;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Maths;
 import com.google.common.primitives.Bytes;
 
 /**

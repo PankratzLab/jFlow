@@ -13,7 +13,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.gui.JProgressBarListener;
+import org.pankratzlab.shared.gui.LoggerListener;
+import org.pankratzlab.shared.gui.ProgressMonitorListener;
+import org.pankratzlab.shared.gui.SimpleIndeterminateTask;
+import org.pankratzlab.shared.gui.SimpleTask;
+import org.pankratzlab.shared.gui.Task;
+import org.pankratzlab.shared.gui.TaskManager;
+import org.pankratzlab.shared.gui.TextListener;
 
 /**
  * Interactive tests for {@link TaskManager}.

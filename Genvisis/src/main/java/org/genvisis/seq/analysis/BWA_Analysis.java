@@ -12,12 +12,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.qsub.Qsub;
 
 public class BWA_Analysis {
 
@@ -396,7 +396,7 @@ public class BWA_Analysis {
     // numSampleThreads, boolean batch, Logger log) {
 
     String command = "load module java\njava -Xmx" + memoryInMB + "m -jar "
-                     + org.genvisis.common.PSF.Java.GENVISIS + " seq.BWA_Analysis "
+                     + org.pankratzlab.common.PSF.Java.GENVISIS + " seq.BWA_Analysis "
                      + ROOT_INPUT_COMMAND + rootInputDir + SPACE + ROOT_OUTPUT_COMMAND
                      + rootOutputDir + SPACE;
     command += REFERENCE_GENOME_COMMAND + referenceGenomeFasta + SPACE + BWA_LOCATION_COMMAND

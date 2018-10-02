@@ -1,11 +1,11 @@
 package org.genvisis.one.JL.assoc;
 
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.stats.Rscript;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * Placeholder for threading out genome wide assoc scan

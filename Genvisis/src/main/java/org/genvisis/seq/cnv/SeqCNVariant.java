@@ -1,8 +1,8 @@
 package org.genvisis.seq.cnv;
 
 import java.util.ArrayList;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.filesys.CNVariant;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.shared.filesys.CNVariant;
 
 public class SeqCNVariant extends CNVariant {
 

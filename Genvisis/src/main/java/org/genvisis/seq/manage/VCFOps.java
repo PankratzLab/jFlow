@@ -16,25 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Positions;
-import org.genvisis.common.WorkerHive;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.LocusSet.TO_STRING_TYPE;
-import org.genvisis.filesys.Segment;
-import org.genvisis.gwas.MatchSamples;
-import org.genvisis.gwas.MatchesVisualized;
-import org.genvisis.gwas.MergeDatasets;
-import org.genvisis.gwas.RelationAncestryQc;
-import org.genvisis.qsub.Qsub;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -48,8 +29,27 @@ import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
-import org.genvisis.stats.Histogram.DynamicAveragingHistogram;
-import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.WorkerHive;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.gwas.MatchSamples;
+import org.pankratzlab.gwas.MatchesVisualized;
+import org.pankratzlab.gwas.MergeDatasets;
+import org.pankratzlab.gwas.RelationAncestryQc;
+import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.shared.stats.Histogram.DynamicAveragingHistogram;
+import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.utils.qsub.Qsub;
 import com.google.common.collect.Sets;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -529,7 +529,7 @@ public class VCFOps {
       log.reportTimeInfo("MODE=" + mode);
       if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-        org.genvisis.gwas.RelationAncestryQc.fullGamut(dir, rootOut, false,
+        org.pankratzlab.gwas.RelationAncestryQc.fullGamut(dir, rootOut, false,
                                                        new Logger(dir
                                                                   + "fullGamutOfMarkerAndSampleQC.log"));
         String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
@@ -657,7 +657,7 @@ public class VCFOps {
   }
 
   /**
-   * @param vcf runs {@link org.genvisis.gwas.RelationAncestryQc#fullGamut(String, boolean)} after
+   * @param vcf runs {@link org.pankratzlab.gwas.RelationAncestryQc#fullGamut(String, boolean)} after
    *          converting to plink* files if neccesary
    * @param log
    */
@@ -1298,7 +1298,7 @@ public class VCFOps {
       log.reportTimeWarning("found file " + idFile + " and " + mdsFile
                             + " , assuming processing up to this point has been completed");
     }
-    org.genvisis.widgets.TabVersion.make(mdsFile);
+    org.pankratzlab.utils.widgets.TabVersion.make(mdsFile);
     mdsFile = mdsFile + ".xln";
 
     for (int i = 1; i < matchUpVpops.length; i++) {

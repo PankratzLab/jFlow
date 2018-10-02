@@ -3,7 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.vcf.VCFFileReader;

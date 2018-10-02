@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import org.apache.commons.io.FileUtils;
-import org.genvisis.CLI;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.manage.TempFileTranspose;
@@ -12,7 +11,8 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.core.CLI;
 
 public class ReverseTransposeTarget extends Step {
 

@@ -1,10 +1,10 @@
 package org.genvisis.one.JL.mica;
 
 import java.io.File;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCOps;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

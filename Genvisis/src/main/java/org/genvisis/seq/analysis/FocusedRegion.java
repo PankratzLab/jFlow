@@ -8,14 +8,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.genvisis.CLI;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BamPile;
 import org.genvisis.seq.manage.BamPileUp;
@@ -24,6 +16,14 @@ import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * @author Kitty Widget to perform a focused bp analysis of a region

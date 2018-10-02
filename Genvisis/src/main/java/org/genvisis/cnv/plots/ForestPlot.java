@@ -16,10 +16,10 @@ import java.util.TreeMap;
 import javax.swing.SwingUtilities;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
-import org.genvisis.common.Aliases;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Aliases;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
 
 class MetaStudy {
 

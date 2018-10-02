@@ -15,19 +15,19 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.alg.dense.decomposition.svd.SvdImplicitQrDecompose_D64;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.SingularOps;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.common.matrix.MatrixOperations;
-import org.genvisis.common.matrix.MatrixOperations.SCALE_METHOD;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.matrix.MatrixOperations;
+import org.pankratzlab.common.matrix.MatrixOperations.SCALE_METHOD;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.stats.Maths;
 
 /**
  * A simplified version of BamImport that uses MosDepth output to generate PCS

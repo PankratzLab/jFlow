@@ -9,21 +9,21 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.SnpMarkerSet;
 import org.genvisis.link.LinkageFormat;
-import org.genvisis.link.LinkageMap;
-import org.genvisis.link.TrimFam;
 import org.genvisis.link.bat.Mendel;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.phenoprep.TrimFam;
+import org.pankratzlab.shared.filesys.SnpMarkerSet;
 
 public class GinsburgDavid {
 

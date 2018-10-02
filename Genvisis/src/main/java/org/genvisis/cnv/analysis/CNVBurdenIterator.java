@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.stats.LeastSquares;
-import org.genvisis.stats.LogisticRegression;
-import org.genvisis.stats.RegressionModel;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.LogisticRegression;
+import org.pankratzlab.shared.stats.RegressionModel;
 
 public class CNVBurdenIterator {
 

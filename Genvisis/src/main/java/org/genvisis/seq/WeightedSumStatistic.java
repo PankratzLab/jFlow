@@ -2,16 +2,16 @@ package org.genvisis.seq;
 
 import java.io.File;
 import java.io.PrintWriter;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Pedfile;
-import org.genvisis.filesys.SnpMarkerSet;
-import org.genvisis.stats.Correlation;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Pedfile;
+import org.pankratzlab.shared.filesys.SnpMarkerSet;
+import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.shared.stats.ProbDist;
 
 public class WeightedSumStatistic {
 
@@ -440,7 +440,7 @@ public class WeightedSumStatistic {
         line = model.split(PSF.Regex.GREEDY_WHITESPACE);
         writer.println("plink --bfile allThree --recode --keep " + line[0] + " --extract "
                        + line[1]);
-        writer.println("java -jar /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+        writer.println("java -jar /home/npankrat/" + org.pankratzlab.common.PSF.Java.GENVISIS
                        + " seq.WeightedSumStatistic set=" + line[1]);
         writer.println();
       }

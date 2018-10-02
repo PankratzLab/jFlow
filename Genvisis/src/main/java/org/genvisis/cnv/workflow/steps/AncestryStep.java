@@ -14,9 +14,9 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.gwas.Ancestry;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.gwas.Ancestry;
 
 public class AncestryStep extends Step {
 

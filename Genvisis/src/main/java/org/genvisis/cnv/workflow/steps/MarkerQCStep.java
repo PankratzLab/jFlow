@@ -11,11 +11,11 @@ import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.ListSelectionRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
-import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 

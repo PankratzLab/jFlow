@@ -3,7 +3,7 @@ package org.genvisis.one.JL.beta;
 import java.io.File;
 import org.genvisis.cnv.analysis.pca.BetaOptimizer;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ext;
 
 /**
  * @author Kitty Fixing beta optimaization...hopefully

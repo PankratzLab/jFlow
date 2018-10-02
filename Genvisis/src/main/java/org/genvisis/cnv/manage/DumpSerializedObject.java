@@ -2,9 +2,9 @@ package org.genvisis.cnv.manage;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.SerializedFiles;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.PlainTextExport;
+import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.PlainTextExport;
 
 public class DumpSerializedObject {
 

@@ -13,14 +13,14 @@ import org.genvisis.cnv.hmm.PFB;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
-import org.genvisis.stats.LeastSquares;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
-import org.genvisis.stats.RegressionModel;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class BAFContamination {

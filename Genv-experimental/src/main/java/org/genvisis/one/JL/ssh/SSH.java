@@ -1,8 +1,8 @@
 package org.genvisis.one.JL.ssh;
 
 import java.util.ArrayList;
-import org.genvisis.common.CmdLine;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.CmdLine;
+import org.pankratzlab.common.Logger;
 
 public class SSH {
 

@@ -2,7 +2,7 @@ package org.genvisis.kaput;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.Files;
+import org.pankratzlab.common.Files;
 
 public class dumpibd {
 
@@ -24,7 +24,7 @@ public class dumpibd {
       } else {
         chrom = "" + j;
       }
-      writer.println("java -classpath /home/npankrat/" + org.genvisis.common.PSF.Java.GENVISIS
+      writer.println("java -classpath /home/npankrat/" + org.pankratzlab.common.PSF.Java.GENVISIS
                      + " park.bat.dat2loc map" + chrom + ".dat");
       writer.println("echo -e \"pairs\\n3\\nload map" + chrom + ".loc\\nprep re_chrom" + chrom
                      + ".pre\\nn\\nscan\\ndump ibd\\nmibd" + chrom

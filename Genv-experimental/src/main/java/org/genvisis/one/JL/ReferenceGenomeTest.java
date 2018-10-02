@@ -3,10 +3,10 @@ package org.genvisis.one.JL;
 import java.util.ArrayList;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.shared.filesys.Segment;
 
 public class ReferenceGenomeTest {
 

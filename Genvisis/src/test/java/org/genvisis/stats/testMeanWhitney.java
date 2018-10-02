@@ -6,8 +6,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import org.genvisis.common.ArrayUtils;
 import org.junit.Test;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.shared.stats.MannWhitneyUTest;
+import org.pankratzlab.shared.stats.ProbDist;
 import com.google.common.collect.ImmutableList;
 
 public class testMeanWhitney {

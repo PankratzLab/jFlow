@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.WorkerTrain;
-import org.genvisis.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.WorkerTrain;
+import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 
 /**
  * similar to {@link MDL} but for sample data

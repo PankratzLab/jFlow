@@ -10,13 +10,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import org.genvisis.CLI;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
 import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
 import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.core.CLI;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

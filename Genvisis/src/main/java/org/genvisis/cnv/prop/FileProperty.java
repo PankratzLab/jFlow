@@ -4,8 +4,8 @@ import java.io.File;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.COPY;
 import org.genvisis.cnv.filesys.Project.GROUP;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 
 public class FileProperty extends StringProperty {
 

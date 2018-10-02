@@ -1,7 +1,7 @@
 package org.genvisis.seq;
 
 import java.util.Hashtable;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author lane0212<br>

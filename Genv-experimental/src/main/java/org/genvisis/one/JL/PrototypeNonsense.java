@@ -1,7 +1,7 @@
 package org.genvisis.one.JL;
 
-import org.genvisis.common.Logger;
 import org.genvisis.seq.manage.ReferenceGenome;
+import org.pankratzlab.common.Logger;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.Options;

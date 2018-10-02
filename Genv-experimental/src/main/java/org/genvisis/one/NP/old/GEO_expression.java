@@ -8,15 +8,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Matrix;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Zip;
-import org.genvisis.common.ext;
-import org.genvisis.mining.Transformations;
-import org.genvisis.stats.LeastSquares;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Zip;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.mining.Transformations;
+import org.pankratzlab.shared.stats.LeastSquares;
 
 public class GEO_expression {
 

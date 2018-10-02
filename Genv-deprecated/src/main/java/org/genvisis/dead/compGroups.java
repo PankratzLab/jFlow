@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Pattern;
-import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Anova;
-import org.genvisis.stats.LeastSquares;
-import org.genvisis.stats.LogisticRegression;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Anova;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.LogisticRegression;
 
 public class compGroups {
 

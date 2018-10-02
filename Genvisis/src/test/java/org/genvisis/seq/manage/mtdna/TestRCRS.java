@@ -3,8 +3,8 @@
  */
 package org.genvisis.seq.manage.mtdna;
 
-import org.genvisis.common.Logger;
 import org.junit.Test;
+import org.pankratzlab.common.Logger;
 import static org.junit.Assert.assertEquals;
 
 /**

@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.Logger;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Floats;
 

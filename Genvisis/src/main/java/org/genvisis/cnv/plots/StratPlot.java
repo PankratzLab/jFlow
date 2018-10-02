@@ -32,11 +32,11 @@ import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorIcon;
 import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 
 public class StratPlot extends JFrame implements ActionListener, TreeSelectionListener {
 

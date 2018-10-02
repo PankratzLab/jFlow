@@ -9,8 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.genvisis.common.Logger;
 import org.junit.Test;
+import org.pankratzlab.common.Logger;
 
 /**
  * @author Travis Rogers

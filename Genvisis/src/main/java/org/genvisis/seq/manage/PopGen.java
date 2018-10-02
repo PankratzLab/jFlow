@@ -1,10 +1,6 @@
 package org.genvisis.seq.manage;
 
 import java.io.File;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
 import org.genvisis.seq.analysis.VcfQuery.Location;
 import org.genvisis.seq.manage.VCFOps.HEADER_COPY_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -13,6 +9,10 @@ import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilterPass;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;

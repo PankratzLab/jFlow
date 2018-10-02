@@ -4,6 +4,7 @@
 package org.genvisis.stats;
 
 import org.junit.Test;
+import org.pankratzlab.shared.stats.Stats;
 import be.ac.ulg.montefiore.run.jahmm.ObservationReal;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 import junit.framework.Assert;

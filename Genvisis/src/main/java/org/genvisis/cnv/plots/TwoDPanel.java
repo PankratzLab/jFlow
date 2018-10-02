@@ -18,17 +18,17 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.CountVector;
-import org.genvisis.common.Files;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Numbers;
-import org.genvisis.common.PSF.Colors.BLUES;
-import org.genvisis.common.PSF.Colors.GREENS;
-import org.genvisis.common.PSF.Colors.REDS;
-import org.genvisis.common.PSF.Colors.VIOLETS;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.stats.Histogram;
+import org.pankratzlab.common.CountVector;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Numbers;
+import org.pankratzlab.common.Positions;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.PSF.Colors.BLUES;
+import org.pankratzlab.common.PSF.Colors.GREENS;
+import org.pankratzlab.common.PSF.Colors.REDS;
+import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.stats.Histogram;
 
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 
@@ -67,7 +67,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
   private final Project proj;
   private String[][] linkerData;
   private final int dataHash = -1;
-  private org.genvisis.stats.Histogram currentHistogram;
+  private org.pankratzlab.shared.stats.Histogram currentHistogram;
   private boolean histogramOverride = false;
   private boolean overrideAxisLabels = false;
 
@@ -293,7 +293,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
   }
 
   private void generateRectangles() {
-    org.genvisis.stats.Histogram hist;
+    org.pankratzlab.shared.stats.Histogram hist;
     if ((!isHistogramOverride() && dataHash != tdp.getSelectedDataHash())
         || currentHistogram == null) {
       ArrayList<String[]> currentData;
@@ -315,7 +315,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
         dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN
                                                                  : Double.parseDouble(currentData.get(i)[1]);
       }
-      hist = new org.genvisis.stats.Histogram(dataArray);
+      hist = new org.pankratzlab.shared.stats.Histogram(dataArray);
       setHistogram(hist);
     } else {
       hist = getHistogram();
@@ -790,7 +790,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
     return currentHistogram;
   }
 
-  public void setHistogram(org.genvisis.stats.Histogram hist) {
+  public void setHistogram(org.pankratzlab.shared.stats.Histogram hist) {
     currentHistogram = hist;
   }
 

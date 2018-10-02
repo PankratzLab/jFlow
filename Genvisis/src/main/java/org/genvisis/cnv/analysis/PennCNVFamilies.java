@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.CLI;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.gwas.PlinkMendelianChecker;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.gwas.PlinkMendelianChecker;
 
 /**
  * Utility for building input list for penncnv trio

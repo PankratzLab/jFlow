@@ -1,7 +1,7 @@
 package org.genvisis.one;
 
 import java.io.*;
-import org.genvisis.common.*;
+import org.pankratzlab.common.*;
 
 public class UKBiobank {
 

@@ -2,8 +2,8 @@ package org.genvisis.cnv.qc;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Logger;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Logger;
 
 // class to determine the percent concordance given QC parameters, currently only alpha, confidence,
 // numMarkers, and LRR_SD

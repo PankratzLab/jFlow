@@ -12,9 +12,9 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import org.genvisis.cnv.plots.CompPlot;
-import org.genvisis.filesys.CNVariant;
-import org.genvisis.filesys.CNVariantHash;
-import org.genvisis.filesys.Segment;
+import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.CNVariantHash;
+import org.pankratzlab.shared.filesys.Segment;
 
 /**
  * This class reads in CNV files and generates a list of rectangles representing them. The list can

@@ -2,8 +2,6 @@ package org.genvisis.cnv.qc;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import org.genvisis.CLI;
-import org.genvisis.CLI.Arg;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.annotation.markers.BlastParams;
@@ -12,11 +10,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.ReferenceGenome;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.core.CLI;
+import org.pankratzlab.core.CLI.Arg;
+import org.pankratzlab.shared.filesys.Segment;
 import com.google.common.collect.ImmutableMap;
 import htsjdk.tribble.annotation.Strand;
 

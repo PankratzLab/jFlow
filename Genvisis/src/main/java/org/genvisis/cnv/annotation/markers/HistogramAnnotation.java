@@ -1,7 +1,7 @@
 package org.genvisis.cnv.annotation.markers;
 
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
 public abstract class HistogramAnnotation extends AnnotationData {

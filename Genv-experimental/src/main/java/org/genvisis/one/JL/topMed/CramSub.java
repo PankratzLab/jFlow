@@ -2,9 +2,9 @@ package org.genvisis.one.JL.topMed;
 
 import java.io.File;
 import java.io.IOException;
-import org.genvisis.common.Files;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.SamRecordOps;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.ext;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;

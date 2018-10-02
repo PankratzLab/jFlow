@@ -7,14 +7,14 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Random;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.stats.CrossValidation;
-import org.genvisis.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.CrossValidation;
+import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.utils.qsub.Qsub;
 
 /**
  * Class to cross validate a series of pc files (and to assist in batching for computing them)

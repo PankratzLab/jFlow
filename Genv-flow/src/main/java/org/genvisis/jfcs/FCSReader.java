@@ -7,9 +7,9 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
-import org.genvisis.bgen.BGENBitMath;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gwas.bgen.BGENBitMath;
 
 public class FCSReader {
 

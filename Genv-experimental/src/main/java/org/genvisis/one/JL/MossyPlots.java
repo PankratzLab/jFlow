@@ -5,21 +5,21 @@ import java.util.ArrayList;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.ext;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
-import org.genvisis.stats.Rscript;
-import org.genvisis.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.genvisis.stats.Rscript.GeomText;
-import org.genvisis.stats.Rscript.LEGEND_POSITION;
-import org.genvisis.stats.Rscript.PLOT_DEVICE;
-import org.genvisis.stats.Rscript.RScatter;
-import org.genvisis.stats.Rscript.RScatters;
-import org.genvisis.stats.Rscript.Restrictions;
-import org.genvisis.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.shared.stats.Rscript.GeomText;
+import org.pankratzlab.shared.stats.Rscript.LEGEND_POSITION;
+import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.shared.stats.Rscript.RScatter;
+import org.pankratzlab.shared.stats.Rscript.RScatters;
+import org.pankratzlab.shared.stats.Rscript.Restrictions;
+import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
 
 public class MossyPlots {
 
