@@ -134,7 +134,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
     this.nStage = nStage;
     fail = (markerData.getXs() == null || markerData.getYs() == null
             || markerData.getAbGenotypes() == null);
-    centroid = prepareProperCentroid(getProj().getArrayType(), markerData, sampleSex,
+    centroid = org.genvisis.cnv.util.Centroids.prepareProperCentroid(getProj().getArrayType(), markerData, sampleSex,
                                      samplesToUseCluster, missingnessThreshold, confThreshold,
                                      clusterFilterCollection, medianCenter, proj.getLog());
     numTotalSamples = markerData.getXs().length;
@@ -933,32 +933,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
                                        / Math.sin(centroid[0] * Math.PI / 2)));
   }
 
-  private static CentroidCompute prepareProperCentroid(ARRAY array, MarkerData markerData,
-                                                       int[] sampleSex,
-                                                       boolean[] samplesToUseCluster,
-                                                       double missingnessThreshold,
-                                                       double confThreshold,
-                                                       ClusterFilterCollection clusterFilterCollection,
-                                                       boolean medianCenter, Logger log) {
-    CentroidCompute centroid;
-    if (isAffyIntensityOnly(array, markerData)) {
-      // centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, true,
-      // missingnessThreshold, confThreshold, clusterFilterCollection, medianCenter, log);
-      centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold,
-                                        confThreshold, clusterFilterCollection, medianCenter, log);
-      CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, .1f, log);
-    } else {
-      centroid = markerData.getCentroid(sampleSex, samplesToUseCluster, false, missingnessThreshold,
-                                        confThreshold, clusterFilterCollection, medianCenter, log);
-      if (array.isCNOnly(markerData.getMarkerName())) {
-        CentroidCompute.setFakeAB(markerData, centroid, clusterFilterCollection, 0, log);
-      }
-    }
-    centroid.computeCentroid();
-    return centroid;
-  }
-
-  private static boolean isAffyIntensityOnly(ARRAY array, MarkerData markerData) {
+  public static boolean isAffyIntensityOnly(ARRAY array, MarkerData markerData) {
     return (array == ARRAY.AFFY_GW6 || array == ARRAY.AFFY_GW6_CN)
            && array.isCNOnly(markerData.getMarkerName());
   }

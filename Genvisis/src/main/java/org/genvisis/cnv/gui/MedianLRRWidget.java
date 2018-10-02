@@ -151,7 +151,7 @@ public class MedianLRRWidget extends JFrame implements Runnable {
       }
 
       createGroup(chrXStrategy, true, recomputeLRR, correctLRR, correctXY);
-      requiresProperty(proj.INTENSITY_PC_FILENAME, recomputeLRR, correctLRR, correctXY);
+      requiresProperty(proj.INTENSITY_PC_FILENAME, correctLRR, correctXY);
 
       addLabel(correctionPane, "Recompute LRRs?");
       correctionPane.add(recomputeLRR);
