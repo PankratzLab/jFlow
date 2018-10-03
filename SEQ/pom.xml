@@ -11,7 +11,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>Genv-split</artifactId>
+	<artifactId>SEQ</artifactId>
 	<version>${genvisis.version}</version>
 	<packaging>takari-jar</packaging>
 

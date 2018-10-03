@@ -58,6 +58,8 @@
 		<module>Genvisis</module>
 		<module>Genv-split</module>
 		<module>CFCS</module>
+		<module>NRSS</module>
+		<module>SEQ</module>
 		<module>Genv-flow</module>
 		<module>Genv-experimental</module>
 		<module>Genv-deprecated</module>
