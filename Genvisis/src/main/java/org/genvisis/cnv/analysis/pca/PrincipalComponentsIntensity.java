@@ -134,7 +134,7 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
     this.nStage = nStage;
     fail = (markerData.getXs() == null || markerData.getYs() == null
             || markerData.getAbGenotypes() == null);
-    centroid = org.genvisis.cnv.util.Centroids.prepareProperCentroid(getProj().getArrayType(),
+    centroid = org.genvisis.cnv.util.CentroidHelper.prepareProperCentroid(getProj().getArrayType(),
                                                                      markerData, sampleSex,
                                                                      samplesToUseCluster,
                                                                      missingnessThreshold,

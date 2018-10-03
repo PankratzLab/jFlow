@@ -22,6 +22,7 @@ import javax.swing.SwingWorker;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
+import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
@@ -33,7 +34,7 @@ import org.genvisis.cnv.qc.CNVBDeviation;
 import org.genvisis.cnv.qc.CNVBMAF;
 import org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.util.Centroids;
+import org.genvisis.cnv.util.CentroidHelper;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
@@ -667,7 +668,7 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
       if (recomputeLRR || correctLRR || correctXY) {
         int numThreads = proj.getProperty(proj.NUM_THREADS);
         if (recomputeLRR && !correctLRR) {
-          lrrs = Centroids.prepareProperCentroid(proj.getArrayType(), markerData, null,
+          lrrs = CentroidHelper.prepareProperCentroid(proj.getArrayType(), markerData, null,
                                                  samplesToUse, 1, 0, clusterFilterCollection, true,
                                                  proj.getLog())
                           .getRecomputedLRR();

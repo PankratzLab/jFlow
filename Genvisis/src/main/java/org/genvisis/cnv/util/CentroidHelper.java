@@ -7,7 +7,10 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.pankratzlab.common.Logger;
 
-public class Centroids {
+/**
+ * Utility methods for working with centroids
+ */
+public class CentroidHelper {
 
   public static CentroidCompute prepareProperCentroid(ARRAY array, MarkerData markerData,
                                                       int[] sampleSex,
