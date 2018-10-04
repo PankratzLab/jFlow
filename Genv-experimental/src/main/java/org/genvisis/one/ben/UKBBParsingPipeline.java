@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
@@ -62,6 +63,7 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.SerializedFiles;
 import org.genvisis.common.ext;
 import org.genvisis.qsub.Qsub;
+import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.variant.variantcontext.Allele;
 
 public class UKBBParsingPipeline {
@@ -138,11 +140,16 @@ public class UKBBParsingPipeline {
   }
 
   public void runPipeline() {
+    log.reportTime("Starting UKBioBank Parsing Pipeline...");
     createProject();
     createSampleList();
     createPED();
     createSampleData();
     discoverFilesets();
+    if (fileSets.size() == 0) {
+      log.reportError("No chrs found to parse!  Shutting down.");
+      return;
+    }
     createMarkerPositions();
     writeMarkerDetailSet();
     parseMarkerData();
@@ -495,7 +502,6 @@ public class UKBBParsingPipeline {
     String[] headerFactors = {"Affy SNP ID", "dbSNP RS ID", "Chromosome", "Physical Position",
                               "Allele A", "Allele B", "Ref Allele", "Flank"};
     int[] hdrInds = null;
-    BufferedReader reader = Files.getAppropriateReader(annotFile);
     HashMap<String, Integer> markerIndices = new HashMap<>();
     ArrayList<Integer> allInds = new ArrayList<>(allMarkers.length);
     for (int i = 0; i < allMarkers.length; i++) {
@@ -509,16 +515,22 @@ public class UKBBParsingPipeline {
     String mkrName;
     int inAnnotNotProj = 0;
     int ind;
+    int mkr = 0;
+    int lines = 0;
+    BufferedReader reader = Files.getAppropriateReader(annotFile);
     while ((line = reader.readLine()) != null) {
+      lines++;
       if (line.charAt(0) == '#') continue;
       if (!foundHeader) {
         foundHeader = true; // first nonComment line
         hdrInds = ext.indexFactors(headerFactors, ext.splitCommasIntelligently(line, true, log),
                                    false);
+
         continue;
       }
       parts = ext.splitCommasIntelligently(line, true, log);
       mkrName = isMissing(parts[hdrInds[1]]) ? parts[hdrInds[0]] : parts[hdrInds[1]];
+      mkr++;
 
       if (!markerIndices.containsKey(mkrName)) {
         if (markerIndices.containsKey(parts[hdrInds[0]])) {
@@ -562,6 +574,10 @@ public class UKBBParsingPipeline {
                                                          AllelePair.of(Allele.create(a, aRef),
                                                                        Allele.create(b, !aRef)));
       }
+    }
+    if (lines == 0 && annotFile.endsWith(".zip")) {
+      throw new RuntimeException("Coudn't read the marker annotation file at " + annotFile
+                                 + ".  The zipped annotation file contains two files: the annotation file itself and a README file.  Please unzip these files, set the annotation file argument to point to the unzipped annotation file, and rerun the pipeline.");
     }
     if (inAnnotNotProj > 0) {
       log.reportTimeWarning("Found " + inAnnotNotProj
@@ -1054,7 +1070,7 @@ public class UKBBParsingPipeline {
      * First token must be "ukb"; <br />
      * Second token must be from FileSet.EXP; <br />
      * Third token must start with "chr"; <br />
-     * Will not accept any .fam file; <br />
+     * Will not accept any .fam or .gzi file; <br />
      */
     FilenameFilter ff = new FilenameFilter() {
 
@@ -1065,6 +1081,9 @@ public class UKBBParsingPipeline {
           return false;
         }
         if (name.endsWith(".fam")) {
+          return false;
+        }
+        if (name.endsWith(".gzi")) {
           return false;
         }
         if (!parts[0].equals("ukb")) {
@@ -1207,38 +1226,93 @@ public class UKBBParsingPipeline {
 
   }
 
+  private interface ReaderProxy {
+
+    public String readLine() throws IOException;
+
+    public void close() throws IOException;
+
+  }
+
+  private class BGZipProxy implements ReaderProxy {
+
+    BlockCompressedInputStream bcis;
+
+    public BGZipProxy(BlockCompressedInputStream is) {
+      this.bcis = is;
+    }
+
+    @Override
+    public String readLine() throws IOException {
+      return bcis.readLine();
+    }
+
+    @Override
+    public void close() throws IOException {
+      bcis.close();
+    }
+
+  }
+
+  private class TextReaderProxy implements ReaderProxy {
+
+    BufferedReader br;
+
+    public TextReaderProxy(BufferedReader br1) {
+      this.br = br1;
+    }
+
+    @Override
+    public String readLine() throws IOException {
+      return br.readLine();
+    }
+
+    @Override
+    public void close() throws IOException {
+      br.close();
+    }
+
+  }
+
   private class FileReaderSet {
 
     RandomAccessFile bedIn;
     RandomAccessFile binIn;
-    BufferedReader conIn;
-    BufferedReader lrrIn;
-    BufferedReader bafIn;
+    ReaderProxy conIn;
+    ReaderProxy lrrIn;
+    ReaderProxy bafIn;
 
     public void open(FileSet fs) throws IOException {
       bedIn = new RandomAccessFile(fs.bedFile, "r");
       binIn = new RandomAccessFile(fs.intFile, "r");
-      conIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.conFile), 4000000);
-      lrrIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.lrrFile), 4000000);
-      bafIn = new BufferedReader(Files.getAppropriateInputStreamReader(fs.bafFile), 2000000);
+      conIn = open(fs.conFile, 0);
+      lrrIn = open(fs.lrrFile, 0);
+      bafIn = open(fs.bafFile, 0);
     }
 
     public void readAhead(FileSet fs, int start, int binSize) throws IOException {
       int line = start + binSize;
-      conIn = new BufferedReader(new InputStreamReader(open(fs.conFile, fs.conInds.get(line))),
-                                 4000000);
-
-      lrrIn = new BufferedReader(new InputStreamReader(open(fs.lrrFile, fs.lrrInds.get(line))),
-                                 4000000);
-
-      bafIn = new BufferedReader(new InputStreamReader(open(fs.bafFile, fs.bafInds.get(line))),
-                                 2000000);
+      conIn = open(fs.conFile, fs.conInds.get(line));
+      lrrIn = open(fs.lrrFile, fs.lrrInds.get(line));
+      bafIn = open(fs.bafFile, fs.bafInds.get(line));
     }
 
-    private FileInputStream open(String file, long skip) throws IOException {
-      FileInputStream fis = new FileInputStream(file);
-      fis.skip(skip);
-      return fis;
+    private ReaderProxy open(String file, long skip) throws IOException {
+      InputStream is;
+      if (file.endsWith(".gz")) {
+        is = new BlockCompressedInputStream(new File(file));
+        if (skip > 0) {
+          ((BlockCompressedInputStream) is).seek(skip);
+        }
+        return new BGZipProxy((BlockCompressedInputStream) is);
+        //        return new BGZipReaderProxy(new BGZipReader(file));
+      } else {
+        is = new FileInputStream(file);
+        if (skip > 0) {
+          is.skip(skip);
+        }
+        return new TextReaderProxy(new BufferedReader(new InputStreamReader(is), 4000000));
+      }
     }
 
     public void close() throws IOException {
@@ -1356,35 +1430,46 @@ public class UKBBParsingPipeline {
       log.reportTime("Building lookup file for " + ext.rootOf(lookupFile));
       HashMap<Integer, Long> lineIndices = new HashMap<>();
 
-      FileInputStream fis = new FileInputStream(file);
-      InputStreamReader isr = new InputStreamReader(fis);
-      int bufferLength = 16384; // 16 Kb buffer 
-      ByteBuffer buffer = ByteBuffer.wrap(new byte[bufferLength]);
-      FileChannel fc = fis.getChannel();
-
       int line = 0;
-      int read = 0;
-      while ((read = fc.read(buffer)) != -1) {
-        byte[] array = buffer.array();
-        if (read < bufferLength) {
-          array = new byte[read];
-          System.arraycopy(buffer.array(), 0, array, 0, read);
-        }
-        String bufferString = new String(array);
-        for (int i = 0; i < bufferString.length(); i++) {
-          if (bufferString.charAt(i) == '\n') {
-            line++;
-            long pos = fc.position() + 1;
-            if (i < bufferString.length()) {
-              pos -= bufferString.substring(i).getBytes().length;
-            }
-            lineIndices.put(line, pos);
-          }
-        }
-        buffer.clear();
-      }
+      if (file.endsWith(".gz")) {
+        BlockCompressedInputStream bcis = new BlockCompressedInputStream(new File(file));
 
-      isr.close();
+        while (bcis.readLine() != null) {
+          line++;
+          lineIndices.put(line, bcis.getFilePointer());
+        }
+
+        bcis.close();
+      } else {
+        FileInputStream fis = new FileInputStream(file);
+        InputStreamReader isr = new InputStreamReader(fis);
+        int bufferLength = 16384; // 16 Kb buffer 
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[bufferLength]);
+        FileChannel fc = fis.getChannel();
+
+        int read = 0;
+        while ((read = fc.read(buffer)) != -1) {
+          byte[] array = buffer.array();
+          if (read < bufferLength) {
+            array = new byte[read];
+            System.arraycopy(buffer.array(), 0, array, 0, read);
+          }
+          String bufferString = new String(array);
+          for (int i = 0; i < bufferString.length(); i++) {
+            if (bufferString.charAt(i) == '\n') {
+              line++;
+              long pos = fc.position() + 1;
+              if (i < bufferString.length()) {
+                pos -= bufferString.substring(i).getBytes().length;
+              }
+              lineIndices.put(line, pos);
+            }
+          }
+          buffer.clear();
+        }
+
+        isr.close();
+      }
 
       SerializedFiles.writeSerial(lineIndices, lookupFile);
       log.reportTime("Built {" + ext.rootOf(lookupFile) + "} in " + ext.getTimeElapsedNanos(t1));
