@@ -53,6 +53,9 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+import htsjdk.samtools.seekablestream.SeekableFileStream;
+import htsjdk.samtools.util.BlockCompressedFilePointerUtil;
+import htsjdk.samtools.util.BlockCompressedInputStream;
 
 public class lab {
 
@@ -1698,8 +1701,10 @@ public class lab {
       snp.name = parts[1];
       snp.dist = Integer.parseInt(parts[2]);
       snp.mafDist = Float.parseFloat(parts[3]);
-      binMap.put(snp.bin, snp);
-      binList.add(snp.bin);
+      if (snp.mafDist < .4) {
+        binMap.put(snp.bin, snp);
+        binList.add(snp.bin);
+      }
     }
 
     System.out.println("Read all variants...");
@@ -1730,6 +1735,60 @@ public class lab {
     writer.close();
 
     System.out.println("Finished selecting variants!");
+
+  }
+
+  private static void buildUKBBLookup(String file) throws IOException {
+
+    SeekableFileStream sfs = new SeekableFileStream(new File(file));
+    int line = 0;
+    Map<Integer, Long> indexMap = new HashMap<>();
+
+    BlockCompressedInputStream bcis = new BlockCompressedInputStream(sfs);
+    while (bcis.readLine() != null) {
+      line++;
+      if (line % 10000 == 0) {
+        System.out.println(line);
+      }
+      bcis.seek(bcis.getFilePointer());
+      indexMap.put(line, sfs.position());
+    }
+    bcis.close();
+
+    System.out.println("Done with step 1!");
+
+    //    Map<Integer, Long> byteIndexMap = new HashMap<>();
+    //    for (int i = 1; i <= indexMap.size(); i++) {
+    //      fis = new FileInputStream(file);
+    //      bcis = new BlockCompressedInputStream(fis);
+    //      bcis.seek(indexMap.get(i));
+    //      byteIndexMap.put(i, fis.getChannel().position());
+    //      bcis.close();
+    //    }
+
+    SerializedFiles.writeSerial(indexMap, ext.rootOf(file, false) + "_lookup.dat");
+    System.out.println("Done with step 2!");
+  }
+
+  private static void checkUKBBLookup(String file) throws IOException {
+    @SuppressWarnings("unchecked")
+    Map<Integer, Long> indexMap = (Map<Integer, Long>) SerializedFiles.readSerial(ext.rootOf(file,
+                                                                                             false)
+                                                                                  + "_lookup.dat");
+
+    SeekableFileStream sfs = new SeekableFileStream(new File(file));
+    BlockCompressedInputStream bcis = new BlockCompressedInputStream(sfs);
+
+    System.out.println(indexMap.size() + " lines in index file.");
+
+    for (int i = 0; i < 10; i++) {
+      int line = new Random().nextInt(indexMap.size());
+      long ind = indexMap.get(line);
+      sfs.seek(ind);
+      System.out.println("Found " + bcis.readLine().split(" ").length + " in line " + line
+                         + ", vfp: " + BlockCompressedFilePointerUtil.asString(ind));
+    }
+    bcis.close();
 
   }
 
@@ -1769,9 +1828,37 @@ public class lab {
       //                       + new Project("D:\\projects\\AffyParsingTest.properties").getSamples()[0]
       //                       + ".sampRAF");
 
-      bamSnpComparison("G:\\bamTesting\\snpSelection\\All_Variants.xln",
-                       "G:\\bamTesting\\snpSelection\\selected_scales.xln",
-                       new int[] {1500, 2000, 5000});
+      //      bamSnpComparison("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      //                       "G:\\bamTesting\\snpSelection\\selected_scales.xln",
+      //                       new int[] {1500, 2000, 5000});
+      //      bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      //                      "G:\\bamTesting\\snpSelection\\selected_scale2k.xln", 2000);
+      //      bamSnpSelection("G:\\bamTesting\\snpSelection\\All_Variants.xln",
+      //                      "G:\\bamTesting\\snpSelection\\selected_scale5k.xln", 5000);
+
+      //      proj = new Project("D:/projects/Affy1000G Small3.properties");
+      //      SampleList sl = SampleList.load(proj.SAMPLELIST_FILENAME.getValue());
+      //      String[] samples = sl.getSamples();
+      //      System.out.println();
+
+      //      buildUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+      //      checkUKBBLookup("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+
+      //      BGZipReader reader = new BGZipReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src\\ukb_baf_chr10_v2.txt.gz");
+      //      BlockCompressedInputStream bgzip = new BlockCompressedInputStream(new File("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21gz\\ukb_baf_chr21_v2.txt.gz"));
+      //      BufferedReader reader = new BufferedReader(new FileReader("F:\\testProjectSrc\\UKBB_AffyAxiom\\00src_21\\ukb_baf_chr21_v2.txt"));
+      //
+      //      String txtLn = reader.readLine();
+      //      String zipLn = bgzip.readLine();
+      //
+
+      BufferedReader reader = Files.getAppropriateReader("/scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      int lines = 0;
+      while (reader.readLine() != null) {
+        lines++;
+      }
+      System.out.println("Read " + lines
+                         + " in /scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
 
       // runHRC();
       // QQPlot.main(new String[]
