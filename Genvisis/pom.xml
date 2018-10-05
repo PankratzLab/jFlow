@@ -20,6 +20,14 @@
 	<properties>
 	</properties>
 
+	<repositories>
+		<!-- local repository needed for libraries without Maven distributions -->
+		<repository>
+			<id>bundled-repo</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
+	</repositories>
+
 
 	<dependencies>
 		<dependency>
@@ -27,6 +35,31 @@
 			<artifactId>PLab-common</artifactId>
 			<version>${genvisis.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>pcingola</groupId>
+			<artifactId>SnpEff</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>edu.stanford.facs</groupId>
+			<artifactId>Logicle</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.ejml</groupId>
+			<artifactId>all</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>be.ac.ulg.montefiore.run</groupId>
+			<artifactId>jahmm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.samtools</groupId>
+			<artifactId>htsjdk</artifactId>
+		</dependency>
+
+
 
 	</dependencies>
 	

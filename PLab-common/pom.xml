@@ -20,14 +20,6 @@
 	<properties>
 	</properties>
 
-	<repositories>
-		<!-- local repository needed for libraries without Maven distributions -->
-		<repository>
-			<id>bundled-repo</id>
-			<url>file://${basedir}/lib</url>
-		</repository>
-	</repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>
@@ -35,28 +27,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>edu.stanford.facs</groupId>
-			<artifactId>Logicle</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.ejml</groupId>
-			<artifactId>all</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>be.ac.ulg.montefiore.run</groupId>
-			<artifactId>jahmm</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.samtools</groupId>
-			<artifactId>htsjdk</artifactId>
 		</dependency>
 
 		<dependency>
@@ -148,11 +120,6 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>pcingola</groupId>
-			<artifactId>SnpEff</artifactId>
-		</dependency>
-
 	</dependencies>
 	
 	<profiles>
