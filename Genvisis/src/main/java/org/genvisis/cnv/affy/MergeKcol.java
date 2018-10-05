@@ -1,4 +1,4 @@
-package forjohn.affy;
+package org.genvisis.cnv.affy;
 
 import java.io.BufferedReader;
 // import java.io.File;

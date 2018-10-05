@@ -11,7 +11,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>Genv-split</artifactId>
+	<artifactId>PLab-private</artifactId>
 	<version>${genvisis.version}</version>
 	<packaging>takari-jar</packaging>
 
@@ -23,7 +23,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>Genvisis</artifactId>
+			<artifactId>PLab-shared</artifactId>
 		</dependency>
+
 	</dependencies>
 </project>

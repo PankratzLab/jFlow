@@ -1,4 +1,4 @@
-package forjohn.affy;
+package org.genvisis.cnv.affy;
 
 import java.io.Serializable;
 import java.util.ArrayList;
