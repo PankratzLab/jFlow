@@ -948,18 +948,19 @@ public class GenvisisWorkflowGUI extends JDialog {
             String file = proj.PROJECT_DIRECTORY.getValue() + "GenvisisPipeline";
             String suggFile = file + ext.getTimestampForFilename() + ".pbs";
             String command = output.toString();
-            if (useDefaults || !hasQsub) {
-              Qsub.qsubDefaults(suggFile, command);
-            } else {
-              if (hasQsub) {
-                file = Qsub.qsubGUI(suggFile, command);
-                if (file != null) {
-                  if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
-                    file = file + ".pbs";
-                  }
-                }
-              }
-            }
+            // TODO see issue #436 regarding commented-out if/else block below
+            //            if (useDefaults || !hasQsub) {
+            Qsub.qsubDefaults(suggFile, command);
+            //            } else {
+            //              if (hasQsub) {
+            //                file = Qsub.qsubGUI(suggFile, command);
+            //                if (file != null) {
+            //                  if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
+            //                    file = file + ".pbs";
+            //                  }
+            //                }
+            //              }
+            //            }
             if (file != null) {
               proj.message("GenvisisPipeline commands written to " + file, "Command File Written",
                            JOptionPane.INFORMATION_MESSAGE);
