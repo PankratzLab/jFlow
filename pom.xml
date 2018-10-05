@@ -55,8 +55,9 @@
 	<modules>
 		<module>Meta</module>
 		<module>Logicle</module>
-		<module>PLab-private</module>
+		<module>PLab-common</module>
 		<module>PLab-shared</module>
+		<module>PLab-private</module>
 		<module>Genvisis</module>
 		<module>CFCS</module>
 		<module>NRSS</module>

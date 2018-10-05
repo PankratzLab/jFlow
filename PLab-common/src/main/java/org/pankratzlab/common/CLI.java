@@ -1,4 +1,4 @@
-package org.pankratzlab.core;
+package org.pankratzlab.common;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +14,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Option.Builder;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.ext;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
