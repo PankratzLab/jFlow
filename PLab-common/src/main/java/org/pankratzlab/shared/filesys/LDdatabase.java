@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -23,7 +24,6 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
 

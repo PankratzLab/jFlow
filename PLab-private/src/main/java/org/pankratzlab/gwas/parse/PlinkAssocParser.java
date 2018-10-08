@@ -18,8 +18,8 @@ import org.pankratzlab.common.parsing.FileParser;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
-import org.pankratzlab.core.CLI;
-import org.pankratzlab.gwas.HitWindows;
+import org.pankratzlab.shared.gwas.HitWindows;
+import org.pankratzlab.common.CLI;
 
 /**
  * Parse Plink association test results, either linear or logistic. <br />

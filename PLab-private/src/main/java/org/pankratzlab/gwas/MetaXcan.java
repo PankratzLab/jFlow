@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.genvisis.cnv.Launch;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class MetaXcan {
 

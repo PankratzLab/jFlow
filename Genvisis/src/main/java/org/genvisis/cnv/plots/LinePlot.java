@@ -49,12 +49,12 @@ import javax.swing.event.TreeSelectionListener;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorIcon;
-import org.genvisis.cnv.gui.UITools;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 
 public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 

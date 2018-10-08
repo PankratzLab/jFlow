@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.zip.GZIPInputStream;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -25,8 +26,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.FamilyStructure;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 import com.google.common.primitives.Ints;
 
 public class Mach {

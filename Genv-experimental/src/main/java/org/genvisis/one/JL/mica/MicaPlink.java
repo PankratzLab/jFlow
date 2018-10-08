@@ -16,7 +16,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.ExcelConverter.ExcelConversionParams;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import com.google.common.io.Files;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;

@@ -18,7 +18,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 /**
  * @author lane0212 Handles the pfb data for the hmm in reduced format

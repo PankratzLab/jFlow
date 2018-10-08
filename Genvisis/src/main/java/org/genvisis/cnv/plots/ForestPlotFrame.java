@@ -42,13 +42,13 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.gui.UITools;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 
 public class ForestPlotFrame extends JFrame implements WindowListener {
 

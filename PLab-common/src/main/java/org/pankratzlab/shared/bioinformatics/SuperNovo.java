@@ -30,12 +30,12 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.filesys.SegmentLists;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 import com.google.common.base.Strings;
 
 public class SuperNovo {

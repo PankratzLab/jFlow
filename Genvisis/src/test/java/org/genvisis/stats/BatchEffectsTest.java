@@ -5,10 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import org.apache.commons.math3.stat.inference.TTest;
+import org.genvisis.cnv.plots.stats.BatchEffects;
+import org.genvisis.cnv.plots.stats.BatchEffectsBuilder;
 import org.junit.Test;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.stats.BatchEffects;
-import org.pankratzlab.shared.stats.BatchEffectsBuilder;
 
 public class BatchEffectsTest {
 

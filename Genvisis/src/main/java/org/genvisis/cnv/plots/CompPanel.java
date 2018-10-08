@@ -15,11 +15,11 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.List;
 import javax.swing.JPanel;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.var.CNVRectangle;
 import org.genvisis.cnv.var.CNVRectangles;
-import org.pankratzlab.common.Positions;
-import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 
 /**

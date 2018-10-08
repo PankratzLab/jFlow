@@ -9,8 +9,8 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.pankratzlab.common.Grafik;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 
 /**

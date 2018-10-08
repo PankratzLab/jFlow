@@ -14,7 +14,7 @@ import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class CALiCo_SOL {
 

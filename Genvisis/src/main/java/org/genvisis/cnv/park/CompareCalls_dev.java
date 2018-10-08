@@ -10,11 +10,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.stats.Maths;
 
 public class CompareCalls_dev {

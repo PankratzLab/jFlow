@@ -24,6 +24,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.link.LinkageMap;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.FamilyStructure;
 import org.pankratzlab.shared.parse.GenParser;

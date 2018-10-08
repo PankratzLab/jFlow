@@ -7,12 +7,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.Positions;
 
 /**
  * Class to store cyto variants and related info. Currently variants are loaded from files with

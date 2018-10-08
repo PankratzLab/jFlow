@@ -9,7 +9,6 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.shared.db.crfDB;
 
 public class UpdateCRFdb {
 

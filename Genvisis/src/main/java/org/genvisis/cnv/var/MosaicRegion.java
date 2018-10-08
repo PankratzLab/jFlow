@@ -7,11 +7,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.shared.filesys.LocusSet;
 
 public class MosaicRegion extends CNVariant implements Serializable {
@@ -169,6 +170,12 @@ public class MosaicRegion extends CNVariant implements Serializable {
 
   public double getBpWeightedScore() {
     return bpWeightedScore;
+  }
+
+  @SuppressWarnings("unchecked")
+  
+  public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
+    return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, log, false, true));
   }
 
   public static LocusSet<MosaicRegion> loadMosLocSet(String file, Logger log) {

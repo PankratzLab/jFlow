@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 public class UKBBExtract {
 

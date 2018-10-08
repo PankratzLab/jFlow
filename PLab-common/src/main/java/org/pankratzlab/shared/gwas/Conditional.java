@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountHash;
@@ -32,9 +33,8 @@ import org.pankratzlab.gwas.Mach;
 import org.pankratzlab.gwas.Metal;
 import org.pankratzlab.gwas.Probabel;
 import org.pankratzlab.shared.filesys.SerialHash;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ProbDist;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class Conditional {
   // public static void addCountsAsCovariate(String baseDir, String originalCovariatesFile, String

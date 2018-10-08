@@ -18,6 +18,7 @@ import javax.swing.border.EmptyBorder;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
+import org.pankratzlab.shared.gui.UITools;
 import net.miginfocom.swing.MigLayout;
 
 public class SourceFileHeaderGUI extends JDialog {

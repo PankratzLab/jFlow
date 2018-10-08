@@ -6,7 +6,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.MarkerBlastQC.QCResults;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 

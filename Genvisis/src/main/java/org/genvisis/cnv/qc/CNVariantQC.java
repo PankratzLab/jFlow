@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import org.genvisis.cnv.filesys.CNVQC;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.CNVariant;
 
 // TODO extends?
 public class CNVariantQC implements Serializable {

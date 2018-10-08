@@ -6,12 +6,12 @@ package org.genvisis.cnv.analysis.collapse;
 import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.analysis.collapse.LRRForceCaller.LRRRegion;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
 
 /**
  * Forced "calls" using LRR summary data

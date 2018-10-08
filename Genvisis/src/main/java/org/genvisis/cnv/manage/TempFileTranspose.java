@@ -30,7 +30,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import com.google.common.collect.ImmutableMap;
 
 public class TempFileTranspose {

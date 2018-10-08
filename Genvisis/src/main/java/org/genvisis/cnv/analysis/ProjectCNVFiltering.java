@@ -1,18 +1,18 @@
 package org.genvisis.cnv.analysis;
 
 import java.util.Hashtable;
+import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.CNVFilter.FreqFilter;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.CNVFilter;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CNVFilter.FreqFilter;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class ProjectCNVFiltering {
 

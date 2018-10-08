@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.Positions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
@@ -99,26 +99,10 @@ public final class StandardFileColumns {
   }
 
   /**
-   * {@link #chr(String, boolean)} that will not die on parse failure
+   * {@link tmp#chr(String, boolean)} that will not die on parse failure
    */
   public static IndexedFileColumn<Byte> chr(String colName) {
-    return chr(colName, false);
-  }
-
-  /**
-   * Creates a non-case-sensitive {@link NumberWrapperColumn} that uses
-   * {@link Positions#chromosomeNumber(String)} to determine the byte value of a chromosome wrapped
-   * around an {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#CHRS} that will
-   * fail if multiple aliases are found.
-   * 
-   * @param colName Desired name of column
-   * @param dieOnMissing
-   * @return FileColumn<Byte>
-   */
-  public static IndexedFileColumn<Byte> chr(String colName, boolean dieOnMissing) {
-    return new NumberWrapperColumn<>(new AliasedFileColumn(colName,
-                                                           new Aliases(org.pankratzlab.common.Aliases.CHRS)),
-                                     Positions::chromosomeNumber, dieOnMissing);
+    return Positions.chr(colName, false);
   }
 
   /**

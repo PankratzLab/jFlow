@@ -17,8 +17,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class FindMarkersNearGenes {
 

@@ -14,8 +14,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
-import org.pankratzlab.core.CLI.Arg;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.shared.stats.Ttest;
 
 /**

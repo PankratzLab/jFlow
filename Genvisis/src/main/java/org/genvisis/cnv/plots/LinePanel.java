@@ -20,11 +20,11 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class LinePanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 

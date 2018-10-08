@@ -34,6 +34,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 
 public class PlinkExportOptions extends JDialog {
 

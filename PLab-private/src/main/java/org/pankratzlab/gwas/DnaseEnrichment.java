@@ -24,15 +24,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.genvisis.cnv.filesys.Positions;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ChrPositionMap;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.filesys.SegmentLists;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
 
 /**
  * Program to summarize p-values from a Genome-Wide Association Study (GWAS) and bins marker

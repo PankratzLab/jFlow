@@ -23,29 +23,30 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.genvisis.cnv.analysis.FilterCalls;
+import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
+import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.CNVFilter;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CNVFilter.CNVFilterPass;
 import org.pankratzlab.common.parsing.AliasedFileColumn;
 import org.pankratzlab.common.parsing.FileColumn;
 import org.pankratzlab.common.parsing.FileLink;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
-import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.gwas.bgen.DosageData;
 import com.google.common.collect.HashMultimap;
@@ -108,7 +109,7 @@ public class lab {
     BufferedReader reader = null;
     FileReader fr = null;
 
-    centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
+    centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
                                                                                 build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 

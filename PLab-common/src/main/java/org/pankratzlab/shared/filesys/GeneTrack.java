@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.cnv.LocusSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 

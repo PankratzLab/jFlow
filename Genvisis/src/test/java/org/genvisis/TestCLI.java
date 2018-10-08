@@ -3,7 +3,7 @@ package org.genvisis;
 import org.apache.commons.cli.ParseException;
 import org.junit.Before;
 import org.junit.Test;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import junit.framework.Assert;
 
 /**

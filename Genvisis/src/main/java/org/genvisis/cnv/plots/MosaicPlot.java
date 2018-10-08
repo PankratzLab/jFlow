@@ -22,11 +22,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 

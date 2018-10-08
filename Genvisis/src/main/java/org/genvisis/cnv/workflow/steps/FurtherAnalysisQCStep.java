@@ -15,7 +15,7 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.gwas.Ancestry;
 import org.pankratzlab.gwas.FurtherAnalysisQc;
 import org.pankratzlab.gwas.RelationAncestryQc;

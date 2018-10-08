@@ -22,12 +22,12 @@ import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Numbers;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.stats.Histogram;
 
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {

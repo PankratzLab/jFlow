@@ -55,7 +55,6 @@ import net.miginfocom.swing.MigLayout;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.filesys.Project.GROUP;
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.prop.DoubleProperty;
 import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.IntegerProperty;
@@ -67,6 +66,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 

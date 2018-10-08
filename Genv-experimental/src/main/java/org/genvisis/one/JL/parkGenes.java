@@ -3,15 +3,15 @@ package org.genvisis.one.JL;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.genvisis.cnv.LocusSet;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.GeneData;
 import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 
 public class parkGenes {

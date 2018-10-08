@@ -18,7 +18,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.gwas.FurtherAnalysisQc;
 import org.pankratzlab.gwas.MarkerQC;
 import org.pankratzlab.gwas.MarkerQC.QC_METRIC;

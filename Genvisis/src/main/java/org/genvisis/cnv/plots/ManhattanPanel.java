@@ -19,8 +19,8 @@ import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.plots.ManhattanPlot.ManhattanDataPoint;
 import org.genvisis.cnv.plots.PlotPoint.PointType;
 import org.pankratzlab.common.Grafik;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class ManhattanPanel extends AbstractPanel {
 

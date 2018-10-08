@@ -12,7 +12,6 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.db.crfDB;
 
 public class VPDalgorithm {
 

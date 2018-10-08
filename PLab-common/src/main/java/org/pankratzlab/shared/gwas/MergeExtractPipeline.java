@@ -11,16 +11,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.genvisis.cnv.filesys.Positions;
 import org.genvisis.cnv.manage.PlinkMergePrep;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
 
 public class MergeExtractPipeline {
 

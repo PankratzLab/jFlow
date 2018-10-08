@@ -11,9 +11,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.CNVariantHash;
 import org.genvisis.cnv.plots.CompPlot;
-import org.pankratzlab.shared.filesys.CNVariant;
-import org.pankratzlab.shared.filesys.CNVariantHash;
 import org.pankratzlab.shared.filesys.Segment;
 
 /**

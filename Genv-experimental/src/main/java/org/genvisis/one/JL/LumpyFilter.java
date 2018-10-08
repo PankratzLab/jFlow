@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.cnv.manage.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Files;

@@ -20,26 +20,26 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
+import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.CNVFilter;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CNVFilter.CNVFilterPass;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.GeneSet;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.filesys.SegmentLists;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -1283,7 +1283,7 @@ public class FilterCalls {
     problemRegions = filenameOfProblematicRegions == null ? new Segment[0]
                                                           : Segment.loadUCSCregions(filenameOfProblematicRegions,
                                                                                     0, false, log);
-    centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
+    centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
                                                                                 build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
     commonReference = commonInOutOrIgnore != COMMON_IGNORED ? Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,

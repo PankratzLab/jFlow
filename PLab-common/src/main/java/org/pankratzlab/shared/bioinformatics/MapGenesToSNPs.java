@@ -14,10 +14,10 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.GeneSet;
 import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class MapGenesToSNPs {
 

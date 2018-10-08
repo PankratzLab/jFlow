@@ -7,11 +7,9 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.cnv.var.MosaicRegion;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.SerializedFiles;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
@@ -425,16 +423,6 @@ public class LocusSet<T extends Segment> implements Serializable {
 
   public void writeSerial(String fileName) {
     SerializedFiles.writeSerial(this, fileName, true);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static LocusSet<CNVariant> readSerialCnvSet(String filename, Logger log) {
-    return ((LocusSet<CNVariant>) SerializedFiles.readSerial(filename, log, false, true));
-  }
-
-  @SuppressWarnings("unchecked")
-  public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
-    return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, log, false, true));
   }
 
 }

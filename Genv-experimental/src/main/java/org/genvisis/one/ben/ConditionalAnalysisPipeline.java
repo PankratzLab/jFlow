@@ -22,10 +22,10 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.FAST;
 import org.pankratzlab.gwas.FAST.DataDefinitions;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.stats.LeastSquares;
 import com.google.common.primitives.Doubles;
 

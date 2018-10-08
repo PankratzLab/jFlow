@@ -23,13 +23,13 @@ import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.Rscript;
 import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
 import org.pankratzlab.shared.stats.Rscript.RScatter;
 import org.pankratzlab.shared.stats.Rscript.RScatters;
 import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class GCcorrectionIterator {
 

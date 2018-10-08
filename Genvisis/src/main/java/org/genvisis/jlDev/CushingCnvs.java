@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.CNVFilter.FreqFilter;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.qc.Mappability;
@@ -22,8 +24,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CNVFilter.FreqFilter;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
@@ -389,7 +389,7 @@ public class CushingCnvs {
       String ser = cnvRemoveFiles[i] + ".ser";
       if (Files.exists(ser)) {
         log.reportTimeInfo("Loading " + ser);
-        cLocusRemoveSet = LocusSet.readSerialCnvSet(ser, log);
+        cLocusRemoveSet = CNVariant.readSerialCnvSet(ser, log);
       } else {
         cLocusRemoveSet = CNVariant.loadLocSet(cnvRemoveFiles[i], log);
         cLocusRemoveSet.writeSerial(ser);

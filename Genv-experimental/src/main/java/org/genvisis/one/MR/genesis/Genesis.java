@@ -12,9 +12,9 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.Rscript;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class Genesis {
 

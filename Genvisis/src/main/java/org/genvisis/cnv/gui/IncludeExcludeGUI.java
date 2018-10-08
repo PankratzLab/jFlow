@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import org.pankratzlab.shared.gui.UITools;
 import net.miginfocom.swing.MigLayout;
 
 public class IncludeExcludeGUI extends JDialog {

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.analysis.pod.PODAnalysis;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.PODResults;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.SEARCH_SPACE_TYPE;
@@ -16,7 +17,6 @@ import org.genvisis.cnv.filesys.Pedigree.PedigreeUtils;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 
 public class testKSPOD {

@@ -12,7 +12,7 @@ import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 public class ReverseTransposeTarget extends Step {
 

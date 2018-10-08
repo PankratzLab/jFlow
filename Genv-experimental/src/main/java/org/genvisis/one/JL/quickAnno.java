@@ -5,7 +5,7 @@ import org.genvisis.seq.manage.CreateNonSiteOnlyVcf;
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 /**
  * annotate a vcf using hard coded defualts...need I say this is dangerous? Need to sort, use

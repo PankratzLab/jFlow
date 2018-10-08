@@ -1,13 +1,13 @@
 package org.genvisis.jlDev;
 
 import java.util.ArrayList;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
 

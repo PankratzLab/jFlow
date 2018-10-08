@@ -13,7 +13,7 @@ import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.SAMRecord;

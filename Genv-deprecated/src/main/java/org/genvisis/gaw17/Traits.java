@@ -18,9 +18,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.mining.Transformations;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.LeastSquares;
 import org.pankratzlab.shared.stats.LogisticRegression;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class Traits {
 

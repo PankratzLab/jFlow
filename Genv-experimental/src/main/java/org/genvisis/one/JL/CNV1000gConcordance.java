@@ -7,15 +7,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
+import org.genvisis.cnv.LocusSet;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.CNVariant;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
 
 public class CNV1000gConcordance {
 

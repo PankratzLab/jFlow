@@ -26,8 +26,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gwas.HitWindows;
 import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class FAST {
 

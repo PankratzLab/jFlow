@@ -24,7 +24,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

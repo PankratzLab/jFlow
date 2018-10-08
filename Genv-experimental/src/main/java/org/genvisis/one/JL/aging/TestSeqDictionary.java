@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;

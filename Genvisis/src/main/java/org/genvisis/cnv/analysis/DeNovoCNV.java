@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.hmm.PFB;
@@ -20,11 +21,10 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.StringVector;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.CNVariant;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class DeNovoCNV {
 
@@ -680,7 +680,7 @@ public class DeNovoCNV {
 
     iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6});
 
-    org.pankratzlab.utils.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command,
+    org.pankratzlab.shared.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command,
                                 iterations, 2500, 2);
   }
 

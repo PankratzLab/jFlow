@@ -8,10 +8,10 @@ import java.util.List;
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.BeastScore.BeastVariant;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.CNVariant.CNVBuilder;
 
 /**
  * 

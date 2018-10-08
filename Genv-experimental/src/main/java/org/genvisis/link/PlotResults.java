@@ -34,7 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import org.genvisis.cnv.gui.JPanelFlowLayoutComponentListener;
-import org.genvisis.cnv.gui.UITools;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
@@ -50,6 +49,7 @@ import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.shared.gui.UITools;
 
 public class PlotResults extends JFrame implements ActionListener {
 

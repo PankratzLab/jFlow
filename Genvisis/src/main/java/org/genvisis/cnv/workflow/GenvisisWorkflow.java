@@ -31,11 +31,11 @@ import org.genvisis.cnv.workflow.steps.TransposeStep;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.gwas.RelationAncestryQc;
 import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import org.pankratzlab.shared.gwas.Qc;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class GenvisisWorkflow {
 

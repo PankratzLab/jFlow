@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -18,9 +19,8 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.bioinformatics.Sequence;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ContingencyTable;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class Minimac {
 

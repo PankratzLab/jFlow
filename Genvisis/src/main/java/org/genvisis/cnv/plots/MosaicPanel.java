@@ -24,7 +24,6 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.BROWNS;
@@ -32,6 +31,7 @@ import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.mining.Distance;
 
 public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -96,7 +96,7 @@ public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMo
       if (reader != null) {
         while (reader.ready()) {
           line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
-          if (ext.isValidChromosome(line[2])) {
+          if (Positions.isValidChromosome(line[2])) {
             colorHash.put(line[0] + "\t" + line[1], Positions.chromosomeNumber(line[2]));
           } else if (count > 0) {
             invalidBytes.add(line[2]);

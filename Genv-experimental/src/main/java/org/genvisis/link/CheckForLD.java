@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.cnv.manage.HapMapParser;
+import org.genvisis.seq.biostatistics.ParseSNPlocations;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -17,8 +19,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.phenoprep.LinkageMap;
-import org.pankratzlab.shared.bioinformatics.HapMapParser;
-import org.pankratzlab.shared.bioinformatics.ParseSNPlocations;
 import org.pankratzlab.shared.filesys.LDdatabase;
 
 public class CheckForLD {

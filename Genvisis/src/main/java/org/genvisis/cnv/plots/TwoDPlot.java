@@ -62,7 +62,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.CheckBoxTree;
 import org.genvisis.cnv.gui.ColorKeyPanel;
 import org.genvisis.cnv.gui.GuiManager;
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.plots.data.DataPipe;
 import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
@@ -73,8 +72,9 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Numbers;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.gui.UITools;
 import com.google.common.base.Strings;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {

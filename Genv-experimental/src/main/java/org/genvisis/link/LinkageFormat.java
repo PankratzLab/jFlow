@@ -12,9 +12,9 @@ import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.shared.filesys.Positions;
 
 public class LinkageFormat {
 

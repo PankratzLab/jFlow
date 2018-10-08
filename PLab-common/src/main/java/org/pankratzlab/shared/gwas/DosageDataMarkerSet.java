@@ -2,7 +2,7 @@
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you
 package org.pankratzlab.shared.gwas;
 
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
+import org.genvisis.seq.filesys.SnpMarkerSet;
 
 public class DosageDataMarkerSet {
 //public class DosageDataMarkerSet extends SnpMarkerSet {

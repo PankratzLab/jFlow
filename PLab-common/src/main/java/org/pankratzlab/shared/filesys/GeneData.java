@@ -2,7 +2,6 @@ package org.pankratzlab.shared.filesys;
 
 import java.io.Serializable;
 import java.util.Vector;
-import org.pankratzlab.common.Positions;
 
 public class GeneData extends Segment implements Serializable {
 

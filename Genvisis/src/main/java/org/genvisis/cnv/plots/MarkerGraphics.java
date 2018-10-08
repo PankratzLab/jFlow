@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.analysis.MarkerStats;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.genvisis.cnv.gui.ColorSequence;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.shared.stats.BinnedMovingStatistic;
 import org.pankratzlab.shared.stats.BinnedMovingStatistic.MovingStat;
 
@@ -75,7 +75,7 @@ public class MarkerGraphics {
     }
 
     int genomeBuild = proj.GENOME_BUILD_VERSION.getValue().getBuildInt();
-    centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFilename,
+    centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilename,
                                                                                 genomeBuild, log);
     int count = 0;
     for (String col : Files.getHeaderOfFile(markerStatsFile, log)) {

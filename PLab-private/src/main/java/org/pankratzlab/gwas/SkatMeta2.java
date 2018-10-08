@@ -23,7 +23,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.parse.LookupTable;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class SkatMeta2 {
 

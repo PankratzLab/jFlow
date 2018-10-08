@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -34,10 +35,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import org.genvisis.cnv.Launch;
 import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 import com.google.common.primitives.Ints;
 
 // class DeleteLater implements Runnable {
@@ -78,10 +78,36 @@ public class Files {
     return getRunString(memInMeg, false);
   }
 
+  public static String getJarLocation(Class<?> clazz) {
+    URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
+    if (url.getPath().endsWith(".jar")) {
+      try {
+        String path = url.toURI().getPath();
+        if (path.endsWith(".jar")) {
+          return new File(path).getAbsolutePath();
+        }
+      } catch (URISyntaxException e) {
+        return "~/" + PSF.Java.GENVISIS;
+      }
+    }
+    return "";
+  }
+
+  /**
+   * @return The directory containing the genvisis .jar, or empty string if not running from a jar
+   */
+  public static String getJarDirectory(Class<?> clazz) {
+    String loc = getJarLocation(clazz);
+    if (loc.isEmpty()) {
+      return loc;
+    }
+    return new File(loc).getParent() + File.separator;
+  }
+
   public static String getRunString(int memInMeg, boolean interpretAsGig) {
     int mem = memInMeg == -1 ? -1 : interpretAsGig ? memInMeg / 1024 : memInMeg;
     return "java" + (memInMeg == -1 ? "" : " -Xmx" + mem + (interpretAsGig ? "G" : "M")) + " -jar "
-           + Launch.getJarLocation();
+           + getJarLocation(Files.class);
   }
 
   public static void batchIt(String root_batch_name, String init, int numBatches, String commands,

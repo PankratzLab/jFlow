@@ -20,10 +20,10 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.SerialHash;
+import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ContingencyTable;
 import org.pankratzlab.shared.stats.ProbDist;
 import org.pankratzlab.shared.stats.Rscript;
-import org.pankratzlab.utils.qsub.Qsub;
 
 public class MergeDatasets {
 

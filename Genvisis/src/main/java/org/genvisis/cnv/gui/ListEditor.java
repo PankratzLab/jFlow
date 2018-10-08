@@ -29,7 +29,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
-import org.pankratzlab.common.Positions;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.gui.UITools;
 
 public class ListEditor extends JDialog implements ActionListener {
 

@@ -4,7 +4,7 @@
 package org.genvisis.cnv.wbs;
 
 import org.genvisis.cnv.filesys.Project;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 /**
  * Class that utilizes Wild Binary Segmentation (WBS) to call CNVs

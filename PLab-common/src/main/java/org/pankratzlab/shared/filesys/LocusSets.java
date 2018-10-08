@@ -3,7 +3,6 @@ package org.pankratzlab.shared.filesys;
 import java.util.ArrayList;
 import java.util.List;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
 
 public class LocusSets<T extends Segment> {
 
@@ -105,7 +104,7 @@ public class LocusSets<T extends Segment> {
       log.reportTimeInfo("Regions in " + files[i] + " had " + curCov + " bp covered and "
                          + corPerecent + " percent was in the union");
     }
-    union.writeRegions(output, TO_STRING_TYPE.REGULAR, false, log);
+    union.writeRegions(output, LocusSet.TO_STRING_TYPE.REGULAR, false, log);
 
   }
 

@@ -19,6 +19,7 @@ import org.genvisis.cnv.analysis.pod.PODAnalysis.PODResults.Builder;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.SEARCH_SPACE_TYPE;
 import org.genvisis.cnv.analysis.pod.PODGenotype.Genotype;
 import org.genvisis.cnv.analysis.pod.PODGenotype.POD;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
@@ -31,8 +32,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
-import org.pankratzlab.shared.filesys.CNVariant;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 

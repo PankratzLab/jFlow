@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import org.genvisis.seq.biostatistics.MapSNPsAndGenes;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -23,9 +24,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.shared.bioinformatics.Sequence;
 import org.pankratzlab.shared.filesys.Hits;
+import org.pankratzlab.shared.gwas.HitWindows;
 
 public class Metal {
 

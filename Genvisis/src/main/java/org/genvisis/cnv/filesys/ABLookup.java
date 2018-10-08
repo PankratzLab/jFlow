@@ -23,7 +23,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.bioinformatics.Sequence;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;

@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import org.genvisis.cnv.filesys.Positions;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class PlinkExtractorFromVCF {
 

@@ -23,7 +23,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 
 /**
  * Generate marker-dominant LRR SD values, potentially including any number of GC correction models.

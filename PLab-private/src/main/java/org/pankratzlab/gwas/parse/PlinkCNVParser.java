@@ -16,7 +16,7 @@ import org.pankratzlab.common.parsing.IntegerFilter;
 import org.pankratzlab.common.parsing.IntegerWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.stats.Maths.COMPARISON;
 import com.google.common.collect.Lists;
 

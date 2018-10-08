@@ -2,7 +2,7 @@ package org.pankratzlab.common.parsing;
 
 import java.util.function.Function;
 
-class NumberWrapperColumn<N extends Number> extends WrapperColumn<N, String> {
+public class NumberWrapperColumn<N extends Number> extends WrapperColumn<N, String> {
 
   private final Function<String, N> parseFunction;
 

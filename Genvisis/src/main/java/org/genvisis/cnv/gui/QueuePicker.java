@@ -19,10 +19,12 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import net.miginfocom.swing.MigLayout;
 import org.pankratzlab.common.Grafik;
-import org.pankratzlab.utils.qsub.JobQueue;
-import org.pankratzlab.utils.qsub.QueueProperties;
+import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.shared.qsub.JobQueue;
+import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.shared.qsub.QueueProperties;
+import net.miginfocom.swing.MigLayout;
 
 public class QueuePicker extends JDialog {
 
@@ -39,6 +41,54 @@ public class QueuePicker extends JDialog {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  /**
+   * Display a GUI with fields for memory, wall-time, and # of processors. <br />
+   * <br />
+   * GUI is populated with info from the default properties file
+   * ({@link QueueProperties.PROPERTIES_FILE}).
+   * 
+   * @param filename Suggested filename of qsub file to be created
+   * @param command Single string of command(s) to be written to a qsub file
+   * @return Actual filename of created file
+   */
+  public static String qsubGUI(String filename, String command) {
+    return qsubGUI(QueueProperties.PROPERTIES_FILE, filename, command);
+  }
+
+  /**
+   * Display a GUI with fields for memory, wall-time, and # of processors. <br />
+   * <br />
+   * GUI is populated with info from the given properties file.
+   * 
+   * @param queuePropFile Queue properties file - it is intended that this point to a single
+   *          queue.properties file, ideally located wherever the Genvisis executable is located.
+   * @param filename Filename of qsub file to be created
+   * @param command Single string of command(s) to be written to a qsub file
+   */
+  public static String qsubGUI(String queuePropFile, String filename, String command) {
+    QueuePicker qp = new QueuePicker(filename);
+    UITools.centerComponent(qp);
+    List<JobQueue> queues = QueueProperties.getJobQueues(queuePropFile);
+    qp.populate(queues);
+    qp.setModal(true);
+    qp.setVisible(true);
+
+    if (qp.wasCancelled()) {
+      qp.dispose();
+      return null;
+    }
+
+    String file = qp.getFilename();
+    int mem = qp.getMemoryInMb();
+    int wall = qp.getWalltimeHours();
+    int proc = qp.getProcessors();
+
+    qp.dispose();
+
+    Qsub.qsub(file, command, mem, wall, proc);
+    return file;
   }
 
   /**

@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -22,11 +23,10 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.GWAF;
 import org.pankratzlab.gwas.Mach;
 import org.pankratzlab.gwas.Metal;
-import org.pankratzlab.shared.filesys.SnpMarkerSet;
 import org.pankratzlab.shared.gwas.bgen.DosageData;
 import org.pankratzlab.shared.mining.Transformations;
 import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.utils.qsub.Qsub;
+import org.pankratzlab.shared.qsub.Qsub;
 
 public class CARe_Analyses {
 

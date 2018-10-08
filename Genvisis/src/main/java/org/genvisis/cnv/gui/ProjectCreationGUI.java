@@ -41,6 +41,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.collect.MultisetUtils;
+import org.pankratzlab.shared.gui.UITools;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import net.miginfocom.swing.MigLayout;

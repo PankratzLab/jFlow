@@ -18,8 +18,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -69,7 +67,6 @@ import org.genvisis.cnv.gui.FileAndOutputSelectorGUI;
 import org.genvisis.cnv.gui.ImportProjectGUI;
 import org.genvisis.cnv.gui.PlinkExportOptions;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.gui.VCFExportOptions;
 import org.genvisis.cnv.imputation.ImputationGUI;
 import org.genvisis.cnv.manage.DemoPackage;
@@ -92,6 +89,8 @@ import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.startup.StartupErrorHandler;
+import org.genvisis.cnv.startup.StartupValidation;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.meta.GenvisisVersion;
 import org.genvisis.meta.Info;
@@ -100,15 +99,11 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
-import org.pankratzlab.common.HttpUpdate;
-import org.pankratzlab.common.LauncherManifest;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
-import org.pankratzlab.common.StartupErrorHandler;
-import org.pankratzlab.common.StartupValidation;
 import org.pankratzlab.common.VersionHelper;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -1508,29 +1503,14 @@ public class Launch extends JFrame implements ActionListener {
    *         a jar.
    */
   public static String getJarLocation() {
-    URL url = Launch.class.getProtectionDomain().getCodeSource().getLocation();
-    if (url.getPath().endsWith(".jar")) {
-      try {
-        String path = url.toURI().getPath();
-        if (path.endsWith(".jar")) {
-          return new File(path).getAbsolutePath();
-        }
-      } catch (URISyntaxException e) {
-        return "~/" + PSF.Java.GENVISIS;
-      }
-    }
-    return "";
+    return Files.getJarLocation(Launch.class);
   }
 
   /**
    * @return The directory containing the genvisis .jar, or empty string if not running from a jar
    */
   public static String getJarDirectory() {
-    String loc = getJarLocation();
-    if (loc.isEmpty()) {
-      return loc;
-    }
-    return new File(loc).getParent() + File.separator;
+    return Files.getJarDirectory(Launch.class);
   }
 
   /**

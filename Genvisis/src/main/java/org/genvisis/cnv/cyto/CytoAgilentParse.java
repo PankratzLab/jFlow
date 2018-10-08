@@ -12,8 +12,8 @@ import org.genvisis.cnv.manage.SourceFileParser;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.Positions;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 
 /**
  * Parser for cytogenic files, can be called on a directory, or can be passed a String[] of files to

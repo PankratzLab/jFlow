@@ -1938,11 +1938,6 @@ public class ext {
            && Integer.parseInt(str) <= Byte.MAX_VALUE;
   }
 
-  public static boolean isValidChromosome(String str) {
-    return ext.indexOfStr(str, Positions.CHR_CODES) != -1
-           || (isValidInteger(str) && Integer.parseInt(str) >= 1 && Integer.parseInt(str) <= 26);
-  }
-
   public static float parseFloatArg(String arg) {
     try {
       return Float.parseFloat(arg.split("=")[1].trim());

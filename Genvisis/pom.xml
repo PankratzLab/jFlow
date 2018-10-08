@@ -36,8 +36,9 @@
 			<version>${genvisis.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>pcingola</groupId>
-			<artifactId>SnpEff</artifactId>
+			<groupId>org.genvisis</groupId>
+			<artifactId>SEQ</artifactId>
+			<version>${genvisis.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.stanford.facs</groupId>
@@ -54,10 +55,6 @@
 			<artifactId>jahmm</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>com.github.samtools</groupId>
-			<artifactId>htsjdk</artifactId>
-		</dependency>
 
 
 

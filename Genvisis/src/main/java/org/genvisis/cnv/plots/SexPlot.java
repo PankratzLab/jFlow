@@ -23,13 +23,13 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorIcon;
-import org.genvisis.cnv.gui.UITools;
 import org.genvisis.cnv.gui.WrapLayout;
 import org.genvisis.cnv.qc.SexChecks;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 

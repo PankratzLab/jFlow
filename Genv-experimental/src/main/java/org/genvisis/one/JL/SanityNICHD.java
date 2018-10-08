@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import org.genvisis.cnv.LocusSet;
+import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.CNVariant;
 import org.pankratzlab.shared.filesys.GeneData;
 import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.LocusSet;
 
 public class SanityNICHD {
 
