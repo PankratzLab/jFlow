@@ -457,6 +457,14 @@ public class PowerCalculator {
       //      simulateSomaticCaseControl(80, 130, 16, 12, 20000, 9, 100, true);
       //      powerSomaticCaseControl(80, 130, 0.18, 0.05, 20000, 9, 100, 100);
 
+      //      rangeOfMaf(0.001, 0.01, 2305, 7251, 1000000, false); // Lindsay Males
+      //      rangeOfMaf(0.001, 0.01, 1889, 7251, 1000000, false); // Lindsay Females
+      //      rangeOfMaf(0.001, 0.01, 4191, 14502, 1000000, false); // Lindsay Combined
+      //      rangeOfMaf(0.001, 0.01, 846, 651, 5000, false); // Lindsay B-ALL CNV
+      rangeOfMaf(0.001, 0.01, 197, 61, 5000, false); // Lindsay T-ALL CNV
+
+      //      rangeOfMaf(0.001, 0.01, 1043, 712, 5000, false); // Lindsay Combined CNV
+
     } catch (Exception e) {
       e.printStackTrace();
     }
