@@ -21,7 +21,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.CLI;
 import net.miginfocom.swing.MigLayout;
 
 public class CBCGUI {

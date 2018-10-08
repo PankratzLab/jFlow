@@ -20,10 +20,27 @@
 	<properties>
 	</properties>
 
+	<repositories>
+		<!-- local repository needed for libraries without Maven distributions -->
+		<repository>
+			<id>bundled-repo</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>Genvisis</artifactId>
+			<artifactId>PLab-common</artifactId>
+			<version>${genvisis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>pcingola</groupId>
+			<artifactId>SnpEff</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.samtools</groupId>
+			<artifactId>htsjdk</artifactId>
 		</dependency>
 	</dependencies>
 </project>
