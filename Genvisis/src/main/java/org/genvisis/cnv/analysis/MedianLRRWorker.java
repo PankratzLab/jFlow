@@ -32,7 +32,9 @@ import org.genvisis.cnv.manage.Transforms;
 import org.genvisis.cnv.qc.CNVBDeviation;
 import org.genvisis.cnv.qc.CNVBMAF;
 import org.genvisis.cnv.qc.CNVBMAF.PoplulationBAFs;
+import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.util.Centroids;
+import org.genvisis.cnv.var.IndiPheno;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
@@ -909,6 +911,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
           }
         }
       }
+
+      // check for "CLASS=Exclude" column in SampleData and add to header if present
+      boolean addExcludeColumn = false;
+      SampleData sampleData = proj.getSampleData(false);
+      Integer excludeColumnIndex = null;
+      if (sampleData != null) excludeColumnIndex = sampleData.getExcludeClassIndex();
+      if (excludeColumnIndex != null && excludeColumnIndex >= 0) {
+        addExcludeColumn = true;
+        if (addExcludeColumn) writer.print("\t" + SampleQC.EXCLUDE_HEADER);
+      }
+
       writer.println();
       for (int i = 0; i < samples.length; i++) {
         writer.print(samples[i] + "\t"
@@ -928,6 +941,17 @@ public class MedianLRRWorker extends SwingWorker<String, Integer> {
             }
           }
         }
+
+        // add individual sample value for "CLASS=Exclude" column
+        if (addExcludeColumn) {
+          IndiPheno indiPheno = sampleData.getIndiFromSampleHash(samples[i]);
+          if (indiPheno == null) {
+            writer.print("\t.");
+          } else {
+            writer.print("\t" + indiPheno.getClasses()[excludeColumnIndex]);
+          }
+        }
+
         writer.println();
       }
       writer.close();

@@ -637,6 +637,14 @@ public class SampleData {
     return containsIID;
   }
 
+  /**
+   * @return index of the "CLASS=Exclude" column for use with
+   *         {@link SampleData #getActualClassName(int)}
+   */
+  public int getExcludeClassIndex() {
+    return excludeClassIndex;
+  }
+
   public int getSexClassIndex() {
     return sexClassIndex;
   }
