@@ -638,8 +638,7 @@ public class SampleData {
   }
 
   /**
-   * @return index of the "CLASS=Exclude" column for use with
-   *         {@link SampleData #getActualClassName(int)}
+   * @return index of the "CLASS=Exclude" column
    */
   public int getExcludeClassIndex() {
     return excludeClassIndex;
