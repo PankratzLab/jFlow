@@ -9,9 +9,6 @@ import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
-import org.genvisis.seq.analysis.genage.Pipeline;
-import org.genvisis.seq.analysis.genage.Pipeline.PIPELINE_PARTS;
-import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.pankratzlab.common.ArrayUtils;
@@ -22,6 +19,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.utils.sra.Pipeline.PIPELINE_PARTS;
+import org.pankratzlab.utils.sra.Pipeline.PipelinePart;
 import org.pankratzlab.utils.sra.SRAUtils.SRABamWorker;
 import org.pankratzlab.utils.sra.SRAUtils.SRAConversionResult;
 

@@ -1,4 +1,4 @@
-package org.genvisis.seq.analysis.genage;
+package org.pankratzlab.utils.sra;
 
 import java.io.File;
 import java.util.ArrayList;

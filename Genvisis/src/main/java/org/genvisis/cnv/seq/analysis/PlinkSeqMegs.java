@@ -1,13 +1,16 @@
-package org.genvisis.seq.analysis;
+package org.genvisis.cnv.seq.analysis;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqProducer;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
+import org.genvisis.seq.analysis.PlinkSeqUtils;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PlinkSeqBurdenSummary;
 import org.genvisis.seq.analysis.PlinkSeqUtils.PseqProject;
 import org.genvisis.seq.manage.VCFOps;
@@ -22,8 +25,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.GeneTrack;
 import org.pankratzlab.shared.qsub.Qsub;
 import htsjdk.variant.vcf.VCFFileReader;

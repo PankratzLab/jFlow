@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
@@ -34,10 +32,6 @@ public class ReferenceGenome {
   private int defaultBuffer;
   private ReferenceSequence referenceSequence;
   private final Logger log;
-
-  public ReferenceGenome(GenomeBuild genomeBuild, Logger log) {
-    this(Resources.genome(genomeBuild, log).getFASTA().get(), log);
-  }
 
   public ReferenceGenome(String referenceFasta, Logger log) {
     super();

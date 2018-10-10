@@ -1,14 +1,16 @@
 /**
  * 
  */
-package org.genvisis.seq.analysis;
+package org.genvisis.cnv.seq.analysis;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.cnv.Resources;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
+import org.genvisis.seq.analysis.GATK_Genotyper;
 import org.genvisis.seq.analysis.mutMap.VCMut;
 import org.genvisis.seq.manage.CreateNonSiteOnlyVcf;
 import org.genvisis.seq.manage.VCFOps;
@@ -161,7 +163,9 @@ public class ClinVar {
                                                     VCFOps.getSequenceDictionary(reader));
 
     VCFHeader newVCFHeader = reader.getFileHeader();
-    SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(GENOME_BUILD.HG19,
+    SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GenomeBuild.HG19,
+                                                                                       log)
+                                                                               .getFASTA().get(),
                                                                       log).getIndexedFastaSequenceFile()
                                                                           .getSequenceDictionary();
     newVCFHeader.setSequenceDictionary(samSequenceDictionary);
