@@ -9,21 +9,20 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.annotation.markers.ArrayBlastAnnotationList.ArrayStringList;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
-import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.stats.ICC;
 import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
@@ -1047,15 +1046,15 @@ public class CorrectionIterator implements Serializable {
     for (String customPlotFile : customPlotFiles) {
       String[] groups = HashVec.loadFileToStringArray(customPlotFile, true, new int[] {0}, false);
       String[] names = HashVec.loadFileToStringArray(customPlotFile, true, new int[] {1}, false);
-      ArrayStringList[] arrayStringList = new ArrayStringList[ArrayUtils.unique(groups).length];
+      List<String>[] arrayStringList = new List[ArrayUtils.unique(groups).length];
       for (int j = 0; j < arrayStringList.length; j++) {
-        arrayStringList[j] = new ArrayStringList(10);
+        arrayStringList[j] = new ArrayList<>(10);
       }
       for (int j = 0; j < groups.length; j++) {
         arrayStringList[Integer.parseInt(groups[j]) - 1].add("SPEARMAN_CORREL_EVAL_DATA_" + names[j]
                                                              + "_CUSTOM_PHENO_TAG_NO_STRAT");
       }
-      for (ArrayStringList element : arrayStringList) {
+      for (List<String> element : arrayStringList) {
         plotters.add(ArrayUtils.toStringArray(element));
       }
     }
