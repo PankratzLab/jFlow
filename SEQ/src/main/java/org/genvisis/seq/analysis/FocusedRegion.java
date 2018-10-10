@@ -16,13 +16,13 @@ import org.genvisis.seq.manage.BamPileUp.PILE_TYPE;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.core.CLI;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
 
 /**

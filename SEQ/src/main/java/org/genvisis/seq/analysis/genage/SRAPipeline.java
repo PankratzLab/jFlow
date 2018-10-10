@@ -14,16 +14,15 @@ import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
 import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.utils.sra.SRARunTable;
 import org.pankratzlab.utils.sra.SRASample;
-import org.pankratzlab.utils.sra.SRAUtils;
 import org.pankratzlab.utils.sra.SRAUtils.SRABamWorker;
 import org.pankratzlab.utils.sra.SRAUtils.SRAConversionResult;
 

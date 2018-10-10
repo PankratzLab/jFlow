@@ -5,9 +5,9 @@ package org.genvisis.seq.manage;
 
 import java.io.File;
 import java.util.HashSet;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;

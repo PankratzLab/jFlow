@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.qc.GcAdjustor;
@@ -13,6 +12,7 @@ import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import ca.mcgill.mcb.pcingola.interval.Marker;
 
 public class VCFSamplePrep {
 

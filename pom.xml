@@ -61,6 +61,7 @@
 		<module>CFCS</module>
 		<module>NRSS</module>
 		<module>SEQ</module>
+		<module>PLab-utils</module>
 		<module>PhenoPrep</module>
 		<module>Genv-flow</module>
 		<module>Genv-experimental</module>

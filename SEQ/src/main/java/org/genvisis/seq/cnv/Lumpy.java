@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
 
 /**
  * wrapper for lumpy https://github.com/arq5x/lumpy-sv

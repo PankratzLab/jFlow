@@ -13,7 +13,6 @@ import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
@@ -37,6 +36,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
+import ca.mcgill.mcb.pcingola.interval.Markers;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

@@ -11,7 +11,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.qsub.Qsub;
 
-public class Samtools {
+public class ChromosomalDepth {
 
   public static final String[] COUNT_READS_PER_CHR = {"echo `date`",
                                                       "echo \"Counting number of reads per chromosome for file $1\"",
