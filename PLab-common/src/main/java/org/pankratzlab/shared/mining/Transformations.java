@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
-import org.genvisis.cnv.analysis.BeastScore;
+import java.util.Map;
+import java.util.Objects;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;
@@ -18,6 +20,10 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import com.google.common.primitives.Doubles;
 
+/**
+ * Utility class for transforming arrays of data. Use
+ * {@link #addTransform(Integer, TransformationAlgorithm)} to register new algorithms.
+ */
 public class Transformations {
 
   private static final String[] LABELS = {"Identity", "Rank", "Log", "Inverse", "Square root",
@@ -45,56 +51,46 @@ public class Transformations {
   public static final int X3 = 17;
   public static final int X5 = 18;
 
+  private static Map<Integer, TransformationAlgorithm> transforms = new HashMap<>();
+
+  {
+    addTransform(IDENTITY, (a, b) -> a);
+    addTransform(RANK, (a, b) -> rankTransform(a));
+    addTransform(NORMALIZE, (a, b) -> ArrayUtils.normalize(a));
+    addTransform(INVERSE_NORMALIZE, (a, b) -> ArrayUtils.inverseNormalize(a));
+    addTransform(QUANTILE, (a, b) -> ArrayUtils.quantiles(a));
+    addTransform(INVERSE_TDIST_5DF, (a, b) -> ArrayUtils.inverseTdist(a, 5));
+    addTransform(STANDARDIZE_RANGE, (a, b) -> standardizeRange(a));
+    addTransform(LOG_NATURAL, (a, b) -> naturalLogTransform(a));
+    addTransform(NEGATIVE_LOG10, (a, b) -> negativeLog10Transform(a));
+    addTransform(LOG10, (a, b) -> log10Transform(a));
+    addTransform(INVERSE, (a, b) -> inverseTransform(a));
+    addTransform(SQUARE_ROOT, (a, b) -> sqrtTransform(a));
+    addTransform(SQUARED, (a, b) -> squaredTransform(a));
+    addTransform(CUBED, (a, b) -> cubedTransform(a));
+    addTransform(BOXCOX_LL, (a, b) -> new BoxCox(a, b).getTransform_MaxLL());
+    addTransform(BOXCOX_KURT, (a, b) -> new BoxCox(a, b).getTransform_MinKurt());
+    addTransform(X3, (a, b) -> ArrayUtils.multiply(a, 3));
+    addTransform(X5, (a, b) -> ArrayUtils.multiply(a, 5));
+  }
+
+  public static void addTransform(Integer key, TransformationAlgorithm value) {
+    if (Objects.nonNull(transforms.put(key, value))) {
+      throw new IllegalStateException("Multiple transformations mapped to key: " + key);
+    }
+  }
+
   public static double[] transform(double[] array, int type) {
     return transform(array, type, new Logger());
   }
 
   public static double[] transform(double[] array, int type, Logger log) {
-    switch (type) {
-      case IDENTITY:
-        return array;
-      case RANK:
-        return rankTransform(array);
-      case NORMALIZE:
-        return ArrayUtils.normalize(array);
-      case INVERSE_NORMALIZE:
-        return ArrayUtils.inverseNormalize(array);
-      case QUANTILE:
-        return ArrayUtils.quantiles(array);
-      case INVERSE_TDIST_5DF:
-        return ArrayUtils.inverseTdist(array, 5);
-      case STANDARDIZE_RANGE:
-        return standardizeRange(array);
-      case LOG_NATURAL:
-        return naturalLogTransform(array);
-      case NEGATIVE_LOG10:
-        return negativeLog10Transform(array);
-      case LOG10:
-        return log10Transform(array);
-      case INVERSE:
-        return inverseTransform(array);
-      case SQUARE_ROOT:
-        return sqrtTransform(array);
-      case SQUARED:
-        return squaredTransform(array);
-      case CUBED:
-        return cubedTransform(array);
-      case BOXCOX_LL:
-        return new BoxCox(array, log).getTransform_MaxLL();
-      case BOXCOX_KURT:
-        return new BoxCox(array, log).getTransform_MinKurt();
-      case MAD_SCALED:
-        BeastScore beastScore = new BeastScore(ArrayUtils.toFloatArray(array), null, null, log);
-        return ArrayUtils.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
-      case X3:
-        return ArrayUtils.multiply(array, 3);
-      case X5:
-        return ArrayUtils.multiply(array, 5);
-
-      default:
-        log.reportError("Error - '" + type
-                        + "' does not map to an implemented method; using NORMALIZE");
-        return ArrayUtils.normalize(array);
+    if (transforms.containsKey(type)) {
+      return transforms.get(type).transform(array, log);
+    } else {
+      log.reportError("Error - '" + type
+                      + "' does not map to an implemented method; using NORMALIZE");
+      return ArrayUtils.normalize(array);
     }
   }
 

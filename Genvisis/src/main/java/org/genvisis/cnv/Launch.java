@@ -53,6 +53,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
+import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -105,6 +106,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.VersionHelper;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.shared.mining.Transformations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -235,6 +237,11 @@ public class Launch extends JFrame implements ActionListener {
       MENUS.put("Version",
                 versions.stream().map(GenvisisVersion::menuString).collect(Collectors.toList()));
     }
+
+    Transformations.addTransform(Transformations.MAD_SCALED, (a, b) -> {
+      BeastScore beastScore = new BeastScore(ArrayUtils.toFloatArray(a), null, null, b);
+      return ArrayUtils.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
+    });
   }
 
   private transient Project proj;
