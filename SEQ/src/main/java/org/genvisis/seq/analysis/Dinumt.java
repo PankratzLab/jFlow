@@ -4,7 +4,6 @@
 package org.genvisis.seq.analysis;
 
 import java.io.File;
-import org.genvisis.seq.analysis.genage.SRAPipeline;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.qc.BamQC;
 import org.genvisis.seq.qc.FilterNGS;

@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
