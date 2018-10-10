@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
+import org.genvisis.cnv.filesys.BurdenMatrix;
+import org.genvisis.cnv.filesys.GenotypeMatrix;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -15,8 +17,6 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.BurdenMatrix;
-import org.pankratzlab.shared.filesys.GenotypeMatrix;
 import org.pankratzlab.shared.filesys.SerialHash;
 
 public class ChargeS {

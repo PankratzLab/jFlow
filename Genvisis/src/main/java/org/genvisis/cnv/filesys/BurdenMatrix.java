@@ -1,5 +1,5 @@
 // expand to dynamically load/save a certain chunk of markers at a time
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountVector;
 import org.pankratzlab.common.Files;

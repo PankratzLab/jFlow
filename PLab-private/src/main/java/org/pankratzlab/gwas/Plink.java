@@ -37,10 +37,7 @@ public class Plink {
   public static final String[] IMISS_HEADER = {"FID", "IID", "MISS_PHENO", "N_MISS", "N_GENO",
                                                "F_MISS"};
   public static final String[] MPERM_HEADER = {"CHR", "SNP", "EMP1", "EMP2"};
-  public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-                                                     "OR", "SE", "L95", "U95", "STAT", "P"};
-  public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-                                                   "BETA", "SE", "L95", "U95", "STAT", "P"};
+
   public static final int[][] BUILD_36_PARS = {{}};
   public static final int[][] BUILD_37_PARS = {{}};
 

@@ -1,5 +1,5 @@
 // expand to dynamically load/save a certain chunk of markers at a time
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -18,7 +17,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.Plink;
 import org.pankratzlab.shared.stats.LeastSquares;
 import org.pankratzlab.shared.stats.LogisticRegression;
 import org.pankratzlab.shared.stats.RegressionModel;
@@ -28,7 +26,10 @@ public class GenotypeMatrix implements Serializable {
   public static final long serialVersionUID = 1L;
   public static final int CHARGE_S_HOUSTON_FORMAT = 0;
   public static final int CHARGE_S_BOSTON_FORMAT = 1;
-
+  public static final String[] PLINK_LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+                                                     "OR", "SE", "L95", "U95", "STAT", "P"};
+  public static final String[] PLINK_LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+                                                   "BETA", "SE", "L95", "U95", "STAT", "P"};
   public static final int IID_TYPE = 0;
 
   public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
@@ -315,7 +316,7 @@ public class GenotypeMatrix implements Serializable {
       writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
                                            + (logistic ? "logistic" : "linear"));
       w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
-      String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
+      String[] arr = logistic ? PLINK_LOGISTIC_SE_HEADER : PLINK_LINEAR_SE_HEADER;
       line = Arrays.copyOf(arr, arr.length);
       line[1] = line[1] + "      ";
       line[2] = line[1] + "      ";
