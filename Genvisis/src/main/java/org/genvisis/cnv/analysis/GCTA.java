@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.gwas.Qc;
-import org.genvisis.cnv.gwas.RelationAncestryQc;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.PlinkData;
@@ -23,6 +21,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 import com.google.common.primitives.Doubles;
 
 /**

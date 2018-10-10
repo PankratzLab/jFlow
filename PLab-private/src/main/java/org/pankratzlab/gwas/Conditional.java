@@ -17,7 +17,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.SnpMarkerSet;
-import org.genvisis.cnv.gwas.DosageData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountHash;
@@ -32,6 +31,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.utils.gwas.DosageData;
 
 public class Conditional {
   // public static void addCountsAsCovariate(String baseDir, String originalCovariatesFile, String

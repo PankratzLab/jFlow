@@ -22,7 +22,6 @@ import javax.swing.SwingUtilities;
 import org.genvisis.cnv.filesys.ClusterFilter;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
-import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.gui.LaunchAction;
 import org.genvisis.cnv.manage.SexOps;
 import org.genvisis.cnv.manage.SexOps.SEX_LOAD_TYPE;
@@ -43,6 +42,7 @@ import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.common.PSF.Colors.YELLOWS;
+import org.pankratzlab.shared.filesys.FamilyStructure;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
@@ -501,7 +501,7 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
     boolean swapAxes = false;
 
     if (sp.getPedigree() != null) {
-      Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
+      Map<String, MendelErrorCheck> mendelErrorChecks = FamilyStructure.PedigreeUtils.checkMendelErrors(sp.getPedigree(),
                                                                                                  sp.getCurrentMarkerData(),
                                                                                                  sp.hideExcludedSamples(panelIndex) ? sp.getProject()
                                                                                                                                         .getSamplesToInclude(null,

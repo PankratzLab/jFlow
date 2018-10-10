@@ -39,11 +39,12 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.db.FilterDB;
+import org.pankratzlab.shared.filesys.FamilyStructure;
 import org.pankratzlab.shared.stats.LeastSquares;
 import org.pankratzlab.shared.stats.LogisticRegression;
 import org.pankratzlab.shared.stats.RegressionModel;
 import org.pankratzlab.shared.stats.Ttest;
+import org.pankratzlab.utils.db.FilterDB;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashBasedTable;
@@ -401,7 +402,7 @@ public class MarkerMetrics {
 
         String mecCnt = ".";
         if (pedigree != null && checkMendel) {
-          mecArr = Pedigree.PedigreeUtils.checkMendelErrors(pedigree, markerData,
+          mecArr = FamilyStructure.PedigreeUtils.checkMendelErrors(pedigree, markerData,
                                                             ArrayUtils.booleanNegative(samplesToExclude),
                                                             null, clusterFilterCollection,
                                                             gcThreshold, log);

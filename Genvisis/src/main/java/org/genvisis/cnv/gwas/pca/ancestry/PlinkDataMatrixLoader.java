@@ -9,8 +9,8 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.data.DenseMatrix64F;
 import org.genvisis.cnv.ejml.matrix.MatrixDataLoading;
 import org.genvisis.cnv.ejml.matrix.NamedRealMatrix;
-import org.genvisis.cnv.gwas.DosageData;
 import org.pankratzlab.common.Logger;
+import org.pankratzlab.utils.gwas.DosageData;
 
 /**
  * Implements {@link MatrixDataLoading} to load plink files to a {@link RealMatrix}, using -1,0,1,2

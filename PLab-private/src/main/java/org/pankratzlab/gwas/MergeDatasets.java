@@ -11,7 +11,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.cnv.gwas.MarkerQC;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -25,6 +24,7 @@ import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ContingencyTable;
 import org.pankratzlab.shared.stats.ProbDist;
 import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.utils.gwas.MarkerQC;
 
 public class MergeDatasets {
 

@@ -1,9 +1,7 @@
 package org.genvisis.cnv.filesys;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import org.genvisis.cnv.qc.MendelErrors;
@@ -18,249 +16,6 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.FamilyStructure;
 
 public class Pedigree extends FamilyStructure {
-
-  public static class PedigreeUtils {
-
-    // also loads trios and p-o hash
-    public static ArrayList<String[]> loadSibs(FamilyStructure ped, boolean completeOnly,
-                                               HashSet<String> excludedFIDIIDs,
-                                               HashSet<String> includedFIDIIDs, boolean cache) {
-      if (ped.cached_all_trios == null) {
-        loadCompleteTrios(ped, excludedFIDIIDs, includedFIDIIDs, true); // will also create
-                                                                       // all_trios
-      }
-      if (ped.cached_all_trios == null) {
-        // ERROR
-      }
-      if (ped.cached_sib_pairs != null) {
-        return ped.cached_sib_pairs;
-      }
-      HashMap<String, ArrayList<String>> parentToChildren = loadParentToChildrenMap(ped,
-                                                                                    completeOnly,
-                                                                                    excludedFIDIIDs,
-                                                                                    includedFIDIIDs,
-                                                                                    cache);
-
-      // at this point, only non-excluded IDs are present in all_trios and parentToChildren
-      ArrayList<String[]> sibPairs = new ArrayList<>();
-      for (String[] trio : ped.cached_all_trios) {
-        ArrayList<String> faChildren = parentToChildren.get(trio[1]);
-        if (faChildren == null) {
-          // Error!
-        } else if (faChildren.size() == 1 && !trio[0].equals(faChildren.get(0))) {
-          // Error!
-        }
-        ArrayList<String> moChildren = parentToChildren.get(trio[2]);
-        if (moChildren == null) {
-          // Error!
-        } else if (moChildren.size() == 1 && !trio[0].equals(faChildren.get(0))) {
-          // Error!
-        }
-        HashSet<String> unionSet = new HashSet<>();
-        unionSet.addAll(faChildren);
-        unionSet.retainAll(moChildren);
-        if (unionSet.size() == 0) {
-          continue; // no sibs
-        } else {
-          for (String sib : unionSet) {
-            if (!sib.equals(trio[0])) {
-              sibPairs.add(new String[] {sib, trio[0]});
-              sibPairs.add(new String[] {trio[0], sib});
-            }
-          }
-        }
-      }
-      if (cache) {
-        ped.cached_sib_pairs = sibPairs;
-      }
-      return sibPairs;
-    }
-
-    public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(FamilyStructure ped,
-                                                                             boolean completeOnly,
-                                                                             HashSet<String> excludedFIDIIDs,
-                                                                             HashSet<String> includedFIDIIDs,
-                                                                             boolean cache) {
-      if (ped.cached_parentToChildrenMap != null) {
-        return ped.cached_parentToChildrenMap;
-      }
-      HashMap<String, ArrayList<String>> parentMap = new HashMap<>();
-
-      for (int i = 0; i < ped.getIDs().length; i++) {
-        if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
-            && (!completeOnly || (/* faInd = */ped.getIndexOfFaInIDs(i)) >= 0)) {
-          ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getFA(i));
-          if (children == null) {
-            children = new ArrayList<>();
-            parentMap.put(ped.getFID(i) + "\t" + ped.getFA(i), children);
-          }
-          children.add(ped.getFID(i) + "\t" + ped.getIID(i));
-        }
-        if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
-            && (!completeOnly || (/* moInd = */ped.getIndexOfMoInIDs(i)) >= 0)) {
-          ArrayList<String> children = parentMap.get(ped.getFID(i) + "\t" + ped.getMO(i));
-          if (children == null) {
-            children = new ArrayList<>();
-            parentMap.put(ped.getFID(i) + "\t" + ped.getMO(i), children);
-          }
-          children.add(ped.getFID(i) + "\t" + ped.getIID(i));
-        }
-      }
-      if (cache) {
-        ped.cached_parentToChildrenMap = parentMap;
-        ped.cached_parentMapIsCompleteOnly = completeOnly;
-      }
-      return parentMap;
-    }
-
-    public static ArrayList<String[]> loadPOPairs(FamilyStructure ped, boolean completeOnly,
-                                                  HashSet<String> excludedFIDIIDs,
-                                                  HashSet<String> includedFIDIIDs, boolean cache) {
-      if (ped.cached_poPairsIDs != null) {
-        return ped.cached_poPairsIDs;
-      }
-      ArrayList<String[]> pairs = new ArrayList<>();
-      ArrayList<int[]> completePairs = new ArrayList<>();
-      for (int i = 0; i < ped.getIDs().length; i++) {
-        int faInd = -1;
-        int moInd = -1;
-        if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
-            && (!completeOnly || (faInd = ped.getIndexOfFaInIDs(i)) >= 0)) {
-          pairs.add(new String[] {ped.getFID(i) + "\t" + ped.getFA(i),
-                                  ped.getFID(i) + "\t" + ped.getIID(i)});
-          if (completeOnly) {
-            completePairs.add(new int[] {faInd, i});
-          }
-        }
-        if (!FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))
-            && (!completeOnly || (moInd = ped.getIndexOfMoInIDs(i)) >= 0)) {
-          pairs.add(new String[] {ped.getFID(i) + "\t" + ped.getMO(i),
-                                  ped.getFID(i) + "\t" + ped.getIID(i)});
-          if (completeOnly) {
-            completePairs.add(new int[] {moInd, i});
-          }
-        }
-      }
-      if (cache) {
-        ped.cached_poPairsIDs = pairs;
-        if (completeOnly) {
-          ped.cached_poPairsCompleteOnly = completePairs;
-        }
-      }
-      return pairs;
-    }
-
-    public static ArrayList<int[]> loadCompleteTrios(FamilyStructure ped,
-                                                     HashSet<String> excludedFIDIIDs,
-                                                     HashSet<String> includedFIDIIDs,
-                                                     boolean cache) {
-      if (ped.cached_complete_trios != null) {
-        return ped.cached_complete_trios;
-      }
-      ArrayList<String[]> allTrios = new ArrayList<>();
-      ArrayList<int[]> trios = new ArrayList<>();
-      for (int i = 0; i < ped.getIDs().length; i++) {
-        int faInd = -1;
-        int moInd = -1;
-        if (!FamilyStructure.MISSING_ID_STR.equals(ped.getFA(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getFA(i))))
-            && !FamilyStructure.MISSING_ID_STR.equals(ped.getMO(i))
-            && (excludedFIDIIDs == null
-                || !excludedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))
-                   && (includedFIDIIDs == null
-                       || includedFIDIIDs.contains(ped.getFID(i) + "\t" + ped.getMO(i))))) {
-          if (cache) {
-            allTrios.add(new String[] {ped.getFID(i) + "\t" + ped.getIID(i),
-                                       ped.getFID(i) + "\t" + ped.getFA(i),
-                                       ped.getFID(i) + "\t" + ped.getMO(i)});
-          }
-          if ((faInd = ped.getIndexOfFaInIDs(i)) >= 0 && (moInd = ped.getIndexOfMoInIDs(i)) >= 0) {
-            trios.add(new int[] {i, faInd, moInd});
-          }
-        }
-      }
-      if (cache) {
-        ped.cached_complete_trios = trios;
-        ped.cached_all_trios = allTrios;
-      }
-      return trios;
-    }
-
-    /**
-     * @return Mapping of sample ID to {@link MendelErrorCheck} instance for that individual. Note
-     *         that the keys are always for children, with parents being reachable through the error
-     *         check.
-     */
-    public static Map<String, MendelErrorCheck> checkMendelErrors(Pedigree pedigree,
-                                                                  MarkerData markerData,
-                                                                  boolean[] samplesToCheck,
-                                                                  String[] sex,
-                                                                  ClusterFilterCollection clusterFilters,
-                                                                  float gcThreshold, Logger log) {
-      Project proj = pedigree.getProject();
-      if (proj == null) {
-        log.reportError(ext.getTime()
-                        + "]\t Error - cannot run checkMendelErrors without a Project");
-        return null;
-      }
-      Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<>();
-      byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
-                                                               markerData.getMarkerName(),
-                                                               gcThreshold, log);
-      for (int i = 0; i < pedigree.getIDs().length; i++) {
-        int sampleIndex = pedigree.getIDNAIndex(i);
-        MendelErrors mendelErrors = null;
-        if (sampleIndex >= 0 && (samplesToCheck == null || samplesToCheck[sampleIndex])) {
-          int faDNAIndex = pedigree.getFaDNAIndex(i);
-          int moDNAIndex = pedigree.getMoDNAIndex(i);
-
-          byte faGenotype = -1;
-          if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
-            faGenotype = genotypes[faDNAIndex];
-          }
-          byte moGenotype = -1;
-          if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
-            moGenotype = genotypes[moDNAIndex];
-          }
-          int sampleSex = -1;
-          try {
-            if (sex != null) {
-              sampleSex = Integer.parseInt(sex[sampleIndex]);
-            }
-          } catch (NumberFormatException nfe) {
-
-          }
-          // System.out.println(faGenotype+"\t"+moGenotype);
-          mendelErrors = new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex],
-                                          faGenotype, moGenotype);
-        } else {
-          mendelErrors = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1, (byte) -1);
-        }
-        mendelErrorChecks.put(pedigree.getiDNA(i), mendelErrors.checkMendelError());
-      }
-      return mendelErrorChecks;
-    }
-
-  }
 
   private final Project project;
   private final boolean nullProject;
@@ -353,6 +108,60 @@ public class Pedigree extends FamilyStructure {
 
   public String getPedigreeFile() {
     return pedigreeFile;
+  }
+  /**
+   * @return Mapping of sample ID to {@link MendelErrorCheck} instance for that individual. Note
+   *         that the keys are always for children, with parents being reachable through the error
+   *         check.
+   */
+  public static Map<String, MendelErrorCheck> checkMendelErrors(Pedigree pedigree,
+                                                                MarkerData markerData,
+                                                                boolean[] samplesToCheck,
+                                                                String[] sex,
+                                                                ClusterFilterCollection clusterFilters,
+                                                                float gcThreshold, Logger log) {
+    Project proj = pedigree.getProject();
+    if (proj == null) {
+      log.reportError(ext.getTime()
+                      + "]\t Error - cannot run checkMendelErrors without a Project");
+      return null;
+    }
+    Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<>();
+    byte[] genotypes = markerData.getAbGenotypesAfterFilters(clusterFilters,
+                                                             markerData.getMarkerName(),
+                                                             gcThreshold, log);
+    for (int i = 0; i < pedigree.getIDs().length; i++) {
+      int sampleIndex = pedigree.getIDNAIndex(i);
+      MendelErrors mendelErrors = null;
+      if (sampleIndex >= 0 && (samplesToCheck == null || samplesToCheck[sampleIndex])) {
+        int faDNAIndex = pedigree.getFaDNAIndex(i);
+        int moDNAIndex = pedigree.getMoDNAIndex(i);
+
+        byte faGenotype = -1;
+        if (faDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[faDNAIndex])) {
+          faGenotype = genotypes[faDNAIndex];
+        }
+        byte moGenotype = -1;
+        if (moDNAIndex >= 0 && (samplesToCheck == null || samplesToCheck[moDNAIndex])) {
+          moGenotype = genotypes[moDNAIndex];
+        }
+        int sampleSex = -1;
+        try {
+          if (sex != null) {
+            sampleSex = Integer.parseInt(sex[sampleIndex]);
+          }
+        } catch (NumberFormatException nfe) {
+
+        }
+        // System.out.println(faGenotype+"\t"+moGenotype);
+        mendelErrors = new MendelErrors(markerData.getChr(), sampleSex, genotypes[sampleIndex],
+                                        faGenotype, moGenotype);
+      } else {
+        mendelErrors = new MendelErrors(markerData.getChr(), -1, (byte) -1, (byte) -1, (byte) -1);
+      }
+      mendelErrorChecks.put(pedigree.getiDNA(i), mendelErrors.checkMendelError());
+    }
+    return mendelErrorChecks;
   }
 
   public static void build(Project proj, String newPedFile, String[] samples, boolean overwrite) {

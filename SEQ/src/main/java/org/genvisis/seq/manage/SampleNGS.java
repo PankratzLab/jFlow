@@ -1,7 +1,5 @@
 package org.genvisis.seq.manage;
 
-import htsjdk.variant.variantcontext.Genotype;
-import htsjdk.variant.variantcontext.VariantContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,6 +9,8 @@ import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.Logger;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Floats;
+import htsjdk.variant.variantcontext.Genotype;
+import htsjdk.variant.variantcontext.VariantContext;
 
 public class SampleNGS {
 

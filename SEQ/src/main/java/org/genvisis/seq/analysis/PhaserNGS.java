@@ -7,10 +7,10 @@ import java.io.File;
 import java.util.ArrayList;
 import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.core.CLI;
 
 /**
  * @author Kitty Wrapper for https://github.com/secastel/phaser -seems to be one of few that will

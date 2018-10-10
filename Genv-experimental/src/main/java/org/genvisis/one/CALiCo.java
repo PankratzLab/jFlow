@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.seq.biostatistics.MapSNPsAndGenes;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -29,6 +28,7 @@ import org.pankratzlab.gwas.ResultsPackager;
 import org.pankratzlab.gwas.SkatMeta2;
 import org.pankratzlab.shared.parse.GenParser;
 import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 
 public class CALiCo {
 

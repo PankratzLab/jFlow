@@ -9,11 +9,11 @@ import java.util.concurrent.Callable;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI;
 import org.pankratzlab.shared.filesys.Segment;
 
 public class SimpleTallyGene {

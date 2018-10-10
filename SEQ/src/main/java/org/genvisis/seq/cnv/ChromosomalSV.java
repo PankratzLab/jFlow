@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
-import org.genvisis.cnv.filesys.Positions;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
@@ -15,6 +14,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.shared.filesys.Positions;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

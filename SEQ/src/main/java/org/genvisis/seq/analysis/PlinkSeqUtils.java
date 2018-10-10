@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
-import org.genvisis.cnv.filesys.Positions;
 import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
 import org.genvisis.seq.pathway.GenomeRegions;
 import org.pankratzlab.common.ArrayUtils;
@@ -20,6 +19,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.GeneData;
+import org.pankratzlab.shared.filesys.Positions;
 
 /**
  * Handles the project and phenotype system used by PlinkSeq

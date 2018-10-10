@@ -6,7 +6,6 @@ import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
@@ -22,10 +21,11 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.stats.Maths;
+import ca.mcgill.mcb.pcingola.interval.Markers;
 
 /**
  * @author lane0212 Handles sample and global exclusions for the reference set, need in particular

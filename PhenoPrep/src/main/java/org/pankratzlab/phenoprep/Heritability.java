@@ -14,7 +14,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.filesys.Pedigree;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountHash;
@@ -484,15 +483,15 @@ public class Heritability {
             int cntTrio = 0;
             if (!skipExtra) {
               FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
-              ArrayList<String[]> sibList = Pedigree.PedigreeUtils.loadSibs(ped, true, null,
+              ArrayList<String[]> sibList = FamilyStructure.PedigreeUtils.loadSibs(ped, true, null,
                                                                             validIDs, true); // double
                                                                                                                                                                            // actual
                                                                                                                                                                            // due
                                                                                                                                                                            // to
                                                                                                                                                                            // bidirectionality
-              ArrayList<String[]> poPairs = Pedigree.PedigreeUtils.loadPOPairs(ped, true, null,
+              ArrayList<String[]> poPairs = FamilyStructure.PedigreeUtils.loadPOPairs(ped, true, null,
                                                                                validIDs, true);
-              ArrayList<int[]> trios = Pedigree.PedigreeUtils.loadCompleteTrios(ped, null, validIDs,
+              ArrayList<int[]> trios = FamilyStructure.PedigreeUtils.loadCompleteTrios(ped, null, validIDs,
                                                                                 true);
 
               double[] resids = RegressionModel.processDeps(deps);

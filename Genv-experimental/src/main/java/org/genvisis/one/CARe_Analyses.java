@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 import org.genvisis.cnv.filesys.SnpMarkerSet;
-import org.genvisis.cnv.gwas.bgen.DosageData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -27,6 +26,7 @@ import org.pankratzlab.gwas.Metal;
 import org.pankratzlab.shared.mining.Transformations;
 import org.pankratzlab.shared.parse.GenParser;
 import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.utils.gwas.bgen.DosageData;
 
 public class CARe_Analyses {
 

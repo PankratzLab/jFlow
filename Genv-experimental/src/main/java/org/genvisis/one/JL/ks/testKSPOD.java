@@ -13,10 +13,11 @@ import org.genvisis.cnv.analysis.pod.PODAnalysis.PODResults;
 import org.genvisis.cnv.analysis.pod.PODAnalysis.SEARCH_SPACE_TYPE;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Pedigree;
-import org.genvisis.cnv.filesys.Pedigree.PedigreeUtils;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.shared.filesys.FamilyStructure;
+import org.pankratzlab.shared.filesys.FamilyStructure.PedigreeUtils;
 import org.pankratzlab.shared.filesys.Segment;
 
 public class testKSPOD {
@@ -84,8 +85,8 @@ public class testKSPOD {
     PrintWriter writer = Files.getAppropriateWriter(outFile);
 
     Pedigree pedigree = new Pedigree(proj, ped);
-    PedigreeUtils.loadPOPairs(pedigree, false, null, null, true);
-    PedigreeUtils.loadCompleteTrios(pedigree, null, null, true);
+    FamilyStructure.PedigreeUtils.loadPOPairs(pedigree, false, null, null, true);
+    FamilyStructure.PedigreeUtils.loadCompleteTrios(pedigree, null, null, true);
 
     // Pedigree.l
     ArrayList<int[]> completePairs = pedigree.cached_complete_trios;

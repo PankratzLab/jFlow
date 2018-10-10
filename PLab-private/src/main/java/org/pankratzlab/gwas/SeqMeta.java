@@ -20,7 +20,6 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.genvisis.cnv.filesys.Positions;
-import org.genvisis.cnv.gwas.HitWindows;
 import org.genvisis.cnv.plots.ForestPlot;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
@@ -49,6 +48,7 @@ import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.Correlation;
 import org.pankratzlab.shared.stats.ProbDist;
 import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.utils.gwas.HitWindows;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

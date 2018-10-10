@@ -14,7 +14,6 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.LDdatabase;
 import org.genvisis.cnv.filesys.LongLDdb;
 import org.genvisis.cnv.filesys.SnpMarkerSet;
-import org.genvisis.seq.biostatistics.MapSNPsAndGenes;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Files;
@@ -25,6 +24,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

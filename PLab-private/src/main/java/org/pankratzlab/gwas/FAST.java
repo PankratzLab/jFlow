@@ -19,7 +19,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.genvisis.cnv.gwas.HitWindows;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -29,6 +28,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.parse.GenParser;
 import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.utils.gwas.HitWindows;
 
 public class FAST {
 
