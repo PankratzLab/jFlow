@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
