@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,19 +6,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.genvisis.cnv.manage.ReferenceGenome;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.seq.filesys.SnpMarkerSet;
-import org.genvisis.seq.manage.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CLI.Arg;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
