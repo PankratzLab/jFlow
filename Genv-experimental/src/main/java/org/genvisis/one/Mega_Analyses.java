@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ByteVector;
 import org.pankratzlab.common.Files;
@@ -26,6 +25,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.Mach;
 import org.pankratzlab.gwas.Metasoft;
 import org.pankratzlab.shared.parse.GenParser;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 

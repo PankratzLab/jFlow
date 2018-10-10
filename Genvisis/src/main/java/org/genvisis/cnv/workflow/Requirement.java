@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.Resources.Resource;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.gwas.MarkerQC;
 import org.pankratzlab.shared.stats.Maths;

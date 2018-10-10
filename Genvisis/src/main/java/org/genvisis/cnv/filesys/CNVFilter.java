@@ -13,6 +13,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class CNVFilter {
 

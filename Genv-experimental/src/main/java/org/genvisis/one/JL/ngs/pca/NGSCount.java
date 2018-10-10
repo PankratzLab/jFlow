@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.StringJoiner;
 import org.genvisis.cnv.LocusSet;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Files;

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -20,6 +19,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.HitWindowsLD;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class HitWindows {
 

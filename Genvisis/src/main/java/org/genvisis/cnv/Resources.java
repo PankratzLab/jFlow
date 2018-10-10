@@ -1,4 +1,4 @@
-package org.genvisis.cnv.manage;
+package org.genvisis.cnv;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,20 +22,18 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
-import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.startup.AbstractStartupCheck;
 import org.genvisis.cnv.startup.StartupCheck;
 import org.genvisis.cnv.startup.StartupValidation;
-import org.genvisis.seq.manage.BedOps;
-import org.genvisis.seq.manage.VCFOps;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HttpDownloadUtility;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.VCFUtils;
 import org.pankratzlab.shared.filesys.FASTA;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -437,7 +435,7 @@ public final class Resources {
 
     /**
      * @return The 100-mer mappability track for this {@link GENOME_BUILD}, note we do not download
-     *         the index - generate if needed with {@link BedOps#verifyBedIndex(String, Logger)}
+     *         the index - generate if needed with {code BedOps#verifyBedIndex(String, Logger)}
      */
     public Resource get100MerMappabilityTrack() {
       return getResource(getPath() + "_wgEncodeCrgMapabilityAlign100mer.bedGraph");
@@ -1095,7 +1093,7 @@ public final class Resources {
 
     public VCFResource(String path, String url, Logger log) {
       super(path, url, log);
-      index = new DefaultResource(VCFOps.getIndex(path), VCFOps.getIndex(url), log);
+      index = new DefaultResource(VCFUtils.getVcfIndex(path), VCFUtils.getVcfIndex(url), log);
     }
 
     @Override

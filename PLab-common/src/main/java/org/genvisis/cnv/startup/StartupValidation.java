@@ -5,10 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.cnv.HttpUpdate.RemoteVersionCheck;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.ResourceVersionCheck;
-import org.pankratzlab.common.Logger;
+import java.util.function.Consumer;
 
 /**
  * Utility class for executing {@link StartupCheck} plugins and reporting the results.
@@ -30,8 +27,6 @@ public final class StartupValidation {
   private static int status = -1;
   private static String warningString = "";
   private static List<StartupErrorHandler> handlers = new ArrayList<>();
-  private static StartupCheck[] toCheck = new StartupCheck[] {new ResourceVersionCheck(),
-                                                              new RemoteVersionCheck()};
 
   private StartupValidation() {
     // prevent instantiation of utility class
@@ -43,9 +38,6 @@ public final class StartupValidation {
    * @return True iff validation passed with no problems.
    */
   public static boolean passed() {
-    if (status == NOT_STARTED) {
-      startValidation();
-    }
     if (status == IN_PROGRESS) {
       System.out.println("Waiting for startup validation to complete");
 
@@ -71,13 +63,14 @@ public final class StartupValidation {
    * @param onError - {@link StartupErrorHandler#handleWarnings(String)} will be called if any
    *          problems occur.
    */
-  public static void validate(StartupErrorHandler onError) {
+  public static void validate(StartupErrorHandler onError, Consumer<Boolean> preloadMethod,
+                              StartupCheck... toCheck) {
     switch (status) {
       case DONE:
         report(onError);
         return;
       case NOT_STARTED:
-        startValidation();
+        startValidation(preloadMethod, toCheck);
         break;
       default:
         break;
@@ -88,15 +81,18 @@ public final class StartupValidation {
 
   /**
    * Synchronize-locked helper method to start validating in a separate thread
+   * 
+   * @param preloadMethod
    */
-  private static synchronized void startValidation() {
+  private static synchronized void startValidation(Consumer<Boolean> preloadMethod,
+                                                   StartupCheck... toCheck) {
     if (status == NOT_STARTED) {
       status = IN_PROGRESS;
       new Thread(new Runnable() {
 
         @Override
         public void run() {
-          doValidation();
+          doValidation(preloadMethod, toCheck);
         }
 
       }).start();
@@ -124,8 +120,10 @@ public final class StartupValidation {
 
   /**
    * Perform validation checks
+   * 
+   * @param preloadMethod
    */
-  private static void doValidation() {
+  private static void doValidation(Consumer<Boolean> preloadMethod, StartupCheck... toCheck) {
     List<String> warnings = new ArrayList<>();
     boolean haveInternet = netCheck();
 
@@ -154,20 +152,7 @@ public final class StartupValidation {
       // Wake up any threads waiting for #passed() checks.
       LOCK.notifyAll();
     }
-    doPreload(haveInternet);
-  }
-
-  /**
-   * Preload {@link Resources} we may want
-   */
-  private static void doPreload(boolean haveInternet) {
-    if (haveInternet) {
-      // Pre-load critical resources
-      Logger resourceLog = new Logger();
-      Resources.cnv(resourceLog).getAllHmm().get();
-      Resources.cnv(resourceLog).get550Hmm().get();
-      Resources.affy(resourceLog).getHMM().get();
-    }
+    preloadMethod.accept(haveInternet);
   }
 
   /**

@@ -27,6 +27,7 @@ import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.SerialHash;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class LDdatabase implements Serializable {
 

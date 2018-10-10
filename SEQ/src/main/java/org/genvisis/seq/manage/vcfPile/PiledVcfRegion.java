@@ -2,7 +2,7 @@ package org.genvisis.seq.manage.vcfPile;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.pankratzlab.common.Logger;

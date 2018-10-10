@@ -1,6 +1,6 @@
 // -Xmx1024M
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you
-package org.genvisis.cnv.filesys;
+package org.pankratzlab.utils.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,6 +19,10 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.pankratzlab.common.link.LinkageMap;
+import org.pankratzlab.shared.filesys.PlainTextExport;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -30,10 +34,6 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Unique;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.PlainTextExport;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.bioinformatics.ParseSNPlocations;
 import org.pankratzlab.utils.gwas.DosageData;

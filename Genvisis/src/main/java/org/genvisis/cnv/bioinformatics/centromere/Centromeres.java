@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.shared.filesys.Positions;

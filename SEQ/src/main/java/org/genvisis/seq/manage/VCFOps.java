@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.analysis.PlinkSeq;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
@@ -530,7 +530,7 @@ public class VCFOps {
       log.reportTimeInfo("MODE=" + mode);
       if (mode == PLINK_SET_MODE.GWAS_QC) {
 
-        org.pankratzlab.gwas.RelationAncestryQc.fullGamut(dir, rootOut, false,
+        RelationAncestryQc.fullGamut(dir, rootOut, false,
                                                        new Logger(dir
                                                                   + "fullGamutOfMarkerAndSampleQC.log"));
         String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";

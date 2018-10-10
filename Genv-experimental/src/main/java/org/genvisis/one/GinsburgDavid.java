@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.genvisis.link.LinkageFormat;
 import org.genvisis.link.bat.Mendel;
 import org.pankratzlab.common.ArrayUtils;
@@ -24,6 +23,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.phenoprep.LinkageMap;
 import org.pankratzlab.phenoprep.TrimFam;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class GinsburgDavid {
 

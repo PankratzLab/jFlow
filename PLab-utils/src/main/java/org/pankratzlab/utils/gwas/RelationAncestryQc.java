@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.Plink;
-import org.pankratzlab.common.CLI;
+import org.pankratzlab.shared.gwas.Plink;
 import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {

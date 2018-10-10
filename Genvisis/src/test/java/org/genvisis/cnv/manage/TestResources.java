@@ -2,9 +2,10 @@ package org.genvisis.cnv.manage;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.cnv.manage.Resources.CHROMOSOME;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.cnv.manage.Resources.Resource;
+import org.genvisis.cnv.Resources;
+import org.genvisis.cnv.Resources.CHROMOSOME;
+import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.cnv.Resources.Resource;
 import org.pankratzlab.common.Logger;
 
 /**

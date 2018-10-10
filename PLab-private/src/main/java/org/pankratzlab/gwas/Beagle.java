@@ -31,6 +31,7 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.FamilyStructure;
 import org.pankratzlab.shared.filesys.Pedfile;
 import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.shared.gwas.Plink;
 import com.google.common.primitives.Ints;
 
 public class Beagle {

@@ -11,6 +11,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class ResultSet implements Serializable {
 

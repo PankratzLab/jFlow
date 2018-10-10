@@ -1,19 +1,20 @@
-package org.genvisis.cnv.manage;
+package org.genvisis.seq;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.Resources;
+import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.SeqOps;
-import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
+import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.ArrayUtils.BYTE_DECODE_FORMAT;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.ArrayUtils.BYTE_DECODE_FORMAT;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;

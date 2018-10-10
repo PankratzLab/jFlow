@@ -2,7 +2,7 @@ package org.genvisis.seq.qc.contamination;
 
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.BamPileUp.PILE_TYPE;
 import org.genvisis.seq.manage.BamPileUp.bamPileWorker;
 import org.genvisis.seq.qc.FilterNGS;
@@ -12,8 +12,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 

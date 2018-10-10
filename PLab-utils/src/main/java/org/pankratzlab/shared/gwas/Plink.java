@@ -1,5 +1,5 @@
 // -Xmx4096M
-package org.pankratzlab.gwas;
+package org.pankratzlab.shared.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;

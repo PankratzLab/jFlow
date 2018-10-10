@@ -52,7 +52,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+import org.genvisis.cnv.HttpUpdate.RemoteVersionCheck;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
+import org.genvisis.cnv.Resources.ResourceVersionCheck;
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.DeNovoCNV;
@@ -91,7 +93,6 @@ import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.qc.MarkerBlastQC;
 import org.genvisis.cnv.qc.MarkerMetrics;
 import org.genvisis.cnv.qc.SampleQC;
-import org.genvisis.cnv.startup.StartupErrorHandler;
 import org.genvisis.cnv.startup.StartupValidation;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.meta.GenvisisVersion;
@@ -555,13 +556,15 @@ public class Launch extends JFrame implements ActionListener {
         launchUI.setVisible(true);
         System.out.println(ext.getTime() + "]\tGenvisis Loaded.");
 
-        StartupValidation.validate(new StartupErrorHandler() {
-
-          @Override
-          public void handleWarnings(String warning) {
-            launchUI.log.report(warning);
+        StartupValidation.validate(w -> launchUI.log.report(w), b -> {
+          if (b) {
+            // Pre-load critical resources
+            Logger resourceLog = new Logger();
+            Resources.cnv(resourceLog).getAllHmm().get();
+            Resources.cnv(resourceLog).get550Hmm().get();
+            Resources.affy(resourceLog).getHMM().get();
           }
-        });
+        }, new ResourceVersionCheck(), new RemoteVersionCheck());
       }
     });
   }

@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.analysis.MarkerStats;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.genvisis.cnv.gui.ColorSequence;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.shared.stats.BinnedMovingStatistic;
 import org.pankratzlab.shared.stats.BinnedMovingStatistic.MovingStat;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 /**
  * A collection of {@link MarkerStats} data for use in visualization.
