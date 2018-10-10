@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Files;

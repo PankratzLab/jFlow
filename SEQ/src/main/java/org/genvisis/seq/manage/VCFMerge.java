@@ -1,8 +1,8 @@
 package org.genvisis.seq.manage;
 
-import org.genvisis.cnv.manage.ReferenceGenome;
-import org.genvisis.cnv.manage.Resources;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.Resources;
+import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.GATK;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

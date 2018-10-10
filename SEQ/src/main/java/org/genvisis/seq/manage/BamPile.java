@@ -3,7 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;

@@ -16,6 +16,7 @@ import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.VCFUtils;
 import org.pankratzlab.common.ext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -137,11 +138,11 @@ public class GATK {
   public static final String TARGET_INTERVALS = "-targetIntervals";
   public static final String O = "-o";
 
-  public static final String GZ = ".gz";
-  public static final String GZ_INDEX = ".tbi";
+  public static final String GZ = VCFUtils.GZ;
+  public static final String GZ_INDEX = VCFUtils.GZ_INDEX;
 
   public static final String VCF = ".vcf";
-  public static final String VCF_INDEX = ".idx";
+  public static final String VCF_INDEX = VCFUtils.VCF_INDEX;
 
   public static final String G = ".g";
   public static final String GVCF = G + VCF;
@@ -231,13 +232,11 @@ public class GATK {
   /**
    * @param filename
    * @return
+   * @deprecated Use {@link VCFUtils}
    */
+  @Deprecated
   public static final String getVcfIndex(String filename) {
-    if (filename.endsWith(GZ)) {
-      return filename + GZ_INDEX;
-    } else {
-      return filename + VCF_INDEX;
-    }
+    return VCFUtils.getVcfIndex(filename);
   }
 
   /**

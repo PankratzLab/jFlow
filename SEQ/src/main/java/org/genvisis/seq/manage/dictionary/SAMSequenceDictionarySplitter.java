@@ -5,8 +5,8 @@ package org.genvisis.seq.manage.dictionary;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.cnv.filesys.Positions;
 import org.pankratzlab.common.Logger;
+import org.pankratzlab.shared.filesys.Positions;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 

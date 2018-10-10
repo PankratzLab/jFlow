@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
 import org.genvisis.seq.qc.FilterNGS.VariantContextFilter;
@@ -21,8 +21,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 
 public class SeqQCValidation {
 
