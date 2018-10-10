@@ -23,7 +23,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>PLab-common</artifactId>
+			<artifactId>Genvisis</artifactId>
 			<version>${genvisis.version}</version>
 		</dependency>
 
