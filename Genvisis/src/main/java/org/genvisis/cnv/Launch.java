@@ -60,6 +60,7 @@ import org.genvisis.cnv.analysis.Mosaicism;
 import org.genvisis.cnv.analysis.pca.PCMatrix;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCrossTabs;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsManhattan;
+import org.genvisis.cnv.analysis.pca.SVDRegression;
 import org.genvisis.cnv.cyto.CytoGUI;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.Project;
@@ -107,6 +108,8 @@ import org.pankratzlab.common.VersionHelper;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.gui.UITools;
 import org.pankratzlab.shared.mining.Transformations;
+import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.shared.stats.SVDProvider.RegressionResult;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -242,6 +245,16 @@ public class Launch extends JFrame implements ActionListener {
       BeastScore beastScore = new BeastScore(ArrayUtils.toFloatArray(a), null, null, b);
       return ArrayUtils.toDoubleArray(beastScore.getinverseTransformedDataScaleMAD(BeastScore.SCALE_FACTOR_MAD));
     });
+
+    LeastSquares.setSVDProvider((d, i, v, l) -> {
+      SVDRegression svdRegress = new SVDRegression(d, i, v, l);
+      svdRegress.svdRegression();
+      return new RegressionResult(svdRegress.getBetas(), svdRegress.getInvP_Diagonal_Equivalent());
+      // Warning! this is not a full invP
+      // matrix, only the diagonal elements are
+      // computed
+    });
+
   }
 
   private transient Project proj;

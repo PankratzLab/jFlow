@@ -9,6 +9,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.SVDProvider.RegressionResult;
 
 public class LeastSquares extends RegressionModel {
 
@@ -27,6 +28,7 @@ public class LeastSquares extends RegressionModel {
      */
     REGULAR,
     /**
+     * FIXME requires full Genvisis for EJML dependencies. Not available without Genvisis.<br>
      * Uses singular value decomposition to get the lin reg. <br>
      * Basically only faster than {@link LS_TYPE#REGULAR} due to QR decomposition in EJML <br>
      * Extra baggage from full SVD though
@@ -38,7 +40,17 @@ public class LeastSquares extends RegressionModel {
     QR_DECOMP;
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
+  private static SVDProvider svdProvider = null;
+
+  /**
+   * @param provider The {@link SVDProvider} to use to satisfy future requests for
+   *          {@link LS_TYPE#SVD}
+   */
+  public static void setSVDProvider(SVDProvider provider) {
+    svdProvider = provider;
+  }
+
+  @SuppressWarnings({"rawtypes"})
   public LeastSquares(List vDeps, List vIndeps) { // deps = Vector of int/double as String,
                                                  // indeps = Vector of double[]
     this(vDeps, vIndeps, false, true);
@@ -51,7 +63,7 @@ public class LeastSquares extends RegressionModel {
     this(vDeps, vIndeps, false, false, lType);
   }
 
-  @SuppressWarnings({"rawtypes"})
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public LeastSquares(List vDeps, List vIndeps, boolean bypassDataCheck, boolean verbose) {
     this(processDeps(vDeps), processIndeps(vIndeps), bypassDataCheck, verbose);
   }
@@ -441,14 +453,14 @@ public class LeastSquares extends RegressionModel {
           linregr();
           break;
         case SVD:
-          SVDRegression svdRegress = new SVDRegression(deps, indeps, verbose, log);
-          svdRegress.svdRegression();
-          betas = svdRegress.getBetas();
-          invP = svdRegress.getInvP_Diagonal_Equivalent();// Warning! this is not a full invP
-                                                          // matrix, only the diagonal elements are
-                                                          // computed
-
-          break;
+          if (svdProvider != null) {
+            RegressionResult result = svdProvider.performSVDRegression(deps, indeps, verbose, log);
+            betas = result.getBetas();
+            invP = result.getInvP();
+            break;
+          } else {
+            throw new IllegalStateException("SVD regression was requested but no provider available.");
+          }
         default:
           throw new IllegalArgumentException("Invalid regression type " + lType);
 

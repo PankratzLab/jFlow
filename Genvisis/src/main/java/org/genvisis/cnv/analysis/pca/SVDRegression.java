@@ -1,7 +1,6 @@
-package org.pankratzlab.shared.stats;
+package org.genvisis.cnv.analysis.pca;
 
 import java.util.Arrays;
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
