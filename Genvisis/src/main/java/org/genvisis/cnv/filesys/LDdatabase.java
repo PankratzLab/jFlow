@@ -3,7 +3,7 @@
 // also added -minGeno 0 and -missingCutoff 1, to include shoddy coverage of regions by a mixture of
 // chips
 // always filter on hwe and call rate (snp and ind) before using as a reference
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,7 +15,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -26,6 +25,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.filesys.SerialHash;
 
 public class LDdatabase implements Serializable {
 

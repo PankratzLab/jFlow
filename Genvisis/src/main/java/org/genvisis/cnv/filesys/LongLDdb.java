@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.filesys;
+package org.genvisis.cnv.filesys;
 
 import java.io.Serializable;
 import java.util.Hashtable;
@@ -7,19 +7,24 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 
-public class StringLDdb implements Serializable {
+public class LongLDdb implements Serializable {
 
   public static final long serialVersionUID = 1L;
+  public static final long DUMMY_BASE = 999000000;
 
-  private final Hashtable<String, String> hash;
+  private final Hashtable<Long, String> hash;
+  private final Hashtable<String, Long> lookup;
   private final Hashtable<String, String> missing;
   private final Hashtable<String, String> monomorphs;
+  private int count;
   private boolean changed;
 
-  public StringLDdb() {
+  public LongLDdb() {
     hash = new Hashtable<>();
+    lookup = new Hashtable<>();
     missing = new Hashtable<>();
     monomorphs = new Hashtable<>();
+    count = 0;
     changed = true;
   }
 
@@ -33,17 +38,17 @@ public class StringLDdb implements Serializable {
       str = str.substring(2);
     }
 
-    hash.put(marker1 + "\t" + marker2, str);
+    hash.put(convert(marker1, marker2), str);
     changed = true;
   }
 
   public float get(String marker1, String marker2) {
     String str;
 
-    str = hash.get(marker1 + "\t" + marker2);
+    str = hash.get(convert(marker1, marker2));
 
     if (str == null) {
-      str = hash.get(marker2 + "\t" + marker1);
+      str = hash.get(convert(marker2, marker1));
     }
 
     if (str == null) {
@@ -87,18 +92,42 @@ public class StringLDdb implements Serializable {
     return changed;
   }
 
-  public void serialize(String root) {
-    changed = false;
-    SerializedFiles.writeSerial(this, root + ".slddb");
+  public Long convert(String marker1, String marker2) {
+    return convert(new String[] {marker1, marker2});
   }
 
-  public static StringLDdb load(String root, boolean createIfAbsent) {
-    if (Files.exists(root + ".slddb")) {
-      return (StringLDdb) SerializedFiles.readSerial(root + ".slddb", false);
+  public Long convert(String[] markers) {
+    long[] ls;
+
+    ls = new long[2];
+    for (int i = 0; i < 2; i++) {
+      if (!markers[i].startsWith("rs") || markers[i].length() > 11) {
+        if (lookup.containsKey(markers[i])) {
+          ls[i] = lookup.get(markers[i]);
+        } else {
+          count++;
+          ls[i] = DUMMY_BASE + count;
+        }
+      } else {
+        ls[i] = Long.parseLong(markers[i].substring(2));
+      }
+
+    }
+
+    return Long.valueOf(ls[0] * 1000000000 + ls[1]);
+  }
+
+  public void serialize(String root) {
+    SerializedFiles.writeSerial(this, root + ".llddb");
+  }
+
+  public static LongLDdb load(String root, boolean createIfAbsent) {
+    if (Files.exists(root + ".llddb")) {
+      return (LongLDdb) SerializedFiles.readSerial(root + ".llddb", false);
     } else if (createIfAbsent) {
-      return new StringLDdb();
+      return new LongLDdb();
     } else {
-      System.err.println("Error - '" + root + ".slddb" + "' does not exist");
+      System.err.println("Error - '" + root + ".llddb" + "' does not exist");
       return null;
     }
   }
