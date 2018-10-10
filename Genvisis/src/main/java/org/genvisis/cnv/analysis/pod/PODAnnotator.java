@@ -29,10 +29,10 @@ import org.genvisis.cnv.plots.ColorExt.ColorManager;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 
