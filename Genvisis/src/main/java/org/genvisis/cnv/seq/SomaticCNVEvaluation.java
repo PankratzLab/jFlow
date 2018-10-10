@@ -1,4 +1,4 @@
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -8,10 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.analysis.BeastScore;
-import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.MarkerSet.PreparedMarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
@@ -23,10 +22,11 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.GeneData;
 import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Segment;
 import com.google.common.primitives.Ints;
 

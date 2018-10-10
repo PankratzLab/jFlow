@@ -1,14 +1,15 @@
-package org.genvisis.seq.analysis.genage;
+package org.pankratzlab.utils.sra;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.manage.ReferenceGenome;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.SeqVariables.PLATFORM;
+import org.genvisis.seq.analysis.genage.Pipeline;
 import org.genvisis.seq.analysis.genage.Pipeline.PIPELINE_PARTS;
 import org.genvisis.seq.analysis.genage.Pipeline.PipelinePart;
 import org.genvisis.seq.manage.BamImport;
@@ -21,8 +22,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.utils.sra.SRARunTable;
-import org.pankratzlab.utils.sra.SRASample;
 import org.pankratzlab.utils.sra.SRAUtils.SRABamWorker;
 import org.pankratzlab.utils.sra.SRAUtils.SRAConversionResult;
 

@@ -26,7 +26,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 public class ReferenceGenome {
 
-  public static final GENOME_BUILD DEFAULT_BUILD = GENOME_BUILD.HG19;
+  public static final GenomeBuild DEFAULT_BUILD =GenomeBuild.HG19;
   private final String referenceFasta;
   private IndexedFastaSequenceFile indexedFastaSequenceFile;
   private byte[] currentSeq;
@@ -35,7 +35,7 @@ public class ReferenceGenome {
   private ReferenceSequence referenceSequence;
   private final Logger log;
 
-  public ReferenceGenome(GENOME_BUILD genomeBuild, Logger log) {
+  public ReferenceGenome(GenomeBuild genomeBuild, Logger log) {
     this(Resources.genome(genomeBuild, log).getFASTA().get(), log);
   }
 

@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Stream;
 import org.genvisis.cnv.annotation.markers.AnnotationFileLoader.QUERY_TYPE;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.annotation.markers.AnnotationParser;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BLAST_ANNOTATION_TYPES;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.BlastAnnotation;
@@ -23,6 +22,7 @@ import org.genvisis.cnv.annotation.markers.MarkerAnnotationLoader;
 import org.genvisis.cnv.annotation.markers.MarkerBlastAnnotation;
 import org.genvisis.cnv.annotation.markers.MarkerSeqAnnotation;
 import org.genvisis.cnv.manage.TextExport;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.StrandOps;
 import org.pankratzlab.common.Files;
@@ -679,7 +679,7 @@ public class MarkerDetailSet implements MarkerSetInfo, Serializable, TextExport 
    * @return a {@link Stream} over all markers on the X chromosome outside of the Psuedoautosomal
    *         Regions
    */
-  public Stream<Marker> getNonPARXMarkers(GENOME_BUILD genomeBuild) {
+  public Stream<Marker> getNonPARXMarkers(GenomeBuild genomeBuild) {
     return viewMarkersInSeg((byte) 23, genomeBuild.getPAR1End() + 1,
                             genomeBuild.getPAR2Start() - 1);
   }

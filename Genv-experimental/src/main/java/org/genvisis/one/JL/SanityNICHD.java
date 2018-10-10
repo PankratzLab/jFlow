@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.pankratzlab.common.Logger;
@@ -34,7 +34,7 @@ public class SanityNICHD {
     VcfPopulation vpop = VcfPopulation.load("/Volumes/Beta2/NGS/Cushings/cnvs/clinicalAssoc/CUSHING_FREQ_ALL.vpop",
                                             POPULATION_TYPE.ANY, new Logger());
 
-    String gtrackFile = Resources.genome(GENOME_BUILD.HG19, new Logger()).getGTrack().get();
+    String gtrackFile = Resources.genome(GenomeBuild.HG19, new Logger()).getGTrack().get();
 
     LocusSet<GeneData> geneSet = GeneTrack.load(gtrackFile).convertToLocusSet(new Logger());
     //    chr12:12870302-12875305

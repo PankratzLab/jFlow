@@ -1,11 +1,11 @@
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import org.genvisis.cnv.annotation.markers.ArrayBlastAnnotationList.ArrayIntList;
+import java.util.List;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -428,7 +428,7 @@ public class CnvBamQC {
     private BEDFileReader callSubsetBedReader;
     private Segment[] segsToSearch;
     private final Logger log;
-    private final ArrayIntList[] matched;
+    private final List<Integer>[] matched;
     private final boolean[] hadProblem;
 
     public CallSplit(LocusSet<CNVariant> cnLocusSet, String callSubsetBed, Logger log) {
@@ -440,14 +440,14 @@ public class CnvBamQC {
       }
       hadProblem = ArrayUtils.booleanArray(cnLocusSet.getLoci().length, false);
       this.log = log;
-      matched = new ArrayIntList[cnLocusSet.getLoci().length];
+      matched = new List[cnLocusSet.getLoci().length];
     }
 
     public LocusSet<CNVariant> getCnLocusSet() {
       return cnLocusSet;
     }
 
-    public ArrayIntList[] getMatched() {
+    public List<Integer>[] getMatched() {
       return matched;
     }
 
@@ -456,7 +456,7 @@ public class CnvBamQC {
       ArrayList<Segment> tmpSplit = new ArrayList<>();
       int currentIndex = 0;
       for (int i = 0; i < cnLocusSet.getLoci().length; i++) {
-        matched[i] = new ArrayIntList(100);
+        matched[i] = new ArrayList<>();
         LocusSet<BEDFeatureSeg> segs = callSubsetBedReader.loadSegsFor(cnLocusSet.getLoci()[i],
                                                                        log);
         Segment[] overlaps = segs.getOverLappingLoci(cnLocusSet.getLoci()[i]);

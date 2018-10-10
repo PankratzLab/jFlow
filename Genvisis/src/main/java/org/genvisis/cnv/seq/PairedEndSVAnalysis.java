@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 /**
  * Typcial getters for packages (SVtyper/Lumpy) using split/discordant reads for SV detection

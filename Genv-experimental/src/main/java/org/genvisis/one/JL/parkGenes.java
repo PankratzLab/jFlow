@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -17,7 +17,7 @@ import org.pankratzlab.shared.filesys.Segment;
 public class parkGenes {
 
   public static void main(String[] args) {
-    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.HG19, new Logger())
+    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GenomeBuild.HG19, new Logger())
                                                   .getGTrack().get());
 
     LocusSet<CNVariant> set = CNVariant.loadLocSet("D:/data/NGRC/cnvs/decentCalls_centromeresBroken.cnv",

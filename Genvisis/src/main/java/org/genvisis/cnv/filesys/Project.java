@@ -33,7 +33,6 @@ import javax.swing.JProgressBar;
 import org.genvisis.cnv.GenvisisManifest;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.manage.TransposeData;
@@ -47,6 +46,7 @@ import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
 import org.genvisis.cnv.prop.StringProperty;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.pankratzlab.common.Aliases;
@@ -672,16 +672,16 @@ public class Project implements PropertyChangeListener {
                                                                    PropertyKeys.KEY_ARRAY_TYPE, "",
                                                                    GROUP.IMPORT, false, COPY.VALUE,
                                                                    0, ARRAY.class);
-  public final EnumProperty<GENOME_BUILD> GENOME_BUILD_VERSION = new EnumProperty<>(this,
+  public final EnumProperty<GenomeBuild> GENOME_BUILD_VERSION = new EnumProperty<>(this,
                                                                                     PropertyKeys.KEY_GENOME_BUILD_VERSION,
                                                                                     "The build version of the genome, options are "
-                                                                                                                           + Arrays.asList(GENOME_BUILD.values())
+                                                                                                                           + Arrays.asList(GenomeBuild.values())
                                                                                                                                    .toString(),
                                                                                     GROUP.IMPORT,
                                                                                     false,
                                                                                     COPY.VALUE,
-                                                                                    GENOME_BUILD.HG19.ordinal(),
-                                                                                    GENOME_BUILD.class);
+                                                                                    GenomeBuild.HG19.ordinal(),
+                                                                                    GenomeBuild.class);
   public final FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
                                                               "Last region file opened in Trailer",
                                                               GROUP.TRAILER, true, COPY.NO_COPY, "",

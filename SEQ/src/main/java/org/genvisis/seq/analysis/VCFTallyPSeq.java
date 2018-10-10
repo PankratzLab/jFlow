@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.Set;
-import org.genvisis.cnv.filesys.Positions;
 import org.genvisis.seq.analysis.PlinkSeq.ANALYSIS_TYPES;
 import org.genvisis.seq.analysis.PlinkSeq.BURDEN_Tests;
 import org.genvisis.seq.analysis.PlinkSeq.PlinkSeqWorker;
@@ -25,6 +24,7 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.DumpMultiLoc;
 import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.shared.filesys.Positions;
 
 /**
  * Does a vcf tally and incorporates plink seq results

@@ -11,7 +11,6 @@ import java.util.Hashtable;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator;
 import org.genvisis.cnv.analysis.pca.PCA;
@@ -34,6 +33,7 @@ import org.genvisis.cnv.qc.GcAdjustorParameter.GcAdjustorParameters;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -268,7 +268,7 @@ public class MitoPipeline {
                                    boolean recomputeLRR_PCs, boolean recomputeLRR_Median,
                                    boolean sampLrr, boolean doAbLookup, boolean imputeMeanForNaN,
                                    boolean gcCorrect, int bpGcModel, int regressionDistance,
-                                   GENOME_BUILD build, double[] pvalOpt, String betaFile,
+                                   GenomeBuild build, double[] pvalOpt, String betaFile,
                                    boolean plot, boolean skipEval, PRE_PROCESSING_METHOD method,
                                    boolean prepImputation) {
     String sampleDirectory;
@@ -390,7 +390,7 @@ public class MitoPipeline {
                                      String pedFile, boolean recomputeLRR_PCs,
                                      boolean recomputeLRR_Median, boolean sampLrr,
                                      boolean imputeMeanForNaN, boolean gcCorrect, int bpGcModel,
-                                     int regressionDistance, GENOME_BUILD build, double[] pvalOpt,
+                                     int regressionDistance, GenomeBuild build, double[] pvalOpt,
                                      String betaFile, boolean plot, boolean skipEval,
                                      PRE_PROCESSING_METHOD method, Logger log) {
     GcAdjustorParameters params = null;
@@ -522,9 +522,9 @@ public class MitoPipeline {
     if (!dbSnpA && (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
                     || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN)) {
       log.reportTimeWarning("Build version was set to " + proj.GENOME_BUILD_VERSION.getValue()
-                            + " , performing liftover and using rsIDs from " + GENOME_BUILD.HG19);
-      dbSnpA = Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().isAvailable(true);
-      Resources.genome(GENOME_BUILD.HG19, log).getDBSNP().get();
+                            + " , performing liftover and using rsIDs from " + GenomeBuild.HG19);
+      dbSnpA = Resources.genome(GenomeBuild.HG19, log).getDBSNP().isAvailable(true);
+      Resources.genome(GenomeBuild.HG19, log).getDBSNP().get();
     }
     boolean mitoAvail = true;
     for (Resource r : Resources.mitoCN(log).getResources()) {
@@ -876,7 +876,7 @@ public class MitoPipeline {
     int bpGcModel = GcAdjustor.GcModel.DEFAULT_GC_MODEL_BIN_FASTA;
     boolean gcCorrect = true;
     int attempts, result;
-    GENOME_BUILD build = GENOME_BUILD.HG19;
+    GenomeBuild build = GenomeBuild.HG19;
     boolean recompSampleSpecific = true;
     String betaOptFile = null;
     double[] pvalOpt = DEFAULT_PVAL_OPTS;
@@ -1073,13 +1073,13 @@ public class MitoPipeline {
         numArgs--;
       } else if (arg.startsWith("build=")) {
         try {
-          build = GENOME_BUILD.valueOf(ext.parseStringArg(arg, ""));
+          build = GenomeBuild.valueOf(ext.parseStringArg(arg, ""));
           numArgs--;
         } catch (IllegalArgumentException ile) {
           System.err.println("Invalid build " + ext.parseStringArg(arg, ""));
           System.err.println("Options Are: ");
-          for (int j = 0; j < GENOME_BUILD.values().length; j++) {
-            System.err.println(GENOME_BUILD.values()[j]);
+          for (int j = 0; j < GenomeBuild.values().length; j++) {
+            System.err.println(GenomeBuild.values()[j]);
           }
         }
       } else if (arg.startsWith("log=")) {

@@ -70,12 +70,12 @@ import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ListEditor;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.var.Region;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.Aliases;
@@ -488,10 +488,10 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
 
     time = new Date().getTime();
 
-    GENOME_BUILD build;
+    GenomeBuild build;
     if (proj == null) {
       log.report("Project is null, defaulting to HG19.");
-      build = GENOME_BUILD.HG19;
+      build = GenomeBuild.HG19;
     } else {
       build = proj.GENOME_BUILD_VERSION.getValue();
     }

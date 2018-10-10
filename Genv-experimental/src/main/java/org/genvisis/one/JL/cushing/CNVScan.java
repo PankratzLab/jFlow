@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.LocusSet.TO_STRING_TYPE;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.annotation.segments.GDIAnnotator;
 import org.genvisis.cnv.annotation.segments.GeneAnnotator;
 import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
@@ -18,6 +17,7 @@ import org.genvisis.cnv.annotation.segments.WESMappabilityAnnotator;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.CNVariantAnnotated;
 import org.genvisis.cnv.filesys.CNVariantAnnotated.TallyResult;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -85,10 +85,10 @@ public class CNVScan {
 
     List<CNVariant> allCNVs = Arrays.asList(CNVariant.loadLocSet(cnvFile, log).getLoci());
 
-    GeneAnnotator geneAnnotator = GeneAnnotator.getDefaultAnnotator(GENOME_BUILD.HG19, log);
+    GeneAnnotator geneAnnotator = GeneAnnotator.getDefaultAnnotator(GenomeBuild.HG19, log);
     GDIAnnotator gdiAnnotator = GDIAnnotator.getDefaultGDIAnnotator(log);
     WESMappabilityAnnotator wesMappabilityAnnotator = WESMappabilityAnnotator.getDefaultAnnotator(geneAnnotator,
-                                                                                                  GENOME_BUILD.HG19,
+                                                                                                  GenomeBuild.HG19,
                                                                                                   log);
 
     ArrayList<CNVariantAnnotated> annotateds = new ArrayList<>();
@@ -137,7 +137,7 @@ public class CNVScan {
                                                                             SegmentAnnotationKeys.GENE);
     StringBuilder builderTally = new StringBuilder(SegmentAnnotationKeys.GENE.toString()
                                                    + "\tCOUNT_ALL\tCOUNT_DEL\tCOUNT_DUP\tSAME_CN\tGDI_PERCENTILE\tGDI_RAW\tGDI_PHRED\tSAMPLE\tLOC\tSCORE\tDISTANCE_TO_END_OF_CHR");
-    ReferenceGenome genome = new ReferenceGenome(GENOME_BUILD.HG19, log);
+    ReferenceGenome genome = new ReferenceGenome(GenomeBuild.HG19, log);
     for (String key : geneTally.keySet()) {
       String gdi = gdiAnnotator.getGdiLookup()
                                .containsKey(key) ? gdiAnnotator.getGdiLookup().get(key)

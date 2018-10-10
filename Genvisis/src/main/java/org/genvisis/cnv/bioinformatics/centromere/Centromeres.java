@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.shared.filesys.Positions;
@@ -30,7 +30,7 @@ public class Centromeres {
    * @param log
    * @return array of midpoints for each centromere
    */
-  public static int[] getCentromereMidPoints(GENOME_BUILD build, Logger log) {
+  public static int[] getCentromereMidPoints(GenomeBuild build, Logger log) {
     List<Centromere> cents = loadCentromeres(build, log);
     int[] mids = new int[cents.size()];
     for (int i = 0; i < mids.length; i++) {
@@ -48,7 +48,7 @@ public class Centromeres {
    * @param log
    * @return array of
    */
-  public static int[] getChrLength(GENOME_BUILD build, Logger log) {
+  public static int[] getChrLength(GenomeBuild build, Logger log) {
     List<Centromere> cents = loadCentromeres(build, log);
     int[] lengths = new int[cents.size()];
     for (int i = 0; i < lengths.length; i++) {
@@ -75,10 +75,10 @@ public class Centromeres {
     private static final long serialVersionUID = 1L;
     private Segment p;
     private Segment q;
-    private GENOME_BUILD build;
+    private GenomeBuild build;
     private int chrLength;
 
-    private Centromere(Segment p, Segment q, GENOME_BUILD build) {
+    private Centromere(Segment p, Segment q, GenomeBuild build) {
       super(p.getChr(), p.getStart(), q.getStop());
       this.p = p;
       this.q = q;
@@ -106,18 +106,18 @@ public class Centromeres {
 
   }
 
-  private static InputStream loadCents(GENOME_BUILD build) {
+  private static InputStream loadCents(GenomeBuild build) {
     return Centromeres.class.getResourceAsStream(build.getBuild() + ".cent.txt");
   }
 
   /**
-   * Load a list of {@link Centromere} for a given {@link GENOME_BUILD}
+   * Load a list of {@link Centromere} for a given {@link GenomeBuild}
    * 
    * @param build
    * @param log
    * @return
    */
-  static List<Centromere> loadCentromeres(GENOME_BUILD build, Logger log) {
+  static List<Centromere> loadCentromeres(GenomeBuild build, Logger log) {
 
     List<Centromere> centromeres = new ArrayList<>();
     BufferedReader br;

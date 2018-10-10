@@ -12,9 +12,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -149,7 +149,7 @@ public class CNVArm extends CNVariant {
     }
   }
 
-  private static LocusSet<CNVariant> loadArmVariants(String file, GENOME_BUILD build,
+  private static LocusSet<CNVariant> loadArmVariants(String file, GenomeBuild build,
                                                      boolean includeMos, Logger log) {
     List<CNVariant> tmps = new ArrayList<>();
 
@@ -191,7 +191,7 @@ public class CNVArm extends CNVariant {
     return new LocusSet<>(tmps, true, log);
   }
 
-  private static Segment getLoc(GENOME_BUILD build, Logger log, String chrarm) {
+  private static Segment getLoc(GenomeBuild build, Logger log, String chrarm) {
     //    int[] loc = Positions.parseUCSClocation(chrarm, Centromeres.getCentromereMidPoints(build, log),
     //                                            Centromeres.getChrLength(build, log));
     //    if (build != null) {
@@ -215,7 +215,7 @@ public class CNVArm extends CNVariant {
     return new LocusSet<>(conv, true, log);
   }
 
-  private static LocusSet<CNVariant> getAllArms(GENOME_BUILD build, Logger log) {
+  private static LocusSet<CNVariant> getAllArms(GenomeBuild build, Logger log) {
     List<CNVariant> cnvs = new ArrayList<>();
     for (int i = 1; i < 23; i++) {
       cnvs.add(new CNVariant(getLoc(build, log, "chr" + i + "p").getUCSClocation()));
@@ -230,10 +230,10 @@ public class CNVArm extends CNVariant {
     private final boolean[] markersToUse;
     private int index;
     private final Project proj;
-    private final GENOME_BUILD build;
+    private final GenomeBuild build;
     private final int[][] indicesByChr;
 
-    private CNVForceCallerProducer(String[] samples, Project proj, GENOME_BUILD build,
+    private CNVForceCallerProducer(String[] samples, Project proj, GenomeBuild build,
                                    boolean[] markersToUse, int[][] indicesByChr) {
       super();
       this.samples = samples;
@@ -307,7 +307,7 @@ public class CNVArm extends CNVariant {
     return use;
   }
 
-  private static void run(Project proj, String cnvFile, String armFile, GENOME_BUILD build,
+  private static void run(Project proj, String cnvFile, String armFile, GenomeBuild build,
                           boolean includeMos, boolean annotate) {
 
     LocusSet<CNVariant> all = CNVariant.loadLocSet(cnvFile, proj.getLog());
@@ -376,7 +376,7 @@ public class CNVArm extends CNVariant {
 
     for (String dna : proj.getSamples()) {
       String sample = dna + "\t" + dna;
-      LocusSet<CNVariant> replaceHere = convert(getAllArms(GENOME_BUILD.HG19, proj.getLog()), dna,
+      LocusSet<CNVariant> replaceHere = convert(getAllArms(GenomeBuild.HG19, proj.getLog()), dna,
                                                 proj.getLog());
       if (indsAll.containsKey(sample) && indsAll.get(sample).getLoci().length > 0) {
 
@@ -405,16 +405,16 @@ public class CNVArm extends CNVariant {
     c.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ);
     c.addArg("cnvFile", "cnvFile to armitize");
     c.addArg("armFile", "file of arms to force call");
-    c.addArg("build", "genome build, options are " + ArrayUtils.toStr(GENOME_BUILD.values()), ",");
+    c.addArg("build", "genome build, options are " + ArrayUtils.toStr(GenomeBuild.values()), ",");
 
     c.parseWithExit(args);
     boolean annotate = false;
 
     run(new Project(c.get(CLI.ARG_PROJ)), c.get("cnvFile"), c.get("armFile"),
-        GENOME_BUILD.valueOf(c.get("build")), false, true);
+        GenomeBuild.valueOf(c.get("build")), false, true);
     Files.copyFileUsingFileChannels(c.get("armFile"), c.get("armFile") + ".mos", new Logger());
     run(new Project(c.get(CLI.ARG_PROJ)), c.get("cnvFile"), c.get("armFile") + ".mos",
-        GENOME_BUILD.valueOf(c.get("build")), true, annotate);
+        GenomeBuild.valueOf(c.get("build")), true, annotate);
 
   }
 }

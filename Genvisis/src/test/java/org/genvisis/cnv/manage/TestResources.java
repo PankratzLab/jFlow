@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.Resources.Resource;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.Logger;
 
 /**
@@ -48,10 +48,10 @@ public class TestResources {
   }
 
   /**
-   * Helper method to test the {@link Resources#genome(GENOME_BUILD, Logger)} resources.
+   * Helper method to test the {@link Resources#genome(GenomeBuild, Logger)} resources.
    */
   private static void testGenome(Logger log) {
-    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+    for (GenomeBuild build : GenomeBuild.values()) {
       test(Resources.genome(build, log).getResources());
     }
   }
@@ -60,7 +60,7 @@ public class TestResources {
    * Helper method to test the chromosome resources.
    */
   private static void testChr(Logger log) {
-    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+    for (GenomeBuild build : GenomeBuild.values()) {
       for (CHROMOSOME c : CHROMOSOME.values()) {
         test(Resources.genome(build, log).chr(c).getResources());
       }
@@ -73,7 +73,7 @@ public class TestResources {
   private static void testAffy(Logger log) {
     test(Resources.affy(log).getResources());
 
-    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+    for (GenomeBuild build : GenomeBuild.values()) {
       test(Resources.affy(log).genome(build).getResources());
     }
   }
@@ -105,7 +105,7 @@ public class TestResources {
   private static void testCnv(Logger log) {
     test(Resources.cnv(log).getResources());
 
-    for (GENOME_BUILD build : GENOME_BUILD.values()) {
+    for (GenomeBuild build : GenomeBuild.values()) {
       test(Resources.cnv(log).genome(build).getResources());
     }
   }

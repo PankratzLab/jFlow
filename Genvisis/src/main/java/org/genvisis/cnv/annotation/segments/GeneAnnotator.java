@@ -6,7 +6,7 @@ package org.genvisis.cnv.annotation.segments;
 import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.shared.filesys.GeneData;
 import org.pankratzlab.shared.filesys.GeneTrack;
@@ -40,7 +40,7 @@ public class GeneAnnotator implements SegmentAnnotator {
    * @param log
    * @return
    */
-  public static GeneAnnotator getDefaultAnnotator(GENOME_BUILD build, Logger log) {
+  public static GeneAnnotator getDefaultAnnotator(GenomeBuild build, Logger log) {
     String gtrackFile = Resources.genome(build, log).getGTrack().get();
 
     LocusSet<GeneData> geneSet = GeneTrack.load(gtrackFile).convertToLocusSet(log);

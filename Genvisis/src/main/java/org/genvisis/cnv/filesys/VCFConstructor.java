@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
@@ -188,7 +188,7 @@ public class VCFConstructor {
     }
     VCFHeader vcfHeader = new VCFHeader(lines, idNames);
 
-    SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GENOME_BUILD.HG19,
+    SAMSequenceDictionary samSequenceDictionary = new ReferenceGenome(Resources.genome(GenomeBuild.HG19,
                                                                                        log)
                                                                                .getFASTA()
                                                                                .getAbsolute(),

@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.ITERATION_TYPE;
 import org.genvisis.cnv.analysis.pca.CorrectionIterator.MODEL_BUILDER_TYPE;
@@ -32,6 +31,7 @@ import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.Markers;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.genvisis.seq.manage.VCOps;
@@ -980,12 +980,12 @@ public class BetaOptimizer {
     String[] markerNames = markerSet.getMarkerNames();
     int[] indices = ext.indexLargeFactors(namesToQuery, markerNames, true, log, true);
     int[] posIndices = indices;
-    if (proj.GENOME_BUILD_VERSION.getValue() != GENOME_BUILD.HG19) {
+    if (proj.GENOME_BUILD_VERSION.getValue() != GenomeBuild.HG19) {
       if (proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6
           || proj.ARRAY_TYPE.getValue() == ARRAY.AFFY_GW6_CN) {
-        proj.getLog().reportTimeInfo("Attempting to use " + GENOME_BUILD.HG19.getBuild()
+        proj.getLog().reportTimeInfo("Attempting to use " + GenomeBuild.HG19.getBuild()
                                      + " positions for rsID lookup");
-        Resource affyhg19 = Resources.affy(log).genome(GENOME_BUILD.HG19).getMarkerPositions();
+        Resource affyhg19 = Resources.affy(log).genome(GenomeBuild.HG19).getMarkerPositions();
         String tmpSer = ext.rootOf(outSer, false) + "hg19.positions.ser";
 
         if (!Files.exists(tmpSer)) {
@@ -998,7 +998,7 @@ public class BetaOptimizer {
 
       } else {
         throw new IllegalArgumentException("Genome version must be "
-                                           + GENOME_BUILD.HG19.getBuild());
+                                           + GenomeBuild.HG19.getBuild());
       }
     }
 
@@ -1260,7 +1260,7 @@ public class BetaOptimizer {
     MarkerDetailSet markerSet = proj.getMarkerSet();
     abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
                             true, proj.getLog());
-    Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();// TODO, need hg
+    Resource dbsnp = Resources.genome(GenomeBuild.HG19, proj.getLog()).getDBSNP();// TODO, need hg
                                                                                    // 18
                                                                                    // db snp
     if (!dbsnp.isAvailable()) {
@@ -1378,7 +1378,7 @@ public class BetaOptimizer {
 
     abLookup = new ABLookup(proj.getMarkerSet().getMarkerNames(),
                             proj.AB_LOOKUP_FILENAME.getValue(), true, true, proj.getLog());
-    Resource dbsnp = Resources.genome(GENOME_BUILD.HG19, proj.getLog()).getDBSNP();
+    Resource dbsnp = Resources.genome(GenomeBuild.HG19, proj.getLog()).getDBSNP();
     String betaFileDir = "/home/pankrat2/shared/MitoPipeLineResources/betas/" + args[0] + "/";
 
     String[] betaFiles = Files.list(betaFileDir, "", ".beta", true, true);

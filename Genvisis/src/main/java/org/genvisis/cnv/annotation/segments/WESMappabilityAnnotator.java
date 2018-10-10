@@ -6,7 +6,7 @@ package org.genvisis.cnv.annotation.segments;
 import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.shared.filesys.GeneData;
@@ -42,7 +42,7 @@ public class WESMappabilityAnnotator extends BEDFileAnnotator {
    * @return
    */
   public static WESMappabilityAnnotator getDefaultAnnotator(GeneAnnotator geneAnnotator,
-                                                            GENOME_BUILD build, Logger log) {
+                                                            GenomeBuild build, Logger log) {
     String mapBed = Resources.genome(build, log).get100MerMappabilityTrack().get();
     BedOps.verifyBedIndex(mapBed, log);
     return new WESMappabilityAnnotator(geneAnnotator, mapBed, log);

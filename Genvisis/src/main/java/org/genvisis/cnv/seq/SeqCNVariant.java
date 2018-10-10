@@ -1,4 +1,4 @@
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.util.ArrayList;
 import org.genvisis.cnv.filesys.CNVariant;

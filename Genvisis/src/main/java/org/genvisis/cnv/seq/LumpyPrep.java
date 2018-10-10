@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.util.ArrayList;
 import java.util.List;

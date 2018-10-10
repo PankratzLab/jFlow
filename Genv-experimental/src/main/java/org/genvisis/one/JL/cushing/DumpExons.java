@@ -2,7 +2,7 @@ package org.genvisis.one.JL.cushing;
 
 import java.util.HashSet;
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -17,7 +17,7 @@ public class DumpExons {
     genes.add("CABLES1");
     genes.add("PRKAR1A");
 
-    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GENOME_BUILD.valueOf("HG19"),
+    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GenomeBuild.valueOf("HG19"),
                                                           new Logger())
                                                   .getGTrack().get());
 

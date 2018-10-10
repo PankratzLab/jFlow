@@ -1,4 +1,4 @@
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.CNVariant;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.seq.cnv.CNVExtraInfo.EXTRA_INFO_TYPE;
+import org.genvisis.cnv.seq.CNVExtraInfo.EXTRA_INFO_TYPE;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
@@ -62,14 +62,14 @@ public class ExomeDepth {
   private final String rLoc;
   private final Logger log;
   private final CALLING_TYPE callingType;
-  private final GENOME_BUILD build;
+  private final GenomeBuild build;
 
   public enum CALLING_TYPE {
     AUTOSOMAL, SEX_CHROMOSOMES
   }
 
   public ExomeDepth(String[] allReferenceBamFiles, String[] analysisBamFiles, String outputDir,
-                    String outputRoot, String rLoc, CALLING_TYPE callingType, GENOME_BUILD build,
+                    String outputRoot, String rLoc, CALLING_TYPE callingType, GenomeBuild build,
                     Logger log) {
     super();
     allReferenceBAMFiles = allReferenceBamFiles;
@@ -505,7 +505,7 @@ public class ExomeDepth {
       return ext.addToRoot(exomeDepthOutput, ".anno");
     }
 
-    public boolean plotCNVs(double bufferPercent, GENOME_BUILD build) {
+    public boolean plotCNVs(double bufferPercent, GenomeBuild build) {
       String script = "";
       script += addBaseLoadScript(script);
       script += "pdf(file = \"" + exomeDepthPDFOutput + "\")\n";
@@ -520,7 +520,7 @@ public class ExomeDepth {
       return created;
     }
 
-    public String getCNVPlotScript(double bufferPercent, GENOME_BUILD build) {
+    public String getCNVPlotScript(double bufferPercent, GenomeBuild build) {
       SeqCNVariant[] cnvs = processCNVs();
       CNVariant.sortInPlaceByQuality(cnvs, true);
       String script = "";
@@ -561,9 +561,9 @@ public class ExomeDepth {
     }
 
     private static String getPlotFor(double bufferPercent, SeqCNVariant cnv, String script,
-                                     GENOME_BUILD build) {
+                                     GenomeBuild build) {
       script += "plot(all.exons , sequence = \""
-                + Positions.getChromosomeUCSC(cnv.getChr(), build == GENOME_BUILD.HG19) + "\",";
+                + Positions.getChromosomeUCSC(cnv.getChr(), build == GenomeBuild.HG19) + "\",";
       int buffer = (int) (bufferPercent * cnv.getSize());
       String[] curBoundary = new String[] {cnv.getStart() + " - " + buffer,
                                            cnv.getStop() + " + " + buffer};
@@ -642,7 +642,7 @@ public class ExomeDepth {
 
   public static void runExomeDepth(String bams, String outputDir, String outputRoot, String Rloc,
                                    int numBatches, int numthreads, int wallTimeInHours,
-                                   int memoryInMb, CALLING_TYPE callingType, GENOME_BUILD build,
+                                   int memoryInMb, CALLING_TYPE callingType, GenomeBuild build,
                                    Logger log) {
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
@@ -808,7 +808,7 @@ public class ExomeDepth {
     try {
       log = new Logger(logfile);
       runExomeDepth(bams, outputDir, outputRoot, Rloc, numBatches, numthreads, wallTimeInHours,
-                    memoryInMb, CALLING_TYPE.AUTOSOMAL, GENOME_BUILD.HG19, log);
+                    memoryInMb, CALLING_TYPE.AUTOSOMAL, GenomeBuild.HG19, log);
     } catch (Exception e) {
       e.printStackTrace();
     }

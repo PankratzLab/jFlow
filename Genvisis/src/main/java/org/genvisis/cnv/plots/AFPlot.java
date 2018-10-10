@@ -30,10 +30,10 @@ import javax.swing.WindowConstants;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.CHROMOSOME;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.FileChooser;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.Files;
@@ -155,7 +155,7 @@ public class AFPlot {
       FileColumn<Double> afSas = new DoubleWrapperColumn(new AliasedFileColumn(POPULATION.SAS.name(),
                                                                                POPULATION.SAS.colName));
 
-      String G1KFile = Resources.genome(proj == null ? GENOME_BUILD.HG19
+      String G1KFile = Resources.genome(proj == null ? GenomeBuild.HG19
                                                      : proj.GENOME_BUILD_VERSION.getValue(),
                                         log)
                                 .chr(CHROMOSOME.valueOf("C" + Byte.toString(chr)))

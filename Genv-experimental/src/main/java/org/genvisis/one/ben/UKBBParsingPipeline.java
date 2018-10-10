@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import org.genvisis.cnv.Launch;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -49,6 +48,7 @@ import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
@@ -178,7 +178,7 @@ public class UKBBParsingPipeline {
       proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
       proj.ID_HEADER.setValue("NULL");
       proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
-      proj.GENOME_BUILD_VERSION.setValue(GENOME_BUILD.HG19);
+      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG19);
 
       proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
 

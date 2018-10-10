@@ -10,7 +10,6 @@ import java.util.HashMap;
 import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
@@ -24,6 +23,7 @@ import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Command;
@@ -462,7 +462,7 @@ public class AffyPipeline {
     }
     String[] celFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(), null,
                                    proj.SOURCE_FILENAME_EXTENSION.getValue(), true, true);
-    GENOME_BUILD build = proj.GENOME_BUILD_VERSION.getValue();
+    GenomeBuild build = proj.GENOME_BUILD_VERSION.getValue();
 
     runInternal(celFiles, log, quantNormTarget, full, null, build, proj, aptExeDir, aptLibDir,
                 numThreads);
@@ -471,7 +471,7 @@ public class AffyPipeline {
 
   public static void run(String aptExeDir, String aptLibDir, String cels, String outDir,
                          String quantNormTarget, String analysisName, String markerPositions,
-                         boolean full, int numThreads, GENOME_BUILD build,
+                         boolean full, int numThreads, GenomeBuild build,
                          boolean prepImputation) throws Elision {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "affyPipeline.log");
@@ -503,7 +503,7 @@ public class AffyPipeline {
   }
 
   private static Project createProject(Logger log, String outDir, String analysisName,
-                                       GENOME_BUILD build) {
+                                       GenomeBuild build) {
     String propFileDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
     log.reportTimeInfo("Generating Genvisis project properties file in " + propFileDir);
 
@@ -529,7 +529,7 @@ public class AffyPipeline {
   }
 
   private static void runInternal(String[] celFiles, Logger log, String quantNormTarget,
-                                  boolean full, String markerPositions, GENOME_BUILD build,
+                                  boolean full, String markerPositions, GenomeBuild build,
                                   Project proj, String aptExeDir, String aptLibDir,
                                   int numThreads) throws Elision {
 
@@ -616,7 +616,7 @@ public class AffyPipeline {
     int numArgs = args.length;
     boolean full = false;
     boolean prepImputation = false;
-    GENOME_BUILD build = GENOME_BUILD.HG18;
+    GenomeBuild build = GenomeBuild.HG18;
     String projFile = null;
 
     String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
@@ -680,13 +680,13 @@ public class AffyPipeline {
         numArgs--;
       } else if (arg.startsWith("build=")) {
         try {
-          build = GENOME_BUILD.valueOf(ext.parseStringArg(arg, ""));
+          build = GenomeBuild.valueOf(ext.parseStringArg(arg, ""));
           numArgs--;
         } catch (IllegalArgumentException ile) {
           System.err.println("Invalid build " + ext.parseStringArg(arg, ""));
           System.err.println("Options Are: ");
-          for (int j = 0; j < GENOME_BUILD.values().length; j++) {
-            System.err.println(GENOME_BUILD.values()[j]);
+          for (int j = 0; j < GenomeBuild.values().length; j++) {
+            System.err.println(GenomeBuild.values()[j]);
           }
         }
       } else {

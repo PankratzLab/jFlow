@@ -27,6 +27,7 @@ import org.genvisis.cnv.LaunchProperties.LaunchKey;
 import org.genvisis.cnv.startup.AbstractStartupCheck;
 import org.genvisis.cnv.startup.StartupCheck;
 import org.genvisis.cnv.startup.StartupValidation;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
@@ -180,7 +181,7 @@ public final class Resources {
       resources.addAll(convertf(null).getResources());
       resources.addAll(smartpca(null).getResources());
 
-      for (GENOME_BUILD build : GENOME_BUILD.values()) {
+      for (GenomeBuild build : GenomeBuild.values()) {
         resources.addAll(genome(build, null).getResources());
         resources.addAll(cnv(null).genome(build).getResources());
         resources.addAll(affy(null).genome(build).getResources());
@@ -322,14 +323,14 @@ public final class Resources {
   }
 
   /**
-   * Chromosome-related resource container. Always requires a related {@link GENOME_BUILD}.
+   * Chromosome-related resource container. Always requires a related {@link GenomeBuild}.
    */
   public static class Chr extends AbstractResourceFactory {
 
     private final String build;
     private final CHROMOSOME c;
 
-    public Chr(GENOME_BUILD build, CHROMOSOME c, Logger log) {
+    public Chr(GenomeBuild build, CHROMOSOME c, Logger log) {
       super(GENOME_DIR + "/" + build.getBuild() + "/chr", log, Chr.class);
       this.build = build.getBuild();
       this.c = c;
@@ -396,45 +397,45 @@ public final class Resources {
   /**
    * Helper method for chaining resource calls
    */
-  public static Genome genome(GENOME_BUILD build, Logger log) {
+  public static Genome genome(GenomeBuild build, Logger log) {
     return new Genome(build, log);
   }
 
   /**
-   * Container for {@link GENOME_BUILD}-related resources.
+   * Container for {@link GenomeBuild}-related resources.
    */
   public static class Genome extends AbstractResourceFactory {
 
-    private final GENOME_BUILD build;
+    private final GenomeBuild build;
 
-    public Genome(GENOME_BUILD build, Logger log) {
+    public Genome(GenomeBuild build, Logger log) {
       super(GENOME_DIR, log, Genome.class);
       this.build = build;
     }
 
     /**
-     * @return The RefSeq.gtrack for this {@link GENOME_BUILD}
+     * @return The RefSeq.gtrack for this {@link GenomeBuild}
      */
     public Resource getGTrack() {
       return getResource(build.getBuild() + "/RefSeq_" + build.getBuild() + ".gtrack");
     }
 
     /**
-     * @return The GC5 base for this {@link GENOME_BUILD}
+     * @return The GC5 base for this {@link GenomeBuild}
      */
     public Resource getModelBase() {
       return getResource(getPath() + "_gc5Base.txt");
     }
 
     /**
-     * @return The DB Snp for this {@link GENOME_BUILD}
+     * @return The DB Snp for this {@link GenomeBuild}
      */
     public Resource getDBSNP() {
       return getVCFResource(getPath() + "_dbSnp147.vcf.gz");
     }
 
     /**
-     * @return The 100-mer mappability track for this {@link GENOME_BUILD}, note we do not download
+     * @return The 100-mer mappability track for this {@link GenomeBuild}, note we do not download
      *         the index - generate if needed with {code BedOps#verifyBedIndex(String, Logger)}
      */
     public Resource get100MerMappabilityTrack() {
@@ -449,14 +450,14 @@ public final class Resources {
     }
 
     /**
-     * @return The "genes##.xln" for this {@link GENOME_BUILD}
+     * @return The "genes##.xln" for this {@link GenomeBuild}
      */
     public Resource getGenes() {
       return getResource(build.getBuild() + "/genes" + build.getBuildInt() + ".xln");
     }
 
     /**
-     * @return The reference genome FASTA for this {@link GENOME_BUILD}
+     * @return The reference genome FASTA for this {@link GenomeBuild}
      */
     public Resource getFASTA() {
       return getFASTAResource(getPath() + ".fa");
@@ -577,15 +578,15 @@ public final class Resources {
    */
   public static class AffyGenomes extends AbstractResourceFactory {
 
-    private final GENOME_BUILD build;
+    private final GenomeBuild build;
 
-    public AffyGenomes(GENOME_BUILD build, Logger log) {
+    public AffyGenomes(GenomeBuild build, Logger log) {
       super(AffySnp6.DIR, log, AffyGenomes.class);
       this.build = build;
     }
 
     /**
-     * @return Marker positions for the specified {@link GENOME_BUILD}
+     * @return Marker positions for the specified {@link GenomeBuild}
      */
     public Resource getMarkerPositions() {
       return getResource(build.getBuild() + "_markerPositions.txt");
@@ -631,7 +632,7 @@ public final class Resources {
       return getResource("AB_lookup.dat");
     }
 
-    public AffyGenomes genome(GENOME_BUILD build) {
+    public AffyGenomes genome(GenomeBuild build) {
       return new AffyGenomes(build, log());
     }
 
@@ -653,9 +654,9 @@ public final class Resources {
    */
   public static class CNVGenomes extends AbstractResourceFactory {
 
-    private final GENOME_BUILD build;
+    private final GenomeBuild build;
 
-    public CNVGenomes(GENOME_BUILD build, Logger log) {
+    public CNVGenomes(GenomeBuild build, Logger log) {
       super(CNV.DIR, log, CNVGenomes.class);
       this.build = build;
     }
@@ -743,7 +744,7 @@ public final class Resources {
     /**
      * Helper method for chaining resource calls.
      */
-    public CNVGenomes genome(GENOME_BUILD build) {
+    public CNVGenomes genome(GenomeBuild build) {
       return new CNVGenomes(build, log());
     }
   }
@@ -1399,51 +1400,6 @@ public final class Resources {
      * @return A shorthand name for this resource
      */
     String getName();
-  }
-
-  /**
-   * Supported genome reference builds
-   */
-  public enum GENOME_BUILD {
-    HG38("hg38", 38, 2781479, 155701383),
-    HG19("hg19", 37, 2699520, 154931044),
-    HG18("hg18", 36, 2709521, 154584237);
-
-    private final String build;
-    private final int buildInt;
-    // Matched to the PAR definitions from plink: https://www.cog-genomics.org/plink/1.9/data#split_x
-    private final int par1End;
-    private final int par2Start;
-
-    private GENOME_BUILD(String build, int buildInt, int par1_end, int par2_start) {
-      this.build = build;
-      this.buildInt = buildInt;
-      this.par1End = par1_end;
-      this.par2Start = par2_start;
-    }
-
-    public String getBuild() {
-      return build;
-    }
-
-    public int getBuildInt() {
-      return buildInt;
-    }
-
-    /**
-     * @return the last position of x chromosome PAR 1
-     */
-    public int getPAR1End() {
-      return par1End;
-    }
-
-    /**
-     * @return the first position of x chromosome PAR 2
-     */
-    public int getPAR2Start() {
-      return par2Start;
-    }
-
   }
 
   /**

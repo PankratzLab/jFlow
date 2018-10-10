@@ -1,4 +1,4 @@
-package org.genvisis.seq.cnv;
+package org.genvisis.cnv.seq;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -6,11 +6,12 @@ import java.util.Hashtable;
 import java.util.concurrent.Callable;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
+import org.genvisis.cnv.seq.ExomeDepth.CALLING_TYPE;
+import org.genvisis.cnv.seq.ExomeDepth.ExomeDepthAnalysis;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.seq.cnv.ExomeDepth.CALLING_TYPE;
-import org.genvisis.seq.cnv.ExomeDepth.ExomeDepthAnalysis;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -25,7 +26,6 @@ import org.pankratzlab.common.WorkerTrain.AbstractProducer;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.stats.Maths;
-import ca.mcgill.mcb.pcingola.interval.Markers;
 
 /**
  * @author lane0212 Handles sample and global exclusions for the reference set, need in particular
@@ -35,7 +35,7 @@ public class ExomeDepthRun {
 
   public static void runExomeDepth(String bams, String vpopFile, String outputDir,
                                    String outputRoot, String rLoc, POPULATION_TYPE type,
-                                   CALLING_TYPE callingType, GENOME_BUILD build, int numthreads) {
+                                   CALLING_TYPE callingType, GenomeBuild build, int numthreads) {
     VcfPopulation vpop = null;
     String[] allReferenceBamFiles = Files.isDirectory(bams) ? Files.listFullPaths(bams,
                                                                                   BamOps.BAM_EXT)
@@ -255,7 +255,7 @@ public class ExomeDepthRun {
     String Rloc = null;
     POPULATION_TYPE type = POPULATION_TYPE.EXOME_DEPTH;
     CALLING_TYPE cType = CALLING_TYPE.AUTOSOMAL;
-    GENOME_BUILD build = GENOME_BUILD.HG19;
+    GenomeBuild build = GenomeBuild.HG19;
 
     String usage = "\n" + "seq.analysis.ExomeDepth requires 0-1 arguments\n";
     usage += "   (1) full path to a directory of or file of bams (i.e. bams=" + bams
@@ -270,7 +270,7 @@ public class ExomeDepthRun {
     usage += "   (8) calling type (i.e. callingType=" + type + " (default, options are "
              + ArrayUtils.toStr(CALLING_TYPE.values(), ",") + "))" + "";
     usage += "   (9) genome build (i.e. build=" + build + " (default, options are "
-             + ArrayUtils.toStr(GENOME_BUILD.values(), ",") + "))";
+             + ArrayUtils.toStr(GenomeBuild.values(), ",") + "))";
 
     for (String arg : args) {
       if (arg.equals("-h") || arg.equals("-help") || arg.equals("/h") || arg.equals("/help")) {
@@ -301,7 +301,7 @@ public class ExomeDepthRun {
         cType = CALLING_TYPE.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
       } else if (arg.startsWith("build=")) {
-        build = GENOME_BUILD.valueOf(ext.parseStringArg(arg, ""));
+        build = GenomeBuild.valueOf(ext.parseStringArg(arg, ""));
         numArgs--;
       } else {
         System.err.println("Error - invalid argument: " + arg);
