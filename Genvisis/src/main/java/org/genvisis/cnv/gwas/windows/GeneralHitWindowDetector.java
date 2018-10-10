@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.pankratzlab.shared.gwas.windows;
+package org.genvisis.cnv.gwas.windows;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.pankratzlab.gwas.HitWindows;
+import org.pankratzlab.shared.gwas.windows.HitWindow;
+import org.pankratzlab.shared.gwas.windows.Hittable;
 
 /**
  * Looking to implement {@link HitWindows} functionality, but operate on more general pieces.

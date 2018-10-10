@@ -2,10 +2,10 @@ package org.genvisis.one.JL.ancestry.pca;
 
 import java.io.File;
 import org.genvisis.cnv.ejml.matrix.SVD;
+import org.genvisis.cnv.gwas.pca.ancestry.AncestryPCA;
+import org.genvisis.cnv.gwas.pca.ancestry.PlinkDataMatrixLoader;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.gwas.pca.ancestry.AncestryPCA;
-import org.pankratzlab.shared.gwas.pca.ancestry.PlinkDataMatrixLoader;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 

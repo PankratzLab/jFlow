@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.File;
 import java.util.List;
@@ -9,9 +9,6 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.MarkerQC;
-import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -25,7 +22,7 @@ public abstract class Qc {
   protected final String qcDir;
   protected final String plinkroot;
   protected final Logger log;
-  protected final Map<QC_METRIC, String> markerQCThresholds;
+  protected final Map<QcMetric, String> markerQCThresholds;
 
   /**
    * @param sourceDir Directory with plink files to run from
@@ -34,7 +31,7 @@ public abstract class Qc {
    *          for defaults
    * @param log
    */
-  protected Qc(String sourceDir, String plinkPrefix, Map<QC_METRIC, String> markerQCThresholds,
+  protected Qc(String sourceDir, String plinkPrefix, Map<QcMetric, String> markerQCThresholds,
                Logger log) {
     super();
     sourceDir = ext.verifyDirFormat(sourceDir);

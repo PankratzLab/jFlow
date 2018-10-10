@@ -8,6 +8,7 @@ import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
+import org.genvisis.cnv.gwas.Qc;
 import org.genvisis.cnv.hmm.CNVCaller;
 import org.genvisis.cnv.qc.IlluminaMarkerBlast;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
@@ -34,7 +35,6 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.gwas.RelationAncestryQc;
 import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
-import org.pankratzlab.shared.gwas.Qc;
 import org.pankratzlab.shared.qsub.Qsub;
 
 public class GenvisisWorkflow {

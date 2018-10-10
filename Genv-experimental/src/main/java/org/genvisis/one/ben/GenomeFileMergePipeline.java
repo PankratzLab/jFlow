@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gwas.Qc;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -18,7 +19,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.shared.gwas.Qc;
 
 public class GenomeFileMergePipeline {
 

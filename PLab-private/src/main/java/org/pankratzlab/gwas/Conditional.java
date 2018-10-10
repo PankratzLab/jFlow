@@ -4,7 +4,7 @@
 // if equalsignorecase(chr) and position are present, use that instead
 // can contain Discovery if Replication or Replication if Discovery as well as Meta-results
 
-package org.pankratzlab.shared.gwas;
+package org.pankratzlab.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,7 +16,8 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.seq.filesys.SnpMarkerSet;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
+import org.genvisis.cnv.gwas.DosageData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountHash;
@@ -28,10 +29,6 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Zip;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.CreateDatabaseFromPlink;
-import org.pankratzlab.gwas.Mach;
-import org.pankratzlab.gwas.Metal;
-import org.pankratzlab.gwas.Probabel;
 import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.shared.stats.ProbDist;

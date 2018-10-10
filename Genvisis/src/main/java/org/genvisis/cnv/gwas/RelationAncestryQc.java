@@ -1,4 +1,4 @@
-package org.pankratzlab.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.File;
 import java.util.Collections;
@@ -13,9 +13,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.Plink;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
-import org.pankratzlab.shared.gwas.Qc;
 import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {
@@ -56,14 +55,14 @@ public class RelationAncestryQc extends Qc {
                                                    UNRELATEDS_FILENAME}};
   public static final String ARGS_KEEPGENOME = "keepGenomeInfoForRelatedsOnly";
 
-  public static final Map<QC_METRIC, String> DEFAULT_QC_METRIC_THRESHOLDS = MarkerQC.DEFAULT_METRIC_THRESHOLDS;
-  public static final Set<QC_METRIC> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QC_METRIC.CALLRATE));
+  public static final Map<QcMetric, String> DEFAULT_QC_METRIC_THRESHOLDS = MarkerQC.DEFAULT_METRIC_THRESHOLDS;
+  public static final Set<QcMetric> CUSTOMIZABLE_QC_METRICS = Collections.unmodifiableSet(EnumSet.of(QcMetric.CALLRATE));
 
   /**
    * @see Qc#Qc(String, String, Map, Logger)
    */
   public RelationAncestryQc(String soureDir, String plinkPrefix,
-                            Map<QC_METRIC, String> markerQCThresholds, Logger log) {
+                            Map<QcMetric, String> markerQCThresholds, Logger log) {
     super(soureDir, plinkPrefix, markerQCThresholds, log);
   }
 
@@ -184,7 +183,7 @@ public class RelationAncestryQc extends Qc {
    */
   public static void fullGamut(String dir, String plinkPrefix,
                                boolean keepGenomeInfoForRelatedsOnly, Logger log,
-                               Map<QC_METRIC, String> markerQCThresholds) {
+                               Map<QcMetric, String> markerQCThresholds) {
     new RelationAncestryQc(dir, plinkPrefix, markerQCThresholds,
                            log).run(keepGenomeInfoForRelatedsOnly);
   }
@@ -210,8 +209,8 @@ public class RelationAncestryQc extends Qc {
     c.addArgWithDefault(CLI.ARG_PLINKROOT, CLI.DESC_PLINKROOT, Qc.DEFAULT_PLINKROOT);
     c.addArgWithDefault(RelationAncestryQc.ARGS_KEEPGENOME, "if no MDS will be run, smaller file",
                         String.valueOf(true));
-    Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(DEFAULT_QC_METRIC_THRESHOLDS);
-    for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
+    Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(DEFAULT_QC_METRIC_THRESHOLDS);
+    for (QcMetric metric : CUSTOMIZABLE_QC_METRICS) {
       String defaultThreshold = markerQCThresholds.get(metric);
       c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
     }
@@ -222,7 +221,7 @@ public class RelationAncestryQc extends Qc {
     String dir = c.get(CLI.ARG_INDIR);
     String inputPlinkroot = c.get(CLI.ARG_PLINKROOT);
     boolean keepGenomeInfoForRelatedsOnly = Boolean.parseBoolean(c.get(RelationAncestryQc.ARGS_KEEPGENOME));
-    for (QC_METRIC metric : CUSTOMIZABLE_QC_METRICS) {
+    for (QcMetric metric : CUSTOMIZABLE_QC_METRICS) {
       markerQCThresholds.put(metric, c.get(metric.getKey()));
     }
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));

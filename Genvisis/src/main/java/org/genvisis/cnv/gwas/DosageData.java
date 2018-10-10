@@ -1,6 +1,6 @@
 // -Xms6G -Xmx6G
 // expand to dynamically load/save a certain chunk of markers at a time
-package org.pankratzlab.shared.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.genvisis.cnv.manage.PlinkData;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
@@ -42,7 +42,6 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.PSF.Plink;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
@@ -752,7 +751,7 @@ public class DosageData implements Serializable {
       writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
                                            + (logistic ? "logistic" : "linear"));
       w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
-      String[] arr = logistic ? Plink.LOGISTIC_SE_HEADER : Plink.LINEAR_SE_HEADER;
+      String[] arr = logistic ? PSF.Plink.LOGISTIC_SE_HEADER : PSF.Plink.LINEAR_SE_HEADER;
       line = Arrays.copyOf(arr, arr.length);
       line[1] = line[1] + "      ";
       line[2] = line[1] + "      ";

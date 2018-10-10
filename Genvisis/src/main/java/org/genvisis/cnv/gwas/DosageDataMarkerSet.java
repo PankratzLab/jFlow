@@ -1,8 +1,6 @@
 // -Xmx1024M
 // added in centiMoragns to the 4th column, make sure that's not causing any trouble for you
-package org.pankratzlab.shared.gwas;
-
-import org.genvisis.seq.filesys.SnpMarkerSet;
+package org.genvisis.cnv.gwas;
 
 public class DosageDataMarkerSet {
 //public class DosageDataMarkerSet extends SnpMarkerSet {

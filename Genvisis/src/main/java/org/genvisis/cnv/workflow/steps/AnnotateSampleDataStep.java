@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gwas.Qc;
 import org.genvisis.cnv.qc.SampleQC;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
@@ -15,7 +16,6 @@ import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.shared.gwas.Qc;
 
 public class AnnotateSampleDataStep extends Step {
 

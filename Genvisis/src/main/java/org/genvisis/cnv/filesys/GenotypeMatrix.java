@@ -26,10 +26,6 @@ public class GenotypeMatrix implements Serializable {
   public static final long serialVersionUID = 1L;
   public static final int CHARGE_S_HOUSTON_FORMAT = 0;
   public static final int CHARGE_S_BOSTON_FORMAT = 1;
-  public static final String[] PLINK_LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-                                                     "OR", "SE", "L95", "U95", "STAT", "P"};
-  public static final String[] PLINK_LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-                                                   "BETA", "SE", "L95", "U95", "STAT", "P"};
   public static final int IID_TYPE = 0;
 
   public static final int INDIVIDUAL_DOMINANT_FORMAT = 0;
@@ -316,7 +312,7 @@ public class GenotypeMatrix implements Serializable {
       writer = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".results."
                                            + (logistic ? "logistic" : "linear"));
       w2 = Files.openAppropriateWriter(ext.rootOf(phenoFile, false) + ".se.metal");
-      String[] arr = logistic ? PLINK_LOGISTIC_SE_HEADER : PLINK_LINEAR_SE_HEADER;
+      String[] arr = logistic ? PSF.Plink.LOGISTIC_SE_HEADER : PSF.Plink.LINEAR_SE_HEADER;
       line = Arrays.copyOf(arr, arr.length);
       line[1] = line[1] + "      ";
       line[2] = line[1] + "      ";

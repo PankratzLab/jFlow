@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.gwas.windows;
+package org.genvisis.cnv.gwas.windows;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -11,15 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.genvisis.cnv.filesys.Positions;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SciStringComparator;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
+import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.shared.gwas.windows.MultiHit;
+import org.pankratzlab.shared.gwas.windows.PFileStructure;
+import org.pankratzlab.shared.gwas.windows.WindowThreshold;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 

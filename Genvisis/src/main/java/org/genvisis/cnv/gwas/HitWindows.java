@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.Positions;
-import org.genvisis.seq.filesys.SnpMarkerSet;
+import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -19,6 +18,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.gwas.HitWindowsLD;
+import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 
 public class HitWindows {

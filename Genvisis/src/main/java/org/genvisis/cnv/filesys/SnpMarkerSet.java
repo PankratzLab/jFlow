@@ -19,6 +19,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.pankratzlab.common.link.LinkageMap;
+import org.genvisis.cnv.gwas.DosageData;
 import org.genvisis.seq.biostatistics.MapSNPsAndGenes;
 import org.genvisis.seq.biostatistics.ParseSNPlocations;
 import org.pankratzlab.common.Aliases;
@@ -36,7 +37,6 @@ import org.pankratzlab.shared.filesys.PlainTextExport;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.filesys.SerialHash;
-import org.pankratzlab.shared.gwas.DosageData;
 import com.google.common.primitives.Ints;
 
 public class SnpMarkerSet implements Serializable, PlainTextExport {

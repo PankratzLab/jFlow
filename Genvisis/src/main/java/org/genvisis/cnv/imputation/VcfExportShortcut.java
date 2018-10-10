@@ -9,6 +9,7 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
+import org.genvisis.cnv.gwas.Qc;
 import org.genvisis.cnv.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
@@ -23,7 +24,6 @@ import org.pankratzlab.gwas.FurtherAnalysisQc;
 import org.pankratzlab.gwas.MarkerQC;
 import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import org.pankratzlab.shared.collect.MultisetUtils;
-import org.pankratzlab.shared.gwas.Qc;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 

@@ -1,4 +1,4 @@
-package org.pankratzlab.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +22,6 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.SerialHash;
 import org.pankratzlab.shared.parse.GenParser;
 import org.pankratzlab.shared.stats.Maths;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -45,8 +44,8 @@ public class MarkerQC {
   // public static final String[] THRESHOLDS = {"snp", "chr", "maf", "f_miss", "hwe", "hetero",
   // "minmishap", "p_miss"};
 
-  public static final Map<QC_METRIC, String> DEFAULT_METRIC_THRESHOLDS;
-  public static final Map<QC_METRIC, String> DEFAULT_METRIC_FILENAMES;
+  public static final Map<QcMetric, String> DEFAULT_METRIC_THRESHOLDS;
+  public static final Map<QcMetric, String> DEFAULT_METRIC_FILENAMES;
 
   public static final String DEFAULT_ILLUMINA_CALLRATE_THRESHOLD = "<0.98";
   public static final String DEFAULT_AFFY_CALLRATE_THRESHOLD = "<0.95";
@@ -55,90 +54,43 @@ public class MarkerQC {
                                                                                "markers=freq.frq,1,header");
 
   static {
-    Map<QC_METRIC, String> defaultMetricThresholds = Maps.newHashMap();
-    defaultMetricThresholds.put(QC_METRIC.CHR, "<1");
-    defaultMetricThresholds.put(QC_METRIC.MAF, "<0.01");
-    defaultMetricThresholds.put(QC_METRIC.CALLRATE, DEFAULT_ILLUMINA_CALLRATE_THRESHOLD);
-    defaultMetricThresholds.put(QC_METRIC.HWE, "<0.00001");
-    defaultMetricThresholds.put(QC_METRIC.MISHAP_HETERO, "<0.0001");
-    defaultMetricThresholds.put(QC_METRIC.MISHAP_MIN, "<0.0001");
-    defaultMetricThresholds.put(QC_METRIC.P_MISS, "<0.0001");
-    defaultMetricThresholds.put(QC_METRIC.P_GENDER, "<1E-7");
-    defaultMetricThresholds.put(QC_METRIC.P_GENDER_MISS, "<0.0001");
+    Map<QcMetric, String> defaultMetricThresholds = Maps.newHashMap();
+    defaultMetricThresholds.put(QcMetric.CHR, "<1");
+    defaultMetricThresholds.put(QcMetric.MAF, "<0.01");
+    defaultMetricThresholds.put(QcMetric.CALLRATE, DEFAULT_ILLUMINA_CALLRATE_THRESHOLD);
+    defaultMetricThresholds.put(QcMetric.HWE, "<0.00001");
+    defaultMetricThresholds.put(QcMetric.MISHAP_HETERO, "<0.0001");
+    defaultMetricThresholds.put(QcMetric.MISHAP_MIN, "<0.0001");
+    defaultMetricThresholds.put(QcMetric.P_MISS, "<0.0001");
+    defaultMetricThresholds.put(QcMetric.P_GENDER, "<1E-7");
+    defaultMetricThresholds.put(QcMetric.P_GENDER_MISS, "<0.0001");
     DEFAULT_METRIC_THRESHOLDS = Collections.unmodifiableMap(defaultMetricThresholds);
 
-    Map<QC_METRIC, String> defaultMetricFilenames = Maps.newEnumMap(QC_METRIC.class);
-    defaultMetricFilenames.put(QC_METRIC.CHR, "freq.frq");
-    defaultMetricFilenames.put(QC_METRIC.MAF, "freq.frq");
-    defaultMetricFilenames.put(QC_METRIC.CALLRATE, "missing.lmiss");
-    defaultMetricFilenames.put(QC_METRIC.HWE, "hardy.hwe");
-    defaultMetricFilenames.put(QC_METRIC.MISHAP_HETERO, "mishap.missing.hap");
-    defaultMetricFilenames.put(QC_METRIC.MISHAP_MIN, "mishap.missing.hap");
-    defaultMetricFilenames.put(QC_METRIC.P_MISS, "test.missing.missing");
-    defaultMetricFilenames.put(QC_METRIC.P_GENDER, "gender.assoc");
-    defaultMetricFilenames.put(QC_METRIC.P_GENDER_MISS, "gender.missing");
+    Map<QcMetric, String> defaultMetricFilenames = Maps.newEnumMap(QcMetric.class);
+    defaultMetricFilenames.put(QcMetric.CHR, "freq.frq");
+    defaultMetricFilenames.put(QcMetric.MAF, "freq.frq");
+    defaultMetricFilenames.put(QcMetric.CALLRATE, "missing.lmiss");
+    defaultMetricFilenames.put(QcMetric.HWE, "hardy.hwe");
+    defaultMetricFilenames.put(QcMetric.MISHAP_HETERO, "mishap.missing.hap");
+    defaultMetricFilenames.put(QcMetric.MISHAP_MIN, "mishap.missing.hap");
+    defaultMetricFilenames.put(QcMetric.P_MISS, "test.missing.missing");
+    defaultMetricFilenames.put(QcMetric.P_GENDER, "gender.assoc");
+    defaultMetricFilenames.put(QcMetric.P_GENDER_MISS, "gender.missing");
     DEFAULT_METRIC_FILENAMES = Collections.unmodifiableMap(defaultMetricFilenames);
   }
 
-  public static enum QC_METRIC {
-    CHR("Chromosome Number"),
-    MAF("Minor Allele Frequency"),
-    CALLRATE("Marker Callrate"),
-    HWE("p-value for Hardy-Weinberg Equilibrium"),
-    MISHAP_HETERO("p-value for heterozygous flanking mishaps"),
-    MISHAP_MIN("p-value for all mishaps"),
-    P_MISS("p-value for case-control association with missingess"),
-    P_GENDER("p-value for sex association"),
-    P_GENDER_MISS("p-value for sex association with missigness");
-
-    private final String key;
-    private final String description;
-
-    QC_METRIC(String description) {
-      this(description, null);
-    }
-
-    QC_METRIC(String description, String key) {
-      this.description = description;
-      this.key = key != null ? key : this.name().toLowerCase();
-    }
-
-    public String getKey() {
-      return key;
-    }
-
-    public String getDescription() {
-      return description;
-    }
-
-    public String getCLIDescription() {
-      String userDescription = getUserDescription();
-      return userDescription.substring(0, 1).toLowerCase() + userDescription.substring(1);
-    }
-
-    public String getUserDescription() {
-      StringBuilder descriptionBuilder = new StringBuilder();
-      descriptionBuilder.append("Threshold to reject ").append(getDescription())
-                        .append(", using: ");
-      descriptionBuilder.append(Joiner.on(", ").join(Maths.OPERATORS));
-      descriptionBuilder.append(" (<0 to not filter)");
-      return descriptionBuilder.toString();
-    }
-
-  }
-
   /**
-   * @param metricThresholds Map from {@link QC_METRIC} to desired threshold, all of the keys will
+   * @param metricThresholds Map from {@link QcMetric} to desired threshold, all of the keys will
    *          be included
    * @param metricFilenames Map from QC_METRIC to filenames, keys not in {@code metricThresholds}
    *          will be ignored
    * @return lines to use in CRF
    */
-  private static List<String> generateCRFLines(Map<QC_METRIC, String> metricThresholds,
-                                               Map<QC_METRIC, String> metricFilenames) {
+  private static List<String> generateCRFLines(Map<QcMetric, String> metricThresholds,
+                                               Map<QcMetric, String> metricFilenames) {
     List<String> crfLines = Lists.newArrayList(DEFAULT_CRF_START_LINES);
-    for (Map.Entry<QC_METRIC, String> metricThreshold : metricThresholds.entrySet()) {
-      QC_METRIC metric = metricThreshold.getKey();
+    for (Map.Entry<QcMetric, String> metricThreshold : metricThresholds.entrySet()) {
+      QcMetric metric = metricThreshold.getKey();
       String threshold = metricThreshold.getValue();
       crfLines.add(metric.getKey() + "=" + metricFilenames.get(metric) + "," + threshold);
     }
@@ -156,7 +108,7 @@ public class MarkerQC {
    * {@link #generateCRF(String, String, Map, Map)} using the default filenames
    */
   public static void generateCRF(String targetDir, String outfile,
-                                 Map<QC_METRIC, String> metricThresholds) {
+                                 Map<QcMetric, String> metricThresholds) {
     generateCRF(targetDir, outfile, metricThresholds, DEFAULT_METRIC_FILENAMES);
   }
 
@@ -165,13 +117,13 @@ public class MarkerQC {
    * 
    * @param targetDir directory with files to parse
    * @param outfile the filename of the CRF to generate
-   * @param metricThresholds thresholds to use for each desired {@link QC_METRIC}
+   * @param metricThresholds thresholds to use for each desired {@link QcMetric}
    * @param metricFilenames filenames to use for each desired {@code QC_METRIC}, any not in
    *          {@code metricThresholds} are ignored
    */
   public static void generateCRF(String targetDir, String outfile,
-                                 Map<QC_METRIC, String> metricThresholds,
-                                 Map<QC_METRIC, String> metricFilenames) {
+                                 Map<QcMetric, String> metricThresholds,
+                                 Map<QcMetric, String> metricFilenames) {
     List<String> lines = generateCRFLines(metricThresholds, metricFilenames);
     lines.add(0, COMMAND);
     lines.add(1, "dir=" + targetDir);

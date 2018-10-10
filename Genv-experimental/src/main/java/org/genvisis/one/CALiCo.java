@@ -23,10 +23,10 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Unique;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.gwas.Conditional;
 import org.pankratzlab.gwas.Metal;
 import org.pankratzlab.gwas.ResultsPackager;
 import org.pankratzlab.gwas.SkatMeta2;
-import org.pankratzlab.shared.gwas.Conditional;
 import org.pankratzlab.shared.parse.GenParser;
 import org.pankratzlab.shared.stats.RegressionModel;
 

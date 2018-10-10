@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.genvisis.cnv.gwas.windows.GeneralHitWindowDetector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.shared.gwas.windows.BasicHit;
-import org.pankratzlab.shared.gwas.windows.GeneralHitWindowDetector;
 import org.pankratzlab.shared.gwas.windows.HitWindow;
 
 public class HitWindowTest {

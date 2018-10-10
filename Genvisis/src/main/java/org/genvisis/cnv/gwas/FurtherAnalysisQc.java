@@ -1,4 +1,4 @@
-package org.pankratzlab.shared.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,19 +7,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.MarkerQC;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 public class FurtherAnalysisQc extends Qc {
 
-  private static final Map<QC_METRIC, String> DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS;
-  private static final Map<QC_METRIC, String> DEFAULT_AFFY_MARKER_QC_THRESHOLDS;
+  private static final Map<QcMetric, String> DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS;
+  private static final Map<QcMetric, String> DEFAULT_AFFY_MARKER_QC_THRESHOLDS;
 
   public static final String FURTHER_ANALYSIS_DIR = "further_analysis_QC/";
   public static final String FURTHER_ANALYSIS_QC_PLINK_SUFFIX = "_QCd";
@@ -32,23 +30,23 @@ public class FurtherAnalysisQc extends Qc {
   public static final String BONFERRONI_CORRECTED_P_THRESHOLD = "<1E-7";
 
   static {
-    Map<QC_METRIC, String> defaultIlluminaMetricThresholds = Maps.newEnumMap(QC_METRIC.class);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.CHR, "<1");
-    defaultIlluminaMetricThresholds.put(QC_METRIC.MAF, "<0");
-    defaultIlluminaMetricThresholds.put(QC_METRIC.CALLRATE,
+    Map<QcMetric, String> defaultIlluminaMetricThresholds = Maps.newEnumMap(QcMetric.class);
+    defaultIlluminaMetricThresholds.put(QcMetric.CHR, "<1");
+    defaultIlluminaMetricThresholds.put(QcMetric.MAF, "<0");
+    defaultIlluminaMetricThresholds.put(QcMetric.CALLRATE,
                                         MarkerQC.DEFAULT_ILLUMINA_CALLRATE_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.HWE, BONFERRONI_CORRECTED_P_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.MISHAP_HETERO, BONFERRONI_CORRECTED_P_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.MISHAP_MIN, BONFERRONI_CORRECTED_P_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.P_MISS, BONFERRONI_CORRECTED_P_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.P_GENDER, BONFERRONI_CORRECTED_P_THRESHOLD);
-    defaultIlluminaMetricThresholds.put(QC_METRIC.P_GENDER_MISS, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.HWE, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.MISHAP_HETERO, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.MISHAP_MIN, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.P_MISS, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.P_GENDER, BONFERRONI_CORRECTED_P_THRESHOLD);
+    defaultIlluminaMetricThresholds.put(QcMetric.P_GENDER_MISS, BONFERRONI_CORRECTED_P_THRESHOLD);
 
     DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS = Collections.unmodifiableMap(defaultIlluminaMetricThresholds);
   }
   static {
-    Map<QC_METRIC, String> defaultAffyMetricThresholds = Maps.newEnumMap(DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS);
-    defaultAffyMetricThresholds.put(QC_METRIC.CALLRATE, MarkerQC.DEFAULT_AFFY_CALLRATE_THRESHOLD);
+    Map<QcMetric, String> defaultAffyMetricThresholds = Maps.newEnumMap(DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS);
+    defaultAffyMetricThresholds.put(QcMetric.CALLRATE, MarkerQC.DEFAULT_AFFY_CALLRATE_THRESHOLD);
 
     DEFAULT_AFFY_MARKER_QC_THRESHOLDS = Collections.unmodifiableMap(defaultAffyMetricThresholds);
   }
@@ -67,7 +65,7 @@ public class FurtherAnalysisQc extends Qc {
    * @param log @see Qc#Qc(String, String, Map, Logger)
    */
   public FurtherAnalysisQc(String sourceDir, String plinkPrefix,
-                           Map<QC_METRIC, String> markerQCThresholds, String unrelatedsFile,
+                           Map<QcMetric, String> markerQCThresholds, String unrelatedsFile,
                            String europeansFile, Logger log) {
     super(sourceDir, plinkPrefix, markerQCThresholds, log);
     this.unrelatedsFile = unrelatedsFile;
@@ -107,7 +105,7 @@ public class FurtherAnalysisQc extends Qc {
     }
   }
 
-  public static Map<QC_METRIC, String> getDefaultMarkerQCThresholds(Project.ARRAY arrayType) {
+  public static Map<QcMetric, String> getDefaultMarkerQCThresholds(Project.ARRAY arrayType) {
     switch (arrayType) {
       case AFFY_GW6:
       case AFFY_GW6_CN:
@@ -131,7 +129,7 @@ public class FurtherAnalysisQc extends Qc {
     c.addArg(ARG_EUROPEANS,
              "file of european samples to use for Hardy-Weinberg Equilibirum filtering, one FID/IID pair per line",
              "europeans.txt");
-    for (QC_METRIC metric : QC_METRIC.values()) {
+    for (QcMetric metric : QcMetric.values()) {
       String defaultThreshold = DEFAULT_ILLUMINA_MARKER_QC_THRESHOLDS.get(metric);
       c.addArgWithDefault(metric.getKey(), metric.getCLIDescription(), defaultThreshold);
     }
@@ -150,8 +148,8 @@ public class FurtherAnalysisQc extends Qc {
     if (europeansFile != null) {
       europeansFile = new File(europeansFile).getAbsolutePath();
     }
-    Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
-    for (QC_METRIC metric : QC_METRIC.values()) {
+    Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(QcMetric.class);
+    for (QcMetric metric : QcMetric.values()) {
       markerQCThresholds.put(metric, c.get(metric.getKey()));
     }
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));

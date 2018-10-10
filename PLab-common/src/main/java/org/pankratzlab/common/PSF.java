@@ -400,6 +400,11 @@ public class PSF {
       return root + FAM;
     }
 
+    public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+     "OR", "SE", "L95", "U95", "STAT", "P"};
+    public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
+     "BETA", "SE", "L95", "U95", "STAT", "P"};
+
   }
 
 }

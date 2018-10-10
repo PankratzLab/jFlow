@@ -8,13 +8,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
-import org.genvisis.cnv.filesys.Positions;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.filesys.Positions;
 
 // TODO, this is a bit sprawling for a simple thing
 public class HitWindowsLD {

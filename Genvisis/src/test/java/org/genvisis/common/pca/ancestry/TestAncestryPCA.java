@@ -10,11 +10,11 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.genvisis.cnv.ejml.matrix.MatrixDataLoading;
 import org.genvisis.cnv.ejml.matrix.NamedRealMatrix;
+import org.genvisis.cnv.gwas.pca.ancestry.AncestryPCA;
 import org.junit.Test;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
-import org.pankratzlab.shared.gwas.pca.ancestry.AncestryPCA;
 
 /**
  * A few basic tests for {@link AncestryPCA}.<br>
