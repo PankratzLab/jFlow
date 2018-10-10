@@ -1,11 +1,11 @@
-package org.pankratzlab.shared.stats;
+package org.genvisis.cnv.analysis.pca;
 
-import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.stats.StatsCrossTabs;
 import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
