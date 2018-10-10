@@ -30,8 +30,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import org.genvisis.cnv.GenvisisManifest;
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.LauncherManifest;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.manage.ReferenceGenome;
@@ -778,7 +778,7 @@ public class Project implements PropertyChangeListener {
       setSourceFileHeaders(headers);
     }
 
-    log.report(LauncherManifest.getGenvisisInfo());
+    log.report(GenvisisManifest.getGenvisisInfo());
     log.report("\nJava version: " + System.getProperty("java.version"));
 
     try {

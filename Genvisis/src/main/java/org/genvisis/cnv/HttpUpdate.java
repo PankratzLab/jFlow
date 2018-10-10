@@ -18,6 +18,7 @@ import javax.swing.JTextArea;
 import org.genvisis.cnv.startup.AbstractStartupCheck;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HttpDownloadUtility;
+import org.pankratzlab.common.LauncherManifest;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.VersionHelper;
@@ -121,7 +122,7 @@ public class HttpUpdate {
     VersionStatus vs = null;
 
     RemoteJarStatus remoteJarStatus = getRemoteJarVersion(REMOTE_JAR, log);
-    LauncherManifest currentManifest = LauncherManifest.loadGenvisisManifest();
+    LauncherManifest currentManifest = GenvisisManifest.loadGenvisisManifest();
     // This will peel off "-SNAPSHOT", etc...
     Version releaseVersion = VersionHelper.lastRelease(currentManifest.getVersion());
 
@@ -223,7 +224,7 @@ public class HttpUpdate {
 
     public UpdateInfo(String directoryToSave, RemoteJarStatus remoteJarStatus, Logger log) {
       newFileDir = directoryToSave;
-      manifest = LauncherManifest.loadGenvisisManifest();
+      manifest = GenvisisManifest.loadGenvisisManifest();
       new File(newFileDir).mkdirs();
       newJarFile = newFileDir + ext.addToRoot(PSF.Java.GENVISIS,
                                               remoteJarStatus.getVersion().getNormalVersion());

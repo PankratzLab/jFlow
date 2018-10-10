@@ -9,7 +9,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import javax.swing.JOptionPane;
 import org.genvisis.cnv.Launch;
-import org.genvisis.cnv.LauncherManifest;
+import org.pankratzlab.common.LauncherManifest;
 
 /**
  * This is an application entry point that currently simply delegates to {@link Launch}. It was

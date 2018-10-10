@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import javax.swing.JTextArea;
-import org.genvisis.cnv.LauncherManifest;
 
 public class Logger implements Serializable {
 

@@ -1,16 +1,15 @@
-package org.genvisis.cnv;
+package org.pankratzlab.common;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Calendar;
-import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ext;
+import javax.annotation.Nullable;
 import com.github.zafarkhaja.semver.Version;
 
 /**
@@ -29,7 +28,7 @@ public class LauncherManifest {
   public static final String BUILD_COPYRIGHT = "Copyright";
   public static final String BUILD_COMMIT_SHA = "Implementation-Build";
 
-  private static final Class<?> DEFAULT_LAUNCH_CLASS = Launch.class;
+  private static final Class<?> DEFAULT_LAUNCH_CLASS = LauncherManifest.class;
 
   private static Class<?> launchClass = null;
 
@@ -132,24 +131,20 @@ public class LauncherManifest {
   }
 
   /**
-   * @return An informative string about the current genvisis version
-   */
-  public static String getGenvisisInfo() {
-    try {
-      LauncherManifest manifest = LauncherManifest.loadGenvisisManifest();// until it always works
-      return "Genvisis, " + manifest.getVersion().getNormalVersion() + "\n"
-             + manifest.getCopyright() + "\n\n" + (new Date());
-    } catch (Exception e) {
-      return "Genvisis, v0.0.0\n(c)2009-" + Calendar.getInstance().get(Calendar.YEAR)
-             + " Nathan Pankratz, GNU General Public License, v2\n\n" + (new Date());
-    }
-  }
-
-  /**
    * @return The manifest for the jar file used to launch this application
    */
   public static LauncherManifest loadGenvisisManifest() {
+    return validateAndLoadManifest(null);
+  }
+
+  /**
+   * As {@link #loadManifest(File)}, but validates the file with the given method
+   */
+  public static LauncherManifest validateAndLoadManifest(@Nullable Function<File, File> fileValidator) {
     File file = getCurrentFile();
+    if (fileValidator != null) {
+      file = fileValidator.apply(file);
+    }
     return loadManifest(file);
   }
 
@@ -184,20 +179,14 @@ public class LauncherManifest {
   private static File getCurrentFile() {
     String jarPath = getLaunchClass().getProtectionDomain().getCodeSource().getLocation().getFile();
     try {
-      jarPath = URLDecoder.decode(jarPath, ext.UTF_8);
+      jarPath = URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name());
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
 
     File file = new File(jarPath);
 
-    if (!file.exists() || !file.getAbsolutePath().endsWith(".jar")) {
-      file = new File("../" + PSF.Java.GENVISIS);
-    }
     return file;
   }
 
-  public static void main(String[] args) {
-    loadGenvisisManifest();
-  }
 }

@@ -99,6 +99,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
+import org.pankratzlab.common.LauncherManifest;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.VersionHelper;
@@ -463,7 +464,7 @@ public class Launch extends JFrame implements ActionListener {
     LauncherManifest manifest = new LauncherManifest();
     try {
       // try not to break the launch so we will catch anything
-      manifest = LauncherManifest.loadGenvisisManifest();
+      manifest = GenvisisManifest.loadGenvisisManifest();
     } catch (Exception e) {
       // It's OK if there is no manifest
     }
