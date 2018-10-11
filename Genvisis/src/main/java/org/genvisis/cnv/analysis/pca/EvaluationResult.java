@@ -15,7 +15,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.ICC;
-import org.pankratzlab.phenoprep.Heritability;
 
 class EvaluationResult implements Serializable {
 
@@ -182,7 +181,6 @@ class EvaluationResult implements Serializable {
     // System.exit(1);
     generateHeritabilityDb(proj, evaluationResults, otherData, otherDataTitle, samplesToEvaluate,
                            db, ped, crf, log);
-    Heritability.fromParameters(crf, true, log);
     EvalHeritabilityResult evalHeritabilityResult = new EvalHeritabilityResult(ped, db, crf);
     return evalHeritabilityResult;
   }
@@ -278,7 +276,6 @@ class EvaluationResult implements Serializable {
         Files.writeArray(sampsHave.toArray(new String[sampsHave.size()]), have);
 
       }
-      Heritability.developCrf(ped, output, crf, ext.rootOf(output), titles, log);
     } catch (Exception e) {
       log.reportError("Error writing to " + output);
       log.reportException(e);
