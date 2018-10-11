@@ -6,7 +6,7 @@ import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 

@@ -21,7 +21,7 @@ import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.common.stats.LeastSquares;
 
 public class OneDPanel extends AbstractPanel2 {
 

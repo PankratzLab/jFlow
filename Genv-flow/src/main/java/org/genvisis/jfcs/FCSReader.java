@@ -9,7 +9,7 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gwas.bgen.BGENBitMath;
+import org.pankratzlab.utils.gwas.bgen.BGENBitMath;
 
 public class FCSReader {
 

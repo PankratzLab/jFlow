@@ -18,8 +18,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.Positions;
 
 /**
  * Handles the project and phenotype system used by PlinkSeq

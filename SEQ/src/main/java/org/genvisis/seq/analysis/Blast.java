@@ -10,13 +10,13 @@ import org.pankratzlab.common.CmdLineProcess.ERR_Mode;
 import org.pankratzlab.common.CmdLineProcess.INPUT_Mode;
 import org.pankratzlab.common.CmdLineProcess.OUTPUT_Mode;
 import org.pankratzlab.common.CmdLineProcess.StandardInputProvider;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 import htsjdk.tribble.annotation.Strand;
 
 public class Blast {

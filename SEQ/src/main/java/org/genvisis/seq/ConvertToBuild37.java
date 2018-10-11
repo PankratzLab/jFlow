@@ -13,8 +13,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.SerialHash;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.SerialHash;
 
 public class ConvertToBuild37 {
 
