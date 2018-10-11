@@ -1,9 +1,9 @@
 package org.pankratzlab.common;
 
 import java.io.IOException;
-import org.pankratzlab.shared.stats.ContingencyTable;
-import org.pankratzlab.shared.stats.Maths;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.ContingencyTable;
+import org.pankratzlab.common.stats.Maths;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class AlleleFreq {
 

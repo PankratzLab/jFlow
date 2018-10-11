@@ -13,10 +13,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ArrayUtils.BooleanClassifier;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.Correlation;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.ICC;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.Correlation;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.ICC;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class CorrectionEvaluator extends AbstractProducer<EvaluationResult> implements Serializable {

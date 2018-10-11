@@ -16,9 +16,9 @@ import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.filesys.FamilyStructure;
-import org.pankratzlab.shared.filesys.FamilyStructure.PedigreeUtils;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.filesys.FamilyStructure.PedigreeUtils;
 
 public class testKSPOD {
 

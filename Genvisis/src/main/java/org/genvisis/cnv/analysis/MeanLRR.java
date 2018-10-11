@@ -23,8 +23,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.RegressionModel;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Floats;
 

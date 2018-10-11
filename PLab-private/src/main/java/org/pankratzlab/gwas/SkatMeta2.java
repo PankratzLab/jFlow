@@ -22,8 +22,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.parse.LookupTable;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.parse.LookupTable;
+import org.pankratzlab.common.qsub.Qsub;
 
 public class SkatMeta2 {
 

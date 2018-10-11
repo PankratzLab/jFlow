@@ -7,7 +7,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
-import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.common.stats.Correlation;
 
 public class CompareDuplicates {
 

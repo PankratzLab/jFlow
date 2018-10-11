@@ -22,7 +22,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import com.google.common.primitives.Doubles;

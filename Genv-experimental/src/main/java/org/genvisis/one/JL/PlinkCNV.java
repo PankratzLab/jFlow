@@ -21,10 +21,10 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.LeastSquares;
 
 public class PlinkCNV {
 

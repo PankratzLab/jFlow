@@ -19,8 +19,8 @@ import org.genvisis.cnv.plots.ScatterPlot;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**
  * Class to facilitate correcting X/Y intensity data; TODO, intensity only correction, should be

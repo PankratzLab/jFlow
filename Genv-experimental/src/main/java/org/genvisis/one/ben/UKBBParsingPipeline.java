@@ -59,10 +59,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.gwas.bgen.BGENBitMath;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.utils.gwas.DosageData;
+import org.pankratzlab.utils.gwas.bgen.BGENBitMath;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.variant.variantcontext.Allele;
 

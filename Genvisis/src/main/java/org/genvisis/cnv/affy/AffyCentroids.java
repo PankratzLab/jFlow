@@ -14,7 +14,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 
 public class AffyCentroids implements Serializable {
 

@@ -13,7 +13,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 
 public class CompareCalls {
 

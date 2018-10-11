@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class computeLODs {
 

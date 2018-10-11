@@ -1,6 +1,6 @@
 package org.pankratzlab.common.parsing;
 
-import org.pankratzlab.shared.stats.Maths.COMPARISON;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 
 /**
  * A filter for comparing double values. Uses {@link COMPARISON}.

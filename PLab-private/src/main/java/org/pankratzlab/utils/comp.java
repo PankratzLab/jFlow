@@ -23,15 +23,15 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.mining.Transformations;
-import org.pankratzlab.shared.stats.ContingencyTable;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.LogisticRegression;
-import org.pankratzlab.shared.stats.PermuteOnePer;
-import org.pankratzlab.shared.stats.ProbDist;
-import org.pankratzlab.shared.stats.RegressionModel;
-import org.pankratzlab.shared.stats.Stepwise;
-import org.pankratzlab.shared.stats.Ttest;
+import org.pankratzlab.common.mining.Transformations;
+import org.pankratzlab.common.stats.ContingencyTable;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.LogisticRegression;
+import org.pankratzlab.common.stats.PermuteOnePer;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.common.stats.Stepwise;
+import org.pankratzlab.common.stats.Ttest;
 import com.google.common.primitives.Doubles;
 
 public class comp {

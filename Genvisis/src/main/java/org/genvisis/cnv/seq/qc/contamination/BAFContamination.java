@@ -17,9 +17,9 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
-import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 import ca.mcgill.mcb.pcingola.interval.Marker;
 

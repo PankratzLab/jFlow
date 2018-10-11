@@ -16,7 +16,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 import com.google.common.primitives.Booleans;
 
 public class EmimPipeline {

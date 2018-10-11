@@ -13,9 +13,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Maths;
-import org.pankratzlab.shared.stats.ProbDist;
-import org.pankratzlab.shared.stats.Stats;
+import org.pankratzlab.common.stats.Maths;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.Stats;
 import com.google.common.primitives.Doubles;
 
 public class Allelotyping {

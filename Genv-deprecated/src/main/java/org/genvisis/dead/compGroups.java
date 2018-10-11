@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Anova;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.LogisticRegression;
+import org.pankratzlab.common.stats.Anova;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.LogisticRegression;
 
 public class compGroups {
 

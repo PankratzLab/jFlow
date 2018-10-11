@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 import javax.swing.JPanel;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.Segment;
 
 public class ChromosomeViewer extends JPanel implements MouseMotionListener {
 

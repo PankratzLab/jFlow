@@ -15,8 +15,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.primitives.Ints;
 
 /**

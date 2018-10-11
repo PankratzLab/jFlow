@@ -35,9 +35,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import org.pankratzlab.shared.filesys.SerialHash;
-import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.filesys.SerialHash;
+import org.pankratzlab.common.parse.GenParser;
+import org.pankratzlab.common.qsub.Qsub;
 import com.google.common.primitives.Ints;
 
 // class DeleteLater implements Runnable {

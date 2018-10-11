@@ -12,7 +12,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CLI.Arg;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;

@@ -6,7 +6,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 public class ReferenceGenomeTest {
 

@@ -21,14 +21,14 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.QuantileNormalization;
-import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
-import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.RScatters;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
-import org.pankratzlab.shared.stats.Rscript.VertLine;
+import org.pankratzlab.common.stats.QuantileNormalization;
+import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.RScatters;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.stats.Rscript.VertLine;
 
 public class QuantNormProject {
 

@@ -13,7 +13,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
-import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet;
 
 public class MosaicRegion extends CNVariant implements Serializable {
 

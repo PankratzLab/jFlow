@@ -9,9 +9,9 @@ import org.genvisis.cnv.Resources;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.bed.BEDFeature;
 

@@ -23,8 +23,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.core.CLI.Arg;
-import org.pankratzlab.shared.stats.Maths.COMPARISON;
 
 public class ManhattanPlot {
 

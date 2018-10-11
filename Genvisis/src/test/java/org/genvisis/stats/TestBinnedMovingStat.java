@@ -2,8 +2,8 @@ package org.genvisis.stats;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.pankratzlab.shared.stats.BinnedMovingStatistic;
-import org.pankratzlab.shared.stats.BinnedMovingStatistic.MovingStat;
+import org.pankratzlab.common.stats.BinnedMovingStatistic;
+import org.pankratzlab.common.stats.BinnedMovingStatistic.MovingStat;
 
 /**
  * Tests for {@link BinnedMovingStatistic}

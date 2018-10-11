@@ -17,8 +17,8 @@ import org.pankratzlab.common.DoubleVector;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.stats.Correlation;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.Correlation;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class MarkerData implements Serializable {

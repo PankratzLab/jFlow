@@ -16,10 +16,10 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.phenoprep.PhenoPrep;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.ProbDist;
-import org.pankratzlab.shared.stats.RegressionModel;
 
 public class GenCNV implements Runnable {
 

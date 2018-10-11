@@ -17,11 +17,11 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gwas.Plink;
-import org.pankratzlab.shared.mining.Distance;
-import org.pankratzlab.shared.mining.Transformations;
-import org.pankratzlab.shared.stats.Correlation;
-import org.pankratzlab.shared.stats.Ttest;
+import org.pankratzlab.common.mining.Distance;
+import org.pankratzlab.common.mining.Transformations;
+import org.pankratzlab.common.stats.Correlation;
+import org.pankratzlab.common.stats.Ttest;
+import org.pankratzlab.utils.gwas.Plink;
 import com.google.common.primitives.Doubles;
 
 public class MatchSamples {

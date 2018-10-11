@@ -73,8 +73,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Numbers;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.gui.UITools;
 import com.google.common.base.Strings;
 
 public class TwoDPlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {

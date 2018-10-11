@@ -10,8 +10,8 @@ import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.CNVariant.CNVBuilder;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * Forced "calls" using LRR summary data

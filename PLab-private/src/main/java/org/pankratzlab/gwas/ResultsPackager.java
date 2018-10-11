@@ -18,9 +18,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.bioinformatics.Alleles;
+import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.gwas.parse.EasyQCParser;
-import org.pankratzlab.shared.bioinformatics.Alleles;
-import org.pankratzlab.shared.stats.ProbDist;
 
 public class ResultsPackager {
 

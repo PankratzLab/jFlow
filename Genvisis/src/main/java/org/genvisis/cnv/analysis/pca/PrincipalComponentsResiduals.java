@@ -29,16 +29,16 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.RegressionModel;
-import org.pankratzlab.shared.stats.StatsCrossTabs;
-import org.pankratzlab.shared.stats.Stepwise;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
-import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
-import org.pankratzlab.shared.stats.StatsCrossTabs.StatsCrossTabRank;
-import org.pankratzlab.shared.stats.StatsCrossTabs.VALUE_TYPE;
-import org.pankratzlab.shared.stats.Stepwise.StepWiseSummary;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.common.stats.StatsCrossTabs;
+import org.pankratzlab.common.stats.Stepwise;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
+import org.pankratzlab.common.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.pankratzlab.common.stats.StatsCrossTabs.VALUE_TYPE;
+import org.pankratzlab.common.stats.Stepwise.StepWiseSummary;
 import com.google.common.primitives.Doubles;
 
 /**

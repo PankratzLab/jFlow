@@ -20,7 +20,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gwas.Plink;
+import org.pankratzlab.utils.gwas.Plink;
 import com.google.common.collect.ImmutableSet;
 
 public class PlinkMendelianChecker {

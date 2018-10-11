@@ -13,7 +13,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 
 public interface ImputationImpl {
 

@@ -20,7 +20,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Fonts;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 class ReferenceLabel extends JLabel {
 

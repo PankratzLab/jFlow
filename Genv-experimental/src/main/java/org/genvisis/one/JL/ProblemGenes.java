@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.GeneTrack;
 
 public class ProblemGenes {
 

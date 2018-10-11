@@ -20,13 +20,13 @@ import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Histogram.DynamicAveragingHistogram;
-import org.pankratzlab.shared.stats.Rscript.COLUMNS_MULTIPLOT;
-import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.RScatters;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
+import org.pankratzlab.common.stats.Rscript.COLUMNS_MULTIPLOT;
+import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.RScatters;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 import com.google.common.collect.Lists;
 
 public class GcLook {

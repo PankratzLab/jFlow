@@ -14,9 +14,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.Unique;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.SerialStringArray;
+import org.pankratzlab.common.stats.Histogram;
 import org.pankratzlab.gwas.MetaAnalysis;
-import org.pankratzlab.shared.filesys.SerialStringArray;
-import org.pankratzlab.shared.stats.Histogram;
 import com.google.common.primitives.Doubles;
 
 public class ClipSwap {

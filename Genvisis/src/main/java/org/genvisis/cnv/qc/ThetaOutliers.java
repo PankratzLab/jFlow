@@ -14,7 +14,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.mining.Distance;
+import org.pankratzlab.common.mining.Distance;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

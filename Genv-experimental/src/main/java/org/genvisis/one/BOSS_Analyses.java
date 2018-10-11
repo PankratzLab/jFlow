@@ -16,8 +16,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Hits;
 import org.pankratzlab.gwas.CreateDatabaseFromPlink;
-import org.pankratzlab.shared.filesys.Hits;
 
 public class BOSS_Analyses {
 

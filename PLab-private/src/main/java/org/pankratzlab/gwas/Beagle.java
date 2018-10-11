@@ -28,10 +28,10 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.FamilyStructure;
-import org.pankratzlab.shared.filesys.Pedfile;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.gwas.Plink;
+import org.pankratzlab.common.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.Pedfile;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.utils.gwas.Plink;
 import com.google.common.primitives.Ints;
 
 public class Beagle {

@@ -11,8 +11,8 @@ import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.GeneTrack;
 
 public class SanityNICHD {
 

@@ -16,8 +16,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.ColorSequence;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.stats.BinnedMovingStatistic;
-import org.pankratzlab.shared.stats.BinnedMovingStatistic.MovingStat;
+import org.pankratzlab.common.stats.BinnedMovingStatistic;
+import org.pankratzlab.common.stats.BinnedMovingStatistic.MovingStat;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 /**

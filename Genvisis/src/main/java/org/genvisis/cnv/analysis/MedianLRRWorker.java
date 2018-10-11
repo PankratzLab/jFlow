@@ -43,9 +43,9 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 public class MedianLRRWorker extends SwingWorker<String, Integer> {
 

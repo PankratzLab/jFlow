@@ -15,7 +15,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 
 /**
  * @author lane0212 Class for assessing taxonomic contamination from .fastq files

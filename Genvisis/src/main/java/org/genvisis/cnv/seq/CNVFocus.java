@@ -14,7 +14,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.primitives.Ints;
 
 /**

@@ -19,7 +19,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Quantiles;
+import org.pankratzlab.common.stats.Quantiles;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

@@ -11,7 +11,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Histogram.DynamicAveragingHistogram;
+import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;

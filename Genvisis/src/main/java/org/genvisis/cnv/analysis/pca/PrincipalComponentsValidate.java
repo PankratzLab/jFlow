@@ -12,9 +12,9 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**
  * Class to cross validate a series of pc files (and to assist in batching for computing them)

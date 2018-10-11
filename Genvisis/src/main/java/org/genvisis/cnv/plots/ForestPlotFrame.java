@@ -48,7 +48,7 @@ import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 
 public class ForestPlotFrame extends JFrame implements WindowListener {
 

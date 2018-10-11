@@ -25,9 +25,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Maths;
 
 /**
  * A simplified version of BamImport that uses MosDepth output to generate PCS

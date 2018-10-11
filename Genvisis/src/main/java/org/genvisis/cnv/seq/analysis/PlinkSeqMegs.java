@@ -26,9 +26,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.qsub.Qsub;
 import htsjdk.variant.vcf.VCFFileReader;
 
 /**

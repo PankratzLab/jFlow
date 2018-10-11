@@ -16,7 +16,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.FamilyStructure;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class HapMapParser {

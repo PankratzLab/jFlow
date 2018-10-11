@@ -5,8 +5,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.StatsCrossTabs;
-import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
+import org.pankratzlab.common.stats.StatsCrossTabs;
+import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
 
 /**
  * @author lane0212 <br>

@@ -36,7 +36,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 
 // PRincipal COmponents Residuals - PR [o] C[t]O R

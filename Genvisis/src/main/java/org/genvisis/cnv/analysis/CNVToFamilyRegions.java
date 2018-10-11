@@ -8,7 +8,7 @@ import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.CLI;
 
 /**

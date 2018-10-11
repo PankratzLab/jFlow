@@ -8,7 +8,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.FamilyStructure;
 
 /**
  * @author Kitty Check for Mendelian errors in a pedigree, taken from

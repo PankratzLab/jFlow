@@ -14,7 +14,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

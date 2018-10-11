@@ -16,8 +16,8 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.MosaicRegion;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.collect.ImmutableSet;
 
 /**

@@ -17,9 +17,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.LogisticRegression;
-import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.LogisticRegression;
+import org.pankratzlab.common.stats.RegressionModel;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class GenotypeMatrix implements Serializable {

@@ -27,8 +27,8 @@ import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.stats.Histogram;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.stats.Histogram;
 
 public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 
@@ -67,7 +67,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
   private final Project proj;
   private String[][] linkerData;
   private final int dataHash = -1;
-  private org.pankratzlab.shared.stats.Histogram currentHistogram;
+  private org.pankratzlab.common.stats.Histogram currentHistogram;
   private boolean histogramOverride = false;
   private boolean overrideAxisLabels = false;
 
@@ -293,7 +293,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
   }
 
   private void generateRectangles() {
-    org.pankratzlab.shared.stats.Histogram hist;
+    org.pankratzlab.common.stats.Histogram hist;
     if ((!isHistogramOverride() && dataHash != tdp.getSelectedDataHash())
         || currentHistogram == null) {
       ArrayList<String[]> currentData;
@@ -315,7 +315,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
         dataArray[i] = ext.isMissingValue(currentData.get(i)[1]) ? Double.NaN
                                                                  : Double.parseDouble(currentData.get(i)[1]);
       }
-      hist = new org.pankratzlab.shared.stats.Histogram(dataArray);
+      hist = new org.pankratzlab.common.stats.Histogram(dataArray);
       setHistogram(hist);
     } else {
       hist = getHistogram();
@@ -790,7 +790,7 @@ public class TwoDPanel extends AbstractPanel implements MouseListener, MouseMoti
     return currentHistogram;
   }
 
-  public void setHistogram(org.pankratzlab.shared.stats.Histogram hist) {
+  public void setHistogram(org.pankratzlab.common.stats.Histogram hist) {
     currentHistogram = hist;
   }
 

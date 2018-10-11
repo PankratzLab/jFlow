@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 
 public class CytoGUI extends JFrame {
 

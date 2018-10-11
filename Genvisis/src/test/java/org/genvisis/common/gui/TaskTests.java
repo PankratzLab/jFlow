@@ -14,14 +14,14 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextArea;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.gui.JProgressBarListener;
-import org.pankratzlab.shared.gui.LoggerListener;
-import org.pankratzlab.shared.gui.ProgressMonitorListener;
-import org.pankratzlab.shared.gui.SimpleIndeterminateTask;
-import org.pankratzlab.shared.gui.SimpleTask;
-import org.pankratzlab.shared.gui.Task;
-import org.pankratzlab.shared.gui.TaskManager;
-import org.pankratzlab.shared.gui.TextListener;
+import org.pankratzlab.common.gui.JProgressBarListener;
+import org.pankratzlab.common.gui.LoggerListener;
+import org.pankratzlab.common.gui.ProgressMonitorListener;
+import org.pankratzlab.common.gui.SimpleIndeterminateTask;
+import org.pankratzlab.common.gui.SimpleTask;
+import org.pankratzlab.common.gui.Task;
+import org.pankratzlab.common.gui.TaskManager;
+import org.pankratzlab.common.gui.TextListener;
 
 /**
  * Interactive tests for {@link TaskManager}.

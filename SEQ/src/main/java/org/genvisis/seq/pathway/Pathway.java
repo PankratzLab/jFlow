@@ -3,8 +3,8 @@ package org.genvisis.seq.pathway;
 import java.util.HashSet;
 import java.util.Set;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.LocusSet;
 
 public class Pathway extends LocusSet<GeneData> {
 

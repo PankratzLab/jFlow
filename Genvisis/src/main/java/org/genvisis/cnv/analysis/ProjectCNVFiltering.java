@@ -11,8 +11,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Positions;
 
 public class ProjectCNVFiltering {
 

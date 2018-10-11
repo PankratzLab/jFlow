@@ -14,7 +14,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.primitives.Bytes;
 
 /**

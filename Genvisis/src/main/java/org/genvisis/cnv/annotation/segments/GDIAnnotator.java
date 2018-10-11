@@ -15,7 +15,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * Relies on annotations being present from {@link GeneAnnotator} and annotates each gene with GDI

@@ -14,7 +14,7 @@ import java.util.List;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.CNVariantHash;
 import org.genvisis.cnv.plots.CompPlot;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * This class reads in CNV files and generates a list of rectangles representing them. The list can

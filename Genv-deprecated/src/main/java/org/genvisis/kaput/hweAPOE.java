@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class hweAPOE {
 

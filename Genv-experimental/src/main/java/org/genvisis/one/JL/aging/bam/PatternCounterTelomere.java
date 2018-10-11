@@ -10,7 +10,7 @@ import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.genvisis.seq.qc.FlagStats;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 

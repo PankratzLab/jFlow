@@ -15,7 +15,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.bioinformatics.Sequence;
+import org.pankratzlab.common.bioinformatics.Sequence;
 
 public class AlleleVerification {
 

@@ -17,8 +17,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.common.parse.GenParser;
+import org.pankratzlab.common.stats.LeastSquares;
 import com.google.common.primitives.Doubles;
 
 public class Slopes {

@@ -117,11 +117,11 @@ import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
-import org.pankratzlab.shared.stats.CTable;
-import org.pankratzlab.shared.stats.ContingencyTable;
-import org.pankratzlab.shared.stats.Histogram;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.gui.UITools;
+import org.pankratzlab.common.stats.CTable;
+import org.pankratzlab.common.stats.ContingencyTable;
+import org.pankratzlab.common.stats.Histogram;
+import org.pankratzlab.common.stats.ProbDist;
 import com.google.common.collect.Lists;
 import net.miginfocom.swing.MigLayout;
 

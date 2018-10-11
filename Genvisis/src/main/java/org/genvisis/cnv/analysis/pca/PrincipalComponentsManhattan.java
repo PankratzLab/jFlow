@@ -27,8 +27,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**
  * Generates manhattan plots for PCs and other optional data...can be loaded directly into IGV or

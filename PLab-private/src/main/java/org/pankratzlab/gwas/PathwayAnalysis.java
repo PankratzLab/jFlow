@@ -18,10 +18,10 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.bioinformatics.MapGenesToSNPs;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.SerialFloatArray;
-import org.pankratzlab.shared.filesys.SerialStringArray;
+import org.pankratzlab.common.bioinformatics.MapGenesToSNPs;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.filesys.SerialFloatArray;
+import org.pankratzlab.common.filesys.SerialStringArray;
 
 class KEGGpathway {
 

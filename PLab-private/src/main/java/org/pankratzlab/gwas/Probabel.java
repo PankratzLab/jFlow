@@ -21,9 +21,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.parse.GenParser;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.ProbDist;
 import com.google.common.primitives.Ints;
 
 public class Probabel {

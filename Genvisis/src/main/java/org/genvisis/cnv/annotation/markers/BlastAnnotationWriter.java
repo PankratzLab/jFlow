@@ -19,8 +19,8 @@ import org.genvisis.seq.analysis.Blast.BlastResults;
 import org.genvisis.seq.manage.CigarOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
 import htsjdk.samtools.Cigar;
 
 /**

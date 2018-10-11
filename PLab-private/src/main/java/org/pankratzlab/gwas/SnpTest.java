@@ -20,8 +20,8 @@ import org.pankratzlab.common.parsing.FileLink;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.FixedValueColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.qsub.Qsub;
 
 public class SnpTest {
 

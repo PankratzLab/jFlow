@@ -19,8 +19,8 @@ import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.gui.ChromosomeViewer;
 import org.genvisis.cnv.var.CNVRectangle;
 import org.genvisis.cnv.var.CNVRectangles;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * @author Michael Vieths

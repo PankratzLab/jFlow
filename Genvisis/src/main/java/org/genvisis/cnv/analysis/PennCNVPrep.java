@@ -32,8 +32,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**
  * This is a temporary fix to export corrected intensities, geared toward PennCNV output and shadow

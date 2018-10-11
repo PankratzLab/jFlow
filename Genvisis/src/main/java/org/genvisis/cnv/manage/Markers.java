@@ -27,7 +27,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

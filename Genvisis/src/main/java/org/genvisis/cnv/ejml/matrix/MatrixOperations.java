@@ -6,7 +6,7 @@ package org.genvisis.cnv.ejml.matrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.data.DenseMatrix64F;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 
 /**
  * Common methods for operating on {@link RealMatrix}

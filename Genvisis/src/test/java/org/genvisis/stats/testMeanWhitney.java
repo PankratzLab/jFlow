@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Random;
 import org.junit.Test;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.stats.MannWhitneyUTest;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.MannWhitneyUTest;
+import org.pankratzlab.common.stats.ProbDist;
 import com.google.common.collect.ImmutableList;
 
 public class testMeanWhitney {

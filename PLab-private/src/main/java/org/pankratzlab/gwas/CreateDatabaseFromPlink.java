@@ -18,8 +18,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.mining.Transformations;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.mining.Transformations;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.primitives.Ints;
 
 public class CreateDatabaseFromPlink {

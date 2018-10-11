@@ -14,8 +14,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.stats.ICC;
 import org.pankratzlab.phenoprep.Heritability;
-import org.pankratzlab.shared.stats.ICC;
 
 class EvaluationResult implements Serializable {
 

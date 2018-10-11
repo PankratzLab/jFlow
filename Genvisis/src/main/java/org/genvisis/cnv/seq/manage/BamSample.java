@@ -13,7 +13,7 @@ import org.genvisis.seq.manage.BamPile;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * @author lane0212 Handles the data storage and normalization prior to conversion to {@link Sample}

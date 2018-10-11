@@ -34,7 +34,7 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 public class AnalysisFormats implements Runnable {
 

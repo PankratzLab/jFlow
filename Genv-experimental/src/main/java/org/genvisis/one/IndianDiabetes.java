@@ -9,7 +9,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.bioinformatics.Sequence;
+import org.pankratzlab.common.bioinformatics.Sequence;
 import com.google.common.primitives.Chars;
 
 public class IndianDiabetes {

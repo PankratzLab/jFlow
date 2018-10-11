@@ -31,8 +31,8 @@ import org.pankratzlab.common.ChrPositionMap;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.SegmentLists;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.filesys.SegmentLists;
 
 /**
  * Program to summarize p-values from a Genome-Wide Association Study (GWAS) and bins marker

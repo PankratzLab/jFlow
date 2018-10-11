@@ -44,7 +44,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.utils.gwas.DosageData;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;

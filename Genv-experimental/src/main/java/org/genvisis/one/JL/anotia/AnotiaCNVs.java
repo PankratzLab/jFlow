@@ -19,9 +19,9 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.Positions;
 
 public class AnotiaCNVs {
 

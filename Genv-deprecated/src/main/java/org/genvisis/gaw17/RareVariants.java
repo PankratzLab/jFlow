@@ -10,8 +10,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.ProbDist;
-import org.pankratzlab.shared.stats.WeightedSumStatistic;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.utils.stats.WeightedSumStatistic;
 
 public class RareVariants {
 

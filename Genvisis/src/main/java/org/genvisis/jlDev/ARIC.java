@@ -8,8 +8,8 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
 
 public class ARIC {
 

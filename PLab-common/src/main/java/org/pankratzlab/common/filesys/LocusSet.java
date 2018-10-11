@@ -1,0 +1,428 @@
+package org.pankratzlab.common.filesys;
+
+import java.io.PrintWriter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Vector;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.SerializedFiles;
+import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
+
+public class LocusSet<T extends Segment> implements Serializable {
+
+  /**
+   *
+   */
+  protected static final long serialVersionUID = 1L;
+  private T[] loci;
+  private boolean sorted;
+  private final Logger log;
+
+  public LocusSet(final List<T> lociAl, boolean sort, final Logger log) {
+    super();
+    if (lociAl == null || lociAl.size() < 1) {
+      String error = "BUG: constructor call with 0 size or null in set contruction";
+      log.reportError(error);
+      throw new IllegalArgumentException(error);
+    }
+
+    @SuppressWarnings("unchecked")
+    T[] loci = (T[]) java.lang.reflect.Array.newInstance(lociAl.get(0).getClass(), lociAl.size());
+    for (int i = 0; i < loci.length; i++) {
+      loci[i] = lociAl.get(i);
+    }
+    this.loci = loci;
+    this.sorted = false;
+    this.log = log;
+    if (sort) {
+      sort();
+    }
+  }
+
+  public LocusSet(final T[] loci, boolean sort, final Logger log) {
+    super();
+    this.loci = loci;
+    this.sorted = false;
+    this.log = log;
+    if (sort) {
+      sort();
+    }
+  }
+
+  public void sort() {
+    if (loci.length < 2500) {
+      //      https://stackoverflow.com/questions/17328077/difference-between-arrays-sort-and-arrays-parallelsort
+      Arrays.sort(loci);
+    } else {
+      Arrays.parallelSort(loci);
+    }
+    sorted = true;
+  }
+
+  /**
+   * @return simply the sum of the segments length, should be a merged set if you want the unique
+   *         coverage
+   */
+  public long getBpCovered() {
+    long sum = 0;
+    for (T element : loci) {
+      sum += element.getSize();
+    }
+    return sum;
+  }
+
+  public T[] getLoci() {
+    return loci;
+  }
+
+  public void addAll(List<T> toAdd) {
+    for (T element : loci) {
+      toAdd.add(element);
+    }
+  }
+
+  // /**
+  // * Warning, uses equals to remove
+  // */
+  // public LocusSet<T> getUnique() {
+  // throw new IllegalStateException("Not ready yet");
+  // if (loci == null || loci.length < 1) {
+  // return this;
+  // } else {
+  // ArrayList<T> tmp = new ArrayList<T>();
+  // T[] tmpSearch = loci;
+  // Hashtable<String, String> used = new Hashtable<String, String>();
+  // for (int i = 0; i < tmpSearch.length; i++) {
+  // int[] indices = getOverlappingIndices(tmpSearch[i]);
+  // if (indices == null || indices.length == 0) {
+  // tmp.add(tmpSearch[i]);
+  // }
+  // }
+  //
+  // LocusSet<T> returnSet = new LocusSet<T>(tmp, true, log) {
+  //
+  // /**
+  // *
+  // */
+  // private static final long serialVersionUID = 1L;
+  //
+  // };
+  // return returnSet;
+  // }
+  // };
+
+  /**
+   * @param setToRemove remove the bases represented by this set from the current loci
+   * @param bpBuffer the buffer to extend on either side of the removing set's loci
+   * @return
+   */
+  public <E extends Segment> LocusSet<Segment> removeThese(final LocusSet<E> setToRemove,
+                                                           int bpBuffer) {
+    ArrayList<Segment> newLoci = new ArrayList<>();
+    LocusSet<Segment> operateSet = setToRemove.getStrictSegmentSet();
+    if (bpBuffer > 0) {
+      operateSet = setToRemove.getBufferedSegmentSet(bpBuffer);
+    }
+    for (T element : loci) {
+      Segment[] overlaps = operateSet.getOverLappingLoci(element);// exons in the bin
+      if (overlaps == null || overlaps.length == 0) {
+        newLoci.add(element);
+      } else {
+        LocusSet<Segment> overlapsRemoved = element.removeAll(overlaps, log);
+        for (int j = 0; j < overlapsRemoved.getLoci().length; j++) {
+          newLoci.add(overlapsRemoved.getLoci()[j]);
+        }
+      }
+    }
+    LocusSet<Segment> toReturn = new LocusSet<>(newLoci.toArray(new Segment[newLoci.size()]), true,
+                                                log);
+    for (int i = 0; i < operateSet.getLoci().length; i++) {
+      if (toReturn.getOverLappingLoci(operateSet.getLoci()[i]) != null) {
+        String error = "BUG: found overlapping loci from the removed set in the set to be returned";
+        log.reportError(error);
+        throw new IllegalStateException(error);
+      }
+    }
+    return toReturn.mergeOverlapping();
+  }
+
+  public LocusSet<Segment> getBufferedSegmentSet(int bpBuffer) {
+    ArrayList<Segment> buffered = new ArrayList<>();
+    for (T element : loci) {
+      buffered.add(element.getBufferedSegment(bpBuffer));
+    }
+
+    LocusSet<Segment> bufSet = new LocusSet<>(buffered.toArray(new Segment[buffered.size()]), true,
+                                              log);
+    return bufSet;
+  }
+
+  public boolean hasNoOverlap() {
+    boolean hasOverlap = false;
+    out: for (int i = 0; i < loci.length; i++) {
+      T[] overlaps = getOverLappingLoci(loci[i]);
+      if (overlaps != null && overlaps.length > 0) {
+        for (int j = 0; j < overlaps.length; j++) {
+          if (!overlaps[j].equals(loci[i])) {
+            hasOverlap = true;
+            break out;
+          }
+        }
+      }
+    }
+    return hasOverlap;
+  }
+
+  public LocusSet<Segment> mergeOverlapping() {
+    return mergeOverlapping(false);
+  }
+
+  public LocusSet<Segment> mergeOverlapping(boolean verbose) {// TODO, use clone and set positions
+                                                              // instead to get same type returned
+
+    if (!sorted) {
+      log.reportError("Internal error: must sort internal segment array prior to merge");
+      return null;
+    } else {
+      byte currentChr = -1;
+      ArrayList<Segment> merged = new ArrayList<>();
+      Vector<Segment> tmp = new Vector<>();
+      int originalSize = loci.length;
+      for (T element : loci) {
+        if (element.getChr() != currentChr) {
+          if (tmp.size() > 0) {
+            Segment.mergeOverlapsAndSort(tmp);
+            for (int j = 0; j < tmp.size(); j++) {
+              merged.add(tmp.get(j));
+            }
+            tmp.clear();
+          }
+        }
+        currentChr = element.getChr();
+        tmp.add(element);
+
+      }
+      if (tmp.size() > 0) {
+        Segment.mergeOverlapsAndSort(tmp);
+        for (int j = 0; j < tmp.size(); j++) {
+          merged.add(tmp.get(j));
+        }
+        tmp.clear();
+      }
+      if (verbose) {
+        log.reportTimeInfo("Merged " + originalSize + " segments to " + merged.size());
+      }
+      LocusSet<Segment> mergedSet = new LocusSet<>(merged.toArray(new Segment[merged.size()]), true,
+                                                   log);
+      return mergedSet;
+    }
+  }
+
+  public LocusSet<Segment> getStrictSegmentSet() {
+    LocusSet<Segment> segSet = new LocusSet<>(getStrictSegments(), true, log);
+    return segSet;
+  }
+
+  public Segment[] getStrictSegments() {
+    Segment[] segs = new Segment[loci.length];
+    for (int i = 0; i < loci.length; i++) {
+      segs[i] = new Segment(loci[i].getChr(), loci[i].getStart(), loci[i].getStop());
+    }
+    return segs;
+  }
+
+  public int[] getOverlappingIndices(final Segment seg) {
+    if (!sorted) {
+      log.reportError("Internal error: must sort internal segment array prior to overlap search");
+      return null;
+    } else {
+      int[] indices = Segment.binarySearchForAllOverLappingIndices(seg, loci);
+      return indices;
+
+    }
+  }
+
+  public int[] getExactMatch(final Segment seg) {
+    int[] overlaps = getOverlappingIndices(seg);
+    ArrayList<Integer> exacts = new ArrayList<>();
+    if (overlaps == null || overlaps.length == 0) {
+      return null;
+    } else {
+      for (int overlap : overlaps) {
+        if (loci[overlap].equals(seg)) {
+          exacts.add(overlap);
+        }
+      }
+      return Ints.toArray(exacts);
+    }
+  }
+
+  public T[] getOverLappingLoci(final Segment seg) {
+    int[] indices = getOverlappingIndices(seg);
+    if (indices == null) {
+      return null;
+    } else {
+      return ArrayUtils.subArray(loci, indices);
+    }
+  }
+
+  public boolean verifyPositiveLength() {
+    for (T element : loci) {
+      if (element.getSize() < 1) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public enum TO_STRING_TYPE {
+    /**
+     * calls the {@link Segment#getUCSClocation()}, or any overide
+     */
+    UCSC,
+    /**
+     * calls the {@link Segment#toString()}, or any override
+     */
+    REGULAR;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends Segment> LocusSet<T> combine(LocusSet<T> one, LocusSet<T> two,
+                                                        boolean sort, Logger log) {
+    T[] combinedLoci = ArrayUtils.concatAll(one.getLoci(), two.getLoci());
+    LocusSet<T> combined = new LocusSet<>(combinedLoci, sort, log);
+    return combined;
+  }
+
+  public LocusSet<T> autosomal(boolean sort, Logger log) {
+    ArrayList<T> auto = new ArrayList<>();
+    for (int i = 0; i < getLoci().length; i++) {
+      if (getLoci()[i].getChr() < 23 && getLoci()[i].getChr() > 0) {
+        auto.add(getLoci()[i]);
+      }
+    }
+    if (auto.size() < 1) {
+      throw new IllegalArgumentException("no autosomals T found");
+    }
+    LocusSet<T> aut = new LocusSet<>(auto, sort, log);
+    return aut;
+  }
+
+  /**
+   * Useful for converting bed files between b37 and hg19, etc
+   */
+  public boolean writeSegmentRegions(String filename, boolean numericChrs, Logger log) {
+    log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
+    boolean written = true;
+    try {
+      PrintWriter writer = Files.openAppropriateWriter(filename);
+      for (T seg : loci) {
+        writer.println(Positions.getChromosomeUCSC(seg.getChr(), !numericChrs) + "\t"
+                       + seg.getStart() + "\t" + seg.getStop());
+      }
+      writer.close();
+    } catch (Exception e) {
+      log.reportError("Error writing to " + filename);
+      log.reportException(e);
+      written = false;
+    }
+    return written;
+  }
+
+  /**
+   * @param array writes according to the to string method of the class
+   * @param filename
+   * @param type see {@link TO_STRING_TYPE}
+   * @param log
+   * @return
+   */
+  public boolean writeRegions(String filename, TO_STRING_TYPE type, boolean header, Logger log) {
+    log.reportTimeInfo("Writing " + loci.length + " loci to " + filename);
+    boolean written = true;
+    try {
+      PrintWriter writer = Files.openAppropriateWriter(filename);
+      for (int i = 0; i < loci.length; i++) {
+        if (i == 0 && header) {
+          writer.println(ArrayUtils.toStr(loci[i].getHeader()));
+        }
+        switch (type) {
+          case REGULAR:
+            writer.println(loci[i].toAnalysisString());
+            break;
+          case UCSC:
+            writer.println(loci[i].getUCSClocation());
+            break;
+          default:
+            log.reportError("Invalid type " + type);
+            written = false;
+            break;
+        }
+      }
+      writer.close();
+    } catch (Exception e) {
+      log.reportError("Error writing to " + filename);
+      log.reportException(e);
+      written = false;
+    }
+    return written;
+  }
+
+  private T[] putInOrder(final T[] array, int[] order) {
+    T[] newArray;
+
+    newArray = Arrays.copyOf(array, array.length);
+    for (int i = 0; i < order.length; i++) {
+      newArray[i] = array[order[i]];
+    }
+
+    return newArray;
+  }
+
+  public static LocusSet<Segment> loadSegmentSetFromFile(String file, int chrCol, int startCol,
+                                                         int stopCol, int skipNumLines,
+                                                         boolean inclusiveStart,
+                                                         boolean inclusiveStop, int bpBuffer,
+                                                         Logger log) {
+    Segment[] segs = Segment.loadRegions(file, chrCol, startCol, stopCol, skipNumLines,
+                                         inclusiveStart, inclusiveStop, bpBuffer);
+    LocusSet<Segment> lSet = new LocusSet<>(segs, true, log);
+    return lSet;
+  }
+
+  /**
+   * @return a sorted int[][] of all the starts and stops of these loci
+   */
+  public int[][] getStartsAndStopsByChromosome() {
+    Hashtable<Byte, ArrayList<Integer>> tracks = new Hashtable<>();
+    ArrayList<Byte> uniqueChrs = new ArrayList<>();
+    for (int i = 0; i < loci.length; i++) {
+      if (!tracks.containsKey(loci[i].getChr())) {
+        tracks.put(loci[i].getChr(), new ArrayList<Integer>());
+        uniqueChrs.add(loci[i].getChr());
+      }
+      tracks.get(loci[i].getChr()).add(loci[i].getStart());
+      tracks.get(loci[i].getChr()).add(loci[i].getStop());
+    }
+    byte[] sortedChr = Bytes.toArray(uniqueChrs);
+    Arrays.sort(sortedChr);
+    int[][] startsStopsByChr = new int[27][0];
+
+    for (int i = 0; i < sortedChr.length; i++) {
+      int[] tmp = Ints.toArray(tracks.get(sortedChr[i]));
+      Arrays.sort(tmp);
+      startsStopsByChr[sortedChr[i]] = tmp;
+    }
+    return startsStopsByChr;
+  }
+
+  public void writeSerial(String fileName) {
+    SerializedFiles.writeSerial(this, fileName, true);
+  }
+
+}

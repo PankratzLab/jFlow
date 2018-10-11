@@ -13,8 +13,8 @@ import java.util.List;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * Methods for parsing centromere info

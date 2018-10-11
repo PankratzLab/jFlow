@@ -88,11 +88,11 @@ import org.pankratzlab.common.TransferableImage;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CLI.Arg;
-import org.pankratzlab.shared.filesys.GeneData;
-import org.pankratzlab.shared.filesys.GeneTrack;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.filesys.GeneData;
+import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.gui.UITools;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeType;
@@ -2696,13 +2696,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     String[] fromAA, toAA;
     String loc;
     if (!".".equals(aaChng)) {
-      fromAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
+      fromAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aaChng.charAt(0) + "");
       if (ext.isValidInteger(aaChng.charAt(aaChng.length() - 1) + "")) {
         loc = aaChng.substring(1);
         toAA = null;
       } else {
         loc = aaChng.substring(1, aaChng.length() - 1);
-        toAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);
@@ -2722,13 +2722,13 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
     txtBld.append("\tANNOVAR -> ");
     String[] aaChngs = getANNOVARProteinChanges(dp.vcRecord);
     for (String aa : aaChngs) {
-      fromAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aa.charAt(0) + "");
+      fromAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aa.charAt(0) + "");
       if (ext.isValidInteger(aa.charAt(aa.length() - 1) + "")) {
         loc = aa.substring(1);
         toAA = null;
       } else {
         loc = aa.substring(1, aa.length() - 1);
-        toAA = org.pankratzlab.shared.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
+        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);

@@ -27,8 +27,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.qsub.Qsub;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 

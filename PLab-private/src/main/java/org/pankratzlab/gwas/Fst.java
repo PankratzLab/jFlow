@@ -13,9 +13,9 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.StringVector;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.SerialIntMatrix;
-import org.pankratzlab.shared.filesys.SerialStringMatrix;
-import org.pankratzlab.shared.parse.GenParser;
+import org.pankratzlab.common.filesys.SerialIntMatrix;
+import org.pankratzlab.common.filesys.SerialStringMatrix;
+import org.pankratzlab.common.parse.GenParser;
 
 public class Fst {
 

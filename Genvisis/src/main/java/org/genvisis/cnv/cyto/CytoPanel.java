@@ -28,8 +28,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.gui.UITools;
 
 public class CytoPanel extends JPanel implements ActionListener {
 
@@ -490,7 +490,7 @@ public class CytoPanel extends JPanel implements ActionListener {
   private static boolean convertCNPFile(String cnpFile, String output, Logger log) {
     boolean converted = false;
     if (!Files.exists(output)) {
-      org.pankratzlab.shared.filesys.Segment[] segs = CytoCompare.loadsegs(cnpFile, log);
+      org.pankratzlab.common.filesys.Segment[] segs = CytoCompare.loadsegs(cnpFile, log);
       if (segs != null) {
         try {
           PrintWriter writer = Files.openAppropriateWriter(output);

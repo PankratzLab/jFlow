@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
-import org.pankratzlab.shared.gui.Task;
+import org.pankratzlab.common.gui.Task;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 

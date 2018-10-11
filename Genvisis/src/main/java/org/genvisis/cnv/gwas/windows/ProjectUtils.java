@@ -2,8 +2,9 @@ package org.genvisis.cnv.gwas.windows;
 
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.gwas.windows.PFileStructure;
-import org.pankratzlab.shared.gwas.windows.WindowThreshold;
+import org.pankratzlab.utils.gwas.windows.MultiHitWindows;
+import org.pankratzlab.utils.gwas.windows.PFileStructure;
+import org.pankratzlab.utils.gwas.windows.WindowThreshold;
 
 /**
  * Utility class for convenience methods that can operate on a project property

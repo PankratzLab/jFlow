@@ -11,7 +11,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.McNemarsTest;
+import org.pankratzlab.common.stats.McNemarsTest;
 
 public class MitoDNA {
 

@@ -15,8 +15,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
-import org.pankratzlab.shared.mining.Transformations;
+import org.pankratzlab.common.gui.UITools;
+import org.pankratzlab.common.mining.Transformations;
 
 public class MatchesVisualized {
 

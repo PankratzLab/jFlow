@@ -16,7 +16,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.primitives.Doubles;
 
 /**

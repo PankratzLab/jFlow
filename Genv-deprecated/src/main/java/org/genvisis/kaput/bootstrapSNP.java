@@ -9,7 +9,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class bootstrapSNP {
 

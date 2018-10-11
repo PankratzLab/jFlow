@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 import org.genvisis.ExhaustiveUnitTests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.pankratzlab.shared.collect.TreeRangeSetMultimap;
+import org.pankratzlab.common.collect.TreeRangeSetMultimap;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;

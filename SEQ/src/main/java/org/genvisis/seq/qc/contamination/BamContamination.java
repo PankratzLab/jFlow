@@ -13,9 +13,9 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
 
 /**
  * Uses an mpileup approach to determine contamination levels of a bam file

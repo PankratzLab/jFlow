@@ -18,8 +18,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gwas.Plink;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {

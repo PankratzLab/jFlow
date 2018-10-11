@@ -16,8 +16,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Correlation;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Correlation;
 
 public class eQTLs {
 

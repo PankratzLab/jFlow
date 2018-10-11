@@ -4,8 +4,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.Rscript;
 
 /**
  * Placeholder for threading out genome wide assoc scan

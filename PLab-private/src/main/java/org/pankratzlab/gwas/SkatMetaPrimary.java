@@ -12,8 +12,8 @@ import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.Rscript;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.Rscript;
 
 public class SkatMetaPrimary {
 

@@ -26,7 +26,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 
 public class MosaicPlot extends JFrame implements ActionListener {
 

@@ -26,12 +26,12 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.Rscript;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.Rscript;
 
 public class ExomeDepth {
 

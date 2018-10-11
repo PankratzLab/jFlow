@@ -66,7 +66,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 

@@ -31,8 +31,8 @@ import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.mining.Distance;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.mining.Distance;
 
 public class MosaicPanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 

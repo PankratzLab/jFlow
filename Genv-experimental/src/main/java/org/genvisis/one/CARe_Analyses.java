@@ -19,12 +19,12 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Unique;
 import org.pankratzlab.common.Zip;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.mining.Transformations;
+import org.pankratzlab.common.parse.GenParser;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.gwas.GWAF;
 import org.pankratzlab.gwas.Mach;
 import org.pankratzlab.gwas.Metal;
-import org.pankratzlab.shared.mining.Transformations;
-import org.pankratzlab.shared.parse.GenParser;
-import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.bgen.DosageData;
 

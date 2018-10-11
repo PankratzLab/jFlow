@@ -6,7 +6,7 @@ import java.util.List;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.stats.Histogram.DynamicHistogram;
+import org.pankratzlab.common.stats.Histogram.DynamicHistogram;
 import htsjdk.variant.variantcontext.VariantContext;
 
 /**

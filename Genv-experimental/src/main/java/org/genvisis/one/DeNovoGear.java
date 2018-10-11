@@ -10,7 +10,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 
 public class DeNovoGear {
 

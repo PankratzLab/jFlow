@@ -16,7 +16,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CLI.Arg;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.collect.ImmutableMap;
 import htsjdk.tribble.annotation.Strand;
 

@@ -24,14 +24,14 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.filesys.LocusSet.TO_STRING_TYPE;
-import org.pankratzlab.shared.filesys.Segment.SegmentCompare;
-import org.pankratzlab.shared.stats.Histogram.DynamicAveragingHistogram;
-import org.pankratzlab.shared.stats.Rscript.GeomText;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
+import org.pankratzlab.common.filesys.Segment.SegmentCompare;
+import org.pankratzlab.common.stats.Histogram.DynamicAveragingHistogram;
+import org.pankratzlab.common.stats.Rscript.GeomText;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 
 public class CushingCnvs {
 

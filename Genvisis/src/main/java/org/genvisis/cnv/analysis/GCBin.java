@@ -9,8 +9,8 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.hmm.PennHmm.ViterbiResult;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 import be.ac.ulg.montefiore.run.jahmm.OpdfGaussian;
 
 public class GCBin extends Segment {

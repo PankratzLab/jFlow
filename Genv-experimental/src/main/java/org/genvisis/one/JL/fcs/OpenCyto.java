@@ -10,9 +10,9 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.Rscript;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.Rscript;
 
 /**
  * Class for setting up runs of OpenCyto

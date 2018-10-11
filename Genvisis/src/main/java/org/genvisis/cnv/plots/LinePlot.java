@@ -54,7 +54,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 
 public class LinePlot extends JPanel implements WindowListener, ActionListener, TreeSelectionListener {
 

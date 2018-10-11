@@ -21,7 +21,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * Methods to determine parent of origin effects from BAFs/Genotypes

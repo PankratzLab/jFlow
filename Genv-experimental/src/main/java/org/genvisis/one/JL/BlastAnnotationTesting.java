@@ -23,7 +23,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import com.googlecode.charts4j.collect.Lists;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 

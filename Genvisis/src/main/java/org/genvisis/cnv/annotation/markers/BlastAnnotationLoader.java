@@ -13,7 +13,7 @@ import org.genvisis.cnv.filesys.MarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.TextCigarCodec;
 import htsjdk.tribble.annotation.Strand;
 import htsjdk.variant.variantcontext.VariantContext;

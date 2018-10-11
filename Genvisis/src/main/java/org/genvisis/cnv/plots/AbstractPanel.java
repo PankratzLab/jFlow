@@ -39,8 +39,8 @@ import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ProgressBarDialog;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.mining.Distance;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.mining.Distance;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.primitives.Bytes;
 
 public abstract class AbstractPanel extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {

@@ -34,11 +34,11 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.CrossValidation;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.CrossValidation;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -700,7 +700,7 @@ public class GcAdjustor {
         log.report("Info - computing GCWF using " + medianGc.size() + " elements");
       }
     }
-    double cc = org.pankratzlab.shared.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
+    double cc = org.pankratzlab.common.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
                                                        Doubles.toArray(medianGc))[0];
     waves[0] = cc > 0 ? -1 * wf : wf;
     waves[1] = waves[0] * Math.abs(cc);

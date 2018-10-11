@@ -33,8 +33,8 @@ import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Positions;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 

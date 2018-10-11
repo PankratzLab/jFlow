@@ -42,7 +42,7 @@ import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.common.PSF.Colors.YELLOWS;
-import org.pankratzlab.shared.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.FamilyStructure;
 
 // TODO Needs some cleanup, especially MouseMoved, MouseClicked, and generatePoints
 public class ScatterPanel extends AbstractPanel implements MouseListener, MouseMotionListener {

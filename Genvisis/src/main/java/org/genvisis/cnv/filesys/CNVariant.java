@@ -26,8 +26,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.StringVector;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Positions;
 
 public class CNVariant extends AnnotatedSegment {
 

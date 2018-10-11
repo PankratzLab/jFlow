@@ -16,7 +16,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CLI.Arg;
-import org.pankratzlab.shared.stats.Ttest;
+import org.pankratzlab.common.stats.Ttest;
 
 /**
  * Generates matrices plotting principal components against {@link SampleData} columns. This can be

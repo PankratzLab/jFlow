@@ -24,7 +24,7 @@ import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
 import org.pankratzlab.common.PSF.Colors.YELLOWS;
-import org.pankratzlab.shared.filesys.SerialFloatArray;
+import org.pankratzlab.common.filesys.SerialFloatArray;
 
 public class QQPlot {
 

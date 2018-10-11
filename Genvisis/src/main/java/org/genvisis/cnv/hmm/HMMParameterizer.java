@@ -16,7 +16,7 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet;
 import com.google.common.math.Stats;
 import com.google.common.math.StatsAccumulator;
 

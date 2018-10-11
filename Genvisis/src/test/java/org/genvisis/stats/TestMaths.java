@@ -6,7 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Test;
-import org.pankratzlab.shared.stats.Maths;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Doubles;
 

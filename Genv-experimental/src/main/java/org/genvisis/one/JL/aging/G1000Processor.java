@@ -9,8 +9,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.qsub.Qsub;
 import org.pankratzlab.utils.sra.SRAPipeline;
 
 /**

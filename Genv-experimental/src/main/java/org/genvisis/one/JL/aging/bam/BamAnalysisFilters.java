@@ -11,7 +11,7 @@ import org.genvisis.seq.manage.SeqOps.GC_COMP_METHOD;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.SAM_FILTER_TYPE;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.filter.SamRecordFilter;
 

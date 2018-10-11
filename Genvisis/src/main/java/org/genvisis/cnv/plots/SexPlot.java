@@ -29,7 +29,7 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 

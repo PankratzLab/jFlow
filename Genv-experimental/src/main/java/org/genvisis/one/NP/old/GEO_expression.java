@@ -15,8 +15,8 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Zip;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.mining.Transformations;
-import org.pankratzlab.shared.stats.LeastSquares;
+import org.pankratzlab.common.mining.Transformations;
+import org.pankratzlab.common.stats.LeastSquares;
 
 public class GEO_expression {
 

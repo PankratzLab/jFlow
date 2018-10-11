@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.bioinformatics.Sequence;
+import org.pankratzlab.common.bioinformatics.Sequence;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import htsjdk.tribble.annotation.Strand;

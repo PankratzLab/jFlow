@@ -11,9 +11,9 @@ import org.genvisis.cnv.filesys.CNVariant;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.LogisticRegression;
-import org.pankratzlab.shared.stats.RegressionModel;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.LogisticRegression;
+import org.pankratzlab.common.stats.RegressionModel;
 
 public class CNVBurdenIterator {
 

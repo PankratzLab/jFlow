@@ -42,7 +42,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Ext;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 
 /**
  * A class that serves as the outer wrapper for PCA related happenings...does import, marker QC,

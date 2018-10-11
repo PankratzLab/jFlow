@@ -10,8 +10,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Internat;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class PowerCalculatorForQuantitativeTraits {
 

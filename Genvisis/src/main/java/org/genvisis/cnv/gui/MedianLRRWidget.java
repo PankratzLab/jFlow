@@ -37,7 +37,7 @@ import org.genvisis.cnv.prop.FileProperty;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.gui.UITools;
+import org.pankratzlab.common.gui.UITools;
 
 public class MedianLRRWidget extends JFrame implements Runnable {
 

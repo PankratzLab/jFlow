@@ -23,8 +23,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.StringVector;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.qsub.Qsub;
 
 public class DeNovoCNV {
 
@@ -680,7 +680,7 @@ public class DeNovoCNV {
 
     iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6});
 
-    org.pankratzlab.shared.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command,
+    org.pankratzlab.common.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command,
                                 iterations, 2500, 2);
   }
 

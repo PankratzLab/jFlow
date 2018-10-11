@@ -18,8 +18,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 
 public class SummarizeOSTrioCoverage {
 

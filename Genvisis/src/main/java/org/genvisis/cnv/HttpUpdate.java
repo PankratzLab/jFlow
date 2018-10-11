@@ -15,7 +15,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import org.genvisis.cnv.startup.AbstractStartupCheck;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HttpDownloadUtility;
 import org.pankratzlab.common.LauncherManifest;
@@ -24,6 +23,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.VersionHelper;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Java;
+import org.pankratzlab.common.startup.AbstractStartupCheck;
 import com.github.zafarkhaja.semver.Version;
 
 /**

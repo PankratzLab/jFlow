@@ -11,8 +11,8 @@ import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  *

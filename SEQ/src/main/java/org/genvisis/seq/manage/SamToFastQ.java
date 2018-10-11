@@ -16,8 +16,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.Producer;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
 
 /**
  * Prepares bam input for re-genotyping by handling bam-> fastq conversion.

@@ -12,9 +12,9 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
 
 public class CompExomeDepthConcordance {
 

@@ -24,7 +24,7 @@ import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 
 public class LinePanel extends AbstractPanel implements MouseListener, MouseMotionListener {
 

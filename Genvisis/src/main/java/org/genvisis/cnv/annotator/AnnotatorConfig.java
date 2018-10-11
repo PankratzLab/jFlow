@@ -2,7 +2,7 @@ package org.genvisis.cnv.annotator;
 
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.collect.ImmutableSortedSet;
 
 /**

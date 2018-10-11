@@ -15,11 +15,11 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Correlation;
-import org.pankratzlab.shared.stats.ICC;
-import org.pankratzlab.shared.stats.IrrTable;
-import org.pankratzlab.shared.stats.Quantiles;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.Correlation;
+import org.pankratzlab.common.stats.ICC;
+import org.pankratzlab.common.stats.IrrTable;
+import org.pankratzlab.common.stats.Quantiles;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.primitives.Doubles;
 
 public class PrincipalComponentsEval {

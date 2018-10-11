@@ -14,8 +14,8 @@ import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.filesys.Segment;
 import htsjdk.tribble.annotation.Strand;
 
 public class IlluminaMarkerBlast extends MarkerBlast {

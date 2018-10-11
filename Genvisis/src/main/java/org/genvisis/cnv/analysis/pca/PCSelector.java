@@ -11,13 +11,13 @@ import org.genvisis.cnv.qc.LrrSd;
 import org.genvisis.cnv.qc.SampleQC;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.stats.Rscript.PLOT_DEVICE;
-import org.pankratzlab.shared.stats.Rscript.RScatter;
-import org.pankratzlab.shared.stats.Rscript.RScatters;
-import org.pankratzlab.shared.stats.Rscript.SCATTER_TYPE;
-import org.pankratzlab.shared.stats.StatsCrossTabs.STAT_TYPE;
-import org.pankratzlab.shared.stats.StatsCrossTabs.StatsCrossTabRank;
-import org.pankratzlab.shared.stats.StatsCrossTabs.VALUE_TYPE;
+import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
+import org.pankratzlab.common.stats.Rscript.RScatter;
+import org.pankratzlab.common.stats.Rscript.RScatters;
+import org.pankratzlab.common.stats.Rscript.SCATTER_TYPE;
+import org.pankratzlab.common.stats.StatsCrossTabs.STAT_TYPE;
+import org.pankratzlab.common.stats.StatsCrossTabs.StatsCrossTabRank;
+import org.pankratzlab.common.stats.StatsCrossTabs.VALUE_TYPE;
 import com.google.common.primitives.Ints;
 
 /**

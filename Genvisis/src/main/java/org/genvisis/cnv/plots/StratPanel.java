@@ -21,7 +21,7 @@ import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.ORANGES;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
-import org.pankratzlab.shared.mining.Distance;
+import org.pankratzlab.common.mining.Distance;
 
 public class StratPanel extends AbstractPanel implements MouseListener, MouseMotionListener, ComponentListener {
 

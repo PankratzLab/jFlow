@@ -14,8 +14,8 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.stats.Stats;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.stats.Stats;
 import com.google.common.primitives.Ints;
 
 /*

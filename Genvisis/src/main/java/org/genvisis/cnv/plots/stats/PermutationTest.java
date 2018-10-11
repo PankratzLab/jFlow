@@ -24,12 +24,12 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.collect.RangeMultimap;
+import org.pankratzlab.common.collect.TreeRangeSetMultimap;
+import org.pankratzlab.common.stats.LeastSquares;
+import org.pankratzlab.common.stats.MpermResults;
+import org.pankratzlab.common.stats.MpermResults.TestType;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.collect.RangeMultimap;
-import org.pankratzlab.shared.collect.TreeRangeSetMultimap;
-import org.pankratzlab.shared.stats.LeastSquares;
-import org.pankratzlab.shared.stats.MpermResults;
-import org.pankratzlab.shared.stats.MpermResults.TestType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 

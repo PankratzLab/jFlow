@@ -8,7 +8,7 @@ import org.genvisis.cnv.filesys.ReadingFilePrep;
 import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.QueryInterval;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.TribbleException;

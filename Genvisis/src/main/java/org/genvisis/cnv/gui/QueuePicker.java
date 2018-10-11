@@ -20,10 +20,10 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 import org.pankratzlab.common.Grafik;
-import org.pankratzlab.shared.gui.UITools;
-import org.pankratzlab.shared.qsub.JobQueue;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.qsub.QueueProperties;
+import org.pankratzlab.common.gui.UITools;
+import org.pankratzlab.common.qsub.JobQueue;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.qsub.QueueProperties;
 import net.miginfocom.swing.MigLayout;
 
 public class QueuePicker extends JDialog {

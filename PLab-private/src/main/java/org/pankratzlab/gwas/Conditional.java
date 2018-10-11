@@ -27,9 +27,9 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Zip;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.SerialHash;
-import org.pankratzlab.shared.qsub.Qsub;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.filesys.SerialHash;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
 

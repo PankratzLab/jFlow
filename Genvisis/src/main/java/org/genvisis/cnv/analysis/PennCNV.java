@@ -36,8 +36,8 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SciStringComparator;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.qsub.Qsub;
 import com.google.common.collect.ImmutableSet;
 
 public class PennCNV {

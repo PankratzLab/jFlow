@@ -48,8 +48,8 @@ import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.gui.UITools;
 import org.pankratzlab.phenoprep.LinkageMap;
-import org.pankratzlab.shared.gui.UITools;
 
 public class PlotResults extends JFrame implements ActionListener {
 

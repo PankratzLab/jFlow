@@ -17,7 +17,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.SerialHash;
+import org.pankratzlab.common.filesys.SerialHash;
 
 public class ChargeS {
   // public static final String[][] MAP_REQUIREMENTS = {{"SNP"}, {"Chr", "CHROM"}, {"Position",

@@ -1,8 +1,8 @@
 package org.genvisis.cnv.analysis.collapse;
 
 import org.genvisis.cnv.filesys.Project;
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 
 public abstract class ForcedCaller<T extends Segment> implements ForcedCalling<T> {
 

@@ -19,7 +19,7 @@ import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.shared.stats.ProbDist;
+import org.pankratzlab.common.stats.ProbDist;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Table;

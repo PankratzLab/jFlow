@@ -23,9 +23,9 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Maths;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Segment;
-import org.pankratzlab.shared.stats.Maths;
 
 /**
  * @author lane0212 Handles sample and global exclusions for the reference set, need in particular

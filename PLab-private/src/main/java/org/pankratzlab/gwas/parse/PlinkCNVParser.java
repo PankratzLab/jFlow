@@ -16,8 +16,8 @@ import org.pankratzlab.common.parsing.IntegerFilter;
 import org.pankratzlab.common.parsing.IntegerWrapperColumn;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.shared.stats.Maths.COMPARISON;
 import com.google.common.collect.Lists;
 
 public class PlinkCNVParser {

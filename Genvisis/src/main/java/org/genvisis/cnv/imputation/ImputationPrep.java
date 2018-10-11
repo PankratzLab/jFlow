@@ -20,7 +20,7 @@ import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
+import org.pankratzlab.common.filesys.Positions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

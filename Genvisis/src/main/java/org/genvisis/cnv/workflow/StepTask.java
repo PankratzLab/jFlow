@@ -3,7 +3,7 @@ package org.genvisis.cnv.workflow;
 import java.util.ArrayList;
 import java.util.List;
 import org.genvisis.cnv.gui.GenvisisWorkflowGUI;
-import org.pankratzlab.shared.gui.Task;
+import org.pankratzlab.common.gui.Task;
 
 public class StepTask extends Task<Void, Void> {
 

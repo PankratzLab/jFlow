@@ -28,7 +28,7 @@ import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
+import org.pankratzlab.common.stats.LeastSquares.LS_TYPE;
 import com.google.common.collect.ImmutableList;
 
 /**

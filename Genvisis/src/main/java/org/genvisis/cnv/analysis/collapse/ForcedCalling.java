@@ -3,8 +3,8 @@
  */
 package org.genvisis.cnv.analysis.collapse;
 
-import org.pankratzlab.shared.filesys.LocusSet;
-import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 
 /**
  * 

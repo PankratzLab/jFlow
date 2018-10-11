@@ -28,7 +28,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.FamilyStructure;
+import org.pankratzlab.common.filesys.FamilyStructure;
 
 public class Eigenstrat {
 

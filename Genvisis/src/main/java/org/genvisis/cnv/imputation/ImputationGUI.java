@@ -39,7 +39,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.common.qsub.Qsub;
 import com.google.common.collect.ImmutableSet;
 import net.miginfocom.swing.MigLayout;
 

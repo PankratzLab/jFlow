@@ -2,8 +2,8 @@ package org.genvisis.stats;
 
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.SampleQC;
-import org.pankratzlab.shared.stats.IrrTable;
-import org.pankratzlab.shared.stats.Quantiles;
+import org.pankratzlab.common.stats.IrrTable;
+import org.pankratzlab.common.stats.Quantiles;
 
 /**
  * Manual test for {@link IrrTable}
