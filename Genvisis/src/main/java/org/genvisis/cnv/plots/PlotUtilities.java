@@ -2,7 +2,7 @@ package org.genvisis.cnv.plots;
 
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.HitWindows;
+import org.pankratzlab.utils.gwas.windows.HitWindows;
 
 public final class PlotUtilities {
 
