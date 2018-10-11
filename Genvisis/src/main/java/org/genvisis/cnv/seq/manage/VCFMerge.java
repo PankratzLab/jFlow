@@ -1,7 +1,7 @@
 package org.genvisis.cnv.seq.manage;
 
 import org.genvisis.cnv.Resources;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.GATK;
 import org.genvisis.seq.manage.VCFOps;
@@ -64,7 +64,7 @@ public class VCFMerge {
     String[] vcfs = null;
     String mergeOut = null;
     String referenceGenome = null;
-    GENOME_BUILD genomeBuild = ReferenceGenome.DEFAULT_BUILD;
+    GenomeBuild genomeBuild = ReferenceGenome.DEFAULT_BUILD;
     String gatk = GATK.DEFAULT_GATK;
     int numthreads = 1;
     String usage = "\n" + "seq.manage.VCFMerge requires 0-1 arguments\n";
