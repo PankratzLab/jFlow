@@ -18,12 +18,11 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import org.apache.commons.math3.stat.inference.TTest;
 import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest;
-import org.genvisis.cnv.filesys.SnpMarkerSet;
 import org.genvisis.cnv.manage.Resources;
 import org.genvisis.cnv.manage.Resources.CHROMOSOME;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.plots.AFPlot;
 import org.genvisis.cnv.plots.AFPlot.POPULATION;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.StrandOps;
 import org.genvisis.seq.manage.StrandOps.AlleleOrder;
 import org.genvisis.seq.manage.StrandOps.CONFIG;
@@ -54,6 +53,7 @@ import org.pankratzlab.shared.bioinformatics.Sequence;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.stats.Maths.COMPARISON;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData.Trio;
 import org.pankratzlab.utils.gwas.MergeExtractPipeline.DataSource;
 import org.pankratzlab.shared.stats.ProbDist;
@@ -472,7 +472,7 @@ public class GeneScorePipeline {
 
   private static HashMap<String, Double> get1000GFreq(HashMap<String, int[]> markerMap,
                                                       AFPlot.POPULATION population,
-                                                      GENOME_BUILD build, Logger log) {
+                                                      GenomeBuild build, Logger log) {
     AFPlot.POPULATION pop = population == null ? POPULATION.ALL : population;
     HashMap<Integer, HashSet<String>> mkrsByChr, nonRSByChr;
     HashSet<String> chrMkrs, nonRS;
@@ -549,7 +549,7 @@ public class GeneScorePipeline {
     return markerFreqs;
   }
 
-  public static void preprocessDataFiles(String[] files, AFPlot.POPULATION pop, GENOME_BUILD build,
+  public static void preprocessDataFiles(String[] files, AFPlot.POPULATION pop, GenomeBuild build,
                                          Logger log) {
     BufferedReader reader;
     String temp, delimiter;
@@ -1866,7 +1866,7 @@ public class GeneScorePipeline {
 
     log.reportTime("Processing " + preprocess.size() + " results files...");
     preprocessDataFiles(preprocess.toArray(new String[preprocess.size()]), POPULATION.ALL,
-                        GENOME_BUILD.HG19, log);
+                        GenomeBuild.HG19, log);
     log.reportTime("Done!");
   }
 
@@ -1931,7 +1931,7 @@ public class GeneScorePipeline {
     String[] processList = null;
     boolean process = false;
     POPULATION pop = POPULATION.ALL;
-    GENOME_BUILD build = GENOME_BUILD.HG19;
+    GenomeBuild build = GenomeBuild.HG19;
     // boolean test = true;
     // if (test) {
     // preprocessDataFiles(new String[]{
@@ -1998,7 +1998,7 @@ public class GeneScorePipeline {
       } else if (arg.startsWith("pop=")) {
         pop = POPULATION.valueOf(arg.split("=")[1]);
       } else if (arg.startsWith("build=")) {
-        build = GENOME_BUILD.valueOf(arg.split("=")[1]);
+        build = GenomeBuild.valueOf(arg.split("=")[1]);
       } else if (arg.startsWith(ARG_INDEX_THRESH)) {
         String[] lst = arg.split("=")[1].split(",");
         int cntValid = 0;
