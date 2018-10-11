@@ -9,13 +9,13 @@ import java.util.Hashtable;
 import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import org.genvisis.cnv.gui.UITools;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.shared.gui.UITools;
 import org.pankratzlab.shared.mining.Transformations;
 
 public class MatchesVisualized {

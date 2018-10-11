@@ -1,4 +1,4 @@
-package org.genvisis.seq.analysis;
+package org.pankratzlab.internal.seq.analysis;
 
 import java.io.File;
 import org.genvisis.seq.manage.VCFOps;
@@ -41,7 +41,7 @@ public class Ancestry {
         curVCF = copyVcf;
         log.reportTimeInfo("Current VCF: " + curVCF);
 
-        VCFOps.vcfGwasQC(curVCF, log);
+        org.pankratzlab.internal.seq.manage.VCFOps.vcfGwasQC(curVCF, log);
         return;
       }
     }

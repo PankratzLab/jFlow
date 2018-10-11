@@ -18,7 +18,7 @@ import org.genvisis.cnv.hmm.CNVCaller.AdjustmentQC;
 import org.genvisis.cnv.hmm.CNVCaller.PFB_MANAGEMENT_TYPE;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
-import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;

@@ -1,4 +1,4 @@
-package org.genvisis.seq.qc;
+package org.genvisis.cnv.seq.qc;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;

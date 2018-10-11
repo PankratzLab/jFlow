@@ -1,9 +1,10 @@
-package org.genvisis.seq.manage;
+package org.genvisis.cnv.seq.manage;
 
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.GATK;
+import org.genvisis.seq.manage.VCFOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;

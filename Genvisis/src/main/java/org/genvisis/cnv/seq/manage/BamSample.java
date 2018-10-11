@@ -1,4 +1,4 @@
-package org.genvisis.seq.manage;
+package org.genvisis.cnv.seq.manage;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -7,7 +7,9 @@ import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.BamPile;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;

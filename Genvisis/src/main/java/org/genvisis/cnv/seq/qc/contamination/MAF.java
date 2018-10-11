@@ -1,4 +1,4 @@
-package org.genvisis.seq.qc.contamination;
+package org.genvisis.cnv.seq.qc.contamination;
 
 import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.MarkerData;

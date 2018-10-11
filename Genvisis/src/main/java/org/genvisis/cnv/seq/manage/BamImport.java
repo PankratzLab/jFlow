@@ -1,4 +1,4 @@
-package org.genvisis.seq.manage;
+package org.genvisis.cnv.seq.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import org.genvisis.cnv.Resources.GENOME_BUILD;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.Mosaicism;
@@ -21,22 +20,30 @@ import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_M
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CHROMOSOME_X_STRATEGY;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsIntensity.CORRECTION_TYPE;
 import org.genvisis.cnv.filesys.Centroids;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.LrrSd;
+import org.genvisis.cnv.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSAY_TYPE;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
-import org.genvisis.seq.manage.BamSample.NORMALIZATON_METHOD;
 import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
 import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
+import org.genvisis.seq.manage.BedOps;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -51,8 +58,6 @@ import org.pankratzlab.shared.filesys.LocusSet;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.shared.stats.LeastSquares.LS_TYPE;
-import ca.mcgill.mcb.pcingola.interval.Marker;
-import ca.mcgill.mcb.pcingola.interval.Markers;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -726,7 +731,7 @@ public class BamImport {
           MitoPipeline.catAndCaboodle(proj, numthreads, mediaMarks,
                                       proj.INTENSITY_PC_NUM_COMPONENTS.getValue(), base, false,
                                       true, 0, null, null, null, null, false, false, true, false,
-                                      true, false, -1, -1, GENOME_BUILD.HG19,
+                                      true, false, -1, -1, GenomeBuild.HG19,
                                       MitoPipeline.DEFAULT_PVAL_OPTS, null, false, true, method,
                                       false);
 

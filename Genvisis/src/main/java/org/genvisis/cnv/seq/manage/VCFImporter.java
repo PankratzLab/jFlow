@@ -1,4 +1,4 @@
-package org.genvisis.seq.manage;
+package org.genvisis.cnv.seq.manage;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -13,21 +13,24 @@ import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsCompute.PRE_PROCESSING_METHOD;
 import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.MitoPipeline;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.qc.GcAdjustor;
 import org.genvisis.cnv.qc.GcAdjustor.GcModel;
 import org.genvisis.cnv.qc.SampleQC;
+import org.genvisis.cnv.seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
+import org.genvisis.cnv.seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
+import org.genvisis.cnv.seq.qc.contamination.MAF;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.seq.manage.VCFSamplePrep.PREPPED_SAMPLE_TYPE;
-import org.genvisis.seq.manage.VCFSamplePrep.VCFSamplePrepWorker;
+import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.manage.VCFOps;
+import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.VCOps.LocusID;
 import org.genvisis.seq.manage.VCOps.VC_SUBSET_TYPE;
 import org.genvisis.seq.qc.FilterNGS;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_BOOLEAN;
 import org.genvisis.seq.qc.FilterNGS.VARIANT_FILTER_DOUBLE;
-import org.genvisis.seq.qc.contamination.MAF;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -36,7 +39,6 @@ import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.ext;
-import ca.mcgill.mcb.pcingola.interval.Markers;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
@@ -447,7 +449,7 @@ public class VCFImporter {
     MitoPipeline.catAndCaboodle(projNorm, numThreads, pretendMedian, 100,
                                 projNorm.PROJECT_DIRECTORY.getValue() + "VCF_PCS", true, true, 0.98,
                                 useFile, null, null, null, true, true, true, false, true, false, -1,
-                                -1, GENOME_BUILD.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false,
+                                -1, GenomeBuild.HG19, MitoPipeline.DEFAULT_PVAL_OPTS, null, false,
                                 true, PRE_PROCESSING_METHOD.NONE, false);
     SampleQC sampleQC = SampleQC.loadSampleQC(projNorm);
     sampleQC.addQCsToSampleData(5, true);

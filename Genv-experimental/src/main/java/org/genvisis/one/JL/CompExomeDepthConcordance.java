@@ -7,7 +7,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.filesys.CNVariant;
-import org.genvisis.seq.qc.Mappability;
+import org.genvisis.cnv.seq.qc.Mappability;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;

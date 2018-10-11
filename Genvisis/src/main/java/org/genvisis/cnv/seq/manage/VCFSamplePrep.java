@@ -1,4 +1,4 @@
-package org.genvisis.seq.manage;
+package org.genvisis.cnv.seq.manage;
 
 import java.util.Arrays;
 import java.util.Hashtable;

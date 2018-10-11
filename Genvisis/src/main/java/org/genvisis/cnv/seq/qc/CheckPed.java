@@ -1,4 +1,4 @@
-package org.genvisis.seq.qc;
+package org.genvisis.cnv.seq.qc;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,6 +17,7 @@ import java.util.TreeSet;
 import org.genvisis.cnv.filesys.Pedigree;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.qc.SexChecks;
+import org.genvisis.seq.qc.SexCheck;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;

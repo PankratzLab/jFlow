@@ -1,20 +1,25 @@
 package org.pankratzlab.utils.gwas;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.genvisis.seq.manage.VCFOps.PLINK_SET_MODE;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.gwas.Plink;
+import org.pankratzlab.shared.qsub.Qsub;
 import com.google.common.collect.Maps;
 
 public class RelationAncestryQc extends Qc {
@@ -187,6 +192,159 @@ public class RelationAncestryQc extends Qc {
     new RelationAncestryQc(dir, plinkPrefix, markerQCThresholds,
                            log).run(keepGenomeInfoForRelatedsOnly);
   }
+  
+  /**
+   * @param vcf a vcf file to convert to plink
+   * @param rootOut the root output for the plink files
+   * @param log
+   */
+  public static String[] convertToPlinkSet(String outputDir, String vcf, String rootOut,
+                                           PLINK_SET_MODE mode, Logger log) {
+    String[] plinkCommand = null;
+    String dir = outputDir == null ? ext.parseDirectoryOfFile(vcf) + "plink" + ext.rootOf(vcf) + "/"
+                                   : outputDir;
+
+    new File(dir).mkdirs();
+
+    rootOut = dir + rootOut;
+    String[] outFiles = PSF.Plink.getPlinkBedBimFam(rootOut);
+    if (!Files.exists("", outFiles)) {
+      plinkCommand = PSF.Plink.getPlinkVCFCommand(vcf, rootOut);
+      if (CmdLine.runCommandWithFileChecks(plinkCommand, "", new String[] {vcf}, outFiles, true,
+                                           true, false, log)) {
+
+      }
+    } else {
+      log.reportTimeWarning("Detected that the following files already exist "
+                            + ArrayUtils.toStr(outFiles));
+    }
+    if (Files.exists("", outFiles)) {
+      // Hashtable<String, String> newIDS = new Hashtable<String, String>();
+      fixFamFile(log, outFiles[2]);
+      log.reportTimeInfo("MODE=" + mode);
+      if (mode == PLINK_SET_MODE.GWAS_QC) {
+
+        RelationAncestryQc.fullGamut(dir, rootOut, false,
+                                                       new Logger(dir
+                                                                  + "fullGamutOfMarkerAndSampleQC.log"));
+        String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
+        if (Files.exists(mdsFile)) {
+          // fixMdsFile(log, dir, newIDS, mdsFile);
+          // CmdLine.run("runEigenstratWoHapMap", dir + Qc.GENOME_DIR);
+          // CmdLine.run("runEigenstrat2", dir + Qc.GENOME_DIR);
+          // fixMdsFile(log, dir + Qc.GENOME_DIR, newIDS, combo_fancy_postnormed_eigens.xln);
+        }
+      } else if (mode == PLINK_SET_MODE.HOMOGENEITY) {
+
+        if (!Files.exists(ext.parseDirectoryOfFile(outFiles[2]) + "hardy.hwe")) {
+          CmdLine.run("plink --bfile " + rootOut
+                      + " --maf 0 --geno 1 --mind 1 --hardy --out hardy --noweb",
+                      ext.parseDirectoryOfFile(outFiles[2]));
+        } else {
+          log.reportTimeInfo("Found file " + ext.parseDirectoryOfFile(outFiles[2]) + "hardy.hwe");
+        }
+      }
+    }
+    if (!Files.exists(dir + ".qc.pbs")) {
+      String gwasQC = ArrayUtils.toStr(PSF.Load.getAllModules(), "\n") + "\n" + Files.getRunString()
+                      + " gwas.Qc dir=" + dir;
+      Qsub.qsub(dir + "qc.pbs", gwasQC, 62000, 24, 16);
+    }
+    return outFiles;
+  }
+  private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
+    Hashtable<String, String> changedIds = new Hashtable<>();
+    Files.copyFile(famFile, famFile + ".bak");
+    String[][] fam = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
+    String[][] newfam = new String[fam.length][fam[0].length];
+    boolean newSex = false;
+    // String[][] fam = HashVec.loadFileToStringMatrix(, false, new int[]{1,2,3,4,5,6},
+    // PSF.Regex.GREEDY_WHITESPACE,
+    // false, 1000, false);
+    int noSexcount = 0;
+
+    for (String[] element : fam) {
+      if (element[4].equals("0")) {
+        noSexcount++;
+      }
+    }
+    if (noSexcount == fam.length) {
+      newSex = true;
+      log.reportTimeWarning("Assigning alternating sex specifications");
+    }
+    Hashtable<String, String> uniqIds = new Hashtable<>();
+    boolean swit = true;
+    for (int i = 0; i < fam.length; i++) {
+      String FidIid = fam[i][0];
+      if (FidIid.length() >= 37) {
+        String newID = FidIid.substring(0, 36);
+        log.reportTimeWarning("Changing " + FidIid + " to " + newID);
+        changedIds.put(newID, FidIid);
+        // uniqIds.put(FidIid, newID);
+        FidIid = newID;
+      }
+      uniqIds.put(FidIid, FidIid);
+
+      newfam[i][0] = FidIid;
+      newfam[i][1] = FidIid;
+      if (newSex && swit) {
+        newfam[i][4] = "1";
+        swit = false;
+      } else if (newSex && !swit) {
+        newfam[i][4] = "2";
+        swit = true;
+      } else {
+        newfam[i][4] = fam[i][4];
+      }
+      for (int j = 0; j < newfam[i].length; j++) {
+        if (j != 4 && j != 0 && j != 1) {
+          newfam[i][j] = fam[i][j];
+        }
+      }
+
+    }
+    if (uniqIds.size() != fam.length) {
+      log.reportError("Could not remedy fam file");
+    } else {
+      log.reportTimeInfo("fixed fam file");
+      Files.writeMatrix(newfam, famFile, "\t");
+      if (changedIds.size() > 0) {
+        try {
+          PrintWriter writer = Files.openAppropriateWriter(famFile + ".changedIds");
+          for (String newID : changedIds.keySet()) {
+            writer.print(newID + "\t" + changedIds.get(newID));
+          }
+          writer.close();
+        } catch (Exception e) {
+          log.reportError("Error writing to " + famFile + ".changedIds");
+          log.reportException(e);
+        }
+      }
+    }
+    return changedIds;
+  }
+
+  /**
+   * @param vcf runs {@link org.pankratzlab.utils.gwas.gwas.RelationAncestryQc#fullGamut(String, boolean)} after
+   *          converting to plink* files if neccesary
+   * @param log
+   */
+  public static void vcfGwasQC(String vcf, Logger log) {
+    if (Files.exists(vcf)) {
+      String dir = ext.parseDirectoryOfFile(vcf);
+      String[] plinkFiles = PSF.Plink.getPlinkBedBimFam("plink");
+      if (!Files.exists(dir, plinkFiles)) {
+        log.reportTimeInfo("Generating plink files for " + vcf + " in " + dir);
+        convertToPlinkSet(null, vcf, "plink", PLINK_SET_MODE.GWAS_QC, log);
+      }
+      log.reportTimeInfo("Running gwas.qc on the following files in " + dir + ":");
+      log.reportTimeInfo("\t" + ArrayUtils.toStr(plinkFiles, "\n"));
+      // gwas.Qc.fullGamut(dir, false, new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
+    } else {
+      log.reportFileNotFound(vcf);
+    }
+  }
+
 
   public static void fromParameters(String filename, Logger log) {
     List<String> params;
@@ -202,7 +360,12 @@ public class RelationAncestryQc extends Qc {
       main(ArrayUtils.toStringArray(params));
     }
   }
-
+  public enum UTILITY_TYPE {
+    /**
+     * Convert a vcf to plink and run gwas QC
+     */
+    CONVERT_PLINK,
+  }
   public static void main(String[] args) {
     CLI c = new CLI(RelationAncestryQc.class);
     c.addArgWithDefault(CLI.ARG_INDIR, "directory with binary plink dataset", "./");
@@ -225,6 +388,10 @@ public class RelationAncestryQc extends Qc {
       markerQCThresholds.put(metric, c.get(metric.getKey()));
     }
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
+
+    case CONVERT_PLINK:
+      convertToPlinkSet(null, vcf, "plink", PLINK_SET_MODE.GWAS_QC, log);
+      break;
 
     try {
       RelationAncestryQc.fullGamut(dir, inputPlinkroot, keepGenomeInfoForRelatedsOnly, log,
