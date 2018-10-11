@@ -8,7 +8,7 @@ import java.util.Set;
 import org.genvisis.cnv.Resources.Resource;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.stats.Maths;
-import org.pankratzlab.gwas.MarkerQC;
+import org.pankratzlab.utils.gwas.MarkerQC;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
