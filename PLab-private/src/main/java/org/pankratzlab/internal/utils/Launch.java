@@ -10,7 +10,6 @@ import org.genvisis.cnv.gwas.utils.GeneScorePipeline;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.CNVConcordance;
 import org.genvisis.cnv.qc.CNVTrioFilter;
-import org.genvisis.one.SuperNovo;
 import org.genvisis.seq.Vcf;
 import org.genvisis.seq.manage.VCF;
 import org.genvisis.seq.manage.VCFOps;
@@ -109,7 +108,7 @@ public class Launch {
                                                VCFOps.COMMAND_VCF_OPS_EXTRACT,
                                                VCFOps.COMMAND_VCF_EXTRACT_DESCRIPTION,
 
-                                               };
+  };
 
   public static void run(String filename, Logger log) throws Elision {
     String temp;
@@ -218,8 +217,6 @@ public class Launch {
         PhenoPrep.summarizeFromParameters(filename, log);
       } else if (temp.equalsIgnoreCase("gzip")) {
         Zip.fromParameters(filename, log);
-      } else if (temp.equalsIgnoreCase("SuperNovo")) {
-        SuperNovo.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase(CNVTrioFilter.COMMAND_CNV_TRIO_CRF)) {
         cnvTrio.fromParameters(filename, log);
       } else if (temp.equalsIgnoreCase(VCF.VCF_INIT)) {
