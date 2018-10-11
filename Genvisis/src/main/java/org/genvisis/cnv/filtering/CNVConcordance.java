@@ -1,4 +1,4 @@
-package org.genvisis.cnv.qc;
+package org.genvisis.cnv.filtering;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -8,11 +8,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
-import org.genvisis.cnv.filesys.CNVFilter;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.CNVariantHash;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
+import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;

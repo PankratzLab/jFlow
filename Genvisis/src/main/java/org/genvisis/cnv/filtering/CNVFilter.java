@@ -1,10 +1,13 @@
-package org.genvisis.cnv.filesys;
+package org.genvisis.cnv.filtering;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import org.genvisis.cnv.filesys.CNVariant;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;

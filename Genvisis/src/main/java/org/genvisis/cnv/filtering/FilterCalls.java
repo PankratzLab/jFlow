@@ -1,4 +1,4 @@
-package org.genvisis.cnv.analysis;
+package org.genvisis.cnv.filtering;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,12 +20,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.genvisis.cnv.filesys.CNVFilter;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.manage.UCSCtrack;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.Aliases;

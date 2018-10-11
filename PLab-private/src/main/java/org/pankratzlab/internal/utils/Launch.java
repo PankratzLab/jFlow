@@ -2,14 +2,14 @@ package org.pankratzlab.internal.utils;
 
 import java.io.File;
 import java.io.IOException;
-import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.analysis.MeanLRR;
 import org.genvisis.cnv.analysis.cnvTrio;
-import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.filtering.CNVConcordance;
+import org.genvisis.cnv.filtering.CNVFilter;
+import org.genvisis.cnv.filtering.CNVTrioFilter;
+import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.gwas.utils.GeneScorePipeline;
 import org.genvisis.cnv.plots.TwoDPlot;
-import org.genvisis.cnv.qc.CNVConcordance;
-import org.genvisis.cnv.qc.CNVTrioFilter;
 import org.genvisis.seq.Vcf;
 import org.genvisis.seq.manage.VCF;
 import org.genvisis.seq.manage.VCFOps;

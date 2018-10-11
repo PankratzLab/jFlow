@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import org.genvisis.cnv.analysis.ProjectCNVFiltering;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.CNVFilter.FreqFilter;
+import org.genvisis.cnv.filtering.CNVFilter.FreqFilter;
 import org.genvisis.cnv.seq.qc.Mappability;
 import org.genvisis.cnv.seq.qc.Mappability.MappabilityResult;
 import org.genvisis.cnv.var.SampleData;
