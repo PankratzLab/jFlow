@@ -4,6 +4,7 @@
 package org.genvisis.cnv.seq.analysis;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -30,7 +31,6 @@ import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
-import scala.actors.threadpool.Arrays;
 
 /**
  * Class for processing ClinVar data wget

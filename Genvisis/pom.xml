@@ -37,12 +37,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>PLab-utils</artifactId>
+			<artifactId>SEQ</artifactId>
 			<version>${genvisis.version}</version>
+		      	<exclusions>
+				<exclusion>
+					<groupId>pcingola</groupId>
+					<artifactId>SnpEff</artifactId>
+				</exclusion>
+			</exclusions> 	
 		</dependency>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>SEQ</artifactId>
+			<artifactId>PLab-utils</artifactId>
 			<version>${genvisis.version}</version>
 		</dependency>
 		<dependency>
@@ -59,6 +65,12 @@
 			<groupId>be.ac.ulg.montefiore.run</groupId>
 			<artifactId>jahmm</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 	
 
