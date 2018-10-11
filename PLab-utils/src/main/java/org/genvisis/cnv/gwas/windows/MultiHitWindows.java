@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.genvisis.cnv.filesys.Project;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
@@ -19,10 +18,10 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SciStringComparator;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.gwas.windows.MultiHit;
 import org.pankratzlab.shared.gwas.windows.PFileStructure;
 import org.pankratzlab.shared.gwas.windows.WindowThreshold;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
 
@@ -164,18 +163,6 @@ public class MultiHitWindows {
   }
 
   /**
-   * Use the given {@link Project} to find logging and centromere splitting info.
-   *
-   * @see #generateHitWindows(String, PFileStructure, WindowThreshold, int, String, Logger)
-   */
-  public static void generateHitWindows(String outSuffix, PFileStructure pFile,
-                                        WindowThreshold hitParams, Project proj) {
-    generateHitWindows(outSuffix, pFile, hitParams,
-                       proj.GENOME_BUILD_VERSION.getValue().getBuildInt(),
-                       proj.PLINK_DIR_FILEROOTS.getValueString() + "plink.bim", proj.getLog());
-  }
-
-  /**
    * Split centromeres using defaults for the specified genome build
    *
    * @see #generateHitWindows(String, PFileStructure, WindowThreshold, int, String, Logger)
@@ -293,7 +280,7 @@ public class MultiHitWindows {
     }
 
     // 2. Split MarkerPvals list to comparable components
-    int[][] centromereBoundaries = Positions.determineCentromereBoundariesFromMarkerSet(markerSetFile,
+    int[][] centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFile,
                                                                                         genomeBuild,
                                                                                         log);
     Multimap<String, MultiHit> continuousMarkers = splitMarkers(markers, centromereBoundaries);
@@ -520,10 +507,9 @@ public class MultiHitWindows {
     c.addArg(PVAL_COLUMNS,
              "Comma-separated list of columns containing p-values. NB: hits will be computed for ALL matching p-value columns.",
              "tdt_P,emim_P", true);
-    c.addArg(CLI.ARG_PROJ, CLI.DESC_PROJ + " - used for centromere determination", false);
-    c.addArg(MARKER_SET, "Path to marker set file - for centromere determination if no project",
+    c.addArg(MARKER_SET, "Path to marker set file - for centromere determination",
              false);
-    c.addArg(BUILD, "GRC genome build number - for centromere determination if no project", false,
+    c.addArg(BUILD, "GRC genome build number - for centromere determination", false,
              CLI.Arg.NUMBER);
 
     c.parseWithExit(args);
@@ -537,9 +523,7 @@ public class MultiHitWindows {
                                                      .suggestive(c.getD(SUGGESTIVE_PVAL))
                                                      .window(c.getI(WINDOW));
 
-    if (c.has(CLI.ARG_PROJ)) {
-      generateHitWindows(outSuffix, pFile, hitParams, new Project(c.get(CLI.ARG_PROJ)));
-    } else if (c.has(MARKER_SET)) {
+    if (c.has(MARKER_SET)) {
       generateHitWindows(outSuffix, pFile, hitParams, -1, c.get(MARKER_SET));
     } else if (c.has(BUILD)) {
       generateHitWindows(outSuffix, pFile, hitParams, c.getI(BUILD));
