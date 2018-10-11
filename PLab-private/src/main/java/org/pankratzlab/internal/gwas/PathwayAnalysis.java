@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.CountVector;
@@ -22,6 +21,7 @@ import org.pankratzlab.common.bioinformatics.MapGenesToSNPs;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.filesys.SerialFloatArray;
 import org.pankratzlab.common.filesys.SerialStringArray;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 class KEGGpathway {
 

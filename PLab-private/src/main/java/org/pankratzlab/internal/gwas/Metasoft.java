@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import org.genvisis.cnv.gwas.MergeDatasets;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
@@ -52,28 +53,28 @@ public class Metasoft {
           } else if (stdAlleles == null) {
             stdAlleles = new String[] {line[1 + i * 4 + 0], line[1 + i * 4 + 1]};
           } else {
-            switch (Metal.determineStrandConfig(new String[] {line[1 + i * 4 + 0],
+            switch (MergeDatasets.determineStrandConfig(new String[] {line[1 + i * 4 + 0],
                                                               line[1 + i * 4 + 1]},
                                                 stdAlleles)) {
-              case Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 numFlipped[i]++;
-              case Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
                 break;
-              case Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
                 numFlipped[i]++;
-              case Metal.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
                 numOpposite[i]++;
                 line[1 + i * 4 + 2] = (Double.parseDouble(line[1 + i * 4 + 2]) * -1) + "";
                 numOpposite[i]++;
-              case Metal.STRAND_CONFIG_BOTH_NULL:
+              case MergeDatasets.STRAND_CONFIG_BOTH_NULL:
                 break;
-              case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
+              case MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES:
                 System.err.println("Error - for marker " + line[0] + " Study" + (i + 1)
                                    + " has different alleles (" + line[1 + i * 4 + 0] + "/"
                                    + line[1 + i * 4 + 1] + ") than the rest (" + stdAlleles[0] + "/"
                                    + stdAlleles[1] + ")");
                 break;
-              case Metal.STRAND_CONFIG_SPECIAL_CASE:
+              case MergeDatasets.STRAND_CONFIG_SPECIAL_CASE:
                 System.err.println("Warning - marker " + line[0]
                                    + " has a special case starting with Study" + (i + 1)
                                    + ": alleles (" + line[1 + i * 4 + 0] + "/" + line[1 + i * 4 + 1]

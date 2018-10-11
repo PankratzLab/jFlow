@@ -29,7 +29,6 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.LDdatabase;
 import org.genvisis.cnv.filesys.LongLDdb;
 import org.genvisis.cnv.filesys.ResultSet;
-import org.genvisis.seq.filesys.SnpMarkerSet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
@@ -40,6 +39,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.Vectors;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import com.google.common.primitives.Ints;
 
 public class IndependentSNPs {

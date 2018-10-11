@@ -8,11 +8,11 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.cnv.filesys.Positions;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.stats.Maths;
 
 public class UCSCtrack {
