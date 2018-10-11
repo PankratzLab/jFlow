@@ -192,7 +192,7 @@ public class RelationAncestryQc extends Qc {
     new RelationAncestryQc(dir, plinkPrefix, markerQCThresholds,
                            log).run(keepGenomeInfoForRelatedsOnly);
   }
-  
+
   /**
    * @param vcf a vcf file to convert to plink
    * @param rootOut the root output for the plink files
@@ -225,8 +225,7 @@ public class RelationAncestryQc extends Qc {
       if (mode == PLINK_SET_MODE.GWAS_QC) {
 
         RelationAncestryQc.fullGamut(dir, rootOut, false,
-                                                       new Logger(dir
-                                                                  + "fullGamutOfMarkerAndSampleQC.log"));
+                                     new Logger(dir + "fullGamutOfMarkerAndSampleQC.log"));
         String mdsFile = dir + RelationAncestryQc.GENOME_DIR + "mds20.mds";
         if (Files.exists(mdsFile)) {
           // fixMdsFile(log, dir, newIDS, mdsFile);
@@ -252,6 +251,7 @@ public class RelationAncestryQc extends Qc {
     }
     return outFiles;
   }
+
   private static Hashtable<String, String> fixFamFile(Logger log, String famFile) {
     Hashtable<String, String> changedIds = new Hashtable<>();
     Files.copyFile(famFile, famFile + ".bak");
@@ -325,8 +325,9 @@ public class RelationAncestryQc extends Qc {
   }
 
   /**
-   * @param vcf runs {@link org.pankratzlab.utils.gwas.gwas.RelationAncestryQc#fullGamut(String, boolean)} after
-   *          converting to plink* files if neccesary
+   * @param vcf runs
+   *          {@link org.pankratzlab.utils.gwas.gwas.RelationAncestryQc#fullGamut(String, boolean)}
+   *          after converting to plink* files if neccesary
    * @param log
    */
   public static void vcfGwasQC(String vcf, Logger log) {
@@ -345,7 +346,6 @@ public class RelationAncestryQc extends Qc {
     }
   }
 
-
   public static void fromParameters(String filename, Logger log) {
     List<String> params;
 
@@ -360,12 +360,14 @@ public class RelationAncestryQc extends Qc {
       main(ArrayUtils.toStringArray(params));
     }
   }
+
   public enum UTILITY_TYPE {
     /**
      * Convert a vcf to plink and run gwas QC
      */
     CONVERT_PLINK,
   }
+
   public static void main(String[] args) {
     CLI c = new CLI(RelationAncestryQc.class);
     c.addArgWithDefault(CLI.ARG_INDIR, "directory with binary plink dataset", "./");
@@ -388,10 +390,6 @@ public class RelationAncestryQc extends Qc {
       markerQCThresholds.put(metric, c.get(metric.getKey()));
     }
     Logger log = new Logger(dir + c.get(CLI.ARG_LOG));
-
-    case CONVERT_PLINK:
-      convertToPlinkSet(null, vcf, "plink", PLINK_SET_MODE.GWAS_QC, log);
-      break;
 
     try {
       RelationAncestryQc.fullGamut(dir, inputPlinkroot, keepGenomeInfoForRelatedsOnly, log,
