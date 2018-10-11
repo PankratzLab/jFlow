@@ -45,12 +45,14 @@ import org.genvisis.cnv.prop.Property;
 import org.genvisis.cnv.prop.PropertyKeys;
 import org.genvisis.cnv.prop.StringListProperty;
 import org.genvisis.cnv.prop.StringProperty;
+import org.genvisis.cnv.seq.FastaGenome;
 import org.genvisis.cnv.seq.manage.BamImport.NGS_MARKER_TYPE;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
@@ -59,7 +61,6 @@ import org.pankratzlab.common.ProgressMonitor;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneSet;
-import org.pankratzlab.common.CLI;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
@@ -1935,7 +1936,7 @@ public class Project implements PropertyChangeListener {
    *         reference to be downloaded if not locally available
    */
   public ReferenceGenome getReferenceGenome() {
-    return new ReferenceGenome(GENOME_BUILD_VERSION.getValue(), log);
+    return new FastaGenome(GENOME_BUILD_VERSION.getValue(), log);
   }
 
   /**
