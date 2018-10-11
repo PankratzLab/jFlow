@@ -9,21 +9,21 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.gui.ProjectCreationGUI;
+import org.genvisis.cnv.gwas.utils.FurtherAnalysisQc;
 import org.genvisis.cnv.imputation.ImputationPipeline.IMPUTATION_PIPELINE_PATH;
 import org.genvisis.cnv.manage.SourceFileParser;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.steps.AffyCELProcessingStep;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.collect.MultisetUtils;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.FurtherAnalysisQc;
-import org.pankratzlab.gwas.MarkerQC;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
+import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.QcMetric;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
@@ -197,15 +197,15 @@ public class VcfExportShortcut {
 
   public void runPipeline(int numThreads, String putativeWhtFile, String outputDirAndRoot,
                           String imputationReferenceFile, boolean useGRC) {
-    Map<QC_METRIC, String> qcMap = new HashMap<>();
-    qcMap.put(QC_METRIC.CALLRATE, "<" + callrateThresh);
-    qcMap.put(QC_METRIC.HWE, "<" + hweThresh);
+    Map<QcMetric, String> qcMap = new HashMap<>();
+    qcMap.put(QcMetric.CALLRATE, "<" + callrateThresh);
+    qcMap.put(QcMetric.HWE, "<" + hweThresh);
     String generalQc = "<" + generalQcThresh;
-    qcMap.put(QC_METRIC.MISHAP_HETERO, generalQc);
-    qcMap.put(QC_METRIC.MISHAP_MIN, generalQc);
-    qcMap.put(QC_METRIC.P_MISS, generalQc);
-    qcMap.put(QC_METRIC.P_GENDER, generalQc);
-    qcMap.put(QC_METRIC.P_GENDER_MISS, generalQc);
+    qcMap.put(QcMetric.MISHAP_HETERO, generalQc);
+    qcMap.put(QcMetric.MISHAP_MIN, generalQc);
+    qcMap.put(QcMetric.P_MISS, generalQc);
+    qcMap.put(QcMetric.P_GENDER, generalQc);
+    qcMap.put(QcMetric.P_GENDER_MISS, generalQc);
     StringBuilder outputScript = null;
     boolean includeQC = sampleDropsFile == null && sampleKeepsFile == null
                         && markerKeepsFile == null && markerDropsFile == null;

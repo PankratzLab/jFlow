@@ -28,14 +28,14 @@ import org.genvisis.cnv.workflow.steps.SampleQCStep;
 import org.genvisis.cnv.workflow.steps.SexCentroidsStep;
 import org.genvisis.cnv.workflow.steps.SexChecksStep;
 import org.genvisis.cnv.workflow.steps.TransposeStep;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.QcMetric;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 public class GenvisisWorkflow {
 
@@ -200,7 +200,7 @@ public class GenvisisWorkflow {
   }
 
   public static String setupAffyImputation(Project proj, int numThreads, String putativeWhitesFile,
-                                           Map<QC_METRIC, String> faqcThreshs, String aptExeDir,
+                                           Map<QcMetric, String> faqcThreshs, String aptExeDir,
                                            String aptLibDir, String sketch, boolean includeQC) {
     StepBuilder sb = new StepBuilder(proj);
 
@@ -326,7 +326,7 @@ public class GenvisisWorkflow {
 
   public static String setupIlluminaImputation(Project proj, int numThreads,
                                                String putativeWhitesFile,
-                                               Map<QC_METRIC, String> faqcThreshs,
+                                               Map<QcMetric, String> faqcThreshs,
                                                boolean parseSource, String man, boolean includeQC) {
     StepBuilder sb = new StepBuilder(proj);
 
@@ -469,9 +469,9 @@ public class GenvisisWorkflow {
     return output.toString();
   }
 
-  private static void fixQCThreshs(Variables reqMap, Map<QC_METRIC, String> threshMap) {
+  private static void fixQCThreshs(Variables reqMap, Map<QcMetric, String> threshMap) {
     Map<String, String> qc = new HashMap<>();
-    for (QC_METRIC met : threshMap.keySet()) {
+    for (QcMetric met : threshMap.keySet()) {
       qc.put(met.getUserDescription(), threshMap.get(met));
     }
     for (Requirement<?> r1 : reqMap.keys()) {
