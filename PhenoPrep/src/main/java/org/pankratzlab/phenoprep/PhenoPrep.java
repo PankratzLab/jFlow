@@ -5,10 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import org.genvisis.cnv.analysis.GenCNV;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.pankratzlab.common.ArrayUtils;
@@ -797,6 +799,39 @@ public class PhenoPrep {
 
     finalIDs = newIDs;
     database = data;
+  }
+
+  // TODO will make this more modular, but now just setting a specific analysis Type;
+  // basically run the prep with each phenotype and print to one file;
+  public static String prepPhenos(String dir, String gPhenoFIle, String idFile, String[] covars,
+                                  Logger log) {
+    String newGPhenoFile = ext.rootOf(gPhenoFIle) + ".gprep";
+    log.report(dir + gPhenoFIle);
+    GenCNV.Pheno[] phenos = GenCNV.loadGPHENO(dir + gPhenoFIle, log);
+  
+    String[] uniqInds = GenCNV.getUniqInds(phenos);
+    Hashtable<String, String> hashcovars = GenCNV.defineCovars(covars, log);
+    ArrayList<GenCNV.PrepResults> prepResults = new ArrayList<>();
+    for (int i = 0; i < phenos.length; i++) {
+      // log.report("" + phenos[i].getArrayInds().length + "\t" + phenos[i].getPhenoName());
+      if (hashcovars.containsKey(phenos[i].getPhenoName()) || !GenCNV.hasVariance(phenos[i])) {
+        if (!GenCNV.hasVariance(phenos[i])) {
+          log.report("Warning - no variance detected in phenotype " + phenos[i].getPhenoName()
+                     + ", removing from analysis");
+        }
+        continue;
+      } else {
+        PhenoPrep prep = new PhenoPrep(dir + gPhenoFIle, idFile == null ? null : dir + idFile,
+                                       GenCNV.GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars, log);
+        prep.computeResiduals();
+        prep.inverseNormalize();
+        prepResults.add(new GenCNV.PrepResults(phenos[i].getPhenoName(), prep.getFinalIDs(),
+                                        prep.getDatabase()));
+      }
+    }
+    GenCNV.printNewGPheno(dir, newGPhenoFile, prepResults.toArray(new GenCNV.PrepResults[prepResults.size()]),
+                   uniqInds, log);
+    return newGPhenoFile;
   }
 
   public static void fromParameters(String filename, Logger log) {

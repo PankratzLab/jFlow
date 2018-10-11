@@ -19,7 +19,6 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.RegressionModel;
-import org.pankratzlab.phenoprep.PhenoPrep;
 
 public class GenCNV implements Runnable {
 
@@ -938,40 +937,7 @@ public class GenCNV implements Runnable {
     }
   }
 
-  // TODO will make this more modular, but now just setting a specific analysis Type;
-  // basically run the prep with each phenotype and print to one file;
-  public static String prepPhenos(String dir, String gPhenoFIle, String idFile, String[] covars,
-                                  Logger log) {
-    String newGPhenoFile = ext.rootOf(gPhenoFIle) + ".gprep";
-    log.report(dir + gPhenoFIle);
-    Pheno[] phenos = loadGPHENO(dir + gPhenoFIle, log);
-
-    String[] uniqInds = getUniqInds(phenos);
-    Hashtable<String, String> hashcovars = defineCovars(covars, log);
-    ArrayList<PrepResults> prepResults = new ArrayList<>();
-    for (int i = 0; i < phenos.length; i++) {
-      // log.report("" + phenos[i].getArrayInds().length + "\t" + phenos[i].getPhenoName());
-      if (hashcovars.containsKey(phenos[i].getPhenoName()) || !hasVariance(phenos[i])) {
-        if (!hasVariance(phenos[i])) {
-          log.report("Warning - no variance detected in phenotype " + phenos[i].getPhenoName()
-                     + ", removing from analysis");
-        }
-        continue;
-      } else {
-        PhenoPrep prep = new PhenoPrep(dir + gPhenoFIle, idFile == null ? null : dir + idFile,
-                                       GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars, log);
-        prep.computeResiduals();
-        prep.inverseNormalize();
-        prepResults.add(new PrepResults(phenos[i].getPhenoName(), prep.getFinalIDs(),
-                                        prep.getDatabase()));
-      }
-    }
-    printNewGPheno(dir, newGPhenoFile, prepResults.toArray(new PrepResults[prepResults.size()]),
-                   uniqInds, log);
-    return newGPhenoFile;
-  }
-
-  private static boolean hasVariance(Pheno pheno) {
+  public static boolean hasVariance(Pheno pheno) {
     Hashtable<Double, Boolean> tracker = new Hashtable<>();
     double[] phenos = pheno.getArrayPheno();
     for (double pheno2 : phenos) {
@@ -983,7 +949,7 @@ public class GenCNV implements Runnable {
     return tracker.size() > 1;
   }
 
-  private static void printNewGPheno(String dir, String newGPhenoFile, PrepResults[] prepResults,
+  public static void printNewGPheno(String dir, String newGPhenoFile, PrepResults[] prepResults,
                                      String[] uniqInds, Logger log) {
     String output = dir + newGPhenoFile;
     try {
@@ -1015,7 +981,7 @@ public class GenCNV implements Runnable {
 
   }
 
-  private static String[] getUniqInds(Pheno[] phenos) {
+  public static String[] getUniqInds(Pheno[] phenos) {
     ArrayList<String> inds = new ArrayList<>();
     Hashtable<String, Boolean> tracker = new Hashtable<>();
     for (Pheno pheno : phenos) {
