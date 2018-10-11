@@ -15,6 +15,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.utils.gwas.DosageData;
 
 public class PlinkMarkerLoader implements Runnable {
 
@@ -200,7 +201,7 @@ public class PlinkMarkerLoader implements Runnable {
           in.read(markerBytes);
           for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
             byte bedByte = markerBytes[bitInd];
-            byte[] genos = PlinkData.decodeBedByte(bedByte);
+            byte[] genos = DosageData.decodeBedByte(bedByte);
 
             for (int g = 0; g < genos.length; g++) {
               int idInd = bitInd * 4 + g;

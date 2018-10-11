@@ -1,4 +1,4 @@
-package org.pankratzlab.utils.gwas;
+package org.genvisis.cnv.gwas.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +21,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
+import org.pankratzlab.utils.gwas.DosageData;
 
 public class MergeExtractPipeline {
 

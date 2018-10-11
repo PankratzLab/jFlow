@@ -1,4 +1,4 @@
-package org.pankratzlab.utils.gwas;
+package org.genvisis.cnv.gwas.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +11,9 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
+import org.pankratzlab.utils.gwas.MarkerQC;
+import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.QcMetric;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 

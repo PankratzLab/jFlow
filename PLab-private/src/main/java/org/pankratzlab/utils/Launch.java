@@ -6,6 +6,8 @@ import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.analysis.MeanLRR;
 import org.genvisis.cnv.analysis.cnvTrio;
 import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.gwas.utils.GeneScorePipeline;
+import org.genvisis.cnv.gwas.windows.HitWindows;
 import org.genvisis.cnv.plots.TwoDPlot;
 import org.genvisis.cnv.qc.CNVConcordance;
 import org.genvisis.cnv.qc.CNVTrioFilter;
@@ -44,8 +46,6 @@ import org.pankratzlab.utils.db.DumpSAS;
 import org.pankratzlab.utils.db.FilterDB;
 import org.pankratzlab.utils.db.DBGAPMerge.DBGapExtract;
 import org.pankratzlab.utils.db.DBGAPMerge.DBGapLookup;
-import org.pankratzlab.utils.gwas.GeneScorePipeline;
-import org.pankratzlab.utils.gwas.HitWindows;
 import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
 

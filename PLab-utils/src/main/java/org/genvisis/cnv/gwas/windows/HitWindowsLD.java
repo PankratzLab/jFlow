@@ -1,4 +1,4 @@
-package org.pankratzlab.gwas;
+package org.genvisis.cnv.gwas.windows;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

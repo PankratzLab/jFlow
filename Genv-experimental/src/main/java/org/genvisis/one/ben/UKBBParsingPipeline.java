@@ -44,12 +44,12 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.MarkerDataLoader;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.cnv.manage.PlinkData;
 import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -59,10 +59,10 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.gwas.bgen.BGENBitMath;
 import org.pankratzlab.shared.qsub.Qsub;
+import org.pankratzlab.utils.gwas.DosageData;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.variant.variantcontext.Allele;
 
@@ -1009,7 +1009,7 @@ public class UKBBParsingPipeline {
       int tempInd = sampInd;
       for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
         byte bedByte = markerBytes[bitInd];
-        byte[] genotypes = PlinkData.decodeBedByte(bedByte);
+        byte[] genotypes = DosageData.decodeBedByte(bedByte);
         for (int g = 0; g < genotypes.length; g++) {
           int idInd = bitInd * 4 + g;
           if (idInd == -1 || idInd >= nInd) {

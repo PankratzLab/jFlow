@@ -23,6 +23,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.shared.filesys.Segment;
+import org.pankratzlab.utils.gwas.DosageData;
 
 public class ExportCNVsToPedFormat {
 
@@ -341,7 +342,7 @@ public class ExportCNVsToPedFormat {
               for (int j = 0; j < finalSampleList.length; j++) {
                 genotypes[j] = currentCNs[i][j];
               }
-              bedWriter.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
+              bedWriter.write(DosageData.encodePlinkBedBytesForASingleMarkerOrSample(genotypes));
             } else if (!fileFormat.equals(PLINK_TEXT_FORMAT)) {
               for (int j = 0; j < finalSampleList.length; j++) {
                 if (fileFormat.equals(PLINK_TRANSPOSED_TEXT_FORMAT)) {

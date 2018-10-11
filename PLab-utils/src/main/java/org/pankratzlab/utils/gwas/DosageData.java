@@ -32,7 +32,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.compress.utils.Lists;
-import org.genvisis.cnv.manage.PlinkData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
@@ -1261,7 +1260,7 @@ public class DosageData implements Serializable {
       out.write(outStream);
 
       for (int j = 0; j < markerNames.length; j++) {
-        out.write(PlinkData.encodePlinkBedBytesForASingleMarkerOrSample(ArrayUtils.toByteArray(dosageValues[j])));
+        out.write(encodePlinkBedBytesForASingleMarkerOrSample(ArrayUtils.toByteArray(dosageValues[j])));
       }
 
       out.close();
@@ -1315,6 +1314,124 @@ public class DosageData implements Serializable {
       markerSet = markerSet.trim(markersToUse, true, verbose, log);
     }
     return markersToKeep;
+  }
+
+  /**
+   * This is part of the method decodeBedByte(byte)
+   *
+   * @param bedByte
+   * @return
+   * @throws Elision
+   */
+  public static byte decodeLastTwoBitsOfABedByte(byte bedByte) throws Elision {
+    byte genotype;
+
+    bedByte = (byte) (bedByte & 0x03);
+
+    if (bedByte == (byte) 0) {
+      genotype = (byte) 0;
+
+    } else if (bedByte == (byte) 2) {
+      genotype = (byte) 1;
+
+    } else if (bedByte == (byte) 3) {
+      genotype = (byte) 2;
+
+    } else if (bedByte == (byte) 1) {
+      genotype = (byte) -1;
+
+    } else {
+      throw new Elision("Unrecognized genotype: " + bedByte);
+    }
+
+    return genotype;
+  }
+
+  /**
+   * Convert a type from a PLINK .bed file to an array of genotypes with each element corresponding
+   * to a single sample.
+   *
+   * @param bedByte
+   * @return
+   * @throws Elision
+   */
+  public static byte[] decodeBedByte(byte bedByte) throws Elision {
+    byte[] genotypes;
+
+    genotypes = new byte[4];
+    for (int k = 0; k < 4; k++) {
+      genotypes[k] = decodeLastTwoBitsOfABedByte((byte) (bedByte >> (2 * k)));
+    }
+
+    return genotypes;
+  }
+
+  /**
+   * This is part of the method encodePlinkBedBytesForASingleMarkOrSamp(byte[] )
+   *
+   * @param genotype
+   * @return
+   * @throws Elision
+   */
+  public static byte encodeLastTwoBitsOfABedByte(byte genotype) throws Elision {
+    byte bedByte;
+
+    if (genotype == (byte) 0) {
+      bedByte = (byte) 0x00;
+
+    } else if (genotype == (byte) 1) {
+      bedByte = (byte) 0x02;
+
+    } else if (genotype == (byte) 2) {
+      bedByte = (byte) 0x03;
+
+    } else if (genotype == (byte) -1) {
+      bedByte = (byte) 0x01;
+
+    } else {
+      throw new Elision("Unrecognized genotype: " + genotype
+                        + ". Please use 0 for A/A, 1 for A/B, 2 for B/B, and -1 for null.");
+    }
+
+    return bedByte;
+  }
+
+  /**
+   * Convert the array of genotypes into an array of PLINK .bed byte stream.
+   *
+   * @param genotype
+   * @return
+   */
+  public static byte[] encodePlinkBedBytesForASingleMarkerOrSample(byte[] genotype) {
+    int iBytes;
+    byte[] result;
+    int nBytes;
+    byte shift;
+
+    nBytes = (int) Math.ceil((double) genotype.length / 4);
+    iBytes = -1;
+    result = new byte[nBytes];
+
+    // for (int i = 0; i < result.length; i++) {
+    // result[i] = (byte) 0xAA; //initilize the array to be 0b10101010, the null genotype defined by
+    // PLINK bed data.
+    // }
+
+    try {
+      for (int i = 0; i < genotype.length; i++) {
+        shift = (byte) ((i % 4) * 2);
+        if (shift == 0) {
+          iBytes++;
+        }
+        result[iBytes] = (byte) ((result[iBytes] & (~(0x03 << shift)))
+                                 | (encodeLastTwoBitsOfABedByte(genotype[i]) << shift));
+        // displayBits(result[iBytes]);
+      }
+    } catch (Elision e) {
+      e.printStackTrace();
+    }
+
+    return result;
   }
 
   public static enum COMBINE_OP {
@@ -2717,7 +2834,7 @@ public class DosageData implements Serializable {
           in.read(markerBytes);
           for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
             byte bedByte = markerBytes[bitInd];
-            byte[] genotypes = PlinkData.decodeBedByte(bedByte);
+            byte[] genotypes = decodeBedByte(bedByte);
 
             for (int g = 0; g < genotypes.length; g++) {
               int idInd = bitInd * 4 + g;

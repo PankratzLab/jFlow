@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import org.pankratzlab.shared.gwas.windows.HitWindow;
 import org.pankratzlab.shared.gwas.windows.Hittable;
-import org.pankratzlab.utils.gwas.HitWindows;
 
 /**
  * Looking to implement {@link HitWindows} functionality, but operate on more general pieces.

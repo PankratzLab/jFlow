@@ -1,4 +1,4 @@
-package org.pankratzlab.utils.gwas;
+package org.genvisis.cnv.gwas.windows;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,7 +16,6 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.HitWindowsLD;
 import org.pankratzlab.shared.filesys.Positions;
 import org.pankratzlab.shared.filesys.Segment;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;

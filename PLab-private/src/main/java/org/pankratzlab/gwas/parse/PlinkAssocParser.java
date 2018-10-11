@@ -1,6 +1,7 @@
 package org.pankratzlab.gwas.parse;
 
 import java.io.IOException;
+import org.genvisis.cnv.gwas.windows.HitWindows;
 import org.genvisis.cnv.plots.ManhattanPlot;
 import org.genvisis.cnv.plots.PlotUtilities;
 import org.genvisis.cnv.plots.QQPlot;
@@ -18,7 +19,6 @@ import org.pankratzlab.common.parsing.FileParser;
 import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.StandardFileColumns;
 import org.pankratzlab.common.parsing.Aliases.MultipleAliasStrategy;
-import org.pankratzlab.utils.gwas.HitWindows;
 import org.pankratzlab.common.CLI;
 
 /**
