@@ -8,7 +8,6 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MDL;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.filesys.FamilyStructure;
 
 /**
  * @author Kitty Check for Mendelian errors in a pedigree, taken from
@@ -234,13 +233,11 @@ public class MendelErrors {
         MDL mdl = new MDL(proj, proj.getMarkerNames(), 2, 100);
         while (mdl.hasNext()) {
           MarkerData markerData = mdl.next();
-          Map<String, MendelErrorCheck> mendelErrorChecks = FamilyStructure.PedigreeUtils.checkMendelErrors(pedigree,
-                                                                                                     markerData,
-                                                                                                     samplesToCheck,
-                                                                                                     null,
-                                                                                                     null,
-                                                                                                     0,
-                                                                                                     log);
+          Map<String, MendelErrorCheck> mendelErrorChecks = Pedigree.checkMendelErrors(pedigree,
+                                                                                       markerData,
+                                                                                       samplesToCheck,
+                                                                                       null, null,
+                                                                                       0, log);
           int num = 0;
           for (MendelErrorCheck mendelErrorCheck : mendelErrorChecks.values()) {
             if (mendelErrorCheck.getErrorCode() > 0) {

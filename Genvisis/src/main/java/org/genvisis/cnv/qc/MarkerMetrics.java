@@ -39,7 +39,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.filesys.FamilyStructure;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.LogisticRegression;
 import org.pankratzlab.common.stats.RegressionModel;
@@ -402,7 +401,7 @@ public class MarkerMetrics {
 
         String mecCnt = ".";
         if (pedigree != null && checkMendel) {
-          mecArr = FamilyStructure.PedigreeUtils.checkMendelErrors(pedigree, markerData,
+          mecArr = Pedigree.checkMendelErrors(pedigree, markerData,
                                                             ArrayUtils.booleanNegative(samplesToExclude),
                                                             null, clusterFilterCollection,
                                                             gcThreshold, log);
