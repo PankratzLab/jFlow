@@ -12,20 +12,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.genvisis.cnv.filesys.CNVFilter;
+import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.CNVFilter.CNVFilterPass;
 import org.genvisis.cnv.qc.CNVTrioFilter;
 import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
+import org.pankratzlab.common.PSF.Plink;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.gwas.PlinkMendelianChecker;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Doubles;
 
@@ -558,13 +558,13 @@ public class cnvTrio extends CNVariant {
    */
   public static class TrioQC {
 
-    private static final String[] PED_TRIO_HEADER = {PlinkMendelianChecker.FAMID,
-                                                     PlinkMendelianChecker.INDID,
-                                                     PlinkMendelianChecker.FATHER_ID,
-                                                     PlinkMendelianChecker.MOTHER_ID,
-                                                     PlinkMendelianChecker.IND_DNA,
-                                                     PlinkMendelianChecker.FATHER_DNA,
-                                                     PlinkMendelianChecker.MOTHER_DNA};
+    private static final String[] PED_TRIO_HEADER = {Plink.FAMID,
+                                                     Plink.INDID,
+                                                     Plink.FATHER_ID,
+                                                     Plink.MOTHER_ID,
+                                                     Plink.IND_DNA,
+                                                     Plink.FATHER_DNA,
+                                                     Plink.MOTHER_DNA};
     private final String fID;
     private final String iID;
     private final String faID;
@@ -796,8 +796,8 @@ public class cnvTrio extends CNVariant {
           String dna = line[indices[4]];
           String faDna = line[indices[5]];
           String moDna = line[indices[6]];
-          if (!PlinkMendelianChecker.isValidDNA(dna) || !PlinkMendelianChecker.isValidDNA(faDna)
-              || !PlinkMendelianChecker.isValidDNA(moDna)) {
+          if (!Plink.isValidDNA(dna) || !Plink.isValidDNA(faDna)
+              || !Plink.isValidDNA(moDna)) {
             continue;
           }
           alTrio.add(new TrioQC(line[indices[0]], line[indices[1]], line[indices[2]],

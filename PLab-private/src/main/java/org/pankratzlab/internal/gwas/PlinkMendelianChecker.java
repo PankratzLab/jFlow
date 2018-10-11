@@ -25,14 +25,6 @@ import com.google.common.collect.ImmutableSet;
 
 public class PlinkMendelianChecker {
 
-  public static final String FAMID = "FID";
-  public static final String INDID = "IID";
-  public static final String FATHER_ID = "FA_IID";
-  public static final String MOTHER_ID = "MO_IID";
-  public static final String IND_DNA = "DNA";
-  public static final String FATHER_DNA = "FA_DNA";
-  public static final String MOTHER_DNA = "MO_DNA";
-
   public static final String TRIOS_FILENAME = "trios.xln";
   public static final String REL_CHECKS_FILENAME = "relationshipChecks.xln";
   public static final Set<String> OUTPUTS = ImmutableSet.of(TRIOS_FILENAME, REL_CHECKS_FILENAME);
@@ -496,10 +488,10 @@ public class PlinkMendelianChecker {
     }
 
     StringBuilder sb;
-    sb = new StringBuilder().append(FAMID).append("\t").append(INDID).append("\t").append(FATHER_ID)
-                            .append("\t").append(MOTHER_ID).append("\t").append("SEX").append("\t")
-                            .append(IND_DNA).append("\t").append(FATHER_DNA).append("\t")
-                            .append(MOTHER_DNA).append("\t");
+    sb = new StringBuilder().append(org.pankratzlab.common.PSF.Plink.FAMID).append("\t").append(org.pankratzlab.common.PSF.Plink.INDID).append("\t").append(org.pankratzlab.common.PSF.Plink.FATHER_ID)
+                            .append("\t").append(org.pankratzlab.common.PSF.Plink.MOTHER_ID).append("\t").append("SEX").append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.IND_DNA).append("\t").append(org.pankratzlab.common.PSF.Plink.FATHER_DNA).append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.MOTHER_DNA).append("\t");
     if (gl != null) {
       sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t").append("IBD2_FATHER")
         .append("\t").append("PIHAT_FATHER").append("\t").append("IBD0_MOTHER").append("\t")
@@ -1087,10 +1079,6 @@ public class PlinkMendelianChecker {
       }
     }
     return "UN";
-  }
-
-  public static boolean isValidDNA(String s) {
-    return !s.isEmpty() && !s.equals("0") && !s.equals(".");
   }
 
   public static String parseOutputDirectory(Project proj) {

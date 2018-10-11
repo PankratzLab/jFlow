@@ -404,6 +404,17 @@ public class PSF {
      "OR", "SE", "L95", "U95", "STAT", "P"};
     public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
      "BETA", "SE", "L95", "U95", "STAT", "P"};
+    public static final String FAMID = "FID";
+    public static final String INDID = "IID";
+    public static final String FATHER_ID = "FA_IID";
+    public static final String MOTHER_ID = "MO_IID";
+    public static final String IND_DNA = "DNA";
+    public static final String FATHER_DNA = "FA_DNA";
+    public static final String MOTHER_DNA = "MO_DNA";
+
+    public static boolean isValidDNA(String s) {
+      return !s.isEmpty() && !s.equals("0") && !s.equals(".");
+    }
 
   }
 
