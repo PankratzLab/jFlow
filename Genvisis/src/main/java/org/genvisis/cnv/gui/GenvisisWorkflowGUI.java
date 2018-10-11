@@ -954,7 +954,7 @@ public class GenvisisWorkflowGUI extends JDialog {
             Qsub.qsubDefaults(suggFile, command);
             //            } else {
             //              if (hasQsub) {
-            //                file = Qsub.qsubGUI(suggFile, command);
+            //                file = QueuePicker.qsubGUI(suggFile, command);
             //                if (file != null) {
             //                  if (!file.endsWith(".qsub") && !file.endsWith(".pbs")) {
             //                    file = file + ".pbs";
