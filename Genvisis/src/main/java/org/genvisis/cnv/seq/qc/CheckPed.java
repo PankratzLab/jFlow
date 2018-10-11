@@ -25,8 +25,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.PSF.Plink;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.shared.gwas.Qc;
+import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
@@ -150,7 +150,7 @@ public class CheckPed {
         BufferedReader genomeReader = Files.getAppropriateReader(genome);
         int[] indices = ext.indexFactors(new String[] {"FID1", "IID1", "FID2", "IID2", "Z0", "Z1",
                                                        "Z2", "PI_HAT"},
-                                         Plink.CLUSTER_HEADER, false);
+                                         org.pankratzlab.utils.gwas.Plink.CLUSTER_HEADER, false);
         int fid1 = indices[0];
         int iid1 = indices[1];
         int fid2 = indices[2];
