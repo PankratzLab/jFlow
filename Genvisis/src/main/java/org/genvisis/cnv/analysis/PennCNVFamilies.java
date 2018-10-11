@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.PlinkMendelianChecker;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF.Plink;
+import org.pankratzlab.common.ext;
 
 /**
  * Utility for building input list for penncnv trio
@@ -59,7 +59,7 @@ public class PennCNVFamilies {
 
         boolean valid = true;
         for (int i = 0; i < dnaIdxs.length; i++) {
-          valid = valid && PlinkMendelianChecker.isValidDNA(line[dnaIdxs[i]]);
+          valid = valid && Plink.isValidDNA(line[dnaIdxs[i]]);
         }
         if (!valid) {
           continue;
