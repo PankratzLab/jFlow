@@ -19,9 +19,9 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.gwas.MatchSamples;
-import org.pankratzlab.gwas.MatchesVisualized;
-import org.pankratzlab.gwas.MergeDatasets;
+import org.pankratzlab.internal.gwas.MatchSamples;
+import org.pankratzlab.internal.gwas.MatchesVisualized;
+import org.pankratzlab.internal.gwas.MergeDatasets;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 /**
@@ -315,7 +315,7 @@ public class VCFOps {
       log.reportTimeWarning("found file " + idFile + " and " + mdsFile
                             + " , assuming processing up to this point has been completed");
     }
-    org.pankratzlab.utils.widgets.TabVersion.make(mdsFile);
+    org.pankratzlab.internal.utils.widgets.TabVersion.make(mdsFile);
     mdsFile = mdsFile + ".xln";
 
     for (int i = 1; i < matchUpVpops.length; i++) {
