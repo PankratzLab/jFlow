@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI.Arg;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.core.CLI.Arg;
 
 public class DataFile {
 
