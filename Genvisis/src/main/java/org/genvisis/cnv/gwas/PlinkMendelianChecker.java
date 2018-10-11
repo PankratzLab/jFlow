@@ -1,4 +1,4 @@
-package org.pankratzlab.internal.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
