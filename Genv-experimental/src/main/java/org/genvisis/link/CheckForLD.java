@@ -18,7 +18,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.common.link.LinkageMap;
 import org.pankratzlab.utils.bioinformatics.ParseSNPlocations;
 
 public class CheckForLD {

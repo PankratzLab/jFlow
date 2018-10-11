@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.Vector;
-import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
 
 public class haplostats {
 

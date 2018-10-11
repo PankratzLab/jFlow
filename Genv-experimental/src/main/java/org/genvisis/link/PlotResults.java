@@ -41,15 +41,15 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.ProgressBarDialog;
-import org.pankratzlab.common.Sort;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.PSF.Colors.BLUES;
 import org.pankratzlab.common.PSF.Colors.GREENS;
 import org.pankratzlab.common.PSF.Colors.REDS;
 import org.pankratzlab.common.PSF.Colors.VIOLETS;
+import org.pankratzlab.common.ProgressBarDialog;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.gui.UITools;
-import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.common.link.LinkageMap;
 
 public class PlotResults extends JFrame implements ActionListener {
 

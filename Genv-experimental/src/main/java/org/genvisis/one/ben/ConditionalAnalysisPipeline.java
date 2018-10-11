@@ -25,8 +25,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.stats.LeastSquares;
-import org.pankratzlab.gwas.FAST;
-import org.pankratzlab.gwas.FAST.DataDefinitions;
+import org.pankratzlab.internal.gwas.FAST;
+import org.pankratzlab.internal.gwas.FAST.DataDefinitions;
 import com.google.common.primitives.Doubles;
 
 public class ConditionalAnalysisPipeline {

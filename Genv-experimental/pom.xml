@@ -23,6 +23,17 @@
 			<groupId>org.genvisis</groupId>
 			<artifactId>Genvisis</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>PLab-private</artifactId>
+			<version>${genvisis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>PhenoPrep</artifactId>
+			<version>${genvisis.version}</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.genvisis</groupId>

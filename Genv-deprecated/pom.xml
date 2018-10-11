@@ -23,7 +23,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.genvisis</groupId>
-			<artifactId>Genvisis</artifactId>
+			<artifactId>Genv-experimental</artifactId>
 		</dependency>
 
   </dependencies>

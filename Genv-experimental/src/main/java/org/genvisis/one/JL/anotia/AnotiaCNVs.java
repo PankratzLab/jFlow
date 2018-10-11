@@ -6,12 +6,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
-import org.genvisis.cnv.LocusSet;
-import org.genvisis.cnv.LocusSet.TO_STRING_TYPE;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.seq.CNVExtraInfo;
-import org.genvisis.cnv.seq.SeqCNVariant;
 import org.genvisis.cnv.seq.CNVExtraInfo.EXTRA_INFO_TYPE;
+import org.genvisis.cnv.seq.SeqCNVariant;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.RETRIEVE_TYPE;
@@ -21,6 +19,8 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
 import org.pankratzlab.common.filesys.Positions;
 
 public class AnotiaCNVs {

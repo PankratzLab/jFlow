@@ -21,7 +21,7 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.common.link.LinkageMap;
 import org.pankratzlab.phenoprep.TrimFam;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 

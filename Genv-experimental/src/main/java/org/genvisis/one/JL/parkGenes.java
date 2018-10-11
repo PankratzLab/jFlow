@@ -3,7 +3,6 @@ package org.genvisis.one.JL;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.seq.GenomeBuild;
@@ -12,6 +11,7 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 
 public class parkGenes {

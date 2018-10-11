@@ -10,7 +10,7 @@ import org.jsoup.nodes.Element;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import com.google.common.collect.Lists;
-import com.googlecode.charts4j.collect.Maps;
+import com.google.common.collect.Maps;
 
 public class IDScraper {
 

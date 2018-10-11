@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.genvisis.cnv.LocusSet;
-import org.genvisis.cnv.LocusSet.TO_STRING_TYPE;
 import org.genvisis.cnv.annotation.segments.GDIAnnotator;
 import org.genvisis.cnv.annotation.segments.GeneAnnotator;
 import org.genvisis.cnv.annotation.segments.SegmentAnnotationKeys;
@@ -17,6 +15,7 @@ import org.genvisis.cnv.annotation.segments.WESMappabilityAnnotator;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.filesys.CNVariantAnnotated;
 import org.genvisis.cnv.filesys.CNVariantAnnotated.TallyResult;
+import org.genvisis.cnv.seq.FastaGenome;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
@@ -27,6 +26,8 @@ import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.LocusSet.TO_STRING_TYPE;
 import org.pankratzlab.common.filesys.Segment;
 
 public class CNVScan {
@@ -137,7 +138,7 @@ public class CNVScan {
                                                                             SegmentAnnotationKeys.GENE);
     StringBuilder builderTally = new StringBuilder(SegmentAnnotationKeys.GENE.toString()
                                                    + "\tCOUNT_ALL\tCOUNT_DEL\tCOUNT_DUP\tSAME_CN\tGDI_PERCENTILE\tGDI_RAW\tGDI_PHRED\tSAMPLE\tLOC\tSCORE\tDISTANCE_TO_END_OF_CHR");
-    ReferenceGenome genome = new ReferenceGenome(GenomeBuild.HG19, log);
+    ReferenceGenome genome = new FastaGenome(GenomeBuild.HG19, log);
     for (String key : geneTally.keySet()) {
       String gdi = gdiAnnotator.getGdiLookup()
                                .containsKey(key) ? gdiAnnotator.getGdiLookup().get(key)

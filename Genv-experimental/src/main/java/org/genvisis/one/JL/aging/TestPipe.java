@@ -7,8 +7,8 @@ import org.genvisis.seq.manage.BamOps;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.utils.sra.SRARunTable;
-import org.pankratzlab.utils.sra.SRASample;
+import org.pankratzlab.internal.utils.sra.SRARunTable;
+import org.pankratzlab.internal.utils.sra.SRASample;
 
 /**
  * Done

@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.analysis.FilterCalls;
 import org.genvisis.cnv.filesys.CNVariant;
@@ -23,6 +22,7 @@ import org.pankratzlab.common.WorkerHive;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.LeastSquares;
 

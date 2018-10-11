@@ -4,19 +4,19 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
+import org.genvisis.seq.manage.BamOps;
+import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.genvisis.seq.manage.BamOps;
-import org.genvisis.seq.manage.BedOps;
 
 /**
  * Use samtools to get bp resolution of DOC

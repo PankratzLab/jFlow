@@ -8,13 +8,13 @@ import java.io.PrintWriter;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.PSF;
-import org.genvisis.stats.ContingencyTable;
-import org.genvisis.stats.ProbDist;
-import org.genvisis.stats.Stats;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.stats.ContingencyTable;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.Stats;
 
 public class temp {
 

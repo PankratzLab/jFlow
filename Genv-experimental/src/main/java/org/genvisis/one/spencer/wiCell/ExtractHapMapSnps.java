@@ -1,7 +1,7 @@
 package org.genvisis.one.spencer.wiCell;
 
 import java.util.List;
-import com.googlecode.charts4j.collect.Lists;
+import com.google.common.collect.Lists;
 
 public class ExtractHapMapSnps {
 

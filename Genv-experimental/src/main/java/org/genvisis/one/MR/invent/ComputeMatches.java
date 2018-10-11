@@ -3,8 +3,8 @@ package org.genvisis.one.MR.invent;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
-import org.pankratzlab.gwas.MatchSamples;
-import org.pankratzlab.gwas.MatchesVisualized;
+import org.pankratzlab.internal.gwas.MatchSamples;
+import org.pankratzlab.internal.gwas.MatchesVisualized;
 
 public class ComputeMatches {
 

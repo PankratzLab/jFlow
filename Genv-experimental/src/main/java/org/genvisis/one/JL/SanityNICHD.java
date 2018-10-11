@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.seq.GenomeBuild;
@@ -13,6 +12,7 @@ import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.filesys.GeneData;
 import org.pankratzlab.common.filesys.GeneTrack;
+import org.pankratzlab.common.filesys.LocusSet;
 
 public class SanityNICHD {
 

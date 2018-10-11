@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import org.genvisis.cnv.LocusSet;
 import org.genvisis.cnv.analysis.BeastScore;
 import org.genvisis.cnv.analysis.MosaicismDetect;
 import org.genvisis.cnv.analysis.MosaicismDetect.MosaicBuilder;
@@ -19,8 +18,9 @@ import org.genvisis.cnv.var.SampleData;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.stats.Rscript.COLUMNS_MULTIPLOT;
 import org.pankratzlab.common.stats.Rscript.PLOT_DEVICE;
@@ -97,7 +97,7 @@ public class CNVMosaic {
       };
       results.writeSerial(ser);
     } else {
-      results = LocusSet.readSerialMRSet(ser, proj.getLog());
+      results = MosaicRegion.readSerialMRSet(ser, proj.getLog());
     }
     return null;
 

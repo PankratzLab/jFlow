@@ -15,20 +15,20 @@ import java.io.PrintWriter;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.DoubleVector;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.link.LinkageMap;
-import org.genvisis.link.TrimFam;
 import org.genvisis.park.tools;
-import org.genvisis.stats.LogisticRegression;
-import org.genvisis.stats.RegressionModel;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.DoubleVector;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.link.LinkageMap;
+import org.pankratzlab.common.stats.LogisticRegression;
+import org.pankratzlab.common.stats.RegressionModel;
+import org.pankratzlab.phenoprep.TrimFam;
 
 public class simulateNullDistribution {
 

@@ -14,7 +14,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.common.link.LinkageMap;
 
 public class LinkageFormat {
 

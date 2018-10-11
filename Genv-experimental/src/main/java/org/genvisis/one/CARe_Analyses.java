@@ -22,11 +22,11 @@ import org.pankratzlab.common.ext;
 import org.pankratzlab.common.mining.Transformations;
 import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.qsub.Qsub;
-import org.pankratzlab.gwas.GWAF;
-import org.pankratzlab.gwas.Mach;
-import org.pankratzlab.gwas.Metal;
+import org.pankratzlab.internal.gwas.GWAF;
+import org.pankratzlab.internal.gwas.Mach;
+import org.pankratzlab.internal.gwas.Metal;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
-import org.pankratzlab.utils.gwas.bgen.DosageData;
+import org.pankratzlab.utils.gwas.DosageData;
 
 public class CARe_Analyses {
 

@@ -17,8 +17,8 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.RelationAncestryQc;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 public class GenomeFileMergePipeline {
 

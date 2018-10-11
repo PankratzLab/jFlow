@@ -15,7 +15,7 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.MatchSamples;
+import org.pankratzlab.internal.gwas.MatchSamples;
 import com.google.common.primitives.Doubles;
 
 public class ControlSelectionSimulation {

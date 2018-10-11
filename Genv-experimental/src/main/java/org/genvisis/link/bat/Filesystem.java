@@ -19,7 +19,7 @@ import org.pankratzlab.common.IntVector;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.phenoprep.LinkageMap;
+import org.pankratzlab.common.link.LinkageMap;
 import com.google.common.primitives.Doubles;
 
 public class Filesystem {

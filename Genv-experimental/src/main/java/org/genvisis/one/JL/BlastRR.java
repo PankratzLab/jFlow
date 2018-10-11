@@ -3,6 +3,7 @@ package org.genvisis.one.JL;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import org.genvisis.cnv.seq.FastaGenome;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.analysis.Blast;
@@ -31,7 +32,7 @@ public class BlastRR {
 
     new File(outDir).mkdirs();
     Logger logger = new Logger();
-    ReferenceGenome rg = new ReferenceGenome(GenomeBuild.HG19, logger);
+    ReferenceGenome rg = new FastaGenome(GenomeBuild.HG19, logger);
     SAMSequenceDictionary samSequenceDictionary = rg.getDictionary();
     for (SAMSequenceRecord record : samSequenceDictionary.getSequences()) {
       int chrLength = record.getSequenceLength();

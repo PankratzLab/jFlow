@@ -17,7 +17,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Hits;
-import org.pankratzlab.gwas.CreateDatabaseFromPlink;
+import org.pankratzlab.internal.gwas.CreateDatabaseFromPlink;
 
 public class BOSS_Analyses {
 

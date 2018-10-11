@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import org.genvisis.common.Files;
-import org.genvisis.common.PSF;
-import org.genvisis.common.ext;
-import org.genvisis.stats.ProbDist;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.stats.ProbDist;
 
 public class haploGatherPerms {
 

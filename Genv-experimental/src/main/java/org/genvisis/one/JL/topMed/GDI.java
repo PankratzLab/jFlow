@@ -2,6 +2,7 @@ package org.genvisis.one.JL.topMed;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import org.genvisis.one.JL.topMed.TOPMedUtils.GeneImpact;
@@ -9,15 +10,14 @@ import org.genvisis.one.JL.topMed.TOPMedUtils.IMPACT;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.common.CLI;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFFileReader;
-import scala.actors.threadpool.Arrays;
 
 // : (i) “raw” GDI, calculated for each human gene by first multiplying each variant’s CADD score by
 // the corresponding variant’s number of alleles in the 1,000 Genomes Project (a total of 610,160

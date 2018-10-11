@@ -24,10 +24,10 @@ import org.pankratzlab.common.Unique;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.stats.RegressionModel;
-import org.pankratzlab.gwas.Conditional;
-import org.pankratzlab.gwas.Metal;
-import org.pankratzlab.gwas.ResultsPackager;
-import org.pankratzlab.gwas.SkatMeta2;
+import org.pankratzlab.internal.gwas.Conditional;
+import org.pankratzlab.internal.gwas.Metal;
+import org.pankratzlab.internal.gwas.ResultsPackager;
+import org.pankratzlab.internal.gwas.SkatMeta2;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 
 public class CALiCo {

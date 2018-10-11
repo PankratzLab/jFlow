@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import javax.swing.AbstractAction;
@@ -21,7 +22,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import net.miginfocom.swing.MigLayout;
-import scala.actors.threadpool.Arrays;
 
 public class FileFinder extends JDialog {
 

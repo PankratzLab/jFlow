@@ -12,11 +12,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.Pattern;
-import org.genvisis.common.Files;
-import org.genvisis.common.IntVector;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.IntVector;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
 
 public class haplorParser {
 

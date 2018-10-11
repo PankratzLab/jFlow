@@ -8,19 +8,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Date;
 import java.util.HashSet;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.HashVec;
-import org.genvisis.common.Internat;
-import org.genvisis.common.Logger;
-import org.genvisis.common.PSF;
-import org.genvisis.common.Sort;
-import org.genvisis.common.ext;
-import org.genvisis.parse.GenParser;
-import org.genvisis.qsub.Qsub;
-import org.genvisis.stats.LogisticRegression;
-import org.genvisis.stats.Nonparametric;
-import org.genvisis.stats.Ttest;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.HashVec;
+import org.pankratzlab.common.Internat;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.PSF;
+import org.pankratzlab.common.Sort;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.parse.GenParser;
+import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.LogisticRegression;
+import org.pankratzlab.common.stats.Nonparametric;
+import org.pankratzlab.common.stats.Ttest;
 
 public class temp {
 
