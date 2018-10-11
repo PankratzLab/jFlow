@@ -7,20 +7,20 @@ import java.util.Map;
 import org.genvisis.cnv.analysis.pca.PCImputeRace;
 import org.genvisis.cnv.analysis.pca.PCImputeRace.RACE;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.gwas.Ancestry;
+import org.genvisis.cnv.gwas.utils.FurtherAnalysisQc;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
-import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.Ancestry;
-import org.pankratzlab.gwas.FurtherAnalysisQc;
-import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.QcMetric;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -30,7 +30,7 @@ public class FurtherAnalysisQCStep extends Step {
   public static final String NAME = "Run Further Analysis QC";
   public static final String DESC = "";
 
-  final Map<QC_METRIC, Requirement<String>> metricRequirements;
+  final Map<QcMetric, Requirement<String>> metricRequirements;
 
   public static FurtherAnalysisQCStep create(Project proj, Step plinkExportStep, Step gwasQCStep,
                                              Step ancestryStep) {
@@ -49,9 +49,9 @@ public class FurtherAnalysisQCStep extends Step {
                                                                                  .add(ancestryStepReq)
                                                                                  .add(europeansFilesReq));
 
-    Map<QC_METRIC, Requirement<String>> metricRequirements = Maps.newEnumMap(QC_METRIC.class);
-    for (QC_METRIC metric : QC_METRIC.values()) {
-      Map<QC_METRIC, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
+    Map<QcMetric, Requirement<String>> metricRequirements = Maps.newEnumMap(QcMetric.class);
+    for (QcMetric metric : QcMetric.values()) {
+      Map<QcMetric, String> defaultThresholds = FurtherAnalysisQc.getDefaultMarkerQCThresholds(proj.getArrayType());
       String defaultVal = defaultThresholds.get(metric);
       final Requirement<String> metricReq = new Requirement.ThresholdRequirement(metric.getUserDescription(),
                                                                                  defaultVal);
@@ -67,7 +67,7 @@ public class FurtherAnalysisQCStep extends Step {
   final Requirement<File> unrelatedsFileReq;
   final Requirement<File> europeansFilesReq;
 
-  private FurtherAnalysisQCStep(Project proj, Map<QC_METRIC, Requirement<String>> metricReqs,
+  private FurtherAnalysisQCStep(Project proj, Map<QcMetric, Requirement<String>> metricReqs,
                                 Requirement<File> unrelReq, Requirement<File> euroReq,
                                 RequirementSet reqSet) {
     super(NAME, DESC, reqSet, EnumSet.noneOf(Requirement.Flag.class));
@@ -89,8 +89,8 @@ public class FurtherAnalysisQCStep extends Step {
 
     String europeansFile = resolveEuropeansFile(variables);
 
-    Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(QC_METRIC.class);
-    for (QC_METRIC metric : QC_METRIC.values()) {
+    Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(QcMetric.class);
+    for (QcMetric metric : QcMetric.values()) {
       Requirement<String> req = metricRequirements.get(metric);
       markerQCThresholds.put(metric, variables.get(req));
     }
@@ -112,7 +112,7 @@ public class FurtherAnalysisQCStep extends Step {
     commandChunks.add(CLI.formCmdLineArg(FurtherAnalysisQc.ARG_EUROPEANS, europeansFile));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, GenvisisWorkflow.getPlinkDir(proj)));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
-    for (QC_METRIC metric : QC_METRIC.values()) {
+    for (QcMetric metric : QcMetric.values()) {
       Requirement<String> req = metricRequirements.get(metric);
       commandChunks.add(CLI.formCmdLineArg(metric.getKey(), variables.get(req)));
     }

@@ -1,6 +1,6 @@
 // you have to force A1 onto the same strand if you want to use the HWE shortcut
 // -Xms1024M -Xmx1024M
-package org.pankratzlab.internal.gwas;
+package org.genvisis.cnv.gwas;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,6 +19,7 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.bioinformatics.Sequence;
 import org.pankratzlab.common.filesys.SerialHash;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.ContingencyTable;
@@ -28,12 +29,132 @@ import org.pankratzlab.utils.gwas.MarkerQC;
 
 public class MergeDatasets {
 
+  public static final int STRAND_CONFIG_SAME_ORDER_SAME_STRAND = 1;
+  public static final int STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND = 2;
+  public static final int STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND = 3;
+  public static final int STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND = 4;
+  public static final int STRAND_CONFIG_DIFFERENT_ALLELES = 5;
+  public static final int STRAND_CONFIG_BOTH_NULL = 6;
+  public static final int STRAND_CONFIG_SPECIAL_CASE = 7;
+
+  public static final String[] VALID_ALLELES = {"A", "C", "G", "T", "I", "D"};
+  public static final String[] NULL_ALLELES = {".", "-", "N", "NA", "0"};
+
   public static final double HOMOGENEITY_THRESHOLD = 0.001;
   // public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.015;
   public static final double LOOSE_HOMOGENEITY_THRESHOLD = 0.05;
 
   public static final String CHI_SQUARE_DROPS_FILENAME = "lackOfHomogeneity.dat";
   public static final String FISHER_OR_CHI_SQUARE_DROPS_FILENAME = "FisherOrChiSquareDrops.dat";
+
+  // confusing terminology, here flipped means opposite strand, and opposite means flipped allele
+  public static int determineStrandConfig(String[] alleles, String[] referenceAlleles) {
+    String[] flipped;
+    boolean[] nullChecks;
+    int index;
+
+    if (ext.indexOfStr(alleles[0], VALID_ALLELES) >= 0
+        && ext.indexOfStr(alleles[1], VALID_ALLELES) >= 0) {
+      if (referenceAlleles[0] == null) {
+        referenceAlleles[0] = alleles[0];
+        referenceAlleles[1] = alleles[1];
+        return MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
+      } else if (referenceAlleles[1] == null) {
+        if (alleles[0].equals(referenceAlleles[0])) {
+          referenceAlleles[1] = alleles[1];
+          // return STRAND_CONFIG_SAME;
+          return MergeDatasets.STRAND_CONFIG_SPECIAL_CASE;
+        } else if (alleles[1].equals(referenceAlleles[0])) {
+          referenceAlleles[1] = alleles[0];
+          // return STRAND_CONFIG_OPPOSITE;
+          return MergeDatasets.STRAND_CONFIG_SPECIAL_CASE;
+        } else {
+          flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
+          if (flipped[0].equals(referenceAlleles[0])) {
+            referenceAlleles[1] = flipped[1];
+            // return STRAND_CONFIG_SAME_FLIPPED;
+            return MergeDatasets.STRAND_CONFIG_SPECIAL_CASE;
+          } else if (flipped[1].equals(referenceAlleles[0])) {
+            referenceAlleles[1] = flipped[0];
+            // return STRAND_CONFIG_OPPOSITE_FLIPPED;
+            return MergeDatasets.STRAND_CONFIG_SPECIAL_CASE;
+          } else {
+            return MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES;
+          }
+        }
+      } else {
+        if (alleles[0].equals(referenceAlleles[0]) && alleles[1].equals(referenceAlleles[1])) {
+          return MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
+        } else if (alleles[0].equals(referenceAlleles[1])
+                   && alleles[1].equals(referenceAlleles[0])) {
+          return MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+        } else {
+          flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
+          if (flipped[0].equals(referenceAlleles[0]) && flipped[1].equals(referenceAlleles[1])) {
+            return MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
+          } else if (flipped[0].equals(referenceAlleles[1])
+                     && flipped[1].equals(referenceAlleles[0])) {
+            return MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+          } else {
+            return MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES;
+          }
+        }
+      }
+    } else {
+      nullChecks = new boolean[] {false, false};
+      for (int i = 0; i < nullChecks.length; i++) {
+        if (ext.indexOfStr(alleles[i], NULL_ALLELES) >= 0) {
+          nullChecks[i] = true;
+        } else if (ext.indexOfStr(alleles[i], VALID_ALLELES) == -1) {
+          return MergeDatasets.STRAND_CONFIG_SPECIAL_CASE;
+        }
+      }
+      if (ArrayUtils.booleanArraySum(nullChecks) == 1) {
+        index = nullChecks[0] ? 1 : 0;
+        if (referenceAlleles[0] == null) {
+          referenceAlleles[0] = alleles[index];
+          return index == 0 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+                            : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+        } else if (referenceAlleles[1] == null) {
+          if (alleles[index].equals(referenceAlleles[0])) {
+            return index == 0 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+                              : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+          } else {
+            flipped = new String[] {Sequence.flip(alleles[index])};
+            if (flipped[0].equals(referenceAlleles[0])) {
+              return index == 0 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+                                : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+            } else {
+              return MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES;
+            }
+          }
+        } else {
+          if (alleles[index].equals(referenceAlleles[0])) {
+            return index == 0 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+                              : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+          } else if (alleles[index].equals(referenceAlleles[1])) {
+            return index == 1 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND
+                              : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
+          } else {
+            flipped = new String[] {Sequence.flip(alleles[index])};
+            if (flipped[0].equals(referenceAlleles[0])) {
+              return index == 0 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+                                : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+            } else if (flipped[0].equals(referenceAlleles[1])) {
+              return index == 1 ? MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
+                                : MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
+            } else {
+              return MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES;
+            }
+          }
+        }
+      } else if (ArrayUtils.booleanArraySum(nullChecks) == 2) {
+        return MergeDatasets.STRAND_CONFIG_BOTH_NULL;
+      } else {
+        return MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES;
+      }
+    }
+  }
 
   public static void checkForHomogeneity(String dir) {
     checkForHomogeneity(dir, null, null, "UNAFF", new Logger());
@@ -122,40 +243,39 @@ public class MergeDatasets {
           line = hash.get(keys[j]).split(PSF.Regex.GREEDY_WHITESPACE);
           genotypeCounts[j] = ArrayUtils.toIntArray(line[2].split("/"));
 
-          switch (Metal.determineStrandConfig(new String[] {line[0], line[1]}, refAlleles)) {
-            case Metal.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+          switch (determineStrandConfig(new String[] {line[0], line[1]}, refAlleles)) {
+            case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
               // countFlipped[i]++;
-            case Metal.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+            case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
               break;
-            case Metal.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+            case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
               // countFlipped[i]++;
-            case Metal.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+            case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
               temp = genotypeCounts[j][0];
               genotypeCounts[j][0] = genotypeCounts[j][2];
               genotypeCounts[j][2] = temp;
               break;
-            case Metal.STRAND_CONFIG_BOTH_NULL:
+            case STRAND_CONFIG_BOTH_NULL:
               break;
-            case Metal.STRAND_CONFIG_DIFFERENT_ALLELES:
+            case STRAND_CONFIG_DIFFERENT_ALLELES:
               if (!problematicTrack.containsKey(markerNames[i] + "\t"
-                                                + Metal.STRAND_CONFIG_DIFFERENT_ALLELES)) {
-                writerProblematic.println(markerNames[i] + "\t"
-                                          + Metal.STRAND_CONFIG_DIFFERENT_ALLELES + "\t"
-                                          + dirs[index]);
-                problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES,
-                                     markerNames[i] + "\t" + Metal.STRAND_CONFIG_DIFFERENT_ALLELES);
+                                                + STRAND_CONFIG_DIFFERENT_ALLELES)) {
+                writerProblematic.println(markerNames[i] + "\t" + STRAND_CONFIG_DIFFERENT_ALLELES
+                                          + "\t" + dirs[index]);
+                problematicTrack.put(markerNames[i] + "\t" + STRAND_CONFIG_DIFFERENT_ALLELES,
+                                     markerNames[i] + "\t" + STRAND_CONFIG_DIFFERENT_ALLELES);
               }
               System.err.println("Error - for marker " + markerNames[i] + " " + dirs[index]
                                  + " has different alleles (" + line[0] + "/" + line[1]
                                  + ") than the rest (" + refAlleles[0] + "/" + refAlleles[1] + ")");
               break;
-            case Metal.STRAND_CONFIG_SPECIAL_CASE:
+            case STRAND_CONFIG_SPECIAL_CASE:
               if (!problematicTrack.containsKey(markerNames[i] + "\t"
-                                                + Metal.STRAND_CONFIG_SPECIAL_CASE)) {
-                writerProblematic.println(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE
-                                          + "\t" + dirs[index]);
-                problematicTrack.put(markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE,
-                                     markerNames[i] + "\t" + Metal.STRAND_CONFIG_SPECIAL_CASE);
+                                                + STRAND_CONFIG_SPECIAL_CASE)) {
+                writerProblematic.println(markerNames[i] + "\t" + STRAND_CONFIG_SPECIAL_CASE + "\t"
+                                          + dirs[index]);
+                problematicTrack.put(markerNames[i] + "\t" + STRAND_CONFIG_SPECIAL_CASE,
+                                     markerNames[i] + "\t" + STRAND_CONFIG_SPECIAL_CASE);
               }
               // System.err.println("Warning - marker "+markerNames[i]+" has a special case starting
               // with "+dirs[index]+": alleles ("+line[0]+"/"+line[1]+") where previous had only

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import org.genvisis.cnv.gwas.MergeDatasets;
 import org.genvisis.seq.manage.VCFOps.PLINK_SET_MODE;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation;
 import org.genvisis.seq.manage.VCFOps.VcfPopulation.POPULATION_TYPE;
@@ -21,7 +22,6 @@ import org.pankratzlab.common.filesys.Segment;
 import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.internal.gwas.MatchSamples;
 import org.pankratzlab.internal.gwas.MatchesVisualized;
-import org.pankratzlab.internal.gwas.MergeDatasets;
 import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 /**

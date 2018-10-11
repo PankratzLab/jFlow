@@ -14,8 +14,8 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.gwas.RelationAncestryQc;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 
 public class AnnotateSampleDataStep extends Step {
 

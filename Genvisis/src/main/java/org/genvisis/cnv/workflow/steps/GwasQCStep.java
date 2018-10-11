@@ -12,13 +12,12 @@ import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
-import org.pankratzlab.common.Files;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.gwas.MarkerQC;
-import org.pankratzlab.gwas.PlinkMendelianChecker;
-import org.pankratzlab.gwas.RelationAncestryQc;
-import org.pankratzlab.gwas.MarkerQC.QC_METRIC;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.utils.gwas.MarkerQC;
 import org.pankratzlab.utils.gwas.Qc;
+import org.pankratzlab.utils.gwas.QcMetric;
+import org.pankratzlab.utils.gwas.RelationAncestryQc;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,7 +43,7 @@ public class GwasQCStep extends Step {
         throw new IllegalArgumentException("Invalid " + proj.getArrayType().getClass().getName()
                                            + ": " + proj.getArrayType().toString());
     }
-    final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QC_METRIC.CALLRATE.getUserDescription(),
+    final Requirement<String> callrateReq = new Requirement.ThresholdRequirement(QcMetric.CALLRATE.getUserDescription(),
                                                                                  defaultCallrate);
     final RequirementSet reqSet = RequirementSetBuilder.and().add(plinkExportStepReq)
                                                        .add(callrateReq);
@@ -69,8 +68,8 @@ public class GwasQCStep extends Step {
   @Override
   public void run(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
-    Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
-    markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
+    Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
+    markerQCThresholds.put(QcMetric.CALLRATE, variables.get(callrateReq));
     new RelationAncestryQc(dir, GenvisisWorkflow.PLINKROOT, markerQCThresholds,
                            proj.getLog()).run(false);
     if (new File(dir + Qc.QC_SUBDIR + RelationAncestryQc.GENOME_DIR + GenvisisWorkflow.PLINKROOT
@@ -85,8 +84,8 @@ public class GwasQCStep extends Step {
   @Override
   public String getCommandLine(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
-    Map<QC_METRIC, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
-    markerQCThresholds.put(QC_METRIC.CALLRATE, variables.get(callrateReq));
+    Map<QcMetric, String> markerQCThresholds = Maps.newEnumMap(RelationAncestryQc.DEFAULT_QC_METRIC_THRESHOLDS);
+    markerQCThresholds.put(QcMetric.CALLRATE, variables.get(callrateReq));
 
     List<String> commandChunks = Lists.newArrayList();
     commandChunks.add(Files.getRunString());
@@ -94,7 +93,7 @@ public class GwasQCStep extends Step {
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_INDIR, GenvisisWorkflow.getPlinkDir(proj)));
     commandChunks.add(CLI.formCmdLineArg(CLI.ARG_PLINKROOT, GenvisisWorkflow.PLINKROOT));
     commandChunks.add(CLI.formCmdLineArg(RelationAncestryQc.ARGS_KEEPGENOME, "false"));
-    commandChunks.add(CLI.formCmdLineArg(QC_METRIC.CALLRATE.getKey(), variables.get(callrateReq)));
+    commandChunks.add(CLI.formCmdLineArg(QcMetric.CALLRATE.getKey(), variables.get(callrateReq)));
     commandChunks.add("\n" + Files.getRunString());
     commandChunks.add(GenvisisWorkflow.PROJ_PROP_UPDATE_STR + proj.getPropertyFilename());
     commandChunks.add(proj.GENOME_CLUSTER_FILENAME.getName() + "=" + dir + Qc.QC_SUBDIR
@@ -108,10 +107,10 @@ public class GwasQCStep extends Step {
   @Override
   public boolean checkIfOutputExists(Variables variables) {
     String dir = GenvisisWorkflow.getPlinkDir(proj);
-    for (int i = 0; i < org.pankratzlab.gwas.RelationAncestryQc.FOLDERS_CREATED.length; i++) {
-      for (int j = 0; j < org.pankratzlab.gwas.RelationAncestryQc.FILES_CREATED[i].length; j++) {
-        if (!Files.exists(dir + org.pankratzlab.gwas.RelationAncestryQc.FOLDERS_CREATED[i]
-                          + org.pankratzlab.gwas.RelationAncestryQc.FILES_CREATED[i][j])) {
+    for (int i = 0; i < RelationAncestryQc.FOLDERS_CREATED.length; i++) {
+      for (int j = 0; j < RelationAncestryQc.FILES_CREATED[i].length; j++) {
+        if (!Files.exists(dir + RelationAncestryQc.FOLDERS_CREATED[i]
+                          + RelationAncestryQc.FILES_CREATED[i][j])) {
           return false;
         }
       }

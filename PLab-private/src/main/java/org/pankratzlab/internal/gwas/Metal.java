@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import org.genvisis.cnv.gwas.MergeDatasets;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
@@ -48,15 +49,8 @@ public class Metal {
                                           {"sampleAR", "fAllele12"}, {"sampleRR", "fAllele22"},};
 
   public static final String TEST = "TEST";
-  public static final String[] VALID_ALLELES = {"A", "C", "G", "T", "I", "D"};
-  public static final String[] NULL_ALLELES = {".", "-", "N", "NA", "0"};
-  public static final int STRAND_CONFIG_SAME_ORDER_SAME_STRAND = 1;
-  public static final int STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND = 2;
-  public static final int STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND = 3;
-  public static final int STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND = 4;
-  public static final int STRAND_CONFIG_DIFFERENT_ALLELES = 5;
-  public static final int STRAND_CONFIG_BOTH_NULL = 6;
-  public static final int STRAND_CONFIG_SPECIAL_CASE = 7;
+
+
   public static final int[] FLIP = {1, 0};
   public static final String[] SUFFIXES = {"_A1", "_A2", "_freq", "_N", "_Rsq", "_effN"}; // this is
                                                                                          // the
@@ -646,8 +640,8 @@ public class Metal {
 
         for (int i = 0; i < roots.length; i++) {
           trav = line[indices[i][0]];
-          if (ext.indexOfStr(trav, VALID_ALLELES) < ext.indexOfStr(line[indices[i][1]],
-                                                                   VALID_ALLELES)) {
+          if (ext.indexOfStr(trav, MergeDatasets.VALID_ALLELES) < ext.indexOfStr(line[indices[i][1]],
+                                                                   MergeDatasets.VALID_ALLELES)) {
             trav += line[indices[i][1]];
           } else {
             trav = line[indices[i][1]] + trav;
@@ -1270,29 +1264,29 @@ public class Metal {
             }
 
             previousRef = refAlleles[0] + "/" + refAlleles[1];
-            switch (determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
+            switch (MergeDatasets.determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
                                                         line[indices[i][1]].toUpperCase()},
                                           refAlleles)) {
-              case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 countFlipped[i]++;
-              case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
                 sumAlleles += Double.parseDouble(line[indices[i][2]]) * effN;
                 sumEffN += effN;
                 break;
-              case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
                 countFlipped[i]++;
-              case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
                 sumAlleles += (1 - Double.parseDouble(line[indices[i][2]])) * effN;
                 sumEffN += effN;
                 break;
-              case STRAND_CONFIG_BOTH_NULL:
+              case MergeDatasets.STRAND_CONFIG_BOTH_NULL:
                 break;
-              case STRAND_CONFIG_DIFFERENT_ALLELES:
+              case MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES:
                 log.reportError("Error - " + roots[i] + " has different alleles for " + line[0]
                                 + " (" + line[indices[i][0]] + "/" + line[indices[i][1]]
                                 + ") than had been seen previously (" + previousRef + ")");
                 break;
-              case STRAND_CONFIG_SPECIAL_CASE:
+              case MergeDatasets.STRAND_CONFIG_SPECIAL_CASE:
                 log.reportError("Warning - Special case starting with " + roots[i]
                                 + ": alleles for " + line[0] + " were " + line[indices[i][0]] + "/"
                                 + line[indices[i][1]] + " where only " + previousRef
@@ -1418,29 +1412,29 @@ public class Metal {
         flipped = false;
         for (int i = 0; i < roots.length; i++) {
           if (!line[indices[i][2]].equals(".") && !line[indices[i][2]].equals("NA")) {
-            switch (determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
+            switch (MergeDatasets.determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
                                                         line[indices[i][1]].toUpperCase()},
                                           refAlleles)) {
-              case STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 countFlipped++;
                 flipped = true;
-              case STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
                 freqs[i] = Double.parseDouble(line[indices[i][2]]);
                 break;
-              case STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND:
                 countFlipped++;
                 flipped = true;
-              case STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
+              case MergeDatasets.STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND:
                 freqs[i] = 1 - Double.parseDouble(line[indices[i][2]]);
                 break;
-              case STRAND_CONFIG_BOTH_NULL:
+              case MergeDatasets.STRAND_CONFIG_BOTH_NULL:
                 break;
-              case STRAND_CONFIG_DIFFERENT_ALLELES:
+              case MergeDatasets.STRAND_CONFIG_DIFFERENT_ALLELES:
                 log.reportError("Error - " + roots[i] + " has different alleles ("
                                 + line[indices[i][0]] + "/" + line[indices[i][1]]
                                 + ") than the rest (" + refAlleles[0] + "/" + refAlleles[1] + ")");
                 break;
-              case STRAND_CONFIG_SPECIAL_CASE:
+              case MergeDatasets.STRAND_CONFIG_SPECIAL_CASE:
                 log.reportError("Warning - Special case starting with " + roots[i] + ": alleles ("
                                 + line[indices[i][0]] + "/" + line[indices[i][1]]
                                 + ") where previous had only (" + refAlleles[0] + "/"
@@ -1502,115 +1496,6 @@ public class Metal {
       log.reportError("Error reading file \"" + filename + "\"");
       log.reportException(ioe);
       System.exit(2);
-    }
-  }
-
-  // confusing terminology, here flipped means opposite strand, and opposite means flipped allele
-  public static int determineStrandConfig(String[] alleles, String[] referenceAlleles) {
-    String[] flipped;
-    boolean[] nullChecks;
-    int index;
-
-    if (ext.indexOfStr(alleles[0], VALID_ALLELES) >= 0
-        && ext.indexOfStr(alleles[1], VALID_ALLELES) >= 0) {
-      if (referenceAlleles[0] == null) {
-        referenceAlleles[0] = alleles[0];
-        referenceAlleles[1] = alleles[1];
-        return STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
-      } else if (referenceAlleles[1] == null) {
-        if (alleles[0].equals(referenceAlleles[0])) {
-          referenceAlleles[1] = alleles[1];
-          // return STRAND_CONFIG_SAME;
-          return STRAND_CONFIG_SPECIAL_CASE;
-        } else if (alleles[1].equals(referenceAlleles[0])) {
-          referenceAlleles[1] = alleles[0];
-          // return STRAND_CONFIG_OPPOSITE;
-          return STRAND_CONFIG_SPECIAL_CASE;
-        } else {
-          flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
-          if (flipped[0].equals(referenceAlleles[0])) {
-            referenceAlleles[1] = flipped[1];
-            // return STRAND_CONFIG_SAME_FLIPPED;
-            return STRAND_CONFIG_SPECIAL_CASE;
-          } else if (flipped[1].equals(referenceAlleles[0])) {
-            referenceAlleles[1] = flipped[0];
-            // return STRAND_CONFIG_OPPOSITE_FLIPPED;
-            return STRAND_CONFIG_SPECIAL_CASE;
-          } else {
-            return STRAND_CONFIG_DIFFERENT_ALLELES;
-          }
-        }
-      } else {
-        if (alleles[0].equals(referenceAlleles[0]) && alleles[1].equals(referenceAlleles[1])) {
-          return STRAND_CONFIG_SAME_ORDER_SAME_STRAND;
-        } else if (alleles[0].equals(referenceAlleles[1])
-                   && alleles[1].equals(referenceAlleles[0])) {
-          return STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
-        } else {
-          flipped = new String[] {Sequence.flip(alleles[0]), Sequence.flip(alleles[1])};
-          if (flipped[0].equals(referenceAlleles[0]) && flipped[1].equals(referenceAlleles[1])) {
-            return STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND;
-          } else if (flipped[0].equals(referenceAlleles[1])
-                     && flipped[1].equals(referenceAlleles[0])) {
-            return STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
-          } else {
-            return STRAND_CONFIG_DIFFERENT_ALLELES;
-          }
-        }
-      }
-    } else {
-      nullChecks = new boolean[] {false, false};
-      for (int i = 0; i < nullChecks.length; i++) {
-        if (ext.indexOfStr(alleles[i], NULL_ALLELES) >= 0) {
-          nullChecks[i] = true;
-        } else if (ext.indexOfStr(alleles[i], VALID_ALLELES) == -1) {
-          return STRAND_CONFIG_SPECIAL_CASE;
-        }
-      }
-      if (ArrayUtils.booleanArraySum(nullChecks) == 1) {
-        index = nullChecks[0] ? 1 : 0;
-        if (referenceAlleles[0] == null) {
-          referenceAlleles[0] = alleles[index];
-          return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                            : STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
-        } else if (referenceAlleles[1] == null) {
-          if (alleles[index].equals(referenceAlleles[0])) {
-            return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
-          } else {
-            flipped = new String[] {Sequence.flip(alleles[index])};
-            if (flipped[0].equals(referenceAlleles[0])) {
-              return index == 0 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
-            } else {
-              return STRAND_CONFIG_DIFFERENT_ALLELES;
-            }
-          }
-        } else {
-          if (alleles[index].equals(referenceAlleles[0])) {
-            return index == 0 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
-          } else if (alleles[index].equals(referenceAlleles[1])) {
-            return index == 1 ? STRAND_CONFIG_SAME_ORDER_SAME_STRAND
-                              : STRAND_CONFIG_OPPOSITE_ORDER_SAME_STRAND;
-          } else {
-            flipped = new String[] {Sequence.flip(alleles[index])};
-            if (flipped[0].equals(referenceAlleles[0])) {
-              return index == 0 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
-            } else if (flipped[0].equals(referenceAlleles[1])) {
-              return index == 1 ? STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND
-                                : STRAND_CONFIG_OPPOSITE_ORDER_FLIPPED_STRAND;
-            } else {
-              return STRAND_CONFIG_DIFFERENT_ALLELES;
-            }
-          }
-        }
-      } else if (ArrayUtils.booleanArraySum(nullChecks) == 2) {
-        return STRAND_CONFIG_BOTH_NULL;
-      } else {
-        return STRAND_CONFIG_DIFFERENT_ALLELES;
-      }
     }
   }
 

@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.gwas.Ancestry;
 import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
@@ -16,7 +17,6 @@ import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.Logger;
-import org.pankratzlab.gwas.Ancestry;
 
 public class AncestryStep extends Step {
 
