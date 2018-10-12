@@ -488,9 +488,13 @@ public class PlinkMendelianChecker {
     }
 
     StringBuilder sb;
-    sb = new StringBuilder().append(org.pankratzlab.common.PSF.Plink.FAMID).append("\t").append(org.pankratzlab.common.PSF.Plink.INDID).append("\t").append(org.pankratzlab.common.PSF.Plink.FATHER_ID)
-                            .append("\t").append(org.pankratzlab.common.PSF.Plink.MOTHER_ID).append("\t").append("SEX").append("\t")
-                            .append(org.pankratzlab.common.PSF.Plink.IND_DNA).append("\t").append(org.pankratzlab.common.PSF.Plink.FATHER_DNA).append("\t")
+    sb = new StringBuilder().append(org.pankratzlab.common.PSF.Plink.FAMID).append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.INDID).append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.FATHER_ID).append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.MOTHER_ID).append("\t")
+                            .append("SEX").append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.IND_DNA).append("\t")
+                            .append(org.pankratzlab.common.PSF.Plink.FATHER_DNA).append("\t")
                             .append(org.pankratzlab.common.PSF.Plink.MOTHER_DNA).append("\t");
     if (gl != null) {
       sb.append("IBD0_FATHER").append("\t").append("IBD1_FATHER").append("\t").append("IBD2_FATHER")

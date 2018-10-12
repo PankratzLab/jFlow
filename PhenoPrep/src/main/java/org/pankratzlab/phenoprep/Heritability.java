@@ -484,15 +484,18 @@ public class Heritability {
             if (!skipExtra) {
               FamilyStructure ped = new FamilyStructure(pedigreeFile, false);
               ArrayList<String[]> sibList = FamilyStructure.PedigreeUtils.loadSibs(ped, true, null,
-                                                                            validIDs, true); // double
-                                                                                                                                                                           // actual
-                                                                                                                                                                           // due
-                                                                                                                                                                           // to
-                                                                                                                                                                           // bidirectionality
-              ArrayList<String[]> poPairs = FamilyStructure.PedigreeUtils.loadPOPairs(ped, true, null,
-                                                                               validIDs, true);
-              ArrayList<int[]> trios = FamilyStructure.PedigreeUtils.loadCompleteTrios(ped, null, validIDs,
-                                                                                true);
+                                                                                   validIDs, true); // double
+                                                                                                                                                                                         // actual
+                                                                                                                                                                                         // due
+                                                                                                                                                                                         // to
+                                                                                                                                                                                         // bidirectionality
+              ArrayList<String[]> poPairs = FamilyStructure.PedigreeUtils.loadPOPairs(ped, true,
+                                                                                      null,
+                                                                                      validIDs,
+                                                                                      true);
+              ArrayList<int[]> trios = FamilyStructure.PedigreeUtils.loadCompleteTrios(ped, null,
+                                                                                       validIDs,
+                                                                                       true);
 
               double[] resids = RegressionModel.processDeps(deps);
               if (indeps.size() > 0) {

@@ -674,15 +674,15 @@ public class Project implements PropertyChangeListener {
                                                                    GROUP.IMPORT, false, COPY.VALUE,
                                                                    0, ARRAY.class);
   public final EnumProperty<GenomeBuild> GENOME_BUILD_VERSION = new EnumProperty<>(this,
-                                                                                    PropertyKeys.KEY_GENOME_BUILD_VERSION,
-                                                                                    "The build version of the genome, options are "
-                                                                                                                           + Arrays.asList(GenomeBuild.values())
-                                                                                                                                   .toString(),
-                                                                                    GROUP.IMPORT,
-                                                                                    false,
-                                                                                    COPY.VALUE,
-                                                                                    GenomeBuild.HG19.ordinal(),
-                                                                                    GenomeBuild.class);
+                                                                                   PropertyKeys.KEY_GENOME_BUILD_VERSION,
+                                                                                   "The build version of the genome, options are "
+                                                                                                                          + Arrays.asList(GenomeBuild.values())
+                                                                                                                                  .toString(),
+                                                                                   GROUP.IMPORT,
+                                                                                   false,
+                                                                                   COPY.VALUE,
+                                                                                   GenomeBuild.HG19.ordinal(),
+                                                                                   GenomeBuild.class);
   public final FileProperty TRAILER_REGION = new FileProperty(this, PropertyKeys.KEY_TRAILER_REGION,
                                                               "Last region file opened in Trailer",
                                                               GROUP.TRAILER, true, COPY.NO_COPY, "",

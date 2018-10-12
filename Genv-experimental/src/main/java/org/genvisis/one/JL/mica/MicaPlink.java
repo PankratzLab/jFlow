@@ -40,7 +40,8 @@ public class MicaPlink {
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "log.log");
     int[] gqs = new int[] {-1, 20, 50};
-    String[] covarsH = ArrayUtils.subArray(org.pankratzlab.common.Files.getHeaderOfFile(covars, log),
+    String[] covarsH = ArrayUtils.subArray(org.pankratzlab.common.Files.getHeaderOfFile(covars,
+                                                                                        log),
                                            2);
     ArrayList<Result> results = new ArrayList<>();
     // , 20, 50
@@ -217,7 +218,7 @@ public class MicaPlink {
                 + ".assoc.logistic.mperm.tabs";
 
     org.pankratzlab.common.Files.write(t1 + "\n" + t2 + "\n" + t3 + "\n" + t4 + "\n" + t5,
-                                    root + ".sh");
+                                       root + ".sh");
     org.pankratzlab.common.Files.chmod(root + ".sh");
     CmdLine.run(root + ".sh", outDir);
 

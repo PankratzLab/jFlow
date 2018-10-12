@@ -105,10 +105,11 @@ public class MetaXcan {
               verify);
     } else {
       String command = "cd " + ext.parseDirectoryOfFile(data) + "\njava -jar ~/"
-                       + org.pankratzlab.common.PSF.Java.GENVISIS + " gwas.mxc.ParseMXCResults data="
-                       + data + " mxc=" + mxc_folder + " ref=" + refFile + " freq=" + freqFile
-                       + " db=" + db + " covar=" + covar + " posmap=" + posmap + " out=" + out
-                       + (overwrite ? " -overwrite" : "") + (verify ? " -verify" : "");
+                       + org.pankratzlab.common.PSF.Java.GENVISIS
+                       + " gwas.mxc.ParseMXCResults data=" + data + " mxc=" + mxc_folder + " ref="
+                       + refFile + " freq=" + freqFile + " db=" + db + " covar=" + covar
+                       + " posmap=" + posmap + " out=" + out + (overwrite ? " -overwrite" : "")
+                       + (verify ? " -verify" : "");
       Qsub.qsub("metaXcan.qsub", command, 32000, 2, 1);
     }
 

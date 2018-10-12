@@ -24,7 +24,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 
 public class ReferenceGenome {
 
-  public static final GenomeBuild DEFAULT_BUILD =GenomeBuild.HG19;
+  public static final GenomeBuild DEFAULT_BUILD = GenomeBuild.HG19;
   private final String referenceFasta;
   private IndexedFastaSequenceFile indexedFastaSequenceFile;
   private byte[] currentSeq;

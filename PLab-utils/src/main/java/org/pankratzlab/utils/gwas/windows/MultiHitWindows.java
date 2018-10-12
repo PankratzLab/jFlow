@@ -278,8 +278,8 @@ public class MultiHitWindows {
 
     // 2. Split MarkerPvals list to comparable components
     int[][] centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFile,
-                                                                                        genomeBuild,
-                                                                                        log);
+                                                                                           genomeBuild,
+                                                                                           log);
     Multimap<String, MultiHit> continuousMarkers = splitMarkers(markers, centromereBoundaries);
 
     // 3. Generate hit windows for each p-value column
@@ -504,8 +504,7 @@ public class MultiHitWindows {
     c.addArg(PVAL_COLUMNS,
              "Comma-separated list of columns containing p-values. NB: hits will be computed for ALL matching p-value columns.",
              "tdt_P,emim_P", true);
-    c.addArg(MARKER_SET, "Path to marker set file - for centromere determination",
-             false);
+    c.addArg(MARKER_SET, "Path to marker set file - for centromere determination", false);
     c.addArg(BUILD, "GRC genome build number - for centromere determination", false,
              CLI.Arg.NUMBER);
 

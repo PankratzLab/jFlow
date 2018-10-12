@@ -808,7 +808,7 @@ public class PhenoPrep {
     String newGPhenoFile = ext.rootOf(gPhenoFIle) + ".gprep";
     log.report(dir + gPhenoFIle);
     GenCNV.Pheno[] phenos = GenCNV.loadGPHENO(dir + gPhenoFIle, log);
-  
+
     String[] uniqInds = GenCNV.getUniqInds(phenos);
     Hashtable<String, String> hashcovars = GenCNV.defineCovars(covars, log);
     ArrayList<GenCNV.PrepResults> prepResults = new ArrayList<>();
@@ -822,15 +822,17 @@ public class PhenoPrep {
         continue;
       } else {
         PhenoPrep prep = new PhenoPrep(dir + gPhenoFIle, idFile == null ? null : dir + idFile,
-                                       GenCNV.GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars, log);
+                                       GenCNV.GPHENO_HEADERS[0], phenos[i].getPhenoName(), covars,
+                                       log);
         prep.computeResiduals();
         prep.inverseNormalize();
         prepResults.add(new GenCNV.PrepResults(phenos[i].getPhenoName(), prep.getFinalIDs(),
-                                        prep.getDatabase()));
+                                               prep.getDatabase()));
       }
     }
-    GenCNV.printNewGPheno(dir, newGPhenoFile, prepResults.toArray(new GenCNV.PrepResults[prepResults.size()]),
-                   uniqInds, log);
+    GenCNV.printNewGPheno(dir, newGPhenoFile,
+                          prepResults.toArray(new GenCNV.PrepResults[prepResults.size()]), uniqInds,
+                          log);
     return newGPhenoFile;
   }
 

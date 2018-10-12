@@ -558,13 +558,9 @@ public class cnvTrio extends CNVariant {
    */
   public static class TrioQC {
 
-    private static final String[] PED_TRIO_HEADER = {Plink.FAMID,
-                                                     Plink.INDID,
-                                                     Plink.FATHER_ID,
-                                                     Plink.MOTHER_ID,
-                                                     Plink.IND_DNA,
-                                                     Plink.FATHER_DNA,
-                                                     Plink.MOTHER_DNA};
+    private static final String[] PED_TRIO_HEADER = {Plink.FAMID, Plink.INDID, Plink.FATHER_ID,
+                                                     Plink.MOTHER_ID, Plink.IND_DNA,
+                                                     Plink.FATHER_DNA, Plink.MOTHER_DNA};
     private final String fID;
     private final String iID;
     private final String faID;
@@ -796,8 +792,7 @@ public class cnvTrio extends CNVariant {
           String dna = line[indices[4]];
           String faDna = line[indices[5]];
           String moDna = line[indices[6]];
-          if (!Plink.isValidDNA(dna) || !Plink.isValidDNA(faDna)
-              || !Plink.isValidDNA(moDna)) {
+          if (!Plink.isValidDNA(dna) || !Plink.isValidDNA(faDna) || !Plink.isValidDNA(moDna)) {
             continue;
           }
           alTrio.add(new TrioQC(line[indices[0]], line[indices[1]], line[indices[2]],

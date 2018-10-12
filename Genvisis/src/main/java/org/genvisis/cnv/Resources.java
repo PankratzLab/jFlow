@@ -687,7 +687,8 @@ public final class Resources {
 
     private Resource get(String cnv, String extension) {
       StringBuilder sb = new StringBuilder();
-      sb.append("hh").append(cnv).append(".").append(build.getBuild()).append(".").append(extension);
+      sb.append("hh").append(cnv).append(".").append(build.getBuild()).append(".")
+        .append(extension);
       return getResource(sb.toString());
     }
   }

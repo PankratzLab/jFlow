@@ -701,7 +701,7 @@ public class GcAdjustor {
       }
     }
     double cc = org.pankratzlab.common.stats.Correlation.Pearson(Doubles.toArray(medianIntensity),
-                                                       Doubles.toArray(medianGc))[0];
+                                                                 Doubles.toArray(medianGc))[0];
     waves[0] = cc > 0 ? -1 * wf : wf;
     waves[1] = waves[0] * Math.abs(cc);
     return waves;

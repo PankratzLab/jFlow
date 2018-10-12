@@ -402,9 +402,8 @@ public class MarkerMetrics {
         String mecCnt = ".";
         if (pedigree != null && checkMendel) {
           mecArr = Pedigree.checkMendelErrors(pedigree, markerData,
-                                                            ArrayUtils.booleanNegative(samplesToExclude),
-                                                            null, clusterFilterCollection,
-                                                            gcThreshold, log);
+                                              ArrayUtils.booleanNegative(samplesToExclude), null,
+                                              clusterFilterCollection, gcThreshold, log);
           count = 0;
           for (int i = 0; i < pedigree.getDnas().length; i++) {
             if (samplesToExclude[i]) {

@@ -1233,7 +1233,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     int[] positions;
     int[][] centromereBoundaries;
     SnpMarkerSet markerSet;
-  
+
     if (build == 36) {
       centromereBoundaries = Positions.CENTROMERE_BOUNDARIES_FROM_SNPS_B36_HG18;
     } else if (build == 37) {
@@ -1243,7 +1243,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                       + build + "'");
       return null;
     }
-  
+
     if (markerSetFilename == null || !Files.exists(markerSetFilename)) {
       log.reportError("Warning - since "
                       + (markerSetFilename == null ? "markerSetFilename was set to null"
@@ -1253,13 +1253,13 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                       + " will be used");
       return centromereBoundaries;
     }
-  
+
     markerSet = new SnpMarkerSet(markerSetFilename, false, log);
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
-  
+
     return Positions.determineCentromereBoundariesFromMarkerSet(chrs, positions, build, log);
-  
+
   }
 
   public static int[][] determineCentromereBoundariesFromMarkerSet(SnpMarkerSet markerSet,
@@ -1271,7 +1271,7 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
     Segment[] midpointSegments;
     int[][] centromereBoundaries;
     int markerPosition;
-  
+
     if (build == 36) {
       centromereBoundaries = Positions.CENTROMERE_BOUNDARIES_FROM_SNPS_B36_HG18;
     } else if (build == 37) {
@@ -1281,17 +1281,17 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
                       + build + "'");
       return null;
     }
-  
+
     chrs = markerSet.getChrs();
     positions = markerSet.getPositions();
-  
+
     midpointEstimates = new int[27];
     midpointSegments = Positions.computeCentromereMidpoints(centromereBoundaries);
     for (chr = 0; chr < 27; chr++) {
       centromereBoundaries[chr] = new int[] {-1, Integer.MAX_VALUE};
       midpointEstimates[chr] = midpointSegments[chr].getStart();
     }
-  
+
     for (int i = 0; i < positions.length; i++) {
       chr = chrs[i];
       markerPosition = positions[i];
@@ -1304,13 +1304,13 @@ public class SnpMarkerSet implements Serializable, PlainTextExport {
         centromereBoundaries[chr][1] = markerPosition;
       }
     }
-  
+
     for (chr = 0; chr < 27; chr++) {
       if (centromereBoundaries[chr][1] == Integer.MAX_VALUE) {
         centromereBoundaries[chr] = new int[] {0, 0};
       }
     }
-  
+
     return centromereBoundaries;
   }
 

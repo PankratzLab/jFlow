@@ -110,7 +110,7 @@ public class lab {
     FileReader fr = null;
 
     centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
-                                                                                build, log);
+                                                                                   build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
 
     try {

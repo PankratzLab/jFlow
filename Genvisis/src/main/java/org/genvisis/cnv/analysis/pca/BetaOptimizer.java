@@ -997,8 +997,7 @@ public class BetaOptimizer {
                                            true);
 
       } else {
-        throw new IllegalArgumentException("Genome version must be "
-                                           + GenomeBuild.HG19.getBuild());
+        throw new IllegalArgumentException("Genome version must be " + GenomeBuild.HG19.getBuild());
       }
     }
 
@@ -1261,8 +1260,8 @@ public class BetaOptimizer {
     abLookup = new ABLookup(markerSet.getMarkerNames(), proj.AB_LOOKUP_FILENAME.getValue(), true,
                             true, proj.getLog());
     Resource dbsnp = Resources.genome(GenomeBuild.HG19, proj.getLog()).getDBSNP();// TODO, need hg
-                                                                                   // 18
-                                                                                   // db snp
+                                                                                  // 18
+                                                                                  // db snp
     if (!dbsnp.isAvailable()) {
       throw new IllegalStateException("Could not retrieve required dbSNP vcf");
     }

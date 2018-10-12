@@ -109,6 +109,7 @@ public class Pedigree extends FamilyStructure {
   public String getPedigreeFile() {
     return pedigreeFile;
   }
+
   /**
    * @return Mapping of sample ID to {@link MendelErrorCheck} instance for that individual. Note
    *         that the keys are always for children, with parents being reachable through the error
@@ -122,8 +123,7 @@ public class Pedigree extends FamilyStructure {
                                                                 float gcThreshold, Logger log) {
     Project proj = pedigree.getProject();
     if (proj == null) {
-      log.reportError(ext.getTime()
-                      + "]\t Error - cannot run checkMendelErrors without a Project");
+      log.reportError(ext.getTime() + "]\t Error - cannot run checkMendelErrors without a Project");
       return null;
     }
     Map<String, MendelErrorCheck> mendelErrorChecks = new HashMap<>();

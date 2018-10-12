@@ -1991,7 +1991,7 @@ public class PlinkData {
         indexBedBytes = indicesOfSamplesOrMarkers[i] / 4;
         indexBedByte = indicesOfSamplesOrMarkers[i] % 4;
         genotypes[i] = DosageData.decodeLastTwoBitsOfABedByte((byte) (bedBytes[indexBedBytes] >> (indexBedByte
-                                                                                       * 2)));
+                                                                                                  * 2)));
       }
     } catch (Elision e) {
       e.printStackTrace();
@@ -2374,7 +2374,7 @@ public class PlinkData {
           indexBedBytes = sampIndices[j] / 4;
           indexBedBits = sampIndices[i] % 4;
           genotypes[j] = DosageData.decodeLastTwoBitsOfABedByte((byte) (bytesOfOneMarkerInBed[indexBedBytes] >> (indexBedBits
-                                                                                                      * 2)));
+                                                                                                                 * 2)));
         }
 
         result[i] = new MarkerData(allMarkersInProj[markersIndicesInProj[i]],

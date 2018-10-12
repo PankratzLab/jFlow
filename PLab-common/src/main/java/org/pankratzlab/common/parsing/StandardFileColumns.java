@@ -89,7 +89,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link AliasedFileColumn} around
-   * {@link org.pankratzlab.common.Aliases#MARKER_NAMES} that will fail if multiple aliases are found.
+   * {@link org.pankratzlab.common.Aliases#MARKER_NAMES} that will fail if multiple aliases are
+   * found.
    * 
    * @param colName Desired name of column
    * @return AliasedFileColumn
@@ -107,8 +108,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#POSITIONS} that will fail
-   * if multiple aliases are found.
+   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#POSITIONS} that will
+   * fail if multiple aliases are found.
    * 
    * @param colName Desired name of column
    * @return IntegerWrapperColumn
@@ -119,8 +120,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link IntegerWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#POSITIONS} that will fail
-   * if multiple aliases are found.
+   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#POSITIONS} that will
+   * fail if multiple aliases are found.
    * 
    * @param colName Desired name of column
    * @param dieOnMissing
@@ -134,8 +135,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link DoubleWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#PVALUES} that will fail
-   * if multiple aliases are found.
+   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#PVALUES} that will
+   * fail if multiple aliases are found.
    * 
    * @param colName Desired name of column
    * @return DoubleWrapperColumn
@@ -146,8 +147,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link DoubleWrapperColumn} wrapped around an
-   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#PVALUES} that will fail
-   * if multiple aliases are found.
+   * {@link AliasedFileColumn} based on {@link org.pankratzlab.common.Aliases#PVALUES} that will
+   * fail if multiple aliases are found.
    * 
    * @param colName Desired name of column
    * @param dieOnMissing
@@ -161,8 +162,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link AliasedFileColumn} around
-   * {@link org.pankratzlab.common.Aliases#ALLELES}{@code [0]} that will fail if multiple aliases are
-   * found.
+   * {@link org.pankratzlab.common.Aliases#ALLELES}{@code [0]} that will fail if multiple aliases
+   * are found.
    * 
    * @param colName Desired name of column
    * @return AliasedFileColumn
@@ -198,8 +199,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link AliasedFileColumn} around
-   * {@link org.pankratzlab.common.Aliases#ALLELES}{@code [1]} that will fail if multiple aliases are
-   * found.
+   * {@link org.pankratzlab.common.Aliases#ALLELES}{@code [1]} that will fail if multiple aliases
+   * are found.
    * 
    * @param colName Desired name of column
    * @return AliasedFileColumn
@@ -210,7 +211,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link AliasedFileColumn} around
-   * {@link org.pankratzlab.common.Aliases#ALLELE_FREQS} that will fail if multiple aliases are found.
+   * {@link org.pankratzlab.common.Aliases#ALLELE_FREQS} that will fail if multiple aliases are
+   * found.
    * 
    * @param colName Desired name of column
    * @return AliasedFileColumn
@@ -221,7 +223,8 @@ public final class StandardFileColumns {
 
   /**
    * Creates a non-case-sensitive {@link AliasedFileColumn} around
-   * {@link org.pankratzlab.common.Aliases#ALLELE_FREQS} that will fail if multiple aliases are found.
+   * {@link org.pankratzlab.common.Aliases#ALLELE_FREQS} that will fail if multiple aliases are
+   * found.
    * 
    * @param colName Desired name of column
    * @param dieOnMissing

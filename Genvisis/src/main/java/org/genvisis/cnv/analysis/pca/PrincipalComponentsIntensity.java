@@ -135,12 +135,13 @@ public class PrincipalComponentsIntensity extends PrincipalComponentsResiduals {
     fail = (markerData.getXs() == null || markerData.getYs() == null
             || markerData.getAbGenotypes() == null);
     centroid = org.genvisis.cnv.util.CentroidHelper.prepareProperCentroid(getProj().getArrayType(),
-                                                                     markerData, sampleSex,
-                                                                     samplesToUseCluster,
-                                                                     missingnessThreshold,
-                                                                     confThreshold,
-                                                                     clusterFilterCollection,
-                                                                     medianCenter, proj.getLog());
+                                                                          markerData, sampleSex,
+                                                                          samplesToUseCluster,
+                                                                          missingnessThreshold,
+                                                                          confThreshold,
+                                                                          clusterFilterCollection,
+                                                                          medianCenter,
+                                                                          proj.getLog());
     numTotalSamples = markerData.getXs().length;
     correctedXFull = new float[numTotalSamples];
     correctedYFull = new float[numTotalSamples];

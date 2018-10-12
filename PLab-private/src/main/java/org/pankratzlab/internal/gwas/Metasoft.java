@@ -54,8 +54,8 @@ public class Metasoft {
             stdAlleles = new String[] {line[1 + i * 4 + 0], line[1 + i * 4 + 1]};
           } else {
             switch (MergeDatasets.determineStrandConfig(new String[] {line[1 + i * 4 + 0],
-                                                              line[1 + i * 4 + 1]},
-                                                stdAlleles)) {
+                                                                      line[1 + i * 4 + 1]},
+                                                        stdAlleles)) {
               case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 numFlipped[i]++;
               case MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:

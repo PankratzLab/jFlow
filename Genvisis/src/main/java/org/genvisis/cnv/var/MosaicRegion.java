@@ -173,7 +173,7 @@ public class MosaicRegion extends CNVariant implements Serializable {
   }
 
   @SuppressWarnings("unchecked")
-  
+
   public static LocusSet<MosaicRegion> readSerialMRSet(String filename, Logger log) {
     return ((LocusSet<MosaicRegion>) SerializedFiles.readSerial(filename, log, false, true));
   }

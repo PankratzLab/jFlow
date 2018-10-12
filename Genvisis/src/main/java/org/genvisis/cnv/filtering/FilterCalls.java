@@ -1283,7 +1283,7 @@ public class FilterCalls {
                                                           : Segment.loadUCSCregions(filenameOfProblematicRegions,
                                                                                     0, false, log);
     centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilenameToBreakUpCentromeres,
-                                                                                build, log);
+                                                                                   build, log);
     centromereMidpoints = Positions.computeCentromereMidpoints(centromereBoundaries);
     commonReference = commonInOutOrIgnore != COMMON_IGNORED ? Segment.loadUCSCregions(Files.firstDirectoryThatExists(DEFAULT_REGION_DIRECTORIES,
                                                                                                                      true,

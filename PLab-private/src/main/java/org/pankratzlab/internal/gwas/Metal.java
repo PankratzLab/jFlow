@@ -50,7 +50,6 @@ public class Metal {
 
   public static final String TEST = "TEST";
 
-
   public static final int[] FLIP = {1, 0};
   public static final String[] SUFFIXES = {"_A1", "_A2", "_freq", "_N", "_Rsq", "_effN"}; // this is
                                                                                          // the
@@ -640,8 +639,9 @@ public class Metal {
 
         for (int i = 0; i < roots.length; i++) {
           trav = line[indices[i][0]];
-          if (ext.indexOfStr(trav, MergeDatasets.VALID_ALLELES) < ext.indexOfStr(line[indices[i][1]],
-                                                                   MergeDatasets.VALID_ALLELES)) {
+          if (ext.indexOfStr(trav,
+                             MergeDatasets.VALID_ALLELES) < ext.indexOfStr(line[indices[i][1]],
+                                                                           MergeDatasets.VALID_ALLELES)) {
             trav += line[indices[i][1]];
           } else {
             trav = line[indices[i][1]] + trav;
@@ -1265,8 +1265,8 @@ public class Metal {
 
             previousRef = refAlleles[0] + "/" + refAlleles[1];
             switch (MergeDatasets.determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
-                                                        line[indices[i][1]].toUpperCase()},
-                                          refAlleles)) {
+                                                                      line[indices[i][1]].toUpperCase()},
+                                                        refAlleles)) {
               case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 countFlipped[i]++;
               case MergeDatasets.STRAND_CONFIG_SAME_ORDER_SAME_STRAND:
@@ -1413,8 +1413,8 @@ public class Metal {
         for (int i = 0; i < roots.length; i++) {
           if (!line[indices[i][2]].equals(".") && !line[indices[i][2]].equals("NA")) {
             switch (MergeDatasets.determineStrandConfig(new String[] {line[indices[i][0]].toUpperCase(),
-                                                        line[indices[i][1]].toUpperCase()},
-                                          refAlleles)) {
+                                                                      line[indices[i][1]].toUpperCase()},
+                                                        refAlleles)) {
               case MergeDatasets.STRAND_CONFIG_SAME_ORDER_FLIPPED_STRAND:
                 countFlipped++;
                 flipped = true;

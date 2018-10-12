@@ -76,7 +76,8 @@ public class MarkerGraphics {
 
     int genomeBuild = proj.GENOME_BUILD_VERSION.getValue().getBuildInt();
     centromereBoundaries = SnpMarkerSet.determineCentromereBoundariesFromMarkerSet(markerSetFilename,
-                                                                                genomeBuild, log);
+                                                                                   genomeBuild,
+                                                                                   log);
     int count = 0;
     for (String col : Files.getHeaderOfFile(markerStatsFile, log)) {
       columnMap.put(col, count++);

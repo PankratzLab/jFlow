@@ -14,7 +14,7 @@ import org.pankratzlab.common.ext;
 public class FamilyStructure {
 
   public static class PedigreeUtils {
-  
+
     // also loads trios and p-o hash
     public static ArrayList<String[]> loadSibs(FamilyStructure ped, boolean completeOnly,
                                                HashSet<String> excludedFIDIIDs,
@@ -34,7 +34,7 @@ public class FamilyStructure {
                                                                                     excludedFIDIIDs,
                                                                                     includedFIDIIDs,
                                                                                     cache);
-  
+
       // at this point, only non-excluded IDs are present in all_trios and parentToChildren
       ArrayList<String[]> sibPairs = new ArrayList<>();
       for (String[] trio : ped.cached_all_trios) {
@@ -69,7 +69,7 @@ public class FamilyStructure {
       }
       return sibPairs;
     }
-  
+
     public static HashMap<String, ArrayList<String>> loadParentToChildrenMap(FamilyStructure ped,
                                                                              boolean completeOnly,
                                                                              HashSet<String> excludedFIDIIDs,
@@ -79,7 +79,7 @@ public class FamilyStructure {
         return ped.cached_parentToChildrenMap;
       }
       HashMap<String, ArrayList<String>> parentMap = new HashMap<>();
-  
+
       for (int i = 0; i < ped.getIDs().length; i++) {
         if (!MISSING_ID_STR.equals(ped.getFA(i))
             && (excludedFIDIIDs == null
@@ -114,7 +114,7 @@ public class FamilyStructure {
       }
       return parentMap;
     }
-  
+
     public static ArrayList<String[]> loadPOPairs(FamilyStructure ped, boolean completeOnly,
                                                   HashSet<String> excludedFIDIIDs,
                                                   HashSet<String> includedFIDIIDs, boolean cache) {
@@ -159,7 +159,7 @@ public class FamilyStructure {
       }
       return pairs;
     }
-  
+
     public static ArrayList<int[]> loadCompleteTrios(FamilyStructure ped,
                                                      HashSet<String> excludedFIDIIDs,
                                                      HashSet<String> includedFIDIIDs,
@@ -198,7 +198,6 @@ public class FamilyStructure {
       }
       return trios;
     }
-  
 
   }
 

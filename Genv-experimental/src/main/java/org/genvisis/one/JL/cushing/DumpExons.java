@@ -17,8 +17,7 @@ public class DumpExons {
     genes.add("CABLES1");
     genes.add("PRKAR1A");
 
-    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GenomeBuild.valueOf("HG19"),
-                                                          new Logger())
+    GeneTrack geneTrack = GeneTrack.load(Resources.genome(GenomeBuild.valueOf("HG19"), new Logger())
                                                   .getGTrack().get());
 
     String top = "browser position chr1:14621-14712\ntrack name=\"Target Regions\"";

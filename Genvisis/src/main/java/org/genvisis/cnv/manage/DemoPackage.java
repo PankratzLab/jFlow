@@ -90,7 +90,8 @@ public class DemoPackage {
       }
     } else {
       log.reportError("Could not detect proper jar file, found " + runningJar
-                      + " and it should have ended with " + org.pankratzlab.common.PSF.Java.GENVISIS);
+                      + " and it should have ended with "
+                      + org.pankratzlab.common.PSF.Java.GENVISIS);
       log.reportError("This could be because you are running from eclipse without a jar file");
       // fail = true;
     }

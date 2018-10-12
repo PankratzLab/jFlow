@@ -950,7 +950,7 @@ public class GenCNV implements Runnable {
   }
 
   public static void printNewGPheno(String dir, String newGPhenoFile, PrepResults[] prepResults,
-                                     String[] uniqInds, Logger log) {
+                                    String[] uniqInds, Logger log) {
     String output = dir + newGPhenoFile;
     try {
       PrintWriter writer = Files.openAppropriateWriter(output);

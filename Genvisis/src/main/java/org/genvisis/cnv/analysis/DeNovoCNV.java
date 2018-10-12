@@ -680,8 +680,8 @@ public class DeNovoCNV {
 
     iterations = HashVec.loadFileToStringMatrix(pedigreeOfTrio, true, new int[] {4, 5, 6});
 
-    org.pankratzlab.common.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data", 65, command,
-                                iterations, 2500, 2);
+    org.pankratzlab.common.qsub.Qsub.qsub("denovo", "/share/bulk/gedi/pankr018/denovo/penn_data",
+                                          65, command, iterations, 2500, 2);
   }
 
   /*

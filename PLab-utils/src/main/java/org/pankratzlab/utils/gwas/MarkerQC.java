@@ -80,8 +80,8 @@ public class MarkerQC {
   }
 
   /**
-   * @param metricThresholds Map from {@link QcMetric} to desired threshold, all of the keys will
-   *          be included
+   * @param metricThresholds Map from {@link QcMetric} to desired threshold, all of the keys will be
+   *          included
    * @param metricFilenames Map from QC_METRIC to filenames, keys not in {@code metricThresholds}
    *          will be ignored
    * @return lines to use in CRF

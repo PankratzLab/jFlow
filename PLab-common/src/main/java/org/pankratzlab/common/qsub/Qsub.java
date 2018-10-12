@@ -426,8 +426,9 @@ public class Qsub {
     Files.writeArray(commands, batchRoot + ".chain");
     qsub(batchRoot + ".pbs",
          "cd " + dirToSwitchToBeforeRunning + "\njava -jar ~/"
-                             + org.pankratzlab.common.PSF.Java.GENVISIS + " one.ScriptExecutor file="
-                             + batchRoot + ".chain threads=" + numProcs,
+                             + org.pankratzlab.common.PSF.Java.GENVISIS
+                             + " one.ScriptExecutor file=" + batchRoot + ".chain threads="
+                             + numProcs,
          totalMemoryRequestedInMb, walltimeRequestedInHours, numProcs);
   }
 

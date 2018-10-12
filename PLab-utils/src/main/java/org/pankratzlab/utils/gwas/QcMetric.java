@@ -41,8 +41,7 @@ public enum QcMetric {
 
   public String getUserDescription() {
     StringBuilder descriptionBuilder = new StringBuilder();
-    descriptionBuilder.append("Threshold to reject ").append(getDescription())
-                      .append(", using: ");
+    descriptionBuilder.append("Threshold to reject ").append(getDescription()).append(", using: ");
     descriptionBuilder.append(Joiner.on(", ").join(Maths.OPERATORS));
     descriptionBuilder.append(" (<0 to not filter)");
     return descriptionBuilder.toString();

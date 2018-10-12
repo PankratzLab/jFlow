@@ -2702,7 +2702,9 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         toAA = null;
       } else {
         loc = aaChng.substring(1, aaChng.length() - 1);
-        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length() - 1) + "");
+        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aaChng.charAt(aaChng.length()
+                                                                                  - 1)
+                                                                    + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);
@@ -2728,7 +2730,8 @@ public class VariantViewer extends JFrame implements ActionListener, MouseListen
         toAA = null;
       } else {
         loc = aa.substring(1, aa.length() - 1);
-        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1) + "");
+        toAA = org.pankratzlab.common.bioinformatics.Protein.lookup(aa.charAt(aa.length() - 1)
+                                                                    + "");
       }
       if (fromAA != null) {
         txtBld.append(fromAA[1]);

@@ -401,9 +401,9 @@ public class PSF {
     }
 
     public static final String[] LOGISTIC_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-     "OR", "SE", "L95", "U95", "STAT", "P"};
+                                                       "OR", "SE", "L95", "U95", "STAT", "P"};
     public static final String[] LINEAR_SE_HEADER = {"CHR", "SNP", "BP", "A1", "TEST", "NMISS",
-     "BETA", "SE", "L95", "U95", "STAT", "P"};
+                                                     "BETA", "SE", "L95", "U95", "STAT", "P"};
     public static final String FAMID = "FID";
     public static final String INDID = "IID";
     public static final String FATHER_ID = "FA_IID";
