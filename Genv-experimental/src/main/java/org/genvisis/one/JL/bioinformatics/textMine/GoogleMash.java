@@ -1,4 +1,4 @@
-package forjohn.bioinformatics.textMine;
+package org.genvisis.one.JL.bioinformatics.textMine;
 
 import java.io.BufferedReader;
 import java.io.IOException;
