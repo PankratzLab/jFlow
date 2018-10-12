@@ -78,14 +78,7 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
     }
 
     LocusSet<BEDFeatureSeg> segSet = new LocusSet<BEDFeatureSeg>(bedSegs.toArray(new BEDFeatureSeg[bedSegs.size()]),
-                                                                 true, log) {
-
-      /**
-       * 
-       */
-      private static final long serialVersionUID = 1L;
-
-    };
+                                                                 true, log);
 
     return segSet;
 
