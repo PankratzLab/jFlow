@@ -12,7 +12,7 @@
 	</parent>
 
 	<artifactId>PLab-utils</artifactId>
-	<version>${genvisis.version}</version>
+	<version>${plab-utils.version}</version>
 	<packaging>takari-jar</packaging>
 
 	<description></description>
@@ -24,12 +24,10 @@
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>PLab-common</artifactId>
-			<version>${genvisis.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>SEQ</artifactId>
-			<version>${genvisis.version}</version>
 		</dependency>
 	</dependencies>
 </project>

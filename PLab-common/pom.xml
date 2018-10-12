@@ -12,7 +12,7 @@
 	</parent>
 
 	<artifactId>PLab-common</artifactId>
-	<version>${genvisis.version}</version>
+	<version>${plab-common.version}</version>
 	<packaging>takari-jar</packaging>
 
 	<description></description>
