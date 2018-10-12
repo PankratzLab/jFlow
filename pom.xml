@@ -97,7 +97,14 @@
 		<!-- Genvisis versions -
 				 NB: change these to non-SNAPSHOT when releasing -->
 		<meta.version>0.0.1-SNAPSHOT</meta.version>
+		<plab-common.version>0.0.1-SNAPSHOT</plab-common.version>
+		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
+		<seq.version>0.0.1-SNAPSHOT</seq.version>
+		<plab-utils.version>0.0.1-SNAPSHOT</plab-utils.version>
 		<genvisis.version>0.0.1-SNAPSHOT</genvisis.version>
+		<plab-private.version>0.0.1-SNAPSHOT</plab-private.version>
+		<nrss.version>0.0.1-SNAPSHOT</nrss.version>
+		<phenoprep.version>0.0.1-SNAPSHOT</phenoprep.version>
 		<genv-exp.version>0.0.1-SNAPSHOT</genv-exp.version>
 		<genv-dep.version>0.0.1-SNAPSHOT</genv-dep.version>
 		<genv-flow.version>0.0.1-SNAPSHOT</genv-flow.version>
@@ -215,6 +222,42 @@
 				<groupId>org.genvisis</groupId>
 				<artifactId>Meta</artifactId>
 				<version>${meta.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>PLab-common</artifactId>
+				<version>${plab-common.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>PLab-utils</artifactId>
+				<version>${plab-utils.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>SEQ</artifactId>
+				<version>${seq.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>PLab-private</artifactId>
+				<version>${plab-private.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>NRSS</artifactId>
+				<version>${nrss.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.genvisis</groupId>
+				<artifactId>PhenoPrep</artifactId>
+				<version>${phenoprep.version}</version>
 			</dependency>
 
 			<dependency>
