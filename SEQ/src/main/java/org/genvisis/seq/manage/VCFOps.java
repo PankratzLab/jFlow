@@ -491,8 +491,6 @@ public class VCFOps {
     return null;
   }
 
-  
-
   /**
    * Class that manages the population structure represented in a vcf<br>
    * Can be used for HWE tests on sub and super populations etc...
