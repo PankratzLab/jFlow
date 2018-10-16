@@ -130,7 +130,21 @@ public class NGSBinSNPSelector {
       Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .4, COMPARISON.LT, .6);
       Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
       if (mc != null) {
+        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .95);
+        mqFilter.setUse(false);
+        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
+      } else {
+        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
+      }
+    }
+    {
+      Filter svmFilter = new TagFilter("SVM", false);
+      svmFilter.setUse(false);
+      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .35, COMPARISON.LT, .65);
+      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
+      if (mc != null) {
         Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .9);
+        mqFilter.setUse(false);
         listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
       } else {
         listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
@@ -140,14 +154,42 @@ public class NGSBinSNPSelector {
       Filter svmFilter = new TagFilter("SVM", false);
       svmFilter.setUse(false);
       Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .3, COMPARISON.LT, .7);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 15);
+      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
       if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .8);
+        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .85);
+        mqFilter.setUse(false);
         listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
       } else {
         listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
       }
     }
+    {
+      Filter svmFilter = new TagFilter("SVM", false);
+      svmFilter.setUse(false);
+      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .2, COMPARISON.LT, .8);
+      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 15);
+      if (mc != null) {
+        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .8);
+        mqFilter.setUse(false);
+        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
+      } else {
+        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
+      }
+    }
+    {
+      Filter svmFilter = new TagFilter("SVM", false);
+      svmFilter.setUse(false);
+      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .05, COMPARISON.LT, .95);
+      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 10);
+      if (mc != null) {
+        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .8);
+        mqFilter.setUse(false);
+        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
+      } else {
+        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
+      }
+    }
+
     return listFS;
   }
 
@@ -188,7 +230,7 @@ public class NGSBinSNPSelector {
   }
 
   public void run() {
-    MappabilityCompute mc = null;//MappabilityCompute.open(mappingQualityFile);
+    MappabilityCompute mc = MappabilityCompute.open(mappingQualityFile);
     log.reportTime("Mapping Quality Data Loaded");
     List<FilterSet> filters = parseFilters(mc);
 
@@ -232,9 +274,6 @@ public class NGSBinSNPSelector {
                                           .toList();
 
         int count = iter.size();
-        if (count > 0) {
-          System.out.println(count);
-        }
         VariantContext selected = null;
         int passedCount = 0;
         int filterLevel = -1;
