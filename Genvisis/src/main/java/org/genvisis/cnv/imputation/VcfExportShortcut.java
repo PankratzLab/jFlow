@@ -46,9 +46,10 @@ public class VcfExportShortcut {
   private String markerKeepsFile = null;
 
   private VcfExportShortcut(String projName, String sourceDir, String projDir, String pedigreeFile,
-                            String blastVCF, String markerPositions, ARRAY arrayType, Logger log) {
+                            String blastVCF, String markerPositions, double scaleFactor,
+                            ARRAY arrayType, Logger log) {
     proj = createOrGetProject(projName, sourceDir, projDir, pedigreeFile, blastVCF, markerPositions,
-                              arrayType, log);
+                              scaleFactor, arrayType, log);
     this.log = log;
   }
 
@@ -127,7 +128,8 @@ public class VcfExportShortcut {
 
   private static Project createOrGetProject(String projName, String sourceDir, String outDir,
                                             String pedigreeFile, String blastVCF,
-                                            String markerPositions, ARRAY arrayType, Logger log) {
+                                            String markerPositions, double scaleFactor,
+                                            ARRAY arrayType, Logger log) {
     final Project proj;
     if (LaunchProperties.projectExists(projName)) {
       String projFile = LaunchProperties.formProjectPropertiesFilename(projName);
@@ -159,6 +161,7 @@ public class VcfExportShortcut {
         proj.MARKER_POSITION_FILENAME.setValue(markerPositions);
         proj.BLAST_ANNOTATION_FILENAME.setValue(blastVCF);
       }
+      proj.XY_SCALE_FACTOR.setValue(scaleFactor);
 
       proj.saveProperties();
       proj.setLog(log);
@@ -299,6 +302,7 @@ public class VcfExportShortcut {
   private static final String ARG_CALLRATE = "callrate";
   private static final String ARG_HWE = "hwe";
   private static final String ARG_QC = "qc";
+  private static final String ARG_XY_SCALE = "xyScale";
 
   private static final String ARG_DROP_SAMPLES = "dropSamples";
   private static final String ARG_KEEP_SAMPLES = "keepSamples";
@@ -330,6 +334,7 @@ public class VcfExportShortcut {
   private static final String DESC_CALLRATE = "Callrate Threshold";
   private static final String DESC_HWE = "HWE Threshold";
   private static final String DESC_QC = "General QC Threshold";
+  private static final String DESC_XY_SCALE = "Scale factor for X/Y values (default = 1 for Illumina projects, and 100 for Affymetrix projects)";
 
   public static void main(String[] args) {
     CLI cli = new CLI(VcfExportShortcut.class);
@@ -342,6 +347,7 @@ public class VcfExportShortcut {
     cli.addArg(ARG_IMP_REF, DESC_IMP_REF, true);
     cli.addArg(ARG_PUT_WHT, DESC_PUT_WHT, true);
     cli.addArg(ARG_PED, DESC_PED, false);
+    cli.addArg(ARG_XY_SCALE, DESC_XY_SCALE, false);
 
     cli.addArg(ARG_ILL_MAN, DESC_ILL_MAN, "HumanOmni2.5-4v1_H.csv");
     cli.addArg(ARG_AFFY_SKETCH, DESC_AFFY_SKETCH, "hapmap.quant-norm.normalization-target.txt");
@@ -384,12 +390,20 @@ public class VcfExportShortcut {
     Logger log = new Logger();
     String blast = null;
     String mkrs = null;
+    double xyScale = -1;
+    if (cli.has(ARG_XY_SCALE)) {
+      xyScale = cli.getD(ARG_XY_SCALE);
+      log.reportTime("Using XY_SCALE_FACTOR of " + xyScale);
+    } else {
+      xyScale = arrayType == ARRAY.ILLUMINA ? 1 : 100;
+      log.reportTime("Using default XY_SCALE_FACTOR of " + xyScale);
+    }
     if (arrayType == ARRAY.AFFY_GW6) {
       blast = cli.get(ARG_BLAST_VCF);
       mkrs = cli.get(ARG_MKR_POS);
     }
     VcfExportShortcut export = new VcfExportShortcut(projName, srcDir, projDir, pedFile, blast,
-                                                     mkrs, arrayType, log);
+                                                     mkrs, xyScale, arrayType, log);
 
     if (cli.has(ARG_ILL_MAN)) {
       if (arrayType != ARRAY.ILLUMINA) {
