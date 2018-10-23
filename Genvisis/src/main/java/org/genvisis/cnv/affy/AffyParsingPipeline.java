@@ -22,17 +22,17 @@ import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 public class AffyParsingPipeline {
 
-  private static final int MAX_MKRS_PER_MDRAF = 1500;
+  private static final int MAX_MKRS_PER_MDRAF = 250000;
 
   private Project proj;
   private String callFile;
@@ -143,10 +143,16 @@ public class AffyParsingPipeline {
     byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
                                                new float[0], new float[0], new byte[0], null,
                                                canXYBeNegative);
+    int threads = Runtime.getRuntime().availableProcessors();
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
     long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
-    long markersInMemory = mem / (long) bytesPerMarker;
+    long markersInMemory = (mem / threads) / (long) bytesPerMarker;
     int numMarkersPerFile = Math.min(MAX_MKRS_PER_MDRAF, (int) markersInMemory);
+
+    proj.getLog()
+        .reportTime("Parsing data into " + numMarkersPerFile + " markers per mdRAF file (could fit "
+                    + markersInMemory
+                    + " in memory now, but we're capping it for later multi-threaded operations.");
 
     // load a list of all markers, sort into chr/pos order, and create the MarkerSet file
     try {
