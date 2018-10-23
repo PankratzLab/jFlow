@@ -32,8 +32,6 @@ import com.google.common.collect.Sets;
 
 public class AffyParsingPipeline {
 
-  private static final int MAX_MKRS_PER_MDRAF = 250000;
-
   private Project proj;
   private String callFile;
   private String confFile;
@@ -139,21 +137,6 @@ public class AffyParsingPipeline {
       return;
     }
 
-    boolean canXYBeNegative = false;
-    byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
-                                               new float[0], new float[0], new byte[0], null,
-                                               canXYBeNegative);
-    int threads = Runtime.getRuntime().availableProcessors();
-    int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
-    long mem = (long) (Runtime.getRuntime().maxMemory() * 0.8);
-    long markersInMemory = (mem / threads) / (long) bytesPerMarker;
-    int numMarkersPerFile = Math.min(MAX_MKRS_PER_MDRAF, (int) markersInMemory);
-
-    proj.getLog()
-        .reportTime("Parsing data into " + numMarkersPerFile + " markers per mdRAF file (could fit "
-                    + markersInMemory
-                    + " in memory now, but we're capping it for later multi-threaded operations.");
-
     // load a list of all markers, sort into chr/pos order, and create the MarkerSet file
     try {
       loadAndSortMarkers();
@@ -163,6 +146,23 @@ public class AffyParsingPipeline {
                        + e3.getMessage());
       return;
     }
+
+    boolean canXYBeNegative = false;
+    byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
+                                               new float[0], new float[0], new byte[0], null,
+                                               canXYBeNegative);
+    int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
+    long twogig = ((long) 2) * 1024 * 1024 * 1024;
+    long mem = Math.min(twogig, (long) (Runtime.getRuntime().maxMemory() * 0.8));
+    long markersInMemory = mem / (long) bytesPerMarker;
+    int mkrsInProj = proj.getMarkerSet().markersAsList().size();
+    int numMarkersPerFile = Math.min((int) Math.min(Integer.MAX_VALUE * .75, markersInMemory),
+                                     mkrsInProj);
+
+    proj.getLog()
+        .reportTime("Parsing data into " + numMarkersPerFile
+                    + (numMarkersPerFile == mkrsInProj ? " (all)" : "")
+                    + " markers per mdRAF file.");
 
     // assign each marker to a file
     binMarkers(numMarkersPerFile);
