@@ -49,6 +49,7 @@ public class AffyParsingPipeline {
   Map<String, String[]> markersInFileMap;
   Map<Marker, Integer> markerIndexInFileMap;
   private long fingerprint;
+  private int maxSize = DEFAULT_MDRAF_SIZE;
 
   public void setProject(Project proj) {
     this.proj = proj;
@@ -64,6 +65,10 @@ public class AffyParsingPipeline {
 
   public void setNormIntensitiesFile(String quantNormFile) {
     this.intFile = quantNormFile;
+  }
+
+  public void setMaxMDRAFSize(int size) {
+    this.maxSize = size;
   }
 
   private void loadAndSortMarkers() throws IOException {
@@ -152,8 +157,8 @@ public class AffyParsingPipeline {
                                                new float[0], new float[0], new byte[0], null,
                                                canXYBeNegative);
     int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
-    long twogig = ((long) 2) * 1024 * 1024 * 1024;
-    long mem = Math.min(twogig, (long) (Runtime.getRuntime().maxMemory() * 0.8));
+    long maxSizeBytes = (maxSize) * 1024 * 1024;
+    long mem = Math.min(maxSizeBytes, (long) (Runtime.getRuntime().maxMemory() * 0.8));
     long markersInMemory = mem / (long) bytesPerMarker;
     int mkrsInProj = proj.getMarkerSet().markersAsList().size();
     int numMarkersPerFile = Math.min((int) Math.min(Integer.MAX_VALUE * .75, markersInMemory),
@@ -435,9 +440,13 @@ public class AffyParsingPipeline {
   private static final String ARG_CALL_FILE = "call";
   private static final String ARG_CONF_FILE = "conf";
   private static final String ARG_NORM_INT_FILE = "norm";
+  private static final String ARG_MDRAF_MAX_SIZE_MB = "size";
   private static final String DESC_CALL_FILE = "A file containing genotype calls created by AffyPowerTools";
   private static final String DESC_CONF_FILE = "A file containing confidence values created by AffyPowerTools";
   private static final String DESC_NORM_INT_FILE = "A file containing normalized intensities, created by AffyPowerTools";
+  private static final String DESC_MDRAF_MAX_SIZE_MB = "Maximum size of marker data files in megabytes (default 2048, i.e. 2Gb)";
+
+  private static final int DEFAULT_MDRAF_SIZE = 2048;
 
   public static void main(String[] args) {
     CLI cli = new CLI(AffyParsingPipeline.class);
@@ -446,6 +455,7 @@ public class AffyParsingPipeline {
     cli.addArg(ARG_CALL_FILE, DESC_CALL_FILE);
     cli.addArg(ARG_CONF_FILE, DESC_CONF_FILE);
     cli.addArg(ARG_NORM_INT_FILE, DESC_NORM_INT_FILE);
+    cli.addArg(ARG_MDRAF_MAX_SIZE_MB, DESC_MDRAF_MAX_SIZE_MB, false);
 
     cli.parseWithExit(args);
 
@@ -454,6 +464,8 @@ public class AffyParsingPipeline {
     app.setConfidencesFile(cli.get(ARG_CONF_FILE));
     app.setGenotypeCallFile(cli.get(ARG_CALL_FILE));
     app.setNormIntensitiesFile(cli.get(ARG_NORM_INT_FILE));
+    app.setMaxMDRAFSize(cli.has(ARG_MDRAF_MAX_SIZE_MB) ? cli.getI(ARG_MDRAF_MAX_SIZE_MB)
+                                                       : DEFAULT_MDRAF_SIZE);
     app.run();
 
   }
