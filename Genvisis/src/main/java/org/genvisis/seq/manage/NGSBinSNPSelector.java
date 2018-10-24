@@ -3,10 +3,13 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.math3.util.Pair;
+import org.genvisis.CLI;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.common.Files;
 import org.genvisis.common.Logger;
@@ -25,12 +28,15 @@ public class NGSBinSNPSelector {
   public static final double MAPPING_QUALITY_FILTER = .9;
   private static final boolean DEBUG = true;
 
-  LocusSet<Segment> bins;
-  String snpVCF;
   String outputDir;
+  String inputDir;
+  String format;
+  String token;
   String mappingQualityFile;
+  String afTag;
+  Set<Integer> chrs;
+  LocusSet<Segment> bins;
   Logger log = new Logger();
-  String afTag = "AF";
 
   private abstract static class Filter {
 
@@ -234,144 +240,163 @@ public class NGSBinSNPSelector {
     log.reportTime("Mapping Quality Data Loaded");
     List<FilterSet> filters = parseFilters(mc);
 
-    PrintWriter writerDEBUG = DEBUG ? Files.getAppropriateWriter(outputDir + "All_Variants.xln")
-                                    : null;
-    PrintWriter writer = Files.getAppropriateWriter(outputDir + "selectedVariants.xln");
-    writer.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
-    if (writerDEBUG != null) {
-      writerDEBUG.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
-    }
-
-    VCFHeader header;
-    try (VCFFileReader reader = new VCFFileReader(new File(snpVCF),
-                                                  Files.exists(snpVCF + ".tbi"))) {
-      header = reader.getFileHeader();
-
-      // discover which chrs are in this vcf file
-      BidiMap<String, Integer> contigMap = new DualHashBidiMap<>();
-      boolean useChrPrepend = header.getContigLines().get(0).getID().startsWith("chr");
-      header.getContigLines().forEach(vch -> {
-        // ensure parsability
-        contigMap.put(vch.getID(), (int) Positions.chromosomeNumber(vch.getID()));
-      });
-
-      for (Segment bin : bins.getLoci()) {
-        // no variants in file for this bin's chromosome  
-        if (!contigMap.containsValue((int) bin.getChr())) {
-          System.err.println("Error - bin contig " + bin.getChr() + " was not present in the VCF!");
-          continue;
-        }
-
-        int mid = bin.getStart() + ((bin.getStop() - (bin.getStart() + 1)) / 2);
-        //  example:      mid = 1 + ((1000 - (1 + 1)) / 2)
-        //                    = 1 + 998 / 2
-        //                    = 500
-        //------------------
-        // Dropping the '+1' results in 500.5, which relies on the properties of 
-        // integer casting to drop to the true midpoint of 500. 
-        List<VariantContext> iter = reader.query((useChrPrepend ? "chr" : "") + bin.getChr(),
-                                                 bin.getStart(), bin.getStop())
-                                          .toList();
-
-        int count = iter.size();
-        VariantContext selected = null;
-        int passedCount = 0;
-        int filterLevel = -1;
-
-        for (int i = 0; i < filters.size(); i++) {
-          FilterSet filterSet = filters.get(i);
-          List<VariantContext> passed = new ArrayList<>();
-          for (VariantContext vc : iter) {
-            List<Filter> failedFilters = filterSet.check(vc);
-            if (failedFilters.size() == 0) {
-              passed.add(vc);
-              continue;
-            }
-            boolean trueFail = false;
-            for (Filter f : failedFilters) {
-              if (f.use) {
-                trueFail = true;
-                break;
-              }
-            }
-            if (!trueFail) {
-              passed.add(vc);
-            }
-          }
-          passedCount = passed.size();
-          if (passed.size() == 0) {
-            continue;
-          }
-          if (passed.size() == 1) {
-            selected = passed.get(0);
-            filterLevel = i;
-            break;
-          }
-          selected = filterSet.best(passed, afTag);
-          filterLevel = i;
-          if (DEBUG) {
-            for (VariantContext vc : passed) {
-              String id = vc.getID();
-              if (ext.isMissingValue(id)) {
-                id = vc.getContig() + ":" + vc.getStart();
-              }
-              writerDEBUG.println(bin.getUCSClocation() + "\t" + id + "\t"
-                                  + (mc == null ? "." : mc.getAverageMap(selected)) + "\t"
-                                  + vc.getAttributes().get(afTag).toString() + "\t" + passedCount
-                                  + "\t" + (i + 1) + "\t" + count);
-            }
-          }
-          break;
-        }
-
-        if (selected != null) {
-          String id = selected.getID();
-          if (ext.isMissingValue(id)) {
-            id = selected.getContig() + ":" + selected.getStart();
-          }
-
-          writer.println(bin.getUCSClocation() + "\t" + id + "\t"
-                         + (mc == null ? "." : mc.getAverageMap(selected)) + "\t"
-                         + selected.getAttributes().get(afTag).toString() + "\t" + passedCount
-                         + "\t" + (filterLevel + 1) + "\t" + count);
-        } else {
-          writer.println(bin.getUCSClocation() + "\t.\t.\t.\t0\t.\t" + count);
-        }
-        writer.flush();
-        if (DEBUG) {
-          writerDEBUG.flush();
-        }
+    for (int c : chrs) {
+      long startN = System.nanoTime();
+      PrintWriter writerDEBUG = DEBUG ? Files.getAppropriateWriter(outputDir + "all_chr" + c
+                                                                   + ".xln")
+                                      : null;
+      PrintWriter writer = Files.getAppropriateWriter(outputDir + "selected_chr" + c + ".xln");
+      writer.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
+      if (writerDEBUG != null) {
+        writerDEBUG.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
       }
 
-    }
+      VCFHeader header;
+      String vcf = format.replace(token, Integer.toString(c));
+      if (!Files.exists(vcf)) {
+        if (Files.exists(format.replace(token, "0" + Integer.toString(c)))) {
+          vcf = format.replace(token, "0" + Integer.toString(c));
+        }
+      }
+      try (VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".tbi"))) {
+        header = reader.getFileHeader();
 
-    writer.close();
-    if (DEBUG) {
-      writerDEBUG.close();
-    }
+        // discover which chrs are in this vcf file
+        BidiMap<String, Integer> contigMap = new DualHashBidiMap<>();
+        boolean useChrPrepend = header.getContigLines().get(0).getID().startsWith("chr");
+        header.getContigLines().forEach(vch -> {
+          // ensure parsability
+          contigMap.put(vch.getID(), (int) Positions.chromosomeNumber(vch.getID()));
+        });
 
+        for (Segment bin : bins.getLoci()) {
+          // no variants in file for this bin's chromosome  
+          if (!contigMap.containsValue((int) bin.getChr())) {
+            //            System.err.println("Error - bin contig " + bin.getChr()
+            //                               + " was not present in the VCF!");
+            continue;
+          }
+
+          List<VariantContext> iter = reader.query((useChrPrepend ? "chr" : "") + bin.getChr(),
+                                                   bin.getStart(), bin.getStop())
+                                            .toList();
+
+          int count = iter.size();
+          VariantContext selected = null;
+          int passedCount = 0;
+          int filterLevel = -1;
+
+          for (int i = 0; i < filters.size(); i++) {
+            FilterSet filterSet = filters.get(i);
+            List<VariantContext> passed = new ArrayList<>();
+            for (VariantContext vc : iter) {
+              List<Filter> failedFilters = filterSet.check(vc);
+              if (failedFilters.size() == 0) {
+                passed.add(vc);
+                continue;
+              }
+              boolean trueFail = false;
+              for (Filter f : failedFilters) {
+                if (f.use) {
+                  trueFail = true;
+                  break;
+                }
+              }
+              if (!trueFail) {
+                passed.add(vc);
+              }
+            }
+            passedCount = passed.size();
+            if (passed.size() == 0) {
+              continue;
+            }
+            if (passed.size() == 1) {
+              selected = passed.get(0);
+            } else {
+              selected = filterSet.best(passed, afTag);
+            }
+            filterLevel = i;
+            if (DEBUG) {
+              for (VariantContext vc : passed) {
+                String id = vc.getID();
+                if (ext.isMissingValue(id)) {
+                  id = vc.getContig() + ":" + vc.getStart();
+                }
+                writerDEBUG.println(bin.getUCSClocation() + "\t" + id + "\t"
+                                    + (mc == null ? "." : mc.getAverageMap(vc)) + "\t"
+                                    + vc.getAttributes().get(afTag).toString() + "\t" + passedCount
+                                    + "\t" + (i + 1) + "\t" + count);
+              }
+            }
+            break;
+          }
+
+          if (selected != null) {
+            String id = selected.getID();
+            if (ext.isMissingValue(id)) {
+              id = selected.getContig() + ":" + selected.getStart();
+            }
+
+            writer.println(bin.getUCSClocation() + "\t" + id + "\t"
+                           + (mc == null ? "." : mc.getAverageMap(selected)) + "\t"
+                           + selected.getAttributes().get(afTag).toString() + "\t" + passedCount
+                           + "\t" + (filterLevel + 1) + "\t" + count);
+          } else {
+            writer.println(bin.getUCSClocation() + "\t.\t.\t.\t0\t.\t" + count);
+          }
+          writer.flush();
+          if (DEBUG) {
+            writerDEBUG.flush();
+          }
+        }
+
+      }
+
+      writer.close();
+      if (DEBUG) {
+        writerDEBUG.close();
+      }
+      log.reportTime("Finished processing chr " + c + " in " + ext.getTimeElapsedNanos(startN)
+                     + "!");
+    }
   }
 
   public static void main(String[] args) {
+    CLI cli = new CLI(NGSBinSNPSelector.class);
+
+    cli.addArg("out", "Output directory");
+    cli.addArg("in", "Input directory");
+    cli.addArg("format", "File format with special token where the chromosome number goes");
+    cli.addArg("token", "Special filename token to replace with chromosome number", "##", false);
+    cli.addArg("mapQ", "Mapping quality file", false);
+    cli.addArg("af", "Allele frequency tag in the VCF and filters definitions file", "AF", false);
+    cli.addArg("chrs", "Comma-delimited list of chromosomes to process.", false);
+
+    cli.parseWithExit(args);
+
     NGSBinSNPSelector selector = new NGSBinSNPSelector();
-    //    selector.snpVCF = "/home/spectorl/shared/Ewing_WGS/VQSR/ES_recalibrated_snps_indels.vcf.gz";
-    if (Files.isWindows()) {
-      selector.outputDir = "G:\\bamTesting\\snpSelection\\";
-      selector.snpVCF = "G:\\bamTesting\\snpSelection\\freeze.6a.chr5.pass_and_fail.gtonly.minDP0.vcf.gz";
-      selector.mappingQualityFile = "G:\\bamTesting\\snpSelection\\GRCh38_full_analysis_set_plus_decoy_hla.chr1-chr22-X-Y-M_150.bed";
+
+    selector.outputDir = cli.get("out");
+    selector.inputDir = cli.get("in");
+    selector.format = cli.get("format");
+    selector.token = cli.get("token");
+    selector.mappingQualityFile = cli.has("mapQ") ? cli.get("mapQ") : null;
+    selector.afTag = cli.has("af") ? cli.get("af") : "AF";
+
+    Set<Integer> chrs = null;
+    if (cli.has("chrs")) {
+      String[] v = cli.get("chrs").split(",");
+      chrs = new HashSet<>();
+      for (String vi : v) {
+        chrs.add(Integer.parseInt(vi));
+      }
     } else {
-      selector.outputDir = "/scratch.global/cole0482/BAM/";
-      selector.snpVCF = "/scratch.global/topmed/vcf_freeze.6a/freeze.6a.chr5.pass_and_fail.gtonly.minDP0.vcf.gz";
-      selector.mappingQualityFile = "/home/pankrat2/public/bin/ref/GRCh38_full_analysis_set_plus_decoy_hla.chr1-chr22-X-Y-M_150.bed";
+      chrs = Sets.newHashSet(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                             21, 22, 23, 24, 25);
     }
-    selector.afTag = "AF";
-    selector.bins = new ReferenceGenome(GENOME_BUILD.HG19,
-                                        new Logger()).getBins(1000, Sets.newHashSet(5));
-    //    Sets.newHashSet(1, 2, 3, 4, 5, 6, 7,
-    //                    8, 9, 10, 11, 12, 13,
-    //                    14, 15, 16, 17, 18,
-    //                    19, 20, 21, 22, 23,
-    //                    24, 25));
+    selector.chrs = chrs;
+
+    selector.bins = new ReferenceGenome(GENOME_BUILD.HG19, new Logger()).getBins(1000, chrs);
     selector.run();
   }
 
