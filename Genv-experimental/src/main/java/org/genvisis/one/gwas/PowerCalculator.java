@@ -12,11 +12,11 @@ public class PowerCalculator {
 
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  // common and rare 
-    public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
-                                         0.25, 0.30, 0.40, 0.50};
-  // just common
-//  public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50};
+  //  common and rare 
+  public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
+                                       0.25, 0.30, 0.40, 0.50};
+  //  just common
+  //  public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50};
   public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
                                                  2.6};
   // public static final double[] MAFs = {0.20};
