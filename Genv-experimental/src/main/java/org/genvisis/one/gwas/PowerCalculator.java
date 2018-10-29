@@ -5,13 +5,18 @@ import java.util.Map;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Internat;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.stats.ProbDist;
+import org.pankratzlab.common.stats.Stats;
 
 public class PowerCalculator {
 
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
-  public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
-                                       0.25, 0.30, 0.40, 0.50};
+  // common and rare 
+    public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
+                                         0.25, 0.30, 0.40, 0.50};
+  // just common
+//  public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50};
   public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
                                                  2.6};
   // public static final double[] MAFs = {0.20};
@@ -186,6 +191,175 @@ public class PowerCalculator {
     }
   }
 
+  //  simulateSomaticDistribution(210, 0.33, 20000, 9);
+  private static double simulateSomaticDistribution(int numCases, double targetPercentage,
+                                                    int numGeneTests,
+                                                    int numExpectedSomaticPerExome, int numReps,
+                                                    boolean verbose) {
+
+    double emp2 = 1;
+    int target = (int) (numCases * targetPercentage);
+    int numExceedingTarget = 0;
+    for (int i = 0; i < numReps; i++) {
+      int[] geneCounts = new int[numGeneTests];
+      boolean exceeds = false;
+      for (int j = 0; j < numCases; j++) {
+        int numActualSomatic = numExpectedSomaticPerExome
+                               + (int) ((Math.random() < 0.50 ? -1 : 1)
+                                        * ProbDist.NormDistReverse(Math.random()) * 2);
+        //        System.out.println(numActualSomatic);
+        for (int k = 0; k < numActualSomatic; k++) {
+          geneCounts[(int) (Math.random() * numGeneTests)]++;
+        }
+      }
+      for (int j = 0; j < geneCounts.length; j++) {
+        if (geneCounts[j] >= target) {
+          exceeds = true;
+        }
+      }
+      if (exceeds) {
+        numExceedingTarget++;
+      }
+    }
+
+    emp2 = ((double) numExceedingTarget + 1) / ((double) numReps + 1);
+    if (verbose) {
+      System.out.println(numExceedingTarget + " reps exceeded target case count of " + target
+                         + " (p=" + ext.prettyP(emp2) + ") which corresponds to "
+                         + ext.formDeci(targetPercentage * 100, 1) + "% of cases");
+    }
+
+    return emp2;
+  }
+
+  private static void powerSomaticDistribution(int numCases, double targetPercentage,
+                                               int numGeneTests, int numExpectedSomaticPerExome,
+                                               int numReps, int numPowerReps) {
+
+    int numExceeding = 0;
+    for (int i = 0; i < numPowerReps; i++) {
+      System.out.print(".");
+      double actualNumberOfCarriersInRep = 0;
+      for (int j = 0; j < numCases; j++) {
+        if (Math.random() < targetPercentage) {
+          actualNumberOfCarriersInRep++;
+        }
+      }
+      if (simulateSomaticDistribution(numCases,
+                                      ((double) actualNumberOfCarriersInRep / (double) numCases),
+                                      numGeneTests, numExpectedSomaticPerExome, numReps,
+                                      false) < 0.05) {
+        numExceeding++;
+      }
+    }
+
+    int target = (int) (numCases * targetPercentage);
+    double power = ((double) numExceeding + 1) / ((double) numPowerReps + 1);
+    System.out.println("\nWe have " + ext.formDeci(power * 100, 1)
+                       + "% power to detect a target case count of " + target
+                       + " or greater which corresponds to "
+                       + ext.formDeci(targetPercentage * 100, 1) + "% of cases");
+
+  }
+
+  //  simulateSomaticDistribution(210, 0.33, 20000, 9);
+  private static double simulateSomaticCaseControl(int numCases, int numControls,
+                                                   int numCaseCarriers, int numControlCarriers,
+                                                   int numGeneTests, int numExpectedSomaticPerExome,
+                                                   int numReps, boolean verbose) {
+
+    double chiToBeat = Stats.PearsonChiSquare(numCaseCarriers, numCases - numCaseCarriers,
+                                              numControlCarriers, numControls - numControlCarriers);
+
+    double emp2 = 1;
+    int numExceedingTarget = 0;
+    int numMeetingCriterion = 0;
+    for (int i = 0; i < numReps; i++) {
+      int[][] geneCounts = new int[numGeneTests][2];
+      boolean exceeds = false;
+      for (int j = 0; j < numCases + numControls; j++) {
+        int numActualSomatic = numExpectedSomaticPerExome
+                               + (int) ((Math.random() < 0.50 ? -1 : 1)
+                                        * ProbDist.NormDistReverse(Math.random()) * 2);
+        //        System.out.println(numActualSomatic);
+        for (int k = 0; k < numActualSomatic; k++) {
+          geneCounts[(int) (Math.random() * numGeneTests)][j < numCases ? 0 : 1]++;
+        }
+      }
+      for (int j = 0; j < geneCounts.length; j++) {
+        if ((double) geneCounts[j][0] / (double) numCases >= (double) geneCounts[j][0]
+                                                             / (double) numControls
+            && Stats.PearsonChiSquare(geneCounts[j][0], numCases - geneCounts[j][0],
+                                      geneCounts[j][1],
+                                      numControls - geneCounts[j][0]) >= chiToBeat) {
+          exceeds = true;
+        }
+        //        if (geneCounts[j][0] + geneCounts[j][1] >= 4) {
+        //          numMeetingCriterion++;
+        //        }
+      }
+      if (exceeds) {
+        numExceedingTarget++;
+      }
+      //      System.out.println(numMeetingCriterion);
+    }
+
+    emp2 = ((double) numExceedingTarget + 1) / ((double) numReps + 1);
+    if (verbose) {
+      System.out.println(numExceedingTarget + " of " + numReps
+                         + "  reps exceeded target chi-square value of " + chiToBeat + " (p="
+                         + ext.prettyP(emp2) + ") which corresponds to " + " (an odds ratio of "
+                         + ext.formDeci(((double) numCaseCarriers / (double) numCases)
+                                        / ((double) numControlCarriers / (double) numControls), 2)
+                         + ")");
+    }
+
+    return emp2;
+  }
+
+  private static void powerSomaticCaseControl(int numCases, int numControls,
+                                              double targetPercentageInCases,
+                                              double targetPercentageInControls, int numGeneTests,
+                                              int numExpectedSomaticPerExome, int numReps,
+                                              int numPowerReps) {
+
+    int numExceeding = 0;
+    for (int i = 0; i < numPowerReps; i++) {
+      System.out.print(".");
+
+      int actualNumberOfCarrierCasesInRep = 0;
+      for (int j = 0; j < numCases; j++) {
+        if (Math.random() < targetPercentageInCases) {
+          actualNumberOfCarrierCasesInRep++;
+        }
+      }
+
+      int actualNumberOfCarrierControlsInRep = 0;
+      for (int j = 0; j < numControls; j++) {
+        if (Math.random() < targetPercentageInControls) {
+          actualNumberOfCarrierControlsInRep++;
+        }
+      }
+
+      if (simulateSomaticCaseControl(numCases, numControls, actualNumberOfCarrierCasesInRep,
+                                     actualNumberOfCarrierControlsInRep, numGeneTests,
+                                     numExpectedSomaticPerExome, numReps, false) < 0.05) {
+        numExceeding++;
+      }
+    }
+
+    double or = targetPercentageInCases / targetPercentageInControls;
+    double power = ((double) numExceeding + 1) / ((double) numPowerReps + 1);
+    double overallFreq = (targetPercentageInCases * (double) numCases
+                          + targetPercentageInControls * (double) numControls)
+                         / (double) (numCases + numControls);
+    System.out.println();
+    System.out.println("We have " + ext.formDeci(power * 100, 1)
+                       + "% power to detect an odds ratio of " + ext.formDeci(or, 2, true)
+                       + " or greater when the overall frequency of GCT cases with the variant is ("
+                       + ext.prettyP(overallFreq) + ")");
+  }
+
   public static void main(String[] args) {
     int numArgs = args.length;
     String filename = "PowerCalculator.dat";
@@ -246,8 +420,9 @@ public class PowerCalculator {
       // rangeOfMaf(0.001, 0.01, 465 + 434, 1119, 1000000, false); // Poynter's MDS-AML grant, MDS
       // rangeOfMaf(0.001, 0.01, 875 + 700, 875 + 700, 1000000, false); // Poynter's MDS-AML grant,
       // MDS
-      // rangeOfMaf(0.001, 0.01, 127, 507, 300000, false); // Poynter's renwal on ototoxicity
-      // rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renwal on ototoxicity
+
+      //      rangeOfMaf(0.001, 0.01, 101, 406, 300000, false); // Poynter's renewal on ototoxicity
+      //      rangeOfMaf(0.001, 0.01, 38, 152, 500000, false); // Poynter's renewal on ototoxicity
 
       // rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 1000000, false); // Poynter's GCT
       // R21
@@ -275,6 +450,13 @@ public class PowerCalculator {
       // getSampleSize();
       // getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
       // getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/population.input");
+
+      //      simulateSomaticDistribution(210, 0.025, 20000, 9, 1000, true);
+      //      powerSomaticDistribution(210, 0.03, 20000, 9, 100, 100);
+      powerSomaticDistribution(285, 0.03, 500, 1, 100, 100);
+      //      simulateSomaticCaseControl(80, 130, 16, 12, 20000, 9, 100, true);
+      //      powerSomaticCaseControl(80, 130, 0.18, 0.05, 20000, 9, 100, 100);
+
     } catch (Exception e) {
       e.printStackTrace();
     }

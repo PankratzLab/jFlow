@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import org.pankratzlab.common.ArrayUtils;
@@ -362,7 +361,7 @@ public class DossierMerge {
     boolean getCitations = false;
     boolean banned = true;
     boolean skipScopus = true;
-    boolean skipGoogleScholar = false;
+    boolean skipGoogleScholar = true;
 
     String usage = "\n" + "one.AuthorCorral requires 2+ arguments\n"
                    + "   (1) working directory (i.e. dir=" + dir + " (default))\n" + ""
