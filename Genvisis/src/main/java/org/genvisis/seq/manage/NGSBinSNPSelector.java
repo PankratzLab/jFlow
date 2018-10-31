@@ -11,7 +11,9 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.math3.util.Pair;
 import org.genvisis.CLI;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.common.ArrayUtils;
 import org.genvisis.common.Files;
+import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
 import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
@@ -34,9 +36,11 @@ public class NGSBinSNPSelector {
   String token;
   String mappingQualityFile;
   String afTag;
+  String mqTag;
   Set<Integer> chrs;
   LocusSet<Segment> bins;
   Logger log = new Logger();
+  MappabilityCompute mc;
 
   private abstract static class Filter {
 
@@ -58,30 +62,26 @@ public class NGSBinSNPSelector {
 
   private static class ComparisonFilter extends Filter {
 
-    public ComparisonFilter(String tag, COMPARISON comp, double compValue) {
+    public ComparisonFilter(String tag) {
       super(tag);
       this.comparisons = new ArrayList<>();
-      this.comparisons.add(new Pair<COMPARISON, Double>(comp, compValue));
     }
 
-    public ComparisonFilter(String tag, COMPARISON comp1, double compValue1, COMPARISON comp2,
-                            double compValue2) {
-      super(tag);
-      this.comparisons = new ArrayList<>();
-      this.comparisons.add(new Pair<COMPARISON, Double>(comp1, compValue1));
-      this.comparisons.add(new Pair<COMPARISON, Double>(comp2, compValue2));
+    public ComparisonFilter addComparison(COMPARISON comp, double value) {
+      this.comparisons.add(new Pair<>(comp, value));
+      return this;
     }
 
     List<Pair<COMPARISON, Double>> comparisons;
 
     @Override
     public boolean passes(VariantContext vc) {
-      String af = vc.getAttributes().get(tag).toString();
-      if (af.contains(",")) {
+      String v = vc.getAttributes().get(tag).toString();
+      if (v.contains(",")) {
         // multi-allelic
         return false;
       }
-      double val = Double.parseDouble(af);
+      double val = Double.parseDouble(v);
       for (Pair<COMPARISON, Double> comp : comparisons) {
         if (!comp.getFirst().check(val, comp.getSecond())) {
           return false;
@@ -108,104 +108,121 @@ public class NGSBinSNPSelector {
 
   }
 
-  private static class MappingQualityFilter extends Filter {
+  private static class MappingQualityFilter extends ComparisonFilter {
 
     MappabilityCompute mc;
-    double threshold;
-    COMPARISON comp;
 
-    public MappingQualityFilter(String tag, MappabilityCompute mc, COMPARISON comp, double thresh) {
+    public MappingQualityFilter(String tag, MappabilityCompute mc) {
       super(tag);
       this.mc = mc;
-      this.comp = comp;
-      this.threshold = thresh;
     }
 
     @Override
     public boolean passes(VariantContext vc) {
-      return comp.check(mc.getAverageMap(vc), threshold);
+      double v = mc.getAverageMap(vc);
+      for (Pair<COMPARISON, Double> comp : comparisons) {
+        if (!comp.getFirst().check(v, comp.getSecond())) {
+          return false;
+        }
+      }
+      return true;
     }
 
   }
 
-  private List<FilterSet> parseFilters(MappabilityCompute mc) {
+  private List<FilterSet> parseFilters(String filterFile, MappabilityCompute mc) {
     List<FilterSet> listFS = new ArrayList<>();
-    {
-      Filter svmFilter = new TagFilter("SVM", false);
-      svmFilter.setUse(false);
-      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .4, COMPARISON.LT, .6);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
-      if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .95);
-        mqFilter.setUse(false);
-        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
-      } else {
-        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
-      }
+    String[] filterDefs = HashVec.loadFileToStringArray(filterFile, false, null, false);
+    for (String fsd : filterDefs) {
+      listFS.add(parseFilterSet(fsd));
     }
-    {
-      Filter svmFilter = new TagFilter("SVM", false);
-      svmFilter.setUse(false);
-      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .35, COMPARISON.LT, .65);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
-      if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .9);
-        mqFilter.setUse(false);
-        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
-      } else {
-        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
-      }
+    return listFS;
+  }
+
+  private FilterSet parseFilterSet(String filterLine) {
+    String[] filterParts = filterLine.split(";");
+    List<Filter> filters = new ArrayList<>();
+    for (String filter : filterParts) {
+      Filter f = parseFilter(filter);
+      filters.add(f);
     }
-    {
-      Filter svmFilter = new TagFilter("SVM", false);
-      svmFilter.setUse(false);
-      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .3, COMPARISON.LT, .7);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 20);
-      if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .85);
-        mqFilter.setUse(false);
-        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
-      } else {
-        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
-      }
-    }
-    {
-      Filter svmFilter = new TagFilter("SVM", false);
-      svmFilter.setUse(false);
-      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .2, COMPARISON.LT, .8);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 15);
-      if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .8);
-        mqFilter.setUse(false);
-        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
-      } else {
-        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
-      }
-    }
-    {
-      Filter svmFilter = new TagFilter("SVM", false);
-      svmFilter.setUse(false);
-      Filter mafFilter = new ComparisonFilter("AF", COMPARISON.GT, .05, COMPARISON.LT, .95);
-      Filter depFilter = new ComparisonFilter("AVGDP", COMPARISON.GT, 10);
-      if (mc != null) {
-        Filter mqFilter = new MappingQualityFilter("MQ", mc, COMPARISON.GTE, .8);
-        mqFilter.setUse(false);
-        listFS.add(new FilterSet(svmFilter, mafFilter, mqFilter, depFilter));
-      } else {
-        listFS.add(new FilterSet(svmFilter, mafFilter, depFilter));
-      }
+    return new FilterSet(filters);
+  }
+
+  private Filter parseFilter(String filter) {
+    String filterDef = filter;
+    // test for usage tag
+    boolean use = !filterDef.endsWith("!");
+    if (!use) {
+      filterDef = filter.substring(0, filter.length() - 1);
     }
 
+    String[] pts = filterDef.split("\\|");
+    if (pts.length != 2) {
+      throw new RuntimeException("Invalid filter definition: " + filterDef);
+    }
+
+    Filter newFilter;
+    // test for tag
+    if (pts[1].charAt(0) == '+' || pts[1].charAt(0) == '-') {
+      newFilter = new TagFilter(pts[0], pts[1].charAt(0) == '+');
+    } else {
+      // check for multiple thresholds
+      String[] compSets = pts[1].split(",");
+      List<Pair<COMPARISON, Double>> comps = parseComparisons(filterDef, compSets);
+      if (pts[0].equalsIgnoreCase(mqTag)) {
+        newFilter = new MappingQualityFilter(pts[0], mc);
+      } else {
+        newFilter = new ComparisonFilter(pts[0]);
+      }
+      for (Pair<COMPARISON, Double> pr : comps) {
+        ((ComparisonFilter) newFilter).addComparison(pr.getFirst(), pr.getSecond());
+      }
+    }
+    newFilter.setUse(use);
+
+    return newFilter;
+  }
+
+  private List<Pair<COMPARISON, Double>> parseComparisons(String fullFilter, String[] compSets) {
+    List<Pair<COMPARISON, Double>> comps = new ArrayList<>();
+    for (String comp : compSets) {
+      // greedy test for comparison
+      COMPARISON compar = COMPARISON.forSymbol(comp.substring(0, 2));
+      int sz = 2;
+      if (compar == null) {
+        // couldn't find a two-char comp, check for single char
+        compar = COMPARISON.forSymbol(comp.substring(0, 1));
+        sz = 1;
+      }
+      if (compar == null) {
+        throw new RuntimeException("Invalid filter definition: " + fullFilter);
+      }
+      double compVal = Double.parseDouble(comp.substring(sz));
+      comps.add(new Pair<>(compar, compVal));
+    }
+    return comps;
+  }
+
+  private List<FilterSet> parseFilters(MappabilityCompute mc) {
+    String[] filters = {"SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.9;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>15",
+                        "SVM|-!;AF|>.05,<.95;MQ|>=.8;AVGDP|>10",};
+    List<FilterSet> listFS = new ArrayList<>();
+    for (String fsd : filters) {
+      FilterSet f = parseFilterSet(fsd);
+      listFS.add(f);
+    }
     return listFS;
   }
 
   private static class FilterSet {
 
-    public FilterSet(Filter... filters) {
-      this.filters = new ArrayList<>();
-      for (Filter f : filters) {
-        this.filters.add(f);
-      }
+    public FilterSet(List<Filter> filters) {
+      this.filters = new ArrayList<>(filters);
     }
 
     List<Filter> filters;
@@ -235,9 +252,15 @@ public class NGSBinSNPSelector {
 
   }
 
+  String[] hdr = {"BIN", "ID", "CHR", "POS", "REF", "ALT", "MAPQ", "MAF", "PASSED", "LEVEL",
+                  "TOTAL"};
+
   public void run() {
-    MappabilityCompute mc = MappabilityCompute.open(mappingQualityFile);
-    log.reportTime("Mapping Quality Data Loaded");
+    mc = null;
+    if (mappingQualityFile != null) {
+      mc = MappabilityCompute.open(mappingQualityFile);
+      log.reportTime("Mapping Quality Data Loaded");
+    }
     List<FilterSet> filters = parseFilters(mc);
 
     for (int c : chrs) {
@@ -246,16 +269,16 @@ public class NGSBinSNPSelector {
                                                                    + ".xln")
                                       : null;
       PrintWriter writer = Files.getAppropriateWriter(outputDir + "selected_chr" + c + ".xln");
-      writer.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
+      writer.println(ArrayUtils.toStr(hdr, "\t"));
       if (writerDEBUG != null) {
-        writerDEBUG.println("BIN\tID\tMAP_Q\tMAF\tPASSED\tLEVEL\tTOTAL");
+        writerDEBUG.println(ArrayUtils.toStr(hdr, "\t"));
       }
 
       VCFHeader header;
-      String vcf = format.replace(token, Integer.toString(c));
+      String vcf = inputDir + format.replace(token, Integer.toString(c));
       if (!Files.exists(vcf)) {
-        if (Files.exists(format.replace(token, "0" + Integer.toString(c)))) {
-          vcf = format.replace(token, "0" + Integer.toString(c));
+        if (Files.exists(inputDir + format.replace(token, "0" + Integer.toString(c)))) {
+          vcf = inputDir + format.replace(token, "0" + Integer.toString(c));
         }
       }
       try (VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".tbi"))) {
@@ -307,6 +330,7 @@ public class NGSBinSNPSelector {
               }
             }
             passedCount = passed.size();
+            filterLevel = i;
             if (passed.size() == 0) {
               continue;
             }
@@ -315,17 +339,25 @@ public class NGSBinSNPSelector {
             } else {
               selected = filterSet.best(passed, afTag);
             }
-            filterLevel = i;
             if (DEBUG) {
               for (VariantContext vc : passed) {
                 String id = vc.getID();
                 if (ext.isMissingValue(id)) {
                   id = vc.getContig() + ":" + vc.getStart();
                 }
-                writerDEBUG.println(bin.getUCSClocation() + "\t" + id + "\t"
-                                    + (mc == null ? "." : mc.getAverageMap(vc)) + "\t"
-                                    + vc.getAttributes().get(afTag).toString() + "\t" + passedCount
-                                    + "\t" + (i + 1) + "\t" + count);
+                StringBuilder lineOut = new StringBuilder();
+                lineOut.append(bin.getUCSClocation()).append("\t");
+                lineOut.append(id).append("\t");
+                lineOut.append(vc.getContig()).append("\t");
+                lineOut.append(vc.getStart()).append("\t");
+                lineOut.append(vc.getReference().getBaseString()).append("\t");
+                lineOut.append(ArrayUtils.toStr(vc.getAlternateAlleles(), ",")).append("\t");
+                lineOut.append(mc == null ? "." : mc.getAverageMap(vc)).append("\t");
+                lineOut.append(vc.getAttributes().get(afTag).toString()).append("\t");
+                lineOut.append(passedCount).append("\t");
+                lineOut.append((i + 1)).append("\t");
+                lineOut.append(count);
+                writerDEBUG.println(lineOut.toString());
               }
             }
             break;
@@ -336,13 +368,21 @@ public class NGSBinSNPSelector {
             if (ext.isMissingValue(id)) {
               id = selected.getContig() + ":" + selected.getStart();
             }
-
-            writer.println(bin.getUCSClocation() + "\t" + id + "\t"
-                           + (mc == null ? "." : mc.getAverageMap(selected)) + "\t"
-                           + selected.getAttributes().get(afTag).toString() + "\t" + passedCount
-                           + "\t" + (filterLevel + 1) + "\t" + count);
+            StringBuilder lineOut = new StringBuilder();
+            lineOut.append(bin.getUCSClocation()).append("\t");
+            lineOut.append(id).append("\t");
+            lineOut.append(selected.getContig()).append("\t");
+            lineOut.append(selected.getStart()).append("\t");
+            lineOut.append(selected.getReference().getBaseString()).append("\t");
+            lineOut.append(ArrayUtils.toStr(selected.getAlternateAlleles(), ",")).append("\t");
+            lineOut.append(mc == null ? "." : mc.getAverageMap(selected)).append("\t");
+            lineOut.append(selected.getAttributes().get(afTag).toString()).append("\t");
+            lineOut.append(passedCount).append("\t");
+            lineOut.append((filterLevel + 1)).append("\t");
+            lineOut.append(count);
+            writer.println(lineOut.toString());
           } else {
-            writer.println(bin.getUCSClocation() + "\t.\t.\t.\t0\t.\t" + count);
+            writer.println(bin.getUCSClocation() + "\t.\t.\t.\t.\t.\t.\t.\t0\t.\t" + count);
           }
           writer.flush();
           if (DEBUG) {
@@ -368,7 +408,8 @@ public class NGSBinSNPSelector {
     cli.addArg("in", "Input directory");
     cli.addArg("format", "File format with special token where the chromosome number goes");
     cli.addArg("token", "Special filename token to replace with chromosome number", "##", false);
-    cli.addArg("mapQ", "Mapping quality file", false);
+    cli.addArg("mapFile", "Mapping quality file", false);
+    cli.addArg("mq", "Mapping quality tag in the filters definitions file.", "MQ", false);
     cli.addArg("af", "Allele frequency tag in the VCF and filters definitions file", "AF", false);
     cli.addArg("chrs", "Comma-delimited list of chromosomes to process.", false);
 
@@ -380,8 +421,9 @@ public class NGSBinSNPSelector {
     selector.inputDir = cli.get("in");
     selector.format = cli.get("format");
     selector.token = cli.get("token");
-    selector.mappingQualityFile = cli.has("mapQ") ? cli.get("mapQ") : null;
+    selector.mappingQualityFile = cli.has("mapFile") ? cli.get("mapFile") : null;
     selector.afTag = cli.has("af") ? cli.get("af") : "AF";
+    selector.mqTag = cli.has("mq") ? cli.get("mq") : "MQ";
 
     Set<Integer> chrs = null;
     if (cli.has("chrs")) {
