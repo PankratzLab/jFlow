@@ -3,8 +3,11 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -21,9 +24,15 @@ import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
 import org.genvisis.stats.Maths.COMPARISON;
 import com.google.common.collect.Sets;
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder.OutputType;
 import htsjdk.variant.vcf.VCFFileReader;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
 public class NGSBinSNPSelector {
 
@@ -263,25 +272,49 @@ public class NGSBinSNPSelector {
     }
     List<FilterSet> filters = parseFilters(mc);
 
-    for (int c : chrs) {
-      long startN = System.nanoTime();
-      PrintWriter writerDEBUG = DEBUG ? Files.getAppropriateWriter(outputDir + "all_chr" + c
-                                                                   + ".xln")
-                                      : null;
-      PrintWriter writer = Files.getAppropriateWriter(outputDir + "selected_chr" + c + ".xln");
-      writer.println(ArrayUtils.toStr(hdr, "\t"));
-      if (writerDEBUG != null) {
-        writerDEBUG.println(ArrayUtils.toStr(hdr, "\t"));
-      }
+    Map<Integer, String> allVCFs = new HashMap<>();
 
-      VCFHeader header;
+    for (int c : chrs) {
       String vcf = inputDir + format.replace(token, Integer.toString(c));
       if (!Files.exists(vcf)) {
         if (Files.exists(inputDir + format.replace(token, "0" + Integer.toString(c)))) {
           vcf = inputDir + format.replace(token, "0" + Integer.toString(c));
         }
       }
-      try (VCFFileReader reader = new VCFFileReader(new File(vcf), Files.exists(vcf + ".tbi"))) {
+      if (!Files.exists(vcf)) continue;
+      allVCFs.put(c, vcf);
+    }
+
+    File exFl = new File(allVCFs.values().iterator().next());
+    VariantContextWriter vcfWriter = new htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder().setOutputFile(outputDir
+                                                                                                                          + "selected.vcf")
+                                                                                                           .setReferenceDictionary(VCFFileReader.getSequenceDictionary(exFl))
+                                                                                                           .setOutputFileType(OutputType.VCF)
+                                                                                                           .build();
+    VCFFileReader temp = new VCFFileReader(exFl);
+    VCFHeader vcfHeader = temp.getFileHeader();
+    vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("BINSTART", 1, VCFHeaderLineType.Integer,
+                                                    "NGS Bin Start"));
+    vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("BINSTOP", 1, VCFHeaderLineType.Integer,
+                                                    "NGS Bin Stop"));
+    vcfWriter.writeHeader(vcfHeader);
+    temp.close();
+
+    for (Entry<Integer, String> vcf : allVCFs.entrySet()) {
+      long startN = System.nanoTime();
+      PrintWriter writerDEBUG = DEBUG ? Files.getAppropriateWriter(outputDir + "all_chr"
+                                                                   + vcf.getKey() + ".xln")
+                                      : null;
+      PrintWriter writer = Files.getAppropriateWriter(outputDir + "selected_chr" + vcf.getKey()
+                                                      + ".xln");
+      writer.println(ArrayUtils.toStr(hdr, "\t"));
+      if (writerDEBUG != null) {
+        writerDEBUG.println(ArrayUtils.toStr(hdr, "\t"));
+      }
+      VCFHeader header;
+
+      try (VCFFileReader reader = new VCFFileReader(new File(vcf.getValue()),
+                                                    Files.exists(vcf + ".tbi"))) {
         header = reader.getFileHeader();
 
         // discover which chrs are in this vcf file
@@ -294,7 +327,8 @@ public class NGSBinSNPSelector {
 
         for (Segment bin : bins.getLoci()) {
           // no variants in file for this bin's chromosome  
-          if (!contigMap.containsValue((int) bin.getChr())) {
+          if (bin.getChr() != vcf.getKey() || !contigMap.containsValue((int) bin.getChr())
+              || !chrs.contains((int) bin.getChr())) {
             //            System.err.println("Error - bin contig " + bin.getChr()
             //                               + " was not present in the VCF!");
             continue;
@@ -313,6 +347,12 @@ public class NGSBinSNPSelector {
             FilterSet filterSet = filters.get(i);
             List<VariantContext> passed = new ArrayList<>();
             for (VariantContext vc : iter) {
+              List<Allele> alts = vc.getAlternateAlleles();
+              if (alts.size() > 1 || alts.get(0).getBaseString().length() > 1
+                  || vc.getReference().getBaseString().length() > 1) {
+                // skip multi-allelic snps and indels 
+                continue;
+              }
               List<Filter> failedFilters = filterSet.check(vc);
               if (failedFilters.size() == 0) {
                 passed.add(vc);
@@ -381,6 +421,16 @@ public class NGSBinSNPSelector {
             lineOut.append((filterLevel + 1)).append("\t");
             lineOut.append(count);
             writer.println(lineOut.toString());
+
+            VariantContext vc = new VariantContextBuilder().alleles(selected.getAlleles())
+                                                           .chr(selected.getContig()).id(id)
+                                                           .start(selected.getStart())
+                                                           .stop(selected.getEnd()).noGenotypes()
+                                                           .attribute("BINSTART", bin.getStart())
+                                                           .attribute("BINSTOP", bin.getStop())
+                                                           .make();
+
+            vcfWriter.add(vc);
           } else {
             writer.println(bin.getUCSClocation() + "\t.\t.\t.\t.\t.\t.\t.\t0\t.\t" + count);
           }
@@ -396,8 +446,9 @@ public class NGSBinSNPSelector {
       if (DEBUG) {
         writerDEBUG.close();
       }
-      log.reportTime("Finished processing chr " + c + " in " + ext.getTimeElapsedNanos(startN)
-                     + "!");
+      vcfWriter.close();
+      log.reportTime("Finished processing chr " + vcf.getKey() + " in "
+                     + ext.getTimeElapsedNanos(startN) + "!");
     }
   }
 
@@ -412,9 +463,14 @@ public class NGSBinSNPSelector {
     cli.addArg("mq", "Mapping quality tag in the filters definitions file.", "MQ", false);
     cli.addArg("af", "Allele frequency tag in the VCF and filters definitions file", "AF", false);
     cli.addArg("chrs", "Comma-delimited list of chromosomes to process.", false);
+    cli.addArg("bed", "BED file with predefined regions to use.", false);
+    cli.addArg("bin", "Bin size to use when splitting up reference genome, default value 1000.",
+               false);
+    cli.addGroup("bed", "bin");
 
     cli.parseWithExit(args);
 
+    Logger log = new Logger();
     NGSBinSNPSelector selector = new NGSBinSNPSelector();
 
     selector.outputDir = cli.get("out");
@@ -424,6 +480,16 @@ public class NGSBinSNPSelector {
     selector.mappingQualityFile = cli.has("mapFile") ? cli.get("mapFile") : null;
     selector.afTag = cli.has("af") ? cli.get("af") : "AF";
     selector.mqTag = cli.has("mq") ? cli.get("mq") : "MQ";
+    int bin = 1000;
+    String bedFile = null;
+    if (cli.has("bin")) {
+      bin = cli.getI("bin");
+    } else if (cli.has("bed")) {
+      bedFile = cli.get("bed");
+    } else {
+      log.reportTime("No BED file specified, nor was a bin size specified, so the default bin size of "
+                     + bin + " will be used.");
+    }
 
     Set<Integer> chrs = null;
     if (cli.has("chrs")) {
@@ -437,8 +503,11 @@ public class NGSBinSNPSelector {
                              21, 22, 23, 24, 25);
     }
     selector.chrs = chrs;
-
-    selector.bins = new ReferenceGenome(GENOME_BUILD.HG19, new Logger()).getBins(1000, chrs);
+    if (bedFile != null) {
+      selector.bins = new BEDFileReader(bedFile, false).loadAll(log).getStrictSegmentSet();
+    } else {
+      selector.bins = new ReferenceGenome(GENOME_BUILD.HG19, new Logger()).getBins(bin, chrs);
+    }
     selector.run();
   }
 
