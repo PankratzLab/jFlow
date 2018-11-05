@@ -461,9 +461,12 @@ public class PowerCalculator {
       //      rangeOfMaf(0.001, 0.01, 1889, 7251, 1000000, false); // Lindsay Females
       //      rangeOfMaf(0.001, 0.01, 4191, 14502, 1000000, false); // Lindsay Combined
       //      rangeOfMaf(0.001, 0.01, 846, 651, 5000, false); // Lindsay B-ALL CNV
-      rangeOfMaf(0.001, 0.01, 197, 61, 5000, false); // Lindsay T-ALL CNV
+      //      rangeOfMaf(0.001, 0.01, 197, 61, 5000, false); // Lindsay T-ALL CNV
 
       //      rangeOfMaf(0.001, 0.01, 1043, 712, 5000, false); // Lindsay Combined CNV
+
+      rangeOfMaf(0.001, 0.01, 1368, 7251, 1000000, false); // Lindsay Males take 2
+      rangeOfMaf(0.001, 0.01, 1119, 7251, 1000000, false); // Lindsay Females take 2
 
     } catch (Exception e) {
       e.printStackTrace();
