@@ -1,6 +1,7 @@
 package org.genvisis.seq.manage;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.pankratzlab.common.Logger;
@@ -24,7 +25,8 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
   private final FeatureReader<BEDFeature> reader;
 
   public BEDFileReader(final String file, final boolean requireIndex) {
-    reader = AbstractFeatureReader.getFeatureReader(file, new BEDCodec(), requireIndex);
+    reader = AbstractFeatureReader.getFeatureReader(new File(file).toURI().getPath(),
+                                                    new BEDCodec(), requireIndex);
   }
 
   /** Queries for records within the region specified. */
