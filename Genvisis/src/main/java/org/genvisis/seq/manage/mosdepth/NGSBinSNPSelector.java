@@ -1,4 +1,4 @@
-package org.genvisis.seq.manage;
+package org.genvisis.seq.manage.mosdepth;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -22,6 +22,8 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.Maths.COMPARISON;
 import com.google.common.collect.Sets;
 import htsjdk.variant.variantcontext.Allele;
@@ -446,10 +448,10 @@ public class NGSBinSNPSelector {
       if (DEBUG) {
         writerDEBUG.close();
       }
-      vcfWriter.close();
       log.reportTime("Finished processing chr " + vcf.getKey() + " in "
                      + ext.getTimeElapsedNanos(startN) + "!");
     }
+    vcfWriter.close();
   }
 
   public static void main(String[] args) {

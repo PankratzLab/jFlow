@@ -8,7 +8,13 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -2242,15 +2248,50 @@ public class lab {
 
   }
 
-  public static void main(String[] args) throws IOException, ClassNotFoundException {
+  public static Path getPath(String uriString) throws IOException {
+    URI uri = URI.create(uriString);
+    try {
+      // if the URI has no scheme, then treat as a local file, otherwise use the scheme to determine the filesystem to use
+      if (uri.getScheme() == null) {
+        return Paths.get(uriString);
+      }
+      return Paths.get(uri);
+    } catch (FileSystemNotFoundException e) {
+      ClassLoader cl = Thread.currentThread().getContextClassLoader();
+      if (cl == null) {
+        throw e;
+      }
+      return FileSystems.newFileSystem(uri, new HashMap<>(), cl).provider().getPath(uri);
+    }
+  }
+
+  public static void main(String[] args) throws IOException, ClassNotFoundException,
+                                         URISyntaxException {
     int numArgs = args.length;
     Project proj;
+    ;
     String filename = "lab.dat";
     String logfile = null;
     String file = null;
 
     boolean test = true;
     if (test) {
+
+      String p;
+      Path pa;
+
+      p = "G:/bamTesting/mosdepth/00test/10-SS-10.realign.mos.regions.bed";
+
+      URI uri = new File(p).toURI();//URI.create(p);
+
+      System.out.println(uri.getScheme());
+      System.out.println(uri.getPath());
+      System.out.println(uri.getRawPath());
+      System.out.println(uri.normalize());
+      pa = Paths.get(uri);
+      System.out.println(pa.toString());
+      System.out.println(pa.toFile().exists());
+
       // createBCXPlots();
       // processAnnotationFilesAll();
 
@@ -2302,20 +2343,25 @@ public class lab {
       //      String zipLn = bgzip.readLine();
       //
 
-      FCSKeywords keys = FCSReader.readKeywords("F:\\Flow_stage2\\deident\\5287\\537f8aca-d776-4026-89a8-8b169998b4d4.fcs");
-      System.out.println(keys.getRaw());
-
-      System.out.println();
-
-      String dir = "/scratch.global/cole0482/CRAM_TEST/full/multiMax/";
-      String projDir = dir + "project/";
-      String srcDir = /*
-                       * ext.indexOfStr("-full", args) >= 0 ?
-                       * "/scratch.global/topmed/bakeoff/group1/" :
-                       */ "/scratch.global/cole0482/CRAM/00src/";
-      String projFile = projDir + "CRAMTesting_full_multiMax.properties";
-      BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
-      runSAMImport(pp);
+      //      BufferedReader reader = Files.getAppropriateReader("/scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      //      int lines = 0;
+      //      while (reader.readLine() != null) {
+      //        lines++;
+      //      }
+      //      System.out.println("Read " + lines
+      //                         + " in /scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      //
+      //      System.out.println();
+      //
+      //      String dir = "/scratch.global/cole0482/CRAM_TEST/full/multiMax/";
+      //      String projDir = dir + "project/";
+      //      String srcDir = /*
+      //                       * ext.indexOfStr("-full", args) >= 0 ?
+      //                       * "/scratch.global/topmed/bakeoff/group1/" :
+      //                       */ "/scratch.global/cole0482/CRAM/00src/";
+      //      String projFile = projDir + "CRAMTesting_full_multiMax.properties";
+      //      BamProj pp = new BamProj(srcDir, projFile, ".cram", dir + "00src/hs38DH.fa");
+      //      runSAMImport(pp);
 
       // runHRC();
       // QQPlot.main(new String[]

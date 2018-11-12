@@ -1,10 +1,12 @@
-package org.genvisis.seq.manage;
+package org.genvisis.seq.manage.mosdepth;
 
 import java.util.Arrays;
 import java.util.List;
 import org.genvisis.common.Logger;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
+import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.VCOps;
 import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import htsjdk.variant.variantcontext.VariantContext;
 
