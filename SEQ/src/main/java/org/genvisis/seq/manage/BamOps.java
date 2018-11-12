@@ -3,6 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,10 +16,11 @@ import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.WorkerTrain;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
+import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.LocusSet;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.ext;
+import com.google.common.collect.ImmutableList;
 import com.google.common.math.Stats;
 import com.google.common.math.StatsAccumulator;
 import com.google.common.primitives.Doubles;
@@ -56,24 +58,24 @@ public class BamOps {
   }
 
   /**
-   * This method will check if an appropriate .bai index file exists for a given .bam, and create it
-   * if not
+   * This method will check if an appropriate .bai index file exists for a given .bam, and attempt
+   * to create it if not
    *
    * @param bamFile bam file to verify
    * @param log
-   * @return
+   * @return true if an index now exists
    */
   public static boolean verifyIndex(String bamFile, Logger log) {
+    if (getPossibleBamIndices(bamFile).stream().anyMatch(Files::exists)) return true;
+
     ArrayList<Option> options = new ArrayList<>();
     options.add(Option.INCLUDE_SOURCE_IN_RECORDS);
-    String index = getAssociatedBamIndex(bamFile);
-    if (!Files.exists(index)) {
-      log.reportTimeInfo("Attempting to generate index " + index);
-      htsjdk.samtools.BAMIndexer.createIndex(BamOps.getDefaultReader(bamFile,
-                                                                     ValidationStringency.STRICT,
-                                                                     options),
-                                             new File(index));
-    }
+    String index = defaultBamIndexName(bamFile);
+    log.reportTimeInfo("Attempting to generate index " + index);
+    htsjdk.samtools.BAMIndexer.createIndex(BamOps.getDefaultReader(bamFile,
+                                                                   ValidationStringency.STRICT,
+                                                                   options),
+                                           new File(index));
     return Files.exists(index);
   }
 
@@ -81,7 +83,11 @@ public class BamOps {
    * @param bamFile
    * @return the associated
    */
-  public static String getAssociatedBamIndex(String bamFile) {
+  public static Collection<String> getPossibleBamIndices(String bamFile) {
+    return ImmutableList.of(defaultBamIndexName(bamFile), bamFile + BAI_EXT);
+  }
+
+  private static String defaultBamIndexName(String bamFile) {
     return ext.rootOf(bamFile, false) + BAI_EXT;
   }
 
