@@ -262,14 +262,12 @@ public class HashVec {
                                              Collection<String> commentIndicators, int[] cols,
                                              boolean trimFirst, boolean onlyIfAbsent,
                                              String delimiter) {
-    BufferedReader reader = null;
     Vector<String> v = new Vector<>();
     HashSet<String> onlyIfAbsentHash = new HashSet<>();
     String[] line;
     int count;
 
-    try {
-      reader = Files.getReader(filename, true, false);
+    try (BufferedReader reader = Files.getReader(filename, true, false)) {
       if (reader == null) {
         return null; // Should return empty? No - empty could be valid, we need to show something
                     // invalid, so null or exception
@@ -309,7 +307,6 @@ public class HashVec {
         }
         count++;
       }
-      reader.close();
     } catch (FileNotFoundException fnfe) {
       System.err.println("Error: file \"" + filename + "\" not found in current directory");
       System.exit(1);
