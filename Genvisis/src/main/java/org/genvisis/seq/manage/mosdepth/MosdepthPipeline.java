@@ -1,14 +1,28 @@
 package org.genvisis.seq.manage.mosdepth;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import org.genvisis.cnv.filesys.Compression;
+import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
+import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.common.AllelePair;
+import org.genvisis.common.ArrayUtils;
+import org.genvisis.common.Elision;
 import org.genvisis.common.Files;
 import org.genvisis.common.GenomicPosition;
 import org.genvisis.common.Logger;
@@ -16,10 +30,20 @@ import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.Segment;
 import org.genvisis.seq.manage.BEDFileReader;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
+import htsjdk.samtools.util.CloseableIterator;
+import htsjdk.tribble.bed.BEDFeature;
+import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
 public class MosdepthPipeline {
+
+  private static final int MAX_MOSDEPTH_FILES_OPEN = 2500;
 
   Logger log;
 
@@ -29,6 +53,7 @@ public class MosdepthPipeline {
   String mosSrcDir;
   String mosSrcExt;
   double scaleFactor = 10;
+  int numMarkersPerFile = 5000;
 
   public void setProjectName(String projName2) {
     projName = projName2;
@@ -62,40 +87,286 @@ public class MosdepthPipeline {
 
   public void setMosdepthDirectory(String dir, String ext) {
     this.mosSrcDir = org.genvisis.common.ext.verifyDirFormat(dir);
-    // TODO if ext != ".norm" (or whatever the default is in MosdepthNormalizer), throw an error and return, with a suggestion to either set override flag (to allow raw) or to process with MosdepthNormalizer
     this.mosSrcExt = ext;
-    this.mosdepthFiles = Files.list(dir, ext);
+    this.mosdepthFiles = Files.list(dir, null, ext, false, true);
   }
 
   Segment[] useBins;
-  VCFFileReader snpReader;
   VCFFileReader genoReader;
 
+  LoadingCache<String, BEDFileReader> mosdepthCache;
   String[] mosdepthFiles;
+  String[] samples;
+  long fingerprintForMarkerFiles;
 
   MarkerDetailSet snpPosMDS;
   MarkerDetailSet binPosMDS;
   List<Marker> snpMarkers = new ArrayList<>();
+  Map<Marker, Segment> binLookup = new HashMap<>();
   List<Marker> binMarkers = new ArrayList<>();
+  Map<String, Marker> markerNameMap;
+  String[][] binsOfMarkers;
 
-  void run() {
+  void run() throws IOException, Elision {
+    // TODO check that all necessary files are set
     if (log == null) {
       log = new Logger();
     }
     createProject();
 
     loadBins();
-
     loadSNPs();
+    createSampleList();
+    loadMedians();
+    mosdepthCache = buildMosdepthCache();
 
-    //    genoReader = new VCFFileReader(new File(genoVCF), true);
+    genoReader = new VCFFileReader(new File(genoVCF), true);
 
-    // TODO setup mosdepth readers
-    // TODO check bins validity across files
+    read();
 
+    cleanup();
   }
 
-  protected void createProject() {
+  private void cleanup() {
+    genoReader.close();
+    genoReader = null;
+
+    mosdepthCache.invalidateAll();
+    mosdepthCache.cleanUp();
+    mosdepthCache = null;
+
+    binsOfMarkers = null;
+    markerNameMap = null;
+    binMarkers = null;
+    binLookup = null;
+    snpMarkers = null;
+    binPosMDS = null;
+    snpPosMDS = null;
+    samples = null;
+    mosdepthFiles = null;
+    useBins = null;
+  }
+
+  private void createSampleList() {
+    samples = new String[mosdepthFiles.length];
+    for (int i = 0; i < mosdepthFiles.length; i++) {
+      samples[i] = ext.rootRootOf(ext.removeDirectoryInfo(mosdepthFiles[i]));
+    }
+    fingerprintForMarkerFiles = MarkerSet.fingerprint(samples);
+    if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
+      SampleList sl = new SampleList(samples);
+      sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
+      sl = null;
+      samples = null;
+      log.reportTime("Created sample list file: " + proj.SAMPLELIST_FILENAME.getValue());
+    } else {
+      log.reportTime("Project sample list file already exists; skipping creation.");
+    }
+  }
+
+  private void loadMedians() {
+    long t1 = System.nanoTime();
+    Map<String, Double> medians = new HashMap<>();
+    for (String s : mosdepthFiles) {
+      BEDFileReader reader = new BEDFileReader(s, false);
+      int sz = (int) reader.iterator().stream().filter((bf) -> {
+        int c = (int) Positions.chromosomeNumber(bf.getContig());
+        return c > 0 && c < 23;
+      }).count();
+      double median = ArrayUtils.median(reader.iterator().stream().filter((bf) -> {
+        int c = (int) Positions.chromosomeNumber(bf.getContig());
+        return c > 0 && c < 23;
+      }).map(bf -> bf.getScore()), sz);
+      reader.close();
+      medians.put(s, median);
+    }
+    log.reportTime("Computed autosomal median depth for " + medians.size() + " samples in "
+                   + ext.getTimeElapsedNanos(t1));
+  }
+
+  private void read() throws IOException, Elision {
+    byte nullStatus = getNullStatus();
+    int bytesPerSamp = Sample.getNBytesPerSampleMarker(nullStatus); // 12
+    int markerBlockSize = samples.length * bytesPerSamp;
+    byte[] mkrBuff;
+    // for each bin:
+    for (int i = 0; i < binsOfMarkers.length; i++) {
+      String[] markersInFile = binsOfMarkers[i];
+      String mdRAFName = "markers." + i + MarkerData.MARKER_DATA_FILE_EXTENSION;
+      //    open and write header for mdRAF file containing current bin of markers:
+      RandomAccessFile raf = openMDRAF(mdRAFName, samples.length, nullStatus,
+                                       fingerprintForMarkerFiles, markersInFile);
+      Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
+      //    for each marker in bin:
+      for (int m = 0; m < markersInFile.length; m++) {
+        mkrBuff = new byte[markerBlockSize];
+
+        Marker mkr = markerNameMap.get(markersInFile[m]);
+
+        //        grab data from genotype vcf for marker:
+        List<VariantContext> genos = genoReader.query(Positions.chromosomeNumberInverse(mkr.getChr()),
+                                                      mkr.getPosition(), mkr.getPosition())
+                                               .toList();
+        VariantContext match = null;
+        for (VariantContext vc : genos) {
+          if (vc.getID().equals(mkr.getName())) {
+            match = vc;
+            break;
+          }
+        }
+        if (match == null) {
+          String msg = "Couldn't find an exact match between " + mkr.getName() + " and "
+                       + genos.size() + " genotype records";
+
+          if (genos.size() > 0) {
+            msg += ": {";
+            for (int v = 0; v < genos.size(); v++) {
+              msg += genos.get(v).getID();
+              if (v < genos.size() - 1) {
+                msg += ", ";
+              }
+            }
+            msg += "}.";
+            match = genos.get(0);
+            msg += " Using first in list...";
+          } else {
+            msg += ".";
+          }
+          log.reportTimeWarning(msg);
+        }
+
+        //        for each sample in project,
+        for (int s = 0; s < samples.length; s++) {
+
+          double gc = 0.0;
+          byte fg = 0;
+          double x = Double.NaN;
+          double y = Double.NaN;
+
+          if (match != null) {
+            Genotype g = match.getGenotype(samples[s]);
+
+            // gc
+            gc = ((double) g.getGQ()) / 100d;
+            // genotype
+            fg = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
+
+            // x
+            x = ((double) match.getCalledChrCount(match.getReference())) / scaleFactor;
+            // y
+            y = ((double) match.getCalledChrCount(match.getAlternateAllele(0))) / scaleFactor;
+          }
+
+          // lrr
+          double lrr = loadMosdepth(match, mkr, s);
+          // baf
+          // TODO compute BAF
+          double baf = 0.0;
+
+          boolean noor;
+          int sInd = s * bytesPerSamp;
+          int bInd = sInd;
+          Compression.gcBafCompress((float) gc, mkrBuff, bInd);
+          bInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+          noor = Compression.xyCompressPositiveOnly((float) x, mkrBuff, bInd);
+          if (!noor) {
+            outOfRangeTable.put(m + "\t" + s + "\tx", (float) x);
+          }
+          bInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+          noor = Compression.xyCompressPositiveOnly((float) y, mkrBuff, bInd);
+          if (!noor) {
+            outOfRangeTable.put(m + "\t" + s + "\ty", (float) y);
+          }
+          bInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
+          Compression.gcBafCompress((float) baf, mkrBuff, bInd);
+          bInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
+          noor = Compression.lrrCompress((float) lrr, mkrBuff, bInd) == -1;
+          if (!noor) {
+            outOfRangeTable.put(m + "\t" + s + "\tlrr", (float) lrr);
+          }
+          bInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
+          Compression.genotypeCompress((byte) -1, fg, mkrBuff, bInd);
+
+          raf.write(mkrBuff);
+        }
+      }
+
+      //    write outliers and close file
+      byte[] oorBytes = Compression.objToBytes(outOfRangeTable);
+      raf.write(Compression.intToBytes(oorBytes.length));
+      raf.write(oorBytes);
+      raf.close();
+    }
+  }
+
+  private LoadingCache<String, BEDFileReader> buildMosdepthCache() {
+    return CacheBuilder.newBuilder().softValues()
+                       .removalListener(new RemovalListener<String, BEDFileReader>() {
+
+                         @Override
+                         public void onRemoval(RemovalNotification<String, BEDFileReader> notification) {
+                           notification.getValue().close();
+                         }
+                       }).maximumSize(MAX_MOSDEPTH_FILES_OPEN)
+                       .initialCapacity(Math.min(samples.length, MAX_MOSDEPTH_FILES_OPEN))
+                       .build(new CacheLoader<String, BEDFileReader>() {
+
+                         @Override
+                         public BEDFileReader load(String key) throws Exception {
+                           return new BEDFileReader(key, true);
+                         }
+                       });
+  }
+
+  private double loadMosdepth(VariantContext match, Marker mkr, int s) {
+    String file = mosdepthFiles[s];
+    BEDFileReader reader;
+    boolean close = false;
+    try {
+      reader = mosdepthCache.get(file);
+    } catch (ExecutionException e) {
+      log.reportException(e);
+      reader = new BEDFileReader(file, true);
+      close = true;
+    }
+
+    CloseableIterator<BEDFeature> iter = reader.query(binLookup.get(mkr));
+    // TODO error checking for multiple results, no results, or the wrong result
+    double v = iter.next().getScore();
+
+    if (close) {
+      reader.close();
+    }
+
+    return v;
+  }
+
+  private byte getNullStatus() {
+    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
+                                    new float[0], null, new byte[0], false);
+  }
+
+  private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus, long fingerprint,
+                                     String[] mkrNames) throws IOException {
+    byte[] mkrBytes = Compression.objToBytes(mkrNames);
+    byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd, mkrNames.length,
+                                                                   nullStatus, fingerprint,
+                                                                   mkrBytes);
+    mkrBytes = null;
+
+    String file = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + filename;
+    if (Files.exists(file)) {
+      new File(file).delete();
+    }
+
+    RandomAccessFile mdRAF = new RandomAccessFile(file, "rw");
+    mdRAF.write(mdRAFHeader);
+    mdRAFHeader = null;
+
+    return mdRAF;
+  }
+
+  private void createProject() {
     String propFile = ext.verifyDirFormat(propFileDir)
                       + ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
     if (!Files.exists(propFile)) {
@@ -130,9 +401,9 @@ public class MosdepthPipeline {
   }
 
   private void loadSNPs() {
-    snpReader = new VCFFileReader(new File(markerVCF), true);
+    VCFFileReader snpReader = new VCFFileReader(new File(markerVCF), true);
     for (Segment seg : useBins) {
-      List<VariantContext> markerVC = snpReader.query(seg.getChromosomeUCSC(), seg.getStart() - 1,
+      List<VariantContext> markerVC = snpReader.query(seg.getChromosomeUCSC(), seg.getStart(),
                                                       seg.getStop())
                                                .toList();
       if (markerVC.size() == 0) {
@@ -161,18 +432,52 @@ public class MosdepthPipeline {
                                                       mid),
                                   AllelePair.of(chosenSnp.getReference(),
                                                 chosenSnp.getAlternateAlleles().get(0)));
-
+      binLookup.put(mSnpPos, seg);
       snpMarkers.add(mSnpPos);
       binMarkers.add(mBinPos);
     }
     snpReader.close();
 
-    MarkerDetailSet mdsSnp = new MarkerDetailSet(snpMarkers);
-    mdsSnp.serialize(getMDSName(false));
-    MarkerDetailSet mdsBin = new MarkerDetailSet(binMarkers);
-    mdsBin.serialize(getMDSName(true));
+    String f;
+    if (!Files.exists(f = getMDSName(false))) {
+      MarkerDetailSet mdsSnp = new MarkerDetailSet(snpMarkers);
+      mdsSnp.serialize(f);
+    } else {
+      // TODO log
+    }
+    if (!Files.exists(f = getMDSName(true))) {
+      MarkerDetailSet mdsBin = new MarkerDetailSet(binMarkers);
+      mdsBin.serialize(f);
+    } else {
+      // TODO log
+    }
 
-    log.reportTime("Found " + snpMarkers.size() + " markers to be parsed.");
+    markerNameMap = new HashMap<>();
+    int bins = (snpMarkers.size() / numMarkersPerFile);
+    while ((bins * numMarkersPerFile) < snpMarkers.size()) {
+      bins++;
+    }
+    int remainder = snpMarkers.size() - ((bins - 1) * numMarkersPerFile);
+    binsOfMarkers = new String[bins][];
+    for (int i = 0; i < binsOfMarkers.length - 1; i++) {
+      binsOfMarkers[i] = new String[numMarkersPerFile];
+    }
+    binsOfMarkers[binsOfMarkers.length - 1] = new String[remainder];
+
+    int currentBin = 0;
+    int currentInd = 0;
+    for (Marker m : snpMarkers) {
+      markerNameMap.put(m.getName(), m);
+      binsOfMarkers[currentBin][currentInd] = m.getName();
+      currentInd++;
+      if (currentInd == numMarkersPerFile) {
+        currentBin++;
+        currentInd = 0;
+      }
+    }
+
+    log.reportTime("Found " + snpMarkers.size() + " markers to be parsed into " + bins
+                   + " files with " + numMarkersPerFile + " markers per file.");
   }
 
   private String getMDSName(boolean binnedVersion) {
@@ -180,16 +485,16 @@ public class MosdepthPipeline {
                          : proj.MARKER_DETAILS_FILENAME.getValue();
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException, Elision {
     MosdepthPipeline mi = new MosdepthPipeline();
     mi.setProjectDir("G:\\bamTesting\\mosdepth\\project\\");
     mi.setProjectName("EwingsMosdepth");
     mi.setProjectPropertiesDir("D:\\projects\\");
 
     mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed");
-    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recailbrated_snps_indels.vcf.gz");
+    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
     mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected.vcf");
-    mi.setMosdepthDirectory("G:\\bamTesting\\mosdepth\\00src\\", ".norm");
+    mi.setMosdepthDirectory("G:\\bamTesting\\mosdepth\\00src\\", ".bed.gz");
     mi.run();
   }
 
