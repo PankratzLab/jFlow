@@ -114,7 +114,16 @@ public class GDI {
 
   private static final String[] BASE = new String[] {"CHROM", "START", "END", "ID", "REF", "ALT"};
   private static final String[] ANNOS = new String[] {"CADD_raw", "CADD_phred",
-                                                      "CADD_raw_rankscore", "AF", "AC"};
+                                                      "CADD_raw_rankscore", "AF", "AC",
+                                                      "AF_EM_POP_DEF_African_Americans",
+                                                      "AF_EM_POP_DEF_EAS", "AF_EM_POP_DEF_SAS",
+                                                      "AF_EM_POP_DEF_Hispanics",
+                                                      "AF_EM_POP_DEF_Whites",
+                                                      "N_Alleles_EM_POP_DEF_African_Americans",
+                                                      "N_Alleles_EM_POP_DEF_EAS",
+                                                      "N_Alleles_EM_POP_DEF_SAS",
+                                                      "N_Alleles_EM_POP_DEF_Hispanics",
+                                                      "N_Alleles_EM_POP_DEF_Whites"};
 
   private static final String[] SNPEFF = new String[] {"SNPEFF_GENE_NAME", "SNPEFF_IMPACT"};
 
@@ -134,58 +143,59 @@ public class GDI {
       int numUsed = 0;
       int numSkipped = 0;
 
-      PrintWriter writer = Files.getAppropriateWriter(outputTmp);
-      writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS) + "\t"
-                     + ArrayUtils.toStr(SNPEFF) + "\tFILTER");
+      try (PrintWriter writer = Files.getAppropriateWriter(outputTmp)) {
+        writer.println(ArrayUtils.toStr(BASE) + "\t" + ArrayUtils.toStr(ANNOS) + "\t"
+                       + ArrayUtils.toStr(SNPEFF) + "\tFILTER");
 
-      while (iter.hasNext()) {
-        numTotal++;
-        VariantContext vc = iter.next();
-        //          vc.getFilters()
-        try {
-          Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
-          StringJoiner out = new StringJoiner("\t");
-          out.add(vc.getContig());
-          out.add(Integer.toString(vc.getStart()));
-          out.add(Integer.toString(vc.getEnd()));
-          out.add(vc.getID());
-          out.add(vc.getReference().getBaseString());
-          out.add(vc.getAlternateAlleles().get(0).getBaseString());
+        while (iter.hasNext()) {
+          numTotal++;
+          VariantContext vc = iter.next();
+          //          vc.getFilters()
+          try {
+            Double.parseDouble(vc.getAttributeAsString("CADD_raw", "."));
+            StringJoiner out = new StringJoiner("\t");
+            out.add(vc.getContig());
+            out.add(Integer.toString(vc.getStart()));
+            out.add(Integer.toString(vc.getEnd()));
+            out.add(vc.getID());
+            out.add(vc.getReference().getBaseString());
+            out.add(vc.getAlternateAlleles().get(0).getBaseString());
 
-          String[] anns = VCOps.getAnnotationsFor(ANNOS, vc, ".");
-          for (String ann : anns) {
-            out.add(ann);
-          }
-
-          List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
-          GeneImpact useImpact = null;
-          for (GeneImpact g : geneImpacts) {
-            if (useImpact == null || g.impact.ordinal() > useImpact.impact.ordinal()) {
-              useImpact = g;
-              break;
+            String[] anns = VCOps.getAnnotationsFor(ANNOS, vc, ".");
+            for (String ann : anns) {
+              out.add(ann);
             }
-          }
-          if (useImpact != null) {
-            out.add(useImpact.gene);
-            out.add(useImpact.impact.toString());
-          } else {
-            throw new IllegalArgumentException("Invalid impact");
+
+            List<GeneImpact> geneImpacts = TOPMedUtils.getAllGeneImpacts(vc);
+            GeneImpact useImpact = null;
+            for (GeneImpact g : geneImpacts) {
+              if (useImpact == null || g.impact.ordinal() > useImpact.impact.ordinal()) {
+                useImpact = g;
+                break;
+              }
+            }
+            if (useImpact != null) {
+              out.add(useImpact.gene);
+              out.add(useImpact.impact.toString());
+            } else {
+              throw new IllegalArgumentException("Invalid impact");
+            }
+
+            if (vc.isFiltered()) {
+              out.add(Arrays.toString(vc.getFilters().toArray(new String[0])));
+            } else {
+              out.add("PASS");
+            }
+            writer.println(out.toString());
+            numUsed++;
+          } catch (NumberFormatException nfe) {
+            numSkipped++;
           }
 
-          if (vc.isFiltered()) {
-            out.add(Arrays.toString(vc.getFilters().toArray(new String[0])));
-          } else {
-            out.add("PASS");
+          if (numTotal % 10000 == 0) {
+            log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed
+                               + " skipped " + numSkipped + " for missing CADD");
           }
-          writer.println(out.toString());
-          numUsed++;
-        } catch (NumberFormatException nfe) {
-          numSkipped++;
-        }
-
-        if (numTotal % 10000 == 0) {
-          log.reportTimeInfo("processed " + numTotal + " variants, retained " + numUsed
-                             + " skipped " + numSkipped + " for missing CADD");
         }
       }
     }
