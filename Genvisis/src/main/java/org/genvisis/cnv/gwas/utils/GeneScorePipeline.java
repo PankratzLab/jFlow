@@ -52,9 +52,9 @@ import org.pankratzlab.common.parsing.FileParserFactory;
 import org.pankratzlab.common.parsing.IndexedFileColumn;
 import org.pankratzlab.common.parsing.ParseFailureException;
 import org.pankratzlab.common.parsing.StandardFileColumns;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.RegressionModel;
-import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.utils.bioinformatics.MapSNPsAndGenes;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.DosageData;
@@ -693,7 +693,7 @@ public class GeneScorePipeline {
   public GeneScorePipeline(String metaDir, float[] indexThresholds, int[] windowMins,
                            float[] windowExtThresholds, double missThresh, Logger log) {
     this.log = log;
-    this.metaDir = metaDir;
+    this.metaDir = ext.verifyDirFormat(metaDir);
     // this.numThreads = numThreads;
     // this.runPlink = plink;
     // this.runRegression = runPlink && regression;
@@ -1200,9 +1200,9 @@ public class GeneScorePipeline {
           continue;
         }
 
-        log.report(ext.getTime() + "]\tCross-filtering data and .BIM files [ --> '"
+        log.report(ext.getTime() + "]\tCross-filtering data and .meta files [ --> '"
                    + crossFilterFile + "']");
-        HashMap<String, GenomicPosition> mkrsBim = new HashMap<>();
+        HashMap<String, GenomicPosition> mkrsMeta = new HashMap<>();
         Map<String, String[]> mkrAlleles = new HashMap<>();
         SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
                                            .getMarkerSet();
@@ -1218,7 +1218,7 @@ public class GeneScorePipeline {
           boolean validAlleles = (a1.length() > 1 || a2.length() > 1)
                                  || (Sequence.validBase(a1) && Sequence.validBase(a2));
           if (validAlleles && !a1.equals(Sequence.flip(a2))) {
-            mkrsBim.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
+            mkrsMeta.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
             mkrAlleles.put(mkrNames[i], new String[] {a1, a2});
           } else {
             cntAmbig++;
@@ -1241,7 +1241,7 @@ public class GeneScorePipeline {
                                  + ArrayUtils.toStr(line));
               return null;
             }
-            GenomicPosition gp = mkrsBim.get(mkr);
+            GenomicPosition gp = mkrsMeta.get(mkr);
             if (gp == null) {
               System.err.println("Error - GenomicPosition not found for marker: " + mkr);
               return null;
@@ -1253,7 +1253,7 @@ public class GeneScorePipeline {
 
           @Override
           public Integer getValue(String[] line) throws ParseFailureException {
-            return mkrsBim.get(markerCol.getValue(line)).getPosition();
+            return mkrsMeta.get(markerCol.getValue(line)).getPosition();
           }
         };
 
@@ -1269,7 +1269,7 @@ public class GeneScorePipeline {
 
           @Override
           public boolean filter(DataLine values) {
-            return mkrsBim.containsKey(values.get(markerCol, null));
+            return mkrsMeta.containsKey(values.get(markerCol, null));
           }
         };
         final ColumnFilter mkrsAlleleFilter = new AbstractColumnFilter(markerCol, a1Column,
@@ -1313,6 +1313,15 @@ public class GeneScorePipeline {
                                                                                       pValThreshold))
                                                              .build()) {
           int hitCount = crossFilterParser.parseToFile(crossFilterFile, outDelim);
+          log.report(ext.getTime() + "]\tDropped "
+                     + crossFilterParser.getFilteredCount(pValThreshold) + " snps for p-value < "
+                     + constraintEntry.getValue().indexThreshold);
+          log.report(ext.getTime() + "]\tDropped "
+                     + crossFilterParser.getFilteredCount(mkrsAlleleFilter)
+                     + " snps for mismatched alleles.");
+          log.report(ext.getTime() + "]\tDropped "
+                     + crossFilterParser.getFilteredCount(mkrsBimFilter)
+                     + " snps for lacking data.");
 
           study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, hitCount);
         }
