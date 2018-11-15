@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -78,6 +81,11 @@ public class SerializedFiles {
 
   }
 
+  private static final Map<String, String> PACKAGE_UPDATES = new HashMap<>();
+  static {
+    PACKAGE_UPDATES.put("org.genvisis.filesys", "org.pankratzlab.utils.filesys");
+  }
+
   private static synchronized Object readSerialFixClassname(final String filename, final Logger log,
                                                             boolean kill,
                                                             boolean gzipped) throws FileNotFoundException,
@@ -111,11 +119,28 @@ public class SerializedFiles {
           }
           String convertedClassDesc = name.substring(0, startInsert) + "org.genvisis."
                                       + name.substring(startInsert);
-          Class<?> convertedClass = Class.forName(convertedClassDesc, false,
-                                                  ClassLoader.getSystemClassLoader());
-          log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
-                                + " cannot be resolved, attempting to use " + convertedClassDesc);
-          return convertedClass;
+          try {
+            Class<?> convertedClass = Class.forName(convertedClassDesc, false,
+                                                    ClassLoader.getSystemClassLoader());
+            log.reportTimeWarning("The Class (" + name + ") for the Serialized Object " + filename
+                                  + " cannot be resolved, attempting to use " + convertedClassDesc);
+            return convertedClass;
+          } catch (ClassNotFoundException e) {
+            for (Entry<String, String> upd : PACKAGE_UPDATES.entrySet()) {
+              if (name.startsWith(upd.getKey())) {
+                try {
+                  convertedClassDesc = name.replace(upd.getKey(), upd.getValue());
+                  Class<?> convertedClass = Class.forName(convertedClassDesc, false,
+                                                          ClassLoader.getSystemClassLoader());
+                  log.reportTimeWarning("The Class (" + name + ") for the Serialized Object "
+                                        + filename + " cannot be resolved, attempting to use "
+                                        + convertedClassDesc);
+                  return convertedClass;
+                } catch (ClassNotFoundException e1) {}
+              }
+            }
+            throw e;
+          }
 
         }
       }
