@@ -16,10 +16,12 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
+import com.google.common.collect.Multiset;
 
 public class FileParser implements Iterable<DataLine>, Closeable {
 
@@ -50,6 +52,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
   private BufferedReader reader;
   private long lineCount = 0;
   private ImmutableMap<String, Integer> header;
+  private Multiset<ColumnFilter> filterHits;
 
   /**
    * Don't use - create FileParsers with {@link FileParserFactory#setup(String, FileColumn...)}
@@ -72,6 +75,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
 
     filters = ImmutableList.copyOf(factory.filters);
     filterDeath = ImmutableMap.copyOf(factory.filterDeath);
+    filterHits = HashMultiset.create();
 
     this.noHeader = factory.noHeader;
     this.trimInput = factory.trimInput;
@@ -198,6 +202,10 @@ public class FileParser implements Iterable<DataLine>, Closeable {
     return header;
   }
 
+  public int getFilteredCount(ColumnFilter cf) {
+    return filterHits.count(cf);
+  }
+
   private DataLine readLine() throws IOException {
     if (reader == null) return null;
 
@@ -241,6 +249,7 @@ public class FileParser implements Iterable<DataLine>, Closeable {
             throw new IllegalStateException("Filter on columns " + colNames + " failed on line "
                                             + lineCount);
           }
+          filterHits.add(cf);
           skip = true;
           break;
         }
