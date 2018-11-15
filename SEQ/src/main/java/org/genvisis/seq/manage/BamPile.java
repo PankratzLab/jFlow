@@ -8,6 +8,11 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.filesys.Segment;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -23,9 +28,18 @@ public class BamPile extends Segment implements Serializable {
   private static final long serialVersionUID = 1L;
   private static final String[] BASE_HEADER = new String[] {"UCSC", "REF", "NUM_REF", "NUM_ALT",
                                                             "PROP_REF", "PROP_ALT"};
-  private static final String[] COUNT_HEADER = new String[] {"NUMA", "NUMG", "NUMC", "NUMT", "NUMN",
-                                                             "NUMDEL", "NUMINS"};
+  private static final String[] COUNT_HEADER = Arrays.stream(Base.values()).map(Base::toString)
+                                                     .map(b -> "NUM" + b).toArray(String[]::new);
   private static final String[] EXT_HEADER = new String[] {"MAPQ", "PHRED"};
+
+  public static final ImmutableSet<Base> INDELS = Sets.immutableEnumSet(Base.DEL, Base.INS);
+  public static final ImmutableSet<Base> NUCLEOTIDES = Arrays.stream(Base.values())
+                                                             .filter(Predicates.not(INDELS::contains))
+                                                             .collect(Sets.toImmutableEnumSet());
+
+  public static enum Base {
+    A, G, C, T, N, DEL, INS;
+  }
 
   private final Segment bin;
   private final int[] counts;
@@ -57,9 +71,9 @@ public class BamPile extends Segment implements Serializable {
   public BamPile(Segment bin) {
     super(bin.getChr(), bin.getStart(), bin.getStop());
     this.bin = bin;
-    counts = new int[7];// A,G,C,T,N,Del,Ins
-    avgMapQ = new double[7];
-    avgPhread = new double[7];
+    counts = new int[Base.values().length]; // Indexed by Base ordinals
+    avgMapQ = new double[counts.length];
+    avgPhread = new double[counts.length];
     overallAvgMapQ = 0;
     overallAvgDepth = 0;
     refAllele = "NA";
@@ -73,6 +87,9 @@ public class BamPile extends Segment implements Serializable {
     return avgMapQ;
   }
 
+  /**
+   * @return int[] of base counts, indexed by ordinal of {@link Base}
+   */
   public int[] getCounts() {
     return counts;
   }
@@ -89,11 +106,10 @@ public class BamPile extends Segment implements Serializable {
     boolean[] indelmask = new boolean[7];
     Arrays.fill(indelmask, true);
     if (!includeIndels) {
-      indelmask[6] = false;
-      indelmask[5] = false;
+      INDELS.stream().map(Base::ordinal).forEach(i -> indelmask[i] = false);
     }
     if (!includeNs) {
-      indelmask[4] = false;
+      indelmask[Base.N.ordinal()] = false;
     }
 
     return ArrayUtils.sum(ArrayUtils.subArray(counts, indelmask));
@@ -125,13 +141,9 @@ public class BamPile extends Segment implements Serializable {
     out += "\t" + numAlt;
     out += "\t" + getPropRef(log);
     out += "\t" + getPropAlt(log);
-    out += "\t" + counts[0];
-    out += "\t" + counts[1];
-    out += "\t" + counts[2];
-    out += "\t" + counts[3];
-    out += "\t" + counts[4];
-    out += "\t" + counts[5];
-    out += "\t" + counts[6];
+    for (int i = 0; i < counts.length; i++) {
+      out += "\t" + counts[i];
+    }
     out += "\t" + ArrayUtils.toStr(avgMapQ);
     out += "\t" + ArrayUtils.toStr(avgPhread);
     return out;
@@ -157,17 +169,9 @@ public class BamPile extends Segment implements Serializable {
     referenceMask[6] = false;
     referenceMask[5] = false;
 
-    if (refAllele.equals("A")) {
-      referenceMask[0] = false;
-    } else if (refAllele.equals("G")) {
-      referenceMask[1] = false;
-    } else if (refAllele.equals("C")) {
-      referenceMask[2] = false;
-    } else if (refAllele.equals("T")) {
-      referenceMask[3] = false;
-    } else if (refAllele.equals("N")) {
-      referenceMask[4] = false;
-    }
+    Base ref = Enums.getIfPresent(Base.class, refAllele).orNull();
+    if (ref != null) referenceMask[ref.ordinal()] = false;
+
     if (ArrayUtils.booleanArraySum(referenceMask) != 4) {
       log.reportError("Invalid number of alternate allele possibilities, found "
                       + ArrayUtils.booleanArraySum(referenceMask) + " with ref allele" + refAllele);
@@ -190,17 +194,9 @@ public class BamPile extends Segment implements Serializable {
     referenceMask[6] = false;
     referenceMask[5] = false;
 
-    if (refAllele.equals("A")) {
-      referenceMask[0] = true;
-    } else if (refAllele.equals("G")) {
-      referenceMask[1] = true;
-    } else if (refAllele.equals("C")) {
-      referenceMask[2] = true;
-    } else if (refAllele.equals("T")) {
-      referenceMask[3] = true;
-    } else if (refAllele.equals("N")) {
-      referenceMask[4] = true;
-    }
+    Base ref = Enums.getIfPresent(Base.class, refAllele).orNull();
+    if (ref != null) referenceMask[ref.ordinal()] = true;
+
     if (ArrayUtils.booleanArraySum(referenceMask) != 1) {
       log.reportError("Invalid number of reference allele possibilities");
     }
@@ -216,9 +212,9 @@ public class BamPile extends Segment implements Serializable {
     int totalDepth = 0;
     double mapQ = 0;
     // TODO count deletions and insertions here?
-    for (int i = 0; i < counts.length - 2; i++) {
-      totalDepth += counts[i];
-      mapQ += avgMapQ[i];
+    for (Base base : NUCLEOTIDES) {
+      totalDepth += counts[base.ordinal()];
+      mapQ += avgMapQ[base.ordinal()];
     }
     overallAvgDepth = (double) totalDepth / bin.getSize();
     if (totalDepth > 0) {
@@ -318,38 +314,24 @@ public class BamPile extends Segment implements Serializable {
   }
 
   private void addDel(int mapQ, double p) {
-    counts[5]++;
-    avgPhread[5] += p;
-    avgMapQ[5] += mapQ;
+    counts[Base.DEL.ordinal()]++;
+    avgPhread[Base.DEL.ordinal()] += p;
+    avgMapQ[Base.DEL.ordinal()] += mapQ;
   }
 
   private void addIns(int mapQ, double p) {
-    counts[6]++;
-    avgPhread[6] += p;
-    avgMapQ[6] += mapQ;
+    counts[Base.INS.ordinal()]++;
+    avgPhread[Base.INS.ordinal()] += p;
+    avgMapQ[Base.INS.ordinal()] += mapQ;
   }
 
   private void addRegBase(String b, int mapQ, double p, Logger log) {
-    if (b.equals("A")) {
-      counts[0]++;
-      avgPhread[0] += p;
-      avgMapQ[0] += mapQ;
-    } else if (b.equals("G")) {
-      counts[1]++;
-      avgPhread[1] += p;
-      avgMapQ[1] += mapQ;
-    } else if (b.equals("C")) {
-      counts[2]++;
-      avgPhread[2] += p;
-      avgMapQ[2] += mapQ;
-    } else if (b.equals("T")) {
-      counts[3]++;
-      avgPhread[3] += p;
-      avgMapQ[3] += mapQ;
-    } else if (b.equals("N")) {
-      counts[4]++;
-      avgPhread[4] += p;
-      avgMapQ[4] += mapQ;
+    Optional<Base> base = Enums.getIfPresent(Base.class, b);
+    if (base.isPresent() && NUCLEOTIDES.contains(base.get())) {
+      int i = base.get().ordinal();
+      counts[i]++;
+      avgPhread[i] += p;
+      avgMapQ[i] += mapQ;
     } else {
       String error = "Invalid base " + b + " for regular base tracking";
       log.reportError(error);
