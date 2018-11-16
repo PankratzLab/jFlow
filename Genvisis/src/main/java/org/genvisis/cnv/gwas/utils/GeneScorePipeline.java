@@ -63,7 +63,10 @@ import org.pankratzlab.utils.gwas.windows.HitWindows;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
 
@@ -288,6 +291,8 @@ public class GeneScorePipeline {
       private double beta;
       private double se;
       private int num;
+      private int nCases;
+      private int nControls;
       private double stats;
 
       private Builder() {
@@ -355,6 +360,22 @@ public class GeneScorePipeline {
       }
 
       /**
+       * @param nCases the nCases to set
+       */
+      private Builder setnCases(int nCases) {
+        this.nCases = nCases;
+        return this;
+      }
+
+      /**
+       * @param nControls the nControls to set
+       */
+      private Builder setnControls(int nControls) {
+        this.nControls = nControls;
+        return this;
+      }
+
+      /**
        * @param stats the stats to set
        */
       private Builder setStats(double stats) {
@@ -371,6 +392,8 @@ public class GeneScorePipeline {
     private final double beta;
     private final double se;
     private final int num;
+    private final int nCases;
+    private final int nControls;
     private final double stats;
 
     private RegressionResult(Builder builder) {
@@ -382,6 +405,8 @@ public class GeneScorePipeline {
       beta = builder.beta;
       se = builder.se;
       num = builder.num;
+      nCases = builder.nCases;
+      nControls = builder.nControls;
       stats = builder.stats;
     }
 
@@ -435,6 +460,20 @@ public class GeneScorePipeline {
     }
 
     /**
+     * @return the nCases
+     */
+    int getnCases() {
+      return nCases;
+    }
+
+    /**
+     * @return the nControls
+     */
+    int getnControls() {
+      return nControls;
+    }
+
+    /**
      * @return the stats
      */
     double getStats() {
@@ -448,7 +487,7 @@ public class GeneScorePipeline {
     private static RegressionResult dummy() {
       return builder().setLogistic(true).setRsq(Double.NaN).setBaseRSq(Double.NaN)
                       .setPval(Double.NaN).setBeta(Double.NaN).setSe(Double.NaN).setNum(0)
-                      .setStats(Double.NaN).build();
+                      .setnCases(0).setnControls(0).setStats(Double.NaN).build();
     }
 
   }
@@ -1891,7 +1930,22 @@ public class GeneScorePipeline {
               covars[k] = indepData.get(k);
               baseCovars[k] = baselineIndeps.get(k);
             }
-
+						int cases = 0;
+            int controls = 0;
+            Multiset<Double> phenos = ImmutableMultiset.copyOf(depData);
+            if (phenos.entrySet().size() == 2) {
+              if (phenos.elementSet()
+                        .equals(ImmutableSet.of(Double.valueOf(0.0), Double.valueOf(1.0)))) {
+                cases = phenos.count(Double.valueOf(1.0));
+                controls = phenos.count(Double.valueOf(0.0));
+              } else if (phenos.elementSet()
+                               .equals(ImmutableSet.of(Double.valueOf(1.0), Double.valueOf(2.0)))) {
+                cases = phenos.count(Double.valueOf(2.0));
+                controls = phenos.count(Double.valueOf(1.0));
+              } else {
+                log.reportError("Unrecognized case/control designations, cannot count cases and controls");
+              }
+            }
             RegressionModel baseModel = RegressionModel.determineAppropriate(Doubles.toArray(depData),
                                                                              baseCovars, false,
                                                                              true);
@@ -1899,13 +1953,15 @@ public class GeneScorePipeline {
                                                                          covars, false, true);
 
             RegressionResult.Builder rr = RegressionResult.builder();
+            rr.setNum(depData.size());
+            rr.setnCases(cases);
+            rr.setnControls(controls);
             if (model.analysisFailed()) {
               rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
               rr.setBeta(Double.NaN);
               rr.setSe(Double.NaN);
               rr.setRsq(Double.NaN);
               rr.setPval(Double.NaN);
-              rr.setNum(depData.size());
               rr.setLogistic(model.isLogistic());
             } else {
               int ind = -1;
@@ -1915,13 +1971,12 @@ public class GeneScorePipeline {
                   break;
                 }
               }
-              if (ind == -1) {
+                            if (ind == -1) {
                 rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
                 rr.setBeta(Double.NaN);
                 rr.setSe(Double.NaN);
                 rr.setRsq(model.getRsquare());
                 rr.setPval(Double.NaN);
-                rr.setNum(depData.size());
                 rr.setLogistic(model.isLogistic());
                 rr.setStats(Double.NaN);
               } else {
@@ -1930,7 +1985,6 @@ public class GeneScorePipeline {
                 rr.setSe(model.getSEofBs()[ind]);
                 rr.setRsq(model.getRsquare());
                 rr.setPval(model.getSigs()[ind]);
-                rr.setNum(depData.size());
                 rr.setLogistic(model.isLogistic());
                 rr.setStats(model.getStats()[ind]);
               }
