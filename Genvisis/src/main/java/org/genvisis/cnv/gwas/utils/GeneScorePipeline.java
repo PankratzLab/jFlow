@@ -277,26 +277,178 @@ public class GeneScorePipeline {
     }
   }
 
-  private class RegressionResult {
+  private static class RegressionResult {
 
-    boolean logistic;
-    double rsq;
-    double baseRSq;
-    double pval;
-    double beta;
-    double se;
-    int num;
-    public double stats;
+    private static class Builder {
 
-    private void dummy() {
-      logistic = true;
-      rsq = Double.NaN;
-      baseRSq = Double.NaN;
-      pval = Double.NaN;
-      beta = Double.NaN;
-      se = Double.NaN;
-      num = 0;
-      stats = Double.NaN;
+      private boolean logistic;
+      private double rsq;
+      private double baseRSq;
+      private double pval;
+      private double beta;
+      private double se;
+      private int num;
+      private double stats;
+
+      private Builder() {
+
+      }
+
+      private RegressionResult build() {
+        return new RegressionResult(this);
+      }
+
+      /**
+       * @param logistic the logistic to set
+       */
+      private Builder setLogistic(boolean logistic) {
+        this.logistic = logistic;
+        return this;
+      }
+
+      /**
+       * @param rsq the rsq to set
+       */
+      private Builder setRsq(double rsq) {
+        this.rsq = rsq;
+        return this;
+      }
+
+      /**
+       * @param baseRSq the baseRSq to set
+       */
+      private Builder setBaseRSq(double baseRSq) {
+        this.baseRSq = baseRSq;
+        return this;
+      }
+
+      /**
+       * @param pval the pval to set
+       */
+      private Builder setPval(double pval) {
+        this.pval = pval;
+        return this;
+      }
+
+      /**
+       * @param beta the beta to set
+       */
+      private Builder setBeta(double beta) {
+        this.beta = beta;
+        return this;
+      }
+
+      /**
+       * @param se the se to set
+       */
+      private Builder setSe(double se) {
+        this.se = se;
+        return this;
+      }
+
+      /**
+       * @param num the num to set
+       */
+      private Builder setNum(int num) {
+        this.num = num;
+        return this;
+      }
+
+      /**
+       * @param stats the stats to set
+       */
+      private Builder setStats(double stats) {
+        this.stats = stats;
+        return this;
+      }
+
+    }
+
+    private final boolean logistic;
+    private final double rsq;
+    private final double baseRSq;
+    private final double pval;
+    private final double beta;
+    private final double se;
+    private final int num;
+    private final double stats;
+
+    private RegressionResult(Builder builder) {
+      super();
+      logistic = builder.logistic;
+      rsq = builder.rsq;
+      baseRSq = builder.baseRSq;
+      pval = builder.pval;
+      beta = builder.beta;
+      se = builder.se;
+      num = builder.num;
+      stats = builder.stats;
+    }
+
+    /**
+     * @return the logistic
+     */
+    boolean isLogistic() {
+      return logistic;
+    }
+
+    /**
+     * @return the rsq
+     */
+    double getRsq() {
+      return rsq;
+    }
+
+    /**
+     * @return the baseRSq
+     */
+    double getBaseRSq() {
+      return baseRSq;
+    }
+
+    /**
+     * @return the pval
+     */
+    double getPval() {
+      return pval;
+    }
+
+    /**
+     * @return the beta
+     */
+    double getBeta() {
+      return beta;
+    }
+
+    /**
+     * @return the se
+     */
+    double getSe() {
+      return se;
+    }
+
+    /**
+     * @return the num
+     */
+    int getNum() {
+      return num;
+    }
+
+    /**
+     * @return the stats
+     */
+    double getStats() {
+      return stats;
+    }
+
+    private static Builder builder() {
+      return new Builder();
+    }
+
+    private static RegressionResult dummy() {
+      return builder().setLogistic(true).setRsq(Double.NaN).setBaseRSq(Double.NaN)
+                      .setPval(Double.NaN).setBeta(Double.NaN).setSe(Double.NaN).setNum(0)
+                      .setStats(Double.NaN).build();
     }
 
   }
@@ -1746,15 +1898,15 @@ public class GeneScorePipeline {
             RegressionModel model = RegressionModel.determineAppropriate(Doubles.toArray(depData),
                                                                          covars, false, true);
 
-            RegressionResult rr = new RegressionResult();
+            RegressionResult.Builder rr = RegressionResult.builder();
             if (model.analysisFailed()) {
-              rr.baseRSq = baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare();
-              rr.beta = Double.NaN;
-              rr.se = Double.NaN;
-              rr.rsq = Double.NaN;
-              rr.pval = Double.NaN;
-              rr.num = depData.size();
-              rr.logistic = model.isLogistic();
+              rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+              rr.setBeta(Double.NaN);
+              rr.setSe(Double.NaN);
+              rr.setRsq(Double.NaN);
+              rr.setPval(Double.NaN);
+              rr.setNum(depData.size());
+              rr.setLogistic(model.isLogistic());
             } else {
               int ind = -1;
               for (int l = 0; l < model.getVarNames().length; l++) {
@@ -1764,26 +1916,26 @@ public class GeneScorePipeline {
                 }
               }
               if (ind == -1) {
-                rr.baseRSq = baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare();
-                rr.beta = Double.NaN;
-                rr.se = Double.NaN;
-                rr.rsq = model.getRsquare();
-                rr.pval = Double.NaN;
-                rr.num = depData.size();
-                rr.logistic = model.isLogistic();
-                rr.stats = Double.NaN;
+                rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+                rr.setBeta(Double.NaN);
+                rr.setSe(Double.NaN);
+                rr.setRsq(model.getRsquare());
+                rr.setPval(Double.NaN);
+                rr.setNum(depData.size());
+                rr.setLogistic(model.isLogistic());
+                rr.setStats(Double.NaN);
               } else {
-                rr.baseRSq = baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare();
-                rr.beta = model.getBetas()[ind];
-                rr.se = model.getSEofBs()[ind];
-                rr.rsq = model.getRsquare();
-                rr.pval = model.getSigs()[ind];
-                rr.num = depData.size();
-                rr.logistic = model.isLogistic();
-                rr.stats = model.getStats()[ind];
+                rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
+                rr.setBeta(model.getBetas()[ind]);
+                rr.setSe(model.getSEofBs()[ind]);
+                rr.setRsq(model.getRsquare());
+                rr.setPval(model.getSigs()[ind]);
+                rr.setNum(depData.size());
+                rr.setLogistic(model.isLogistic());
+                rr.setStats(model.getStats()[ind]);
               }
             }
-            study.regressions.get(filePrefix.getKey()).get(dataFile).put(pd.phenoName, rr);
+            study.regressions.get(filePrefix.getKey()).get(dataFile).put(pd.phenoName, rr.build());
 
             baseModel = null;
             model = null;
@@ -1840,15 +1992,12 @@ public class GeneScorePipeline {
                                                                                   .get(dataFile)[1]))
                                                   .toString();
             if (study.phenoFiles.isEmpty()) {
-              RegressionResult rr = new RegressionResult();
-              rr.dummy();
-              writeSingleResult("--", rr, resultPrefix, middle, writer);
+              writeSingleResult("--", RegressionResult.dummy(), resultPrefix, middle, writer);
             } else {
               for (String pheno : study.phenoFiles) {
                 RegressionResult rr = phenoResults.get(pheno);
                 if (rr == null) {
-                  rr = new RegressionResult();
-                  rr.dummy();
+                  rr = RegressionResult.dummy();
                 }
                 writeSingleResult(pheno, rr, resultPrefix, middle, writer);
               }
@@ -1861,22 +2010,22 @@ public class GeneScorePipeline {
 
   private void writeSingleResult(String pheno, RegressionResult rr, String resultPrefix,
                                  String middle, PrintWriter writer) {
-    String pvalExcl = rr.num == 0 ? "."
-                                  : (rr.logistic ? "=(1-(NORM.S.DIST(ABS(" + rr.beta + "/" + rr.se
-                                                   + "),TRUE)))*2"
-                                                 : "=TDIST(" + Math.abs(rr.stats) + "," + rr.num
-                                                   + ",2)");
+    String pvalExcl = rr.getNum() == 0 ? "."
+                                       : (rr.isLogistic() ? "=(1-(NORM.S.DIST(ABS(" + rr.getBeta()
+                                                            + "/" + rr.getSe() + "),TRUE)))*2"
+                                                          : "=TDIST(" + Math.abs(rr.getStats())
+                                                            + "," + rr.getNum() + ",2)");
 
     String line = Joiner.on("\t")
-                        .join(ImmutableList.builder().add(resultPrefix).add(pheno).add(rr.baseRSq)
-                                           .add(rr.rsq)
-                                           .add((Double.isNaN(rr.rsq) ? Double.NaN
-                                                                      : (Double.isNaN(rr.baseRSq) ? rr.rsq
-                                                                                                  : (new BigDecimal(rr.rsq
-                                                                                                                    + "")).subtract(new BigDecimal(rr.baseRSq
-                                                                                                                                                   + "")))))
-                                           .add(rr.pval).add(pvalExcl).add(rr.beta).add(rr.se)
-                                           .add(rr.num).add(middle).build());
+                        .join(ImmutableList.builder().add(resultPrefix).add(pheno)
+                                           .add(rr.getBaseRSq()).add(rr.getRsq())
+                                           .add((Double.isNaN(rr.getRsq()) ? Double.NaN
+                                                                           : (Double.isNaN(rr.getBaseRSq()) ? rr.getRsq()
+                                                                                                            : (new BigDecimal(rr.getRsq()
+                                                                                                                              + "")).subtract(new BigDecimal(rr.getBaseRSq()
+                                                                                                                                                             + "")))))
+                                           .add(rr.getPval()).add(pvalExcl).add(rr.getBeta())
+                                           .add(rr.getSe()).add(rr.getNum()).add(middle).build());
 
     writer.println(line);
 
