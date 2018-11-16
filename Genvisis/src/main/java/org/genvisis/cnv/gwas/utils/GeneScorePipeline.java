@@ -104,7 +104,8 @@ public class GeneScorePipeline {
                                                                         .add("P-VALUE")
                                                                         .add("EXCEL-SIG")
                                                                         .add("BETA").add("SE")
-                                                                        .add("NUM")
+                                                                        .add("NUM").add("CASES")
+                                                                        .add("CONTROLS")
                                                                         .add("PAIRED-T-P-VALUE")
                                                                         .add("WILCOXON-SIGNED-RANK-P-VALUE")
                                                                         .add("PAIRED-STAT-NUM-TRIOS")
@@ -2079,7 +2080,8 @@ public class GeneScorePipeline {
                                                                                                                               + "")).subtract(new BigDecimal(rr.getBaseRSq()
                                                                                                                                                              + "")))))
                                            .add(rr.getPval()).add(pvalExcl).add(rr.getBeta())
-                                           .add(rr.getSe()).add(rr.getNum()).add(middle).build());
+                                           .add(rr.getSe()).add(rr.getNum()).add(rr.getnCases())
+                                           .add(rr.getnControls()).add(middle).build());
 
     writer.println(line);
 
