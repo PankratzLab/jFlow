@@ -1,32 +1,17 @@
 package org.genvisis.seq.manage.mosdepth;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.math3.util.Pair;
-import org.genvisis.CLI;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
 import org.genvisis.common.HashVec;
 import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
 import org.genvisis.common.ext;
 import org.genvisis.filesys.LocusSet;
 import org.genvisis.filesys.Segment;
-import org.genvisis.seq.manage.BEDFileReader;
-import org.genvisis.seq.manage.ReferenceGenome;
 import org.genvisis.stats.Maths.COMPARISON;
-import com.google.common.collect.Sets;
-import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -36,15 +21,13 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
-public class NGSBinSNPSelector {
+public abstract class NGSBinSNPSelector {
 
   public static final double MAPPING_QUALITY_FILTER = .9;
-  private static final boolean DEBUG = true;
 
-  String outputDir;
-  String inputDir;
-  String format;
-  String token;
+  String outputFile;
+
+  String filterDefsFile;
   String mappingQualityFile;
   String afTag;
   String mqTag;
@@ -52,8 +35,9 @@ public class NGSBinSNPSelector {
   LocusSet<Segment> bins;
   Logger log = new Logger();
   MappabilityCompute mc;
+  List<FilterSet> filters;
 
-  private abstract static class Filter {
+  abstract static class Filter {
 
     public boolean use = true;
 
@@ -142,8 +126,12 @@ public class NGSBinSNPSelector {
   }
 
   private List<FilterSet> parseFilters(String filterFile, MappabilityCompute mc) {
-    List<FilterSet> listFS = new ArrayList<>();
     String[] filterDefs = HashVec.loadFileToStringArray(filterFile, false, null, false);
+    return parseFilters(filterDefs, mc);
+  }
+
+  private List<FilterSet> parseFilters(String[] filterDefs, MappabilityCompute mc) {
+    List<FilterSet> listFS = new ArrayList<>();
     for (String fsd : filterDefs) {
       listFS.add(parseFilterSet(fsd));
     }
@@ -216,21 +204,53 @@ public class NGSBinSNPSelector {
   }
 
   private List<FilterSet> parseFilters(MappabilityCompute mc) {
-    String[] filters = {"SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
-                        "SVM|-!;AF|>.4,<.6;MQ|>=.95;AVGDP|>20",
-                        "SVM|-!;AF|>.35,<.65;MQ|>=.9;AVGDP|>20",
-                        "SVM|-!;AF|>.3,<.7;MQ|>=.85;AVGDP|>20",
-                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>15",
-                        "SVM|-!;AF|>.05,<.95;MQ|>=.8;AVGDP|>10",};
-    List<FilterSet> listFS = new ArrayList<>();
-    for (String fsd : filters) {
-      FilterSet f = parseFilterSet(fsd);
-      listFS.add(f);
-    }
-    return listFS;
+
+    String[] filters = {"SVM|-;AF|>.45,<.55;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.44,<.56;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.43,<.57;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.42,<.58;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.41,<.59;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
+                        "SVM|-;AF|>.4,<.6;MQ|>=.98;AVGDP|>20",
+                        "SVM|-;AF|>.4,<.6;MQ|>=.97;AVGDP|>20",
+                        "SVM|-;AF|>.4,<.6;MQ|>=.96;AVGDP|>20",
+                        "SVM|-;AF|>.4,<.6;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.39,<.61;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.38,<.62;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.37,<.63;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.36,<.64;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.95;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.94;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.93;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.92;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.91;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.9;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.89;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.88;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.87;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.86;AVGDP|>20",
+                        "SVM|-;AF|>.35,<.65;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.34,<.66;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.33,<.67;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.32,<.68;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.31,<.69;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.3,<.7;MQ|>=.85;AVGDP|>20",
+                        "SVM|-;AF|>.3,<.7;MQ|>=.84;AVGDP|>20",
+                        "SVM|-;AF|>.3,<.7;MQ|>=.83;AVGDP|>20",
+                        "SVM|-;AF|>.3,<.7;MQ|>=.82;AVGDP|>20",
+                        "SVM|-;AF|>.3,<.7;MQ|>=.81;AVGDP|>20", "SVM|-;AF|>.3,<.7;MQ|>=.8;AVGDP|>20",
+                        "SVM|-;AF|>.28,<.72;MQ|>=.8;AVGDP|>20",
+                        "SVM|-;AF|>.26,<.74;MQ|>=.8;AVGDP|>20",
+                        "SVM|-;AF|>.24,<.76;MQ|>=.8;AVGDP|>20",
+                        "SVM|-;AF|>.22,<.78;MQ|>=.8;AVGDP|>20",
+                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>20", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>19",
+                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>18", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>17",
+                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>16", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>15",
+                        "SVM|-;AF|>.05,<.95;MQ|>=.8;AVGDP|>10",};
+    return parseFilters(filters, mc);
   }
 
-  private static class FilterSet {
+  static class FilterSet {
 
     public FilterSet(List<Filter> filters) {
       this.filters = new ArrayList<>(filters);
@@ -266,30 +286,22 @@ public class NGSBinSNPSelector {
   String[] hdr = {"BIN", "ID", "CHR", "POS", "REF", "ALT", "MAPQ", "MAF", "PASSED", "LEVEL",
                   "TOTAL"};
 
-  public void run() {
+  void setup() {
     mc = null;
     if (mappingQualityFile != null) {
       mc = MappabilityCompute.open(mappingQualityFile);
       log.reportTime("Mapping Quality Data Loaded");
     }
-    List<FilterSet> filters = parseFilters(mc);
-
-    Map<Integer, String> allVCFs = new HashMap<>();
-
-    for (int c : chrs) {
-      String vcf = inputDir + format.replace(token, Integer.toString(c));
-      if (!Files.exists(vcf)) {
-        if (Files.exists(inputDir + format.replace(token, "0" + Integer.toString(c)))) {
-          vcf = inputDir + format.replace(token, "0" + Integer.toString(c));
-        }
-      }
-      if (!Files.exists(vcf)) continue;
-      allVCFs.put(c, vcf);
+    if (filterDefsFile != null) {
+      filters = parseFilters(filterDefsFile, mc);
+    } else {
+      filters = parseFilters(mc);
     }
+  }
 
-    File exFl = new File(allVCFs.values().iterator().next());
-    VariantContextWriter vcfWriter = new htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder().setOutputFile(outputDir
-                                                                                                                          + "selected.vcf")
+  VariantContextWriter openWriter(String exampleVCF) {
+    File exFl = new File(exampleVCF);
+    VariantContextWriter vcfWriter = new htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder().setOutputFile(outputFile)
                                                                                                            .setReferenceDictionary(VCFFileReader.getSequenceDictionary(exFl))
                                                                                                            .setOutputFileType(OutputType.VCF)
                                                                                                            .build();
@@ -299,218 +311,93 @@ public class NGSBinSNPSelector {
                                                     "NGS Bin Start"));
     vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("BINSTOP", 1, VCFHeaderLineType.Integer,
                                                     "NGS Bin Stop"));
+    vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("LEVEL", 1, VCFHeaderLineType.Integer,
+                                                    "Level of filter used"));
+    vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("PASSED", 1, VCFHeaderLineType.Integer,
+                                                    "Number of snps at the filter level specified"));
+    vcfHeader.addMetaDataLine(new VCFInfoHeaderLine("COUNT", 1, VCFHeaderLineType.Integer,
+                                                    "Total number of snps in bin"));
     vcfWriter.writeHeader(vcfHeader);
     temp.close();
+    return vcfWriter;
+  }
 
-    for (Entry<Integer, String> vcf : allVCFs.entrySet()) {
-      long startN = System.nanoTime();
-      PrintWriter writerDEBUG = DEBUG ? Files.getAppropriateWriter(outputDir + "all_chr"
-                                                                   + vcf.getKey() + ".xln")
-                                      : null;
-      PrintWriter writer = Files.getAppropriateWriter(outputDir + "selected_chr" + vcf.getKey()
-                                                      + ".xln");
-      writer.println(ArrayUtils.toStr(hdr, "\t"));
-      if (writerDEBUG != null) {
-        writerDEBUG.println(ArrayUtils.toStr(hdr, "\t"));
-      }
-      VCFHeader header;
+  void writeSelectedForBin(Segment bin, boolean useChrPrepend, BidiMap<String, Integer> contigMap,
+                           VCFFileReader reader, VariantContextWriter vcfWriter) {
+    List<VariantContext> iter = reader.query((useChrPrepend ? "chr" : "") + bin.getChr(),
+                                             bin.getStart(), bin.getStop())
+                                      .toList();
 
-      try (VCFFileReader reader = new VCFFileReader(new File(vcf.getValue()),
-                                                    Files.exists(vcf + ".tbi"))) {
-        header = reader.getFileHeader();
+    int count = iter.size();
+    VariantContext selected = null;
+    int passedCount = 0;
+    int filterLevel = -1;
 
-        // discover which chrs are in this vcf file
-        BidiMap<String, Integer> contigMap = new DualHashBidiMap<>();
-        boolean useChrPrepend = header.getContigLines().get(0).getID().startsWith("chr");
-        header.getContigLines().forEach(vch -> {
-          // ensure parsability
-          contigMap.put(vch.getID(), (int) Positions.chromosomeNumber(vch.getID()));
-        });
-
-        for (Segment bin : bins.getLoci()) {
-          // no variants in file for this bin's chromosome  
-          if (bin.getChr() != vcf.getKey() || !contigMap.containsValue((int) bin.getChr())
-              || !chrs.contains((int) bin.getChr())) {
-            //            System.err.println("Error - bin contig " + bin.getChr()
-            //                               + " was not present in the VCF!");
-            continue;
-          }
-
-          List<VariantContext> iter = reader.query((useChrPrepend ? "chr" : "") + bin.getChr(),
-                                                   bin.getStart(), bin.getStop())
-                                            .toList();
-
-          int count = iter.size();
-          VariantContext selected = null;
-          int passedCount = 0;
-          int filterLevel = -1;
-
-          for (int i = 0; i < filters.size(); i++) {
-            FilterSet filterSet = filters.get(i);
-            List<VariantContext> passed = new ArrayList<>();
-            for (VariantContext vc : iter) {
-              List<Allele> alts = vc.getAlternateAlleles();
-              if (alts.size() > 1 || alts.get(0).getBaseString().length() > 1
-                  || vc.getReference().getBaseString().length() > 1) {
-                // skip multi-allelic snps and indels 
-                continue;
-              }
-              List<Filter> failedFilters = filterSet.check(vc);
-              if (failedFilters.size() == 0) {
-                passed.add(vc);
-                continue;
-              }
-              boolean trueFail = false;
-              for (Filter f : failedFilters) {
-                if (f.use) {
-                  trueFail = true;
-                  break;
-                }
-              }
-              if (!trueFail) {
-                passed.add(vc);
-              }
-            }
-            passedCount = passed.size();
-            filterLevel = i;
-            if (passed.size() == 0) {
-              continue;
-            }
-            if (passed.size() == 1) {
-              selected = passed.get(0);
-            } else {
-              selected = filterSet.best(passed, afTag);
-            }
-            if (DEBUG) {
-              for (VariantContext vc : passed) {
-                String id = vc.getID();
-                if (ext.isMissingValue(id)) {
-                  id = vc.getContig() + ":" + vc.getStart();
-                }
-                StringBuilder lineOut = new StringBuilder();
-                lineOut.append(bin.getUCSClocation()).append("\t");
-                lineOut.append(id).append("\t");
-                lineOut.append(vc.getContig()).append("\t");
-                lineOut.append(vc.getStart()).append("\t");
-                lineOut.append(vc.getReference().getBaseString()).append("\t");
-                lineOut.append(ArrayUtils.toStr(vc.getAlternateAlleles(), ",")).append("\t");
-                lineOut.append(mc == null ? "." : mc.getAverageMap(vc)).append("\t");
-                lineOut.append(vc.getAttributes().get(afTag).toString()).append("\t");
-                lineOut.append(passedCount).append("\t");
-                lineOut.append((i + 1)).append("\t");
-                lineOut.append(count);
-                writerDEBUG.println(lineOut.toString());
-              }
-            }
+    for (int i = 0; i < filters.size(); i++) {
+      FilterSet filterSet = filters.get(i);
+      List<VariantContext> passed = new ArrayList<>();
+      for (VariantContext vc : iter) {
+        if (!vc.isBiallelic()) {
+          // skip multi-allelic snps
+          continue;
+        }
+        if (vc.isFiltered()) {
+          // skip VQSRTranche snps
+          continue;
+        }
+        //        if (vc.isIndel()) {
+        //          // skip indels
+        //          continue;
+        //        }
+        List<Filter> failedFilters = filterSet.check(vc);
+        if (failedFilters.size() == 0) {
+          passed.add(vc);
+          continue;
+        }
+        boolean trueFail = false;
+        for (Filter f : failedFilters) {
+          if (f.use) {
+            trueFail = true;
             break;
           }
-
-          if (selected != null) {
-            String id = selected.getID();
-            if (ext.isMissingValue(id)) {
-              id = selected.getContig() + ":" + selected.getStart();
-            }
-            StringBuilder lineOut = new StringBuilder();
-            lineOut.append(bin.getUCSClocation()).append("\t");
-            lineOut.append(id).append("\t");
-            lineOut.append(selected.getContig()).append("\t");
-            lineOut.append(selected.getStart()).append("\t");
-            lineOut.append(selected.getReference().getBaseString()).append("\t");
-            lineOut.append(ArrayUtils.toStr(selected.getAlternateAlleles(), ",")).append("\t");
-            lineOut.append(mc == null ? "." : mc.getAverageMap(selected)).append("\t");
-            lineOut.append(selected.getAttributes().get(afTag).toString()).append("\t");
-            lineOut.append(passedCount).append("\t");
-            lineOut.append((filterLevel + 1)).append("\t");
-            lineOut.append(count);
-            writer.println(lineOut.toString());
-
-            VariantContext vc = new VariantContextBuilder().alleles(selected.getAlleles())
-                                                           .chr(selected.getContig()).id(id)
-                                                           .start(selected.getStart())
-                                                           .stop(selected.getEnd()).noGenotypes()
-                                                           .attribute("BINSTART", bin.getStart())
-                                                           .attribute("BINSTOP", bin.getStop())
-                                                           .make();
-
-            vcfWriter.add(vc);
-          } else {
-            writer.println(bin.getUCSClocation() + "\t.\t.\t.\t.\t.\t.\t.\t0\t.\t" + count);
-          }
-          writer.flush();
-          if (DEBUG) {
-            writerDEBUG.flush();
-          }
         }
-
+        if (!trueFail) {
+          passed.add(vc);
+        }
       }
-
-      writer.close();
-      if (DEBUG) {
-        writerDEBUG.close();
+      passedCount = passed.size();
+      filterLevel = i;
+      if (passed.size() == 0) {
+        continue;
       }
-      log.reportTime("Finished processing chr " + vcf.getKey() + " in "
-                     + ext.getTimeElapsedNanos(startN) + "!");
+      if (passed.size() == 1) {
+        selected = passed.get(0);
+      } else {
+        selected = filterSet.best(passed, afTag);
+      }
+      break;
     }
-    vcfWriter.close();
+
+    if (selected != null) {
+      String id = selected.getID();
+      if (ext.isMissingValue(id)) {
+        id = selected.getContig() + ":" + selected.getStart();
+      }
+
+      VariantContext vc = new VariantContextBuilder(selected).alleles(selected.getAlleles())
+                                                             .chr(selected.getContig()).id(id)
+                                                             .start(selected.getStart())
+                                                             .stop(selected.getEnd()).noGenotypes()
+                                                             .attribute("BINSTART", bin.getStart())
+                                                             .attribute("BINSTOP", bin.getStop())
+                                                             .attribute("LEVEL", filterLevel)
+                                                             .attribute("PASSED", passedCount)
+                                                             .attribute("COUNT", count).make();
+
+      vcfWriter.add(vc);
+    }
   }
 
-  public static void main(String[] args) {
-    CLI cli = new CLI(NGSBinSNPSelector.class);
-
-    cli.addArg("out", "Output directory");
-    cli.addArg("in", "Input directory");
-    cli.addArg("format", "File format with special token where the chromosome number goes");
-    cli.addArg("token", "Special filename token to replace with chromosome number", "##", false);
-    cli.addArg("mapFile", "Mapping quality file", false);
-    cli.addArg("mq", "Mapping quality tag in the filters definitions file.", "MQ", false);
-    cli.addArg("af", "Allele frequency tag in the VCF and filters definitions file", "AF", false);
-    cli.addArg("chrs", "Comma-delimited list of chromosomes to process.", false);
-    cli.addArg("bed", "BED file with predefined regions to use.", false);
-    cli.addArg("bin", "Bin size to use when splitting up reference genome, default value 1000.",
-               false);
-    cli.addGroup("bed", "bin");
-
-    cli.parseWithExit(args);
-
-    Logger log = new Logger();
-    NGSBinSNPSelector selector = new NGSBinSNPSelector();
-
-    selector.outputDir = cli.get("out");
-    selector.inputDir = cli.get("in");
-    selector.format = cli.get("format");
-    selector.token = cli.get("token");
-    selector.mappingQualityFile = cli.has("mapFile") ? cli.get("mapFile") : null;
-    selector.afTag = cli.has("af") ? cli.get("af") : "AF";
-    selector.mqTag = cli.has("mq") ? cli.get("mq") : "MQ";
-    int bin = 1000;
-    String bedFile = null;
-    if (cli.has("bin")) {
-      bin = cli.getI("bin");
-    } else if (cli.has("bed")) {
-      bedFile = cli.get("bed");
-    } else {
-      log.reportTime("No BED file specified, nor was a bin size specified, so the default bin size of "
-                     + bin + " will be used.");
-    }
-
-    Set<Integer> chrs = null;
-    if (cli.has("chrs")) {
-      String[] v = cli.get("chrs").split(",");
-      chrs = new HashSet<>();
-      for (String vi : v) {
-        chrs.add(Integer.parseInt(vi));
-      }
-    } else {
-      chrs = Sets.newHashSet(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                             21, 22, 23, 24, 25);
-    }
-    selector.chrs = chrs;
-    if (bedFile != null) {
-      selector.bins = new BEDFileReader(bedFile, false).loadAll(log).getStrictSegmentSet();
-    } else {
-      selector.bins = new ReferenceGenome(GENOME_BUILD.HG19, new Logger()).getBins(bin, chrs);
-    }
-    selector.run();
-  }
+  public abstract void run();
 
 }

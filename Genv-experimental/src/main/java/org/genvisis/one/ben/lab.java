@@ -43,6 +43,7 @@ import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
+import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -2269,7 +2270,6 @@ public class lab {
                                          URISyntaxException {
     int numArgs = args.length;
     Project proj;
-    ;
     String filename = "lab.dat";
     String logfile = null;
     String file = null;
@@ -2278,19 +2278,17 @@ public class lab {
     if (test) {
 
       String p;
-      Path pa;
 
       p = "G:/bamTesting/mosdepth/00test/10-SS-10.realign.mos.regions.bed";
 
-      URI uri = new File(p).toURI();//URI.create(p);
-
-      System.out.println(uri.getScheme());
-      System.out.println(uri.getPath());
-      System.out.println(uri.getRawPath());
-      System.out.println(uri.normalize());
-      pa = Paths.get(uri);
-      System.out.println(pa.toString());
-      System.out.println(pa.toFile().exists());
+      BEDFileReader reader = new BEDFileReader("G:\\bamTesting\\topmed\\00src\\NWD100243.recab.mos.regions.bed.gz",
+                                               true);
+      reader.query(new Segment((byte) 5, 6625001, 6626000)).stream().forEach(bf -> {
+        System.out.println("FOUND: " + bf.getName() + "\t" + bf.getScore());
+      });
+      //      reader.iterator().stream().forEach(bf -> {
+      //        System.out.println(bf.getChr() + ":" + bf.getStart() + "-" + bf.getEnd());
+      //      });
 
       // createBCXPlots();
       // processAnnotationFilesAll();
