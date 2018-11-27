@@ -211,6 +211,7 @@ public class MosdepthPipeline {
   }
 
   private void read() throws IOException, Elision {
+    long t2 = System.nanoTime();
     byte nullStatus = getNullStatus();
     int bytesPerSamp = Sample.getNBytesPerSampleMarker(nullStatus); // 12
     int markerBlockSize = samples.length * bytesPerSamp;
@@ -302,11 +303,12 @@ public class MosdepthPipeline {
               }
 
               Map<String, Double> medianList = new HashMap<>();
-              synchronized (mosdepthCache) {
-                for (int s = 0; s < samples.length; s++) {
-                  double lrr = loadMosdepth(match, mkr, s) / medians.get(samples[s]).doubleValue();
-                  medianList.put(samples[s], lrr);
+              for (int s = 0; s < samples.length; s++) {
+                double lrr;
+                synchronized (samples[s]) {
+                  lrr = loadMosdepth(match, mkr, s) / medians.get(samples[s]).doubleValue();
                 }
+                medianList.put(samples[s], lrr);
               }
               double markerMedian = ArrayUtils.median(medianList.values());
 
@@ -395,6 +397,8 @@ public class MosdepthPipeline {
     } catch (InterruptedException e) {
       log.reportException(e);
     }
+    log.reportTime("Parsed " + binsOfMarkers.length + " marker data files in "
+                   + ext.getTimeElapsedNanos(t2));
   }
 
   private LoadingCache<String, BEDFileReader> buildMosdepthCache() {
