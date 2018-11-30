@@ -1,10 +1,9 @@
 package org.genvisis.cnv.filesys;
 
-import org.genvisis.common.Logger;
-import org.genvisis.filesys.LocusSet;
-import org.genvisis.filesys.Segment;
 import org.junit.Test;
-
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.filesys.LocusSet;
+import org.pankratzlab.common.filesys.Segment;
 import junit.framework.Assert;
 
 /**
