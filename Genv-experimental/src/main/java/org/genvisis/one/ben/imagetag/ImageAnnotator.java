@@ -800,77 +800,87 @@ public class ImageAnnotator {
     return row;
   }
 
-  private int getPrevFile() {
+  private int[] getPrevFile() {
     int trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
-    String gate = tree.getPathForRow(0) == null ? null
-                                                : ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
-                                                                                                  .getLastPathComponent()).getUserObject()).getName();
     sel--;
-    while (sel >= 0) {
-      String fcs = sampleCombo.getItemAt(sel);
-      if (trav == ALL || gate == null) {
+    int ind = 0;
+    outer: while (sel >= 0) {
+      String samp = sampleCombo.getItemAt(sel);
+      if (trav == ALL) {
         break;
       } else {
-        AnnotatedImage ai = annotator.getAnnotationMap().get(fcs).get(gate);
-        if (trav == ANN) {
-          if (ai != null && ai.getAnnotations().size() > 0) {
-            break;
-          }
-        } else if (trav == NON) {
-          if (ai == null || ai.getAnnotations().size() == 0) {
-            break;
-          }
-        } else {
-          Annotation a = getTravAnnotation();
-          if (a == null) return -1;
-          if (ai != null && ai.getAnnotations().contains(a)) {
-            break;
+        List<AnnotatedImage> imgs = new ArrayList<>();
+        if (annotator.getAnnotationMap().containsKey(samp)) {
+          imgs.addAll(annotator.getAnnotationMap().get(samp).values());
+          sortAIs(imgs);
+        }
+        for (int i = imgs.size() - 1; i >= 0; i--) {
+          AnnotatedImage ai = imgs.get(i);
+          if (trav == ANN) {
+            if (ai != null && ai.getAnnotations().size() > 0) {
+              ind = i;
+              break outer;
+            }
+          } else if (trav == NON) {
+            if (ai == null || ai.getAnnotations().size() == 0) {
+              ind = i;
+              break outer;
+            }
+          } else {
+            Annotation a = getTravAnnotation();
+            if (ai != null && ai.getAnnotations().contains(a)) {
+              ind = i;
+              break outer;
+            }
           }
         }
       }
       sel--;
     }
-    return sel;
+    return new int[] {sel, ind};
   }
 
-  private int getNextFile() {
+  private int[] getNextFile() {
     int trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
-    String gate = tree.getPathForRow(0) == null ? null
-                                                : ((AnnotatedImage) ((DefaultMutableTreeNode) tree.getPathForRow(0)
-                                                                                                  .getLastPathComponent()).getUserObject()).getName();
     sel++;
-    while (sel < sampleCombo.getItemCount()) {
+    int ind = 0;
+    outer: while (sel < sampleCombo.getItemCount()) {
       String samp = sampleCombo.getItemAt(sel);
-      if (trav == ALL || gate == null) {
+      if (trav == ALL) {
         break;
       } else {
-        if (trav == ANN) {
-          if (annotator.getAnnotationMap().get(samp) != null
-              && annotator.getAnnotationMap().get(samp).get(gate) != null
-              && annotator.getAnnotationMap().get(samp).get(gate).getAnnotations().size() > 0) {
-            break;
-          }
-        } else if (trav == NON) {
-          if (annotator.getAnnotationMap().get(samp) != null
-              && annotator.getAnnotationMap().get(samp).get(gate) != null
-              && annotator.getAnnotationMap().get(samp).get(gate).getAnnotations().size() == 0) {
-            break;
-          }
-        } else {
-          Annotation a = getTravAnnotation();
-          if (a == null) return -1;
-          if (annotator.getAnnotationMap().get(samp) != null
-              && annotator.getAnnotationMap().get(samp).get(gate) != null
-              && annotator.getAnnotationMap().get(samp).get(gate).getAnnotations().contains(a)) {
-            break;
+        List<AnnotatedImage> imgs = new ArrayList<>();
+        if (annotator.getAnnotationMap().containsKey(samp)) {
+          imgs.addAll(annotator.getAnnotationMap().get(samp).values());
+          sortAIs(imgs);
+        }
+
+        for (int i = 0; i < imgs.size(); i++) {
+          AnnotatedImage ai = imgs.get(i);
+          if (trav == ANN) {
+            if (ai != null && ai.getAnnotations().size() > 0) {
+              ind = i;
+              break outer;
+            }
+          } else if (trav == NON) {
+            if (ai == null || ai.getAnnotations().size() == 0) {
+              ind = i;
+              break outer;
+            }
+          } else {
+            Annotation a = getTravAnnotation();
+            if (ai != null && ai.getAnnotations().contains(a)) {
+              ind = i;
+              break outer;
+            }
           }
         }
       }
       sel++;
     }
-    return sel;
+    return new int[] {sel, ind};
   }
 
   private void keyUp() { // prev node in tree
@@ -903,18 +913,18 @@ public class ImageAnnotator {
   }
 
   private void keyLeft() { // prev file
-    int prev = getPrevFile();
-    if (prev >= 0) {
-      sampleCombo.setSelectedIndex(prev);
+    int[] prev = getPrevFile();
+    if (prev[0] >= 0) {
+      sampleCombo.setSelectedIndex(prev[0]);
     }
-    tree.setSelectionRow(0);
+    tree.setSelectionRow(prev[1]);
   }
 
   private void keyRight() { // next file
-    int next = getNextFile();
-    if (next < sampleCombo.getItemCount()) {
-      sampleCombo.setSelectedIndex(next);
-      tree.setSelectionRow(0);
+    int[] next = getNextFile();
+    if (next[0] < sampleCombo.getItemCount()) {
+      sampleCombo.setSelectedIndex(next[0]);
+      tree.setSelectionRow(next[1]);
     }
   }
 
@@ -967,12 +977,7 @@ public class ImageAnnotator {
     }
   }
 
-  private void updateAvail() {
-    HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
-    String sampleName = (String) sampleCombo.getSelectedItem();
-    HashMap<String, AnnotatedImage> ann = map.get(sampleName);
-
-    List<AnnotatedImage> imgs = ann == null ? new ArrayList<>() : new ArrayList<>(ann.values());
+  private void sortAIs(List<AnnotatedImage> imgs) {
     imgs.sort(new Comparator<AnnotatedImage>() {
 
       @Override
@@ -995,6 +1000,15 @@ public class ImageAnnotator {
         return comp;
       }
     });
+  }
+
+  private void updateAvail() {
+    HashMap<String, HashMap<String, AnnotatedImage>> map = annotator.getAnnotationMap();
+    String sampleName = (String) sampleCombo.getSelectedItem();
+    HashMap<String, AnnotatedImage> ann = map.get(sampleName);
+
+    List<AnnotatedImage> imgs = ann == null ? new ArrayList<>() : new ArrayList<>(ann.values());
+    sortAIs(imgs);
     DefaultMutableTreeNode root = (DefaultMutableTreeNode) ((DefaultMutableTreeNode) tree.getModel()
                                                                                          .getRoot());
     root.removeAllChildren();
