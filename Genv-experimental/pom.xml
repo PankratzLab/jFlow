@@ -17,17 +17,35 @@
 
 	<description>One-off, experimental, in-development projects</description>
 
+	<properties>
+		<assemblyName>imgannot</assemblyName>
+		<mainClass>org.genvisis.one.ben.imagetag.ImageAnnotator</mainClass>
+		<resourcesDir>${project.basedir}/buildRsrc</resourcesDir>
+		<genvisis.jvm.version>1.8</genvisis.jvm.version>
+	</properties>
+
 	<dependencies>
 		
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>Genvisis</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>PLab-private</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>PLab-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.genvisis</groupId>
+			<artifactId>PLab-utils</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.genvisis</groupId>
 			<artifactId>SEQ</artifactId>
@@ -68,4 +86,37 @@
 		</dependency>
 
 	</dependencies>
+	<profiles>
+		<!-- This profile encapsulates the assembly building of the JFlow jar,
+				 allowing disabling if desired. -->
+		<profile>
+			<id>imgannot</id>
+			<activation>
+				<property>
+					<name>imgannot</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-assembly</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
