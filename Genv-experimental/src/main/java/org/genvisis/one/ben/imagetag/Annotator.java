@@ -100,7 +100,7 @@ public class Annotator implements IAnnotator {
     int chr = Positions.chromosomeNumber(parts[1]);
     int start = Integer.parseInt(parts[2]);
     int stop = Integer.parseInt(parts[3]);
-    String name = Positions.getUCSCformat(new int[] {chr, start, stop}) + " | " + parts[0];
+    String name = Positions.getUCSCformat(new int[] {chr, start, stop}) + " ~ " + parts[0];
     AnnotatedImage ai = new AnnotatedImage(name, false);
     ai.setImageFile(dirPath + imgFileName);
     return ai;
@@ -135,21 +135,35 @@ public class Annotator implements IAnnotator {
             }
           }
         }
-        String file = ext.removeDirectoryInfo(imgFile.contains(";") ? imgFile.split(";")[0]
-                                                                    : imgFile);
-        String fcsFile = file.substring(0, file.indexOf(".fcs.") + 4);
-        if (rootKeys.contains(fcsFile)) {
-          rootKeys.add(fcsFile);
+        String rootKey = parseRootKey(imgFile);
+        if (!rootKeys.contains(rootKey)) {
+          rootKeys.add(rootKey);
         }
-        HashMap<String, AnnotatedImage> map = imageMap.get(fcsFile);
+        HashMap<String, AnnotatedImage> map = imageMap.get(rootKey);
         if (map == null) {
           map = new HashMap<>();
-          imageMap.put(fcsFile, map);
+          imageMap.put(rootKey, map);
         }
         map.put(ai.getName(), ai);
       }
     }
     reader.close();
+  }
+
+  private String parseRootKey(String fullPathToFile) {
+    // top level directory, for this solution
+    String path = ext.rootOf(fullPathToFile, false);
+    int i = -1;
+    if ((i = path.lastIndexOf('/')) >= 0) {
+      path = path.substring(0, i - 1);
+      i = path.lastIndexOf('/');
+      path = path.substring(i + 1);
+    } else if ((i = path.lastIndexOf('\\')) >= 0) {
+      path = path.substring(0, i - 1);
+      i = path.lastIndexOf('\\');
+      path = path.substring(i + 1);
+    }
+    return path;
   }
 
   public void saveAnnotation(AnnotatedImage.Annotation annot, String file) {

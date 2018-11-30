@@ -258,7 +258,7 @@ public class ImageAnnotator {
     });
 
     splitPane = new JSplitPane();
-    splitPane.setResizeWeight(0.78);
+    splitPane.setResizeWeight(0.94);
     frmAnnotator.getContentPane().add(splitPane, "cell 0 0,grow");
 
     imagePanel = new JPanel() {
@@ -275,7 +275,7 @@ public class ImageAnnotator {
     imagePanel.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 
     JSplitPane splitPane_1 = new JSplitPane();
-    splitPane_1.setResizeWeight(0);
+    splitPane_1.setResizeWeight(0.5);
     splitPane_1.setOrientation(JSplitPane.VERTICAL_SPLIT);
     splitPane.setRightComponent(splitPane_1);
 
@@ -313,7 +313,7 @@ public class ImageAnnotator {
     controlPanel.add(sampleCombo, "flowx,cell 0 1,growx");
 
     JScrollPane scrollPane_1 = new JScrollPane();
-    controlPanel.add(scrollPane_1, "cell 0 2,grow");
+    controlPanel.add(scrollPane_1, "cell 0 2,growy, growx, pad 0 0 14 0");
 
     tree = new JTree();
     scrollPane_1.setViewportView(tree);
@@ -977,8 +977,8 @@ public class ImageAnnotator {
 
       @Override
       public int compare(AnnotatedImage o1, AnnotatedImage o2) {
-        String n1 = o1.getName().substring(0, o1.getName().indexOf('|') - 1);
-        String n2 = o2.getName().substring(0, o2.getName().indexOf('|') - 1);
+        String n1 = o1.getName().substring(0, o1.getName().indexOf('~') - 1);
+        String n2 = o2.getName().substring(0, o2.getName().indexOf('~') - 1);
         int[] chrPos1 = Positions.parseUCSClocation(n1);
         int[] chrPos2 = Positions.parseUCSClocation(n2);
         int comp;
