@@ -3,6 +3,7 @@ package org.genvisis.seq.manage;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Logger;
@@ -92,6 +93,14 @@ public class BamPile extends Segment implements Serializable {
    */
   public int[] getCounts() {
     return counts;
+  }
+
+  /**
+   * @param base
+   * @return count of given base
+   */
+  public int getBaseCount(@Nonnull Base base) {
+    return counts[base.ordinal()];
   }
 
   public int getNumBasesOverlap() {
