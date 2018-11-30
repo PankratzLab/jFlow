@@ -29,6 +29,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -106,6 +107,7 @@ public class ImageAnnotator {
   private static final String BACKUP_DIR = ".backup./";
   private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
   private volatile boolean annotationsChanged = false;
+  private volatile boolean checkBxAdvanceAfterAnnotationKeyed = true;
 
   private void setAnnotationsChanged() {
     annotationsChanged = true;
@@ -526,6 +528,18 @@ public class ImageAnnotator {
     mntmNavFind.setText("Find Sample");
     mnNav.add(mntmNavFind);
 
+    JCheckBoxMenuItem mntmNavAdvAfterAnnot = new JCheckBoxMenuItem();
+    mntmNavAdvAfterAnnot.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        checkBxAdvanceAfterAnnotationKeyed = mntmNavAdvAfterAnnot.isSelected();
+      }
+    });
+    mntmNavAdvAfterAnnot.setText("Advance after annotating (or SHIFT)");
+    mntmNavAdvAfterAnnot.setSelected(true);
+    mnNav.add(mntmNavAdvAfterAnnot);
+
     return menuBar;
   }
 
@@ -696,10 +710,18 @@ public class ImageAnnotator {
     annotPanel.revalidate();
   }
 
-  private void fireMnem(char code) {
+  private void fireMnem(KeyEvent e) {
+    char code = (e.getKeyChar() + "").toUpperCase().charAt(0);
     if (mnemonicActions.containsKey(code)) {
       mnemonicActions.get(code).actionPerformed(null);
       setAnnotationsChanged();
+      if (checkBxAdvanceAfterAnnotationKeyed && !e.isShiftDown()) {
+        if (tree.getSelectionRows()[0] == tree.getRowCount() - 1) {
+          keyRight();
+        } else {
+          keyDown();
+        }
+      }
     }
   }
 
@@ -918,6 +940,7 @@ public class ImageAnnotator {
       sampleCombo.setSelectedIndex(prev[0]);
     }
     tree.setSelectionRow(prev[1]);
+    tree.scrollRowToVisible(prev[1]);
   }
 
   private void keyRight() { // next file
@@ -925,6 +948,7 @@ public class ImageAnnotator {
     if (next[0] < sampleCombo.getItemCount()) {
       sampleCombo.setSelectedIndex(next[0]);
       tree.setSelectionRow(next[1]);
+      tree.scrollRowToVisible(next[1]);
     }
   }
 
@@ -947,7 +971,7 @@ public class ImageAnnotator {
               keyRight();
             } else {
               if (!(e.isAltDown() && e.getKeyCode() == KeyEvent.VK_F4)) {
-                fireMnem((e.getKeyChar() + "").toUpperCase().charAt(0));
+                fireMnem(e);
               } else {
                 close();
               }
@@ -1117,6 +1141,7 @@ public class ImageAnnotator {
       }
       updateAvail();
       tree.setSelectionRow(0);
+      tree.scrollRowToVisible(0);
       saveProperties();
     } catch (IOException e) {
       e.printStackTrace();
