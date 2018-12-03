@@ -1206,7 +1206,8 @@ public class GeneScorePipeline {
         Map<String, String[]> mkrAlleles = new HashMap<>();
         SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
                                            .getMarkerSet();
-        int cntAmbig = 0;
+        List<Integer> inval = new ArrayList<>();
+        List<Integer> ambig = new ArrayList<>();
 
         String[] mkrNames = markerSet.getMarkerNames();
         String[][] alleles = markerSet.getAlleles();
@@ -1217,16 +1218,57 @@ public class GeneScorePipeline {
           String a2 = (alleles[i][1]).toUpperCase();
           boolean validAlleles = (a1.length() > 1 || a2.length() > 1)
                                  || (Sequence.validBase(a1) && Sequence.validBase(a2));
-          if (validAlleles && !a1.equals(Sequence.flip(a2))) {
-            mkrsMeta.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
-            mkrAlleles.put(mkrNames[i], new String[] {a1, a2});
+          if (validAlleles) {
+            if (!a1.equals(Sequence.flip(a2))) {
+              mkrsMeta.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
+              mkrAlleles.put(mkrNames[i], new String[] {a1, a2});
+            } else {
+              mkrsMeta.put(mkrNames[i], new GenomicPosition((byte) chrPos[i][0], chrPos[i][1]));
+              mkrAlleles.put(mkrNames[i], new String[] {a1, a2});
+              ambig.add(i);
+            }
           } else {
-            cntAmbig++;
+            inval.add(i);
           }
         }
 
-        log.report(ext.getTime() + "]\tFound " + cntAmbig + " ambiguous markers out of "
-                   + mkrNames.length + " (will be excluded)");
+        if (ambig.size() > 0) {
+          log.report(ext.getTime() + "]\tFound " + ambig.size() + " ambiguous markers out of "
+                     + mkrNames.length
+                     + " (either A/T or G/C allele pairs); make sure you have everything on the same strand, or you many run into problems!");
+          if (ambig.size() < 10) {
+            StringBuilder builder = new StringBuilder(mkrNames[ambig.get(0)]);
+            for (int i = 1; i < ambig.size(); i++) {
+              builder.append(", ").append(mkrNames[ambig.get(i)]);
+            }
+            log.report(ext.getTime() + "]\tAmbiguous markers: " + builder.toString());
+          } else {
+            PrintWriter writer = Files.getAppropriateWriter(metaDir + "ambiguous.txt");
+            for (Integer i : ambig) {
+              writer.println(mkrNames[i] + "\t" + chrPos[i][0] + "\t" + chrPos[i][1] + "\t"
+                             + alleles[i][0] + "\t" + alleles[i][1]);
+            }
+            writer.close();
+          }
+        }
+        if (inval.size() > 0) {
+          log.report(ext.getTime() + "]\tFound " + inval.size() + " invalid markers out of "
+                     + mkrNames.length + ".");
+          if (inval.size() < 10) {
+            StringBuilder builder = new StringBuilder(inval.get(0));
+            for (int i = 1; i < inval.size(); i++) {
+              builder.append(", ").append(inval.get(i));
+            }
+            log.report(ext.getTime() + "]\tInvalid markers: " + builder.toString());
+          } else {
+            PrintWriter writer = Files.getAppropriateWriter(metaDir + "invalid.txt");
+            for (Integer i : inval) {
+              writer.println(mkrNames[i] + "\t" + chrPos[i][0] + "\t" + chrPos[i][1] + "\t"
+                             + alleles[i][0] + "\t" + alleles[i][1]);
+            }
+            writer.close();
+          }
+        }
 
         final String outDelim = "\t";
 
@@ -1281,9 +1323,16 @@ public class GeneScorePipeline {
             String[] dataAlleles = mkrAlleles.get(mkr);
             String[] metaAlleles = new String[] {values.get(a1Column, "NA"),
                                                  values.get(a2Column, "NA")};
-            AlleleOrder alleleOrder = StrandOps.determineStrandConfig(dataAlleles, metaAlleles)
-                                               .getAlleleOrder();
-            if (alleleOrder == AlleleOrder.SAME || alleleOrder == AlleleOrder.OPPOSITE) return true;
+            CONFIG config = StrandOps.determineStrandConfig(dataAlleles, metaAlleles);
+            AlleleOrder alleleOrder = config.getAlleleOrder();
+            if (config == CONFIG.AMBIGUOUS) {
+              boolean a1 = dataAlleles[0].equalsIgnoreCase(metaAlleles[0])
+                           || dataAlleles[0].equalsIgnoreCase(metaAlleles[1]);
+              boolean a2 = dataAlleles[1].equalsIgnoreCase(metaAlleles[0])
+                           || dataAlleles[1].equalsIgnoreCase(metaAlleles[1]);
+              return a1 && a2;
+            } else if (alleleOrder == AlleleOrder.SAME
+                       || alleleOrder == AlleleOrder.OPPOSITE) return true;
             else {
               Joiner alleleJoiner = Joiner.on('/');
               log.reportError("Alleles in study (" + alleleJoiner.join(dataAlleles)
@@ -1470,9 +1519,18 @@ public class GeneScorePipeline {
         for (int m = 0; m < markers.length; m++) {
           String mkr = markers[m];
           HitMarker hitMarker = hitMarkerData.get(mkr);
-          if (hitMarker == null) continue;
-          AlleleOrder alleleOrder = determineAlleleOrder(alleles[m], hitMarker);
-          if (!(alleleOrder.equals(AlleleOrder.SAME) || alleleOrder.equals(AlleleOrder.OPPOSITE))) {
+          if (hitMarker == null) {
+            log.report(ext.getTime() + "]\tNo HitMarker data available for " + mkr);
+            continue;
+          }
+          CONFIG config = determineAlleleConfig(alleles[m], hitMarker);
+          AlleleOrder alleleOrder = config.getAlleleOrder();
+          if (config == CONFIG.AMBIGUOUS) {
+            alleleOrder = hitMarker.getEffectAllele()
+                                   .compareToIgnoreCase(alleles[m][0]) == 0 ? StrandOps.AlleleOrder.SAME
+                                                                            : StrandOps.AlleleOrder.OPPOSITE;
+          } else if (!(alleleOrder.equals(AlleleOrder.SAME)
+                       || alleleOrder.equals(AlleleOrder.OPPOSITE))) {
             Joiner alleleJoiner = Joiner.on('/');
             log.reportError("Alleles in study (" + alleleJoiner.join(alleles[m])
                             + ") do not match source alleles ("
@@ -1535,11 +1593,11 @@ public class GeneScorePipeline {
     }
   }
 
-  private static StrandOps.AlleleOrder determineAlleleOrder(String[] alleles, HitMarker hitMarker) {
+  private static CONFIG determineAlleleConfig(String[] alleles, HitMarker hitMarker) {
     CONFIG config = StrandOps.determineStrandConfig(new String[] {hitMarker.getEffectAllele(),
                                                                   hitMarker.getNonEffectAllele()},
                                                     alleles);
-    return config.getAlleleOrder();
+    return config;
   }
 
   // private void runPlink(Study study) {
@@ -1657,20 +1715,13 @@ public class GeneScorePipeline {
                 double[] covarData = new double[pd.covars.size() + 1];
                 covarData[0] = scoreData.get(indiv.getKey());
                 for (int k = 1; k < pd.covars.size() + 1; k++) {
-                  Double d;
-                  d = pdi.getCovars().get(pd.covars.get(k - 1));
+                  Double d = pdi.getCovars().get(pd.covars.get(k - 1));
                   if (d == null) {
                     log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
                                     + pd.covars.get(k - 1));
                   } else {
                     baseData[k - 1] = d.doubleValue();
-                  }
-                  d = pdi.getCovars().get(pd.covars.get(k - 1));
-                  if (d == null) {
-                    log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
-                                    + pd.covars.get(k - 1));
-                  } else {
-                    covarData[k] = pdi.getCovars().get(pd.covars.get(k - 1));
+                    covarData[k] = d.doubleValue();
                   }
                 }
                 baselineIndeps.add(baseData);
@@ -1684,6 +1735,7 @@ public class GeneScorePipeline {
               covars[k] = indepData.get(k);
               baseCovars[k] = baselineIndeps.get(k);
             }
+
             RegressionModel baseModel = RegressionModel.determineAppropriate(Doubles.toArray(depData),
                                                                              baseCovars, false,
                                                                              true);
