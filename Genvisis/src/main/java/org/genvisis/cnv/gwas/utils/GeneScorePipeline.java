@@ -1931,7 +1931,7 @@ public class GeneScorePipeline {
               covars[k] = indepData.get(k);
               baseCovars[k] = baselineIndeps.get(k);
             }
-						int cases = 0;
+            int cases = 0;
             int controls = 0;
             Multiset<Double> phenos = ImmutableMultiset.copyOf(depData);
             if (phenos.entrySet().size() == 2) {
@@ -1972,7 +1972,7 @@ public class GeneScorePipeline {
                   break;
                 }
               }
-                            if (ind == -1) {
+              if (ind == -1) {
                 rr.setBaseRSq(baseModel.analysisFailed() ? Double.NaN : baseModel.getRsquare());
                 rr.setBeta(Double.NaN);
                 rr.setSe(Double.NaN);
