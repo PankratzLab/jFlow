@@ -1,14 +1,15 @@
 package org.genvisis.seq.manage.mosdepth;
 
 import java.io.PrintWriter;
-import org.genvisis.CLI;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
-import org.genvisis.seq.manage.ReferenceGenome;
+import org.genvisis.cnv.Resources;
+import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.ReferenceGenome;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Segment;
 
 class FASTAToBedConversion {
 
@@ -25,7 +26,9 @@ class FASTAToBedConversion {
   }
 
   void run() {
-    ReferenceGenome refGen = new ReferenceGenome(GENOME_BUILD.HG19, new Logger());
+    ReferenceGenome refGen = new ReferenceGenome(Resources.genome(GenomeBuild.HG19, log).getFASTA()
+                                                          .getAbsolute(),
+                                                 log);
     Segment[] bins = refGen.getBins(binSize).getStrictSegments();
     for (Segment seg : bins) {
       String seq = ArrayUtils.toStr(refGen.getSequenceFor(seg));

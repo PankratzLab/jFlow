@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
@@ -21,19 +22,18 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
 import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.common.AllelePair;
-import org.genvisis.common.ArrayUtils;
-import org.genvisis.common.Elision;
-import org.genvisis.common.Files;
-import org.genvisis.common.GenomicPosition;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
+import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.BEDFileReader;
-import org.genvisis.stats.Maths;
+import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.Elision;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomicPosition;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Maths;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -95,7 +95,7 @@ public class MosdepthPipeline {
   }
 
   public void setMosdepthDirectory(String dir, String ext) {
-    this.mosSrcDir = org.genvisis.common.ext.verifyDirFormat(dir);
+    this.mosSrcDir = org.pankratzlab.common.ext.verifyDirFormat(dir);
     this.mosSrcExt = ext;
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
   }
@@ -492,7 +492,7 @@ public class MosdepthPipeline {
       proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
       proj.SOURCE_FILENAME_EXTENSION.setValue(mosSrcExt);
       proj.ID_HEADER.setValue("NULL");
-      proj.GENOME_BUILD_VERSION.setValue(GENOME_BUILD.HG19);
+      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG19);
 
       proj.ARRAY_TYPE.setValue(ARRAY.NGS);
 

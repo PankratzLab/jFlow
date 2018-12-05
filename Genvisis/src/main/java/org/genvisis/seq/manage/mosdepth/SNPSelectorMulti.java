@@ -8,15 +8,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.genvisis.CLI;
-import org.genvisis.cnv.manage.Resources.GENOME_BUILD;
-import org.genvisis.common.Files;
-import org.genvisis.common.Logger;
-import org.genvisis.common.Positions;
-import org.genvisis.common.ext;
-import org.genvisis.filesys.Segment;
+import org.genvisis.cnv.Resources;
+import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.manage.BEDFileReader;
-import org.genvisis.seq.manage.ReferenceGenome;
+import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
+import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Positions;
+import org.pankratzlab.common.filesys.Segment;
 import com.google.common.collect.Sets;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFFileReader;
@@ -142,7 +143,9 @@ public class SNPSelectorMulti extends NGSBinSNPSelector {
     if (bedFile != null) {
       selector.bins = new BEDFileReader(bedFile, false).loadAll(log).getStrictSegmentSet();
     } else {
-      selector.bins = new ReferenceGenome(GENOME_BUILD.HG19, new Logger()).getBins(bin, chrs);
+      selector.bins = new ReferenceGenome(Resources.genome(GenomeBuild.HG19, log).getFASTA()
+                                                   .getAbsolute(),
+                                          log).getBins(bin, chrs);
     }
     selector.run();
   }
