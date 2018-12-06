@@ -43,7 +43,6 @@ import org.genvisis.seq.manage.BEDFileReader.BEDFeatureSeg;
 import org.genvisis.seq.manage.BamOps;
 import org.genvisis.seq.manage.BamOps.BamIndexStats;
 import org.genvisis.seq.manage.BamSegPileUp.BamPileResult;
-import org.genvisis.seq.manage.BamSegPileUp.PileupProducer;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.manage.VCFOps;
 import org.genvisis.seq.manage.VCOps;
