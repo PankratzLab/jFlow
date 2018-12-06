@@ -273,7 +273,7 @@ public class GeneScorePipeline {
           d0.serialize(serOutput);
           System.gc();
         } else {
-          log.reportTime(serOutput + " already exists, loading previously loaded data for "
+          log.reportTime("" + serOutput + " already exists, loading previously loaded data for "
                          + dataSource);
           data.put(dataKey, DosageData.load(serOutput));
         }
@@ -1086,7 +1086,7 @@ public class GeneScorePipeline {
           if (results == null) {
             log.reportError("HitWindows result was null for " + dFile + ". Using all SNPs");
           } else {
-            log.report(ext.getTime() + "]\tFound " + results.length + " hit windows");
+            log.reportTime("Found " + results.length + " hit windows");
             for (String[] result : results) {
               try {
                 hitMkrLocations.put(result[1], new int[] {Integer.parseInt(result[2]),
@@ -1117,8 +1117,7 @@ public class GeneScorePipeline {
           if (hitMkrLocations.isEmpty()) {
             log.reportError(".meta file was empty for " + dFile);
           } else {
-            log.report(ext.getTime() + "]\tUsing all " + hitMkrLocations.size()
-                       + " SNPs in .meta file");
+            log.reportTime("Using all " + hitMkrLocations.size() + " SNPs in .meta file");
           }
         }
         // uncomment to use all markers in dataFile
@@ -1227,14 +1226,11 @@ public class GeneScorePipeline {
                                                                              // source is present
         while ((temp = reader.readLine()) != null) {
           String[] line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
-          String affLine = line[0] + "\t" + line[1] + "\t"
-                           + (ext.isMissingValue(line[5]) ? "."
-                                                          : -1 * (Integer.parseInt(line[5]) - 2))
-                           + "\t" + line[4];
-          if (!ext.isMissingValue(line[5])) {
-            if (ext.isValidDouble(line[5]) && Double.parseDouble(line[5]) != 0.0) {
-              fam.add(affLine);
-            }
+          if (!ext.isMissingValue(line[5]) && ext.isValidDouble(line[5])) {
+            String affLine = line[0] + "\t" + line[1] + "\t" + line[5] + "\t"
+                             + (ext.isMissingValue(line[4]) ? "."
+                                                            : -1 * (Integer.parseInt(line[4]) - 2));
+            fam.add(affLine);
             pheno.add(line[5]);
           }
         }
@@ -1330,7 +1326,7 @@ public class GeneScorePipeline {
   }
 
   public void runPipeline() {
-    log.report(ext.getTime() + "]\tProcessing study data [" + studies.size() + " total]:");
+    log.reportTime("Processing study data [" + studies.size() + " total]:");
     // if (numThreads == 1) {
     // for (String studyDir : studyFolders) {
     // processStudy(studyDir);
@@ -1345,7 +1341,7 @@ public class GeneScorePipeline {
     // ExecutorService server = Executors.newFixedThreadPool(numThreads);
     //
     // }
-    log.report(ext.getTime() + "]\tProcessing Complete!");
+    log.reportTime("Processing Complete!");
   }
 
   private void processStudy(Study study) {
@@ -1381,8 +1377,8 @@ public class GeneScorePipeline {
         String crossFilterFile = study.studyDir + dataFile + "/" + constraintEntry.getKey() + "/"
                                  + CROSS_FILTERED_DATAFILE;
         if ((new File(crossFilterFile).exists())) {
-          log.report(ext.getTime() + "]\tCross-filtered data file already exists! [ --> '"
-                     + crossFilterFile + "']");
+          log.reportTime("Cross-filtered data file already exists! [ --> '" + crossFilterFile
+                         + "']");
           study.hitSnpCounts.get(constraintEntry.getKey())
                             .put(dataFile, Files.countLines(crossFilterFile, 1));
           continue;
@@ -1392,8 +1388,7 @@ public class GeneScorePipeline {
           continue;
         }
 
-        log.report(ext.getTime() + "]\tCross-filtering data and .meta files [ --> '"
-                   + crossFilterFile + "']");
+        log.reportTime("Cross-filtering data and .meta files [ --> '" + crossFilterFile + "']");
         HashMap<String, GenomicPosition> mkrsMeta = new HashMap<>();
         Map<String, String[]> mkrAlleles = new HashMap<>();
         SnpMarkerSet markerSet = study.data.get(dataFile + "\t" + constraintEntry.getKey())
@@ -1425,15 +1420,14 @@ public class GeneScorePipeline {
         }
 
         if (ambig.size() > 0) {
-          log.report(ext.getTime() + "]\tFound " + ambig.size() + " ambiguous markers out of "
-                     + mkrNames.length
-                     + " (either A/T or G/C allele pairs); make sure you have everything on the same strand, or you many run into problems!");
+          log.reportTime("Found " + ambig.size() + " ambiguous markers out of " + mkrNames.length
+                         + " (either A/T or G/C allele pairs); make sure you have everything on the same strand, or you many run into problems!");
           if (ambig.size() < 10) {
             StringBuilder builder = new StringBuilder(mkrNames[ambig.get(0)]);
             for (int i = 1; i < ambig.size(); i++) {
               builder.append(", ").append(mkrNames[ambig.get(i)]);
             }
-            log.report(ext.getTime() + "]\tAmbiguous markers: " + builder.toString());
+            log.reportTime("Ambiguous markers: " + builder.toString());
           } else {
             PrintWriter writer = Files.getAppropriateWriter(metaDir + "ambiguous.txt");
             for (Integer i : ambig) {
@@ -1444,14 +1438,14 @@ public class GeneScorePipeline {
           }
         }
         if (inval.size() > 0) {
-          log.report(ext.getTime() + "]\tFound " + inval.size() + " invalid markers out of "
-                     + mkrNames.length + ".");
+          log.reportTime("Found " + inval.size() + " invalid markers out of " + mkrNames.length
+                         + ".");
           if (inval.size() < 10) {
             StringBuilder builder = new StringBuilder(inval.get(0));
             for (int i = 1; i < inval.size(); i++) {
               builder.append(", ").append(inval.get(i));
             }
-            log.report(ext.getTime() + "]\tInvalid markers: " + builder.toString());
+            log.reportTime("Invalid markers: " + builder.toString());
           } else {
             PrintWriter writer = Files.getAppropriateWriter(metaDir + "invalid.txt");
             for (Integer i : inval) {
@@ -1554,15 +1548,12 @@ public class GeneScorePipeline {
                                                                                       pValThreshold))
                                                              .build()) {
           int hitCount = crossFilterParser.parseToFile(crossFilterFile, outDelim);
-          log.report(ext.getTime() + "]\tDropped "
-                     + crossFilterParser.getFilteredCount(pValThreshold) + " snps for p-value < "
-                     + constraintEntry.getValue().indexThreshold);
-          log.report(ext.getTime() + "]\tDropped "
-                     + crossFilterParser.getFilteredCount(mkrsAlleleFilter)
-                     + " snps for mismatched alleles.");
-          log.report(ext.getTime() + "]\tDropped "
-                     + crossFilterParser.getFilteredCount(mkrsBimFilter)
-                     + " snps for lacking data.");
+          log.reportTime("Dropped " + crossFilterParser.getFilteredCount(pValThreshold)
+                         + " snps for p-value < " + constraintEntry.getValue().indexThreshold);
+          log.reportTime("Dropped " + crossFilterParser.getFilteredCount(mkrsAlleleFilter)
+                         + " snps for mismatched alleles.");
+          log.reportTime("Dropped " + crossFilterParser.getFilteredCount(mkrsBimFilter)
+                         + " snps for lacking data.");
 
           study.hitSnpCounts.get(constraintEntry.getKey()).put(dataFile, hitCount);
         }
@@ -1579,8 +1570,7 @@ public class GeneScorePipeline {
         String crossFilterFile = prefDir + "/" + CROSS_FILTERED_DATAFILE;
         String hitsFile = prefDir + "/hits_" + filePrefix.getKey() + ".out";
         if ((new File(hitsFile)).exists()) {
-          log.report(ext.getTime() + "]\tHit window analysis file already exists! [ --> '"
-                     + hitsFile + "']");
+          log.reportTime("Hit window analysis file already exists! [ --> '" + hitsFile + "']");
           study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, Files.countLines(hitsFile, 1));
           continue;
         }
@@ -1588,7 +1578,7 @@ public class GeneScorePipeline {
           continue;
         }
 
-        log.report(ext.getTime() + "]\tRunning hit window analysis [ --> '" + hitsFile + "']");
+        log.reportTime("Running hit window analysis [ --> '" + hitsFile + "']");
         String[][] results = HitWindows.determine(crossFilterFile,
                                                   filePrefix.getValue().indexThreshold,
                                                   filePrefix.getValue().windowMinSizePerSide,
@@ -1598,7 +1588,7 @@ public class GeneScorePipeline {
           log.reportError("Error - HitWindows result from " + crossFilterFile + " was null");
         } else {
           int hits = results.length - 1; // Don't count header
-          log.report(ext.getTime() + "]\tFound " + hits + " hit windows");
+          log.reportTime("Found " + hits + " hit windows");
           Files.writeMatrix(results, hitsFile, "\t");
           study.hitWindowCnts.get(filePrefix.getKey()).put(dataFile, hits);
         }
@@ -1672,13 +1662,12 @@ public class GeneScorePipeline {
       for (java.util.Map.Entry<String, Constraint> filePrefix : analysisConstraints.entrySet()) {
         File prefDir = new File(study.studyDir + dataFile + "/" + filePrefix.getKey() + "/");
         if (!prefDir.exists()) {
-          log.report(ext.getTime() + "]\tError - no subfolder for '" + filePrefix.getKey()
-                     + "' analysis");
+          log.reportTime("Error - no subfolder for '" + filePrefix.getKey() + "' analysis");
           continue;
         }
         if ((new File(prefDir + "/" + SCORE_FILE)).exists()) {
-          log.report(ext.getTime() + "]\tPlink analysis results file already exists! [ --> '"
-                     + prefDir + "/" + SCORE_FILE + "']");
+          log.reportTime("Plink analysis results file already exists! [ --> '" + prefDir + "/"
+                         + SCORE_FILE + "']");
           continue;
         }
         DosageData data = study.data.get(dataFile + "\t" + filePrefix.getKey());
@@ -1712,7 +1701,7 @@ public class GeneScorePipeline {
           String mkr = markers[m];
           HitMarker hitMarker = hitMarkerData.get(mkr);
           if (hitMarker == null) {
-            log.report(ext.getTime() + "]\tNo HitMarker data available for " + mkr);
+            log.reportTime("No HitMarker data available for " + mkr);
             continue;
           }
           CONFIG config = determineAlleleConfig(alleles[m], hitMarker);
@@ -2004,7 +1993,7 @@ public class GeneScorePipeline {
 
   private void writeResults() {
     String resFile = metaDir + "results.xln";
-    log.report(ext.getTime() + "]\tWriting regression results... [ --> " + resFile + "]");
+    log.reportTime("Writing regression results... [ --> " + resFile + "]");
     try (PrintWriter writer = Files.getAppropriateWriter(resFile)) {
       writer.println(REGRESSION_HEADER);
 
