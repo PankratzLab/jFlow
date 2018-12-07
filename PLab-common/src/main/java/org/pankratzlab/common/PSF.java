@@ -176,7 +176,6 @@ public class PSF {
   public static class Load {
 
     public static final String MODULE_LOAD_JAVA = "module load java";
-    public static final String MODULE_LOAD_SAMTOOLS = "module load samtools";
     public static final String MODULE_LOAD_RISS_UTIL = "module load riss_util";
     public static final String MODULE_LOAD_R = "module load R";
     public static final String MODULE_LOAD_PERL = "module load perl";
@@ -187,8 +186,7 @@ public class PSF {
 
     public static String[] getAllModules() {
       return new String[] {MODULE_LOAD_JAVA, MODULE_LOAD_PERL, MODULE_LOAD_R, MODULE_LOAD_RISS_UTIL,
-                           MODULE_LOAD_SAMTOOLS, MODULE_LOAD_PYTHON, MODULE_LOAD_NETCDF,
-                           MODULE_LOAD_SINGULARITY};
+                           MODULE_LOAD_PYTHON, MODULE_LOAD_NETCDF, MODULE_LOAD_SINGULARITY};
     }
 
   }
