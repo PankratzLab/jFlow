@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.MultiSet;
+import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.apache.commons.math3.stat.inference.TTest;
 import org.apache.commons.math3.stat.inference.WilcoxonSignedRankTest;
 import org.genvisis.cnv.Resources;
@@ -128,7 +130,10 @@ public class GeneScorePipeline {
   // private boolean writeHist = false;
 
   private final ArrayList<String> metaFiles = new ArrayList<>();
+  private final ArrayList<String> covarFiles = new ArrayList<>();
   private final ArrayList<Study> studies = new ArrayList<>();
+  private final Map<String, Map<String, Double>> covarData = new HashMap<>();
+  private final List<String> covarOrder = new ArrayList<>();
   private final HashMap<String, Constraint> analysisConstraints = new HashMap<>();
   private final HashMap<String, HashMap<String, Integer>> dataCounts = new HashMap<>();
 
@@ -919,6 +924,7 @@ public class GeneScorePipeline {
       }
     }
     loadDataCounts();
+    loadCovarData();
     runMetaHitWindowsAndLoadData();
   }
 
@@ -969,6 +975,8 @@ public class GeneScorePipeline {
         studies.add(study);
       } else if (f.getAbsolutePath().endsWith(".meta")) {
         metaFiles.add(f.getName());
+      } else if (f.getAbsolutePath().endsWith(".covar")) {
+        covarFiles.add(f.getName());
       }
     }
   }
@@ -1063,6 +1071,54 @@ public class GeneScorePipeline {
         }
       }
       Files.write(output.toString(), countsFile);
+    }
+  }
+
+  private void loadCovarData() {
+    for (String cFile : covarFiles) {
+      String[] hdr = Files.getHeaderOfFile(metaDir + cFile, log);
+      if (hdr.length == 2) {
+        // TODO throw error
+        continue;
+      }
+      FileColumn<?>[] data = new FileColumn[hdr.length];
+
+      for (int i = 0; i < hdr.length; i++) {
+        if (i < 2) {
+          data[i] = new AliasedFileColumn(hdr[i]);
+          continue;
+        }
+        data[i] = new DoubleWrapperColumn(new AliasedFileColumn(hdr[i]));
+        if (covarData.containsKey(hdr[i])) {
+          String orig = hdr[i];
+          int cnt = 1;
+          while (covarData.containsKey(hdr[i])) {
+            hdr[i] = orig + "_" + cnt;
+            cnt++;
+          }
+          log.reportTimeWarning("Duplicate covariate name found {" + orig
+                                + "}.  Covar will be renamed to " + hdr[i]);
+        }
+        Map<String, Double> vars = new HashMap<>();
+        covarData.put(hdr[i], vars);
+        covarOrder.add(hdr[i]);
+      }
+      try (FileParser parser = FileParserFactory.setup(metaDir + cFile, data).build()) {
+        for (DataLine line : parser) {
+          String fid = line.getUnsafe((AliasedFileColumn) data[0]);
+          String iid = line.getUnsafe((AliasedFileColumn) data[1]);
+          for (int i = 2; i < data.length; i++) {
+            covarData.get(hdr[i])
+                     .put(fid + "\t" + iid,
+                          line.hasValid(data[i]) ? line.getUnsafe((DoubleWrapperColumn) data[i])
+                                                 : Double.NaN);
+          }
+        }
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
     }
   }
 
@@ -1327,20 +1383,12 @@ public class GeneScorePipeline {
 
   public void runPipeline() {
     log.reportTime("Processing study data [" + studies.size() + " total]:");
-    // if (numThreads == 1) {
-    // for (String studyDir : studyFolders) {
-    // processStudy(studyDir);
-    // }
     for (Study study : studies) {
       createAffectedPhenoFiles(study);
       loadPhenoFiles(study);
       processStudy(study);
     }
     writeResults();
-    // } else {
-    // ExecutorService server = Executors.newFixedThreadPool(numThreads);
-    //
-    // }
     log.reportTime("Processing Complete!");
   }
 
@@ -1830,24 +1878,7 @@ public class GeneScorePipeline {
             }
           }
 
-          // if (!(new File(prefDir + "/scores.hist").exists())) {
-          // double[] scores = new double[scoreData.size()];
-          // int ind = 0;
-          // for (double data : scoreData.values()) {
-          // scores[ind] = data;
-          // ind++;
-          // }
-          // String[] unq = Array.unique(Array.toStringArray(scores));
-          // if (unq.length == 1) {
-          // log.report(ext.getTime()+"]\tError - no variance in scores for " + dataFile + " / " +
-          // filePrefix.getKey() + " -- no .hist file created");
-          // } else {
-          // Files.write((new Histogram(scores)).getSummary().trim(), prefDir + "/scores.hist");
-          // }
-          // }
-
           DosageData data = study.data.get(dataFile + "\t" + filePrefix.getKey());
-          List<Trio> trios = data.getTrios();
           String[][] ids = data.getIds();
           TrioScoreTest trioTests = new TrioScoreTest();
 
@@ -1882,35 +1913,54 @@ public class GeneScorePipeline {
                                   + " total trios) were excluded from paired score analyses because the children were not coded as cases in the fam data.");
           }
 
+          PrintWriter writer = Files.getAppropriateWriter(metaDir + "missingPhenos.id");
           for (int i = 0; i < study.phenoFiles.size(); i++) {
             PhenoData pd = study.phenoData.get(study.phenoFiles.get(i));
             ArrayList<Double> depData = new ArrayList<>();
             ArrayList<double[]> baselineIndeps = new ArrayList<>();
             ArrayList<double[]> indepData = new ArrayList<>();
-
+            MultiSet<String> invalids = new HashMultiSet<>();
             for (java.util.Map.Entry<String, PhenoIndiv> indiv : pd.indivs.entrySet()) {
               if (scoreData.containsKey(indiv.getKey())) {
                 PhenoIndiv pdi = pd.indivs.get(indiv.getKey());
-                double[] baseData = new double[pd.covars.size()];
-                double[] covarData = new double[pd.covars.size() + 1];
-                covarData[0] = scoreData.get(indiv.getKey());
+                double[] baseData = new double[pd.covars.size() + covarData.size()];
+                double[] covarData1 = new double[pd.covars.size() + 1 + covarData.size()];
+                covarData1[0] = scoreData.get(indiv.getKey());
                 boolean validCovars = true;
                 for (int k = 1; k < pd.covars.size() + 1; k++) {
                   Double d = pdi.getCovars().get(pd.covars.get(k - 1));
                   if (d == null) {
-                    log.reportError("Covar value missing for individual: " + indiv.getKey() + " | "
-                                    + pd.covars.get(k - 1));
+                    writer.println(indiv.getKey() + "\t" + pd.covars.get(k - 1));
                     validCovars = false;
+                    invalids.add(pd.covars.get(k - 1));
                   } else {
                     baseData[k - 1] = d.doubleValue();
-                    covarData[k] = d.doubleValue();
+                    covarData1[k] = d.doubleValue();
+                  }
+                }
+                for (int k = 0; k < covarOrder.size(); k++) {
+                  String covarKey = covarOrder.get(k);
+                  Double d = covarData.get(covarKey).get(indiv.getKey());
+                  if (d == null || d.isNaN()) {
+                    writer.println(indiv.getKey() + "\t" + covarKey);
+                    validCovars = false;
+                    invalids.add(covarKey);
+                  } else {
+                    baseData[pd.covars.size() + k] = d.doubleValue();
+                    covarData1[pd.covars.size() + k + 1] = d.doubleValue();
                   }
                 }
                 if (validCovars) {
                   depData.add(pdi.getDepvar());
                   baselineIndeps.add(baseData);
-                  indepData.add(covarData);
+                  indepData.add(covarData1);
                 }
+              }
+            }
+            if (invalids.uniqueSet().size() > 0) {
+              for (String k : invalids.uniqueSet()) {
+                log.reportTimeWarning("Missing " + invalids.getCount(k) + " for covariate " + k
+                                      + ".");
               }
             }
 
@@ -2193,18 +2243,6 @@ public class GeneScorePipeline {
     boolean process = false;
     POPULATION pop = POPULATION.ALL;
     GenomeBuild build = GenomeBuild.HG19;
-    // boolean test = true;
-    // if (test) {
-    // preprocessDataFiles(new String[]{
-    // "D:/GeneScorePipe/Telomere/telo.xln"
-    // });
-    // "D:/GeneScorePipe/Cancer/InputCancer.xln",
-    // "D:/GeneScorePipe/height/GeneScorePipeline/metas/ExtremeHeight.xln",
-    // "D:/GeneScorePipe/height/GeneScorePipeline/metas/height_full.xln",
-    // "D:/height/GeneScorePipeline/HeightScoring/TannerSexCombined.xln"
-    // });
-    // return;
-    // }
 
     String usage = "\n"
                    + "GeneScorePipeline is a convention-driven submodule.  It relies on a standard folder structure and file naming scheme:\n"
@@ -2214,7 +2252,11 @@ public class GeneScorePipeline {
                    + "\t\t\t\t-Effect files may be hand-constructed, or may be generated with the 'preprocess' command from a .xln file\n"
                    + "\t\t\t\t-Effect files contain, at minimum, SNP, Freq, P-value, and Beta/Effect, and, if created with the preprocessor, will include any additional information present in the .xln file\n"
                    + "\t\t\t\t-HitWindows analysis will be run on SNP Effect files, with results being used in regression analysis; the\n"
-                   + "\t\t\t\tadditional arguments to GeneScorePipeline affect only the HitWindows processing.\n"
+                   + "\t\t\t\t\tadditional arguments to GeneScorePipeline affect only the HitWindows processing.\n"
+                   + "\t\t\t>Covariate files:\n"
+                   + "\t\t\t\t-Covariate files must end with '.covar'.\n"
+                   + "\t\t\t\t-Covariate data will be added to ALL analyses.\n"
+                   + "\t\t\t\t-Covariate files contain, at minimum, two ID columns (FID and IID), and any number of data columns.\n"
                    + "\t\t\t>Data Source Directory 1\n"
                    + "\t\t\t\t>data.txt file [defines location of data, which may be in an arbitrary location in the filesystem]\n"
                    + "\t\t\t\t\tExample:\n"
@@ -2222,14 +2264,15 @@ public class GeneScorePipeline {
                    + "\t\t\t\t\tdataLabel2\tfullPathDataFile2\tFullPathMapFile2\tFullPathIdFile2\n"
                    + "\t\t\t\t\tdataLabel3\tdir1\tdataFileExt1\tmapFileExt1\tidFile3\n"
                    + "\t\t\t\t\tdataLabel4\tdir2\tdataFileExt2\tmapFileExt2\tidFile4\n"
-                   + "\t\t\t\t\t>For data files that contain map or ID info, 'FullPathMapFile' / 'FullPathIdFile' / 'mapFileExt1' / 'idFile' can be replaced with a period ('.')."
-                   + "\t\t\t\t>PhenoData1.pheno file [Any '.pheno' files will be included as covariate data in the regression analysis]\n"
-                   + "\t\t\t\t\t[Note: if data is in PLINK format and contains valid affected status information, an AFFECTED.PHENO file will be created]\n"
-                   +
-
-                   "\t\t\t\t>Pheno2.pheno file\n" + "\t\t\t>Data Source Directory 2\n"
-                   + "\t\t\t\t>data.txt file\n" + "\t\t\t\t>Pheno3.pheno file\n" + "\t\t\t>...\n"
-                   + "\n" + "\n" + "gwas.GeneScorePipeline requires 1+ arguments\n"
+                   + "\t\t\t\t\t>For data files that contain map or ID info, 'FullPathMapFile' / 'FullPathIdFile' / 'mapFileExt1' / 'idFile' can be replaced with a period ('.').\n"
+                   + "\t\t\t\t>Phenotype files\n"
+                   + "\t\t\t\t\t-Phenotype files must end with '.pheno'.\n"
+                   + "\t\t\t\t\t-All '.pheno' files will be included as a separate regression analysis\n"
+                   + "\t\t\t\t\t-Phenotype files contain, at minimum, two ID columns (FID and IID), a dependent variable column, and any number of covariate columns.\n"
+                   + "\t\t\t\t\t\t[Note: if data is in PLINK format and contains valid phenotype status information, an AFFECTED.PHENO file will be created]\n"
+                   + "\t\t\t>Data Source Directory 2\n" + "\t\t\t\t>data.txt file\n"
+                   + "\t\t\t\t>Pheno3.pheno file\n" + "\t\t\t>...\n" + "\n" + "\n"
+                   + "gwas.GeneScorePipeline requires 1+ arguments\n"
                    + "   (1) Pre-process data files (i.e. process=path/to/file1.xln,path/to/file2.xln (not the default)) \n"
                    + "  OR\n"
                    + "   (1) Metastudy directory root, containing subdirectories for each study (i.e. workDir=C:/ (not the default))\n"

@@ -17,6 +17,10 @@ public class AliasedFileColumn extends AbstractFileColumn<String> implements Ind
   private int matchedIndex;
   private String matchedAlias = null;
 
+  public AliasedFileColumn(String name) {
+    this(name, name);
+  }
+
   /**
    * {@link #AliasedFileColumn(String, Aliases)} with a strategy that fails if it finds multiple
    * matches, and isn't case-sensitive.
