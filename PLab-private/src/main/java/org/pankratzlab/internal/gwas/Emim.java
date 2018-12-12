@@ -405,7 +405,8 @@ public class Emim {
     } else {
       commands += "\npremim -rout " + EMIM_MINOR_SNP_FILENAME + " emimPrep.bed\n";
       if (riskAlleleFile != null) {
-        commands += Files.getRunString() + " gwas.Emim riskAlleles=" + riskAlleleFile + "\n\n";
+        commands += Files.getRunString() + " " + Emim.class.getCanonicalName() + " riskAlleles="
+                    + riskAlleleFile + "\n\n";
       } else {
         commands += "cp " + EMIM_MINOR_SNP_FILENAME + " " + EMIM_RISK_SNP_FILENAME + "\n";
       }
@@ -460,19 +461,20 @@ public class Emim {
                      + " EMIM");
         } else {
           parseModel = true;
-          commands += "\n" + Files.getRunString() + " gwas.Emim run=" + runID + " model="
-                      + model.toString() + "\n" + "emim\n" + "mv emimsummary.out emimsummary_"
-                      + runID + "_" + model.toString() + ".out\n" + "rm emimresults.out\n"
-                      + "cp emimparams.dat emimparams_" + runID + "_" + model.toString() + ".dat\n";
+          commands += "\n" + Files.getRunString() + " " + Emim.class.getCanonicalName() + " run="
+                      + runID + " model=" + model.toString() + "\n" + "emim\n"
+                      + "mv emimsummary.out emimsummary_" + runID + "_" + model.toString()
+                      + ".out\n" + "rm emimresults.out\n" + "cp emimparams.dat emimparams_" + runID
+                      + "_" + model.toString() + ".dat\n";
         }
       }
 
       if (model.isOptional()
           && (forceParse || parseModel
               || !Files.exists(currDir + formParsedOutFileName(resultPrefix, model)))) {
-        parseCommands += Files.getRunString() + " gwas.Emim parse=./" + " hwe=plink.hwe"
-                         + " frq=plink.frq" + " pThreshold=" + pThreshold + " model="
-                         + model.toString()
+        parseCommands += Files.getRunString() + " " + Emim.class.getCanonicalName() + " parse=./"
+                         + " hwe=plink.hwe" + " frq=plink.frq" + " pThreshold=" + pThreshold
+                         + " model=" + model.toString()
                          + (resultPrefix == null ? "" : " resultPrefix=" + resultPrefix) + "\n\n";
       }
     }
@@ -520,25 +522,25 @@ public class Emim {
     // "plink2 --noweb --bfile emimPrep --hardy\n"+
     // "premim -cg -a -rout risksnplist.txt emimPrep.bed\n"+
     // "\n"+
-    // "jcp gwas.Emim run=C\n"+
+    // "jcp " + Emim.class.getCanonicalName() + " run=C\n"+
     // "emim\n"+
     // "mv emimsummary.out emimsummary_C.out\n"+
     // "mv emimresults.out emimresults_C.out\n"+
     // "cp emimparams.dat emimparams_C.dat\n"+
     // "\n"+
-    // "jcp gwas.Emim run=CM\n"+
+    // "jcp " + Emim.class.getCanonicalName() + " run=CM\n"+
     // "emim\n"+
     // "mv emimsummary.out emimsummary_CM.out\n"+
     // "mv emimresults.out emimresults_CM.out\n"+
     // "cp emimparams.dat emimparams_CM.dat\n"+
     // "\n"+
-    // "jcp gwas.Emim run=M\n"+
+    // "jcp " + Emim.class.getCanonicalName() + " run=M\n"+
     // "emim\n"+
     // "mv emimsummary.out emimsummary_M.out\n"+
     // "mv emimresults.out emimresults_M.out\n"+
     // "cp emimparams.dat emimparams_M.dat\n"+
     // "\n"+
-    // "jcp gwas.Emim parse=./ hwe=plink.hwe pThreshold=" + pThreshold;
+    // "jcp " + Emim.class.getCanonicalName() + " parse=./ hwe=plink.hwe pThreshold=" + pThreshold;
     //
     // Files.qsub(plinkPrefix+"_runEmim.pbs", commands, 5000, 24, 1);
   }
@@ -608,7 +610,7 @@ public class Emim {
     String keepFile = null;
     String resultPrefix = null;
 
-    String usage = "\n" + "gwas.Emim requires 0-1 arguments\n"
+    String usage = "\n" + Emim.class.getCanonicalName() + " requires 0-1 arguments\n"
                    + "   (1) run type (either C, CM, or M) (i.e. run=" + runType + " (default))\n"
                    + "   (2) model (" + ArrayUtils.toStr(EMIM_MODEL.values(), ",")
                    + ") (i.e. model=" + model.toString() + " (default))\n" + "  OR\n"
