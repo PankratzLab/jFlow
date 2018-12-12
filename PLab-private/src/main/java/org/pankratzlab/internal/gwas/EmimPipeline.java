@@ -281,7 +281,8 @@ public class EmimPipeline {
 
     String processCommand = "cd " + runDir + "\n";
 
-    processCommand += Files.getRunString() + " gwas.EmimPipeline -process dir=" + runDir;
+    processCommand += Files.getRunString() + " " + EmimPipeline.class.getCanonicalName()
+                      + " -process dir=" + runDir;
     if (cnvFiles != null) {
       processCommand += " cnvs=" + ArrayUtils.toStr(cnvFiles, ",");
     }
@@ -635,7 +636,7 @@ public class EmimPipeline {
     boolean phaseWithShapeit = false;
     String forestMarkers = "./gwasHits.txt";
 
-    String usage = "\n" + "gwas.EmimPipeline requires 2-8 arguments\n"
+    String usage = "\n" + EmimPipeline.class.getCanonicalName() + " requires 2-8 arguments\n"
                    + "   (1) run directory (i.e. dir=" + runDir + " (default))\n" + " AND\n"
                    + "   (2a) cnv files (i.e. cnvs=cnvFile1.cnv,cnvFile2.cnv (not the default))\n"
                    + " AND/OR \n"
