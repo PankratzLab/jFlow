@@ -144,6 +144,7 @@ public class GeneScorePipeline {
   // private int bimA2Index = 5;
 
   private final int hitsMkrIndex = 1;
+  private final boolean runMetaHW;
 
   private final Logger log;
 
@@ -888,9 +889,11 @@ public class GeneScorePipeline {
   }
 
   public GeneScorePipeline(String metaDir, float[] indexThresholds, int[] windowMins,
-                           float[] windowExtThresholds, double missThresh, Logger log) {
+                           float[] windowExtThresholds, double missThresh, boolean runMetaHW,
+                           Logger log) {
     this.log = log;
     this.metaDir = ext.verifyDirFormat(metaDir);
+    this.runMetaHW = runMetaHW;
     // this.numThreads = numThreads;
     // this.runPlink = plink;
     // this.runRegression = runPlink && regression;
@@ -1133,7 +1136,7 @@ public class GeneScorePipeline {
 
         int metaCount = Files.countLines(metaDir + dFile, 0);
 
-        if (metaCount > 1000) {
+        if (metaCount > 1000 && runMetaHW) {
           String[][] results = HitWindows.determine(metaDir + dFile,
                                                     filePrefix.getValue().indexThreshold,
                                                     filePrefix.getValue().windowMinSizePerSide,
@@ -1143,7 +1146,8 @@ public class GeneScorePipeline {
             log.reportError("HitWindows result was null for " + dFile + ". Using all SNPs");
           } else {
             log.reportTime("Found " + results.length + " hit windows");
-            for (String[] result : results) {
+            for (int i = 1; i < results.length; i++) {
+              String[] result = results[i];
               try {
                 hitMkrLocations.put(result[1], new int[] {Integer.parseInt(result[2]),
                                                           Integer.parseInt(result[3])});
@@ -1792,6 +1796,8 @@ public class GeneScorePipeline {
             int mkrIndex = mkrIndexEntry.getValue();
             float dosage = dose[mkrIndex][i];
             boolean isNaN = Float.isNaN(dosage);
+            float mkrFrq = matchedMarkerFreqs.get(mkr);
+            boolean nanFrq = Float.isNaN(mkrFrq);
             HitMarker hitMarker = hitMarkerData.get(mkr);
             float beta = hitMarker.getEffect().floatValue();
 
@@ -1799,11 +1805,11 @@ public class GeneScorePipeline {
             if (alleleOrder.equals(StrandOps.AlleleOrder.OPPOSITE)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : dosage;
-              scoreSum += (isNaN ? matchedMarkerFreqs.get(mkr) : dosage) * beta;
+              scoreSum += (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage) * beta;
             } else if (alleleOrder.equals(StrandOps.AlleleOrder.SAME)) {
               cnt += isNaN ? 0 : 1;
               cnt2 += isNaN ? 0 : (2.0 - dosage);
-              scoreSum += (2.0 - (isNaN ? matchedMarkerFreqs.get(mkr) : dosage)) * beta;
+              scoreSum += (2.0 - (isNaN ? (nanFrq ? 0 : mkrFrq) : dosage)) * beta;
             } else {
               throw new IllegalStateException("Mismatched alleles were not caught when cross-filtering");
             }
@@ -2241,6 +2247,7 @@ public class GeneScorePipeline {
 
     String[] processList = null;
     boolean process = false;
+    boolean runMetaHW = true;
     POPULATION pop = POPULATION.ALL;
     GenomeBuild build = GenomeBuild.HG19;
 
@@ -2284,7 +2291,10 @@ public class GeneScorePipeline {
                    + "   (4) p-value threshold to extend the window (or comma delimited list) (i.e. "
                    + ARG_WINDOW_EXT + DEFAULT_WINDOW_EXTENSION_THRESHOLD + " (default))\n"
                    + "   (5) minimum ratio of missing data for an individual's gene loading score to be included in the final analysis (i.e. "
-                   + ARG_MISS_THRESH + DEFAULT_MIN_MISS_THRESH + " (default))\n" +
+                   + ARG_MISS_THRESH + DEFAULT_MIN_MISS_THRESH + " (default))\n"
+                   + "   (6) Enable/Disable HitWindows on input '.meta' files (only applicable if #snps > 1000) (i.e. runMetaHW="
+                   + runMetaHW + " (default))\n" +
+
                    // " (8) Number of threads to use for computation (i.e. threads=" + threads + "
                    // (default))\n" +
                    "";
@@ -2353,6 +2363,8 @@ public class GeneScorePipeline {
         }
       } else if (arg.startsWith(ARG_MISS_THRESH)) {
         mT = ext.parseDoubleArg(arg);
+      } else if (arg.startsWith("runMetaHW=")) {
+        runMetaHW = ext.parseBooleanArg(arg);
       } else if (arg.startsWith("log=")) {
         logFile = arg.split("=")[1];
       } else {
@@ -2385,7 +2397,7 @@ public class GeneScorePipeline {
     // System.err.println("Error - '-runPlink' option is required for '-writeHist' option");
     // System.exit(1);
     // }
-    GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, log);
+    GeneScorePipeline gsp = new GeneScorePipeline(workDir, iT, mZ, wT, mT, runMetaHW, log);
     gsp.runPipeline();
   }
 
