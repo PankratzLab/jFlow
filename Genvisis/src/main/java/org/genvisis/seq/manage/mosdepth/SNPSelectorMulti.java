@@ -69,21 +69,26 @@ public class SNPSelectorMulti extends NGSBinSNPSelector {
           contigMap.put(vch.getID(), (int) Positions.chromosomeNumber(vch.getID()));
         });
 
+        Set<Integer> found = new HashSet<>();
         for (Segment bin : bins.getLoci()) {
           // no variants in file for this bin's chromosome  
-          if (bin.getChr() != vcf.getKey() || !contigMap.containsValue((int) bin.getChr())
+          if (bin.getChr() != vcf.getKey().intValue()
+              || !contigMap.containsValue((int) bin.getChr())
               || !chrs.contains((int) bin.getChr())) {
             //            System.err.println("Error - bin contig " + bin.getChr()
             //                               + " was not present in the VCF!");
             continue;
           }
+          found.add((int) bin.getChr());
           writeSelectedForBin(bin, useChrPrepend, contigMap, reader, vcfWriter);
         }
-
+        log.reportTimeWarning("Found " + found.size() + " chrs (" + found.toString() + ") in vcf "
+                              + vcf.getValue());
       }
 
       log.reportTime("Finished processing chr " + vcf.getKey() + " in "
                      + ext.getTimeElapsedNanos(startN) + "!");
+      writeStats();
     }
     vcfWriter.close();
   }

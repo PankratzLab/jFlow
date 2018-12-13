@@ -62,6 +62,7 @@ public class SNPSelectorSingle extends NGSBinSNPSelector {
     log.reportTime("Finished processing  " + inputFile + " in " + ext.getTimeElapsedNanos(startN)
                    + "!");
     vcfWriter.close();
+    writeStats();
   }
 
   public static void main(String[] args) {

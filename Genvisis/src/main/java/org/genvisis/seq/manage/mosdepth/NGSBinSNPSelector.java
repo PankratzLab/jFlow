@@ -205,48 +205,52 @@ public abstract class NGSBinSNPSelector {
 
   private List<FilterSet> parseFilters(MappabilityCompute mc) {
 
-    String[] filters = {"SVM|-;AF|>.45,<.55;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.44,<.56;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.43,<.57;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.42,<.58;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.41,<.59;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
-                        "SVM|-;AF|>.4,<.6;MQ|>=.98;AVGDP|>20",
-                        "SVM|-;AF|>.4,<.6;MQ|>=.97;AVGDP|>20",
-                        "SVM|-;AF|>.4,<.6;MQ|>=.96;AVGDP|>20",
-                        "SVM|-;AF|>.4,<.6;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.39,<.61;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.38,<.62;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.37,<.63;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.36,<.64;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.95;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.94;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.93;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.92;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.91;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.9;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.89;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.88;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.87;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.86;AVGDP|>20",
-                        "SVM|-;AF|>.35,<.65;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.34,<.66;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.33,<.67;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.32,<.68;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.31,<.69;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.3,<.7;MQ|>=.85;AVGDP|>20",
-                        "SVM|-;AF|>.3,<.7;MQ|>=.84;AVGDP|>20",
-                        "SVM|-;AF|>.3,<.7;MQ|>=.83;AVGDP|>20",
-                        "SVM|-;AF|>.3,<.7;MQ|>=.82;AVGDP|>20",
-                        "SVM|-;AF|>.3,<.7;MQ|>=.81;AVGDP|>20", "SVM|-;AF|>.3,<.7;MQ|>=.8;AVGDP|>20",
-                        "SVM|-;AF|>.28,<.72;MQ|>=.8;AVGDP|>20",
-                        "SVM|-;AF|>.26,<.74;MQ|>=.8;AVGDP|>20",
-                        "SVM|-;AF|>.24,<.76;MQ|>=.8;AVGDP|>20",
-                        "SVM|-;AF|>.22,<.78;MQ|>=.8;AVGDP|>20",
-                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>20", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>19",
-                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>18", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>17",
-                        "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>16", "SVM|-;AF|>.2,<.8;MQ|>=.8;AVGDP|>15",
-                        "SVM|-;AF|>.05,<.95;MQ|>=.8;AVGDP|>10",};
+    String[] filters = {"SVM|-!;AF|>.45,<.55;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.44,<.56;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.43,<.57;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.42,<.58;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.41,<.59;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.98;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.97;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.96;AVGDP|>20",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.39,<.61;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.38,<.62;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.37,<.63;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.36,<.64;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.95;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.94;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.93;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.92;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.91;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.9;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.89;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.88;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.87;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.86;AVGDP|>20",
+                        "SVM|-!;AF|>.35,<.65;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.34,<.66;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.33,<.67;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.32,<.68;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.31,<.69;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.85;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.84;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.83;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.82;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.81;AVGDP|>20",
+                        "SVM|-!;AF|>.3,<.7;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.28,<.72;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.26,<.74;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.24,<.76;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.22,<.78;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>20",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>19",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>18",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>17",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>16",
+                        "SVM|-!;AF|>.2,<.8;MQ|>=.8;AVGDP|>15",
+                        "SVM|-!;AF|>.05,<.95;MQ|>=.8;AVGDP|>10",};
     return parseFilters(filters, mc);
   }
 
@@ -294,8 +298,10 @@ public abstract class NGSBinSNPSelector {
     }
     if (filterDefsFile != null) {
       filters = parseFilters(filterDefsFile, mc);
+      log.reportTime("Loaded " + filters.size() + " user-created filters.");
     } else {
       filters = parseFilters(mc);
+      log.reportTime("Loaded " + filters.size() + " default filters.");
     }
   }
 
@@ -322,6 +328,19 @@ public abstract class NGSBinSNPSelector {
     return vcfWriter;
   }
 
+  long nonBi = 0;
+  long wasFi = 0;
+  long wasID = 0;
+
+  void writeStats() {
+    log.reportTimeWarning(nonBi + " snps were ignored for being non-biallelic.");
+    log.reportTimeWarning(wasFi + " snps were ignored for being filtered.");
+    log.reportTimeWarning(wasID + " snps were ignored for being indels.");
+    nonBi = 0;
+    wasFi = 0;
+    wasID = 0;
+  }
+
   void writeSelectedForBin(Segment bin, boolean useChrPrepend, BidiMap<String, Integer> contigMap,
                            VCFFileReader reader, VariantContextWriter vcfWriter) {
     List<VariantContext> iter = reader.query((useChrPrepend ? "chr" : "") + bin.getChr(),
@@ -339,14 +358,17 @@ public abstract class NGSBinSNPSelector {
       for (VariantContext vc : iter) {
         if (!vc.isBiallelic()) {
           // skip multi-allelic snps
+          nonBi++;
           continue;
         }
         if (vc.isFiltered()) {
           // skip VQSRTranche snps
+          wasFi++;
           continue;
         }
         //        if (vc.isIndel()) {
         //          // skip indels
+        //          wasID++;
         //          continue;
         //        }
         List<Filter> failedFilters = filterSet.check(vc);

@@ -1,5 +1,6 @@
 package org.genvisis.seq.manage.mosdepth;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -36,10 +37,10 @@ public class MappabilityCompute {
   }
 
   public double getAverageMap(VariantContext vc, int bpBufferAroundVariant) {
-    List<BEDFeatureSeg> overlappingMapEntries = Arrays.asList(segSet.getOverLappingLoci(VCOps.getSegment(vc)
-                                                                                             .getBufferedSegment(bpBufferAroundVariant)));
-    //    BEDFeatureSeg[] overlappingMapEntries = segSet.getOverLappingLoci(VCOps.getSegment(vc)
-    //                                                                           .getBufferedSegment(bpBufferAroundVariant));
+    BEDFeatureSeg[] overlappingMapArr = segSet.getOverLappingLoci(VCOps.getSegment(vc)
+                                                                       .getBufferedSegment(bpBufferAroundVariant));
+    List<BEDFeatureSeg> overlappingMapEntries = overlappingMapArr != null
+                                                && overlappingMapArr.length > 0 ? Arrays.asList(segSet.getOverLappingLoci(VCOps.getSegment(vc).getBufferedSegment(bpBufferAroundVariant))) : new ArrayList<>();
     switch (overlappingMapEntries.size()) {
       case 0:
         return 0;
