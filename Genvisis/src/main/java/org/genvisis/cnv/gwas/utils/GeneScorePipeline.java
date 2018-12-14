@@ -1249,7 +1249,6 @@ public class GeneScorePipeline {
   }
 
   private void createAffectedPhenoFiles(Study study) {
-    // String famFile = study.studyDir + "plink.fam";
     String affFile = study.studyDir + "AFFECTED.pheno";
 
     // skip if we don't have PHENO data
@@ -1274,33 +1273,35 @@ public class GeneScorePipeline {
     // 2
     // 3
     // 4 - sex
-    // 5 - pheno
+    // 5 - pheno4
+
     ArrayList<String> fam = new ArrayList<>();
-    ArrayList<String> pheno = new ArrayList<>();
+    Map<String, String> sex = new HashMap<>();
+    Map<String, String> pheno = new HashMap<>();
     String temp;
+    boolean override = false;
     try {
+      // possible for `isPlinkData()` to return true if there are multiple PLINK data sets
       for (int i = 0; i < study.dataSources.size(); i++) {
-        reader = Files.getAppropriateReader(study.dataSources.get(i).idFile); // only satisfies
-                                                                             // 'isPlinkData()'
-                                                                             // if only one data
-                                                                             // source is present
+        reader = Files.getAppropriateReader(study.dataSources.get(i).idFile);
         while ((temp = reader.readLine()) != null) {
           String[] line = temp.split(PSF.Regex.GREEDY_WHITESPACE);
           if (!ext.isMissingValue(line[5]) && ext.isValidDouble(line[5])) {
-            String affLine = line[0] + "\t" + line[1] + "\t" + line[5] + "\t"
-                             + (ext.isMissingValue(line[4]) ? "."
+            String pheS = line[5];
+            String sexS = "" + (ext.isMissingValue(line[4]) ? "."
                                                             : -1 * (Integer.parseInt(line[4]) - 2));
-            fam.add(affLine);
-            pheno.add(line[5]);
+            fam.add(line[0] + "\t" + line[1]);
+            sex.put(line[0] + "\t" + line[1], sexS);
+            String prev = pheno.put(line[0] + "\t" + line[1], pheS);
+            if (prev != null && !ext.isMissingValue(prev)) {
+              log.reportError("Duplicate ID found in Plink data sets for study '" + study.studyName
+                              + "'.  Please reconcile or combine data sets externally and try again.  GeneScorePipeline will continue without Plink phenotype analysis.");
+              override = true;
+              break;
+            }
           }
         }
-
-        String[] unique = ArrayUtils.unique(pheno.toArray(new String[] {}));
-        if (unique.length == 1) {
-          log.report("Error - no variance in pheno data from .fam file for study '"
-                     + study.studyName + "'");
-          continue;
-        }
+        if (override) break;
       }
     } catch (NumberFormatException e) {
       // TODO Auto-generated catch block
@@ -1310,11 +1311,21 @@ public class GeneScorePipeline {
       e.printStackTrace();
     }
 
+    String[] unique = ArrayUtils.unique(pheno.values().toArray(new String[] {}));
+    if (unique.length == 1) {
+      log.reportTimeWarning("Error - no variance in pheno data from .fam file(s) for study '"
+                            + study.studyName + "'.  Plink phenotype analysis will be skipped.");
+      override = true;
+    }
+    if (override) {
+      // either duplicate pheno entry or no variance, either way skip creating file
+      return;
+    }
     String header = "FID\tIID\tPHENO\tMALE";
     PrintWriter writer = Files.getAppropriateWriter(affFile);
     writer.println(header);
     for (String line : fam) {
-      writer.println(line);
+      writer.println(line + "\t" + pheno.get(line) + "\t" + sex.get(line));
     }
     writer.flush();
     writer.close();
