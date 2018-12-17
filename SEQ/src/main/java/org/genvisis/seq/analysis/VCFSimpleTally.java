@@ -287,6 +287,10 @@ public class VCFSimpleTally {
       return genes;
     }
 
+    private boolean containsGene(String gene) {
+      return genes.containsKey(gene.toUpperCase());
+    }
+
     private void load() {
       genes = new Hashtable<>();
       try {
@@ -1042,8 +1046,7 @@ public class VCFSimpleTally {
               addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries, geneName);
             }
             for (int j = 0; j < geneSets.length; j++) {
-              if ((geneSets[j].getGenes().containsKey(geneName)
-                   || geneSets[j].getGenes().containsKey(ANY_GENE_SET))
+              if ((geneSets[j].containsGene(geneName) || geneSets[j].containsGene(ANY_GENE_SET))
                   && !geneSummaries.containsKey(geneSets[j].getTag())) {
                 addEntries(caseDef, hqCaseDef, controlsOrdered, geneSummaries,
                            geneSets[j].getTag());
@@ -1061,8 +1064,7 @@ public class VCFSimpleTally {
               geneSummaries.get(geneName).get(1)[j].add(vcCaseGroup, null);
 
               for (GeneSet geneSet : geneSets) {
-                if (geneSet.getGenes().containsKey(geneName)
-                    || geneSet.getGenes().containsKey(ANY_GENE_SET)) {
+                if (geneSet.containsGene(geneName) || geneSet.containsGene(ANY_GENE_SET)) {
                   geneSummaries.get(geneSet.getTag()).get(0)[j].add(vcHqCaseGroup,
                                                                     geneSet.getTag());
                   geneSummaries.get(geneSet.getTag()).get(1)[j].add(vcCaseGroup, geneSet.getTag());
@@ -1109,8 +1111,8 @@ public class VCFSimpleTally {
                                      + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
                                                                                 vc, ".")));
               for (GeneSet geneSet : geneSets) {
-                annoWriterSample.print("\t" + (geneSet.getGenes().containsKey(geneName)
-                                               || geneSet.getGenes().containsKey(ANY_GENE_SET)));
+                annoWriterSample.print("\t" + (geneSet.containsGene(geneName)
+                                               || geneSet.containsGene(ANY_GENE_SET)));
               }
               annoWriterSample.print("\t" + !lqs.contains(g.getSampleName()));
               annoWriterSample.println();
@@ -1121,8 +1123,7 @@ public class VCFSimpleTally {
               for (int k = 0; k < geneSummaries.get(geneName).get(0).length; k++) {
                 geneSummaries.get(geneName).get(j + 2)[k].add(vcControlGroup, null);// all, hq
                 for (GeneSet geneSet : geneSets) {
-                  if (geneSet.getGenes().containsKey(geneName)
-                      || geneSet.getGenes().containsKey(ANY_GENE_SET)) {
+                  if (geneSet.containsGene(geneName) || geneSet.containsGene(ANY_GENE_SET)) {
                     geneSummaries.get(geneSet.getTag()).get(j + 2)[k].add(vcControlGroup,
                                                                           geneSet.getTag());
                   }
@@ -1133,8 +1134,8 @@ public class VCFSimpleTally {
             annoWriter.print("\t" + ArrayUtils.toStr(VCOps.getAnnotationsFor(variantAnnotations[0],
                                                                              vc, ".")));
             for (GeneSet geneSet : geneSets) {
-              annoWriter.print("\t" + (geneSet.getGenes().containsKey(geneName)
-                                       || geneSet.getGenes().containsKey(ANY_GENE_SET)));
+              annoWriter.print("\t" + (geneSet.containsGene(geneName)
+                                       || geneSet.containsGene(ANY_GENE_SET)));
             }
             annoWriter.println();
           }
@@ -1162,8 +1163,8 @@ public class VCFSimpleTally {
 
           annoGeneWriter.print("\t" + isGeneSet(geneSets, gene));
           for (GeneSet geneSet : geneSets) {
-            annoGeneWriter.print("\t" + (geneSet.getGenes().containsKey(gene)
-                                         || geneSet.getGenes().containsKey(ANY_GENE_SET)));
+            annoGeneWriter.print("\t" + (geneSet.containsGene(gene)
+                                         || geneSet.containsGene(ANY_GENE_SET)));
           }
           annoGeneWriter.println();
         }
