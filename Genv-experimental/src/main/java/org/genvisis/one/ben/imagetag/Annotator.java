@@ -155,11 +155,11 @@ public class Annotator implements IAnnotator {
     String path = ext.rootOf(fullPathToFile, false);
     int i = -1;
     if ((i = path.lastIndexOf('/')) >= 0) {
-      path = path.substring(0, i - 1);
+      path = path.substring(0, i);
       i = path.lastIndexOf('/');
       path = path.substring(i + 1);
     } else if ((i = path.lastIndexOf('\\')) >= 0) {
-      path = path.substring(0, i - 1);
+      path = path.substring(0, i);
       i = path.lastIndexOf('\\');
       path = path.substring(i + 1);
     }
