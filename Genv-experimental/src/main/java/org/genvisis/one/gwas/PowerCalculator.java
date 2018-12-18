@@ -446,6 +446,9 @@ public class PowerCalculator {
       // rangeOfMaf(0.001, 0.01, 148, 316, 1000000, false); // Logan's Ewings grant, ALSF, mets
       // rangeOfMaf(0.001, 0.01, 464, 464, 1000000, false); // Logan's Ewings grant, ALSF, gwas
 
+      // rangeOfMaf(0.001, 0.01, 181, 385, 1000000, false); // Logan's Ewings grant, ALSF v2, mets
+      // rangeOfMaf(0.001, 0.01, 566, 464, 1000000, false); // Logan's Ewings grant, ALSF v2, gwas
+
       // rangeOfRelativeRisk(0.15, 200, false);
       // getSampleSize();
       // getSampleSizeForASetOfPairings("D:/Myron/Indian_Diabetes/SequencingPilot/power.input");
@@ -453,7 +456,7 @@ public class PowerCalculator {
 
       //      simulateSomaticDistribution(210, 0.025, 20000, 9, 1000, true);
       //      powerSomaticDistribution(210, 0.03, 20000, 9, 100, 100);
-      powerSomaticDistribution(285, 0.03, 500, 1, 100, 100);
+      //      powerSomaticDistribution(285, 0.03, 500, 1, 100, 100);
       //      simulateSomaticCaseControl(80, 130, 16, 12, 20000, 9, 100, true);
       //      powerSomaticCaseControl(80, 130, 0.18, 0.05, 20000, 9, 100, 100);
 
@@ -465,8 +468,8 @@ public class PowerCalculator {
 
       //      rangeOfMaf(0.001, 0.01, 1043, 712, 5000, false); // Lindsay Combined CNV
 
-      rangeOfMaf(0.001, 0.01, 1368, 7251, 1000000, false); // Lindsay Males take 2
-      rangeOfMaf(0.001, 0.01, 1119, 7251, 1000000, false); // Lindsay Females take 2
+      //      rangeOfMaf(0.001, 0.01, 1368, 7251, 1000000, false); // Lindsay Males take 2
+      //      rangeOfMaf(0.001, 0.01, 1119, 7251, 1000000, false); // Lindsay Females take 2
 
     } catch (Exception e) {
       e.printStackTrace();
