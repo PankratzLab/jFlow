@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -650,8 +651,33 @@ public class ImageAnnotator {
     }
   }
 
+  // org.apache.commons.lang3.StringUtils.isEmpty(cs)
+  public static boolean isEmpty(final CharSequence cs) {
+    return cs == null || cs.length() == 0;
+  }
+
+  // adapted from org.apache.commons.lang3.StringUtils.isNumeric(cs)
+  public static boolean hasNumeric(final CharSequence cs) {
+    if (isEmpty(cs)) {
+      return false;
+    }
+    final int sz = cs.length();
+    for (int i = 0; i < sz; i++) {
+      if (Character.isDigit(cs.charAt(i))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void reloadControls() {
     String[] fcsKeys = annotator.getRoots().toArray(new String[0]);
+    // Comparator adapted from https://stackoverflow.com/questions/41085394/java-comparator-alphanumeric-strings
+    Arrays.sort(fcsKeys, Comparator.comparingLong(s -> hasNumeric(
+                                                                  // if there are any digits in the string, delete all non-digit characters and compare the resulting values
+                                                                  s.toString()) ? Long.parseLong(s.toString().replaceAll("\\D", "")) : 0)
+                                   // then delete all digit characters and compare the resulting strings
+                                   .thenComparing(s -> s.toString().replaceAll("\\d", "")));
     DefaultComboBoxModel<String> dcbm = new DefaultComboBoxModel<>(fcsKeys);
     sampleCombo.setModel(dcbm);
     if (sampleCombo.getModel().getSize() > 0) {
