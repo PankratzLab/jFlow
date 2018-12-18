@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -2061,6 +2062,16 @@ public class Files {
       System.exit(1);
     }
     return null;
+  }
+
+  public static Comparator<File> sizeComparator() {
+    return new Comparator<File>() {
+
+      @Override
+      public int compare(File file1, File file2) {
+        return Long.compare(getSize(file1), getSize(file2));
+      }
+    };
   }
 
   public static long getSize(String filename) {
