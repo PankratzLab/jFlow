@@ -1162,6 +1162,7 @@ public class ImageAnnotator {
       setLastUsedAnnotationDir(ext.verifyDirFormat(ext.parseDirectoryOfFile(annFile)));
       recentAnnotFiles.add(annFile);
       reloadControls();
+      mnTravAnn.removeAll();
       for (Annotation a : annotator.getAnnotations()) {
         addAnnotationToTraversalMenu(a);
       }
