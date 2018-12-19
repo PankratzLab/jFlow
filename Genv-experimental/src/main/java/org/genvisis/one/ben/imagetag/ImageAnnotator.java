@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -59,6 +61,7 @@ import javax.swing.tree.TreePath;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import net.miginfocom.swing.MigLayout;
@@ -97,6 +100,7 @@ public class ImageAnnotator {
   private String lastOpenedAnnFileDir = null;
   private String lastSavedAnnFile = null;
   private String lastSelectedGate = null;
+  private String lastSelectedFile = null;
   private volatile boolean constructingTree = false;
   private HashSet<String> recentAnnotFiles = new HashSet<>();
 
@@ -338,6 +342,19 @@ public class ImageAnnotator {
     startAutoSaveThread();
   }
 
+  public static final String CHR_POS_REGEX = "(.*)_?chr([12]?[0-9[XYM]]+)[:-_]([\\d,]+)[-_]([\\d,]+).*?";
+
+  private int[] parseSampleChrPosIfExists() {
+    Matcher m = Pattern.compile(CHR_POS_REGEX).matcher(lastSelectedFile);
+    if (m.matches()) {
+      byte chr = Positions.chromosomeNumber(m.group(2), false, new Logger());
+      int stt = Integer.parseInt(m.group(3));
+      int stp = Integer.parseInt(m.group(4));
+      return new int[] {chr, stt, stp};
+    }
+    return null;
+  }
+
   private void constructTree() {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
@@ -379,8 +396,10 @@ public class ImageAnnotator {
     if (lastSelectedGate != null && !"".equals(lastSelectedGate)) {
       for (int i = 0; i < tree.getRowCount(); i++) {
         TreePath tp = tree.getPathForRow(i);
-        String gate = ((AnnotatedImage) ((DefaultMutableTreeNode) tp.getLastPathComponent()).getUserObject()).getName();
+        AnnotatedImage ai = ((AnnotatedImage) ((DefaultMutableTreeNode) tp.getLastPathComponent()).getUserObject());
+        String gate = ai.getName();
         if (gate.equals(lastSelectedGate)) {
+          lastSelectedFile = ai.getImageFile();
           tree.setSelectionPath(tp);
           break;
         }
@@ -442,6 +461,8 @@ public class ImageAnnotator {
 
     updateRecentFiles();
 
+    mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
+
     JMenuItem mntmSaveAnnot = new JMenuItem();
     mntmSaveAnnot.setAction(saveAction);
     mntmSaveAnnot.setText("Save Annotations");
@@ -462,6 +483,58 @@ public class ImageAnnotator {
     mntmExport.setText("Export Annotated Samples List");
     mntmExport.setMnemonic('E');
     mnFile.add(mntmExport);
+
+    mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
+
+    JMenuItem mntmCopyUCSC = new JMenuItem();
+    mntmCopyUCSC.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSCformat(parseSampleChrPosIfExists()));
+      }
+    });
+    mntmCopyUCSC.setText("Copy UCSC Location to Clipboard");
+    mntmCopyUCSC.setMnemonic('U');
+    mnFile.add(mntmCopyUCSC);
+
+    JMenuItem mntmCopyUCSCLink = new JMenuItem();
+    mntmCopyUCSCLink.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(Positions.getUCSClink(parseSampleChrPosIfExists()));
+      }
+    });
+    mntmCopyUCSCLink.setText("Copy UCSC Link to Clipboard");
+    mntmCopyUCSCLink.setMnemonic('L');
+    mnFile.add(mntmCopyUCSCLink);
+
+    JMenuItem mntmCopySample = new JMenuItem();
+    mntmCopySample.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(sampleCombo.getSelectedItem().toString());
+      }
+    });
+    mntmCopySample.setText("Copy Sample Name to Clipboard");
+    mntmCopySample.setMnemonic('N');
+    mnFile.add(mntmCopySample);
+
+    JMenuItem mntmCopySampleFile = new JMenuItem();
+    mntmCopySampleFile.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        ext.setClipboard(lastSelectedFile);
+      }
+    });
+    mntmCopySampleFile.setText("Copy File Path to Clipboard");
+    mntmCopySampleFile.setMnemonic('N');
+    mnFile.add(mntmCopySampleFile);
+
+    mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
     JMenuItem mntmExit = new JMenuItem();
     mntmExit.setAction(new AbstractAction() {
@@ -1022,9 +1095,8 @@ public class ImageAnnotator {
     BufferedImage img = node.getImage();
     selectedImage = img;
     imagePanel.repaint();
-    if (!constructingTree) {
-      lastSelectedGate = node.getName();
-    }
+    lastSelectedGate = node.getName();
+    lastSelectedFile = node.getImageFile();
   }
 
   private void sortAIs(List<AnnotatedImage> imgs) {
@@ -1072,6 +1144,7 @@ public class ImageAnnotator {
     expandAllNodes(tree);
     updateTreeKeys(tree);
     tree.repaint();
+    tree.setSelectionRow(0);
   }
 
   private boolean saveAnnotations(boolean prompt) {
