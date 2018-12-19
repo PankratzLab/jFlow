@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.UIManager;
 import org.pankratzlab.common.Files;
@@ -18,50 +17,17 @@ public class AnnotatedImage {
 
   public static class Annotation {
 
-    private static final HashMap<String, Character> mnemonicMap = new HashMap<>();
     final String annotation;
     final char mnemonic;
 
     public Annotation(String ann, String mnem) {
       this.annotation = ann;
       this.mnemonic = mnem.charAt(0);
-      mnemonicMap.put(this.annotation, this.mnemonic);
     }
 
     public Annotation(String ann) {
       this.annotation = ann;
-      if (mnemonicMap.containsKey(this.annotation)) {
-        this.mnemonic = mnemonicMap.get(this.annotation);
-      } else {
-        int ind = 0;
-        Character c = this.annotation.toUpperCase().charAt(ind);
-        while (mnemonicMap.containsValue(c)) {
-          ind++;
-          c = this.annotation.toUpperCase().charAt(ind);
-        }
-        if (ind == this.annotation.length()) {
-          System.err.println("Error - all possible mnemonic characters already used for annotation {"
-                             + this.annotation + "}.  Using alphanumerics instead.");
-          String alphanum = "abcdefghijklmnopqrstuvwxyz0123456789";
-          ind = 0;
-          while (mnemonicMap.containsValue(alphanum.charAt(ind))) {
-            ind++;
-            if (ind == alphanum.length()) {
-              System.err.println("Error - ran out of alphanumeric mnemonics too!");
-              break;
-            }
-          }
-          if (ind < alphanum.length()) {
-            this.mnemonic = alphanum.charAt(ind);
-            mnemonicMap.put(this.annotation, this.mnemonic);
-          } else {
-            this.mnemonic = '-';
-          }
-        } else {
-          mnemonicMap.put(this.annotation, c);
-          this.mnemonic = c;
-        }
-      }
+      this.mnemonic = Annotator.determineMnemonic(ann);
     }
 
     @Override

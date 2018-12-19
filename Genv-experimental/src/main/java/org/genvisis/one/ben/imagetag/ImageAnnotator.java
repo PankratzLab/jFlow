@@ -83,11 +83,14 @@ public class ImageAnnotator {
   private JPanel controlPanel;
   private JSplitPane splitPane;
   private JMenu mnTravAnn;
+  private JMenu mnDelAnn;
   private JRadioButtonMenuItem jrbTravAll;
   private JRadioButtonMenuItem jrbTravAnn;
   private JRadioButtonMenuItem jrbTravNon;
   private ButtonGroup travGrp;
   private HashMap<Annotation, JRadioButtonMenuItem> annTravMap = new HashMap<>();
+  private HashMap<Annotation, JMenuItem> annDelMap = new HashMap<>();
+  private HashMap<Annotation, JMenuItem> annSaveMap = new HashMap<>();
 
   private static final String PROP_FILE = ".imageannotator.properties";
   private static final String KEY_LAST_DIR_IMG = "LAST_DIR_IMG";
@@ -101,7 +104,6 @@ public class ImageAnnotator {
   private String lastSavedAnnFile = null;
   private String lastSelectedGate = null;
   private String lastSelectedFile = null;
-  private volatile boolean constructingTree = false;
   private HashSet<String> recentAnnotFiles = new HashSet<>();
 
   private HashMap<Character, Action> mnemonicActions = new HashMap<>();
@@ -315,7 +317,6 @@ public class ImageAnnotator {
     sampleCombo = new JComboBox<>();
     sampleCombo.addActionListener(comboListener);
 
-    constructingTree = true;
     sampleCombo.setFocusable(false);
     controlPanel.add(sampleCombo, "flowx,cell 0 1,growx");
 
@@ -337,7 +338,6 @@ public class ImageAnnotator {
 
     frmAnnotator.setJMenuBar(createMenuBar());
     checkForBackupFileOrLoadLast();
-    constructingTree = false;
 
     startAutoSaveThread();
   }
@@ -536,6 +536,11 @@ public class ImageAnnotator {
 
     mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
 
+    mnDelAnn = new JMenu("Delete Annotation:");
+    mnFile.add(mnDelAnn);
+
+    mnFile.add(new JSeparator(SwingConstants.HORIZONTAL));
+
     JMenuItem mntmExit = new JMenuItem();
     mntmExit.setAction(new AbstractAction() {
 
@@ -622,11 +627,34 @@ public class ImageAnnotator {
     jrb.setText(annot.annotation);
     annTravMap.put(annot, jrb);
     travGrp.add(jrb);
-    mnTravAnn.add(jrb);
     JMenuItem jmn = new JMenuItem();
     jmn.setAction(saveAnnotationAction);
     jmn.setText(annot.annotation);
+    annSaveMap.put(annot, jmn);
+    JMenuItem jmd = new JMenuItem();
+    jmd.setAction(new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        deleteAnnotation(annot);
+      }
+    });
+    jmd.setText(annot.annotation);
+    mnDelAnn.add(jmd);
+    annDelMap.put(annot, jmd);
     mnSaveAnn.add(jmn);
+  }
+
+  private void deleteAnnotation(Annotation annot) {
+    JRadioButtonMenuItem jrb = annTravMap.get(annot);
+    travGrp.remove(jrb);
+    mnTravAnn.remove(jrb);
+    mnSaveAnn.remove(annSaveMap.get(annot));
+    mnDelAnn.remove(annDelMap.get(annot));
+    annotator.deleteAnnotation(annot);
+
+    setAnnotationsChanged();
+    refreshAnnotations();
   }
 
   private AbstractAction saveAnnotationAction = new AbstractAction() {
@@ -760,6 +788,7 @@ public class ImageAnnotator {
   }
 
   private void refreshAnnotations() {
+    mnemonicActions.clear();
     ArrayList<AnnotatedImage.Annotation> allAnnots = annotator.getAnnotations();
     annotPanel.removeAll();
     AnnotatedImage ai = null;
@@ -807,6 +836,7 @@ public class ImageAnnotator {
       annotPanel.add(annBox, "cell 0 " + i);
     }
     annotPanel.revalidate();
+    annotPanel.repaint();
   }
 
   private void fireMnem(KeyEvent e) {

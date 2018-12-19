@@ -21,6 +21,45 @@ public class Annotator implements IAnnotator {
   private HashMap<String, HashMap<String, AnnotatedImage>> imageMap = new HashMap<>();
   private ArrayList<AnnotatedImage.Annotation> annotations = new ArrayList<>();
 
+  private static final HashMap<String, Character> mnemonicMap = new HashMap<>();
+
+  public static Character determineMnemonic(String ann) {
+    Character mnemonic;
+    if (mnemonicMap.containsKey(ann)) {
+      mnemonic = mnemonicMap.get(ann);
+    } else {
+      int ind = 0;
+      Character c = ann.toUpperCase().charAt(ind);
+      while (mnemonicMap.containsValue(c)) {
+        ind++;
+        c = ann.toUpperCase().charAt(ind);
+      }
+      if (ind == ann.length()) {
+        System.err.println("Error - all possible mnemonic characters already used for annotation {"
+                           + ann + "}.  Using alphanumerics instead.");
+        String alphanum = "abcdefghijklmnopqrstuvwxyz0123456789";
+        ind = 0;
+        while (mnemonicMap.containsValue(alphanum.charAt(ind))) {
+          ind++;
+          if (ind == alphanum.length()) {
+            System.err.println("Error - ran out of alphanumeric mnemonics too!");
+            break;
+          }
+        }
+        if (ind < alphanum.length()) {
+          mnemonic = alphanum.charAt(ind);
+          mnemonicMap.put(ann, mnemonic);
+        } else {
+          mnemonic = '-';
+        }
+      } else {
+        mnemonicMap.put(ann, c);
+        mnemonic = c;
+      }
+    }
+    return mnemonic;
+  }
+
   public ArrayList<String> getRoots() {
     return new ArrayList<>(rootKeys);
   }
@@ -60,6 +99,7 @@ public class Annotator implements IAnnotator {
         ai.getAnnotations().remove(annotation);
       }
     }
+    mnemonicMap.values().remove(annotation.mnemonic);
   }
 
   @Override
