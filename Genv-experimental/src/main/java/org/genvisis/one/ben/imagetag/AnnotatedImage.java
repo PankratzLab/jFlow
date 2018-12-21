@@ -1,17 +1,6 @@
 package org.genvisis.one.ben.imagetag;
 
-import java.awt.Color;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import javax.imageio.ImageIO;
-import javax.swing.UIManager;
-import org.pankratzlab.common.Files;
-import org.pankratzlab.common.Images;
 
 public class AnnotatedImage {
 
@@ -54,7 +43,6 @@ public class AnnotatedImage {
 
   private String name;
   private String imageFile;
-  private SoftReference<BufferedImage> image;
   private ArrayList<AnnotatedImage.Annotation> annots;
   private final boolean isRoot;
   private boolean missing = false;
@@ -83,76 +71,6 @@ public class AnnotatedImage {
   @Override
   public String toString() {
     return name + (missing ? " - MISSING" : "");
-  }
-
-  public BufferedImage getImage() {
-    if (image == null) {
-      createImage();
-    }
-    BufferedImage bi;
-    while ((bi = image.get()) == null) {
-      createImage();
-    }
-    return bi;
-  }
-
-  private void createImage() {
-    if (image == null) {
-      if (imageFile != null) {
-        if (!imageFile.contains(";")) {
-          try {
-            image = new SoftReference<>(ImageIO.read(new File(imageFile)));
-          } catch (IOException e) {
-            e.printStackTrace();
-            image = new SoftReference<>(createIOExceptionImage(e));
-          }
-        } else {
-          String[] images = imageFile.split(";");
-          image = new SoftReference<>(Images.stitchImages(images, Color.WHITE, false, false));
-        }
-      } else {
-        if (imageFile == null) {
-          image = new SoftReference<>(createNoFileImage());
-        } else if (!Files.exists(imageFile)) {
-          image = new SoftReference<>(createMissingFileImage(imageFile));
-        }
-      }
-    }
-  }
-
-  private static BufferedImage createImage(String msg, String msg2) {
-    BufferedImage bi = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
-    Graphics g = bi.getGraphics();
-    g.setColor(UIManager.getColor("Panel.background"));
-    g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
-    g.setColor(Color.BLACK);
-    g.setFont(g.getFont().deriveFont(fontSize));
-    FontMetrics fm = g.getFontMetrics();
-    g.drawString(msg, (bi.getWidth() / 2) - fm.stringWidth(msg) / 2,
-                 bi.getHeight() / 2 - fm.getHeight());
-    if (msg2 != null) {
-      g.drawString(msg2, (bi.getWidth() / 2) - fm.stringWidth(msg2) / 2,
-                   bi.getHeight() / 2 + ((int) (fm.getHeight() * 1.5)));
-    }
-    return bi;
-  }
-
-  static float fontSize = 16f;
-
-  private BufferedImage createIOExceptionImage(IOException e) {
-    return createImage("Exception when loading image:", e.getMessage());
-  }
-
-  public static BufferedImage createReadyImage() {
-    return createImage("Load Image Directory to Begin.", null);
-  }
-
-  private BufferedImage createNoFileImage() {
-    return createImage("No image file found!", null);
-  }
-
-  private BufferedImage createMissingFileImage(String file) {
-    return createImage("File missing:", file);
   }
 
   public boolean isRoot() {

@@ -1,6 +1,8 @@
 package org.genvisis.one.ben.imagetag;
 
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -23,8 +25,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -51,6 +58,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -58,12 +66,18 @@ import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import org.apache.commons.collections4.MultiSet;
+import org.apache.commons.collections4.multiset.HashMultiSet;
 import org.genvisis.one.ben.imagetag.AnnotatedImage.Annotation;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Images;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import net.miginfocom.swing.MigLayout;
 
 public class ImageAnnotator {
@@ -74,7 +88,7 @@ public class ImageAnnotator {
 
   IAnnotator annotator = new Annotator();
 
-  BufferedImage selectedImage = AnnotatedImage.createReadyImage();
+  BufferedImage selectedImage = createReadyImage();
 
   private JMenu mnLoadRecent;
   private JTextField fldNewAnnot;
@@ -108,9 +122,6 @@ public class ImageAnnotator {
 
   private HashMap<Character, Action> mnemonicActions = new HashMap<>();
 
-  private static final int ALL = 0;
-  private static final int ANN = 1;
-  private static final int NON = 2;
   private static final String BACKUP_DIR = ".backup./";
   private static final String BACKUP_FILE = BACKUP_DIR + "backup.annotations";
   private volatile boolean annotationsChanged = false;
@@ -143,12 +154,101 @@ public class ImageAnnotator {
     });
   }
 
+  Timer cacheBalancingTimer = new Timer();
+
   /**
    * Create the application.
    */
   public ImageAnnotator() {
     loadProperties();
     initialize();
+
+    cacheBalancingTimer.scheduleAtFixedRate(new TimerTask() {
+
+      @Override
+      public void run() {
+        SPEED recentSpeed = getRecentUserSpeed(4);
+        BEHAVIOR recentBehavior = getRecentUserBehavior(6);
+        DIRECTION recentDirection = getRecentUserDirection(4);
+        //        System.out.println(recentSpeed + " | " + recentBehavior + " | " + recentDirection);
+      }
+    }, 5000, 1000);
+  }
+
+  LoadingCache<AnnotatedImage, BufferedImage> imageCache = CacheBuilder.newBuilder().softValues()
+                                                                       .initialCapacity(10)
+                                                                       .expireAfterAccess(10,
+                                                                                          TimeUnit.SECONDS)
+                                                                       .maximumSize(10)
+                                                                       .build(new CacheLoader<AnnotatedImage, BufferedImage>() {
+
+                                                                         @Override
+                                                                         public BufferedImage load(AnnotatedImage key) throws Exception {
+                                                                           return createImage(key);
+                                                                         }
+                                                                       });
+
+  public BufferedImage getImage(AnnotatedImage ai) {
+    return imageCache.getUnchecked(ai);
+  }
+
+  private BufferedImage createImage(AnnotatedImage ai) {
+    BufferedImage image = null;
+    if (ai.getImageFile() != null) {
+      if (!ai.getImageFile().contains(";")) {
+        try {
+          image = ImageIO.read(new File(ai.getImageFile()));
+        } catch (IOException e) {
+          e.printStackTrace();
+          image = createIOExceptionImage(e);
+        }
+      } else {
+        String[] images = ai.getImageFile().split(";");
+        image = Images.stitchImages(images, Color.WHITE, false, false);
+      }
+    } else {
+      if (ai.getImageFile() == null) {
+        image = createNoFileImage();
+      } else if (!Files.exists(ai.getImageFile())) {
+        image = createMissingFileImage(ai.getImageFile());
+      }
+    }
+    return image;
+  }
+
+  static float fontSize = 16f;
+
+  private static BufferedImage createImage(String msg, String msg2) {
+    BufferedImage bi = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+    Graphics g = bi.getGraphics();
+    g.setColor(UIManager.getColor("Panel.background"));
+    g.fillRect(0, 0, bi.getWidth(), bi.getHeight());
+    g.setColor(Color.BLACK);
+    g.setFont(g.getFont().deriveFont(fontSize));
+    FontMetrics fm = g.getFontMetrics();
+    g.drawString(msg, (bi.getWidth() / 2) - fm.stringWidth(msg) / 2,
+                 bi.getHeight() / 2 - fm.getHeight());
+    if (msg2 != null) {
+      g.drawString(msg2, (bi.getWidth() / 2) - fm.stringWidth(msg2) / 2,
+                   bi.getHeight() / 2 + ((int) (fm.getHeight() * 1.5)));
+    }
+    return bi;
+  }
+
+  private BufferedImage createIOExceptionImage(IOException e) {
+    return createImage("Exception when loading image:", e.getMessage());
+  }
+
+  public static BufferedImage createReadyImage() {
+    return createImage("Load Image Directory to Begin.", null);
+  }
+
+  private BufferedImage createNoFileImage() {
+    return createImage("No image file found!", null);
+  }
+
+  private BufferedImage createMissingFileImage(String file) {
+    return createImage("File missing:", file);
   }
 
   private void loadProperties() {
@@ -340,6 +440,7 @@ public class ImageAnnotator {
     checkForBackupFileOrLoadLast();
 
     startAutoSaveThread();
+    startInteractionProcessingThread();
   }
 
   public static final String CHR_POS_REGEX = "(.*)_?chr([12]?[0-9[XYM]]+)[:-_]([\\d,]+)[-_]([\\d,]+).*?";
@@ -434,6 +535,11 @@ public class ImageAnnotator {
     }, "AutoSaveThread");
     autoSaveThread.setDaemon(true);
     autoSaveThread.start();
+  }
+
+  private void startInteractionProcessingThread() {
+    interactionProcessingThread.setDaemon(true);
+    interactionProcessingThread.start();
   }
 
   private JMenuBar createMenuBar() {
@@ -695,6 +801,8 @@ public class ImageAnnotator {
       }
     }
     saveProperties();
+    process = false;
+    cacheBalancingTimer.cancel();
     frmAnnotator.setVisible(false);
     frmAnnotator.dispose();
   }
@@ -854,19 +962,19 @@ public class ImageAnnotator {
     }
   }
 
-  private int getTraversal() {
+  private TRAVERSAL getTraversal() {
     if (jrbTravAll.isSelected()) {
-      return ALL;
+      return TRAVERSAL.ALL;
     } else if (jrbTravAnn.isSelected()) {
-      return ANN;
+      return TRAVERSAL.ANN;
     } else if (jrbTravNon.isSelected()) {
-      return NON;
+      return TRAVERSAL.NON;
     }
-    return -1;
+    return TRAVERSAL.ALL;
   }
 
   private int getPrevNodeRow() {
-    int trav = getTraversal();
+    TRAVERSAL trav = getTraversal();
     if (tree.isSelectionEmpty()) {
       return -1;
     }
@@ -880,13 +988,13 @@ public class ImageAnnotator {
       TreePath tp = tree.getPathForRow(row);
       DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
       AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
-      if (trav == ALL) {
+      if (trav == TRAVERSAL.ALL) {
         break;
-      } else if (trav == ANN) {
+      } else if (trav == TRAVERSAL.ANN) {
         if (!ai.getAnnotations().isEmpty()) {
           break;
         }
-      } else if (trav == NON) {
+      } else if (trav == TRAVERSAL.NON) {
         if (ai.getAnnotations().isEmpty()) {
           break;
         }
@@ -914,7 +1022,7 @@ public class ImageAnnotator {
   }
 
   private int getNextNodeRow() {
-    int trav = getTraversal();
+    TRAVERSAL trav = getTraversal();
     if (tree.isSelectionEmpty()) {
       return -1;
     }
@@ -929,13 +1037,13 @@ public class ImageAnnotator {
       TreePath tp = tree.getPathForRow(row);
       DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
       AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
-      if (trav == ALL) {
+      if (trav == TRAVERSAL.ALL) {
         break;
-      } else if (trav == ANN) {
+      } else if (trav == TRAVERSAL.ANN) {
         if (!ai.getAnnotations().isEmpty()) {
           break;
         }
-      } else if (trav == NON) {
+      } else if (trav == TRAVERSAL.NON) {
         if (ai.getAnnotations().isEmpty()) {
           break;
         }
@@ -952,13 +1060,13 @@ public class ImageAnnotator {
   }
 
   private int[] getPrevFile() {
-    int trav = getTraversal();
+    TRAVERSAL trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
     sel--;
     int ind = 0;
     outer: while (sel >= 0) {
       String samp = sampleCombo.getItemAt(sel);
-      if (trav == ALL) {
+      if (trav == TRAVERSAL.ALL) {
         break;
       } else {
         List<AnnotatedImage> imgs = new ArrayList<>();
@@ -968,12 +1076,12 @@ public class ImageAnnotator {
         }
         for (int i = imgs.size() - 1; i >= 0; i--) {
           AnnotatedImage ai = imgs.get(i);
-          if (trav == ANN) {
+          if (trav == TRAVERSAL.ANN) {
             if (ai != null && ai.getAnnotations().size() > 0) {
               ind = i;
               break outer;
             }
-          } else if (trav == NON) {
+          } else if (trav == TRAVERSAL.NON) {
             if (ai == null || ai.getAnnotations().size() == 0) {
               ind = i;
               break outer;
@@ -993,13 +1101,13 @@ public class ImageAnnotator {
   }
 
   private int[] getNextFile() {
-    int trav = getTraversal();
+    TRAVERSAL trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
     sel++;
     int ind = 0;
     outer: while (sel < sampleCombo.getItemCount()) {
       String samp = sampleCombo.getItemAt(sel);
-      if (trav == ALL) {
+      if (trav == TRAVERSAL.ALL) {
         break;
       } else {
         List<AnnotatedImage> imgs = new ArrayList<>();
@@ -1010,12 +1118,12 @@ public class ImageAnnotator {
 
         for (int i = 0; i < imgs.size(); i++) {
           AnnotatedImage ai = imgs.get(i);
-          if (trav == ANN) {
+          if (trav == TRAVERSAL.ANN) {
             if (ai != null && ai.getAnnotations().size() > 0) {
               ind = i;
               break outer;
             }
-          } else if (trav == NON) {
+          } else if (trav == TRAVERSAL.NON) {
             if (ai == null || ai.getAnnotations().size() == 0) {
               ind = i;
               break outer;
@@ -1034,13 +1142,6 @@ public class ImageAnnotator {
     return new int[] {sel, ind};
   }
 
-  private void keyUp() { // prev node in tree
-    int newRow = getPrevNodeRow();
-    if (newRow < 0) return;
-    tree.setSelectionRow(newRow);
-    tree.scrollRowToVisible(newRow);
-  }
-
   private int getTreeRowCount() {
     int cnt = getChildCount((DefaultMutableTreeNode) ((DefaultTreeModel) tree.getModel()).getRoot());
     return cnt;
@@ -1056,28 +1157,67 @@ public class ImageAnnotator {
     return cnt;
   }
 
+  private void keyUp() { // prev node in tree
+    int newRow = getPrevNodeRow();
+    if (newRow < 0) return;
+    boolean stt = startInteractionEvent();
+    if (stt) {
+      buildingEvent.direction = DIRECTION.PREV_IMG;
+    }
+    tree.setSelectionRow(newRow);
+    tree.scrollRowToVisible(newRow);
+    if (stt) {
+      fireInteractionEvent();
+    }
+  }
+
   private void keyDown() { // next node in tree
     int newRow = getNextNodeRow();
     if (newRow >= getTreeRowCount()) return;
+    boolean stt = startInteractionEvent();
+    if (stt) {
+      buildingEvent.direction = DIRECTION.NEXT_IMG;
+    }
     tree.setSelectionRow(newRow);
     tree.scrollRowToVisible(newRow);
+    if (stt) {
+      fireInteractionEvent();
+    }
   }
 
   private void keyLeft() { // prev file
     int[] prev = getPrevFile();
+    boolean stt = startInteractionEvent();
     if (prev[0] >= 0) {
+      if (stt) {
+        buildingEvent.direction = DIRECTION.PREV_SMP;
+      }
       sampleCombo.setSelectedIndex(prev[0]);
+    } else {
+      if (stt) {
+        buildingEvent.direction = DIRECTION.PREV_IMG;
+      }
     }
     tree.setSelectionRow(prev[1]);
     tree.scrollRowToVisible(prev[1]);
+    if (stt) {
+      fireInteractionEvent();
+    }
   }
 
   private void keyRight() { // next file
     int[] next = getNextFile();
     if (next[0] < sampleCombo.getItemCount()) {
+      boolean stt = startInteractionEvent();
+      if (stt) {
+        buildingEvent.direction = DIRECTION.NEXT_SMP;
+      }
       sampleCombo.setSelectedIndex(next[0]);
       tree.setSelectionRow(next[1]);
       tree.scrollRowToVisible(next[1]);
+      if (stt) {
+        fireInteractionEvent();
+      }
     }
   }
 
@@ -1121,8 +1261,27 @@ public class ImageAnnotator {
     }
   }
 
+  private static enum TRAVERSAL {
+    ALL, ANN, NON
+  }
+
+  static enum DIRECTION {
+    NEXT_IMG, PREV_IMG, NEXT_SMP, PREV_SMP, SKIP
+  }
+
+  static enum SPEED {
+    FAST, MODERATE, SLOW
+  }
+
+  static enum BEHAVIOR {
+    LINEAR, // little to no retrieval of past images 
+    REVIEW, // high rate of retrieval of past images
+    UNSURE, // moderate rate of retrieval of past images
+    SEARCH // no pattern of retrieval / not linear
+  }
+
   private void setSelectedNode(AnnotatedImage node) {
-    BufferedImage img = node.getImage();
+    BufferedImage img = getImage(node);
     selectedImage = img;
     imagePanel.repaint();
     lastSelectedGate = node.getName();
@@ -1278,12 +1437,40 @@ public class ImageAnnotator {
     }
   }
 
+  private volatile String prevSample;
+  private volatile String currSample;
+
   ActionListener comboListener = new ActionListener() {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+      prevSample = currSample;
+      currSample = (String) sampleCombo.getSelectedItem();
+      boolean stt = startInteractionEvent();
+      if (stt) {
+        // either selected by-hand or by search 
+        if (prevSample == null) {
+          buildingEvent.direction = DIRECTION.SKIP;
+        } else {
+          int prevInd = ((DefaultComboBoxModel<String>) sampleCombo.getModel()).getIndexOf(prevSample);
+          int currInd = sampleCombo.getSelectedIndex();
+          if (Math.abs(prevInd - currInd) > 1) {
+            buildingEvent.direction = DIRECTION.SKIP;
+          } else if (currInd > prevInd) {
+            buildingEvent.direction = DIRECTION.NEXT_SMP;
+          } else if (currInd < prevInd) {
+            buildingEvent.direction = DIRECTION.PREV_SMP;
+          } else {
+            // no change - selected the same sample, which resets the selected image
+            buildingEvent.direction = DIRECTION.PREV_IMG;
+          }
+        }
+      }
       tree.setEnabled(true);
       updateAvail();
+      if (stt) {
+        fireInteractionEvent();
+      }
     }
   };
 
@@ -1291,22 +1478,208 @@ public class ImageAnnotator {
 
     @Override
     public void valueChanged(TreeSelectionEvent e) {
+      boolean stt = startInteractionEvent(); // if selecting by hand
+
       if (e.getNewLeadSelectionPath() == null) {
+        // selected new sample, set to first entry
         refreshAnnotations();
-        return;
+      } else {
+        Object selected = e.getNewLeadSelectionPath().getLastPathComponent();
+        if (!(selected instanceof DefaultMutableTreeNode)) {
+          System.err.println("Error - selected an invalid item somehow.  Likely programmer error.");
+          cancelInteractionEvent();
+          return;
+        }
+
+        if (stt) {
+          int prev = tree.getRowForPath(e.getOldLeadSelectionPath());
+          int curr = tree.getRowForPath(e.getNewLeadSelectionPath());
+          if (prev < curr) {
+            buildingEvent.direction = DIRECTION.NEXT_IMG;
+          } else if (prev > curr) {
+            buildingEvent.direction = DIRECTION.PREV_IMG;
+          }
+        }
+
+        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selected;
+        AnnotatedImage ann = ((AnnotatedImage) selectedNode.getUserObject());
+        setSelectedNode(ann);
+        refreshAnnotations();
       }
-      Object selected = e.getNewLeadSelectionPath().getLastPathComponent();
-      if (!(selected instanceof DefaultMutableTreeNode)) {
-        System.err.println("Error - selected an invalid item somehow.  Likely programmer error.");
-        return;
+      if (stt) {
+        fireInteractionEvent();
       }
-      DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) selected;
-      AnnotatedImage ann = ((AnnotatedImage) selectedNode.getUserObject());
-      setSelectedNode(ann);
-      refreshAnnotations();
     }
 
   };
+
+  class InteractionEvent {
+
+    long fireTime;
+    DIRECTION direction;
+    public TRAVERSAL traversal;
+    public Annotation traversalAnn;
+
+  }
+
+  private DIRECTION getRecentUserDirection(int win) {
+    int sz = interactLog.size();
+    int window = (sz < win) ? sz : win;
+    List<InteractionEvent> sub = interactLog.subList(sz - window, sz);
+
+    int prev = 0;
+    int next = 0;
+    int skip = 0;
+    for (InteractionEvent e : sub) {
+      if (e.direction == DIRECTION.NEXT_IMG || e.direction == DIRECTION.NEXT_SMP) {
+        next++;
+      } else if (e.direction == DIRECTION.PREV_IMG || e.direction == DIRECTION.PREV_SMP) {
+        prev++;
+      } else if (e.direction == DIRECTION.SKIP) {
+        skip++;
+      }
+    }
+    if (skip > win / 2) {
+      return DIRECTION.SKIP;
+    } else if (prev > next) {
+      return DIRECTION.PREV_IMG;
+    } else return DIRECTION.NEXT_IMG;
+  }
+
+  private BEHAVIOR getRecentUserBehavior(int win) {
+    int sz = interactLog.size();
+    int window = (sz < win) ? sz : win;
+    List<InteractionEvent> sub = interactLog.subList(sz - window, sz);
+
+    MultiSet<BEHAVIOR> behav = new HashMultiSet<>();
+    for (int i = sub.size() - 1; i > 0; i--) {
+      DIRECTION p1 = sub.get(i).direction;
+      DIRECTION p2 = sub.get(i - 1).direction;
+      if (p1 == DIRECTION.SKIP || p2 == DIRECTION.SKIP) {
+        behav.add(BEHAVIOR.SEARCH);
+      } else if ((p1 == DIRECTION.NEXT_IMG || p1 == DIRECTION.NEXT_SMP)
+                 && (p2 == DIRECTION.NEXT_IMG || p2 == DIRECTION.NEXT_SMP)) {
+        behav.add(BEHAVIOR.LINEAR);
+      } else if ((p1 == DIRECTION.PREV_IMG || p1 == DIRECTION.PREV_SMP)
+                 && (p2 == DIRECTION.PREV_IMG || p2 == DIRECTION.PREV_SMP)) {
+        behav.add(BEHAVIOR.LINEAR);
+      } else if ((p1 == DIRECTION.PREV_IMG || p1 == DIRECTION.PREV_SMP)
+                 && (p2 == DIRECTION.NEXT_IMG || p2 == DIRECTION.NEXT_SMP)) {
+        behav.add(BEHAVIOR.REVIEW);
+      } else if ((p1 == DIRECTION.NEXT_IMG || p1 == DIRECTION.NEXT_SMP)
+                 && (p2 == DIRECTION.PREV_IMG || p2 == DIRECTION.PREV_SMP)) {
+        behav.add(BEHAVIOR.REVIEW);
+      }
+    }
+
+    int lin = behav.getCount(BEHAVIOR.LINEAR);
+    int rev = behav.getCount(BEHAVIOR.REVIEW);
+    int sch = behav.getCount(BEHAVIOR.SEARCH);
+
+    if (sch > lin && sch > rev) return BEHAVIOR.SEARCH;
+    if (lin > rev) {
+      if ((lin - rev) > rev) {
+        // twice as many linear movements as reviews
+        return BEHAVIOR.LINEAR;
+      } else {
+        // more linear, but not a lot more
+        return BEHAVIOR.UNSURE;
+      }
+    } else if (rev > lin) {
+      if (rev - lin > lin) {
+        return BEHAVIOR.REVIEW;
+      } else {
+        return BEHAVIOR.UNSURE;
+      }
+    } else {
+      return BEHAVIOR.UNSURE;
+    }
+  }
+
+  private SPEED getRecentUserSpeed(int win) {
+    int sz = interactLog.size();
+    int window = (sz < win) ? sz : win;
+    List<InteractionEvent> sub = interactLog.subList(sz - window, sz);
+    double currDelta = System.nanoTime() - sub.get(sub.size() - 1).fireTime;
+    if (TimeUnit.NANOSECONDS.toSeconds((long) currDelta) > 15) {
+      // if user has stopped interacting with program
+      return SPEED.SLOW;
+    }
+    double[] deltas = new double[sub.size() - 1];
+    for (int i = sub.size() - 1; i > 0; i--) {
+      deltas[sub.size() - (i + 1)] = sub.get(i).fireTime - sub.get(i - 1).fireTime;
+    }
+
+    MultiSet<SPEED> set = new HashMultiSet<>();
+    for (int i = 0; i < deltas.length; i++) {
+      long secondsDelta = TimeUnit.NANOSECONDS.toSeconds((long) deltas[i]);
+      long minutesDelta = TimeUnit.NANOSECONDS.toMinutes((long) deltas[i]);
+      long millisDelta = TimeUnit.NANOSECONDS.toMillis((long) deltas[i]);
+      if (minutesDelta > 0 || secondsDelta > 2 || millisDelta > 1500) {
+        set.add(SPEED.SLOW);
+      } else if (millisDelta > 600) {
+        set.add(SPEED.MODERATE);
+      } else {
+        set.add(SPEED.FAST);
+      }
+    }
+
+    int slow = set.getCount(SPEED.SLOW);
+    int mod = set.getCount(SPEED.MODERATE);
+    int fast = set.getCount(SPEED.FAST);
+
+    int comb = (int) ((slow * -1.5) + fast); // weight slow heavier to decay more quickly
+    if (mod > Math.abs(comb) || Math.abs(comb) < (win / 2)) {
+      return SPEED.MODERATE;
+    } else if (comb < 0) {
+      return SPEED.SLOW;
+    } else {
+      return SPEED.FAST;
+    }
+  }
+
+  volatile boolean process = true;
+  Thread interactionProcessingThread = new Thread(new Runnable() {
+
+    @Override
+    public void run() {
+      while (process) {
+        InteractionEvent e;
+        try {
+          e = interactionQueue.take();
+        } catch (InterruptedException e1) {
+          System.err.println("Error - interruption in UX processing thread.  Interaction may become stilted.");
+          return;
+        }
+        interactLog.add(e);
+      }
+    }
+  });
+
+  List<InteractionEvent> interactLog = new ArrayList<>();
+  LinkedBlockingQueue<InteractionEvent> interactionQueue = new LinkedBlockingQueue<>();
+
+  volatile InteractionEvent buildingEvent = null;
+
+  private boolean startInteractionEvent() {
+    if (buildingEvent != null) return false;
+    buildingEvent = new InteractionEvent();
+    buildingEvent.fireTime = System.nanoTime();
+    buildingEvent.traversal = getTraversal();
+    if (buildingEvent.traversal != TRAVERSAL.ALL) {
+      buildingEvent.traversalAnn = getTravAnnotation();
+    }
+    return true;
+  }
+
+  private void fireInteractionEvent() {
+    interactionQueue.offer(buildingEvent);
+    buildingEvent = null;
+  }
+
+  private void cancelInteractionEvent() {
+    buildingEvent = null;
+  }
 
   private final Action loadAction = new AbstractAction() {
 
