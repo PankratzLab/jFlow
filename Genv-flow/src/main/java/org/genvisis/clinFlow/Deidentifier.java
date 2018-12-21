@@ -13,7 +13,9 @@ import java.util.Map.Entry;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.genvisis.jfcs.FCS_KEYWORD;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 
 public class Deidentifier {
@@ -216,14 +218,31 @@ public class Deidentifier {
     // TODO
   }
 
-  public void run() {
-    rootIn = "F:/Flow_stage2/source/";
-    rootOut = "F:/Flow_stage2/deident/";
-    List<Conversion> toRun = identify();
-  }
-
   public static void main(String[] args) {
-    new Deidentifier("F:/Flow_stage2/source/", "F:/Flow_stage2/deident/", "F:/Flow_stage2/").run();
+    CLI cli = new CLI(Deidentifier.class);
+
+    cli.addArg("in", "Input directory", true);
+    cli.addArg("out", "Output directory", true);
+    cli.addArg("link", "Link file directory", true);
+
+    cli.parseWithExit(args);
+
+    Logger log = new Logger();
+    Deidentifier deid = new Deidentifier(cli.get("in"), cli.get("out"), cli.get("link"));
+    List<Conversion> toRun = deid.identify();
+    log.reportTime("Found " + toRun.size() + " files to convert.");
+    for (Conversion c : toRun) {
+      try {
+        if (Deidentifier.exists(c)) {
+          log.reportTime("Found existing conversion results for " + c.fcs);
+          continue;
+        }
+      } catch (IOException e) {
+        // just redo
+      }
+      Deidentifier.processSingleFCS(c);
+      log.reportTime("Converted " + c.fcs);
+    }
   }
 
 }
