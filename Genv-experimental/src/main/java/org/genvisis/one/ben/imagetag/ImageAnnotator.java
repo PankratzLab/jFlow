@@ -1,6 +1,7 @@
 package org.genvisis.one.ben.imagetag;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -64,6 +65,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import org.apache.commons.collections4.MultiSet;
@@ -154,6 +156,13 @@ public class ImageAnnotator {
     });
   }
 
+  private boolean showDebug = PRELOAD_DEBUG;
+  private static final boolean PRELOAD_DEBUG = false;
+  private static final int WINDOW_SPEED = 4;
+  private static final int WINDOW_BEHAVIOR = 6;
+  private static final int WINDOW_DIRECTION = 4;
+  private static final int PRELOAD_INIT_WAIT = 3000;
+  private static final int PRELOAD_INTERVAL = 1700;
   Timer cacheBalancingTimer = new Timer();
 
   /**
@@ -167,26 +176,60 @@ public class ImageAnnotator {
 
       @Override
       public void run() {
-        SPEED recentSpeed = getRecentUserSpeed(4);
-        BEHAVIOR recentBehavior = getRecentUserBehavior(6);
-        DIRECTION recentDirection = getRecentUserDirection(4);
-        //        System.out.println(recentSpeed + " | " + recentBehavior + " | " + recentDirection);
+        SPEED recentSpeed = getRecentUserSpeed(WINDOW_SPEED);
+        BEHAVIOR recentBehavior = getRecentUserBehavior(WINDOW_BEHAVIOR);
+        DIRECTION recentDirection = getRecentUserDirection(WINDOW_DIRECTION);
+
+        int preload = Math.max(0, ((2 * recentSpeed.modifier) - recentBehavior.adjustment))
+                      * recentDirection.sign;
+
+        int curr = tree.getRowForPath(tree.getSelectionPath());
+        int treeMax = getTreeRowCount();
+        int currSample = sampleCombo.getSelectedIndex();
+        int sampMax = sampleCombo.getItemCount();
+
+        int used = 0;
+        if (recentDirection.sign == -1) {
+          int ind = curr;
+          for (int i = curr - 1; i >= Math.max(0, curr + preload); i--) {
+            ind = getPrevNodeRow(ind);
+            if (ind < 0) break; // TODO preload first images for prev sample
+            AnnotatedImage ann = getAnnotatedImage(ind);
+            imageCache.getUnchecked(ann);
+            used++;
+          }
+        } else if (recentDirection.sign == 1) {
+          int ind = curr;
+          for (int i = curr + 1; i <= Math.min(curr + preload, treeMax - 1); i++) {
+            ind = getNextNodeRow(ind);
+            if (ind >= getTreeRowCount()) break; // TODO preload first images for next sample
+            AnnotatedImage ann = getAnnotatedImage(ind);
+            imageCache.getUnchecked(ann);
+            used++;
+          }
+        }
+        if (showDebug) {
+          System.out.println("Preload: " + preload + " | Actual: " + used + " -- basis: "
+                             + recentSpeed + ", " + recentBehavior + ", " + recentDirection);
+        }
+        tree.repaint();
       }
-    }, 5000, 1000);
+    }, PRELOAD_INIT_WAIT, PRELOAD_INTERVAL);
   }
 
+  CacheLoader<AnnotatedImage, BufferedImage> loader = new CacheLoader<AnnotatedImage, BufferedImage>() {
+
+    @Override
+    public BufferedImage load(AnnotatedImage key) throws Exception {
+      return createImage(key);
+    }
+  };
   LoadingCache<AnnotatedImage, BufferedImage> imageCache = CacheBuilder.newBuilder().softValues()
                                                                        .initialCapacity(10)
-                                                                       .expireAfterAccess(10,
+                                                                       .expireAfterAccess(30,
                                                                                           TimeUnit.SECONDS)
-                                                                       .maximumSize(10)
-                                                                       .build(new CacheLoader<AnnotatedImage, BufferedImage>() {
-
-                                                                         @Override
-                                                                         public BufferedImage load(AnnotatedImage key) throws Exception {
-                                                                           return createImage(key);
-                                                                         }
-                                                                       });
+                                                                       .maximumSize(15)
+                                                                       .build(loader);
 
   public BufferedImage getImage(AnnotatedImage ai) {
     return imageCache.getUnchecked(ai);
@@ -459,6 +502,24 @@ public class ImageAnnotator {
   private void constructTree() {
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
     DefaultTreeModel dtm = new DefaultTreeModel(rootNode);
+    tree.setCellRenderer(new DefaultTreeCellRenderer() {
+
+      @Override
+      public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
+                                                    boolean expanded, boolean leaf, int row,
+                                                    boolean hasFocus) {
+        Component comp = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row,
+                                                            hasFocus);
+        Object v = ((DefaultMutableTreeNode) value).getUserObject();
+        if (showDebug && v != null && v instanceof AnnotatedImage) {
+          comp.setForeground(imageCache.getIfPresent(((AnnotatedImage) ((DefaultMutableTreeNode) value).getUserObject())) == null ? Color.RED
+                                                                                                                                  : Color.CYAN);
+        } else {
+          comp.setForeground(Color.BLACK);
+        }
+        return comp;
+      }
+    });
     tree.setModel(dtm);
     tree.setShowsRootHandles(false);
     tree.setRootVisible(false);
@@ -733,6 +794,7 @@ public class ImageAnnotator {
     jrb.setText(annot.annotation);
     annTravMap.put(annot, jrb);
     travGrp.add(jrb);
+    mnTravAnn.add(jrb);
     JMenuItem jmn = new JMenuItem();
     jmn.setAction(saveAnnotationAction);
     jmn.setText(annot.annotation);
@@ -970,24 +1032,15 @@ public class ImageAnnotator {
     } else if (jrbTravNon.isSelected()) {
       return TRAVERSAL.NON;
     }
-    return TRAVERSAL.ALL;
+    return TRAVERSAL.CUSTOM;
   }
 
-  private int getPrevNodeRow() {
+  private int getPrevNodeRow(int start) {
+    int row = start;
     TRAVERSAL trav = getTraversal();
-    if (tree.isSelectionEmpty()) {
-      return -1;
-    }
-    int[] rows = tree.getSelectionRows();
-    if (rows == null || rows.length == 0) {
-      return -1;
-    }
-    int row = rows[0];
     row--;
     while (row >= 0) {
-      TreePath tp = tree.getPathForRow(row);
-      DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-      AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+      AnnotatedImage ai = getAnnotatedImage(row);
       if (trav == TRAVERSAL.ALL) {
         break;
       } else if (trav == TRAVERSAL.ANN) {
@@ -1010,6 +1063,18 @@ public class ImageAnnotator {
     return row;
   }
 
+  private int getPrevNodeRow() {
+    if (tree.isSelectionEmpty()) {
+      return -1;
+    }
+    int[] rows = tree.getSelectionRows();
+    if (rows == null || rows.length == 0) {
+      return -1;
+    }
+    int row = rows[0];
+    return getPrevNodeRow(row);
+  }
+
   private Annotation getTravAnnotation() {
     Annotation sel = null;
     for (Entry<Annotation, JRadioButtonMenuItem> entry : annTravMap.entrySet()) {
@@ -1021,22 +1086,13 @@ public class ImageAnnotator {
     return sel;
   }
 
-  private int getNextNodeRow() {
+  private int getNextNodeRow(int start) {
+    int row = start;
     TRAVERSAL trav = getTraversal();
-    if (tree.isSelectionEmpty()) {
-      return -1;
-    }
     int cnt = getTreeRowCount();
-    int[] rows = tree.getSelectionRows();
-    if (rows == null || rows.length == 0) {
-      return -1;
-    }
-    int row = rows[0];
     row++;
     while (row < cnt) {
-      TreePath tp = tree.getPathForRow(row);
-      DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode) tp.getLastPathComponent();
-      AnnotatedImage ai = (AnnotatedImage) dmtn.getUserObject();
+      AnnotatedImage ai = getAnnotatedImage(row);
       if (trav == TRAVERSAL.ALL) {
         break;
       } else if (trav == TRAVERSAL.ANN) {
@@ -1059,9 +1115,32 @@ public class ImageAnnotator {
     return row;
   }
 
+  private AnnotatedImage getAnnotatedImage(int row) {
+    DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+    return (AnnotatedImage) ((DefaultMutableTreeNode) model.getChild(model.getRoot(),
+                                                                     row)).getUserObject();
+  }
+
+  private int getNextNodeRow() {
+    if (tree.isSelectionEmpty()) {
+      return -1;
+    }
+    int[] rows = tree.getSelectionRows();
+    if (rows == null || rows.length == 0) {
+      return -1;
+    }
+    int row = rows[0];
+    return getNextNodeRow(row);
+  }
+
   private int[] getPrevFile() {
-    TRAVERSAL trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
+    return getPrevFile(sel);
+  }
+
+  private int[] getPrevFile(int start) {
+    int sel = start;
+    TRAVERSAL trav = getTraversal();
     sel--;
     int ind = 0;
     outer: while (sel >= 0) {
@@ -1101,8 +1180,13 @@ public class ImageAnnotator {
   }
 
   private int[] getNextFile() {
-    TRAVERSAL trav = getTraversal();
     int sel = sampleCombo.getSelectedIndex();
+    return getNextFile(sel);
+  }
+
+  private int[] getNextFile(int start) {
+    int sel = start;
+    TRAVERSAL trav = getTraversal();
     sel++;
     int ind = 0;
     outer: while (sel < sampleCombo.getItemCount()) {
@@ -1262,22 +1346,40 @@ public class ImageAnnotator {
   }
 
   private static enum TRAVERSAL {
-    ALL, ANN, NON
+    ALL, ANN, NON, CUSTOM;
   }
 
   static enum DIRECTION {
-    NEXT_IMG, PREV_IMG, NEXT_SMP, PREV_SMP, SKIP
+    NEXT_IMG(1), PREV_IMG(-1), NEXT_SMP(1), PREV_SMP(-1), SKIP(0);
+
+    private DIRECTION(int sig) {
+      this.sign = sig;
+    }
+
+    int sign;
   }
 
   static enum SPEED {
-    FAST, MODERATE, SLOW
+    REALLY_FAST(8), FAST(5), MODERATE(3), SLOW(1);
+
+    private SPEED(int mod) {
+      this.modifier = mod;
+    }
+
+    int modifier;
   }
 
   static enum BEHAVIOR {
-    LINEAR, // little to no retrieval of past images 
-    REVIEW, // high rate of retrieval of past images
-    UNSURE, // moderate rate of retrieval of past images
-    SEARCH // no pattern of retrieval / not linear
+    LINEAR(0), // little to no retrieval of past images 
+    UNSURE(2), // moderate rate of retrieval of past images
+    REVIEW(4), // high rate of retrieval of past images
+    SEARCH(10); // no pattern of retrieval / not linear
+
+    private BEHAVIOR(int adj) {
+      adjustment = adj;
+    }
+
+    int adjustment;
   }
 
   private void setSelectedNode(AnnotatedImage node) {
@@ -1598,6 +1700,7 @@ public class ImageAnnotator {
 
   private SPEED getRecentUserSpeed(int win) {
     int sz = interactLog.size();
+    if (sz == 0) return SPEED.SLOW;
     int window = (sz < win) ? sz : win;
     List<InteractionEvent> sub = interactLog.subList(sz - window, sz);
     double currDelta = System.nanoTime() - sub.get(sub.size() - 1).fireTime;
@@ -1619,6 +1722,8 @@ public class ImageAnnotator {
         set.add(SPEED.SLOW);
       } else if (millisDelta > 600) {
         set.add(SPEED.MODERATE);
+      } else if (millisDelta < 200) {
+        set.add(SPEED.REALLY_FAST);
       } else {
         set.add(SPEED.FAST);
       }
@@ -1627,13 +1732,15 @@ public class ImageAnnotator {
     int slow = set.getCount(SPEED.SLOW);
     int mod = set.getCount(SPEED.MODERATE);
     int fast = set.getCount(SPEED.FAST);
+    int really = set.getCount(SPEED.FAST);
 
-    int comb = (int) ((slow * -1.5) + fast); // weight slow heavier to decay more quickly
+    int comb = (int) ((slow * -1.5) + fast + really * .5); // weight slow heavier to decay more quickly
     if (mod > Math.abs(comb) || Math.abs(comb) < (win / 2)) {
       return SPEED.MODERATE;
     } else if (comb < 0) {
       return SPEED.SLOW;
     } else {
+      if (really > fast) return SPEED.REALLY_FAST;
       return SPEED.FAST;
     }
   }
@@ -1666,7 +1773,7 @@ public class ImageAnnotator {
     buildingEvent = new InteractionEvent();
     buildingEvent.fireTime = System.nanoTime();
     buildingEvent.traversal = getTraversal();
-    if (buildingEvent.traversal != TRAVERSAL.ALL) {
+    if (buildingEvent.traversal == TRAVERSAL.CUSTOM) {
       buildingEvent.traversalAnn = getTravAnnotation();
     }
     return true;
