@@ -27,6 +27,9 @@ import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
+import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountHash;
@@ -38,11 +41,8 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.filesys.SourceFileHeaderData;
+import org.pankratzlab.common.ext;
 import com.google.common.collect.Lists;
 
 public class SourceFileParser implements Runnable {
@@ -1778,7 +1778,7 @@ public class SourceFileParser implements Runnable {
                                      + line[headerData.getColGeno2()], Sample.ALT_NULLS) == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + " for marker "
-                                    + markerNames[count] + " of sample " + file
+                                    + markerNames[count] + " of sample " + sampleName
                                     + "; setting to missing");
                   }
                   genotypes[0][key] = 0;
@@ -1789,7 +1789,7 @@ public class SourceFileParser implements Runnable {
                   if (genotypes[0][key] == -1) {
                     log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + " for marker "
-                                    + markerNames[count] + " of sample " + file
+                                    + markerNames[count] + " of sample " + sampleName
                                     + "; setting to missing");
                     genotypes[0][key] = 0;
                   }
