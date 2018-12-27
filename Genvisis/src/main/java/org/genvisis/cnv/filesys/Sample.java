@@ -65,8 +65,8 @@ public class Sample implements Serializable {
   public static final String[] ALLELE_PAIRS = {"--", "AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT",
                                                "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT", "DD",
                                                "DI", "II", "ID"};
-  public static final String[] ALT_NULL = {"-", "0"};
-  public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall", "NC", "NN", "NA"};
+  public static final String[] ALT_NULL = {"-", "0", ""};
+  public static final String[] ALT_NULLS = {"--", "00", "---", "NoCall", "NC", "NN", "NA", ""};
   public static final String[] AB_PAIRS = {"AA", "AB", "BB"};
   public static final String SAMPLE_FILE_EXTENSION = ".sampRAF";
   // public static final byte PARAMETER_SECTION_BYTES = 13;
