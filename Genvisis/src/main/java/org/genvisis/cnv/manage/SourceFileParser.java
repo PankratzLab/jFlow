@@ -1517,7 +1517,6 @@ public class SourceFileParser implements Runnable {
     String filename;
     int snpIndex;
     int sampIndex;
-    int key;
     String sampleIdent;
     String tempSampleIdent;
     boolean parseAtAt;
@@ -1531,7 +1530,8 @@ public class SourceFileParser implements Runnable {
     String tempLine;
     boolean splitAB = false;
     long timeBegan = System.currentTimeMillis();
-    int count = 0;
+    int sampleCount = 0;
+    int lineCount = 0;
     Hashtable<String, Float> fileOutliers = new Hashtable<>();
     CountHash countHash = new CountHash();
     LongFormatParseResult result = new LongFormatParseResult(file, 0, null, countHash);
@@ -1664,7 +1664,7 @@ public class SourceFileParser implements Runnable {
                               proj.getArrayType().getCanXYBeNegative());
             samp.saveToRandomAccessFile(filename, fileOutliers, sampleName);
 
-            count++;
+            sampleCount++;
             markerCount = 0;
           }
           if (!eofFound) {
@@ -1677,7 +1677,7 @@ public class SourceFileParser implements Runnable {
                               + sampleIdent
                               + (fixes.containsKey(sampleIdent) ? "-->" + fixes.get(sampleIdent)
                                                                 : "")
-                              + " again at line " + count);
+                              + " again at line " + lineCount);
               samp = Sample.loadFromRandomAccessFile(sampleFilename);
               data = samp.getAllData();
               genotypes = samp.getAllGenotypes();
@@ -1712,7 +1712,7 @@ public class SourceFileParser implements Runnable {
         if (!eofFound) {
           countHash.add(line[snpIndex]);
           if (markerIndexMap.containsKey(line[snpIndex])) {
-            key = markerIndexMap.get(line[snpIndex]);
+            final int markerKey = markerIndexMap.get(line[snpIndex]);
 
             int[] indCols = {headerData.getColGC(), headerData.getColXRaw(),
                              headerData.getColYRaw(), headerData.getColX(), headerData.getColY(),
@@ -1724,13 +1724,14 @@ public class SourceFileParser implements Runnable {
               for (int i1 = 0; i1 < indCols.length; i1++) {
                 ind = i1;
                 if (indCols[ind] != -1) {
-                  data[ind][key] = ext.isMissingValue(line[indCols[ind]]) ? Float.NaN
-                                                                          : Float.parseFloat(line[indCols[ind]]);
+                  data[ind][markerKey] = ext.isMissingValue(line[indCols[ind]]) ? Float.NaN
+                                                                                : Float.parseFloat(line[indCols[ind]]);
                 }
               }
             } catch (NumberFormatException nfe) {
-              log.reportError("Error - failed at line " + key + " to parse '" + line[indCols[ind]]
-                              + "' into a valid " + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
+              log.reportError("Error - failed at line " + lineCount + " to parse '"
+                              + line[indCols[ind]] + "' into a valid "
+                              + ArrayUtils.toStr(Sample.DATA_FIELDS[ind], "/"));
               return result;
             } catch (Exception e) {
               log.reportError("Some other exception");
@@ -1769,10 +1770,10 @@ public class SourceFileParser implements Runnable {
                                 + ArrayUtils.toStr(line) + " did not");
                 return result;
               }
-              genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.getColGeno1()]
-                                                        + line[headerData.getColGeno2()],
-                                                        Sample.ALLELE_PAIRS);
-              if (genotypes[0][key] == -1) {
+              genotypes[0][markerKey] = (byte) ext.indexOfStr(line[headerData.getColGeno1()]
+                                                              + line[headerData.getColGeno2()],
+                                                              Sample.ALLELE_PAIRS);
+              if (genotypes[0][markerKey] == -1) {
                 if (proj.getArrayType() == ARRAY.ILLUMINA) {// Affy matrix format does not use
                                                             // ALLELE_PAIRS
 
@@ -1781,21 +1782,21 @@ public class SourceFileParser implements Runnable {
                     log.reportError("Error - failed to lookup genotype ("
                                     + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + ") for marker "
-                                    + markerNames[count] + " of sample " + sampleName
+                                    + markerNames[markerKey] + " of sample " + sampleName
                                     + "; setting to missing");
                   }
-                  genotypes[0][key] = 0;
+                  genotypes[0][markerKey] = 0;
                 } else {
-                  genotypes[0][key] = (byte) ext.indexOfStr(line[headerData.getColGenoAB1()]
-                                                            + line[headerData.getColGenoAB2()],
-                                                            Sample.AB_PAIRS);
-                  if (genotypes[0][key] == -1) {
+                  genotypes[0][markerKey] = (byte) ext.indexOfStr(line[headerData.getColGenoAB1()]
+                                                                  + line[headerData.getColGenoAB2()],
+                                                                  Sample.AB_PAIRS);
+                  if (genotypes[0][markerKey] == -1) {
                     log.reportError("Error - failed to lookup genotype ("
                                     + line[headerData.getColGeno1()]
                                     + line[headerData.getColGeno2()] + ") for marker "
-                                    + markerNames[count] + " of sample " + sampleName
+                                    + markerNames[markerKey] + " of sample " + sampleName
                                     + "; setting to missing");
-                    genotypes[0][key] = 0;
+                    genotypes[0][markerKey] = 0;
                   }
                 }
               }
@@ -1803,35 +1804,35 @@ public class SourceFileParser implements Runnable {
               if (ignoreAB) {
                 // do nothing, will need to use these files to determine AB lookup table
               } else if (abLookup == null) {
-                genotypes[1][key] = (byte) ext.indexOfStr(line[headerData.getColGenoAB1()]
-                                                          + line[headerData.getColGenoAB2()],
-                                                          Sample.AB_PAIRS);
+                genotypes[1][markerKey] = (byte) ext.indexOfStr(line[headerData.getColGenoAB1()]
+                                                                + line[headerData.getColGenoAB2()],
+                                                                Sample.AB_PAIRS);
               } else {
-                if (genotypes[0][key] == 0) {
-                  genotypes[1][key] = -1;
+                if (genotypes[0][markerKey] == 0) {
+                  genotypes[1][markerKey] = -1;
                 } else {
-                  genotypes[1][key] = 0;
-                  if (line[headerData.getColGeno1()].charAt(0) == abLookup[count][1]) {
-                    genotypes[1][key]++;
-                  } else if (line[headerData.getColGeno1()].charAt(0) != abLookup[count][0]) {
+                  genotypes[1][markerKey] = 0;
+                  if (line[headerData.getColGeno1()].charAt(0) == abLookup[markerKey][1]) {
+                    genotypes[1][markerKey]++;
+                  } else if (line[headerData.getColGeno1()].charAt(0) != abLookup[markerKey][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? sampleIdent : line[sampIndex]) + "' ("
                                     + line[headerData.getColGeno1()] + "/"
                                     + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
-                                    + abLookup[count][0] + "/" + abLookup[count][1]
-                                    + ") for marker " + markerNames[count]);
+                                    + abLookup[markerKey][0] + "/" + abLookup[markerKey][1]
+                                    + ") for marker " + markerNames[markerKey]);
                   }
-                  if (line[headerData.getColGeno2()].charAt(0) == abLookup[count][1]) {
-                    genotypes[1][key]++;
-                  } else if (line[headerData.getColGeno2()].charAt(0) != abLookup[count][0]) {
+                  if (line[headerData.getColGeno2()].charAt(0) == abLookup[markerKey][1]) {
+                    genotypes[1][markerKey]++;
+                  } else if (line[headerData.getColGeno2()].charAt(0) != abLookup[markerKey][0]) {
                     log.reportError("Error - alleles for individual '"
                                     + (sampIndex < 0 ? sampleIdent : line[sampIndex]) + "' ("
                                     + line[headerData.getColGeno1()] + "/"
                                     + line[headerData.getColGeno2()]
                                     + ") do not match up with the defined AB lookup alleles ("
-                                    + abLookup[count][0] + "/" + abLookup[count][1]
-                                    + ") for marker " + markerNames[count]);
+                                    + abLookup[markerKey][0] + "/" + abLookup[markerKey][1]
+                                    + ") for marker " + markerNames[markerKey]);
                   }
                 }
               }
@@ -1839,6 +1840,7 @@ public class SourceFileParser implements Runnable {
           }
           markerCount++;
         }
+        lineCount++;
       }
       reader.close();
     } catch (FileNotFoundException fnfe) {
@@ -1848,7 +1850,7 @@ public class SourceFileParser implements Runnable {
       log.reportError("Error reading file \"" + file + "\"");
       return result;
     }
-    result = new LongFormatParseResult(file, count, fileOutliers, countHash);
+    result = new LongFormatParseResult(file, sampleCount, fileOutliers, countHash);
     return result;
 
   }
