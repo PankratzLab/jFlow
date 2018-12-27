@@ -274,8 +274,9 @@ public class SourceFileParser implements Runnable {
 
                   if (ext.indexOfStr(line[headerData.getColGeno1()]
                                      + line[headerData.getColGeno2()], Sample.ALT_NULLS) == -1) {
-                    log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
-                                    + line[headerData.getColGeno2()] + " for marker "
+                    log.reportError("Error - failed to lookup genotype ("
+                                    + line[headerData.getColGeno1()]
+                                    + line[headerData.getColGeno2()] + ") for marker "
                                     + markerNames[count] + " of sample " + files[i]
                                     + "; setting to missing");
                   }
@@ -286,8 +287,9 @@ public class SourceFileParser implements Runnable {
                                                             Sample.AB_PAIRS);
                   if (genotypes[0][key] == -1
                       && ext.indexOfStr(line[headerData.getColGeno1()], Sample.ALT_NULLS) == -1) {
-                    log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
-                                    + " for marker " + markerNames[count] + " of sample " + files[i]
+                    log.reportError("Error - failed to lookup genotype ("
+                                    + line[headerData.getColGeno1()] + ") for marker "
+                                    + markerNames[count] + " of sample " + files[i]
                                     + "; setting to missing");
 
                   }
@@ -1776,8 +1778,9 @@ public class SourceFileParser implements Runnable {
 
                   if (ext.indexOfStr(line[headerData.getColGeno1()]
                                      + line[headerData.getColGeno2()], Sample.ALT_NULLS) == -1) {
-                    log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
-                                    + line[headerData.getColGeno2()] + " for marker "
+                    log.reportError("Error - failed to lookup genotype ("
+                                    + line[headerData.getColGeno1()]
+                                    + line[headerData.getColGeno2()] + ") for marker "
                                     + markerNames[count] + " of sample " + sampleName
                                     + "; setting to missing");
                   }
@@ -1787,8 +1790,9 @@ public class SourceFileParser implements Runnable {
                                                             + line[headerData.getColGenoAB2()],
                                                             Sample.AB_PAIRS);
                   if (genotypes[0][key] == -1) {
-                    log.reportError("Error - failed to lookup " + line[headerData.getColGeno1()]
-                                    + line[headerData.getColGeno2()] + " for marker "
+                    log.reportError("Error - failed to lookup genotype ("
+                                    + line[headerData.getColGeno1()]
+                                    + line[headerData.getColGeno2()] + ") for marker "
                                     + markerNames[count] + " of sample " + sampleName
                                     + "; setting to missing");
                     genotypes[0][key] = 0;
