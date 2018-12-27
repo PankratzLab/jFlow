@@ -98,7 +98,7 @@ public class AffyParsingPipeline {
     Markers.orderMarkers(allMarkers.toArray(new String[allMarkers.size()]), proj);
   }
 
-  private void binMarkers(int numMkrsPerFile) {
+  private void binMarkers(long numMkrsPerFile) {
     List<Marker> markers = proj.getMarkerSet().markersAsList();
 
     ArrayListMultimap<String, String> markerListMap = ArrayListMultimap.create();
@@ -108,10 +108,10 @@ public class AffyParsingPipeline {
     markerIndexInFileMap = Maps.newHashMap();
 
     for (int i = 0; i < markers.size(); i++) {
-      int markerFileIndex = i / numMkrsPerFile;
+      long markerFileIndex = i / numMkrsPerFile;
       String mkrFile = proj.MARKER_DATA_DIRECTORY.getValue() + "markers." + markerFileIndex
                        + ".mdRAF";
-      int markerIndexInFile = i % numMkrsPerFile;
+      int markerIndexInFile = (int) (i % numMkrsPerFile);
       markerFileMap.put(markers.get(i), mkrFile);
       markerIndexInFileMap.put(markers.get(i), markerIndexInFile);
       lookup.put(markers.get(i).getName(),
@@ -156,13 +156,13 @@ public class AffyParsingPipeline {
     byte nullStatus = Sample.computeNullStatus(new float[0], new float[0], new float[0],
                                                new float[0], new float[0], new byte[0], null,
                                                canXYBeNegative);
-    int bytesPerMarker = numSamples * Sample.getNBytesPerSampleMarker(nullStatus);
-    long maxSizeBytes = (maxSize) * 1024 * 1024;
+    long bytesPerMarker = ((long) numSamples) * Sample.getNBytesPerSampleMarker(nullStatus);
+    long maxSizeBytes = ((long) maxSize) * 1024 * 1024;
     long mem = Math.min(maxSizeBytes, (long) (Runtime.getRuntime().maxMemory() * 0.8));
-    long markersInMemory = mem / (long) bytesPerMarker;
-    int mkrsInProj = proj.getMarkerSet().markersAsList().size();
-    int numMarkersPerFile = Math.min((int) Math.min(Integer.MAX_VALUE * .75, markersInMemory),
-                                     mkrsInProj);
+    long markersInMemory = mem / ((long) bytesPerMarker);
+    long mkrsInProj = proj.getMarkerSet().markersAsList().size();
+    long numMarkersPerFile = Math.min((long) Math.min(Integer.MAX_VALUE * .75, markersInMemory),
+                                      mkrsInProj);
 
     proj.getLog()
         .reportTime("Parsing data into " + numMarkersPerFile
@@ -217,8 +217,9 @@ public class AffyParsingPipeline {
 
         int indInFile = markerIndexInFileMap.get(marker);
 
-        long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN
-                    + markerNameBytesLengthMap.get(mkrFile) + indInFile * bytesPerMarker;
+        long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN;
+        seek += markerNameBytesLengthMap.get(mkrFile);
+        seek += ((long) indInFile) * ((long) bytesPerMarker);
 
         try {
           mkrBytes = md.compress(indInFile, nullStatus, oorTables.get(mkrFile), canXYBeNegative);
