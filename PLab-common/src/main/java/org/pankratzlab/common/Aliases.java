@@ -6,7 +6,7 @@ public class Aliases {
                                                "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID",
                                                "ProbeSetName", "ProbeSet", "Variant", "VariantName",
                                                "AnalysisUnit", "Variant_ID", "SingleVariant",
-                                               "BurdenTests", "RSID", "BinName"};
+                                               "BurdenTests", "RSID", "BinName", "dbSNP ID"};
   public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 
   public static final String[] REGION = {"Region", "UCSC", "Band", "Arm"};
