@@ -10,6 +10,7 @@ import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.bed.BEDCodec;
@@ -24,9 +25,24 @@ public class BEDFileReader implements Closeable, Iterable<BEDFeature> {
 
   private final FeatureReader<BEDFeature> reader;
 
+  public BEDFileReader(final String file, final boolean requireIndex,
+                       AsciiFeatureCodec<BEDFeature> codec) {
+    reader = AbstractFeatureReader.getFeatureReader(new File(file).toURI().getPath(), codec,
+                                                    requireIndex);
+  }
+
+  public static BEDFileReader createAnnotatedBEDFileReader(final String file,
+                                                           final boolean requireIndex) {
+    return new BEDFileReader(file, requireIndex, new AnnotatedBEDCodec());
+  }
+
+  public static BEDFileReader createStrictBEDFileReader(final String file,
+                                                        final boolean requireIndex) {
+    return new BEDFileReader(file, requireIndex, new BEDCodec());
+  }
+
   public BEDFileReader(final String file, final boolean requireIndex) {
-    reader = AbstractFeatureReader.getFeatureReader(new File(file).toURI().getPath(),
-                                                    new BEDCodec(), requireIndex);
+    this(file, requireIndex, new BEDCodec());
   }
 
   /** Queries for records within the region specified. */

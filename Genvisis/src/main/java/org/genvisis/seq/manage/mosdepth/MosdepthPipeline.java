@@ -24,6 +24,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
@@ -47,15 +48,13 @@ import htsjdk.variant.vcf.VCFFileReader;
 
 public class MosdepthPipeline {
 
-  private static final int MAX_MOSDEPTH_FILES_OPEN = 2500;
+  private static final int MAX_FILES_OPEN = 5000;
 
   Logger log;
 
   String projDir;
   String propFileDir;
   String projName;
-  String mosSrcDir;
-  String mosSrcExt;
   double scaleFactor = 10;
   int numMarkersPerFile = 5000;
   int numThreads = Runtime.getRuntime().availableProcessors() / 2;
@@ -95,17 +94,28 @@ public class MosdepthPipeline {
   }
 
   public void setMosdepthDirectory(String dir, String ext) {
-    this.mosSrcDir = org.pankratzlab.common.ext.verifyDirFormat(dir);
-    this.mosSrcExt = ext;
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
+  }
+
+  /**
+   * Must be called after {@link MosdepthPipeline#setMosdepthDirectory(String, String)}
+   * 
+   * @param dir CRAM Read file directory, output from {@link CRAMSnpReader}
+   */
+  public void setCRAMReadDirectory(String dir) {
+    for (String m : mosdepthFiles) {
+      this.cramReadFiles.put(m, ext.rootOf(m, false) + CRAMSnpReader.CRAM_READS_EXT);
+    }
   }
 
   Segment[] useBins;
   VCFFileReader genoReader;
   Map<String, String> genoIDLookup;
 
+  LoadingCache<String, BEDFileReader> cramReadCache;
   LoadingCache<String, BEDFileReader> mosdepthCache;
   String[] mosdepthFiles;
+  Map<String, String> cramReadFiles;
   Map<String, Double> medians;
   String[] samples;
   long fingerprintForMarkerFiles;
@@ -119,17 +129,18 @@ public class MosdepthPipeline {
   String[][] binsOfMarkers;
 
   void run() throws IOException, Elision {
-    // TODO check that all necessary files are set
     if (log == null) {
       log = new Logger();
     }
+    checkVars();
     createProject();
 
     loadBins();
     loadSNPs();
     createSampleList();
     loadMedians();
-    mosdepthCache = buildMosdepthCache();
+    mosdepthCache = buildCache();
+    cramReadCache = buildCache();
 
     if (genoVCF != null) {
       log.reportTime("Opening genotype VCF file...");
@@ -149,6 +160,30 @@ public class MosdepthPipeline {
     read();
 
     cleanup();
+  }
+
+  private void checkVars() {
+    if (projDir == null) {
+      throw new IllegalArgumentException("No project directory set.");
+    }
+    if (propFileDir == null) {
+      throw new IllegalArgumentException("No project property file directory set.");
+    }
+    if (projName == null) {
+      throw new IllegalArgumentException("No project name set.");
+    }
+    if (mosdepthFiles == null) {
+      throw new IllegalArgumentException("No mosdepth files set.");
+    }
+    if (useBed == null) {
+      throw new IllegalArgumentException("No regions BED file set.");
+    }
+    if (markerVCF == null) {
+      throw new IllegalArgumentException("No selected marker VCF file set.");
+    }
+    if (genoVCF == null) {
+      throw new IllegalArgumentException("No genotype VCF file set.");
+    }
   }
 
   private void cleanup() {
@@ -208,6 +243,23 @@ public class MosdepthPipeline {
     }
     log.reportTime("Computed autosomal median depth for " + medians.size() + " samples in "
                    + ext.getTimeElapsedNanos(t1));
+  }
+
+  private int getBaseIndex(String base) {
+    switch (base) {
+      case "A":
+        return 0;
+      case "G":
+        return 1;
+      case "C":
+        return 2;
+      case "T":
+        return 3;
+      case "N":
+        return 4;
+      default:
+        return -1;
+    }
   }
 
   private void read() throws IOException, Elision {
@@ -315,23 +367,29 @@ public class MosdepthPipeline {
               //        for each sample in project,
               for (int s = 0; s < samples.length; s++) {
 
-                double gc = 0.0;
-                byte fg = 0;
                 double x = Double.NaN;
                 double y = Double.NaN;
 
-                if (match != null) {
-                  Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
+                CRAMRead reads = loadCRAMReads(mkr, s); // AGCTN
+                if (!match.getReference().getBaseString().equals(reads.ref)) {
+                  // TODO log mismatched ref allele between genotype vcf and selected-snp vcf!
+                }
+                int refInd = getBaseIndex(reads.ref);
+                int altInd = getBaseIndex(reads.alt);
 
+                x = reads.cnts[refInd] / scaleFactor;
+                y = reads.cnts[altInd] / scaleFactor;
+
+                double gc = 0.0;
+                byte fg = 0;
+                if (match != null) {
+
+                  // TODO assign forward genotype and GC from allele counts 
+                  Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
                   // gc
                   gc = g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d;
                   // genotype
                   fg = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
-
-                  // x
-                  x = ((double) g.countAllele(match.getReference())) / scaleFactor;
-                  // y
-                  y = ((double) g.countAllele(match.getAlternateAllele(0))) / scaleFactor;
                 }
 
                 // lrr
@@ -401,7 +459,7 @@ public class MosdepthPipeline {
                    + ext.getTimeElapsedNanos(t2));
   }
 
-  private LoadingCache<String, BEDFileReader> buildMosdepthCache() {
+  private LoadingCache<String, BEDFileReader> buildCache() {
     return CacheBuilder.newBuilder().softValues()
                        .removalListener(new RemovalListener<String, BEDFileReader>() {
 
@@ -409,15 +467,65 @@ public class MosdepthPipeline {
                          public void onRemoval(RemovalNotification<String, BEDFileReader> notification) {
                            notification.getValue().close();
                          }
-                       }).maximumSize(MAX_MOSDEPTH_FILES_OPEN)
-                       .initialCapacity(MAX_MOSDEPTH_FILES_OPEN)
+                       }).maximumSize(MAX_FILES_OPEN / 2).initialCapacity(MAX_FILES_OPEN / 2)
                        .build(new CacheLoader<String, BEDFileReader>() {
 
                          @Override
                          public BEDFileReader load(String key) throws Exception {
-                           return new BEDFileReader(key, true);
+                           return BEDFileReader.createAnnotatedBEDFileReader(key, true);
                          }
                        });
+  }
+
+  private class CRAMRead {
+
+    String ref;
+    String alt;
+    int[] cnts; // AGCTN
+  }
+
+  private CRAMRead loadCRAMReads(Marker mkr, int s) {
+    String crF = cramReadFiles.get(mosdepthFiles[s]);
+    BEDFileReader reader;
+    boolean close = false;
+    try {
+      reader = cramReadCache.get(crF);
+    } catch (ExecutionException e) {
+      log.reportException(e);
+      reader = BEDFileReader.createAnnotatedBEDFileReader(crF, true);
+      close = true;
+    }
+
+    Segment seg = binLookup.get(mkr);
+    List<BEDFeature> iter = reader.query(seg).toList();
+
+    AnnotatedBEDFeature feat;
+    if (iter.size() >= 1) {
+      if (iter.size() > 1) {
+        log.reportTimeWarning("Multiple depth scores found for " + samples[s] + ", bin "
+                              + binLookup.get(mkr).getUCSClocation());
+      }
+      feat = (AnnotatedBEDFeature) iter.get(0);
+    } else/* if (iter.size() == 0) */ {
+      log.reportError("Missing depth score for " + samples[s] + ", bin "
+                      + binLookup.get(mkr).getUCSClocation());
+      feat = null;
+    }
+    CRAMRead read = null;
+    if (feat != null) {
+      read = new CRAMRead();
+      read.ref = feat.getAnnotation(0);
+      read.alt = feat.getAnnotation(1);
+      read.cnts = new int[] {Integer.parseInt(feat.getAnnotation(2)),
+                             Integer.parseInt(feat.getAnnotation(3)),
+                             Integer.parseInt(feat.getAnnotation(4)),
+                             Integer.parseInt(feat.getAnnotation(5)),};
+    }
+
+    if (close) {
+      reader.close();
+    }
+    return read;
   }
 
   private double loadMosdepth(VariantContext match, Marker mkr, int s) {
@@ -487,12 +595,10 @@ public class MosdepthPipeline {
       proj = new Project(propFile);
       proj.PROJECT_NAME.setValue(projName);
       proj.PROJECT_DIRECTORY.setValue(projDir);
-      proj.SOURCE_DIRECTORY.setValue(mosSrcDir);
       proj.XY_SCALE_FACTOR.setValue(scaleFactor);
       proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
-      proj.SOURCE_FILENAME_EXTENSION.setValue(mosSrcExt);
       proj.ID_HEADER.setValue("NULL");
-      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG19);
+      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG38);
 
       proj.ARRAY_TYPE.setValue(ARRAY.NGS);
 

@@ -125,10 +125,11 @@ public class PileupProducer extends AbstractProducer<BamPileResult> {
 
   public static BamPile[] processBamFile(String bamFile, ReferenceGenome referenceGenome,
                                          Segment[] pileSegs, FilterNGS filterNGS,
-                                         ASSEMBLY_NAME aName, Logger log) throws Exception {
+                                         ASSEMBLY_NAME aName, int numThreads,
+                                         Logger log) throws Exception {
     BamOps.verifyIndex(bamFile, log);
     BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenome, pileSegs, null,
-                                                 filterNGS, aName, log);
+                                                 filterNGS, aName, numThreads, log);
     BamPile[] bamPilesFinal = bamSegPileUp.pileup();
     return bamPilesFinal;
   }

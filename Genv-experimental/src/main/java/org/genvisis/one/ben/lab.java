@@ -2279,12 +2279,12 @@ public class lab {
 
       String p;
 
-      p = "G:/bamTesting/mosdepth/00test/10-SS-10.realign.mos.regions.bed";
+      p = "G:/bamTesting/00cram/NWD591891.recab.reads.bed.bgz";
+      BEDFileReader reader = BEDFileReader.createAnnotatedBEDFileReader(p, true);
 
-      BEDFileReader reader = new BEDFileReader("G:\\bamTesting\\topmed\\00src\\NWD100243.recab.mos.regions.bed.gz",
-                                               true);
-      reader.query(new Segment((byte) 5, 6625001, 6626000)).stream().forEach(bf -> {
-        System.out.println("FOUND: " + bf.getName() + "\t" + bf.getScore());
+      reader.iterator().stream().forEach(bf -> {
+        System.out.print(bf.toString());
+        System.out.println();
       });
       //      reader.iterator().stream().forEach(bf -> {
       //        System.out.println(bf.getChr() + ":" + bf.getStart() + "-" + bf.getEnd());
