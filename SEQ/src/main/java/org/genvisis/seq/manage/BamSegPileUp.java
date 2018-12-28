@@ -49,6 +49,7 @@ public class BamSegPileUp {
   private final FilterNGS filterNGS;
   private final ReferenceGenome referenceGenome;
   private final QueryInterval[] queryIntervals;
+  private final int numThreads;
 
   /**
    * @param bam the bam file to pile
@@ -61,6 +62,13 @@ public class BamSegPileUp {
   public BamSegPileUp(String bam, ReferenceGenome referenceGenome, Segment[] intervals,
                       QueryInterval[] queryIntervals, FilterNGS filterNGS, ASSEMBLY_NAME aName,
                       Logger log) {
+    this(bam, referenceGenome, intervals, queryIntervals, filterNGS, aName,
+         Runtime.getRuntime().availableProcessors(), log);
+  }
+
+  public BamSegPileUp(String bam, ReferenceGenome referenceGenome, Segment[] intervals,
+                      QueryInterval[] queryIntervals, FilterNGS filterNGS, ASSEMBLY_NAME aName,
+                      int numThreads, Logger log) {
     super();
     this.bam = bam;
     this.aName = aName;
@@ -94,6 +102,7 @@ public class BamSegPileUp {
     this.refSequences = Maps.newConcurrentMap();
     this.filterNGS = filterNGS;
     filter = FilterNGS.initializeFilters(filterNGS, SAM_FILTER_TYPE.COPY_NUMBER, log);
+    this.numThreads = numThreads;
   }
 
   private void createPileMap() {
@@ -131,7 +140,6 @@ public class BamSegPileUp {
    * @throws IOException when thrown by {@link SamReader}
    */
   public BamPile[] pileup() throws IOException {
-    int numThreads = Runtime.getRuntime().availableProcessors();
     log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
