@@ -182,6 +182,18 @@ public class BamOps {
   }
 
   /**
+   * {@link BamOps#convertSegsToQI(Segment[], SAMFileHeader, int, boolean, boolean, Logger)} with
+   * chr addition detected by sequence dictionary on sFileHeader
+   */
+  public static QueryInterval[] convertSegsToQI(Segment[] segs, SAMFileHeader sFileHeader,
+                                                int bpBuffer, boolean optimize, Logger log) {
+    boolean chr = sFileHeader.getSequenceDictionary().getSequences().stream()
+                             .map(SAMSequenceRecord::getSequenceName)
+                             .anyMatch(n -> ext.startsWithIgnoreCase(n, "chr"));
+    return convertSegsToQI(segs, sFileHeader, bpBuffer, optimize, chr, log);
+  }
+
+  /**
    * @param segs Genvisis type segments to search
    * @param sFileHeader an {@link SAMFileHeader}
    * @param bpBuffer bp buffer to be added to the segments
