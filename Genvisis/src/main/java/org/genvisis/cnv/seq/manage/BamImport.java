@@ -82,20 +82,18 @@ public class BamImport {
    * @author Kitty
    */
   public enum NGS_MARKER_TYPE {
-                                                                             /**
-                                                                              * Typically
-                                                                              * representing exons
-                                                                              */
-                                                                             ON_TARGET("ON_TARGET"),
-                                                                             /**
-                                                                              * Off target bins
-                                                                              */
-                                                                             OFF_TARGET("OFF_TARGET"),
-                                                                             /**
-                                                                              * Corresponding to
-                                                                              * actual variant sites
-                                                                              */
-                                                                             VARIANT_SITE("VARIANT_SITE");
+    /**
+     * Typically representing exons
+     */
+    ON_TARGET("ON_TARGET"),
+    /**
+     * Off target bins
+     */
+    OFF_TARGET("OFF_TARGET"),
+    /**
+     * Corresponding to actual variant sites
+     */
+    VARIANT_SITE("VARIANT_SITE");
 
     private final String flag;
 
@@ -444,7 +442,7 @@ public class BamImport {
     LocusSet<Segment> analysisSet;
     LocusSet<BEDFeatureSeg> bLocusSet = null;
     LocusSet<Segment> genomeBinsMinusBinsCaputure = null;
-    switch (atype) {	
+    switch (atype) {
       case WXS:
         if (binBed == null || BedOps.verifyBedIndex(binBed, log)) {
           BEDFileReader readerBin = new BEDFileReader(binBed, false);

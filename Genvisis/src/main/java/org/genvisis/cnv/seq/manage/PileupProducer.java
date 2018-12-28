@@ -123,6 +123,16 @@ public class PileupProducer extends AbstractProducer<BamPileResult> {
 
   }
 
+  public static BamPile[] processBamFile(String bamFile, ReferenceGenome referenceGenome,
+                                         Segment[] pileSegs, FilterNGS filterNGS,
+                                         ASSEMBLY_NAME aName, Logger log) throws Exception {
+    BamOps.verifyIndex(bamFile, log);
+    BamSegPileUp bamSegPileUp = new BamSegPileUp(bamFile, referenceGenome, pileSegs, null,
+                                                 filterNGS, aName, log);
+    BamPile[] bamPilesFinal = bamSegPileUp.pileup();
+    return bamPilesFinal;
+  }
+
   public static BamPileResult processBamFile(Project proj, String bamFile, String serDir,
                                              ReferenceGenome referenceGenome, Segment[] pileSegs,
                                              QueryInterval[] qi, FilterNGS filterNGS,
