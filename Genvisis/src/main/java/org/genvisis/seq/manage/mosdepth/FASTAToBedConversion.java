@@ -17,21 +17,29 @@ class FASTAToBedConversion {
   private PrintWriter bedWriter;
   private PrintWriter dropWriter;
   private Logger log;
+  private GenomeBuild build;
 
-  public FASTAToBedConversion(int binSize, String outputBed, Logger log) {
+  public FASTAToBedConversion(int binSize, String outputBed, GenomeBuild build, Logger log) {
     this.binSize = binSize;
+    this.build = build;
     this.bedWriter = Files.getAppropriateWriter(outputBed);
     this.dropWriter = Files.getAppropriateWriter(ext.rootOf(outputBed, false) + ".drops.bed");
     this.log = log;
   }
 
   void run() {
-    ReferenceGenome refGen = new ReferenceGenome(Resources.genome(GenomeBuild.HG19, log).getFASTA()
+    ReferenceGenome refGen = new ReferenceGenome(Resources.genome(build, log).getFASTA()
                                                           .getAbsolute(),
                                                  log);
     Segment[] bins = refGen.getBins(binSize).getStrictSegments();
     for (Segment seg : bins) {
-      String seq = ArrayUtils.toStr(refGen.getSequenceFor(seg));
+      String[] bases = refGen.getSequenceFor(seg);
+      if (bases == null) {
+        dropWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" + seg.getStop() + "\t"
+                           + seg.getUCSClocation());
+        continue;
+      }
+      String seq = ArrayUtils.toStr(bases);
       int n = 0;
       for (int i = 0; i < seq.length(); i++) {
         if (seq.charAt(i) == 'N') {
@@ -45,6 +53,7 @@ class FASTAToBedConversion {
 
     }
     bedWriter.close();
+    dropWriter.close();
     log.reportTime("Done writing reference genome bins to BED format.");
   }
 
@@ -53,10 +62,15 @@ class FASTAToBedConversion {
     cli.addArg("bin", "Bin Size, default 1000.");
     cli.addArg(CLI.ARG_OUTFILE, CLI.DESC_OUTFILE);
 
-    cli.parseWithExit(args);
-
-    //    "G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed"
-    new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE), new Logger()).run();
+    boolean test = true;
+    if (test) {
+      String out = "G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed";
+      new FASTAToBedConversion(1000, out, GenomeBuild.HG38, new Logger()).run();
+    } else {
+      cli.parseWithExit(args);
+      new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE), GenomeBuild.HG38,
+                               new Logger()).run();
+    }
   }
 
 }

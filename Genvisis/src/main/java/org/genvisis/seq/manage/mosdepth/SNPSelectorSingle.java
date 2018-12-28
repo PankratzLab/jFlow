@@ -117,7 +117,7 @@ public class SNPSelectorSingle extends NGSBinSNPSelector {
     if (bedFile != null) {
       selector.bins = new BEDFileReader(bedFile, false).loadAll(log).getStrictSegmentSet();
     } else {
-      selector.bins = new ReferenceGenome(Resources.genome(GenomeBuild.HG19, log).getFASTA()
+      selector.bins = new ReferenceGenome(Resources.genome(GenomeBuild.HG38, log).getFASTA()
                                                    .getAbsolute(),
                                           log).getBins(bin, chrs);
     }

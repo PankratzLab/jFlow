@@ -370,15 +370,13 @@ public class MosdepthPipeline {
                 double x = Double.NaN;
                 double y = Double.NaN;
 
-                CRAMRead reads = loadCRAMReads(mkr, s); // AGCTN
+                CRAMRead reads = loadCRAMReads(mkr, s);
                 if (!match.getReference().getBaseString().equals(reads.ref)) {
                   // TODO log mismatched ref allele between genotype vcf and selected-snp vcf!
                 }
-                int refInd = getBaseIndex(reads.ref);
-                int altInd = getBaseIndex(reads.alt);
 
-                x = reads.cnts[refInd] / scaleFactor;
-                y = reads.cnts[altInd] / scaleFactor;
+                x = reads.get(reads.ref) / scaleFactor;
+                y = reads.get(reads.alt) / scaleFactor;
 
                 double gc = 0.0;
                 byte fg = 0;
@@ -482,6 +480,12 @@ public class MosdepthPipeline {
     String ref;
     String alt;
     int[] cnts; // AGCTN
+
+    public double get(String base) {
+      // TODO will throw an exception if base is not one of AGCTN
+      return cnts[getBaseIndex(base)];
+    }
+
   }
 
   private CRAMRead loadCRAMReads(Marker mkr, int s) {
