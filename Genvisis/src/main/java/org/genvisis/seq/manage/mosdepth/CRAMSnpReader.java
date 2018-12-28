@@ -20,6 +20,7 @@ import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
@@ -36,7 +37,6 @@ public class CRAMSnpReader {
   private ASSEMBLY_NAME aName;
 
   private String snpVCF;
-  private String cramDir;
   private String outDir;
 
   private List<Segment> segList;
@@ -57,7 +57,9 @@ public class CRAMSnpReader {
     CLI cli = new CLI(CRAMSnpReader.class);
 
     cli.addArg("vcf", "Selected-SNP VCF File", true);
-    cli.addArg("cram", "CRAM file directory", true);
+    cli.addArg("cram", "CRAM file directory");
+    cli.addArg("list", "File with list of cram files to process");
+    cli.addGroup("cram", "list");
     cli.addArg("out", "Output file directory", true);
 
     System.setProperty("samjdk.reference_fasta",
@@ -70,6 +72,11 @@ public class CRAMSnpReader {
                         true).run();
     } else {
       cli.parseWithExit(args);
+      if (cli.has("list")) {
+        new CRAMSnpReader(cli.get("vcf"),
+                          HashVec.loadFileToStringArray(cli.get("list"), false, null, false),
+                          cli.get("out"), GenomeBuild.HG38, true).run();
+      }
       new CRAMSnpReader(cli.get("vcf"), cli.get("cram"), cli.get("out"), GenomeBuild.HG38,
                         true).run();
     }
@@ -78,8 +85,13 @@ public class CRAMSnpReader {
 
   public CRAMSnpReader(String snpVCF, String cramDir, String outDir, GenomeBuild build,
                        boolean addChr) {
+    this(snpVCF, listCRAMs(cramDir), outDir, build, addChr);
+  }
+
+  public CRAMSnpReader(String snpVCF, String[] cramFiles, String outDir, GenomeBuild build,
+                       boolean addChr) {
     this.snpVCF = snpVCF;
-    this.cramDir = cramDir;
+    this.cramFiles = cramFiles;
     this.outDir = outDir;
     refGen = new ReferenceGenome(Resources.genome(build, log).getFASTA().getAbsolute(), log);
     aName = addChr ? ASSEMBLY_NAME.HG19 : ASSEMBLY_NAME.GRCH37;
@@ -87,7 +99,6 @@ public class CRAMSnpReader {
 
   public void run() {
     readVCF();
-    listCRAMs();
     processCRAMs();
   }
 
@@ -109,8 +120,8 @@ public class CRAMSnpReader {
             String outFile = outDir + ext.rootOf(c) + CRAM_READS_EXT;
             PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
             writer.println("#CHR\tSTART\tSTOP\tUCSC\tSNP\tREF\tALT\tA\tG\tC\tT\tN");
-            BamPile[] bamPiles = PileupProducer.processBamFile(cramDir + c, refGen, pileSegs,
-                                                               filterNGS, aName, numThreads, log);
+            BamPile[] bamPiles = PileupProducer.processBamFile(c, refGen, pileSegs, filterNGS,
+                                                               aName, numThreads, log);
             for (int s = 0; s < pileSegs.length; s++) {
               NGSBin bin = segMap.get(pileSegs[s]);
               writer.print(bin.snpSeg.getChromosomeUCSC());
@@ -147,15 +158,18 @@ public class CRAMSnpReader {
     }
   }
 
-  private void listCRAMs() {
-    cramFiles = new File(cramDir).list(new FilenameFilter() {
+  private static String[] listCRAMs(String cramDir) {
+    String[] crams = new File(cramDir).list(new FilenameFilter() {
 
       @Override
       public boolean accept(File arg0, String arg1) {
         return arg1.endsWith(".cram");
       }
     });
-    log.reportTime("Found " + cramFiles.length + " .cram files to process.");
+    for (int i = 0; i < crams.length; i++) {
+      crams[i] = ext.verifyDirFormat(cramDir) + crams[i];
+    }
+    return crams;
   }
 
   private void readVCF() {

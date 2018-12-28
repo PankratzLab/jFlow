@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -104,7 +105,8 @@ public class MosdepthPipeline {
    */
   public void setCRAMReadDirectory(String dir) {
     for (String m : mosdepthFiles) {
-      this.cramReadFiles.put(m, ext.rootOf(m, false) + CRAMSnpReader.CRAM_READS_EXT);
+      this.cramReadFiles.put(m, ext.verifyDirFormat(dir) + ext.rootOf(m)
+                                + CRAMSnpReader.CRAM_READS_EXT);
     }
   }
 
@@ -265,8 +267,6 @@ public class MosdepthPipeline {
   private void read() throws IOException, Elision {
     long t2 = System.nanoTime();
     byte nullStatus = getNullStatus();
-    int bytesPerSamp = Sample.getNBytesPerSampleMarker(nullStatus); // 12
-    int markerBlockSize = samples.length * bytesPerSamp;
 
     ExecutorService exec = Executors.newFixedThreadPool(numThreads);
     // for each bin:
@@ -276,7 +276,6 @@ public class MosdepthPipeline {
 
         @Override
         public void run() {
-          byte[] mkrBuff;
           long t1 = System.nanoTime();
 
           String[] markersInFile = binsOfMarkers[ind];
@@ -297,8 +296,6 @@ public class MosdepthPipeline {
           try {
             //    for each marker in bin:
             for (int m = 0; m < markersInFile.length; m++) {
-              mkrBuff = new byte[markerBlockSize];
-
               Marker mkr = markerNameMap.get(markersInFile[m]);
 
               //        grab data from genotype vcf for marker:
@@ -358,74 +355,74 @@ public class MosdepthPipeline {
               for (int s = 0; s < samples.length; s++) {
                 double lrr;
                 synchronized (samples[s]) {
-                  lrr = loadMosdepth(match, mkr, s) / medians.get(samples[s]).doubleValue();
+                  lrr = loadMosdepth(mkr, s) / medians.get(samples[s]).doubleValue();
                 }
                 medianList.put(samples[s], lrr);
               }
               double markerMedian = ArrayUtils.median(medianList.values());
 
               //        for each sample in project,
+              float[] xs = new float[samples.length];
+              float[] ys = new float[samples.length];
+              float[] gcs = new float[samples.length];
+              byte[] fgs = new byte[samples.length];
+              float[] lrrs = new float[samples.length];
               for (int s = 0; s < samples.length; s++) {
 
-                double x = Double.NaN;
-                double y = Double.NaN;
-
                 CRAMRead reads = loadCRAMReads(mkr, s);
-                if (!match.getReference().getBaseString().equals(reads.ref)) {
+                if (match != null && match.getReference().getBaseString().equals(reads.ref)) {
                   // TODO log mismatched ref allele between genotype vcf and selected-snp vcf!
                 }
 
-                x = reads.get(reads.ref) / scaleFactor;
-                y = reads.get(reads.alt) / scaleFactor;
+                xs[s] = (float) (reads.get(reads.ref) / medians.get(samples[s]).doubleValue());
+                ys[s] = (float) (reads.get(reads.alt) / medians.get(samples[s]).doubleValue());
 
-                double gc = 0.0;
-                byte fg = 0;
                 if (match != null) {
 
                   // TODO assign forward genotype and GC from allele counts 
                   Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
                   // gc
-                  gc = g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d;
+                  gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);
                   // genotype
-                  fg = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
+                  fgs[s] = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
+                } else {
+
+                  gcs[s] = (float) 1.0;
+                  if (ys[s] == 0) {
+                    fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
+                  } else if (xs[s] == 0) {
+                    fgs[s] = (byte) ext.indexOfStr(reads.alt + reads.alt, Sample.ALLELE_PAIRS);
+                  } else {
+
+                    double a1 = xs[s] / (double) (xs[s] + ys[s]);
+                    double b1 = ys[s] / (double) (xs[s] + ys[s]);
+
+                    if (a1 > .85) {
+                      fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
+                    } else if (b1 > .85) {
+                      fgs[s] = (byte) ext.indexOfStr(reads.alt + reads.alt, Sample.ALLELE_PAIRS);
+                    } else {
+                      fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.alt, Sample.ALLELE_PAIRS);
+                    }
+
+                  }
                 }
 
                 // lrr
-                double lrr = Maths.log2(medianList.get(samples[s]) / markerMedian);
-                // baf
-                double baf = 0.0;
+                lrrs[s] = (float) Maths.log2(medianList.get(samples[s]) / markerMedian);
 
-                boolean noor;
-                int sInd = s * bytesPerSamp;
-                int bInd = sInd;
-                Compression.gcBafCompress((float) gc, mkrBuff, bInd);
-                bInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
-
-                noor = Compression.xyCompressPositiveOnly((float) x, mkrBuff, bInd);
-                if (!noor) {
-                  outOfRangeTable.put(m + "\t" + s + "\tx", (float) x);
-                }
-                bInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
-
-                noor = Compression.xyCompressPositiveOnly((float) y, mkrBuff, bInd);
-                if (!noor) {
-                  outOfRangeTable.put(m + "\t" + s + "\ty", (float) y);
-                }
-                bInd += Compression.REDUCED_PRECISION_XY_NUM_BYTES;
-
-                Compression.gcBafCompress((float) baf, mkrBuff, bInd);
-                bInd += Compression.REDUCED_PRECISION_GCBAF_NUM_BYTES;
-
-                noor = Compression.lrrCompress((float) lrr, mkrBuff, bInd) == 0;
-                if (!noor) {
-                  outOfRangeTable.put(m + "\t" + s + "\tlrr", (float) lrr);
-                }
-                bInd += Compression.REDUCED_PRECISION_LRR_NUM_BYTES;
-
-                Compression.genotypeCompress((byte) -1, fg, mkrBuff, bInd);
-
-                raf.write(mkrBuff);
               }
+              MarkerData data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
+                                               fingerprintForMarkerFiles, gcs, null, null, xs, ys,
+                                               null, null, null, lrrs, null, fgs);
+              CentroidCompute compute = new CentroidCompute(data, null,
+                                                            ArrayUtils.booleanArray(samples.length,
+                                                                                    true),
+                                                            false, 1, 0, null, true, log);
+              data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
+                                    fingerprintForMarkerFiles, gcs, null, null, xs, ys, null, null,
+                                    compute.getRecomputedBAF(), lrrs, null, fgs);
+              raf.write(data.compress(m, nullStatus, outOfRangeTable, false));
             }
           } catch (Elision e) {
             log.reportException(e);
@@ -532,7 +529,7 @@ public class MosdepthPipeline {
     return read;
   }
 
-  private double loadMosdepth(VariantContext match, Marker mkr, int s) {
+  private double loadMosdepth(Marker mkr, int s) {
     String file = mosdepthFiles[s];
     BEDFileReader reader;
     boolean close = false;
@@ -719,6 +716,7 @@ public class MosdepthPipeline {
     //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
     mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected.vcf");
     mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
+    mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
     mi.run();
   }
 

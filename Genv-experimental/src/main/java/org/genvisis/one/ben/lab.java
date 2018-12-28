@@ -2286,6 +2286,7 @@ public class lab {
         System.out.print(bf.toString());
         System.out.println();
       });
+
       //      reader.iterator().stream().forEach(bf -> {
       //        System.out.println(bf.getChr() + ":" + bf.getStart() + "-" + bf.getEnd());
       //      });

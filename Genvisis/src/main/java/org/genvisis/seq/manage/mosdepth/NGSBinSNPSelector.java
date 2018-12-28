@@ -366,11 +366,11 @@ public abstract class NGSBinSNPSelector {
           wasFi++;
           continue;
         }
-        //        if (vc.isIndel()) {
-        //          // skip indels
-        //          wasID++;
-        //          continue;
-        //        }
+        if (vc.isIndel()) {
+          // skip indels
+          wasID++;
+          continue;
+        }
         List<Filter> failedFilters = filterSet.check(vc);
         if (failedFilters.size() == 0) {
           passed.add(vc);
