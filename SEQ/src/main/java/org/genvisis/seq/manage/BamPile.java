@@ -267,6 +267,20 @@ public class BamPile extends Segment implements Serializable {
     return altArray;
   }
 
+  /**
+   * @param log
+   * @return int[] array with counts for {A, G, C, T, N}
+   */
+  public int[] getAlleleCounts(Logger log) {
+    int[] array = new int[5];
+    array[0] = counts_A.get(0);
+    array[1] = counts_A.get(1);
+    array[2] = counts_A.get(2);
+    array[3] = counts_A.get(3);
+    array[4] = counts_A.get(4);
+    return array;
+  }
+
   public int getNumAlt(Logger log) {
     return ArrayUtils.sum(getAltCounts(log));
   }

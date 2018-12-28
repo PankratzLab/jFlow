@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
@@ -80,7 +79,17 @@ public class BamSegPileUp {
       bamPileArray[i] = bamPile;
     }
     createPileMap();
-    this.queryIntervals = queryIntervals;
+    if (queryIntervals == null) {
+      SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
+                                                 Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
+      this.queryIntervals = BamOps.convertSegsToQI(intervals, reader.getFileHeader(), 0, true,
+                                                   aName.addChr(), log);
+      try {
+        reader.close();
+      } catch (IOException e) {}
+    } else {
+      this.queryIntervals = queryIntervals;
+    }
     this.segsPiled = Sets.newConcurrentHashSet();
     this.refSequences = Maps.newConcurrentMap();
     this.filterNGS = filterNGS;
@@ -126,7 +135,7 @@ public class BamSegPileUp {
     log.reportTime("Processing " + bam + " with " + numThreads + " threads.");
     try (SamReader reader = BamOps.getDefaultReader(bam, ValidationStringency.STRICT,
                                                     Sets.immutableEnumSet(SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES));
-         SAMRecordIterator iter = reader.iterator()) {
+         SAMRecordIterator iter = reader.query(queryIntervals, false)) {
 
       long t = System.nanoTime();
       AtomicLong count = new AtomicLong(0);
@@ -177,26 +186,26 @@ public class BamSegPileUp {
         //        chrRangeMap = ImmutableRangeMap.of();
         //        bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
-      AtomicLong processTime = new AtomicLong(0);
-      AtomicInteger count = new AtomicInteger(0);
+      //      AtomicLong processTime = new AtomicLong(0);
+      //      AtomicInteger count = new AtomicInteger(0);
 
-      long t1 = System.nanoTime();
+      //      long t1 = System.nanoTime();
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
                  .asMapOfRanges().values().stream().flatMap(Collection::stream) //
                  .parallel() //
                  .forEach((bamPile) -> {
-                   count.incrementAndGet();
-                   long t11 = System.nanoTime();
-                   //                   addRecordToPile(bamPile, samRecordSegment, samRecord);
-                   long t21 = System.nanoTime();
-                   processTime.addAndGet(t21 - t11);
+                   //                   count.incrementAndGet();
+                   //                   long t11 = System.nanoTime();
+                   addRecordToPile(bamPile, samRecordSegment, samRecord);
+                   //                   long t21 = System.nanoTime();
+                   //                   processTime.addAndGet(t21 - t11);
                  });
-      long t2 = System.nanoTime();
-      long elaps = t2 - t1;
-      long ave = processTime.get() / count.get();
-      System.out.println("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS)
-                         + " to process " + count.get() + " with an average processing time of "
-                         + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
+      //      long t2 = System.nanoTime();
+      //      long elaps = t2 - t1;
+      //      long ave = processTime.get() / count.get();
+      //      log.reportTime("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS) + " to process "
+      //                     + count.get() + " with an average processing time of "
+      //                     + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
       return true;
     }
     return false;
