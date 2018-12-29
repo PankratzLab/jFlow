@@ -28,6 +28,7 @@ import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
@@ -50,6 +51,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class MosdepthPipeline {
 
   private static final int MAX_FILES_OPEN = 5000;
+  private static final double ALLELE_PCT_HOM = .15;
 
   Logger log;
 
@@ -176,6 +178,9 @@ public class MosdepthPipeline {
     }
     if (mosdepthFiles == null) {
       throw new IllegalArgumentException("No mosdepth files set.");
+    }
+    if (cramReadFiles == null || cramReadFiles.isEmpty()) {
+      throw new IllegalArgumentException("No CRAM read files set.");
     }
     if (useBed == null) {
       throw new IllegalArgumentException("No regions BED file set.");
@@ -368,26 +373,31 @@ public class MosdepthPipeline {
               byte[] fgs = new byte[samples.length];
               float[] lrrs = new float[samples.length];
               for (int s = 0; s < samples.length; s++) {
-
                 CRAMRead reads = loadCRAMReads(mkr, s);
-                if (match != null && match.getReference().getBaseString().equals(reads.ref)) {
-                  // TODO log mismatched ref allele between genotype vcf and selected-snp vcf!
+                if (match != null && reads != null
+                    && match.getReference().getBaseString().equals(reads.ref)) {
+                  log.reportTimeWarning("Mismatched reference allele between cram read file {"
+                                        + reads.ref + "} and genotype vcf {"
+                                        + match.getReference().getBaseString() + "}!");
+                  // TODO handle differently?
                 }
 
-                xs[s] = (float) (reads.get(reads.ref) / medians.get(samples[s]).doubleValue());
-                ys[s] = (float) (reads.get(reads.alt) / medians.get(samples[s]).doubleValue());
+                if (reads != null) {
+                  xs[s] = (float) (reads.get(reads.ref) / medians.get(samples[s]).doubleValue());
+                  ys[s] = (float) (reads.get(reads.alt) / medians.get(samples[s]).doubleValue());
+                }
 
                 if (match != null) {
-
-                  // TODO assign forward genotype and GC from allele counts 
                   Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
                   // gc
                   gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);
                   // genotype
                   fgs[s] = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
-                } else {
-
+                } else if (reads != null) {
+                  // TODO compute GC score
                   gcs[s] = (float) 1.0;
+
+                  // compute genotype
                   if (ys[s] == 0) {
                     fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
                   } else if (xs[s] == 0) {
@@ -397,9 +407,9 @@ public class MosdepthPipeline {
                     double a1 = xs[s] / (double) (xs[s] + ys[s]);
                     double b1 = ys[s] / (double) (xs[s] + ys[s]);
 
-                    if (a1 > .85) {
+                    if (b1 < ALLELE_PCT_HOM) {
                       fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
-                    } else if (b1 > .85) {
+                    } else if (a1 < ALLELE_PCT_HOM) {
                       fgs[s] = (byte) ext.indexOfStr(reads.alt + reads.alt, Sample.ALLELE_PAIRS);
                     } else {
                       fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.alt, Sample.ALLELE_PAIRS);
@@ -410,7 +420,6 @@ public class MosdepthPipeline {
 
                 // lrr
                 lrrs[s] = (float) Maths.log2(medianList.get(samples[s]) / markerMedian);
-
               }
               MarkerData data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
                                                fingerprintForMarkerFiles, gcs, null, null, xs, ys,
@@ -706,18 +715,59 @@ public class MosdepthPipeline {
   }
 
   public static void main(String[] args) throws IOException, Elision {
-    MosdepthPipeline mi = new MosdepthPipeline();
-    mi.setProjectDir("G:\\bamTesting\\topmed\\project\\");
-    mi.setProjectName("TopmedMosdepth");
-    mi.setProjectPropertiesDir("D:\\projects\\");
-    mi.setNumThreads(Runtime.getRuntime().availableProcessors());
+    CLI cli = new CLI(MosdepthPipeline.class);
 
-    mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed");
-    //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
-    mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected.vcf");
-    mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
-    mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
-    mi.run();
+    cli.addArg("projDir", "Project directory", true);
+    cli.addArg("projName", "Project name", true);
+    cli.addArg("propDir", "Project property files directory", true);
+    cli.addArg("binsBed",
+               "Bins-to-use .BED file; determines which bins to import as markers.  This can be generated with "
+                          + FASTAToBedConversion.class.getCanonicalName(),
+               true);
+    cli.addArg("genoVCF",
+               "VCF file with genotype information with the same markers as the selected marker VCF file.",
+               false);
+    cli.addArg("selectedVCF",
+               "VCF file with selected markers for (at least) the bins in the 'binsBed' file.  These markers should also be present in the file used in the 'genoVCF' file.  This can be generated using "
+                              + NGSBinSNPSelector.class.getCanonicalName());
+    cli.addArg("mosDir",
+               "Mosdepth results files directory. These should be created by running the mosdepth program using the same .BED file (or a superset file) as is used for the 'binsBed' argument.");
+    cli.addArg("cramReadsDir", "CRAM read file directory.  These can be generated with "
+                               + CRAMSnpReader.class.getCanonicalName());
+    cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, false);
+
+    if (args.length == 0 && Files.isWindows()) {
+      MosdepthPipeline mi = new MosdepthPipeline();
+      mi.setProjectDir("G:\\bamTesting\\topmed\\project\\");
+      mi.setProjectName("TopmedMosdepth");
+      mi.setProjectPropertiesDir("D:\\projects\\");
+      mi.setNumThreads(Runtime.getRuntime().availableProcessors());
+
+      mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed");
+      //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
+      mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected.vcf");
+      mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
+      mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
+      mi.run();
+    } else {
+      cli.parseWithExit(args);
+
+      MosdepthPipeline mi = new MosdepthPipeline();
+      mi.setProjectDir(cli.get("projDir"));
+      mi.setProjectName(cli.get("projName"));
+      mi.setProjectPropertiesDir(cli.get("propDir"));
+      mi.setNumThreads(cli.has(CLI.ARG_THREADS) ? cli.getI(CLI.ARG_THREADS)
+                                                : Runtime.getRuntime().availableProcessors());
+
+      mi.setBinsToUseBED(cli.get("binsBed"));
+      if (cli.has("genoVCF")) {
+        mi.setGenotypeVCF(cli.get("genoVCF"));
+      }
+      mi.setSelectedMarkerVCF(cli.get("selectedVCF"));
+      mi.setMosdepthDirectory(cli.get("mosDir"), ".bed.gz");
+      mi.setCRAMReadDirectory(cli.get("cramReadsDir"));
+      mi.run();
+    }
   }
 
 }

@@ -61,15 +61,17 @@ class FASTAToBedConversion {
     CLI cli = new CLI(FASTAToBedConversion.class);
     cli.addArg("bin", "Bin Size, default 1000.");
     cli.addArg(CLI.ARG_OUTFILE, CLI.DESC_OUTFILE);
+    cli.addArg("build",
+               "GenomeBuild, one of " + ArrayUtils.toStr(GenomeBuild.values(), ", ") + ".");
 
     boolean test = true;
     if (test) {
-      String out = "G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed";
+      String out = "G:\\bamTesting\\snpSelection\\ReferenceGenomeBins_hg38.bed";
       new FASTAToBedConversion(1000, out, GenomeBuild.HG38, new Logger()).run();
     } else {
       cli.parseWithExit(args);
-      new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE), GenomeBuild.HG38,
-                               new Logger()).run();
+      new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE),
+                               GenomeBuild.valueOf(cli.get("build")), new Logger()).run();
     }
   }
 
