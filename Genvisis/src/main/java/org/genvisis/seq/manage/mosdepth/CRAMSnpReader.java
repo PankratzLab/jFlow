@@ -77,9 +77,10 @@ public class CRAMSnpReader {
         new CRAMSnpReader(cli.get("vcf"),
                           HashVec.loadFileToStringArray(cli.get("list"), false, null, false),
                           cli.get("out"), GenomeBuild.valueOf(cli.get("build")), true).run();
+      } else {
+        new CRAMSnpReader(cli.get("vcf"), cli.get("cram"), cli.get("out"),
+                          GenomeBuild.valueOf(cli.get("build")), true).run();
       }
-      new CRAMSnpReader(cli.get("vcf"), cli.get("cram"), cli.get("out"),
-                        GenomeBuild.valueOf(cli.get("build")), true).run();
     }
 
   }

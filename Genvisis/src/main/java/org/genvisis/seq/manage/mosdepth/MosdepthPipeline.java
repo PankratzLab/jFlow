@@ -2,9 +2,11 @@ package org.genvisis.seq.manage.mosdepth;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +54,7 @@ public class MosdepthPipeline {
 
   private static final int MAX_FILES_OPEN = 5000;
   private static final double ALLELE_PCT_HOM = .15;
+  private static final String BINS_MISS_SNPS_FILE = "binsMissingSnps.bed";
 
   Logger log;
 
@@ -106,6 +109,7 @@ public class MosdepthPipeline {
    * @param dir CRAM Read file directory, output from {@link CRAMSnpReader}
    */
   public void setCRAMReadDirectory(String dir) {
+    this.cramReadFiles = new HashMap<>();
     for (String m : mosdepthFiles) {
       this.cramReadFiles.put(m, ext.verifyDirFormat(dir) + ext.rootOf(m)
                                 + CRAMSnpReader.CRAM_READS_EXT);
@@ -187,9 +191,6 @@ public class MosdepthPipeline {
     }
     if (markerVCF == null) {
       throw new IllegalArgumentException("No selected marker VCF file set.");
-    }
-    if (genoVCF == null) {
-      throw new IllegalArgumentException("No genotype VCF file set.");
     }
   }
 
@@ -627,17 +628,43 @@ public class MosdepthPipeline {
     useBins = reader.loadAll(log).getStrictSegments();
     reader.close();
     log.reportTime("Loaded list of bins to be imported.");
+    if (Files.exists(projDir + BINS_MISS_SNPS_FILE)) {
+      reader = new BEDFileReader(projDir + BINS_MISS_SNPS_FILE, false);
+      Segment[] removeBins = reader.loadAll(log).getStrictSegments();
+      reader.close();
+      HashSet<Segment> removeSegs = new HashSet<>();
+      for (Segment s : removeBins) {
+        removeSegs.add(s);
+      }
+      Segment[] newBins = new Segment[useBins.length - removeBins.length];
+      int ind = 0;
+      for (int i = 0; i < useBins.length; i++) {
+        if (!removeSegs.contains(useBins[i])) {
+          newBins[ind] = useBins[i];
+          ind++;
+        }
+      }
+      useBins = newBins;
+      log.reportTime("Removed " + removeBins.length
+                     + " bins known to be missing SNPs.  If this is incorrect, remove the file "
+                     + projDir + BINS_MISS_SNPS_FILE + " and rerun the pipeline.");
+    }
   }
 
   private void loadSNPs() {
+    log.reportTime("Reading selected snps VCF file...");
+    PrintWriter missingSnpsWriter = Files.getAppropriateWriter(projDir + BINS_MISS_SNPS_FILE);
     VCFFileReader snpReader = new VCFFileReader(new File(markerVCF), true);
     for (Segment seg : useBins) {
       List<VariantContext> markerVC = snpReader.query(seg.getChromosomeUCSC(), seg.getStart(),
                                                       seg.getStop())
                                                .toList();
       if (markerVC.size() == 0) {
-        log.reportTimeWarning("No snp found for bin " + seg.getUCSClocation()
-                              + ". Bin will be skipped.");
+        //        log.reportTimeWarning("No snp found for bin " + seg.getUCSClocation()
+        //                              + ". Bin will be skipped.");
+        missingSnpsWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" + seg.getStop()
+                                  + "\t" + seg.getUCSClocation());
+        missingSnpsWriter.flush();
         continue;
       }
       if (markerVC.size() > 1) {
@@ -666,6 +693,7 @@ public class MosdepthPipeline {
       binMarkers.add(mBinPos);
     }
     snpReader.close();
+    missingSnpsWriter.close();
 
     String f;
     if (!Files.exists(f = getMDSName(false))) {
@@ -743,9 +771,9 @@ public class MosdepthPipeline {
       mi.setProjectPropertiesDir("D:\\projects\\");
       mi.setNumThreads(Runtime.getRuntime().availableProcessors());
 
-      mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins.bed");
+      mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins_hg38.bed");
       //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
-      mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected.vcf");
+      mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected_topmed.vcf");
       mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
       mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
       mi.run();

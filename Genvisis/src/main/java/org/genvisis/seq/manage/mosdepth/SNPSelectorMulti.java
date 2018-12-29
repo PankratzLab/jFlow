@@ -45,6 +45,10 @@ public class SNPSelectorMulti extends NGSBinSNPSelector {
       if (!Files.exists(vcf)) {
         if (Files.exists(inputDir + format.replace(token, "0" + Integer.toString(c)))) {
           vcf = inputDir + format.replace(token, "0" + Integer.toString(c));
+        } else if (Files.exists(inputDir
+                                + format.replace(token,
+                                                 "0" + Positions.chromosomeNumberInverse(c)))) {
+          vcf = inputDir + format.replace(token, "0" + Positions.chromosomeNumberInverse(c));
         }
       }
       if (!Files.exists(vcf)) continue;
