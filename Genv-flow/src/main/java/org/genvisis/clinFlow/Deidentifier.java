@@ -135,10 +135,9 @@ public class Deidentifier {
   private String generateNewDirName(File dir) {
     String name = dir.getName();
 
-    int prime = 31;
-    long trav = 0;
+    long trav = 1;
     for (int j = 0; j < name.length(); j++) {
-      trav += name.charAt(j) * prime;
+      trav += name.charAt(j) * (j + 1);
     }
 
     return Long.toString(trav);
