@@ -37,6 +37,7 @@ import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.filesys.SourceFileHeaderData;
 import org.genvisis.cnv.manage.SourceFileParser;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Grafik;
 import org.pankratzlab.common.ext;
@@ -131,7 +132,7 @@ public class ProjectCreationGUI extends JDialog {
   };
 
   private final JComboBox<Project.ARRAY> comboBoxArrayType;
-  // private JComboBox<String> comboBoxArrayType;
+  private final JComboBox<GenomeBuild> comboBoxGenome;
   private final JLabel lblSrcFileStatus;
   private final JSpinner spinnerXY;
   private final JProgressBar progressBar;
@@ -225,6 +226,13 @@ public class ProjectCreationGUI extends JDialog {
     // comboBoxArrayType = new JComboBox<String>();
     comboBoxArrayType.setFont(comboBoxArrayType.getFont().deriveFont(Font.PLAIN));
     contentPane.add(comboBoxArrayType, "cell 2 8,growx");
+
+    JLabel lblGenomeBuild = new JLabel("Genome Build:");
+    contentPane.add(lblGenomeBuild, "cell 0 9,alignx trailing");
+
+    comboBoxGenome = new JComboBox<GenomeBuild>(GenomeBuild.values());
+    comboBoxGenome.setFont(comboBoxGenome.getFont().deriveFont(Font.PLAIN));
+    contentPane.add(comboBoxGenome, "cell 2 9,growx");
 
     lblSrcFileStatus = new JLabel("");
     contentPane.add(lblSrcFileStatus, "cell 2 10,alignx right,aligny top");
@@ -611,7 +619,7 @@ public class ProjectCreationGUI extends JDialog {
     actualProj.PROJECT_NAME.setValue(name);
     actualProj.SOURCE_DIRECTORY.setValue(srcDir);
     actualProj.SOURCE_FILENAME_EXTENSION.setValue(srcExt);
-    // actualProj.LRRSD_CUTOFF.setValue(lrrSd);
+    actualProj.GENOME_BUILD_VERSION.setValue((GenomeBuild) comboBoxGenome.getSelectedItem());
     actualProj.XY_SCALE_FACTOR.setValue(xy);
     actualProj.TARGET_MARKERS_FILENAMES.setValue(new String[] {ext.removeDirectoryInfo(tgtMkrs)});
     actualProj.ARRAY_TYPE.setValue((ARRAY) comboBoxArrayType.getSelectedItem());
