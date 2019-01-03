@@ -1,9 +1,12 @@
 package org.pankratzlab.common;
 
 import java.io.File;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import javax.swing.JTextArea;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 
 public class Logger implements Serializable {
 
@@ -178,19 +181,54 @@ public class Logger implements Serializable {
     }
   }
 
+  /**
+   * @see #reportError(boolean, boolean, int, String...)
+   */
   public void reportError(String err) {
-    reportError(err, true, true);
+    reportError(true, true, err);
   }
 
+  /**
+   * @see #reportError(boolean, boolean, int, String...)
+   */
+  public void reportError(String... err) {
+    reportError(true, true, err);
+  }
+
+  /**
+   * @see #reportError(boolean, boolean, int, String...)
+   */
   public void reportError(String err, boolean line, boolean reportToScreen) {
-    reportError(err, line, reportToScreen, 0);
+    reportError(line, reportToScreen, err);
   }
 
+  /**
+   * @see #reportError(boolean, boolean, int, String...)
+   */
+  public void reportError(boolean line, boolean reportToScreen, String... err) {
+    reportError(line, reportToScreen, 0, err);
+  }
+
+  /**
+   * @see #reportError(boolean, boolean, int, String...)
+   */
   public void reportError(String err, boolean line, boolean reportToScreen,
                           int levelRequiredToReport) {
-    PrintWriter writer;
+    reportError(line, reportToScreen, levelRequiredToReport, err);
+  }
 
-    String msg = getVersion() + ext.getTime() + " Error -\t" + err;
+  /**
+   * @param line use {@link PrintStream#println()} to print error
+   * @param reportToScreen report error to screen
+   * @param levelRequiredToReport minimum logger level to report error
+   * @param err lines of error message to print
+   */
+  public void reportError(boolean line, boolean reportToScreen, int levelRequiredToReport,
+                          String... err) {
+    PrintWriter writer;
+    String firstPrefix = getVersion() + ext.getTime() + " Error -";
+    String otherPrefix = Strings.repeat(" ", firstPrefix.length());
+    String msg = firstPrefix + "\t" + Joiner.on("\n" + otherPrefix + "\t").join(err);
 
     if (level >= levelRequiredToReport && reportToScreen) {
       if (line) {
