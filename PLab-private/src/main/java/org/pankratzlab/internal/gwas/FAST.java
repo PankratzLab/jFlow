@@ -28,6 +28,7 @@ import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.parse.GenParser;
 import org.pankratzlab.common.qsub.Qsub;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.utils.gwas.windows.HitWindows;
 
 public class FAST {
@@ -357,8 +358,8 @@ public class FAST {
                                + "]\tRunning HitWindows analysis on METAL results...");
               try {
                 String[][] results1 = HitWindows.determine(metalDir + "topHits.xln", 0.00000005f,
-                                                           500000, 0.000005f, new String[0],
-                                                           factorLog);
+                                                           500000, 0.000005f, 0.001, COMPARISON.GTE,
+                                                           new String[0], factorLog);
                 Files.writeMatrix(results1, metalDir + factorName + "_topHitWindows.out", "\t");
               } catch (Exception e) {
                 factorLog.report("ERROR - " + e.getMessage());
@@ -1015,7 +1016,8 @@ public class FAST {
       if (f.exists() && f.length() > 0) {
         System.out.println(ext.getTime() + "]\tRunning HitWindows analysis...");
         String[][] results = HitWindows.determine(resultsDir + resultsFile, 0.00000005f, 500000,
-                                                  0.000005f, new String[0], new Logger());
+                                                  0.000005f, 0.001, COMPARISON.GTE, new String[0],
+                                                  new Logger());
         Files.writeMatrix(results, resultsDir + "hits.out", "\t");
         System.out.println(ext.getTime() + "]\tHitWindows analysis complete!");
       } else {

@@ -18,6 +18,7 @@ import org.pankratzlab.common.Sort;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.stats.Maths.COMPARISON;
 import org.pankratzlab.utils.filesys.SnpMarkerSet;
 
 public class HitWindows {
@@ -34,6 +35,23 @@ public class HitWindows {
   public static String[][] determine(String filename, float indexThreshold,
                                      int windowMinSizePerSide, float windowExtensionThreshold,
                                      String[] additionalAnnotationVariableNames, Logger log) {
+    return determine(filename, indexThreshold, windowMinSizePerSide, windowExtensionThreshold, -1,
+                     COMPARISON.GTE, additionalAnnotationVariableNames, log);
+  }
+
+  /**
+   * @param filename
+   * @param indexThreshold
+   * @param windowMinSizePerSide
+   * @param windowExtensionThreshold
+   * @param additionalAnnotationVariableNames
+   * @param log
+   * @return String[][] of hits table, ready for output including header
+   */
+  public static String[][] determine(String filename, float indexThreshold,
+                                     int windowMinSizePerSide, float windowExtensionThreshold,
+                                     double mafThresh, COMPARISON mafComp,
+                                     String[] additionalAnnotationVariableNames, Logger log) {
     BufferedReader reader;
     String[] line, header;
     int count;
@@ -41,6 +59,7 @@ public class HitWindows {
     byte[] chrs;
     int[] positions;
     double[] pvals;
+    double[] mafs;
     int[] indices;
     String temp, delimiter;
     String[][] factors;
@@ -49,13 +68,17 @@ public class HitWindows {
     if (additionalAnnotationVariableNames == null) {
       additionalAnnotationVariableNames = new String[0];
     }
-    factors = new String[4 + additionalAnnotationVariableNames.length][];
+    int afIndex = 4;
+    int reqFactors = 4;
+    int numFactors = 5;
+    factors = new String[numFactors + additionalAnnotationVariableNames.length][];
     factors[0] = Aliases.MARKER_NAMES;
     factors[1] = Aliases.CHRS;
     factors[2] = Aliases.POSITIONS;
     factors[3] = Aliases.PVALUES;
+    factors[afIndex] = Aliases.ALLELE_FREQS;
     for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
-      factors[4 + i] = new String[] {additionalAnnotationVariableNames[i]};
+      factors[numFactors + i] = new String[] {additionalAnnotationVariableNames[i]};
     }
 
     count = Files.countLines(filename, 1);
@@ -64,6 +87,7 @@ public class HitWindows {
     chrs = new byte[count];
     positions = new int[count];
     pvals = new double[count];
+    mafs = mafThresh >= 0 ? new double[count] : null;
     annotation = new String[count][additionalAnnotationVariableNames.length];
     try {
       reader = Files.getAppropriateReader(filename);
@@ -71,16 +95,29 @@ public class HitWindows {
       delimiter = ext.determineDelimiter(temp);
       header = temp.trim().split(delimiter);
       indices = ext.indexFactors(factors, header, false, false, true, true, log);
-      if (ArrayUtils.min(indices) == -1) {
-        log.reportError("Aborting after failing to find the appropriate column headers in file "
-                        + filename);
-        log.reportError("Missing:");
-        for (int i = 0; i < indices.length; i++) {
-          if (indices[i] == -1) {
-            log.reportError("  " + ArrayUtils.toStr(factors[i], "/"));
+      for (int i = 0; i < reqFactors; i++) {
+        if (indices[i] < 0) {
+          log.reportError("Aborting after failing to find the appropriate column headers in file "
+                          + filename);
+          log.reportError("Missing:");
+          for (int j = 0; j < indices.length; j++) {
+            if (indices[j] == -1) {
+              log.reportError("  " + ArrayUtils.toStr(factors[j], "/"));
+            }
           }
+          return null;
         }
+      }
+      if (mafs != null && indices[afIndex] < 0) {
+        log.reportError("Aborting after failing to find the appropriate column header for {"
+                        + ArrayUtils.toStr(factors[afIndex], ", ") + "} in file " + filename + ".");
         return null;
+      }
+      for (int i = numFactors; i < numFactors + additionalAnnotationVariableNames.length; i++) {
+        if (indices[i] < 0) {
+          log.reportTimeWarning("Failed to find the appropriate column headers for {"
+                                + additionalAnnotationVariableNames[i] + "} in file " + filename);
+        }
       }
       count = 0;
       // log.report("Parsing... "+filename);
@@ -94,11 +131,11 @@ public class HitWindows {
         try {
           markerNames[count] = line[0];
           chrs[count] = Positions.chromosomeNumber(line[1]);
-          // positions[count] = Integer.parseInt(line[2]);
           positions[count] = (new java.math.BigDecimal(line[2])).intValueExact();
           pvals[count] = ext.isMissingValue(line[3]) ? 999 : Double.parseDouble(line[3]);
+          mafs[count] = ext.isMissingValue(line[4]) ? Double.NaN : Double.parseDouble(line[4]);
           for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
-            annotation[count][i] = line[4 + i];
+            annotation[count][i] = line[numFactors + i];
           }
         } catch (Exception e) {
           log.reportError("Error - reading file " + filename + " at line " + count + ": " + temp);
@@ -117,15 +154,16 @@ public class HitWindows {
       return null;
     }
 
-    return determineButOrderFirst(markerNames, chrs, positions, pvals, indexThreshold,
-                                  windowMinSizePerSide, windowExtensionThreshold,
-                                  additionalAnnotationVariableNames, annotation);
+    return determineButOrderFirst(markerNames, chrs, positions, pvals, mafs, indexThreshold,
+                                  windowMinSizePerSide, windowExtensionThreshold, mafThresh,
+                                  mafComp, additionalAnnotationVariableNames, annotation);
   }
 
   public static String[][] determineButOrderFirst(String[] markerNames, byte[] chrs,
-                                                  int[] positions, double[] pvals,
+                                                  int[] positions, double[] pvals, double[] mafs,
                                                   float indexThreshold, int windowMinSizePerSide,
                                                   float windowExtensionThreshold,
+                                                  double mafThreshold, COMPARISON mafComp,
                                                   String[] additionalAnnotationVariableNames,
                                                   String[][] annotation) {
     int[] order;
@@ -136,15 +174,18 @@ public class HitWindows {
     chrs = Sort.getOrdered(chrs, order);
     positions = Sort.getOrdered(positions, order);
     pvals = Sort.getOrdered(pvals, order);
+    mafs = Sort.getOrdered(mafs, order);
     annotation = Sort.getOrdered(annotation, order);
 
-    return determine(markerNames, chrs, positions, pvals, indexThreshold, windowMinSizePerSide,
-                     windowExtensionThreshold, additionalAnnotationVariableNames, annotation);
+    return determine(markerNames, chrs, positions, pvals, mafs, indexThreshold,
+                     windowMinSizePerSide, windowExtensionThreshold, mafThreshold, mafComp,
+                     additionalAnnotationVariableNames, annotation);
   }
 
   public static String[][] determine(String[] markerNames, byte[] chrs, int[] positions,
-                                     double[] pvals, float indexThreshold, int windowMinSizePerSide,
-                                     float windowExtensionThreshold,
+                                     double[] pvals, double[] mafs, float indexThreshold,
+                                     int windowMinSizePerSide, float windowExtensionThreshold,
+                                     double mafThreshold, COMPARISON mafComp,
                                      String[] additionalAnnotationVariableNames,
                                      String[][] annotation) {
     int startIndex, stopIndex, offset, minIndex;
@@ -155,9 +196,9 @@ public class HitWindows {
     String[] line;
 
     v = new Vector<>();
-    line = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "Region+Window",
-                         "RegionStart", "RegionStop", "NumSigMarkers", "NumSuggestiveMarkers",
-                         "NumTotalMarkers", "SizeOfRegion"};
+    line = new String[] {"Region", "MarkerName", "Chr", "Position", "p-value", "maf",
+                         "Region+Window", "RegionStart", "RegionStop", "NumSigMarkers",
+                         "NumSuggestiveMarkers", "NumTotalMarkers", "SizeOfRegion"};
     for (String additionalAnnotationVariableName : additionalAnnotationVariableNames) {
       line = ArrayUtils.addStrToArray(additionalAnnotationVariableName, line);
     }
@@ -167,7 +208,7 @@ public class HitWindows {
     stopIndex = -1;
     region = 1;
     for (int i = 0; i < markerNames.length; i++) {
-      if (pvals[i] < indexThreshold) {
+      if (pvals[i] < indexThreshold && (mafs == null || mafComp.check(mafs[i], mafThreshold))) {
         startIndex = i;
         minIndex = i;
         minPval = pvals[i];
@@ -178,7 +219,8 @@ public class HitWindows {
                   // *2 required to ensure that there are no overlapping SNPs 500kb after last hit and 500kb before next hit is technically a 1M region that should be merged:
                   - windowMinSizePerSide * 2 <= positions[startIndex - offset - 1]) {
           offset++;
-          if (pvals[startIndex - offset] < windowExtensionThreshold) {
+          if (pvals[startIndex - offset] < windowExtensionThreshold
+              && (mafs == null || mafComp.check(mafs[startIndex - offset], mafThreshold))) {
             startIndex -= offset;
             offset = 0;
             numSuggestive++;
@@ -192,6 +234,7 @@ public class HitWindows {
                && positions[stopIndex]
                   + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the 2* here, though
           offset++;
+          if (!mafComp.check(mafs[stopIndex + offset], mafThreshold)) continue;
           if (pvals[stopIndex + offset] < indexThreshold) {
             numSig++;
           }
@@ -206,15 +249,16 @@ public class HitWindows {
           }
         }
 
-        line = new String[] {region + "", markerNames[minIndex], chrs[minIndex]
-                                                                 + "",
-                             positions[minIndex] + "", pvals[minIndex]
-                                                       + "",
+        line = new String[] {region + "", markerNames[minIndex], chrs[minIndex] + "",
+                             positions[minIndex] + "", pvals[minIndex] + "",
+                             mafs == null ? "." : (mafs[minIndex]
+                                                   + ""),
                              "chr" + chrs[startIndex] + ":" + Math.max(positions[startIndex]
-                                                                       - windowMinSizePerSide, 1)
-                                                             + "-"
-                                                             + (positions[stopIndex]
-                                                                + windowMinSizePerSide),
+                                                                       - windowMinSizePerSide,
+                                                                       1)
+                                                          + "-"
+                                                          + (positions[stopIndex]
+                                                             + windowMinSizePerSide),
                              positions[startIndex] + "", positions[stopIndex] + "", numSig + "",
                              numSuggestive + "", (stopIndex - startIndex + 1) + "",
                              (positions[stopIndex] - positions[startIndex] + 1) + ""};
