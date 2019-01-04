@@ -384,19 +384,10 @@ public class MosdepthPipeline {
                 }
 
                 if (reads != null) {
-                  xs[s] = (float) (reads.get(reads.ref) / medians.get(samples[s]).doubleValue());
-                  ys[s] = (float) (reads.get(reads.alt) / medians.get(samples[s]).doubleValue());
-                }
+                  xs[s] = (float) (reads.getRef() / medians.get(samples[s]).doubleValue());
+                  ys[s] = (float) (reads.getAlt() / medians.get(samples[s]).doubleValue());
 
-                if (match != null) {
-                  Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
-                  // gc
-                  gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);
-                  // genotype
-                  fgs[s] = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
-                } else if (reads != null) {
-                  // TODO compute GC score
-                  gcs[s] = (float) 1.0;
+                  gcs[s] = (float) reads.getGQ();
 
                   // compute genotype
                   if (ys[s] == 0) {
@@ -417,6 +408,12 @@ public class MosdepthPipeline {
                     }
 
                   }
+                } else if (match != null) {
+                  Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
+                  // gc
+                  gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);
+                  // genotype
+                  fgs[s] = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
                 }
 
                 // lrr
@@ -486,11 +483,20 @@ public class MosdepthPipeline {
 
     String ref;
     String alt;
-    int[] cnts; // AGCTN
+    int refCnt;
+    int altCnt;
+    double gq;
 
-    public double get(String base) {
-      // TODO will throw an exception if base is not one of AGCTN
-      return cnts[getBaseIndex(base)];
+    public int getRef() {
+      return refCnt;
+    }
+
+    public int getAlt() {
+      return altCnt;
+    }
+
+    public double getGQ() {
+      return gq;
     }
 
   }
@@ -527,10 +533,9 @@ public class MosdepthPipeline {
       read = new CRAMRead();
       read.ref = feat.getAnnotation(0);
       read.alt = feat.getAnnotation(1);
-      read.cnts = new int[] {Integer.parseInt(feat.getAnnotation(2)),
-                             Integer.parseInt(feat.getAnnotation(3)),
-                             Integer.parseInt(feat.getAnnotation(4)),
-                             Integer.parseInt(feat.getAnnotation(5)),};
+      read.refCnt = Integer.parseInt(feat.getAnnotation(2));
+      read.altCnt = Integer.parseInt(feat.getAnnotation(3));
+      read.gq = Double.parseDouble(feat.getAnnotation(4));
     }
 
     if (close) {

@@ -16,6 +16,7 @@ import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.ReferenceGenome;
 import org.genvisis.seq.SeqVariables.ASSEMBLY_NAME;
 import org.genvisis.seq.manage.BamPile;
+import org.genvisis.seq.manage.BamPile.Base;
 import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.pankratzlab.common.ArrayUtils;
@@ -121,7 +122,7 @@ public class CRAMSnpReader {
           try {
             String outFile = outDir + ext.rootOf(c) + CRAM_READS_EXT;
             PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
-            writer.println("#CHR\tSTART\tSTOP\tUCSC\tSNP\tREF\tALT\tA\tG\tC\tT\tN");
+            writer.println("#CHR\tSTART\tSTOP\tUCSC\tSNP\tREF\tALT\tREFN\tALTN\tGQ");
             BamPile[] bamPiles = PileupProducer.processBamFile(c, refGen, pileSegs, filterNGS,
                                                                aName, numThreads, log);
             for (int s = 0; s < pileSegs.length; s++) {
@@ -140,7 +141,12 @@ public class CRAMSnpReader {
               writer.print("\t");
               writer.print(bin.alt);
               writer.print("\t");
-              writer.println(ArrayUtils.toStr(bamPiles[s].getAlleleCounts(log), "\t"));
+              writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.ref)));
+              writer.print("\t");
+              writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.alt)));
+              writer.print("\t");
+              // TODO write GQ value
+              writer.println(1.0);
             }
             writer.close();
             BedOps.verifyBedIndex(outFile, log);
