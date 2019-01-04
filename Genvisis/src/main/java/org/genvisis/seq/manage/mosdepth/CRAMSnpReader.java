@@ -62,18 +62,25 @@ public class CRAMSnpReader {
     cli.addArg("list", "File with list of cram files to process");
     cli.addGroup("cram", "list");
     cli.addArg("out", "Output file directory", true);
-    cli.addArg("build", "Genome build, one of " + ArrayUtils.toStr(GenomeBuild.values(), ", "));
+    cli.addArg("build", "Genome build, one of " + ArrayUtils.toStr(GenomeBuild.values(), ", "),
+               true);
 
-    System.setProperty("samjdk.reference_fasta",
-                       Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
-    System.setProperty("reference_fasta",
-                       Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
     if (args.length == 0) {
+      System.setProperty("samjdk.reference_fasta",
+                         Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
+      System.setProperty("reference_fasta",
+                         Resources.genome(GenomeBuild.HG38, new Logger()).getFASTA().get());
       new CRAMSnpReader("G:\\bamTesting\\snpSelection\\selected_topmed.vcf",
                         "G:\\bamTesting\\00cram\\", "G:\\bamTesting\\00cram\\", GenomeBuild.HG38,
                         true).run();
     } else {
       cli.parseWithExit(args);
+      System.setProperty("samjdk.reference_fasta",
+                         Resources.genome(GenomeBuild.valueOf(cli.get("build")), new Logger())
+                                  .getFASTA().get());
+      System.setProperty("reference_fasta",
+                         Resources.genome(GenomeBuild.valueOf(cli.get("build")), new Logger())
+                                  .getFASTA().get());
       if (cli.has("list")) {
         new CRAMSnpReader(cli.get("vcf"),
                           HashVec.loadFileToStringArray(cli.get("list"), false, null, false),
