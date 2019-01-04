@@ -352,8 +352,10 @@ public class FAST {
                 e.printStackTrace();
               }
               String metalDir = ext.parseDirectoryOfFile(metalCRF);
-              CmdLine.run(new String[] {"java", "-jar", decodedPath, "Launch", metalCRF}, metalDir,
-                          System.out, System.err, factorLog, false);
+              CmdLine.run(new String[] {"java", "-jar", decodedPath,
+                                        org.pankratzlab.internal.utils.Launch.class.getCanonicalName(),
+                                        metalCRF},
+                          metalDir, System.out, System.err, factorLog, false);
               factorLog.report(ext.getTime()
                                + "]\tRunning HitWindows analysis on METAL results...");
               try {
