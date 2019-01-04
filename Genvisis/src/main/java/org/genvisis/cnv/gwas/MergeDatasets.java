@@ -25,6 +25,7 @@ import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.ContingencyTable;
 import org.pankratzlab.common.stats.ProbDist;
 import org.pankratzlab.common.stats.Rscript;
+import org.pankratzlab.utils.filesys.SnpMarkerSet;
 import org.pankratzlab.utils.gwas.MarkerQC;
 
 public class MergeDatasets {
@@ -386,8 +387,8 @@ public class MergeDatasets {
     try {
       writer = Files.openAppropriateWriter(dir + "batchMerge" + (Files.isWindows() ? ".bat" : ""));
       for (String subdir : subdirs) {
-        writer.println("java -jar /home/npankrat/" + org.pankratzlab.common.PSF.Java.GENVISIS
-                       + " filesys.SnpMarkerSet file=" + subdir + commonPlinkRoot + ".bim");
+        writer.println(Files.getRunString() + " " + SnpMarkerSet.class.getCanonicalName() + " file="
+                       + subdir + commonPlinkRoot + ".bim");
       }
       writer.println();
       if (Files.isWindows()) {
