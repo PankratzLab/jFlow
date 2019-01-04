@@ -731,6 +731,7 @@ public class MergeDatasets {
   }
 
   public static void main(String[] args) {
+    final String rootArg = "root=";
     int numArgs = args.length;
     String dir = "";
     // String dir = "C:\\Documents and Settings\\npankrat\\My
@@ -754,7 +755,7 @@ public class MergeDatasets {
                    + "   (2) parse test of homogeneity results (i.e. -parseHomo (not the default))\n"
                    + " OR:\n"
                    + "   (2) set up batch merge (i.e. batch=dir1/,dir2/,lastDir/ (not the default))\n"
-                   + "   (3) root of plink files (i.e. root=" + plinkRoot + " (default))\n"
+                   + "   (3) root of plink files (i.e. " + rootArg + plinkRoot + " (default))\n"
                    + " OR:\n"
                    + "   (2) update indiviudal map with mergedMap (i.e. update=plink.bim (not the default))\n"
                    + " OR:\n"
@@ -769,6 +770,9 @@ public class MergeDatasets {
         numArgs--;
       } else if (arg.startsWith("batch=")) {
         batch = arg.split("=")[1];
+        numArgs--;
+      } else if (arg.startsWith(rootArg)) {
+        plinkRoot = arg.split("=")[1];
         numArgs--;
       } else if (arg.startsWith("-checkHomo")) {
         checkHomo = true;
