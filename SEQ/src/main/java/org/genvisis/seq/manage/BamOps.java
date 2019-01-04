@@ -48,6 +48,8 @@ public class BamOps {
 
   public static final String BAM_EXT = ".bam";
   public static final String BAI_EXT = ".bai";
+  public static final String CRAM_EXT = ".cram";
+  public static final String CRAI_EXT = ".crai";
   /**
    * Default number of reads to scan in order to estimate read length for a sample
    */
@@ -58,8 +60,8 @@ public class BamOps {
   }
 
   /**
-   * This method will check if an appropriate .bai index file exists for a given .bam, and attempt
-   * to create it if not
+   * This method will check if an appropriate .bai index file exists for a given .bam (or .crai file
+   * for each .cram file), and attempt to create it if not
    *
    * @param bamFile bam file to verify
    * @param log
@@ -84,7 +86,13 @@ public class BamOps {
    * @return the associated
    */
   public static Collection<String> getPossibleBamIndices(String bamFile) {
-    return ImmutableList.of(defaultBamIndexName(bamFile), bamFile + BAI_EXT);
+    return ImmutableList.of(bamFile.endsWith(CRAM_EXT) ? defaultCramIndexName(bamFile)
+                                                       : defaultBamIndexName(bamFile),
+                            bamFile.endsWith(CRAM_EXT) ? bamFile + CRAI_EXT : bamFile + BAI_EXT);
+  }
+
+  private static String defaultCramIndexName(String cramFile) {
+    return ext.rootOf(cramFile, false) + CRAI_EXT;
   }
 
   private static String defaultBamIndexName(String bamFile) {
