@@ -133,7 +133,9 @@ public class HitWindows {
           chrs[count] = Positions.chromosomeNumber(line[1]);
           positions[count] = (new java.math.BigDecimal(line[2])).intValueExact();
           pvals[count] = ext.isMissingValue(line[3]) ? 999 : Double.parseDouble(line[3]);
-          mafs[count] = ext.isMissingValue(line[4]) ? Double.NaN : Double.parseDouble(line[4]);
+          if (mafs != null) {
+            mafs[count] = ext.isMissingValue(line[4]) ? Double.NaN : Double.parseDouble(line[4]);
+          }
           for (int i = 0; i < additionalAnnotationVariableNames.length; i++) {
             annotation[count][i] = line[numFactors + i];
           }

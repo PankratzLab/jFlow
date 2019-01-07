@@ -228,7 +228,7 @@ public class Logger implements Serializable {
     PrintWriter writer;
     String firstPrefix = getVersion() + ext.getTime() + " Error -";
     String otherPrefix = Strings.repeat(" ", firstPrefix.length());
-    String msg = firstPrefix + "\t" + Joiner.on("\n" + otherPrefix + "\t").join(err);
+    String msg = firstPrefix + "\t" + Joiner.on("\n" + otherPrefix + "\t").skipNulls().join(err);
 
     if (level >= levelRequiredToReport && reportToScreen) {
       if (line) {
