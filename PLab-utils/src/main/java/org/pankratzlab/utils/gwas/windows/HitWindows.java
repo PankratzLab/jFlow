@@ -176,7 +176,7 @@ public class HitWindows {
     chrs = Sort.getOrdered(chrs, order);
     positions = Sort.getOrdered(positions, order);
     pvals = Sort.getOrdered(pvals, order);
-    mafs = Sort.getOrdered(mafs, order);
+    mafs = mafs == null ? null : Sort.getOrdered(mafs, order);
     annotation = Sort.getOrdered(annotation, order);
 
     return determine(markerNames, chrs, positions, pvals, mafs, indexThreshold,
@@ -236,7 +236,7 @@ public class HitWindows {
                && positions[stopIndex]
                   + windowMinSizePerSide >= positions[stopIndex + offset + 1]) { // don't want the 2* here, though
           offset++;
-          if (!mafComp.check(mafs[stopIndex + offset], mafThreshold)) continue;
+          if (mafs != null && !mafComp.check(mafs[stopIndex + offset], mafThreshold)) continue;
           if (pvals[stopIndex + offset] < indexThreshold) {
             numSig++;
           }
