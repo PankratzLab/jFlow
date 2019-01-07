@@ -166,6 +166,13 @@ public class FAST {
                     File f = new File(resultsDirPath + midOut);
                     if (!f.exists() || f.length() <= 0) {
                       concatResults(resultsDirPath, midOut, pvalThresh, true, true);
+                      Files.copyFile(resultsDir
+                                     + "hits.out",
+                                     finalResultsPath
+                                                   + finalOut.substring(0,
+                                                                        finalOut.length()
+                                                                           - PROCESSED_RESULT_FILE_EXT.length())
+                                                   + ".hits.xln");
                     }
                     File f2 = new File(resultsDirPath + midOut);
                     System.out.println("FILEPATH: " + f2.getAbsolutePath());
@@ -250,6 +257,13 @@ public class FAST {
                     String traitFileF = ext.verifyDirFormat(femaleDir.getAbsolutePath()) + studyName
                                         + "_" + popName + "_" + factorName + "_female.trait";
                     concatResults(resultsDirPathFemale, midOutF, pvalThresh, true, true);
+                    Files.copyFile(resultsDirPathFemale
+                                   + "hits.out",
+                                   finalResultsPath
+                                                 + finalOutF.substring(0,
+                                                                       finalOutF.length()
+                                                                          - PROCESSED_RESULT_FILE_EXT.length())
+                                                 + ".hits.xln");
                     if (Files.exists(resultsDirPathFemale + midOutF)
                         && Files.getSize(resultsDirPathFemale + midOutF) > 0) {
                       runParser(DEFAULT_FORMAT, resultsDirPathFemale + midOutF,
@@ -292,6 +306,13 @@ public class FAST {
                     String traitFileM = ext.verifyDirFormat(maleDir.getAbsolutePath()) + studyName
                                         + "_" + popName + "_" + factorName + "_male.trait";
                     concatResults(resultsDirPathMale, midOutM, pvalThresh, true, true);
+                    Files.copyFile(resultsDirPathMale
+                                   + "hits.out",
+                                   finalResultsPath
+                                                 + finalOutM.substring(0,
+                                                                       finalOutM.length()
+                                                                          - PROCESSED_RESULT_FILE_EXT.length())
+                                                 + ".hits.xln");
                     if (Files.exists(resultsDirPathMale + midOutM)
                         && Files.getSize(resultsDirPathMale + midOutM) > 0) {
                       runParser(DEFAULT_FORMAT, resultsDirPathMale + midOutM,
