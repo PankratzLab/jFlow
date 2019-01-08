@@ -109,10 +109,11 @@ public class FCSReader {
     // write text
     fO.write(textBytes);
     // write spaces in between
-    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + 5 + dataLength
-                                                               - 1)
-                                                            : newHeader.dataStart)
-                                  - (newHeader.textStop + 1)), (byte) 32);
+    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + 5
+                                                                      + dataLength - 1)
+                                                                   : newHeader.dataStart)
+                                         - (newHeader.textStop + 1)),
+                                  (byte) 32);
     fO.write(filler);
     // write data
     reader.data.writeData(reader, fO);
