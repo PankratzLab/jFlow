@@ -166,7 +166,7 @@ public class FAST {
                     File f = new File(resultsDirPath + midOut);
                     if (!f.exists() || f.length() <= 0) {
                       concatResults(resultsDirPath, midOut, pvalThresh, true, true);
-                      Files.copyFile(resultsDir
+                      Files.copyFile(ext.verifyDirFormat(resultsDir.getAbsolutePath())
                                      + "hits.out",
                                      finalResultsPath
                                                    + finalOut.substring(0,
