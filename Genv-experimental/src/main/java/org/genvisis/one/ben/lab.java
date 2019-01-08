@@ -27,11 +27,13 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filtering.CNVFilter;
-import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.filtering.CNVFilter.CNVFilterPass;
+import org.genvisis.cnv.filtering.FilterCalls;
 import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.jfcs.FCSKeywords;
+import org.genvisis.jfcs.FCSReader;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -1853,13 +1855,8 @@ public class lab {
       //      String zipLn = bgzip.readLine();
       //
 
-      BufferedReader reader = Files.getAppropriateReader("/scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
-      int lines = 0;
-      while (reader.readLine() != null) {
-        lines++;
-      }
-      System.out.println("Read " + lines
-                         + " in /scratch.global/cole0482/UKBB/Axiom_UKB_WCSG.na35.annot.csv.zip");
+      FCSKeywords keys = FCSReader.readKeywords("F:\\Flow_stage2\\deident\\5287\\537f8aca-d776-4026-89a8-8b169998b4d4.fcs");
+      System.out.println(keys.getRaw());
 
       // runHRC();
       // QQPlot.main(new String[]

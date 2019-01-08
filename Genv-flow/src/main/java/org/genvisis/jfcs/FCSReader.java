@@ -76,16 +76,17 @@ public class FCSReader {
       }
     }
 
-    long dE = dB + dataLength - 1;
-    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, Integer.toString(dB));
-    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(dE));
-    textBytes = reader.getKeywords().constructRaw();
-
     FCSHeader newHeader = new FCSHeader();
     newHeader.fileFormat = reader.getVersion();
 
     newHeader.textStart = 256; // apparent default?
     newHeader.textStop = newHeader.textStart + textBytes.length - 1;
+
+    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA,
+                                    Integer.toString(newHeader.textStop + 5));
+    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA,
+                                    Long.toString(newHeader.textStop + 5 + dataLength - 1));
+    textBytes = reader.getKeywords().constructRaw();
 
     if (newHeader.textStop + 5 + dataLength - 1 > 99999999) {
       newHeader.dataStart = 0;
@@ -108,7 +109,10 @@ public class FCSReader {
     // write text
     fO.write(textBytes);
     // write spaces in between
-    filler = ArrayUtils.byteArray(newHeader.dataStart - (newHeader.textStop + 1), (byte) 32);
+    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + 5 + dataLength
+                                                               - 1)
+                                                            : newHeader.dataStart)
+                                  - (newHeader.textStop + 1)), (byte) 32);
     fO.write(filler);
     // write data
     reader.data.writeData(reader, fO);
