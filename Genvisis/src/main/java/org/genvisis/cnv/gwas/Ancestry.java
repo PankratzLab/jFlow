@@ -467,7 +467,7 @@ public class Ancestry {
                    + "   (4) Run full pipeline (i.e. -runPipeline (not the default, requires arguments for each step))\n"
                    + "  OR\n"
                    + "   (5) Check Homogeneity using Chi-Square (Generates PBS script to run Fisher's exact, if desired) (i.e. -checkHomo (not the default))\n"
-                   + "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (not the default))\n"
+                   + "   (6) File of FID/IID pairs of putative whites to use for finding homogenous markers by comparison to CEU (i.e. putativeWhites=whites.txt (required, no default))\n"
                    + "  OR\n"
                    + "   (7) Parse homogeneity checks and run Eigenstrat (i.e. -run (not the default))\n"
                    + "  OR\n" + "   (8) Impute race (i.e. -imputeRace (not the default))\n"
@@ -535,9 +535,10 @@ public class Ancestry {
                                 dummyProjectPrefix, putativeWhites, log);
     }
     try {
-      if (runPipeline) {
+      dir = new File(dir).getAbsolutePath();
+      if (runPipeline && putativeWhites != null) {
         runPipeline(dir, putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
-      } else if (checkHomo) {
+      } else if (checkHomo && putativeWhites != null) {
         checkHomogeneity(dir, putativeWhites, dir + "plink", hapMapPlinkRoot, proj, log);
       } else if (run) {
         String homogeneityDrops = parseHomogeneity(dir, log);
