@@ -423,15 +423,17 @@ public class BamQC {
             bamQC.addNumUnique(samRecord);
             bamQC.addNumUnMapped(samRecord);
             if ((!samRecord.getReferenceName().equals("*")) && (libraryNGS != null)
-                && (readDepth != null)) {
+                && (readDepth != null) && (!samRecord.getReadUnmappedFlag())) {
+              // unmapped reads can still have alignment information, and
+              // can be the case that samRecord.getAlignmentStart() > samRecord.getAlignmentEnd()), 
+              // so we remove before trying to create a segment to avoid an IllegalArgumentException when constructing the range 
               Segment segment = new Segment(Positions.chromosomeNumber(samRecord.getReferenceName(),
                                                                        log),
                                             samRecord.getAlignmentStart(),
                                             samRecord.getAlignmentEnd());
               if (segment.getChr() >= 0) {
                 int[] libraryIndices = libraryNGS.indicesInLibrary(segment);
-                if ((!samRecord.getDuplicateReadFlag()) && (!samRecord.getReadUnmappedFlag())
-                    && (libraryIndices != null)) {
+                if ((!samRecord.getDuplicateReadFlag()) && (libraryIndices != null)) {
                   bamQC.addInsertSize(samRecord, QC_INSERT_HISTOGRAM);
                   bamQC.addToGHistoGram(currentGC, QC_GC_HISTOGRAM);
                   for (int libraryIndice : libraryIndices) {
