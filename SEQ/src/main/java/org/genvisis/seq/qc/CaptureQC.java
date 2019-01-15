@@ -79,19 +79,19 @@ public class CaptureQC {
         int[] exacts = targetSet.getOverlappingIndices(seg);
 
         if (exacts != null && exacts.length > 0) {
-          if (exacts.length > 1) {
-            throw new IllegalStateException();
-          }
+
           System.out.println("HID");
           BEDFeatureSeg[] exactSegs = ArrayUtils.subArray(targetSet.getLoci(), exacts);
 
           // double gcRegion = referenceGenome.getGCContentFor(seg);
 
+          int count = 0;
           for (BEDFeatureSeg currentData : exactSegs) {
-            if (Math.abs(seg.amountOfOverlapInBasepairs(currentData) - seg.getSize()) == 1) {
+            if (Math.abs(seg.amountOfOverlapInBasepairs(currentData) - seg.getSize()) == 1
+                && seg.getStop() == currentData.getStop()) {
               System.out.println(seg.getUCSClocation() + "\t" + currentData.getUCSClocation());
               String[] info = currentData.getBedFeature().getName().split("\\|");
-
+              count++;
               found: for (String gene : geneNames) {
                 for (String vals : info) {
                   if (vals.contains(gene + "")) {
@@ -105,6 +105,10 @@ public class CaptureQC {
                 }
               }
             }
+          }
+          if (count != 1) {
+            System.out.println(count);
+            throw new IllegalStateException();
           }
         }
       }
