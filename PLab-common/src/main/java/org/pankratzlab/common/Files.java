@@ -1407,7 +1407,7 @@ public class Files {
     count = 0;
     try {
       for (int i = 0; i < keys.length; i++) {
-        key = ignoreCase ? keys[i].toLowerCase() : keys[i];
+        key = ignoreCase ? keys[i].toLowerCase().trim() : keys[i].trim();
         if (key.split("\t", -1).length != numColsInKey) {
           throw new Elision("The first row of the keys had " + numColsInKey + " column"
                             + (numColsInKey == 1 ? "" : "s") + " while row " + (i + 1) + " has "
