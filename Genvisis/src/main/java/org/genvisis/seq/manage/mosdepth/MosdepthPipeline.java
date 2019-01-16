@@ -44,6 +44,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -111,11 +112,15 @@ public class MosdepthPipeline {
   public void setCRAMReadDirectory(String dir) {
     this.cramReadFiles = new HashMap<>();
     for (String m : mosdepthFiles) {
-      this.cramReadFiles.put(m, ext.verifyDirFormat(dir) + ext.rootOf(m)
+      String f = ext.removeDirectoryInfo(m);
+      this.cramReadFiles.put(m,
+                             ext.verifyDirFormat(dir)
+                                + f.substring(0, f.length() - ".mos.regions.bed.gz".length())
                                 + CRAMSnpReader.CRAM_READS_EXT);
     }
   }
 
+  Segment[] removeBins;
   Segment[] useBins;
   VCFFileReader genoReader;
   Map<String, String> genoIDLookup;
@@ -374,7 +379,12 @@ public class MosdepthPipeline {
               byte[] fgs = new byte[samples.length];
               float[] lrrs = new float[samples.length];
               for (int s = 0; s < samples.length; s++) {
-                CRAMRead reads = loadCRAMReads(mkr, s);
+                CRAMRead reads = null;
+                try {
+                  reads = loadCRAMReads(mkr, s);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
                 if (match != null && reads != null
                     && match.getReference().getBaseString().equals(reads.ref)) {
                   log.reportTimeWarning("Mismatched reference allele between cram read file {"
@@ -426,6 +436,7 @@ public class MosdepthPipeline {
                                                             ArrayUtils.booleanArray(samples.length,
                                                                                     true),
                                                             false, 1, 0, null, true, log);
+              compute.setAlternateGenotypes(data.getForwardGenotypes());
               data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
                                     fingerprintForMarkerFiles, gcs, null, null, xs, ys, null, null,
                                     compute.getRecomputedBAF(), lrrs, null, fgs);
@@ -461,7 +472,7 @@ public class MosdepthPipeline {
                    + ext.getTimeElapsedNanos(t2));
   }
 
-  private LoadingCache<String, BEDFileReader> buildCache() {
+  private static LoadingCache<String, BEDFileReader> buildCache() {
     return CacheBuilder.newBuilder().softValues()
                        .removalListener(new RemovalListener<String, BEDFileReader>() {
 
@@ -507,7 +518,11 @@ public class MosdepthPipeline {
     boolean close = false;
     try {
       reader = cramReadCache.get(crF);
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      if (!Files.exists(crF)) {
+        log.reportFileNotFound(crF);
+        return null;
+      }
       log.reportException(e);
       reader = BEDFileReader.createAnnotatedBEDFileReader(crF, true);
       close = true;
@@ -519,23 +534,23 @@ public class MosdepthPipeline {
     AnnotatedBEDFeature feat;
     if (iter.size() >= 1) {
       if (iter.size() > 1) {
-        log.reportTimeWarning("Multiple depth scores found for " + samples[s] + ", bin "
+        log.reportTimeWarning("Multiple allele count records found for " + samples[s] + ", bin "
                               + binLookup.get(mkr).getUCSClocation());
       }
       feat = (AnnotatedBEDFeature) iter.get(0);
     } else/* if (iter.size() == 0) */ {
-      log.reportError("Missing depth score for " + samples[s] + ", bin "
+      log.reportError("Missing allele count record for " + samples[s] + ", bin "
                       + binLookup.get(mkr).getUCSClocation());
       feat = null;
     }
     CRAMRead read = null;
     if (feat != null) {
       read = new CRAMRead();
-      read.ref = feat.getAnnotation(0);
-      read.alt = feat.getAnnotation(1);
-      read.refCnt = Integer.parseInt(feat.getAnnotation(2));
-      read.altCnt = Integer.parseInt(feat.getAnnotation(3));
-      read.gq = Double.parseDouble(feat.getAnnotation(4));
+      read.ref = feat.getAnnotation(1);
+      read.alt = feat.getAnnotation(2);
+      read.refCnt = Integer.parseInt(feat.getAnnotation(3));
+      read.altCnt = Integer.parseInt(feat.getAnnotation(4));
+      read.gq = Double.parseDouble(feat.getAnnotation(5));
     }
 
     if (close) {
@@ -635,7 +650,7 @@ public class MosdepthPipeline {
     log.reportTime("Loaded list of bins to be imported.");
     if (Files.exists(projDir + BINS_MISS_SNPS_FILE)) {
       reader = new BEDFileReader(projDir + BINS_MISS_SNPS_FILE, false);
-      Segment[] removeBins = reader.loadAll(log).getStrictSegments();
+      removeBins = reader.loadAll(log).getStrictSegments();
       reader.close();
       HashSet<Segment> removeSegs = new HashSet<>();
       for (Segment s : removeBins) {
@@ -698,6 +713,12 @@ public class MosdepthPipeline {
       binMarkers.add(mBinPos);
     }
     snpReader.close();
+    if (removeBins != null) {
+      for (Segment seg : removeBins) {
+        missingSnpsWriter.println(seg.getChr() + "\t" + (seg.getStart() - 1) + "\t" + seg.getStop()
+                                  + "\t" + seg.getUCSClocation());
+      }
+    }
     missingSnpsWriter.close();
 
     String f;

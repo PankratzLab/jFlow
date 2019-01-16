@@ -21,16 +21,16 @@ import org.genvisis.seq.manage.BedOps;
 import org.genvisis.seq.qc.FilterNGS;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.variant.vcf.VCFFileReader;
 
 public class CRAMSnpReader {
 
-  public static final String CRAM_READS_EXT = ".reads.bed.bgz";
+  public static final String CRAM_READS_EXT = ".reads.bed";
 
   private FilterNGS filterNGS = new FilterNGS(20, 20, null);
   private Logger log = new Logger();
@@ -128,15 +128,15 @@ public class CRAMSnpReader {
           log.reportTime("Processing .cram file: " + c);
           try {
             String outFile = outDir + ext.rootOf(c) + CRAM_READS_EXT;
-            PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
-            writer.println("#CHR\tSTART\tSTOP\tUCSC\tSNP\tREF\tALT\tREFN\tALTN\tGQ");
+            //            PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
+            PrintWriter writer = Files.getAppropriateWriter(outFile);
             BamPile[] bamPiles = PileupProducer.processBamFile(c, refGen, pileSegs, filterNGS,
                                                                aName, numThreads, log);
             for (int s = 0; s < pileSegs.length; s++) {
               NGSBin bin = segMap.get(pileSegs[s]);
               writer.print(bin.snpSeg.getChromosomeUCSC());
               writer.print("\t");
-              writer.print(bin.binStart);
+              writer.print(bin.binStart - 1);
               writer.print("\t");
               writer.print(bin.binStop);
               writer.print("\t");

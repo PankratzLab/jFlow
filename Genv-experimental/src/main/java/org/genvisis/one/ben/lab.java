@@ -44,6 +44,7 @@ import org.genvisis.cnv.var.SampleData;
 import org.genvisis.jfcs.FCSKeywords;
 import org.genvisis.jfcs.FCSReader;
 import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -2277,19 +2278,9 @@ public class lab {
     boolean test = true;
     if (test) {
 
-      String p;
-
-      p = "G:/bamTesting/00cram/NWD591891.recab.reads.bed.bgz";
-      BEDFileReader reader = BEDFileReader.createAnnotatedBEDFileReader(p, true);
-
-      reader.iterator().stream().forEach(bf -> {
-        System.out.print(bf.toString());
-        System.out.println();
-      });
-
-      //      reader.iterator().stream().forEach(bf -> {
-      //        System.out.println(bf.getChr() + ":" + bf.getStart() + "-" + bf.getEnd());
-      //      });
+      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
+        BedOps.verifyBedIndex(f, new Logger());
+      }
 
       // createBCXPlots();
       // processAnnotationFilesAll();
