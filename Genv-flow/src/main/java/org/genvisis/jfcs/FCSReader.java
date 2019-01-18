@@ -65,10 +65,19 @@ public class FCSReader {
     // placeholders
     reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, "1");
     reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, "1");
-    if (Integer.parseInt(reader.getKeywords()
-                               .getKeyword(FCS_KEYWORD.TOT)) != reader.data.getEventCount()) {
+    if (!reader.getKeywords().hasKeyword(FCS_KEYWORD.TOT)) {
       reader.getKeywords().setKeyword(FCS_KEYWORD.TOT,
                                       Integer.toString(reader.data.getEventCount()));
+    }
+    if (reader.getKeywords().hasKeyword(FCS_KEYWORD.TOT)
+        && Integer.parseInt(reader.getKeywords()
+                                  .getKeyword(FCS_KEYWORD.TOT)) != reader.data.getEventCount()) {
+      fO.close();
+      throw new IllegalStateException("Number of events recorded in file keywords ("
+                                      + FCS_KEYWORD.TOT.keyword + "="
+                                      + reader.getKeywords().getKeyword(FCS_KEYWORD.TOT)
+                                      + ") does not match the actual number of events found in the file ("
+                                      + reader.getEventCount() + ")");
     }
     textBytes = reader.getKeywords().constructRaw();
 
