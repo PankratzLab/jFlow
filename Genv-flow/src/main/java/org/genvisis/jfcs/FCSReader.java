@@ -19,7 +19,7 @@ public class FCSReader {
   private String fcsVersion;
   private FCSKeywords keys;
   private FCSSpillover spill;
-  FCSData data;
+  private FCSData data;
 
   private FCSReader() {}
 
@@ -54,27 +54,33 @@ public class FCSReader {
     return reader;
   }
 
+  private static final int DFLT_PAD = 5;
+
   public static void write(FCSReader reader, String newFile) throws IOException {
     RandomAccessFile fO = new RandomAccessFile(newFile, "rw");
 
     long dataLength = reader.data.getDataByteCount();
     byte[] textBytes;
 
-    int dB = 5000;
-
     // placeholders
-    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, "5000");
-    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(5000 + dataLength - 1));
+    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, "1");
+    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, "1");
+    if (Integer.parseInt(reader.getKeywords()
+                               .getKeyword(FCS_KEYWORD.TOT)) != reader.data.getEventCount()) {
+      reader.getKeywords().setKeyword(FCS_KEYWORD.TOT,
+                                      Integer.toString(reader.data.getEventCount()));
+    }
     textBytes = reader.getKeywords().constructRaw();
 
-    while ((textBytes.length + 256 - 1 + 5) >= dB) {
-      dB += 1000;
-      if (dB > 9999) {
-        reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, Integer.toString(dB));
-        reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(dB + dataLength - 1));
-        textBytes = reader.getKeywords().constructRaw();
-      }
-    }
+    int tL = textBytes.length;
+
+    do {
+      tL = textBytes.length;
+      int begin = 256 + tL - 1 + DFLT_PAD;
+      reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA, Integer.toString(begin));
+      reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA, Long.toString(begin + dataLength - 1));
+      textBytes = reader.getKeywords().constructRaw();
+    } while (textBytes.length != tL);
 
     FCSHeader newHeader = new FCSHeader();
     newHeader.fileFormat = reader.getVersion();
@@ -82,17 +88,11 @@ public class FCSReader {
     newHeader.textStart = 256; // apparent default?
     newHeader.textStop = newHeader.textStart + textBytes.length - 1;
 
-    reader.getKeywords().setKeyword(FCS_KEYWORD.BEGINDATA,
-                                    Integer.toString(newHeader.textStop + 5));
-    reader.getKeywords().setKeyword(FCS_KEYWORD.ENDDATA,
-                                    Long.toString(newHeader.textStop + 5 + dataLength - 1));
-    textBytes = reader.getKeywords().constructRaw();
-
-    if (newHeader.textStop + 5 + dataLength - 1 > 99999999) {
+    if (newHeader.textStop + DFLT_PAD + dataLength - 1 > 99999999) {
       newHeader.dataStart = 0;
       newHeader.dataStop = 0;
     } else {
-      newHeader.dataStart = newHeader.textStop + 5;
+      newHeader.dataStart = newHeader.textStop + DFLT_PAD;
       newHeader.dataStop = (int) (newHeader.dataStart + dataLength - 1);
     }
 
@@ -102,14 +102,14 @@ public class FCSReader {
     newHeader.analysisStop = 0;
 
     // write header
-    fO.write(newHeader.getBytes());
+    fO.write(newHeader.getBytes()); // always 58 bytes
     // write spaces in between
     byte[] filler = ArrayUtils.byteArray(198, (byte) 32); // 256 - 58 = 198
     fO.write(filler);
     // write text
     fO.write(textBytes);
     // write spaces in between
-    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + 5
+    filler = ArrayUtils.byteArray((int) ((newHeader.dataStart == 0 ? (newHeader.textStop + DFLT_PAD
                                                                       + dataLength - 1)
                                                                    : newHeader.dataStart)
                                          - (newHeader.textStop + 1)),
@@ -260,11 +260,17 @@ public class FCSReader {
     return data.getEventData(event, getCompensated, (double[]) null);
   }
 
+  public int getEventCount() {
+    return data.getEventCount();
+  }
+
 }
 
 interface FCSData {
 
   void readData(FCSReader reader, FCSHeader header) throws IOException;
+
+  int getEventCount();
 
   long getDataByteCount();
 
@@ -297,6 +303,11 @@ class FCSDoubleData implements FCSData {
   int[] paramBytes;
   double[][] data;
   double[][] compData;
+
+  @Override
+  public int getEventCount() {
+    return data[0].length;
+  }
 
   @Override
   public double[] getParamData(int paramIndex, boolean compensated, double[] emptyData) {
@@ -392,7 +403,7 @@ class FCSDoubleData implements FCSData {
 
   @Override
   public long getDataByteCount() {
-    return data[0].length * (long) ArrayUtils.sum(paramBytes);
+    return getEventCount() * (long) ArrayUtils.sum(paramBytes);
   }
 
   public void readData(FCSReader reader, FCSHeader header) throws IOException {
@@ -526,6 +537,11 @@ class FCSFloatData implements FCSData {
   float[][] compData;
 
   @Override
+  public int getEventCount() {
+    return data[0].length;
+  }
+
+  @Override
   public double[] getParamData(int paramIndex, boolean compensated, double[] emptyData) {
     if (paramIndex >= (compensated ? compData : data).length || paramIndex < 0) {
       throw new ArrayIndexOutOfBoundsException("Invalid index: " + paramIndex);
@@ -619,7 +635,7 @@ class FCSFloatData implements FCSData {
 
   @Override
   public long getDataByteCount() {
-    return data[0].length * (long) ArrayUtils.sum(paramBytes);
+    return getEventCount() * (long) ArrayUtils.sum(paramBytes);
   }
 
   public void readData(FCSReader reader, FCSHeader header) throws IOException {
