@@ -44,7 +44,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -125,7 +124,6 @@ public class MosdepthPipeline {
   VCFFileReader genoReader;
   Map<String, String> genoIDLookup;
 
-  LoadingCache<String, BEDFileReader> cramReadCache;
   LoadingCache<String, BEDFileReader> mosdepthCache;
   String[] mosdepthFiles;
   Map<String, String> cramReadFiles;
@@ -153,7 +151,6 @@ public class MosdepthPipeline {
     createSampleList();
     loadMedians();
     mosdepthCache = buildCache();
-    cramReadCache = buildCache();
 
     if (genoVCF != null) {
       log.reportTime("Opening genotype VCF file...");
@@ -258,28 +255,12 @@ public class MosdepthPipeline {
                    + ext.getTimeElapsedNanos(t1));
   }
 
-  private int getBaseIndex(String base) {
-    switch (base) {
-      case "A":
-        return 0;
-      case "G":
-        return 1;
-      case "C":
-        return 2;
-      case "T":
-        return 3;
-      case "N":
-        return 4;
-      default:
-        return -1;
-    }
-  }
-
   private void read() throws IOException, Elision {
     long t2 = System.nanoTime();
     byte nullStatus = getNullStatus();
 
     ExecutorService exec = Executors.newFixedThreadPool(numThreads);
+
     // for each bin:
     for (int i = 0; i < binsOfMarkers.length; i++) {
       final int ind = i;
@@ -304,6 +285,10 @@ public class MosdepthPipeline {
             return;
           }
           Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
+
+          // sample index -> marker name -> read
+          Map<Integer, Map<String, CRAMRead>> cramReads = loadCRAMReads(markersInFile);
+
           try {
             //    for each marker in bin:
             for (int m = 0; m < markersInFile.length; m++) {
@@ -379,12 +364,7 @@ public class MosdepthPipeline {
               byte[] fgs = new byte[samples.length];
               float[] lrrs = new float[samples.length];
               for (int s = 0; s < samples.length; s++) {
-                CRAMRead reads = null;
-                try {
-                  reads = loadCRAMReads(mkr, s);
-                } catch (Exception e) {
-                  e.printStackTrace();
-                }
+                CRAMRead reads = cramReads.get(s).get(markersInFile[m]);
                 if (match != null && reads != null
                     && match.getReference().getBaseString().equals(reads.ref)) {
                   log.reportTimeWarning("Mismatched reference allele between cram read file {"
@@ -435,8 +415,7 @@ public class MosdepthPipeline {
               CentroidCompute compute = new CentroidCompute(data, null,
                                                             ArrayUtils.booleanArray(samples.length,
                                                                                     true),
-                                                            false, 1, 0, null, true, log);
-              compute.setAlternateGenotypes(data.getForwardGenotypes());
+                                                            true, 1, 0, null, true, log);
               data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
                                     fingerprintForMarkerFiles, gcs, null, null, xs, ys, null, null,
                                     compute.getRecomputedBAF(), lrrs, null, fgs);
@@ -473,14 +452,14 @@ public class MosdepthPipeline {
   }
 
   private static LoadingCache<String, BEDFileReader> buildCache() {
-    return CacheBuilder.newBuilder().softValues()
+    return CacheBuilder.newBuilder().softValues().concurrencyLevel(1)
                        .removalListener(new RemovalListener<String, BEDFileReader>() {
 
                          @Override
                          public void onRemoval(RemovalNotification<String, BEDFileReader> notification) {
                            notification.getValue().close();
                          }
-                       }).maximumSize(MAX_FILES_OPEN / 2).initialCapacity(MAX_FILES_OPEN / 2)
+                       }).maximumSize(MAX_FILES_OPEN).initialCapacity(MAX_FILES_OPEN)
                        .build(new CacheLoader<String, BEDFileReader>() {
 
                          @Override
@@ -512,51 +491,45 @@ public class MosdepthPipeline {
 
   }
 
-  private CRAMRead loadCRAMReads(Marker mkr, int s) {
-    String crF = cramReadFiles.get(mosdepthFiles[s]);
-    BEDFileReader reader;
-    boolean close = false;
-    try {
-      reader = cramReadCache.get(crF);
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      if (!Files.exists(crF)) {
-        log.reportFileNotFound(crF);
-        return null;
+  private Map<Integer, Map<String, CRAMRead>> loadCRAMReads(String[] markersInFile) {
+    Map<Integer, Map<String, CRAMRead>> reads = new HashMap<>();
+    for (int s = 0; s < samples.length; s++) {
+      Map<String, CRAMRead> mkrMap = new HashMap<>();
+      reads.put(s, mkrMap);
+      String crF = cramReadFiles.get(mosdepthFiles[s]);
+      BEDFileReader reader = BEDFileReader.createAnnotatedBEDFileReader(crF, true);
+
+      for (String m : markersInFile) {
+        Segment seg = binLookup.get(markerNameMap.get(m));
+        List<BEDFeature> iter = reader.query(seg).toList();
+
+        AnnotatedBEDFeature feat;
+        if (iter.size() >= 1) {
+          if (iter.size() > 1) {
+            log.reportTimeWarning("Multiple allele count records found for " + samples[s] + ", bin "
+                                  + binLookup.get(markerNameMap.get(m)).getUCSClocation());
+          }
+          feat = (AnnotatedBEDFeature) iter.get(0);
+        } else/* if (iter.size() == 0) */ {
+          log.reportError("Missing allele count record for " + samples[s] + ", bin "
+                          + binLookup.get(markerNameMap.get(m)).getUCSClocation());
+          feat = null;
+        }
+        CRAMRead read = null;
+        if (feat != null) {
+          read = new CRAMRead();
+          read.ref = feat.getAnnotation(1);
+          read.alt = feat.getAnnotation(2);
+          read.refCnt = Integer.parseInt(feat.getAnnotation(3));
+          read.altCnt = Integer.parseInt(feat.getAnnotation(4));
+          read.gq = Double.parseDouble(feat.getAnnotation(5));
+        }
+        mkrMap.put(m, read);
       }
-      log.reportException(e);
-      reader = BEDFileReader.createAnnotatedBEDFileReader(crF, true);
-      close = true;
-    }
 
-    Segment seg = binLookup.get(mkr);
-    List<BEDFeature> iter = reader.query(seg).toList();
-
-    AnnotatedBEDFeature feat;
-    if (iter.size() >= 1) {
-      if (iter.size() > 1) {
-        log.reportTimeWarning("Multiple allele count records found for " + samples[s] + ", bin "
-                              + binLookup.get(mkr).getUCSClocation());
-      }
-      feat = (AnnotatedBEDFeature) iter.get(0);
-    } else/* if (iter.size() == 0) */ {
-      log.reportError("Missing allele count record for " + samples[s] + ", bin "
-                      + binLookup.get(mkr).getUCSClocation());
-      feat = null;
-    }
-    CRAMRead read = null;
-    if (feat != null) {
-      read = new CRAMRead();
-      read.ref = feat.getAnnotation(1);
-      read.alt = feat.getAnnotation(2);
-      read.refCnt = Integer.parseInt(feat.getAnnotation(3));
-      read.altCnt = Integer.parseInt(feat.getAnnotation(4));
-      read.gq = Double.parseDouble(feat.getAnnotation(5));
-    }
-
-    if (close) {
       reader.close();
     }
-    return read;
+    return reads;
   }
 
   private double loadMosdepth(Marker mkr, int s) {
