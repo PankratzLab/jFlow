@@ -31,6 +31,7 @@ import htsjdk.variant.vcf.VCFFileReader;
 public class CRAMSnpReader {
 
   public static final String CRAM_READS_EXT = ".reads.bed";
+  public static final String HEADER = "#CHR\tSTART\tSTOP\tUCSC\tNAME\tREF\tALT\tNREF\tNALT\tNOTH\tGQ";
 
   private FilterNGS filterNGS = new FilterNGS(20, 20, null);
   private Logger log = new Logger();
@@ -130,6 +131,7 @@ public class CRAMSnpReader {
             String outFile = outDir + ext.rootOf(c) + CRAM_READS_EXT;
             //            PrintWriter writer = new PrintWriter(new BlockCompressedOutputStream(outFile));
             PrintWriter writer = Files.getAppropriateWriter(outFile);
+            writer.println(HEADER);
             BamPile[] bamPiles = PileupProducer.processBamFile(c, refGen, pileSegs, filterNGS,
                                                                aName, numThreads, log);
             for (int s = 0; s < pileSegs.length; s++) {
@@ -151,6 +153,16 @@ public class CRAMSnpReader {
               writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.ref)));
               writer.print("\t");
               writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.alt)));
+              writer.print("\t");
+
+              int rmn = 0;
+              for (Base b : Base.values()) {
+                if (Base.valueOf(bin.ref) != b && Base.valueOf(bin.alt) != b) {
+                  rmn += bamPiles[s].getBaseCount(b);
+                }
+              }
+              writer.print(Integer.toString(rmn));
+
               writer.print("\t");
               // TODO write GQ value
               writer.println(1.0);

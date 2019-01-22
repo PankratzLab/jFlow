@@ -475,6 +475,7 @@ public class MosdepthPipeline {
     String alt;
     int refCnt;
     int altCnt;
+    int othCnt;
     double gq;
 
     public int getRef() {
@@ -483,6 +484,10 @@ public class MosdepthPipeline {
 
     public int getAlt() {
       return altCnt;
+    }
+
+    public int getOth() {
+      return othCnt;
     }
 
     public double getGQ() {
@@ -522,7 +527,13 @@ public class MosdepthPipeline {
           read.alt = feat.getAnnotation(2);
           read.refCnt = Integer.parseInt(feat.getAnnotation(3));
           read.altCnt = Integer.parseInt(feat.getAnnotation(4));
-          read.gq = Double.parseDouble(feat.getAnnotation(5));
+          if (feat.count() == 6) {
+            read.othCnt = 0;
+            read.gq = Double.parseDouble(feat.getAnnotation(5));
+          } else if (feat.count() == 7) {
+            read.othCnt = Integer.parseInt(feat.getAnnotation(5));
+            read.gq = Double.parseDouble(feat.getAnnotation(6));
+          }
         }
         mkrMap.put(m, read);
       }
