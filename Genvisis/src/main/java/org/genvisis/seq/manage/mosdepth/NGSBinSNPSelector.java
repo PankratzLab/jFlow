@@ -205,11 +205,12 @@ public abstract class NGSBinSNPSelector {
 
   private List<FilterSet> parseFilters(MappabilityCompute mc) {
 
-    String[] filters = {"SVM|-!;AF|>.45,<.55;MQ|>=.99;AVGDP|>20",
-                        "SVM|-!;AF|>.44,<.56;MQ|>=.99;AVGDP|>20",
-                        "SVM|-!;AF|>.43,<.57;MQ|>=.99;AVGDP|>20",
-                        "SVM|-!;AF|>.42,<.58;MQ|>=.99;AVGDP|>20",
-                        "SVM|-!;AF|>.41,<.59;MQ|>=.99;AVGDP|>20",
+    String[] filters = {"SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>60",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>50",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>40",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>35",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>30",
+                        "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>25",
                         "SVM|-!;AF|>.4,<.6;MQ|>=.99;AVGDP|>20",
                         "SVM|-!;AF|>.4,<.6;MQ|>=.98;AVGDP|>20",
                         "SVM|-!;AF|>.4,<.6;MQ|>=.97;AVGDP|>20",

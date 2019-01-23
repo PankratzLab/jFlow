@@ -10,34 +10,44 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.compress.utils.Sets;
+import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.cnv.filesys.SampleList;
+import org.genvisis.cnv.manage.MarkerDataLoader;
+import org.genvisis.cnv.manage.Markers;
+import org.genvisis.cnv.manage.TempFileTranspose;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
+import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
+import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
+import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Maths;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -61,6 +71,7 @@ public class MosdepthPipeline {
   String projDir;
   String propFileDir;
   String projName;
+  String jobID;
   double scaleFactor = 10;
   int numMarkersPerFile = 5000;
   int numThreads = Runtime.getRuntime().availableProcessors() / 2;
@@ -109,14 +120,29 @@ public class MosdepthPipeline {
    * @param dir CRAM Read file directory, output from {@link CRAMSnpReader}
    */
   public void setCRAMReadDirectory(String dir) {
+    Set<String> crams = Sets.newHashSet(Files.list(dir, "", CRAMSnpReader.CRAM_READS_EXT, false,
+                                                   true));
     this.cramReadFiles = new HashMap<>();
     for (String m : mosdepthFiles) {
       String f = ext.removeDirectoryInfo(m);
-      this.cramReadFiles.put(m,
-                             ext.verifyDirFormat(dir)
-                                + f.substring(0, f.length() - ".mos.regions.bed.gz".length())
-                                + CRAMSnpReader.CRAM_READS_EXT);
+      String c = f.substring(0, f.length() - ".mos.regions.bed.gz".length())
+                 + CRAMSnpReader.CRAM_READS_EXT;
+      String expFile = ext.verifyDirFormat(dir) + c;
+      if (!Files.exists(expFile)) {
+        throw new IllegalStateException("Missing CRAM Allele Count file-pair for sample depth file "
+                                        + m + ".  Please locate this file and try again.");
+      }
+      crams.remove(c);
+      this.cramReadFiles.put(m, expFile);
     }
+    if (crams.size() > 0) {
+      throw new IllegalStateException("Found " + crams.size()
+                                      + " unpaired CRAM Allele Count files.  Please locate the associated mosdepth depth files and try again.");
+    }
+  }
+
+  public void setJobID(String jobId) {
+    this.jobID = jobId;
   }
 
   Segment[] removeBins;
@@ -168,6 +194,17 @@ public class MosdepthPipeline {
     }
 
     read();
+    writeLookup();
+    writeMarkerSet();
+
+    try {
+      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
+    } catch (ClassNotFoundException | IOException e) {
+      log.reportError("Problem occurred while loading outliers from marker files. Attempting to continue...");
+      log.reportException(e);
+    }
+
+    createSampRAFsFromMDRAFs();
 
     cleanup();
   }
@@ -182,6 +219,7 @@ public class MosdepthPipeline {
     if (projName == null) {
       throw new IllegalArgumentException("No project name set.");
     }
+    // TODO either CRAM directory (and run mosdepth / allele counter) or mosdepthFile & cramReadFiles
     if (mosdepthFiles == null) {
       throw new IllegalArgumentException("No mosdepth files set.");
     }
@@ -358,9 +396,12 @@ public class MosdepthPipeline {
               double markerMedian = ArrayUtils.median(medianList.values());
 
               //        for each sample in project,
-              float[] xs = new float[samples.length];
-              float[] ys = new float[samples.length];
+              float[] xs = (cramReadFiles == null
+                            || cramReadFiles.isEmpty()) ? null : new float[samples.length];
+              float[] ys = (cramReadFiles == null
+                            || cramReadFiles.isEmpty()) ? null : new float[samples.length];
               float[] gcs = new float[samples.length];
+              byte[] abs = new byte[samples.length];
               byte[] fgs = new byte[samples.length];
               float[] lrrs = new float[samples.length];
               for (int s = 0; s < samples.length; s++) {
@@ -374,16 +415,18 @@ public class MosdepthPipeline {
                 }
 
                 if (reads != null) {
-                  xs[s] = (float) (reads.getRef() / medians.get(samples[s]).doubleValue());
-                  ys[s] = (float) (reads.getAlt() / medians.get(samples[s]).doubleValue());
+                  xs[s] = 2f * (float) (reads.getRef() / medians.get(samples[s]).doubleValue());
+                  ys[s] = 2f * (float) (reads.getAlt() / medians.get(samples[s]).doubleValue());
 
                   gcs[s] = (float) reads.getGQ();
 
                   // compute genotype
                   if (ys[s] == 0) {
                     fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
+                    abs[s] = 0;
                   } else if (xs[s] == 0) {
                     fgs[s] = (byte) ext.indexOfStr(reads.alt + reads.alt, Sample.ALLELE_PAIRS);
+                    abs[s] = 2;
                   } else {
 
                     double a1 = xs[s] / (double) (xs[s] + ys[s]);
@@ -391,10 +434,13 @@ public class MosdepthPipeline {
 
                     if (b1 < ALLELE_PCT_HOM) {
                       fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.ref, Sample.ALLELE_PAIRS);
+                      abs[s] = 0;
                     } else if (a1 < ALLELE_PCT_HOM) {
                       fgs[s] = (byte) ext.indexOfStr(reads.alt + reads.alt, Sample.ALLELE_PAIRS);
+                      abs[s] = 2;
                     } else {
                       fgs[s] = (byte) ext.indexOfStr(reads.ref + reads.alt, Sample.ALLELE_PAIRS);
+                      abs[s] = 1;
                     }
 
                   }
@@ -404,6 +450,16 @@ public class MosdepthPipeline {
                   gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);
                   // genotype
                   fgs[s] = (byte) ext.indexOfStr(g.getGenotypeString(), Sample.ALLELE_PAIRS);
+                  abs[s] = (byte) (g.getGenotypeString()
+                                    .equals(match.getReference().getBaseString()
+                                            + match.getReference().getBaseString())
+                                                                                    ? 0
+                                                                                    : g.getGenotypeString()
+                                                                                       .equals(match.getAlternateAllele(0)
+                                                                                                    .getBaseString()
+                                                                                               + match.getAlternateAllele(0)
+                                                                                                      .getBaseString()) ? 2
+                                                                                                                        : 1);
                 }
 
                 // lrr
@@ -411,19 +467,21 @@ public class MosdepthPipeline {
               }
               MarkerData data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
                                                fingerprintForMarkerFiles, gcs, null, null, xs, ys,
-                                               null, null, null, lrrs, null, fgs);
+                                               null, null, null, lrrs, abs, fgs);
               CentroidCompute compute = new CentroidCompute(data, null,
                                                             ArrayUtils.booleanArray(samples.length,
                                                                                     true),
-                                                            true, 1, 0, null, true, log);
+                                                            false, 1, 0, null, true, log);
               data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
                                     fingerprintForMarkerFiles, gcs, null, null, xs, ys, null, null,
-                                    compute.getRecomputedBAF(), lrrs, null, fgs);
+                                    compute.getRecomputedBAF(), lrrs, abs, fgs);
               raf.write(data.compress(m, nullStatus, outOfRangeTable, false));
             }
           } catch (Elision e) {
             log.reportException(e);
           } catch (IOException e) {
+            log.reportException(e);
+          } catch (Exception e) {
             log.reportException(e);
           }
 
@@ -449,6 +507,90 @@ public class MosdepthPipeline {
     }
     log.reportTime("Parsed " + binsOfMarkers.length + " marker data files in "
                    + ext.getTimeElapsedNanos(t2));
+  }
+
+  private void writeLookup() {
+    if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
+      //      TransposeData.recreateMarkerLookup(proj);
+      Hashtable<String, String> lookup = new Hashtable<>();
+      String mdRAF;
+      for (int ind = 0; ind < binsOfMarkers.length; ind++) {
+        mdRAF = "markers." + ind + MarkerData.MARKER_DATA_FILE_EXTENSION;
+        for (int m = 0; m < binsOfMarkers[ind].length; m++) {
+          lookup.put(binsOfMarkers[ind][m], mdRAF + "\t" + m);
+        }
+      }
+      new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+      log.reportTime("Created marker lookup file: " + proj.MARKERLOOKUP_FILENAME.getValue());
+    } else {
+      log.reportTime("Project marker lookup file already exists; skipping creation.");
+    }
+  }
+
+  private void writeMarkerSet() {
+    if (proj.MARKERSET_FILENAME.exists()) {
+      long t1 = System.nanoTime();
+      String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
+                                                    new int[] {0}, false);
+      Markers.orderMarkers(mkrs, proj, log);
+      mkrs = null;
+      log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
+    } else {
+      log.reportTime("Project marker set file already exists; skipping creation.");
+    }
+  }
+
+  private void createSampRAFsFromMDRAFs() {
+    TempFileTranspose tft = new TempFileTranspose(proj, proj.PROJECT_DIRECTORY.getValue() + "temp/",
+                                                  jobID);
+    tft.setupMarkerListFile();
+    tft.setupSampleListFile();
+
+    int gb = 240;
+    int wall = 240;
+    int proc = 12;
+
+    String file = setupTransposeScripts(gb, wall, proc);
+    CmdLine.run("qsub " + file, ext.pwd());
+  }
+
+  private String setupTransposeScripts(int qGBLim, int qWallLim, int qProcLim) {
+    String currDir = ext.pwd();
+    String jar = Launch.getJarLocation();
+    String jobName1 = "tempTransposeFirst.qsub";
+    String jobName2 = "tempTransposeSecond.qsub";
+
+    long bytesPerMkrF = Sample.getNBytesPerSampleMarker(getNullStatus()) * samples.length
+                        * numMarkersPerFile + TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN;
+    long bytesPerSmpF = Sample.getNBytesPerSampleMarker(getNullStatus()) * markerNameMap.size()
+                        + Sample.PARAMETER_SECTION_BYTES;
+
+    long bLim = ((long) qGBLim) * 1024 * 1024 * 1024;
+
+    int numF = 1;
+    while (((numF + 1) * bytesPerMkrF) < (bLim * .8)) {
+      numF++;
+    }
+    numF = Math.min(numF, qProcLim);
+
+    String jobCmd1 = "cd " + currDir + "\njava -jar " + jar + " "
+                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
+                     + " jobID=$PBS_JOBID type=M qsub=" + currDir + jobName1;
+
+    Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
+
+    numF = 1;
+    while (((numF + 1) * bytesPerSmpF) < (bLim * .8)) {
+      numF++;
+    }
+    numF = Math.min(numF, qProcLim);
+
+    String jobCmd2 = "cd " + currDir + "\njava -jar " + jar + " "
+                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
+                     + " jobID=$PBS_JOBID type=S qsub=" + currDir + jobName2;
+    Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
+
+    return jobName1;
   }
 
   private static LoadingCache<String, BEDFileReader> buildCache() {
@@ -501,6 +643,9 @@ public class MosdepthPipeline {
     for (int s = 0; s < samples.length; s++) {
       Map<String, CRAMRead> mkrMap = new HashMap<>();
       reads.put(s, mkrMap);
+      if (cramReadFiles == null || cramReadFiles.isEmpty()) {
+        continue;
+      }
       String crF = cramReadFiles.get(mosdepthFiles[s]);
       BEDFileReader reader = BEDFileReader.createAnnotatedBEDFileReader(crF, true);
 
@@ -772,6 +917,7 @@ public class MosdepthPipeline {
                "Mosdepth results files directory. These should be created by running the mosdepth program using the same .BED file (or a superset file) as is used for the 'binsBed' argument.");
     cli.addArg("cramReadsDir", "CRAM read file directory.  These can be generated with "
                                + CRAMSnpReader.class.getCanonicalName());
+    cli.addArg("jobID", "Job Identifier");
     cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, false);
 
     if (args.length == 0 && Files.isWindows()) {
@@ -786,6 +932,7 @@ public class MosdepthPipeline {
       mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected_topmed.vcf");
       mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
       mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
+      mi.setJobID(null);
       mi.run();
     } else {
       cli.parseWithExit(args);
@@ -804,6 +951,7 @@ public class MosdepthPipeline {
       mi.setSelectedMarkerVCF(cli.get("selectedVCF"));
       mi.setMosdepthDirectory(cli.get("mosDir"), ".bed.gz");
       mi.setCRAMReadDirectory(cli.get("cramReadsDir"));
+      mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
       mi.run();
     }
   }
