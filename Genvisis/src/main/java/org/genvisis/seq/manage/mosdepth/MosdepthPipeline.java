@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -16,7 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.compress.utils.Sets;
-import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
@@ -24,30 +24,21 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.cnv.manage.Markers;
-import org.genvisis.cnv.manage.TempFileTranspose;
-import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
-import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.common.stats.Maths;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -60,33 +51,15 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
 
-public class MosdepthPipeline {
+public class MosdepthPipeline extends AbstractParsingPipeline {
 
   private static final int MAX_FILES_OPEN = 5000;
   private static final double ALLELE_PCT_HOM = .15;
   private static final String BINS_MISS_SNPS_FILE = "binsMissingSnps.bed";
 
-  Logger log;
+  Logger log = new Logger();
 
-  String projDir;
-  String propFileDir;
-  String projName;
-  String jobID;
-  double scaleFactor = 10;
-  int numMarkersPerFile = 5000;
   int numThreads = Runtime.getRuntime().availableProcessors() / 2;
-
-  public void setProjectName(String projName2) {
-    projName = projName2;
-  }
-
-  public void setProjectPropertiesDir(String propFileDir2) {
-    propFileDir = propFileDir2;
-  }
-
-  public void setProjectDir(String projDir2) {
-    projDir = projDir2;
-  }
 
   public void setNumThreads(int threads) {
     this.numThreads = threads;
@@ -141,10 +114,6 @@ public class MosdepthPipeline {
     }
   }
 
-  public void setJobID(String jobId) {
-    this.jobID = jobId;
-  }
-
   Segment[] removeBins;
   Segment[] useBins;
   VCFFileReader genoReader;
@@ -155,7 +124,6 @@ public class MosdepthPipeline {
   Map<String, String> cramReadFiles;
   Map<String, Double> medians;
   String[] samples;
-  long fingerprintForMarkerFiles;
 
   MarkerDetailSet snpPosMDS;
   MarkerDetailSet binPosMDS;
@@ -165,10 +133,12 @@ public class MosdepthPipeline {
   Map<String, Marker> markerNameMap;
   String[][] binsOfMarkers;
 
+  public MosdepthPipeline() {
+    this.scaleFactor = 20;
+    this.numMarkersPerFile = 2000;
+  }
+
   void run() throws IOException, Elision {
-    if (log == null) {
-      log = new Logger();
-    }
     checkVars();
     createProject();
 
@@ -194,16 +164,10 @@ public class MosdepthPipeline {
     }
 
     read();
+
     writeLookup();
-    writeMarkerSet();
-
-    try {
-      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
-    } catch (ClassNotFoundException | IOException e) {
-      log.reportError("Problem occurred while loading outliers from marker files. Attempting to continue...");
-      log.reportException(e);
-    }
-
+    proj.writeMarkerSet();
+    buildOutliers();
     createSampRAFsFromMDRAFs();
 
     cleanup();
@@ -256,20 +220,43 @@ public class MosdepthPipeline {
     useBins = null;
   }
 
-  private void createSampleList() {
+  protected void setAdditionalProjectProperties() {
+    proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG38);
+    proj.ARRAY_TYPE.setValue(ARRAY.NGS);
+  }
+
+  protected String[] parseSamples() {
     samples = new String[mosdepthFiles.length];
     for (int i = 0; i < mosdepthFiles.length; i++) {
       samples[i] = ext.rootRootOf(ext.removeDirectoryInfo((mosdepthFiles[i])));
     }
-    fingerprintForMarkerFiles = MarkerSet.fingerprint(samples);
-    if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
-      SampleList sl = new SampleList(samples);
-      sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
-      sl = null;
-      log.reportTime("Created sample list file: " + proj.SAMPLELIST_FILENAME.getValue());
-    } else {
-      log.reportTime("Project sample list file already exists; skipping creation.");
+    return Arrays.copyOf(samples, samples.length);
+  }
+
+  protected int getNumSamples() {
+    return samples.length;
+  }
+
+  protected int getNumMarkers() {
+    return markerNameMap.size();
+  }
+
+  protected void doWriteLookup() {
+    Hashtable<String, String> lookup = new Hashtable<>();
+    String mdRAF;
+    for (int ind = 0; ind < binsOfMarkers.length; ind++) {
+      mdRAF = "markers." + ind + MarkerData.MARKER_DATA_FILE_EXTENSION;
+      for (int m = 0; m < binsOfMarkers[ind].length; m++) {
+        lookup.put(binsOfMarkers[ind][m], mdRAF + "\t" + m);
+      }
     }
+    new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+  }
+
+  protected byte getNullStatus() {
+    // TODO alter based on presence of mosdepth/cramCount/geno-vcf
+    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
+                                    new float[0], new byte[0], new byte[0], false);
   }
 
   private void loadMedians() {
@@ -315,7 +302,7 @@ public class MosdepthPipeline {
           //    open and write header for mdRAF file containing current bin of markers:
           RandomAccessFile raf;
           try {
-            raf = openMDRAF(mdRAFName, samples.length, nullStatus, fingerprintForMarkerFiles,
+            raf = openMDRAF(mdRAFName, getNumSamples(), nullStatus, fingerprintForMarkerFiles,
                             markersInFile);
           } catch (IOException e) {
             log.reportTime("CANNOT OPEN " + mdRAFName + ", skipping!");
@@ -386,7 +373,7 @@ public class MosdepthPipeline {
               }
 
               Map<String, Double> medianList = new HashMap<>();
-              for (int s = 0; s < samples.length; s++) {
+              for (int s = 0; s < getNumSamples(); s++) {
                 double lrr;
                 synchronized (samples[s]) {
                   lrr = loadMosdepth(mkr, s) / medians.get(samples[s]).doubleValue();
@@ -397,14 +384,14 @@ public class MosdepthPipeline {
 
               //        for each sample in project,
               float[] xs = (cramReadFiles == null
-                            || cramReadFiles.isEmpty()) ? null : new float[samples.length];
+                            || cramReadFiles.isEmpty()) ? null : new float[getNumSamples()];
               float[] ys = (cramReadFiles == null
-                            || cramReadFiles.isEmpty()) ? null : new float[samples.length];
-              float[] gcs = new float[samples.length];
-              byte[] abs = new byte[samples.length];
-              byte[] fgs = new byte[samples.length];
-              float[] lrrs = new float[samples.length];
-              for (int s = 0; s < samples.length; s++) {
+                            || cramReadFiles.isEmpty()) ? null : new float[getNumSamples()];
+              float[] gcs = new float[getNumSamples()];
+              byte[] abs = new byte[getNumSamples()];
+              byte[] fgs = new byte[getNumSamples()];
+              float[] lrrs = new float[getNumSamples()];
+              for (int s = 0; s < getNumSamples(); s++) {
                 CRAMRead reads = cramReads.get(s).get(markersInFile[m]);
                 if (match != null && reads != null
                     && match.getReference().getBaseString().equals(reads.ref)) {
@@ -469,7 +456,7 @@ public class MosdepthPipeline {
                                                fingerprintForMarkerFiles, gcs, null, null, xs, ys,
                                                null, null, null, lrrs, abs, fgs);
               CentroidCompute compute = new CentroidCompute(data, null,
-                                                            ArrayUtils.booleanArray(samples.length,
+                                                            ArrayUtils.booleanArray(getNumSamples(),
                                                                                     true),
                                                             false, 1, 0, null, true, log);
               data = new MarkerData(mkr.getName(), mkr.getChr(), mkr.getPosition(),
@@ -497,6 +484,7 @@ public class MosdepthPipeline {
           }
           log.reportTime("..... completed " + mdRAFName + " in " + ext.getTimeElapsedNanos(t1));
         }
+
       });
     }
     exec.shutdown();
@@ -507,90 +495,6 @@ public class MosdepthPipeline {
     }
     log.reportTime("Parsed " + binsOfMarkers.length + " marker data files in "
                    + ext.getTimeElapsedNanos(t2));
-  }
-
-  private void writeLookup() {
-    if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
-      //      TransposeData.recreateMarkerLookup(proj);
-      Hashtable<String, String> lookup = new Hashtable<>();
-      String mdRAF;
-      for (int ind = 0; ind < binsOfMarkers.length; ind++) {
-        mdRAF = "markers." + ind + MarkerData.MARKER_DATA_FILE_EXTENSION;
-        for (int m = 0; m < binsOfMarkers[ind].length; m++) {
-          lookup.put(binsOfMarkers[ind][m], mdRAF + "\t" + m);
-        }
-      }
-      new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
-      log.reportTime("Created marker lookup file: " + proj.MARKERLOOKUP_FILENAME.getValue());
-    } else {
-      log.reportTime("Project marker lookup file already exists; skipping creation.");
-    }
-  }
-
-  private void writeMarkerSet() {
-    if (proj.MARKERSET_FILENAME.exists()) {
-      long t1 = System.nanoTime();
-      String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
-                                                    new int[] {0}, false);
-      Markers.orderMarkers(mkrs, proj, log);
-      mkrs = null;
-      log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
-    } else {
-      log.reportTime("Project marker set file already exists; skipping creation.");
-    }
-  }
-
-  private void createSampRAFsFromMDRAFs() {
-    TempFileTranspose tft = new TempFileTranspose(proj, proj.PROJECT_DIRECTORY.getValue() + "temp/",
-                                                  jobID);
-    tft.setupMarkerListFile();
-    tft.setupSampleListFile();
-
-    int gb = 240;
-    int wall = 240;
-    int proc = 12;
-
-    String file = setupTransposeScripts(gb, wall, proc);
-    CmdLine.run("qsub " + file, ext.pwd());
-  }
-
-  private String setupTransposeScripts(int qGBLim, int qWallLim, int qProcLim) {
-    String currDir = ext.pwd();
-    String jar = Launch.getJarLocation();
-    String jobName1 = "tempTransposeFirst.qsub";
-    String jobName2 = "tempTransposeSecond.qsub";
-
-    long bytesPerMkrF = Sample.getNBytesPerSampleMarker(getNullStatus()) * samples.length
-                        * numMarkersPerFile + TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN;
-    long bytesPerSmpF = Sample.getNBytesPerSampleMarker(getNullStatus()) * markerNameMap.size()
-                        + Sample.PARAMETER_SECTION_BYTES;
-
-    long bLim = ((long) qGBLim) * 1024 * 1024 * 1024;
-
-    int numF = 1;
-    while (((numF + 1) * bytesPerMkrF) < (bLim * .8)) {
-      numF++;
-    }
-    numF = Math.min(numF, qProcLim);
-
-    String jobCmd1 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=M qsub=" + currDir + jobName1;
-
-    Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
-
-    numF = 1;
-    while (((numF + 1) * bytesPerSmpF) < (bLim * .8)) {
-      numF++;
-    }
-    numF = Math.min(numF, qProcLim);
-
-    String jobCmd2 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=S qsub=" + currDir + jobName2;
-    Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
-
-    return jobName1;
   }
 
   private static LoadingCache<String, BEDFileReader> buildCache() {
@@ -722,55 +626,6 @@ public class MosdepthPipeline {
     return v;
   }
 
-  private byte getNullStatus() {
-    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
-                                    new float[0], null, new byte[0], false);
-  }
-
-  private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus, long fingerprint,
-                                     String[] mkrNames) throws IOException {
-    byte[] mkrBytes = Compression.objToBytes(mkrNames);
-    byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd, mkrNames.length,
-                                                                   nullStatus, fingerprint,
-                                                                   mkrBytes);
-    mkrBytes = null;
-
-    String file = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + filename;
-    if (Files.exists(file)) {
-      new File(file).delete();
-    }
-
-    RandomAccessFile mdRAF = new RandomAccessFile(file, "rw");
-    mdRAF.write(mdRAFHeader);
-    mdRAFHeader = null;
-
-    return mdRAF;
-  }
-
-  private void createProject() {
-    String propFile = ext.verifyDirFormat(propFileDir)
-                      + ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
-    if (!Files.exists(propFile)) {
-      Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
-      proj = new Project(propFile);
-      proj.PROJECT_NAME.setValue(projName);
-      proj.PROJECT_DIRECTORY.setValue(projDir);
-      proj.XY_SCALE_FACTOR.setValue(scaleFactor);
-      proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
-      proj.ID_HEADER.setValue("NULL");
-      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG38);
-
-      proj.ARRAY_TYPE.setValue(ARRAY.NGS);
-
-      proj.saveProperties();
-      log.reportTime("Created project properties file: " + propFile);
-    } else {
-      log.reportTime("Project properties file already exists at " + propFile
-                     + "; skipping creation.");
-      proj = new Project(propFile);
-    }
-  }
-
   private void loadBins() {
     // 1-based indexing!
     BEDFileReader reader = new BEDFileReader(useBed, false);
@@ -855,13 +710,15 @@ public class MosdepthPipeline {
       MarkerDetailSet mdsSnp = new MarkerDetailSet(snpMarkers);
       mdsSnp.serialize(f);
     } else {
-      // TODO log
+      log.reportTime("Project marker detail set file (snp positions) already exists: " + f
+                     + "; skipping creation.");
     }
     if (!Files.exists(f = getMDSName(true))) {
       MarkerDetailSet mdsBin = new MarkerDetailSet(binMarkers);
       mdsBin.serialize(f);
     } else {
-      // TODO log
+      log.reportTime("Project marker detail set file (bin positions) already exists: " + f
+                     + "; skipping creation.");
     }
 
     markerNameMap = new HashMap<>();

@@ -35,6 +35,7 @@ import org.genvisis.cnv.LaunchProperties;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.analysis.pca.PrincipalComponentsResiduals;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.prop.BooleanProperty;
 import org.genvisis.cnv.prop.DoubleProperty;
@@ -969,6 +970,19 @@ public class Project implements PropertyChangeListener {
       markerSet.clearArrayRefs();
     }
     return markerSet;
+  }
+
+  public void writeMarkerSet() {
+    if (MARKERSET_FILENAME.exists()) {
+      long t1 = System.nanoTime();
+      String[] mkrs = HashVec.loadFileToStringArray(MARKER_POSITION_FILENAME.getValue(), true,
+                                                    new int[] {0}, false);
+      Markers.orderMarkers(mkrs, this, log);
+      mkrs = null;
+      log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
+    } else {
+      log.reportTime("Project marker set file already exists; skipping creation.");
+    }
   }
 
   private MarkerDetailSet loadMarkerSet() {

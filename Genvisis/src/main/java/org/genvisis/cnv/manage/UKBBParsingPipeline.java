@@ -1,4 +1,4 @@
-package org.genvisis.one.ben;
+package org.genvisis.cnv.manage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,27 +30,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import org.genvisis.cnv.Launch;
 import org.genvisis.cnv.filesys.AllelePair;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.filesys.SampleList;
-import org.genvisis.cnv.manage.MarkerDataLoader;
-import org.genvisis.cnv.manage.Markers;
-import org.genvisis.cnv.manage.TempFileTranspose;
-import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.var.SampleData;
 import org.genvisis.seq.GenomeBuild;
+import org.genvisis.seq.manage.mosdepth.AbstractParsingPipeline;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CLI;
-import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
@@ -60,51 +53,35 @@ import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
-import org.pankratzlab.common.qsub.Qsub;
 import org.pankratzlab.utils.gwas.DosageData;
 import org.pankratzlab.utils.gwas.bgen.BGENBitMath;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.variant.variantcontext.Allele;
 
-public class UKBBParsingPipeline {
+public class UKBBParsingPipeline extends AbstractParsingPipeline {
 
   int maxMDRAFThreadsPerChr = 8;
   int maxChrThreads = 4;
-  int maxMarkersPerMDRAF = 1000;
   int logEveryNMins = 5;
-  float scaleFactor = 2000f;
 
   Logger log = new Logger();
-
-  String sourceDir;
-  String projDir;
-  String propFileDir;
-  String projName;
 
   // AB fields in RAF files are only 2 bits and can't hold full genotype values
   final boolean importGenoAsAB = true;
 
   Project proj;
+  String sourceDir;
   HashMap<Integer, FileSet> fileSets;
-  long fingerprintForMarkerFiles = 0L;
   AtomicLong numberOfMarkersInProj = new AtomicLong(0);
   String famFile;
   String annotFile;
   String[][] famData;
   String[] allMarkers;
   Map<String, Marker> markerMap;
-  String jobID;
 
-  public void setProjectName(String projName2) {
-    projName = projName2;
-  }
-
-  public void setProjectPropertiesDir(String propFileDir2) {
-    propFileDir = propFileDir2;
-  }
-
-  public void setProjectDir(String projDir2) {
-    projDir = projDir2;
+  public UKBBParsingPipeline() {
+    this.scaleFactor = 2000;
+    this.numMarkersPerFile = 5000;
   }
 
   public void setSourceDir(String sourceDir2) {
@@ -115,20 +92,8 @@ public class UKBBParsingPipeline {
     famFile = famFile2;
   }
 
-  public void setJobID(String jobID2) {
-    jobID = jobID2;
-  }
-
   public void setAnnotationCSV(String csv) {
     annotFile = csv;
-  }
-
-  private void setScaleFactor(float scale) {
-    scaleFactor = scale;
-  }
-
-  private void setMarkersPerMDRAF(int mkrsPerFile) {
-    maxMarkersPerMDRAF = mkrsPerFile;
   }
 
   private void setThreadsPerChromosomeCount(int threadsPerChr) {
@@ -153,57 +118,58 @@ public class UKBBParsingPipeline {
     createMarkerPositions();
     writeMarkerDetailSet();
     parseMarkerData();
+
     writeLookup();
-    writeMarkerSet();
-    try {
-      MarkerDataLoader.buildOutliersFromMDRAFs(proj);
-    } catch (ClassNotFoundException | IOException e) {
-      log.reportError("Problem occurred while loading outliers from marker files. Attempting to continue...");
-      log.reportException(e);
-    }
+    proj.writeMarkerSet();
+    buildOutliers();
     createSampRAFsFromMDRAFs();
+
   }
 
-  protected void createProject() {
-    String propFile = ext.verifyDirFormat(propFileDir)
-                      + ext.replaceWithLinuxSafeCharacters(projName) + ".properties";
-    if (!Files.exists(propFile)) {
-      Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
-      proj = new Project(propFile);
-      proj.PROJECT_NAME.setValue(projName);
-      proj.PROJECT_DIRECTORY.setValue(projDir);
-      proj.SOURCE_DIRECTORY.setValue(sourceDir);
-      proj.XY_SCALE_FACTOR.setValue((double) scaleFactor);
-      proj.TARGET_MARKERS_FILENAMES.setValue(new String[] {});
-      proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
-      proj.ID_HEADER.setValue("NULL");
-      proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
-      proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG19);
-
-      proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
-
-      proj.saveProperties();
-      log.reportTime("Created project properties file: " + propFile);
-    } else {
-      log.reportTime("Project properties file already exists at " + propFile
-                     + "; skipping creation.");
-      proj = new Project(propFile);
-    }
+  protected void setAdditionalProjectProperties() {
+    proj.SOURCE_DIRECTORY.setValue(sourceDir);
+    proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
+    proj.SOURCE_FILENAME_EXTENSION.setValue("NULL");
+    proj.GENOME_BUILD_VERSION.setValue(GenomeBuild.HG19);
+    proj.ARRAY_TYPE.setValue(ARRAY.AFFY_AXIOM);
   }
 
-  protected void createSampleList() {
+  protected String[] parseSamples() {
     famData = HashVec.loadFileToStringMatrix(famFile, false, new int[] {0, 1, 2, 3, 4, 5});
-    String[] allSamples = Matrix.extractColumn(famData, 1);
-    fingerprintForMarkerFiles = MarkerSet.fingerprint(allSamples);
-    if (!Files.exists(proj.SAMPLELIST_FILENAME.getValue())) {
-      SampleList sl = new SampleList(allSamples);
-      sl.serialize(proj.SAMPLELIST_FILENAME.getValue());
-      sl = null;
-      allSamples = null;
-      log.reportTime("Created sample list file: " + proj.SAMPLELIST_FILENAME.getValue());
-    } else {
-      log.reportTime("Project sample list file already exists; skipping creation.");
+    return Matrix.extractColumn(famData, 1);
+  }
+
+  protected int getNumSamples() {
+    return famData.length;
+  }
+
+  protected int getNumMarkers() {
+    return allMarkers.length;
+  }
+
+  protected void doWriteLookup() {
+    Hashtable<String, String> lookup = new Hashtable<>();
+    for (FileSet fs : fileSets.values()) {
+      String mdRAF;
+      List<String[]> mkrBins = fs.mkrBins;
+      int start = 0;
+      int end = 0;
+      for (String[] bin : mkrBins) {
+        end = start + bin.length;
+        mdRAF = getMDRAFName(fs.chr, start, end);
+        for (int m = 0; m < bin.length; m++) {
+          lookup.put(bin[m], mdRAF + "\t" + m);
+        }
+        start = end;
+      }
     }
+    new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+  }
+
+  protected byte getNullStatus() {
+    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
+                                    new float[0], importGenoAsAB ? new byte[0] : null,
+                                    importGenoAsAB ? null : new byte[0], false);
   }
 
   protected void createPED() {
@@ -342,19 +308,6 @@ public class UKBBParsingPipeline {
     }
   }
 
-  protected void writeMarkerSet() {
-    if (proj.MARKERSET_FILENAME.exists()) {
-      long t1 = System.nanoTime();
-      String[] mkrs = HashVec.loadFileToStringArray(proj.MARKER_POSITION_FILENAME.getValue(), true,
-                                                    new int[] {0}, false);
-      Markers.orderMarkers(mkrs, proj, log);
-      mkrs = null;
-      log.reportTime("Completed markerSet file in " + ext.getTimeElapsedNanos(t1));
-    } else {
-      log.reportTime("Project marker set file already exists; skipping creation.");
-    }
-  }
-
   protected void writeMarkerDetailSet() {
     if (!Files.exists(proj.MARKER_DETAILS_FILENAME.getValue())) {
       try {
@@ -429,31 +382,6 @@ public class UKBBParsingPipeline {
     log.reportTime("Completed parsing MarkerData in " + ext.getTimeElapsedNanos(time));
   }
 
-  protected void writeLookup() {
-    if (!Files.exists(proj.MARKERLOOKUP_FILENAME.getValue())) {
-      //      TransposeData.recreateMarkerLookup(proj);
-      Hashtable<String, String> lookup = new Hashtable<>();
-      for (FileSet fs : fileSets.values()) {
-        String mdRAF;
-        List<String[]> mkrBins = fs.mkrBins;
-        int start = 0;
-        int end = 0;
-        for (String[] bin : mkrBins) {
-          end = start + bin.length;
-          mdRAF = getMDRAFName(fs.chr, start, end);
-          for (int m = 0; m < bin.length; m++) {
-            lookup.put(bin[m], mdRAF + "\t" + m);
-          }
-          start = end;
-        }
-      }
-      new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
-      log.reportTime("Created marker lookup file: " + proj.MARKERLOOKUP_FILENAME.getValue());
-    } else {
-      log.reportTime("Project marker lookup file already exists; skipping creation.");
-    }
-  }
-
   protected void createMarkerPositions() {
     List<String> markerList = new ArrayList<>();
     String file = proj.MARKER_POSITION_FILENAME.getValue();
@@ -483,7 +411,7 @@ public class UKBBParsingPipeline {
                      + " in " + ext.getTimeElapsedNanos(time));
     } else {
       allMarkers = HashVec.loadFileToStringArray(file, true, new int[] {0}, false);
-      numberOfMarkersInProj.set(allMarkers.length);
+      numberOfMarkersInProj.set(getNumMarkers());
 
       for (int i = 0; i < 27; i++) {
         if (!fileSets.containsKey(i)) {
@@ -503,19 +431,18 @@ public class UKBBParsingPipeline {
                               "Allele A", "Allele B", "Ref Allele", "Flank"};
     int[] hdrInds = null;
     HashMap<String, Integer> markerIndices = new HashMap<>();
-    ArrayList<Integer> allInds = new ArrayList<>(allMarkers.length);
-    for (int i = 0; i < allMarkers.length; i++) {
+    ArrayList<Integer> allInds = new ArrayList<>(getNumMarkers());
+    for (int i = 0; i < getNumMarkers(); i++) {
       markerIndices.put(allMarkers[i], i);
       allInds.add(i);
     }
-    final Marker[] markers = new Marker[allMarkers.length];
+    final Marker[] markers = new Marker[getNumMarkers()];
     String line = null;
     boolean foundHeader = false;
     String[] parts;
     String mkrName;
     int inAnnotNotProj = 0;
     int ind;
-    int mkr = 0;
     int lines = 0;
     BufferedReader reader = Files.getAppropriateReader(annotFile);
     while ((line = reader.readLine()) != null) {
@@ -530,7 +457,6 @@ public class UKBBParsingPipeline {
       }
       parts = ext.splitCommasIntelligently(line, true, log);
       mkrName = isMissing(parts[hdrInds[1]]) ? parts[hdrInds[0]] : parts[hdrInds[1]];
-      mkr++;
 
       if (!markerIndices.containsKey(mkrName)) {
         if (markerIndices.containsKey(parts[hdrInds[0]])) {
@@ -616,94 +542,15 @@ public class UKBBParsingPipeline {
            || value.equals("\"-\"");
   }
 
-  protected void createSampRAFsFromMDRAFs() {
-    TempFileTranspose tft = new TempFileTranspose(proj, proj.PROJECT_DIRECTORY.getValue() + "temp/",
-                                                  jobID);
-    tft.setupMarkerListFile();
-    tft.setupSampleListFile();
-
-    int gb = 240;
-    int wall = 240;
-    int proc = 12;
-
-    String file = setupTransposeScripts(gb, wall, proc);
-    CmdLine.run("qsub " + file, ext.pwd());
-  }
-
-  private String setupTransposeScripts(int qGBLim, int qWallLim, int qProcLim) {
-    String currDir = ext.pwd();
-    String jar = Launch.getJarLocation();
-    String jobName1 = "tempTransposeFirst.qsub";
-    String jobName2 = "tempTransposeSecond.qsub";
-
-    long bytesPerMkrF = Sample.getNBytesPerSampleMarker(getNullStatus()) * famData.length
-                        * maxMarkersPerMDRAF + TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN;
-    long bytesPerSmpF = Sample.getNBytesPerSampleMarker(getNullStatus()) * allMarkers.length
-                        + Sample.PARAMETER_SECTION_BYTES;
-
-    long bLim = ((long) qGBLim) * 1024 * 1024 * 1024;
-
-    int numF = 1;
-    while (((numF + 1) * bytesPerMkrF) < (bLim * .8)) {
-      numF++;
-    }
-    numF = Math.min(numF, qProcLim);
-
-    String jobCmd1 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=M qsub=" + currDir + jobName1;
-
-    Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
-
-    numF = 1;
-    while (((numF + 1) * bytesPerSmpF) < (bLim * .8)) {
-      numF++;
-    }
-    numF = Math.min(numF, qProcLim);
-
-    String jobCmd2 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=S qsub=" + currDir + jobName2;
-    Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
-
-    return jobName1;
-  }
-
-  private byte getNullStatus() {
-    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
-                                    new float[0], importGenoAsAB ? new byte[0] : null,
-                                    importGenoAsAB ? null : new byte[0], false);
-  }
-
-  private RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus, long fingerprint,
-                                     String[] mkrNames) throws IOException {
-    byte[] mkrBytes = Compression.objToBytes(mkrNames);
-    byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd, mkrNames.length,
-                                                                   nullStatus, fingerprint,
-                                                                   mkrBytes);
-    mkrBytes = null;
-
-    String file = proj.MARKER_DATA_DIRECTORY.getValue(true, true) + filename;
-    if (Files.exists(file)) {
-      new File(file).delete();
-    }
-
-    RandomAccessFile mdRAF = new RandomAccessFile(file, "rw");
-    mdRAF.write(mdRAFHeader);
-    mdRAFHeader = null;
-
-    return mdRAF;
-  }
-
   private void createMDRAF(FileSet fs, MarkerLogger mkrLog) throws IOException, Elision {
-    final int nInd = famData.length;
+    final int nInd = getNumSamples();
 
     final byte nullStatus = getNullStatus();
     int numThreads = maxMDRAFThreadsPerChr;
 
     fs.loadBIMData(); // no-op if already loaded
     String[] mkrNames = Matrix.extractColumn(fs.bimData, 1);
-    fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / maxMarkersPerMDRAF) + 1, log);
+    fs.mkrBins = ArrayUtils.splitUpArray(mkrNames, (mkrNames.length / numMarkersPerFile) + 1, log);
     mkrNames = null;
 
     String[] existing = readWritten();
@@ -853,7 +700,7 @@ public class UKBBParsingPipeline {
     Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
     String mdRAFName = getMDRAFName(fs.chr, startBatchInd, (startBatchInd + mkrNames.length));
 
-    mdRAF = openMDRAF(mdRAFName, famData.length, nullStatus, fingerprintForMarkerFiles, mkrNames);
+    mdRAF = openMDRAF(mdRAFName, getNumSamples(), nullStatus, fingerprintForMarkerFiles, mkrNames);
 
     int bedBlockSize = (int) Math.ceil(nInd / 4.0);
     int binBlockSize = nInd * 8;
@@ -924,8 +771,8 @@ public class UKBBParsingPipeline {
 
         a = BGENBitMath.bytesToFloat(true, intA);
         b = BGENBitMath.bytesToFloat(true, intB);
-        x = a / scaleFactor;
-        y = b / scaleFactor;
+        x = (float) (a / scaleFactor);
+        y = (float) (b / scaleFactor);
         // x = (float) Maths.log2(a / b);
         // y = (float) (Maths.log2(a * b) / 2);
 
