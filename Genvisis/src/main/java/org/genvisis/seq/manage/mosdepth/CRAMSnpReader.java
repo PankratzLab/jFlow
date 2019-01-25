@@ -150,9 +150,11 @@ public class CRAMSnpReader {
               writer.print("\t");
               writer.print(bin.alt);
               writer.print("\t");
-              writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.ref)));
+              int ref = bamPiles[s].getBaseCount(Base.valueOf(bin.ref));
+              writer.print(ref);
               writer.print("\t");
-              writer.print(bamPiles[s].getBaseCount(Base.valueOf(bin.alt)));
+              int alt = bamPiles[s].getBaseCount(Base.valueOf(bin.alt));
+              writer.print(alt);
               writer.print("\t");
 
               int rmn = 0;
@@ -164,8 +166,9 @@ public class CRAMSnpReader {
               writer.print(Integer.toString(rmn));
 
               writer.print("\t");
-              // TODO write GQ value
-              writer.println(1.0);
+
+              float gq = (ref + alt) / ((float) (ref + alt + rmn));
+              writer.println(gq);
             }
             writer.close();
             BedOps.verifyBedIndex(outFile, log);
