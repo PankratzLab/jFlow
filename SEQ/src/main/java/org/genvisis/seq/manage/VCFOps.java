@@ -1879,7 +1879,7 @@ public class VCFOps {
     VariantContext vcMatch = null;
     while (cIterator.hasNext()) {
       VariantContext vcTmp = cIterator.next();
-      if (vcSeg.equals(VCOps.getSegment(vcTmp))) {
+      if (vcSeg.matches(VCOps.getSegment(vcTmp))) {
         if (vcTmp.getReference().equals(vc.getReference(), false)
             && vcTmp.hasSameAlternateAllelesAs(vc)) {
           vcMatch = vcTmp;
