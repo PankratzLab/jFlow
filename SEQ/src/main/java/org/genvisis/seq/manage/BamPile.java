@@ -139,7 +139,7 @@ public class BamPile extends Segment implements Serializable {
     if (!eq(avgPhread_A, other.avgPhread_A)) return false;
     if (bin == null) {
       if (other.bin != null) return false;
-    } else if (!bin.equals(other.bin)) return false;
+    } else if (!bin.matches(other.bin)) return false;
     if (!eq(counts_A, other.counts_A)) return false;
     if (numBasesOverlap_A.get() != other.numBasesOverlap_A.get()) return false;
     if (numBasesWithMismatch_A.get() != other.numBasesWithMismatch_A.get()) return false;

@@ -101,7 +101,7 @@ public class CompareCalls {
           for (int a = 0; a < cnvs[0].length; a++) {
             match = 0;
             for (int b = 0; b < cnvs[1].length; b++) {
-              if (cnvs[0][a].equals(cnvs[1][b])) {
+              if (cnvs[0][a].matches(cnvs[1][b])) {
                 match = 3;
                 cnvs[1][b].setSource(99);
               } else if (match < 2 && cnvs[0][a].overlaps(cnvs[1][b])) {
@@ -114,7 +114,7 @@ public class CompareCalls {
           for (int b = 0; b < cnvs[1].length; b++) {
             match = 1;
             for (int a = 0; a < cnvs[0].length; a++) {
-              if (cnvs[1][b].getSource() != 99 && cnvs[1][b].equals(cnvs[0][a])) {
+              if (cnvs[1][b].getSource() != 99 && cnvs[1][b].matches(cnvs[0][a])) {
                 match = 3;
               } else if (match < 2 && cnvs[1][b].getSource() != 99
                          && cnvs[1][b].overlaps(cnvs[0][a])) {

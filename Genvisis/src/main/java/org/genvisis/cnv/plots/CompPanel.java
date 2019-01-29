@@ -368,7 +368,7 @@ public class CompPanel extends JPanel implements MouseListener, MouseMotionListe
 
     Segment newLocation = new Segment(oldLocation.getChr(), newStart, newStop);
     // Don't reset the location if it hasn't changed
-    if (!newLocation.equals(oldLocation)) {
+    if (!newLocation.matches(oldLocation)) {
       plot.setCPLocation(newLocation);
     }
   }

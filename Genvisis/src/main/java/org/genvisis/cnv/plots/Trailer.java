@@ -3986,7 +3986,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       if (tmpCurrent != null && tmpCurrent.length > 0) {
         ArrayList<CNVariant> retain = new ArrayList<>();
         for (int i = 0; i < tmpCurrent.length; i++) {
-          if (!remove.equals(tmpCurrent[i])) {
+          if (!remove.matches(tmpCurrent[i])) {
             retain.add(tmpCurrent[i]);
           }
         }
@@ -4015,7 +4015,7 @@ public class Trailer extends JFrame implements ChrNavigator, ActionListener, Cli
       for (CNVariant element : tmpCurrent) {
         for (int j = 0; j < tmp.length; j++) {
           if (use[j]) {
-            if (element.equals(tmp[j])) {
+            if (element.matches(tmp[j])) {
               use[j] = false;
             }
           }

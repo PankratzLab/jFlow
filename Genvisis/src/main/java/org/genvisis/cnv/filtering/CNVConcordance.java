@@ -577,7 +577,7 @@ public class CNVConcordance {
             if (ind1cnv.significantOneWayOverlap(ind2cnv)) {
               currentComparison.addSigOverlap();
             }
-            if (ind1cnv.equals(ind2cnv)) {
+            if (ind1cnv.matches(ind2cnv)) {
               currentComparison.addPerfect();
             }
           }

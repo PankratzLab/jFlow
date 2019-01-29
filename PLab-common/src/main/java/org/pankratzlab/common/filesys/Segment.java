@@ -190,7 +190,7 @@ public class Segment implements Serializable, Comparable<Segment> {
     return getStop() - getStart() + 1;
   }
 
-  public boolean equals(Segment seg) {
+  public boolean matches(Segment seg) {
     return getChr() == seg.getChr() && getStart() == seg.getStart() && getStop() == seg.getStop();
   }
 
@@ -652,7 +652,7 @@ public class Segment implements Serializable, Comparable<Segment> {
 
   public static boolean contains(Segment seg, Segment[] unorderedList) {
     for (Segment element : unorderedList) {
-      if (seg.equals(element)) {
+      if (seg.matches(element)) {
         return true;
       }
     }

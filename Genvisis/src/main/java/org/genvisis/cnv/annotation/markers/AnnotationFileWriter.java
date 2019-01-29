@@ -84,7 +84,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
           if ((skipAlleleCheck || vcAdd.hasSameAllelesAs(vcAnno))
               && ((skipAlleleCheck
                    && VCOps.getSegment(vcAdd).getStart() == VCOps.getSegment(vcAnno).getStart())
-                  || VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno)))
+                  || VCOps.getSegment(vcAdd).matches(VCOps.getSegment(vcAnno)))
               && vcAdd.getID().equals(vcAnno.getID())) {
             VariantContextBuilder builder = new VariantContextBuilder(vcAdd);
             for (String att : vcAnno.getAttributes().keySet()) {
@@ -100,7 +100,7 @@ public abstract class AnnotationFileWriter extends AnnotationFile implements Wri
             error += "\nSame alleles = " + vcAdd.hasSameAllelesAs(vcAnno);
             error += "\nSeg add = " + VCOps.getSegment(vcAdd).getUCSClocation();
             error += "\nSeg anno = " + VCOps.getSegment(vcAnno).getUCSClocation();
-            error += "\nSeg equals = " + VCOps.getSegment(vcAdd).equals(VCOps.getSegment(vcAnno));
+            error += "\nSeg equals = " + VCOps.getSegment(vcAdd).matches(VCOps.getSegment(vcAnno));
             error += "\nName  add = " + vcAdd.getID();
             error += "\nName  anno = " + vcAnno.getID();
             error += "\nName equals = " + vcAdd.getID().equals(vcAnno.getID());

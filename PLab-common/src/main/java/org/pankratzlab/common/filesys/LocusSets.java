@@ -41,7 +41,7 @@ public class LocusSets<T extends Segment> {
               } else {
                 boolean found = false;
                 for (int k2 = 0; k2 < finalOverLap.size(); k2++) {
-                  if (finalOverLap.get(k2).equals(element)) {
+                  if (finalOverLap.get(k2).matches(element)) {
                     found = true;
                   }
                 }

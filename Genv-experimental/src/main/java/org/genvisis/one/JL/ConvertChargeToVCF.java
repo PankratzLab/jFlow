@@ -132,7 +132,7 @@ public class ConvertChargeToVCF {
         int[] indices = Segment.binarySearchForAllOverLappingIndices(segsA[i], segsASorted);
         boolean found = false;
         for (int indice : indices) {
-          if (segsA[i].equals(segsASorted[indice])) {
+          if (segsA[i].matches(segsASorted[indice])) {
             order[i] = indice;
             if (found) {
               log.reportError("multiple founds");

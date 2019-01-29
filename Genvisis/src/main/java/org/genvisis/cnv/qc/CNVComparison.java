@@ -362,7 +362,7 @@ public class CNVComparison {
       match = 0;
       for (CNVariantQC element2 : filteredcnvQCs2) {
         if (element2.getCnVariant().getCN() == element.getCnVariant().getCN()) {
-          if (element.getCnVariant().equals(element2.getCnVariant())) {
+          if (element.getCnVariant().matches(element2.getCnVariant())) {
             match = 3;
             element2.getCnVariant().setSource(99);
             CN = element2.getCnVariant().getCN();
@@ -392,7 +392,7 @@ public class CNVComparison {
       for (CNVariantQC element2 : filteredcnvQCs1) {
         if (element.getCnVariant().getCN() == element2.getCnVariant().getCN()) {
           if (element.getCnVariant().getSource() != 99
-              && element.getCnVariant().equals(element2.getCnVariant())) {
+              && element.getCnVariant().matches(element2.getCnVariant())) {
             match = 3;
             CN = element.getCnVariant().getCN();
           } else if (match < 2 && element.getCnVariant().getSource() != 99

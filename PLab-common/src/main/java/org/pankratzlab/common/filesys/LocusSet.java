@@ -171,7 +171,7 @@ public class LocusSet<T extends Segment> implements Serializable {
       T[] overlaps = getOverLappingLoci(locus);
       if (overlaps != null) {
         for (T overlap : overlaps) {
-          if (!overlap.equals(locus)) {
+          if (!overlap.matches(locus)) {
             // If an overlap exists and is not the interrogated locus, there is an overlap
             return true;
           }
@@ -264,7 +264,7 @@ public class LocusSet<T extends Segment> implements Serializable {
       return null;
     } else {
       for (int overlap : overlaps) {
-        if (loci[overlap].equals(seg)) {
+        if (loci[overlap].matches(seg)) {
           exacts.add(overlap);
         }
       }

@@ -351,7 +351,7 @@ public class Mosaicism {
     MosaicMetric mosaicMetric = new MosaicMetric(-1, -1, -1, -1, -1, -1, -1);
     int bpArm = seg.getSize();
     mosaicMetric.setBpArm(bpArm);
-    if (mosSet.getLoci().length != 1 || !seg.equals(mosSet.getLoci()[0])) {
+    if (mosSet.getLoci().length != 1 || !seg.matches(mosSet.getLoci()[0])) {
       log.reportError("Mosaic caller not in force call mode");
       log.reportError(seg.getUCSClocation() + " went in, and "
                       + mosSet.getLoci()[0].getUCSClocation() + " came out");

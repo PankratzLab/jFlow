@@ -550,7 +550,7 @@ public class CompareCalls_dev {
         match = 0;
         for (int b = 0; b < cnvs[1].length; b++) {
           if (cnvs[1][b].getCN() == cnvs[0][a].getCN()) {
-            if (cnvs[0][a].equals(cnvs[1][b])) {
+            if (cnvs[0][a].matches(cnvs[1][b])) {
               match = 3;
               cnvs[1][b].setSource(99);
               CN = cnvs[1][b].getCN();
@@ -580,7 +580,7 @@ public class CompareCalls_dev {
         match = 1;
         for (int a = 0; a < cnvs[0].length; a++) {
           if (cnvs[1][b].getCN() == cnvs[0][a].getCN()) {
-            if (cnvs[1][b].getSource() != 99 && cnvs[1][b].equals(cnvs[0][a])) {
+            if (cnvs[1][b].getSource() != 99 && cnvs[1][b].matches(cnvs[0][a])) {
               match = 3;
               CN = cnvs[1][b].getCN();
             } else if (match < 2 && cnvs[1][b].getSource() != 99
