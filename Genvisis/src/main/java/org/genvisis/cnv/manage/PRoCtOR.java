@@ -187,7 +187,7 @@ public class PRoCtOR {
           rafMap.put(mdrafName, mdraf);
           statMap.put(mdrafName, nullStatus);
         }
-        byte[] mkrBytes = Compression.objToBytes(mkrNames);
+        byte[] mkrBytes = Compression.objToBytes(mkrNmArr);
         int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(statMap.get(mdrafName));
         int numBytesPerMarker = numBytesPerSampleMarker * numInd;
         long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length
@@ -224,6 +224,15 @@ public class PRoCtOR {
       Hashtable<String, Float> allOutliers = new Hashtable<>();
       for (Entry<String, Hashtable<String, Float>> oorEntry : oorTables.entrySet()) {
         RandomAccessFile mdRAF = rafMap.get(oorEntry.getKey());
+        String[] mkrNmArr = mkrNames.get(oorEntry.getKey());
+        byte[] mkrBytes = Compression.objToBytes(mkrNmArr);
+        int numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(statMap.get(oorEntry.getKey()));
+        int numBytesPerMarker = numBytesPerSampleMarker * numInd;
+        long seek = TransposeData.MARKERDATA_PARAMETER_TOTAL_LEN + mkrBytes.length
+                    + mkrNmArr.length * numBytesPerMarker;
+        if (mdRAF.getFilePointer() != seek) {
+          mdRAF.seek(seek);
+        }
         byte[] oorBytes = Compression.objToBytes(oorEntry.getValue());
         mdRAF.write(Compression.intToBytes(oorBytes.length));
         mdRAF.write(oorBytes);
