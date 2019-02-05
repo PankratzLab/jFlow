@@ -31,7 +31,6 @@ import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
 import org.pankratzlab.common.ArrayUtils;
-import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
@@ -187,9 +186,9 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     if (mosdepthFiles == null) {
       throw new IllegalArgumentException("No mosdepth files set.");
     }
-    if (cramReadFiles == null || cramReadFiles.isEmpty()) {
-      throw new IllegalArgumentException("No CRAM read files set.");
-    }
+    //    if (cramReadFiles == null || cramReadFiles.isEmpty()) {
+    //      throw new IllegalArgumentException("No CRAM read files set.");
+    //    }
     if (useBed == null) {
       throw new IllegalArgumentException("No regions BED file set.");
     }
@@ -752,65 +751,6 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   private String getMDSName(boolean binnedVersion) {
     return binnedVersion ? ext.rootOf(proj.MARKER_DETAILS_FILENAME.getValue(), false) + "_bins.ser"
                          : proj.MARKER_DETAILS_FILENAME.getValue();
-  }
-
-  public static void main(String[] args) throws IOException, Elision {
-    CLI cli = new CLI(MosdepthPipeline.class);
-
-    cli.addArg("projDir", "Project directory", true);
-    cli.addArg("projName", "Project name", true);
-    cli.addArg("propDir", "Project property files directory", true);
-    cli.addArg("binsBed",
-               "Bins-to-use .BED file; determines which bins to import as markers.  This can be generated with "
-                          + FASTAToBedConversion.class.getCanonicalName(),
-               true);
-    cli.addArg("genoVCF",
-               "VCF file with genotype information with the same markers as the selected marker VCF file.",
-               false);
-    cli.addArg("selectedVCF",
-               "VCF file with selected markers for (at least) the bins in the 'binsBed' file.  These markers should also be present in the file used in the 'genoVCF' file.  This can be generated using "
-                              + NGSBinSNPSelector.class.getCanonicalName());
-    cli.addArg("mosDir",
-               "Mosdepth results files directory. These should be created by running the mosdepth program using the same .BED file (or a superset file) as is used for the 'binsBed' argument.");
-    cli.addArg("cramReadsDir", "CRAM read file directory.  These can be generated with "
-                               + CRAMSnpReader.class.getCanonicalName());
-    cli.addArg("jobID", "Job Identifier");
-    cli.addArg(CLI.ARG_THREADS, CLI.DESC_THREADS, false);
-
-    if (args.length == 0 && Files.isWindows()) {
-      MosdepthPipeline mi = new MosdepthPipeline();
-      mi.setProjectDir("G:\\bamTesting\\topmed\\project\\");
-      mi.setProjectName("TopmedMosdepth");
-      mi.setProjectPropertiesDir("D:\\projects\\");
-      mi.setNumThreads(Runtime.getRuntime().availableProcessors());
-
-      mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins_hg38.bed");
-      //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
-      mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected_topmed.vcf");
-      mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
-      mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
-      mi.setJobID(null);
-      mi.run();
-    } else {
-      cli.parseWithExit(args);
-
-      MosdepthPipeline mi = new MosdepthPipeline();
-      mi.setProjectDir(cli.get("projDir"));
-      mi.setProjectName(cli.get("projName"));
-      mi.setProjectPropertiesDir(cli.get("propDir"));
-      mi.setNumThreads(cli.has(CLI.ARG_THREADS) ? cli.getI(CLI.ARG_THREADS)
-                                                : Runtime.getRuntime().availableProcessors());
-
-      mi.setBinsToUseBED(cli.get("binsBed"));
-      if (cli.has("genoVCF")) {
-        mi.setGenotypeVCF(cli.get("genoVCF"));
-      }
-      mi.setSelectedMarkerVCF(cli.get("selectedVCF"));
-      mi.setMosdepthDirectory(cli.get("mosDir"), ".bed.gz");
-      mi.setCRAMReadDirectory(cli.get("cramReadsDir"));
-      mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
-      mi.run();
-    }
   }
 
 }

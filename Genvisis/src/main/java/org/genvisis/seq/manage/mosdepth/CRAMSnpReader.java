@@ -77,18 +77,22 @@ public class CRAMSnpReader {
     } else {
       cli.parseWithExit(args);
       System.setProperty("samjdk.reference_fasta",
-                         Resources.genome(GenomeBuild.valueOf(cli.get("build")), new Logger())
+                         Resources.genome(GenomeBuild.valueOf(cli.get("build").toUpperCase()),
+                                          new Logger())
                                   .getFASTA().get());
       System.setProperty("reference_fasta",
-                         Resources.genome(GenomeBuild.valueOf(cli.get("build")), new Logger())
+                         Resources.genome(GenomeBuild.valueOf(cli.get("build").toUpperCase()),
+                                          new Logger())
                                   .getFASTA().get());
       if (cli.has("list")) {
         new CRAMSnpReader(cli.get("vcf"),
-                          HashVec.loadFileToStringArray(cli.get("list"), false, null, false),
-                          cli.get("out"), GenomeBuild.valueOf(cli.get("build")), true).run();
+                          HashVec.loadFileToStringArray(cli.get("list"), false, null,
+                                                        false),
+                          cli.get("out"), GenomeBuild.valueOf(cli.get("build").toUpperCase()), true)
+                                                                                                    .run();
       } else {
         new CRAMSnpReader(cli.get("vcf"), cli.get("cram"), cli.get("out"),
-                          GenomeBuild.valueOf(cli.get("build")), true).run();
+                          GenomeBuild.valueOf(cli.get("build").toUpperCase()), true).run();
       }
     }
 

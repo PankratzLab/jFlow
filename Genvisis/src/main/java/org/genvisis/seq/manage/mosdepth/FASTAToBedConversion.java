@@ -11,7 +11,7 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
 
-class FASTAToBedConversion {
+public class FASTAToBedConversion {
 
   private int binSize;
   private PrintWriter bedWriter;
@@ -64,15 +64,10 @@ class FASTAToBedConversion {
     cli.addArg("build",
                "GenomeBuild, one of " + ArrayUtils.toStr(GenomeBuild.values(), ", ") + ".");
 
-    boolean test = true;
-    if (test) {
-      String out = "G:\\bamTesting\\snpSelection\\ReferenceGenomeBins_hg38.bed";
-      new FASTAToBedConversion(1000, out, GenomeBuild.HG38, new Logger()).run();
-    } else {
-      cli.parseWithExit(args);
-      new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE),
-                               GenomeBuild.valueOf(cli.get("build")), new Logger()).run();
-    }
+    cli.parseWithExit(args);
+    new FASTAToBedConversion(cli.getI("bin"), cli.get(CLI.ARG_OUTFILE),
+                             GenomeBuild.valueOf(cli.get("build").toUpperCase()), new Logger())
+                                                                                               .run();
   }
 
 }
