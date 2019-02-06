@@ -104,7 +104,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
         throw new IllegalStateException("Missing CRAM Allele Count file-pair for sample depth file "
                                         + m + ".  Please locate this file and try again.");
       }
-      crams.remove(c);
+      crams.remove(expFile);
       this.cramReadFiles.put(m, expFile);
     }
     if (crams.size() > 0) {
