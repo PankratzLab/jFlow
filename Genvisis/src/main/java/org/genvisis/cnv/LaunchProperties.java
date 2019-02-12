@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -274,7 +275,23 @@ public class LaunchProperties {
   }
 
   private static Stream<String> projectNames() {
-    return Arrays.stream(getListOfProjectProperties()).map(ext::rootOf);
+    return Arrays.stream(getListOfProjectProperties()).map(s -> {
+      String f = get(DefaultLaunchKeys.PROJECTS_DIR) + s;
+      String line = null;
+      BufferedReader r;
+      try {
+        r = Files.getAppropriateReader(f);
+        while ((line = r.readLine()) != null) {
+          if (line.startsWith("PROJECT_NAME")) {
+            break;
+          }
+        }
+        r.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      return line == null ? s : line.split("=")[1];
+    });
   }
 
   /**
@@ -290,7 +307,8 @@ public class LaunchProperties {
    * @return full path to project properties file for projName
    */
   public static String formProjectPropertiesFilename(String projName) {
-    return get(DefaultLaunchKeys.PROJECTS_DIR) + projName + PROJ_PROPERTIES_EXTENSION;
+    return get(DefaultLaunchKeys.PROJECTS_DIR) + ext.replaceWithLinuxSafeCharacters(projName)
+           + PROJ_PROPERTIES_EXTENSION;
   }
 
   /**

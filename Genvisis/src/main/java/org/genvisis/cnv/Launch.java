@@ -328,8 +328,25 @@ public class Launch extends JFrame implements ActionListener {
    * @return Currently selected {@link Project} instance.
    */
   public Project loadProject() {
-    proj = new Project(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
-                       + projects.get(indexOfCurrentProj));
+    String propFileToUse = LaunchProperties.formProjectPropertiesFilename(projectsBox.getModel()
+                                                                                     .getElementAt(indexOfCurrentProj));
+    if (!Files.exists(propFileToUse)) {
+      if (Files.exists(LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+                       + projects.get(indexOfCurrentProj))) {
+        propFileToUse = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+                        + projects.get(indexOfCurrentProj);
+        log.reportTimeWarning("Caution - this project properties file (\""
+                              + projects.get(indexOfCurrentProj)
+                              + "\") contains a space, which can cause problems with certain scripts.  Please replace these with underscores.");
+      } else {
+        log.reportError("Couldn't find a properties file for the project "
+                        + projectsBox.getModel().getElementAt(indexOfCurrentProj) + ", expected "
+                        + propFileToUse + " or "
+                        + LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR)
+                        + projects.get(indexOfCurrentProj));
+      }
+    }
+    proj = new Project(propFileToUse);
     proj.setGuiState(true);
     timestampOfPropertiesFile = new Date().getTime();
     timestampOfSampleDataFile = new Date().getTime();
