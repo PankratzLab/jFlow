@@ -24,7 +24,6 @@ import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.seq.GenomeBuild;
@@ -34,7 +33,6 @@ import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
-import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.common.filesys.Segment;
@@ -56,15 +54,11 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   private static final double ALLELE_PCT_HOM = .15;
   private static final String BINS_MISS_SNPS_FILE = "binsMissingSnps.bed";
 
-  Logger log = new Logger();
-
   int numThreads = Runtime.getRuntime().availableProcessors() / 2;
 
   public void setNumThreads(int threads) {
     this.numThreads = threads;
   }
-
-  Project proj;
 
   String useBed;
   String markerVCF;
@@ -133,8 +127,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   String[][] binsOfMarkers;
 
   public MosdepthPipeline() {
-    this.scaleFactor = 20;
-    this.numMarkersPerFile = 2000;
+    super(20, 5000);
   }
 
   void run() throws IOException, Elision {
@@ -253,9 +246,16 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   }
 
   protected byte getNullStatus() {
-    // TODO alter based on presence of mosdepth/cramCount/geno-vcf
-    return Sample.computeNullStatus(new float[0], new float[0], new float[0], new float[0],
-                                    new float[0], new byte[0], new byte[0], false);
+    // X / Y / GC / Geno - cramReads or cramDir
+    // GC / Genos - genoVCF
+    // LRR / BAF - mosDir or cramDir
+    boolean gc = genoVCF != null || !cramReadFiles.isEmpty();
+    boolean genos = genoVCF != null || !cramReadFiles.isEmpty();
+    boolean x = !cramReadFiles.isEmpty();
+    boolean y = !cramReadFiles.isEmpty();
+    return Sample.computeNullStatus(gc ? new float[0] : null, x ? new float[0] : null,
+                                    y ? new float[0] : null, new float[0], new float[0],
+                                    genos ? new byte[0] : null, genos ? new byte[0] : null, false);
   }
 
   private void loadMedians() {
@@ -271,7 +271,19 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       double median = ArrayUtils.median(reader.iterator().stream().filter((bf) -> {
         int c = (int) Positions.chromosomeNumber(bf.getContig());
         return c > 0 && c < 23;
-      }).map(bf -> Double.parseDouble(bf.getName())), sz);
+      }).map(bf -> {
+        try {
+          return (double) bf.getScore();
+        } catch (NumberFormatException e) {
+          try {
+            return Double.parseDouble(bf.getName());
+          } catch (NumberFormatException e1) {
+            log.reportError("Couldn't parse read depth value from either: " + bf.getScore() + " or "
+                            + bf.getName() + ".");
+            return Double.NaN;
+          }
+        }
+      }).filter(Double::isFinite), sz);
       reader.close();
       medians.put(samples[i], median);
     }
@@ -430,7 +442,8 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
                     }
 
                   }
-                } else if (match != null) {
+                }
+                if (match != null) {
                   Genotype g = match.getGenotype(genoIDLookup.get(samples[s]));
                   // gc
                   gcs[s] = (float) (g.getGQ() == -1 ? Double.NaN : ((double) g.getGQ()) / 100d);

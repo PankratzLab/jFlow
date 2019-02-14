@@ -28,12 +28,21 @@ public abstract class AbstractParsingPipeline {
   protected String projDir;
   protected String propFileDir;
   protected String projName;
-  protected int numMarkersPerFile = 5000;
+  // PBS job ID for identifying job-specific files
   protected String jobID;
   protected Project proj;
-  protected Logger log;
-  protected double scaleFactor = 2000f;
+  // Initalize new logger - after project creation, this will be reassigned to the project's logger
+  protected Logger log = new Logger();
+  // default X/Y scale factor
+  protected double scaleFactor;
+  // ideally this will be scaled per-project based on number of markers and samples
+  protected int numMarkersPerFile;
   protected long fingerprintForMarkerFiles = 0L;
+
+  public AbstractParsingPipeline(int scale, int mkrsPerFile) {
+    this.scaleFactor = scale;
+    this.numMarkersPerFile = mkrsPerFile;
+  }
 
   public void setProjectName(String projName2) {
     projName = projName2;
@@ -70,6 +79,7 @@ public abstract class AbstractParsingPipeline {
     if (!Files.exists(propFile)) {
       Files.write((new Project()).PROJECT_NAME.getName() + "=" + projName, propFile);
       proj = new Project(propFile);
+      log = proj.getLog();
       proj.PROJECT_NAME.setValue(projName);
       proj.PROJECT_DIRECTORY.setValue(projDir);
       proj.XY_SCALE_FACTOR.setValue(scaleFactor);
@@ -84,6 +94,7 @@ public abstract class AbstractParsingPipeline {
       log.reportTime("Project properties file already exists at " + propFile
                      + "; skipping creation.");
       proj = new Project(propFile);
+      log = proj.getLog();
     }
   }
 

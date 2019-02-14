@@ -64,8 +64,6 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
   int maxChrThreads = 4;
   int logEveryNMins = 5;
 
-  Logger log = new Logger();
-
   // AB fields in RAF files are only 2 bits and can't hold full genotype values
   final boolean importGenoAsAB = true;
 
@@ -80,8 +78,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
   Map<String, Marker> markerMap;
 
   public UKBBParsingPipeline() {
-    this.scaleFactor = 2000;
-    this.numMarkersPerFile = 5000;
+    super(2000, 5000);
   }
 
   public void setSourceDir(String sourceDir2) {
