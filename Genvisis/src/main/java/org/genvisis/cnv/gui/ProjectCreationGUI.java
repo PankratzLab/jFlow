@@ -678,14 +678,14 @@ public class ProjectCreationGUI extends JDialog {
   }
 
   private void doClose(boolean cancel) {
-    if (createThread != null) {
+    if (createThread != null && Thread.currentThread() != createThread) {
       // show cancel popup
-      int chosen = JOptionPane.showConfirmDialog(this, "", "Cancel Validation?",
-                                                 JOptionPane.YES_NO_OPTION,
+      int chosen = JOptionPane.showConfirmDialog(this, "Cancel source file validation?",
+                                                 "Cancel Validation?", JOptionPane.YES_NO_OPTION,
                                                  JOptionPane.QUESTION_MESSAGE);
       if (chosen == JOptionPane.NO_OPTION) return;
+      createThread.interrupt();
     }
-    createThread.interrupt();
     cancelled = cancel;
     setVisible(false);
   }
