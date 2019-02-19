@@ -711,6 +711,13 @@ public class GenvisisWorkflowGUI extends JDialog {
     progBars.get(step).setString(resp);
     cancelStepBtns.get(step).setVisible(false);
     cancelStepBtns.get(step).setEnabled(false);
+    if (code == FINAL_CODE.COMPLETE) {
+      checkBoxes.get(step).setSelected(false);
+      // FIXME not triggering the attached Action's actionPerformed method
+      checkBoxes.get(step).doClick();
+      // FIXME so manually remove from selected steps 
+      selected.remove(step);
+    }
   }
 
   /**

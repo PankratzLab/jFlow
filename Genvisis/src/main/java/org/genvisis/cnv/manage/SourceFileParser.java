@@ -1030,10 +1030,12 @@ public class SourceFileParser implements Runnable {
     }
     executor.shutdown();
 
-    try {
-      // 5 minutes
-      Thread.sleep(1000 * 60 * 5);
-    } catch (InterruptedException e1) {}
+    if (files.length > 100) {
+      try {
+        // 5 minutes
+        Thread.sleep(1000 * 60 * 5);
+      } catch (InterruptedException e1) {}
+    }
     boolean failed = false;
     watch: while (!executor.isTerminated()) {
       for (Future<?> f : futures) {
@@ -1055,9 +1057,10 @@ public class SourceFileParser implements Runnable {
         } catch (TimeoutException e) {
           // ignore
         }
+        int mins = files.length > 100 ? 5 : 2;
         try {
           // 5 minutes
-          Thread.sleep(1000 * 60 * 5);
+          Thread.sleep(1000 * 60 * mins);
         } catch (InterruptedException e) {}
       }
     }

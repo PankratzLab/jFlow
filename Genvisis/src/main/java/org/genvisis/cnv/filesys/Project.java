@@ -1065,6 +1065,10 @@ public class Project implements PropertyChangeListener {
     return markerLookup;
   }
 
+  public synchronized void clearSampleList() {
+    sampleListRef.clear();
+  }
+
   public synchronized SampleList getSampleList() {
     SampleList sampleList = sampleListRef.get();
     if (sampleList == null) {

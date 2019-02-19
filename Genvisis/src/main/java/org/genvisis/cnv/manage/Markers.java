@@ -54,12 +54,17 @@ public class Markers {
                         proj.MARKERSET_FILENAME.getValue(true, false), log);
   }
 
+  public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output,
+                                   Logger log) {
+    return orderMarkers(markerNames, markerDatabase, output, log, true);
+  }
+
   @Deprecated
   /**
    * @deprecated use #orderMarkers(String[], Project)
    */
   public static int[] orderMarkers(String[] markerNames, String markerDatabase, String output,
-                                   Logger log) {
+                                   Logger log, boolean allowExtraAsMissing) {
     Hashtable<String, String> snpPositions;
     byte[] chrs;
     int[] positions, keys;
@@ -109,7 +114,7 @@ public class Markers {
       Files.writeArray(databaseMarkers.toArray(new String[] {}),
                        ext.parseDirectoryOfFile(markerDatabase) + "markersNotInSourceFile.txt");
     }
-    if (rptNotFoundInPos > 0) {
+    if (rptNotFoundInPos > 0 && !allowExtraAsMissing) {
       log.reportError("Error - There "
                       + (rptNotFoundInPos == 1 ? "was one" : "were " + rptNotFoundInPos)
                       + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
@@ -120,7 +125,7 @@ public class Markers {
     databaseMarkersRef = null;
     databaseMarkers = null;
     reportMarkers = null;
-    if (rptNotFoundInPos > 0) {
+    if (rptNotFoundInPos > 0 && !allowExtraAsMissing) {
       return null;
     }
 
@@ -137,16 +142,20 @@ public class Markers {
         positions[i] = Integer.parseInt(line[1]);
       } else {
         v.add(markerNames[i]);
+        chrs[i] = 0;
+        chrCounts[chrs[i]]++;
+        positions[i] = 0;
       }
     }
     if (!v.isEmpty()) {
       log.reportError("Error - There " + (v.size() == 1 ? "was one" : "were " + v.size())
-                      + " markers found in the FinalReport file that were not listed in the file of marker positions; halting parse operation.");
-      log.reportError("\nThe best source of complete marker positions is the SNP manifest (e.g., SNP_Map.csv from Illumina's GenomeStudio that should be exported along with the FinalReport files)");
+                      + " markers found in the FinalReport file that were not listed in the file of marker positions; these will be set to missing (chr0:0) and parsing will continue.");
       Files.writeArray(ArrayUtils.toStringArray(v),
                        ext.parseDirectoryOfFile(markerDatabase) + "markersNotInPositionsFile.txt");
       // write markerPositionsNotInReport.txt
-      return null;
+      if (!allowExtraAsMissing) {
+        return null;
+      }
     }
 
     keys = Sort.getSort2DIndices(chrs, positions);

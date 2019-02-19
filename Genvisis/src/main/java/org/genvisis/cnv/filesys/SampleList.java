@@ -110,6 +110,7 @@ public class SampleList implements Serializable {
     list = new SampleList(samples);
     if (samples.length > 0) {
       list.serialize(proj.SAMPLELIST_FILENAME.getValue(true, false));
+      proj.clearSampleList();
     } else {
       log.reportError("Error - there are no samples in the samples directory; parsing must have failed, so cannot create a SampleList");
     }
