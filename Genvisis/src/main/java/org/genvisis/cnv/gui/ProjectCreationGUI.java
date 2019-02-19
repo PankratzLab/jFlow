@@ -131,6 +131,8 @@ public class ProjectCreationGUI extends JDialog {
     }
   };
 
+  private Thread createThread;
+
   private final JComboBox<Project.ARRAY> comboBoxArrayType;
   private final JComboBox<GenomeBuild> comboBoxGenome;
   private final JLabel lblSrcFileStatus;
@@ -288,7 +290,7 @@ public class ProjectCreationGUI extends JDialog {
     contentPane.add(panel, "south");
     panel.setLayout(new MigLayout("", "[grow][]", "[]"));
 
-    JButton btnCreate = new JButton("Create [Skip Validation]");
+    btnCreate = new JButton("Create [Skip Validation]");
     btnCreate.setToolTipText("<html>Create new project, skipping source file validation.<br />  ONLY select if all source files are guaranteed <br />to be correct, valid, and uniform in structure.</html>");
     btnCreate.addActionListener(new ActionListener() {
 
@@ -300,14 +302,23 @@ public class ProjectCreationGUI extends JDialog {
                                                    "Confirm File Validity",
                                                    JOptionPane.YES_NO_OPTION);
           if (resp == JOptionPane.YES_OPTION) {
-            // Don't care if createProject doesn't work nicely
-            if (!createProject(false)) {
-              JOptionPane.showMessageDialog(ProjectCreationGUI.this,
-                                            "Could not create project - please check your inputs and try again.",
-                                            "Project Creation Failed", JOptionPane.ERROR_MESSAGE);
-            } else {
-              doClose(false);
-            }
+            createThread = new Thread(new Runnable() {
+
+              public void run() {
+                lock();
+                if (!createProject(false)) {
+                  JOptionPane.showMessageDialog(ProjectCreationGUI.this,
+                                                "Could not create project - please check your inputs and try again.",
+                                                "Project Creation Failed",
+                                                JOptionPane.ERROR_MESSAGE);
+                  unlock();
+                } else {
+                  // Don't care if createProject doesn't work nicely
+                  doClose(false);
+                }
+              }
+            });
+            createThread.start();
           }
         }
       }
@@ -320,23 +331,32 @@ public class ProjectCreationGUI extends JDialog {
     btnCreate.setMnemonic(KeyEvent.VK_F);
     panel.add(btnCreate, "flowx,cell 1 0");
 
-    JButton btnCreateAndValidate = new JButton("Validate and Create");
+    btnCreateAndValidate = new JButton("Validate and Create");
     btnCreateAndValidate.setToolTipText("<html>During validation, Genvisis will scan the header of each source file to ensure <br /> that the column names are the same and in the same order in each file.<br />If there are a lot of files and/or you are confident that they all have the same<br />header (e.g. you know these are from the same source and have not been<br />edited,  or Genvisis has validated them before) then you can skip validation.</html>");
     btnCreateAndValidate.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (checkValues()) {
-          if (createProject(true)) {
-            doClose(false);
+        createThread = new Thread(new Runnable() {
+
+          @Override
+          public void run() {
+            lock();
+            if (checkValues()) {
+              if (createProject(true)) {
+                doClose(false);
+              }
+            }
+            unlock();
           }
-        }
+        });
+        createThread.start();
       }
     });
     btnCreateAndValidate.setMnemonic(KeyEvent.VK_V);
     panel.add(btnCreateAndValidate, "cell 1 0");
 
-    JButton btnCancel = new JButton("Cancel");
+    btnCancel = new JButton("Cancel");
     btnCancel.addActionListener(new ActionListener() {
 
       @Override
@@ -355,6 +375,16 @@ public class ProjectCreationGUI extends JDialog {
     setMinimumSize(getPreferredSize());
     // center
     UITools.centerComponent(this);
+  }
+
+  private synchronized void lock() {
+    btnCreate.setEnabled(false);
+    btnCreateAndValidate.setEnabled(false);
+  }
+
+  private synchronized void unlock() {
+    btnCreate.setEnabled(true);
+    btnCreateAndValidate.setEnabled(true);
   }
 
   private boolean checkValues() {
@@ -508,6 +538,12 @@ public class ProjectCreationGUI extends JDialog {
   private static final int ERROR_ID_HDR = 4;
   private static final int ERROR_MKR_SUB = 5;
 
+  private JButton btnCreate;
+
+  private JButton btnCreateAndValidate;
+
+  private JButton btnCancel;
+
   private String getErrorFor(int index) {
     switch (index) {
       case ERROR_PROJ_NAME: // Project Name
@@ -642,6 +678,14 @@ public class ProjectCreationGUI extends JDialog {
   }
 
   private void doClose(boolean cancel) {
+    if (createThread != null) {
+      // show cancel popup
+      int chosen = JOptionPane.showConfirmDialog(this, "", "Cancel Validation?",
+                                                 JOptionPane.YES_NO_OPTION,
+                                                 JOptionPane.QUESTION_MESSAGE);
+      if (chosen == JOptionPane.NO_OPTION) return;
+    }
+    createThread.interrupt();
     cancelled = cancel;
     setVisible(false);
   }

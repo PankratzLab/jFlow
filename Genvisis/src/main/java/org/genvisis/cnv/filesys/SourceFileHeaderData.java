@@ -267,6 +267,9 @@ public class SourceFileHeaderData implements Serializable {
       log.report("Project validation failed: no project files found discovered.");
       return null;
     }
+    if (Thread.currentThread().isInterrupted()) {
+      return null;
+    }
 
     if (progressBar.isPresent()) {
       progressBar.get().setVisible(true);
@@ -283,6 +286,9 @@ public class SourceFileHeaderData implements Serializable {
       headers = new HashMap<>();
       SourceFileHeaderData exemplar = null;
       for (String possFile : possibleFiles) {
+        if (Thread.currentThread().isInterrupted()) {
+          return null;
+        }
         SourceFileHeaderData frhd;
         if (!fullValidation) {
           if (exemplar == null) {
