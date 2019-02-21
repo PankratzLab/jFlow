@@ -46,12 +46,12 @@ public class IlluminaMarkerPositionsStep extends Step {
                                                                            .getAbsolutePath();
     if (Files.exists(manifest)) {
       IlluminaManifest.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
-                                                     FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-                                                     proj.MARKER_POSITION_FILENAME.getValue(false,
-                                                                                            false),
-                                                     Files.determineDelimiter(manifest,
-                                                                              proj.getLog()),
-                                                     proj.getLog());
+                                                          FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+                                                          proj.MARKER_POSITION_FILENAME.getValue(false,
+                                                                                                 false),
+                                                          Files.determineDelimiter(manifest,
+                                                                                   proj.getLog()),
+                                                          proj.getLog());
     }
   }
 
