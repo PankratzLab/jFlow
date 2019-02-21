@@ -17,7 +17,7 @@ import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.IlluminaManifest;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
@@ -545,7 +545,7 @@ public class Markers {
       if (!snpTable.equals("")) {
         if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
           if (manifestFlag) {
-            MarkerBlast.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
+            IlluminaManifest.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
                                                            FILE_SEQUENCE_TYPE.MANIFEST_FILE,
                                                            proj.MARKER_POSITION_FILENAME.getValue(false,
                                                                                                   false),

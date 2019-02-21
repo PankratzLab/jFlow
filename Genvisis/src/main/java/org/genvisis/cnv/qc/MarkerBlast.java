@@ -1,10 +1,6 @@
 package org.genvisis.cnv.qc;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -814,9 +810,11 @@ public abstract class MarkerBlast {
         case MANIFEST_FILE:
           proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
           log.reportTimeWarning("Extracting marker positions from " + csv);
-          String[] markerNames = extractMarkerPositionsFromManifest(csv, proj.getArrayType(), type,
-                                                                    proj.MARKER_POSITION_FILENAME.getValue(),
-                                                                    ",", log);
+          String[] markerNames = IlluminaManifest.extractMarkerPositionsFromManifest(csv,
+                                                                                     proj.getArrayType(),
+                                                                                     type,
+                                                                                     proj.MARKER_POSITION_FILENAME.getValue(),
+                                                                                     ",", log);
           Markers.orderMarkers(markerNames, proj);
 
           break;
@@ -828,88 +826,6 @@ public abstract class MarkerBlast {
       System.err.println("could not find " + csv);
       return null;
     }
-  }
-
-  /**
-   * @param csv a .csv manifest file <br>
-   *          Example Head; <br>
-   *          Illumina, Inc. <br>
-   *          [Heading] <br>
-   *          Descriptor File Name,HumanOmni1-Quad_v1-0-Multi_H.bpm <br>
-   *          Assay Format,Infinium HD Super <br>
-   *          Date Manufactured,5/2/2011 <br>
-   *          Loci Count ,1134514 <br>
-   *          [Assay] <br>
-   *          IlmnID,Name,IlmnStrand,SNP,AddressA_ID,AlleleA_ProbeSeq,AddressB_ID,AlleleB_ProbeSeq,
-   *          GenomeBuild,Chr,MapInfo,Ploidy,Species,Source,SourceVersion,SourceStrand,SourceSeq,
-   *          TopGenomicSeq,BeadSetID,Exp_Clusters,Intensity_Only,RefStrand <br>
-   * @param array must be {@link ARRAY#ILLUMINA}
-   * @param type must be {@link FILE_SEQUENCE_TYPE#MANIFEST_FILE}
-   * @param output the output file, typically a projects marker positions
-   * @param delimiter , typically ","
-   * @param log
-   * @return a String[] of marker names found in the manifest file
-   */
-  public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array,
-                                                            FILE_SEQUENCE_TYPE type, String output,
-                                                            String delimiter, Logger log) {
-
-    if (type != FILE_SEQUENCE_TYPE.MANIFEST_FILE || array != ARRAY.ILLUMINA) {
-      throw new IllegalArgumentException("This method should only be used in preparing marker positions for an "
-                                         + ARRAY.ILLUMINA + " array using a "
-                                         + FILE_SEQUENCE_TYPE.MANIFEST_FILE);
-    }
-    String[] required = new String[] {"Name", "Chr", "MapInfo"};
-    ArrayList<String> markerNames = new ArrayList<>();
-    try {
-      BufferedReader reader = Files.getAppropriateReader(csv);
-      boolean start = false;
-      int[] extract = new int[required.length];
-      PrintWriter writer = Files.openAppropriateWriter(output);
-      while (reader.ready()) {
-        String[] line = reader.readLine().trim().split(delimiter);
-
-        if (!start
-            && ArrayUtils.countIf(ext.indexFactors(required, line, true, log, false), -1) == 0) {
-          start = true;
-          extract = ext.indexFactors(required, line, true, log, false);
-          writer.println("Name\tChr\tPosition");
-        } else if (start) {
-          String[] lineMP = null;
-          try {
-            lineMP = new String[required.length];
-            lineMP[0] = line[extract[0]];
-            lineMP[1] = line[extract[1]];
-            lineMP[2] = line[extract[2]];
-            if (lineMP[2].equals("0")) {
-              lineMP[1] = "0";
-            }
-          } catch (ArrayIndexOutOfBoundsException aOfBoundsException) {
-            log.reportTimeWarning("Skipping line " + ArrayUtils.toStr(line));
-            lineMP = null;
-          }
-          if (lineMP != null && lineMP[0] != null) {
-            markerNames.add(lineMP[0]);
-            writer.println(ArrayUtils.toStr(lineMP));
-          }
-        }
-      }
-
-      reader.close();
-      writer.close();
-      if (!start) {
-        throw new IllegalStateException("Could not find required header subset "
-                                        + ArrayUtils.toStr(required, ",") + " in " + csv);
-      }
-
-    } catch (FileNotFoundException fnfe) {
-      log.reportError("Error: file \"" + csv + "\" not found in current directory");
-      return null;
-    } catch (IOException ioe) {
-      log.reportError("Error reading file \"" + csv + "\"");
-      return null;
-    }
-    return ArrayUtils.toStringArray(markerNames);
   }
 
   // public static void test() {

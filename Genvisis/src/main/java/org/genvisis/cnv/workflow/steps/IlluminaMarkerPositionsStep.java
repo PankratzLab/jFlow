@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.EnumSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.cnv.qc.MarkerBlast;
+import org.genvisis.cnv.qc.IlluminaManifest;
 import org.genvisis.cnv.qc.MarkerBlast.FILE_SEQUENCE_TYPE;
 import org.genvisis.cnv.workflow.Requirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
@@ -45,7 +45,7 @@ public class IlluminaMarkerPositionsStep extends Step {
     String manifest = variables.get(manifestReq) == null ? null : variables.get(manifestReq)
                                                                            .getAbsolutePath();
     if (Files.exists(manifest)) {
-      MarkerBlast.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
+      IlluminaManifest.extractMarkerPositionsFromManifest(manifest, ARRAY.ILLUMINA,
                                                      FILE_SEQUENCE_TYPE.MANIFEST_FILE,
                                                      proj.MARKER_POSITION_FILENAME.getValue(false,
                                                                                             false),
