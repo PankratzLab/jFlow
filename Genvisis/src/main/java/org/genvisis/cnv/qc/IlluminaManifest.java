@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +40,10 @@ public class IlluminaManifest {
    * @param log
    * @return a String[] of marker names found in the manifest file
    */
-  public static String[] extractMarkerPositionsFromManifest(String csv, ARRAY array,
-                                                            MarkerBlast.FILE_SEQUENCE_TYPE type,
-                                                            String output, String delimiter,
-                                                            Logger log) {
+  public static String[] extractMarkerPositionsFromCSVManifest(String csv, ARRAY array,
+                                                               MarkerBlast.FILE_SEQUENCE_TYPE type,
+                                                               String output, String delimiter,
+                                                               Logger log) {
 
     if (type != MarkerBlast.FILE_SEQUENCE_TYPE.MANIFEST_FILE || array != ARRAY.ILLUMINA) {
       throw new IllegalArgumentException("This method should only be used in preparing marker positions for an "
@@ -152,6 +153,58 @@ public class IlluminaManifest {
 
   private IlluminaManifest() {}
 
+  public static void parseMarkerPositionsFromBPM(String file, String outFile) throws IOException {
+    RandomAccessFile raf = new RandomAccessFile(file, "r");
+
+    int b, p, m;
+    b = raf.read();
+    p = raf.read();
+    m = raf.read();
+    if (b != 'B' || p != 'P' || m != 'M') {
+      try {
+        raf.close();
+      } catch (IOException e) {}
+      throw new RuntimeException("Invalid file format signature; expected 'BPM', found '"
+                                 + ((char) b) + ((char) p) + ((char) m) + "'");
+    }
+
+    int version1 = raf.read();
+    long version2 = readLong(raf);
+
+    if (version1 != 1 || version2 != 4) {
+      throw new RuntimeException("Invalid file format version number; expected (1,4), found ("
+                                 + version1 + "," + version2 + ")");
+    }
+
+    readString(raf); // manifest name
+    readString(raf); // controls
+
+    long count = readLong(raf);
+    for (long i = 0; i < count; i++) {
+      readLong(raf); // snpEntries
+    }
+    for (long i = 0; i < count; i++) {
+      readString(raf); // names
+    }
+    List<Integer> normIds = new ArrayList<>();
+    for (long i = 0; i < count; i++) {
+      normIds.add(raf.read());
+    }
+
+    PrintWriter writer = Files.getAppropriateWriter(outFile);
+
+    for (long i = 0; i < count; i++) {
+      ManifestEntry me = ManifestEntry.parse(raf, normIds.get((int) i));
+      writer.println(me.name + "\t" + (me.mapInfo.equals("0") ? 0 : me.chrom) + "\t" + me.mapInfo);
+      me = null;
+    }
+    writer.close();
+
+    normIds = null;
+
+    raf.close();
+  }
+
   /* Could be turned into an iterable */
   public static IlluminaManifest load(String file) throws IOException {
     RandomAccessFile raf = new RandomAccessFile(file, "r");
@@ -210,14 +263,7 @@ public class IlluminaManifest {
     PrintWriter writer = Files.getAppropriateWriter(file);
     writer.println(ArrayUtils.toStr(HEADER, ","));
     for (ManifestEntry me : entries) {
-      StringJoiner line = new StringJoiner(",");
-      line.add(me.ilmnId).add(me.name).add(me.designStrand).add(me.alleles)
-          .add(Integer.toString(me.assayTypeId)).add(Integer.toString(me.normId))
-          .add(Long.toString(me.addressA)).add(me.alleleProbeA).add(Long.toString(me.addressB))
-          .add(me.alleleProbeB).add(me.genomeVersion).add(me.chrom).add(me.mapInfo).add(me.ploidy)
-          .add(me.species).add(me.source).add(me.srcVersion).add(me.srcStrand).add(me.srcSeq)
-          .add(me.topGenomicSeq).add(me.custStrand).add(me.genomicStrand);
-      writer.println(line.toString());
+      writer.println(me.formatCSV());
     }
     writer.close();
   }
@@ -323,14 +369,30 @@ public class IlluminaManifest {
       return me;
     }
 
+    public String formatCSV() {
+      StringJoiner line = new StringJoiner(",");
+      line.add(ilmnId).add(name).add(designStrand).add(alleles).add(Integer.toString(assayTypeId))
+          .add(Integer.toString(normId)).add(Long.toString(addressA)).add(alleleProbeA)
+          .add(Long.toString(addressB)).add(alleleProbeB).add(genomeVersion).add(chrom).add(mapInfo)
+          .add(ploidy).add(species).add(source).add(srcVersion).add(srcStrand).add(srcSeq)
+          .add(topGenomicSeq).add(custStrand).add(genomicStrand);
+      return line.toString();
+    }
+
   }
 
   public static void main(String[] args) throws IOException {
-    String file = "C:\\Users\\Ben\\Desktop\\dev\\work\\HumanOmni2.5-4v1_D.bpm";
-    IlluminaManifest me = IlluminaManifest.load(file);
-    System.out.println("Writing...");
-    me.writeCSV("C:\\Users\\Ben\\Desktop\\dev\\work\\HumanOmni2.5-4v1_D.TEST.csv");
+    String dir = "G:\\Manifests\\";
+    String[] files = Files.list(dir, ".bpm");
+    for (String f : files) {
+      System.out.println("Processing " + f);
+      IlluminaManifest.load(dir + f).writeCSV(dir + ext.rootOf(f, true) + ".TEST.csv");
+    }
     System.out.println("Done!");
+  }
+
+  public List<ManifestEntry> getEntries() {
+    return Collections.unmodifiableList(entries);
   }
 
 }

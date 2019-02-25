@@ -1,7 +1,9 @@
 package org.genvisis.cnv.qc;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.PROBE_TAG;
 import org.genvisis.cnv.annotation.markers.BlastAnnotationTypes.TOP_BOT;
 import org.genvisis.cnv.annotation.markers.BlastParams;
@@ -10,12 +12,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.manage.ExtProjectDataParser;
 import org.genvisis.cnv.manage.ExtProjectDataParser.ProjectDataParserBuilder;
+import org.genvisis.cnv.qc.IlluminaManifest.ManifestEntry;
 import org.genvisis.seq.ReferenceGenome;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.ext;
 import org.pankratzlab.common.filesys.Segment;
-import org.pankratzlab.common.CLI;
 import htsjdk.tribble.annotation.Strand;
 
 public class IlluminaMarkerBlast extends MarkerBlast {
@@ -64,8 +67,112 @@ public class IlluminaMarkerBlast extends MarkerBlast {
     return ext.rootOf(manifestFile, true);
   }
 
+  protected MarkerFastaEntry[] getMarkerFastaEntriesFromBPM(BlastParams params,
+                                                            boolean alleleLookup) {
+    MarkerFastaEntry[] fastaEntries = null;
+    try {
+      int seqLength = ARRAY.ILLUMINA.getProbeLength();
+
+      IlluminaManifest im = IlluminaManifest.load(manifestFile);
+      List<ManifestEntry> manEntries = im.getEntries();
+      ArrayList<MarkerFastaEntry> entries = new ArrayList<>(manEntries.size());
+      MarkerSetInfo markerSet = proj.getMarkerSet();
+      ReferenceGenome referenceGenome = Files.exists(proj.getReferenceGenomeFASTAFilename()) ? new ReferenceGenome(proj.getReferenceGenomeFASTAFilename(),
+                                                                                                                   log)
+                                                                                             : null;
+      if (referenceGenome == null) {
+        log.reportTimeWarning("A reference genome was not found");
+      }
+      for (int i = 0; i < manEntries.size(); i++) {
+        ManifestEntry entry = manEntries.get(i);
+        if (alleleLookup) {
+          if ((i + 1) % 10000 == 0 && referenceGenome != null) {
+            log.reportTimeInfo("Loaded " + (i + 1) + " reference alleles from "
+                               + referenceGenome.getReferenceFasta());
+          }
+          String seqA = null;
+          String seqB = null;
+          String markerName = entry.name;
+          Segment markerSegment = new Segment(markerSet.getChrs()[i], markerSet.getPositions()[i],
+                                              markerSet.getPositions()[i]);
+          seqA = entry.alleleProbeA;
+          seqB = entry.alleleProbeB;
+
+          String refStrand = null;
+          TOP_BOT topBotProbe = TOP_BOT.valueOf(entry.designStrand.toUpperCase());
+          TOP_BOT topBotRef = TOP_BOT.valueOf(entry.srcStrand.toUpperCase());
+          refStrand = entry.genomicStrand;
+          if (refStrand.equals("")) {
+            refStrand = parseStrandFromIlmnID(entry.ilmnId.split("_"), topBotProbe);
+          }
+          Strand strand = null;
+          if (refStrand.equals("+")) {
+            strand = Strand.POSITIVE;
+          } else if (refStrand.equals("-")) {
+            strand = Strand.NEGATIVE;
+          } else {
+            log.reportError("Invalid RefStrand " + refStrand);
+            return null;
+          }
+          if (seqA.length() != seqLength) {
+            log.reportError("Sequence " + seqA + " did not have length "
+                            + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
+            return null;
+          }
+
+          String[] snp = entry.alleles.replaceAll("\\[", "").replaceAll("\\]", "").split("/");
+          AlleleParser alleleParser = new AlleleParser(markerName, markerSegment, snp[0], snp[1],
+                                                       seqB, referenceGenome);
+          if (alleleLookup) {
+            alleleParser.parse(proj.getArrayType(), strand, entry.srcSeq);
+          }
+          if (seqB.equals("")) {// not ambiguous
+            entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.BOTH.getTag(), seqA, seqB,
+                                             strand, seqLength, markerSegment, topBotProbe,
+                                             topBotRef, alleleParser.getA(), alleleParser.getB(),
+                                             alleleParser.getRef(), alleleParser.getAlts()));
+
+          } else {// interrogationPosition is the last bp for Ambiguous SNPS
+            entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.A.getTag(), seqA, seqB, strand,
+                                             seqLength - 1, markerSegment, topBotProbe, topBotRef,
+                                             alleleParser.getA(), alleleParser.getB(),
+                                             alleleParser.getRef(), alleleParser.getAlts()));
+            entries.add(new MarkerFastaEntry(markerName + PROBE_TAG.B.getTag(), seqB, seqB, strand,
+                                             seqLength - 1, markerSegment, topBotProbe, topBotRef,
+                                             alleleParser.getA(), alleleParser.getB(),
+                                             alleleParser.getRef(), alleleParser.getAlts()));
+            if (seqB.length() != seqLength) {
+              log.reportError("Sequence " + seqB + " did not have length "
+                              + proj.ARRAY_TYPE.getValue().getProbeLength() + " " + markerName);
+              return null;
+            }
+          }
+
+        }
+      }
+      fastaEntries = entries.toArray(new MarkerFastaEntry[entries.size()]);
+    } catch (FileNotFoundException e) {
+      log.reportFileNotFound(manifestFile);
+      e.printStackTrace();
+    } catch (IOException e) {
+      log.reportException(e);
+    }
+    log.reportTimeInfo("Found " + fastaEntries.length + " marker sequences");
+    return fastaEntries;
+  }
+
   @Override
   protected MarkerFastaEntry[] getMarkerFastaEntries(BlastParams params, boolean alleleLookup) {
+    if (manifestFile.endsWith(".csv")) {
+      return getMarkerFastaEntriesFromCSV(params, alleleLookup);
+    } else if (manifestFile.endsWith(".bpm")) {
+      return getMarkerFastaEntriesFromBPM(params, alleleLookup);
+    }
+    return null;
+  }
+
+  protected MarkerFastaEntry[] getMarkerFastaEntriesFromCSV(BlastParams params,
+                                                            boolean alleleLookup) {
     ExtProjectDataParser.ProjectDataParserBuilder builder = formatParser();
     MarkerFastaEntry[] fastaEntries = null;
     try {

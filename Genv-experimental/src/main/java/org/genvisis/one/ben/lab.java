@@ -8,6 +8,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -41,10 +42,6 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
-import org.genvisis.jfcs.FCSKeywords;
-import org.genvisis.jfcs.FCSReader;
-import org.genvisis.seq.manage.BEDFileReader;
-import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -2267,6 +2264,77 @@ public class lab {
     }
   }
 
+  private static void parseBPM() throws IOException {
+    String file = "G:/Manifests/HumanOmni2.5-4v1_H.bpm";
+    RandomAccessFile raf = new RandomAccessFile(file, "r");
+    char b = (char) raf.read();
+    char p = (char) raf.read();
+    char m = (char) raf.read();
+    int n1 = raf.read();
+
+    //    byte[] intArr = new byte[4];
+    //    raf.read(intArr);
+    //    int v = (int) BGENBitMath.bytesToFloat(true, intArr);
+    int v = raf.read();
+
+    int z1 = raf.read();
+    int z2 = raf.read();
+    int z3 = raf.read();
+
+    String chip = readString(raf);
+
+    int n2 = raf.read();
+    int n3 = raf.read();
+
+    int numControlLines = 23;
+    String[] cntl = new String[numControlLines];
+    for (int i = 0; i < numControlLines; i++) {
+      cntl[i] = raf.readLine();
+    }
+    long entryStart = raf.getFilePointer();
+
+    byte[] byt = new byte[4];
+    raf.read(byt);
+    int num = readInt(byt);
+    int[] cnt = new int[num];
+    for (int i = 0; i < num; i++) {
+      raf.read(byt);
+      cnt[i] = readInt(byt);
+    }
+
+    String[] nms = new String[num];
+    for (int i = 0; i < num; i++) {
+      nms[i] = readString(raf);
+    }
+
+    int normID = raf.read();
+    byte[] id = new byte[num];
+    raf.read(id);
+
+    int blockID = raf.read();
+    byte[] block = new byte[10000];
+    raf.read(block);
+
+    long off = raf.getFilePointer();
+    long len = raf.length();
+    System.out.println();
+  }
+
+  private static int readInt(byte[] arr) {
+    int t = 0;
+    for (int i = 0; i < 4; i++) {
+      t += (arr[i] & 0x000000FF) << (i * 8);
+    }
+    return t;
+  }
+
+  private static String readString(RandomAccessFile raf) throws IOException {
+    int nB = raf.read();
+    byte[] by = new byte[nB];
+    raf.read(by);
+    return new String(by);
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
@@ -2278,9 +2346,11 @@ public class lab {
     boolean test = true;
     if (test) {
 
-      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
-        BedOps.verifyBedIndex(f, new Logger());
-      }
+      parseBPM();
+
+      //      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
+      //        BedOps.verifyBedIndex(f, new Logger());
+      //      }
 
       // createBCXPlots();
       // processAnnotationFilesAll();

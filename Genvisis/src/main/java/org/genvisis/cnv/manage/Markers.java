@@ -545,13 +545,13 @@ public class Markers {
       if (!snpTable.equals("")) {
         if (!Files.exists(proj.MARKER_POSITION_FILENAME.getValue(false, false))) {
           if (manifestFlag) {
-            IlluminaManifest.extractMarkerPositionsFromManifest(snpTable, ARRAY.ILLUMINA,
-                                                                FILE_SEQUENCE_TYPE.MANIFEST_FILE,
-                                                                proj.MARKER_POSITION_FILENAME.getValue(false,
-                                                                                                       false),
-                                                                Files.determineDelimiter(snpTable,
-                                                                                         proj.getLog()),
-                                                                proj.getLog());
+            IlluminaManifest.extractMarkerPositionsFromCSVManifest(snpTable, ARRAY.ILLUMINA,
+                                                                   FILE_SEQUENCE_TYPE.MANIFEST_FILE,
+                                                                   proj.MARKER_POSITION_FILENAME.getValue(false,
+                                                                                                          false),
+                                                                   Files.determineDelimiter(snpTable,
+                                                                                            proj.getLog()),
+                                                                   proj.getLog());
           } else {
             Markers.generateMarkerPositions(proj, snpTable);
           }

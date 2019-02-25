@@ -810,11 +810,11 @@ public abstract class MarkerBlast {
         case MANIFEST_FILE:
           proj.ARRAY_TYPE.setValue(ARRAY.ILLUMINA);
           log.reportTimeWarning("Extracting marker positions from " + csv);
-          String[] markerNames = IlluminaManifest.extractMarkerPositionsFromManifest(csv,
-                                                                                     proj.getArrayType(),
-                                                                                     type,
-                                                                                     proj.MARKER_POSITION_FILENAME.getValue(),
-                                                                                     ",", log);
+          String[] markerNames = IlluminaManifest.extractMarkerPositionsFromCSVManifest(csv,
+                                                                                        proj.getArrayType(),
+                                                                                        type,
+                                                                                        proj.MARKER_POSITION_FILENAME.getValue(),
+                                                                                        ",", log);
           Markers.orderMarkers(markerNames, proj);
 
           break;
