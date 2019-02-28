@@ -1651,7 +1651,9 @@ public class ext {
   }
 
   public static String rootRootOf(String filename) {
-    return filename.substring(0, filename.indexOf("."));
+    String d = parseDirectoryOfFile(filename);
+    String f = filename.substring(d.length());
+    return d + f.substring(0, f.indexOf('.'));
   }
 
   public static String addToRoot(String filename, String addition) {
