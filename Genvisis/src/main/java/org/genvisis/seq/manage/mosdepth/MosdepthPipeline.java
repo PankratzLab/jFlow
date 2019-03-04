@@ -29,6 +29,7 @@ import org.genvisis.cnv.filesys.Sample;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
+import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
@@ -78,6 +79,9 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
   public void setMosdepthDirectory(String dir, String ext) {
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
+    for (String m : mosdepthFiles) {
+      BedOps.verifyBedIndex(m, log);
+    }
   }
 
   /**
