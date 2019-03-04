@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -47,13 +48,123 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 
 public class SampleData {
+
+  public static class IdSet {
+
+    private final String dna;
+    private final String fid;
+    private final String iid;
+    private final String fidIid;
+
+    /**
+     * @param dna
+     * @param fid
+     * @param iid
+     */
+    public IdSet(String dna, String fid, String iid) {
+      super();
+      this.dna = dna;
+      this.fid = fid;
+      this.iid = iid;
+      this.fidIid = fid + "\t" + iid;
+    }
+
+    /**
+     * @return the dna
+     */
+    public String getDNA() {
+      return dna;
+    }
+
+    /**
+     * @return the fid
+     */
+    public String getFID() {
+      return fid;
+    }
+
+    /**
+     * @return the iid
+     */
+    public String getIID() {
+      return iid;
+    }
+
+    public String getFidIid() {
+      return fidIid;
+    }
+
+    /**
+     * @return String[] used by old array-based lookup function for compatibility with existing
+     *         functionality
+     */
+    @Deprecated
+    public String[] formDeprecatedArrayIds() {
+      String[] ids = new String[ArrayUtils.max(new int[] {LOOKUP_DNA_INDEX, LOOKUP_FID_IID_INDEX,
+                                                          LOOKUP_IID_INDEX})
+                                + 1];
+      ids[LOOKUP_DNA_INDEX] = getDNA();
+      ids[LOOKUP_FID_IID_INDEX] = getFidIid();
+      ids[LOOKUP_IID_INDEX] = getIID();
+
+      return ids;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((dna == null) ? 0 : dna.hashCode());
+      result = prime * result + ((fid == null) ? 0 : fid.hashCode());
+      result = prime * result + ((iid == null) ? 0 : iid.hashCode());
+      return result;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (obj == null) return false;
+      if (!(obj instanceof IdSet)) return false;
+      IdSet other = (IdSet) obj;
+      if (dna == null) {
+        if (other.dna != null) return false;
+      } else if (!dna.equals(other.dna)) return false;
+      if (fid == null) {
+        if (other.fid != null) return false;
+      } else if (!fid.equals(other.fid)) return false;
+      if (iid == null) {
+        if (other.iid != null) return false;
+      } else if (!iid.equals(other.iid)) return false;
+      return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+      return "IdSet [dna=" + dna + ", fid=" + fid + ", iid=" + iid + "]";
+    }
+
+  }
 
   /**
    * A helper class to facilitate creating sample data from either .ped or Sample_Map.csv formats
@@ -338,7 +449,9 @@ public class SampleData {
   // private Hashtable<String,String> sampleLookup;
   // private Hashtable<String,String> famIndLookup;
   // private Hashtable<String,String> indLookup;
-  private final Hashtable<String, String[]> lookup;
+  private final ImmutableMap<String, IdSet> dnaLookup;
+  private final ImmutableMap<String, IdSet> fidIidLookup;
+  private final ImmutableSetMultimap<String, IdSet> iidLookup;
   private final Hashtable<String, IndiPheno> sampleHash;
   private final Collection<Set<String>> duplicateSets;
   private final LoadingCache<String, Map<String, String>> metaDataCache;
@@ -513,20 +626,23 @@ public class SampleData {
 
       sexCountHash = new CountVector();
       sampleHash = new Hashtable<>();
-      lookup = new Hashtable<>();
+      ImmutableMap.Builder<String, IdSet> dnaLookupBuilder = ImmutableMap.builder();
+      ImmutableMap.Builder<String, IdSet> fidIidLookupBuilder = ImmutableMap.builder();
+      ImmutableSetMultimap.Builder<String, IdSet> iidLookupBuilder = ImmutableSetMultimap.builder();
       while (reader.ready()) {
         line = reader.readLine().split("\t", -1);
         indi = new IndiPheno();
-
+        IdSet idSet = new IdSet(line[dnaIndex], line[famIndex], line[indIndex]);
         String[] ids = new String[ArrayUtils.max(new int[] {LOOKUP_DNA_INDEX, LOOKUP_FID_IID_INDEX,
                                                             LOOKUP_IID_INDEX})
                                   + 1];
-        ids[LOOKUP_DNA_INDEX] = line[dnaIndex];
-        ids[LOOKUP_FID_IID_INDEX] = line[famIndex] + "\t" + line[indIndex];
-        ids[LOOKUP_IID_INDEX] = line[indIndex];
-        lookup.put(line[dnaIndex].toLowerCase(), ids);
-        lookup.put(line[famIndex].toLowerCase() + "\t" + line[indIndex].toLowerCase(), ids);
-        lookup.put(line[indIndex].toLowerCase(), ids);
+        ids[LOOKUP_DNA_INDEX] = idSet.getDNA();
+        ids[LOOKUP_FID_IID_INDEX] = idSet.getFID() + "\t" + idSet.getIID();
+        ids[LOOKUP_IID_INDEX] = idSet.getIID();
+
+        dnaLookupBuilder.put(idSet.getDNA().toLowerCase(), idSet);
+        fidIidLookupBuilder.put(idSet.getFidIid().toLowerCase(), idSet);
+        iidLookupBuilder.put(idSet.getIID().toLowerCase(), idSet);
 
         if (dupeIDIndex != -1) {
           String dupeID = line[dupeIDIndex];
@@ -560,6 +676,9 @@ public class SampleData {
 
         sampleHash.put(line[dnaIndex].toLowerCase(), indi);
       }
+      dnaLookup = dnaLookupBuilder.build();
+      fidIidLookup = fidIidLookupBuilder.build();
+      iidLookup = iidLookupBuilder.build();
       reader.close();
 
       if (dupeIDIndex == -1) {
@@ -669,7 +788,6 @@ public class SampleData {
 
   public int getSexForIndividual(String id) {
     IndiPheno indi;
-    String[] ids;
 
     indi = sampleHash.get(id.toLowerCase());
     // indi = sampleHash.get("S_"+id);
@@ -680,9 +798,9 @@ public class SampleData {
     // indLookup.put("FI_"+line[famIndex]+"\t"+line[dnaIndex], "I_"+line[indIndex]);
     // indLookup.put("S_"+line[dnaIndex], "I_"+line[indIndex]);
     if (indi == null) {
-      ids = lookup.get(id.toLowerCase());
+      IdSet ids = lookupIdSet(id);
       if (ids != null) {
-        indi = sampleHash.get(ids[LOOKUP_DNA_INDEX].toLowerCase());
+        indi = sampleHash.get(ids.getDNA().toLowerCase());
       }
     }
 
@@ -708,7 +826,6 @@ public class SampleData {
 
   public boolean individualShouldBeExcluded(String id) {
     IndiPheno indi;
-    String[] ids;
 
     if (excludeClassIndex == -1) {
       return false;
@@ -716,9 +833,9 @@ public class SampleData {
 
     indi = sampleHash.get(id.toLowerCase());
     if (indi == null) {
-      ids = lookup.get(id.toLowerCase());
+      IdSet ids = lookupIdSet(id);
       if (ids != null) {
-        indi = sampleHash.get(ids[LOOKUP_DNA_INDEX].toLowerCase());
+        indi = sampleHash.get(ids.getDNA().toLowerCase());
       }
     }
 
@@ -768,7 +885,7 @@ public class SampleData {
     inds = HashVec.getKeys(sampleHash);
     for (String ind : inds) {
       indi = sampleHash.get(ind);
-      trav = lookup.get(ind.toLowerCase())[LOOKUP_FID_IID_INDEX];
+      trav = lookupIdSet(ind).getFID();
 
       finalHashes = new Vector<>();
       for (int j = 0; j < files.length; j++) {
@@ -913,13 +1030,38 @@ public class SampleData {
    */
   @Deprecated
   public String[] lookup(String str) {
-    String[] ids = lookupNoCopy(str);
+    IdSet ids = lookupIdSet(str);
     if (ids == null) return null;
-    return Arrays.copyOf(ids, ids.length);
+    return ids.formDeprecatedArrayIds();
   }
 
-  private String[] lookupNoCopy(String id) {
-    return lookup.get(id.toLowerCase());
+  public Optional<IdSet> lookupFromDNA(String dna) {
+    return Optional.ofNullable(dnaLookup.get(dna.toLowerCase()));
+  }
+
+  public Optional<IdSet> lookupFromFidIid(String fidIid) {
+    return Optional.ofNullable(fidIidLookup.get(fidIid.toLowerCase()));
+  }
+
+  public Set<IdSet> lookupFromIid(String iid) {
+    return iidLookup.get(iid.toLowerCase());
+  }
+
+  /**
+   * @param id One identifying key (DNA, FID\tIID, or IID)
+   * @return {@link IdSet} containing all identifiers for the associated sample
+   */
+  public IdSet lookupIdSet(String id) {
+    Optional<IdSet> idSet = lookupFromDNA(id);
+    if (idSet.isPresent()) return idSet.get();
+    idSet = lookupFromFidIid(id);
+    if (idSet.isPresent()) return idSet.get();
+    Set<IdSet> iidMatches = lookupFromIid(id);
+    if (iidMatches.size() == 1) return Iterables.getOnlyElement(iidMatches);
+    if (iidMatches.size() > 1) proj.getLog()
+                                   .reportError("IID " + id + " matches to " + iidMatches.size()
+                                                + " different samples, matching by IID is not valid");
+    return null;
   }
 
   /**
@@ -929,7 +1071,9 @@ public class SampleData {
    * @return DNA or null if Sample ID not found
    */
   public @Nullable String lookupDNA(String id) {
-    return lookup(id, LOOKUP_DNA_INDEX);
+    IdSet idSet = lookupIdSet(id);
+    if (idSet == null) return null;
+    return idSet.getDNA();
   }
 
   /**
@@ -939,7 +1083,9 @@ public class SampleData {
    * @return FID\tIID or null if Sample ID not found
    */
   public @Nullable String lookupFIDIID(String id) {
-    return lookup(id, LOOKUP_FID_IID_INDEX);
+    IdSet idSet = lookupIdSet(id);
+    if (idSet == null) return null;
+    return idSet.getFidIid();
   }
 
   /**
@@ -949,7 +1095,9 @@ public class SampleData {
    * @return IID or null if Sample ID not found
    */
   public @Nullable String lookupIID(String id) {
-    return lookup(id, LOOKUP_IID_INDEX);
+    IdSet idSet = lookupIdSet(id);
+    if (idSet == null) return null;
+    return idSet.getIID();
   }
 
   /**
@@ -959,9 +1107,9 @@ public class SampleData {
    * @return FID or null if Sample ID not found
    */
   public @Nullable String lookupFID(String id) {
-    String fidiid = lookupFIDIID(id);
-    if (fidiid == null) return null;
-    return fidiid.split("\t")[0];
+    IdSet idSet = lookupIdSet(id);
+    if (idSet == null) return null;
+    return idSet.getFID();
   }
 
   /**
@@ -969,13 +1117,7 @@ public class SampleData {
    * @return true if the provided id is a valid Sample identifier contained in the lookup
    */
   public boolean lookupContains(String id) {
-    return lookupNoCopy(id) != null;
-  }
-
-  private String lookup(String id, int idIndex) {
-    String[] ids = lookupNoCopy(id);
-    if (ids == null) return null;
-    return ids[idIndex];
+    return lookupIdSet(id) != null;
   }
 
   public IndiPheno getIndiFromSampleHash(String sampleID) {
