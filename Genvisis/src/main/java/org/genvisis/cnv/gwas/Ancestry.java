@@ -535,7 +535,7 @@ public class Ancestry {
                                 dummyProjectPrefix, putativeWhites, log);
     }
     try {
-      dir = new File(dir).getAbsolutePath();
+      dir = new File(dir).getAbsolutePath() + File.separator;
       if (runPipeline && putativeWhites != null) {
         runPipeline(dir, putativeWhites, hapMapPlinkRoot, snpRSIDLookupFile, proj, log);
       } else if (checkHomo && putativeWhites != null) {
