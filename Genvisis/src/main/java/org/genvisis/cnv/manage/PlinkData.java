@@ -24,6 +24,8 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.Vector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.genvisis.cnv.filesys.ABLookup;
 import org.genvisis.cnv.filesys.ClusterFilterCollection;
 import org.genvisis.cnv.filesys.MarkerData;
@@ -234,6 +236,26 @@ public class PlinkData {
      * @return the IID for the parent field in a plink .fam file
      */
     public abstract String formPlinkParent(String projFID, String projParentIID);
+
+    /**
+     * @param proj Project to lookup from
+     * @param plinkFID FID from plink file
+     * @param plinkIID IID from plink file
+     * @return true if this FID/IID pair would be formed by this scheme for the provided proj
+     */
+    public boolean matchesScheme(Project proj, String plinkFID, String plinkIID) {
+      String projDNA = getProjDNA(proj, plinkFID, plinkIID);
+      if (projDNA == null) return false;
+      String projFID = getProjFID(proj, plinkFID, plinkIID);
+      if (projFID == null) return false;
+      String projIID = getProjIID(proj, plinkFID, plinkIID);
+      if (projIID == null) return false;
+      SampleData sampleData = proj.getSampleData(false);
+      return sampleData.lookupContains(projDNA)
+             && sampleData.lookupContains(projFID + "\t" + projIID)
+             && formPlinkFID(projFID, projIID, projDNA).equals(plinkFID)
+             && formPlinkIID(projFID, projIID, projDNA).equals(plinkIID);
+    }
   }
 
   /**
@@ -1635,7 +1657,8 @@ public class PlinkData {
         String[] line = reader.readLine().trim().split(PSF.Regex.GREEDY_WHITESPACE);
         String fid = line[FID_INDEX];
         String iid = line[IID_INDEX];
-        Set<ExportIDScheme> sampleSchemes = detectPossibleSampleIDSchemes(proj, fid, iid);
+        Set<ExportIDScheme> sampleSchemes = detectPossibleSampleIDSchemes(proj, fid,
+                                                                          iid).collect(Collectors.toSet());
         if (!sampleSchemes.isEmpty()) {
           // Ignore FID/IID pairs that do not match project under any scheme
           // Keep only schemes possible for this FID/IID
@@ -1684,26 +1707,11 @@ public class PlinkData {
    * @param proj Project to check sample against
    * @param fid FID to check
    * @param iid IID to check
-   * @return All possible ExportIDSchemes of the provided FID/IID pair, empty Set when none match
+   * @return All possible ExportIDSchemes of the provided FID/IID pair, empty Stream when none match
    */
-  public static EnumSet<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
-                                                                      String iid) {
-    SampleData sampleData = proj.getSampleData(false);
-    EnumSet<ExportIDScheme> possibleSchemes = EnumSet.noneOf(ExportIDScheme.class);
-    for (ExportIDScheme scheme : ExportIDScheme.values()) {
-      String projDNA = scheme.getProjDNA(proj, fid, iid);
-      if (projDNA == null) continue;
-      String projFID = scheme.getProjFID(proj, fid, iid);
-      if (projFID == null) continue;
-      String projIID = scheme.getProjIID(proj, fid, iid);
-      if (projIID == null) continue;
-      if (sampleData.lookupContains(projDNA)
-          && sampleData.lookupContains(projFID + "\t" + projIID)) {
-        possibleSchemes.add(scheme);
-      }
-    }
-
-    return possibleSchemes;
+  public static Stream<ExportIDScheme> detectPossibleSampleIDSchemes(Project proj, String fid,
+                                                                     String iid) {
+    return Stream.of(ExportIDScheme.values()).filter(s -> s.matchesScheme(proj, fid, iid));
   }
 
   /**
@@ -1715,7 +1723,7 @@ public class PlinkData {
    * @return the highest order ExportIDScheme that matches the sample or null if none match
    */
   public static ExportIDScheme detectBestSampleIDScheme(Project proj, String fid, String iid) {
-    return Iterables.getFirst(detectPossibleSampleIDSchemes(proj, fid, iid), null);
+    return detectPossibleSampleIDSchemes(proj, fid, iid).findFirst().orElse(null);
   }
 
   /**
