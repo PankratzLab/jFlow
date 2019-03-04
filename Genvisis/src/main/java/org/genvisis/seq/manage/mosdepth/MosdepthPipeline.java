@@ -79,6 +79,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
   public void setMosdepthDirectory(String dir, String ext) {
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
+    log.reportTime("Validating Mosdepth index files...");
     for (String m : mosdepthFiles) {
       BedOps.verifyBedIndex(m, log);
     }
