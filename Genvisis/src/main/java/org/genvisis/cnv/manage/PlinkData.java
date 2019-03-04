@@ -79,14 +79,16 @@ public class PlinkData {
       public String getProjFID(Project proj, String plinkFID, String plinkIID) {
         String dna = getProjDNA(proj, plinkFID, plinkIID);
         if (dna == null) return null;
-        return proj.getSampleData(false).lookupFID(dna);
+        return proj.getSampleData(false).lookupFromDNA(dna).map(SampleData.IdSet::getFID)
+                   .orElse(null);
       }
 
       @Override
       public String getProjIID(Project proj, String plinkFID, String plinkIID) {
         String dna = getProjDNA(proj, plinkFID, plinkIID);
         if (dna == null) return null;
-        return proj.getSampleData(false).lookupIID(dna);
+        return proj.getSampleData(false).lookupFromDNA(dna).map(SampleData.IdSet::getIID)
+                   .orElse(null);
       }
 
       @Override
@@ -126,7 +128,8 @@ public class PlinkData {
 
       @Override
       public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
-        return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + plinkIID);
+        return proj.getSampleData(false).lookupFromFidIid(plinkFID + "\t" + plinkIID)
+                   .map(SampleData.IdSet::getDNA).orElse(null);
       }
 
       @Override
@@ -167,7 +170,8 @@ public class PlinkData {
       public String getProjDNA(Project proj, String plinkFID, String plinkIID) {
         String iid = getProjIID(proj, plinkFID, plinkIID);
         if (iid == null) return null;
-        return proj.getSampleData(false).lookupDNA(plinkFID + "\t" + iid);
+        return proj.getSampleData(false).lookupFromFidIid(plinkFID + "\t" + iid)
+                   .map(SampleData.IdSet::getDNA).orElse(null);
       }
 
       @Override
@@ -177,7 +181,6 @@ public class PlinkData {
 
       @Override
       public String formPlinkIID(String projFID, String projIID, String projDNA) {
-        // TODO Auto-generated method stub
         return projFID + CONCAT_FID_TO_IID_DELIMETER + projIID;
       }
 
@@ -251,8 +254,8 @@ public class PlinkData {
       String projIID = getProjIID(proj, plinkFID, plinkIID);
       if (projIID == null) return false;
       SampleData sampleData = proj.getSampleData(false);
-      return sampleData.lookupContains(projDNA)
-             && sampleData.lookupContains(projFID + "\t" + projIID)
+      return sampleData.lookupFromDNA(projDNA).isPresent()
+             && sampleData.lookupFromFidIid(projFID + "\t" + projIID).isPresent()
              && formPlinkFID(projFID, projIID, projDNA).equals(plinkFID)
              && formPlinkIID(projFID, projIID, projDNA).equals(plinkIID);
     }
