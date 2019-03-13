@@ -217,15 +217,21 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     }
   }
 
+  @Override
+  public void putBlind(Range<K> key, V value) {
+    put(key, createCollection(value));
+  }
+
   /**
    * The return value from this implementation should usually be ignored. Per contract, it returns
    * true when the size of the {@link AbstractRangeMultimap} changed but per the implementation of
    * {@link #size()} this does not necessarily indicate whether the put changed the mappings or not
+   * Use {@link #putBlind(Range, Object)} to avoid the before and after size checking
    */
   @Override
   public boolean put(Range<K> key, V value) {
     int oldSize = size();
-    put(key, createCollection(value));
+    putBlind(key, value);
     return oldSize != size();
   }
 

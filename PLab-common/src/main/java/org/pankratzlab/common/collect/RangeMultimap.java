@@ -76,6 +76,12 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
   void put(Range<K> range, C value);
 
   /**
+   * {@link #put(Object, Object)} without the (generally useless) return value based on size
+   * changing
+   */
+  void putBlind(Range<K> range, V value);
+
+  /**
    * In keeping with the contract of the {@link Multimap} interface, this method will never return
    * null, instead returning an empty {@linkImmutableCollection} when the key is not mapped
    */
