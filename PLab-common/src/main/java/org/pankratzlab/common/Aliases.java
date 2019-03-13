@@ -3,10 +3,11 @@ package org.pankratzlab.common;
 public class Aliases {
 
   public static final String[] MARKER_NAMES = {"MarkerName", "Marker", "Name", "SNP", "SNP Name",
-                                               "SNPID", "SNP.id", "rs_id", "rsID", "Probe Set ID",
-                                               "ProbeSetName", "ProbeSet", "Variant", "VariantName",
-                                               "AnalysisUnit", "Variant_ID", "SingleVariant",
-                                               "BurdenTests", "RSID", "BinName", "dbSNP ID"};
+                                               "SNP_Name", "SNPID", "SNP.id", "rs_id", "rsID",
+                                               "Probe Set ID", "ProbeSetName", "ProbeSet",
+                                               "Variant", "VariantName", "AnalysisUnit",
+                                               "Variant_ID", "SingleVariant", "BurdenTests", "RSID",
+                                               "BinName", "dbSNP ID"};
   public static final String[] GENE_UNITS = {"Gene", "SKATgene"};
 
   public static final String[] REGION = {"Region", "UCSC", "Band", "Arm"};

@@ -155,8 +155,10 @@ public class SourceFileHeaderData implements Serializable {
                                                           "genotype2", "Allele2 - Top",
                                                           "Forward Strand Base Calls",
                                                           "Forced Call", "Forced Call Codes"};
-  private static final String[] GENOTYPE_FIELDS_A1_AB = {"Allele1 - AB", "Call Codes", "Call"};
-  private static final String[] GENOTYPE_FIELDS_A2_AB = {"Allele2 - AB", "Call Codes", "Call"};
+  private static final String[] GENOTYPE_FIELDS_A1_AB = {"Allele1 - AB", "Allele1 AB", "Call Codes",
+                                                         "Call"};
+  private static final String[] GENOTYPE_FIELDS_A2_AB = {"Allele2 - AB", "Allele2 AB", "Call Codes",
+                                                         "Call"};
 
   private static final String[][] LOOKUP = {/* 0 */ SourceFileParser.SNP_HEADER_OPTIONS[0],
                                             /* 1 */ SAMPLE_FIELD_ID, /* 2 */ DATA_FIELDS_GC,
