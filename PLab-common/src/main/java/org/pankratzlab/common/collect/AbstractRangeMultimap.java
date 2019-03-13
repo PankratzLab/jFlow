@@ -6,8 +6,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import com.google.common.base.Functions;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -218,8 +220,25 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public void putBlind(Range<K> key, V value) {
-    put(key, createCollection(value));
+  public void putBlind(Range<K> range, V value) {
+    if (!range.isEmpty()) {
+      RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
+      Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
+      if (!existingSubRangeMapOfRanges.isEmpty()) {
+        RangeMap<K, C> updatedMappings = newRangeMap();
+        for (Map.Entry<Range<K>, C> existingEntry : existingSubRangeMapOfRanges.entrySet()) {
+          updatedMappings.put(existingEntry.getKey(),
+                              addToCollection(existingEntry.getValue(), value));
+        }
+        existingSubRangeMap.putAll(updatedMappings);
+      }
+      RangeSet<K> unmappedRangeSet = TreeRangeSet.create();
+      unmappedRangeSet.add(range);
+      unmappedRangeSet.removeAll(existingSubRangeMapOfRanges.keySet());
+      Supplier<C> collectionSupplier = Suppliers.memoize(() -> createCollection(value));
+      unmappedRangeSet.asRanges().forEach(r -> rangeMap.put(r, collectionSupplier.get()));
+    }
+
   }
 
   /**
