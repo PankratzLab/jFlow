@@ -13,8 +13,9 @@ public class PowerCalculator {
   // public static final double[] MAFs = {0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
   // 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
   //  common and rare 
-  public static final double[] MAFs = {0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.20,
-                                       0.25, 0.30, 0.40, 0.50};
+  public static final double[] MAFs = {
+                                       //                                       0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 
+                                       0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50};
   //  just common
   //  public static final double[] MAFs = {0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50};
   public static final double[] RELATIVE_RISKS = {1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.00, 2.2, 2.4,
@@ -428,6 +429,29 @@ public class PowerCalculator {
       // R21
       // rangeOfMaf(0.001, 0.01, 867 + 700 + 800, 867 + 700 + 800, 50000, false); // Poynter's GCT
       // R21
+      //      rangeOfMaf(0.001, 0.01, 2386, 2386 + 1000, 1000000, false); // Poynter's GCT resubmission
+      //      rangeOfMaf(0.001, 0.01, 479, 479, 1, false); // Poynter's GCT replication
+      //      rangeOfMaf(0.001, 0.01, 1000, 1000, 1000000, false); // Poynter's GCT replication
+
+      //      rangeOfMaf(0.001, 0.01, 163, 656, 300000, false); // Poynter's renewal on ototoxicity - discovery
+      //      rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity - replication
+      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 300000, false); // Poynter's renewal on ototoxicity - combined
+
+      //      rangeOfMaf(0.001, 0.01, 163, 656, 20, false); // Poynter's renewal on ototoxicity - discovery
+      //      rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity - replication
+      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 20, false); // Poynter's renewal on ototoxicity - combined
+
+      //      rangeOfMaf(0.001, 0.01, 163 + 271, 656 + 855, 16000, false); // Poynter's renewal on ototoxicity - combined, gene-based burden and PrediXcan
+
+      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 300000, false); // Poynter's renewal on ototoxicity - discovery // no IGCT
+      rangeOfMaf(0.001, 0.01, 271, 855, 300000, false); // Poynter's renewal on ototoxicity - replication // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 300000, false); // Poynter's renewal on ototoxicity - combined // no IGCT
+
+      rangeOfMaf(0.001, 0.01, 163 - 30, 656 - 122, 20, false); // Poynter's renewal on ototoxicity - discovery // no IGCT
+      rangeOfMaf(0.001, 0.01, 271, 855, 20, false); // Poynter's renewal on ototoxicity - replication // no IGCT
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 20, false); // Poynter's renewal on ototoxicity - combined // no IGCT
+
+      rangeOfMaf(0.001, 0.01, 163 + 271 - 30, 656 + 855 - 122, 16000, false); // Poynter's renewal on ototoxicity - combined, gene-based burden and PrediXcan // no IGCT
 
       // rangeOfMaf(0.001, 0.01, 665 , 1119 , 100000, false); // Poynter's MDS-AML resubmission,
       // discovery
