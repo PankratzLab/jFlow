@@ -29,7 +29,7 @@ public class ANNOVAR {
   private static final String DEFAULT_NA_STRING = ".";
   private static final String VCF_INPUT = "-vcfinput";
   private static final String MULTI_ANNO = "multianno.vcf";
-  // private static final String THREAD ="--thread";
+  private static final String THREAD = "--thread";
 
   private final String annovarLocation;
   private String annodvarDB;
@@ -114,7 +114,8 @@ public class ANNOVAR {
                                        annovarLocation + DEFUALT_ANNOVAR_DB, BUILD_VERSION,
                                        build.getAnnovarBuild(), OUT, outputBase, REMOVE, PROTOCOL,
                                        protocols, OPERATION, operations, NA_STRING,
-                                       DEFAULT_NA_STRING, VCF_INPUT};
+                                       DEFAULT_NA_STRING, VCF_INPUT, THREAD,
+                                       Integer.toString(numthreads)};
       progress = CmdLine.runCommandWithFileChecks(command, "", new String[] {inputVCF},
                                                   new String[] {outputVCF}, verbose,
                                                   overWriteExistingOutput, false, log);
