@@ -11,13 +11,13 @@ import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.manage.MitoPipeline;
 import org.genvisis.cnv.manage.PRoCtOR;
 import org.genvisis.cnv.workflow.Requirement;
-import org.genvisis.cnv.workflow.Requirement.OptionalFileRequirement;
+import org.genvisis.cnv.workflow.Requirement.OutputFileRequirement;
 import org.genvisis.cnv.workflow.RequirementSet;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.pankratzlab.common.Files;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.StepBuilder;
 import org.genvisis.cnv.workflow.Variables;
+import org.pankratzlab.common.Files;
 
 public class PCCorrectionStep extends Step {
 
@@ -40,9 +40,9 @@ public class PCCorrectionStep extends Step {
     final Requirement<Step> parseSamplesStepReq = new Requirement.StepRequirement(parseSamplesStep);
     final Requirement<Integer> numPCsReq = new Requirement.PosIntRequirement("Number of principal components for correction.",
                                                                              MitoPipeline.DEFAULT_NUM_COMPONENTS);
-    final Requirement<File> outputBaseReq = new OptionalFileRequirement("Output file path (relative to project directory) and baseName for principal components correction files",
-                                                                        new File(proj.PROJECT_DIRECTORY.getValue()
-                                                                                 + MitoPipeline.FILE_BASE)) {
+    final Requirement<File> outputBaseReq = new OutputFileRequirement("Output file path (relative to project directory) and baseName for principal components correction files",
+                                                                      new File(proj.PROJECT_DIRECTORY.getValue()
+                                                                               + MitoPipeline.FILE_BASE)) {
 
       @Override
       public boolean checkRequirement(String arg, Set<Step> stepSelections,
@@ -57,8 +57,8 @@ public class PCCorrectionStep extends Step {
                                                                               0.0, 1.0);
     final Requirement<Boolean> recomputeLrrReq = new Requirement.OptionalBoolRequirement("Re-compute Log-R Ratio values? (usually false if LRRs already exist)",
                                                                                          false);
-    final Requirement<File> tempDirReq = new Requirement.OptionalFileRequirement("Temporary directory for intermediate files (which tend to be very large)",
-                                                                                 new File(""));
+    final Requirement<File> tempDirReq = new Requirement.OptionalDirRequirement("Temporary directory for intermediate files (which tend to be very large)",
+                                                                                new File(""));
     final Requirement<CORRECTION_TYPE> correctionStrategyReq = new Requirement.EnumRequirement<CORRECTION_TYPE>("Correction Type",
                                                                                                                 CORRECTION_TYPE.XY);
     final Requirement<CHROMOSOME_X_STRATEGY> sexChromosomeStrategyReq = new Requirement.EnumRequirement<CHROMOSOME_X_STRATEGY>("Sex Chromosome Strategy",
@@ -146,8 +146,8 @@ public class PCCorrectionStep extends Step {
     boolean recomputeLRRPCs = variables.get(recomputeLrrReq);
     String tmpDir = variables.hasValid(tempDirReq) ? variables.get(tempDirReq).getAbsolutePath()
                                                    : null;
-    CORRECTION_TYPE correctionType = (CORRECTION_TYPE) variables.get(correctionStrategyReq);
-    CHROMOSOME_X_STRATEGY strategy = (CHROMOSOME_X_STRATEGY) variables.get(sexChromosomeStrategyReq);
+    CORRECTION_TYPE correctionType = variables.get(correctionStrategyReq);
+    CHROMOSOME_X_STRATEGY strategy = variables.get(sexChromosomeStrategyReq);
 
     int totalThreads = StepBuilder.resolveThreads(proj, variables.get(numThreadsReq));
 
