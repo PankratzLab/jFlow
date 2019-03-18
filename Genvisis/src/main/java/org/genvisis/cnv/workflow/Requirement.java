@@ -94,6 +94,24 @@ public abstract class Requirement<T> {
 
   }
 
+  public static class OptionalDirRequirement extends DirRequirement {
+
+    /**
+     * @param description
+     * @param defaultValue
+     */
+    public OptionalDirRequirement(String description, File defaultValue) {
+      super(description, defaultValue);
+    }
+
+    @Override
+    public boolean checkRequirement(String arg, Set<Step> stepSelections,
+                                    Map<Step, Variables> variables) {
+      return "".equals(arg) || super.checkRequirement(arg, stepSelections, variables);
+    }
+
+  }
+
   public static class OutputFileRequirement extends FileRequirement {
 
     public OutputFileRequirement(String description, File defaultValue) {
