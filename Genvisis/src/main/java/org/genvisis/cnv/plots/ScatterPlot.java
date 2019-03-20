@@ -37,6 +37,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.stream.IntStream;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -1614,6 +1615,12 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
 
   public float getGCthreshold() {
     return gcThreshold;
+  }
+
+  float findMinNonZeroGc() {
+    float[] gcs = getCurrentMarkerData().getGCs();
+    return (float) IntStream.range(0, gcs.length).mapToDouble(i -> gcs[i]).filter(gc -> gc > 0.0)
+                            .min().orElse(0.0);
   }
 
   // public MarkerData[] getMarkerData1() {
@@ -3813,7 +3820,7 @@ public class ScatterPlot extends /* JPanel */JFrame implements ActionListener, W
         JSlider slider = (JSlider) ce.getSource();
         gcThreshold = slider.getValue() / 100f;
         gcLabel.setText("GC > " + ext.formDeci(gcThreshold, 2, true));
-        float gcMin = ArrayUtils.min(getCurrentMarkerData().getGCs());
+        float gcMin = findMinNonZeroGc();
         if (gcThreshold > gcMin) {
           gcLabel.setForeground(Color.RED);
           help.setVisible(true);

@@ -671,22 +671,21 @@ public class ScatterPanel extends AbstractPanel implements MouseListener, MouseM
           || Math.abs(mouseEndY - mouseStartY) > (sp.getPointSize() / 2)) {
         // Check if custom GC is masking any markers that should be included
         float gcCurr = sp.getGCthreshold();
-        float gcMin = ArrayUtils.min(sp.getCurrentMarkerData().getGCs());
-
+        float gcNonZeroMin = sp.findMinNonZeroGc();
         boolean drawFilter = true;
-        if (gcCurr > gcMin) {
+        if (gcCurr > gcNonZeroMin) {
           int select = JOptionPane.showConfirmDialog(sp.getFocusOwner(),
                                                      "A cluster filter was created while the GC slider was set to "
                                                                          + gcCurr
                                                                          + "; \nsince there were samples with genotypes with GC values less than this value (minimum was "
-                                                                         + gcMin
+                                                                         + gcNonZeroMin
                                                                          + "), \nthe GC slider bar has been set to this minimum value, so that you can see all genotypes that may be exported. \nThis is to ensure that the user exports exactly what they saw when they manually reclustered the marker.",
                                                      "Custom GC Value",
                                                      JOptionPane.OK_CANCEL_OPTION);
           if (select == JOptionPane.CANCEL_OPTION) {
             drawFilter = false;
           } else {
-            sp.updateGCSlider((int) (gcMin * 100));
+            sp.updateGCSlider((int) (gcNonZeroMin * 100));
           }
         }
 
