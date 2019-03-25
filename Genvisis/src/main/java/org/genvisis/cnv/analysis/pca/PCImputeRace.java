@@ -370,8 +370,7 @@ public class PCImputeRace {
       asianMeanPC1 = asianMeanPC2;
       asianMeanPC2 = tempMean;
     } else {
-      log.reportError("PC1 and PC2 do not appear to predict African and Asian, race cannot be imputed");
-      return false;
+      log.reportTimeWarning("PC1 and PC2 do not appear to directly predict African and Asian, review results carefully");
     }
 
     if (africanMeanPC1 < 0) {
