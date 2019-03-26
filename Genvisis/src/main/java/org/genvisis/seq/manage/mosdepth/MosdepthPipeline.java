@@ -79,6 +79,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
   public void setMosdepthDirectory(String dir, String ext) {
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
+    this.mosdepthExt = ext;
     log.reportTime("Validating Mosdepth index files...");
     for (String m : mosdepthFiles) {
       BedOps.verifyBedIndex(m, log);
@@ -96,7 +97,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     this.cramReadFiles = new HashMap<>();
     for (String m : mosdepthFiles) {
       String f = ext.removeDirectoryInfo(m);
-      String c = f.substring(0, f.length() - ".mos.regions.bed.gz".length())
+      String c = f.substring(0, f.length() - (".mos.regions" + mosdepthExt).length())
                  + CRAMSnpReader.CRAM_READS_EXT;
       String expFile = ext.verifyDirFormat(dir) + c;
       if (!Files.exists(expFile)) {
@@ -119,6 +120,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
   LoadingCache<String, BEDFileReader> mosdepthCache;
   String[] mosdepthFiles;
+  String mosdepthExt;
   Map<String, String> cramReadFiles;
   Map<String, Double> medians;
   String[] samples;
@@ -627,13 +629,21 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     if (iter.size() > 1) {
       log.reportTimeWarning("Multiple depth scores found for " + samples[s] + ", bin "
                             + binLookup.get(mkr).getUCSClocation());
-      v = Double.parseDouble(iter.get(0).getName());
+      try {
+        v = Double.parseDouble(iter.get(0).getName());
+      } catch (NumberFormatException e) {
+        v = iter.get(0).getScore();
+      }
     } else if (iter.size() == 0) {
       log.reportError("Missing depth score for " + samples[s] + ", bin "
                       + binLookup.get(mkr).getUCSClocation());
       v = Double.NaN;
     } else {
-      v = Double.parseDouble(iter.get(0).getName());
+      try {
+        v = Double.parseDouble(iter.get(0).getName());
+      } catch (NumberFormatException e) {
+        v = iter.get(0).getScore();
+      }
     }
 
     if (close) {

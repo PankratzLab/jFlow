@@ -973,7 +973,7 @@ public class Project implements PropertyChangeListener {
   }
 
   public void writeMarkerSet() {
-    if (MARKERSET_FILENAME.exists()) {
+    if (!MARKERSET_FILENAME.exists()) {
       long t1 = System.nanoTime();
       String[] mkrs = HashVec.loadFileToStringArray(MARKER_POSITION_FILENAME.getValue(), true,
                                                     new int[] {0}, false);

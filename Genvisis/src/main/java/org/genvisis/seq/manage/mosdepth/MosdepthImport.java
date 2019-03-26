@@ -31,6 +31,8 @@ public class MosdepthImport {
                                                       + NGSBinSNPSelector.class.getCanonicalName();
   private static final String ARG_MOS_DIR = "mosDir";
   private static final String DESC_MOS_DIR = "Mosdepth results files directory. These should be created by running the mosdepth program using the same .BED file (or a superset file) as is used for the 'binsBed' argument.";
+  private static final String ARG_MOS_EXT = "mosExt";
+  private static final String DESC_MOS_EXT = "Mosdepth results files extension.";
   private static final String ARG_CRAMCOUNT_DIR = "cramReadsDir";
   private static final String DESC_CRAMCOUNT_DIR = "CRAM read file directory.  These can be generated with "
                                                    + CRAMSnpReader.class.getCanonicalName();
@@ -57,6 +59,7 @@ public class MosdepthImport {
     cli.addArg(ARG_SELECTED_SNP_VCF, DESC_SELECTED_SNP_VCF, true);
     cli.addArg(ARG_GENO_VCF, DESC_GENO_VCF, false);
     cli.addArg(ARG_MOS_DIR, DESC_MOS_DIR, true);
+    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed.gz", false);
     cli.addArg(ARG_CRAMCOUNT_DIR, DESC_CRAMCOUNT_DIR, true);
 
     cli.parse(args);
@@ -73,7 +76,8 @@ public class MosdepthImport {
       mi.setGenotypeVCF(cli.get(ARG_GENO_VCF));
     }
     mi.setSelectedMarkerVCF(cli.get(ARG_SELECTED_SNP_VCF));
-    mi.setMosdepthDirectory(cli.get(ARG_MOS_DIR), ".bed.gz");
+    mi.setMosdepthDirectory(cli.get(ARG_MOS_DIR),
+                            cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed.gz");
     mi.setCRAMReadDirectory(cli.get(ARG_CRAMCOUNT_DIR));
     mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
     try {
@@ -95,6 +99,7 @@ public class MosdepthImport {
     cli.addArg(ARG_CRAM_DIR, DESC_CRAM_DIR, true);
     cli.addArg(ARG_CRAMCOUNT_DIR, DESC_CRAMCOUNT_DIR, false);
     cli.addArg(ARG_MOS_DIR, DESC_MOS_DIR, false);
+    cli.addArg(ARG_MOS_EXT, DESC_MOS_EXT, ".bed.gz", false);
 
     cli.parse(args);
 
@@ -127,7 +132,7 @@ public class MosdepthImport {
       mi.setGenotypeVCF(cli.get(ARG_GENO_VCF));
     }
     mi.setSelectedMarkerVCF(cli.get(ARG_SELECTED_SNP_VCF));
-    mi.setMosdepthDirectory(preMos, ".bed.gz");
+    mi.setMosdepthDirectory(preMos, cli.has(ARG_MOS_EXT) ? cli.get(ARG_MOS_EXT) : ".bed.gz");
     mi.setCRAMReadDirectory(preCnt);
     mi.setJobID(cli.has("jobID") ? cli.get("jobID") : null);
     try {

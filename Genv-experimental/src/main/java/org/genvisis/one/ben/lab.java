@@ -42,6 +42,7 @@ import org.genvisis.cnv.manage.MDL;
 import org.genvisis.cnv.manage.TransposeData;
 import org.genvisis.cnv.seq.manage.BamImport;
 import org.genvisis.cnv.var.SampleData;
+import org.genvisis.seq.manage.BedOps;
 import org.pankratzlab.common.Aliases;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Files;
@@ -2346,11 +2347,11 @@ public class lab {
     boolean test = true;
     if (test) {
 
-      parseBPM();
+      //      parseBPM();
 
-      //      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
-      //        BedOps.verifyBedIndex(f, new Logger());
-      //      }
+      for (String f : Files.list(args[0], "", ".bed", false, true)) {
+        BedOps.verifyBedIndex(f, new Logger());
+      }
 
       // createBCXPlots();
       // processAnnotationFilesAll();
