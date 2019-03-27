@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.apache.commons.compress.utils.Sets;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
@@ -27,7 +26,6 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
-import org.genvisis.cnv.manage.Markers;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -261,9 +259,12 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     String file = proj.MARKER_POSITION_FILENAME.getValue();
     if (!Files.exists(file)) {
       long time = System.nanoTime();
-      Markers.orderMarkers(snpMarkers.stream().map(Marker::getName).collect(Collectors.toList())
-                                     .toArray(new String[0]),
-                           proj);
+      PrintWriter writer = Files.getAppropriateWriter(file);
+      writer.println("Marker\tChr\tPosition");
+      snpMarkers.stream().forEach(m -> {
+        writer.println(m.getName() + "\t" + m.getChr() + "\t" + m.getPosition());
+      });
+      writer.close();
       log.reportTime("Created markerPositions.txt in " + ext.getTimeElapsedNanos(time));
     } else {
       log.report("Project markerPositions.txt file already exists at " + file
