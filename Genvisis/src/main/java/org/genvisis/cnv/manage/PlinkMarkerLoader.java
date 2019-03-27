@@ -6,16 +6,24 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Set;
+import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.manage.PlinkData.ExportIDScheme;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
+import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
+import org.pankratzlab.common.filesys.Positions;
 import org.pankratzlab.utils.gwas.DosageData;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 public class PlinkMarkerLoader implements Runnable {
 
@@ -34,7 +42,7 @@ public class PlinkMarkerLoader implements Runnable {
   volatile boolean[] loaded;
   Logger log;
   HashMap<String, Integer> markerIndicesLookup;
-  HashMap<String, Integer> famIDLookup;
+  HashMap<String, Integer> dnaPlinkIndexLookup;
 
   boolean idListsDiffer;
   boolean initialized;
@@ -63,8 +71,8 @@ public class PlinkMarkerLoader implements Runnable {
     genotypes = new byte[markerList.length][];
     loaded = ArrayUtils.booleanArray(markerList.length, false);
 
-    lookupMarkerPositions();
-    lookupIDs();
+    lookupMarkerPositions(proj);
+    lookupIDs(proj);
   }
 
   private void initiate() {
@@ -94,34 +102,21 @@ public class PlinkMarkerLoader implements Runnable {
     return thread;
   }
 
-  private void lookupMarkerPositions() {
-    BufferedReader reader;
-    String[] line;
-    HashSet<String> lookFor = new HashSet<>();
-    for (String s : markerList) {
-      lookFor.add(s);
-    }
+  private void lookupMarkerPositions(Project proj) {
+    Set<String> lookFor = Sets.newHashSet(markerList);
     markerIndicesLookup = new HashMap<>();
     HashMap<String, Integer> markerIndicesLookupTemp = new HashMap<>();
-    int cnt = 0;
-    try {
-      reader = Files.getAppropriateReader(fileRoot + ".bim");
+    String bim = fileRoot + ".bim";
+    try (BufferedReader reader = Files.getAppropriateReader(bim)) {
       String temp;
+      int cnt = 0;
       while ((temp = reader.readLine()) != null) {
-        line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+        String[] line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
         String mkr = line[1];
-        if (lookFor.contains(mkr)) {
+        if (lookFor.remove(mkr)) {
           markerIndicesLookupTemp.put(mkr, cnt);
         }
         cnt++;
-      }
-      reader.close();
-
-      for (int i = 0; i < markerList.length; i++) {
-        markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
-                                                                               : markerIndicesLookupTemp.get(markerList[i])
-                                                                                                        .intValue();
-        markerIndicesLookup.put(markerList[i], i);
       }
     } catch (FileNotFoundException fnfe) {
       // TODO should KILL here
@@ -130,28 +125,81 @@ public class PlinkMarkerLoader implements Runnable {
       // TODO should KILL here
       log.reportException(ioe);
     }
+
+    if (!lookFor.isEmpty()) {
+      log.reportTimeWarning(lookFor.size() + " markers were not found in " + bim
+                            + ", attempting to search by position");
+      Map<String, GenomicPosition> markerPosMap = Maps.transformValues(proj.getMarkerSet()
+                                                                           .getMarkerNameMap(),
+                                                                       Marker::getGenomicPosition);
+      Maps.asMap(lookFor, markerPosMap::get).values();
+      Map<GenomicPosition, NavigableSet<Marker>> projMarkerPositions = proj.getMarkerSet()
+                                                                           .getGenomicPositionMap();
+      try (BufferedReader reader = Files.getAppropriateReader(bim)) {
+        String temp;
+        int cnt = 0;
+        while ((temp = reader.readLine()) != null) {
+          String[] line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
+          String chr = line[PSF.Plink.BIM_CHR_INDEX];
+          String pos = line[PSF.Plink.BIM_POS_INDEX];
+          GenomicPosition markerPos = new GenomicPosition(Positions.chromosomeNumber(chr),
+                                                          Integer.parseInt(pos));
+          Set<Marker> matchedMarkers = projMarkerPositions.get(markerPos);
+          if (matchedMarkers != null) {
+            final int index = cnt;
+            matchedMarkers.stream().map(Marker::getName).filter(lookFor::remove)
+                          .forEach(mkr -> markerIndicesLookupTemp.put(mkr, index));
+          }
+          cnt++;
+        }
+        if (!lookFor.isEmpty()) log.reportTimeWarning(lookFor.size()
+                                                      + " markers were still not found by position in "
+                                                      + bim);
+      } catch (FileNotFoundException fnfe) {
+        // TODO should KILL here
+        log.reportException(fnfe);
+      } catch (IOException ioe) {
+        // TODO should KILL here
+        log.reportException(ioe);
+      }
+    }
+
+    for (int i = 0; i < markerList.length; i++) {
+      markerPosInBim[i] = markerIndicesLookupTemp.get(markerList[i]) == null ? -1
+                                                                             : markerIndicesLookupTemp.get(markerList[i])
+                                                                                                      .intValue();
+      markerIndicesLookup.put(markerList[i], i);
+    }
+
   }
 
-  private void lookupIDs() {
+  private void lookupIDs(Project proj) {
     BufferedReader reader;
     String[] line;
 
     String famFile = PSF.Plink.getFAM(fileRoot);
 
-    famIDLookup = new HashMap<>();
+    ExportIDScheme plinkIDScheme = PlinkData.detectExportIDScheme(proj, famFile);
+    dnaPlinkIndexLookup = new HashMap<>();
 
     try {
       reader = Files.getAppropriateReader(famFile);
       String temp = null;
       int cnt = 0;
+      int unmatched = 0;
       while ((temp = reader.readLine()) != null) {
         line = temp.trim().split(PSF.Regex.GREEDY_WHITESPACE);
-        String fidiid = line[PSF.Plink.FAM_FID_INDEX] + "\t" + line[PSF.Plink.FAM_IID_INDEX];
-        if (famIDLookup.putIfAbsent(fidiid, cnt) != null) {
-          log.reportError("Duplicate sample ID in " + famFile + ": " + fidiid);
+        String dna = plinkIDScheme.getProjDNA(proj, line[PSF.Plink.FAM_FID_INDEX],
+                                              line[PSF.Plink.FAM_IID_INDEX]);
+        if (dna == null) unmatched++;
+        else if (dnaPlinkIndexLookup.putIfAbsent(dna, cnt) != null) {
+          log.reportError("Duplicate sample in " + famFile + ": " + line[PSF.Plink.FAM_FID_INDEX]
+                          + "\t" + line[PSF.Plink.FAM_IID_INDEX]);
         }
         cnt++;
       }
+      if (unmatched > 0) log.reportTimeWarning(unmatched + " samples in " + famFile + " (of " + cnt
+                                               + " total samples) did not match to a project sample");
       reader.close();
       reader = null;
     } catch (FileNotFoundException fnfe) {
@@ -190,14 +238,14 @@ public class PlinkMarkerLoader implements Runnable {
         for (int i = 0; i < markerList.length; i++) {
           if (markerPosInBim[i] == -1) {
             // missing marker, not present in PLINK files
-            mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famIDLookup.size(), (byte) -1));
+            mkrGenotypes.put(markerList[i], ArrayUtils.byteArray(famCnt, (byte) -1));
             cnt++;
             continue;
           }
           in.seek(3 + (long) markerPosInBim[i] * blockSize);
 
           byte[] markerBytes = new byte[blockSize];
-          byte[] sampGeno = new byte[famIDLookup.size()];
+          byte[] sampGeno = new byte[famCnt];
           in.read(markerBytes);
           for (int bitInd = 0; bitInd < markerBytes.length; bitInd++) {
             byte bedByte = markerBytes[bitInd];
@@ -205,7 +253,7 @@ public class PlinkMarkerLoader implements Runnable {
 
             for (int g = 0; g < genos.length; g++) {
               int idInd = bitInd * 4 + g;
-              if (idInd >= famIDLookup.size()) {
+              if (idInd >= famCnt) {
                 break;
               }
               sampGeno[idInd] = genos[g];
@@ -285,11 +333,7 @@ public class PlinkMarkerLoader implements Runnable {
    * @return genotype
    */
   public byte getGenotypeForIndi(Project proj, String marker, String sample) {
-    // Plink fam files could be DNA/DNA or FID/IID identified
-    Integer idIndex = famIDLookup.get(sample + "\t" + sample);
-    if (idIndex == null) {
-      idIndex = famIDLookup.get(proj.getSampleData(false).lookupFIDIID(sample));
-    }
+    Integer idIndex = dnaPlinkIndexLookup.get(sample);
     if (idIndex == null) {
       return (byte) -1;
     } else {
