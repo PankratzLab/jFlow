@@ -316,6 +316,13 @@ public class PSF {
 
     public static final int AFF_CASE_STATUS = 2;
 
+    public static final int BIM_CHR_INDEX = 0;
+    public static final int BIM_NAME_INDEX = 1;
+    public static final int BIM_CM_INDEX = 2;
+    public static final int BIM_POS_INDEX = 3;
+    public static final int BIM_A1_INDEX = 4;
+    public static final int BIM_A2_INDEX = 5;
+
     public static boolean affIsCase(String affField) {
       final int aff;
       try {
