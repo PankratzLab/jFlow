@@ -17,15 +17,15 @@ import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.WorkerTrain;
-import org.pankratzlab.common.ext;
 import org.pankratzlab.common.WorkerTrain.AbstractProducer;
-import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Sample;
+import org.pankratzlab.common.ext;
 import com.google.common.collect.ImmutableList;
 
 public class MDL implements Iterator<MarkerData> {
@@ -327,8 +327,8 @@ public class MDL implements Iterator<MarkerData> {
       fingerprint = Compression.bytesToLong(parameterReadBuffer,
                                             TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
-        String error = "mismatched sample fingerprints between sample list and file '"
-                       + fileMatch.getFileName() + "'";
+        String error = "Error - mismatched sample fingerprints between sample list ("
+                       + sampleFingerprint + ") and file '" + file + "' (" + fingerprint + ")";
         proj.getLog().reportError(error);
         throw new IllegalStateException(error);
       }

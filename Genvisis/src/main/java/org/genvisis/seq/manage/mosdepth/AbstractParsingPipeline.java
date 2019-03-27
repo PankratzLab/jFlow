@@ -144,11 +144,12 @@ public abstract class AbstractParsingPipeline {
 
   protected abstract int getNumMarkers();
 
-  protected RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus, long fingerprint,
+  protected RandomAccessFile openMDRAF(String filename, int nInd, byte nullStatus,
                                        String[] mkrNames) throws IOException {
     byte[] mkrBytes = Compression.objToBytes(mkrNames);
     byte[] mdRAFHeader = TransposeData.getParameterSectionForMdRaf(nInd, mkrNames.length,
-                                                                   nullStatus, fingerprint,
+                                                                   nullStatus,
+                                                                   fingerprintForMarkerFiles,
                                                                    mkrBytes);
     mkrBytes = null;
 
@@ -183,13 +184,13 @@ public abstract class AbstractParsingPipeline {
     int wall = 240;
     int proc = 12;
 
-    String file = setupTransposeScripts(getNumSamples(), getNumMarkers(), gb, wall, proc);
-    CmdLine.run("qsub " + file, ext.pwd());
+    String file = setupTransposeScripts(proj.PROJECT_DIRECTORY.getValue(), getNumSamples(),
+                                        getNumMarkers(), gb, wall, proc);
+    CmdLine.run("qsub " + file, proj.PROJECT_DIRECTORY.getValue());
   }
 
-  private String setupTransposeScripts(int numSamples, int numMarkers, int qGBLim, int qWallLim,
-                                       int qProcLim) {
-    String currDir = ext.pwd();
+  private String setupTransposeScripts(String runDir, int numSamples, int numMarkers, int qGBLim,
+                                       int qWallLim, int qProcLim) {
     String jar = Launch.getJarLocation();
     String jobName1 = "tempTransposeFirst.qsub";
     String jobName2 = "tempTransposeSecond.qsub";
@@ -207,11 +208,11 @@ public abstract class AbstractParsingPipeline {
     }
     numF = Math.min(numF, qProcLim);
 
-    String jobCmd1 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=M qsub=" + currDir + jobName1;
+    String jobCmd1 = "cd " + runDir + "\njava -jar " + jar + " " + TempFileTranspose.class.getName()
+                     + " proj=" + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=M qsub="
+                     + runDir + jobName1;
 
-    Qsub.qsub(currDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
+    Qsub.qsub(runDir + jobName1, jobCmd1, qGBLim * 1024, qWallLim, numF);
 
     numF = 1;
     while (((numF + 1) * bytesPerSmpF) < (bLim * .8)) {
@@ -219,12 +220,14 @@ public abstract class AbstractParsingPipeline {
     }
     numF = Math.min(numF, qProcLim);
 
-    String jobCmd2 = "cd " + currDir + "\njava -jar " + jar + " "
-                     + TempFileTranspose.class.getName() + " proj=" + proj.getPropertyFilename()
-                     + " jobID=$PBS_JOBID type=S qsub=" + currDir + jobName2;
-    Qsub.qsub(currDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
+    String jobCmd2 = "cd " + runDir + "\njava -jar " + jar + " " + TempFileTranspose.class.getName()
+                     + " proj=" + proj.getPropertyFilename() + " jobID=$PBS_JOBID type=S qsub="
+                     + runDir + jobName2;
+    Qsub.qsub(runDir + jobName2, jobCmd2, qGBLim * 1024, qWallLim, numF);
 
     return jobName1;
   }
+
+  protected abstract void createMarkerPositions();
 
 }

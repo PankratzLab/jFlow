@@ -379,6 +379,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     log.reportTime("Completed parsing MarkerData in " + ext.getTimeElapsedNanos(time));
   }
 
+  @Override
   protected void createMarkerPositions() {
     List<String> markerList = new ArrayList<>();
     String file = proj.MARKER_POSITION_FILENAME.getValue();
@@ -697,7 +698,7 @@ public class UKBBParsingPipeline extends AbstractParsingPipeline {
     Hashtable<String, Float> outOfRangeTable = new Hashtable<>();
     String mdRAFName = getMDRAFName(fs.chr, startBatchInd, (startBatchInd + mkrNames.length));
 
-    mdRAF = openMDRAF(mdRAFName, getNumSamples(), nullStatus, fingerprintForMarkerFiles, mkrNames);
+    mdRAF = openMDRAF(mdRAFName, getNumSamples(), nullStatus, mkrNames);
 
     int bedBlockSize = (int) Math.ceil(nInd / 4.0);
     int binBlockSize = nInd * 8;

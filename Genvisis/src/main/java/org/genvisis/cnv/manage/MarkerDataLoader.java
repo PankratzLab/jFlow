@@ -16,6 +16,10 @@ import java.util.Vector;
 import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerData;
 import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
+import org.genvisis.cnv.filesys.MarkerLookup;
+import org.genvisis.cnv.filesys.MarkerSetInfo;
+import org.genvisis.cnv.filesys.Project;
+import org.genvisis.cnv.filesys.Sample;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CountHash;
 import org.pankratzlab.common.Files;
@@ -23,10 +27,6 @@ import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.SerializedFiles;
 import org.pankratzlab.common.ext;
-import org.genvisis.cnv.filesys.MarkerLookup;
-import org.genvisis.cnv.filesys.MarkerSetInfo;
-import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Sample;
 
 public class MarkerDataLoader implements Runnable {
 
@@ -548,8 +548,9 @@ public class MarkerDataLoader implements Runnable {
       fingerprint = Compression.bytesToLong(parameterReadBuffer,
                                             TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprint != sampleFingerprint) {
-        log.reportError("Error - mismatched sample fingerprints between sample list and file '"
-                        + currentMarkFilename + "'");
+        log.reportError("Error - mismatched sample fingerprints between sample list ("
+                        + sampleFingerprint + ") and file '" + currentMarkFilename + "' ("
+                        + fingerprint + ")");
         System.exit(1);
       }
 
@@ -813,8 +814,9 @@ public class MarkerDataLoader implements Runnable {
       fingerprintActual = Compression.bytesToLong(parameterReadBuffer,
                                                   TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprintActual != fingerprintShouldBe) {
-        log.reportError("Error - mismatched sample fingerprints between sample list and file '"
-                        + markerDataRafFileName + "'");
+        log.reportError("Error - mismatched sample fingerprints between sample list ("
+                        + fingerprintShouldBe + ") and file '" + markerDataRafFileName + "' ("
+                        + fingerprintActual + ")");
         System.exit(1);
       }
       numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);
@@ -912,8 +914,9 @@ public class MarkerDataLoader implements Runnable {
       fingerprintActual = Compression.bytesToLong(parameterReadBuffer,
                                                   TransposeData.MARKERDATA_FINGERPRINT_START);
       if (fingerprintActual != fingerprintShouldBe) {
-        log.reportError("Error - mismatched sample fingerprints between sample list and file '"
-                        + markerDataRafFileName + "'");
+        log.reportError("Error - mismatched sample fingerprints between sample list ("
+                        + fingerprintShouldBe + ") and file '" + markerDataRafFileName + "' ("
+                        + fingerprintActual + ")");
         System.exit(1);
       }
       numBytesPerSampleMarker = Sample.getNBytesPerSampleMarker(parameterReadBuffer[TransposeData.MARKERDATA_NULLSTATUS_START]);

@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.apache.commons.compress.utils.Sets;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.filesys.AllelePair;
@@ -26,6 +27,7 @@ import org.genvisis.cnv.filesys.MarkerDetailSet.Marker;
 import org.genvisis.cnv.filesys.MarkerLookup;
 import org.genvisis.cnv.filesys.Project.ARRAY;
 import org.genvisis.cnv.filesys.Sample;
+import org.genvisis.cnv.manage.Markers;
 import org.genvisis.seq.GenomeBuild;
 import org.genvisis.seq.manage.AnnotatedBEDFeature;
 import org.genvisis.seq.manage.BEDFileReader;
@@ -143,6 +145,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
 
     loadBins();
     loadSNPs();
+    createMarkerPositions();
     createSampleList();
     loadMedians();
     mosdepthCache = buildCache();
@@ -250,6 +253,22 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       }
     }
     new MarkerLookup(lookup).serialize(proj.MARKERLOOKUP_FILENAME.getValue());
+
+  }
+
+  @Override
+  protected void createMarkerPositions() {
+    String file = proj.MARKER_POSITION_FILENAME.getValue();
+    if (!Files.exists(file)) {
+      long time = System.nanoTime();
+      Markers.orderMarkers(snpMarkers.stream().map(Marker::getName).collect(Collectors.toList())
+                                     .toArray(new String[0]),
+                           proj);
+      log.reportTime("Created markerPositions.txt in " + ext.getTimeElapsedNanos(time));
+    } else {
+      log.report("Project markerPositions.txt file already exists at " + file
+                 + "; skipping creation.");
+    }
   }
 
   protected byte getNullStatus() {
@@ -320,8 +339,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
           //    open and write header for mdRAF file containing current bin of markers:
           RandomAccessFile raf;
           try {
-            raf = openMDRAF(mdRAFName, getNumSamples(), nullStatus, fingerprintForMarkerFiles,
-                            markersInFile);
+            raf = openMDRAF(mdRAFName, getNumSamples(), nullStatus, markersInFile);
           } catch (IOException e) {
             log.reportTime("CANNOT OPEN " + mdRAFName + ", skipping!");
             log.reportException(e);
@@ -736,6 +754,8 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     if (!Files.exists(f = getMDSName(false))) {
       MarkerDetailSet mdsSnp = new MarkerDetailSet(snpMarkers);
       mdsSnp.serialize(f);
+      // set active marker detail set to SNP-named for convenience
+      proj.MARKER_DETAILS_FILENAME.setValue(f);
     } else {
       log.reportTime("Project marker detail set file (snp positions) already exists: " + f
                      + "; skipping creation.");
