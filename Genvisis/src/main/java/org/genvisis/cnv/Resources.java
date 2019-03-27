@@ -29,6 +29,7 @@ import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HttpDownloadUtility;
+import org.pankratzlab.common.HttpDownloadUtility.HttpDownloadException;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.VCFUtils;
@@ -1225,6 +1226,9 @@ public final class Resources {
         md5 = HttpDownloadUtility.readFileAsHexString(remotePath + ".md5");
       } catch (IOException e) {
         // If remote MD5 isn't available, that can be OK.
+      } catch (HttpDownloadException e) {
+        log.reportTimeWarning("MD5 check of " + getName() + " failed with error: "
+                              + e.getLocalizedMessage());
       }
       return md5;
     }

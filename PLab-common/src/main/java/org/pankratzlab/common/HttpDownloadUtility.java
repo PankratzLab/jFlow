@@ -6,8 +6,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import javax.xml.ws.http.HTTPException;
 
 public class HttpDownloadUtility {
+
+  public static class HttpDownloadException extends Exception {
+
+    private static final long serialVersionUID = 1L;
+
+    public HttpDownloadException(String message) {
+      super(message);
+    }
+
+    public HttpDownloadException(Exception cause) {
+      super(cause);
+    }
+  }
 
   private static final int BUFFER_SIZE = 4096;
 
@@ -97,27 +111,32 @@ public class HttpDownloadUtility {
     return responseCode;
   }
 
-  public static String readFileAsHexString(String fileURL) throws IOException {
+  public static String readFileAsHexString(String fileURL) throws IOException,
+                                                           HttpDownloadException {
     // Try and open a URL connection
     URL url = new URL(fileURL);
     HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
     if (httpConn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-      return null;
+      throw new HttpDownloadException(new HTTPException(httpConn.getResponseCode()));
     }
 
     // Read the HTTP connection as a digest, allowing the MD5 to be computed
-    InputStream inputStream = httpConn.getInputStream();
+    try (InputStream inputStream = httpConn.getInputStream()) {
+      int length = httpConn.getContentLength();
+      if (length < 0) throw new HttpDownloadException("HTTP Connection (" + httpConn.toString()
+                                                      + ") provided invalid content length: "
+                                                      + length);
+      byte[] md5 = new byte[length];
+      int bytesRead = 0;
 
-    byte[] md5 = new byte[httpConn.getContentLength()];
-    int bytesRead = 0;
+      while (bytesRead != -1) {
+        int buffer = Math.min(BUFFER_SIZE, md5.length - bytesRead);
+        // Read the file file
+        bytesRead = inputStream.read(md5, bytesRead, buffer);
+      }
 
-    while (bytesRead != -1) {
-      int buffer = Math.min(BUFFER_SIZE, md5.length - bytesRead);
-      // Read the file file
-      bytesRead = inputStream.read(md5, bytesRead, buffer);
+      return new String(md5, ext.UTF_8).trim();
     }
-
-    return new String(md5, ext.UTF_8).trim();
   }
 }
 
