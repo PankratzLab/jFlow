@@ -2336,6 +2336,10 @@ public class lab {
     return new String(by);
   }
 
+  public static void indexBAM(String file) {
+    BedOps.verifyBedIndex(file, new Logger());
+  }
+
   public static void main(String[] args) throws IOException, ClassNotFoundException,
                                          URISyntaxException {
     int numArgs = args.length;
@@ -2347,11 +2351,15 @@ public class lab {
     boolean test = true;
     if (test) {
 
+      if (args.length == 2 && args[0].equals("-index")) {
+        indexBAM(args[1]);
+        return;
+      }
       //      parseBPM();
 
-      for (String f : Files.list(args[0], "", ".bed", false, true)) {
-        BedOps.verifyBedIndex(f, new Logger());
-      }
+      //      for (String f : Files.list("G:\\bamTesting\\00cram\\", "", ".bed", false, true)) {
+      //              BedOps.verifyBedIndex(f, new Logger());
+      //      }
 
       // createBCXPlots();
       // processAnnotationFilesAll();

@@ -134,7 +134,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   String[][] binsOfMarkers;
 
   public MosdepthPipeline() {
-    super(20, 5000);
+    super(20, 25000);
   }
 
   void run() throws IOException, Elision {
