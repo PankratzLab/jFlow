@@ -25,12 +25,12 @@ import org.genvisis.cnv.filesys.Compression;
 import org.genvisis.cnv.filesys.MarkerSet;
 import org.genvisis.cnv.filesys.Project;
 import org.genvisis.cnv.filesys.Sample;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.CLI;
 import com.google.common.collect.ImmutableMap;
 
 public class TempFileTranspose {
@@ -307,9 +307,9 @@ public class TempFileTranspose {
   public void setupSampleListFile() {
     new File(proj.SAMPLE_DIRECTORY.getValue()).mkdirs();
     String[] samples = Arrays.copyOf(proj.getSamples(), proj.getSamples().length);
-    for (int i = 0; i < samples.length; i++) {
-      samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
-    }
+    //    for (int i = 0; i < samples.length; i++) {
+    //      samples[i] = proj.SAMPLE_DIRECTORY.getValue() + samples[i] + ".sampRAF";
+    //    }
     ListFileCheckoutSystem.initFile(getSampleListFile(), samples);
   }
 
@@ -402,6 +402,7 @@ public class TempFileTranspose {
       AtomicInteger index = new AtomicInteger(0);
       for (int t = 0; t < threads; t++) {
         Runnable run = () -> {
+          // full sample file path
           String samp;
           try {
             int ind = -1;
@@ -411,7 +412,7 @@ public class TempFileTranspose {
                                 numBytesPerSample, mkrCntBytes, fingerPrint, sampleIndices,
                                 readerMap, samp);
             }
-          } catch (IOException e) {
+          } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
@@ -440,30 +441,28 @@ public class TempFileTranspose {
                                  int numBytesPerSample, byte[] mkrCntBytes, long fingerPrint,
                                  final ImmutableMap<String, Integer> sampleIndices,
                                  HashMap<String, RandomAccessFile> readerMap,
-                                 String samp) throws FileNotFoundException, IOException {
+                                 String sample) throws FileNotFoundException, IOException {
     Hashtable<String, Float> outs;
     byte[] buffer;
     RandomAccessFile sampFile;
     int sInd = -1;
-    if (sampleIndices.containsKey(samp)) {
-      sInd = sampleIndices.get(samp);
-    } else if (sampleIndices.containsKey(ext.rootOf(samp, true))) {
-      sInd = sampleIndices.get(ext.rootOf(samp, true));
+    if (sampleIndices.containsKey(sample)) {
+      sInd = sampleIndices.get(sample);
     } else {
-      throw new RuntimeException("Error - sample " + samp + " not found in the sample index map!");
+      throw new RuntimeException("Error - sample " + sample
+                                 + " not found in the sample index map!");
     }
-    sampFile = new RandomAccessFile(samp, "rw");
+    String sampleFile = proj.SAMPLE_DIRECTORY.getValue() + sample + Sample.SAMPLE_FILE_EXTENSION;
+    sampFile = new RandomAccessFile(sampleFile, "rw");
 
     sampFile.seek(0);
     sampFile.write(mkrCntBytes);
     sampFile.write(nullStatus);
 
-    if (outliers.hasSample(samp)) {
-      outs = outliers.getSampleOutliersForFile(proj, samp);
-    } else if (outliers.hasSample(ext.rootOf(samp, true))) {
-      outs = outliers.getSampleOutliersForFile(proj, ext.rootOf(samp, true));
+    if (outliers.hasSample(sample)) {
+      outs = outliers.getSampleOutliersForFile(proj, sample);
     } else {
-      proj.getLog().reportTimeWarning("No outliers found for sample " + samp);
+      proj.getLog().reportTimeWarning("No outliers found for sample " + sample);
       outs = new Hashtable<>();
     }
     byte[] outBytes = Compression.objToBytes(outs);
@@ -503,7 +502,7 @@ public class TempFileTranspose {
     sampFile.close();
 
     proj.getLog()
-        .reportTime("Compiled sample " + samp + "; average read "
+        .reportTime("Compiled sample " + sample + "; average read "
                     + ext.formatTimeElapsed(aveR, TimeUnit.NANOSECONDS) + ", average write "
                     + ext.formatTimeElapsed(aveW, TimeUnit.NANOSECONDS));
   }

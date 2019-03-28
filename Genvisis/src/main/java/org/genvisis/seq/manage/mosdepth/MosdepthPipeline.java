@@ -229,6 +229,9 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
     samples = new String[mosdepthFiles.length];
     for (int i = 0; i < mosdepthFiles.length; i++) {
       samples[i] = ext.rootRootOf(ext.removeDirectoryInfo((mosdepthFiles[i])));
+      if (samples[i].startsWith("./")) {
+        samples[i] = samples[i].substring(2);
+      }
     }
     return Arrays.copyOf(samples, samples.length);
   }
