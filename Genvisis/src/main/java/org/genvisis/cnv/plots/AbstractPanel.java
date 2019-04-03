@@ -603,10 +603,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       missingWidth = fontMetrics.stringWidth("X");
 
       // Calculate the plot area's range (X-axis, Y-axis)
-      canvasSectionMinimumX = axisYWidth;
-      canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-      canvasSectionMinimumY = titleHeight;
-      canvasSectionMaximumY = axisXHeight;
+      temporarilySetCanvasForXAxis();
       plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
       if (xAxisWholeNumbers) {
         if (plotMinMaxStep[2] < 1) {
@@ -621,10 +618,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       plotXmin = Float.isNaN(forcePlotXmin) ? plotMinMaxStep[0] : forcePlotXmin;
       plotXmax = Float.isNaN(forcePlotXmax) ? plotMinMaxStep[1] : forcePlotXmax;
 
-      canvasSectionMinimumX = 0;
-      canvasSectionMaximumX = axisYWidth;
-      canvasSectionMinimumY = axisXHeight;
-      canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+      temporarilySetCanvasForYAxis();
       plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
       if (yAxisWholeNumbers) {
         if (plotMinMaxStep[2] < 1) {
@@ -642,10 +636,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     }
 
     // TODO outercoordinates
-    canvasSectionMinimumX = axisYWidth;
-    canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-    canvasSectionMinimumY = axisXHeight;
-    canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+    resetCanvasToPlotArea();
 
     g.setClip(canvasSectionMinimumX, HEAD_BUFFER, canvasSectionMaximumX - canvasSectionMinimumX + 1,
               getHeight() - axisXHeight - 24);
@@ -839,17 +830,11 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     }
 
     if (base) {
-      canvasSectionMinimumX = axisYWidth;
-      canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-      canvasSectionMinimumY = titleHeight;
-      canvasSectionMaximumY = axisXHeight;
+      temporarilySetCanvasForXAxis();
       plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawX, maximumObservedRawX, g, true);
       drawXAxis(g, plotMinMaxStep, fontMetrics);
 
-      canvasSectionMinimumX = 0;
-      canvasSectionMaximumX = axisYWidth;
-      canvasSectionMinimumY = axisXHeight;
-      canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+      temporarilySetCanvasForYAxis();
       plotMinMaxStep = getPlotMinMaxStep(minimumObservedRawY, maximumObservedRawY, g, false);
       drawYAxis(g, plotMinMaxStep);
       if (errorMessage != null) {
@@ -858,7 +843,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
                                    + axisYWidth,
                      (getHeight() - HEAD_BUFFER - axisXHeight) / 2 - 20 + HEAD_BUFFER);
       }
-
+      resetCanvasToPlotArea();
     }
 
     setImageStatus(IMAGE_COMPLETE);
@@ -873,6 +858,35 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
       log.report("Took " + ext.getTimeElapsed(fullTime) + " to draw "
                  + (createLookup ? "(and create lookup for) " : "") + points.length + " points");
     }
+  }
+
+  private void resetCanvasToPlotArea() {
+    canvasSectionMinimumX = axisYWidth;// WIDTH_Y_AXIS;
+    canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+    canvasSectionMinimumY = axisXHeight;// HEIGHT_X_AXIS;
+    canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+  }
+
+  /**
+   * {@link #resetCanvasToPlotArea()} MUST be called after this method to ensure canvas is set
+   * correctly for future responses to plot interaction
+   */
+  private void temporarilySetCanvasForXAxis() {
+    canvasSectionMinimumX = axisYWidth;
+    canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
+    canvasSectionMinimumY = titleHeight;
+    canvasSectionMaximumY = axisXHeight;
+  }
+
+  /**
+   * {@link #resetCanvasToPlotArea()} MUST be called after this method to ensure canvas is set
+   * correctly for future responses to plot interaction
+   */
+  private void temporarilySetCanvasForYAxis() {
+    canvasSectionMinimumX = 0;
+    canvasSectionMaximumX = axisYWidth;
+    canvasSectionMinimumY = axisXHeight;
+    canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
   }
 
   private void drawYAxis(Graphics g, double[] plotMinMaxStep) {
@@ -1140,11 +1154,7 @@ public abstract class AbstractPanel extends JPanel implements MouseListener, Mou
     if (imageIsFinal() && chartType != HEAT_MAP_TYPE) {
       x = event.getX();
       y = event.getY();
-
-      canvasSectionMinimumX = axisYWidth;// WIDTH_Y_AXIS;
-      canvasSectionMaximumX = getWidth() - WIDTH_BUFFER;
-      canvasSectionMinimumY = axisXHeight;// HEIGHT_X_AXIS;
-      canvasSectionMaximumY = getHeight() - (HEAD_BUFFER + titleHeight);
+      resetCanvasToPlotArea();
       pos = (int) Math.floor(x / DEFAULT_LOOKUP_RESOLUTION) + "x"
             + (int) Math.floor(y / DEFAULT_LOOKUP_RESOLUTION);
       if (!pos.equals(prevPos)) {
