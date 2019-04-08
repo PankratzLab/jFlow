@@ -230,11 +230,12 @@ public class Logger implements Serializable {
    * @param err lines of error message to print
    */
   public void reportError(boolean line, boolean reportToScreen, int levelRequiredToReport,
-                          String... err) {
+                          String... errLines) {
     PrintWriter writer;
     String firstPrefix = getVersion() + ext.getTime() + " Error -";
     String otherPrefix = Strings.repeat(" ", firstPrefix.length());
-    String msg = firstPrefix + "\t" + Joiner.on("\n" + otherPrefix + "\t").skipNulls().join(err);
+    String msg = firstPrefix + "\t"
+                 + Joiner.on("\n" + otherPrefix + "\t").skipNulls().join(errLines);
 
     if (level >= levelRequiredToReport && reportToScreen) {
       if (line) {
@@ -245,7 +246,7 @@ public class Logger implements Serializable {
     }
 
     if (level >= levelRequiredToReport && textArea != null) {
-      textArea.setText(textArea.getText() + err + (line ? "\r\n" : ""));
+      textArea.setText(textArea.getText() + msg + (line ? "\r\n" : ""));
       textArea.setCaretPosition(textArea.getDocument().getLength());
     }
 
@@ -253,9 +254,9 @@ public class Logger implements Serializable {
       try {
         writer = Files.openAppropriateWriter(filename, true);
         if (line) {
-          writer.println(err);
+          writer.println(msg);
         } else {
-          writer.print(err);
+          writer.print(msg);
         }
         writer.close();
       } catch (Exception e) {
