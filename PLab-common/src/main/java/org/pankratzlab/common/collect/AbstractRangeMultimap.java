@@ -441,7 +441,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
    * Coalesces the range enclosed by originalRange and puts value when possible
    */
   private void putCoalesceEnclosed(Range<K> originalRange, C value) {
-    RangeMap<K, C> targetSubRangeMap = subRangeMap(originalRange);
+    RangeMultimap<K, V1, C> targetSubRangeMap = subRangeMap(originalRange);
     Set<C> distinctSubRangeVals = ImmutableSet.copyOf(targetSubRangeMap.asMapOfRanges().values());
     if (distinctSubRangeVals.size() == 1) {
       C currentVal = Iterables.getOnlyElement(distinctSubRangeVals);
@@ -475,11 +475,11 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
    */
   private Range<K> putCoalescedEdges(Range<K> originalRange, C value) {
     Range<K> range = originalRange.intersection(Range.all());
-    RangeMap<K, C> targetSubRangeMap = subRangeMap(range);
+    RangeMultimap<K, V1, C> targetSubRangeMap = subRangeMap(range);
     Range<K> lowerEdgeRange = null;
     if (range.hasLowerBound()) {
-      RangeMap<K, C> lowerSubRangeMap = subRangeMap(Range.upTo(range.lowerEndpoint(),
-                                                               oppositeBound(range.lowerBoundType())));
+      RangeMultimap<K, V1, C> lowerSubRangeMap = subRangeMap(Range.upTo(range.lowerEndpoint(),
+                                                                        oppositeBound(range.lowerBoundType())));
 
       Range<K> leastTarget = Iterables.getFirst(targetSubRangeMap.asMapOfRanges().keySet(), null);
       Range<K> greatestLower = Iterables.getFirst(lowerSubRangeMap.asDescendingMapOfRanges()
@@ -522,8 +522,8 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
     Range<K> upperEdgeRange = null;
     if (range.hasUpperBound()) {
 
-      RangeMap<K, C> upperSubRangeMap = subRangeMap(Range.downTo(range.upperEndpoint(),
-                                                                 oppositeBound(range.upperBoundType())));
+      RangeMultimap<K, V1, C> upperSubRangeMap = subRangeMap(Range.downTo(range.upperEndpoint(),
+                                                                          oppositeBound(range.upperBoundType())));
       Range<K> greatestTarget = Iterables.getFirst(targetSubRangeMap.asDescendingMapOfRanges()
                                                                     .keySet(),
                                                    null);
@@ -599,8 +599,8 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
     }
   }
 
-  private static <K extends Comparable<?>, V> boolean perfectCoalescedMatch(RangeMap<K, V> rangeMap,
-                                                                            Range<K> range) {
+  private static <K extends Comparable<?>, V, C extends Collection<V>> boolean perfectCoalescedMatch(RangeMultimap<K, V, C> rangeMap,
+                                                                                                     Range<K> range) {
     RangeSet<K> rangeMapRanges = ImmutableRangeSet.copyOf(rangeMap.asMapOfRanges().keySet());
     return rangeMapRanges.asRanges().size() == 1 && rangeMapRanges.encloses(range);
 

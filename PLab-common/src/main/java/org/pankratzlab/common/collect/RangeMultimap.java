@@ -1,6 +1,8 @@
 package org.pankratzlab.common.collect;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
@@ -14,7 +16,7 @@ import com.google.common.collect.RangeMap;
  * @param <V>
  * @param <C>
  */
-public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<V>> extends RangeMap<K, C>, Multimap<Range<K>, V> {
+public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<V>> extends Multimap<Range<K>, V> {
 
   /**
    * Removes any entries with empty collections as their value, such that {@link #asMapOfRanges()}
@@ -72,7 +74,6 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
    * value. To perform the replacing put that {@link RangeMap}s generally exhibit, use
    * {@link #replaceValues(Range, Iterable)} If range is empty, then this is a no-op.
    */
-  @Override
   void put(Range<K> range, C value);
 
   /**
@@ -85,7 +86,22 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
    * In keeping with the contract of the {@link Multimap} interface, this method will never return
    * null, instead returning an empty {@linkImmutableCollection} when the key is not mapped
    */
-  @Override
   C get(K key);
+
+  Map<Range<K>, C> asDescendingMapOfRanges();
+
+  Map<Range<K>, C> asMapOfRanges();
+
+  Entry<Range<K>, C> getEntry(K key);
+
+  void putAll(RangeMap<K, C> rangeMap);
+
+  void putCoalescing(Range<K> range, C value);
+
+  void remove(Range<K> range);
+
+  Range<K> span();
+
+  RangeMultimap<K, V, C> subRangeMap(Range<K> range);
 
 }
