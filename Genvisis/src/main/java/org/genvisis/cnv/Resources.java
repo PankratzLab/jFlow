@@ -609,6 +609,60 @@ public final class Resources {
   }
 
   /**
+   * Container for build-specific Axiom Transplant resources
+   */
+  public static class AxiomTxGenomes extends AbstractResourceFactory {
+
+    private final GenomeBuild build;
+
+    public AxiomTxGenomes(GenomeBuild build, Logger log) {
+      super(AffyAxiomTxV1.DIR, log, AffyGenomes.class);
+      this.build = build;
+    }
+
+    /**
+     * @return Marker positions for the specified {@link GenomeBuild}
+     */
+    public Resource getMarkerPositions() {
+      return getResource("Axiom_tx_v1." + build.getBuild() + ".markerPositions.txt");
+    }
+
+    /**
+     * @return gcmodel file
+     */
+    public Resource getGcmodel() {
+      throw new UnsupportedOperationException("No gcModel file available for AxiomTxV1");
+    }
+
+    /**
+     * @return pfb file
+     */
+    public Resource getPFB() {
+      throw new UnsupportedOperationException("No pfb file available for AxiomTxV1");
+    }
+  }
+
+  /**
+   * Container for Axiom Transplant V1 resources
+   */
+  public static class AffyAxiomTxV1 extends AbstractResourceFactory {
+
+    private static final String DIR = "Arrays/AxiomTxV1";
+
+    public AffyAxiomTxV1(Logger log) {
+      super(DIR, log, AffyAxiomTxV1.class);
+    }
+
+  }
+
+  /**
+   * Helper method for chaining resource calls
+   */
+  public static AffyAxiomTxV1 axiomTx(Logger log) {
+    return new AffyAxiomTxV1(log);
+  }
+
+  /**
    * Container for Affy resources.
    */
   public static class AffySnp6 extends AbstractResourceFactory {
