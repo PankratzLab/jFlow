@@ -1,7 +1,6 @@
 package org.pankratzlab.common.collect;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -103,12 +102,10 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
     return mapOfRanges.entrySet().stream()
                       .collect(ImmutableSet.Builder<Entry<Range<K>, V1>>::new,
                                (builder,
-                                entry) -> builder.addAll(entry.getValue().stream()
-                                                              .collect(HashSet::new,
-                                                                       (set,
-                                                                        value) -> set.add(Maps.immutableEntry(entry.getKey(),
-                                                                                                              value)),
-                                                                       HashSet::addAll)),
+                                entry) -> entry.getValue().stream()
+                                               .map(singleValue -> Maps.immutableEntry(entry.getKey(),
+                                                                                       singleValue))
+                                               .forEach(builder::add),
                                (builder1, builder2) -> builder1.addAll(builder2.build()))
                       .build();
   }
@@ -263,7 +260,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C exten
   public boolean putAll(Multimap<? extends Range<K>, ? extends V1> multimap) {
     boolean changed = false;
     for (Entry<? extends Range<K>, ? extends Collection<? extends V1>> entry : multimap.asMap()
-                                                                                      .entrySet()) {
+                                                                                       .entrySet()) {
       if (putAll(entry.getKey(), entry.getValue())) {
         changed = true;
       }
