@@ -28,10 +28,10 @@ import com.google.common.collect.TreeRangeSet;
  * A basic implementation of {@link RangeMultimap}, requiring an ImmutableCollection for C
  *
  * @param <K>
- * @param <V>
+ * @param <V1>
  * @param <C>
  */
-public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extends ImmutableCollection<V>> implements RangeMultimap<K, V, C> {
+public abstract class AbstractRangeMultimap<K extends Comparable<?>, V1, C extends ImmutableCollection<V1>> implements RangeMultimap<K, V1, C> {
 
   private final Map<Range<K>, C> mapOfRanges;
   private final RangeMap<K, C> rangeMap;
@@ -48,7 +48,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public Map<Range<K>, Collection<V>> asMap() {
+  public Map<Range<K>, Collection<V1>> asMap() {
     // Necessary to return a Map<Range<K>, Collection<V>>
     return collectionMapViewMapOfRanges();
   }
@@ -99,9 +99,9 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * {@link AbstractRangeMultimap}
    */
   @Override
-  public ImmutableCollection<Entry<Range<K>, V>> entries() {
+  public ImmutableCollection<Entry<Range<K>, V1>> entries() {
     return mapOfRanges.entrySet().stream()
-                      .collect(ImmutableSet.Builder<Entry<Range<K>, V>>::new,
+                      .collect(ImmutableSet.Builder<Entry<Range<K>, V1>>::new,
                                (builder,
                                 entry) -> builder.addAll(entry.getValue().stream()
                                                               .collect(HashSet::new,
@@ -220,7 +220,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public void putBlind(Range<K> range, V value) {
+  public void putBlind(Range<K> range, V1 value) {
     if (!range.isEmpty()) {
       RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
       Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
@@ -248,7 +248,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * Use {@link #putBlind(Range, Object)} to avoid the before and after size checking
    */
   @Override
-  public boolean put(Range<K> key, V value) {
+  public boolean put(Range<K> key, V1 value) {
     int oldSize = size();
     putBlind(key, value);
     return oldSize != size();
@@ -260,9 +260,9 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * this does not necessarily indicate whether the put changed the mappings or not
    */
   @Override
-  public boolean putAll(Multimap<? extends Range<K>, ? extends V> multimap) {
+  public boolean putAll(Multimap<? extends Range<K>, ? extends V1> multimap) {
     boolean changed = false;
-    for (Entry<? extends Range<K>, ? extends Collection<? extends V>> entry : multimap.asMap()
+    for (Entry<? extends Range<K>, ? extends Collection<? extends V1>> entry : multimap.asMap()
                                                                                       .entrySet()) {
       if (putAll(entry.getKey(), entry.getValue())) {
         changed = true;
@@ -277,7 +277,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * this does not necessarily indicate whether the put changed the mappings or not
    */
   @Override
-  public boolean putAll(Range<K> key, Iterable<? extends V> values) {
+  public boolean putAll(Range<K> key, Iterable<? extends V1> values) {
     int oldSize = size();
     put(key, createCollection(values));
     return oldSize != size();
@@ -354,7 +354,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * this <b>does</b> not indicate that no mappings were replaced.
    */
   @Override
-  public C replaceValues(Range<K> key, Iterable<? extends V> values) {
+  public C replaceValues(Range<K> key, Iterable<? extends V1> values) {
     C prevValues = get(key);
     rangeMap.put(key, createCollection(values));
     return prevValues;
@@ -371,7 +371,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public RangeMultimap<K, V, C> subRangeMap(Range<K> range) {
+  public RangeMultimap<K, V1, C> subRangeMap(Range<K> range) {
     return newRangeMultiMap(rangeMap.subRangeMap(range));
   }
 
@@ -382,9 +382,9 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * {@link AbstractRangeMultimap}
    */
   @Override
-  public ImmutableCollection<V> values() {
+  public ImmutableCollection<V1> values() {
     return mapOfRanges.values().stream()
-                      .collect(ImmutableList.Builder<V>::new,
+                      .collect(ImmutableList.Builder<V1>::new,
                                (builder, values) -> builder.addAll(values),
                                (builder1, builder2) -> builder1.addAll(builder2.build()))
                       .build();
@@ -395,26 +395,26 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * @param additions
    * @return a new C containing the contents of currentCollection and additions
    */
-  protected abstract C addAllToCollection(C currentCollection, Iterable<V> additions);
+  protected abstract C addAllToCollection(C currentCollection, Iterable<V1> additions);
 
   /**
    * @param currentCollection
    * @param addition
    * @return a new C containing the contents of currentCollection and addition
    */
-  protected abstract C addToCollection(C currentCollection, V addition);
+  protected abstract C addToCollection(C currentCollection, V1 addition);
 
   /**
    * @param values
    * @return a new C containing values
    */
-  protected abstract C createCollection(Iterable<? extends V> values);
+  protected abstract C createCollection(Iterable<? extends V1> values);
 
   /**
    * @param value
    * @return a new C containing value
    */
-  protected abstract C createCollection(V value);
+  protected abstract C createCollection(V1 value);
 
   /**
    * @return an empty C
@@ -431,7 +431,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * @return a new {@link AbstractRangeMultimap} of the correct type with the specified
    *         underlyingRangeMap as its source
    */
-  protected abstract RangeMultimap<K, V, C> newRangeMultiMap(RangeMap<K, C> underlyingRangeMap);
+  protected abstract RangeMultimap<K, V1, C> newRangeMultiMap(RangeMap<K, C> underlyingRangeMap);
 
   /**
    * @param currentValues
@@ -460,7 +460,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * A somewhat hacky way to "transform" the {@code Map<Range<K>, C>} to a
    * {@code Map<Range<K>, Collection<V>>}
    */
-  private Map<Range<K>, Collection<V>> collectionMapViewMapOfRanges() {
+  private Map<Range<K>, Collection<V1>> collectionMapViewMapOfRanges() {
     return Maps.transformValues(mapOfRanges, Functions.identity());
   }
 
