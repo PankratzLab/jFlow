@@ -13,7 +13,7 @@
 
 	<artifactId>Meta</artifactId>
 	<version>${meta.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description>Container for information that needs to be shared with both
 	Genvisis applications and their launchers.</description>

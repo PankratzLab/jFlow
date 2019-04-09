@@ -13,7 +13,7 @@
 
 	<artifactId>Genv-experimental</artifactId>
 	<version>${genv-exp.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description>One-off, experimental, in-development projects</description>
 

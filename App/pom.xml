@@ -13,7 +13,7 @@
 
 	<artifactId>App</artifactId>
 	<version>${app.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description>Build platform-dependent applications with updating capabilities.</description>
 

@@ -14,7 +14,7 @@
 	<groupId>edu.stanford.facs</groupId>
 	<artifactId>Logicle</artifactId>
 	<version>${logicle.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description></description>
   <inceptionYear>2009</inceptionYear>

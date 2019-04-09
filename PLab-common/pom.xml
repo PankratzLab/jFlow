@@ -13,7 +13,7 @@
 
 	<artifactId>PLab-common</artifactId>
 	<version>${plab-common.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description></description>
 

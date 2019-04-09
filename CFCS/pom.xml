@@ -14,7 +14,7 @@
 	<groupId>org.flowcyt</groupId>
 	<artifactId>CFCS</artifactId>
 	<version>${cfcs.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description></description>
 

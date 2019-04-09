@@ -13,7 +13,7 @@
 
 	<artifactId>Genvisis</artifactId>
 	<version>${genvisis.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description></description>
 

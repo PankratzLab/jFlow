@@ -13,7 +13,7 @@
 
   <artifactId>Genv-deprecated</artifactId>
   <version>${genv-dep.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
   <description>Deprecated Genvisis projects</description>
 

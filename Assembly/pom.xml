@@ -13,7 +13,7 @@
 
 	<artifactId>Assembly</artifactId>
 	<version>${assembly.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description>Build the complete Genvisis executable jar, with dependencies.</description>
 
