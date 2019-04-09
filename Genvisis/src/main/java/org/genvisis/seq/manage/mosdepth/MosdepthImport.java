@@ -203,11 +203,11 @@ public class MosdepthImport {
       mi.setProjectPropertiesDir("D:\\projects\\");
       mi.setNumThreads(Runtime.getRuntime().availableProcessors());
 
-      mi.setBinsToUseBED("G:\\bamTesting\\snpSelection\\ReferenceGenomeBins_hg38.bed");
+      mi.setBinsToUseBED("G:\\bamTesting\\topmed\\ReferenceGenomeBins_chrs_XYM_hg38.bed");
       //    mi.setGenotypeVCF("G:\\bamTesting\\EwingWGS\\ES_recalibrated_snps_indels.vcf.gz");
-      mi.setSelectedMarkerVCF("G:\\bamTesting\\snpSelection\\selected_topmed.vcf");
-      mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00src\\", ".bed.gz");
-      mi.setCRAMReadDirectory("G:\\bamTesting\\00cram\\");
+      mi.setSelectedMarkerVCF("G:\\bamTesting\\topmed\\selected_topmed.vcf");
+      mi.setMosdepthDirectory("G:\\bamTesting\\topmed\\00mos\\", ".bed");
+      mi.setCRAMReadDirectory("G:\\bamTesting\\topmed\\00cnt\\");
       mi.setJobID(null);
       try {
         mi.run();

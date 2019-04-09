@@ -78,6 +78,9 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
   }
 
   public void setMosdepthDirectory(String dir, String ext) {
+    if (!Files.exists(dir)) {
+      throw new IllegalArgumentException("Specified mosdepth directory not found: " + dir);
+    }
     this.mosdepthFiles = Files.list(dir, null, ext, false, true);
     this.mosdepthExt = ext;
     log.reportTime("Validating Mosdepth index files...");
@@ -99,7 +102,7 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       String f = ext.removeDirectoryInfo(m);
       String c = f.substring(0, f.length() - (".mos.regions" + mosdepthExt).length())
                  + CRAMSnpReader.CRAM_READS_EXT;
-      String expFile = ext.verifyDirFormat(dir) + c;
+      String expFile = new File(ext.verifyDirFormat(dir) + c).getAbsolutePath();
       if (!Files.exists(expFile)) {
         throw new IllegalStateException("Missing CRAM Allele Count file-pair for sample depth file "
                                         + m + ".  Please locate this file and try again.");
@@ -652,9 +655,14 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       log.reportTimeWarning("Multiple depth scores found for " + samples[s] + ", bin "
                             + binLookup.get(mkr).getUCSClocation());
       try {
-        v = Double.parseDouble(iter.get(0).getName());
+        v = Double.parseDouble(((AnnotatedBEDFeature) iter.get(0)).getAnnotation(0));
       } catch (NumberFormatException e) {
-        v = iter.get(0).getScore();
+        try {
+          v = Double.parseDouble(iter.get(0).getName());
+        } catch (NumberFormatException e1) {
+          log.reportException(e1);
+          v = Double.NaN;
+        }
       }
     } else if (iter.size() == 0) {
       log.reportError("Missing depth score for " + samples[s] + ", bin "
@@ -662,9 +670,10 @@ public class MosdepthPipeline extends AbstractParsingPipeline {
       v = Double.NaN;
     } else {
       try {
-        v = Double.parseDouble(iter.get(0).getName());
-      } catch (NumberFormatException e) {
-        v = iter.get(0).getScore();
+        v = Double.parseDouble(((AnnotatedBEDFeature) iter.get(0)).getAnnotation(0));
+      } catch (NumberFormatException e1) {
+        log.reportException(e1);
+        v = Double.NaN;
       }
     }
 
