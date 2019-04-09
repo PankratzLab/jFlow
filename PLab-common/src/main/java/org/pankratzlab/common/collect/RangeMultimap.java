@@ -76,7 +76,7 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
 
   /**
    * In keeping with the contract of the {@link Multimap} interface, this method will never return
-   * null, instead returning an empty {@linkImmutableCollection} when the key is not mapped
+   * null, instead returning an empty {@link Collection} when the key is not mapped
    */
   C get(K key);
 
