@@ -13,7 +13,7 @@
 
 	<artifactId>SEQ</artifactId>
 	<version>${seq.version}</version>
-	<packaging>takari-jar</packaging>
+	<packaging>jar</packaging>
 
 	<description></description>
 
