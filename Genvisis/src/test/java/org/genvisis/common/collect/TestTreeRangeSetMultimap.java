@@ -118,7 +118,7 @@ public class TestTreeRangeSetMultimap {
   public void testSpanSingleRange() {
     for (Range<Integer> range : RANGES) {
       RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-      RangeMultimap.put(range, ImmutableSet.of(1));
+      RangeMultimap.put(range, 1);
 
       try {
         assertEquals(range, RangeMultimap.span());
@@ -134,8 +134,8 @@ public class TestTreeRangeSetMultimap {
     for (Range<Integer> range1 : RANGES) {
       for (Range<Integer> range2 : RANGES) {
         RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-        RangeMultimap.put(range1, ImmutableSet.of(1));
-        RangeMultimap.put(range2, ImmutableSet.of(2));
+        RangeMultimap.put(range1, 1);
+        RangeMultimap.put(range2, 2);
 
         Range<Integer> expected;
         if (range1.isEmpty()) {
@@ -168,7 +168,7 @@ public class TestTreeRangeSetMultimap {
       Multimap<Integer, Integer> model = HashMultimap.create();
       putModel(model, range, 1);
       RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-      test.put(range, ImmutableSet.of(1));
+      test.put(range, 1);
       verify(model, test);
     }
   }
@@ -181,8 +181,8 @@ public class TestTreeRangeSetMultimap {
         putModel(model, range1, 1);
         putModel(model, range2, 2);
         RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-        test.put(range1, ImmutableSet.of(1));
-        test.put(range2, ImmutableSet.of(2));
+        test.put(range1, 1);
+        test.put(range2, 2);
         verify(model, test);
       }
     }
@@ -198,9 +198,9 @@ public class TestTreeRangeSetMultimap {
           putModel(model, range2, 2);
           putModel(model, range3, 3);
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-          test.put(range1, ImmutableSet.of(1));
-          test.put(range2, ImmutableSet.of(2));
-          test.put(range3, ImmutableSet.of(3));
+          test.put(range1, 1);
+          test.put(range2, 2);
+          test.put(range3, 3);
           verify(model, test);
         }
       }
@@ -219,9 +219,9 @@ public class TestTreeRangeSetMultimap {
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test2 = TreeRangeSetMultimap.create();
           // put range2 and range3 into test2, and then put test2 into test
-          test.put(range1, ImmutableSet.of(1));
-          test2.put(range2, ImmutableSet.of(2));
-          test2.put(range3, ImmutableSet.of(3));
+          test.put(range1, 1);
+          test2.put(range2, 2);
+          test2.put(range3, 3);
           test.putAll(test2);
           verify(model, test);
         }
@@ -237,7 +237,7 @@ public class TestTreeRangeSetMultimap {
         putModel(model, rangeToPut, 1);
         removeModel(model, rangeToRemove);
         RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-        test.put(rangeToPut, ImmutableSet.of(1));
+        test.put(rangeToPut, 1);
         test.remove(rangeToRemove);
         verify(model, test);
       }
@@ -254,97 +254,13 @@ public class TestTreeRangeSetMultimap {
           putModel(model, rangeToPut2, 2);
           removeModel(model, rangeToRemove);
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-          test.put(rangeToPut1, ImmutableSet.of(1));
-          test.put(rangeToPut2, ImmutableSet.of(2));
+          test.put(rangeToPut1, 1);
+          test.put(rangeToPut2, 2);
           test.remove(rangeToRemove);
           verify(model, test);
         }
       }
     }
-  }
-
-  // identical to testPutTwoAndRemove,
-  // verifies that putCoalescing() doesn't cause any mappings to change relative to put()
-  @Test
-  public void testPutCoalescingTwoAndRemove() {
-    for (Range<Integer> rangeToPut1 : RANGES) {
-      for (Range<Integer> rangeToPut2 : RANGES) {
-        for (Range<Integer> rangeToRemove : RANGES) {
-          Multimap<Integer, Integer> model = HashMultimap.create();
-          putModel(model, rangeToPut1, 1);
-          putModel(model, rangeToPut2, 2);
-          removeModel(model, rangeToRemove);
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-          test.putCoalescing(rangeToPut1, ImmutableSet.of(1));
-          test.putCoalescing(rangeToPut2, ImmutableSet.of(2));
-          test.remove(rangeToRemove);
-          verify(model, test);
-        }
-      }
-    }
-  }
-
-  @Test
-  public void testPutCoalescing() {
-    // {[0..1): 1, [1..2): 1, [2..3): 2} -> {[0..2): 1, [2..3): 2}
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.putCoalescing(Range.closedOpen(0, 1), ImmutableSet.of(1));
-    RangeMultimap.putCoalescing(Range.closedOpen(1, 2), ImmutableSet.of(1));
-    RangeMultimap.putCoalescing(Range.closedOpen(2, 3), ImmutableSet.of(2));
-    assertEquals(ImmutableMap.of(Range.closedOpen(0, 2), ImmutableSet.of(1), Range.closedOpen(2, 3),
-                                 ImmutableSet.of(2)),
-                 RangeMultimap.asMapOfRanges());
-  }
-
-  @Test
-  public void testPutCoalescingEmpty() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.closedOpen(0, 1), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closedOpen(1, 2), ImmutableSet.of(1));
-    assertEquals(ImmutableMap.of(Range.closedOpen(0, 1), ImmutableSet.of(1), Range.closedOpen(1, 2),
-                                 ImmutableSet.of(1)),
-                 RangeMultimap.asMapOfRanges());
-
-    RangeMultimap.putCoalescing(Range.closedOpen(1, 1), ImmutableSet.of(1)); // empty range coalesces connected ranges
-    assertEquals(ImmutableMap.of(Range.closedOpen(0, 2), ImmutableSet.of(1)),
-                 RangeMultimap.asMapOfRanges());
-  }
-
-  @Test
-  public void testPutCoalescingComplex() {
-    // {[0..1): 1, [1..3): 1, [3..5): 1, [7..10): 2, [12..15): 2, [18..19): 3}
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.closedOpen(0, 1), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closedOpen(1, 3), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closedOpen(3, 5), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closedOpen(7, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closedOpen(12, 15), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closedOpen(18, 19), ImmutableSet.of(3));
-
-    RangeMultimap.putCoalescing(Range.closedOpen(-5, -4), ImmutableSet.of(0)); // disconnected
-    RangeMultimap.putCoalescing(Range.closedOpen(-6, -5), ImmutableSet.of(0)); // lower than minimum
-
-    RangeMultimap.putCoalescing(Range.closedOpen(2, 4), ImmutableSet.of(1)); // between
-    RangeMultimap.putCoalescing(Range.closedOpen(9, 14), ImmutableSet.of(0)); // different value
-    RangeMultimap.putCoalescing(Range.closedOpen(17, 20), ImmutableSet.of(3)); // enclosing
-
-    RangeMultimap.putCoalescing(Range.closedOpen(22, 23), ImmutableSet.of(4)); // disconnected
-    RangeMultimap.putCoalescing(Range.closedOpen(23, 25), ImmutableSet.of(4)); // greater than minimum
-
-    // {[-6..-4): 0, [0..1): 1, [1..5): 1, [7..9): 2, [9..10): {2,0}, [10..12): 0, [12, 14): {2,0},
-    //  [14..15): 2, [17..20): 3, [22..25): 4}
-    assertEquals(new ImmutableMap.Builder<>().put(Range.closedOpen(-6, -4), ImmutableSet.of(0))
-                                             .put(Range.closedOpen(0, 1), ImmutableSet.of(1)) // not coalesced
-                                             .put(Range.closedOpen(1, 5), ImmutableSet.of(1))
-                                             .put(Range.closedOpen(7, 9), ImmutableSet.of(2))
-                                             .put(Range.closedOpen(9, 10), ImmutableSet.of(2, 0))
-                                             .put(Range.closedOpen(10, 12), ImmutableSet.of(0))
-                                             .put(Range.closedOpen(12, 14), ImmutableSet.of(2, 0))
-                                             .put(Range.closedOpen(14, 15), ImmutableSet.of(2))
-                                             .put(Range.closedOpen(17, 20), ImmutableSet.of(3))
-                                             .put(Range.closedOpen(22, 25), ImmutableSet.of(4))
-                                             .build(),
-                 RangeMultimap.asMapOfRanges());
   }
 
   @Test
@@ -352,15 +268,15 @@ public class TestTreeRangeSetMultimap {
     for (Range<Integer> range1 : RANGES) {
       for (Range<Integer> range2 : RANGES) {
         RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-        RangeMultimap.put(range1, ImmutableSet.of(1));
-        RangeMultimap.put(range2, ImmutableSet.of(2));
+        RangeMultimap.put(range1, 1);
+        RangeMultimap.put(range2, 2);
 
         for (Range<Integer> subRange : RANGES) {
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> expected = TreeRangeSetMultimap.create();
           for (Entry<Range<Integer>, ImmutableSet<Integer>> entry : RangeMultimap.asMapOfRanges()
                                                                                  .entrySet()) {
             if (entry.getKey().isConnected(subRange)) {
-              expected.put(entry.getKey().intersection(subRange), entry.getValue());
+              expected.putAll(entry.getKey().intersection(subRange), entry.getValue());
             }
           }
           RangeMultimap<Integer, Integer, ImmutableSet<Integer>> subRangeMap = RangeMultimap.subRangeMap(subRange);
@@ -390,9 +306,9 @@ public class TestTreeRangeSetMultimap {
   @Test
   public void testSubsubRangeMap() {
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.open(3, 7), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closed(9, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closed(12, 16), ImmutableSet.of(3));
+    RangeMultimap.put(Range.open(3, 7), 1);
+    RangeMultimap.put(Range.closed(9, 10), 2);
+    RangeMultimap.put(Range.closed(12, 16), 3);
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub1 = RangeMultimap.subRangeMap(Range.closed(5,
                                                                                                          11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
@@ -408,15 +324,15 @@ public class TestTreeRangeSetMultimap {
   @Test
   public void testsubRangeMapPut() {
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.open(3, 7), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closed(9, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closed(12, 16), ImmutableSet.of(3));
+    RangeMultimap.put(Range.open(3, 7), 1);
+    RangeMultimap.put(Range.closed(9, 10), 2);
+    RangeMultimap.put(Range.closed(12, 16), 3);
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
                                                                                                         11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
                                  ImmutableSet.of(2)),
                  sub.asMapOfRanges());
-    sub.put(Range.closed(7, 9), ImmutableSet.of(4));
+    sub.put(Range.closed(7, 9), 4);
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closedOpen(7, 9),
                                  ImmutableSet.of(4), Range.singleton(9), ImmutableSet.of(4, 2),
                                  Range.openClosed(9, 10), ImmutableSet.of(2)),
@@ -428,49 +344,14 @@ public class TestTreeRangeSetMultimap {
                  RangeMultimap.asMapOfRanges());
 
     sub = sub.subRangeMap(Range.closedOpen(5, 5));
-    sub.put(Range.closedOpen(5, 5), ImmutableSet.of(6)); // should be a no-op
+    sub.put(Range.closedOpen(5, 5), 6); // should be a no-op
     assertEquals(ImmutableMap.of(Range.open(3, 7), ImmutableSet.of(1), Range.closedOpen(7, 9),
                                  ImmutableSet.of(4), Range.singleton(9), ImmutableSet.of(4, 2),
                                  Range.openClosed(9, 10), ImmutableSet.of(2), Range.closed(12, 16),
                                  ImmutableSet.of(3)),
                  RangeMultimap.asMapOfRanges());
     try {
-      sub.put(Range.open(9, 12), ImmutableSet.of(5));
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException expected) {}
-  }
-
-  @Test
-  public void testsubRangeMapPutCoalescing() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.open(3, 7), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closed(9, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closed(12, 16), ImmutableSet.of(3));
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
-                                                                                                        11));
-    assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
-                                 ImmutableSet.of(2)),
-                 sub.asMapOfRanges());
-    sub.putCoalescing(Range.closed(7, 9), ImmutableSet.of(2));
-    assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(7, 10),
-                                 ImmutableSet.of(2)),
-                 sub.asMapOfRanges());
-    assertEquals(ImmutableMap.of(Range.open(3, 7), ImmutableSet.of(1), Range.closed(7, 10),
-                                 ImmutableSet.of(2), Range.closed(12, 16), ImmutableSet.of(3)),
-                 RangeMultimap.asMapOfRanges());
-
-    sub.putCoalescing(Range.singleton(7), ImmutableSet.of(1));
-    assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.singleton(7),
-                                 ImmutableSet.of(2, 1), Range.openClosed(7, 10),
-                                 ImmutableSet.of(2)),
-                 sub.asMapOfRanges());
-    assertEquals(ImmutableMap.of(Range.open(3, 7), ImmutableSet.of(1), Range.singleton(7),
-                                 ImmutableSet.of(2, 1), Range.openClosed(7, 10), ImmutableSet.of(2),
-                                 Range.closed(12, 16), ImmutableSet.of(3)),
-                 RangeMultimap.asMapOfRanges());
-
-    try {
-      sub.putCoalescing(Range.open(9, 12), ImmutableSet.of(5));
+      sub.put(Range.open(9, 12), 5);
       fail("Expected IllegalArgumentException");
     } catch (IllegalArgumentException expected) {}
   }
@@ -478,9 +359,9 @@ public class TestTreeRangeSetMultimap {
   @Test
   public void testsubRangeMapRemove() {
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.open(3, 7), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closed(9, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closed(12, 16), ImmutableSet.of(3));
+    RangeMultimap.put(Range.open(3, 7), 1);
+    RangeMultimap.put(Range.closed(9, 10), 2);
+    RangeMultimap.put(Range.closed(12, 16), 3);
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
                                                                                                         11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
@@ -504,9 +385,9 @@ public class TestTreeRangeSetMultimap {
   @Test
   public void testsubRangeMapClear() {
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
-    RangeMultimap.put(Range.open(3, 7), ImmutableSet.of(1));
-    RangeMultimap.put(Range.closed(9, 10), ImmutableSet.of(2));
-    RangeMultimap.put(Range.closed(12, 16), ImmutableSet.of(3));
+    RangeMultimap.put(Range.open(3, 7), 1);
+    RangeMultimap.put(Range.closed(9, 10), 2);
+    RangeMultimap.put(Range.closed(12, 16), 3);
     RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
                                                                                                         11));
     sub.clear();

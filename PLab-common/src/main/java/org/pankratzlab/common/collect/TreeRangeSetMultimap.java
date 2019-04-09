@@ -25,7 +25,7 @@ public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRa
 
   @Override
   protected ImmutableSet<V> addAllToCollection(ImmutableSet<V> currentCollection,
-                                               Iterable<V> additions) {
+                                               Iterable<? extends V> additions) {
     return new ImmutableSet.Builder<V>().addAll(currentCollection).addAll(additions).build();
   }
 

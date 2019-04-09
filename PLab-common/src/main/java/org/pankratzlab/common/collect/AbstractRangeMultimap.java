@@ -9,13 +9,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import com.google.common.base.Functions;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
@@ -197,26 +194,6 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   }
 
   @Override
-  public void put(Range<K> range, C value) {
-    if (!range.isEmpty()) {
-      RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
-      Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
-      if (!existingSubRangeMapOfRanges.isEmpty()) {
-        RangeMap<K, C> updatedMappings = newRangeMap();
-        for (Map.Entry<Range<K>, C> existingEntry : existingSubRangeMapOfRanges.entrySet()) {
-          updatedMappings.put(existingEntry.getKey(),
-                              addAllToCollection(existingEntry.getValue(), value));
-        }
-        existingSubRangeMap.putAll(updatedMappings);
-      }
-      RangeSet<K> unmappedRangeSet = TreeRangeSet.create();
-      unmappedRangeSet.add(range);
-      unmappedRangeSet.removeAll(existingSubRangeMapOfRanges.keySet());
-      unmappedRangeSet.asRanges().forEach(r -> rangeMap.put(r, value));
-    }
-  }
-
-  @Override
   public void putBlind(Range<K> range, V value) {
     if (!range.isEmpty()) {
       RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(range);
@@ -258,14 +235,12 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    */
   @Override
   public boolean putAll(Multimap<? extends Range<K>, ? extends V> multimap) {
-    boolean changed = false;
+    int oldSize = size();
     for (Entry<? extends Range<K>, ? extends Collection<? extends V>> entry : multimap.asMap()
-                                                                                       .entrySet()) {
-      if (putAll(entry.getKey(), entry.getValue())) {
-        changed = true;
-      }
+                                                                                      .entrySet()) {
+      putAllBlind(entry.getKey(), entry.getValue());
     }
-    return changed;
+    return oldSize != size();
   }
 
   /**
@@ -276,30 +251,29 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   @Override
   public boolean putAll(Range<K> key, Iterable<? extends V> values) {
     int oldSize = size();
-    put(key, createCollection(values));
+    putAllBlind(key, values);
     return oldSize != size();
   }
 
-  @Override
-  public void putAll(RangeMap<K, C> rangeMap) {
-    rangeMap.asMapOfRanges().entrySet().forEach(e -> put(e.getKey(), e.getValue()));
-  }
-
-  @Override
-  public void putCoalescing(Range<K> range, C value) {
-    if (mapOfRanges.isEmpty()) {
-      put(range, value);
-      return;
-    }
-    putCoalesceEnclosed(range, value);
-    Range<K> prevRange;
-    Range<K> newRange = range;
-    do {
-      prevRange = newRange;
-      newRange = putCoalescedEdges(prevRange, value);
-    } while (prevRange != newRange && !newRange.isEmpty());
-    if (!newRange.isEmpty()) {
-      put(newRange, value);
+  private void putAllBlind(Range<K> key, Iterable<? extends V> values) {
+    if (!key.isEmpty()) {
+      RangeMap<K, C> existingSubRangeMap = rangeMap.subRangeMap(key);
+      Map<Range<K>, C> existingSubRangeMapOfRanges = existingSubRangeMap.asMapOfRanges();
+      if (!existingSubRangeMapOfRanges.isEmpty()) {
+        RangeMap<K, C> updatedMappings = newRangeMap();
+        for (Map.Entry<Range<K>, C> existingEntry : existingSubRangeMapOfRanges.entrySet()) {
+          updatedMappings.put(existingEntry.getKey(),
+                              addAllToCollection(existingEntry.getValue(), values));
+        }
+        existingSubRangeMap.putAll(updatedMappings);
+      }
+      RangeSet<K> unmappedRangeSet = TreeRangeSet.create();
+      unmappedRangeSet.add(key);
+      unmappedRangeSet.removeAll(existingSubRangeMapOfRanges.keySet());
+      if (!unmappedRangeSet.isEmpty()) {
+        C valuesColl = createCollection(values);
+        unmappedRangeSet.asRanges().forEach(r -> rangeMap.put(r, valuesColl));
+      }
     }
   }
 
@@ -392,7 +366,7 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
    * @param additions
    * @return a new C containing the contents of currentCollection and additions
    */
-  protected abstract C addAllToCollection(C currentCollection, Iterable<V> additions);
+  protected abstract C addAllToCollection(C currentCollection, Iterable<? extends V> additions);
 
   /**
    * @param currentCollection
@@ -438,144 +412,11 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
   protected abstract C removeFromCollection(C currentValues, Object removeValue);
 
   /**
-   * Coalesces the range enclosed by originalRange and puts value when possible
-   */
-  private void putCoalesceEnclosed(Range<K> originalRange, C value) {
-    RangeMultimap<K, V, C> targetSubRangeMap = subRangeMap(originalRange);
-    Set<C> distinctSubRangeVals = ImmutableSet.copyOf(targetSubRangeMap.asMapOfRanges().values());
-    if (distinctSubRangeVals.size() == 1) {
-      C currentVal = Iterables.getOnlyElement(distinctSubRangeVals);
-      C newVal = addAllToCollection(currentVal, value);
-      if ((currentVal.equals(newVal) && newVal.equals(value))
-          || perfectCoalescedMatch(targetSubRangeMap, originalRange)) {
-        rangeMap.put(originalRange, newVal);
-      }
-    }
-  }
-
-  /**
    * A somewhat hacky way to "transform" the {@code Map<Range<K>, C>} to a
    * {@code Map<Range<K>, Collection<V>>}
    */
   private Map<Range<K>, Collection<V>> collectionMapViewMapOfRanges() {
     return Maps.transformValues(mapOfRanges, Functions.identity());
-  }
-
-  private Range<K> emptyRange(K bound) {
-    return Range.openClosed(bound, bound);
-  }
-
-  /**
-   * Locates coalescable ranges at the edges of the originalRange and puts the value to the
-   * coalesced ranges
-   * 
-   * @param originalRange
-   * @param value
-   * @return the remaining range to put (maybe empty)
-   */
-  private Range<K> putCoalescedEdges(Range<K> originalRange, C value) {
-    Range<K> range = originalRange.intersection(Range.all());
-    RangeMultimap<K, V, C> targetSubRangeMap = subRangeMap(range);
-    Range<K> lowerEdgeRange = null;
-    if (range.hasLowerBound()) {
-      RangeMultimap<K, V, C> lowerSubRangeMap = subRangeMap(Range.upTo(range.lowerEndpoint(),
-                                                                        oppositeBound(range.lowerBoundType())));
-
-      Range<K> leastTarget = Iterables.getFirst(targetSubRangeMap.asMapOfRanges().keySet(), null);
-      Range<K> greatestLower = Iterables.getFirst(lowerSubRangeMap.asDescendingMapOfRanges()
-                                                                  .keySet(),
-                                                  null);
-      C leastVal = (leastTarget != null && leastTarget.lowerEndpoint().equals(range.lowerEndpoint())
-                    && leastTarget.lowerBoundType().equals(range.lowerBoundType()))
-                                                                                    ? targetSubRangeMap.asMapOfRanges()
-                                                                                                       .get(leastTarget)
-                                                                                    : emptyCollection();
-      C greatestLowerVal = (greatestLower != null
-                            && greatestLower.isConnected(range)) ? lowerSubRangeMap.asMapOfRanges()
-                                                                                   .get(greatestLower)
-                                                                 : emptyCollection();
-      C newVal = addAllToCollection(leastVal, value);
-      if (greatestLowerVal.equals(newVal)) {
-        if (greatestLower == null) greatestLower = Range.upTo(range.lowerEndpoint(),
-                                                              oppositeBound(range.lowerBoundType()));
-        else if (!greatestLower.isConnected(range)) greatestLower = Range.range(greatestLower.upperEndpoint(),
-                                                                                oppositeBound(greatestLower.upperBoundType()),
-                                                                                range.lowerEndpoint(),
-                                                                                oppositeBound(range.lowerBoundType()));
-        if (leastTarget == null) leastTarget = range;
-        else if (!leastTarget.isConnected(greatestLower)) leastTarget = Range.range(range.lowerEndpoint(),
-                                                                                    range.lowerBoundType(),
-                                                                                    leastTarget.lowerEndpoint(),
-                                                                                    oppositeBound(leastTarget.lowerBoundType()));
-        if (!greatestLower.intersection(leastTarget).isEmpty()) {
-          throw new IllegalStateException("Poorly formed coalescing ranges");
-        }
-        lowerEdgeRange = leastTarget.span(greatestLower);
-        rangeMap.put(lowerEdgeRange, newVal);
-        if (lowerEdgeRange.hasUpperBound()) {
-          range = range.span(lowerEdgeRange);
-        } else {
-          return emptyRange(range.lowerEndpoint());
-        }
-      }
-    }
-    Range<K> upperEdgeRange = null;
-    if (range.hasUpperBound()) {
-
-      RangeMultimap<K, V, C> upperSubRangeMap = subRangeMap(Range.downTo(range.upperEndpoint(),
-                                                                          oppositeBound(range.upperBoundType())));
-      Range<K> greatestTarget = Iterables.getFirst(targetSubRangeMap.asDescendingMapOfRanges()
-                                                                    .keySet(),
-                                                   null);
-      Range<K> leastUpper = Iterables.getFirst(upperSubRangeMap.asMapOfRanges().keySet(), null);
-
-      C greatestVal = (greatestTarget != null
-                       && greatestTarget.upperEndpoint().equals(range.upperEndpoint())
-                       && greatestTarget.upperBoundType().equals(range.upperBoundType()))
-                                                                                          ? targetSubRangeMap.asMapOfRanges()
-                                                                                                             .get(greatestTarget)
-                                                                                          : emptyCollection();
-      C leastUpperVal = (leastUpper != null
-                         && leastUpper.isConnected(range)) ? upperSubRangeMap.asMapOfRanges()
-                                                                             .get(leastUpper)
-                                                           : emptyCollection();
-      C newVal = addAllToCollection(greatestVal, value);
-      if (leastUpperVal.equals(newVal)) {
-
-        if (leastUpper == null) leastUpper = Range.downTo(range.upperEndpoint(),
-                                                          oppositeBound(range.upperBoundType()));
-        else if (!leastUpper.isConnected(range)) leastUpper = Range.range(leastUpper.lowerEndpoint(),
-                                                                          oppositeBound(leastUpper.lowerBoundType()),
-                                                                          range.upperEndpoint(),
-                                                                          oppositeBound(range.upperBoundType()));
-        if (greatestTarget == null) greatestTarget = range;
-        else if (!greatestTarget.isConnected(leastUpper)) greatestTarget = Range.range(greatestTarget.upperEndpoint(),
-                                                                                       oppositeBound(greatestTarget.upperBoundType()),
-                                                                                       range.upperEndpoint(),
-                                                                                       range.upperBoundType());
-        if (!leastUpper.intersection(greatestTarget).isEmpty()) {
-          throw new IllegalStateException("Poorly formed coalescing ranges");
-        }
-        upperEdgeRange = greatestTarget.span(leastUpper);
-        rangeMap.put(upperEdgeRange, newVal);
-      }
-
-    }
-    if (upperEdgeRange != null && lowerEdgeRange != null) {
-      if (upperEdgeRange.isConnected(lowerEdgeRange)) {
-        rangeMap.put(upperEdgeRange.span(lowerEdgeRange), mapOfRanges.get(upperEdgeRange));
-        return emptyRange(originalRange.lowerEndpoint());
-      }
-      return Range.range(lowerEdgeRange.upperEndpoint(),
-                         oppositeBound(lowerEdgeRange.upperBoundType()),
-                         upperEdgeRange.lowerEndpoint(),
-                         oppositeBound(upperEdgeRange.lowerBoundType()));
-    }
-    if (upperEdgeRange != null) return originalRange.intersection(Range.upTo(upperEdgeRange.lowerEndpoint(),
-                                                                             oppositeBound(upperEdgeRange.lowerBoundType())));
-    if (lowerEdgeRange != null) return originalRange.intersection(Range.downTo(lowerEdgeRange.upperEndpoint(),
-                                                                               oppositeBound(lowerEdgeRange.upperBoundType())));
-    return originalRange;
   }
 
   @SuppressWarnings("unchecked")
@@ -588,21 +429,4 @@ public abstract class AbstractRangeMultimap<K extends Comparable<?>, V, C extend
     }
   }
 
-  private static BoundType oppositeBound(BoundType type) {
-    switch (type) {
-      case OPEN:
-        return BoundType.CLOSED;
-      case CLOSED:
-        return BoundType.OPEN;
-      default:
-        throw new IllegalStateException("Unknown " + BoundType.class.getName() + ": " + type);
-    }
-  }
-
-  private static <K extends Comparable<?>, V, C extends Collection<V>> boolean perfectCoalescedMatch(RangeMultimap<K, V, C> rangeMap,
-                                                                                                     Range<K> range) {
-    RangeSet<K> rangeMapRanges = ImmutableRangeSet.copyOf(rangeMap.asMapOfRanges().keySet());
-    return rangeMapRanges.asRanges().size() == 1 && rangeMapRanges.encloses(range);
-
-  }
 }

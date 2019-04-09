@@ -69,14 +69,6 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
   boolean containsEntry(Object key, Object value);
 
   /**
-   * Adds the items in value to the mappings for range. Specifically, after a call to put(range,
-   * value), if range.contains(k), then get(k) will return a collection that contains everything in
-   * value. To perform the replacing put that {@link RangeMap}s generally exhibit, use
-   * {@link #replaceValues(Range, Iterable)} If range is empty, then this is a no-op.
-   */
-  void put(Range<K> range, C value);
-
-  /**
    * {@link #put(Object, Object)} without the (generally useless) return value based on size
    * changing
    */
@@ -93,10 +85,6 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
   Map<Range<K>, C> asMapOfRanges();
 
   Entry<Range<K>, C> getEntry(K key);
-
-  void putAll(RangeMap<K, C> rangeMap);
-
-  void putCoalescing(Range<K> range, C value);
 
   void remove(Range<K> range);
 
