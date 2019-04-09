@@ -1,4 +1,4 @@
-package org.genvisis.cnv.affy;
+package org.genvisis.dead.affy;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -266,15 +266,15 @@ public class AffySNP6Tables {
               }
             } else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A")
                        || !sigBLine[0].equals(callLine[0] + "-B")) {
-              log.reportError("Error: probeset identifier mismatch between calls/confidence/signal files ");
-              System.exit(1);
-            } else if (!sigReader.ready()) {
-              log.reportError("Error: probeset identifier discordance between calls/confidence/signal files");
-              return;
-            } else {
-              log.reportError("This Should Not Happen");
-              System.exit(1);
-            }
+                         log.reportError("Error: probeset identifier mismatch between calls/confidence/signal files ");
+                         System.exit(1);
+                       } else if (!sigReader.ready()) {
+                         log.reportError("Error: probeset identifier discordance between calls/confidence/signal files");
+                         return;
+                       } else {
+                         log.reportError("This Should Not Happen");
+                         System.exit(1);
+                       }
             callLine = callReader.readLine().trim().split(delimiter, -1);
             confLine = confReader.readLine().trim().split(delimiter, -1);
             sigALine = sigReader.readLine().trim().split(delimiter, -1);

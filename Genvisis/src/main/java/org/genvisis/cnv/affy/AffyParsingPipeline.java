@@ -373,7 +373,7 @@ public class AffyParsingPipeline {
 
     double scale = proj.XY_SCALE_FACTOR.getValue();
     for (int i = 0; i < numSamples; i++) {
-      xs[i] = ys[i] = (float) (AffySNP6Tables.power2(sigs[i + 1]) / scale);
+      xs[i] = ys[i] = (float) (power2(sigs[i + 1]) / scale);
       bafs[i] = lrrs[i] = gcs[i] = 0;
       abGenos[i] = -1;
     }
@@ -411,8 +411,8 @@ public class AffyParsingPipeline {
     for (int i = 0; i < numSamples; i++) {
       abGenos[i] = (byte) Integer.parseInt(calls[i + 1]);
       gcs[i] = Float.parseFloat(confs[i + 1]);
-      xs[i] = (float) (AffySNP6Tables.power2(sigsA[i + 1]) / scale);
-      ys[i] = (float) (AffySNP6Tables.power2(sigsB[i + 1]) / scale);
+      xs[i] = (float) (power2(sigsA[i + 1]) / scale);
+      ys[i] = (float) (power2(sigsB[i + 1]) / scale);
     }
     MarkerData md = new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas,
                                    rs, bafs, lrrs, abGenos, forwardGenos);
@@ -421,6 +421,10 @@ public class AffyParsingPipeline {
     return new MarkerData(mkr, (byte) 0, 0, fingerprint, gcs, xRaws, yRaws, xs, ys, thetas, rs,
                           centroid.getRecomputedBAF(), centroid.getRecomputedLRR(), abGenos,
                           forwardGenos);
+  }
+
+  private static double power2(String signal) {
+    return (Math.pow(2, Double.parseDouble(signal)));
   }
 
   private void ensureSame(String conf, String call, String sigA, String sigB) {

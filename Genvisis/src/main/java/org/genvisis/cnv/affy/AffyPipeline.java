@@ -8,8 +8,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
+import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
 import org.genvisis.cnv.analysis.CentroidCompute;
 import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
@@ -453,7 +453,7 @@ public class AffyPipeline {
   }
 
   public static void run(Project proj, String aptExeDir, String aptLibDir, String quantNormTarget,
-                         boolean full, int numThreads) throws Elision {
+                         boolean full, String markerPositions, int numThreads) throws Elision {
     Logger log = proj.getLog();
     if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_EXTENSION)
         && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_GZ_EXTENSION)) {
@@ -464,8 +464,8 @@ public class AffyPipeline {
                                    proj.SOURCE_FILENAME_EXTENSION.getValue(), true, true);
     GenomeBuild build = proj.GENOME_BUILD_VERSION.getValue();
 
-    runInternal(celFiles, log, quantNormTarget, full, null, build, proj, aptExeDir, aptLibDir,
-                numThreads);
+    runInternal(celFiles, log, quantNormTarget, full, markerPositions, build, proj, aptExeDir,
+                aptLibDir, numThreads);
 
   }
 
@@ -609,7 +609,7 @@ public class AffyPipeline {
     String aptExeDir = "~/apt-1.18.0-x86_64-intel-linux/bin/";
     String aptLibDir = "~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
     String outDir = "~/Affy6_results/";
-    String markerPositions = "~/resources/hg18.affy6.markerPostions";
+    String markerPositions = null;
     int numThreads = 1;
     int markerBuffer = DEFAULT_MARKER_BUFFER;
     int maxWritersOpen = DEFAULT_MAX_WRITERS;
@@ -631,8 +631,9 @@ public class AffyPipeline {
                    + aptLibDir + " (default))\n" + "   (6) output directory  (i.e. outDir=" + outDir
                    + " (default))\n"
                    + "   (7) full path to a file of marker positions (i.e. markerPositions="
-                   + markerPositions + " (default))\n" + "   (8) optional: number of threads (i.e. "
-                   + PSF.Ext.NUM_THREADS_COMMAND + "=" + numThreads + " (default))\n"
+                   + "\"~/resources/hg18.affy6.markerPostions\" (not the default))\n"
+                   + "   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "="
+                   + numThreads + " (default))\n"
                    + "   (9) optional: number of markers to buffer when splitting files (i.e. markerBuffer="
                    + markerBuffer + " (default))\n"
                    + "   (10) optional: maximum number of writers to open, if this is less than the sample size parsing will slow drastically (i.e. maxWritersOpen="
@@ -701,7 +702,13 @@ public class AffyPipeline {
       if (projFile != null) {
         Project proj = new Project(projFile);
         try {
-          run(proj, aptExeDir, aptLibDir, targetSketch, full, numThreads);
+          if (markerPositions == null && Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
+            proj.getLog()
+                .reportTimeWarning("No MarkerPositions argument present; using project file at "
+                                   + proj.MARKER_POSITION_FILENAME.getValue());
+            markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
+          }
+          run(proj, aptExeDir, aptLibDir, targetSketch, full, markerPositions, numThreads);
         } catch (Elision e1) {
           System.err.println(e1.getMessage());
         }

@@ -1,4 +1,4 @@
-package org.genvisis.cnv.affy;
+package org.genvisis.dead.affy;
 
 import java.io.Serializable;
 import java.util.ArrayList;

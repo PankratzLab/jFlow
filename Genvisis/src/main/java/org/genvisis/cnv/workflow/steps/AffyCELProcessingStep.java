@@ -11,9 +11,9 @@ import org.genvisis.cnv.workflow.Requirement.DirRequirement;
 import org.genvisis.cnv.workflow.Requirement.FileRequirement;
 import org.genvisis.cnv.workflow.Requirement.OptionalBoolRequirement;
 import org.genvisis.cnv.workflow.RequirementSet.RequirementSetBuilder;
-import org.genvisis.seq.GenomeBuild;
 import org.genvisis.cnv.workflow.Step;
 import org.genvisis.cnv.workflow.Variables;
+import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.PSF;
@@ -77,7 +77,7 @@ public class AffyCELProcessingStep extends Step {
     int numThreads = variables.get(numThreadsReq);
 
     try {
-      AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, full, numThreads);
+      AffyPipeline.run(proj, aptExeDir, aptLibDir, quantNormTarget, full, null, numThreads);
     } catch (Elision e) {
       throw new RuntimeException(e);
     }
