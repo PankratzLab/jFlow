@@ -7,64 +7,43 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.genvisis.cnv.LaunchProperties;
-import org.genvisis.cnv.LaunchProperties.DefaultLaunchKeys;
 import org.genvisis.cnv.Resources;
 import org.genvisis.cnv.Resources.Resource;
-import org.genvisis.cnv.analysis.CentroidCompute;
-import org.genvisis.cnv.analysis.CentroidCompute.CentroidBuilder;
-import org.genvisis.cnv.filesys.Centroids;
 import org.genvisis.cnv.filesys.MarkerSetInfo;
 import org.genvisis.cnv.filesys.Project;
-import org.genvisis.cnv.filesys.Project.ARRAY;
-import org.genvisis.cnv.filesys.Project.SOURCE_FILE_DELIMITERS;
 import org.genvisis.cnv.manage.Markers;
-import org.genvisis.cnv.manage.SourceFileParser;
-import org.genvisis.cnv.manage.TransposeData;
-import org.genvisis.cnv.var.SampleData;
-import org.genvisis.cnv.workflow.GenvisisWorkflow;
 import org.genvisis.seq.GenomeBuild;
 import org.pankratzlab.common.ArrayUtils;
 import org.pankratzlab.common.CmdLine;
 import org.pankratzlab.common.Command;
 import org.pankratzlab.common.Elision;
 import org.pankratzlab.common.Files;
-import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.PSF;
 import org.pankratzlab.common.ext;
 
-/**
- * @author lane0212 Maybe the last affy raw data processor.
- *         <p>
- *         Takes us from .CEL -> to Genvisis. Requires affy power tools and related library files
- *         <p>
- *         Basically follows http://penncnv.openbioinformatics.org/en/latest/user-guide/affy/
- */
-public class AffyPipeline {
+public class AxiomPipeline {
 
-  public static final String AFFY_CEL_EXTENSION = ".cel";
-  public static final String AFFY_CEL_GZ_EXTENSION = ".cel.gz";
-  private static final String AFFY_CEL_LIST_HEADER = "cel_files";
+  public static final String CEL_EXTENSION = ".cel";
+  public static final String CEL_GZ_EXTENSION = ".cel.gz";
+  private static final String CEL_LIST_HEADER = "cel_files";
   private static final String AFFY_PROBELIST_HEADER = "probeset_id";
 
+  private final String axiomXMLDefFile; // e.g. Axiom_tx_v1.r5.apt-probeset-genotype.AxiomSS1.apt2.xml
+  private final String cdfFile;
   private final String aptExeDir;// holds "apt-geno-qc", "apt-probeset-genotype",
                                  // "apt-probeset-summarize" etc
-  private final String aptLibDir;
-  private final boolean full;
   private final Logger log;
 
-  public AffyPipeline(String aptExeDir, String aptLibDir, boolean full, Logger log) {
+  public AxiomPipeline(String xmlDefsFile, String aptExeDir, Logger log) {
+    this.axiomXMLDefFile = xmlDefsFile;
+    // TODO don't auto-discover this file unless unspecified, and warn if doing so
+    this.cdfFile = Files.list(ext.verifyDirFormat(ext.parseDirectoryOfFile(xmlDefsFile)), "",
+                              ".cdf", false, true)[0];
     this.aptExeDir = aptExeDir;
-    this.aptLibDir = aptLibDir;
-    this.full = full;
     this.log = log;
     if (!new File(aptExeDir).exists()) {
       log.reportError(aptExeDir + " did not exist (Affy exe directory)");
-      throw new IllegalArgumentException();
-    }
-    if (!new File(aptLibDir).exists()) {
-      log.reportError(aptLibDir + " did not exist (Affy lib directory)");
       throw new IllegalArgumentException();
     }
     validatePreReq();
@@ -72,12 +51,9 @@ public class AffyPipeline {
   }
 
   private void validatePreReq() {
-
-    for (int i = 0; i < AFFY_LIB_FILES.values().length; i++) {
-      if (!Files.exists(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full))) {
-        log.reportError(aptLibDir + AFFY_LIB_FILES.values()[i].getLibFile(full) + " did not exist");
-        throw new IllegalArgumentException();
-      }
+    if (!Files.exists(axiomXMLDefFile)) {
+      log.reportError(axiomXMLDefFile + " could not be found.");
+      throw new IllegalArgumentException(axiomXMLDefFile + " could not be found.");
     }
 
     for (int i = 0; i < AFFY_ANALYSIS_TYPES.values().length; i++) {
@@ -92,44 +68,9 @@ public class AffyPipeline {
   }
 
   /**
-   * Required library files for our pipeline
-   */
-  private static enum AFFY_LIB_FILES {
-    GW6_CDF("GenomeWideSNP_6.cdf"),
-    GW6_BIRDSEED_MODELS("GenomeWideSNP_6.birdseed-v2.models"),
-    GW6_SPECIAL_SNPS("GenomeWideSNP_6.specialSNPs"),
-    GW6_CHRX("GenomeWideSNP_6.chrXprobes"),
-    GW6_CHRY("GenomeWideSNP_6.chrYprobes");
-
-    private String libFile;
-
-    private AFFY_LIB_FILES(String libFile) {
-      this.libFile = libFile;
-    }
-
-    public String getLibFile(boolean full) {
-      if (full) {
-        switch (this) {
-          case GW6_CDF:
-          case GW6_SPECIAL_SNPS:
-            return ext.addToRoot(libFile, ".Full");
-          case GW6_CHRY:
-          case GW6_BIRDSEED_MODELS:
-          case GW6_CHRX:
-          default:
-            break;
-
-        }
-      }
-      return libFile;
-
-    }
-  }
-
-  /**
    * The basic analyses we perform
    */
-  public static enum AFFY_ANALYSIS_TYPES {
+  private static enum AFFY_ANALYSIS_TYPES {
 
     GENERATE_PROBE_LIST("apt-probeset-summarize"),
     GENOTYPE("apt-probeset-genotype"),
@@ -153,7 +94,7 @@ public class AffyPipeline {
 
   private String generateCelList(String[] celFiles, String outDir, String analysisName) {
     String celListFile = outDir + analysisName + ".celList.txt";
-    String[] toWrite = new String[] {AFFY_CEL_LIST_HEADER};
+    String[] toWrite = new String[] {CEL_LIST_HEADER};
     toWrite = ArrayUtils.concatAll(toWrite, celFiles);
     Files.writeArray(toWrite, celListFile);
     return celListFile;
@@ -199,7 +140,7 @@ public class AffyPipeline {
     String currentAnalysis = analysisName + "_probelistGenerator";
     try {
       PrintWriter writer = Files.openAppropriateWriter(smallCelList);
-      writer.println(AFFY_CEL_LIST_HEADER);
+      writer.println(CEL_LIST_HEADER);
       writer.println(celFile);
       writer.close();
     } catch (Exception e) {
@@ -209,8 +150,10 @@ public class AffyPipeline {
 
     ArrayList<String> psetCommand = new ArrayList<>();
     psetCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENERATE_PROBE_LIST.getExe());
+    psetCommand.add("--xml-file");
+    psetCommand.add(axiomXMLDefFile);
     psetCommand.add("--cdf-file");
-    psetCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
+    psetCommand.add(cdfFile);
     psetCommand.add("--analysis");
     psetCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
     psetCommand.add("--out-dir");
@@ -319,23 +262,21 @@ public class AffyPipeline {
   }
 
   private NormalizationResult normalize(String celListFile, String pIDFile, String analysisName,
-                                        String outDirRoot, String targetSketch) {
+                                        String outDirRoot) {
     String outCurrent = outDirRoot + analysisName + "_Normalization/";
     new File(outCurrent).mkdirs();
     ArrayList<String> normalizeCommand = new ArrayList<>();
     normalizeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.NORMALIZE.getExe());
+    normalizeCommand.add("--xml-file");
+    normalizeCommand.add(axiomXMLDefFile);
     normalizeCommand.add("--cdf-file");
-    normalizeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
+    normalizeCommand.add(cdfFile);
     normalizeCommand.add("--analysis");
     normalizeCommand.add("quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true");
-    normalizeCommand.add("--target-sketch");
-    normalizeCommand.add(targetSketch);
     normalizeCommand.add("--out-dir");
     normalizeCommand.add(outCurrent);
     normalizeCommand.add("--cel-files");
     normalizeCommand.add(celListFile);
-    normalizeCommand.add("--probeset-ids");
-    normalizeCommand.add(pIDFile);
     normalizeCommand.add("--set-analysis-name");
     normalizeCommand.add(analysisName);
 
@@ -388,24 +329,14 @@ public class AffyPipeline {
     new File(outCurrent).mkdirs();
     ArrayList<String> genotypeCommand = new ArrayList<>();
     genotypeCommand.add(aptExeDir + AFFY_ANALYSIS_TYPES.GENOTYPE.getExe());
-    genotypeCommand.add("-c");
-    genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CDF.getLibFile(full));
+    genotypeCommand.add("--xml-file");
+    genotypeCommand.add(axiomXMLDefFile);
+    genotypeCommand.add("--cdf-file");
+    genotypeCommand.add(cdfFile);
     genotypeCommand.add("--table-output");
     genotypeCommand.add("true");
-    genotypeCommand.add("-a");
-    genotypeCommand.add("birdseed-v2");
     genotypeCommand.add("--set-gender-method");
     genotypeCommand.add("cn-probe-chrXY-ratio");
-    genotypeCommand.add("--read-models-birdseed");
-    genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_BIRDSEED_MODELS.getLibFile(full));
-    genotypeCommand.add("--special-snps");
-    genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_SPECIAL_SNPS.getLibFile(full));
-    genotypeCommand.add("--chrX-probes");
-    genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRX.getLibFile(full));
-    genotypeCommand.add("--chrY-probes");
-    genotypeCommand.add(aptLibDir + AFFY_LIB_FILES.GW6_CHRY.getLibFile(full));
-    genotypeCommand.add("--probeset-ids");
-    genotypeCommand.add(pIDFile);
     genotypeCommand.add("--set-analysis-name");
     genotypeCommand.add(analysisName);
     genotypeCommand.add("-out-dir");
@@ -451,104 +382,26 @@ public class AffyPipeline {
     }
   }
 
-  public static void run(Project proj, String aptExeDir, String aptLibDir, String quantNormTarget,
-                         boolean full, String markerPositions, int numThreads) throws Elision {
+  private static void run(String xmlDefsFile, String markerPositions, Project proj,
+                          String aptExeDir, int numThreads) throws Elision {
     Logger log = proj.getLog();
-    if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_EXTENSION)
-        && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(AFFY_CEL_GZ_EXTENSION)) {
-      log.reportError("Source file extension should be \"" + AFFY_CEL_EXTENSION + "\" or \""
-                      + AFFY_CEL_GZ_EXTENSION + "\" for Affymetrix projects.  Parsing may fail.");
+    if (!proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(CEL_EXTENSION)
+        && !proj.SOURCE_FILENAME_EXTENSION.getValue().toLowerCase().equals(CEL_GZ_EXTENSION)) {
+      log.reportError("Source file extension should be \"" + CEL_EXTENSION + "\" or \""
+                      + CEL_GZ_EXTENSION + "\" for Affymetrix projects.  Parsing may fail.");
     }
     String[] celFiles = Files.list(proj.SOURCE_DIRECTORY.getValue(), null,
                                    proj.SOURCE_FILENAME_EXTENSION.getValue(), true, true);
     GenomeBuild build = proj.GENOME_BUILD_VERSION.getValue();
 
-    runInternal(celFiles, log, quantNormTarget, full, markerPositions, build, proj, aptExeDir,
-                aptLibDir, numThreads);
-
-  }
-
-  public static void run(String aptExeDir, String aptLibDir, String cels, String outDir,
-                         String quantNormTarget, String analysisName, String markerPositions,
-                         boolean full, int numThreads, GenomeBuild build,
-                         boolean prepImputation) throws Elision {
-    new File(outDir).mkdirs();
-    Logger log = new Logger(outDir + "affyPipeline.log");
-    String[] celFiles;
-    if (Files.isDirectory(cels)) {
-      celFiles = Files.list(cels, null, AFFY_CEL_EXTENSION, false, true);
-    } else {
-      celFiles = HashVec.loadFileToStringArray(cels, false, new int[] {0}, true);
-    }
-    Project proj = createProject(log, outDir, analysisName, build);
-
-    runInternal(celFiles, log, quantNormTarget, full, markerPositions, build, proj, aptExeDir,
-                aptLibDir, numThreads);
-
-    if (proj.getSourceFileHeaders(true) == null || proj.getSourceFileHeaders(true).size() == 0
-        || Files.exists(proj.PROJECT_DIRECTORY.getValue() + Project.HEADERS_FILENAME)) {
-      new File(proj.PROJECT_DIRECTORY.getValue() + Project.HEADERS_FILENAME).delete();
-    }
-    proj = new Project(proj.getPropertyFilename());
-    SourceFileParser.createFiles(proj, numThreads);
-    TransposeData.transposeData(proj, 2000000000, false);
-    CentroidCompute.computeAndDumpCentroids(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(),
-                                            new CentroidBuilder(), numThreads, 2);
-    Centroids.recompute(proj, proj.CUSTOM_CENTROIDS_FILENAME.getValue(), false, numThreads);
-    TransposeData.transposeData(proj, 2000000000, false);
-    SampleData.createMinimalSampleData(proj);
-    GenvisisWorkflow.setupImputationDefaults(proj);
-
-  }
-
-  private static Project createProject(Logger log, String outDir, String analysisName,
-                                       GenomeBuild build) {
-    String propFileDir = LaunchProperties.get(DefaultLaunchKeys.PROJECTS_DIR);
-    log.reportTimeInfo("Generating Genvisis project properties file in " + propFileDir);
-
-    String outDirFull = new File(outDir).getAbsolutePath();
-    String projectFile = propFileDir + analysisName + ".properties";
-    Files.write("PROJECT_DIRECTORY=" + outDirFull, projectFile);
-    Project proj = new Project(projectFile);
-    proj.PROJECT_NAME.setValue(analysisName);
-    proj.PROJECT_DIRECTORY.setValue(outDirFull);
-    proj.SOURCE_DIRECTORY.setValue(analysisName + "_00src");
-    proj.PROJECT_NAME.setValue(analysisName);
-    proj.XY_SCALE_FACTOR.setValue((double) 100);
-
-    proj.ARRAY_TYPE.setValue(ARRAY.AFFY_GW6);
-
-    proj.SOURCE_FILENAME_EXTENSION.setValue(".txt.gz");
-    proj.SOURCE_FILE_DELIMITER.setValue(SOURCE_FILE_DELIMITERS.TAB);
-    proj.ID_HEADER.setValue("[FILENAME_ROOT]");
-    proj.LONG_FORMAT.setValue(false);
-    proj.GENOME_BUILD_VERSION.setValue(build);
-    proj.MARKER_DATA_DIRECTORY.getValue(true, false);
-    return proj;
-  }
-
-  private static void runInternal(String[] celFiles, Logger log, String quantNormTarget,
-                                  boolean full, String markerPositions, GenomeBuild build,
-                                  Project proj, String aptExeDir, String aptLibDir,
-                                  int numThreads) throws Elision {
-
     validateCelSelection(celFiles, log);
-    log.reportTimeInfo("Found " + celFiles.length + " " + AFFY_CEL_EXTENSION + " files to process");
-
-    if (quantNormTarget == null || !Files.exists(quantNormTarget)) {
-      throw new IllegalArgumentException("A valid target sketch file is required, and available from http://www.openbioinformatics.org/penncnv/download/gw6.tar.gz");
-    }
-    if (full) {
-      log.reportTimeInfo("Running with full affymetrix cdf");
-    } else {
-      log.reportTimeInfo("Running with default affymetrix cdf, use the \"-full\" command to use the full version");
-    }
+    log.reportTimeInfo("Found " + celFiles.length + " " + CEL_EXTENSION + " files to process");
 
     if (markerPositions == null || !Files.exists(markerPositions)) {
       if (markerPositions != null) {
         log.reportError("Could not find marker position file " + markerPositions);
       }
-      Resource markerPos = Resources.affy(log).genome(build).getMarkerPositions();
+      Resource markerPos = Resources.axiomTx(log).genome(build).getMarkerPositions();
       if (!markerPos.isAvailable()) {
         throw new IllegalArgumentException("Affymetrix marker positions file for build "
                                            + build.getBuild()
@@ -562,7 +415,7 @@ public class AffyPipeline {
       }
     }
 
-    AffyPipeline pipeline = new AffyPipeline(aptExeDir, aptLibDir, full, log);
+    AxiomPipeline pipeline = new AxiomPipeline(xmlDefsFile, aptExeDir, log);
     Probesets probeSets = pipeline.getAnalysisProbesetList(celFiles[0],
                                                            proj.PROJECT_DIRECTORY.getValue(),
                                                            proj.PROJECT_NAME.getValue(),
@@ -583,8 +436,7 @@ public class AffyPipeline {
     NormalizationResult normalizationResult = pipeline.normalize(celListFile,
                                                                  probeSets.getAllFile(),
                                                                  proj.PROJECT_NAME.getValue(),
-                                                                 proj.PROJECT_DIRECTORY.getValue(),
-                                                                 quantNormTarget);
+                                                                 proj.PROJECT_DIRECTORY.getValue());
     if (normalizationResult.isFail()) {
       throw new Elision("Critical Error - Normalization failed!");
     }
@@ -604,31 +456,23 @@ public class AffyPipeline {
   public static void main(String[] args) {
     String analysisName = "Genvisis_affy_pipeline";
     String cels = "~/Affy6/cels/";
-    String targetSketch = "~/resources/hapmap.quant-norm.normalization-target.txt";
     String aptExeDir = "~/apt-1.18.0-x86_64-intel-linux/bin/";
-    String aptLibDir = "~/CD_GenomeWideSNP_6_rev3/Full/GenomeWideSNP_6/LibFiles/";
+    String xmlDefsFile = "";
     String outDir = "~/Affy6_results/";
     String markerPositions = null;
     int numThreads = 1;
     int markerBuffer = DEFAULT_MARKER_BUFFER;
     int maxWritersOpen = DEFAULT_MAX_WRITERS;
     int numArgs = args.length;
-    boolean full = false;
-    boolean prepImputation = false;
     GenomeBuild build = GenomeBuild.HG18;
     String projFile = null;
 
-    String usage = "\n" + "affy.AffyPipeline requires 0-1 arguments\n"
+    String usage = "\n" + "affy.AxiomPipeline requires 0-1 arguments\n"
                    + "   (1) analysis name (i.e. analysisName=" + analysisName + " (default))\n"
-                   + "   (2) a directory or full path to a file containing " + AFFY_CEL_EXTENSION
+                   + "   (2) a directory or full path to a file containing " + CEL_EXTENSION
                    + " files for analysis (i.e. cels=" + cels + " (default))\n"
-                   + "   (3) a target sketch file (such as hapmap.quant-norm.normalization-target.txt Available at ) (i.e. sketch="
-                   + targetSketch + " (default))\n"
                    + "   (4) directory with Affy Power Tools executables (should contain apt-probeset-genotype, etc. Available at http://www.affymetrix.com/) (i.e. aptExeDir="
                    + aptExeDir + " (default))\n"
-                   + "   (5) directory with Affy Power Tools library files (should contain GenomeWideSNP_6.cdf, etc. Available at http://www.affymetrix.com/) (i.e. aptLibDir="
-                   + aptLibDir + " (default))\n" + "   (6) output directory  (i.e. outDir=" + outDir
-                   + " (default))\n"
                    + "   (7) full path to a file of marker positions (i.e. markerPositions="
                    + "\"~/resources/hg18.affy6.markerPostions\" (not the default))\n"
                    + "   (8) optional: number of threads (i.e. " + PSF.Ext.NUM_THREADS_COMMAND + "="
@@ -660,23 +504,14 @@ public class AffyPipeline {
       } else if (arg.startsWith("outDir=")) {
         outDir = ext.parseStringArg(arg, "");
         numArgs--;
-      } else if (arg.startsWith("sketch=")) {
-        targetSketch = ext.parseStringArg(arg, "");
-        numArgs--;
       } else if (arg.startsWith("aptExeDir=")) {
         aptExeDir = ext.parseStringArg(arg, "");
         numArgs--;
-      } else if (arg.startsWith("aptLibDir=")) {
-        aptLibDir = ext.parseStringArg(arg, "");
+      } else if (arg.startsWith("xmlDefsFile=")) {
+        xmlDefsFile = ext.parseStringArg(arg, "");
         numArgs--;
       } else if (arg.startsWith(PSF.Ext.NUM_THREADS_COMMAND)) {
         numThreads = ext.parseIntArg(arg);
-        numArgs--;
-      } else if (arg.startsWith("-full")) {
-        full = true;
-        numArgs--;
-      } else if (arg.startsWith("-prepImputation")) {
-        prepImputation = true;
         numArgs--;
       } else if (arg.startsWith("build=")) {
         try {
@@ -698,22 +533,17 @@ public class AffyPipeline {
       System.exit(1);
     }
     try {
-      if (projFile != null) {
-        Project proj = new Project(projFile);
-        try {
-          if (markerPositions == null && Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
-            proj.getLog()
-                .reportTimeWarning("No MarkerPositions argument present; using project file at "
-                                   + proj.MARKER_POSITION_FILENAME.getValue());
-            markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
-          }
-          run(proj, aptExeDir, aptLibDir, targetSketch, full, markerPositions, numThreads);
-        } catch (Elision e1) {
-          System.err.println(e1.getMessage());
+      Project proj = new Project(projFile);
+      try {
+        if (markerPositions == null && Files.exists(proj.MARKER_POSITION_FILENAME.getValue())) {
+          proj.getLog()
+              .reportTimeWarning("No MarkerPositions argument present; using project file at "
+                                 + proj.MARKER_POSITION_FILENAME.getValue());
+          markerPositions = proj.MARKER_POSITION_FILENAME.getValue();
         }
-      } else {
-        run(aptExeDir, aptLibDir, cels, outDir, targetSketch, analysisName, markerPositions, full,
-            numThreads, build, prepImputation);
+        run(xmlDefsFile, markerPositions, proj, aptExeDir, numThreads);
+      } catch (Elision e1) {
+        System.err.println(e1.getMessage());
       }
     } catch (Exception e) {
       e.printStackTrace();

@@ -653,6 +653,10 @@ public final class Resources {
       super(DIR, log, AffyAxiomTxV1.class);
     }
 
+    public AxiomTxGenomes genome(GenomeBuild build) {
+      return new AxiomTxGenomes(build, log());
+    }
+
   }
 
   /**
