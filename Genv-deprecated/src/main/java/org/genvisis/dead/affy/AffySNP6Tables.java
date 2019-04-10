@@ -266,9 +266,11 @@ public class AffySNP6Tables {
               }
             } else if (!callLine[0].equals(confLine[0]) || !sigALine[0].equals(callLine[0] + "-A")
                        || !sigBLine[0].equals(callLine[0] + "-B")) {
+
                          log.reportError("Error: probeset identifier mismatch between calls/confidence/signal files ");
                          System.exit(1);
                        } else if (!sigReader.ready()) {
+
                          log.reportError("Error: probeset identifier discordance between calls/confidence/signal files");
                          return;
                        } else {
