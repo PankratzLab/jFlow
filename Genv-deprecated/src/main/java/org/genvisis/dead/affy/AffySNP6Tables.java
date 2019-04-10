@@ -280,6 +280,7 @@ public class AffySNP6Tables {
             sigALine = sigReader.readLine().trim().split(delimiter, -1);
             sigBLine = sigReader.readLine().trim().split(delimiter, -1);
           }
+
           if (lineCount < numLinesBuffer) {
             parseLastBatch(callLine, confLine, sigALine, sigBLine, chunkCount, header);
             int numLinesTotal = chunkCount * numLinesBuffer + lineCount + 1;
