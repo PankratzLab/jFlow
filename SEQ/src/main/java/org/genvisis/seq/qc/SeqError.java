@@ -275,10 +275,10 @@ public class SeqError {
       VariantContext vcSub = VCOps.getSubset(vc, dups, VC_SUBSET_TYPE.SUBSET_LOOSE);
       VariantContext vcAlts = VCOps.getAltAlleleContext(vcSub, null, null,
                                                         ALT_ALLELE_CONTEXT_TYPE.ALL, false, log);// start
-                                                                                                                                                                      // with
-                                                                                                                                                                      // unfiltered
-                                                                                                                                                                      // easy
-                                                                                                                                                                      // test;
+                                                                                                 // with
+                                                                                                 // unfiltered
+                                                                                                 // easy
+                                                                                                 // test;
       if (vcAlts.getSampleNames().size() > 0) {// no variant calls, we do not care
         boolean tally = true;
         VariantContext vcFilteredAlts = null;
@@ -296,8 +296,8 @@ public class SeqError {
                                                                                        vContextFilterSample,
                                                                                        log)
                                                           .getSampleNames().size() == dups.size();// all
-                                                                                                                                                                                                                   // dups
-                                                                                                                                                                                                                   // pass
+                                                                                                  // dups
+                                                                                                  // pass
 
             }
             break;

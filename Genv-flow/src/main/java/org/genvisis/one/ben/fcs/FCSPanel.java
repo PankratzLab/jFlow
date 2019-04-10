@@ -252,16 +252,16 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean optionsChanged = false;
     boolean gatesChanged = false;
 
-    //    String newX = fcp.getXDataName();
-    //    String newY = fcp.getYDataName();
-    //    if (xCol == null || !newX.equals(xCol)) {
-    //      columnsChangedX = true;
-    //    }
-    //    if (yCol == null || !newY.equals(yCol)) {
-    //      columnsChangedY = true;
-    //    }
-    //    xCol = newX;
-    //    yCol = newY;
+    // String newX = fcp.getXDataName();
+    // String newY = fcp.getYDataName();
+    // if (xCol == null || !newX.equals(xCol)) {
+    // columnsChangedX = true;
+    // }
+    // if (yCol == null || !newY.equals(yCol)) {
+    // columnsChangedY = true;
+    // }
+    // xCol = newX;
+    // yCol = newY;
 
     if (prevXScale == null || prevXScale != getXAxis() || prevXScale != fcp.getXScale()) {
       scaleChanged = true;
@@ -281,7 +281,8 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     dataChanged = dataChanged || scaleChanged;
 
     PLOT_TYPE plotType = fcp.getPlotType();
-    if (plotType != prevPlotType) {}
+    if (plotType != prevPlotType) {
+    }
     prevPlotType = plotType;
 
     boolean mX = fcp.showMedian(false), mY = fcp.showMedian(true), sdX = fcp.showSD(false),
@@ -520,11 +521,11 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
     boolean[] parentGating = fcp.getParentGating();
     java.util.HashMap<Gate, boolean[]> leafGating = null;
 
-    //    if (fcp.selectedVis != null) {
-    //      fcp.log.reportTime("Assigning classification colors");
-    //      assignClassifierColors();
-    //      return;
-    //    }
+    // if (fcp.selectedVis != null) {
+    // fcp.log.reportTime("Assigning classification colors");
+    // assignClassifierColors();
+    // return;
+    // }
 
     if (fcp.getClusterAssignments() != null) {
       assignClusterColors();
@@ -1045,7 +1046,7 @@ public class FCSPanel extends AbstractPanel2 implements MouseListener, MouseMoti
               pi.next();
             }
             draggingPolyInds.add(-1); // this shouldn't technically happen, since closePolys only
-                                     // has polys with at least one vertex close to the mouse
+                                      // has polys with at least one vertex close to the mouse
           }
         }
       } else {

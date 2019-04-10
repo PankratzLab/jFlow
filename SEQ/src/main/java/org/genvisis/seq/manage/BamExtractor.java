@@ -216,8 +216,10 @@ public class BamExtractor {
 
     // If tied, check other names for chr prefix
     for (String name : Sets.difference(Sets.difference(seqNames, chrNames), noChrNames)) {
-      if (name.startsWith("chr")) chrCount++;
-      else noChrCount++;
+      if (name.startsWith("chr"))
+        chrCount++;
+      else
+        noChrCount++;
     }
     if (noChrCount > chrCount) return false;
     // If still tied, return true

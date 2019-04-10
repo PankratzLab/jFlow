@@ -149,7 +149,7 @@ public class VCFPopulationFrequency {
    */
   private static boolean run(String vcf, String popFile, String outDir, String region) {
 
-    //    validate input files exist
+    // validate input files exist
     new File(outDir).mkdirs();
     Logger log = new Logger(outDir + "popFreq.log");
     if (!Files.exists(popFile)) {
@@ -161,11 +161,11 @@ public class VCFPopulationFrequency {
       return false;
     }
 
-    //    Load populations of interest
+    // Load populations of interest
     VcfPopulation vpop = VcfPopulation.load(popFile, POPULATION_TYPE.AF, log);
     vpop.report();
 
-    //    initialize reader and validate samples
+    // initialize reader and validate samples
     VCFFileReader reader = new VCFFileReader(new File(vcf), false);
 
     boolean error = validateSamples(vpop, reader, log);
@@ -174,7 +174,7 @@ public class VCFPopulationFrequency {
       return false;
     }
 
-    //    Initialize writer and add updated header 
+    // Initialize writer and add updated header
     String outputVcf = outDir + VCFOps.getAppropriateRoot(vcf, true) + "_"
                        + ext.rootOf(popFile, true)
                        + (region == null ? ""
@@ -187,7 +187,7 @@ public class VCFPopulationFrequency {
       VariantContextWriter writer = buildVcfWriter(reader, outputVcf);
       addHeader(vpop, reader.getFileHeader(), writer);
 
-      //    Compute population specific AFs for all variants
+      // Compute population specific AFs for all variants
       int numVariantsScanned = 0;
 
       CloseableIterator<VariantContext> iter;
@@ -208,12 +208,12 @@ public class VCFPopulationFrequency {
         List<Allele> alleles = vc.getAlternateAlleles();
 
         for (String population : vpop.getSubPop().keySet()) {
-          //        number of total alleles
+          // number of total alleles
           int nTotal = vc.getCalledChrCount(vpop.getSubPop().get(population));
           StringJoiner afJoiner = new StringJoiner(",");
 
           for (Allele a : alleles) {
-            //  number of this allele
+            // number of this allele
             int nAllele = vc.getCalledChrCount(a, vpop.getSubPop().get(population));
 
             double afA = 0;

@@ -41,7 +41,7 @@ public class EMModel {
 
   private static Logicle getBiexScale(double max) {
     double w = 2; // linear decades // W=1 is weird, W=3 -> "scale() didn't
-                 // converge"
+                  // converge"
     double a = 0; // negative decades
     double decCnt = count(max);
 

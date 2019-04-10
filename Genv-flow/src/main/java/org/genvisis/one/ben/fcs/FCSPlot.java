@@ -639,7 +639,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     while (newDataLoader.getLoadState() != LOAD_STATE.LOADED) {
       Thread.yield();
     }
-    //    if (newDataLoader.getLoadState() == LOAD_STATE.LOADED) {
+    // if (newDataLoader.getLoadState() == LOAD_STATE.LOADED) {
     final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
     final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
     colNamesY.add(0, HISTOGRAM_COL);
@@ -658,43 +658,43 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
     setXScale(newDataLoader.getScaleForParam(colNames.get(1)));
 
-    //    } else {
-    //      new Thread(new Runnable() {
+    // } else {
+    // new Thread(new Runnable() {
     //
-    //        @Override
-    //        public void run() {
-    //          while (newDataLoader.getLoadState() != LOAD_STATE.LOADED) {
-    //            Thread.yield();
-    //          }
-    //          final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-    //          final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
-    //          colNamesY.add(0, HISTOGRAM_COL);
+    // @Override
+    // public void run() {
+    // while (newDataLoader.getLoadState() != LOAD_STATE.LOADED) {
+    // Thread.yield();
+    // }
+    // final ArrayList<String> colNames = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    // final ArrayList<String> colNamesY = newDataLoader.getAllDisplayableNames(DATA_SET.ALL);
+    // colNamesY.add(0, HISTOGRAM_COL);
     //
-    //          if (colNames.size() < 2) {
-    //            // TODO error, not enough data!!
-    //          }
-    //          // TODO reset GUI elements
-    //          // if (resetCols) {
-    //          SwingUtilities.invokeLater(new Runnable() {
+    // if (colNames.size() < 2) {
+    // // TODO error, not enough data!!
+    // }
+    // // TODO reset GUI elements
+    // // if (resetCols) {
+    // SwingUtilities.invokeLater(new Runnable() {
     //
-    //            @Override
-    //            public void run() {
-    //              fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
-    //              fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
-    //              fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
-    //              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
-    //              fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
-    //            }
-    //          });
+    // @Override
+    // public void run() {
+    // fcsControls.setPlotType(PLOT_TYPE.HEATMAP);
+    // fcsControls.setColumns(colNames.toArray(new String[colNames.size()]), true, 1);
+    // fcsControls.setColumns(colNamesY.toArray(new String[colNamesY.size()]), false, 1);
+    // fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(0)), false);
+    // fcsControls.setScale(newDataLoader.getScaleForParam(colNames.get(1)), true);
+    // }
+    // });
     //
-    //          setYDataName(colNames.get(0));
-    //          setXDataName(colNames.get(1));
-    //          setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
-    //          setXScale(newDataLoader.getScaleForParam(colNames.get(0)));
+    // setYDataName(colNames.get(0));
+    // setXDataName(colNames.get(1));
+    // setYScale(newDataLoader.getScaleForParam(colNames.get(0)));
+    // setXScale(newDataLoader.getScaleForParam(colNames.get(0)));
     //
-    //        }
-    //      }).start();
-    //    }
+    // }
+    // }).start();
+    // }
     dataLoader = newDataLoader;
     System.gc();
   }
@@ -744,7 +744,7 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
     } else {
       final FCSDataLoader newDataLoader = new FCSDataLoader();
       loadedData.put(filename, newDataLoader);
-      //      Thread dataLoaderThread = new Thread(() -> {
+      // Thread dataLoaderThread = new Thread(() -> {
       fcsControls.startFileLoading(newDataLoader);
       try {
         newDataLoader.loadData(filename);
@@ -756,8 +756,8 @@ public class FCSPlot extends JPanel implements WindowListener, PropertyChangeLis
         log.reportException(e);
         return;
       }
-      //      });
-      //      dataLoaderThread.start();
+      // });
+      // dataLoaderThread.start();
     }
   }
 

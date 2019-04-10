@@ -1304,7 +1304,8 @@ public class FilterNGS implements Serializable {
         if (pass.passed()) {
           VariantContext vcAlts = VCOps.getAltAlleleContext(vcCase, null, log);
           pass = caseFilters.filter(vcAlts);
-          if (pass.passed()) {}
+          if (pass.passed()) {
+          }
         }
       }
       return pass;
@@ -1465,8 +1466,8 @@ public class FilterNGS implements Serializable {
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_SAS",
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Hispanics",
                                                                    "TOPMed_freeze_5b.AF_EM_POP_DEF_Whites");
-  //  ,
-  //  "TOPMed_freeze_5b.AF"
+  // ,
+  // "TOPMed_freeze_5b.AF"
 
   public static String TOPMed_freeze_5b_AF = "TOPMed_freeze_5b.AF";
 

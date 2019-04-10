@@ -63,7 +63,8 @@ public class AnnotatedBEDCodec extends AsciiFeatureCodec<BEDFeature> {
   @Override
   public Object readActualHeader(final LineIterator lineIterator) {
     while (lineIterator.hasNext()) {
-      // Only peek, since we don't want to actually consume a line of input unless its a header line.
+      // Only peek, since we don't want to actually consume a line of input unless its a header
+      // line.
       // This prevents us from advancing past the first feature.
       final String nextLine = lineIterator.peek();
       if (isBEDHeaderLine(nextLine)) {
@@ -86,7 +87,7 @@ public class AnnotatedBEDCodec extends AsciiFeatureCodec<BEDFeature> {
   public BEDFeature decode(String[] tokens) {
     int tokenCount = tokens.length;
 
-    // The first 3 columns are non optional for BED.  We will relax this
+    // The first 3 columns are non optional for BED. We will relax this
     // and only require 2.
 
     if (tokenCount < 2) {
@@ -95,7 +96,7 @@ public class AnnotatedBEDCodec extends AsciiFeatureCodec<BEDFeature> {
 
     String chr = tokens[0];
 
-    // The BED format uses a first-base-is-zero convention,  Tribble features use 1 => add 1.
+    // The BED format uses a first-base-is-zero convention, Tribble features use 1 => add 1.
     int start = Integer.parseInt(tokens[1]) + startOffsetValue;
 
     int end = start;
@@ -111,7 +112,8 @@ public class AnnotatedBEDCodec extends AsciiFeatureCodec<BEDFeature> {
       feature.setName(name);
     }
 
-    // The rest of the columns are values unrelated to the BED format, but associated with this entry in the BED file
+    // The rest of the columns are values unrelated to the BED format, but associated with this
+    // entry in the BED file
 
     for (int i = 4; i < tokens.length; i++) {
       feature.addAnnotation(tokens[i]);
@@ -121,7 +123,7 @@ public class AnnotatedBEDCodec extends AsciiFeatureCodec<BEDFeature> {
   }
 
   protected boolean readHeaderLine(String line) {
-    //We don't parse BED header
+    // We don't parse BED header
     return false;
   }
 

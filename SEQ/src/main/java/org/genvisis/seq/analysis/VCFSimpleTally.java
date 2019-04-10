@@ -188,7 +188,7 @@ public class VCFSimpleTally {
               if (!controls.get(controlPop).isEmpty()
                   && (!VCOps.isMinorAlleleAlternate(vcControl, null) || maf > controlFreq)
                   && vcControl.getNoCallCount() != controls.get(controlPop).size()) {// rare in
-                                                                                                                                                                                                      // control
+                                                                                     // control
                 controlPass = false;
                 break;
               }
@@ -1865,11 +1865,11 @@ public class VCFSimpleTally {
               writer.print("\t"
                            + ArrayUtils.toStr(ArrayUtils.subArray(controlFuncHashes.get(j).get(key),
                                                                   0, GENE_ADD.length)));// skip
-                                                                                                                                                                                    // non-count
-                                                                                                                                                                                    // data
-                                                                                                                                                                                    // (like
-                                                                                                                                                                                    // geneset
-                                                                                                                                                                                    // denote)
+                                                                                        // non-count
+                                                                                        // data
+                                                                                        // (like
+                                                                                        // geneset
+                                                                                        // denote)
             } else {
               writer.print("\t" + ArrayUtils.toStr(blanks));
             }

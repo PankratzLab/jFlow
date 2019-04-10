@@ -183,7 +183,8 @@ public class VcfQuery {
                          + Thread.currentThread().getName());
       VcfQuery vcfQuery = new VcfQuery(vcfFile, log);
       // Set<String> EUR = vpop.getSuperPop().get("EUR");
-      if (vpop != null) {}
+      if (vpop != null) {
+      }
       byte firstChr = vcfQuery.getFirstChr();
       if (org == VCF_ORGANIZATION.ONE_PER_CHROMOSOME) {
         log.reportTimeWarning("Assuming all variants from " + ext.rootOf(vcfFile)

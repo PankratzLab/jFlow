@@ -133,42 +133,42 @@ public class VisualizationProcessor implements SampleProcessor {
     }
     fcp.setCurrentSampleInWSP(id);
 
-    //    boolean hasAll = true;
+    // boolean hasAll = true;
     //
-    //    for (String s : fcp.getGatingStrategy().getAllGateNames()) {
-    //      Gate g = fcp.getGatingStrategy().gateMap.get(s);
+    // for (String s : fcp.getGatingStrategy().getAllGateNames()) {
+    // Gate g = fcp.getGatingStrategy().gateMap.get(s);
     //
-    //      String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
-    //      String outFile = outDir + cleanedName + "/" + cleanedName + "."
-    //                       + ext.replaceWithLinuxSafeCharacters(g.getName());
+    // String cleanedName = ext.replaceWithLinuxSafeCharacters(ext.removeDirectoryInfo(sn.fcsFile));
+    // String outFile = outDir + cleanedName + "/" + cleanedName + "."
+    // + ext.replaceWithLinuxSafeCharacters(g.getName());
     //
-    //      if (Files.exists(outFile + ".png")) {
-    //        if (addlImgs.containsKey(g.getName())) {
-    //          boolean all = true;
-    //          for (AddlImage addl : addlImgs.get(g.getName())) {
-    //            String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
-    //                              + ext.replaceWithLinuxSafeCharacters(addl.name);
-    //            if (!Files.exists(outFile2 + ".png")) {
-    //              all = false;
-    //              break;
-    //            }
-    //          }
-    //          if (all) {
-    //            continue;
-    //          }
-    //        } else {
-    //          continue;
-    //        }
-    //      }
+    // if (Files.exists(outFile + ".png")) {
+    // if (addlImgs.containsKey(g.getName())) {
+    // boolean all = true;
+    // for (AddlImage addl : addlImgs.get(g.getName())) {
+    // String outFile2 = outDir + cleanedName + "/" + cleanedName + "."
+    // + ext.replaceWithLinuxSafeCharacters(addl.name);
+    // if (!Files.exists(outFile2 + ".png")) {
+    // all = false;
+    // break;
+    // }
+    // }
+    // if (all) {
+    // continue;
+    // }
+    // } else {
+    // continue;
+    // }
+    // }
     //
-    //      hasAll = false;
-    //      break;
-    //    }
-    //    if (hasAll) {
-    //      log.report("All screenshots found for " + fcp.getGatingStrategy().getAllGateNames().size()
-    //                 + " gates; Skipping FCS file: " + sn.fcsFile);
-    //      return;
-    //    }
+    // hasAll = false;
+    // break;
+    // }
+    // if (hasAll) {
+    // log.report("All screenshots found for " + fcp.getGatingStrategy().getAllGateNames().size()
+    // + " gates; Skipping FCS file: " + sn.fcsFile);
+    // return;
+    // }
 
     long time2 = System.nanoTime();
     fcp.loadFile(sn.fcsFile, true);
@@ -317,7 +317,7 @@ public class VisualizationProcessor implements SampleProcessor {
       fcp.getPanel().setDisplayTitle(true);
       fcp.getPanel().setTitleFontSize(20f);
 
-      //       fcp.setClassifierGate(g.getName());
+      // fcp.setClassifierGate(g.getName());
 
       fcp.getPanel().classifierPrev = false;
       times[1] = System.nanoTime();

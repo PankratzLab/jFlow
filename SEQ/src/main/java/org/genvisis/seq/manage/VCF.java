@@ -161,7 +161,8 @@ public class VCF {
         bamSample = new BamExtractor.BamSample(Files.listFullPaths(bamDir, ".bam"), log, true);
         bamSample.generateMap();
         bamSample.getBamSampleMap();
-        if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf(), null))) {}
+        if ((!bamSample.isFail()) && (bamSample.verify(getSamplesInVcf(), null))) {
+        }
       } else {
         extractBams = false;
         log.reportTimeInfo("Since a bam directory was not provided, we will not subset the bam files");

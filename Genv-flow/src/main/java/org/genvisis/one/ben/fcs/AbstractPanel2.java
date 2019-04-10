@@ -50,7 +50,8 @@ import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Ints;
 import edu.stanford.facs.logicle.Logicle;
 
-public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener, ComponentListener, ActionListener {
+public abstract class AbstractPanel2 extends JPanel implements MouseListener, MouseMotionListener,
+                                     MouseWheelListener, ComponentListener, ActionListener {
 
   public static final long serialVersionUID = 1L;
 
@@ -72,7 +73,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
   public static final int SIZE = 12;
   public static final double HIGHLIGHT_DISTANCE = 20;// = Math.sqrt(SIZE*SIZE/2);
   public static final int DELAY = 2; // A control variable to reduce the repaint() operations during
-                                    // component resizing;
+                                     // component resizing;
 
   public static final String X_MIN = "xMin";
   public static final String X_MAX = "xMax";
@@ -188,16 +189,16 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
   private int currentIndexInPlotPointSet;
   private int lookupResolution;
   private boolean flow; // A control variable. If resizing is not yet done, don't start
-                       // generatePoints() or drawAll();
+                        // generatePoints() or drawAll();
   private final Object IMAGE_LOCK = new Object();
   private volatile STATUS imageStatus = STATUS.IMAGE_NULL; // A control variable. If drawAll() is
-                                                          // not yet
-                                                          // done, don't start paintComponent();
+                                                           // not yet
+                                                           // done, don't start paintComponent();
   private byte[] layersInBase;
   private byte[] extraLayersVisible;
   // private boolean pointsGeneratable;
   protected Timer waitingTimer; // A control variable to reduce the repaint() operations during
-                               // component resizing;
+                                // component resizing;
   private String nullMessage;
   private final boolean randomTest;
   private int numberOfNaNSamples;
@@ -591,8 +592,8 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
   public synchronized void drawAll(Graphics g, boolean base) {
     float minimumObservedRawX, maximumObservedRawX, minimumObservedRawY, maximumObservedRawY;
     double[] plotMinMaxStep; // needs to be double, else x <= plotXmax can be inexact and leave off
-                            // the last tick mark
-                            // int sigFigs;
+                             // the last tick mark
+                             // int sigFigs;
     String /* str, */ pos;
     int xLook, yLook;
     // BufferedImage yLabel;
@@ -1881,7 +1882,7 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
           for (int k = -neighbor; k <= neighbor; k++) {
             if ((xPixel + j) >= 0 && (xPixel + j) < nColumns && (yPixel + k) >= 0
                 && (yPixel + k) < nRows) { // && Distance.euclidean(new int[] {Math.abs(j),
-                                                                                                                // Math.abs(k)}, origin) < neighbor*(neighbor-1)
+                                           // Math.abs(k)}, origin) < neighbor*(neighbor-1)
               intensities[xPixel + j][yPixel + k]++;
             }
           }
@@ -1923,11 +1924,19 @@ public abstract class AbstractPanel2 extends JPanel implements MouseListener, Mo
           // double val = (intensities[i][j] / logStep) / logHigh; // same as prev line
           // double val = ((double)intensities[i][j] / (double) max) * 1.4; // not strong enough
           double val = 1 - (2 / (Math.exp(intensities[i][j] / 100d) + 1)); // current best, a bit
-                                                                          // too strong
-                                                                          // double val = 1 - (4 / (Math.exp(intensities[i][j] / 100d) + 2)); // current best, a bit
-                                                                          // too strong
-                                                                          // double val = (flog10(intensities[i][j]) - logLow) * logStep / min;
-                                                                          // double val = intensities[i][j] / max;
+                                                                           // too strong
+                                                                           // double val = 1 - (4 /
+                                                                           // (Math.exp(intensities[i][j]
+                                                                           // / 100d) + 2)); //
+                                                                           // current best, a bit
+                                                                           // too strong
+                                                                           // double val =
+                                                                           // (flog10(intensities[i][j])
+                                                                           // - logLow) * logStep /
+                                                                           // min;
+                                                                           // double val =
+                                                                           // intensities[i][j] /
+                                                                           // max;
 
           val = Math.max(0, Math.min(1, val));
           color[i][j] = Grafik.getHeatmapColor(val);

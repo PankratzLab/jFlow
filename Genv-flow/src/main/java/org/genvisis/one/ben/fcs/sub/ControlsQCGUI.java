@@ -850,7 +850,7 @@ public class ControlsQCGUI extends JFrame {
     FontMetrics fm = table.getFontMetrics(table.getFont());
     for (int column = 0; column < table.getColumnCount(); column++) {
       int width = fm.stringWidth(columnModel.getColumn(column).getHeaderValue().toString()) + 20; // Min
-                                                                                                 // width
+                                                                                                  // width
       for (int row = 1; row < table.getRowCount(); row++) {
         TableCellRenderer renderer = table.getCellRenderer(row, column);
         Component comp = table.prepareRenderer(renderer, row, column);
@@ -1373,7 +1373,7 @@ public class ControlsQCGUI extends JFrame {
   private static final int TREND_ABOVE_1SD_THRESH = 5;
   private static final int TREND_ABOVE_2SD_THRESH = 2;
   private static final double PCT_OF_EVENTS_DEV_TREND = 0.25; // 1-quarter of events outside of 1SD
-                                                             // will result in file being reported
+                                                              // will result in file being reported
   private JButton btnMore;
 
   private void checkWarnings() {
@@ -1580,7 +1580,7 @@ public class ControlsQCGUI extends JFrame {
       for (int f = 1; f < fileSourceAndInternals.length; f++) {
         rowDataM = new Object[params.size() + 2];
         rowDataM[0] = null; // TODO check-boxes for inclusion (should be in model/view, not
-                           // underlying data structure [i.e., this class, not the data classes])
+                            // underlying data structure [i.e., this class, not the data classes])
         rowDataM[1] = fileSourceAndInternals[f];
         for (int p = 0; p < pData[i][f].length; p++) {
           rowDataM[p + 2] = pData[i][f][p];

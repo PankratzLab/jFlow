@@ -51,22 +51,22 @@ public class Deidentifier {
     File outDir = new File(rootOut);
 
     List<Conversion> allConvs = processDir(rootDir, outDir);
-    //    removeExisting(allConvs);
+    // removeExisting(allConvs);
     return allConvs;
   }
 
-  //  private void removeExisting(List<Conversion> convs) {
-  //    for (int i = convs.size() - 1; i >= 0; i--) {
-  //      try {
-  //        if (exists(convs.get(i))) {
-  //          convs.remove(i);
-  //        }
-  //      } catch (IOException e) {
-  //        Conversion c = convs.remove(i);
-  //        cantOpen(e, path(c.dir) + c.fcs);
-  //      }
-  //    }
-  //  }
+  // private void removeExisting(List<Conversion> convs) {
+  // for (int i = convs.size() - 1; i >= 0; i--) {
+  // try {
+  // if (exists(convs.get(i))) {
+  // convs.remove(i);
+  // }
+  // } catch (IOException e) {
+  // Conversion c = convs.remove(i);
+  // cantOpen(e, path(c.dir) + c.fcs);
+  // }
+  // }
+  // }
 
   public static boolean exists(Conversion c) throws IOException {
     if (!c.out.exists()) {

@@ -78,6 +78,7 @@ public class ContigCounter {
     }
 
   }
+
   /**
    * thread the contig stat gathering
    */
@@ -100,6 +101,7 @@ public class ContigCounter {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#hasNext()
      */
     @Override
@@ -109,6 +111,7 @@ public class ContigCounter {
 
     /*
      * (non-Javadoc)
+     * 
      * @see java.util.Iterator#next()
      */
     @Override
@@ -120,6 +123,7 @@ public class ContigCounter {
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.genvisis.common.WorkerTrain.Producer#shutdown()
      */
     @Override

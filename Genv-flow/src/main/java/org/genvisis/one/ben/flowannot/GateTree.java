@@ -71,8 +71,9 @@ public final class GateTree {
                                                {"NK CD56LO", "DC NK (CD20- CD14-)"},
                                                {"NK CD56HI", "NK CD56LO"},};
 
-  static final String[][] GATE_TREE_PANEL_1_orig = { // mapping[i][0] = child, mapping[i][1] = parent,
-                                                    // if length == 1, @ root
+  static final String[][] GATE_TREE_PANEL_1_orig = { // mapping[i][0] = child, mapping[i][1] =
+                                                     // parent,
+                                                     // if length == 1, @ root
                                                     {"boundary"}, {"nonDebris", "boundary"},
                                                     {"Lymphocytes (SSC-A v FSC-A)", "nonDebris"},
                                                     {"FSC-W+", "Lymphocytes (SSC-A v FSC-A)"},
@@ -221,7 +222,7 @@ public final class GateTree {
                                                         "EM4 cytotoxic Tcells (CD27-  CD28+)",};
 
   static final String[][] GATE_TREE_PANEL_1 = { // mapping[i][0] = child, mapping[i][1] = parent,
-                                               // if length == 1, @ root
+                                                // if length == 1, @ root
                                                {"boundary"}, {"nonDebris", "boundary"},
                                                {"Lymphocytes (SSC-A v FSC-A)", "nonDebris"},
                                                {"FSC-W+", "Lymphocytes (SSC-A v FSC-A)"},

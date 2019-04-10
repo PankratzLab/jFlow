@@ -134,15 +134,15 @@ public class WSPLoader {
       } else if (fcsFile.startsWith("file:/")) {
         fcsFile = fcsFile.substring(6);
       }
-      //      try {
-      //        sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
-      //      } catch (UnsupportedEncodingException e2) {
-      //        log.reportError(e2.getMessage());
+      // try {
+      // sn.fcsFile = URLDecoder.decode(fcsFile, "utf-8");
+      // } catch (UnsupportedEncodingException e2) {
+      // log.reportError(e2.getMessage());
       sn.fcsFile = fcsFile;
       if (sn.fcsFile.contains("%20")) {
         sn.fcsFile = sn.fcsFile.replaceAll("%20", " ");
       }
-      //      }
+      // }
       sn.sampleNode = sampleNode;
       sn.doc = doc;
       Gating gs = new Gating();

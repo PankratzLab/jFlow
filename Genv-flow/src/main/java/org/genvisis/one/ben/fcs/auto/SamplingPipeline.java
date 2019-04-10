@@ -53,7 +53,7 @@ public class SamplingPipeline {
   };
 
   private static final int OUTLIER_SAMPLE_EVERY = 0; // no outlier sampling // every fifth sampling
-                                                    // will be from an outlier, if possible
+                                                     // will be from an outlier, if possible
 
   WSPLoader wspLoader;
 

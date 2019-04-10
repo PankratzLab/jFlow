@@ -247,7 +247,8 @@ public class RegNovo {
                       counts.put(off, counts.get(off) + 1);
                     }
                     writer.add(vc);
-                    if (regNovo) {}
+                    if (regNovo) {
+                    }
                     segsToReview.add(VCOps.getSegment(vc));
 
                     String[] anno = VCOps.getAnnotationsFor(annos[0], vc, ".");

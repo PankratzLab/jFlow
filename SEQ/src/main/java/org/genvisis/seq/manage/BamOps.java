@@ -221,7 +221,8 @@ public class BamOps {
       if (referenceIndex < 0) {
         referenceIndex = sFileHeader.getSequenceIndex(sequenceName + "T");// MT
         if (referenceIndex < 0) {
-          referenceIndex = sFileHeader.getSequenceIndex(sequenceName.replaceAll("chr", ""));// b37 etc
+          referenceIndex = sFileHeader.getSequenceIndex(sequenceName.replaceAll("chr", ""));// b37
+                                                                                            // etc
           if (referenceIndex < 0) {
 
             log.reportError("Error - could not find " + sequenceName

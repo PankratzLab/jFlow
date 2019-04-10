@@ -191,29 +191,30 @@ public class BamSegPileUp {
         log.reportTimeWarning("Read with chromosome " + samRecordSegment.getChr()
                               + " returned from BAM query but not found in requested intervals - skipping read");
         return false;
-        //        chrRangeMap = ImmutableRangeMap.of();
-        //        bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
+        // chrRangeMap = ImmutableRangeMap.of();
+        // bamPileMap.put(samRecordSegment.getChr(), chrRangeMap);
       }
-      //      AtomicLong processTime = new AtomicLong(0);
-      //      AtomicInteger count = new AtomicInteger(0);
+      // AtomicLong processTime = new AtomicLong(0);
+      // AtomicInteger count = new AtomicInteger(0);
 
-      //      long t1 = System.nanoTime();
+      // long t1 = System.nanoTime();
       chrRangeMap.subRangeMap(Range.closed(samRecordSegment.getStart(), samRecordSegment.getStop()))
                  .asMapOfRanges().values().stream().flatMap(Collection::stream) //
                  .parallel() //
                  .forEach((bamPile) -> {
-                   //                   count.incrementAndGet();
-                   //                   long t11 = System.nanoTime();
+                   // count.incrementAndGet();
+                   // long t11 = System.nanoTime();
                    addRecordToPile(bamPile, samRecordSegment, samRecord);
-                   //                   long t21 = System.nanoTime();
-                   //                   processTime.addAndGet(t21 - t11);
+                   // long t21 = System.nanoTime();
+                   // processTime.addAndGet(t21 - t11);
                  });
-      //      long t2 = System.nanoTime();
-      //      long elaps = t2 - t1;
-      //      long ave = processTime.get() / count.get();
-      //      log.reportTime("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS) + " to process "
-      //                     + count.get() + " with an average processing time of "
-      //                     + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
+      // long t2 = System.nanoTime();
+      // long elaps = t2 - t1;
+      // long ave = processTime.get() / count.get();
+      // log.reportTime("Took " + ext.formatTimeElapsed(elaps, TimeUnit.NANOSECONDS) + " to process
+      // "
+      // + count.get() + " with an average processing time of "
+      // + ext.formatTimeElapsed(ave, TimeUnit.NANOSECONDS));
       return true;
     }
     return false;
