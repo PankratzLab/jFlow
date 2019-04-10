@@ -3,7 +3,7 @@ package org.pankratzlab.common.collect;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 
@@ -16,23 +16,23 @@ public interface RangeSetMultimap<K extends Comparable<?>, V> extends RangeMulti
    */
   @Override
   @Deprecated
-  Set<V> get(Range<K> key);
+  ImmutableSet<V> get(Range<K> key);
 
   /**
    * In keeping with the contract of the {@link Multimap} interface, this method will never return
    * null, instead returning an empty {@link Collection} when the key is not mapped
    */
   @Override
-  Set<V> get(K key);
+  ImmutableSet<V> get(K key);
 
   @Override
-  Map<Range<K>, ? extends Set<V>> asDescendingMapOfRanges();
+  Map<Range<K>, ? extends ImmutableSet<V>> asDescendingMapOfRanges();
 
   @Override
-  Map<Range<K>, ? extends Set<V>> asMapOfRanges();
+  Map<Range<K>, ? extends ImmutableSet<V>> asMapOfRanges();
 
   @Override
-  Entry<Range<K>, ? extends Set<V>> getEntry(K key);
+  Entry<Range<K>, ? extends ImmutableSet<V>> getEntry(K key);
 
   @Override
   RangeSetMultimap<K, V> subRangeMap(Range<K> range);
