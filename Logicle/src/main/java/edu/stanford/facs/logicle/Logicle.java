@@ -249,8 +249,8 @@ public class Logicle {
                   // use linear approximation in the quasi linear region
                   x = x1 + value / taylor[0];
     else
-                  // otherwise use ordinary logarithm
-                  x = Math.log(value / a) / b;
+    // otherwise use ordinary logarithm
+    x = Math.log(value / a) / b;
 
     // try for double precision unless in extended range
     double tolerance = 3 * Math.ulp(1D);
@@ -265,8 +265,8 @@ public class Logicle {
                       // near zero use the Taylor series
                       y = seriesBiexponential(x) - value;
       else
-                      // this formulation has better roundoff behavior
-                      y = (ae2bx + f) - (ce2mdx + value);
+      // this formulation has better roundoff behavior
+      y = (ae2bx + f) - (ce2mdx + value);
       double abe2bx = b * ae2bx;
       double cde2mdx = d * ce2mdx;
       double dy = abe2bx + cde2mdx;
@@ -304,8 +304,8 @@ public class Logicle {
                         // near x1, i.e., data zero use the series expansion
                         inverse = seriesBiexponential(scale);
     else
-                        // this formulation has better roundoff behavior
-                        inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
+    // this formulation has better roundoff behavior
+    inverse = (a * Math.exp(b * scale) + f) - c / Math.exp(d * scale);
 
     // handle scale for negative values
     if (negative) return -inverse;

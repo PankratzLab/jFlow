@@ -122,8 +122,8 @@ public class FastLogicle extends Logicle {
       else if (value > key) lo = mid + 1;
       else if (mid < bins) return mid;
       else
-                           // equal to table[bins] which is for interpolation only
-                           throw new LogicleArgumentException(value);
+      // equal to table[bins] which is for interpolation only
+      throw new LogicleArgumentException(value);
     }
 
     // check for out of range
