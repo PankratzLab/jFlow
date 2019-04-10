@@ -14,9 +14,9 @@ import com.google.common.collect.RangeMap;
  *
  * @param <K>
  * @param <V>
- * @param <C>
+ * @param <? extends Collection<V>>
  */
-public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<V>> extends Multimap<Range<K>, V> {
+public interface RangeMultimap<K extends Comparable<?>, V> extends Multimap<Range<K>, V> {
 
   /**
    * Removes any entries with empty collections as their value, such that {@link #asMapOfRanges()}
@@ -48,7 +48,7 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
    */
   @Override
   @Deprecated
-  C get(Range<K> key);
+  Collection<V> get(Range<K> key);
 
   /**
    * @deprecated This method will only return true when {@link #asMapOfRanges()} contains the exact
@@ -78,18 +78,18 @@ public interface RangeMultimap<K extends Comparable<?>, V, C extends Collection<
    * In keeping with the contract of the {@link Multimap} interface, this method will never return
    * null, instead returning an empty {@link Collection} when the key is not mapped
    */
-  C get(K key);
+  Collection<V> get(K key);
 
-  Map<Range<K>, C> asDescendingMapOfRanges();
+  Map<Range<K>, ? extends Collection<V>> asDescendingMapOfRanges();
 
-  Map<Range<K>, C> asMapOfRanges();
+  Map<Range<K>, ? extends Collection<V>> asMapOfRanges();
 
-  Entry<Range<K>, C> getEntry(K key);
+  Entry<Range<K>, ? extends Collection<V>> getEntry(K key);
 
   void remove(Range<K> range);
 
   Range<K> span();
 
-  RangeMultimap<K, V, C> subRangeMap(Range<K> range);
+  RangeMultimap<K, V> subRangeMap(Range<K> range);
 
 }

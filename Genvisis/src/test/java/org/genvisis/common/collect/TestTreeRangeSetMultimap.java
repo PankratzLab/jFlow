@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import org.genvisis.ExhaustiveUnitTests;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.pankratzlab.common.collect.AbstractRangeMultimap;
 import org.pankratzlab.common.collect.RangeMultimap;
 import org.pankratzlab.common.collect.TreeRangeSetMultimap;
 import com.google.common.collect.BoundType;
@@ -117,7 +118,7 @@ public class TestTreeRangeSetMultimap {
   @Test
   public void testSpanSingleRange() {
     for (Range<Integer> range : RANGES) {
-      RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+      AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
       RangeMultimap.put(range, 1);
 
       try {
@@ -133,7 +134,7 @@ public class TestTreeRangeSetMultimap {
   public void testSpanTwoRanges() {
     for (Range<Integer> range1 : RANGES) {
       for (Range<Integer> range2 : RANGES) {
-        RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+        AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
         RangeMultimap.put(range1, 1);
         RangeMultimap.put(range2, 2);
 
@@ -167,7 +168,7 @@ public class TestTreeRangeSetMultimap {
     for (Range<Integer> range : RANGES) {
       Multimap<Integer, Integer> model = HashMultimap.create();
       putModel(model, range, 1);
-      RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+      AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
       test.put(range, 1);
       verify(model, test);
     }
@@ -180,7 +181,7 @@ public class TestTreeRangeSetMultimap {
         Multimap<Integer, Integer> model = HashMultimap.create();
         putModel(model, range1, 1);
         putModel(model, range2, 2);
-        RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+        AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
         test.put(range1, 1);
         test.put(range2, 2);
         verify(model, test);
@@ -197,7 +198,7 @@ public class TestTreeRangeSetMultimap {
           putModel(model, range1, 1);
           putModel(model, range2, 2);
           putModel(model, range3, 3);
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+          AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
           test.put(range1, 1);
           test.put(range2, 2);
           test.put(range3, 3);
@@ -216,8 +217,8 @@ public class TestTreeRangeSetMultimap {
           putModel(model, range1, 1);
           putModel(model, range2, 2);
           putModel(model, range3, 3);
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test2 = TreeRangeSetMultimap.create();
+          AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+          AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test2 = TreeRangeSetMultimap.create();
           // put range2 and range3 into test2, and then put test2 into test
           test.put(range1, 1);
           test2.put(range2, 2);
@@ -236,7 +237,7 @@ public class TestTreeRangeSetMultimap {
         Multimap<Integer, Integer> model = HashMultimap.create();
         putModel(model, rangeToPut, 1);
         removeModel(model, rangeToRemove);
-        RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+        AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
         test.put(rangeToPut, 1);
         test.remove(rangeToRemove);
         verify(model, test);
@@ -253,7 +254,7 @@ public class TestTreeRangeSetMultimap {
           putModel(model, rangeToPut1, 1);
           putModel(model, rangeToPut2, 2);
           removeModel(model, rangeToRemove);
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
+          AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test = TreeRangeSetMultimap.create();
           test.put(rangeToPut1, 1);
           test.put(rangeToPut2, 2);
           test.remove(rangeToRemove);
@@ -267,19 +268,19 @@ public class TestTreeRangeSetMultimap {
   public void testsubRangeMapExhaustive() {
     for (Range<Integer> range1 : RANGES) {
       for (Range<Integer> range2 : RANGES) {
-        RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+        AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
         RangeMultimap.put(range1, 1);
         RangeMultimap.put(range2, 2);
 
         for (Range<Integer> subRange : RANGES) {
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> expected = TreeRangeSetMultimap.create();
+          AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> expected = TreeRangeSetMultimap.create();
           for (Entry<Range<Integer>, ImmutableSet<Integer>> entry : RangeMultimap.asMapOfRanges()
                                                                                  .entrySet()) {
             if (entry.getKey().isConnected(subRange)) {
               expected.putAll(entry.getKey().intersection(subRange), entry.getValue());
             }
           }
-          RangeMultimap<Integer, Integer, ImmutableSet<Integer>> subRangeMap = RangeMultimap.subRangeMap(subRange);
+          RangeMultimap<Integer, Integer> subRangeMap = RangeMultimap.subRangeMap(subRange);
           assertEquals(expected, subRangeMap);
           assertEquals(expected.asMapOfRanges(), subRangeMap.asMapOfRanges());
           assertEquals(expected.asDescendingMapOfRanges(), subRangeMap.asDescendingMapOfRanges());
@@ -305,17 +306,15 @@ public class TestTreeRangeSetMultimap {
 
   @Test
   public void testSubsubRangeMap() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+    AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
     RangeMultimap.put(Range.open(3, 7), 1);
     RangeMultimap.put(Range.closed(9, 10), 2);
     RangeMultimap.put(Range.closed(12, 16), 3);
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub1 = RangeMultimap.subRangeMap(Range.closed(5,
-                                                                                                         11));
+    RangeMultimap<Integer, Integer> sub1 = RangeMultimap.subRangeMap(Range.closed(5, 11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
                                  ImmutableSet.of(2)),
                  sub1.asMapOfRanges());
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub2 = sub1.subRangeMap(Range.open(6,
-                                                                                              15));
+    RangeMultimap<Integer, Integer> sub2 = sub1.subRangeMap(Range.open(6, 15));
     assertEquals(ImmutableMap.of(Range.open(6, 7), ImmutableSet.of(1), Range.closed(9, 10),
                                  ImmutableSet.of(2)),
                  sub2.asMapOfRanges());
@@ -323,12 +322,11 @@ public class TestTreeRangeSetMultimap {
 
   @Test
   public void testsubRangeMapPut() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+    AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
     RangeMultimap.put(Range.open(3, 7), 1);
     RangeMultimap.put(Range.closed(9, 10), 2);
     RangeMultimap.put(Range.closed(12, 16), 3);
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
-                                                                                                        11));
+    RangeMultimap<Integer, Integer> sub = RangeMultimap.subRangeMap(Range.closed(5, 11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
                                  ImmutableSet.of(2)),
                  sub.asMapOfRanges());
@@ -358,12 +356,11 @@ public class TestTreeRangeSetMultimap {
 
   @Test
   public void testsubRangeMapRemove() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+    AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
     RangeMultimap.put(Range.open(3, 7), 1);
     RangeMultimap.put(Range.closed(9, 10), 2);
     RangeMultimap.put(Range.closed(12, 16), 3);
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
-                                                                                                        11));
+    RangeMultimap<Integer, Integer> sub = RangeMultimap.subRangeMap(Range.closed(5, 11));
     assertEquals(ImmutableMap.of(Range.closedOpen(5, 7), ImmutableSet.of(1), Range.closed(9, 10),
                                  ImmutableSet.of(2)),
                  sub.asMapOfRanges());
@@ -384,12 +381,11 @@ public class TestTreeRangeSetMultimap {
 
   @Test
   public void testsubRangeMapClear() {
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
+    AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> RangeMultimap = TreeRangeSetMultimap.create();
     RangeMultimap.put(Range.open(3, 7), 1);
     RangeMultimap.put(Range.closed(9, 10), 2);
     RangeMultimap.put(Range.closed(12, 16), 3);
-    RangeMultimap<Integer, Integer, ImmutableSet<Integer>> sub = RangeMultimap.subRangeMap(Range.closed(5,
-                                                                                                        11));
+    RangeMultimap<Integer, Integer> sub = RangeMultimap.subRangeMap(Range.closed(5, 11));
     sub.clear();
     assertEquals(ImmutableMap.of(Range.open(3, 5), ImmutableSet.of(1), Range.closed(12, 16),
                                  ImmutableSet.of(3)),
@@ -397,7 +393,7 @@ public class TestTreeRangeSetMultimap {
   }
 
   private void verify(Multimap<Integer, Integer> model,
-                      RangeMultimap<Integer, Integer, ImmutableSet<Integer>> test) {
+                      AbstractRangeMultimap<Integer, Integer, ImmutableSet<Integer>> test) {
     for (int i = MIN_BOUND - 1; i <= MAX_BOUND + 1; i++) {
       assertEquals(model.get(i), test.get(i));
 

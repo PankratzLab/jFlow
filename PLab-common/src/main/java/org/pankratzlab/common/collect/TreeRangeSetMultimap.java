@@ -2,6 +2,7 @@ package org.pankratzlab.common.collect;
 
 import java.util.Set;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeMap;
@@ -13,7 +14,7 @@ import com.google.common.collect.TreeRangeMap;
  * @param <K>
  * @param <V>
  */
-public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRangeMultimap<K, V, ImmutableSet<V>> {
+public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRangeMultimap<K, V, ImmutableSet<V>> implements RangeSetMultimap<K, V> {
 
   private TreeRangeSetMultimap() {
     this(TreeRangeMap.create());
@@ -57,7 +58,7 @@ public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRa
   }
 
   @Override
-  protected AbstractRangeMultimap<K, V, ImmutableSet<V>> newRangeMultiMap(RangeMap<K, ImmutableSet<V>> underlyingRangeMap) {
+  protected TreeRangeSetMultimap<K, V> newRangeMultiMap(RangeMap<K, ImmutableSet<V>> underlyingRangeMap) {
     return new TreeRangeSetMultimap<>(underlyingRangeMap);
   }
 
@@ -67,6 +68,11 @@ public class TreeRangeSetMultimap<K extends Comparable<?>, V> extends AbstractRa
     Set<V> newSetItems = Sets.newHashSet(currentValues);
     newSetItems.remove(removeValue);
     return ImmutableSet.copyOf(newSetItems);
+  }
+
+  @Override
+  public TreeRangeSetMultimap<K, V> subRangeMap(Range<K> range) {
+    return newRangeMultiMap(getRangeMap().subRangeMap(range));
   }
 
   public static <K extends Comparable<?>, V> TreeRangeSetMultimap<K, V> create() {

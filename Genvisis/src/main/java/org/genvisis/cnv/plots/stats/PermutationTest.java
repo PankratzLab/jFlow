@@ -18,19 +18,17 @@ import org.apache.commons.cli.ParseException;
 import org.genvisis.cnv.filesys.CNVariant;
 import org.genvisis.cnv.plots.PlotUtilities;
 import org.pankratzlab.common.ArrayUtils;
+import org.pankratzlab.common.CLI;
 import org.pankratzlab.common.Files;
 import org.pankratzlab.common.GenomicPosition;
 import org.pankratzlab.common.HashVec;
 import org.pankratzlab.common.Logger;
 import org.pankratzlab.common.Matrix;
 import org.pankratzlab.common.ext;
-import org.pankratzlab.common.collect.RangeMultimap;
+import org.pankratzlab.common.collect.RangeSetMultimap;
 import org.pankratzlab.common.collect.TreeRangeSetMultimap;
 import org.pankratzlab.common.stats.LeastSquares;
 import org.pankratzlab.common.stats.MpermResults;
-import org.pankratzlab.common.stats.MpermResults.TestType;
-import org.pankratzlab.common.CLI;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 
 public class PermutationTest {
@@ -38,12 +36,14 @@ public class PermutationTest {
   public enum Filter {
     DELETIONS {
 
+      @Override
       public boolean include(int cn) {
         return cn < 0;
       }
     },
     DUPLICATIONS {
 
+      @Override
       public boolean include(int cn) {
         return cn > 0;
       }
@@ -53,6 +53,7 @@ public class PermutationTest {
     },
     HOMOZYGOUS_DELETION {
 
+      @Override
       public boolean include(int cn) {
         return cn == -2;
       }
@@ -149,10 +150,10 @@ public class PermutationTest {
       if (sampleSet.containsKey(id)) {
         currentSampleIndex = sampleSet.get(id);
 
-        RangeMultimap<GenomicPosition, Integer, ImmutableSet<Integer>> overlap = regions.subRangeMap(Range.closed(new GenomicPosition(cnvs[i].getChr(),
-                                                                                                                                      cnvs[i].getStart()),
-                                                                                                                  new GenomicPosition(cnvs[i].getChr(),
-                                                                                                                                      cnvs[i].getStop())));
+        RangeSetMultimap<GenomicPosition, Integer> overlap = regions.subRangeMap(Range.closed(new GenomicPosition(cnvs[i].getChr(),
+                                                                                                                  cnvs[i].getStart()),
+                                                                                              new GenomicPosition(cnvs[i].getChr(),
+                                                                                                                  cnvs[i].getStop())));
         for (Range<GenomicPosition> k : overlap.keySet()) {
           for (Integer j : overlap.get(k)) {
             cnMatrix[j][currentSampleIndex] = filter.include(cnvs[i].getCN() - 2) ? 1 : 0;
@@ -181,6 +182,7 @@ public class PermutationTest {
       List<Double> vals = new ArrayList<Double>(valueList);
       pool.execute(new Runnable() {
 
+        @Override
         public void run() {
           double bestStat = type.worst();
 
